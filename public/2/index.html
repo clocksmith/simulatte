@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Double Pendulum Simulator</title>
+    <style>
+      :root {
+        --bg-color: #ffffff;
+        --card-bg-color: #f8f8f8;
+        --text-color-dark: #1a1a1a;
+        --text-color-light: #e5e5e5;
+        --border-color: #444;
+        --border-light-color: #ddd;
+        --accent-crimson: #dc143c;
+        --accent-pink: #ff1493;
+        --accent-purple: #8a2be2;
+        --accent-cyan: #008b8b;
+        --accent-grey: #555;
+        --accent-light-grey: #ccc;
+        --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color-light);
+        font-family: var(--font-main);
+        margin: 0;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+        min-height: 100vh;
+      }
+
+      h1 {
+        color: var(--text-color-dark);
+        font-weight: 300;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        width: 90%;
+        max-width: 1200px;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .main-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        max-width: 1200px;
+        align-items: stretch;
+      }
+
+      .card {
+        background-color: var(--card-bg-color);
+        color: var(--text-color-dark);
+        border-radius: 4px;
+        padding: 20px;
+        border: 1px solid #eee;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      .card h2 {
+        margin-top: 0;
+        color: var(--text-color-dark);
+        border-bottom: 2px solid var(--border-light-color);
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        font-weight: 600;
+      }
+
+      #pendulum-canvas {
+        display: block;
+        background-color: #fff;
+        border: 1px solid var(--border-light-color);
+        cursor: grab;
+        border-radius: 4px;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+      }
+      #pendulum-canvas:active {
+        cursor: grabbing;
+      }
+
+      #visuals-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: stretch;
+      }
+
+      .visual-item {
+        background-color: #f0f0f0;
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid var(--border-light-color);
+        flex-grow: 1;
+        flex-basis: 200px;
+        display: flex;
+        flex-direction: column;
+      }
+      .visual-item.chart-item {
+        flex-basis: 400px;
+        min-height: 180px;
+      }
+
+      .visual-item h3 {
+        margin: 0 0 12px 0;
+        font-size: 1.05em;
+        color: var(--text-color-dark);
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .visual-item p {
+        margin: 5px 0;
+        font-size: 0.95em;
+        color: var(--accent-grey);
+      }
+      .visual-item small {
+        font-size: 0.8em;
+        color: var(--accent-grey);
+        display: block;
+        margin-top: 8px;
+      }
+
+      .position-visual {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 70px;
+        margin-bottom: 10px;
+        flex-grow: 1;
+      }
+
+      .pos-circle {
+        width: 60px;
+        height: 60px;
+        border: 2px solid var(--accent-light-grey);
+        border-radius: 50%;
+        position: relative;
+        background-color: #fff;
+      }
+
+      .pos-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transition: transform 0.05s linear;
+      }
+      #pos-dot-1 {
+        background-color: var(--accent-crimson);
+      }
+      #pos-dot-2 {
+        background-color: var(--accent-purple);
+      }
+
+      .data-display span {
+        font-weight: bold;
+        font-size: 1.1em;
+        min-width: 70px;
+        display: inline-block;
+        text-align: right;
+        color: var(--accent-cyan);
+        font-family: "Consolas", "Monaco", monospace;
+      }
+
+      #history-chart-canvas {
+        display: block;
+        width: 100%;
+        height: 156px;
+        background-color: #fdfdfd;
+        border: 1px solid var(--border-light-color);
+        border-radius: 4px;
+        margin-top: auto;
+      }
+
+      #controls-container fieldset {
+        border: 1px solid var(--border-light-color);
+        border-radius: 6px;
+        margin-bottom: 20px;
+        padding: 15px 20px;
+        background-color: #fafafa;
+      }
+      #controls-container legend {
+        font-weight: 600;
+        color: var(--text-color-dark);
+        padding: 0 8px;
+        font-size: 1.1em;
+      }
+
+      .control-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 15px;
+        align-items: center;
+      }
+
+      .control-grid-force {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 12px;
+      }
+
+      .control-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .control-item label {
+        font-size: 0.9em;
+        color: #333;
+        font-weight: 500;
+      }
+      .control-item input[type="number"],
+      .control-item input[type="checkbox"],
+      .control-item select {
+        padding: 9px 12px;
+        border: 1px solid var(--accent-light-grey);
+        border-radius: 4px;
+        font-size: 0.95em;
+        width: 100%;
+      }
+      .control-item input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+      }
+      .control-item output {
+        font-size: 0.9em;
+        font-weight: bold;
+        color: var(--accent-cyan);
+      }
+
+      .control-item input[type="checkbox"] {
+        width: auto;
+        height: auto;
+        margin-right: 5px;
+        align-self: flex-start;
+        margin-top: 5px;
+      }
+      .control-item.checkbox-item {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      button {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        color: white;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+      button:active {
+        transform: scale(0.97);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      button.start {
+        background-color: var(--accent-cyan);
+      }
+      button.stop {
+        background-color: var(--accent-pink);
+      }
+      button.reset {
+        background-color: var(--accent-grey);
+      }
+      button.export {
+        background-color: var(--accent-purple);
+      }
+
+      .export-container .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+
+      #export-container {
+        margin-bottom: 15px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 15px;
+        align-items: center;
+      }
+
+      #export-status {
+        margin-top: 15px;
+        font-style: italic;
+        color: var(--accent-grey);
+        min-height: 1.3em;
+        font-size: 0.9em;
+      }
+      #export-progress-container {
+        width: 100%;
+        background-color: var(--accent-light-grey);
+        border-radius: 5px;
+        overflow: hidden;
+        height: 12px;
+        margin-top: 8px;
+        display: none;
+      }
+      #export-progress-bar {
+        width: 0%;
+        height: 100%;
+        background-color: var(--accent-purple);
+        transition: width 0.2s linear;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Double Pendulum Simulator</h1>
+
+    <div class="main-container">
+      <div class="card" id="visuals-card">
+        <h2>Visualizations</h2>
+        <div id="visuals-container">
+          <div class="visual-item">
+            <h3>Node Angle</h3>
+            <div class="position-visual">
+              <div class="pos-circle" title="Theta 1 Angle (Rel. Vertical)">
+                <div id="pos-dot-1" class="pos-dot"></div>
+              </div>
+              <div class="pos-circle" title="Theta 2 Angle (Rel. Vertical)">
+                <div id="pos-dot-2" class="pos-dot"></div>
+              </div>
+            </div>
+          </div>
+          <div class="visual-item data-display">
+            <h3>Angular Velocities</h3>
+            <p>ω₁: <span id="omega1-display">0.00</span> rad/s</p>
+            <p>ω₂: <span id="omega2-display">0.00</span> rad/s</p>
+          </div>
+          <div class="visual-item data-display">
+            <h3>Chaos Indicator</h3>
+            <p>ΔE: <span id="chaos-display">0.00</span> %</p>
+            <small>Proxy: Energy StDev %</small>
+          </div>
+          <div class="visual-item chart-item">
+            <h3>History</h3>
+            <canvas id="history-chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="simulation-card">
+        <canvas id="pendulum-canvas" width="600" height="450"></canvas>
+      </div>
+
+      <div class="card" id="controls-card">
+        <h2>Controls</h2>
+        <div id="controls-container">
+          <fieldset>
+            <legend>Simulation Control</legend>
+            <div class="button-group">
+              <button id="start-button" class="start">Start</button>
+              <button id="stop-button" class="stop">Stop</button>
+              <button id="reset-button" class="reset">Reset</button>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Initial State & Parameters</legend>
+            <div class="control-grid">
+              <div class="control-item">
+                <label for="theta1-input">Theta 1 (deg)</label>
+                <input type="number" id="theta1-input" value="120" step="1" />
+              </div>
+              <div class="control-item">
+                <label for="theta2-input">Theta 2 (deg)</label>
+                <input type="number" id="theta2-input" value="-30" step="1" />
+              </div>
+              <div class="control-item">
+                <label for="length1-input">Length 1 (m)</label>
+                <input
+                  type="number"
+                  id="length1-input"
+                  value="1.0"
+                  step="0.1"
+                  min="0.1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="length2-input">Length 2 (m)</label>
+                <input
+                  type="number"
+                  id="length2-input"
+                  value="1.0"
+                  step="0.1"
+                  min="0.1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="mass1-input">Mass 1 (kg)</label>
+                <input
+                  type="number"
+                  id="mass1-input"
+                  value="1.0"
+                  step="0.1"
+                  min="0.1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="mass2-input">Mass 2 (kg)</label>
+                <input
+                  type="number"
+                  id="mass2-input"
+                  value="1.0"
+                  step="0.1"
+                  min="0.1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="gravity-input">Gravity (m/s²)</label>
+                <input
+                  type="number"
+                  id="gravity-input"
+                  value="9.81"
+                  step="0.1"
+                  min="0"
+                />
+              </div>
+              <div class="control-item">
+                <label for="damping1-input">Damping Factor 1</label>
+                <input
+                  type="number"
+                  id="damping1-input"
+                  value="0"
+                  step="0.005"
+                  min="0"
+                  max="1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="damping2-input">Damping Factor 2</label>
+                <input
+                  type="number"
+                  id="damping2-input"
+                  value="0"
+                  step="0.005"
+                  min="0"
+                  max="1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="trace1-length-input">Trace 1 Length</label>
+                <input
+                  type="number"
+                  id="trace1-length-input"
+                  value="600"
+                  step="50"
+                  min="0"
+                />
+              </div>
+              <div class="control-item">
+                <label for="trace2-length-input">Trace 2 Length</label>
+                <input
+                  type="number"
+                  id="trace2-length-input"
+                  value="600"
+                  step="50"
+                  min="0"
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Scene Forces</legend>
+            <div class="control-grid control-grid-force">
+              <div class="control-item">
+                <label for="dir-force-mag-input">Wind Mag (N)</label>
+                <input
+                  type="number"
+                  id="dir-force-mag-input"
+                  value="0"
+                  step="0.1"
+                  min="0"
+                />
+              </div>
+              <div class="control-item">
+                <label for="dir-force-angle-input">Wind Angle (deg)</label>
+                <input
+                  type="number"
+                  id="dir-force-angle-input"
+                  value="0"
+                  step="5"
+                />
+              </div>
+              <div class="control-item">
+                <label for="charge1-input">Charge 1 (q)</label>
+                <input type="number" id="charge1-input" value="0" step="0.1" />
+              </div>
+              <div class="control-item">
+                <label for="charge2-input">Charge 2 (q)</label>
+                <input type="number" id="charge2-input" value="0" step="0.1" />
+              </div>
+              <div class="control-item">
+                <label for="mag-field-input">Mag Field (Bz)</label>
+                <input
+                  type="number"
+                  id="mag-field-input"
+                  value="0"
+                  step="0.1"
+                />
+              </div>
+            </div>
+            <small
+              >Applies uniform wind force and/or Lorentz force
+              (simplified).</small
+            >
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="card" id="export-card">
+        <h2>Export Simulation Data</h2>
+        <fieldset>
+          <legend>Export Configuration</legend>
+          <div id="export-container">
+            <div class="control-grid">
+              <div class="control-item">
+                <label for="export-rate-input">Sample Rate (Hz)</label>
+                <input
+                  type="number"
+                  id="export-rate-input"
+                  value="100"
+                  min="1"
+                  max="10000"
+                />
+              </div>
+              <div class="control-item">
+                <label for="export-duration-input">Duration</label>
+                <input
+                  type="number"
+                  id="export-duration-input"
+                  value="10"
+                  min="1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="export-duration-unit-input">Time Unit</label>
+                <select id="export-duration-unit-input">
+                  <option value="1">Seconds</option>
+                  <option value="60">Minutes</option>
+                  <option value="3600">Hours</option>
+                  <option value="86400">Days</option>
+                </select>
+              </div>
+            </div>
+            <div class="button-group">
+              <button id="export-button" class="export">
+                Export Data (CSV)
+              </button>
+            </div>
+            <div id="export-status"></div>
+            <div id="export-progress-container">
+              <div id="export-progress-bar"></div>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("pendulum-canvas");
+      const ctx = canvas.getContext("2d");
+      const historyChartCanvas = document.getElementById(
+        "history-chart-canvas"
+      );
+      const chartCtx = historyChartCanvas.getContext("2d");
+
+      const startButton = document.getElementById("start-button");
+      const stopButton = document.getElementById("stop-button");
+      const resetButton = document.getElementById("reset-button");
+      const theta1Input = document.getElementById("theta1-input");
+      const theta2Input = document.getElementById("theta2-input");
+      const length1Input = document.getElementById("length1-input");
+      const length2Input = document.getElementById("length2-input");
+      const gravityInput = document.getElementById("gravity-input");
+      const mass1Input = document.getElementById("mass1-input");
+      const mass2Input = document.getElementById("mass2-input");
+      const damping1Input = document.getElementById("damping1-input");
+      const damping2Input = document.getElementById("damping2-input");
+      const trace1LengthInput = document.getElementById("trace1-length-input");
+      const trace2LengthInput = document.getElementById("trace2-length-input");
+      const dirForceMagInput = document.getElementById("dir-force-mag-input");
+      const dirForceAngleInput = document.getElementById(
+        "dir-force-angle-input"
+      );
+      const charge1Input = document.getElementById("charge1-input");
+      const charge2Input = document.getElementById("charge2-input");
+      const magFieldInput = document.getElementById("mag-field-input");
+
+      const omega1Display = document.getElementById("omega1-display");
+      const omega2Display = document.getElementById("omega2-display");
+      const chaosDisplay = document.getElementById("chaos-display");
+      const posDot1 = document.getElementById("pos-dot-1");
+      const posDot2 = document.getElementById("pos-dot-2");
+
+      const exportButton = document.getElementById("export-button");
+      const exportRateInput = document.getElementById("export-rate-input");
+      const exportDurationInput = document.getElementById(
+        "export-duration-input"
+      );
+      const exportDurationUnitInput = document.getElementById(
+        "export-duration-unit-input"
+      );
+      const exportStatus = document.getElementById("export-status");
+      const exportProgressContainer = document.getElementById(
+        "export-progress-container"
+      );
+      const exportProgressBar = document.getElementById("export-progress-bar");
+
+      let g = 9.81;
+      let L1 = 1.0;
+      let L2 = 1.0;
+      let m1 = 1.0;
+      let m2 = 1.0;
+      let damping1 = 0;
+      let damping2 = 0;
+      let trace1MaxLength = 600;
+      let trace2MaxLength = 600;
+      let dirForceMag = 0;
+      let dirForceAngleRad = 0;
+      let q1 = 0;
+      let q2 = 0;
+      let Bz = 0;
+
+      let theta1 = (120 * Math.PI) / 180;
+      let theta2 = (-30 * Math.PI) / 180;
+      let omega1 = 0;
+      let omega2 = 0;
+
+      let t = 0;
+      const dt = 1 / 120;
+      let PIXELS_PER_METER = 100;
+
+      let isRunning = false;
+      let animationFrameId = null;
+      let isDraggingM1 = false;
+      let isDraggingM2 = false;
+
+      let originX, originY;
+
+      let trace1 = [];
+      let trace2 = [];
+
+      let energyHistory = [];
+      const ENERGY_HISTORY_LENGTH = 120;
+
+      let colorBob1,
+        colorBob2,
+        colorTrace1,
+        colorTrace2,
+        colorRod,
+        colorPivot,
+        colorChaos,
+        colorOmega1,
+        colorOmega2,
+        colorChartBg,
+        colorChartGrid;
+
+      const HISTORY_LENGTH = 200;
+      let omega1History = [];
+      let omega2History = [];
+      let chaosHistory = [];
+
+      function getCssVariable(varName) {
+        return getComputedStyle(document.documentElement)
+          .getPropertyValue(varName)
+          .trim();
+      }
+
+      function loadColors() {
+        colorBob1 = getCssVariable("--accent-crimson");
+        colorBob2 = getCssVariable("--accent-purple");
+        colorTrace1 = `${colorBob1}99`;
+        colorTrace2 = `${colorBob2}99`;
+        colorRod = getCssVariable("--accent-grey");
+        colorPivot = getCssVariable("--text-color-dark");
+        colorChaos = getCssVariable("--accent-cyan");
+        colorOmega1 = colorBob1;
+        colorOmega2 = colorBob2;
+        colorChartBg = "#fdfdfd";
+        colorChartGrid = getCssVariable("--accent-light-grey");
+
+        omega1Display.style.color = colorOmega1;
+        omega2Display.style.color = colorOmega2;
+        chaosDisplay.style.color = colorChaos;
+      }
+
+      function calculateAccelerations(
+        th1,
+        th2,
+        om1,
+        om2,
+        damp1,
+        damp2,
+        fMag,
+        fAng,
+        charge1,
+        charge2,
+        magBz,
+        len1,
+        len2,
+        mass1,
+        mass2,
+        grav
+      ) {
+        const s1 = Math.sin(th1);
+        const c1 = Math.cos(th1);
+        const s2 = Math.sin(th2);
+        const c2 = Math.cos(th2);
+        const dth = th1 - th2;
+        const s_dth = Math.sin(dth);
+        const c_dth = Math.cos(dth);
+
+        const m12 = mass1 + mass2;
+
+        const den_common = 2 * mass1 + mass2 - mass2 * Math.cos(2 * dth);
+        const epsilon = 1e-9;
+
+        if (
+          Math.abs(len1 * den_common) < epsilon ||
+          Math.abs(len2 * den_common) < epsilon
+        ) {
+          console.warn("Denominator near zero, returning zero acceleration.");
+          return { alpha1: 0, alpha2: 0 };
+        }
+
+        const den1 = len1 * den_common;
+        const den2 = len2 * den_common;
+
+        let alpha1_num = -grav * (2 * mass1 + mass2) * s1;
+        alpha1_num -= mass2 * grav * Math.sin(th1 - 2 * th2);
+        alpha1_num -=
+          2 * s_dth * mass2 * (om2 * om2 * len2 + om1 * om1 * len1 * c_dth);
+
+        let alpha2_num = 2 * s_dth;
+        alpha2_num *=
+          om1 * om1 * len1 * m12 +
+          grav * m12 * c1 +
+          om2 * om2 * len2 * mass2 * c_dth;
+
+        let alpha1 = alpha1_num / den1;
+        let alpha2 = alpha2_num / den2;
+
+        let torque1_ext = 0;
+        let torque2_ext = 0;
+
+        if (fMag > epsilon) {
+          const F_wind_x = fMag * Math.cos(fAng);
+          const F_wind_y = fMag * Math.sin(fAng);
+          const x1_pos = len1 * s1;
+          const y1_pos = len1 * c1;
+          const x2_pos = x1_pos + len2 * s2;
+          const y2_pos = y1_pos + len2 * c2;
+
+          torque1_ext += x1_pos * F_wind_y - y1_pos * F_wind_x;
+          torque2_ext +=
+            (x2_pos - x1_pos) * F_wind_y - (y2_pos - y1_pos) * F_wind_x;
+        }
+
+        if (
+          Math.abs(magBz) > epsilon &&
+          (Math.abs(charge1) > epsilon || Math.abs(charge2) > epsilon)
+        ) {
+          const vx1 = len1 * c1 * om1;
+          const vy1 = -len1 * s1 * om1;
+          const vx2 = len1 * c1 * om1 + len2 * c2 * om2;
+          const vy2 = -len1 * s1 * om1 - len2 * s2 * om2;
+
+          const F1x_mag = charge1 * vy1 * magBz;
+          const F1y_mag = -charge1 * vx1 * magBz;
+          const F2x_mag = charge2 * vy2 * magBz;
+          const F2y_mag = -charge2 * vx2 * magBz;
+
+          const x1_pos = len1 * s1;
+          const y1_pos = len1 * c1;
+          const x2_rel_x = len2 * s2;
+          const y2_rel_y = len2 * c2;
+
+          torque1_ext +=
+            x1_pos * F1y_mag -
+            y1_pos * F1x_mag +
+            (x1_pos * F2y_mag - y1_pos * F2x_mag);
+          torque2_ext += x2_rel_x * F2y_mag - y2_rel_y * F2x_mag;
+        }
+
+        if (
+          Math.abs(torque1_ext) > epsilon ||
+          Math.abs(torque2_ext) > epsilon
+        ) {
+          const M11 = len1 * len1 * m12;
+          const M12 = len1 * len2 * mass2 * c_dth;
+          const M21 = M12;
+          const M22 = len2 * len2 * mass2;
+          const detM = M11 * M22 - M12 * M21;
+
+          if (Math.abs(detM) > epsilon) {
+            const invM11 = M22 / detM;
+            const invM12 = -M12 / detM;
+            const invM21 = -M21 / detM;
+            const invM22 = M11 / detM;
+
+            alpha1 += invM11 * torque1_ext + invM12 * torque2_ext;
+            alpha2 += invM21 * torque1_ext + invM22 * torque2_ext;
+          } else {
+            console.warn(
+              "Mass matrix determinant near zero, external torques not applied robustly."
+            );
+          }
+        }
+
+        alpha1 -= damp1 * om1;
+        alpha2 -= damp2 * om2;
+
+        return { alpha1, alpha2 };
+      }
+
+      function updatePhysics() {
+        const { alpha1, alpha2 } = calculateAccelerations(
+          theta1,
+          theta2,
+          omega1,
+          omega2,
+          damping1,
+          damping2,
+          dirForceMag,
+          dirForceAngleRad,
+          q1,
+          q2,
+          Bz,
+          L1,
+          L2,
+          m1,
+          m2,
+          g
+        );
+        omega1 += alpha1 * dt;
+        omega2 += alpha2 * dt;
+        theta1 += omega1 * dt;
+        theta2 += omega2 * dt;
+        t += dt;
+
+        updateHistory();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const L1_px = L1 * PIXELS_PER_METER;
+        const L2_px = L2 * PIXELS_PER_METER;
+
+        const s1 = Math.sin(theta1);
+        const c1 = Math.cos(theta1);
+        const s2 = Math.sin(theta2);
+        const c2 = Math.cos(theta2);
+
+        const x1_rel = L1_px * s1;
+        const y1_rel = L1_px * c1;
+        const x2_rel = x1_rel + L2_px * s2;
+        const y2_rel = y1_rel + L2_px * c2;
+
+        const x1 = originX + x1_rel;
+        const y1 = originY + y1_rel;
+        const x2 = originX + x2_rel;
+        const y2 = originY + y2_rel;
+
+        if (isRunning || isDraggingM1 || isDraggingM2) {
+          trace1.push({ x: x1, y: y1 });
+          trace2.push({ x: x2, y: y2 });
+          if (trace1.length > trace1MaxLength) trace1.shift();
+          if (trace2.length > trace2MaxLength) trace2.shift();
+        }
+
+        drawTrace(trace1, colorTrace1);
+        drawTrace(trace2, colorTrace2);
+        drawRod(originX, originY, x1, y1);
+        drawRod(x1, y1, x2, y2);
+        drawPivot(originX, originY);
+        drawBob(x1, y1, m1, colorBob1);
+        drawBob(x2, y2, m2, colorBob2);
+
+        updateVisualsPanel();
+        drawHistoryChart();
+      }
+
+      function drawTrace(trace, color) {
+        if (trace.length < 2) return;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(trace[0].x, trace[0].y);
+        for (let i = 1; i < trace.length; i++)
+          ctx.lineTo(trace[i].x, trace[i].y);
+        ctx.stroke();
+      }
+
+      function drawRod(xStart, yStart, xEnd, yEnd) {
+        ctx.strokeStyle = colorRod;
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(xStart, yStart);
+        ctx.lineTo(xEnd, yEnd);
+        ctx.stroke();
+      }
+
+      function drawPivot(x, y) {
+        ctx.fillStyle = colorPivot;
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      function drawBob(x, y, mass, color) {
+        const radius = 6 + Math.sqrt(Math.max(0.1, mass)) * 5;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,0.2)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      function updateHistory() {
+        if (!isRunning) return;
+        omega1History.push(omega1);
+        omega2History.push(omega2);
+        chaosHistory.push(calculateChaosMetric());
+
+        if (omega1History.length > HISTORY_LENGTH) omega1History.shift();
+        if (omega2History.length > HISTORY_LENGTH) omega2History.shift();
+        if (chaosHistory.length > HISTORY_LENGTH) chaosHistory.shift();
+      }
+
+      function calculateChaosMetric() {
+        if (energyHistory.length > 10 && !isDraggingM1 && !isDraggingM2) {
+          const meanEnergy =
+            energyHistory.reduce((sum, e) => sum + e, 0) / energyHistory.length;
+          const variance =
+            energyHistory.reduce((sum, e) => sum + (e - meanEnergy) ** 2, 0) /
+            energyHistory.length;
+          const stDev = Math.sqrt(variance);
+          return Math.abs(meanEnergy) > 1e-6
+            ? (stDev / Math.abs(meanEnergy)) * 100
+            : 0;
+        }
+        return 0;
+      }
+
+      function updateVisualsPanel() {
+        const circleRadius = 30;
+        const dotRadius = 5;
+        const angleVizRadius = circleRadius - dotRadius;
+
+        const angle1X = Math.sin(theta1);
+        const angle1Y = -Math.cos(theta1);
+        posDot1.style.transform = `translate(calc(-50% + ${
+          angle1X * angleVizRadius
+        }px), calc(-50% + ${angle1Y * angleVizRadius}px))`;
+
+        const angle2X = Math.sin(theta2);
+        const angle2Y = -Math.cos(theta2);
+        posDot2.style.transform = `translate(calc(-50% + ${
+          angle2X * angleVizRadius
+        }px), calc(-50% + ${angle2Y * angleVizRadius}px))`;
+
+        omega1Display.textContent = omega1.toFixed(2);
+        omega2Display.textContent = omega2.toFixed(2);
+
+        const c1 = Math.cos(theta1);
+        const c2 = Math.cos(theta2);
+        const c12 = Math.cos(theta1 - theta2);
+
+        const KE =
+          0.5 * m1 * L1 ** 2 * omega1 ** 2 +
+          0.5 *
+            m2 *
+            (L1 ** 2 * omega1 ** 2 +
+              L2 ** 2 * omega2 ** 2 +
+              2 * L1 * L2 * omega1 * omega2 * c12);
+        const PE = -(m1 + m2) * g * L1 * c1 - m2 * g * L2 * c2;
+        const totalEnergy = KE + PE;
+
+        energyHistory.push(totalEnergy);
+        if (energyHistory.length > ENERGY_HISTORY_LENGTH) energyHistory.shift();
+
+        const chaosValue = calculateChaosMetric();
+        chaosDisplay.textContent =
+          isDraggingM1 || isDraggingM2 ? "N/A" : chaosValue.toFixed(2);
+      }
+
+      function drawHistoryChart() {
+        const w = historyChartCanvas.width;
+        const h = historyChartCanvas.height;
+        chartCtx.fillStyle = colorChartBg;
+        chartCtx.fillRect(0, 0, w, h);
+
+        chartCtx.strokeStyle = colorChartGrid;
+        chartCtx.lineWidth = 0.5;
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, h / 2);
+        chartCtx.lineTo(w, h / 2);
+        chartCtx.stroke();
+
+        const maxOmegaAbs = Math.max(
+          5,
+          ...omega1History.map(Math.abs),
+          ...omega2History.map(Math.abs)
+        );
+        const maxChaosAbs = Math.max(1, ...chaosHistory.map(Math.abs));
+
+        const scaleOmega = h / 2 / (maxOmegaAbs + 1e-6);
+        const scaleChaos = h / 2 / (maxChaosAbs + 1e-6);
+
+        plotHistory(omega1History, colorOmega1, scaleOmega, h / 2);
+        plotHistory(omega2History, colorOmega2, scaleOmega, h / 2);
+        plotHistory(chaosHistory, colorChaos, scaleChaos, h * 0.9);
+      }
+
+      function plotHistory(history, color, yScale, yOffset) {
+        if (history.length < 2) return;
+        const w = historyChartCanvas.width;
+        const stepX = w / (HISTORY_LENGTH - 1);
+
+        chartCtx.strokeStyle = color;
+        chartCtx.lineWidth = 1.5;
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, yOffset - history[0] * yScale);
+
+        for (let i = 1; i < history.length; i++) {
+          chartCtx.lineTo(i * stepX, yOffset - history[i] * yScale);
+        }
+        chartCtx.stroke();
+      }
+
+      function gameLoop() {
+        if (isRunning) {
+          updatePhysics();
+        }
+        draw();
+        animationFrameId = requestAnimationFrame(gameLoop);
+      }
+
+      function startSimulation() {
+        if (!isRunning) {
+          isRunning = true;
+          startButton.disabled = true;
+          stopButton.disabled = false;
+          if (!animationFrameId) gameLoop();
+        }
+      }
+
+      function stopSimulation() {
+        if (isRunning) {
+          isRunning = false;
+          startButton.disabled = false;
+          stopButton.disabled = true;
+        }
+      }
+
+      function resetSimulation() {
+        stopSimulation();
+
+        theta1 = (parseFloat(theta1Input.value) * Math.PI) / 180;
+        theta2 = (parseFloat(theta2Input.value) * Math.PI) / 180;
+        L1 = Math.max(0.1, parseFloat(length1Input.value));
+        L2 = Math.max(0.1, parseFloat(length2Input.value));
+        g = Math.max(0, parseFloat(gravityInput.value));
+        m1 = Math.max(0.1, parseFloat(mass1Input.value));
+        m2 = Math.max(0.1, parseFloat(mass2Input.value));
+        damping1 = Math.max(0, parseFloat(damping1Input.value));
+        damping2 = Math.max(0, parseFloat(damping2Input.value));
+        trace1MaxLength = Math.max(0, parseInt(trace1LengthInput.value, 10));
+        trace2MaxLength = Math.max(0, parseInt(trace2LengthInput.value, 10));
+        dirForceMag = Math.max(0, parseFloat(dirForceMagInput.value));
+        dirForceAngleRad =
+          (parseFloat(dirForceAngleInput.value) * Math.PI) / 180;
+        q1 = parseFloat(charge1Input.value);
+        q2 = parseFloat(charge2Input.value);
+        Bz = parseFloat(magFieldInput.value);
+
+        omega1 = 0;
+        omega2 = 0;
+        t = 0;
+        trace1 = [];
+        trace2 = [];
+        energyHistory = [];
+        omega1History = [];
+        omega2History = [];
+        chaosHistory = [];
+
+        startButton.disabled = false;
+        stopButton.disabled = true;
+
+        resizeCanvas();
+        draw();
+
+        omega1Display.textContent = "0.00";
+        omega2Display.textContent = "0.00";
+        chaosDisplay.textContent = "0.00";
+        posDot1.style.transform = `translate(-50%, -50%)`;
+        posDot2.style.transform = `translate(-50%, -50%)`;
+
+        exportStatus.textContent = "";
+        exportProgressContainer.style.display = "none";
+        exportProgressBar.style.width = "0%";
+      }
+
+      function getMousePos(canvasEl, evt) {
+        const rect = canvasEl.getBoundingClientRect();
+        return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+      }
+
+      function handleMouseDown(e) {
+        const mousePos = getMousePos(canvas, e);
+        const L1_px = L1 * PIXELS_PER_METER;
+        const L2_px = L2 * PIXELS_PER_METER;
+        const s1 = Math.sin(theta1);
+        const c1 = Math.cos(theta1);
+        const s2 = Math.sin(theta2);
+        const c2 = Math.cos(theta2);
+        const x1 = originX + L1_px * s1;
+        const y1 = originY + L1_px * c1;
+        const x2 = originX + L1_px * s1 + L2_px * s2;
+        const y2 = originY + L1_px * c1 + L2_px * c2;
+
+        const grabRadius1 = 6 + Math.sqrt(m1) * 5 + 10;
+        const grabRadius2 = 6 + Math.sqrt(m2) * 5 + 10;
+
+        const distToM1 = Math.hypot(mousePos.x - x1, mousePos.y - y1);
+        const distToM2 = Math.hypot(mousePos.x - x2, mousePos.y - y2);
+
+        if (distToM2 < grabRadius2) {
+          isDraggingM2 = true;
+          isDraggingM1 = false;
+          stopSimulation();
+          canvas.style.cursor = "grabbing";
+          energyHistory = [];
+        } else if (distToM1 < grabRadius1) {
+          isDraggingM1 = true;
+          isDraggingM2 = false;
+          stopSimulation();
+          canvas.style.cursor = "grabbing";
+          energyHistory = [];
+        }
+      }
+
+      function handleMouseMove(e) {
+        if (!isDraggingM1 && !isDraggingM2) return;
+        const mousePos = getMousePos(canvas, e);
+
+        if (isDraggingM1) {
+          const dx = mousePos.x - originX;
+          const dy = mousePos.y - originY;
+          theta1 = Math.atan2(dx, dy);
+          omega1 = 0;
+          omega2 = 0;
+        } else if (isDraggingM2) {
+          const L1_px = L1 * PIXELS_PER_METER;
+          const x1 = originX + L1_px * Math.sin(theta1);
+          const y1 = originY + L1_px * Math.cos(theta1);
+          const dx = mousePos.x - x1;
+          const dy = mousePos.y - y1;
+          theta2 = Math.atan2(dx, dy);
+          omega1 = 0;
+          omega2 = 0;
+        }
+        if (isDraggingM1 || isDraggingM2) {
+          draw();
+        }
+      }
+
+      function handleMouseUpOrLeave() {
+        if (isDraggingM1 || isDraggingM2) {
+          isDraggingM1 = false;
+          isDraggingM2 = false;
+          canvas.style.cursor = "grab";
+          startButton.disabled = false;
+          stopButton.disabled = true;
+          theta1Input.value = ((theta1 * 180) / Math.PI).toFixed(1);
+          theta2Input.value = ((theta2 * 180) / Math.PI).toFixed(1);
+        }
+      }
+
+      async function exportData() {
+        stopSimulation();
+        exportButton.disabled = true;
+        resetButton.disabled = true;
+        exportStatus.textContent = "Initializing export...";
+        exportProgressContainer.style.display = "block";
+        exportProgressBar.style.width = "0%";
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        const sampleRate = parseFloat(exportRateInput.value);
+        const durationValue = parseFloat(exportDurationInput.value);
+        const durationUnit = parseFloat(exportDurationUnitInput.value);
+        const totalDurationSeconds = durationValue * durationUnit;
+        const exportDt = 1 / sampleRate;
+        const numSteps = Math.max(
+          1,
+          Math.ceil(totalDurationSeconds * sampleRate)
+        );
+        const internalStepsPerExportStep = Math.max(
+          1,
+          Math.round(exportDt / dt)
+        );
+        const actualExportDt = internalStepsPerExportStep * dt;
+
+        if (
+          isNaN(sampleRate) ||
+          sampleRate <= 0 ||
+          isNaN(totalDurationSeconds) ||
+          totalDurationSeconds <= 0
+        ) {
+          exportStatus.textContent = "Error: Invalid export parameters.";
+          exportButton.disabled = false;
+          resetButton.disabled = false;
+          exportProgressContainer.style.display = "none";
+          return;
+        }
+        if (totalDurationSeconds > 86400 * 10 || numSteps > 5_000_000) {
+          exportStatus.textContent = "Error: Export duration/rate too large.";
+          exportButton.disabled = false;
+          resetButton.disabled = false;
+          exportProgressContainer.style.display = "none";
+          return;
+        }
+
+        exportStatus.textContent = `Simulating ${totalDurationSeconds.toFixed(
+          1
+        )}s (${numSteps} samples)...`;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        let exp_t = 0;
+        let exp_th1 = theta1;
+        let exp_th2 = theta2;
+        let exp_om1 = omega1;
+        let exp_om2 = omega2;
+
+        const current_L1 = L1;
+        const current_L2 = L2;
+        const current_g = g;
+        const current_m1 = m1;
+        const current_m2 = m2;
+        const current_damping1 = damping1;
+        const current_damping2 = damping2;
+        const current_dirForceMag = dirForceMag;
+        const current_dirForceAngleRad = dirForceAngleRad;
+        const current_q1 = q1;
+        const current_q2 = q2;
+        const current_Bz = Bz;
+
+        let csvContent =
+          "Time (s),Theta1 (rad),Theta2 (rad),Omega1 (rad/s),Omega2 (rad/s),x1 (m),y1 (m),x2 (m),y2 (m)\n";
+        const stepsPerProgressUpdate = Math.max(10, Math.floor(numSteps / 200));
+
+        for (let i = 0; i <= numSteps; i++) {
+          const s1 = Math.sin(exp_th1);
+          const c1 = Math.cos(exp_th1);
+          const s2 = Math.sin(exp_th2);
+          const c2 = Math.cos(exp_th2);
+          const x1_m = current_L1 * s1;
+          const y1_m = current_L1 * c1;
+          const x2_m = x1_m + current_L2 * s2;
+          const y2_m = y1_m + current_L2 * c2;
+
+          csvContent += `${exp_t.toFixed(6)},${exp_th1.toFixed(
+            8
+          )},${exp_th2.toFixed(8)},${exp_om1.toFixed(8)},${exp_om2.toFixed(
+            8
+          )},${x1_m.toFixed(8)},${y1_m.toFixed(8)},${x2_m.toFixed(
+            8
+          )},${y2_m.toFixed(8)}\n`;
+          if (i === numSteps) break;
+
+          for (let k = 0; k < internalStepsPerExportStep; k++) {
+            const { alpha1, alpha2 } = calculateAccelerations(
+              exp_th1,
+              exp_th2,
+              exp_om1,
+              exp_om2,
+              current_damping1,
+              current_damping2,
+              current_dirForceMag,
+              current_dirForceAngleRad,
+              current_q1,
+              current_q2,
+              current_Bz,
+              current_L1,
+              current_L2,
+              current_m1,
+              current_m2,
+              current_g
+            );
+            exp_om1 += alpha1 * dt;
+            exp_om2 += alpha2 * dt;
+            exp_th1 += exp_om1 * dt;
+            exp_th2 += exp_om2 * dt;
+          }
+          exp_t += actualExportDt;
+
+          if (i % stepsPerProgressUpdate === 0 || i === numSteps - 1) {
+            const progress = (i / numSteps) * 100;
+            exportProgressBar.style.width = `${progress}%`;
+            exportStatus.textContent = `Simulating... (${progress.toFixed(
+              1
+            )}%)`;
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+        }
+
+        exportStatus.textContent = "Generating CSV file...";
+        exportProgressBar.style.width = `100%`;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        try {
+          const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          link.setAttribute(
+            "download",
+            `double_pendulum_data_${timestamp}.csv`
+          );
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          exportStatus.textContent = `Export complete (${
+            numSteps + 1
+          } data points).`;
+        } catch (error) {
+          console.error("Export failed:", error);
+          exportStatus.textContent =
+            "Error: Failed to generate or download file.";
+        } finally {
+          exportButton.disabled = false;
+          resetButton.disabled = false;
+        }
+      }
+
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        if (!container) return;
+        const computedStyle = getComputedStyle(container);
+        const availableWidth =
+          container.clientWidth -
+          parseFloat(computedStyle.paddingLeft) -
+          parseFloat(computedStyle.paddingRight);
+        const aspectRatio = 4 / 3;
+        const height = availableWidth / aspectRatio;
+
+        canvas.width = availableWidth;
+        canvas.height = height;
+
+        const chartContainer = historyChartCanvas.parentElement;
+        if (chartContainer) {
+          historyChartCanvas.width =
+            chartContainer.clientWidth -
+            parseFloat(getComputedStyle(chartContainer).paddingLeft) -
+            parseFloat(getComputedStyle(chartContainer).paddingRight);
+          historyChartCanvas.height = 156;
+        }
+
+        const maxExtent = L1 + L2;
+        const paddingFactor = 1.1;
+        const scaleX = canvas.width / (maxExtent * 2 * paddingFactor);
+        const scaleY = canvas.height / (maxExtent * 2 * paddingFactor);
+
+        PIXELS_PER_METER = Math.max(10, Math.min(scaleX, scaleY));
+        if (L1 + L2 === 0) PIXELS_PER_METER = 50;
+
+        originX = canvas.width / 2;
+        originY = canvas.height / 2;
+
+        if (!isRunning && !isDraggingM1 && !isDraggingM2) draw();
+      }
+
+      function initialize() {
+        loadColors();
+        resetButton.addEventListener("click", resetSimulation);
+        startButton.addEventListener("click", startSimulation);
+        stopButton.addEventListener("click", stopSimulation);
+        exportButton.addEventListener("click", exportData);
+
+        [
+          theta1Input,
+          theta2Input,
+          length1Input,
+          length2Input,
+          gravityInput,
+          mass1Input,
+          mass2Input,
+          damping1Input,
+          damping2Input,
+          trace1LengthInput,
+          trace2LengthInput,
+          dirForceMagInput,
+          dirForceAngleInput,
+          charge1Input,
+          charge2Input,
+          magFieldInput,
+        ].forEach((input) => {
+          input.addEventListener("change", () => {
+            if (!isRunning) resetSimulation();
+          });
+        });
+
+        canvas.addEventListener("mousedown", handleMouseDown);
+        canvas.addEventListener("mousemove", handleMouseMove);
+        canvas.addEventListener("mouseup", handleMouseUpOrLeave);
+        canvas.addEventListener("mouseleave", handleMouseUpOrLeave);
+
+        window.addEventListener("resize", resizeCanvas);
+
+        resetSimulation();
+        stopSimulation();
+        gameLoop();
+      }
+
+      document.addEventListener("DOMContentLoaded", initialize);
+    </script>
+  </body>
+</html>
