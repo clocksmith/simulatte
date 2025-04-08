@@ -1,0 +1,66 @@
+[
+  {
+    "name": "code_linter",
+    "description": "Analyzes code snippet syntax.",
+    "params": {
+      "type": "OBJECT",
+      "properties": {
+        "code": { "type": "STRING" },
+        "language": {
+          "type": "STRING",
+          "enum": ["javascript", "css", "html", "json"]
+        }
+      },
+      "required": ["code", "language"]
+    }
+  },
+  {
+    "name": "json_validator",
+    "description": "Validates JSON string structure.",
+    "params": {
+      "type": "OBJECT",
+      "properties": { "json_string": { "type": "STRING" } },
+      "required": ["json_string"]
+    }
+  },
+  {
+    "name": "diagram_schema_validator",
+    "description": "Validates diagram JSON schema.",
+    "params": {
+      "type": "OBJECT",
+      "properties": { "diagram_json": { "type": "OBJECT" } },
+      "required": ["diagram_json"]
+    }
+  },
+  {
+    "name": "svg_diagram_renderer",
+    "description": "Generates SVG markup string for diagram JSON.",
+    "params": {
+      "type": "OBJECT",
+      "properties": { "diagram_json": { "type": "OBJECT" } },
+      "required": ["diagram_json"]
+    }
+  },
+  {
+    "name": "token_counter",
+    "description": "Estimates token count for text.",
+    "params": {
+      "type": "OBJECT",
+      "properties": { "text": { "type": "STRING" } },
+      "required": ["text"]
+    }
+  },
+  {
+    "name": "self_correction",
+    "description": "Attempts self-correction based on error.",
+    "params": {
+      "type": "OBJECT",
+      "properties": {
+        "failed_task_description": { "type": "STRING" },
+        "error_message": { "type": "STRING" },
+        "previous_goal": { "type": "OBJECT" }
+      },
+      "required": ["failed_task_description", "error_message", "previous_goal"]
+    }
+  }
+]

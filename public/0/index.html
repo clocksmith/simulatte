@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head id="boot-head">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REPLOID x0 v0</title>
+
+    <style id="boot-style">
+      body {
+        font-family: monospace;
+        background-color: black;
+        color: white;
+        margin: 16px;
+      }
+      .hidden {
+        display: none !important;
+      }
+      #loading-indicator {
+        font-size: 1.5em;
+        text-align: center;
+        margin-top: 50px;
+      }
+      #notifications-container {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .notification {
+        padding: 12px;
+        border-radius: 4px;
+        color: black;
+        font-size: 0.8em;
+        margin-left: 8px;
+        word-wrap: break-word;
+      }
+      .notification.info {
+        background-color: #d0ffd0;
+        border-left-color: #448844;
+      }
+      .notification.warn {
+        background-color: #f4f4c4;
+        border-left-color: #d16d00;
+      }
+      .notification.error {
+        background-color: #ffcece;
+        border-left-color: #d32d16;
+      }
+      .notification button {
+        float: right;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1.2em;
+        line-height: 1;
+        margin-left: 12px;
+        padding: 0;
+      }
+      .notification button:hover {
+        background-color: white;
+      }
+    </style>
+
+    <script id="boot-script">
+      const MAX_ART_TKN_SZ = 65000;
+      const LS_PREFIX = "_x0_";
+
+      const idPrefix = crypto.randomUUID();
+
+      // All Artifact IDs
+      const aai = {};
+
+      // TODO: move some of this from boot to core.
+      // TODO: boot head contains style and script, resolve.
+      // TODO: should wipe and reboot with idPrefix?
+      const bai = {};
+      bai.bootHeadId = `${idPrefix}.boot.head`;
+      bai.bootStyleId = `${idPrefix}.boot.style`;
+      bai.bootScriptId = `${idPrefix}.boot.script`; // this
+      bai.bootBodyId = `${idPrefix}.boot.body`;
+
+      // Core Artifact IDs (for Local Storage)
+      const cai = {};
+      cai.coreCycleStepsId = `${idPrefix}.core.cycle-steps`;
+      cai.coreArtscoreStyleId = `${idPrefix}.core.style`;
+      cai.coreBodyId = `${idPrefix}.core.body`;
+      cai.coreScriptId = `${idPrefix}.core.script`;
+      cai.coreReploidPromptId = `${idPrefix}.core.prompt.reploid`;
+      cai.coreCritquerPromptId = `${idPrefix}.core.prompt.critquer`;
+      cai.coreSummarizerPromptId = `${idPrefix}.core.prompt.summarizer`;
+      cai.coreDiagramJsonId = `${idPrefix}.core.diagram-json`;
+      cai.coreDiagramRendererId = `${idPrefix}.core.diagram-renderer`;
+
+      an(`REPLOID x0 v0`);
+      ul(`REPLOID x0 v0}`);
+
+
+      function saveCA() {
+        ul("Setting Genisis Artifacts (Cycle 0)...");
+        saveArtifacts(0);
+      }
+
+      function loadCA() {
+        const cc = {};
+        const missingArts = [];
+        for (const k of Object.keys(ca)) {
+          try {
+            cc[k.replace("Id", "Content")] = artGet(lsKey(ca[k], 0));
+          } catch (e) {
+            missingArts.push(ca[k]);
+          }
+        }
+        if (missingArts.length > 0) {
+          const errStr = errors.join(", ");
+          ul("Error: Could not load artifacts: " + errStr);
+          return;
+        }
+        try {
+          const styleElement = $id("core-style");
+          if (styleElement) styleElement.textContent = coreStyleContent;
+
+          const appRoot = $id("app-root");
+          if (appRoot) appRoot.innerHTML = coreBodyContent;
+
+          console.log("Executing core script from localStorage...");
+          const scriptElement = document.createElement("script");
+          scriptElement.type = "module";
+          scriptElement.textContent = coreScriptContent;
+          document.body.appendChild(scriptElement);
+
+          loadingIndicator.classList.add("hidden");
+          if (appRoot) {
+            appRoot.classList.remove("hidden");
+            appRoot.style.visibility = "visible";
+          }
+        } catch (e) {
+          ul("Error initializing REPLOID: " + e.message);
+          an(`Error initializing REPLOID: ${e.message}`, e);
+          const appRoot = $;
+          if (appRoot) appRoot.style.visibility = "visible";
+        }
+      }
+    </script>
+    <script defer>
+      bootstrap();
+    </script>
+  </head>
+
+  <body id="boot-body">
+    <div id="loading-indicator">Loading Model CPS-9204...</div>
+    <div id="notifications-container"></div>
+    <div id="app-root" class="hidden"></div>
+  </body>
+</html>
