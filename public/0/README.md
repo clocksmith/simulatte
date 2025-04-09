@@ -22,7 +22,7 @@ This is a self-contained HTML/CSS/JS application demonstrating a conceptual fram
       // File: config.js
       export const APP_CONFIG = {
         API_KEY: "<YOUR_API_KEY>",
-        BASE_GEMINI_MODEL: "models/gemini-1.5-flash-latest", // Or another compatible model
+        BASE_GEMINI_MODEL: "gemini-2.5-pro-exp-03-25", // Or another compatible model
       };
       ```
     - **Option B:** Paste your API key directly into the "API Key" field in the UI.
