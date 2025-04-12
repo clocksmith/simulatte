@@ -76,3 +76,21 @@ This approach ensures that the application state, including all generated code a
 - Dynamic tool execution uses Web Workers for sandboxing, improving security over `new Function()`, but complex/malicious worker code could still potentially cause issues.
 - Error handling and retry logic are basic.
 - API costs are not tracked.
+
+## NOTES
+
+!!!!!!!IMPOORTANT!!!!!!!!!!!!
+
+TODO: fix fetching, importing, and artifacting in boot strap,
+
+TODO: then make sure to only use artifact saving and loading for cycle
+
+TODO: make sur artifacts know how to operate with eachother (static tools)?
+
+TODO: Make sure tool runner works
+
+TODO: make sure HITL works
+
+TODO: make sure all config params are respected
+
+TODO: make sure

@@ -65,12 +65,13 @@
     </style>
 
     <script id="boot-script">
-      const $id = (id) => document.getElementById(id);
-
       const MAX_ART_TKN_SZ = 65000;
       const LS_PREFIX = "_x0_";
 
       const idPrefix = crypto.randomUUID();
+
+      // All Artifact IDs
+      const aai = {};
 
       // TODO: move some of this from boot to core.
       // TODO: boot head contains style and script, resolve.
@@ -81,7 +82,7 @@
       bai.bootScriptId = `${idPrefix}.boot.script`; // this
       bai.bootBodyId = `${idPrefix}.boot.body`;
 
-      // Core Artifact IDs (for storage)
+      // Core Artifact IDs (for Local Storage)
       const cai = {};
       cai.coreCycleStepsId = `${idPrefix}.core.cycle-steps`;
       cai.coreArtscoreStyleId = `${idPrefix}.core.style`;
@@ -93,143 +94,35 @@
       cai.coreDiagramJsonId = `${idPrefix}.core.diagram-json`;
       cai.coreDiagramRendererId = `${idPrefix}.core.diagram-renderer`;
 
-      function bootstrap() {
-        try {
-          // TODO: just store these as sibling files make generic store artifacts
-          saveCoreArtifacts();
-          loadCoreArtifacts();
-        } catch (e) {
-          addNotification(`Main Initialization Failed: ${e.message}`);
-          updateLoading(`Main Initialization Failed: ${e.message}`);
-        }
+      an(`REPLOID x0 v0`);
+      ul(`REPLOID x0 v0}`);
+
+
+      function saveCA() {
+        ul("Setting Genisis Artifacts (Cycle 0)...");
+        saveArtifacts(0);
       }
 
-      function updateLoading(message, level = "info", clear = false) {
-        console[level](message);
-        const loadingIndicator = document.getElementById("loading-indicator");
-        if (clear) loadingIndicator.innerHTML = "";
-        loadingIndicator.innerHTML += "<br/><br/>";
-        loadingIndicator.innerHTML += message;
-      }
-
-      function addNotification(message, e, level = "error") {
-        console[level](message);
-        const msg = `${level.toUpperCase()}: ${message}`;
-        const beg = `<div class="notification ${level}">`;
-        const rem = `onclick="this.parentElement.remove()`;
-        const end = `<button ${rem}">×</button></div>`;
-        $id("notifications-container").insertAdjacentHTML(
-          "beforeend",
-          `${beg}${msg}${end}`
-        );
-        throw e;
-      }
-
-      function lsGet(key) {
-        try {
-          return localStorage.getItem(key);
-        } catch (e) {
-          addNotification(`LocalStorage GET: key ${key}`, e);
-          return null;
-        }
-      }
-      // TODO: remove escape characters before storing artifacts.
-      function lsSet(key, value) {
-        if (lsGet(key) !== null) {
-          addNotification(`lsSet key: ${key} already exists!`);
-        }
-        if (value && value.length > MAX_ART_TKN_SZ) {
-          const msg = `Artifact key: ${key} exceeds size limit (${value.length} > ${MAX_ART_TKN_SZ})}`;
-          addNotification(`${msg}`, new Error(msg));
-        }
-        try {
-          localStorage.setItem(key, value);
-        } catch (e) {
-          addNotification(`Error: LocalStorage SET: key: ${key}`, e);
-          if (
-            e.name === "QuotaExceededError" ||
-            e.message.toLowerCase().includes("quota")
-          ) {
-            addNotification(
-              "Error: LocalStorage quota exceeded! Cannot save artifact. Please clear storage or export state.",
-              e
-            );
-          }
-        }
-      }
-      function lsRemove(key) {
-        try {
-          localStorage.removeItem(key);
-        } catch (e) {
-          addNotification(`Error: LocalStorage REMOVE: key: ${key}`, e);
-        }
-      }
-      function lsKey(id, cycle = 0) {
-        return `\${LS_PREFIX}\${id}_\${cycle}`;
-      }
-
-      async function loadResources(filenames) {
-        try {
-          return await Promise.all(
-            filenames.map(async (filename) => {
-              const response = await fetch(filename);
-              if (!response.ok)
-                throw new Error(`HTTP ${response.status} for ${filename}`);
-              const ext = filename.split(".").pop()?.toLowerCase();
-              switch (ext) {
-                case "json":
-                  return response.json();
-                case "txt":
-                  return response.text();
-                case "css": {
-                  const el = document.createElement("style");
-                  el.textContent = await response.text();
-                  return el;
-                }
-                case "js": {
-                  const el = document.createElement("script");
-                  el.textContent = await response.text();
-                  return el;
-                }
-                case "html": {
-                  const el = document.createElement("template");
-                  el.innerHTML = (await response.text()).trim();
-                  return el.content.cloneNode(true);
-                }
-                default:
-                  return response.text();
-              }
-            })
-          );
-        } catch (error) {
-          console.error("Resource loading failed:", error);
-          return null;
-        }
-      }
-
-      function loadCoreArtifacts() {
+      function loadCA() {
         const cc = {};
-
         const missingArts = [];
         for (const k of Object.keys(ca)) {
           try {
-            cc[k.replace("Id", "Content")] = lsGet(lsKey(ca[k], 0));
+            cc[k.replace("Id", "Content")] = artGet(lsKey(ca[k], 0));
           } catch (e) {
             missingArts.push(ca[k]);
           }
         }
-
         if (missingArts.length > 0) {
           const errStr = errors.join(", ");
-          updateLoading("Error: Could not load artifacts: " + errStr);
+          ul("Error: Could not load artifacts: " + errStr);
           return;
         }
-
         try {
           const styleElement = $id("core-style");
           if (styleElement) styleElement.textContent = coreStyleContent;
 
-          const appRoot = document.getElementById("app-root");
+          const appRoot = $id("app-root");
           if (appRoot) appRoot.innerHTML = coreBodyContent;
 
           console.log("Executing core script from localStorage...");
@@ -244,48 +137,11 @@
             appRoot.style.visibility = "visible";
           }
         } catch (e) {
-          console.error(
-            "Error applying core artifacts or executing script:",
-            e
-          );
-          updateLoading("Error initializing REPLOID: " + e.message);
-          addNotification(`Error initializing REPLOID: ${e.message}`, e);
+          ul("Error initializing REPLOID: " + e.message);
+          an(`Error initializing REPLOID: ${e.message}`, e);
           const appRoot = $;
           if (appRoot) appRoot.style.visibility = "visible";
         }
-      }
-
-      const artFiles = [
-        "core_cycle_steps.txt",
-        "core_reploid_prompt.txt",
-        "core_summarizer_prompt.txt",
-        "core_crtiquer_prompt.txt",
-        "core_cycle_steps.txt",
-        "core_style.css",
-        "core_script.js",
-        "core_body.html",
-        "core_diagram.json",
-        "core_diagram_renderer.js",
-      ];
-
-      loadResources(filesToLoad).then((results) => {
-        if (results) {
-          console.log(`Successfully loaded ${results.length} resources.`);
-          // results[0] will be the parsed JSON object
-          // results[1] will be the <style> element
-          // results[2] will be the <script> element
-          // results[3] will be the DocumentFragment
-          // results[4] will be the text string
-          // etc.
-        }
-      });
-
-      function saveArtifacts(cycle) {
-        // TODO
-      }
-
-      function saveCoreArtifacts() {
-        updateLoading("Setting Genisis Artifacts (Cycle 0)...");
       }
     </script>
     <script defer>

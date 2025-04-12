@@ -1,0 +1,429 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head id="boot-head">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REPLOID x0 v0</title>
+
+    <style id="boot-style">
+      body {
+        font-family: monospace;
+        background-color: black;
+        color: white;
+        margin: 0;
+        padding: 0;
+      }
+      .hidden {
+        display: none !important;
+      }
+      #loading-indicator {
+        font-size: 1.2em;
+        text-align: center;
+        padding: 40px;
+        color: #aaa;
+      }
+      #notifications-container {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      /* Notification styles remain for basic feedback during core load */
+      .notification {
+        padding: 10px;
+        border-radius: 4px;
+        color: black;
+        font-size: 0.8em;
+        margin-left: 8px;
+        word-wrap: break-word;
+        border: 1px solid #ccc;
+        border-left-width: 5px;
+      }
+      .notification.info {
+        background-color: #e0f0ff;
+        border-left-color: #4a90e2;
+      }
+      .notification.warn {
+        background-color: #fff3cd;
+        border-left-color: #ffc107;
+      }
+      .notification.error {
+        background-color: #f8d7da;
+        border-left-color: #dc3545;
+      }
+      .notification button {
+        float: right;
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1.2em;
+        line-height: 1;
+        padding: 0 5px;
+      }
+      /* Add basic style for the app root */
+      #app-root {
+        visibility: hidden; /* Hide until core JS loads */
+      }
+    </style>
+
+    <!-- Load Decoupled Artifacts on window -->
+    <script id="core-utils">
+      window.UT = (() => {
+        const STATE_VERSION = "0.0.0";
+        const $ = (q) => document.querySelector(q);
+        const lc = (s) => (s ? String(s).toLowerCase() : "");
+        const uc = (s) => (s ? String(s).toUpperCase() : "");
+        const camelToKabob = (s) =>
+          lc(s.replace(/([a-z0-9])([A-Z])/g, "$1-$2"));
+        const kabobToCamel = (s) => s.replace(/-([a-z0-9])/g, (g) => uc(g[1]));
+        const kebabToSnake = (s) => s.replace(/-/g, "_");
+        const snakeToKebab = (s) => s.replace(/_/g, "-");
+        const trunc = (s, l = 1500) =>
+          !s || typeof s !== "string" || s.length <= l
+            ? s || ""
+            : s.substring(0, l / 2) +
+              `\n... (truncated ${s.length - l} chars) ...\n` +
+              s.substring(s.length - l / 2);
+
+        let logBuffer = `x0 Engine Log v${STATE_VERSION} - ${new Date().toISOString()}\n=========================================\n`;
+
+        const logger = {
+          log: (level, message) => {
+            const ts = new Date().toISOString();
+            const fm = `[${ts}] [${uc(level)}] ${message}`;
+            logBuffer += fm + "\n";
+            const logFn = console[level] || console.log;
+            if (typeof message === "string" && message.length > 500) {
+              logFn(
+                `[${ts}] [${uc(level)}] ${message.substring(
+                  0,
+                  250
+                )} ... (truncated)`
+              );
+            } else {
+              logFn(fm);
+            }
+          },
+          getLogBuffer: () => logBuffer,
+          setLogBuffer: (buffer) => {
+            if (typeof buffer === "string") {
+              logBuffer = buffer;
+            } else {
+              logger.logEvent(
+                "warn",
+                "Attempted to set non-string log buffer."
+              );
+              logBuffer = `Invalid log buffer set - ${new Date().toISOString()}\n===\n`;
+            }
+          },
+          clearLogBuffer: () => {
+            logBuffer = `x0 Engine Log v${STATE_VERSION} - ${new Date().toISOString()} (Cleared)\n=========================================\n`;
+            logger.logEvent("info", "Log buffer cleared.");
+          },
+        };
+
+        return {
+          STATE_VERSION,
+          $,
+          lc,
+          uc,
+          camelToKabob,
+          kabobToCamel,
+          trunc,
+          logger,
+        };
+      })();
+    </script>
+
+    <script id="core-storage">
+      window.LS = (() => {
+        let logger = window.UT?.logger;
+        if (!logger) {
+          console.error("FATAL: UT.logger not found for Storage module!");
+          // Default to console logger.
+          logger = {
+            log: (level, message) => console[level](message),
+          };
+        }
+
+        const LS_PREFIX = "_x0_";
+        const STATE_KEY = "x0_state_v0.0";
+        const SESSION_STATE_KEY = "x0_session_state_v0.0";
+        const MAX_ART_TKN_SZ = 65000;
+
+        const _get = (key) => {
+          try {
+            return localStorage.getItem(key);
+          } catch (e) {
+            logger.logEvent("error", `LocalStorage GET Error: ${key}, ${e}`);
+            return null;
+          }
+        };
+
+        const _set = (key, value) => {
+          if (
+            value &&
+            typeof value === "string" &&
+            value.length > MAX_ART_TKN_SZ
+          ) {
+            const msg = `Artifact content exceeds size limit (${value.length} > ${MAX_ART_TKN_SZ}) for key: ${key}`;
+            logger.log("error", msg);
+            throw new Error(msg);
+          }
+          try {
+            localStorage.setItem(key, value);
+            return true;
+          } catch (e) {
+            logger.log("error", `LocalStorage SET Error: ${key}, ${e}`);
+            throw e;
+          }
+        };
+
+        const _remove = (key) => {
+          try {
+            localStorage.removeItem(key);
+            return true;
+          } catch (e) {
+            logger.log("error", `LocalStorage REMOVE Error: ${key}, ${e}`);
+            return false;
+          }
+        };
+
+        const _key = (id, cycle = 0) => `${LS_PREFIX}${id}_${cycle}`;
+
+        return {
+          LS_PREFIX,
+          getArtifactKey: (id, cycle) => _key(id, cycle),
+          getArtifactContent: (id, cycle) => _get(_key(id, cycle)),
+          setArtifactContent: (id, cycle, content) => {
+            return _set(_key(id, cycle), content);
+          },
+          deleteArtifactVersion: (id, cycle) => _remove(_key(id, cycle)),
+          getState: () => {
+            const json = _get(STATE_KEY);
+            try {
+              return json ? JSON.parse(json) : null;
+            } catch (e) {
+              logger.logEvent(
+                "error",
+                `Failed to parse state from localStorage: ${e.message}`
+              );
+              _remove(STATE_KEY);
+              return null;
+            }
+          },
+          saveState: (stateObj) => _set(STATE_KEY, JSON.stringify(stateObj)),
+          removeState: () => _remove(STATE_KEY),
+          getSessionState: () => {
+            try {
+              const json = sessionStorage.getItem(SESSION_STATE_KEY);
+              return json ? JSON.parse(json) : null;
+            } catch (e) {
+              logger.logEvent(
+                "error",
+                `Failed to parse session state: ${e.message}`
+              );
+              sessionStorage.removeItem(SESSION_STATE_KEY);
+              return null;
+            }
+          },
+          saveSessionState: (stateObj) => {
+            try {
+              sessionStorage.setItem(
+                SESSION_STATE_KEY,
+                JSON.stringify(stateObj)
+              );
+              return true;
+            } catch (e) {
+              logger.logEvent(
+                "error",
+                `SessionStorage SET Error: ${e.message}`
+              );
+              throw e;
+            }
+          },
+          removeSessionState: () => {
+            try {
+              sessionStorage.removeItem(SESSION_STATE_KEY);
+            } catch (e) {
+              logger.logEvent(
+                "error",
+                `SessionStorage REMOVE Error: ${e.message}`
+              );
+            }
+          },
+          clearAllReploidData: () => {
+            logger.logEvent("warn", "User initiated LocalStorage clear.");
+            let keysToRemove = [];
+            try {
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith(LS_PREFIX) || key === STATE_KEY)) {
+                  keysToRemove.push(key);
+                }
+              }
+              keysToRemove.forEach((key) => {
+                _remove(key);
+                logger.logEvent("info", `Removed key: ${key}`);
+              });
+              _remove(STATE_KEY);
+              logger.logEvent("info", `Removed state key: ${STATE_KEY}`);
+            } catch (e) {
+              logger.logEvent(
+                "error",
+                `Error during key iteration/removal in clearAllReploidData: ${e.message}`
+              );
+            } finally {
+              Storage.removeSessionState();
+            }
+          },
+        };
+      })();
+    </script>
+
+    <!-- Minimal Bootstrap Logic -->
+    <script id="boot-script">
+            const loadingIndicator = UU.$(".loading-indicator");
+            const notificationsContainer = UU.$("notifications-container");
+            const appRoot = UU.$("app-root");
+
+            function bl(message, level = "info") {
+              console[level](`[BOOT] ${message}`);
+              if (loadingIndicator) {
+                loadingIndicator.innerHTML += `<br/><br/>${message}`;
+              }
+            }
+
+            const coreArtFiles = [
+              "core_cycle.txt",
+              "core_diagram.json",
+              "core_diagram_factory.js",
+              "core_prompt_critiquer.txt",
+              "core_prompt_summarizer.txt",
+              "core_prompt_x0.txt",
+              "core_reploid_body.html",
+              "core_reploid_script.js",
+              "core_reploid_style.css",
+              "core_storage_script",
+              "core_static_tools.json",
+              "core_tool_runner.css",
+              "core_utils_script",
+            ];
+
+                  // All Artifact IDs
+                  const aai = {};
+
+      // TODO: move some of this from boot to core.
+      // TODO: boot head contains style and script, resolve.
+      // TODO: should wipe and reboot with idPrefix?
+      const bai = {};
+      bai.bootHeadId = `${idPrefix}.boot.head`;
+      bai.bootStyleId = `${idPrefix}.boot.style`;
+      bai.bootScriptId = `${idPrefix}.boot.script`; // this
+      bai.bootBodyId = `${idPrefix}.boot.body`;
+
+      // Core Artifact IDs (for Local Storage)
+      const cai = {};
+      cai.coreCycleStepsId = `${idPrefix}.core.cycle-steps`;
+      cai.coreArtscoreStyleId = `${idPrefix}.core.style`;
+      cai.coreBodyId = `${idPrefix}.core.body`;
+      cai.coreScriptId = `${idPrefix}.core.script`;
+      cai.coreReploidPromptId = `${idPrefix}.core.prompt.reploid`;
+      cai.coreCritquerPromptId = `${idPrefix}.core.prompt.critquer`;
+      cai.coreSummarizerPromptId = `${idPrefix}.core.prompt.summarizer`;
+      cai.coreDiagramJsonId = `${idPrefix}.core.diagram-json`;
+      cai.coreDiagramRendererId = `${idPrefix}.core.diagram-renderer`;
+
+            async function loadResources(filenames) {
+              try {
+                return await Promise.all(
+                  filenames.map(async (filename) => {
+                    const response = await fetch(filename);
+                    if (!response.ok)
+                      throw new Error(`HTTP ${response.status} for ${filename}`);
+                    const ext = filename.split(".").pop()?.toLowerCase();
+                    switch (ext) {
+                      case "json":
+                        return response.json();
+                      case "txt":
+                        return response.text();
+                      case "css": {
+                        const el = document.createElement("style");
+                        el.textContent = await response.text();
+                        return el;
+                      }
+                      case "js": {
+                        const el = document.createElement("script");
+                        el.textContent = await response.text();
+                        return el;
+                      }
+                      case "html": {
+                        const el = document.createElement("template");
+                        el.innerHTML = (await response.text()).trim();
+                        return el.content.cloneNode(true);
+                      }
+                      default:
+                        return response.text();
+                    }
+                  })
+                );
+              } catch (error) {
+                console.error("Resource loading failed:", error);
+                return null;
+              }
+            }
+
+            async function loadGenisisArtifacts() {
+              const results = await loadResources(coreArtFiles);
+              if (results) {
+                an(`Successfully loaded ${results.length} resources.`, "info");
+                // results[0] will be the parsed JSON object
+                // results[1] will be the <style> element
+                // results[2] will be the <script> element
+                // results[3] will be the DocumentFragment
+                // results[4] will be the text string
+                // etc.
+              }
+            });
+            }
+
+            function bootstrap() {
+              try {
+                loadResources(filesToLoad).then((results) => {
+              if (results) {
+                an(`Successfully loaded ${results.length} resources.`, "info");
+                // results[0] will be the parsed JSON object
+                // results[1] will be the <style> element
+                // results[2] will be the <script> element
+                // results[3] will be the DocumentFragment
+                // results[4] will be the text string
+                // etc.
+              }
+            });
+                // TODO: just store these as sibling files make generic store artifacts
+                saveBootArt(); // including core elements in this script
+
+                // real "cycle 0"
+                saveCoreArt();
+                loadCoreArt();
+              } catch (e) {
+                bl(`Main Initialization Failed: ${e.message}`);
+              }
+            }
+
+            bl("Bootstrapping...");
+            bootstrap();
+    </script>
+  </head>
+
+  <body id="boot-body">
+    <div id="loading-indicator">Initializing REPLOID Core...</div>
+    <div id="app-root" class="hidden"></div>
+  </body>
+</html>

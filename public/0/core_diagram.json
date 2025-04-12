@@ -1,0 +1,236 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "label": "Start Cycle",
+      "type": "start_end",
+      "x": 400,
+      "y": 50
+    },
+    {
+      "id": "step1",
+      "label": "1. Define Goal",
+      "type": "step",
+      "x": 400,
+      "y": 150
+    },
+    {
+      "id": "step2",
+      "label": "2. Analyze",
+      "type": "iteration",
+      "x": 400,
+      "y": 250
+    },
+    {
+      "id": "step3",
+      "label": "3. Propose",
+      "type": "iteration",
+      "x": 400,
+      "y": 350
+    },
+    {
+      "id": "step4",
+      "label": "4. Generate Artifacts",
+      "type": "iteration",
+      "x": 400,
+      "y": 450
+    },
+    {
+      "id": "decision_gen",
+      "label": "Generation OK?",
+      "type": "decision",
+      "x": 400,
+      "y": 550
+    },
+    {
+      "id": "step5",
+      "label": "5. Critique Trigger?",
+      "type": "decision",
+      "x": 400,
+      "y": 650
+    },
+    {
+      "id": "step7",
+      "label": "7. Refine & Apply",
+      "type": "step",
+      "x": 400,
+      "y": 980
+    },
+    {
+      "id": "decision_apply",
+      "label": "Apply OK?",
+      "type": "decision",
+      "x": 400,
+      "y": 1080
+    },
+    {
+      "id": "step6_human",
+      "label": "6a. Human\nIntervention",
+      "type": "intervention",
+      "x": 150,
+      "y": 780
+    },
+    {
+      "id": "step6_auto",
+      "label": "6b. Auto Critique",
+      "type": "step",
+      "x": 400,
+      "y": 780
+    },
+    {
+      "id": "decision_auto_crit",
+      "label": "Critique Pass?",
+      "type": "decision",
+      "x": 400,
+      "y": 880
+    },
+    {
+      "id": "step6_skip",
+      "label": "6c. Critique Skipped",
+      "type": "step",
+      "x": 650,
+      "y": 780
+    },
+    {
+      "id": "fail_point_gen",
+      "label": "Generation\nFailed",
+      "type": "fail_point",
+      "x": 150,
+      "y": 550
+    },
+    {
+      "id": "fail_point_apply",
+      "label": "Apply\nFailed",
+      "type": "fail_point",
+      "x": 150,
+      "y": 1080
+    },
+    {
+      "id": "decision_retry_limit",
+      "label": "Retry Limit\nReached?",
+      "type": "retry_decision",
+      "x": 150,
+      "y": 880
+    },
+    {
+      "id": "human_intervention_final",
+      "label": "Forced Human\nIntervention (Fail)",
+      "type": "final_intervention",
+      "x": 150,
+      "y": 980
+    },
+    {
+      "id": "end_success",
+      "label": "End\n(Success)",
+      "type": "start_end",
+      "x": 650,
+      "y": 1180
+    },
+    {
+      "id": "pause_sandbox",
+      "label": "Pause\n(Sandbox Review)",
+      "type": "pause",
+      "x": 400,
+      "y": 1180
+    }
+  ],
+  "connections": [
+    { "from": "start", "to": "step1", "type": "normal" },
+    { "from": "step1", "to": "step2", "type": "normal" },
+    { "from": "step2", "to": "step3", "type": "normal" },
+    { "from": "step3", "to": "step4", "type": "normal" },
+    { "from": "step4", "to": "decision_gen", "type": "normal" },
+    { "from": "decision_gen", "to": "step5", "type": "success", "label": "OK" },
+    {
+      "from": "step5",
+      "to": "step6_human",
+      "type": "normal",
+      "label": "Human Req."
+    },
+    {
+      "from": "step5",
+      "to": "step6_auto",
+      "type": "normal",
+      "label": "Auto-Critique"
+    },
+    {
+      "from": "step5",
+      "to": "step6_skip",
+      "type": "normal",
+      "label": "Skip Critique"
+    },
+    { "from": "step6_auto", "to": "decision_auto_crit", "type": "normal" },
+    {
+      "from": "decision_auto_crit",
+      "to": "step7",
+      "type": "success",
+      "label": "Pass"
+    },
+    {
+      "from": "decision_auto_crit",
+      "to": "step6_human",
+      "type": "fail",
+      "label": "Fail"
+    },
+    {
+      "from": "step6_human",
+      "to": "step7",
+      "type": "normal",
+      "label": "Input Provided"
+    },
+    { "from": "step6_skip", "to": "step7", "type": "normal" },
+    {
+      "from": "human_intervention_final",
+      "to": "step7",
+      "type": "normal",
+      "label": "Input Provided"
+    },
+    { "from": "step7", "to": "decision_apply", "type": "normal" },
+    {
+      "from": "decision_apply",
+      "to": "end_success",
+      "type": "success",
+      "label": "OK"
+    },
+    {
+      "from": "decision_apply",
+      "to": "pause_sandbox",
+      "type": "normal",
+      "label": "Sandbox"
+    },
+    {
+      "from": "decision_gen",
+      "to": "fail_point_gen",
+      "type": "fail",
+      "label": "Fail"
+    },
+    {
+      "from": "decision_apply",
+      "to": "fail_point_apply",
+      "type": "fail",
+      "label": "Fail"
+    },
+    {
+      "from": "fail_point_gen",
+      "to": "decision_retry_limit",
+      "type": "normal"
+    },
+    {
+      "from": "fail_point_apply",
+      "to": "decision_retry_limit",
+      "type": "normal"
+    },
+    {
+      "from": "decision_retry_limit",
+      "to": "step2",
+      "type": "retry",
+      "label": "Retry (Limit OK)"
+    },
+    {
+      "from": "decision_retry_limit",
+      "to": "human_intervention_final",
+      "type": "fail",
+      "label": "Limit Reached"
+    }
+  ]
+}
