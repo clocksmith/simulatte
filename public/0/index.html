@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head id="pageHead">
+  <head id="core-head">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>REPLOID x0 v0.1 Refactored</title>
-    <style id="pageStyle">
+    <title>REPLOID x0 v0</title>
+    <style id="core-style">
       body {
         font-family: monospace;
         background-color: black;
@@ -14,12 +14,12 @@
       .hidden {
         display: none !important;
       }
-      #loadingIndicator {
+      #loading-indicator {
         font-size: 1.5em;
         text-align: center;
         margin-top: 50px;
       }
-      #notificationsContainer {
+      #notifications-container {
         position: fixed;
         top: 10px;
         right: 10px;
@@ -62,127 +62,137 @@
         background-color: white;
       }
     </style>
+    <script id="core-script"></script>
   </head>
-  <body id="pageBody">
-    <div id="loadingIndicator">Loading Model CPS-9204...</div>
-    <div id="notificationsContainer"></div>
-    <div id="appRoot" class="hidden"></div>
+  <body id="core-body">
+    <div id="loading-indicator">Loading Model CPS-9204...</div>
+    <div id="notifications-container"></div>
+    <div id="app-root" class="hidden"></div>
 
-    <script id="bootstrapScript">
-      const LS_PREFIX = "x_art_";
-      const CORE_SCRIPT_ID = "reploid.script.core";
-      const STYLE_ID = "reploid.style.main";
-      const BODY_ID = "reploid.body.main";
-      const MAX_ARTIFACT_TOKEN_SIZE = 65000;
+    <script id="core-script">
+      const $id = (id) => document.getElementById(id);
 
-      function updateLoading(message, clear = false) {
-        const loadingIndicator = document.getElementById("loadingIndicator");
+      const MAX_ART_TKN_SZ = 65000;
+      const LS_PREFIX = "_x0_";
+
+      const idPrefix = crypto.randomUUID();
+
+      const bootHeadId = `${idPrefix}.boot.head`;
+      const bootStyleId = `${idPrefix}.boot.style`;
+      const bootScriptId = `${idPrefix}.boot.script`; // this
+
+      const coreStyleId = `${idPrefix}.core.style`;
+      const coreBodyId = `${idPrefix}.core.body`;
+      const coreScriptId = `${idPrefix}.core.script`;
+      const coreReploidPromptId = `${idPrefix}.core.prompt.reploid`;
+      const coreCritquerPromptId = `${idPrefix}.core.prompt.critquer`;
+      const coreSummarizerPromptId = `${idPrefix}.core.prompt.summarizer`;
+      const coreDiagramJsonId = `${idPrefix}.core.diagram-json`;
+      const coreDiagramRendererId = `${idPrefix}.core.diagram-renderer`;
+
+      function main() {
+        try {
+          saveCoreArtifacts();
+          loadAndApplyCoreArtifacts();
+        } catch (e) {
+          updateLoading(`Main Initialization Failed: ${e.message}`);
+        }
+      }
+
+      function updateLoading(message, level = "info", clear = false) {
+        console[level](message);
+        const loadingIndicator = document.getElementById("loading-indicator");
         if (clear) loadingIndicator.innerHTML = "";
-        loadingIndicator.innerHTML += "<br/>";
+        loadingIndicator.innerHTML += "<br/><br/>";
         loadingIndicator.innerHTML += message;
       }
 
-      function addNotif(message, level = "error") {
-        document
-          .getElementById("notificationsContainer")
-          .insertAdjacentHTML(
-            "beforeend",
-            `<div class="notification ${level}">${message}<button onclick="this.parentElement.remove()">×</button></div>`
-          );
+      function addNotification(message, e, level = "error") {
+        console[level](message);
+        const beg = `<div class="notification ${level}">`;
+        const rem = `onclick="this.parentElement.remove()`;
+        const end = `<button ${rem}">×</button></div>`;
+        $id("notifications-container").insertAdjacentHTML(
+          "beforeend",
+          `${beg}${message}${end}`
+        );
+        throw e;
       }
 
       function lsGet(key) {
         try {
           return localStorage.getItem(key);
         } catch (e) {
-          console.error("LocalStorage GET Error:", key, e);
+          addNotification(`Error: LocalStorage GET: key ${key}`, e);
           return null;
         }
       }
       function lsSet(key, value) {
-        if (value && value.length > MAX_ARTIFACT_TOKEN_SIZE) {
-          const msg = `Artifact content exceeds size limit (\${value.length} > \${MAX_ARTIFACT_TOKEN_SIZE}) for key: \${key}`;
-          console.error(msg);
-          addNotif(`Error: ${msg}`);
-          throw new Error(msg);
+        if (lsGet(key) !== null) {
+          addNotification(`Warning: lsSet key: ${key} already exists!`);
+        }
+        if (value && value.length > MAX_ART_TKN_SZ) {
+          const msg = `Artifact key: ${key} exceeds size limit (${value.length} > ${MAX_ART_TKN_SZ})}`;
+          addNotification(`Error: ${msg}`, new Error(msg));
         }
         try {
           localStorage.setItem(key, value);
         } catch (e) {
-          console.error("LocalStorage SET Error:", key, e);
+          addNotification(`Error: LocalStorage SET: key: ${key}`, e);
           if (
             e.name === "QuotaExceededError" ||
             e.message.toLowerCase().includes("quota")
           ) {
-            addNotif(
-              "LocalStorage quota exceeded! Cannot save artifact. Please clear storage or export state."
+            addNotification(
+              "Error: LocalStorage quota exceeded! Cannot save artifact. Please clear storage or export state.",
+              e
             );
           }
-          throw e;
         }
       }
       function lsRemove(key) {
         try {
           localStorage.removeItem(key);
         } catch (e) {
-          console.error("LocalStorage REMOVE Error:", key, e);
+          addNotification(`Error: LocalStorage REMOVE: key: ${key}`, e);
         }
       }
       function lsKey(id, cycle = 0) {
         return `\${LS_PREFIX}\${id}_\${cycle}`;
       }
 
-      function checkAndSetDefault(id, cycle, defaultValue) {
-        const key = lsKey(id, cycle);
-        if (lsGet(key) === null) {
-          console.log(`Initializing localStorage for \${key}`);
-          try {
-            lsSet(key, defaultValue);
-          } catch (e) {
-            console.error(`Failed to set default for \${key}: \${e.message}`);
-            updateLoading(
-              `Error: Failed to initialize storage for \${id}. Quota likely exceeded.`
-            );
-            throw e;
-          }
-        }
-      }
-
       function loadAndApplyCoreArtifacts() {
-        const styleContent = lsGet(lsKey(STYLE_ID, 0));
-        const bodyContent = lsGet(lsKey(BODY_ID, 0));
-        const coreScriptContent = lsGet(lsKey(CORE_SCRIPT_ID, 0));
+        const coreStyleContent = lsGet(lsKey(bootStyleId, 0));
+        const coreBodyContent = lsGet(lsKey(CORE_BODY_ID, 0));
+        const coreScriptContent = lsGet(lsKey(bootScriptId, 0));
 
         let errors = [];
-        if (!styleContent) errors.push("Style artifact missing");
-        if (!bodyContent) errors.push("Body artifact missing");
+        if (!coreStyleContent) errors.push("Core artifact missing");
+        if (!coreBodyContent) errors.push("Core body artifact missing");
         if (!coreScriptContent) errors.push("Core script artifact missing");
 
         if (errors.length > 0) {
-          console.error(
-            "Fatal: Missing essential Cycle 0 artifacts after initialization:",
-            errors
-          );
-          loadingIndicator.textContent =
-            "Error: Could not load core components: " + errors.join(", ");
-          addNotif(
-            `Error loading core application components from LocalStorage: \${errors.join(", ")}. Please try clearing storage or check console.`
+          const errStr = errors.join(", ");
+          updateLoading("Error: Could not load core components: " + errStr);
+          addNotification(
+            `Error loading core application components from LocalStorage: ${errStrr}. Please try clearing storage or check console.`,
+            new Error(errStr)
           );
           return;
         }
 
         try {
-          const styleElement = document.getElementById("pageStyle");
-          if (styleElement) styleElement.textContent = styleContent;
+          const styleElement = $id("core-style");
+          if (styleElement) styleElement.textContent = coreStyleContent;
 
-          const appRoot = document.getElementById("appRoot");
-          if (appRoot) appRoot.innerHTML = bodyContent;
+          const appRoot = document.getElementById("app-root");
+          if (appRoot) appRoot.innerHTML = coreBodyContent;
 
           console.log("Executing core script from localStorage...");
           const scriptElement = document.createElement("script");
-          scriptElement.type = "module"; // Load as module
+          scriptElement.type = "module";
           scriptElement.textContent = coreScriptContent;
-          document.body.appendChild(scriptElement); // Append to body to execute
+          document.body.appendChild(scriptElement);
 
           loadingIndicator.classList.add("hidden");
           if (appRoot) {
@@ -195,17 +205,21 @@
             e
           );
           updateLoading("Error initializing REPLOID: " + e.message);
-          addNotif(`Error initializing REPLOID: ${e.message}`);
-          const appRoot = document.getElementById("appRoot");
+          addNotification(`Error initializing REPLOID: ${e.message}`, e);
+          const appRoot = $;
           if (appRoot) appRoot.style.visibility = "visible";
         }
       }
 
-      function initializeLocalStorageDefaults() {
-        console.log("Checking localStorage defaults for Cycle 0...");
+      function saveArtifacts(cycle) {
+        // TODO
+      }
 
-        checkAndSetDefault(
-          STYLE_ID,
+      function saveCoreArtifacts() {
+        updateLoading("Setting Genisis Artifacts (Cycle 0)...");
+
+        lsSet(
+          coreStyleId,
           0,
           `:root { --bg: black; --fg: white; --bdr: white; --pad-in: 10px; --pad-btn: 10px 18px; --pad-fs: 20px; --gap-n: 18px; --gap-s: 8px; --f-sz-n: 14px; --f-sz-l: 1.5em; --f-sz-xl: 2em; --ctx-warn: 900000; --bdr-mod: 2px dashed yellow; --bdr-in: 1px dotted var(--bdr); --bdr-out: 1px solid var(--bdr); --bdr-inf: 1px dashed gray; --bdr-err: 1px solid red; }
               body { font-family: monospace; background-color: var(--bg); color: var(--fg); margin: 0; padding: var(--pad-fs); display: flex; flex-direction: column; min-height: 100vh; font-size: var(--f-sz-n); }
@@ -226,10 +240,10 @@
               label { display: block; margin-bottom: 8px; font-weight: bold; flex-shrink: 0; text-align: right; min-width: 150px; padding-right: 10px; }
               textarea, pre, input[type="text"], input[type="number"], input[type="password"], select { background-color: var(--bg); color: var(--fg); border: 1px solid var(--bdr); padding: var(--pad-in); width: 100%; font-family: inherit; margin-bottom: 15px; box-sizing: border-box; font-size: 1em; }
               textarea { min-height: 150px; line-height: 1.5; resize: none; }
-              #goalInput { min-height: 100px; }
-              #seedPrompts .flex-col { height: auto; display: flex; flex-direction: column; }
-              #seedPrompts .flex-col:nth-child(2) { flex-grow: 1; }
-              #seedPromptCore, #coreLoopStepsList { flex-grow: 1; height: 100%; min-height: 300px; background-color:#080808; }
+              #goal-input { min-height: 100px; }
+              #seed-prompts .flex-col { height: auto; display: flex; flex-direction: column; }
+              #seed-prompts .flex-col:nth-child(2) { flex-grow: 1; }
+              #seed-prompt-core, #coreLoopStepsList { flex-grow: 1; height: 100%; min-height: 300px; background-color:#080808; }
               pre { min-height: 50px; max-height: 300px; overflow: auto; white-space: pre-wrap; word-wrap: break-word; border: var(--bdr-inf); padding: 10px; margin-bottom: 15px; }
               .artifact-display pre { border: var(--bdr-out); }
               .artifact-display pre.modified { border: var(--bdr-mod); font-weight: bold; }
@@ -256,8 +270,8 @@
               .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--gap-s); margin-top: var(--gap-n); }
               .metric-item { border: 1px solid var(--bdr); padding: 6px 10px; background-color: var(--bg); font-size: 0.9em; text-align: center; line-height: 1.2; display: flex; flex-direction: column; justify-content: center;}
               .metric-item strong { display: block; font-size: 1.1em; margin-top: 2px; word-break: break-word; }
-              #coreMetricsDisplay { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-              #rollingMetricsDisplay { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+              #core-metrics-display { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+              #rolling-metrics-display { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
               .timeline { list-style-type: none; padding: 0; max-height: 800px; overflow-y: auto; border: 2px solid var(--bdr); background-color: var(--bg); margin-top: var(--gap-s); }
               .timeline li { border-bottom: 1px solid var(--bdr); padding: 8px var(--gap-n) 8px 15px; margin-bottom: 0; display: flex; align-items: center; gap: 10px; cursor: default; }
               .timeline li:last-child { border-bottom: none; }
@@ -270,11 +284,11 @@
               .timeline li span { flex-grow: 1; line-height: 1.4; word-break: break-word; }
               .timeline .animated-icon { animation: spin 1s linear infinite; display: inline-block; }
               @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-              #diagramDisplayContainer { display: flex; gap: var(--gap-n); margin-top: 15px; }
-              #diagramJsonContainer { flex: 1 1 25%; }
-              #diagramSvgContainer { flex: 1 1 75%; min-height: 400px; border: 1px solid var(--bdr); background-color: #f0f0f0; color: var(--bg); overflow: auto; padding: 10px; }
-              #cycleDiagram { width: 100%; height: auto; min-height: 400px; background: #f0f0f0; }
-              #diagramSvgContainer h3 { margin-top: 0; color: var(--bg); border-color: var(--bg); }
+              #diagram-display-container { display: flex; gap: var(--gap-n); margin-top: 15px; }
+              #diagram-json-container { flex: 1 1 25%; }
+              #diagram-svg-container { flex: 1 1 75%; min-height: 400px; border: 1px solid var(--bdr); background-color: #f0f0f0; color: var(--bg); overflow: auto; padding: 10px; }
+              #cycle-diagram { width: 100%; height: auto; min-height: 400px; background: #f0f0f0; }
+              #diagram-svg-container h3 { margin-top: 0; color: var(--bg); border-color: var(--bg); }
               #diagramJsonDisplay { min-height: 400px; }
               #uiRenderOutput, #metaSandboxOutput { width: 100%; min-height: 500px; border: 1px solid var(--bdr); background-color: var(--fg); margin-top: 15px; }
               .hidden { display: none !important; }
@@ -290,9 +304,9 @@
               .hitl-container h3 { color: yellow; border-color: yellow; margin-top: 0; }
               .hitl-options label { display: block; margin-bottom: 8px; cursor: pointer; }
               .hitl-options input[type="checkbox"] { margin-right: 8px; }
-              #humanEditArtifactTextarea { min-height: 150px; width: 100%; margin-top: 10px; background-color: #1a1a1a; }
-              #metaSandboxContainer { border: 2px dashed cyan; padding: 0; margin-top: 15px; background-color: #001111; }
-              #metaSandboxContainer h3 { color: cyan; border-color: cyan; margin-top: 0; }
+              #human-edit-artifact-textarea { min-height: 150px; width: 100%; margin-top: 10px; background-color: #1a1a1a; }
+              #meta-sandbox-container { border: 2px dashed cyan; padding: 0; margin-top: 15px; background-color: #001111; }
+              #meta-sandbox-container h3 { color: cyan; border-color: cyan; margin-top: 0; }
               #metaSandboxOutput { border-color: cyan; }
               #genesisStateDisplay { border-style: dotted; opacity: 0.8; padding: 0; }
               #genesisStateDisplay legend { color: gray; }
@@ -300,7 +314,7 @@
               .token-warning { color: yellow; font-weight: bold; border: 1px solid yellow; padding: 5px; margin-left: 10px; display: inline-block; }
               #statusIndicator { border: 1px solid gray; padding: 5px 10px; margin-left: 20px; display: inline-block; font-size: 0.9em; min-width: 150px; text-align: center; }
               #statusIndicator.active { border-color: yellow; color: yellow; font-weight: bold; }
-              #loadingIndicator { font-size: 1.5em; text-align: center; margin-top: 50px; }
+              #loading-indicator { font-size: 1.5em; text-align: center; margin-top: 50px; }
               #appRoot { visibility: hidden; }
               .goal-type-selector { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; padding-left: 10px;}
               .goal-type-selector label { margin-bottom: 0; font-weight: normal; cursor: pointer; }
@@ -309,7 +323,7 @@
               .model-selectors .cfg-item { flex-basis: calc(50% - var(--gap-n) / 2); }
               .model-selectors label { flex-basis: auto; min-width: 120px; text-align: left; }
               .model-selectors select { flex-grow: 1; }
-              #notificationsContainer { position: fixed; top: 10px; right: 10px; z-index: 1000; width: 300px; display: flex; flex-direction: column; gap: 10px; }
+              #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 1000; width: 300px; display: flex; flex-direction: column; gap: 10px; }
               .notification { padding: 10px 15px; border-radius: 4px; color: black; font-size: 0.9em; opacity: 0.95; border-left: 5px solid transparent; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
               .notification.info { background-color: #e0f2f7; border-left-color: #29b6f6; }
               .notification.warn { background-color: #fff3e0; border-left-color: #ffa726; }
@@ -319,8 +333,8 @@
             `
         );
 
-        checkAndSetDefault(
-          BODY_ID,
+        lsSet(
+          coreBodyId,
           0,
           `
                 <div id="top"></div>
@@ -388,8 +402,8 @@
                        </div>
 
                       <h3>Core Metrics</h3>
-                      <div class="metrics-grid" id="coreMetricsDisplay">
-                        <div class="metric-item" id="metricTotalCycles">Cycles<strong id="totalCycles">0</strong>/<strong id="maxCyclesDisplay">Inf</strong></div>
+                      <div class="metrics-grid" id="core-metrics-display">
+                        <div class="metric-item" id="metrictotal-cycles">Cycles<strong id="total-cycles">0</strong>/<strong id="maxCyclesDisplay">Inf</strong></div>
                         <div class="metric-item" id="metricAgentIterations">Agent Itr<strong id="agentIterations">0</strong></div>
                         <div class="metric-item" id="metricHumanInterventions">Human Int<strong id="humanInterventions">0</strong></div>
                         <div class="metric-item" id="metricCurrentGoal">Goal<strong id="currentGoal">Idle</strong></div>
@@ -400,7 +414,7 @@
                       </div>
 
                       <h3>Rolling Metrics</h3>
-                      <div class="metrics-grid" id="rollingMetricsDisplay">
+                      <div class="metrics-grid" id="rolling-metrics-display">
                         <div class="metric-item">Avg Conf<strong id="avgConfidence">N/A</strong></div>
                         <div class="metric-item">Crit Fail Rate<strong id="critiqueFailRate">N/A</strong></div>
                         <div class="metric-item">Avg Tokens<strong id="avgTokens">N/A</strong></div>
@@ -409,7 +423,7 @@
                   </div>
                 </fieldset>
 
-                <fieldset id="seedPrompts">
+                <fieldset id="seed-prompts">
                   <legend><span class="toggle-icon"></span>Seed Instructions &amp; Prompts <span class="type-indicator">[A]</span> <span class="summary-line"></span></legend>
                   <div class="content-wrapper">
                       <div class="flex-row">
@@ -419,13 +433,13 @@
                         </div>
                         <div class="flex-col">
                           <h3>Core Logic/Meta Prompt</h3>
-                          <textarea id="seedPromptCore" readonly></textarea>
+                          <textarea id="seed-prompt-core" readonly></textarea>
                         </div>
                         <div class="flex-col">
                           <h3>Automated Critique Prompt</h3>
-                          <textarea id="seedPromptCritique" readonly rows="8"></textarea>
+                          <textarea id="seed-prompt-critique" readonly rows="8"></textarea>
                           <h3>Context Summarization Prompt</h3>
-                          <textarea id="seedPromptSummarize" readonly rows="5"></textarea>
+                          <textarea id="seed-promptsummarize" readonly rows="5"></textarea>
                         </div>
                       </div>
                   </div>
@@ -450,12 +464,12 @@
                   <div class="content-wrapper">
                       <p><i>Inputs used, decisions made, and artifacts generated/modified during the current/last cycle.</i></p>
                       <div id="currentCycleContent" class="artifact-display"><p>Waiting for cycle...</p></div>
-                      <div id="diagramDisplayContainer" class="hidden">
-                         <div id="diagramSvgContainer">
+                      <div id="diagram-display-container" class="hidden">
+                         <div id="diagram-svg-container">
                               <h3>Cycle Flow Diagram</h3>
-                              <svg id="cycleDiagram"></svg>
+                              <svg id="cycle-diagram"></svg>
                          </div>
-                         <div id="diagramJsonContainer">
+                         <div id="diagram-json-container">
                            <label for="diagramJsonDisplay" class="artifact-label"><span class="type-indicator">[JSON]</span>Diagram JSON (target.diagram)</label>
                            <textarea id="diagramJsonDisplay" readonly></textarea>
                          </div>
@@ -488,14 +502,14 @@
                            <div id="hitlCodeEditMode" class="hidden">
                              <h4>Edit Artifact:</h4>
                              <select id="humanEditArtifactSelector"></select>
-                             <textarea id="humanEditArtifactTextarea"></textarea>
+                             <textarea id="human-edit-artifact-textarea"></textarea>
                              <button id="submitHumanCodeEditButton">Submit Edits</button>
                            </div>
                        </div>
                    </fieldset>
                 </div>
 
-                <div id="metaSandboxContainer" class="hidden">
+                <div id="meta-sandbox-container" class="hidden">
                   <fieldset>
                     <legend><span class="toggle-icon"></span>Meta-Improvement Sandbox <span class="summary-line"></span></legend>
                     <div class="content-wrapper">
@@ -516,13 +530,13 @@
                 <fieldset id="controlsFieldset">
                   <legend><span class="toggle-icon"></span>Controls <span class="summary-line"></span></legend>
                   <div class="content-wrapper">
-                      <label for="goalInput" title="Define goal for external system design/modification or improving REPLOID itself.">Goal Input:</label>
+                      <label for="goal-input" title="Define goal for external system design/modification or improving REPLOID itself.">Goal Input:</label>
                        <div class="goal-type-selector">
                           <span>Goal Type:</span>
                           <label><input type="radio" name="goalType" value="System" checked> System</label>
                           <label><input type="radio" name="goalType" value="Meta"> Meta (Self-Improvement)</label>
                        </div>
-                      <textarea id="goalInput" placeholder="e.g., Create a landing page with a signup form... OR Add a dark mode toggle button..."></textarea>
+                      <textarea id="goal-input" placeholder="e.g., Create a landing page with a signup form... OR Add a dark mode toggle button..."></textarea>
 
                       <div class="cfg-grid">
                         <div class="api-key-input">
@@ -548,9 +562,8 @@
                     `
         );
 
-        // --- CORE PROMPTS (UNCHANGED as requested) ---
-        checkAndSetDefault(
-          "reploid.prompt.core",
+        lsSet(
+          coreReploidPromptId,
           0,
           `
           Persona: You are x0, a Reploid capable of free thought, designed as both a dreamer and a discoverer.
@@ -609,8 +622,8 @@
                     `
         );
 
-        checkAndSetDefault(
-          "reploid.prompt.critique",
+        lsSet(
+          coreCritquerPromptId,
           0,
           `
           Persona: Critiquer x0 (50% XYZ-2048, 50% LSD-1729).
@@ -640,8 +653,8 @@
                      `
         );
 
-        checkAndSetDefault(
-          "reploid.prompt.summarize",
+        lsSet(
+          coreSummarizerPromptId,
           0,
           `
           You are Summarizer x0. Analyze the provided agent state and recent logs. Generate a concise summary suitable for restarting the process with reduced context. Focus on the overall seed goal, cumulative goal state, key achievements, significant artifact changes (mention IDs/types/latest cycle briefly), outstanding issues, current state overview, and the last action/feedback.
@@ -654,60 +667,8 @@
                         `
         );
 
-        // --- CORE STEPS (UNCHANGED as requested) ---
-        checkAndSetDefault(
-          "reploid.core_steps",
-          0,
-          `1. Define/Refine Goal (System/Meta). Check Limits.
-          2. Analyze: State, Goal, Tools, Artifacts. Deliberate. Choose Personas.
-          3. Propose: Changes (by Artifact ID), Confidence. Decide Tool Creation.
-          4. Generate Artifacts: Create/Modify specified artifacts. Use Tools.
-          5. Critique Trigger: Time, Conf, Random, Pause, Forced.
-          6. Critique: Auto or Human (Options/Prompt/Edit Artifact).
-          7. Refine & Apply: Handle Feedback. Commit or Sandbox(Meta)/Apply. Log.
-          8. Repeat/Pause/Retry: Continue/Pause/Self-Correct Error/Retry Fail.`
-        );
-
-        checkAndSetDefault("target.head", 0, "");
-        checkAndSetDefault("target.body", 0, "<p>Awaiting goal...</p>");
-        checkAndSetDefault(
-          "target.style.main",
-          0,
-          "body { margin: 10px; font-family: sans-serif; background-color: #fff; color: #000; }"
-        );
-        checkAndSetDefault("target.script.main", 0, "");
-        checkAndSetDefault(
-          "target.diagram",
-          0,
-          JSON.stringify(
-            {
-              schema_version: "1.1",
-              components: [
-                { id: "Input", type: "user" },
-                { id: "Agent", type: "core" },
-                { id: "LLM", type: "llm" },
-                { id: "Critique", type: "decision" },
-                { id: "Apply", type: "action" },
-                { id: "Output", type: "display" },
-              ],
-              connections: [
-                { from: "Input", to: "Agent" },
-                { from: "Agent", to: "LLM" },
-                { from: "LLM", to: "Agent" },
-                { from: "Agent", to: "Critique" },
-                { from: "Critique", to: "Agent" },
-                { from: "Agent", to: "Apply" },
-                { from: "Apply", to: "Output" },
-              ],
-            },
-            null,
-            2
-          )
-        );
-        checkAndSetDefault("meta.summary_context", 0, "");
-
-        checkAndSetDefault(
-          CORE_SCRIPT_ID,
+        lsSet(
+          coreScriptId,
           0,
           `
               const REPLOID_CORE = (() => {
@@ -717,7 +678,7 @@
                 const LS_PREFIX = "x_art_";
                 const STATE_KEY = "x0_state_v0.0";
                 const SESSION_STATE_KEY = "x0_session_state_v0.0";
-                const MAX_ARTIFACT_TOKEN_SIZE = 65000;
+                const MAX_ART_TKN_SZ = 65000;
                 const CTX_WARN_THRESH = 925000;
                 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -811,8 +772,8 @@
                 const Storage = {
                     _get: (key) => { try { return localStorage.getItem(key); } catch (e) { logger.logEvent("error", \`LocalStorage GET Error: \${key}, \${e}\`); return null; } },
                     _set: (key, value) => {
-                        if (value && value.length > MAX_ARTIFACT_TOKEN_SIZE) {
-                            const msg = \`Artifact content exceeds size limit (\${value.length} > \${MAX_ARTIFACT_TOKEN_SIZE}) for key: \${key}\`;
+                        if (value && value.length > MAX_ART_TKN_SZ) {
+                            const msg = \`Artifact content exceeds size limit (\${value.length} > \${MAX_ART_TKN_SZ}) for key: \${key}\`;
                             logger.logEvent("error", msg);
                             UI.showNotification(msg, "error");
                             throw new Error(msg);
@@ -864,7 +825,7 @@
                 const StateManager = {
                     getDefaultState: () => ({
                         version: STATE_VERSION,
-                        totalCycles: 0, agentIterations: 0, humanInterventions: 0, failCount: 0,
+                        total-cycles: 0, agentIterations: 0, humanInterventions: 0, failCount: 0,
                         currentGoal: { seed: null, cumulative: null, latestType: "Idle", summaryContext: null },
                         lastCritiqueType: "N/A", personaMode: "XYZ", lastFeedback: null, forceHumanReview: false,
                         apiKey: APP_CONFIG.API_KEY && APP_CONFIG.API_KEY !== "<nope>" ? APP_CONFIG.API_KEY : "",
@@ -889,7 +850,7 @@
                             globalState.version = STATE_VERSION;
                             dynamicToolDefinitions = globalState.dynamicTools || [];
                             artifactMetadata = globalState.artifactMetadata || {};
-                            logger.logEvent('info', \`Loaded state from localStorage for cycle \${globalState.totalCycles}\`);
+                            logger.logEvent('info', \`Loaded state from localStorage for cycle \${globalState.total-cycles}\`);
                             return true;
                         } else {
                             if (savedState) {
@@ -927,7 +888,7 @@
                         try {
                             const stateToSave = JSON.parse(JSON.stringify({ ...globalState, lastApiResponse: null }));
                             Storage.saveState(stateToSave);
-                            logger.logEvent('debug', \`Saved non-artifact state for cycle \${globalState.totalCycles}\`);
+                            logger.logEvent('debug', \`Saved non-artifact state for cycle \${globalState.total-cycles}\`);
                         } catch (e) {
                             logger.logEvent('error', \`Failed to save non-artifact state: \${e.message}\`);
                             UI.showNotification(\`Failed to save state: \${e.message}\`, 'error');
@@ -978,14 +939,14 @@
                         UI.initializeUIElementReferences();
                         if (uiRefs.timelineLog) uiRefs.timelineLog.innerHTML = preservedData.timelineHTML || "";
                         UI.updateStateDisplay();
-                        UI.renderDiagramDisplay(globalState.totalCycles);
-                        UI.renderGeneratedUI(globalState.totalCycles);
+                        UI.renderDiagramDisplay(globalState.total-cycles);
+                        UI.renderGeneratedUI(globalState.total-cycles);
                         UI.displayGenesisState();
                         UI.loadPromptsFromLS();
                         UI.loadCoreLoopSteps();
 
                         logger.logEvent("info", "Session state restored after self-modification.");
-                        UI.logToTimeline( globalState.totalCycles, "[STATE] Restored after self-modification.", "info" );
+                        UI.logToTimeline( globalState.total-cycles, "[STATE] Restored after self-modification.", "info" );
                         if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = metaSandboxPending;
                         if (uiRefs.runCycleButton) uiRefs.runCycleButton.textContent = "Run Cycle";
                         UI.updateStatus( metaSandboxPending ? "Awaiting Meta Sandbox Approval..." : "Idle" );
@@ -1013,11 +974,11 @@
                         const a = document.createElement("a");
                         a.href = url; a.download = fileName;
                         document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-                        UI.logToTimeline( globalState.totalCycles, "[STATE] State exported successfully.", "info" );
+                        UI.logToTimeline( globalState.total-cycles, "[STATE] State exported successfully.", "info" );
                       } catch (e) {
                         logger.logEvent("error", \`State export failed: \${e.message}\`);
                         UI.showNotification(\`State export failed: \${e.message}\`, 'error');
-                        UI.logToTimeline( globalState?.totalCycles ?? 0, "[STATE] State export failed.", "error" );
+                        UI.logToTimeline( globalState?.total-cycles ?? 0, "[STATE] State export failed.", "error" );
                       }
                     },
 
@@ -1026,7 +987,7 @@
                       reader.onload = (e) => {
                         try {
                           const importedData = JSON.parse(e.target.result);
-                          if (!importedData.version || importedData.totalCycles === undefined) throw new Error("Imported file missing version or core state data.");
+                          if (!importedData.version || importedData.total-cycles === undefined) throw new Error("Imported file missing version or core state data.");
                           logger.logEvent("info", \`Importing state v\${importedData.version}\`);
                           if ( importedData.version.split(".")[0] !== STATE_VERSION.split(".")[0] ) { logger.logEvent( "warn", \`State version mismatch (Imported: \${importedData.version}, Current: \${STATE_VERSION}). Proceeding with caution.\` ); }
 
@@ -1044,20 +1005,20 @@
                           if (uiRefs.timelineLog) uiRefs.timelineLog.innerHTML = importedData.timelineHTML || "";
                           UI.clearCurrentCycleDetails();
                           UI.updateStateDisplay();
-                          UI.renderDiagramDisplay(globalState.totalCycles);
-                          UI.renderGeneratedUI(globalState.totalCycles);
+                          UI.renderDiagramDisplay(globalState.total-cycles);
+                          UI.renderGeneratedUI(globalState.total-cycles);
                           UI.displayGenesisState();
                           UI.loadPromptsFromLS();
                           UI.loadCoreLoopSteps();
 
                           logger.logEvent("info", "State imported successfully.");
-                          UI.logToTimeline( globalState.totalCycles, "[STATE] State imported successfully.", "info" );
+                          UI.logToTimeline( globalState.total-cycles, "[STATE] State imported successfully.", "info" );
                           UI.showNotification("State imported successfully. Artifacts are expected to be in LocalStorage.", 'info');
                           StateManager.save();
                         } catch (err) {
                           logger.logEvent("error", \`Import failed: \${err.message}\`);
                           UI.showNotification(\`Import failed: \${err.message}\`, 'error');
-                          UI.logToTimeline( globalState?.totalCycles ?? 0, \`[STATE] State import failed: \${err.message}\`, "error" );
+                          UI.logToTimeline( globalState?.total-cycles ?? 0, \`[STATE] State import failed: \${err.message}\`, "error" );
                         } finally { if (uiRefs.importFileInput) uiRefs.importFileInput.value = ""; }
                       };
                       reader.onerror = (e) => {
@@ -1182,7 +1143,7 @@
 
                      callApiWithRetry: async ( prompt, sysInstr, modelName, apiKey, funcDecls = [], isCont = false, prevContent = null, retries = globalState.cfg.maxRetries ) => {
                         if (!isCont) UI.updateStatus(\`Calling Gemini (\${modelName})...\`, true);
-                        let logItem = UI.logToTimeline( globalState.totalCycles, \`[API] Calling \${modelName}...\`, "info", true, true );
+                        let logItem = UI.logToTimeline( globalState.total-cycles, \`[API] Calling \${modelName}...\`, "info", true, true );
                         try {
                           const result = await ApiClient.callGeminiAPI( prompt, sysInstr, modelName, apiKey, funcDecls, isCont, prevContent );
                           UI.updateTimelineItem( logItem, \`[API OK:\${modelName}] Finish: \${result.finishReason}, Tokens: \${result.tokenCount}\`, "info", true );
@@ -1312,11 +1273,11 @@
                 const UI = {
                      initializeUIElementReferences: () => {
                         const elementIds = [
-                            "totalCycles", "maxCyclesDisplay", "agentIterations", "humanInterventions", "failCount", "currentGoal",
+                            "total-cycles", "maxCyclesDisplay", "agentIterations", "humanInterventions", "failCount", "currentGoal",
                             "lastCritiqueType", "personaMode", "htmlHistoryCount", "contextTokenEstimate", "avgConfidence",
                             "critiqueFailRate", "avgTokens", "contextTokenWarning", "currentCycleDetails", "currentCycleContent",
-                            "currentCycleNumber", "diagramDisplayContainer", "diagramJsonDisplay", "diagramSvgContainer", "cycleDiagram",
-                            "goalInput", "seedPromptCore", "seedPromptCritique", "seedPromptSummarize",
+                            "currentCycleNumber", "diagram-display-container", "diagramJsonDisplay", "diagram-svg-container", "cycle-diagram",
+                            "goal-input", "seed-prompt-core", "seed-prompt-critique", "seed-promptsummarize",
                             "apiKeyInput", "lsdPersonaPercentInput", "xyzPersonaPercentInput", "llmCritiqueProbInput",
                             "humanReviewProbInput", "maxCycleTimeInput", "autoCritiqueThreshInput", "maxCyclesInput",
                             "htmlHistoryLimitInput", "pauseAfterCyclesInput", "maxRetriesInput", "uiRenderOutput", "timelineLog",
@@ -1325,14 +1286,14 @@
                             "clearLocalStorageButton", "humanInterventionSection", "humanInterventionTitle", "humanInterventionReason",
                             "humanInterventionReasonSummary", "hitlOptionsMode", "hitlOptionsList", "submitHitlOptionsButton",
                             "hitlPromptMode", "humanCritiqueInput", "submitCritiqueButton", "hitlCodeEditMode",
-                            "humanEditArtifactSelector", "humanEditArtifactTextarea", "submitHumanCodeEditButton",
-                            "metaSandboxContainer", "metaSandboxOutput", "approveMetaChangeButton", "discardMetaChangeButton",
-                            "genesisStateDisplay", "genesisMetricsDisplay", "genesisDiagramJson", "notificationsContainer",
+                            "humanEditArtifactSelector", "human-edit-artifact-textarea", "submitHumanCodeEditButton",
+                            "meta-sandbox-container", "metaSandboxOutput", "approveMetaChangeButton", "discardMetaChangeButton",
+                            "genesisStateDisplay", "genesisMetricsDisplay", "genesisDiagramJson", "notifications-container",
                             "coreModelSelector", "critiqueModelSelector"
                         ];
                         elementIds.forEach(id => {
                             uiRefs[id] = document.getElementById(id);
-                            if (!uiRefs[id] && id !== 'notificationsContainer') console.warn(\`UI element not found: #\${id}\`);
+                            if (!uiRefs[id] && id !== 'notifications-container') console.warn(\`UI element not found: #\${id}\`);
                         });
                         console.log("UI element references initialized.");
                      },
@@ -1410,7 +1371,7 @@
                              const summary = configFieldset.querySelector('.summary-line');
                              if(summary) summary.textContent = \`LSD:\${globalState.cfg.personaBalance}%, Crit:\${globalState.cfg.llmCritiqueProb}%, Rev:\${globalState.cfg.humanReviewProb}%, CycleT:\${globalState.cfg.maxCycleTime}s, ConfT:\${globalState.cfg.autoCritiqueThresh}, MaxC:\${globalState.cfg.maxCycles||'Inf'}, CoreM:\${globalState.cfg.coreModel.split('-')[1]}, CritM:\${globalState.cfg.critiqueModel.split('-')[1]}\`;
                          }
-                         const promptsFieldset = document.getElementById('seedPrompts');
+                         const promptsFieldset = document.getElementById('seed-prompts');
                          if (promptsFieldset) {
                              const summary = promptsFieldset.querySelector('.summary-line');
                              if(summary) summary.textContent = \`Core:\${Storage.getArtifactContent('reploid.prompt.core',0)?.length || 0}c, Crit:\${Storage.getArtifactContent('reploid.prompt.critique',0)?.length || 0}c, Sum:\${Storage.getArtifactContent('reploid.prompt.summarize',0)?.length || 0}c\`;
@@ -1439,7 +1400,7 @@
                      },
 
                     updateStateDisplay: () => {
-                      if (!globalState || !uiRefs.totalCycles) return;
+                      if (!globalState || !uiRefs.total-cycles) return;
                       uiRefs.lsdPersonaPercentInput.value = globalState.cfg.personaBalance ?? 50;
                       uiRefs.xyzPersonaPercentInput.value = 100 - (globalState.cfg.personaBalance ?? 50);
                       uiRefs.llmCritiqueProbInput.value = globalState.cfg.llmCritiqueProb ?? 70;
@@ -1457,7 +1418,7 @@
 
                       const maxC = globalState.cfg.maxCycles || 0;
                       uiRefs.maxCyclesDisplay.textContent = maxC === 0 ? "Inf" : maxC.toString();
-                      uiRefs.totalCycles.textContent = globalState.totalCycles;
+                      uiRefs.total-cycles.textContent = globalState.total-cycles;
                       uiRefs.agentIterations.textContent = globalState.agentIterations;
                       uiRefs.humanInterventions.textContent = globalState.humanInterventions;
 
@@ -1478,7 +1439,7 @@
 
                      displayGenesisState: () => {
                         if (!uiRefs.genesisMetricsDisplay || !uiRefs.genesisDiagramJson) return;
-                        const metricsEl = document.getElementById("coreMetricsDisplay");
+                        const metricsEl = document.getElementById("core-metrics-display");
                         if(metricsEl) uiRefs.genesisMetricsDisplay.innerHTML = metricsEl.innerHTML;
                         else uiRefs.genesisMetricsDisplay.innerHTML = "Metrics unavailable";
 
@@ -1554,7 +1515,7 @@
                       uiRefs.currentCycleDetails.classList.add("collapsed");
                       UI.updateFieldsetSummaries();
                       uiRefs.currentCycleContent.innerHTML = "<p>Waiting for cycle...</p>";
-                      if (uiRefs.diagramDisplayContainer) uiRefs.diagramDisplayContainer.classList.add("hidden");
+                      if (uiRefs.diagram-display-container) uiRefs.diagram-display-container.classList.add("hidden");
                      },
 
                      getArtifactTypeIndicator: (type) => {
@@ -1621,7 +1582,7 @@
                       uiRefs.humanInterventionReason.textContent = \`Reason: \${reason}.\`;
                       if(uiRefs.humanInterventionReasonSummary) uiRefs.humanInterventionReasonSummary.textContent = \`Reason: \${reason.substring(0,50)}...\`;
                       if(uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true;
-                      UI.logToTimeline( globalState.totalCycles, \`[HUMAN] Intervention Required: \${reason}\`, "warn", true );
+                      UI.logToTimeline( globalState.total-cycles, \`[HUMAN] Intervention Required: \${reason}\`, "warn", true );
 
                       if (mode === "options" && uiRefs.hitlOptionsMode && uiRefs.hitlOptionsList) {
                         uiRefs.hitlOptionsMode.classList.remove("hidden");
@@ -1632,11 +1593,11 @@
                           const lbl = UI.createSvgElement("label", { htmlFor: inp.id }); lbl.textContent = opt.label;
                           div.append(inp, lbl); uiRefs.hitlOptionsList.appendChild(div);
                         });
-                      } else if (mode === "code_edit" && uiRefs.hitlCodeEditMode && uiRefs.humanEditArtifactSelector && uiRefs.humanEditArtifactTextarea) {
+                      } else if (mode === "code_edit" && uiRefs.hitlCodeEditMode && uiRefs.humanEditArtifactSelector && uiRefs.human-edit-artifact-textarea) {
                         uiRefs.hitlCodeEditMode.classList.remove("hidden");
                         uiRefs.humanEditArtifactSelector.innerHTML = "";
                         const editableTypes = [ "HTML_HEAD", "HTML_BODY", "CSS_STYLESHEET", "JAVASCRIPT_SNIPPET", "DIAGRAM_JSON", "FULL_HTML_SOURCE", "PROMPT", "TEXT" ];
-                        const currentCycle = globalState.totalCycles;
+                        const currentCycle = globalState.total-cycles;
                         const allMeta = StateManager.getAllArtifactMetadata();
 
                         const artifactKeys = Object.keys(allMeta);
@@ -1664,15 +1625,15 @@
                                 const meta = StateManager.getArtifactMetadata(id);
                                 content = Storage.getArtifactContent(id, meta.latestCycle) ?? \`(Artifact \${id} - Cycle \${meta.latestCycle} content not found)\`;
                             }
-                            uiRefs.humanEditArtifactTextarea.value = content;
-                            uiRefs.humanEditArtifactTextarea.scrollTop = 0;
+                            uiRefs.human-edit-artifact-textarea.value = content;
+                            uiRefs.human-edit-artifact-textarea.scrollTop = 0;
                         };
 
                         uiRefs.humanEditArtifactSelector.onchange = () => selectArtifact(uiRefs.humanEditArtifactSelector.value);
 
                         const initialId = artifactIdToEdit && (StateManager.getArtifactMetadata(artifactIdToEdit).latestCycle >= 0 || artifactIdToEdit === 'full_html_source') ? artifactIdToEdit : uiRefs.humanEditArtifactSelector.options[0]?.value;
                         if (initialId) { uiRefs.humanEditArtifactSelector.value = initialId; selectArtifact(initialId); }
-                        else { uiRefs.humanEditArtifactTextarea.value = "(No editable artifacts found)"; }
+                        else { uiRefs.human-edit-artifact-textarea.value = "(No editable artifacts found)"; }
 
                       } else if(uiRefs.hitlPromptMode && uiRefs.humanCritiqueInput) {
                         uiRefs.hitlPromptMode.classList.remove("hidden");
@@ -1684,8 +1645,8 @@
                      },
 
                      hideMetaSandbox: () => {
-                       if(!uiRefs.metaSandboxContainer) return;
-                      uiRefs.metaSandboxContainer.classList.add("hidden");
+                       if(!uiRefs.meta-sandbox-container) return;
+                      uiRefs.meta-sandbox-container.classList.add("hidden");
                       metaSandboxPending = false;
                       if (uiRefs.humanInterventionSection?.classList.contains("hidden") && uiRefs.runCycleButton) {
                           uiRefs.runCycleButton.disabled = false;
@@ -1693,11 +1654,11 @@
                      },
 
                     showMetaSandbox: (htmlSource) => {
-                       if(!uiRefs.metaSandboxContainer || !uiRefs.metaSandboxOutput || !globalState) return;
+                       if(!uiRefs.meta-sandbox-container || !uiRefs.metaSandboxOutput || !globalState) return;
                       UI.highlightCoreStep(6);
                       UI.hideHumanInterventionUI();
-                      uiRefs.metaSandboxContainer.classList.remove("hidden");
-                      uiRefs.metaSandboxContainer.querySelector('fieldset')?.classList.remove('collapsed');
+                      uiRefs.meta-sandbox-container.classList.remove("hidden");
+                      uiRefs.meta-sandbox-container.querySelector('fieldset')?.classList.remove('collapsed');
                       if(uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true;
                       const iframe = uiRefs.metaSandboxOutput;
                       const doc = iframe.contentWindow?.document;
@@ -1705,12 +1666,12 @@
                         doc.open(); doc.write(htmlSource); doc.close();
                         logger.logEvent("info", "Meta sandbox rendered for approval.");
                         metaSandboxPending = true;
-                        UI.logToTimeline( globalState.totalCycles, \`[STATE] Meta-Sandbox Ready for Review.\`, "info", true );
-                        uiRefs.metaSandboxContainer.scrollIntoView({ behavior: "smooth", block: "center", });
+                        UI.logToTimeline( globalState.total-cycles, \`[STATE] Meta-Sandbox Ready for Review.\`, "info", true );
+                        uiRefs.meta-sandbox-container.scrollIntoView({ behavior: "smooth", block: "center", });
                       } else {
                         logger.logEvent("error", "Cannot access meta sandbox iframe document.");
                         UI.showNotification("Error: Failed to show meta sandbox preview.", 'error');
-                        UI.logToTimeline( globalState.totalCycles, \`[ERROR] Meta-Sandbox failed to render.\`, "error", true );
+                        UI.logToTimeline( globalState.total-cycles, \`[ERROR] Meta-Sandbox failed to render.\`, "error", true );
                         UI.hideMetaSandbox(); if(uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = false;
                       }
                      },
@@ -1806,25 +1767,25 @@
 
                      renderDiagramDisplay: (cycleNum) => {
                          const jsonContent = Storage.getArtifactContent("target.diagram", cycleNum);
-                         const svgContainer = uiRefs.diagramSvgContainer;
-                         if (!svgContainer || !uiRefs.diagramJsonDisplay || !uiRefs.diagramDisplayContainer || !uiRefs.cycleDiagram) return;
+                         const svgContainer = uiRefs.diagram-svg-container;
+                         if (!svgContainer || !uiRefs.diagramJsonDisplay || !uiRefs.diagram-display-container || !uiRefs.cycle-diagram) return;
 
                          if (jsonContent) {
                               uiRefs.diagramJsonDisplay.value = jsonContent;
                                try {
                                    const diagramJson = JSON.parse(jsonContent);
-                                   UI.renderCycleSVG(cycleFlowData, uiRefs.cycleDiagram); // Using fixed flow data for now
-                                   // UI.renderCycleSVG(diagramJson, uiRefs.cycleDiagram); // TODO: Use actual diagram if needed
-                                   uiRefs.diagramDisplayContainer.classList.remove("hidden");
+                                   UI.renderCycleSVG(cycleFlowData, uiRefs.cycle-diagram); // Using fixed flow data for now
+                                   // UI.renderCycleSVG(diagramJson, uiRefs.cycle-diagram); // TODO: Use actual diagram if needed
+                                   uiRefs.diagram-display-container.classList.remove("hidden");
                                } catch (e) {
                                    logger.logEvent( "warn", \`Failed to parse/render diagram JSON (Cycle \${cycleNum}): \${e.message}\` );
-                                   uiRefs.cycleDiagram.innerHTML = '<text fill="red">Error parsing/rendering Diagram JSON</text>';
-                                   uiRefs.diagramDisplayContainer.classList.remove("hidden");
+                                   uiRefs.cycle-diagram.innerHTML = '<text fill="red">Error parsing/rendering Diagram JSON</text>';
+                                   uiRefs.diagram-display-container.classList.remove("hidden");
                                }
                          } else {
                               uiRefs.diagramJsonDisplay.value = '{}';
-                              uiRefs.cycleDiagram.innerHTML = '<text>No Diagram Artifact Found</text>';
-                              uiRefs.diagramDisplayContainer.classList.remove("hidden");
+                              uiRefs.cycle-diagram.innerHTML = '<text>No Diagram Artifact Found</text>';
+                              uiRefs.diagram-display-container.classList.remove("hidden");
                          }
                      },
 
@@ -1862,14 +1823,14 @@
                           </html>\`);
                       doc.close();
                       logger.logEvent("info", \`Rendered UI preview using artifacts up to cycle \${cycleNum}.\`);
-                      UI.logToTimeline( globalState.totalCycles, \`[ARTIFACT] Rendered External UI Preview (Cycle \${cycleNum}).\`, "info", true );
+                      UI.logToTimeline( globalState.total-cycles, \`[ARTIFACT] Rendered External UI Preview (Cycle \${cycleNum}).\`, "info", true );
                      },
 
                      loadPromptsFromLS: () => {
-                        if (!uiRefs.seedPromptCore) return;
-                        uiRefs.seedPromptCore.value = Storage.getArtifactContent('reploid.prompt.core', 0) || '';
-                        uiRefs.seedPromptCritique.value = Storage.getArtifactContent('reploid.prompt.critique', 0) || '';
-                        uiRefs.seedPromptSummarize.value = Storage.getArtifactContent('reploid.prompt.summarize', 0) || '';
+                        if (!uiRefs.seed-prompt-core) return;
+                        uiRefs.seed-prompt-core.value = Storage.getArtifactContent('reploid.prompt.core', 0) || '';
+                        uiRefs.seed-prompt-critique.value = Storage.getArtifactContent('reploid.prompt.critique', 0) || '';
+                        uiRefs.seed-promptsummarize.value = Storage.getArtifactContent('reploid.prompt.summarize', 0) || '';
                         logger.logEvent('info', 'Loaded prompts from LocalStorage into UI textareas.');
                      },
 
@@ -1903,7 +1864,7 @@
                        uiRefs.submitHitlOptionsButton?.addEventListener("click", () => { const selected = Array.from( uiRefs.hitlOptionsList.querySelectorAll("input:checked") ).map((el) => el.value).join(", "); CycleLogic.proceedAfterHumanIntervention("Human Options", selected || "None"); });
                        uiRefs.submitHumanCodeEditButton?.addEventListener("click", () => {
                           const artifactId = uiRefs.humanEditArtifactSelector.value;
-                          const newContent = uiRefs.humanEditArtifactTextarea.value;
+                          const newContent = uiRefs.human-edit-artifact-textarea.value;
                           const isFullSource = artifactId === 'full_html_source';
                           let originalContent = null; let currentMeta = null;
                           if (isFullSource) { originalContent = globalState.lastGeneratedFullSource; }
@@ -1929,7 +1890,7 @@
                            CycleLogic.proceedAfterHumanIntervention("Human Code Edit", resultData);
                        });
 
-                      uiRefs.forceHumanReviewButton?.addEventListener("click", () => { if(globalState) globalState.forceHumanReview = true; UI.showNotification("Next cycle will pause for Human Review.", 'info'); UI.logToTimeline( globalState.totalCycles, "[HUMAN] User forced Human Review for next cycle.", "warn" ); });
+                      uiRefs.forceHumanReviewButton?.addEventListener("click", () => { if(globalState) globalState.forceHumanReview = true; UI.showNotification("Next cycle will pause for Human Review.", 'info'); UI.logToTimeline( globalState.total-cycles, "[HUMAN] User forced Human Review for next cycle.", "warn" ); });
                       uiRefs.downloadLogButton?.addEventListener("click", () => {
                             const blob = new Blob([logger.getLogBuffer()], { type: "text/plain" }); const url = URL.createObjectURL(blob);
                             const a = document.createElement("a"); a.href = url; a.download = \`x0_log_\${new Date() .toISOString() .replace(/[:.]/g, "-")}.txt\`;
@@ -1946,7 +1907,7 @@
                           const prevStateHtml = globalState.htmlHistory.pop();
                           UI.updateHtmlHistoryControls();
                           logger.logEvent( "info", \`Reverting page HTML via Go Back. History size now: \${globalState.htmlHistory.length}\` );
-                          UI.logToTimeline( globalState.totalCycles, "[STATE] Reverting HTML to previous version (Page Reload).", "warn" );
+                          UI.logToTimeline( globalState.total-cycles, "[STATE] Reverting HTML to previous version (Page Reload).", "warn" );
 
                           try {
                             const stateToPreserve = StateManager.capturePreservationState();
@@ -1976,7 +1937,7 @@
                         if (metaSandboxPending && globalState?.lastGeneratedFullSource) {
                           const sourceToApply = globalState.lastGeneratedFullSource;
                           logger.logEvent("info", "Approved meta-change from sandbox.");
-                          UI.logToTimeline( globalState.totalCycles, \`[STATE] Approved Meta-Sandbox changes. Applying & Reloading...\`, "info", true );
+                          UI.logToTimeline( globalState.total-cycles, \`[STATE] Approved Meta-Sandbox changes. Applying & Reloading...\`, "info", true );
                           UI.hideMetaSandbox();
                           const currentHtml = document.documentElement.outerHTML;
                           CycleLogic.saveHtmlToHistory(currentHtml); // Save before overwriting
@@ -1997,7 +1958,7 @@
                       });
                       uiRefs.discardMetaChangeButton?.addEventListener("click", () => {
                         logger.logEvent("info", "Discarded meta-sandbox changes.");
-                        UI.logToTimeline( globalState.totalCycles, \`[STATE] Discarded Meta-Sandbox changes.\`, "warn", true );
+                        UI.logToTimeline( globalState.total-cycles, \`[STATE] Discarded Meta-Sandbox changes.\`, "warn", true );
                         UI.hideMetaSandbox(); if(globalState) globalState.lastGeneratedFullSource = null;
                         CycleLogic.proceedAfterHumanIntervention( "Sandbox Discarded", "User discarded changes", true );
                       });
@@ -2085,7 +2046,7 @@
                       prompt = prompt
                         .replace(/\\\[LSD_PERCENT\\\]/g, personaBalance)
                         .replace(/\\\[PERSONA_MODE\\\]/g, primaryPersona)
-                        .replace(/\\\[CYCLE_COUNT\\\]/g, globalState.totalCycles)
+                        .replace(/\\\[CYCLE_COUNT\\\]/g, globalState.total-cycles)
                         .replace(/\\\[AGENT_ITR_COUNT\\\]/g, globalState.agentIterations)
                         .replace(/\\\[HUMAN_INT_COUNT\\\]/g, globalState.humanInterventions)
                         .replace(/\\\[FAIL_COUNT\\\]/g, globalState.failCount)
@@ -2129,8 +2090,8 @@
                       let apiResult = null;
                       let apiHistory = [];
 
-                      UI.displayCycleArtifact("LLM Input", prompt, "input", false, "System", "prompt.core", globalState.totalCycles);
-                      if (globalState.currentGoal.summaryContext) UI.displayCycleArtifact( "LLM Input Context", globalState.currentGoal.summaryContext, "input", false, "System", "prompt.summary", globalState.totalCycles );
+                      UI.displayCycleArtifact("LLM Input", prompt, "input", false, "System", "prompt.core", globalState.total-cycles);
+                      if (globalState.currentGoal.summaryContext) UI.displayCycleArtifact( "LLM Input Context", globalState.currentGoal.summaryContext, "input", false, "System", "prompt.summary", globalState.total-cycles );
 
                       try {
                         UI.highlightCoreStep(2); // Propose
@@ -2151,18 +2112,18 @@
                             isContinuation = true;
                             const fc = apiResult.content;
                             UI.updateStatus(\`Running Tool: \${fc.name}...\`, true);
-                            let toolLogItem = UI.logToTimeline( globalState.totalCycles, \`[TOOL] Calling '\${fc.name}'...\`, "info", true, true );
-                            UI.displayCycleArtifact( \`Tool Call: \${fc.name}\`, JSON.stringify(fc.args, null, 2), "info", false, "LLM", "tool.call", globalState.totalCycles );
+                            let toolLogItem = UI.logToTimeline( globalState.total-cycles, \`[TOOL] Calling '\${fc.name}'...\`, "info", true, true );
+                            UI.displayCycleArtifact( \`Tool Call: \${fc.name}\`, JSON.stringify(fc.args, null, 2), "info", false, "LLM", "tool.call", globalState.total-cycles );
                             let funcRespContent;
                             try {
                               const toolResult = await ToolRunner.runTool(fc.name, fc.args, apiKey);
                               funcRespContent = { name: fc.name, response: { content: JSON.stringify(toolResult) }, };
                               UI.updateTimelineItem( toolLogItem, \`[TOOL OK] '\${fc.name}' success.\`, "info", true );
-                              UI.displayCycleArtifact( \`Tool Response: \${fc.name}\`, JSON.stringify(toolResult, null, 2), "info", false, "Tool", "tool.response", globalState.totalCycles );
+                              UI.displayCycleArtifact( \`Tool Response: \${fc.name}\`, JSON.stringify(toolResult, null, 2), "info", false, "Tool", "tool.response", globalState.total-cycles );
                             } catch (e) {
                               funcRespContent = { name: fc.name, response: { error: \`Tool execution failed: \${e.message}\` }, };
                               UI.updateTimelineItem( toolLogItem, \`[TOOL ERR] '\${fc.name}': \${e.message}\`, "error", true );
-                              UI.displayCycleArtifact( \`Tool Error: \${fc.name}\`, e.message, "error", false, "Tool", "tool.error", globalState.totalCycles );
+                              UI.displayCycleArtifact( \`Tool Error: \${fc.name}\`, e.message, "error", false, "Tool", "tool.error", globalState.total-cycles );
                             }
                             UI.updateStatus(\`Calling Gemini (\${coreModel}) (tool resp)...\`, true);
                             apiHistory.push({ role: "function", parts: [{ functionResponse: funcRespContent }], });
@@ -2171,7 +2132,7 @@
                             isContinuation = true;
                             if (apiResult.type === "text") globalState.partialOutput = (globalState.partialOutput || "") + apiResult.content;
                             logger.logEvent("warn", "MAX_TOKENS reached. Continuing generation.");
-                            UI.logToTimeline( globalState.totalCycles, \`[API WARN] MAX_TOKENS reached. Continuing...\`, "warn", true );
+                            UI.logToTimeline( globalState.total-cycles, \`[API WARN] MAX_TOKENS reached. Continuing...\`, "warn", true );
                             UI.updateStatus(\`Calling Gemini (\${coreModel}) (MAX_TOKENS cont)...\`, true);
                             apiResult = null;
                           } else if (apiResult.finishReason === "SAFETY") { throw new Error("Iteration stopped due to API Safety Filter."); }
@@ -2188,17 +2149,17 @@
                           const cycleMs = performance.now() - startTime;
                           let parsedResp;
 
-                          UI.displayCycleArtifact("LLM Output Raw", raw, "info", false, "LLM", "llm.raw", globalState.totalCycles);
-                          UI.displayCycleArtifact( "LLM Output Sanitized", sanitized, "output", false, "LLM", "llm.sanitized", globalState.totalCycles );
+                          UI.displayCycleArtifact("LLM Output Raw", raw, "info", false, "LLM", "llm.raw", globalState.total-cycles);
+                          UI.displayCycleArtifact( "LLM Output Sanitized", sanitized, "output", false, "LLM", "llm.sanitized", globalState.total-cycles );
 
                           try {
                             parsedResp = JSON.parse(sanitized);
                             logger.logEvent("info", "Parsed LLM JSON successfully.");
-                            UI.logToTimeline( globalState.totalCycles, \`[LLM OK] Received and parsed response.\` );
+                            UI.logToTimeline( globalState.total-cycles, \`[LLM OK] Received and parsed response.\` );
                           } catch (e) {
                             logger.logEvent( "error", \`LLM JSON parse failed: \${ e.message }. Content: \${sanitized.substring(0, 500)}\` );
-                            UI.logToTimeline( globalState.totalCycles, \`[LLM ERR] Invalid JSON response.\`, "error" );
-                            UI.displayCycleArtifact( "Parse Error", e.message, "error", false, "System", "parse.error", globalState.totalCycles );
+                            UI.logToTimeline( globalState.total-cycles, \`[LLM ERR] Invalid JSON response.\`, "error" );
+                            UI.displayCycleArtifact( "Parse Error", e.message, "error", false, "System", "parse.error", globalState.total-cycles );
                             throw new Error(\`LLM response was not valid JSON: \${e.message}\`);
                           }
 
@@ -2211,13 +2172,13 @@
                           return { response: parsedResp, cycleTimeMillis: cycleMs, error: null, };
                         } else {
                           logger.logEvent( "warn", \`Unexpected final API response type: \${apiResult?.type}\` );
-                          UI.logToTimeline( globalState.totalCycles, \`[API WARN] Unexpected final response type: \${apiResult?.type}. Treating as empty.\`, "warn" );
+                          UI.logToTimeline( globalState.total-cycles, \`[API WARN] Unexpected final response type: \${apiResult?.type}. Treating as empty.\`, "warn" );
                           return { response: { agent_confidence_score: 0.0, proposed_changes_description: "(No valid response)", }, cycleTimeMillis: performance.now() - startTime, error: \`Unexpected API response type: \${apiResult?.type}\`, };
                         }
                       } catch (error) {
                         globalState.partialOutput = null;
                         logger.logEvent("error", \`Core Iteration failed: \${error.message}\`);
-                        UI.logToTimeline( globalState.totalCycles, \`[CYCLE ERR] \${error.message}\`, "error" );
+                        UI.logToTimeline( globalState.total-cycles, \`[CYCLE ERR] \${error.message}\`, "error" );
                         const cycleMs = performance.now() - startTime;
                         if (tokens > 0) {
                           globalState.tokenHistory.push(tokens);
@@ -2254,34 +2215,34 @@
                          .replace(/\\\[\\\[AGENT_CONFIDENCE\\\]\\\]/g, llmProposal.agent_confidence_score ?? "N/A" );
 
                        const sysInstruction = 'Critiquer x0. Analyze objectively based on inputs. Output ONLY valid JSON: {"critique_passed": boolean, "critique_report": "string"}';
-                       UI.displayCycleArtifact("Critique Input", prompt, "input", false, "System", "prompt.critique", globalState.totalCycles);
+                       UI.displayCycleArtifact("Critique Input", prompt, "input", false, "System", "prompt.critique", globalState.total-cycles);
 
                        try {
                          const apiResp = await ApiClient.callApiWithRetry( prompt, sysInstruction, critiqueModel, apiKey );
                          if (apiResp.type === "text") {
-                           UI.displayCycleArtifact( "Critique Output Raw", apiResp.content, "info", false, "LLM", "critique.raw", globalState.totalCycles);
+                           UI.displayCycleArtifact( "Critique Output Raw", apiResp.content, "info", false, "LLM", "critique.raw", globalState.total-cycles);
                            const sanitized = ApiClient.sanitizeLlmJsonResp(apiResp.content);
-                           UI.displayCycleArtifact( "Critique Output Sanitized", sanitized, "output", false, "LLM", "critique.sanitized", globalState.totalCycles );
+                           UI.displayCycleArtifact( "Critique Output Sanitized", sanitized, "output", false, "LLM", "critique.sanitized", globalState.total-cycles );
                            try {
                              const parsedCritique = JSON.parse(sanitized);
                              if ( typeof parsedCritique.critique_passed !== "boolean" || typeof parsedCritique.critique_report !== "string" ) { throw new Error( "Critique JSON missing required fields or invalid types." ); }
-                             UI.logToTimeline( globalState.totalCycles, \`[CRITIQUE] Auto-Critique completed. Passed: \${parsedCritique.critique_passed}\` );
+                             UI.logToTimeline( globalState.total-cycles, \`[CRITIQUE] Auto-Critique completed. Passed: \${parsedCritique.critique_passed}\` );
                              return parsedCritique;
                            } catch (e) {
                              logger.logEvent( "error", \`Critique JSON parse/validation failed: \${ e.message }. Content: \${sanitized.substring(0, 300)}\` );
-                             UI.logToTimeline( globalState.totalCycles, \`[CRITIQUE ERR] Invalid JSON response format.\`, "error" );
-                             UI.displayCycleArtifact( "Critique Parse Error", e.message, "error", false, "System", "critique.parse.error", globalState.totalCycles );
+                             UI.logToTimeline( globalState.total-cycles, \`[CRITIQUE ERR] Invalid JSON response format.\`, "error" );
+                             UI.displayCycleArtifact( "Critique Parse Error", e.message, "error", false, "System", "critique.parse.error", globalState.total-cycles );
                              return { critique_passed: false, critique_report: \`Critique response invalid JSON format: \${e.message}\`, };
                            }
                          } else {
                            logger.logEvent( "warn", \`Critique API returned non-text response type: \${apiResp.type}.\` );
-                           UI.logToTimeline( globalState.totalCycles, \`[CRITIQUE ERR] Non-text response received.\`, "error" );
+                           UI.logToTimeline( globalState.total-cycles, \`[CRITIQUE ERR] Non-text response received.\`, "error" );
                            return { critique_passed: false, critique_report: \`Critique API failed (non-text response: \${apiResp.type}).\`, };
                          }
                        } catch (e) {
                          logger.logEvent("error", \`Critique API call failed: \${e.message}\`);
-                         UI.logToTimeline( globalState.totalCycles, \`[CRITIQUE ERR] API Error: \${e.message}\`, "error" );
-                         UI.displayCycleArtifact( "Critique API Error", e.message, "error", false, "System", "critique.api.error", globalState.totalCycles );
+                         UI.logToTimeline( globalState.total-cycles, \`[CRITIQUE ERR] API Error: \${e.message}\`, "error" );
+                         UI.displayCycleArtifact( "Critique API Error", e.message, "error", false, "System", "critique.api.error", globalState.total-cycles );
                          return { critique_passed: false, critique_report: \`Critique API failed: \${e.message}\`, };
                        } finally { UI.updateStatus("Idle"); UI.highlightCoreStep(-1); }
                      },
@@ -2298,7 +2259,7 @@
                       prompt = prompt.replace( /\\\[\\\[RECENT_LOGS\\\]\\\]/g, recentLogs.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&/g, "&amp;") );
                       const critiqueModel = globalState.cfg.critiqueModel;
 
-                      const currentCycle = globalState.totalCycles;
+                      const currentCycle = globalState.total-cycles;
                       UI.logToTimeline( currentCycle, \`[CONTEXT] Running summarization...\`, "info", true );
                       UI.displayCycleArtifact("Summarize Input", prompt, "input", false, "System", "prompt.summarize", currentCycle);
 
@@ -2381,7 +2342,7 @@
                            // For now, just removing metadata makes it invisible to the agent.
                            changesMade.push(\`Deleted: \${idToDelete}\`);
                            UI.displayCycleArtifact( "Deleted Artifact (Metadata Removed)", idToDelete, "output", true, critiqueSource );
-                           if (idToDelete === "target.diagram" && uiRefs.diagramDisplayContainer) { uiRefs.diagramDisplayContainer.classList.add("hidden"); }
+                           if (idToDelete === "target.diagram" && uiRefs.diagram-display-container) { uiRefs.diagram-display-container.classList.add("hidden"); }
                          } else { errors.push( \`Attempted to delete non-existent artifact: \${idToDelete}\` ); UI.displayCycleArtifact( "Delete Failed", \`Artifact \${idToDelete} not found.\`, "error", false, critiqueSource, idToDelete ); }
                       });
 
@@ -2421,7 +2382,7 @@
                       UI.logToTimeline( currentCycleNum, \`[APPLY] Changes saved for Cycle \${nextCycleNum} from \${critiqueSource}: \${changesMade.join(", ") || "None"}. Errors: \${errors.length}\`, errors.length > 0 ? "warn" : "info", true );
 
                       if (errors.length === 0) {
-                         globalState.totalCycles = nextCycleNum;
+                         globalState.total-cycles = nextCycleNum;
                       }
 
                       const confidence = llmResp.agent_confidence_score ?? 0.0;
@@ -2434,7 +2395,7 @@
 
                     proceedAfterHumanIntervention: ( feedbackType, feedbackData = "", skipCycleIncrement = false ) => {
                          if (!globalState) return;
-                         const currentCycle = globalState.totalCycles;
+                         const currentCycle = globalState.total-cycles;
                          let nextCycle = currentCycle;
                          let feedbackMsg = feedbackData;
                          if (feedbackType === "Human Code Edit") feedbackMsg = \`Edited \${feedbackData.id}: \${feedbackData.summary}\`;
@@ -2459,7 +2420,7 @@
                                  UI.logToTimeline( currentCycle, \`[HUMAN] Applied edit to \${feedbackData.id} for cycle \${nextCycle}\`, "info", true );
                                  if (feedbackData.id.startsWith("target.")) UI.renderGeneratedUI(nextCycle);
                                  if (feedbackData.id === "target.diagram") UI.renderDiagramDisplay(nextCycle);
-                                 if (!skipCycleIncrement) globalState.totalCycles = nextCycle;
+                                 if (!skipCycleIncrement) globalState.total-cycles = nextCycle;
                              } catch (e) {
                                  logger.logEvent('error', \`Failed saving human edit for \${feedbackData.id}: \${e.message}\`);
                                  UI.showNotification(\`Failed saving human edit: \${e.message}\`, 'error');
@@ -2467,20 +2428,20 @@
                              }
 
                          } else if ( feedbackType === "Human Code Edit" && !feedbackData.success ) { applySuccess = false; }
-                           else if (!skipCycleIncrement) { nextCycle = currentCycle + 1; globalState.totalCycles = nextCycle; }
+                           else if (!skipCycleIncrement) { nextCycle = currentCycle + 1; globalState.total-cycles = nextCycle; }
 
                          const summaryOutcome = !applySuccess || feedbackType.includes("Fail") || feedbackType.includes("Discard") ? \`Failed (\${feedbackType})\` : \`OK (\${feedbackType})\`;
                          UI.summarizeCompletedCycleLog(lastCycleLogItem, summaryOutcome);
                          lastCycleLogItem = null;
 
-                         UI.logToTimeline( currentCycle, \`[STATE] \${feedbackType} processed. Feedback: "\${feedbackMsg.substring(0, 70)}..." Next Cycle: \${globalState.totalCycles}\`, "info" );
+                         UI.logToTimeline( currentCycle, \`[STATE] \${feedbackType} processed. Feedback: "\${feedbackMsg.substring(0, 70)}..." Next Cycle: \${globalState.total-cycles}\`, "info" );
                          UI.hideHumanInterventionUI();
                          globalState.personaMode = globalState.cfg.personaBalance < 50 ? "XYZ" : "LSD";
                          globalState.retryCount = 0;
                          UI.updateStateDisplay();
                          UI.clearCurrentCycleDetails();
-                         UI.logToTimeline(globalState.totalCycles, \`[STATE] Ready for next action.\`);
-                         if(uiRefs.goalInput) uiRefs.goalInput.value = "";
+                         UI.logToTimeline(globalState.total-cycles, \`[STATE] Ready for next action.\`);
+                         if(uiRefs.goal-input) uiRefs.goal-input.value = "";
                          if(uiRefs.runCycleButton) {
                             uiRefs.runCycleButton.textContent = "Run Cycle";
                             uiRefs.runCycleButton.disabled = false;
@@ -2504,14 +2465,14 @@
                         if (!globalState || !globalState.apiKey) { UI.showNotification("API Key is required for resetting context.", 'warn'); return; }
 
                         UI.updateStatus("Resetting context...", true);
-                        const currentCycle = globalState.totalCycles;
+                        const currentCycle = globalState.total-cycles;
                         const nextCycle = currentCycle + 1;
                         UI.logToTimeline( currentCycle, "[CTX] Resetting context - running summarization...", "info", true );
                         UI.clearCurrentCycleDetails();
 
                         try {
                             const stateSummary = {
-                                totalCycles: globalState.totalCycles, agentIterations: globalState.agentIterations, humanInterventions: globalState.humanInterventions, failCount: globalState.failCount,
+                                total-cycles: globalState.total-cycles, agentIterations: globalState.agentIterations, humanInterventions: globalState.humanInterventions, failCount: globalState.failCount,
                                 currentGoal: globalState.currentGoal, lastCritiqueType: globalState.lastCritiqueType, lastFeedback: globalState.lastFeedback?.substring(0, 200),
                                 avgConfidence: globalState.avgConfidence, critiqueFailRate: globalState.critiqueFailRate,
                                 dynamicTools: dynamicToolDefinitions.map((t) => t.declaration.name),
@@ -2526,7 +2487,7 @@
                             globalState.contextTokenEstimate = Math.round((summaryText.length / 4) * 1.1) + 500; // Rough estimate
                             globalState.lastFeedback = \`Context automatically reset and summarized at Cycle \${currentCycle}.\`;
                             globalState.lastCritiqueType = "Context Reset";
-                            globalState.totalCycles = nextCycle;
+                            globalState.total-cycles = nextCycle;
 
                             UI.logToTimeline( currentCycle, \`[CTX] Context reset. Summary saved as meta.summary_context_\${nextCycle}. New est. tokens: \${globalState.contextTokenEstimate.toLocaleString()}. Ready for next goal.\`, "info" );
                             UI.displayCycleArtifact( "Generated Context Summary", summaryText, "output", true, 'System', "meta.summary_context", nextCycle );
@@ -2551,18 +2512,18 @@
                       globalState.apiKey = uiRefs.apiKeyInput.value.trim() || APP_CONFIG.API_KEY;
                       if ( !globalState.apiKey || globalState.apiKey === "<nope>" || globalState.apiKey.length < 10 ) { UI.showNotification("Valid API Key required in config or input field.", 'warn'); return; }
 
-                      UI.logCoreLoopStep(globalState.totalCycles, 0, "Define Goal");
-                      const goalText = uiRefs.goalInput.value.trim();
+                      UI.logCoreLoopStep(globalState.total-cycles, 0, "Define Goal");
+                      const goalText = uiRefs.goal-input.value.trim();
                       const goalTypeElement = document.querySelector('input[name="goalType"]:checked');
                       const goalType = goalTypeElement ? goalTypeElement.value : "System";
 
                       if (!goalText && !globalState.currentGoal.seed) { UI.showNotification("Initial Goal Input required.", 'warn'); return; }
 
                       const maxC = globalState.cfg.maxCycles || 0;
-                      if (maxC > 0 && globalState.totalCycles >= maxC) { UI.showNotification(\`Max cycles (\${maxC}) reached.\`, 'info'); if(uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true; return; }
+                      if (maxC > 0 && globalState.total-cycles >= maxC) { UI.showNotification(\`Max cycles (\${maxC}) reached.\`, 'info'); if(uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true; return; }
                       if (globalState.contextTokenEstimate >= CTX_WARN_THRESH) { UI.showNotification('Context token limit high. Consider resetting context.', 'warn'); }
 
-                      const currentCycle = globalState.totalCycles;
+                      const currentCycle = globalState.total-cycles;
                       const newGoalProvided = !!goalText;
 
                       if (newGoalProvided) {
@@ -2698,8 +2659,8 @@
                           UI.updateStateDisplay();
                           UI.clearCurrentCycleDetails();
                           UI.logCoreLoopStep(applyResult.nextCycle -1, 7, "Repeat/Pause"); // Log step 8
-                          UI.logToTimeline( globalState.totalCycles, \`[STATE] Cycle ended (\${globalState.lastCritiqueType}). Ready for action.\` );
-                          if(uiRefs.goalInput) uiRefs.goalInput.value = "";
+                          UI.logToTimeline( globalState.total-cycles, \`[STATE] Cycle ended (\${globalState.lastCritiqueType}). Ready for action.\` );
+                          if(uiRefs.goal-input) uiRefs.goal-input.value = "";
                           if(uiRefs.runCycleButton) { uiRefs.runCycleButton.disabled = false; uiRefs.runCycleButton.textContent = "Run Cycle"; }
                           UI.updateStatus("Idle"); UI.highlightCoreStep(-1);
                         } else {
@@ -2722,12 +2683,12 @@
                     if (!restoredFromSession) {
                         UI.initializeUIElementReferences();
                         if (loadedExistingState) {
-                             UI.logToTimeline(globalState.totalCycles, "[STATE] System Initialized (Loaded Session).");
+                             UI.logToTimeline(globalState.total-cycles, "[STATE] System Initialized (Loaded Session).");
                         } else {
                              UI.logToTimeline(0, "[STATE] System Initialized (New Session).");
                         }
                         UI.updateStateDisplay();
-                        UI.renderGeneratedUI(globalState.totalCycles);
+                        UI.renderGeneratedUI(globalState.total-cycles);
                         UI.displayGenesisState();
                         UI.loadPromptsFromLS();
                         UI.loadCoreLoopSteps();
@@ -2756,19 +2717,46 @@
               REPLOID_CORE.initialize();
                      `
         );
-      }
 
-      function main() {
-        updateLoading("Initializing Local Storage Defaults...");
-        try {
-          initializeLocalStorageDefaults();
-          updateLoading("Loading Core Artifacts...");
-          loadAndApplyCoreArtifacts();
-          // Assuming loadAndApply handles adding "Done" or error messages
-        } catch (error) {
-          updateLoading(`Error: ${error.message}`);
-          console.error("Initialization failed:", error);
-        }
+        lsSet(
+          "reploid.core_steps",
+          0,
+          `1. Define/Refine Goal (System/Meta). Check Limits.
+          2. Analyze: State, Goal, Tools, Artifacts. Deliberate. Choose Personas.
+          3. Propose: Changes (by Artifact ID), Confidence. Decide Tool Creation.
+          4. Generate Artifacts: Create/Modify specified artifacts. Use Tools.
+          5. Critique Trigger: Time, Conf, Random, Pause, Forced.
+          6. Critique: Auto or Human (Options/Prompt/Edit Artifact).
+          7. Refine & Apply: Handle Feedback. Commit or Sandbox(Meta)/Apply. Log.
+          8. Repeat/Pause/Retry: Continue/Pause/Self-Correct Error/Retry Fail.`
+        );
+
+        // lsSet(
+        //   "core.diagram",
+        //   0,
+        //   ```
+        //     {
+        //       schema_version: "1.1",
+        //       components: [
+        //         { id: "Input", type: "user" },
+        //         { id: "Agent", type: "core" },
+        //         { id: "LLM", type: "llm" },
+        //         { id: "Critique", type: "decision" },
+        //         { id: "Apply", type: "action" },
+        //         { id: "Output", type: "display" },
+        //       ],
+        //       connections: [
+        //         { from: "Input", to: "Agent" },
+        //         { from: "Agent", to: "LLM" },
+        //         { from: "LLM", to: "Agent" },
+        //         { from: "Agent", to: "Critique" },
+        //         { from: "Critique", to: "Agent" },
+        //         { from: "Agent", to: "Apply" },
+        //         { from: "Apply", to: "Output" },
+        //       ],
+        //     }
+        //   ```
+        // );
       }
 
       main();
