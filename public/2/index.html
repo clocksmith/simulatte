@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Double Pendulum Simulator</title>
+    <title>Double Pendulum Simulator (RK4 + Visuals)</title>
     <style>
       :root {
         --bg-color: #ffffff;
@@ -284,51 +284,27 @@
       button.reset {
         background-color: var(--accent-grey);
       }
-      button.export {
+      button.download {
         background-color: var(--accent-purple);
       }
 
-      .export-container .button-group {
+      .button-group {
         display: flex;
         gap: 12px;
-        margin-top: 15px;
+        margin-top: 5px;
         flex-wrap: wrap;
       }
-
-      #export-container {
-        margin-bottom: 15px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-        gap: 15px;
-        align-items: center;
-      }
-
-      #export-status {
-        margin-top: 15px;
+      #data-recording-status {
+        margin-top: 10px;
         font-style: italic;
         color: var(--accent-grey);
-        min-height: 1.3em;
         font-size: 0.9em;
-      }
-      #export-progress-container {
-        width: 100%;
-        background-color: var(--accent-light-grey);
-        border-radius: 5px;
-        overflow: hidden;
-        height: 12px;
-        margin-top: 8px;
-        display: none;
-      }
-      #export-progress-bar {
-        width: 0%;
-        height: 100%;
-        background-color: var(--accent-purple);
-        transition: width 0.2s linear;
+        min-height: 1.2em;
       }
     </style>
   </head>
   <body>
-    <h1>Double Pendulum Simulator</h1>
+    <h1>Double Pendulum Simulator (RK4 + Visuals)</h1>
 
     <div class="main-container">
       <div class="card" id="visuals-card">
@@ -351,9 +327,10 @@
             <p>ω₂: <span id="omega2-display">0.00</span> rad/s</p>
           </div>
           <div class="visual-item data-display">
-            <h3>Chaos Indicator</h3>
+            <h3>Energy & Chaos</h3>
+            <p>E: <span id="energy-display">0.00</span> J</p>
             <p>ΔE: <span id="chaos-display">0.00</span> %</p>
-            <small>Proxy: Energy StDev %</small>
+            <small>Chaos: Energy StDev %</small>
           </div>
           <div class="visual-item chart-item">
             <h3>History</h3>
@@ -367,7 +344,7 @@
       </div>
 
       <div class="card" id="controls-card">
-        <h2>Controls</h2>
+        <h2>Controls & Parameters</h2>
         <div id="controls-container">
           <fieldset>
             <legend>Simulation Control</legend>
@@ -440,7 +417,7 @@
                 />
               </div>
               <div class="control-item">
-                <label for="damping1-input">Damping Factor 1</label>
+                <label for="damping1-input">Damping 1</label>
                 <input
                   type="number"
                   id="damping1-input"
@@ -451,7 +428,7 @@
                 />
               </div>
               <div class="control-item">
-                <label for="damping2-input">Damping Factor 2</label>
+                <label for="damping2-input">Damping 2</label>
                 <input
                   type="number"
                   id="damping2-input"
@@ -485,7 +462,7 @@
           </fieldset>
 
           <fieldset>
-            <legend>Scene Forces</legend>
+            <legend>Scene Forces (Optional)</legend>
             <div class="control-grid control-grid-force">
               <div class="control-item">
                 <label for="dir-force-mag-input">Wind Mag (N)</label>
@@ -529,55 +506,19 @@
               (simplified).</small
             >
           </fieldset>
-        </div>
-      </div>
 
-      <div class="card" id="export-card">
-        <h2>Export Simulation Data</h2>
-        <fieldset>
-          <legend>Export Configuration</legend>
-          <div id="export-container">
-            <div class="control-grid">
-              <div class="control-item">
-                <label for="export-rate-input">Sample Rate (Hz)</label>
-                <input
-                  type="number"
-                  id="export-rate-input"
-                  value="100"
-                  min="1"
-                  max="10000"
-                />
-              </div>
-              <div class="control-item">
-                <label for="export-duration-input">Duration</label>
-                <input
-                  type="number"
-                  id="export-duration-input"
-                  value="10"
-                  min="1"
-                />
-              </div>
-              <div class="control-item">
-                <label for="export-duration-unit-input">Time Unit</label>
-                <select id="export-duration-unit-input">
-                  <option value="1">Seconds</option>
-                  <option value="60">Minutes</option>
-                  <option value="3600">Hours</option>
-                  <option value="86400">Days</option>
-                </select>
-              </div>
-            </div>
+          <fieldset>
+            <legend>Data Recording</legend>
             <div class="button-group">
-              <button id="export-button" class="export">
-                Export Data (CSV)
+              <button id="download-data-button" class="download">
+                Download Recorded Data (CSV)
               </button>
             </div>
-            <div id="export-status"></div>
-            <div id="export-progress-container">
-              <div id="export-progress-bar"></div>
+            <div id="data-recording-status">
+              Recording status will appear here.
             </div>
-          </div>
-        </fieldset>
+          </fieldset>
+        </div>
       </div>
     </div>
 
@@ -610,80 +551,68 @@
       const charge1Input = document.getElementById("charge1-input");
       const charge2Input = document.getElementById("charge2-input");
       const magFieldInput = document.getElementById("mag-field-input");
+      const downloadDataButton = document.getElementById(
+        "download-data-button"
+      );
+      const dataRecordingStatus = document.getElementById(
+        "data-recording-status"
+      );
 
       const omega1Display = document.getElementById("omega1-display");
       const omega2Display = document.getElementById("omega2-display");
+      const energyDisplay = document.getElementById("energy-display");
       const chaosDisplay = document.getElementById("chaos-display");
       const posDot1 = document.getElementById("pos-dot-1");
       const posDot2 = document.getElementById("pos-dot-2");
 
-      const exportButton = document.getElementById("export-button");
-      const exportRateInput = document.getElementById("export-rate-input");
-      const exportDurationInput = document.getElementById(
-        "export-duration-input"
-      );
-      const exportDurationUnitInput = document.getElementById(
-        "export-duration-unit-input"
-      );
-      const exportStatus = document.getElementById("export-status");
-      const exportProgressContainer = document.getElementById(
-        "export-progress-container"
-      );
-      const exportProgressBar = document.getElementById("export-progress-bar");
-
-      let g = 9.81;
-      let L1 = 1.0;
-      let L2 = 1.0;
-      let m1 = 1.0;
-      let m2 = 1.0;
+      let gravity = 9.81;
+      let length1 = 1.0;
+      let length2 = 1.0;
+      let mass1 = 1.0;
+      let mass2 = 1.0;
       let damping1 = 0;
       let damping2 = 0;
       let trace1MaxLength = 600;
       let trace2MaxLength = 600;
       let dirForceMag = 0;
       let dirForceAngleRad = 0;
-      let q1 = 0;
-      let q2 = 0;
-      let Bz = 0;
+      let charge1 = 0;
+      let charge2 = 0;
+      let magFieldBz = 0;
 
       let theta1 = (120 * Math.PI) / 180;
       let theta2 = (-30 * Math.PI) / 180;
       let omega1 = 0;
       let omega2 = 0;
 
-      let t = 0;
-      const dt = 1 / 120;
-      let PIXELS_PER_METER = 100;
-
+      let time = 0;
+      const timeStep = 1 / 120;
+      let pixelsPerMeter = 100;
       let isRunning = false;
       let animationFrameId = null;
       let isDraggingM1 = false;
       let isDraggingM2 = false;
-
       let originX, originY;
 
       let trace1 = [];
       let trace2 = [];
-
-      let energyHistory = [];
-      const ENERGY_HISTORY_LENGTH = 120;
-
-      let colorBob1,
-        colorBob2,
-        colorTrace1,
-        colorTrace2,
-        colorRod,
-        colorPivot,
+      let chaosEnergyHistory = [];
+      const CHAOS_HISTORY_LENGTH = 120;
+      let colorBob1, colorBob2, colorTrace1, colorTrace2, colorRod, colorPivot;
+      let colorEnergy,
         colorChaos,
         colorOmega1,
         colorOmega2,
         colorChartBg,
         colorChartGrid;
-
       const HISTORY_LENGTH = 200;
       let omega1History = [];
       let omega2History = [];
-      let chaosHistory = [];
+      let energyPlotHistory = [];
+
+      let recordedData = [];
+      const MAX_RECORDING_TIME = 600;
+      const LOCAL_STORAGE_KEY = "pendulumRecordedData";
 
       function getCssVariable(varName) {
         return getComputedStyle(document.documentElement)
@@ -698,7 +627,8 @@
         colorTrace2 = `${colorBob2}99`;
         colorRod = getCssVariable("--accent-grey");
         colorPivot = getCssVariable("--text-color-dark");
-        colorChaos = getCssVariable("--accent-cyan");
+        colorEnergy = getCssVariable("--accent-cyan");
+        colorChaos = getCssVariable("--accent-pink");
         colorOmega1 = colorBob1;
         colorOmega2 = colorBob2;
         colorChartBg = "#fdfdfd";
@@ -706,115 +636,107 @@
 
         omega1Display.style.color = colorOmega1;
         omega2Display.style.color = colorOmega2;
+        energyDisplay.style.color = colorEnergy;
         chaosDisplay.style.color = colorChaos;
       }
 
       function calculateAccelerations(
-        th1,
-        th2,
-        om1,
-        om2,
-        damp1,
-        damp2,
-        fMag,
-        fAng,
-        charge1,
-        charge2,
-        magBz,
-        len1,
-        len2,
-        mass1,
-        mass2,
-        grav
+        currentTheta1,
+        currentTheta2,
+        currentOmega1,
+        currentOmega2
       ) {
-        const s1 = Math.sin(th1);
-        const c1 = Math.cos(th1);
-        const s2 = Math.sin(th2);
-        const c2 = Math.cos(th2);
-        const dth = th1 - th2;
-        const s_dth = Math.sin(dth);
-        const c_dth = Math.cos(dth);
+        const s1 = Math.sin(currentTheta1);
+        const c1 = Math.cos(currentTheta1);
+        const s2 = Math.sin(currentTheta2);
+        const c2 = Math.cos(currentTheta2);
+        const deltaTheta = currentTheta1 - currentTheta2; // Difference in angles
+        const sinDeltaTheta = Math.sin(deltaTheta);
+        const cosDeltaTheta = Math.cos(deltaTheta);
 
-        const m12 = mass1 + mass2;
-
-        const den_common = 2 * mass1 + mass2 - mass2 * Math.cos(2 * dth);
+        const m1PlusM2 = mass1 + mass2;
         const epsilon = 1e-9;
 
-        if (
-          Math.abs(len1 * den_common) < epsilon ||
-          Math.abs(len2 * den_common) < epsilon
-        ) {
-          console.warn("Denominator near zero, returning zero acceleration.");
-          return { alpha1: 0, alpha2: 0 };
+        // Denominator term common in both acceleration equations (part of the effective inertia matrix)
+        // Derived from the Lagrangian: L = T - V = 1/2 m1 v1^2 + 1/2 m2 v2^2 - (m1 g y1 + m2 g y2)
+        // The kinetic energy T involves terms quadratic in omega1, omega2, with coefficients forming the mass matrix M.
+        // The Euler-Lagrange equations d/dt(dL/d(omega_i)) - dL/d(theta_i) = Q_i lead to M * [alpha1, alpha2]^T = F(theta, omega) + Torque_external
+        // This denominator arises from the determinant or inversion of the mass matrix M.
+        const commonDenominatorTerm =
+          2 * mass1 + mass2 - mass2 * Math.cos(2 * deltaTheta);
+
+        // --- Calculate Angular Acceleration for Theta1 (angularAccel1) ---
+        // This equation comes from the first Euler-Lagrange equation for theta1.
+        // It represents (Inertia Matrix Inverse * Force/Torque Vector)_1
+        let num1 = -gravity * (2 * mass1 + mass2) * s1; // Term from dV/d(theta1): Gravitational torque on m1 & effect of m2's weight on joint 1.
+        num1 -= mass2 * gravity * Math.sin(currentTheta1 - 2 * currentTheta2); // Another gravitational term from dV/d(theta1) involving m2.
+        // Terms involving omega^2 come from d/dt(dL/d(omega1)) and dL/d(theta1) (Coriolis/centrifugal forces).
+        num1 -=
+          2 *
+          sinDeltaTheta *
+          mass2 *
+          (currentOmega2 * currentOmega2 * length2 +
+            currentOmega1 * currentOmega1 * length1 * cosDeltaTheta);
+
+        let den1 = length1 * commonDenominatorTerm;
+        let angularAccel1 = Math.abs(den1) > epsilon ? num1 / den1 : 0;
+
+        // --- Calculate Angular Acceleration for Theta2 (angularAccel2) ---
+        // This equation comes from the second Euler-Lagrange equation for theta2.
+        // It represents (Inertia Matrix Inverse * Force/Torque Vector)_2
+        let num2 = 2 * sinDeltaTheta;
+        // Terms involving omega^2 (Coriolis/centrifugal) and gravity (from dV/d(theta2)).
+        num2 *=
+          currentOmega1 * currentOmega1 * length1 * m1PlusM2 +
+          gravity * m1PlusM2 * c1 +
+          currentOmega2 * currentOmega2 * length2 * mass2 * cosDeltaTheta;
+
+        let den2 = length2 * commonDenominatorTerm;
+        let angularAccel2 = Math.abs(den2) > epsilon ? num2 / den2 : 0;
+
+        let torque1Ext = 0;
+        let torque2Ext = 0;
+
+        if (dirForceMag > epsilon) {
+          const forceWindX = dirForceMag * Math.cos(dirForceAngleRad);
+          const forceWindY = dirForceMag * Math.sin(dirForceAngleRad);
+          const x1Pos = length1 * s1;
+          const y1Pos = length1 * c1;
+          const x2PosRel = length2 * s2;
+          const y2PosRel = length2 * c2;
+          torque1Ext += x1Pos * forceWindY - y1Pos * forceWindX;
+          torque1Ext +=
+            (x1Pos + x2PosRel) * forceWindY - (y1Pos + y2PosRel) * forceWindX;
+          torque2Ext += x2PosRel * forceWindY - y2PosRel * forceWindX;
         }
 
-        const den1 = len1 * den_common;
-        const den2 = len2 * den_common;
-
-        let alpha1_num = -grav * (2 * mass1 + mass2) * s1;
-        alpha1_num -= mass2 * grav * Math.sin(th1 - 2 * th2);
-        alpha1_num -=
-          2 * s_dth * mass2 * (om2 * om2 * len2 + om1 * om1 * len1 * c_dth);
-
-        let alpha2_num = 2 * s_dth;
-        alpha2_num *=
-          om1 * om1 * len1 * m12 +
-          grav * m12 * c1 +
-          om2 * om2 * len2 * mass2 * c_dth;
-
-        let alpha1 = alpha1_num / den1;
-        let alpha2 = alpha2_num / den2;
-
-        let torque1_ext = 0;
-        let torque2_ext = 0;
-
-        if (fMag > epsilon) {
-          const F_wind_x = fMag * Math.cos(fAng);
-          const F_wind_y = fMag * Math.sin(fAng);
-          const x1_pos = len1 * s1;
-          const y1_pos = len1 * c1;
-          const x2_pos = x1_pos + len2 * s2;
-          const y2_pos = y1_pos + len2 * c2;
-
-          torque1_ext += x1_pos * F_wind_y - y1_pos * F_wind_x;
-          torque2_ext +=
-            (x2_pos - x1_pos) * F_wind_y - (y2_pos - y1_pos) * F_wind_x;
-        }
-
         if (
-          Math.abs(magBz) > epsilon &&
+          Math.abs(magFieldBz) > epsilon &&
           (Math.abs(charge1) > epsilon || Math.abs(charge2) > epsilon)
         ) {
-          const vx1 = len1 * c1 * om1;
-          const vy1 = -len1 * s1 * om1;
-          const vx2 = len1 * c1 * om1 + len2 * c2 * om2;
-          const vy2 = -len1 * s1 * om1 - len2 * s2 * om2;
-
-          const F1x_mag = charge1 * vy1 * magBz;
-          const F1y_mag = -charge1 * vx1 * magBz;
-          const F2x_mag = charge2 * vy2 * magBz;
-          const F2y_mag = -charge2 * vx2 * magBz;
-
-          const x1_pos = len1 * s1;
-          const y1_pos = len1 * c1;
-          const x2_rel_x = len2 * s2;
-          const y2_rel_y = len2 * c2;
-
-          torque1_ext +=
-            x1_pos * F1y_mag -
-            y1_pos * F1x_mag +
-            (x1_pos * F2y_mag - y1_pos * F2x_mag);
-          torque2_ext += x2_rel_x * F2y_mag - y2_rel_y * F2x_mag;
+          const vx1 = length1 * c1 * currentOmega1;
+          const vy1 = length1 * s1 * currentOmega1;
+          const vx2 = vx1 + length2 * c2 * currentOmega2;
+          const vy2 = vy1 + length2 * s2 * currentOmega2;
+          const force1MagX = charge1 * vy1 * magFieldBz;
+          const force1MagY = -charge1 * vx1 * magFieldBz;
+          const force2MagX = charge2 * vy2 * magFieldBz;
+          const force2MagY = -charge2 * vx2 * magFieldBz;
+          const x1Pos = length1 * s1;
+          const y1Pos = length1 * c1;
+          const x2PosRel = length2 * s2;
+          const y2PosRel = length2 * c2;
+          torque1Ext += x1Pos * force1MagY - y1Pos * force1MagX;
+          torque1Ext +=
+            (x1Pos + x2PosRel) * force2MagY - (y1Pos + y2PosRel) * force2MagX;
+          torque2Ext += x2PosRel * force2MagY - y2PosRel * force2MagX;
         }
 
-        if (
-          Math.abs(torque1_ext) > epsilon ||
-          Math.abs(torque2_ext) > epsilon
-        ) {
-          const M11 = len1 * len1 * m12;
-          const M12 = len1 * len2 * mass2 * c_dth;
+        if (Math.abs(torque1Ext) > epsilon || Math.abs(torque2Ext) > epsilon) {
+          const M11 = (mass1 + mass2) * length1 * length1;
+          const M12 = mass2 * length1 * length2 * cosDeltaTheta;
           const M21 = M12;
-          const M22 = len2 * len2 * mass2;
+          const M22 = mass2 * length2 * length2;
           const detM = M11 * M22 - M12 * M21;
 
           if (Math.abs(detM) > epsilon) {
@@ -822,46 +744,86 @@
             const invM12 = -M12 / detM;
             const invM21 = -M21 / detM;
             const invM22 = M11 / detM;
-
-            alpha1 += invM11 * torque1_ext + invM12 * torque2_ext;
-            alpha2 += invM21 * torque1_ext + invM22 * torque2_ext;
-          } else {
-            console.warn(
-              "Mass matrix determinant near zero, external torques not applied robustly."
-            );
+            angularAccel1 += invM11 * torque1Ext + invM12 * torque2Ext;
+            angularAccel2 += invM21 * torque1Ext + invM22 * torque2Ext;
           }
         }
 
-        alpha1 -= damp1 * om1;
-        alpha2 -= damp2 * om2;
+        // --- Apply Damping ---
+        // Added as a non-conservative force (generalized force Q_i = -damping_i * omega_i)
+        angularAccel1 -= damping1 * currentOmega1;
+        angularAccel2 -= damping2 * currentOmega2;
 
-        return { alpha1, alpha2 };
+        return { angularAccel1, angularAccel2 };
+      }
+
+      function getDerivatives(state) {
+        const [th1, th2, om1, om2] = state;
+        const { angularAccel1, angularAccel2 } = calculateAccelerations(
+          th1,
+          th2,
+          om1,
+          om2
+        );
+        return [om1, om2, angularAccel1, angularAccel2];
+      }
+
+      function rk4Step(currentState, dt) {
+        const k1 = getDerivatives(currentState);
+        const k2State = currentState.map((val, i) => val + 0.5 * dt * k1[i]);
+        const k2 = getDerivatives(k2State);
+        const k3State = currentState.map((val, i) => val + 0.5 * dt * k2[i]);
+        const k3 = getDerivatives(k3State);
+        const k4State = currentState.map((val, i) => val + dt * k3[i]);
+        const k4 = getDerivatives(k4State);
+
+        const newState = currentState.map(
+          (val, i) => val + (dt / 6.0) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i])
+        );
+        return newState;
       }
 
       function updatePhysics() {
-        const { alpha1, alpha2 } = calculateAccelerations(
-          theta1,
-          theta2,
-          omega1,
-          omega2,
-          damping1,
-          damping2,
-          dirForceMag,
-          dirForceAngleRad,
-          q1,
-          q2,
-          Bz,
-          L1,
-          L2,
-          m1,
-          m2,
-          g
-        );
-        omega1 += alpha1 * dt;
-        omega2 += alpha2 * dt;
-        theta1 += omega1 * dt;
-        theta2 += omega2 * dt;
-        t += dt;
+        const currentState = [theta1, theta2, omega1, omega2];
+        const newState = rk4Step(currentState, timeStep);
+
+        [theta1, theta2, omega1, omega2] = newState;
+
+        time += timeStep;
+
+        if (time <= MAX_RECORDING_TIME) {
+          const s1 = Math.sin(theta1);
+          const c1 = Math.cos(theta1);
+          const s2 = Math.sin(theta2);
+          const c2 = Math.cos(theta2);
+          const x1m = length1 * s1;
+          const y1m = length1 * c1;
+          const x2m = x1m + length2 * s2;
+          const y2m = y1m + length2 * c2;
+
+          recordedData.push({
+            time: time,
+            theta1,
+            theta2,
+            omega1,
+            omega2,
+            x1: x1m,
+            y1: y1m,
+            x2: x2m,
+            y2: y2m,
+          });
+          if (recordedData.length === 1 || recordedData.length % 100 === 0) {
+            // Update status less frequently
+            if (time > MAX_RECORDING_TIME - timeStep) {
+              dataRecordingStatus.textContent = `Recording complete (${MAX_RECORDING_TIME}s). Data saved.`;
+            } else {
+              const progress = (time / MAX_RECORDING_TIME) * 100;
+              dataRecordingStatus.textContent = `Recording... ${time.toFixed(
+                1
+              )}s / ${MAX_RECORDING_TIME}s (${progress.toFixed(0)}%)`;
+            }
+          }
+        }
 
         updateHistory();
       }
@@ -869,23 +831,25 @@
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const L1_px = L1 * PIXELS_PER_METER;
-        const L2_px = L2 * PIXELS_PER_METER;
+        drawMagneticField();
+
+        const l1Px = length1 * pixelsPerMeter;
+        const l2Px = length2 * pixelsPerMeter;
 
         const s1 = Math.sin(theta1);
         const c1 = Math.cos(theta1);
         const s2 = Math.sin(theta2);
         const c2 = Math.cos(theta2);
 
-        const x1_rel = L1_px * s1;
-        const y1_rel = L1_px * c1;
-        const x2_rel = x1_rel + L2_px * s2;
-        const y2_rel = y1_rel + L2_px * c2;
+        const x1Rel = l1Px * s1;
+        const y1Rel = l1Px * c1;
+        const x2Rel = x1Rel + l2Px * s2;
+        const y2Rel = y1Rel + l2Px * c2;
 
-        const x1 = originX + x1_rel;
-        const y1 = originY + y1_rel;
-        const x2 = originX + x2_rel;
-        const y2 = originY + y2_rel;
+        const x1 = originX + x1Rel;
+        const y1 = originY + y1Rel;
+        const x2 = originX + x2Rel;
+        const y2 = originY + y2Rel;
 
         if (isRunning || isDraggingM1 || isDraggingM2) {
           trace1.push({ x: x1, y: y1 });
@@ -899,11 +863,97 @@
         drawRod(originX, originY, x1, y1);
         drawRod(x1, y1, x2, y2);
         drawPivot(originX, originY);
-        drawBob(x1, y1, m1, colorBob1);
-        drawBob(x2, y2, m2, colorBob2);
+        drawBob(x1, y1, mass1, colorBob1);
+        drawBob(x2, y2, mass2, colorBob2);
+
+        drawDampingForces(x1, y1, x2, y2);
 
         updateVisualsPanel();
         drawHistoryChart();
+      }
+
+      function drawMagneticField() {
+        const fieldStrength = Math.abs(magFieldBz);
+        if (fieldStrength < 0.01) return;
+
+        const symbol = magFieldBz > 0 ? "+" : "-";
+        const color =
+          magFieldBz > 0 ? "rgba(0, 0, 255, 0.1)" : "rgba(255, 0, 0, 0.1)";
+        const densityFactor = Math.min(5, fieldStrength) * 50; // Adjust density based on strength
+        const numSymbols = Math.floor(
+          (canvas.width * canvas.height) / (10000 / (densityFactor * 0.1 + 1))
+        ); // Less dense for low strength
+
+        ctx.font = "12px Arial";
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        for (let i = 0; i < numSymbols; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          ctx.fillText(symbol, x, y);
+        }
+      }
+
+      function drawDampingForces(x1, y1, x2, y2) {
+        const epsilon = 0.01;
+        // Calculate velocities
+        const vx1 = length1 * Math.cos(theta1) * omega1; // dx/dt = d(L1*sin(t1))/dt
+        const vy1 = length1 * Math.sin(theta1) * omega1; // dy/dt = d(L1*cos(t1))/dt (y points down)
+        const vx2 = vx1 + length2 * Math.cos(theta2) * omega2;
+        const vy2 = vy1 + length2 * Math.sin(theta2) * omega2;
+
+        // Draw damping arrow for bob 1
+        const speed1 = Math.hypot(vx1, vy1);
+        if (damping1 > epsilon && speed1 > epsilon) {
+          const forceMag1 = damping1 * speed1;
+          const scale = Math.min(30, 5 + forceMag1 * 10); // Arrow length scales with force, capped
+          const angle1 = Math.atan2(vy1, vx1); // Angle of velocity
+          drawArrow(
+            x1,
+            y1,
+            angle1 + Math.PI,
+            scale,
+            `rgba(100, 100, 100, ${Math.min(0.8, 0.1 + forceMag1 * 0.5)})`
+          ); // Opposite direction
+        }
+
+        // Draw damping arrow for bob 2
+        const speed2 = Math.hypot(vx2, vy2);
+        if (damping2 > epsilon && speed2 > epsilon) {
+          const forceMag2 = damping2 * speed2;
+          const scale = Math.min(30, 5 + forceMag2 * 10);
+          const angle2 = Math.atan2(vy2, vx2);
+          drawArrow(
+            x2,
+            y2,
+            angle2 + Math.PI,
+            scale,
+            `rgba(100, 100, 100, ${Math.min(0.8, 0.1 + forceMag2 * 0.5)})`
+          );
+        }
+      }
+
+      function drawArrow(x, y, angleRad, length, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angleRad);
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-length, 0);
+        ctx.stroke();
+        // Arrowhead
+        ctx.beginPath();
+        ctx.moveTo(-length, 0);
+        ctx.lineTo(-length + 6, -3);
+        ctx.lineTo(-length + 6, 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
 
       function drawTrace(trace, color) {
@@ -934,8 +984,8 @@
         ctx.fill();
       }
 
-      function drawBob(x, y, mass, color) {
-        const radius = 6 + Math.sqrt(Math.max(0.1, mass)) * 5;
+      function drawBob(x, y, m, color) {
+        const radius = 6 + Math.sqrt(Math.max(0.1, m)) * 5;
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
@@ -946,29 +996,63 @@
       }
 
       function updateHistory() {
-        if (!isRunning) return;
+        if (!isRunning && !isDraggingM1 && !isDraggingM2) return;
+
+        const currentEnergy = calculateTotalEnergy();
+        chaosEnergyHistory.push(currentEnergy);
+        if (chaosEnergyHistory.length > CHAOS_HISTORY_LENGTH)
+          chaosEnergyHistory.shift();
+
         omega1History.push(omega1);
         omega2History.push(omega2);
-        chaosHistory.push(calculateChaosMetric());
+        energyPlotHistory.push(currentEnergy);
 
         if (omega1History.length > HISTORY_LENGTH) omega1History.shift();
         if (omega2History.length > HISTORY_LENGTH) omega2History.shift();
-        if (chaosHistory.length > HISTORY_LENGTH) chaosHistory.shift();
+        if (energyPlotHistory.length > HISTORY_LENGTH)
+          energyPlotHistory.shift();
+      }
+
+      function calculateTotalEnergy() {
+        const c1 = Math.cos(theta1);
+        const c2 = Math.cos(theta2);
+        const cosDeltaTheta = Math.cos(theta1 - theta2);
+        const ke1 = 0.5 * mass1 * length1 ** 2 * omega1 ** 2;
+        const ke2 =
+          0.5 *
+          mass2 *
+          (length1 ** 2 * omega1 ** 2 +
+            length2 ** 2 * omega2 ** 2 +
+            2 * length1 * length2 * omega1 * omega2 * cosDeltaTheta);
+        const kineticEnergy = ke1 + ke2;
+        const pe1 = -mass1 * gravity * length1 * c1;
+        const pe2 = -mass2 * gravity * (length1 * c1 + length2 * c2);
+        const potentialEnergy = pe1 + pe2;
+        return kineticEnergy + potentialEnergy;
       }
 
       function calculateChaosMetric() {
-        if (energyHistory.length > 10 && !isDraggingM1 && !isDraggingM2) {
-          const meanEnergy =
-            energyHistory.reduce((sum, e) => sum + e, 0) / energyHistory.length;
-          const variance =
-            energyHistory.reduce((sum, e) => sum + (e - meanEnergy) ** 2, 0) /
-            energyHistory.length;
-          const stDev = Math.sqrt(variance);
-          return Math.abs(meanEnergy) > 1e-6
-            ? (stDev / Math.abs(meanEnergy)) * 100
-            : 0;
+        if (
+          chaosEnergyHistory.length < CHAOS_HISTORY_LENGTH / 2 ||
+          isDraggingM1 ||
+          isDraggingM2
+        ) {
+          return 0; // Not enough data or system disturbed
         }
-        return 0;
+
+        const recentHistory = chaosEnergyHistory.slice(-CHAOS_HISTORY_LENGTH); // Use full history if available
+        const n = recentHistory.length;
+        if (n < 2) return 0;
+
+        const meanEnergy = recentHistory.reduce((sum, e) => sum + e, 0) / n;
+        const variance =
+          recentHistory.reduce((sum, e) => sum + (e - meanEnergy) ** 2, 0) / n;
+        const stDev = Math.sqrt(variance);
+
+        // Return stdev as percentage of mean energy magnitude, avoid division by zero
+        return Math.abs(meanEnergy) > 1e-6
+          ? (stDev / Math.abs(meanEnergy)) * 100
+          : 0;
       }
 
       function updateVisualsPanel() {
@@ -977,13 +1061,13 @@
         const angleVizRadius = circleRadius - dotRadius;
 
         const angle1X = Math.sin(theta1);
-        const angle1Y = -Math.cos(theta1);
+        const angle1Y = Math.cos(theta1);
         posDot1.style.transform = `translate(calc(-50% + ${
           angle1X * angleVizRadius
         }px), calc(-50% + ${angle1Y * angleVizRadius}px))`;
 
         const angle2X = Math.sin(theta2);
-        const angle2Y = -Math.cos(theta2);
+        const angle2Y = Math.cos(theta2);
         posDot2.style.transform = `translate(calc(-50% + ${
           angle2X * angleVizRadius
         }px), calc(-50% + ${angle2Y * angleVizRadius}px))`;
@@ -991,22 +1075,8 @@
         omega1Display.textContent = omega1.toFixed(2);
         omega2Display.textContent = omega2.toFixed(2);
 
-        const c1 = Math.cos(theta1);
-        const c2 = Math.cos(theta2);
-        const c12 = Math.cos(theta1 - theta2);
-
-        const KE =
-          0.5 * m1 * L1 ** 2 * omega1 ** 2 +
-          0.5 *
-            m2 *
-            (L1 ** 2 * omega1 ** 2 +
-              L2 ** 2 * omega2 ** 2 +
-              2 * L1 * L2 * omega1 * omega2 * c12);
-        const PE = -(m1 + m2) * g * L1 * c1 - m2 * g * L2 * c2;
-        const totalEnergy = KE + PE;
-
-        energyHistory.push(totalEnergy);
-        if (energyHistory.length > ENERGY_HISTORY_LENGTH) energyHistory.shift();
+        const totalEnergy = calculateTotalEnergy();
+        energyDisplay.textContent = totalEnergy.toFixed(2);
 
         const chaosValue = calculateChaosMetric();
         chaosDisplay.textContent =
@@ -1022,37 +1092,73 @@
         chartCtx.strokeStyle = colorChartGrid;
         chartCtx.lineWidth = 0.5;
         chartCtx.beginPath();
-        chartCtx.moveTo(0, h / 2);
-        chartCtx.lineTo(w, h / 2);
-        chartCtx.stroke();
+        chartCtx.moveTo(0, h / 3);
+        chartCtx.lineTo(w, h / 3);
+        chartCtx.moveTo(0, (2 * h) / 3);
+        chartCtx.lineTo(w, (2 * h) / 3);
 
         const maxOmegaAbs = Math.max(
-          5,
+          1,
           ...omega1History.map(Math.abs),
           ...omega2History.map(Math.abs)
         );
-        const maxChaosAbs = Math.max(1, ...chaosHistory.map(Math.abs));
+        const energyVals = energyPlotHistory.filter((e) => isFinite(e));
+        const minEnergy = energyVals.length > 0 ? Math.min(...energyVals) : -1; // Adjust default min/max
+        const maxEnergy = energyVals.length > 0 ? Math.max(...energyVals) : 1;
+        const energyRange = Math.max(1e-6, maxEnergy - minEnergy);
 
         const scaleOmega = h / 2 / (maxOmegaAbs + 1e-6);
-        const scaleChaos = h / 2 / (maxChaosAbs + 1e-6);
+        const scaleEnergy = h / (energyRange + 1e-6);
 
-        plotHistory(omega1History, colorOmega1, scaleOmega, h / 2);
-        plotHistory(omega2History, colorOmega2, scaleOmega, h / 2);
-        plotHistory(chaosHistory, colorChaos, scaleChaos, h * 0.9);
+        plotHistory(
+          energyPlotHistory,
+          colorEnergy,
+          scaleEnergy,
+          h - maxEnergy * scaleEnergy,
+          0.8
+        );
+        plotHistory(omega1History, colorOmega1, scaleOmega, h / 2, 1.5);
+        plotHistory(omega2History, colorOmega2, scaleOmega, h / 2, 1.5);
       }
 
-      function plotHistory(history, color, yScale, yOffset) {
+      function plotHistory(history, color, yScale, yOffset, lineWidth = 1.5) {
         if (history.length < 2) return;
         const w = historyChartCanvas.width;
         const stepX = w / (HISTORY_LENGTH - 1);
 
         chartCtx.strokeStyle = color;
-        chartCtx.lineWidth = 1.5;
+        chartCtx.lineWidth = lineWidth;
         chartCtx.beginPath();
-        chartCtx.moveTo(0, yOffset - history[0] * yScale);
+        let firstValidIndex = history.findIndex((val) =>
+          isFinite(val * yScale)
+        );
+        if (firstValidIndex === -1) return;
 
-        for (let i = 1; i < history.length; i++) {
-          chartCtx.lineTo(i * stepX, yOffset - history[i] * yScale);
+        chartCtx.moveTo(
+          firstValidIndex * stepX,
+          yOffset - history[firstValidIndex] * yScale
+        );
+
+        for (let i = firstValidIndex + 1; i < history.length; i++) {
+          let yVal = history[i] * yScale;
+          if (isFinite(yVal)) {
+            chartCtx.lineTo(i * stepX, yOffset - yVal);
+          } else {
+            chartCtx.stroke();
+            let nextValidIndex = history.findIndex(
+              (val, idx) => idx > i && isFinite(val * yScale)
+            );
+            if (nextValidIndex !== -1) {
+              chartCtx.beginPath();
+              chartCtx.moveTo(
+                nextValidIndex * stepX,
+                yOffset - history[nextValidIndex] * yScale
+              );
+              i = nextValidIndex;
+            } else {
+              break;
+            }
+          }
         }
         chartCtx.stroke();
       }
@@ -1070,7 +1176,21 @@
           isRunning = true;
           startButton.disabled = true;
           stopButton.disabled = false;
-          if (!animationFrameId) gameLoop();
+          if (!animationFrameId) {
+            if (Math.abs(time) < 1e-6) {
+              recordedData = [];
+              chaosEnergyHistory = []; // Also clear chaos history on fresh start
+              dataRecordingStatus.textContent = "Recording started...";
+            } else if (time > MAX_RECORDING_TIME) {
+              dataRecordingStatus.textContent =
+                "Max recording time reached. Restart to record again.";
+            } else {
+              dataRecordingStatus.textContent = `Resuming recording... ${time.toFixed(
+                1
+              )}s / ${MAX_RECORDING_TIME}s`;
+            }
+            gameLoop();
+          }
         }
       }
 
@@ -1079,6 +1199,14 @@
           isRunning = false;
           startButton.disabled = false;
           stopButton.disabled = true;
+          saveRecordedData();
+          if (time <= MAX_RECORDING_TIME) {
+            dataRecordingStatus.textContent = `Recording paused at ${time.toFixed(
+              1
+            )}s. Data saved.`;
+          } else {
+            dataRecordingStatus.textContent = `Recording complete. Data saved.`;
+          }
         }
       }
 
@@ -1087,11 +1215,11 @@
 
         theta1 = (parseFloat(theta1Input.value) * Math.PI) / 180;
         theta2 = (parseFloat(theta2Input.value) * Math.PI) / 180;
-        L1 = Math.max(0.1, parseFloat(length1Input.value));
-        L2 = Math.max(0.1, parseFloat(length2Input.value));
-        g = Math.max(0, parseFloat(gravityInput.value));
-        m1 = Math.max(0.1, parseFloat(mass1Input.value));
-        m2 = Math.max(0.1, parseFloat(mass2Input.value));
+        length1 = Math.max(0.1, parseFloat(length1Input.value));
+        length2 = Math.max(0.1, parseFloat(length2Input.value));
+        gravity = Math.max(0, parseFloat(gravityInput.value));
+        mass1 = Math.max(0.1, parseFloat(mass1Input.value));
+        mass2 = Math.max(0.1, parseFloat(mass2Input.value));
         damping1 = Math.max(0, parseFloat(damping1Input.value));
         damping2 = Math.max(0, parseFloat(damping2Input.value));
         trace1MaxLength = Math.max(0, parseInt(trace1LengthInput.value, 10));
@@ -1099,35 +1227,35 @@
         dirForceMag = Math.max(0, parseFloat(dirForceMagInput.value));
         dirForceAngleRad =
           (parseFloat(dirForceAngleInput.value) * Math.PI) / 180;
-        q1 = parseFloat(charge1Input.value);
-        q2 = parseFloat(charge2Input.value);
-        Bz = parseFloat(magFieldInput.value);
+        charge1 = parseFloat(charge1Input.value);
+        charge2 = parseFloat(charge2Input.value);
+        magFieldBz = parseFloat(magFieldInput.value);
 
         omega1 = 0;
         omega2 = 0;
-        t = 0;
+        time = 0;
         trace1 = [];
         trace2 = [];
-        energyHistory = [];
+        chaosEnergyHistory = [];
         omega1History = [];
         omega2History = [];
-        chaosHistory = [];
+        energyPlotHistory = [];
+        recordedData = [];
 
         startButton.disabled = false;
         stopButton.disabled = true;
+        dataRecordingStatus.textContent =
+          "Ready to record (max 600s). Press Start.";
 
         resizeCanvas();
         draw();
 
         omega1Display.textContent = "0.00";
         omega2Display.textContent = "0.00";
+        energyDisplay.textContent = calculateTotalEnergy().toFixed(2);
         chaosDisplay.textContent = "0.00";
         posDot1.style.transform = `translate(-50%, -50%)`;
         posDot2.style.transform = `translate(-50%, -50%)`;
-
-        exportStatus.textContent = "";
-        exportProgressContainer.style.display = "none";
-        exportProgressBar.style.width = "0%";
       }
 
       function getMousePos(canvasEl, evt) {
@@ -1136,41 +1264,54 @@
       }
 
       function handleMouseDown(e) {
+        if (isRunning) return;
+
         const mousePos = getMousePos(canvas, e);
-        const L1_px = L1 * PIXELS_PER_METER;
-        const L2_px = L2 * PIXELS_PER_METER;
+        const l1Px = length1 * pixelsPerMeter;
+        const l2Px = length2 * pixelsPerMeter;
         const s1 = Math.sin(theta1);
         const c1 = Math.cos(theta1);
         const s2 = Math.sin(theta2);
         const c2 = Math.cos(theta2);
-        const x1 = originX + L1_px * s1;
-        const y1 = originY + L1_px * c1;
-        const x2 = originX + L1_px * s1 + L2_px * s2;
-        const y2 = originY + L1_px * c1 + L2_px * c2;
+        const x1 = originX + l1Px * s1;
+        const y1 = originY + l1Px * c1;
+        const x2 = originX + l1Px * s1 + l2Px * s2;
+        const y2 = originY + l1Px * c1 + l2Px * c2;
 
-        const grabRadius1 = 6 + Math.sqrt(m1) * 5 + 10;
-        const grabRadius2 = 6 + Math.sqrt(m2) * 5 + 10;
+        const grabRadius1 = 6 + Math.sqrt(mass1) * 5 + 15;
+        const grabRadius2 = 6 + Math.sqrt(mass2) * 5 + 15;
 
-        const distToM1 = Math.hypot(mousePos.x - x1, mousePos.y - y1);
         const distToM2 = Math.hypot(mousePos.x - x2, mousePos.y - y2);
+        const distToM1 = Math.hypot(mousePos.x - x1, mousePos.y - y1);
 
         if (distToM2 < grabRadius2) {
           isDraggingM2 = true;
           isDraggingM1 = false;
-          stopSimulation();
           canvas.style.cursor = "grabbing";
-          energyHistory = [];
+          chaosEnergyHistory = [];
+          omega1History = [];
+          omega2History = [];
+          energyPlotHistory = [];
         } else if (distToM1 < grabRadius1) {
           isDraggingM1 = true;
           isDraggingM2 = false;
-          stopSimulation();
           canvas.style.cursor = "grabbing";
-          energyHistory = [];
+          chaosEnergyHistory = [];
+          omega1History = [];
+          omega2History = [];
+          energyPlotHistory = [];
         }
       }
 
       function handleMouseMove(e) {
         if (!isDraggingM1 && !isDraggingM2) return;
+        if (isRunning) {
+          isDraggingM1 = false;
+          isDraggingM2 = false;
+          canvas.style.cursor = "grab";
+          return;
+        }
+
         const mousePos = getMousePos(canvas, e);
 
         if (isDraggingM1) {
@@ -1180,18 +1321,16 @@
           omega1 = 0;
           omega2 = 0;
         } else if (isDraggingM2) {
-          const L1_px = L1 * PIXELS_PER_METER;
-          const x1 = originX + L1_px * Math.sin(theta1);
-          const y1 = originY + L1_px * Math.cos(theta1);
+          const l1Px = length1 * pixelsPerMeter;
+          const x1 = originX + l1Px * Math.sin(theta1);
+          const y1 = originY + l1Px * Math.cos(theta1);
           const dx = mousePos.x - x1;
           const dy = mousePos.y - y1;
           theta2 = Math.atan2(dx, dy);
           omega1 = 0;
           omega2 = 0;
         }
-        if (isDraggingM1 || isDraggingM2) {
-          draw();
-        }
+        draw();
       }
 
       function handleMouseUpOrLeave() {
@@ -1199,143 +1338,85 @@
           isDraggingM1 = false;
           isDraggingM2 = false;
           canvas.style.cursor = "grab";
-          startButton.disabled = false;
-          stopButton.disabled = true;
           theta1Input.value = ((theta1 * 180) / Math.PI).toFixed(1);
           theta2Input.value = ((theta2 * 180) / Math.PI).toFixed(1);
+          omega1 = 0;
+          omega2 = 0;
+          time = 0;
+          recordedData = [];
+          chaosEnergyHistory = []; // Clear history after drag
+          dataRecordingStatus.textContent =
+            "Ready to record (max 600s). Press Start.";
+          startButton.disabled = false;
+          stopButton.disabled = true;
+          draw();
         }
       }
 
-      async function exportData() {
-        stopSimulation();
-        exportButton.disabled = true;
-        resetButton.disabled = true;
-        exportStatus.textContent = "Initializing export...";
-        exportProgressContainer.style.display = "block";
-        exportProgressBar.style.width = "0%";
-        await new Promise((resolve) => setTimeout(resolve, 50));
-
-        const sampleRate = parseFloat(exportRateInput.value);
-        const durationValue = parseFloat(exportDurationInput.value);
-        const durationUnit = parseFloat(exportDurationUnitInput.value);
-        const totalDurationSeconds = durationValue * durationUnit;
-        const exportDt = 1 / sampleRate;
-        const numSteps = Math.max(
-          1,
-          Math.ceil(totalDurationSeconds * sampleRate)
-        );
-        const internalStepsPerExportStep = Math.max(
-          1,
-          Math.round(exportDt / dt)
-        );
-        const actualExportDt = internalStepsPerExportStep * dt;
-
-        if (
-          isNaN(sampleRate) ||
-          sampleRate <= 0 ||
-          isNaN(totalDurationSeconds) ||
-          totalDurationSeconds <= 0
-        ) {
-          exportStatus.textContent = "Error: Invalid export parameters.";
-          exportButton.disabled = false;
-          resetButton.disabled = false;
-          exportProgressContainer.style.display = "none";
-          return;
-        }
-        if (totalDurationSeconds > 86400 * 10 || numSteps > 5_000_000) {
-          exportStatus.textContent = "Error: Export duration/rate too large.";
-          exportButton.disabled = false;
-          resetButton.disabled = false;
-          exportProgressContainer.style.display = "none";
-          return;
-        }
-
-        exportStatus.textContent = `Simulating ${totalDurationSeconds.toFixed(
-          1
-        )}s (${numSteps} samples)...`;
-        await new Promise((resolve) => setTimeout(resolve, 50));
-
-        let exp_t = 0;
-        let exp_th1 = theta1;
-        let exp_th2 = theta2;
-        let exp_om1 = omega1;
-        let exp_om2 = omega2;
-
-        const current_L1 = L1;
-        const current_L2 = L2;
-        const current_g = g;
-        const current_m1 = m1;
-        const current_m2 = m2;
-        const current_damping1 = damping1;
-        const current_damping2 = damping2;
-        const current_dirForceMag = dirForceMag;
-        const current_dirForceAngleRad = dirForceAngleRad;
-        const current_q1 = q1;
-        const current_q2 = q2;
-        const current_Bz = Bz;
-
-        let csvContent =
-          "Time (s),Theta1 (rad),Theta2 (rad),Omega1 (rad/s),Omega2 (rad/s),x1 (m),y1 (m),x2 (m),y2 (m)\n";
-        const stepsPerProgressUpdate = Math.max(10, Math.floor(numSteps / 200));
-
-        for (let i = 0; i <= numSteps; i++) {
-          const s1 = Math.sin(exp_th1);
-          const c1 = Math.cos(exp_th1);
-          const s2 = Math.sin(exp_th2);
-          const c2 = Math.cos(exp_th2);
-          const x1_m = current_L1 * s1;
-          const y1_m = current_L1 * c1;
-          const x2_m = x1_m + current_L2 * s2;
-          const y2_m = y1_m + current_L2 * c2;
-
-          csvContent += `${exp_t.toFixed(6)},${exp_th1.toFixed(
-            8
-          )},${exp_th2.toFixed(8)},${exp_om1.toFixed(8)},${exp_om2.toFixed(
-            8
-          )},${x1_m.toFixed(8)},${y1_m.toFixed(8)},${x2_m.toFixed(
-            8
-          )},${y2_m.toFixed(8)}\n`;
-          if (i === numSteps) break;
-
-          for (let k = 0; k < internalStepsPerExportStep; k++) {
-            const { alpha1, alpha2 } = calculateAccelerations(
-              exp_th1,
-              exp_th2,
-              exp_om1,
-              exp_om2,
-              current_damping1,
-              current_damping2,
-              current_dirForceMag,
-              current_dirForceAngleRad,
-              current_q1,
-              current_q2,
-              current_Bz,
-              current_L1,
-              current_L2,
-              current_m1,
-              current_m2,
-              current_g
+      function saveRecordedData() {
+        if (recordedData && recordedData.length > 0) {
+          try {
+            localStorage.setItem(
+              LOCAL_STORAGE_KEY,
+              JSON.stringify(recordedData)
             );
-            exp_om1 += alpha1 * dt;
-            exp_om2 += alpha2 * dt;
-            exp_th1 += exp_om1 * dt;
-            exp_th2 += exp_om2 * dt;
+          } catch (e) {
+            console.error("Error saving data to local storage:", e);
+            dataRecordingStatus.textContent =
+              "Error saving data. Storage might be full.";
           }
-          exp_t += actualExportDt;
+        } else {
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
+        }
+      }
 
-          if (i % stepsPerProgressUpdate === 0 || i === numSteps - 1) {
-            const progress = (i / numSteps) * 100;
-            exportProgressBar.style.width = `${progress}%`;
-            exportStatus.textContent = `Simulating... (${progress.toFixed(
-              1
-            )}%)`;
-            await new Promise((resolve) => setTimeout(resolve, 0));
+      function downloadStoredData() {
+        stopSimulation();
+
+        let dataString;
+        try {
+          dataString = localStorage.getItem(LOCAL_STORAGE_KEY);
+          if (!dataString) {
+            dataRecordingStatus.textContent =
+              "No recorded data found in storage.";
+            alert("No recorded data found in local storage.");
+            return;
           }
+        } catch (e) {
+          console.error("Error retrieving data from local storage:", e);
+          dataRecordingStatus.textContent =
+            "Error retrieving data from storage.";
+          alert("Error retrieving data from local storage.");
+          return;
         }
 
-        exportStatus.textContent = "Generating CSV file...";
-        exportProgressBar.style.width = `100%`;
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        let dataArray;
+        try {
+          dataArray = JSON.parse(dataString);
+          if (!Array.isArray(dataArray) || dataArray.length === 0) {
+            dataRecordingStatus.textContent =
+              "Stored data is invalid or empty.";
+            alert("Stored data is invalid or empty.");
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing stored data:", e);
+          dataRecordingStatus.textContent = "Error parsing stored data.";
+          alert("Error parsing stored data.");
+          return;
+        }
+
+        dataRecordingStatus.textContent = `Preparing ${dataArray.length} data points for download...`;
+
+        const header = Object.keys(dataArray[0]).join(",");
+        const csvRows = dataArray.map((row) =>
+          Object.values(row)
+            .map((value) =>
+              typeof value === "number" ? value.toFixed(8) : value
+            )
+            .join(",")
+        );
+        const csvContent = [header, ...csvRows].join("\n");
 
         try {
           const blob = new Blob([csvContent], {
@@ -1347,23 +1428,19 @@
           const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
           link.setAttribute(
             "download",
-            `double_pendulum_data_${timestamp}.csv`
+            `pendulum_recorded_data_${timestamp}.csv`
           );
           link.style.visibility = "hidden";
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-          exportStatus.textContent = `Export complete (${
-            numSteps + 1
-          } data points).`;
+          dataRecordingStatus.textContent = `Downloaded ${dataArray.length} data points.`;
         } catch (error) {
-          console.error("Export failed:", error);
-          exportStatus.textContent =
+          console.error("Download failed:", error);
+          dataRecordingStatus.textContent =
             "Error: Failed to generate or download file.";
-        } finally {
-          exportButton.disabled = false;
-          resetButton.disabled = false;
+          alert("Error generating download file.");
         }
       }
 
@@ -1390,16 +1467,16 @@
           historyChartCanvas.height = 156;
         }
 
-        const maxExtent = L1 + L2;
-        const paddingFactor = 1.1;
+        const maxExtent = length1 + length2;
+        const paddingFactor = 1.2;
         const scaleX = canvas.width / (maxExtent * 2 * paddingFactor);
-        const scaleY = canvas.height / (maxExtent * 2 * paddingFactor);
+        const scaleY = (canvas.height * 0.8) / (maxExtent * 2 * paddingFactor);
 
-        PIXELS_PER_METER = Math.max(10, Math.min(scaleX, scaleY));
-        if (L1 + L2 === 0) PIXELS_PER_METER = 50;
+        pixelsPerMeter = Math.max(20, Math.min(scaleX, scaleY));
+        if (maxExtent < 1e-6) pixelsPerMeter = 50;
 
         originX = canvas.width / 2;
-        originY = canvas.height / 2;
+        originY = canvas.height * 0.4;
 
         if (!isRunning && !isDraggingM1 && !isDraggingM2) draw();
       }
@@ -1409,7 +1486,7 @@
         resetButton.addEventListener("click", resetSimulation);
         startButton.addEventListener("click", startSimulation);
         stopButton.addEventListener("click", stopSimulation);
-        exportButton.addEventListener("click", exportData);
+        downloadDataButton.addEventListener("click", downloadStoredData);
 
         [
           theta1Input,
