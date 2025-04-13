@@ -7,7 +7,7 @@
   --pad-fs: 20px;
   --gap-n: 18px;
   --gap-s: 8px;
-  --f-sz-n: 14px;
+  --f-sz-n: 1em;
   --f-sz-l: 1.5em;
   --f-sz-xl: 2em;
   --ctx-warn: 900000;
@@ -152,7 +152,7 @@ textarea {
   flex-grow: 1;
 }
 #seed-prompt-core,
-#coreLoopStepsList {
+#core-loop-steps-list {
   flex-grow: 1;
   height: 100%;
   min-height: 300px;
@@ -427,11 +427,11 @@ button:disabled {
   color: var(--bg);
   border-color: var(--bg);
 }
-#diagramJsonDisplay {
+#diagram-json-display {
   min-height: 400px;
 }
-#uiRenderOutput,
-#metaSandboxOutput {
+#ui-render-output,
+#meta-sandbox-output {
   width: 100%;
   min-height: 500px;
   border: 1px solid var(--bdr);
@@ -516,18 +516,18 @@ button:disabled {
   border-color: cyan;
   margin-top: 0;
 }
-#metaSandboxOutput {
+#meta-sandbox-output {
   border-color: cyan;
 }
-#genesisStateDisplay {
+#genesis-state-display {
   border-style: dotted;
   opacity: 0.8;
   padding: 0;
 }
-#genesisStateDisplay legend {
+#genesis-state-display legend {
   color: gray;
 }
-#genesisDiagramJson {
+#genesis-diagram-json {
   font-size: 0.8em;
   max-height: 150px;
 }
@@ -539,7 +539,7 @@ button:disabled {
   margin-left: 10px;
   display: inline-block;
 }
-#statusIndicator {
+#status-indicator {
   border: 1px solid gray;
   padding: 5px 10px;
   margin-left: 20px;
@@ -548,7 +548,7 @@ button:disabled {
   min-width: 150px;
   text-align: center;
 }
-#statusIndicator.active {
+#status-indicator.active {
   border-color: yellow;
   color: yellow;
   font-weight: bold;
@@ -558,7 +558,7 @@ button:disabled {
   text-align: center;
   margin-top: 50px;
 }
-#appRoot {
+#app-root {
   visibility: hidden;
 }
 .goal-type-selector {

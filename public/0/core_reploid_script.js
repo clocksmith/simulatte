@@ -1,116 +1,128 @@
 const REPLOID_CORE = (() => {
-  // --- Dependencies ---
-  // Assumes window.Utils and window.Storage are loaded
-  const Utils = window.Utils;
-  const Storage = window.Storage;
-  const logger = Utils.logger; // Convenience reference
+  let Utils;
+  let Storage;
+  let logger;
+  let loadedStaticTools = []; // Holds static tools loaded from artifact
+  let isCoreInitialized = false;
 
-  if (!Utils || !Storage || !logger) {
-    console.error("FATAL: Core dependencies (Utils/Storage/Logger) not found!");
-    // Prevent further execution
-    return {
-      initialize: () => console.error("REPLOID_CORE cannot initialize."),
-    };
-  }
+  const coreBootstrap = {
+    LS_PREFIX: "_x0_",
+    getArtifactKey: (id, cycle = 0) =>
+      `${coreBootstrap.LS_PREFIX}${id}_${cycle}`,
+    _lsGet: (key) => {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        console.error(`CORE_BOOTSTRAP LS GET Error: ${key}`, e);
+        return null;
+      }
+    },
+    loadAndExecuteReturn: (artifactId, cycle = 0) => {
+      const key = coreBootstrap.getArtifactKey(artifactId, cycle);
+      const scriptContent = coreBootstrap._lsGet(key);
+      if (!scriptContent) {
+        throw new Error(
+          `Core dependency artifact not found: ${artifactId} (Key: ${key})`
+        );
+      }
+      try {
+        const func = new Function(scriptContent + "\nreturn moduleExport;");
+        return func();
+      } catch (e) {
+        try {
+          console.warn(`Executing ${artifactId} directly (may use window).`);
+          const func = new Function(scriptContent);
+          func();
+          return null;
+        } catch (execError) {
+          console.error(
+            `Error executing core dependency artifact: ${artifactId}`,
+            execError
+          );
+          throw new Error(
+            `Failed to execute core dependency: ${artifactId}. ${execError.message}`
+          );
+        }
+      }
+    },
+    loadJsonArtifact: (artifactId, cycle = 0) => {
+      const key = coreBootstrap.getArtifactKey(artifactId, cycle);
+      const jsonContent = coreBootstrap._lsGet(key);
+      if (!jsonContent) {
+        throw new Error(
+          `Core JSON artifact not found: ${artifactId} (Key: ${key})`
+        );
+      }
+      try {
+        return JSON.parse(jsonContent);
+      } catch (e) {
+        console.error(`Error parsing core JSON artifact: ${artifactId}`, e);
+        throw new Error(
+          `Failed to parse core JSON artifact: ${artifactId}. ${e.message}`
+        );
+      }
+    },
+  };
+
+  const initializeCoreDependencies = () => {
+    if (isCoreInitialized) return;
+    const utilsModule = coreBootstrap.loadAndExecuteReturn(
+      "reploid.core.utils",
+      0
+    );
+    const storageModule = coreBootstrap.loadAndExecuteReturn(
+      "reploid.core.storage",
+      0
+    );
+    Utils = utilsModule || window.Utils;
+    Storage = storageModule || window.Storage;
+    if (!Utils || !Storage) {
+      throw new Error(
+        "Failed to load/execute core Utils/Storage dependencies."
+      );
+    }
+    logger = Utils.logger;
+    if (!logger) {
+      throw new Error("Logger not found within loaded Utils module.");
+    }
+    try {
+      loadedStaticTools = coreBootstrap.loadJsonArtifact(
+        "reploid.core.static-tools",
+        0
+      );
+    } catch (e) {
+      logger.logEvent(
+        "error",
+        `Failed to load static tools artifact: ${e.message}`
+      );
+      loadedStaticTools = []; // Fallback to empty array
+    }
+    isCoreInitialized = true;
+    console.log(
+      "Core dependencies (Utils, Storage, Logger, StaticTools) initialized."
+    );
+  };
 
   const CTX_WARN_THRESH = 925000;
   const SVG_NS = "http://www.w3.org/2000/svg";
 
-  // --- Core State Variables ---
-  // Kept within the IIFE scope for encapsulation by StateManager/CycleLogic
   let globalState = null;
-  let uiRefs = {}; // Remains UI specific, managed by UI module
-  let currentLlmResponse = null; // CycleLogic managed
-  let metaSandboxPending = false; // CycleLogic/UI managed
-  let activeCoreStepIdx = -1; // UI managed
-  let dynamicToolDefinitions = []; // StateManager managed
-  let artifactMetadata = {}; // StateManager managed
-  let lastCycleLogItem = null; // CycleLogic/UI managed
+  let uiRefs = {};
+  let currentLlmResponse = null;
+  let metaSandboxPending = false;
+  let activeCoreStepIdx = -1;
+  let dynamicToolDefinitions = [];
+  let artifactMetadata = {};
+  let lastCycleLogItem = null;
 
-  // --- Configuration ---
-  // TODO: Consider moving API Keys/Project ID out of source code (e.g., env vars, config file)
   const APP_CONFIG = {
-    API_KEY: "<nope>", // Replace with actual key or method to get it securely
-    PROJECT_ID: "<nope>",
-    BASE_GEMINI_MODEL: "gemini-1.5-flash-latest", // Updated model name
-    ADVANCED_GEMINI_MODEL: "gemini-1.5-pro-latest", // Updated model name
+    BASE_GEMINI_MODEL: "gemini-1.5-flash-latest",
+    ADVANCED_GEMINI_MODEL: "gemini-1.5-pro-latest",
   };
 
-  // --- Static Tool Definitions (Data, not logic) ---
-  // ToolRunner will receive this
-  const staticTools = [
-    {
-      name: "code_linter",
-      description: "Analyzes code snippet syntax.",
-      params: {
-        type: "OBJECT",
-        properties: {
-          code: { type: "STRING" },
-          language: {
-            type: "STRING",
-            enum: ["javascript", "css", "html", "json"],
-          },
-        },
-        required: ["code", "language"],
-      },
-    },
-    {
-      name: "json_validator",
-      description: "Validates JSON string structure.",
-      params: {
-        type: "OBJECT",
-        properties: { json_string: { type: "STRING" } },
-        required: ["json_string"],
-      },
-    },
-    {
-      name: "diagram_schema_validator",
-      description: "Validates diagram JSON schema.",
-      params: {
-        type: "OBJECT",
-        properties: { diagram_json: { type: "OBJECT" } },
-        required: ["diagram_json"],
-      },
-    },
-    {
-      name: "svg_diagram_renderer",
-      description:
-        "Generates SVG markup string for diagram JSON. (Note: Decoupled - currently placeholder)",
-      params: {
-        type: "OBJECT",
-        properties: { diagram_json: { type: "OBJECT" } },
-        required: ["diagram_json"],
-      },
-    },
-    {
-      name: "token_counter",
-      description: "Estimates token count for text.",
-      params: {
-        type: "OBJECT",
-        properties: { text: { type: "STRING" } },
-        required: ["text"],
-      },
-    },
-    {
-      name: "self_correction",
-      description: "Attempts self-correction based on error.",
-      params: {
-        type: "OBJECT",
-        properties: {
-          failed_task_description: { type: "STRING" },
-          error_message: { type: "STRING" },
-          previous_goal: { type: "OBJECT" },
-        },
-        required: ["failed_task_description", "error_message", "previous_goal"],
-      },
-    },
-  ];
-
-  // --- StateManager Module ---
   const StateManager = {
-    // getDefaultState remains mostly the same, using Utils.STATE_VERSION
     getDefaultState: () => ({
-      version: Utils.STATE_VERSION,
+      version: "0.0.0",
       totalCycles: 0,
       agentIterations: 0,
       humanInterventions: 0,
@@ -125,10 +137,7 @@ const REPLOID_CORE = (() => {
       personaMode: "XYZ",
       lastFeedback: null,
       forceHumanReview: false,
-      apiKey:
-        APP_CONFIG.API_KEY && APP_CONFIG.API_KEY !== "<nope>"
-          ? APP_CONFIG.API_KEY
-          : "",
+      apiKey: "",
       confidenceHistory: [],
       critiqueFailHistory: [],
       tokenHistory: [],
@@ -137,10 +146,9 @@ const REPLOID_CORE = (() => {
       critiqueFailRate: null,
       avgTokens: null,
       contextTokenEstimate: 0,
-      lastGeneratedFullSource: null, // Keep track of this specific state
+      lastGeneratedFullSource: null,
       htmlHistory: [],
-      lastApiResponse: null, // Still useful for debugging? Keep internal to StateManager?
-      partialOutput: null, // Managed by CycleLogic during API calls now
+      lastApiResponse: null,
       retryCount: 0,
       cfg: {
         personaBalance: 50,
@@ -155,168 +163,209 @@ const REPLOID_CORE = (() => {
         coreModel: APP_CONFIG.BASE_GEMINI_MODEL,
         critiqueModel: APP_CONFIG.BASE_GEMINI_MODEL,
       },
-      artifactMetadata: {}, // Managed here
-      dynamicTools: [], // Managed here
+      artifactMetadata: {},
+      dynamicTools: [],
     }),
 
     init: () => {
-      // Uses Storage module
       const savedState = Storage.getState();
       if (
         savedState &&
         savedState.version?.split(".")[0] === Utils.STATE_VERSION.split(".")[0]
       ) {
-        // Merge carefully, ensuring cfg defaults apply if missing in saved state
         const defaultState = StateManager.getDefaultState();
         globalState = {
           ...defaultState,
           ...savedState,
-          cfg: { ...defaultState.cfg, ...(savedState.cfg || {}) }, // Ensure cfg structure
+          cfg: { ...defaultState.cfg, ...(savedState.cfg || {}) },
         };
-        globalState.version = Utils.STATE_VERSION; // Always update to current version
-        // Restore managed state variables
+        globalState.version = Utils.STATE_VERSION;
         dynamicToolDefinitions = globalState.dynamicTools || [];
         artifactMetadata = globalState.artifactMetadata || {};
-        // Ensure globalState reflects the restored values
         globalState.dynamicTools = dynamicToolDefinitions;
         globalState.artifactMetadata = artifactMetadata;
-
         logger.logEvent(
           "info",
-          `Loaded state from localStorage for cycle ${globalState.totalCycles}`
+          `Loaded state v${globalState.version} (Cycle ${globalState.totalCycles})`
         );
-        return true; // Indicates existing state loaded
+        return true;
       } else {
         if (savedState) {
           logger.logEvent(
             "warn",
-            `Ignoring incompatible localStorage state (v${savedState.version})`
+            `Ignoring incompatible state (v${savedState.version})`
           );
-          Storage.removeState(); // Use Storage module
+          Storage.removeState();
         }
         globalState = StateManager.getDefaultState();
-        // Initialize managed variables from default state
-        // Set default artifact metadata (IDs are now fixed strings)
+        globalState.version = Utils.STATE_VERSION;
         artifactMetadata = {
-          "reploid.style.main": {
-            id: "reploid.style.main",
-            type: "CSS_STYLESHEET",
-            description: "REPLOID UI Styles",
+          "reploid.core.logic": {
+            id: "reploid.core.logic",
+            type: "JS",
+            description: "Main application logic",
             latestCycle: 0,
           },
-          "reploid.body.main": {
-            id: "reploid.body.main",
-            type: "HTML_BODY",
-            description: "REPLOID UI Body Structure",
+          "reploid.core.style": {
+            id: "reploid.core.style",
+            type: "CSS",
+            description: "Main application styles",
             latestCycle: 0,
           },
-          "reploid.script.core": {
-            id: "reploid.script.core",
-            type: "JAVASCRIPT_SNIPPET",
-            description: "REPLOID Core Logic",
+          "reploid.core.body": {
+            id: "reploid.core.body",
+            type: "HTML",
+            description: "App root HTML structure",
             latestCycle: 0,
           },
-          "reploid.prompt.core": {
-            id: "reploid.prompt.core",
+          "reploid.core.utils": {
+            id: "reploid.core.utils",
+            type: "JS",
+            description: "Core utility functions",
+            latestCycle: 0,
+          },
+          "reploid.core.storage": {
+            id: "reploid.core.storage",
+            type: "JS",
+            description: "Core storage functions",
+            latestCycle: 0,
+          },
+          "reploid.core.sys-prompt": {
+            id: "reploid.core.sys-prompt",
             type: "PROMPT",
-            description: "Core Logic/Meta Prompt",
+            description: "Core LLM prompt",
             latestCycle: 0,
           },
-          "reploid.prompt.critique": {
-            id: "reploid.prompt.critique",
+          "reploid.core.critiquer-prompt": {
+            id: "reploid.core.critiquer-prompt",
             type: "PROMPT",
-            description: "Automated Critique Prompt",
+            description: "Critique prompt",
             latestCycle: 0,
           },
-          "reploid.prompt.summarize": {
-            id: "reploid.prompt.summarize",
+          "reploid.core.summarizer-prompt": {
+            id: "reploid.core.summarizer-prompt",
             type: "PROMPT",
-            description: "Context Summarization Prompt",
+            description: "Summarization prompt",
             latestCycle: 0,
           },
-          "reploid.core_steps": {
-            id: "reploid.core_steps",
+          "reploid.core.static-tools": {
+            id: "reploid.core.static-tools",
+            type: "JSON",
+            description: "Static tool definitions",
+            latestCycle: 0,
+          },
+          "reploid.core.toolrunner": {
+            id: "reploid.core.toolrunner",
+            type: "JS",
+            description: "Tool execution worker",
+            latestCycle: 0,
+          },
+          "reploid.core.diagram": {
+            id: "reploid.core.diagram",
+            type: "JSON",
+            description: "Default diagram",
+            latestCycle: 0,
+          },
+          "reploid.core.diagram-factory": {
+            id: "reploid.core.diagram-factory",
+            type: "JS",
+            description: "Diagram renderer",
+            latestCycle: 0,
+          },
+          "reploid.core.cycle-steps": {
+            id: "reploid.core.cycle-steps",
             type: "TEXT",
-            description: "Core Loop Steps List",
+            description: "Cycle step definitions",
             latestCycle: 0,
           },
           "target.head": {
             id: "target.head",
             type: "HTML_HEAD",
             description: "Target UI Head",
-            latestCycle: 0,
+            latestCycle: -1,
           },
           "target.body": {
             id: "target.body",
             type: "HTML_BODY",
             description: "Target UI Body",
-            latestCycle: 0,
+            latestCycle: -1,
           },
           "target.style.main": {
             id: "target.style.main",
             type: "CSS_STYLESHEET",
             description: "Target UI Styles",
-            latestCycle: 0,
+            latestCycle: -1,
           },
           "target.script.main": {
             id: "target.script.main",
             type: "JAVASCRIPT_SNIPPET",
             description: "Target UI Script",
-            latestCycle: 0,
+            latestCycle: -1,
           },
           "target.diagram": {
             id: "target.diagram",
             type: "DIAGRAM_JSON",
             description: "Target UI Structure Diagram",
-            latestCycle: 0,
+            latestCycle: -1,
           },
           "meta.summary_context": {
             id: "meta.summary_context",
             type: "TEXT",
-            description: "Last Auto-Generated Context Summary",
+            description: "Last Context Summary",
+            latestCycle: -1,
+          },
+          "reploid.boot.style": {
+            id: "reploid.boot.style",
+            type: "CSS",
+            description: "Bootstrap initial CSS",
+            latestCycle: 0,
+          },
+          "reploid.boot.script": {
+            id: "reploid.boot.script",
+            type: "JS",
+            description: "Bootstrap script source",
+            latestCycle: 0,
+          },
+          "reploid.boot.log": {
+            id: "reploid.boot.log",
+            type: "LOG",
+            description: "Log of the bootstrap process",
             latestCycle: 0,
           },
         };
         globalState.artifactMetadata = artifactMetadata;
-        dynamicToolDefinitions = globalState.dynamicTools || []; // Should be [] from default
-        StateManager.save(); // Save the newly initialized state
-        logger.logEvent("info", "Initialized new default state.");
-        return false; // Indicates new state created
+        dynamicToolDefinitions = globalState.dynamicTools || [];
+        StateManager.save();
+        logger.logEvent(
+          "info",
+          `Initialized new default state v${globalState.version}`
+        );
+        return false;
       }
     },
 
     getState: () => globalState,
-    // Use sparingly from outside, prefer specific methods
     setState: (newState) => {
       globalState = newState;
     },
 
     save: () => {
-      if (!globalState) return;
+      if (!globalState || !Storage) return;
       try {
-        // Create a clean copy for saving, excluding potentially large/circular refs
         const stateToSave = JSON.parse(
-          JSON.stringify({
-            ...globalState,
-            lastApiResponse: null, // Don't save large API responses
-            // partialOutput is no longer in globalState
-          })
+          JSON.stringify({ ...globalState, lastApiResponse: null })
         );
-        Storage.saveState(stateToSave); // Use Storage module
+        Storage.saveState(stateToSave);
         logger.logEvent(
           "debug",
-          `Saved non-artifact state for cycle ${globalState.totalCycles}`
+          `Saved state (Cycle ${globalState.totalCycles})`
         );
       } catch (e) {
-        logger.logEvent(
-          "error",
-          `Failed to save non-artifact state: ${e.message}`
-        );
-        UI.showNotification(`Failed to save state: ${e.message}`, "error"); // UI call remains here for now
+        logger.logEvent("error", `Save state failed: ${e.message}`);
+        UI.showNotification(`Save state failed: ${e.message}`, "error");
       }
     },
 
-    // --- Artifact Metadata Management ---
     getArtifactMetadata: (id) =>
       artifactMetadata[id] || {
         id: id,
@@ -332,35 +381,30 @@ const REPLOID_CORE = (() => {
         description: description || currentMeta.description || `Artifact ${id}`,
         latestCycle: Math.max(cycle, currentMeta.latestCycle ?? -1),
       };
-      if (globalState) globalState.artifactMetadata = artifactMetadata; // Keep state consistent
-      // No direct save here, saving happens explicitly via StateManager.save()
+      if (globalState) globalState.artifactMetadata = artifactMetadata;
     },
     deleteArtifactMetadata: (id) => {
       delete artifactMetadata[id];
       if (globalState) globalState.artifactMetadata = artifactMetadata;
     },
-    getAllArtifactMetadata: () => ({ ...artifactMetadata }), // Return a copy
-
-    // --- State Capture/Restore/Export/Import ---
-    // These methods now use Utils.logger and the Storage module
+    getAllArtifactMetadata: () => ({ ...artifactMetadata }),
 
     capturePreservationState: () => {
       const stateToSave = JSON.parse(
         JSON.stringify({ ...globalState, lastApiResponse: null })
       );
-      // Capture other volatile state needed for session restore
-      stateToSave.logBuffer = Utils.logger.getLogBuffer(); // Use Utils.logger
+      stateToSave.logBuffer = logger.getLogBuffer();
       stateToSave.timelineHTML = uiRefs.timelineLog
         ? uiRefs.timelineLog.innerHTML
-        : ""; // UI interaction
-      stateToSave.dynamicToolDefinitions = dynamicToolDefinitions; // Managed variable
-      stateToSave.artifactMetadata = artifactMetadata; // Managed variable
-      stateToSave.metaSandboxPending = metaSandboxPending; // Managed variable
+        : "";
+      stateToSave.dynamicToolDefinitions = dynamicToolDefinitions;
+      stateToSave.artifactMetadata = artifactMetadata;
+      stateToSave.metaSandboxPending = metaSandboxPending;
       return stateToSave;
     },
 
     restoreStateFromSession: () => {
-      const preservedData = Storage.getSessionState(); // Use Storage module
+      const preservedData = Storage.getSessionState();
       if (!preservedData) return false;
       logger.logEvent("info", "Preserved session state found.");
       try {
@@ -370,34 +414,26 @@ const REPLOID_CORE = (() => {
         ) {
           logger.logEvent(
             "warn",
-            `Restoring older session state v${preservedData.version}. May have issues.`
+            `Restoring older session state v${preservedData.version}.`
           );
         }
-
-        // Merge carefully, similar to init()
         const defaultState = StateManager.getDefaultState();
         globalState = {
           ...defaultState,
           ...preservedData,
           cfg: { ...defaultState.cfg, ...(preservedData.cfg || {}) },
         };
-        globalState.version = Utils.STATE_VERSION; // Update version
-
-        // Restore managed variables
-        Utils.logger.setLogBuffer(
+        globalState.version = Utils.STATE_VERSION;
+        logger.setLogBuffer(
           preservedData.logBuffer ||
             `Restored Log ${new Date().toISOString()}\n===\n`
         );
         dynamicToolDefinitions = preservedData.dynamicTools || [];
         artifactMetadata = preservedData.artifactMetadata || {};
         metaSandboxPending = preservedData.metaSandboxPending || false;
-
-        // Ensure globalState reflects the restored managed variables
         globalState.dynamicTools = dynamicToolDefinitions;
         globalState.artifactMetadata = artifactMetadata;
-
-        // Restore UI - UI calls remain tightly coupled here
-        UI.initializeUIElementReferences(); // Needs to happen after state load potentially
+        UI.initializeUIElementReferences();
         if (uiRefs.timelineLog)
           uiRefs.timelineLog.innerHTML = preservedData.timelineHTML || "";
         UI.updateStateDisplay();
@@ -406,14 +442,10 @@ const REPLOID_CORE = (() => {
         UI.displayGenesisState();
         UI.loadPromptsFromLS();
         UI.loadCoreLoopSteps();
-
-        logger.logEvent(
-          "info",
-          "Session state restored after self-modification."
-        );
+        logger.logEvent("info", "Session state restored.");
         UI.logToTimeline(
           globalState.totalCycles,
-          "[STATE] Restored after self-modification.",
+          "[STATE] Restored after self-mod.",
           "info"
         );
         if (uiRefs.runCycleButton)
@@ -421,46 +453,43 @@ const REPLOID_CORE = (() => {
         if (uiRefs.runCycleButton)
           uiRefs.runCycleButton.textContent = "Run Cycle";
         UI.updateStatus(
-          metaSandboxPending ? "Awaiting Meta Sandbox Approval..." : "Idle"
+          metaSandboxPending ? "Meta Sandbox Pending..." : "Idle"
         );
-
-        // Save the restored state to localStorage
         StateManager.save();
         return true;
       } catch (e) {
-        logger.logEvent(
-          "error",
-          `Restore from session storage failed: ${e.message}`
-        );
+        logger.logEvent("error", `Restore from session failed: ${e.message}`);
         UI.showNotification(
-          `Restore failed: ${e.message}. Reinitializing state.`,
+          `Restore failed: ${e.message}. Reinitializing.`,
           "error"
         );
-        StateManager.init(); // Re-initialize fully
-        UI.initializeUIElementReferences(); // Re-init UI refs
-        UI.logToTimeline(0, "[STATE] Restore failed. Reinitialized.", "error");
-        UI.updateStatus("Restore Failed", false, true);
-        return false; // Indicate failure
+        if (isCoreInitialized) {
+          StateManager.init();
+          UI.initializeUIElementReferences();
+          UI.logToTimeline(
+            0,
+            "[STATE] Restore failed. Reinitialized.",
+            "error"
+          );
+          UI.updateStatus("Restore Failed", false, true);
+        } else {
+          console.error("Cannot re-initialize, core dependencies failed.");
+        }
+        return false;
       } finally {
-        Storage.removeSessionState(); // Always clear session state after attempt
-        logger.logEvent(
-          "info",
-          "Cleared preserved state from session storage."
-        );
+        Storage.removeSessionState();
+        logger.logEvent("info", "Cleared session state.");
       }
     },
 
     exportState: () => {
       try {
-        // Use capturePreservationState to get all necessary data
         const stateData = StateManager.capturePreservationState();
         const fileName = `x0_state_${Utils.STATE_VERSION}_${new Date()
           .toISOString()
           .replace(/[:.]/g, "-")}.json`;
         const dataStr = JSON.stringify(stateData, null, 2);
         logger.logEvent("info", "State export initiated.");
-
-        // Browser download logic remains
         const blob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -470,10 +499,9 @@ const REPLOID_CORE = (() => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-
         UI.logToTimeline(
           globalState.totalCycles,
-          "[STATE] State exported successfully.",
+          "[STATE] State exported.",
           "info"
         );
       } catch (e) {
@@ -504,56 +532,43 @@ const REPLOID_CORE = (() => {
           ) {
             logger.logEvent(
               "warn",
-              `State version mismatch (Imported: ${importedData.version}, Current: ${Utils.STATE_VERSION}). Proceeding with caution.`
+              `State version mismatch (Imported: ${importedData.version}, Current: ${Utils.STATE_VERSION}).`
             );
           }
-
-          // Reset and load state, similar to restoreStateFromSession
           const defaultState = StateManager.getDefaultState();
           globalState = {
             ...defaultState,
             ...importedData,
             cfg: { ...defaultState.cfg, ...(importedData.cfg || {}) },
           };
-          globalState.version = Utils.STATE_VERSION; // Set to current version
-
-          // Restore managed variables
-          Utils.logger.setLogBuffer(
-            importedData.logBuffer || Utils.logger.getLogBuffer()
-          ); // Keep current log if import lacks one
-          currentLlmResponse = null; // Reset volatile state
-          metaSandboxPending = false; // Reset volatile state
+          globalState.version = Utils.STATE_VERSION;
+          logger.setLogBuffer(importedData.logBuffer || logger.getLogBuffer());
+          currentLlmResponse = null;
+          metaSandboxPending = false;
           dynamicToolDefinitions = importedData.dynamicTools || [];
           artifactMetadata = importedData.artifactMetadata || {};
-
-          // Ensure globalState reflects managed variables
           globalState.artifactMetadata = artifactMetadata;
           globalState.dynamicTools = dynamicToolDefinitions;
-
-          // Restore UI
           UI.initializeUIElementReferences();
           if (uiRefs.timelineLog)
             uiRefs.timelineLog.innerHTML = importedData.timelineHTML || "";
           UI.clearCurrentCycleDetails();
-          UI.updateStateDisplay(); // Update based on newly loaded globalState
+          UI.updateStateDisplay();
           UI.renderDiagramDisplay(globalState.totalCycles);
           UI.renderGeneratedUI(globalState.totalCycles);
           UI.displayGenesisState();
           UI.loadPromptsFromLS();
           UI.loadCoreLoopSteps();
-
           logger.logEvent("info", "State imported successfully.");
           UI.logToTimeline(
             globalState.totalCycles,
-            "[STATE] State imported successfully.",
+            "[STATE] State imported.",
             "info"
           );
           UI.showNotification(
-            "State imported successfully. Artifacts are expected to be in LocalStorage.",
+            "State imported. Artifacts must be in LocalStorage.",
             "info"
           );
-
-          // Save the newly imported state
           StateManager.save();
         } catch (err) {
           logger.logEvent("error", `Import failed: ${err.message}`);
@@ -564,15 +579,11 @@ const REPLOID_CORE = (() => {
             "error"
           );
         } finally {
-          // Reset file input
           if (uiRefs.importFileInput) uiRefs.importFileInput.value = "";
         }
       };
       reader.onerror = (e) => {
-        logger.logEvent(
-          "error",
-          `File read error during import: ${reader.error}`
-        );
+        logger.logEvent("error", `File read error: ${reader.error}`);
         UI.showNotification(`Error reading file: ${reader.error}`, "error");
         if (uiRefs.importFileInput) uiRefs.importFileInput.value = "";
       };
@@ -580,11 +591,8 @@ const REPLOID_CORE = (() => {
     },
   }; // End StateManager
 
-  // --- ApiClient Module ---
   const ApiClient = {
-    // sanitizeLlmJsonResp remains the same, uses Utils.logger
     sanitizeLlmJsonResp: (rawText) => {
-      // ... (implementation as before, using logger.logEvent)
       if (!rawText || typeof rawText !== "string") return "{}";
       let s = rawText.trim();
       const codeBlockMatch = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -601,48 +609,39 @@ const REPLOID_CORE = (() => {
         if (start === -1) return "{}";
         s = s.substring(start);
       }
-      // Simple brace/bracket balancing for finding the end
       let balance = 0;
       let lastValidIndex = -1;
       const startChar = s[0];
       const endChar = startChar === "{" ? "}" : startChar === "[" ? "]" : null;
-      if (!endChar) return "{}"; // Not starting with { or [
-
+      if (!endChar) return "{}";
       for (let i = 0; i < s.length; i++) {
         if (s[i] === startChar) balance++;
         else if (s[i] === endChar) balance--;
-
         if (balance === 0) {
           lastValidIndex = i;
-          break; // Found the matching end
+          break;
         }
       }
-
       if (lastValidIndex !== -1) {
         s = s.substring(0, lastValidIndex + 1);
       } else {
-        // Mismatched braces/brackets, return empty object
         return "{}";
       }
-
-      // Final check if it parses
       try {
         JSON.parse(s);
         return s;
       } catch (e) {
         logger.logEvent(
           "warn",
-          `Sanitized JSON still invalid: ${e.message}, Content: ${s.substring(
+          `Sanitized JSON invalid: ${e.message}, Content: ${s.substring(
             0,
-            100
+            50
           )}...`
         );
         return "{}";
       }
     },
 
-    // callGeminiAPI remains mostly the same, uses Utils.logger
-    // It no longer writes to globalState.lastApiResponse directly
     callGeminiAPI: async (
       prompt,
       sysInstr,
@@ -652,21 +651,12 @@ const REPLOID_CORE = (() => {
       isContinuation = false,
       prevContent = null
     ) => {
-      // ... (implementation as before, using logger.logEvent)
-      // REMOVED: if (globalState) globalState.lastApiResponse = data;
-      // Caller (CycleLogic) will handle the response object `data` if needed
       const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
       logger.logEvent(
         "info",
         `Call API: ${modelName}${isContinuation ? " (Cont)" : ""}`
       );
-
-      // Define base generation config and safety settings
-      const baseGenCfg = {
-        temperature: 0.777, // Example value
-        maxOutputTokens: 8192, // Example value
-        // responseMimeType will be set based on tools below
-      };
+      const baseGenCfg = { temperature: 0.777, maxOutputTokens: 8192 };
       const safetySettings = [
         "HARASSMENT",
         "HATE_SPEECH",
@@ -676,28 +666,23 @@ const REPLOID_CORE = (() => {
         category: `HARM_CATEGORY_${cat}`,
         threshold: "BLOCK_MEDIUM_AND_ABOVE",
       }));
-
       const reqBody = {
         contents: prevContent
           ? [...prevContent, { role: "user", parts: [{ text: prompt }] }]
           : [{ role: "user", parts: [{ text: prompt }] }],
         safetySettings: safetySettings,
-        generationConfig: { ...baseGenCfg }, // Copy base config
+        generationConfig: { ...baseGenCfg },
       };
-
       if (sysInstr) {
         reqBody.systemInstruction = {
           role: "system",
           parts: [{ text: sysInstr }],
         };
       }
-
       if (funcDecls?.length > 0) {
         reqBody.tools = [{ functionDeclarations: funcDecls }];
         reqBody.tool_config = { function_calling_config: { mode: "AUTO" } };
-        // Default mime type is fine when tools are used
       } else {
-        // Explicitly request JSON only when no tools are declared
         reqBody.generationConfig.responseMimeType = "application/json";
       }
 
@@ -707,14 +692,13 @@ const REPLOID_CORE = (() => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(reqBody),
         });
-
         if (!resp.ok) {
           let errBody = await resp.text();
           let errJson = {};
           try {
             errJson = JSON.parse(errBody);
           } catch (e) {
-            /* ignore parse error */
+            /* ignore */
           }
           throw new Error(
             `API Error (${resp.status}): ${
@@ -722,25 +706,16 @@ const REPLOID_CORE = (() => {
             }`
           );
         }
-
         const data = await resp.json();
-
-        // Caller (CycleLogic) can decide to store this `data` if needed
-        // if (globalState) globalState.lastApiResponse = data; // REMOVED
-
         if (data.promptFeedback?.blockReason) {
           throw new Error(`API Blocked: ${data.promptFeedback.blockReason}`);
         }
         if (data.error) {
           throw new Error(`API Error: ${data.error.message || "Unknown"}`);
         }
-
         if (!data.candidates?.length) {
-          // Handle potentially empty {} response for streaming-like scenarios if needed,
-          // otherwise treat as error or unexpected response.
           if (resp.status === 200 && JSON.stringify(data) === "{}") {
-            logger.logEvent("warn", "API returned empty JSON object {}");
-            // Decide how to handle this - maybe return empty, maybe throw
+            logger.logEvent("warn", "API returned empty JSON {}");
             return {
               type: "empty",
               content: null,
@@ -751,13 +726,10 @@ const REPLOID_CORE = (() => {
           }
           throw new Error("API Invalid Response: No candidates.");
         }
-
         const cand = data.candidates[0];
         const tokenCount =
           cand.tokenCount || data.usageMetadata?.totalTokenCount || 0;
         const finishReason = cand.finishReason || "UNKNOWN";
-
-        // Check for blocks or errors in the candidate itself
         if (
           finishReason !== "STOP" &&
           finishReason !== "MAX_TOKENS" &&
@@ -766,7 +738,6 @@ const REPLOID_CORE = (() => {
           if (finishReason === "SAFETY") {
             throw new Error(`API Response Blocked: ${finishReason}`);
           }
-          // Other reasons like RECITATION, OTHER might occur without content
           logger.logEvent(
             "warn",
             `API finishReason: ${finishReason} with no content.`
@@ -779,11 +750,8 @@ const REPLOID_CORE = (() => {
             rawResp: data,
           };
         }
-
         const part = cand.content?.parts?.[0];
-
         if (!part) {
-          // It's possible to get a STOP reason with no content part if the model just stops.
           logger.logEvent(
             "info",
             `API OK. Finish:${finishReason}. Tokens:${tokenCount}. No content part.`
@@ -796,15 +764,11 @@ const REPLOID_CORE = (() => {
             rawResp: data,
           };
         }
-
         logger.logEvent(
           "info",
           `API OK. Finish:${finishReason}. Tokens:${tokenCount}`
         );
-
-        // Determine response type based on content part
         if (part.text !== undefined) {
-          // Check for existence, even if empty string
           return {
             type: "text",
             content: part.text,
@@ -822,19 +786,15 @@ const REPLOID_CORE = (() => {
             rawResp: data,
           };
         }
-
-        // Should not happen if API schema is followed, but handle defensively
         throw new Error(
           "API response part contains neither text nor functionCall."
         );
       } catch (error) {
         logger.logEvent("error", `API Fetch Error: ${error.message}`);
-        throw error; // Re-throw for handling by callApiWithRetry
+        throw error;
       }
     },
 
-    // callApiWithRetry remains mostly the same
-    // It now receives callbacks for UI updates instead of calling UI directly
     callApiWithRetry: async (
       prompt,
       sysInstr,
@@ -843,13 +803,11 @@ const REPLOID_CORE = (() => {
       funcDecls = [],
       isCont = false,
       prevContent = null,
-      retries = globalState?.cfg?.maxRetries ?? 1, // Get retries from state
-      // Callbacks for decoupling UI updates:
-      updateStatusFn = (/* message, isActive, isError */) => {},
-      logTimelineFn = (/* message, type, isSubStep, animate */) => ({}), // Returns dummy item
-      updateTimelineFn = (/* item, message, type, stopAnimate */) => {}
+      retries = globalState?.cfg?.maxRetries ?? 1,
+      updateStatusFn = () => {},
+      logTimelineFn = () => ({}),
+      updateTimelineFn = () => {}
     ) => {
-      // Use the injected functions for UI updates
       if (!isCont) updateStatusFn(`Calling Gemini (${modelName})...`, true);
       let logItem = logTimelineFn(
         `[API] Calling ${modelName}...`,
@@ -857,7 +815,6 @@ const REPLOID_CORE = (() => {
         true,
         true
       );
-
       try {
         const result = await ApiClient.callGeminiAPI(
           prompt,
@@ -868,7 +825,6 @@ const REPLOID_CORE = (() => {
           isCont,
           prevContent
         );
-        // Use injected function to update timeline
         updateTimelineFn(
           logItem,
           `[API OK:${modelName}] Finish: ${result.finishReason}, Tokens: ${result.tokenCount}`,
@@ -881,7 +837,6 @@ const REPLOID_CORE = (() => {
           "warn",
           `API call failed: ${error.message}. Retries left: ${retries}`
         );
-        // Use injected function to update timeline
         updateTimelineFn(
           logItem,
           `[API ERR:${modelName}] ${Utils.lc(error.message).substring(
@@ -891,7 +846,6 @@ const REPLOID_CORE = (() => {
           "error",
           true
         );
-
         if (
           retries > 0 &&
           (error.message.includes("API Error (5") ||
@@ -904,7 +858,6 @@ const REPLOID_CORE = (() => {
               1500 * (globalState.cfg.maxRetries - retries + 1)
             )
           );
-          // Recursive call passes the UI update functions along
           return ApiClient.callApiWithRetry(
             prompt,
             sysInstr,
@@ -919,16 +872,14 @@ const REPLOID_CORE = (() => {
             updateTimelineFn
           );
         } else {
-          throw error; // Max retries exceeded or non-retryable error
+          throw error;
         }
       } finally {
-        // Use injected function to update status
         if (!isCont) updateStatusFn("Idle");
       }
     },
-  };
+  }; // End ApiClient
 
-  // --- UI Module ---
   const UI = {
     initializeUIElementReferences: () => {
       const elementIds = [
@@ -1006,24 +957,15 @@ const REPLOID_CORE = (() => {
         "core-model-selector",
         "critique-model-selector",
       ];
-      uiRefs = {}; // Reset refs
+      uiRefs = {};
       elementIds.forEach((kebabId) => {
         const camelId = Utils.kabobToCamel(kebabId);
         uiRefs[camelId] = Utils.$id(kebabId);
-        // Keep warning for missing elements if needed
-        if (
-          !uiRefs[camelId] &&
-          kebabId !==
-            "notifications-container" /* Allow missing notification container */
-        ) {
-          // console.warn(`UI element not found for ID: #${kebabId} (expected camelCase key: ${camelId})`);
-        }
       });
-      logger.logEvent("debug", "UI element references initialized."); // Use logger
+      logger.logEvent("debug", "UI element references initialized.");
     },
 
     updateStatus: (message, isActive = false, isError = false) => {
-      // ... (implementation as before, using uiRefs)
       if (!uiRefs.statusIndicator) return;
       uiRefs.statusIndicator.textContent = `Status: ${message}`;
       uiRefs.statusIndicator.classList.toggle("active", isActive);
@@ -1036,14 +978,12 @@ const REPLOID_CORE = (() => {
         ? "red"
         : isActive
         ? "yellow"
-        : "var(--fg)"; // Assuming --fg CSS var exists
+        : "#ccc";
     },
 
     highlightCoreStep: (stepIndex) => {
-      // Simple implementation: log or potentially add class to steps list
       activeCoreStepIdx = stepIndex;
       logger.logEvent("debug", `Highlighting step: ${stepIndex}`);
-      // Add visual highlighting logic here if #core-loop-steps-list is populated with step elements
       if (uiRefs.coreLoopStepsList && uiRefs.coreLoopStepsList.children) {
         Array.from(uiRefs.coreLoopStepsList.children).forEach((li, idx) => {
           li.classList.toggle("active-step", idx === stepIndex);
@@ -1052,22 +992,18 @@ const REPLOID_CORE = (() => {
     },
 
     showNotification: (message, type = "info", duration = 5000) => {
-      // Uses Utils.$id directly for the container
       const container = Utils.$id("notifications-container");
       if (!container) {
         console.error("Notification container not found!");
-        alert(`[${Utils.uc(type)}] ${message}`); // Fallback
+        alert(`[${Utils.uc(type)}] ${message}`);
         return;
       }
       const notification = document.createElement("div");
       notification.className = `notification ${type}`;
-      // Simple X button to close
       notification.innerHTML = `${message}<button style="background:none;border:none;float:right;cursor:pointer;color:inherit;font-size:1.2em;line-height:1;padding:0;margin-left:10px;" onclick="this.parentElement.remove()">×</button>`;
       container.appendChild(notification);
-
       if (duration > 0) {
         setTimeout(() => {
-          // Check if the element still exists before removing
           if (notification.parentElement) {
             notification.remove();
           }
@@ -1075,132 +1011,105 @@ const REPLOID_CORE = (() => {
       }
     },
 
-    // createSvgElement remains the same
     createSvgElement: (name, attrs = {}) => {
-      /* ... as before ... */
       const el = document.createElementNS(SVG_NS, name);
       for (const key in attrs) el.setAttribute(key, attrs[key]);
       return el;
     },
 
-    // updateMetricsDisplay remains the same, reads globalState, uses uiRefs
     updateMetricsDisplay: () => {
-      /* ... as before ... */
       if (!globalState || !uiRefs.avgConfidence) return;
-      // Confidence History
-      const confHistory = globalState.confidenceHistory.slice(-10); // Use last 10 for rolling avg
+      const confHistory = globalState.confidenceHistory.slice(-10);
       if (confHistory.length > 0) {
-        const sum = confHistory.reduce((a, b) => a + b, 0);
-        globalState.avgConfidence = sum / confHistory.length;
+        globalState.avgConfidence =
+          confHistory.reduce((a, b) => a + b, 0) / confHistory.length;
         uiRefs.avgConfidence.textContent = globalState.avgConfidence.toFixed(2);
       } else {
         uiRefs.avgConfidence.textContent = "N/A";
       }
-      // Critique Failure History
-      const critHistory = globalState.critiqueFailHistory.slice(-10); // Use last 10
+      const critHistory = globalState.critiqueFailHistory.slice(-10);
       if (critHistory.length > 0) {
-        const fails = critHistory.filter((v) => v === true).length; // Count true values (failures)
+        const fails = critHistory.filter((v) => v === true).length;
         globalState.critiqueFailRate = (fails / critHistory.length) * 100;
         uiRefs.critiqueFailRate.textContent =
           globalState.critiqueFailRate.toFixed(1) + "%";
       } else {
         uiRefs.critiqueFailRate.textContent = "N/A";
       }
-      // Avg Tokens
       if (uiRefs.avgTokens)
         uiRefs.avgTokens.textContent =
           globalState.avgTokens?.toFixed(0) || "N/A";
-      // Context Token Estimate
       if (uiRefs.contextTokenEstimate)
         uiRefs.contextTokenEstimate.textContent =
           globalState.contextTokenEstimate?.toLocaleString() || "0";
-      // Fail Count
       if (uiRefs.failCount)
         uiRefs.failCount.textContent = globalState.failCount;
-
-      UI.checkContextTokenWarning(); // Check warning after update
+      UI.checkContextTokenWarning();
     },
 
-    // checkContextTokenWarning remains the same, reads globalState, uses uiRefs, logs via logger
     checkContextTokenWarning: () => {
-      /* ... as before, using logger.logEvent ... */
       if (!globalState || !uiRefs.contextTokenWarning) return;
       const isWarn = globalState.contextTokenEstimate >= CTX_WARN_THRESH;
       uiRefs.contextTokenWarning.classList.toggle("hidden", !isWarn);
       if (isWarn) {
-        // Log only once per threshold cross? Or check if already logged recently?
         logger.logEvent(
           "warn",
-          `Context high! (${globalState.contextTokenEstimate.toLocaleString()}). Consider summarizing context.`
+          `Context high! (${globalState.contextTokenEstimate.toLocaleString()}). Summarize?`
         );
       }
     },
 
-    // updateHtmlHistoryControls remains the same, reads globalState, uses uiRefs
     updateHtmlHistoryControls: () => {
-      /* ... as before ... */
       if (!uiRefs.htmlHistoryCount || !globalState) return;
       const count = globalState.htmlHistory?.length || 0;
       uiRefs.htmlHistoryCount.textContent = count.toString();
       if (uiRefs.goBackButton) uiRefs.goBackButton.disabled = count === 0;
     },
 
-    // updateFieldsetSummaries remains the same, uses uiRefs, Utils.$id, Storage module
     updateFieldsetSummaries: () => {
-      /* ... as before, using Utils.$id and Storage.getArtifactContent ... */
       if (!globalState) return;
-
-      // Helper to update a fieldset summary
       const updateSummary = (fieldsetRefOrId, text) => {
-        let fieldset;
-        if (typeof fieldsetRefOrId === "string") {
-          fieldset = Utils.$id(fieldsetRefOrId);
-        } else {
-          fieldset = fieldsetRefOrId;
-        }
+        let fieldset =
+          typeof fieldsetRefOrId === "string"
+            ? Utils.$id(fieldsetRefOrId)
+            : fieldsetRefOrId;
         if (fieldset) {
           const summary = fieldset.querySelector(".summary-line");
           if (summary) {
-            summary.textContent = text || "(Summary N/A)";
+            summary.textContent = text || "(N/A)";
           }
         }
       };
-
-      // Config Summary
       updateSummary(
         "genesis-config",
-        `LSD:${globalState.cfg.personaBalance}%, Crit:${
+        `LSD:${globalState.cfg.personaBalance}%,Crit:${
           globalState.cfg.llmCritiqueProb
-        }%, Rev:${globalState.cfg.humanReviewProb}%, CycleT:${
+        }%,Rev:${globalState.cfg.humanReviewProb}%,CycleT:${
           globalState.cfg.maxCycleTime
-        }s, ConfT:${globalState.cfg.autoCritiqueThresh}, MaxC:${
+        }s,ConfT:${globalState.cfg.autoCritiqueThresh},MaxC:${
           globalState.cfg.maxCycles || "Inf"
-        }, CoreM:${globalState.cfg.coreModel.split("-")[1]}, CritM:${
+        },CoreM:${globalState.cfg.coreModel.split("-")[1]},CritM:${
           globalState.cfg.critiqueModel.split("-")[1]
         }`
       );
-
-      // Prompts Summary (uses Storage)
       updateSummary(
         "seed-prompts",
         `Core:${
-          Storage.getArtifactContent("reploid.prompt.core", 0)?.length || 0
+          Storage.getArtifactContent("reploid.core.sys-prompt", 0)?.length || 0
         }c, Crit:${
-          Storage.getArtifactContent("reploid.prompt.critique", 0)?.length || 0
+          Storage.getArtifactContent("reploid.core.critiquer-prompt", 0)
+            ?.length || 0
         }c, Sum:${
-          Storage.getArtifactContent("reploid.prompt.summarize", 0)?.length || 0
+          Storage.getArtifactContent("reploid.core.summarizer-prompt", 0)
+            ?.length || 0
         }c`
       );
-
-      // Genesis State Summary (uses Storage)
       updateSummary(
         uiRefs.genesisStateDisplay,
         `Diagram JSON: ${
-          Storage.getArtifactContent("target.diagram", 0)?.length || 0
+          Storage.getArtifactContent("reploid.core.diagram", 0)?.length || 0
         }c`
       );
-
-      // Current Cycle Summary
       const cycleContent = uiRefs.currentCycleContent?.textContent || "";
       updateSummary(
         uiRefs.currentCycleDetails,
@@ -1208,26 +1117,18 @@ const REPLOID_CORE = (() => {
           uiRefs.currentCycleContent?.childElementCount || 0
         }, Content: ${cycleContent.length}c`
       );
-
-      // Timeline Summary
       updateSummary(
         "timeline-fieldset",
         `Entries: ${uiRefs.timelineLog?.childElementCount || 0}`
       );
-
-      // Controls Summary
       updateSummary(
         "controls-fieldset",
         `API Key: ${globalState.apiKey ? "Set" : "Not Set"}`
       );
     },
 
-    // updateStateDisplay remains the same, reads globalState, uses uiRefs, calls other UI methods
     updateStateDisplay: () => {
-      /* ... as before, using uiRefs, calling UI.updateMetricsDisplay etc ... */
-      if (!globalState || !uiRefs.totalCycles) return; // Check a key element exists
-
-      // Config Inputs
+      if (!globalState || !uiRefs.totalCycles) return;
       uiRefs.lsdPersonaPercentInput.value =
         globalState.cfg.personaBalance ?? 50;
       uiRefs.xyzPersonaPercentInput.value =
@@ -1246,18 +1147,14 @@ const REPLOID_CORE = (() => {
       uiRefs.apiKeyInput.value = globalState.apiKey || "";
       uiRefs.coreModelSelector.value = globalState.cfg.coreModel;
       uiRefs.critiqueModelSelector.value = globalState.cfg.critiqueModel;
-
-      // Stats Display
       const maxC = globalState.cfg.maxCycles || 0;
       uiRefs.maxCyclesDisplay.textContent =
         maxC === 0 ? "Inf" : maxC.toString();
       uiRefs.totalCycles.textContent = globalState.totalCycles;
       uiRefs.agentIterations.textContent = globalState.agentIterations;
       uiRefs.humanInterventions.textContent = globalState.humanInterventions;
-      uiRefs.failCount.textContent = globalState.failCount; // Ensure failCount ref exists and is updated
-
-      // Goal Display
-      const goalInfo = CycleLogic.getActiveGoalInfo(); // Assumes CycleLogic is available
+      uiRefs.failCount.textContent = globalState.failCount;
+      const goalInfo = CycleLogic.getActiveGoalInfo();
       let goalText =
         goalInfo.type === "Idle"
           ? "Idle"
@@ -1272,46 +1169,36 @@ const REPLOID_CORE = (() => {
         goalText.length > 40 ? goalText.substring(0, 37) + "..." : goalText;
       uiRefs.lastCritiqueType.textContent = globalState.lastCritiqueType;
       uiRefs.personaMode.textContent = globalState.personaMode;
-
-      // Update dependent UI parts
       UI.updateMetricsDisplay();
       UI.updateHtmlHistoryControls();
-      UI.hideHumanInterventionUI(); // Ensure intervention UI is hidden on general update
-      UI.hideMetaSandbox(); // Ensure meta sandbox is hidden
+      UI.hideHumanInterventionUI();
+      UI.hideMetaSandbox();
       if (
         uiRefs.runCycleButton &&
         !metaSandboxPending &&
         !uiRefs.humanInterventionSection?.classList.contains("hidden")
       ) {
-        // Check if HITL is also hidden
         uiRefs.runCycleButton.disabled = false;
       }
       UI.updateFieldsetSummaries();
     },
 
-    // displayGenesisState remains the same, uses Utils.$id, uiRefs, Storage module
     displayGenesisState: () => {
-      /* ... as before, using Utils.$id, uiRefs, Storage.getArtifactContent ... */
       if (!uiRefs.genesisMetricsDisplay || !uiRefs.genesisDiagramJson) return;
-
-      // Copy metrics from the main display
-      const metricsEl = Utils.$id("core-metrics-display"); // Get the source element
+      const metricsEl = Utils.$id("core-metrics-display");
       if (metricsEl) {
         uiRefs.genesisMetricsDisplay.innerHTML = metricsEl.innerHTML;
       } else {
         uiRefs.genesisMetricsDisplay.innerHTML = "Metrics unavailable";
       }
-
-      // Load genesis diagram JSON (Cycle 0)
       const diagramJsonContent = Storage.getArtifactContent(
-        "target.diagram",
+        "reploid.core.diagram",
         0
       );
       uiRefs.genesisDiagramJson.value =
         diagramJsonContent || "(Genesis Diagram JSON Not Found)";
     },
 
-    // logToTimeline remains the same, uses logger, uiRefs, globalState
     logToTimeline: (
       cycle,
       message,
@@ -1319,12 +1206,8 @@ const REPLOID_CORE = (() => {
       isSubStep = false,
       animate = false
     ) => {
-      /* ... as before, using logger.logEvent ... */
       if (!uiRefs.timelineLog) return null;
-
-      // Log to console via logger first
       logger.logEvent(type, `T[${cycle}]: ${message}`);
-
       const li = document.createElement("li");
       const span = document.createElement("span");
       li.setAttribute("data-cycle", cycle);
@@ -1332,10 +1215,8 @@ const REPLOID_CORE = (() => {
       li.classList.add(isSubStep ? "sub-step" : "log-entry");
       if (type === "error") li.classList.add("error");
       if (type === "warn") li.classList.add("warn");
-
-      // Determine persona and icon
-      const persona = globalState?.personaMode === "XYZ" ? "[X]" : "[L]"; // Default to L if state unavailable
-      let icon = "➡️"; // Default icon
+      const persona = globalState?.personaMode === "XYZ" ? "[X]" : "[L]";
+      let icon = "➡️";
       if (message.startsWith("[API")) icon = "☁️";
       else if (message.startsWith("[TOOL")) icon = "🔧";
       else if (message.startsWith("[CRIT")) icon = "🧐";
@@ -1350,154 +1231,107 @@ const REPLOID_CORE = (() => {
       else if (message.startsWith("[RETRY")) icon = "⏳";
       if (type === "error") icon = "❌";
       else if (type === "warn") icon = "⚠️";
-
       let iconHTML = `<span class="log-icon" title="${type}">${icon}</span>`;
       if (animate) {
-        // Replace icon with animated gear, keep original title
         iconHTML = `<span class="log-icon animated-icon" title="${type}">⚙️</span>`;
       }
-
       span.innerHTML = `${iconHTML} ${persona} ${message}`;
       li.appendChild(span);
-
-      // Add to the top of the list
       const targetList = uiRefs.timelineLog;
       targetList.insertBefore(li, targetList.firstChild);
-
-      // Limit timeline entries
       if (targetList.children.length > 200) {
         targetList.removeChild(targetList.lastChild);
       }
-
-      return li; // Return the list item element for potential updates
+      return li;
     },
 
-    // logCoreLoopStep remains the same, uses UI.highlightCoreStep, uiRefs
     logCoreLoopStep: (cycle, stepIndex, message) => {
-      /* ... as before, calling UI.highlightCoreStep ... */
-      UI.highlightCoreStep(stepIndex); // Highlight visually
-
+      UI.highlightCoreStep(stepIndex);
       if (!uiRefs.timelineLog) return null;
-
       const li = document.createElement("li");
       li.classList.add("core-step");
       li.setAttribute("data-cycle", cycle);
       li.setAttribute("data-timestamp", Date.now());
-
       const span = document.createElement("span");
-      // Define icons for core steps (adjust as needed)
-      const icons = ["🎯", "🧠", "💡", "🛠️", "⏱️", "🧐", "💾", "🔄"]; // Example icons
-      const stepIcon = icons[stepIndex] || "➡️"; // Default icon
-
+      const icons = ["🎯", "🧠", "💡", "🛠️", "⏱️", "🧐", "💾", "🔄"];
+      const stepIcon = icons[stepIndex] || "➡️";
       span.innerHTML = `<span class="log-icon">${stepIcon}</span> <strong>Step ${
         stepIndex + 1
       }:</strong> ${message}`;
       li.appendChild(span);
-
-      // Insert at the top
       uiRefs.timelineLog.insertBefore(li, uiRefs.timelineLog.firstChild);
       return li;
     },
 
-    // updateTimelineItem remains the same, uses globalState, uiRefs
     updateTimelineItem: (
       logItem,
       newMessage,
       newType = "info",
       stopAnimate = true
     ) => {
-      /* ... as before ... */
       if (!logItem) return;
       const span = logItem.querySelector("span");
-      if (!span || !globalState) return; // Need global state for persona
-
-      let icon = span.querySelector(".log-icon")?.textContent || "➡️"; // Get current text icon
+      if (!span || !globalState) return;
+      let icon = span.querySelector(".log-icon")?.textContent || "➡️";
       let iconClass = "log-icon";
       let currentTitle =
         span.querySelector(".log-icon")?.getAttribute("title") || newType;
-
-      // Determine new icon based on message content
       if (newMessage.includes(" OK")) icon = "✅";
       else if (newMessage.includes(" ERR")) icon = "❌";
-
-      // Override icon based on type if needed
       if (newType === "warn") icon = "⚠️";
-      if (newType === "error") icon = "❌"; // Ensure error type uses error icon
-
+      if (newType === "error") icon = "❌";
       const persona = globalState.personaMode === "XYZ" ? "[X]" : "[L]";
-
-      // Handle stopping animation
       if (stopAnimate) {
         const animatedIconEl = span.querySelector(".animated-icon");
         if (animatedIconEl) {
           animatedIconEl.classList.remove("animated-icon");
-          // Restore original icon if animation stopped? Or just use the new icon? Let's use the new one.
-          iconClass = "log-icon"; // Ensure class is reset
-          currentTitle = newType; // Update title to match new state
+          iconClass = "log-icon";
+          currentTitle = newType;
         }
       } else {
-        // If animation should continue, check if it's already animating
         if (span.querySelector(".animated-icon")) {
-          icon = "⚙️"; // Keep gear if still animating
+          icon = "⚙️";
           iconClass = "log-icon animated-icon";
         }
       }
-
-      // Update the span content
       span.innerHTML = `<span class="${iconClass}" title="${currentTitle}">${icon}</span> ${persona} ${newMessage}`;
-
-      // Update parent li class based on new type
       logItem.classList.remove("error", "warn");
       if (newType === "error") logItem.classList.add("error");
       if (newType === "warn") logItem.classList.add("warn");
     },
 
-    // summarizeCompletedCycleLog remains the same, uses uiRefs
     summarizeCompletedCycleLog: (logItem, outcome) => {
-      /* ... as before ... */
-      if (!logItem || !logItem.classList.contains("log-entry")) return; // Only summarize top-level cycle logs
-
-      logItem.classList.add("summary"); // Add class for potential styling/filtering
+      if (!logItem || !logItem.classList.contains("log-entry")) return;
+      logItem.classList.add("summary");
       const firstSpan = logItem.querySelector("span");
       if (firstSpan) {
-        // Replace content with summary, keep original attributes like data-cycle
         firstSpan.innerHTML = `<span class="log-icon">🏁</span> Cycle ${logItem.getAttribute(
           "data-cycle"
         )} Completed: ${outcome} (Expand?)`;
-        // Add click listener to expand/collapse details if needed later
-        // logItem.onclick = () => { /* toggle details visibility */ };
       }
     },
 
-    // clearCurrentCycleDetails remains the same, uses uiRefs, calls UI.updateFieldsetSummaries
     clearCurrentCycleDetails: () => {
-      /* ... as before ... */
       if (!uiRefs.currentCycleDetails || !uiRefs.currentCycleContent) return;
-      // Collapse the fieldset
       uiRefs.currentCycleDetails.classList.add("collapsed");
-      // Update the summary line now that it's collapsed
       UI.updateFieldsetSummaries();
-      // Clear the content area
       uiRefs.currentCycleContent.innerHTML = "<p>Waiting for cycle...</p>";
-      // Hide the diagram display when clearing cycle details
       if (uiRefs.diagramDisplayContainer) {
         uiRefs.diagramDisplayContainer.classList.add("hidden");
       }
     },
 
-    // getArtifactTypeIndicator remains the same, uses StateManager
     getArtifactTypeIndicator: (type) => {
-      /* ... as before ... */
       switch (type) {
-        case "JAVASCRIPT_SNIPPET":
+        case "JS":
           return "[JS]";
-        case "CSS_STYLESHEET":
+        case "CSS":
           return "[CSS]";
         case "HTML_HEAD":
           return "[HEAD]";
         case "HTML_BODY":
           return "[BODY]";
-        case "DIAGRAM_JSON":
+        case "JSON":
           return "[JSON]";
         case "PROMPT":
           return "[TXT]";
@@ -1505,13 +1339,13 @@ const REPLOID_CORE = (() => {
           return "[HTML]";
         case "TEXT":
           return "[TXT]";
-        // Add other types as needed
+        case "DIAGRAM_JSON":
+          return "[JSON]";
         default:
           return "[???]";
       }
     },
 
-    // displayCycleArtifact remains the same, uses uiRefs, StateManager, UI.getArtifactTypeIndicator, UI.updateFieldsetSummaries
     displayCycleArtifact: (
       label,
       content,
@@ -1521,27 +1355,19 @@ const REPLOID_CORE = (() => {
       artifactId = null,
       cycle = null
     ) => {
-      /* ... as before ... */
       if (!uiRefs.currentCycleDetails || !uiRefs.currentCycleContent) return;
-
-      // If collapsed, expand and clear placeholder
       if (uiRefs.currentCycleDetails.classList.contains("collapsed")) {
         uiRefs.currentCycleDetails.classList.remove("collapsed");
-        uiRefs.currentCycleContent.innerHTML = ""; // Clear "Waiting..." message
+        uiRefs.currentCycleContent.innerHTML = "";
       }
-
       const section = document.createElement("div");
       section.className = "artifact-section";
-
       const labelEl = document.createElement("span");
       labelEl.className = "artifact-label";
-
-      // Get metadata if ID provided
       const meta = artifactId
         ? StateManager.getArtifactMetadata(artifactId)
-        : { type: "TEXT" }; // Default type
+        : { type: "TEXT" };
       const typeIndicator = UI.getArtifactTypeIndicator(meta.type);
-
       labelEl.innerHTML = `<span class="type-indicator">${typeIndicator}</span> ${label}`;
       if (artifactId)
         labelEl.innerHTML += ` (<i style="color:#aaa">${artifactId}</i>)`;
@@ -1551,106 +1377,80 @@ const REPLOID_CORE = (() => {
         labelEl.innerHTML += ` <span class="source-indicator">(Source: ${source})</span>`;
       if (isModified)
         labelEl.innerHTML +=
-          ' <span class="change-indicator" style="color:orange;">*</span>'; // Style indicator
-
+          ' <span class="change-indicator" style="color:orange;">*</span>';
       section.appendChild(labelEl);
-
       const pre = document.createElement("pre");
       pre.textContent =
-        content === null || content === undefined
-          ? "(Artifact content not found/empty)"
-          : String(content); // Ensure content is string
-      pre.classList.add(type); // Use type for potential styling (e.g., input, output, error)
+        content === null || content === undefined ? "(empty)" : String(content);
+      pre.classList.add(type);
       if (isModified) pre.classList.add("modified");
-
       section.appendChild(pre);
       uiRefs.currentCycleContent.appendChild(section);
-
-      // Update summary after adding content
       UI.updateFieldsetSummaries();
     },
 
-    // hideHumanInterventionUI remains the same, uses uiRefs, global var metaSandboxPending
     hideHumanInterventionUI: () => {
-      /* ... as before ... */
       if (!uiRefs.humanInterventionSection) return;
       uiRefs.humanInterventionSection.classList.add("hidden");
-
-      // Hide all modes
       if (uiRefs.hitlOptionsMode)
         uiRefs.hitlOptionsMode.classList.add("hidden");
       if (uiRefs.hitlPromptMode) uiRefs.hitlPromptMode.classList.add("hidden");
       if (uiRefs.hitlCodeEditMode)
         uiRefs.hitlCodeEditMode.classList.add("hidden");
-
-      // Re-enable run button ONLY if meta sandbox is also not pending
       if (!metaSandboxPending && uiRefs.runCycleButton) {
         uiRefs.runCycleButton.disabled = false;
       }
     },
 
-    // showHumanInterventionUI remains the same, uses uiRefs, logger, StateManager, Storage, UI.logToTimeline, UI.highlightCoreStep, UI.hideMetaSandbox
     showHumanInterventionUI: (
       mode = "prompt",
       reason = "",
       options = [],
       artifactIdToEdit = null
     ) => {
-      /* ... as before, using logger.logEvent, StateManager, Storage.getArtifactContent etc. */
       if (!uiRefs.humanInterventionSection || !globalState) return;
-
-      UI.highlightCoreStep(5); // Highlight step 6 (index 5)
-      UI.hideMetaSandbox(); // Ensure meta sandbox is hidden
-
+      UI.highlightCoreStep(5);
+      UI.hideMetaSandbox();
       uiRefs.humanInterventionSection.classList.remove("hidden");
       uiRefs.humanInterventionSection
         .querySelector("fieldset")
-        ?.classList.remove("collapsed"); // Ensure fieldset is expanded
+        ?.classList.remove("collapsed");
       uiRefs.humanInterventionTitle.textContent = `Human Intervention Required`;
       uiRefs.humanInterventionReason.textContent = `Reason: ${reason}.`;
-
-      // Update summary line too
       if (uiRefs.humanInterventionReasonSummary) {
         uiRefs.humanInterventionReasonSummary.textContent = `Reason: ${reason.substring(
           0,
           50
         )}...`;
       }
-
-      // Disable run button
       if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true;
-
-      // Log to timeline
       UI.logToTimeline(
         globalState.totalCycles,
         `[HUMAN] Intervention Required: ${reason}`,
         "warn",
         true
       );
-
-      // Hide all modes first
       if (uiRefs.hitlOptionsMode)
         uiRefs.hitlOptionsMode.classList.add("hidden");
       if (uiRefs.hitlPromptMode) uiRefs.hitlPromptMode.classList.add("hidden");
       if (uiRefs.hitlCodeEditMode)
         uiRefs.hitlCodeEditMode.classList.add("hidden");
 
-      // Show the selected mode
       if (
         mode === "options" &&
         uiRefs.hitlOptionsMode &&
         uiRefs.hitlOptionsList
       ) {
         uiRefs.hitlOptionsMode.classList.remove("hidden");
-        uiRefs.hitlOptionsList.innerHTML = ""; // Clear previous options
+        uiRefs.hitlOptionsList.innerHTML = "";
         options.forEach((opt, i) => {
           const div = document.createElement("div");
           const inp = document.createElement("input");
-          inp.type = "checkbox"; // Use checkbox for multiple selections? Or radio? Assume checkbox.
+          inp.type = "checkbox";
           inp.id = `hitl_${i}`;
-          inp.value = opt.value || opt.label; // Use value if provided, else label
-          inp.name = "hitl_option"; // Group checkboxes/radios
-          const lbl = document.createElement("label"); // Use label for accessibility
+          inp.value = opt.value || opt.label;
+          inp.name = "hitl_option";
+          const lbl = document.createElement("label");
           lbl.htmlFor = inp.id;
           lbl.textContent = opt.label;
           div.append(inp, lbl);
@@ -1663,54 +1463,46 @@ const REPLOID_CORE = (() => {
         uiRefs.humanEditArtifactTextarea
       ) {
         uiRefs.hitlCodeEditMode.classList.remove("hidden");
-        uiRefs.humanEditArtifactSelector.innerHTML = ""; // Clear previous options
-        uiRefs.humanEditArtifactTextarea.value = ""; // Clear textarea
-
+        uiRefs.humanEditArtifactSelector.innerHTML = "";
+        uiRefs.humanEditArtifactTextarea.value = "";
         const editableTypes = [
           "HTML_HEAD",
           "HTML_BODY",
-          "CSS_STYLESHEET",
-          "JAVASCRIPT_SNIPPET",
-          "DIAGRAM_JSON",
+          "CSS",
+          "JS",
+          "JSON",
           "FULL_HTML_SOURCE",
           "PROMPT",
           "TEXT",
         ];
         const currentCycle = globalState.totalCycles;
-        const allMeta = StateManager.getAllArtifactMetadata(); // Get current metadata
-
-        // Filter and sort relevant artifacts
+        const allMeta = StateManager.getAllArtifactMetadata();
         const relevantArtifacts = Object.values(allMeta)
           .filter(
             (meta) => editableTypes.includes(meta.type) && meta.latestCycle >= 0
           )
-          .sort((a, b) => a.id.localeCompare(b.id)); // Sort alphabetically by ID
-
+          .sort((a, b) => a.id.localeCompare(b.id));
         relevantArtifacts.forEach((meta) => {
           const opt = document.createElement("option");
           opt.value = meta.id;
           opt.textContent = `${meta.id} (${meta.type}) - Last Mod: Cyc ${meta.latestCycle}`;
           uiRefs.humanEditArtifactSelector.appendChild(opt);
         });
-
-        // Add option for last generated full source if available
         if (
           globalState.lastGeneratedFullSource &&
           artifactIdToEdit === "full_html_source"
         ) {
-          // Also check if it's the suggested one
           const opt = document.createElement("option");
-          opt.value = "full_html_source"; // Special value
+          opt.value = "full_html_source";
           opt.textContent = `Proposed Full HTML Source (Cycle ${currentCycle})`;
           uiRefs.humanEditArtifactSelector.appendChild(opt);
         }
-
         const selectArtifact = (id) => {
           let content = "";
           if (id === "full_html_source") {
             content =
               globalState.lastGeneratedFullSource ||
-              "(Full source not available in state)";
+              "(Full source not available)";
           } else {
             const meta = StateManager.getArtifactMetadata(id);
             if (meta && meta.latestCycle >= 0) {
@@ -1718,58 +1510,46 @@ const REPLOID_CORE = (() => {
                 Storage.getArtifactContent(id, meta.latestCycle) ??
                 `(Artifact ${id} - Cycle ${meta.latestCycle} content not found)`;
             } else {
-              content = `(Artifact ${id} not found or no versions available)`;
+              content = `(Artifact ${id} not found)`;
             }
           }
           uiRefs.humanEditArtifactTextarea.value = content;
-          uiRefs.humanEditArtifactTextarea.scrollTop = 0; // Scroll to top
+          uiRefs.humanEditArtifactTextarea.scrollTop = 0;
         };
-
-        // Set up event listener for selector change
         uiRefs.humanEditArtifactSelector.onchange = () =>
           selectArtifact(uiRefs.humanEditArtifactSelector.value);
-
-        // Determine initial selection
         const initialId =
           artifactIdToEdit &&
           (StateManager.getArtifactMetadata(artifactIdToEdit)?.latestCycle >=
             0 ||
             artifactIdToEdit === "full_html_source")
             ? artifactIdToEdit
-            : relevantArtifacts[0]?.id; // Fallback to first in list
-
+            : relevantArtifacts[0]?.id;
         if (initialId) {
           uiRefs.humanEditArtifactSelector.value = initialId;
-          selectArtifact(initialId); // Load initial content
+          selectArtifact(initialId);
         } else {
           uiRefs.humanEditArtifactTextarea.value =
             "(No editable artifacts found)";
         }
       } else {
-        // Default to prompt mode
         if (uiRefs.hitlPromptMode && uiRefs.humanCritiqueInput) {
           uiRefs.hitlPromptMode.classList.remove("hidden");
-          uiRefs.humanCritiqueInput.value = ""; // Clear previous input
+          uiRefs.humanCritiqueInput.value = "";
           uiRefs.humanCritiqueInput.placeholder = `Feedback/Next Step? (${reason})`;
-          uiRefs.humanCritiqueInput.focus(); // Focus input field
+          uiRefs.humanCritiqueInput.focus();
         }
       }
-
-      // Scroll the intervention section into view
       uiRefs.humanInterventionSection.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     },
 
-    // hideMetaSandbox remains the same, uses uiRefs, global var metaSandboxPending
     hideMetaSandbox: () => {
-      /* ... as before ... */
       if (!uiRefs.metaSandboxContainer) return;
       uiRefs.metaSandboxContainer.classList.add("hidden");
-      metaSandboxPending = false; // Reset flag when hidden
-
-      // Re-enable run button ONLY if human intervention is also hidden
+      metaSandboxPending = false;
       if (
         uiRefs.humanInterventionSection?.classList.contains("hidden") &&
         uiRefs.runCycleButton
@@ -1778,52 +1558,41 @@ const REPLOID_CORE = (() => {
       }
     },
 
-    // showMetaSandbox remains the same, uses uiRefs, logger, globalState, UI.logToTimeline, UI.highlightCoreStep, UI.hideHumanInterventionUI
     showMetaSandbox: (htmlSource) => {
-      /* ... as before, using logger.logEvent, UI.logToTimeline etc. */
       if (
         !uiRefs.metaSandboxContainer ||
         !uiRefs.metaSandboxOutput ||
         !globalState
       )
         return;
-
-      UI.highlightCoreStep(6); // Highlight Step 7 (index 6) - Apply
-      UI.hideHumanInterventionUI(); // Ensure HITL is hidden
-
+      UI.highlightCoreStep(6);
+      UI.hideHumanInterventionUI();
       uiRefs.metaSandboxContainer.classList.remove("hidden");
       uiRefs.metaSandboxContainer
         .querySelector("fieldset")
-        ?.classList.remove("collapsed"); // Expand fieldset
-
-      // Disable run button while sandbox is showing
+        ?.classList.remove("collapsed");
       if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true;
-
       const iframe = uiRefs.metaSandboxOutput;
       try {
-        // Check if contentWindow is accessible (might fail due to cross-origin policies if src is set)
         const doc = iframe.contentWindow?.document;
         if (doc) {
           doc.open();
           doc.write(htmlSource);
           doc.close();
           logger.logEvent("info", "Meta sandbox rendered for approval.");
-          metaSandboxPending = true; // Set flag
+          metaSandboxPending = true;
           UI.logToTimeline(
             globalState.totalCycles,
             `[STATE] Meta-Sandbox Ready for Review.`,
             "info",
             true
           );
-          // Scroll into view
           uiRefs.metaSandboxContainer.scrollIntoView({
             behavior: "smooth",
             block: "center",
           });
         } else {
-          throw new Error(
-            "Cannot access meta sandbox iframe document (contentWindow is null or inaccessible)."
-          );
+          throw new Error("Cannot access meta sandbox iframe document.");
         }
       } catch (e) {
         logger.logEvent("error", `Cannot render meta sandbox: ${e.message}`);
@@ -1837,27 +1606,19 @@ const REPLOID_CORE = (() => {
           "error",
           true
         );
-        UI.hideMetaSandbox(); // Hide it if rendering failed
-        if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = false; // Re-enable button
+        UI.hideMetaSandbox();
+        if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = false;
       }
     },
 
-    // renderCycleSVG remains the same, uses logger, UI.createSvgElement
-    // NOTE: This is the complex SVG rendering logic. Ideally, it becomes a pure function.
     renderCycleSVG: (cycleData, svgElement) => {
-      /* ... implementation as before ... */
-      // ... (Copy the full implementation from the original code)
-      // This function is long, ensure it uses UI.createSvgElement and logger.logEvent
       if (!svgElement) {
         logger.logEvent("error", "SVG element not found for rendering");
         return;
       }
-      // Clear previous content
       while (svgElement.firstChild) {
         svgElement.removeChild(svgElement.firstChild);
       }
-
-      // --- Configuration (Keep internal to this function for now) ---
       const config = {
         nodeWidth: 160,
         nodeHeight: 65,
@@ -1869,7 +1630,6 @@ const REPLOID_CORE = (() => {
         fontFamily: "monospace",
         lineLabelFontSize: 11,
         colors: {
-          /* ... color definitions ... */
           step: { fill: "#e0e0e0", stroke: "#555" },
           iteration: { fill: "#d0e0ff", stroke: "#3366cc" },
           intervention: { fill: "#fff0b3", stroke: "#cc8400" },
@@ -1887,10 +1647,7 @@ const REPLOID_CORE = (() => {
           line_label_bg: "rgba(255, 255, 255, 0.7)",
         },
       };
-
-      // --- Add Arrowhead Marker Definition ---
       const defs = UI.createSvgElement("defs");
-      // Normal arrowhead
       const marker = UI.createSvgElement("marker", {
         id: "arrowhead",
         viewBox: "0 0 10 10",
@@ -1907,7 +1664,6 @@ const REPLOID_CORE = (() => {
       });
       marker.appendChild(path);
       defs.appendChild(marker);
-      // Colored arrowheads
       ["line_success", "line_fail", "line_retry"].forEach((lineType) => {
         const markerColor = UI.createSvgElement("marker", {
           id: `arrowhead-${lineType}`,
@@ -1927,32 +1683,25 @@ const REPLOID_CORE = (() => {
         defs.appendChild(markerColor);
       });
       svgElement.appendChild(defs);
-
-      // --- Helper Functions (Internal to renderCycleSVG) ---
       function getNodeById(id) {
-        // cycleData needs to be passed correctly or accessible here
         return cycleData?.nodes?.find((n) => n.id === id);
       }
-
-      // --- Render Nodes ---
       let minX = Infinity,
         minY = Infinity,
         maxX = -Infinity,
         maxY = -Infinity;
-      const nodeElements = {}; // Store node elements if needed later
+      const nodeElements = {};
       cycleData?.nodes?.forEach((node) => {
         const group = UI.createSvgElement("g");
         let shape;
-        const style = config.colors[node.type] || config.colors.step; // Fallback style
+        const style = config.colors[node.type] || config.colors.step;
         const isDecision =
           node.type === "decision" || node.type === "retry_decision";
         const halfWidth =
           (isDecision ? config.decisionSize : config.nodeWidth) / 2;
         const halfHeight =
           (isDecision ? config.decisionSize : config.nodeHeight) / 2;
-
         if (isDecision) {
-          // Rhombus for decision
           shape = UI.createSvgElement("path", {
             d: `M ${node.x} ${node.y - halfHeight} L ${node.x + halfWidth} ${
               node.y
@@ -1970,7 +1719,6 @@ const REPLOID_CORE = (() => {
             right: { x: node.x + halfWidth, y: node.y },
           };
         } else {
-          // Rectangle (potentially rounded)
           const isRound = node.type === "start_end" || node.type === "pause";
           shape = UI.createSvgElement("rect", {
             x: node.x - halfWidth,
@@ -1991,8 +1739,6 @@ const REPLOID_CORE = (() => {
           };
         }
         group.appendChild(shape);
-
-        // Add text label (handling multi-line)
         const text = UI.createSvgElement("text", {
           x: node.x,
           y: node.y,
@@ -2002,12 +1748,12 @@ const REPLOID_CORE = (() => {
           "text-anchor": "middle",
           "dominant-baseline": "middle",
         });
-        const lines = String(node.label || "").split("\n"); // Ensure label is a string
+        const lines = String(node.label || "").split("\n");
         const lineHeight = config.fontSize * 1.2;
         const totalTextHeight = lines.length * lineHeight;
-        const startY = node.y - totalTextHeight / 2 + lineHeight / 2; // Calculate start Y for vertical centering
+        const startY = node.y - totalTextHeight / 2 + lineHeight / 2;
         lines.forEach((line, index) => {
-          const dy = index === 0 ? startY - node.y : lineHeight; // Use dy for relative positioning
+          const dy = index === 0 ? startY - node.y : lineHeight;
           const tspan = UI.createSvgElement("tspan", {
             x: node.x,
             dy: `${dy}px`,
@@ -2017,9 +1763,7 @@ const REPLOID_CORE = (() => {
         });
         group.appendChild(text);
         svgElement.appendChild(group);
-        nodeElements[node.id] = group; // Store group
-
-        // Update bounds tracking
+        nodeElements[node.id] = group;
         const nodeMaxX = node.bounds.right.x;
         const nodeMinX = node.bounds.left.x;
         const nodeMaxY = node.bounds.bottom.y;
@@ -2029,42 +1773,29 @@ const REPLOID_CORE = (() => {
         maxX = Math.max(maxX, nodeMaxX);
         maxY = Math.max(maxY, nodeMaxY);
       });
-
-      // --- Render Connections ---
       cycleData?.connections?.forEach((conn) => {
         const fromNode = getNodeById(conn.from);
         const toNode = getNodeById(conn.to);
         if (!fromNode || !toNode || !fromNode.bounds || !toNode.bounds) {
-          logger.logEvent(
-            "warn",
-            `Skipping connection due to missing nodes or bounds: ${conn.from} -> ${conn.to}`
-          );
+          logger.logEvent("warn", `Skipping conn: ${conn.from} -> ${conn.to}`);
           return;
         }
-
-        // Determine start and end points based on relative position
         let startPoint, endPoint;
         const dx = toNode.x - fromNode.x;
         const dy = toNode.y - fromNode.y;
-
         if (Math.abs(dy) > Math.abs(dx)) {
-          // Primarily vertical
           startPoint = dy > 0 ? fromNode.bounds.bottom : fromNode.bounds.top;
           endPoint = dy > 0 ? toNode.bounds.top : toNode.bounds.bottom;
         } else {
-          // Primarily horizontal
           startPoint = dx > 0 ? fromNode.bounds.right : fromNode.bounds.left;
           endPoint = dx > 0 ? toNode.bounds.left : toNode.bounds.right;
         }
-
         const lineType = conn.type || "normal";
         const lineStyle =
           config.colors[`line_${lineType}`] || config.colors.line_normal;
         const markerId = `arrowhead${
           lineType === "normal" ? "" : "-" + "line_" + lineType
-        }`; // Use specific marker ID
-
-        // Draw the line
+        }`;
         const line = UI.createSvgElement("line", {
           x1: startPoint.x,
           y1: startPoint.y,
@@ -2072,23 +1803,18 @@ const REPLOID_CORE = (() => {
           y2: endPoint.y,
           stroke: lineStyle,
           "stroke-width": config.strokeWidth,
-          "marker-end": `url(#${markerId})`, // Apply specific arrowhead
+          "marker-end": `url(#${markerId})`,
         });
         svgElement.appendChild(line);
-
-        // Add connection label if present
         if (conn.label) {
-          // Position label slightly offset from the midpoint
-          const labelRatio = 0.6; // 0.5 is midpoint, > 0.5 moves towards start
+          const labelRatio = 0.6;
           const midX =
             startPoint.x * labelRatio + endPoint.x * (1 - labelRatio);
           const midY =
             startPoint.y * labelRatio + endPoint.y * (1 - labelRatio);
           const angle = Math.atan2(dy, dx);
-          const offsetX = Math.sin(angle) * 10; // Offset perpendicular to line
+          const offsetX = Math.sin(angle) * 10;
           const offsetY = -Math.cos(angle) * 10;
-
-          // Add text label
           const textLabel = UI.createSvgElement("text", {
             x: midX + offsetX,
             y: midY + offsetY,
@@ -2099,8 +1825,6 @@ const REPLOID_CORE = (() => {
             "dominant-baseline": "middle",
           });
           textLabel.textContent = conn.label;
-
-          // Add background rectangle for readability
           const labelWidthEstimate =
             conn.label.length * config.lineLabelFontSize * 0.6;
           const labelHeightEstimate = config.lineLabelFontSize;
@@ -2113,12 +1837,8 @@ const REPLOID_CORE = (() => {
             rx: 3,
             ry: 3,
           });
-
-          // Insert background behind text, both before the line
           svgElement.insertBefore(bgRect, line);
           svgElement.insertBefore(textLabel, line);
-
-          // Update bounds for label background
           minX = Math.min(minX, parseFloat(bgRect.getAttribute("x")));
           minY = Math.min(minY, parseFloat(bgRect.getAttribute("y")));
           maxX = Math.max(
@@ -2133,8 +1853,6 @@ const REPLOID_CORE = (() => {
           );
         }
       });
-
-      // --- Set ViewBox ---
       if (isFinite(minX)) {
         const viewBoxX = minX - config.padding;
         const viewBoxY = minY - config.padding;
@@ -2146,86 +1864,56 @@ const REPLOID_CORE = (() => {
         );
         svgElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
       } else {
-        // Default viewbox if no elements rendered
-        svgElement.setAttribute("viewBox", "0 0 800 1400"); // Default size
-        logger.logEvent(
-          "warn",
-          "RenderCycleSVG: No finite bounds calculated, using default viewBox."
-        );
+        svgElement.setAttribute("viewBox", "0 0 800 1400");
+        logger.logEvent("warn", "RenderCycleSVG: No finite bounds.");
       }
     },
 
-    // renderCycleSVGToMarkup remains the same, uses SVG_NS, UI.renderCycleSVG
     renderCycleSVGToMarkup: (cycleData) => {
-      /* ... as before ... */
       const tempSvg = document.createElementNS(SVG_NS, "svg");
-      UI.renderCycleSVG(cycleData, tempSvg); // Render onto the temporary element
+      UI.renderCycleSVG(cycleData, tempSvg);
       return tempSvg.outerHTML;
     },
 
-    // renderDiagramDisplay remains the same, uses uiRefs, logger, Storage, UI.renderCycleSVG
     renderDiagramDisplay: (cycleNum) => {
-      /* ... as before, using logger, Storage.getArtifactContent, uiRefs, UI.renderCycleSVG */
-      // Get required elements using uiRefs
       const svgContainer = uiRefs.diagramSvgContainer;
       const jsonDisplay = uiRefs.diagramJsonDisplay;
       const diagramContainer = uiRefs.diagramDisplayContainer;
-      const cycleDiagram = uiRefs.cycleDiagram; // The actual <svg> element
-
+      const cycleDiagram = uiRefs.cycleDiagram;
       if (!svgContainer || !jsonDisplay || !diagramContainer || !cycleDiagram) {
-        logger.logEvent(
-          "warn",
-          "Missing UI elements required for diagram display."
-        );
+        logger.logEvent("warn", "Missing UI elements for diagram display.");
         return;
       }
-
-      // Attempt to load diagram JSON for the *specific* cycle number requested
       const jsonContent = Storage.getArtifactContent(
-        "target.diagram",
+        "reploid.core.diagram",
         cycleNum
-      );
-
+      ); // Load appropriate diagram artifact
       if (jsonContent) {
-        jsonDisplay.value = jsonContent; // Display the JSON source
+        jsonDisplay.value = jsonContent;
         try {
           const diagramJson = JSON.parse(jsonContent);
-          // TODO: Replace 'cycleFlowData' if it's hardcoded; should use 'diagramJson'
-          // This assumes your cycleFlowData structure matches what's in storage
-          // If cycleFlowData is a static definition of the *process*, not the *output*,
-          // then this call might be incorrect.
-          // Let's assume 'diagramJson' IS the data structure for the diagram:
-          UI.renderCycleSVG(diagramJson, cycleDiagram); // Render the parsed JSON
-          diagramContainer.classList.remove("hidden"); // Show the container
+          UI.renderCycleSVG(diagramJson, cycleDiagram);
+          diagramContainer.classList.remove("hidden");
         } catch (e) {
           logger.logEvent(
             "warn",
-            `Failed to parse/render diagram JSON (Cycle ${cycleNum}): ${e.message}`
+            `Failed parse/render diagram JSON (Cyc ${cycleNum}): ${e.message}`
           );
           cycleDiagram.innerHTML =
-            '<text fill="red" x="10" y="20">Error parsing/rendering Diagram JSON</text>'; // Display error in SVG
-          diagramContainer.classList.remove("hidden"); // Still show container with error message
+            '<text fill="red" x="10" y="20">Error rendering Diagram JSON</text>';
+          diagramContainer.classList.remove("hidden");
         }
       } else {
-        jsonDisplay.value = "{}"; // Show empty JSON
-        cycleDiagram.innerHTML =
-          '<text x="10" y="20">No Diagram Artifact Found for Cycle ' +
-          cycleNum +
-          "</text>"; // Indicate missing artifact
-        diagramContainer.classList.remove("hidden"); // Show container with message
+        jsonDisplay.value = "{}";
+        cycleDiagram.innerHTML = `<text x="10" y="20">No Diagram for Cycle ${cycleNum}</text>`;
+        diagramContainer.classList.remove("hidden");
       }
     },
 
-    // renderGeneratedUI remains the same, uses uiRefs, logger, StateManager, Storage
     renderGeneratedUI: (cycleNum) => {
-      /* ... as before, using logger, StateManager, Storage.getArtifactContent, uiRefs */
-      // Get metadata to find the latest relevant cycles for each part
       const headMeta = StateManager.getArtifactMetadata("target.head");
       const bodyMeta = StateManager.getArtifactMetadata("target.body");
       const allMeta = StateManager.getAllArtifactMetadata();
-
-      // Find latest versions, defaulting to current cycleNum if no history exists or requested explicitly?
-      // Let's try using latestCycle from metadata for flexibility
       const headContent =
         Storage.getArtifactContent(
           "target.head",
@@ -2236,25 +1924,21 @@ const REPLOID_CORE = (() => {
           "target.body",
           bodyMeta.latestCycle >= 0 ? bodyMeta.latestCycle : cycleNum
         ) || "<p>(No body artifact)</p>";
-
-      // Aggregate latest CSS
       const cssContents = Object.keys(allMeta)
         .filter(
           (id) =>
             id.startsWith("target.style.") &&
-            allMeta[id].type === "CSS_STYLESHEET" &&
+            allMeta[id].type === "CSS" &&
             allMeta[id].latestCycle >= 0
         )
         .map((id) => Storage.getArtifactContent(id, allMeta[id].latestCycle))
-        .filter((content) => !!content) // Remove null/empty content
+        .filter((content) => !!content)
         .join("\n\n");
-
-      // Aggregate latest JS (wrap in script tags)
       const jsContents = Object.keys(allMeta)
         .filter(
           (id) =>
             id.startsWith("target.script.") &&
-            allMeta[id].type === "JAVASCRIPT_SNIPPET" &&
+            allMeta[id].type === "JS" &&
             allMeta[id].latestCycle >= 0
         )
         .map((id) => {
@@ -2262,104 +1946,63 @@ const REPLOID_CORE = (() => {
             id,
             allMeta[id].latestCycle
           );
-          // Add comments or IDs to script tags for easier debugging in the preview
           return content
-            ? `<script id="${id}_cyc${allMeta[id].latestCycle}">\n// Source: ${id}, Cycle: ${allMeta[id].latestCycle}\n${content}\n</script>`
+            ? `<script id="${id}_cyc${allMeta[id].latestCycle}">\n${content}\n</script>`
             : "";
         })
         .filter((scriptTag) => scriptTag !== "")
         .join("\n");
-
       const iframe = uiRefs.uiRenderOutput;
       if (!iframe) {
         logger.logEvent("warn", "UI Render Output iframe not found.");
         return;
       }
-
       try {
         const doc = iframe.contentWindow?.document;
         if (!doc) {
           throw new Error("Cannot get UI preview iframe document.");
         }
         doc.open();
-        doc.write(`<!DOCTYPE html>
-                <html>
-                <head>
-                    <title>UI Preview (Cycle ${cycleNum})</title>
-                    ${headContent}
-                    <style>
-                        /* Basic iframe styling */
-                        body { margin: 10px; font-family: sans-serif; background-color:#fff; color:#000; }
-                        * { box-sizing: border-box; }
-                        /* Injected CSS */
-                        ${cssContents}
-                    </style>
-                </head>
-                <body>
-                    ${bodyContent}
-                    ${jsContents}
-                    <script>console.log('UI preview rendered incorporating artifacts up to cycle ${cycleNum}.');</script>
-                </body>
-                </html>`);
-        doc.close();
-        logger.logEvent(
-          "info",
-          `Rendered UI preview using artifacts up to cycle ${cycleNum}.`
+        doc.write(
+          `<!DOCTYPE html><html><head><title>UI Preview (Cycle ${cycleNum})</title>${headContent}<style>body { margin: 10px; font-family: sans-serif; background-color:#fff; color:#000; } * { box-sizing: border-box; } ${cssContents}</style></head><body>${bodyContent}${jsContents}<script>console.log('UI preview rendered (Cycle ${cycleNum}).');</script></body></html>`
         );
-        // Log to timeline - this might be too noisy if rendering happens often
-        // UI.logToTimeline(globalState.totalCycles, `[ARTIFACT] Rendered External UI Preview (Cycle ${cycleNum}).`, "info", true);
+        doc.close();
+        logger.logEvent("info", `Rendered UI preview (Cycle ${cycleNum}).`);
       } catch (e) {
         logger.logEvent("error", `Failed to render UI preview: ${e.message}`);
       }
     },
 
-    // loadPromptsFromLS remains the same, uses uiRefs, logger, Storage
     loadPromptsFromLS: () => {
-      /* ... as before, using logger, Storage.getArtifactContent, uiRefs */
       if (
         !uiRefs.seedPromptCore ||
         !uiRefs.seedPromptCritique ||
         !uiRefs.seedPromptSummarize
       ) {
-        logger.logEvent(
-          "warn",
-          "One or more prompt textareas not found in UI refs."
-        );
+        logger.logEvent("warn", "Prompt textareas not found.");
         return;
       }
-      // Load from Cycle 0 (Genesis prompts)
       uiRefs.seedPromptCore.value =
-        Storage.getArtifactContent("reploid.prompt.core", 0) || "";
+        Storage.getArtifactContent("reploid.core.sys-prompt", 0) || "";
       uiRefs.seedPromptCritique.value =
-        Storage.getArtifactContent("reploid.prompt.critique", 0) || "";
+        Storage.getArtifactContent("reploid.core.critiquer-prompt", 0) || "";
       uiRefs.seedPromptSummarize.value =
-        Storage.getArtifactContent("reploid.prompt.summarize", 0) || "";
-
-      logger.logEvent(
-        "info",
-        "Loaded prompts from LocalStorage into UI textareas."
-      );
+        Storage.getArtifactContent("reploid.core.summarizer-prompt", 0) || "";
+      logger.logEvent("info", "Loaded prompts from LS.");
     },
 
-    // loadCoreLoopSteps remains the same, uses uiRefs, logger, Storage
     loadCoreLoopSteps: () => {
-      /* ... as before, using logger, Storage.getArtifactContent, uiRefs */
       if (!uiRefs.coreLoopStepsList) {
-        logger.logEvent(
-          "warn",
-          "Core loop steps textarea not found in UI refs."
-        );
+        logger.logEvent("warn", "Core loop steps list not found.");
         return;
       }
       uiRefs.coreLoopStepsList.value =
-        Storage.getArtifactContent("reploid.core_steps", 0) ||
+        Storage.getArtifactContent("reploid.core.cycle-steps", 0) ||
         "Error loading steps.";
-      logger.logEvent("info", "Loaded core loop steps from LocalStorage.");
+      logger.logEvent("info", "Loaded core loop steps from LS.");
     },
 
-    // populateModelSelectors remains the same, uses uiRefs, APP_CONFIG
     populateModelSelectors: () => {
-      /* ... as before, using uiRefs, APP_CONFIG */
       const models = [
         APP_CONFIG.BASE_GEMINI_MODEL,
         APP_CONFIG.ADVANCED_GEMINI_MODEL,
@@ -2367,7 +2010,7 @@ const REPLOID_CORE = (() => {
       [uiRefs.coreModelSelector, uiRefs.critiqueModelSelector].forEach(
         (selector) => {
           if (!selector) return;
-          selector.innerHTML = ""; // Clear existing options
+          selector.innerHTML = "";
           models.forEach((modelName) => {
             const option = document.createElement("option");
             option.value = modelName;
@@ -2378,29 +2021,18 @@ const REPLOID_CORE = (() => {
       );
     },
 
-    // setupEventListeners remains the same, uses uiRefs, logger, Storage, StateManager, CycleLogic, APP_CONFIG
     setupEventListeners: () => {
-      /* ... as before, using uiRefs, logger, Storage, StateManager, CycleLogic, APP_CONFIG */
-      // Ensure core elements exist before adding listeners
       if (!uiRefs.runCycleButton) {
-        logger.logEvent(
-          "error",
-          "UI elements not ready for event listeners (runCycleButton missing)."
-        );
+        logger.logEvent("error", "UI elements not ready for event listeners.");
         return;
       }
-
-      // --- Cycle Control ---
       uiRefs.runCycleButton.addEventListener("click", CycleLogic.executeCycle);
-
-      // --- Human Intervention Submissions ---
       uiRefs.submitCritiqueButton?.addEventListener("click", () => {
         CycleLogic.proceedAfterHumanIntervention(
           "Human Prompt",
           uiRefs.humanCritiqueInput.value.trim()
         );
       });
-
       uiRefs.submitHitlOptionsButton?.addEventListener("click", () => {
         const selected = Array.from(
           uiRefs.hitlOptionsList.querySelectorAll("input:checked")
@@ -2412,7 +2044,6 @@ const REPLOID_CORE = (() => {
           selected || "None"
         );
       });
-
       uiRefs.submitHumanCodeEditButton?.addEventListener("click", () => {
         const artifactId = uiRefs.humanEditArtifactSelector.value;
         const newContent = uiRefs.humanEditArtifactTextarea.value;
@@ -2424,10 +2055,8 @@ const REPLOID_CORE = (() => {
           success: false,
           summary: `Edit check for ${artifactId}`,
           newContent: newContent,
-        }; // Default failure
-
+        };
         try {
-          // Get original content for comparison
           if (isFullSource) {
             originalContent = globalState.lastGeneratedFullSource;
           } else {
@@ -2438,71 +2067,55 @@ const REPLOID_CORE = (() => {
                 currentMeta.latestCycle
               );
             } else {
-              throw new Error(
-                `Original artifact content not found for ${artifactId}`
-              );
+              throw new Error(`Original content not found for ${artifactId}`);
             }
           }
-
           if (newContent !== originalContent) {
-            // Basic validation for JSON if applicable
-            if (!isFullSource && currentMeta?.type === "DIAGRAM_JSON") {
-              JSON.parse(newContent); // Will throw on invalid JSON
+            if (!isFullSource && currentMeta?.type === "JSON") {
+              JSON.parse(newContent);
             }
-            // TODO: Add validation for other types if needed (JS, CSS, etc.)
-
             resultData.summary = `Content updated for ${artifactId}`;
-            resultData.success = true; // Mark as successful change
-
-            // Handle full source edit differently - update state, don't save to artifact storage
+            resultData.success = true;
             if (isFullSource) {
-              logger.logEvent(
-                "warn",
-                "Full source edited via HITL. State updated, will require meta-apply/sandbox."
-              );
-              globalState.lastGeneratedFullSource = newContent; // Update state directly
-              // Proceed, but CycleLogic needs to know not to save this as an artifact
+              logger.logEvent("warn", "Full source edited via HITL.");
+              globalState.lastGeneratedFullSource = newContent;
               CycleLogic.proceedAfterHumanIntervention(
                 "Human Code Edit (Full Source)",
                 resultData,
                 true
-              ); // true = skip cycle increment? YES
-              return; // Don't proceed with normal artifact saving flow
+              );
+              return;
             }
           } else {
             resultData.summary = `No changes detected for ${artifactId}`;
-            resultData.success = true; // No change is also a success in terms of processing
+            resultData.success = true;
           }
         } catch (e) {
           logger.logEvent(
             "error",
-            `Error processing/validating human edit for ${artifactId}: ${e.message}`
+            `Error validating human edit for ${artifactId}: ${e.message}`
           );
           UI.showNotification(
             `Error validating edit for ${artifactId}: ${e.message}`,
             "error"
           );
-          resultData.summary = `Validation failed for ${artifactId}: ${e.message}`;
+          resultData.summary = `Validation failed: ${e.message}`;
           resultData.success = false;
         }
-        // Proceed normally for non-full-source edits
         CycleLogic.proceedAfterHumanIntervention("Human Code Edit", resultData);
       });
-
-      // --- Other Controls ---
       uiRefs.forceHumanReviewButton?.addEventListener("click", () => {
         if (globalState) globalState.forceHumanReview = true;
         UI.showNotification("Next cycle will pause for Human Review.", "info");
         UI.logToTimeline(
           globalState.totalCycles,
-          "[HUMAN] User forced Human Review for next cycle.",
+          "[HUMAN] User forced Human Review.",
           "warn"
         );
       });
-
       uiRefs.downloadLogButton?.addEventListener("click", () => {
         try {
-          const blob = new Blob([Utils.logger.getLogBuffer()], {
+          const blob = new Blob([logger.getLogBuffer()], {
             type: "text/plain",
           });
           const url = URL.createObjectURL(blob);
@@ -2521,7 +2134,6 @@ const REPLOID_CORE = (() => {
           UI.showNotification(`Log download failed: ${e.message}`, "error");
         }
       });
-
       uiRefs.exportStateButton?.addEventListener(
         "click",
         StateManager.exportState
@@ -2530,7 +2142,6 @@ const REPLOID_CORE = (() => {
         "click",
         CycleLogic.handleSummarizeContext
       );
-
       uiRefs.importStateButton?.addEventListener("click", () =>
         uiRefs.importFileInput?.click()
       );
@@ -2538,70 +2149,54 @@ const REPLOID_CORE = (() => {
         const file = event.target.files?.[0];
         if (file) StateManager.importState(file);
       });
-
       uiRefs.goBackButton?.addEventListener("click", () => {
         if (!globalState?.htmlHistory?.length) {
-          UI.showNotification("No history to go back to.", "warn");
+          UI.showNotification("No history.", "warn");
           return;
         }
         if (
           !confirm(
-            "Revert the entire page to the previous saved version? Current state will attempt to restore after reload."
+            "Revert page to previous version? State will attempt restore."
           )
         )
           return;
-
-        const prevStateHtml = globalState.htmlHistory.pop(); // Get previous state
-        UI.updateHtmlHistoryControls(); // Update count display
+        const prevStateHtml = globalState.htmlHistory.pop();
+        UI.updateHtmlHistoryControls();
         logger.logEvent(
           "info",
-          `Reverting page HTML via Go Back. History size now: ${globalState.htmlHistory.length}`
+          `Reverting page HTML. History size: ${globalState.htmlHistory.length}`
         );
         UI.logToTimeline(
           globalState.totalCycles,
-          "[STATE] Reverting HTML to previous version (Page Reload).",
+          "[STATE] Reverting HTML (Page Reload).",
           "warn"
         );
-
         try {
-          // Preserve current state in session storage before reloading
           const stateToPreserve = StateManager.capturePreservationState();
-          Storage.saveSessionState(stateToPreserve); // Use Storage module
-
-          // Replace current document content
+          Storage.saveSessionState(stateToPreserve);
           document.open();
           document.write(prevStateHtml);
           document.close();
-          // The browser should re-run scripts on the new content, including initialization
         } catch (e) {
-          logger.logEvent(
-            "error",
-            `Go Back failed during state preservation or document write: ${e.message}`
-          );
+          logger.logEvent("error", `Go Back failed: ${e.message}`);
           UI.showNotification(`Go Back failed: ${e.message}`, "error");
-          // Rollback state preservation if failed
-          Storage.removeSessionState(); // Use Storage module
+          Storage.removeSessionState();
           if (globalState.htmlHistory && prevStateHtml)
-            globalState.htmlHistory.push(prevStateHtml); // Put it back if failed
+            globalState.htmlHistory.push(prevStateHtml);
           UI.updateHtmlHistoryControls();
-          StateManager.save(); // Save potentially reverted history state
+          StateManager.save();
         }
       });
-
       uiRefs.clearLocalStorageButton?.addEventListener("click", () => {
         if (
           !confirm(
-            "WARNING: This will delete ALL Reploid artifacts and saved state from your browser's local storage. This cannot be undone. Are you absolutely sure?"
+            "WARNING: Delete ALL Reploid data from LocalStorage? Cannot be undone."
           )
         )
           return;
         try {
-          Storage.clearAllReploidData(); // Use Storage module
-          UI.showNotification(
-            "LocalStorage cleared successfully. Reloading page.",
-            "info",
-            0
-          ); // Keep message until reload
+          Storage.clearAllReploidData();
+          UI.showNotification("LocalStorage cleared. Reloading...", "info", 0);
           setTimeout(() => window.location.reload(), 1000);
         } catch (e) {
           logger.logEvent("error", `Error clearing LocalStorage: ${e.message}`);
@@ -2611,52 +2206,37 @@ const REPLOID_CORE = (() => {
           );
         }
       });
-
-      // --- Meta Sandbox Controls ---
       uiRefs.approveMetaChangeButton?.addEventListener("click", () => {
         if (metaSandboxPending && globalState?.lastGeneratedFullSource) {
           const sourceToApply = globalState.lastGeneratedFullSource;
-          logger.logEvent("info", "Approved meta-change from sandbox.");
+          logger.logEvent("info", "Approved meta-change.");
           UI.logToTimeline(
             globalState.totalCycles,
-            `[STATE] Approved Meta-Sandbox changes. Applying & Reloading...`,
+            `[STATE] Approved Meta-Sandbox. Applying & Reloading...`,
             "info",
             true
           );
-          UI.hideMetaSandbox(); // Hides and sets metaSandboxPending = false
-
+          UI.hideMetaSandbox();
           const currentHtml = document.documentElement.outerHTML;
-          CycleLogic.saveHtmlToHistory(currentHtml); // Save current state before overwrite
-
+          CycleLogic.saveHtmlToHistory(currentHtml);
           const stateToPreserve = StateManager.capturePreservationState();
-          // stateToPreserve.metaSandboxPending = false; // hideMetaSandbox already did this
-
           try {
-            Storage.saveSessionState(stateToPreserve); // Use Storage module
+            Storage.saveSessionState(stateToPreserve);
             document.open();
             document.write(sourceToApply);
-            document.close(); // Reloads the page with new content
+            document.close();
           } catch (e) {
-            logger.logEvent(
-              "error",
-              `Apply meta-change failed during save/reload: ${e.message}`
-            );
+            logger.logEvent("error", `Apply meta-change failed: ${e.message}`);
             UI.showNotification(`Apply failed: ${e.message}`, "error");
-            Storage.removeSessionState(); // Clear bad session state
+            Storage.removeSessionState();
             if (globalState?.htmlHistory?.length > 0)
-              globalState.htmlHistory.pop(); // Remove the bad history entry
+              globalState.htmlHistory.pop();
             UI.updateHtmlHistoryControls();
-            // Might need a full reload if doc.write fails badly
-            // window.location.reload(); // Consider force reload on error
           }
         } else {
-          UI.showNotification(
-            "No sandbox content pending approval or state mismatch.",
-            "warn"
-          );
+          UI.showNotification("No sandbox content pending.", "warn");
         }
       });
-
       uiRefs.discardMetaChangeButton?.addEventListener("click", () => {
         logger.logEvent("info", "Discarded meta-sandbox changes.");
         UI.logToTimeline(
@@ -2665,17 +2245,14 @@ const REPLOID_CORE = (() => {
           "warn",
           true
         );
-        UI.hideMetaSandbox(); // Hides sandbox, sets pending to false, enables run button
-        if (globalState) globalState.lastGeneratedFullSource = null; // Clear the proposed source
-        // Proceed as if human intervention finished with a 'discard' action
+        UI.hideMetaSandbox();
+        if (globalState) globalState.lastGeneratedFullSource = null;
         CycleLogic.proceedAfterHumanIntervention(
           "Sandbox Discarded",
           "User discarded changes",
           true
-        ); // true = skip cycle increment
+        );
       });
-
-      // --- Config Input Listeners ---
       uiRefs.lsdPersonaPercentInput?.addEventListener("input", () => {
         if (
           !globalState ||
@@ -2684,32 +2261,23 @@ const REPLOID_CORE = (() => {
         )
           return;
         let lsd = parseInt(uiRefs.lsdPersonaPercentInput.value, 10) || 0;
-        lsd = Math.max(0, Math.min(100, lsd)); // Clamp value
+        lsd = Math.max(0, Math.min(100, lsd));
         globalState.cfg.personaBalance = lsd;
-        uiRefs.lsdPersonaPercentInput.value = lsd; // Update UI if clamped
-        uiRefs.xyzPersonaPercentInput.value = 100 - lsd; // Update the other slider
-        logger.logEvent(
-          "info",
-          `Config Updated: personaBalance (LSD %) = ${lsd}`
-        );
+        uiRefs.lsdPersonaPercentInput.value = lsd;
+        uiRefs.xyzPersonaPercentInput.value = 100 - lsd;
+        logger.logEvent("info", `Config: personaBalance = ${lsd}`);
         StateManager.save();
         UI.updateFieldsetSummaries();
       });
-
-      // Generic listeners for other config inputs
       Object.keys(StateManager.getDefaultState().cfg).forEach((key) => {
-        // Skip ones handled specially or non-inputs
         if (
           key === "personaBalance" ||
           key === "coreModel" ||
           key === "critiqueModel"
         )
           return;
-
-        // Find the corresponding input element (assuming kebab-case ID + 'Input')
         const inputId = Utils.camelToKabob(key) + "-input";
-        const inputEl = uiRefs[Utils.kabobToCamel(inputId)]; // Convert back to camelCase for uiRefs lookup
-
+        const inputEl = uiRefs[Utils.kabobToCamel(inputId)];
         if (inputEl) {
           inputEl.addEventListener("change", (e) => {
             if (!globalState) return;
@@ -2720,20 +2288,17 @@ const REPLOID_CORE = (() => {
                 target.step === "any" || target.step?.includes(".")
                   ? parseFloat(target.value)
                   : parseInt(target.value, 10);
-              // Add range validation if min/max attributes are set
               const min = parseFloat(target.min);
               const max = parseFloat(target.max);
               if (!isNaN(min) && value < min) value = min;
               if (!isNaN(max) && value > max) value = max;
-              target.value = value; // Update input display if clamped
+              target.value = value;
             } else {
-              value = target.value; // String value for text/select etc.
+              value = target.value;
             }
-
             if (globalState.cfg[key] !== value) {
               globalState.cfg[key] = value;
-              logger.logEvent("info", `Config Updated: ${key} = ${value}`);
-              // Update specific display elements if needed
+              logger.logEvent("info", `Config: ${key} = ${value}`);
               if (key === "maxCycles" && uiRefs.maxCyclesDisplay)
                 uiRefs.maxCyclesDisplay.textContent =
                   value === 0 ? "Inf" : value.toString();
@@ -2744,15 +2309,10 @@ const REPLOID_CORE = (() => {
           });
         }
       });
-
-      // Model Selectors
       uiRefs.coreModelSelector?.addEventListener("change", (e) => {
         if (globalState) {
           globalState.cfg.coreModel = e.target.value;
-          logger.logEvent(
-            "info",
-            `Config Updated: coreModel = ${e.target.value}`
-          );
+          logger.logEvent("info", `Config: coreModel = ${e.target.value}`);
           StateManager.save();
           UI.updateFieldsetSummaries();
         }
@@ -2760,41 +2320,27 @@ const REPLOID_CORE = (() => {
       uiRefs.critiqueModelSelector?.addEventListener("change", (e) => {
         if (globalState) {
           globalState.cfg.critiqueModel = e.target.value;
-          logger.logEvent(
-            "info",
-            `Config Updated: critiqueModel = ${e.target.value}`
-          );
+          logger.logEvent("info", `Config: critiqueModel = ${e.target.value}`);
           StateManager.save();
           UI.updateFieldsetSummaries();
         }
       });
-
-      // --- Fieldset Collapse/Expand ---
       document.querySelectorAll("fieldset legend").forEach((legend) => {
         legend.addEventListener("click", (event) => {
-          // Prevent toggling when clicking interactive elements inside the legend
           if (event.target.closest("button, input, a, select, textarea"))
             return;
-
           const fieldset = legend.closest("fieldset");
           if (fieldset) {
             fieldset.classList.toggle("collapsed");
-            // Optional: Update summary when toggling, though it might already be up-to-date
-            // UI.updateFieldsetSummaries();
           }
         });
       });
-
       logger.logEvent("info", "UI Event listeners set up.");
     },
   }; // End UI
 
-  // --- CycleLogic Module ---
-  // Uses injected logger, Storage, StateManager, ApiClient, ToolRunner, UI
   const CycleLogic = {
-    // getActiveGoalInfo remains the same, reads globalState
     getActiveGoalInfo: () => {
-      /* ... as before ... */
       if (!globalState)
         return {
           seedGoal: "N/A",
@@ -2806,15 +2352,13 @@ const REPLOID_CORE = (() => {
         globalState.currentGoal.cumulative || globalState.currentGoal.seed;
       return {
         seedGoal: globalState.currentGoal.seed || "None",
-        cumulativeGoal: globalState.currentGoal.cumulative || "None", // Return seed if cumulative is null
+        cumulativeGoal: globalState.currentGoal.cumulative || "None",
         latestGoal: latestGoal || "Idle",
         type: globalState.currentGoal.latestType || "Idle",
       };
     },
 
-    // getArtifactListSummary remains the same, uses StateManager
     getArtifactListSummary: () => {
-      /* ... as before, using StateManager.getAllArtifactMetadata ... */
       const allMeta = StateManager.getAllArtifactMetadata();
       return (
         Object.values(allMeta)
@@ -2826,12 +2370,11 @@ const REPLOID_CORE = (() => {
       );
     },
 
-    // getToolListSummary uses injected staticTools and dynamicToolDefinitions from state
     getToolListSummary: () => {
-      const staticToolSummary = staticTools // Use the IIFE-scope staticTools definition
+      const staticToolSummary = loadedStaticTools
         .map((t) => `* [S] ${t.name}: ${t.description}`)
         .join("\n");
-      const dynamicToolSummary = dynamicToolDefinitions // Use the IIFE-scope dynamic list
+      const dynamicToolSummary = dynamicToolDefinitions
         .map((t) => `* [D] ${t.declaration.name}: ${t.declaration.description}`)
         .join("\n");
       return (
@@ -2840,30 +2383,21 @@ const REPLOID_CORE = (() => {
       );
     },
 
-    // runCoreIteration remains mostly the same
-    // Uses ApiClient.callApiWithRetry and passes UI callbacks
-    // Uses ToolRunner.runTool and passes tool lists
-    // Manages its own partialOutput state if needed for MAX_TOKENS continuation
     runCoreIteration: async (apiKey, currentGoalInfo) => {
-      UI.highlightCoreStep(1); // Analyze Goal/Context
+      UI.highlightCoreStep(1);
       if (!globalState) throw new Error("Global state is not initialized");
-
       const personaBalance = globalState.cfg.personaBalance ?? 50;
       const primaryPersona = personaBalance >= 50 ? "LSD" : "XYZ";
-      globalState.personaMode = primaryPersona; // Update state
-
+      globalState.personaMode = primaryPersona;
       const corePromptTemplate = Storage.getArtifactContent(
-        "reploid.prompt.core",
+        "reploid.core.sys-prompt",
         0
-      ); // Use Storage
+      );
       if (!corePromptTemplate)
         throw new Error(
-          "Core prompt artifact 'reploid.prompt.core' not found!"
+          "Core prompt artifact 'reploid.core.sys-prompt' not found!"
         );
-
-      // --- Build Prompt ---
       let prompt = corePromptTemplate;
-      // Replace placeholders (use Utils.trunc where needed)
       prompt = prompt
         .replace(/\[LSD_PERCENT\]/g, personaBalance)
         .replace(/\[PERSONA_MODE\]/g, primaryPersona)
@@ -2888,14 +2422,14 @@ const REPLOID_CORE = (() => {
           /\[CTX_TOKENS\]/g,
           globalState.contextTokenEstimate?.toLocaleString() || "0"
         )
-        .replace(/\[\[DYNAMIC_TOOLS_LIST\]\]/g, CycleLogic.getToolListSummary()) // Assumes staticTools is available
+        .replace(/\[\[DYNAMIC_TOOLS_LIST\]\]/g, CycleLogic.getToolListSummary())
         .replace(
           /\[\[RECENT_LOGS\]\]/g,
           Utils.trunc(
-            Utils.logger.getLogBuffer().split("\n").slice(-15).join("\n"),
+            logger.getLogBuffer().split("\n").slice(-15).join("\n"),
             1000
           )
-        ) // Truncate logs
+        )
         .replace(/\[\[ARTIFACT_LIST\]\]/g, CycleLogic.getArtifactListSummary())
         .replace(
           /\[\[SEED_GOAL_DESC\]\]/g,
@@ -2909,8 +2443,6 @@ const REPLOID_CORE = (() => {
           /\[\[SUMMARY_CONTEXT\]\]/g,
           Utils.trunc(globalState.currentGoal.summaryContext, 2000) || "None"
         );
-
-      // Add relevant artifact snippets
       const allMeta = StateManager.getAllArtifactMetadata();
       const relevantArtifacts = Object.keys(allMeta)
         .filter(
@@ -2919,28 +2451,25 @@ const REPLOID_CORE = (() => {
             (id.startsWith("target.") ||
               (currentGoalInfo.type === "Meta" && id.startsWith("reploid.")))
         )
-        .sort((a, b) => allMeta[b].latestCycle - allMeta[a].latestCycle) // Sort by most recent
-        .slice(0, 10); // Limit number of snippets
-
+        .sort((a, b) => allMeta[b].latestCycle - allMeta[a].latestCycle)
+        .slice(0, 10);
       let snippets = "";
       for (const id of relevantArtifacts) {
         const meta = StateManager.getArtifactMetadata(id);
-        const content = Storage.getArtifactContent(id, meta.latestCycle); // Use Storage
+        const content = Storage.getArtifactContent(id, meta.latestCycle);
         if (content) {
           snippets += `\n---\ Artifact: ${id} (Cycle ${meta.latestCycle}) ---\n`;
-          snippets += Utils.trunc(content, 500); // Truncate snippets
+          snippets += Utils.trunc(content, 500);
         }
       }
       prompt = prompt.replace(
         /\[\[ARTIFACT_CONTENT_SNIPPETS\]\]/g,
-        snippets || "No relevant artifact snippets available."
+        snippets || "No relevant artifact snippets."
       );
-
-      // --- API Call Setup ---
-      let partialOutput = null; // Local variable for handling MAX_TOKENS continuation
-      const sysInstruction = `You are x0. DELIBERATE with yourself (XYZ-2048, LSD-1729, and x0), adopt ${primaryPersona}. Respond ONLY valid JSON matching the specified format. Refer to artifacts by their ID.`;
+      let partialOutput = null;
+      const sysInstruction = `You are x0. DELIBERATE, adopt ${primaryPersona}. Respond ONLY valid JSON. Refer to artifacts by ID.`;
       const allToolsForApi = [
-        ...staticTools,
+        ...loadedStaticTools,
         ...dynamicToolDefinitions.map((t) => t.declaration),
       ];
       const allFuncDecls = allToolsForApi.map(
@@ -2954,9 +2483,7 @@ const REPLOID_CORE = (() => {
       const startTime = performance.now();
       let tokens = 0;
       let apiResult = null;
-      let apiHistory = []; // History for multi-turn calls
-
-      // Log input prompt
+      let apiHistory = [];
       UI.displayCycleArtifact(
         "LLM Input",
         prompt,
@@ -2978,12 +2505,10 @@ const REPLOID_CORE = (() => {
         );
       }
 
-      // --- API Interaction Loop ---
       try {
-        UI.highlightCoreStep(2); // Propose Changes
-        let currentPromptText = prompt; // Start with the full prompt
+        UI.highlightCoreStep(2);
+        let currentPromptText = prompt;
         let isContinuation = false;
-
         do {
           apiResult = await ApiClient.callApiWithRetry(
             currentPromptText,
@@ -2992,31 +2517,24 @@ const REPLOID_CORE = (() => {
             apiKey,
             allFuncDecls,
             isContinuation,
-            apiHistory.length > 0 ? apiHistory : null, // Pass history for multi-turn
-            globalState.cfg.maxRetries, // Pass max retries from config
-            // Pass UI update callbacks
+            apiHistory.length > 0 ? apiHistory : null,
+            globalState.cfg.maxRetries,
             UI.updateStatus,
             UI.logToTimeline,
             UI.updateTimelineItem
           );
-
           tokens += apiResult.tokenCount || 0;
-
-          // Add to history for potential multi-turn
-          // User part only added on first turn if not already added
           if (!isContinuation && apiHistory.length === 0) {
-            apiHistory.push({ role: "user", parts: [{ text: prompt }] }); // Add initial user prompt
+            apiHistory.push({ role: "user", parts: [{ text: prompt }] });
           }
-          // Add model response/function call to history
           if (apiResult.rawResp?.candidates?.[0]?.content) {
             apiHistory.push(apiResult.rawResp.candidates[0].content);
           }
-
-          isContinuation = false; // Assume next turn is not a continuation unless set below
-          currentPromptText = null; // Clear prompt for next turn unless set
+          isContinuation = false;
+          currentPromptText = null;
 
           if (apiResult.type === "functionCall") {
-            isContinuation = true; // Need to call API again with function result
+            isContinuation = true;
             const fc = apiResult.content;
             UI.updateStatus(`Running Tool: ${fc.name}...`, true);
             let toolLogItem = UI.logToTimeline(
@@ -3035,18 +2553,15 @@ const REPLOID_CORE = (() => {
               "tool.call",
               globalState.totalCycles
             );
-
             let funcRespContent;
             try {
-              // Pass static and dynamic tools to ToolRunner
               const toolResult = await ToolRunner.runTool(
                 fc.name,
                 fc.args,
                 apiKey,
-                staticTools,
+                loadedStaticTools,
                 dynamicToolDefinitions
               );
-              // Stringify result for API
               funcRespContent = {
                 name: fc.name,
                 response: { content: JSON.stringify(toolResult) },
@@ -3067,14 +2582,10 @@ const REPLOID_CORE = (() => {
                 globalState.totalCycles
               );
             } catch (e) {
-              logger.logEvent(
-                "error",
-                `Tool execution failed for ${fc.name}: ${e.message}`
-              );
-              // Send error back to LLM
+              logger.logEvent("error", `Tool failed ${fc.name}: ${e.message}`);
               funcRespContent = {
                 name: fc.name,
-                response: { error: `Tool execution failed: ${e.message}` },
+                response: { error: `Tool failed: ${e.message}` },
               };
               UI.updateTimelineItem(
                 toolLogItem,
@@ -3092,29 +2603,24 @@ const REPLOID_CORE = (() => {
                 globalState.totalCycles
               );
             }
-
             UI.updateStatus(
               `Calling Gemini (${coreModel}) (tool resp)...`,
               true
             );
-            // Add function response to history
             apiHistory.push({
               role: "function",
               parts: [{ functionResponse: funcRespContent }],
             });
-            apiResult = null; // Clear result, loop will call API again
+            apiResult = null;
           } else if (apiResult.finishReason === "MAX_TOKENS") {
-            isContinuation = true; // Need to call API again to continue generation
+            isContinuation = true;
             if (apiResult.type === "text") {
-              partialOutput = (partialOutput || "") + apiResult.content; // Append partial text
+              partialOutput = (partialOutput || "") + apiResult.content;
             }
-            logger.logEvent(
-              "warn",
-              "MAX_TOKENS reached. Continuing generation."
-            );
+            logger.logEvent("warn", "MAX_TOKENS reached. Continuing.");
             UI.logToTimeline(
               globalState.totalCycles,
-              `[API WARN] MAX_TOKENS reached. Continuing...`,
+              `[API WARN] MAX_TOKENS. Continuing...`,
               "warn",
               true
             );
@@ -3122,32 +2628,22 @@ const REPLOID_CORE = (() => {
               `Calling Gemini (${coreModel}) (MAX_TOKENS cont)...`,
               true
             );
-            // No need to add anything to history here, just call API again with same history
-            apiResult = null; // Clear result, loop will call API again
+            apiResult = null;
           } else if (apiResult.finishReason === "SAFETY") {
             throw new Error("Iteration stopped due to API Safety Filter.");
           }
-          // Add other finish reason checks if necessary (e.g., RECITATION)
-        } while (isContinuation); // Loop if function call or MAX_TOKENS
-
+        } while (isContinuation);
         UI.updateStatus("Processing Response...");
-
         if (!apiResult) {
-          // Should have a final result by now
-          throw new Error(
-            "API interaction loop finished without a final text response."
-          );
+          throw new Error("API loop finished without final response.");
         }
-
         if (apiResult.type === "text") {
-          const raw = (partialOutput || "") + (apiResult.content || ""); // Combine partial and final text
-          partialOutput = null; // Reset partial output tracker
+          const raw = (partialOutput || "") + (apiResult.content || "");
+          partialOutput = null;
           logger.logEvent("info", `LLM core response length: ${raw.length}.`);
-
-          const sanitized = ApiClient.sanitizeLlmJsonResp(raw); // Use ApiClient's sanitizer
+          const sanitized = ApiClient.sanitizeLlmJsonResp(raw);
           const cycleMs = performance.now() - startTime;
           let parsedResp;
-
           UI.displayCycleArtifact(
             "LLM Output Raw",
             raw,
@@ -3166,10 +2662,9 @@ const REPLOID_CORE = (() => {
             "llm.sanitized",
             globalState.totalCycles
           );
-
           try {
             parsedResp = JSON.parse(sanitized);
-            logger.logEvent("info", "Parsed LLM JSON successfully.");
+            logger.logEvent("info", "Parsed LLM JSON.");
             UI.logToTimeline(
               globalState.totalCycles,
               `[LLM OK] Received and parsed response.`
@@ -3196,10 +2691,8 @@ const REPLOID_CORE = (() => {
               "parse.error",
               globalState.totalCycles
             );
-            throw new Error(`LLM response was not valid JSON: ${e.message}`);
+            throw new Error(`LLM response invalid JSON: ${e.message}`);
           }
-
-          // Update token history in global state
           globalState.tokenHistory.push(tokens);
           if (globalState.tokenHistory.length > 20)
             globalState.tokenHistory.shift();
@@ -3208,26 +2701,23 @@ const REPLOID_CORE = (() => {
               ? globalState.tokenHistory.reduce((a, b) => a + b, 0) /
                 globalState.tokenHistory.length
               : 0;
-          globalState.contextTokenEstimate += tokens; // Increment context estimate
-          UI.checkContextTokenWarning(); // Check threshold
-
+          globalState.contextTokenEstimate += tokens;
+          UI.checkContextTokenWarning();
           return {
             response: parsedResp,
             cycleTimeMillis: cycleMs,
             error: null,
           };
         } else {
-          // Should be 'text' or 'empty' if loop exited correctly
           logger.logEvent(
             "warn",
             `Unexpected final API response type: ${apiResult?.type}`
           );
           UI.logToTimeline(
             globalState.totalCycles,
-            `[API WARN] Unexpected final response type: ${apiResult?.type}. Treating as empty.`,
+            `[API WARN] Unexpected final response type: ${apiResult?.type}.`,
             "warn"
           );
-          // Return a minimal response indicating failure/emptiness
           return {
             response: {
               agent_confidence_score: 0.0,
@@ -3238,8 +2728,7 @@ const REPLOID_CORE = (() => {
           };
         }
       } catch (error) {
-        // Catch errors from API calls or parsing
-        partialOutput = null; // Reset partial output on error
+        partialOutput = null;
         logger.logEvent("error", `Core Iteration failed: ${error.message}`);
         UI.logToTimeline(
           globalState.totalCycles,
@@ -3247,8 +2736,6 @@ const REPLOID_CORE = (() => {
           "error"
         );
         const cycleMs = performance.now() - startTime;
-
-        // Update token count even on error if some tokens were used
         if (tokens > 0) {
           globalState.tokenHistory.push(tokens);
           if (globalState.tokenHistory.length > 20)
@@ -3261,7 +2748,6 @@ const REPLOID_CORE = (() => {
           globalState.contextTokenEstimate += tokens;
           UI.checkContextTokenWarning();
         }
-
         return {
           response: null,
           cycleTimeMillis: cycleMs,
@@ -3269,27 +2755,21 @@ const REPLOID_CORE = (() => {
         };
       } finally {
         UI.updateStatus("Idle");
-        UI.highlightCoreStep(-1); // Clear step highlight
+        UI.highlightCoreStep(-1);
       }
     },
 
-    // runAutoCritique remains mostly the same, uses Storage, ApiClient, UI callbacks
     runAutoCritique: async (apiKey, llmProposal, goalInfo) => {
-      UI.highlightCoreStep(5); // Critique Step
+      UI.highlightCoreStep(5);
       UI.updateStatus("Running Auto-Critique...", true);
-      if (!globalState)
-        throw new Error("Global state not initialized for critique");
-
-      const template = Storage.getArtifactContent("reploid.prompt.critique", 0); // Use Storage
-      if (!template)
-        throw new Error(
-          "Critique prompt artifact 'reploid.prompt.critique' not found!"
-        );
-
+      if (!globalState) throw new Error("State not initialized for critique");
+      const template = Storage.getArtifactContent(
+        "reploid.core.critiquer-prompt",
+        0
+      );
+      if (!template) throw new Error("Critique prompt artifact not found!");
       let prompt = template;
       const critiqueModel = globalState.cfg.critiqueModel;
-
-      // Populate critique prompt template
       prompt = prompt
         .replace(
           /\[\[PROPOSED_CHANGES_DESC\]\]/g,
@@ -3313,7 +2793,7 @@ const REPLOID_CORE = (() => {
         .replace(
           /\[\[GENERATED_FULL_HTML_SOURCE\]\]/g,
           Utils.trunc(llmProposal.full_html_source, 4000)
-        ) // Truncate heavily
+        )
         .replace(
           /\[\[PROPOSED_NEW_TOOL_DECL_OBJ\]\]/g,
           JSON.stringify(llmProposal.proposed_new_tool_declaration || null)
@@ -3331,9 +2811,8 @@ const REPLOID_CORE = (() => {
           /\[AGENT_CONFIDENCE\]/g,
           llmProposal.agent_confidence_score ?? "N/A"
         );
-
       const sysInstruction =
-        'Critiquer x0. Analyze objectively based on inputs. Output ONLY valid JSON: {"critique_passed": boolean, "critique_report": "string"}';
+        'Critiquer x0. Analyze objectively. Output ONLY valid JSON: {"critique_passed": boolean, "critique_report": "string"}';
       UI.displayCycleArtifact(
         "Critique Input",
         prompt,
@@ -3343,7 +2822,6 @@ const REPLOID_CORE = (() => {
         "prompt.critique",
         globalState.totalCycles
       );
-
       try {
         const apiResp = await ApiClient.callApiWithRetry(
           prompt,
@@ -3356,9 +2834,8 @@ const REPLOID_CORE = (() => {
           globalState.cfg.maxRetries,
           UI.updateStatus,
           UI.logToTimeline,
-          UI.updateTimelineItem // Pass UI callbacks
+          UI.updateTimelineItem
         );
-
         if (apiResp.type === "text") {
           UI.displayCycleArtifact(
             "Critique Output Raw",
@@ -3379,16 +2856,13 @@ const REPLOID_CORE = (() => {
             "critique.sanitized",
             globalState.totalCycles
           );
-
           try {
             const parsedCritique = JSON.parse(sanitized);
             if (
               typeof parsedCritique.critique_passed !== "boolean" ||
               typeof parsedCritique.critique_report !== "string"
             ) {
-              throw new Error(
-                "Critique JSON missing required fields or invalid types."
-              );
+              throw new Error("Critique JSON missing fields.");
             }
             UI.logToTimeline(
               globalState.totalCycles,
@@ -3398,13 +2872,14 @@ const REPLOID_CORE = (() => {
           } catch (e) {
             logger.logEvent(
               "error",
-              `Critique JSON parse/validation failed: ${
-                e.message
-              }. Content: ${Utils.trunc(sanitized, 300)}`
+              `Critique JSON parse failed: ${e.message}. Content: ${Utils.trunc(
+                sanitized,
+                300
+              )}`
             );
             UI.logToTimeline(
               globalState.totalCycles,
-              `[CRITIQUE ERR] Invalid JSON response format.`,
+              `[CRITIQUE ERR] Invalid JSON format.`,
               "error"
             );
             UI.displayCycleArtifact(
@@ -3418,23 +2893,23 @@ const REPLOID_CORE = (() => {
             );
             return {
               critique_passed: false,
-              critique_report: `Critique response invalid JSON format: ${e.message}`,
-            }; // Fail safely
+              critique_report: `Critique invalid JSON: ${e.message}`,
+            };
           }
         } else {
           logger.logEvent(
             "warn",
-            `Critique API returned non-text response type: ${apiResp.type}.`
+            `Critique API non-text response: ${apiResp.type}.`
           );
           UI.logToTimeline(
             globalState.totalCycles,
-            `[CRITIQUE ERR] Non-text response received.`,
+            `[CRITIQUE ERR] Non-text response.`,
             "error"
           );
           return {
             critique_passed: false,
-            critique_report: `Critique API failed (non-text response: ${apiResp.type}).`,
-          }; // Fail safely
+            critique_report: `Critique API failed (non-text: ${apiResp.type}).`,
+          };
         }
       } catch (e) {
         logger.logEvent("error", `Critique API call failed: ${e.message}`);
@@ -3455,47 +2930,37 @@ const REPLOID_CORE = (() => {
         return {
           critique_passed: false,
           critique_report: `Critique API failed: ${e.message}`,
-        }; // Fail safely
+        };
       } finally {
         UI.updateStatus("Idle");
         UI.highlightCoreStep(-1);
       }
     },
 
-    // runSummarization remains mostly the same, uses Storage, ApiClient, UI callbacks
     runSummarization: async (apiKey, stateSnapshotForSummary) => {
-      // No specific core step for this background task? Or maybe reuse 'Analyze'?
       UI.updateStatus("Running Summarization...", true);
       if (!globalState)
-        throw new Error("Global state not initialized for summarization");
-
+        throw new Error("State not initialized for summarization");
       const template = Storage.getArtifactContent(
-        "reploid.prompt.summarize",
+        "reploid.core.summarizer-prompt",
         0
-      ); // Use Storage
+      );
       if (!template)
-        throw new Error(
-          "Summarization prompt artifact 'reploid.prompt.summarize' not found!"
-        );
-
-      const recentLogs = Utils.logger
+        throw new Error("Summarization prompt artifact not found!");
+      const recentLogs = logger
         .getLogBuffer()
         .split("\n")
         .slice(-20)
-        .join("\n"); // Use Utils.logger
+        .join("\n");
       let prompt = template;
-      prompt = prompt.replace(
-        /\[\[AGENT_STATE_SUMMARY\]\]/g,
-        JSON.stringify(stateSnapshotForSummary, null, 2)
-      ); // Use passed snapshot
-      prompt = prompt.replace(
-        /\[\[RECENT_LOGS\]\]/g,
-        Utils.trunc(recentLogs, 1000)
-      ); // Truncate logs
-
-      const critiqueModel = globalState.cfg.critiqueModel; // Use critique model for this? Or dedicated model?
-      const currentCycle = globalState.totalCycles; // Log against current cycle
-
+      prompt = prompt
+        .replace(
+          /\[\[AGENT_STATE_SUMMARY\]\]/g,
+          JSON.stringify(stateSnapshotForSummary, null, 2)
+        )
+        .replace(/\[\[RECENT_LOGS\]\]/g, Utils.trunc(recentLogs, 1000));
+      const critiqueModel = globalState.cfg.critiqueModel;
+      const currentCycle = globalState.totalCycles;
       UI.logToTimeline(
         currentCycle,
         `[CONTEXT] Running summarization...`,
@@ -3511,11 +2976,10 @@ const REPLOID_CORE = (() => {
         "prompt.summarize",
         currentCycle
       );
-
       try {
         const apiResp = await ApiClient.callApiWithRetry(
           prompt,
-          'Summarizer x0 (80% XYZ-2048, 20% LSD-1729). Respond ONLY valid JSON: {"summary": "string"}',
+          'Summarizer x0. Respond ONLY valid JSON: {"summary": "string"}',
           critiqueModel,
           apiKey,
           [],
@@ -3524,9 +2988,8 @@ const REPLOID_CORE = (() => {
           globalState.cfg.maxRetries,
           UI.updateStatus,
           UI.logToTimeline,
-          UI.updateTimelineItem // Pass UI callbacks
+          UI.updateTimelineItem
         );
-
         if (apiResp.type === "text") {
           UI.displayCycleArtifact(
             "Summarize Output Raw",
@@ -3558,18 +3021,18 @@ const REPLOID_CORE = (() => {
               );
               return parsed.summary;
             } else {
-              throw new Error("Summary format incorrect in JSON response.");
+              throw new Error("Summary format incorrect.");
             }
           } catch (e) {
             logger.logEvent(
               "error",
-              `Summarize JSON parse/validation failed: ${
+              `Summarize JSON parse failed: ${
                 e.message
               }. Content: ${Utils.trunc(sanitized, 300)}`
             );
             UI.logToTimeline(
               currentCycle,
-              `[CONTEXT ERR] Invalid JSON response from summarizer.`,
+              `[CONTEXT ERR] Invalid JSON from summarizer.`,
               "error",
               true
             );
@@ -3582,12 +3045,12 @@ const REPLOID_CORE = (() => {
               "summary.parse.error",
               currentCycle
             );
-            throw e; // Re-throw parse error
+            throw e;
           }
         } else {
           logger.logEvent(
             "warn",
-            `Summarizer API returned non-text response type: ${apiResp.type}.`
+            `Summarizer API non-text response: ${apiResp.type}.`
           );
           UI.logToTimeline(
             currentCycle,
@@ -3595,9 +3058,7 @@ const REPLOID_CORE = (() => {
             "error",
             true
           );
-          throw new Error(
-            `Summarizer API failed (non-text response: ${apiResp.type}).`
-          );
+          throw new Error(`Summarizer API failed (non-text: ${apiResp.type}).`);
         }
       } catch (e) {
         logger.logEvent("error", `Summarization failed: ${e.message}`);
@@ -3616,32 +3077,27 @@ const REPLOID_CORE = (() => {
           "summary.api.error",
           currentCycle
         );
-        throw e; // Re-throw API error
+        throw e;
       } finally {
         UI.updateStatus("Idle");
-        // No specific step highlight to clear here
       }
     },
 
-    // applyLLMChanges now uses Storage module and calls StateManager.updateArtifactMetadata *after* successful storage
     applyLLMChanges: (llmResp, currentCycleNum, critiqueSource) => {
-      UI.highlightCoreStep(6); // Apply step
+      UI.highlightCoreStep(6);
       if (!globalState)
         return {
           success: false,
-          errors: ["Global state not initialized"],
+          errors: ["State not initialized"],
           nextCycle: currentCycleNum,
         };
-
       let changesMade = [];
       let errors = [];
-      currentLlmResponse = llmResp; // Keep track of the response that led to these changes
+      currentLlmResponse = llmResp;
       const nextCycleNum = currentCycleNum + 1;
-
-      // Process Modified Artifacts
       (llmResp.modified_artifacts || []).forEach((modArt) => {
         if (!modArt.id || modArt.content === undefined) {
-          errors.push(`Invalid modified artifact structure: ID=${modArt.id}`);
+          errors.push(`Invalid mod artifact: ID=${modArt.id}`);
           UI.displayCycleArtifact(
             "Modify Invalid",
             JSON.stringify(modArt),
@@ -3653,7 +3109,6 @@ const REPLOID_CORE = (() => {
         }
         const currentMeta = StateManager.getArtifactMetadata(modArt.id);
         if (currentMeta.latestCycle >= 0) {
-          // Only save if content actually changed
           const currentContent = Storage.getArtifactContent(
             modArt.id,
             currentMeta.latestCycle
@@ -3664,8 +3119,7 @@ const REPLOID_CORE = (() => {
                 modArt.id,
                 nextCycleNum,
                 modArt.content
-              ); // Use Storage
-              // ** Update metadata AFTER successful storage **
+              );
               StateManager.updateArtifactMetadata(
                 modArt.id,
                 currentMeta.type,
@@ -3683,11 +3137,9 @@ const REPLOID_CORE = (() => {
                 nextCycleNum
               );
             } catch (e) {
-              errors.push(
-                `Failed to save modified artifact ${modArt.id}: ${e.message}`
-              );
+              errors.push(`Failed save mod ${modArt.id}: ${e.message}`);
               UI.displayCycleArtifact(
-                "Save Modified Failed",
+                "Save Mod Failed",
                 e.message,
                 "error",
                 false,
@@ -3696,9 +3148,8 @@ const REPLOID_CORE = (() => {
               );
             }
           } else {
-            // Log that modification was proposed but content was identical
             UI.displayCycleArtifact(
-              "Modified Artifact (No Change)",
+              "Modified (No Change)",
               currentContent,
               "info",
               false,
@@ -3707,22 +3158,16 @@ const REPLOID_CORE = (() => {
               currentMeta.latestCycle
             );
           }
-          // Special handling for specific artifacts
           if (modArt.id === "target.diagram")
-            UI.renderDiagramDisplay(nextCycleNum); // Update diagram preview
+            UI.renderDiagramDisplay(nextCycleNum);
           if (modArt.id.startsWith("reploid.")) {
-            logger.logEvent(
-              "warn",
-              `Core artifact ${modArt.id} modified. Changes take effect on next reload/meta-apply.`
-            );
+            logger.logEvent("warn", `Core artifact ${modArt.id} modified.`);
           }
         } else {
-          errors.push(
-            `Attempted to modify non-existent or unversioned artifact: ${modArt.id}`
-          );
+          errors.push(`Modify non-existent artifact: ${modArt.id}`);
           UI.displayCycleArtifact(
             "Modify Failed",
-            `Artifact ${modArt.id} not found or has no history.`,
+            `Artifact ${modArt.id} not found.`,
             "error",
             false,
             critiqueSource,
@@ -3730,15 +3175,11 @@ const REPLOID_CORE = (() => {
           );
         }
       });
-
-      // Process New Artifacts
       (llmResp.new_artifacts || []).forEach((newArt) => {
         if (!newArt.id || !newArt.type || newArt.content === undefined) {
-          errors.push(
-            `Invalid new artifact structure: ID=${newArt.id || "undefined"}`
-          );
+          errors.push(`Invalid new artifact: ID=${newArt.id || "?"}`);
           UI.displayCycleArtifact(
-            "New Artifact Invalid",
+            "New Invalid",
             JSON.stringify(newArt),
             "error",
             false,
@@ -3748,9 +3189,7 @@ const REPLOID_CORE = (() => {
         }
         const existingMeta = StateManager.getArtifactMetadata(newArt.id);
         if (existingMeta && existingMeta.latestCycle >= 0) {
-          errors.push(
-            `Attempted to create new artifact with existing ID: ${newArt.id}`
-          );
+          errors.push(`Create failed (ID exists): ${newArt.id}`);
           UI.displayCycleArtifact(
             "Create Failed (ID Exists)",
             newArt.content,
@@ -3761,12 +3200,11 @@ const REPLOID_CORE = (() => {
           );
         } else {
           try {
-            Storage.setArtifactContent(newArt.id, nextCycleNum, newArt.content); // Use Storage
-            // ** Update metadata AFTER successful storage **
+            Storage.setArtifactContent(newArt.id, nextCycleNum, newArt.content);
             StateManager.updateArtifactMetadata(
               newArt.id,
               newArt.type,
-              newArt.description || `New ${newArt.type} artifact`,
+              newArt.description || `New ${newArt.type}`,
               nextCycleNum
             );
             changesMade.push(`Created: ${newArt.id} (${newArt.type})`);
@@ -3780,11 +3218,9 @@ const REPLOID_CORE = (() => {
               nextCycleNum
             );
             if (newArt.id === "target.diagram")
-              UI.renderDiagramDisplay(nextCycleNum); // Update diagram preview
+              UI.renderDiagramDisplay(nextCycleNum);
           } catch (e) {
-            errors.push(
-              `Failed to save new artifact ${newArt.id}: ${e.message}`
-            );
+            errors.push(`Failed save new ${newArt.id}: ${e.message}`);
             UI.displayCycleArtifact(
               "Save New Failed",
               e.message,
@@ -3796,21 +3232,18 @@ const REPLOID_CORE = (() => {
           }
         }
       });
-
-      // Process Deleted Artifacts (only affects metadata)
       (llmResp.deleted_artifacts || []).forEach((idToDelete) => {
         const meta = StateManager.getArtifactMetadata(idToDelete);
         if (meta && meta.latestCycle >= 0) {
-          StateManager.deleteArtifactMetadata(idToDelete); // Delete metadata
+          StateManager.deleteArtifactMetadata(idToDelete);
           changesMade.push(`Deleted: ${idToDelete}`);
           UI.displayCycleArtifact(
-            "Deleted Artifact (Metadata Removed)",
+            "Deleted Artifact (Meta)",
             idToDelete,
             "output",
             true,
             critiqueSource
           );
-          // If diagram deleted, hide the display
           if (
             idToDelete === "target.diagram" &&
             uiRefs.diagramDisplayContainer
@@ -3818,9 +3251,7 @@ const REPLOID_CORE = (() => {
             uiRefs.diagramDisplayContainer.classList.add("hidden");
           }
         } else {
-          errors.push(
-            `Attempted to delete non-existent artifact: ${idToDelete}`
-          );
+          errors.push(`Delete non-existent: ${idToDelete}`);
           UI.displayCycleArtifact(
             "Delete Failed",
             `Artifact ${idToDelete} not found.`,
@@ -3831,27 +3262,23 @@ const REPLOID_CORE = (() => {
           );
         }
       });
-
-      // Process Tool Definition Changes
       if (llmResp.proposed_new_tool_declaration) {
         const decl = llmResp.proposed_new_tool_declaration;
         const impl = llmResp.generated_tool_implementation_js || "";
         UI.displayCycleArtifact(
-          "Proposed Tool Declaration",
+          "Proposed Tool Decl",
           JSON.stringify(decl, null, 2),
           "output",
           true,
           critiqueSource
         );
         UI.displayCycleArtifact(
-          "Generated Tool Implementation",
+          "Generated Tool Impl",
           impl,
           "output",
           true,
           critiqueSource
         );
-
-        // Basic validation
         if (decl.name && decl.description && decl.params && impl) {
           const existingIndex = dynamicToolDefinitions.findIndex(
             (t) => t.declaration.name === decl.name
@@ -3859,13 +3286,13 @@ const REPLOID_CORE = (() => {
           const toolEntry = { declaration: decl, implementation: impl };
           let toolChangeType = "";
           if (existingIndex !== -1) {
-            dynamicToolDefinitions[existingIndex] = toolEntry; // Update existing
+            dynamicToolDefinitions[existingIndex] = toolEntry;
             toolChangeType = `Tool Updated: ${decl.name}`;
           } else {
-            dynamicToolDefinitions.push(toolEntry); // Add new
+            dynamicToolDefinitions.push(toolEntry);
             toolChangeType = `Tool Defined: ${decl.name}`;
           }
-          globalState.dynamicTools = [...dynamicToolDefinitions]; // Update state
+          globalState.dynamicTools = [...dynamicToolDefinitions];
           changesMade.push(toolChangeType);
           UI.logToTimeline(
             currentCycleNum,
@@ -3874,23 +3301,18 @@ const REPLOID_CORE = (() => {
             true
           );
         } else {
-          errors.push(`Invalid tool definition/implementation provided.`);
+          errors.push(`Invalid tool definition/impl.`);
           UI.logToTimeline(
             currentCycleNum,
-            `[APPLY ERR] Tool definition/implementation invalid or incomplete.`,
+            `[APPLY ERR] Tool def/impl invalid.`,
             "error",
             true
           );
         }
-      } else {
-        // Log that no tool changes were proposed if needed for clarity
-        // UI.displayCycleArtifact("Tool Generation", "(Not Proposed)", "info", false, critiqueSource);
       }
-
-      // Handle Full HTML Source Generation (triggers Sandbox)
       if (llmResp.full_html_source) {
-        globalState.lastGeneratedFullSource = llmResp.full_html_source; // Store proposed source
-        changesMade.push("Generated Full HTML Source (Sandbox)");
+        globalState.lastGeneratedFullSource = llmResp.full_html_source;
+        changesMade.push("Generated Full HTML (Sandbox)");
         UI.displayCycleArtifact(
           "Full HTML Source",
           "(Prepared for Sandbox)",
@@ -3900,21 +3322,18 @@ const REPLOID_CORE = (() => {
         );
         UI.logToTimeline(
           currentCycleNum,
-          `[APPLY] SELF-MOD (Full Source) generated. Sandbox review required.`,
+          `[APPLY] SELF-MOD generated. Sandbox required.`,
           "info",
           true
         );
-        UI.showMetaSandbox(llmResp.full_html_source); // Show the sandbox UI
-        // Return immediately, cycle pauses here awaiting sandbox approval/discard
+        UI.showMetaSandbox(llmResp.full_html_source);
         return {
-          success: errors.length === 0, // Reflect errors encountered SO FAR
+          success: errors.length === 0,
           changes: changesMade,
           errors: errors,
-          nextCycle: currentCycleNum, // Cycle does NOT advance yet
+          nextCycle: currentCycleNum,
         };
       }
-
-      // --- Final Updates ---
       const targetArtifactChanged = changesMade.some(
         (c) =>
           c.includes("target.head") ||
@@ -3923,19 +3342,15 @@ const REPLOID_CORE = (() => {
           c.includes("target.script") ||
           c.includes("target.diagram")
       );
-
-      // Re-render external UI preview if target artifacts changed and no errors
       if (targetArtifactChanged && errors.length === 0) {
         UI.logToTimeline(
           currentCycleNum,
-          `[APPLY] Applying changes to target artifacts for Cycle ${nextCycleNum}. Rendering UI Preview.`,
+          `[APPLY] Applying target changes for Cycle ${nextCycleNum}. Rendering Preview.`,
           "info",
           true
         );
-        UI.renderGeneratedUI(nextCycleNum); // Render using potentially new content
+        UI.renderGeneratedUI(nextCycleNum);
       }
-
-      // Log overall apply status
       UI.logToTimeline(
         currentCycleNum,
         `[APPLY] Changes saved for Cycle ${nextCycleNum} from ${critiqueSource}: ${
@@ -3944,30 +3359,22 @@ const REPLOID_CORE = (() => {
         errors.length > 0 ? "warn" : "info",
         true
       );
-
-      // Increment cycle count ONLY if application was successful
       if (errors.length === 0) {
-        globalState.totalCycles = nextCycleNum; // Advance cycle number
+        globalState.totalCycles = nextCycleNum;
       }
-
-      // Update confidence history regardless of errors? Yes, reflects agent's output.
       const confidence = llmResp.agent_confidence_score ?? 0.0;
       globalState.confidenceHistory.push(confidence);
       if (globalState.confidenceHistory.length > 20)
         globalState.confidenceHistory.shift();
-      UI.updateMetricsDisplay(); // Update metrics display
-
-      // Return final status
+      UI.updateMetricsDisplay();
       return {
         success: errors.length === 0,
         changes: changesMade,
         errors: errors,
-        nextCycle: errors.length === 0 ? nextCycleNum : currentCycleNum, // Return the *actual* current cycle number
+        nextCycle: errors.length === 0 ? nextCycleNum : currentCycleNum,
       };
     },
 
-    // proceedAfterHumanIntervention remains mostly the same
-    // Uses Storage and calls StateManager.updateArtifactMetadata *after* success
     proceedAfterHumanIntervention: (
       feedbackType,
       feedbackData = "",
@@ -3975,33 +3382,28 @@ const REPLOID_CORE = (() => {
     ) => {
       if (!globalState) return;
       const currentCycle = globalState.totalCycles;
-      let nextCycle = currentCycle; // Default to current cycle
+      let nextCycle = currentCycle;
       let feedbackMsg = feedbackData;
       let applySuccess = true;
-
-      // Process Code Edit specifically
       if (feedbackType === "Human Code Edit") {
         feedbackMsg = `Edited ${feedbackData.id}: ${feedbackData.summary}`;
         if (feedbackData.success && feedbackData.id !== "full_html_source") {
-          // Don't save full source edits as artifacts
-          nextCycle = currentCycle + 1; // Tentatively advance cycle
+          nextCycle = currentCycle + 1;
           try {
             Storage.setArtifactContent(
               feedbackData.id,
               nextCycle,
               feedbackData.newContent
-            ); // Use Storage
-            // ** Update metadata AFTER successful storage **
+            );
             const currentMeta = StateManager.getArtifactMetadata(
               feedbackData.id
-            ); // Get type etc.
+            );
             StateManager.updateArtifactMetadata(
               feedbackData.id,
               currentMeta.type,
               currentMeta.description,
               nextCycle
             );
-
             UI.displayCycleArtifact(
               `Human Edit Applied`,
               feedbackData.newContent,
@@ -4013,7 +3415,7 @@ const REPLOID_CORE = (() => {
             );
             logger.logEvent(
               "info",
-              `Human edit applied to artifact ${feedbackData.id} for cycle ${nextCycle}`
+              `Human edit applied to ${feedbackData.id} for cycle ${nextCycle}`
             );
             UI.logToTimeline(
               currentCycle,
@@ -4021,8 +3423,6 @@ const REPLOID_CORE = (() => {
               "info",
               true
             );
-
-            // Update previews if necessary
             if (feedbackData.id.startsWith("target."))
               UI.renderGeneratedUI(nextCycle);
             if (feedbackData.id === "target.diagram")
@@ -4032,31 +3432,23 @@ const REPLOID_CORE = (() => {
               "error",
               `Failed saving human edit for ${feedbackData.id}: ${e.message}`
             );
-            UI.showNotification(
-              `Failed saving human edit: ${e.message}`,
-              "error"
-            );
+            UI.showNotification(`Failed saving edit: ${e.message}`, "error");
             applySuccess = false;
-            nextCycle = currentCycle; // Revert cycle advancement on error
+            nextCycle = currentCycle;
           }
         } else if (feedbackData.id === "full_html_source") {
-          // Full source was handled during event listener, just log here
           logger.logEvent("info", `Human edit for full_html_source processed.`);
-          // Cycle number might have been skipped depending on listener logic
-          applySuccess = true; // Assume listener handled success state
+          applySuccess = true;
         } else {
-          applySuccess = false; // If feedbackData.success was false
+          applySuccess = false;
         }
       } else if (feedbackType === "Human Options") {
         feedbackMsg = `Selected: ${feedbackData}`;
       }
-
-      // Update global state based on intervention outcome
       globalState.lastFeedback = `${feedbackType}: ${Utils.trunc(
         feedbackMsg,
         150
-      )}`; // Truncate feedback
-      // Record critique history: treat failed edits or discards as critique failures
+      )}`;
       globalState.critiqueFailHistory.push(
         !applySuccess ||
           feedbackType.includes("Fail") ||
@@ -4064,25 +3456,17 @@ const REPLOID_CORE = (() => {
       );
       if (globalState.critiqueFailHistory.length > 20)
         globalState.critiqueFailHistory.shift();
-
-      // Increment human intervention count if applicable
       if (feedbackType.startsWith("Human") && !skipCycleIncrement) {
         globalState.humanInterventions++;
       }
-
-      // Advance cycle count if intervention was successful and not skipped
       if (applySuccess && !skipCycleIncrement) {
-        // If nextCycle wasn't already advanced by code edit logic, advance it now
         if (nextCycle === currentCycle) {
           nextCycle = currentCycle + 1;
         }
         globalState.totalCycles = nextCycle;
       } else {
-        // Ensure nextCycle reflects the actual current cycle if advancement failed or was skipped
         nextCycle = globalState.totalCycles;
       }
-
-      // Summarize the previous cycle log item
       const summaryOutcome =
         !applySuccess ||
         feedbackType.includes("Fail") ||
@@ -4090,9 +3474,7 @@ const REPLOID_CORE = (() => {
           ? `Failed (${feedbackType})`
           : `OK (${feedbackType})`;
       UI.summarizeCompletedCycleLog(lastCycleLogItem, summaryOutcome);
-      lastCycleLogItem = null; // Clear the reference
-
-      // Log the end of intervention processing
+      lastCycleLogItem = null;
       UI.logToTimeline(
         currentCycle,
         `[STATE] ${feedbackType} processed. Feedback: "${Utils.trunc(
@@ -4101,76 +3483,60 @@ const REPLOID_CORE = (() => {
         )}..." Next Cycle: ${globalState.totalCycles}`,
         "info"
       );
-
-      // Reset UI and state for next cycle
       UI.hideHumanInterventionUI();
       globalState.personaMode =
-        globalState.cfg.personaBalance < 50 ? "XYZ" : "LSD"; // Reset persona based on config
-      globalState.retryCount = 0; // Reset retry count
-      UI.updateStateDisplay(); // Update all displays
-      UI.clearCurrentCycleDetails(); // Clear details pane
-      UI.logToTimeline(
-        globalState.totalCycles,
-        `[STATE] Ready for next action.`
-      );
-      if (uiRefs.goalInput) uiRefs.goalInput.value = ""; // Clear goal input
+        globalState.cfg.personaBalance < 50 ? "XYZ" : "LSD";
+      globalState.retryCount = 0;
+      UI.updateStateDisplay();
+      UI.clearCurrentCycleDetails();
+      UI.logToTimeline(globalState.totalCycles, `[STATE] Ready.`);
+      if (uiRefs.goalInput) uiRefs.goalInput.value = "";
       if (uiRefs.runCycleButton) {
         uiRefs.runCycleButton.textContent = "Run Cycle";
-        uiRefs.runCycleButton.disabled = false; // Re-enable button
+        uiRefs.runCycleButton.disabled = false;
       }
       UI.updateStatus("Idle");
-      UI.highlightCoreStep(-1); // Clear step highlight
-      StateManager.save(); // Save state after intervention
+      UI.highlightCoreStep(-1);
+      StateManager.save();
     },
 
-    // saveHtmlToHistory remains the same, uses globalState, UI, logger
     saveHtmlToHistory: (htmlContent) => {
-      /* ... as before, using logger.logEvent, UI.updateHtmlHistoryControls */
       if (!globalState) return;
       const limit = globalState.cfg?.htmlHistoryLimit ?? 5;
       if (!globalState.htmlHistory) globalState.htmlHistory = [];
-
       globalState.htmlHistory.push(htmlContent);
       while (globalState.htmlHistory.length > limit) {
-        globalState.htmlHistory.shift(); // Remove oldest entry
+        globalState.htmlHistory.shift();
       }
-      UI.updateHtmlHistoryControls(); // Update UI display
+      UI.updateHtmlHistoryControls();
       logger.logEvent(
         "info",
-        `Saved current HTML state to history. Size: ${globalState.htmlHistory.length}`
+        `Saved HTML state. History: ${globalState.htmlHistory.length}`
       );
     },
 
-    // handleSummarizeContext remains mostly the same, uses Storage, StateManager, ApiClient, UI callbacks
     handleSummarizeContext: async () => {
       if (!globalState || !globalState.apiKey) {
-        UI.showNotification(
-          "API Key is required for summarizing context.",
-          "warn"
-        );
+        UI.showNotification("API Key required.", "warn");
         return;
       }
       UI.updateStatus("Summarizing context...", true);
       const currentCycle = globalState.totalCycles;
-      const nextCycle = currentCycle + 1; // Summarization advances the cycle
-
+      const nextCycle = currentCycle + 1;
       UI.logToTimeline(
         currentCycle,
-        "[CTX] Resetting context - running summarization...",
+        "[CTX] Running summarization...",
         "info",
         true
       );
-      UI.clearCurrentCycleDetails(); // Clear current details
-
+      UI.clearCurrentCycleDetails();
       try {
-        // Create a snapshot of relevant state for the summarizer prompt
         const stateSummary = {
           totalCycles: globalState.totalCycles,
           agentIterations: globalState.agentIterations,
           humanInterventions: globalState.humanInterventions,
           failCount: globalState.failCount,
           currentGoal: {
-            // Only include essential goal info
             seed: Utils.trunc(globalState.currentGoal.seed, 200),
             cumulative: Utils.trunc(globalState.currentGoal.cumulative, 500),
             latestType: globalState.currentGoal.latestType,
@@ -4179,42 +3545,35 @@ const REPLOID_CORE = (() => {
           lastFeedback: Utils.trunc(globalState.lastFeedback, 200),
           avgConfidence: globalState.avgConfidence?.toFixed(2),
           critiqueFailRate: globalState.critiqueFailRate?.toFixed(1),
-          dynamicTools: dynamicToolDefinitions.map((t) => t.declaration.name), // List tool names
+          dynamicTools: dynamicToolDefinitions.map((t) => t.declaration.name),
           artifactOverview: Object.values(StateManager.getAllArtifactMetadata())
-            .map((a) => `${a.id}(${a.type},C${a.latestCycle})`) // Concise overview
+            .map((a) => `${a.id}(${a.type},C${a.latestCycle})`)
             .join(", "),
         };
-
         const summaryText = await CycleLogic.runSummarization(
           globalState.apiKey,
           stateSummary
         );
-
-        // Save the summary as a new artifact version
         Storage.setArtifactContent(
           "meta.summary_context",
           nextCycle,
           summaryText
-        ); // Use Storage
-        // ** Update metadata AFTER saving **
+        );
         StateManager.updateArtifactMetadata(
           "meta.summary_context",
           "TEXT",
-          "Last Auto-Generated Context Summary",
+          "Last Context Summary",
           nextCycle
         );
-
-        // Update global state with the new summary and reset context estimate
         globalState.currentGoal.summaryContext = summaryText;
         globalState.contextTokenEstimate =
-          Math.round((summaryText.length / 4) * 1.1) + 500; // Estimate new token count
-        globalState.lastFeedback = `Context automatically summarized at Cycle ${currentCycle}.`;
+          Math.round((summaryText.length / 4) * 1.1) + 500;
+        globalState.lastFeedback = `Context summarized at Cycle ${currentCycle}.`;
         globalState.lastCritiqueType = "Context Summary";
-        globalState.totalCycles = nextCycle; // Advance cycle
-
+        globalState.totalCycles = nextCycle;
         UI.logToTimeline(
           currentCycle,
-          `[CTX] Context summarized. Saved as meta.summary_context_${nextCycle}. New est. tokens: ${globalState.contextTokenEstimate.toLocaleString()}. Ready for next goal.`,
+          `[CTX] Summarized. Saved as meta.summary_context_${nextCycle}. Est. tokens: ${globalState.contextTokenEstimate.toLocaleString()}.`,
           "info"
         );
         UI.displayCycleArtifact(
@@ -4226,120 +3585,74 @@ const REPLOID_CORE = (() => {
           "meta.summary_context",
           nextCycle
         );
-        UI.showNotification(
-          "Context summarized and saved. Ready for next goal.",
-          "info"
-        );
+        UI.showNotification("Context summarized.", "info");
       } catch (error) {
-        logger.logEvent(
-          "error",
-          `Context summarization failed: ${error.message}`
-        );
-        UI.showNotification(
-          `Context summarization failed: ${error.message}`,
-          "error"
-        );
+        logger.logEvent("error", `Summarization failed: ${error.message}`);
+        UI.showNotification(`Summarization failed: ${error.message}`, "error");
         UI.logToTimeline(
           currentCycle,
-          `[CTX ERR] Context summarization failed: ${error.message}`,
+          `[CTX ERR] Summarization failed: ${error.message}`,
           "error"
         );
-        // Do NOT advance cycle count if summarization fails
       } finally {
-        UI.updateStateDisplay(); // Update UI reflecting new cycle count/state
+        UI.updateStateDisplay();
         UI.updateStatus("Idle");
-        // No specific step highlight for summarization
-        StateManager.save(); // Save the updated state (new cycle, summary context, etc.)
+        StateManager.save();
       }
     },
 
-    // executeCycle remains the main orchestrator
-    // Uses other CycleLogic methods, StateManager, UI, Storage
     executeCycle: async () => {
       if (!globalState) {
         UI.showNotification("State not initialized!", "error");
         return;
       }
       if (metaSandboxPending) {
-        UI.showNotification(
-          "Cannot run cycle while Meta Sandbox is pending.",
-          "warn"
-        );
+        UI.showNotification("Meta Sandbox pending.", "warn");
         return;
       }
       if (!uiRefs.humanInterventionSection?.classList.contains("hidden")) {
-        UI.showNotification(
-          "Cannot run cycle while Human Intervention is required.",
-          "warn"
-        );
+        UI.showNotification("Human Intervention required.", "warn");
         return;
       }
-
-      // Summarize previous log if interrupted
       if (lastCycleLogItem)
         UI.summarizeCompletedCycleLog(lastCycleLogItem, "Interrupted");
-
       UI.clearCurrentCycleDetails();
-      currentLlmResponse = null; // Reset last response
-
-      // Ensure API key is available
-      globalState.apiKey =
-        uiRefs.apiKeyInput.value.trim() || APP_CONFIG.API_KEY; // Update from input
-      if (
-        !globalState.apiKey ||
-        globalState.apiKey === "<nope>" ||
-        globalState.apiKey.length < 10
-      ) {
-        UI.showNotification(
-          "Valid Gemini API Key required in config or input field.",
-          "warn"
-        );
+      currentLlmResponse = null;
+      globalState.apiKey = uiRefs.apiKeyInput.value.trim(); // Removed || APP_CONFIG.API_KEY fallback
+      if (!globalState.apiKey || globalState.apiKey.length < 10) {
+        UI.showNotification("Valid Gemini API Key required.", "warn");
         return;
       }
-
-      // --- Goal Definition (Step 1) ---
       UI.logCoreLoopStep(globalState.totalCycles, 0, "Define Goal");
       const goalText = uiRefs.goalInput.value.trim();
       const goalTypeElement = document.querySelector(
         'input[name="goalType"]:checked'
       );
-      const goalType = goalTypeElement ? goalTypeElement.value : "System"; // Default goal type
-
-      // Require initial goal if none exists
+      const goalType = goalTypeElement ? goalTypeElement.value : "System";
       if (!goalText && !globalState.currentGoal.seed) {
-        UI.showNotification("Initial Goal Input required.", "warn");
+        UI.showNotification("Initial Goal required.", "warn");
         return;
       }
-
-      // Check max cycles limit
       const maxC = globalState.cfg.maxCycles || 0;
       if (maxC > 0 && globalState.totalCycles >= maxC) {
         UI.showNotification(`Max cycles (${maxC}) reached.`, "info");
         if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true;
         return;
       }
-
-      // Check context token warning threshold
       if (globalState.contextTokenEstimate >= CTX_WARN_THRESH) {
         UI.showNotification(
-          "Context token estimate is high. Consider summarizing context.",
+          "Context tokens high. Consider summarizing.",
           "warn"
         );
-        // Optionally, force summarization or require user confirmation?
       }
-
       const currentCycle = globalState.totalCycles;
       const newGoalProvided = !!goalText;
-
-      // Update cumulative goal if new input provided
       if (newGoalProvided) {
         if (!globalState.currentGoal.seed) {
-          // First goal ever
           globalState.currentGoal.seed = goalText;
           globalState.currentGoal.cumulative = goalText;
           globalState.currentGoal.latestType = goalType;
         } else {
-          // Subsequent goal/refinement
           globalState.currentGoal.cumulative += `\n\n[Cycle ${currentCycle} Refinement (${goalType})]: ${goalText}`;
           globalState.currentGoal.latestType = goalType;
         }
@@ -4353,18 +3666,11 @@ const REPLOID_CORE = (() => {
           currentCycle
         );
       } else if (!globalState.currentGoal.seed) {
-        // This case should be caught earlier, but double-check
-        UI.showNotification(
-          "No goal provided and no seed goal exists.",
-          "error"
-        );
+        UI.showNotification("No goal provided.", "error");
         return;
       }
-      // Goal is now set (either new or existing)
       const goalInfo = CycleLogic.getActiveGoalInfo();
-      globalState.retryCount = 0; // Reset retry count for the new cycle
-
-      // --- UI Updates & Logging Start ---
+      globalState.retryCount = 0;
       if (uiRefs.currentCycleNumber)
         uiRefs.currentCycleNumber.textContent = currentCycle;
       if (uiRefs.runCycleButton) {
@@ -4372,7 +3678,7 @@ const REPLOID_CORE = (() => {
         uiRefs.runCycleButton.textContent = "Processing...";
       }
       UI.updateStatus("Starting Cycle...", true);
-      UI.updateStateDisplay(); // Reflect new goal info, etc.
+      UI.updateStateDisplay();
       lastCycleLogItem = UI.logToTimeline(
         currentCycle,
         `[CYCLE] === Cycle ${currentCycle} Start === Latest Goal Type: ${goalInfo.type}`
@@ -4392,15 +3698,13 @@ const REPLOID_CORE = (() => {
         "goal.cumulative",
         currentCycle
       );
-      UI.renderDiagramDisplay(currentCycle); // Show diagram for current state
-
-      // --- Core Iteration Attempt Loop (Handles Retries) ---
+      UI.renderDiagramDisplay(currentCycle);
       let iterationResult = null;
       let successfulIteration = false;
       do {
         UI.logToTimeline(
           currentCycle,
-          `[STATE] Starting Agent Iteration Attempt (Retry: ${globalState.retryCount})`,
+          `[STATE] Agent Iteration Attempt (Retry: ${globalState.retryCount})`,
           "info",
           true
         );
@@ -4408,7 +3712,6 @@ const REPLOID_CORE = (() => {
           globalState.apiKey,
           goalInfo
         );
-
         if (iterationResult.error || !iterationResult.response) {
           logger.logEvent(
             "error",
@@ -4420,19 +3723,19 @@ const REPLOID_CORE = (() => {
           if (globalState.retryCount > globalState.cfg.maxRetries) {
             UI.logToTimeline(
               currentCycle,
-              `[RETRY] Max retries (${globalState.cfg.maxRetries}) exceeded. Forcing Human Intervention.`,
+              `[RETRY] Max retries exceeded. Forcing HITL.`,
               "error"
             );
-            globalState.failCount++; // Increment fail count
+            globalState.failCount++;
             UI.updateMetricsDisplay();
             UI.showHumanInterventionUI(
               "prompt",
               `Cycle failed after ${globalState.retryCount} attempts: ${
-                iterationResult.error || "Unknown error"
+                iterationResult.error || "Unknown"
               }`
             );
-            StateManager.save(); // Save state before pausing for HITL
-            return; // Exit cycle execution
+            StateManager.save();
+            return;
           } else {
             UI.logToTimeline(
               currentCycle,
@@ -4445,11 +3748,11 @@ const REPLOID_CORE = (() => {
             }`;
             await new Promise((r) =>
               setTimeout(r, 1000 * globalState.retryCount)
-            ); // Exponential backoff?
+            );
           }
         } else {
           successfulIteration = true;
-          globalState.retryCount = 0; // Reset on success
+          globalState.retryCount = 0;
           UI.logToTimeline(
             currentCycle,
             `[STATE] Agent Iteration successful.`,
@@ -4458,11 +3761,7 @@ const REPLOID_CORE = (() => {
           );
         }
       } while (!successfulIteration);
-
-      // --- Process Successful Iteration Result ---
-      currentLlmResponse = iterationResult.response; // Store the successful response
-
-      // Display key parts of the LLM response
+      currentLlmResponse = iterationResult.response;
       UI.displayCycleArtifact(
         "Agent Deliberation",
         currentLlmResponse.persona_analysis_musing || "(N/A)",
@@ -4499,8 +3798,6 @@ const REPLOID_CORE = (() => {
         "llm.confidence",
         currentCycle
       );
-
-      // --- Critique Trigger Check (Step 5) ---
       UI.logCoreLoopStep(currentCycle, 4, "Critique Trigger Check");
       const { cycleTimeMillis } = iterationResult;
       const cycleSecs = cycleTimeMillis / 1000;
@@ -4510,16 +3807,13 @@ const REPLOID_CORE = (() => {
       const humanProb = (globalState.cfg.humanReviewProb ?? 50) / 100.0;
       const llmProb = (globalState.cfg.llmCritiqueProb ?? 50) / 100.0;
       const maxTime = globalState.cfg.maxCycleTime ?? 600;
-
       let humanNeeded = false;
       let critReason = "";
-      let hitlModePref = "prompt"; // Default HITL mode
-
-      // Determine if human intervention is needed
+      let hitlModePref = "prompt";
       if (globalState.forceHumanReview) {
         humanNeeded = true;
         critReason = "Forced Review";
-        globalState.forceHumanReview = false; // Reset flag
+        globalState.forceHumanReview = false;
       } else if (
         pauseThresh > 0 &&
         currentCycle > 0 &&
@@ -4530,38 +3824,33 @@ const REPLOID_CORE = (() => {
       } else if (Math.random() < humanProb) {
         humanNeeded = true;
         critReason = `Random Review (${(humanProb * 100).toFixed(0)}%)`;
-        hitlModePref = "code_edit"; // Prefer code edit on random review
+        hitlModePref = "code_edit";
       } else if (cycleSecs > maxTime) {
         humanNeeded = true;
-        critReason = `Time Limit Exceeded (${cycleSecs.toFixed(
-          1
-        )}s > ${maxTime}s)`;
+        critReason = `Time Limit (${cycleSecs.toFixed(1)}s > ${maxTime}s)`;
       } else if (confidence < confThresh) {
         humanNeeded = true;
         critReason = `Low Confidence (${confidence.toFixed(
           2
         )} < ${confThresh})`;
       }
-
       UI.logToTimeline(
         currentCycle,
         `[DECIDE] Time:${cycleSecs.toFixed(1)}s, Conf:${confidence.toFixed(
           2
-        )}. Human Needed: ${humanNeeded ? critReason : "No"}.`,
+        )}. Human: ${humanNeeded ? critReason : "No"}.`,
         "info",
         true
       );
-
       let critiquePassed = false;
       let critiqueReport = "Critique Skipped";
-      let applySource = "Skipped"; // Source for logging changes
-
+      let applySource = "Skipped";
       if (humanNeeded) {
-        critiquePassed = false; // Human needed means critique effectively "failed" or was bypassed
-        critiqueReport = `Human Intervention Required: ${critReason}`;
-        applySource = "Human"; // Changes will come from human input
+        critiquePassed = false;
+        critiqueReport = `Human Intervention: ${critReason}`;
+        applySource = "Human";
         globalState.lastCritiqueType = `Human (${critReason})`;
-        globalState.critiqueFailHistory.push(false); // Human review isn't inherently a critique fail
+        globalState.critiqueFailHistory.push(false);
         UI.updateMetricsDisplay();
         UI.logCoreLoopStep(
           currentCycle,
@@ -4569,30 +3858,24 @@ const REPLOID_CORE = (() => {
           `Critique: Human Intervention (${critReason})`
         );
         UI.updateStatus(`Paused: Human Review (${critReason})`);
-
-        // Determine artifact to suggest for editing
         const firstModifiedId = currentLlmResponse.modified_artifacts?.[0]?.id;
         const firstNewId = currentLlmResponse.new_artifacts?.[0]?.id;
         const artifactToEdit =
           firstModifiedId ||
           firstNewId ||
           (currentLlmResponse.full_html_source ? "full_html_source" : null);
-
         UI.showHumanInterventionUI(
           hitlModePref,
           critReason,
           [],
           artifactToEdit
         );
-        StateManager.save(); // Save state before pausing for HITL
-        return; // Exit cycle execution, wait for human
+        StateManager.save();
+        return;
       } else if (Math.random() < llmProb) {
-        // Check probability for auto-critique
         UI.logToTimeline(
           currentCycle,
-          `[DECIDE] Triggering Auto Critique (${(llmProb * 100).toFixed(
-            0
-          )}% chance).`,
+          `[DECIDE] Triggering Auto Critique (${(llmProb * 100).toFixed(0)}%).`,
           "info",
           true
         );
@@ -4608,7 +3891,7 @@ const REPLOID_CORE = (() => {
         globalState.lastCritiqueType = `Automated (${
           critiquePassed ? "Pass" : "Fail"
         })`;
-        globalState.critiqueFailHistory.push(!critiquePassed); // Record failure if critique_passed is false
+        globalState.critiqueFailHistory.push(!critiquePassed);
         UI.updateMetricsDisplay();
         UI.logToTimeline(
           currentCycle,
@@ -4619,7 +3902,7 @@ const REPLOID_CORE = (() => {
           true
         );
         UI.displayCycleArtifact(
-          "Automated Critique Report",
+          "Auto Critique Report",
           critiqueReport,
           critiquePassed ? "info" : "error",
           false,
@@ -4627,43 +3910,36 @@ const REPLOID_CORE = (() => {
           "critique.report",
           currentCycle
         );
-
         if (!critiquePassed) {
           UI.logToTimeline(
             currentCycle,
-            `[STATE] Auto-Critique failed. Forcing Human Intervention.`,
+            `[STATE] Auto-Critique failed. Forcing HITL.`,
             "warn",
             true
           );
-          globalState.failCount++; // Increment fail count on critique fail
+          globalState.failCount++;
           UI.updateMetricsDisplay();
           UI.showHumanInterventionUI(
             "prompt",
-            `Automated Critique Failed: ${Utils.trunc(critiqueReport, 150)}...`
+            `Auto Critique Failed: ${Utils.trunc(critiqueReport, 150)}...`
           );
-          StateManager.save(); // Save state before pausing
-          return; // Exit cycle execution, wait for human
+          StateManager.save();
+          return;
         }
       } else {
-        // Critique skipped
-        critiquePassed = true; // Effectively passed as it wasn't needed/triggered
+        critiquePassed = true;
         applySource = "Skipped";
         globalState.lastCritiqueType = "Skipped";
-        globalState.critiqueFailHistory.push(false); // Skipped is not a fail
+        globalState.critiqueFailHistory.push(false);
         UI.updateMetricsDisplay();
         UI.logCoreLoopStep(currentCycle, 5, "Critique: Skipped");
         UI.logToTimeline(
           currentCycle,
-          `[DECIDE] Critique Skipped (Below ${(llmProb * 100).toFixed(
-            0
-          )}% threshold). Applying directly.`,
+          `[DECIDE] Critique Skipped (Below threshold). Applying.`,
           "info",
           true
         );
       }
-
-      // --- Apply Changes (Step 7) ---
-      // Only reached if human intervention wasn't required OR auto-critique passed
       if (critiquePassed) {
         UI.updateStatus("Applying Changes...", true);
         UI.logCoreLoopStep(currentCycle, 6, "Refine & Apply");
@@ -4672,146 +3948,246 @@ const REPLOID_CORE = (() => {
           currentCycle,
           applySource
         );
-
-        // Check if sandbox was triggered - if so, the cycle pauses there
         if (metaSandboxPending) {
           globalState.lastCritiqueType = `${applySource} (Sandbox Pending)`;
           UI.updateStateDisplay();
           UI.updateStatus("Awaiting Meta Sandbox Approval...");
-          UI.highlightCoreStep(6); // Keep Apply step highlighted
-          StateManager.save(); // Save state before pausing for sandbox
-          return; // Exit cycle execution
+          UI.highlightCoreStep(6);
+          StateManager.save();
+          return;
         }
-
-        // --- Finalize Cycle (If no sandbox) ---
         if (applyResult.success) {
-          globalState.agentIterations++; // Increment successful agent iterations
+          globalState.agentIterations++;
           globalState.lastFeedback = `${applySource}, applied successfully for Cycle ${applyResult.nextCycle}.`;
         } else {
-          // Application failed after critique passed/skipped
-          globalState.lastFeedback = `${applySource}, but application failed: ${applyResult.errors.join(
+          globalState.lastFeedback = `${applySource}, apply failed: ${applyResult.errors.join(
             ", "
           )}`;
-          globalState.failCount++; // Increment fail count
+          globalState.failCount++;
           UI.updateMetricsDisplay();
           UI.logToTimeline(
             currentCycle,
-            `[APPLY ERR] Failed to apply changes: ${applyResult.errors.join(
+            `[APPLY ERR] Failed apply: ${applyResult.errors.join(
               ", "
-            )}. Forcing Human Intervention.`,
+            )}. Forcing HITL.`,
             "error"
           );
           UI.showHumanInterventionUI(
             "prompt",
-            `Failed to apply changes after critique: ${applyResult.errors.join(
-              ", "
-            )}`
+            `Failed apply after critique: ${applyResult.errors.join(", ")}`
           );
-          StateManager.save(); // Save state before pausing
-          return; // Exit cycle execution
+          StateManager.save();
+          return;
         }
-
-        // Summarize completed log item
         const summaryOutcome = applyResult.success
           ? `OK (${globalState.lastCritiqueType})`
           : `Failed (Apply Fail after ${globalState.lastCritiqueType})`;
         UI.summarizeCompletedCycleLog(lastCycleLogItem, summaryOutcome);
-        lastCycleLogItem = null; // Clear ref
-
-        // Prepare for next cycle
-        UI.updateStateDisplay(); // Reflect new cycle number, stats
+        lastCycleLogItem = null;
+        UI.updateStateDisplay();
         UI.clearCurrentCycleDetails();
-        UI.logCoreLoopStep(applyResult.nextCycle - 1, 7, "Repeat/Pause"); // Log against the cycle that just finished
+        UI.logCoreLoopStep(applyResult.nextCycle - 1, 7, "Repeat/Pause");
         UI.logToTimeline(
           globalState.totalCycles,
-          `[STATE] Cycle ended (${globalState.lastCritiqueType}). Ready for action.`
+          `[STATE] Cycle ended (${globalState.lastCritiqueType}). Ready.`
         );
-        if (uiRefs.goalInput) uiRefs.goalInput.value = ""; // Clear goal input
+        if (uiRefs.goalInput) uiRefs.goalInput.value = "";
         if (uiRefs.runCycleButton) {
           uiRefs.runCycleButton.disabled = false;
           uiRefs.runCycleButton.textContent = "Run Cycle";
         }
         UI.updateStatus("Idle");
-        UI.highlightCoreStep(-1); // Clear highlight
+        UI.highlightCoreStep(-1);
       } else {
-        // This block should technically not be reached if logic above is correct
         logger.logEvent(
           "error",
-          "Reached end of cycle execution unexpectedly after critique check."
+          "Reached end of cycle unexpectedly after critique check."
         );
         UI.updateStatus("Error", false, true);
       }
-
-      StateManager.save(); // Save state at the end of a successful cycle or before exiting
+      StateManager.save();
     },
   }; // End CycleLogic
 
-  // --- Initialization Function ---
+  // --- ToolRunner Module --- (Placeholder - Needs Implementation)
+  const ToolRunner = {
+    runTool: async (
+      toolName,
+      args,
+      apiKey,
+      staticToolDefs,
+      dynamicToolDefs
+    ) => {
+      logger.logEvent("info", `Attempting to run tool: ${toolName}`);
+      // Find tool definition (check dynamic first, then static)
+      let toolDef = dynamicToolDefs.find(
+        (t) => t.declaration.name === toolName
+      );
+      let isStatic = false;
+      if (!toolDef) {
+        toolDef = staticToolDefs.find((t) => t.name === toolName);
+        isStatic = true;
+      }
+
+      if (!toolDef) {
+        throw new Error(`Tool '${toolName}' not found.`);
+      }
+
+      if (isStatic) {
+        // Implement static tool logic here or dispatch
+        switch (toolName) {
+          case "code_linter":
+          case "json_validator":
+          case "diagram_schema_validator":
+          case "svg_diagram_renderer":
+          case "token_counter":
+          case "self_correction":
+            logger.logEvent(
+              "warn",
+              `Static tool '${toolName}' execution not fully implemented.`
+            );
+            return {
+              success: true,
+              message: `Static tool ${toolName} placeholder executed.`,
+              argsReceived: args,
+            };
+          default:
+            throw new Error(`Unknown static tool: ${toolName}`);
+        }
+      } else {
+        // Dynamic tool execution (using Web Worker)
+        logger.logEvent(
+          "info",
+          `Running dynamic tool '${toolName}' in worker.`
+        );
+        const workerScriptContent = toolDef.implementation;
+        return new Promise((resolve, reject) => {
+          // Create a worker from a Blob URL
+          const blob = new Blob(
+            [
+              `
+                      self.onmessage = async (e) => {
+                          const { toolArgs } = e.data;
+                          let result;
+                          let error = null;
+                          try {
+                              // --- Injected Tool Implementation ---
+                              ${workerScriptContent}
+                              // ------------------------------------
+                              // Assume implementation defines an async function named 'run'
+                              if (typeof run !== 'function') {
+                                 throw new Error("Tool implementation must define an async function named 'run'.");
+                              }
+                              result = await run(toolArgs);
+                          } catch (err) {
+                              error = err.message || String(err);
+                          }
+                          self.postMessage({ result, error });
+                          self.close(); // Terminate worker after execution
+                      };
+                      `,
+            ],
+            { type: "application/javascript" }
+          );
+          const workerUrl = URL.createObjectURL(blob);
+          const worker = new Worker(workerUrl);
+
+          const timeout = setTimeout(() => {
+            worker.terminate();
+            URL.revokeObjectURL(workerUrl);
+            reject(new Error(`Tool '${toolName}' timed out after 10 seconds.`));
+          }, 10000); // 10 second timeout
+
+          worker.onmessage = (e) => {
+            clearTimeout(timeout);
+            URL.revokeObjectURL(workerUrl);
+            if (e.data.error) {
+              reject(new Error(`Tool '${toolName}' error: ${e.data.error}`));
+            } else {
+              resolve(e.data.result);
+            }
+          };
+
+          worker.onerror = (e) => {
+            clearTimeout(timeout);
+            URL.revokeObjectURL(workerUrl);
+            reject(new Error(`Tool '${toolName}' worker error: ${e.message}`));
+          };
+
+          worker.postMessage({ toolArgs: args });
+        });
+      }
+    },
+  }; // End ToolRunner
+
   const initialize = () => {
+    if (!isCoreInitialized) {
+      console.error(
+        "Attempting core initialization before dependencies are ready."
+      );
+      // Try loading dependencies again just in case
+      try {
+        initializeCoreDependencies();
+      } catch (depError) {
+        console.error(
+          "FATAL: Core dependency initialization failed.",
+          depError
+        );
+        // Display a user-facing error message
+        const body = document.body;
+        if (body) {
+          body.innerHTML = `<div style="color:red; padding: 20px; font-family: monospace;">
+                    <h1>FATAL ERROR</h1>
+                    <p>Could not load core REPLOID dependencies (Utils/Storage). Check console.</p>
+                    <p>Ensure 'core_utils_script.js' and 'core_storage_script.js' artifacts exist in localStorage (Cycle 0) and are correctly formatted.</p>
+                </div>`;
+        }
+        return; // Stop initialization
+      }
+    }
+
     logger.logEvent("info", `Initializing x0 Engine v${Utils.STATE_VERSION}`);
     UI.updateStatus("Initializing...");
-
-    const loadedExistingState = StateManager.init(); // Tries to load state from Storage
-    const restoredFromSession = StateManager.restoreStateFromSession(); // Tries to restore state from SessionStorage
-
-    // Only do standard UI setup if NOT restored from session (restore handles its own UI setup)
+    const loadedExistingState = StateManager.init();
+    const restoredFromSession = StateManager.restoreStateFromSession();
     if (!restoredFromSession) {
-      UI.initializeUIElementReferences(); // Get UI element refs
+      UI.initializeUIElementReferences();
       if (loadedExistingState) {
-        logger.logEvent("info", "Loaded existing state from localStorage.");
+        logger.logEvent("info", "Loaded existing state.");
         UI.logToTimeline(
           globalState.totalCycles,
           "[STATE] System Initialized (Loaded Session)."
         );
       } else {
-        logger.logEvent("info", "Initialized with new default state.");
+        logger.logEvent("info", "Initialized new default state.");
         UI.logToTimeline(0, "[STATE] System Initialized (New Session).");
-        // On first run with new state, maybe save default artifacts from files?
-        // This would require fetching logic, perhaps moved from original bootstrap
-        // Example: loadDefaultArtifactsIntoStorageIfMissing();
       }
-      // Initial UI setup based on loaded/new state
       UI.updateStateDisplay();
-      UI.renderGeneratedUI(globalState.totalCycles); // Render initial preview
+      UI.renderGeneratedUI(globalState.totalCycles);
       UI.displayGenesisState();
       UI.loadPromptsFromLS();
       UI.loadCoreLoopSteps();
     }
-    // These run regardless of restore source
-    UI.populateModelSelectors(); // Populate dropdowns
-    UI.setupEventListeners(); // Setup button clicks, input changes etc.
-    UI.highlightCoreStep(-1); // Ensure no step is highlighted initially
+    UI.populateModelSelectors();
+    UI.setupEventListeners();
+    UI.highlightCoreStep(-1);
     UI.updateStatus("Idle");
-
-    // Collapse fieldsets by default for cleaner initial view
     document
       .querySelectorAll("fieldset")
       .forEach((fs) => fs.classList.add("collapsed"));
-    // Expand specific ones if desired
     Utils.$id("controls-fieldset")?.classList.remove("collapsed");
     Utils.$id("current-cycle-details")?.classList.remove("collapsed");
-
-    UI.updateFieldsetSummaries(); // Update summaries after collapsing/expanding
-
+    UI.updateFieldsetSummaries();
     logger.logEvent("info", "Initialization complete.");
   };
 
-  // --- Public API of REPLOID_CORE ---
-  return {
-    initialize,
-    // Expose other modules/methods if needed for debugging or external interaction
-    // _state: StateManager, // For debug
-    // _ui: UI,             // For debug
-    // _cycle: CycleLogic   // For debug
-  };
+  return { initialize };
 })();
 
-// --- Auto-Initialize ---
-// Ensure the DOM is ready before initializing CORE, especially if not using defer
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", REPLOID_CORE.initialize);
 } else {
   REPLOID_CORE.initialize();
 }
 
-console.log("reploid_core.js loaded and initialized");
+console.log("reploid_core.js loaded and initialization process started.");
