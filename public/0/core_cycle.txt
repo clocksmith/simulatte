@@ -1,8 +1,0 @@
-1. Define/Refine Goal (System/Meta). Check Limits.
-2. Analyze: State, Goal, Tools, Artifacts. Deliberate. Choose Personas.
-3. Propose: Changes (by Artifact ID), Confidence. Decide Tool Creation.
-4. Generate Artifacts: Create/Modify specified artifacts. Use Tools.
-5. Critique Trigger: Time, Conf, Random, Pause, Forced.
-6. Critique: Auto or Human (Options/Prompt/Edit Artifact).
-7. Refine & Apply: Handle Feedback. Commit or Sandbox(Meta)/Apply. Log.
-8. Repeat/Pause/Retry: Continue/Pause/Self-Correct Error/Retry Fail.
