@@ -35,6 +35,14 @@
         margin: 0.6em 0;
         user-select: none;
       }
+      .content a {
+        color: #0f0;
+        text-decoration: none;
+        pointer-events: auto;
+      }
+      .content a:hover {
+        text-decoration: underline;
+      }
       .starfield-bg,
       .network-bg {
         position: fixed;
@@ -65,6 +73,7 @@
         background-color: white;
         border-radius: 50%;
         transition: opacity 0.5s linear;
+        transform-origin: center center;
       }
       @keyframes twinkle {
         0% {
@@ -97,9 +106,10 @@
       }
       .controls {
         position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
+        bottom: 15px;
+        right: 15px;
+        left: auto;
+        width: auto;
         background: rgba(0, 0, 0, 0.8);
         padding: 8px 15px;
         box-sizing: border-box;
@@ -107,14 +117,15 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        border-top: 1px solid #444;
-        align-items: flex-start;
+        border: 1px solid #444;
+        border-radius: 5px;
+        align-items: flex-end;
       }
       .control-row {
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: flex-end;
         gap: 12px;
         flex-wrap: wrap;
         width: 100%;
@@ -126,7 +137,6 @@
         align-items: center;
         gap: 5px;
         white-space: nowrap;
-        margin-right: 8px;
       }
       .controls input[type="checkbox"] {
         vertical-align: middle;
@@ -135,6 +145,7 @@
         accent-color: #0f0;
         width: 14px;
         height: 14px;
+        order: 1;
       }
       .controls input[type="range"] {
         width: 80px;
@@ -166,7 +177,7 @@
         border: none;
       }
       .controls span {
-        min-width: 30px;
+        min-width: 35px;
         display: inline-block;
         text-align: right;
         color: #fff;
@@ -184,48 +195,27 @@
       <br />
       <p>an n-gram and anagram collective</p>
       <p>created for mages who like games</p>
+      <p>
+        <sub>some</sub>d<sup>emos</sup>
+        <a href="/2">d<sup>2</sup></a>
+        <a href="/4">d<sup>4</sup></a>
+        <a href="/0">d<sup>0</sup></a>
+      </p>
     </div>
 
     <div class="controls">
       <div class="control-row">
-        <label
-          >Network: <input type="checkbox" id="showNetwork" checked />
-        </label>
         <label>
-          Vertices:
+          Line Life (s):
           <input
             type="range"
-            id="numVertices"
-            min="10"
-            max="200"
-            value="64"
+            id="lineLife"
+            min="1"
+            max="15"
+            value="5"
             step="1"
           />
-          <span id="numVerticesValue">64</span>
-        </label>
-        <label>
-          Connect Dist:
-          <input
-            type="range"
-            id="maxLineDist"
-            min="20"
-            max="300"
-            value="100"
-            step="5"
-          />
-          <span id="maxLineDistValue">100</span>
-        </label>
-        <label>
-          Density:
-          <input
-            type="range"
-            id="connectionDensity"
-            min="0.01"
-            max="0.5"
-            value="0.1"
-            step="0.01"
-          />
-          <span id="connectionDensityValue">0.10</span>
+          <span id="lineLifeValue">5</span>
         </label>
         <label>
           Vertex Speed:
@@ -240,45 +230,49 @@
           <span id="vertexSpeedValue">0.5</span>
         </label>
         <label>
-          Line Life (s):
+          Density:
           <input
             type="range"
-            id="lineLife"
-            min="1"
-            max="15"
-            value="5"
+            id="connectionDensity"
+            min="0.01"
+            max="0.5"
+            value="0.1"
+            step="0.01"
+          />
+          <span id="connectionDensityValue">0.10</span>
+        </label>
+        <label>
+          Connect Dist:
+          <input
+            type="range"
+            id="maxLineDist"
+            min="20"
+            max="300"
+            value="100"
+            step="5"
+          />
+          <span id="maxLineDistValue">100</span>
+        </label>
+        <label>
+          Vertices:
+          <input
+            type="range"
+            id="numVertices"
+            min="10"
+            max="200"
+            value="64"
             step="1"
           />
-          <span id="lineLifeValue">5</span>
+          <span id="numVerticesValue">64</span>
+        </label>
+        <label
+          >Network: <input type="checkbox" id="showNetwork" checked />
         </label>
       </div>
       <div class="control-row">
-        <label> Starfield: <input type="checkbox" id="showStarfield" /> </label>
         <label>
-          Stars:
-          <input
-            type="range"
-            id="numStars"
-            min="50"
-            max="1000"
-            value="300"
-            step="10"
-          />
-          <span id="numStarsValue">300</span>
+          Twinkle: <input type="checkbox" id="starTwinkle" checked />
         </label>
-        <label>
-          Warp Speed:
-          <input
-            type="range"
-            id="warpSpeed"
-            min="0.1"
-            max="5"
-            value="0.5"
-            step="0.1"
-          />
-          <span id="warpSpeedValue">0.5</span>
-        </label>
-        <label> Vortex Mode: <input type="checkbox" id="vortexMode" /> </label>
         <label>
           Vortex Str:
           <input
@@ -291,9 +285,32 @@
           />
           <span id="vortexStrengthValue">0.010</span>
         </label>
+        <label> Vortex Mode: <input type="checkbox" id="vortexMode" /> </label>
         <label>
-          Twinkle: <input type="checkbox" id="starTwinkle" checked />
+          Warp Speed:
+          <input
+            type="range"
+            id="warpSpeed"
+            min="0.1"
+            max="5"
+            value="0.5"
+            step="0.1"
+          />
+          <span id="warpSpeedValue">0.5</span>
         </label>
+        <label>
+          Stars:
+          <input
+            type="range"
+            id="numStars"
+            min="50"
+            max="1000"
+            value="300"
+            step="10"
+          />
+          <span id="numStarsValue">300</span>
+        </label>
+        <label> Starfield: <input type="checkbox" id="showStarfield" /> </label>
       </div>
     </div>
 
@@ -343,6 +360,11 @@
         networkSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
         starfieldContainer.style.width = `${width}px`;
         starfieldContainer.style.height = `${height}px`;
+        stars.forEach((star) => {
+          if (star.x > width || star.y > height || star.x < 0 || star.y < 0) {
+            resetStar(star);
+          }
+        });
       }
       window.addEventListener("resize", resizeHandler);
 
@@ -394,6 +416,12 @@
         vertex.el.style.opacity = vertex.opacity;
       }
 
+      function calculateEffectiveMaxLineDist() {
+        const referenceDimension = 800;
+        const currentDimension = Math.sqrt(width * height);
+        return config.maxLineDist * (currentDimension / referenceDimension);
+      }
+
       function createLine(v1, v2) {
         const line = document.createElementNS(svgNS, "line");
         line.setAttribute("x1", v1.x);
@@ -420,6 +448,7 @@
             (l) => `${Math.min(l.v1.id, l.v2.id)}-${Math.max(l.v1.id, l.v2.id)}`
           )
         );
+        const effectiveMaxDist = calculateEffectiveMaxLineDist();
 
         for (let i = 0; i < visibleVertices.length; i++) {
           for (let j = i + 1; j < visibleVertices.length; j++) {
@@ -434,7 +463,7 @@
             const dy = v1.y - v2.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (
-              dist < config.maxLineDist &&
+              dist < effectiveMaxDist &&
               Math.random() < config.connectionDensity
             ) {
               const newLine = createLine(v1, v2);
@@ -575,17 +604,20 @@
         star.el.style.width = `${size}px`;
         star.el.style.height = `${size}px`;
         star.el.dataset.size = size;
-        star.el.style.transform = `scale(1)`;
+        star.el.style.transform = `rotate(0deg) scaleX(1)`;
         updateStarTwinkleClass(star.el);
       }
 
       function updateStarTwinkleClass(starElement) {
         if (!starElement) return;
+        const wantsTwinkle = config.starTwinkle;
         const hasTwinkle = starElement.classList.contains("twinkle");
-        if (config.starTwinkle && !hasTwinkle) {
+
+        if (wantsTwinkle && !hasTwinkle) {
           starElement.classList.add("twinkle", `twinkle-${randomInt(1, 3)}`);
           starElement.style.animationPlayState = "running";
-        } else if (!config.starTwinkle && hasTwinkle) {
+          starElement.style.transform = "";
+        } else if (!wantsTwinkle && hasTwinkle) {
           starElement.classList.remove(
             "twinkle",
             "twinkle-1",
@@ -593,14 +625,11 @@
             "twinkle-3"
           );
           starElement.style.animation = "none";
-          starElement.style.transform = "scale(1)";
-        } else if (config.starTwinkle && hasTwinkle) {
+        } else if (wantsTwinkle && hasTwinkle) {
           starElement.className =
             "star twinkle " + `twinkle-${randomInt(1, 3)}`;
           starElement.style.animationPlayState = "running";
-        } else if (!config.starTwinkle && !hasTwinkle) {
-          starElement.style.animation = "none";
-          starElement.style.transform = "scale(1)";
+          starElement.style.transform = "";
         }
       }
 
@@ -610,17 +639,25 @@
         let dx = star.x - centerX;
         let dy = star.y - centerY;
         const distFromCenter = Math.sqrt(dx * dx + dy * dy) || 1;
-        const speed = (1 / star.z) * config.warpSpeed;
+        const baseSpeed = (1 / star.z) * config.warpSpeed;
+
+        let moveX, moveY;
 
         if (config.vortexMode) {
           let angle = Math.atan2(dy, dx);
+          const speed = baseSpeed * 4;
           angle += config.vortexStrength * speed * 5;
-          const moveDist = speed * 4;
-          star.x = centerX + (distFromCenter + moveDist) * Math.cos(angle);
-          star.y = centerY + (distFromCenter + moveDist) * Math.sin(angle);
+          const moveDist = speed;
+          const nextX = centerX + (distFromCenter + moveDist) * Math.cos(angle);
+          const nextY = centerY + (distFromCenter + moveDist) * Math.sin(angle);
+          moveX = nextX - star.x;
+          moveY = nextY - star.y;
+          star.x = nextX;
+          star.y = nextY;
         } else {
-          const moveX = (dx / distFromCenter) * speed * 4;
-          const moveY = (dy / distFromCenter) * speed * 4;
+          const speed = baseSpeed * 4;
+          moveX = (dx / distFromCenter) * speed;
+          moveY = (dy / distFromCenter) * speed;
           star.x += moveX;
           star.y += moveY;
         }
@@ -635,12 +672,13 @@
 
         if (!config.starTwinkle) {
           star.el.style.opacity = star.opacity;
-          const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-          const scaleFactor = 1 + (distFromCenter / maxDist) * 1.2;
-          star.el.style.transform = `scale(${scaleFactor})`;
+          const speedMag = Math.sqrt(moveX * moveX + moveY * moveY);
+          const stretchFactor = 1 + speedMag * 0.1 * config.warpSpeed;
+          const angleRad = Math.atan2(moveY, moveX);
+          star.el.style.transform = `rotate(${angleRad}rad) scaleX(${stretchFactor})`;
         } else {
           star.el.style.opacity = "";
-          star.el.style.transform = "";
+          updateStarTwinkleClass(star.el);
         }
 
         const border = 150;
@@ -662,7 +700,12 @@
           const removedStar = stars.pop();
           if (removedStar && removedStar.el.parentNode) removedStar.el.remove();
         }
-        stars.forEach((star) => updateStarTwinkleClass(star.el));
+        stars.forEach((star) => {
+          updateStarTwinkleClass(star.el);
+          if (!config.starTwinkle) {
+            star.el.style.animation = "none";
+          }
+        });
       }
 
       function animateStarfield(timestamp) {
@@ -787,11 +830,22 @@
             let value =
               control.type === "checkbox"
                 ? e.target.checked
-                : parseFloat(e.target.value);
+                : control.type === "range"
+                ? parseFloat(e.target.value)
+                : e.target.value;
+
             const configValue = control.multiplier
               ? value * control.multiplier
               : value;
-            config[control.key] = configValue;
+
+            if (typeof config[control.key] === "number") {
+              config[control.key] = Number(configValue);
+            } else if (typeof config[control.key] === "boolean") {
+              config[control.key] = Boolean(configValue);
+            } else {
+              config[control.key] = configValue;
+            }
+
             if (valueElement)
               valueElement.textContent =
                 control.fixed !== undefined

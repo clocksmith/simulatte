@@ -30,6 +30,10 @@
         --graph-bg: #383838;
         --wireframe-color: rgba(100, 100, 100, 0.5);
         --disabled-overlay: rgba(42, 42, 42, 0.7);
+        --ai-node-input: #ffb6c1; /* Pink */
+        --ai-node-hidden: #da70d6; /* Purple */
+        --ai-node-output: #ffb6c1; /* Pink */
+        --ai-line: rgba(200, 200, 200, 0.3);
       }
       * {
         box-sizing: border-box;
@@ -40,28 +44,23 @@
       body {
         background-color: var(--bg-color);
         color: var(--text-color);
-        overflow-y: auto; /* Allow vertical scrolling for the whole page */
+        overflow-y: auto;
       }
       #app {
         display: flex;
         flex-direction: column;
         padding: 15px;
         gap: 15px;
-        min-height: 100vh; /* Ensure app takes at least full viewport height */
+        min-height: 100vh;
       }
-
-      /* Metrics Section - Now full width */
       #live-metrics-card {
         background-color: var(--panel-bg-color);
         border-radius: 8px;
         padding: 15px;
         border: 1px solid var(--border-color);
-        display: grid; /* Use grid for better layout */
-        grid-template-columns: repeat(
-          auto-fit,
-          minmax(250px, 1fr)
-        ); /* Responsive columns */
-        gap: 15px; /* Gap between metric items */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
         align-items: start;
       }
       #live-metrics-card h3 {
@@ -70,14 +69,13 @@
         border-bottom: 1px solid var(--border-color);
         padding-bottom: 8px;
         font-size: 1.1em;
-        grid-column: 1 / -1; /* Span full width */
+        grid-column: 1 / -1;
         margin-top: 0;
       }
       .metric-item p {
-        /* Style each metric paragraph */
         font-size: 0.9em;
         line-height: 1.5;
-        margin-bottom: 5px; /* Spacing below each metric */
+        margin-bottom: 5px;
       }
       .metric-item strong {
         color: var(--accent3);
@@ -94,49 +92,47 @@
         border-radius: 3px;
       }
       #live-graphs {
-        grid-column: 1 / -1; /* Span full width */
+        grid-column: 1 / -1;
         display: flex;
-        flex-direction: row; /* Graphs side-by-side */
-        flex-wrap: wrap; /* Allow wrapping if needed */
-        gap: 15px; /* Increased gap */
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
         margin-top: 10px;
       }
       .graph-container {
         display: flex;
         align-items: center;
-        gap: 8px; /* Increased gap */
-        flex: 1; /* Allow graphs to grow */
-        min-width: 200px; /* Minimum width before wrapping */
+        gap: 8px;
+        flex: 1;
+        min-width: 200px;
       }
       .graph-container label {
-        font-size: 0.85em; /* Slightly larger */
+        font-size: 0.85em;
         color: #aaa;
-        min-width: 40px; /* Reduced width */
+        min-width: 40px;
         text-align: right;
       }
       .graph-container canvas {
         display: block;
         flex-grow: 1;
-        height: 35px; /* Taller graphs */
+        height: 35px;
         background-color: var(--graph-bg);
         border-radius: 4px;
       }
-
-      /* Main Content - Simulation and Controls */
       #main-content {
         display: flex;
-        flex-grow: 1; /* Allow this section to take available space */
+        flex-grow: 1;
         gap: 15px;
-        min-height: 450px; /* Suggest minimum height */
-        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        min-height: 450px;
+        flex-wrap: wrap;
       }
       #simulation-area {
-        flex: 3; /* Give simulation more space */
+        flex: 3;
         display: flex;
         flex-direction: column;
-        min-width: 350px; /* Minimum width */
-        min-height: 400px; /* Minimum height for canvas */
-        position: relative; /* For tooltip positioning */
+        min-width: 350px;
+        min-height: 400px;
+        position: relative;
       }
       #simulation-visual-tooltip {
         position: absolute;
@@ -149,17 +145,17 @@
         background-color: #050505;
         display: block;
         width: 100%;
-        height: 100%; /* Fill the simulation area */
-        border-radius: 8px; /* Match card style */
+        height: 100%;
+        border-radius: 8px;
       }
       #controls-and-export-column {
-        flex: 1; /* Take remaining space */
-        min-width: 300px; /* Minimum width */
+        flex: 1;
+        min-width: 300px;
         display: flex;
         flex-direction: column;
         gap: 15px;
-        max-height: 600px; /* Example max height, adjust as needed */
-        overflow: hidden; /* Hide overflow initially, children will scroll */
+        max-height: 600px;
+        overflow: hidden;
       }
       #top-controls-container {
         display: flex;
@@ -193,16 +189,15 @@
       #top-controls-container button#init-reset-btn:hover {
         background-color: #e09400;
       }
-
       #control-panel {
         background-color: var(--panel-bg-color);
         border-radius: 8px;
         padding: 15px;
-        overflow-y: auto; /* Enable vertical scrolling */
+        overflow-y: auto;
         border: 1px solid var(--border-color);
-        flex-grow: 1; /* Allow panel to grow and shrink */
-        position: relative; /* Needed for disabled overlay */
-        min-height: 150px; /* Ensure it has some height */
+        flex-grow: 1;
+        position: relative;
+        min-height: 150px;
       }
       #control-panel.disabled-overlay::after {
         content: "AI Process Active";
@@ -227,8 +222,8 @@
         border-bottom: 1px solid var(--border-color);
         padding-bottom: 8px;
         font-size: 1.1em;
-        position: sticky; /* Keep title visible */
-        top: -15px; /* Adjust based on padding */
+        position: sticky;
+        top: -15px;
         background-color: var(--panel-bg-color);
         z-index: 1;
         padding-top: 10px;
@@ -256,6 +251,7 @@
       }
       .control-group input[type="range"],
       .control-group input[type="number"],
+      .control-group input[type="text"],
       .control-group select {
         width: 100%;
         padding: 6px 8px;
@@ -266,7 +262,8 @@
         font-size: 0.9em;
       }
       .control-group input:disabled,
-      .control-group select:disabled {
+      .control-group select:disabled,
+      .control-group input[type="text"]:disabled {
         background-color: #444;
         cursor: not-allowed;
         opacity: 0.6;
@@ -311,8 +308,13 @@
         background-color: #404040;
         padding: 1px 4px;
         border-radius: 3px;
+        margin-left: 5px;
+        white-space: nowrap;
       }
-
+      .value-display-wide {
+        flex-grow: 1;
+        text-align: right;
+      }
       #export-panel {
         background-color: var(--panel-bg-color);
         border-radius: 8px;
@@ -321,9 +323,9 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        flex-shrink: 0; /* Prevent shrinking */
-        max-height: 250px; /* Limit height */
-        overflow-y: auto; /* Scroll if needed */
+        flex-shrink: 0;
+        max-height: 250px;
+        overflow-y: auto;
       }
       #export-panel h3 {
         color: var(--accent3);
@@ -404,77 +406,112 @@
         margin-top: 5px;
         height: 1.2em;
       }
-
-      /* AI Section - Full width below main content */
       #ai-section {
         display: flex;
-        flex-direction: column; /* Stack children vertically */
+        flex-direction: column;
         gap: 15px;
-        background-color: var(--panel-bg-color); /* Give it a background */
+        background-color: var(--panel-bg-color);
         border-radius: 8px;
         padding: 15px;
         border: 1px solid var(--border-color);
       }
-      #ai-cards-container {
+      #ai-section h3 {
+        color: var(--accent5);
+        font-size: 1.1em;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+        margin-top: 0;
+      }
+      #ai-config-and-display {
         display: flex;
         gap: 15px;
-        flex-wrap: wrap; /* Allow wrapping */
+        flex-wrap: wrap;
       }
-      #ai-prediction-card {
-        background-color: var(--input-bg); /* Different bg */
+      #ai-config-card {
+        background-color: var(--input-bg);
         border-radius: 8px;
         padding: 10px 15px;
         border: 1px solid var(--border-color);
-        flex: 1; /* Allow growing */
-        min-width: 250px; /* Min width */
+        flex: 2;
+        min-width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
-      #ai-prediction-card h3 {
+      #ai-config-card h4 {
+        color: var(--accent4);
+        font-size: 1em;
+        margin-bottom: 5px;
+        border-bottom: 1px dashed #555;
+        padding-bottom: 5px;
+      }
+      #ai-config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        overflow-y: auto;
+        max-height: 200px;
+      }
+      .ai-config-item label {
+        font-size: 0.85em;
+        color: #ccc;
+        margin-bottom: 3px;
+        display: block;
+      }
+      .ai-config-item input,
+      .ai-config-item select {
+        width: 100%;
+        padding: 4px 6px;
+        font-size: 0.85em;
+      }
+      #ai-display-card {
+        background-color: var(--input-bg);
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        flex: 1;
+        min-width: 250px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      #ai-display-card h4 {
         color: var(--accent5);
         font-size: 1em;
         margin-bottom: 8px;
       }
-      #ai-prediction-card p {
+      #ai-display-card p {
         font-size: 0.85em;
         line-height: 1.4;
         margin-bottom: 4px;
       }
-      #ai-prediction-card strong {
+      #ai-display-card strong {
         color: var(--accent4);
         min-width: 110px;
+        display: inline-block;
       }
-      #ai-prediction-card .metric-value {
+      #ai-display-card .metric-value {
         color: var(--accent1);
         font-size: 0.95em;
+        background: none;
+        padding: 0;
+        float: none;
       }
-
-      #ai-control-card {
-        background-color: var(--input-bg); /* Different bg */
-        border-radius: 8px;
-        padding: 10px 15px;
-        border: 1px solid var(--border-color);
+      #ai-controls-and-status {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        flex: 2; /* Allow growing more */
-        min-width: 300px; /* Min width */
-      }
-      #ai-control-card h3 {
-        color: var(--accent5);
-        font-size: 1em;
-        margin-bottom: 5px;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 5px;
-        flex-shrink: 0;
+        gap: 10px;
+        margin-top: 15px;
       }
       #ai-controls {
         display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-        flex-shrink: 0;
+        gap: 10px;
+        flex-wrap: wrap;
       }
       #ai-controls button {
-        padding: 6px 10px;
-        font-size: 0.85em;
+        padding: 7px 12px;
+        font-size: 0.9em;
         flex-grow: 1;
         border: none;
         border-radius: 4px;
@@ -482,44 +519,55 @@
         font-weight: bold;
         transition: background-color 0.2s ease;
       }
+      #init-ai-btn {
+        background-color: var(--accent2);
+        color: var(--bg-color);
+        min-width: 80px;
+      }
+      #init-ai-btn:hover {
+        background-color: #9bc8dd;
+      }
+
       #train-ai-btn {
         background-color: var(--accent5);
         color: var(--bg-color);
+        min-width: 100px;
       }
       #train-ai-btn:hover {
         background-color: #c760c1;
       }
+
       #find-best-ai-btn {
         background-color: var(--btn-green-bg);
         color: white;
+        min-width: 150px;
       }
       #find-best-ai-btn:hover {
         background-color: var(--btn-green-hover-bg);
       }
+
       #ai-controls button:disabled {
         background-color: #777;
         cursor: not-allowed;
         color: #bbb;
       }
       #ai-status-area {
-        font-size: 0.8em;
+        font-size: 0.85em;
         color: #bbb;
         text-align: center;
         min-height: 1.2em;
         font-style: italic;
-        margin-bottom: 5px;
-        flex-shrink: 0;
       }
       #ai-recommendation-area {
-        font-size: 0.8em;
-        background-color: var(--panel-bg-color); /* Match outer section */
-        padding: 8px;
+        font-size: 0.85em;
+        background-color: var(--panel-bg-color);
+        padding: 10px;
         border-radius: 4px;
         border: 1px dashed var(--border-color);
         min-height: 60px;
-        overflow-y: auto; /* Allow scrolling */
-        flex-grow: 1; /* Take remaining space */
-        line-height: 1.3;
+        overflow-y: auto;
+        flex-grow: 1;
+        line-height: 1.4;
       }
       #ai-recommendation-area strong {
         color: var(--accent3);
@@ -532,24 +580,44 @@
       #ai-recommendation-area em {
         color: #aaa;
       }
-
-      /* Placeholder for AI Network Visualization */
       #ai-network-visualization {
-        min-height: 150px; /* Example height */
-        background-color: var(--input-bg); /* Match other cards */
-        border: 1px dashed var(--border-color);
+        min-height: 200px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
+        margin-top: 10px;
+        padding: 10px;
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #888;
-        font-style: italic;
-        margin-top: 10px; /* Space above */
-        padding: 20px;
-        text-align: center;
+        overflow: hidden;
+      }
+      #ai-network-svg {
+        width: 100%;
+        height: 100%;
+        min-height: 180px;
+      }
+      #ai-network-svg line {
+        stroke: var(--ai-line);
+        stroke-width: 0.5;
+      }
+      #ai-network-svg circle {
+        stroke: rgba(255, 255, 255, 0.5);
+        stroke-width: 1;
+      }
+      #ai-network-svg .input-node {
+        fill: var(--ai-node-input);
+        opacity: 0.8;
+      }
+      #ai-network-svg .hidden-node {
+        fill: var(--ai-node-hidden);
+        opacity: 0.8;
+      }
+      #ai-network-svg .output-node {
+        fill: var(--ai-node-output);
+        opacity: 0.8;
       }
 
-      /* Tooltip Styles */
       .tooltip {
         position: relative;
         display: inline-block;
@@ -719,9 +787,9 @@
             <span class="tooltiptext">
               <b>Visuals:</b><br />
               - Each rectangle represents a simulated TPU.<br />
-              - <b>Color & Size Pulse:</b> Intensity and frequency variations
-              indicate overall simulated network activity level (based on
-              efficiency metric). Size pulse is cosmetic.<br />
+              - <b>Color Intensity/Glow:</b> Intensity and emission indicate
+              overall simulated network activity level (based on efficiency
+              metric).<br />
               - <b>Base Color:</b> Varies cyclically by TPU ID for visual
               distinction.
             </span>
@@ -827,13 +895,13 @@
             <div class="control-group">
               <label for="tube-twist">
                 Tube Surface Twist
-                <span id="tube-twist-value" class="value-display">0</span>
+                <span id="tube-twist-value" class="value-display">1.0</span>
                 <span class="tooltip"
                   ><span class="help-icon">?</span
                   ><span class="tooltiptext"
-                    >Rotates the TPU placement around the tube's cross-section
-                    as you move along the main ring (0 = no surface twist).
-                    Primarily affects visual layout.</span
+                    >Rotates the TPU placement basis around the tube's
+                    centerline as you move along the main ring (0 = no surface
+                    twist). Affects visual layout and local orientation.</span
                   ></span
                 >
               </label>
@@ -842,7 +910,7 @@
                 id="tube-twist"
                 min="0"
                 max="5"
-                value="0"
+                value="1.0"
                 step="0.1"
               />
             </div>
@@ -980,8 +1048,102 @@
 
       <div id="ai-section">
         <h3>AI Analysis & Control</h3>
-        <div id="ai-cards-container">
-          <div id="ai-prediction-card">
+        <div id="ai-config-and-display">
+          <div id="ai-config-card">
+            <h4>AI Configuration</h4>
+            <div id="ai-config-grid">
+              <div class="ai-config-item">
+                <label for="ai-hidden-layers">Hidden Layers (e.g., 10,8)</label>
+                <input type="text" id="ai-hidden-layers" value="10,8" />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-activation">Activation Fn</label>
+                <select id="ai-activation">
+                  <option value="leaky-relu" selected>Leaky ReLU</option>
+                  <option value="relu">ReLU</option>
+                  <option value="sigmoid">Sigmoid</option>
+                  <option value="tanh">Tanh</option>
+                </select>
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-learning-rate"
+                  >Learn Rate (<span id="ai-learning-rate-value">0.03</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-learning-rate"
+                  min="0.001"
+                  max="0.1"
+                  step="0.001"
+                  value="0.03"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-iterations"
+                  >Max Iterations (<span id="ai-iterations-value">300</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-iterations"
+                  min="50"
+                  max="2000"
+                  step="50"
+                  value="300"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-error-thresh"
+                  >Error Thresh (<span id="ai-error-thresh-value">0.005</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-error-thresh"
+                  min="0.001"
+                  max="0.1"
+                  step="0.001"
+                  value="0.005"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-max-samples"
+                  >Max Samples (<span id="ai-max-samples-value">2000</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-max-samples"
+                  min="100"
+                  max="10000"
+                  step="100"
+                  value="2000"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-find-samples"
+                  >Find Samples (<span id="ai-find-samples-value">5000</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-find-samples"
+                  min="500"
+                  max="20000"
+                  step="500"
+                  value="5000"
+                />
+              </div>
+            </div>
+            <button
+              id="init-ai-btn"
+              title="Re-initialize AI with current settings"
+            >
+              Initialize AI
+            </button>
+          </div>
+          <div id="ai-display-card">
             <h4>AI Prediction (Current Config)</h4>
             <p>
               <strong>Est. Throughput:</strong>
@@ -995,37 +1157,6 @@
               <strong>Est. Cost Factor:</strong>
               <span id="brain-cost" class="metric-value">N/A</span>
             </p>
-          </div>
-          <div id="ai-control-card">
-            <h4>AI Control & Recommendation</h4>
-            <div id="ai-status-area">
-              <span id="brain-status">Idle</span> | Samples:
-              <span id="brain-samples">0</span>
-              <span class="tooltip tooltip-left">
-                <span class="help-icon">?</span>
-                <span class="tooltiptext"
-                  >Number of data points (Config vs. Metrics) collected from the
-                  live simulation used to train the AI estimator. More samples
-                  generally lead to better estimations/recommendations. Training
-                  occurs when manually triggered. Recommendations use the latest
-                  trained model.</span
-                >
-              </span>
-            </div>
-            <div id="ai-controls">
-              <button
-                id="train-ai-btn"
-                title="Train the AI model using collected data"
-              >
-                Train AI Now
-              </button>
-              <button
-                id="find-best-ai-btn"
-                title="Use trained AI to recommend the best configuration"
-              >
-                Find Best Config (AI)
-              </button>
-            </div>
             <div id="ai-recommendation-area">
               <strong>AI Recommendation:</strong>
               <span id="ai-recommendation-text"
@@ -1035,8 +1166,38 @@
             </div>
           </div>
         </div>
+        <div id="ai-controls-and-status">
+          <div id="ai-status-area">
+            <span id="brain-status">Idle</span> | Samples:
+            <span id="brain-samples">0</span>
+            <span class="tooltip tooltip-left">
+              <span class="help-icon">?</span>
+              <span class="tooltiptext"
+                >Number of data points (Config vs. Metrics) collected from the
+                live simulation used to train the AI estimator. More samples
+                generally lead to better estimations/recommendations. Training
+                occurs when manually triggered. Recommendations use the latest
+                trained model.</span
+              >
+            </span>
+          </div>
+          <div id="ai-controls">
+            <button
+              id="train-ai-btn"
+              title="Train the AI model using collected data"
+            >
+              Train AI Now
+            </button>
+            <button
+              id="find-best-ai-btn"
+              title="Use trained AI to recommend the best configuration"
+            >
+              Find Best Config (AI)
+            </button>
+          </div>
+        </div>
         <div id="ai-network-visualization">
-          AI Network Visualization Placeholder (Requires further implementation)
+          <svg id="ai-network-svg"></svg>
         </div>
       </div>
     </div>
@@ -1073,21 +1234,32 @@
       varying float v_activity;
       uniform float u_globalActivityFactor;
 
+      vec3 hsv2rgb(vec3 c) {
+        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+      }
+
       void main() {
         vec3 lightDir = normalize(vec3(0.5, 0.5, 1.0));
-        float diffuse = max(0.0, dot(normalize(v_normal), lightDir)) * 0.6 + 0.4;
-        int colorIndex = int(mod(v_tpuId, 5.0));
-        vec3 baseColor;
-        if (colorIndex == 0) { baseColor = vec3(1.0, 0.75, 0.8); }
-        else if (colorIndex == 1) { baseColor = vec3(0.85, 0.44, 0.84); }
-        else if (colorIndex == 2) { baseColor = vec3(0.56, 0.93, 0.56); }
-        else if (colorIndex == 3) { baseColor = vec3(1.0, 0.65, 0.0); }
-        else { baseColor = vec3(0.68, 0.85, 0.9); }
-        float minIntensity = 0.4;
-        float maxIntensity = 1.2;
+        float diffuse = max(0.0, dot(normalize(v_normal), lightDir)) * 0.6 + 0.3;
+
+        float hue = mod(v_tpuId * 0.1, 1.0);
+        vec3 baseColor = hsv2rgb(vec3(hue, 0.7, 0.9));
+
+        float glowAmount = pow(v_activity, 2.0) * pow(u_globalActivityFactor, 0.7);
+        vec3 glowColor = vec3(1.0, 0.9, 0.7); // Warm glow
+
+        float minIntensity = 0.3;
+        float maxIntensity = 1.0;
         float activityIntensity = mix(minIntensity, maxIntensity, v_activity * pow(u_globalActivityFactor, 0.5));
-        vec3 finalColor = baseColor * activityIntensity;
-        gl_FragColor = vec4(finalColor * diffuse, 1.0);
+
+        vec3 surfaceColor = baseColor * activityIntensity * diffuse;
+        vec3 emissiveColor = glowColor * glowAmount * 0.8;
+
+        vec3 finalColor = surfaceColor + emissiveColor;
+
+        gl_FragColor = vec4(finalColor, 1.0);
       }
     </script>
 
@@ -1123,19 +1295,35 @@
 
       const PI = Math.PI;
       const TWO_PI = Math.PI * 2;
-      const MAX_BRAIN_SAMPLES = 2000; // Configurable sample limit
+      const SVG_NS = "http://www.w3.org/2000/svg";
 
       const vec3 = {
-        cross: (out, a, b) => {
-          let ax = a[0],
-            ay = a[1],
-            az = a[2];
-          let bx = b[0],
-            by = b[1],
-            bz = b[2];
-          out[0] = ay * bz - az * by;
-          out[1] = az * bx - ax * bz;
-          out[2] = ax * by - ay * bx;
+        create: () => new Float32Array(3),
+        clone: (a) => new Float32Array(a),
+        copy: (out, a) => {
+          (out[0] = a[0]), (out[1] = a[1]), (out[2] = a[2]);
+          return out;
+        },
+        add: (out, a, b) => {
+          (out[0] = a[0] + b[0]),
+            (out[1] = a[1] + b[1]),
+            (out[2] = a[2] + b[2]);
+          return out;
+        },
+        subtract: (out, a, b) => {
+          (out[0] = a[0] - b[0]),
+            (out[1] = a[1] - b[1]),
+            (out[2] = a[2] - b[2]);
+          return out;
+        },
+        multiply: (out, a, b) => {
+          (out[0] = a[0] * b[0]),
+            (out[1] = a[1] * b[1]),
+            (out[2] = a[2] * b[2]);
+          return out;
+        },
+        scale: (out, a, b) => {
+          (out[0] = a[0] * b), (out[1] = a[1] * b), (out[2] = a[2] * b);
           return out;
         },
         normalize: (out, a) => {
@@ -1151,23 +1339,33 @@
           }
           return out;
         },
-        dot: (a, b) => {
-          return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+        cross: (out, a, b) => {
+          let ax = a[0],
+            ay = a[1],
+            az = a[2],
+            bx = b[0],
+            by = b[1],
+            bz = b[2];
+          out[0] = ay * bz - az * by;
+          out[1] = az * bx - ax * bz;
+          out[2] = ax * by - ay * bx;
+          return out;
         },
         transformQuat: (out, a, q) => {
           let qx = q[0],
             qy = q[1],
             qz = q[2],
-            qw = q[3];
-          let x = a[0],
+            qw = q[3],
+            x = a[0],
             y = a[1],
             z = a[2];
-          let uvx = qy * z - qz * y;
-          let uvy = qz * x - qx * z;
-          let uvz = qx * y - qy * x;
-          let uuvx = qy * uvz - qz * uvy;
-          let uuvy = qz * uvx - qx * uvz;
-          let uuvz = qx * uvy - qy * uvx;
+          let uvx = qy * z - qz * y,
+            uvy = qz * x - qx * z,
+            uvz = qx * y - qy * x;
+          let uuvx = qy * uvz - qz * uvy,
+            uuvy = qz * uvx - qx * uvz,
+            uuvz = qx * uvy - qy * uvx;
           let w2 = qw * 2;
           uvx *= w2;
           uvy *= w2;
@@ -1182,6 +1380,7 @@
         },
       };
       const quat = {
+        create: () => new Float32Array(4),
         setAxisAngle: (out, axis, rad) => {
           rad = rad * 0.5;
           let s = Math.sin(rad);
@@ -1191,7 +1390,53 @@
           out[3] = Math.cos(rad);
           return out;
         },
-        create: () => new Float32Array(4),
+        multiply: (out, a, b) => {
+          let ax = a[0],
+            ay = a[1],
+            az = a[2],
+            aw = a[3],
+            bx = b[0],
+            by = b[1],
+            bz = b[2],
+            bw = b[3];
+          out[0] = ax * bw + aw * bx + ay * bz - az * by;
+          out[1] = ay * bw + aw * by + az * bx - ax * bz;
+          out[2] = az * bw + aw * bz + ax * by - ay * bx;
+          out[3] = aw * bw - ax * bx - ay * by - az * bz;
+          return out;
+        },
+        rotationTo: (out, a, b) => {
+          let dot = vec3.dot(a, b);
+          if (dot < -0.999999) {
+            let cross = vec3.cross(out, [1, 0, 0], a);
+            if (vec3.dot(cross, cross) < 0.000001)
+              vec3.cross(out, [0, 1, 0], a);
+            vec3.normalize(out, out);
+            quat.setAxisAngle(out, out, Math.PI);
+            return out;
+          } else if (dot > 0.999999) {
+            out[0] = 0;
+            out[1] = 0;
+            out[2] = 0;
+            out[3] = 1;
+            return out;
+          } else {
+            vec3.cross(out, a, b);
+            out[3] = 1 + dot;
+            return quat.normalize(out, out);
+          }
+        },
+        normalize: (out, a) => {
+          let len = a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
+          if (len > 0) {
+            len = 1 / Math.sqrt(len);
+            out[0] = a[0] * len;
+            out[1] = a[1] * len;
+            out[2] = a[2] * len;
+            out[3] = a[3] * len;
+          }
+          return out;
+        },
       };
       const mat4 = {
         create: () =>
@@ -1221,11 +1466,20 @@
           return o;
         },
         lookAt: (o, e, t, a) => {
-          let n, r, i, l, s, c, d, u, m, p;
-          let f = e[0],
+          let n,
+            r,
+            i,
+            l,
+            s,
+            c,
+            d,
+            u,
+            m,
+            p,
+            f = e[0],
             h = e[1],
-            g = e[2];
-          let b = a[0],
+            g = e[2],
+            b = a[0],
             v = a[1],
             x = a[2];
           let w = t[0],
@@ -1298,8 +1552,8 @@
             s = t[4],
             c = t[5],
             d = t[6],
-            u = t[7],
-            m = t[8],
+            u = t[7];
+          let m = t[8],
             p = t[9],
             f = t[10],
             h = t[11],
@@ -1343,12 +1597,12 @@
         },
         rotateY: (o, t, a) => {
           let n = Math.sin(a),
-            r = Math.cos(a);
-          let i = t[0],
+            r = Math.cos(a),
+            i = t[0],
             l = t[1],
             s = t[2],
-            c = t[3],
-            d = t[8],
+            c = t[3];
+          let d = t[8],
             u = t[9],
             m = t[10],
             p = t[11];
@@ -1405,7 +1659,7 @@
         torusR: 1.8,
         torusTubeR: 0.5,
         torusTwist: 1,
-        tubeTwist: 0,
+        tubeTwist: 1.0,
         tpuDensity: 0.8,
         tpuSize: 0.03,
         floatType: "BF16",
@@ -1419,7 +1673,7 @@
         cost: 0,
         history: { throughput: [], efficiency: [], latency: [] },
         historyMaxLength: 150,
-      }; // Slightly longer history
+      };
       let recording = {
         active: false,
         hz: 10,
@@ -1428,10 +1682,19 @@
         startTime: 0,
         data: [],
       };
+      let brainConfig = {
+        hiddenLayers: [10, 8],
+        activation: "leaky-relu",
+        learningRate: 0.03,
+        iterations: 300,
+        errorThresh: 0.005,
+        maxSamples: 2000,
+        findSamples: 5000,
+      };
       let brain = {
         net: null,
         trainingData: [],
-        status: "Idle",
+        status: "Unitialized",
         samples: 0,
         isTraining: false,
         isFindingBest: false,
@@ -1439,6 +1702,8 @@
         lastRecommendation: null,
         minSamplesForManualTrain: 20,
         minSamplesForFindingBest: 50,
+        inputSize: 0,
+        outputSize: 0,
       };
 
       const ui = {
@@ -1486,6 +1751,23 @@
         trainAiBtn: document.getElementById("train-ai-btn"),
         findAiBtn: document.getElementById("find-best-ai-btn"),
         aiRecommendationText: document.getElementById("ai-recommendation-text"),
+        aiHiddenLayersInput: document.getElementById("ai-hidden-layers"),
+        aiActivationSelect: document.getElementById("ai-activation"),
+        aiLearningRateSlider: document.getElementById("ai-learning-rate"),
+        aiLearningRateValue: document.getElementById("ai-learning-rate-value"),
+        aiIterationsSlider: document.getElementById("ai-iterations"),
+        aiIterationsValue: document.getElementById("ai-iterations-value"),
+        aiErrorThreshSlider: document.getElementById("ai-error-thresh"),
+        aiErrorThreshValue: document.getElementById("ai-error-thresh-value"),
+        aiMaxSamplesSlider: document.getElementById("ai-max-samples"),
+        aiMaxSamplesValue: document.getElementById("ai-max-samples-value"),
+        aiFindSamplesSlider: document.getElementById("ai-find-samples"),
+        aiFindSamplesValue: document.getElementById("ai-find-samples-value"),
+        initAiBtn: document.getElementById("init-ai-btn"),
+        aiNetworkSvg: document.getElementById("ai-network-svg"),
+        aiConfigInputs: document.querySelectorAll(
+          "#ai-config-card input, #ai-config-card select"
+        ),
       };
 
       let glResources = {
@@ -1661,30 +1943,49 @@
         const z = r * sV;
         return [x, y, z];
       }
-      function getTorusVectors(u, v, R, r, knotTwist) {
-        const eps = 1e-5;
+
+      function getTorusVectors(u, v, R, r, knotTwist, tubeTwistFactor) {
+        const eps = 1e-4;
         const p0 = getTorusPoint(u, v, R, r, knotTwist);
+
         const pU = getTorusPoint(u + eps, v, R, r, knotTwist);
         const pV = getTorusPoint(u, v + eps, R, r, knotTwist);
-        const tanU = [pU[0] - p0[0], pU[1] - p0[1], pU[2] - p0[2]];
-        const tanV = [pV[0] - p0[0], pV[1] - p0[1], pV[2] - p0[2]];
+
+        const tanU = vec3.create();
+        vec3.subtract(tanU, pU, p0);
         vec3.normalize(tanU, tanU);
+
+        const tanV = vec3.create();
+        vec3.subtract(tanV, pV, p0);
         vec3.normalize(tanV, tanV);
-        const normal = vec3.cross([], tanU, tanV);
+
+        const normal = vec3.create();
+        vec3.cross(normal, tanU, tanV);
         vec3.normalize(normal, normal);
-        const pDir = vec3.normalize([], p0);
+
+        const pDir = vec3.normalize(vec3.create(), p0);
         if (vec3.dot(normal, pDir) < 0) {
-          normal[0] *= -1;
-          normal[1] *= -1;
-          normal[2] *= -1;
+          vec3.scale(normal, normal, -1);
         }
-        return { tangentU: tanU, tangentV: tanV, normal: normal };
+
+        const tubeTwistAngle = u * TWO_PI * tubeTwistFactor;
+        const twistQuat = quat.create();
+        quat.setAxisAngle(twistQuat, tanU, tubeTwistAngle);
+
+        const twistedTanV = vec3.create();
+        vec3.transformQuat(twistedTanV, tanV, twistQuat);
+
+        const twistedNormal = vec3.create();
+        vec3.transformQuat(twistedNormal, normal, twistQuat);
+
+        return { tangentU: tanU, tangentV: twistedTanV, normal: twistedNormal };
       }
 
       function updateGeometry() {
         updateTPUGeometry();
         updateWireframeGeometry();
       }
+
       function updateTPUGeometry() {
         const numTPUs = config.numTPUs;
         const R = config.torusR;
@@ -1704,43 +2005,45 @@
         let tpuCount = 0;
         let vertOff = 0;
         let idxOff = 0;
-        const rotQuat = quat.create();
+
         for (let i = 0; i < gridDim && tpuCount < numTPUs; i++) {
           for (let j = 0; j < gridDim && tpuCount < numTPUs; j++) {
             const uC = (i + 0.5) * uStep;
             const vC = (j + 0.5) * vStep;
+
             const {
               tangentU: tU,
               tangentV: tV,
               normal: n,
-            } = getTorusVectors(uC, vC, R, r, knotTwist);
+            } = getTorusVectors(uC, vC, R, r, knotTwist, tubeTwist);
             const cPos = getTorusPoint(uC, vC, R, r, knotTwist);
+
             const majRadFactor =
               R + r * Math.cos(vC * TWO_PI + uC * knotTwist * TWO_PI);
+            const scaleFactor = sz * den * 0.5;
             const uH =
               majRadFactor > 1e-6
-                ? (uStep * sz * den * 0.5 * R) / majRadFactor
-                : uStep * sz * den * 0.5;
-            const vH = vStep * sz * den * 0.5;
-            const corners = [
+                ? (scaleFactor * R) / majRadFactor
+                : scaleFactor;
+            const vH = scaleFactor;
+
+            const cornersLocal = [
               [-uH, -vH],
               [uH, -vH],
               [uH, vH],
               [-uH, vH],
             ];
-            const rotationAngle = tubeTwist * uC * TWO_PI;
-            quat.setAxisAngle(rotQuat, n, rotationAngle);
+
             for (let k = 0; k < 4; k++) {
-              const [uO, vO] = corners[k];
-              let localOffset = [
-                tU[0] * uO + tV[0] * vO,
-                tU[1] * uO + tV[1] * vO,
-                tU[2] * uO + tV[2] * vO,
-              ];
-              let rotatedOffset = vec3.transformQuat([], localOffset, rotQuat);
-              const px = cPos[0] + rotatedOffset[0];
-              const py = cPos[1] + rotatedOffset[1];
-              const pz = cPos[2] + rotatedOffset[2];
+              const [uO, vO] = cornersLocal[k];
+              const offset = vec3.create();
+              vec3.scaleAndAdd(offset, offset, tU, uO);
+              vec3.scaleAndAdd(offset, offset, tV, vO);
+
+              const px = cPos[0] + offset[0];
+              const py = cPos[1] + offset[1];
+              const pz = cPos[2] + offset[2];
+
               const base = vertOff * stride;
               vertData[base + 0] = px;
               vertData[base + 1] = py;
@@ -1751,6 +2054,7 @@
               vertData[base + 6] = tpuCount;
               vertOff++;
             }
+
             const bIdx = tpuCount * vertsPer;
             idxData[idxOff++] = bIdx + 0;
             idxData[idxOff++] = bIdx + 1;
@@ -1761,12 +2065,14 @@
             tpuCount++;
           }
         }
+
         gl.bindBuffer(gl.ARRAY_BUFFER, glResources.tpuBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertData, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glResources.tpuIndexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idxData, gl.STATIC_DRAW);
         glResources.numTpuIndices = idxOff;
       }
+
       function updateWireframeGeometry() {
         const R = config.torusR;
         const r = config.torusTubeR;
@@ -1946,7 +2252,7 @@
         updateGraphs();
         drawScene(now);
         simState.lastUpdateTime = now;
-        if (simState.running) {
+        if (simState.running || brain.isFindingBest || brain.isTraining) {
           simState.animationFrameId = requestAnimationFrame(simulationLoop);
         }
       }
@@ -2128,7 +2434,11 @@
         } else if (brain.isFindingBest) {
           ui.aiRecommendationText.innerHTML = `<em>Searching for best configuration...</em>`;
         } else {
-          ui.aiRecommendationText.innerHTML = `<em>Train the AI and click 'Find Best Config' to get a recommendation.</em>`;
+          ui.aiRecommendationText.innerHTML = `<em>${
+            brain.net
+              ? "Train the AI and click 'Find Best Config'."
+              : "Initialize AI first."
+          }</em>`;
         }
         setAiButtonsEnabled(true);
       }
@@ -2249,11 +2559,48 @@
           predictWithBrain();
       }
 
+      function handleAiConfigChange() {
+        try {
+          const layersStr = ui.aiHiddenLayersInput.value.trim();
+          if (layersStr) {
+            brainConfig.hiddenLayers = layersStr
+              .split(",")
+              .map((s) => parseInt(s.trim()))
+              .filter((n) => !isNaN(n) && n > 0);
+          } else {
+            brainConfig.hiddenLayers = [];
+          }
+        } catch (e) {
+          console.error("Invalid hidden layers format:", e);
+          brainConfig.hiddenLayers = [10, 8]; // Reset to default
+          ui.aiHiddenLayersInput.value = brainConfig.hiddenLayers.join(",");
+        }
+        brainConfig.activation = ui.aiActivationSelect.value;
+        brainConfig.learningRate = parseFloat(ui.aiLearningRateSlider.value);
+        brainConfig.iterations = parseInt(ui.aiIterationsSlider.value);
+        brainConfig.errorThresh = parseFloat(ui.aiErrorThreshSlider.value);
+        brainConfig.maxSamples = parseInt(ui.aiMaxSamplesSlider.value);
+        brainConfig.findSamples = parseInt(ui.aiFindSamplesSlider.value);
+
+        ui.aiLearningRateValue.textContent =
+          brainConfig.learningRate.toFixed(3);
+        ui.aiIterationsValue.textContent = brainConfig.iterations;
+        ui.aiErrorThreshValue.textContent = brainConfig.errorThresh.toFixed(3);
+        ui.aiMaxSamplesValue.textContent = brainConfig.maxSamples;
+        ui.aiFindSamplesValue.textContent = brainConfig.findSamples;
+
+        brain.status = "Config Changed - Re-Init AI";
+        brain.net = null;
+        updateAiDisplay();
+        renderAiNetworkVisualization();
+      }
+
       function setAiButtonsEnabled(enabled) {
         ui.trainAiBtn.disabled =
           !enabled ||
           brain.isTraining ||
           brain.isFindingBest ||
+          !brain.net ||
           brain.samples < brain.minSamplesForManualTrain;
         ui.findAiBtn.disabled =
           !enabled ||
@@ -2261,9 +2608,13 @@
           brain.isFindingBest ||
           !brain.net ||
           brain.samples < brain.minSamplesForFindingBest;
+        ui.initAiBtn.disabled =
+          !enabled || brain.isTraining || brain.isFindingBest;
       }
       function setControlsEnabled(enabled) {
         ui.controlInputs.forEach((input) => (input.disabled = !enabled));
+        ui.aiConfigInputs.forEach((input) => (input.disabled = !enabled));
+
         if (enabled) {
           ui.controlPanel.classList.remove("disabled-overlay");
         } else {
@@ -2390,7 +2741,16 @@
         document.body.removeChild(link);
       }
 
-      async function initBrain() {
+      async function initBrain(force = false) {
+        if (brain.net && !force) return;
+        if (brain.isTraining || brain.isFindingBest) return;
+
+        brain.status = "Initializing AI...";
+        updateAiDisplay();
+        setAiButtonsEnabled(false);
+
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         try {
           if (
             typeof brain === "undefined" ||
@@ -2398,23 +2758,31 @@
           ) {
             throw new Error("Brain.js library not loaded or invalid.");
           }
-          // Added a small delay just in case the library needs a tick
-          await new Promise((resolve) => setTimeout(resolve, 10));
-
           brain.net = new brain.NeuralNetworkGPU({
-            hiddenLayers: [10, 8],
-            activation: "leaky-relu",
-            learningRate: 0.03,
+            hiddenLayers: brainConfig.hiddenLayers,
+            activation: brainConfig.activation,
+            learningRate: brainConfig.learningRate,
           });
-          brain.status = "Initialized";
+
+          const sampleInput = normalizeInput(config);
+          brain.inputSize = Object.keys(sampleInput).length;
+          const sampleOutput = normalizeOutput(metrics);
+          brain.outputSize = Object.keys(sampleOutput).length;
+
+          brain.status = "AI Ready";
+          brain.lastPrediction = null;
+          brain.lastRecommendation = null;
+          renderAiNetworkVisualization();
         } catch (e) {
           console.error("Error initializing Brain.js:", e);
           brain.status = e.message.includes("not loaded")
             ? "Error: Brain.js missing"
-            : "Init Error";
+            : "AI Init Error";
           brain.net = null;
+          renderAiNetworkVisualization();
         } finally {
           updateAiDisplay();
+          setAiButtonsEnabled(true);
         }
       }
 
@@ -2509,9 +2877,9 @@
         ) {
           brain.trainingData.push({ input: inp, output: out });
           brain.samples = brain.trainingData.length;
-          if (brain.samples > MAX_BRAIN_SAMPLES) {
-            // Use configurable limit
-            brain.trainingData.shift();
+          if (brain.samples > brainConfig.maxSamples) {
+            const excess = brain.samples - brainConfig.maxSamples;
+            brain.trainingData.splice(0, excess);
             brain.samples = brain.trainingData.length;
           }
           setAiButtonsEnabled(true);
@@ -2526,7 +2894,7 @@
           brain.isFindingBest ||
           brain.samples < brain.minSamplesForManualTrain
         ) {
-          if (!brain.net) brain.status = "AI Not Ready";
+          if (!brain.net) brain.status = "AI Not Initialized";
           else if (brain.samples < brain.minSamplesForManualTrain)
             brain.status = `Need ${
               brain.minSamplesForManualTrain - brain.samples
@@ -2538,16 +2906,22 @@
         brain.status = "AI Training Active...";
         setControlsEnabled(false);
         updateAiDisplay();
+
+        if (!simState.running) requestAnimationFrame(simulationLoop);
+
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         try {
-          const dataToTrain = brain.trainingData.slice(-MAX_BRAIN_SAMPLES); // Train on the configured max samples
+          const dataToTrain = brain.trainingData.slice(-brainConfig.maxSamples);
           const stats = await brain.net.trainAsync(dataToTrain, {
-            iterations: 300,
+            iterations: brainConfig.iterations,
             log: false,
-            errorThresh: 0.005,
-            momentum: 0.1,
-            timeout: 60000,
+            errorThresh: brainConfig.errorThresh,
+            learningRate: brainConfig.learningRate,
+            timeout: 120000,
           });
           brain.status = `AI Model Trained (Error: ${stats.error.toFixed(4)})`;
+          renderAiNetworkVisualization();
         } catch (err) {
           console.error("AI Training error:", err);
           brain.status = err.message.includes("Timeout")
@@ -2567,15 +2941,14 @@
           return;
         }
         if (
-          !brain.status.includes("Init") &&
-          !brain.status.includes("Trained") &&
-          !brain.status.includes("Idle") &&
-          !brain.status.includes("Error")
+          !brain.status.includes("Ready") &&
+          !brain.status.includes("Trained")
         ) {
           brain.lastPrediction = null;
           updateAiDisplay();
           return;
         }
+
         const inp = normalizeInput(config);
         if (Object.values(inp).every((v) => !isNaN(v) && isFinite(v))) {
           try {
@@ -2610,16 +2983,19 @@
         brain.lastRecommendation = null;
         setControlsEnabled(false);
         updateAiDisplay();
+
+        if (!simState.running) requestAnimationFrame(simulationLoop);
+
         await new Promise((resolve) => setTimeout(resolve, 50));
         let bestConfig = null;
         let bestPrediction = null;
         let bestTargetMetric = -Infinity;
-        const numSamples = 5000;
+        const numSearchSamples = brainConfig.findSamples;
         try {
-          for (let i = 0; i < numSamples; i++) {
+          for (let i = 0; i < numSearchSamples; i++) {
             if (i % 500 === 0) {
               brain.status = `AI Finding... (${Math.round(
-                (i / numSamples) * 100
+                (i / numSearchSamples) * 100
               )}%)`;
               updateAiDisplay();
               await new Promise((resolve) => setTimeout(resolve, 1));
@@ -2672,6 +3048,93 @@
           setControlsEnabled(true);
           updateAiDisplay();
         }
+      }
+
+      function renderAiNetworkVisualization() {
+        const svg = ui.aiNetworkSvg;
+        svg.innerHTML = "";
+
+        if (!brain.net || !brain.inputSize || !brain.outputSize) {
+          const text = document.createElementNS(SVG_NS, "text");
+          text.setAttribute("x", "50%");
+          text.setAttribute("y", "50%");
+          text.setAttribute("fill", "#888");
+          text.setAttribute("font-size", "12");
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("dominant-baseline", "middle");
+          text.textContent = brain.net
+            ? "Network structure unavailable"
+            : "AI not initialized";
+          svg.appendChild(text);
+          return;
+        }
+
+        const layers = [
+          brain.inputSize,
+          ...brainConfig.hiddenLayers,
+          brain.outputSize,
+        ];
+        const layerCount = layers.length;
+        const maxNodesInLayer = Math.max(...layers);
+
+        const width = svg.clientWidth;
+        const height = svg.clientHeight;
+        const padding = 30;
+        const nodeRadius = 5;
+        const layerSpacing =
+          (width - 2 * padding) / Math.max(1, layerCount - 1);
+        const nodeSpacingVert =
+          (height - 2 * padding) / Math.max(1, maxNodesInLayer - 1);
+
+        const nodePositions = [];
+
+        for (let i = 0; i < layerCount; i++) {
+          const layerNodes = [];
+          const numNodes = layers[i];
+          const x = padding + i * layerSpacing;
+          const totalHeight = Math.max(
+            nodeRadius * 2,
+            (numNodes - 1) * nodeSpacingVert
+          );
+          const startY = (height - totalHeight) / 2;
+
+          for (let j = 0; j < numNodes; j++) {
+            const y =
+              startY + (numNodes === 1 ? totalHeight / 2 : j * nodeSpacingVert);
+            layerNodes.push({ x, y });
+          }
+          nodePositions.push(layerNodes);
+        }
+
+        for (let i = 0; i < layerCount - 1; i++) {
+          for (const node1 of nodePositions[i]) {
+            for (const node2 of nodePositions[i + 1]) {
+              const line = document.createElementNS(SVG_NS, "line");
+              line.setAttribute("x1", node1.x);
+              line.setAttribute("y1", node1.y);
+              line.setAttribute("x2", node2.x);
+              line.setAttribute("y2", node2.y);
+              svg.appendChild(line);
+            }
+          }
+        }
+
+        nodePositions.forEach((layer, i) => {
+          const nodeClass =
+            i === 0
+              ? "input-node"
+              : i === layerCount - 1
+              ? "output-node"
+              : "hidden-node";
+          layer.forEach((pos) => {
+            const circle = document.createElementNS(SVG_NS, "circle");
+            circle.setAttribute("cx", pos.x);
+            circle.setAttribute("cy", pos.y);
+            circle.setAttribute("r", nodeRadius);
+            circle.classList.add(nodeClass);
+            svg.appendChild(circle);
+          });
+        });
       }
 
       function initEventListeners() {
@@ -2728,6 +3191,7 @@
         ui.floatTypeSelect.addEventListener("change", handleConfigChange);
         ui.quantizationSelect.addEventListener("change", handleConfigChange);
         ui.interconnectSelect.addEventListener("change", handleConfigChange);
+
         ui.initResetBtn.addEventListener("click", resetSimulation);
         ui.playPauseBtn.addEventListener("click", togglePlayPause);
         ui.recordBtn.addEventListener("click", () => {
@@ -2736,8 +3200,49 @@
         });
         ui.exportBtn.addEventListener("click", exportData);
         ui.clearRecordBtn.addEventListener("click", clearRecordedData);
+
+        ui.aiHiddenLayersInput.addEventListener("change", handleAiConfigChange);
+        ui.aiActivationSelect.addEventListener("change", handleAiConfigChange);
+        ui.aiLearningRateSlider.addEventListener(
+          "input",
+          () =>
+            (ui.aiLearningRateValue.textContent = parseFloat(
+              ui.aiLearningRateSlider.value
+            ).toFixed(3))
+        );
+        ui.aiLearningRateSlider.addEventListener(
+          "change",
+          handleAiConfigChange
+        );
+        ui.aiIterationsSlider.addEventListener(
+          "input",
+          () => (ui.aiIterationsValue.textContent = ui.aiIterationsSlider.value)
+        );
+        ui.aiIterationsSlider.addEventListener("change", handleAiConfigChange);
+        ui.aiErrorThreshSlider.addEventListener(
+          "input",
+          () =>
+            (ui.aiErrorThreshValue.textContent = parseFloat(
+              ui.aiErrorThreshSlider.value
+            ).toFixed(3))
+        );
+        ui.aiErrorThreshSlider.addEventListener("change", handleAiConfigChange);
+        ui.aiMaxSamplesSlider.addEventListener(
+          "input",
+          () => (ui.aiMaxSamplesValue.textContent = ui.aiMaxSamplesSlider.value)
+        );
+        ui.aiMaxSamplesSlider.addEventListener("change", handleAiConfigChange);
+        ui.aiFindSamplesSlider.addEventListener(
+          "input",
+          () =>
+            (ui.aiFindSamplesValue.textContent = ui.aiFindSamplesSlider.value)
+        );
+        ui.aiFindSamplesSlider.addEventListener("change", handleAiConfigChange);
+
+        ui.initAiBtn.addEventListener("click", () => initBrain(true));
         ui.trainAiBtn.addEventListener("click", trainBrain);
         ui.findAiBtn.addEventListener("click", findBestConfigAI);
+
         window.addEventListener("resize", () => {
           if (gl) {
             if (resizeCanvasToDisplaySize(gl.canvas)) {
@@ -2747,7 +3252,8 @@
                 drawScene(performance.now());
               }
             }
-            updateGraphs(); // Redraw graphs on resize
+            updateGraphs();
+            renderAiNetworkVisualization();
           }
         });
       }
@@ -2759,8 +3265,9 @@
         }
         initEventListeners();
         handleConfigChange();
-        await initBrain(); // Ensure brain is initialized after DOM is ready
-        resetSimulation(); // Initial reset
+        handleAiConfigChange();
+        await initBrain(true);
+        resetSimulation();
       }
 
       window.onload = init;

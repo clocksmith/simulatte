@@ -3,7 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Double Pendulum Simulator (RK4 + Visuals)</title>
+    <title>Double Pendulum Simulator</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww"
+      crossorigin="anonymous"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+      integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+      integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"
+      crossorigin="anonymous"
+      onload="window.renderMathInElement && window.renderMathInElement(document.body);"
+    ></script>
     <style>
       :root {
         --bg-color: #ffffff;
@@ -16,9 +35,28 @@
         --accent-pink: #ff1493;
         --accent-purple: #8a2be2;
         --accent-cyan: #008b8b;
+        --accent-green: #2e8b57;
+        --accent-blue: #4682b4;
+        --accent-orange: #ff8c00;
         --accent-grey: #555;
         --accent-light-grey: #ccc;
         --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        --card-border: 1px solid black;
+        --chart-bg: #fdfdfd;
+        --page-padding: 24px;
+      }
+
+      html[data-theme="dark"] {
+        --bg-color: #1a1a1a;
+        --card-bg-color: #2a2a2a;
+        --text-color-dark: #e5e5e5;
+        --text-color-light: #1a1a1a;
+        --border-color: #aaa;
+        --border-light-color: #444;
+        --accent-grey: #bbb;
+        --accent-light-grey: #555;
+        --card-border: 1px solid #555;
+        --chart-bg: #333;
       }
 
       *,
@@ -29,15 +67,35 @@
 
       body {
         background-color: var(--bg-color);
-        color: var(--text-color-light);
+        color: var(--text-color-dark);
         font-family: var(--font-main);
         margin: 0;
-        padding: 25px;
+        padding: var(--page-padding);
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 25px;
         min-height: 100vh;
+        position: relative;
+        width: 100%;
+        overflow-x: hidden;
+      }
+
+      #theme-toggle {
+        position: absolute;
+        top: 15px;
+        right: var(--page-padding);
+        padding: 8px 12px;
+        background-color: var(--card-bg-color);
+        color: var(--text-color-dark);
+        border: 1px solid var(--border-light-color);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        z-index: 100;
+      }
+      #theme-toggle:hover {
+        opacity: 0.8;
       }
 
       h1 {
@@ -45,8 +103,7 @@
         font-weight: 300;
         border-bottom: 1px solid var(--border-color);
         padding-bottom: 10px;
-        width: 90%;
-        max-width: 1200px;
+        width: 100%;
         text-align: center;
         margin-bottom: 10px;
       }
@@ -56,103 +113,162 @@
         flex-direction: column;
         gap: 20px;
         width: 100%;
-        max-width: 1200px;
         align-items: stretch;
+      }
+
+      .simulation-row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 20px;
+        width: 100%;
+        align-items: flex-start;
       }
 
       .card {
         background-color: var(--card-bg-color);
         color: var(--text-color-dark);
         border-radius: 4px;
-        padding: 20px;
-        border: 1px solid #eee;
+        border: var(--card-border);
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
       }
 
-      .card h2 {
-        margin-top: 0;
-        color: var(--text-color-dark);
+      .simulation-row > .card {
+        flex-basis: calc(50% - 10px);
+        min-width: 300px;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
         border-bottom: 2px solid var(--border-light-color);
-        padding-bottom: 12px;
-        margin-bottom: 20px;
+        cursor: pointer;
+      }
+      .card-header h2 {
+        margin: 0;
+        color: var(--text-color-dark);
         font-weight: 600;
+        font-size: 1.2em;
+      }
+      .card-toggle {
+        font-size: 1.5em;
+        font-weight: bold;
+        user-select: none;
+      }
+
+      .card-content {
+        padding: 20px;
+        display: block;
+      }
+      .card-content.collapsed {
+        display: none;
+      }
+
+      #simulation-card .card-content {
+        padding: 0;
+        overflow: hidden;
       }
 
       #pendulum-canvas {
         display: block;
         background-color: #fff;
-        border: 1px solid var(--border-light-color);
+        border: none;
         cursor: grab;
         border-radius: 4px;
         width: 100%;
-        aspect-ratio: 4 / 3;
+        aspect-ratio: 1 / 1;
+        position: relative;
       }
       #pendulum-canvas:active {
         cursor: grabbing;
       }
+      html[data-theme="dark"] #pendulum-canvas {
+        background-color: #333;
+      }
 
       #visuals-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 15px;
         align-items: stretch;
       }
 
       .visual-item {
         background-color: #f0f0f0;
-        padding: 15px;
+        padding: 12px 15px;
         border-radius: 6px;
         border: 1px solid var(--border-light-color);
-        flex-grow: 1;
-        flex-basis: 200px;
         display: flex;
         flex-direction: column;
       }
+      html[data-theme="dark"] .visual-item {
+        background-color: #383838;
+        border-color: #555;
+      }
+
       .visual-item.chart-item {
-        flex-basis: 400px;
+        grid-column: span 2;
         min-height: 180px;
+        min-width: 340px;
+      }
+
+      .visual-item.rpm-gauge-item {
+        min-height: 120px;
       }
 
       .visual-item h3 {
-        margin: 0 0 12px 0;
-        font-size: 1.05em;
+        margin: 0 0 10px 0;
+        font-size: 0.95em;
         color: var(--text-color-dark);
         font-weight: 600;
         flex-shrink: 0;
+        border-bottom: 1px solid var(--accent-light-grey);
+        padding-bottom: 6px;
+        margin-bottom: 8px;
       }
       .visual-item p {
-        margin: 5px 0;
-        font-size: 0.95em;
+        margin: 4px 0;
+        font-size: 0.9em;
         color: var(--accent-grey);
+        display: flex;
+        justify-content: space-between;
       }
       .visual-item small {
-        font-size: 0.8em;
+        font-size: 0.75em;
         color: var(--accent-grey);
         display: block;
-        margin-top: 8px;
+        margin-top: 6px;
       }
 
       .position-visual {
         display: flex;
         justify-content: space-around;
         align-items: center;
-        height: 70px;
-        margin-bottom: 10px;
+        height: 60px;
+        margin-bottom: 5px;
         flex-grow: 1;
       }
 
       .pos-circle {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
         border: 2px solid var(--accent-light-grey);
         border-radius: 50%;
         position: relative;
         background-color: #fff;
       }
+      html[data-theme="dark"] .pos-circle {
+        background-color: #444;
+      }
 
       .pos-dot {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         position: absolute;
         top: 50%;
@@ -169,19 +285,63 @@
 
       .data-display span {
         font-weight: bold;
-        font-size: 1.1em;
-        min-width: 70px;
+        font-size: 0.95em;
+        min-width: 50px;
         display: inline-block;
         text-align: right;
-        color: var(--accent-cyan);
         font-family: "Consolas", "Monaco", monospace;
       }
+      .data-display p > span:first-child {
+        text-align: left;
+        font-weight: normal;
+        min-width: 30px;
+        margin-right: 5px;
+      }
 
-      #history-chart-canvas {
+      .rpm-gauge-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-grow: 1;
+        margin-top: 10px;
+      }
+      .rpm-gauge {
+        width: 60px;
+        height: 60px;
+        border: 2px solid var(--accent-light-grey);
+        border-radius: 50%;
+        position: relative;
+        background-color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.7em;
+        color: var(--accent-grey);
+      }
+      html[data-theme="dark"] .rpm-gauge {
+        background-color: #444;
+      }
+
+      .rpm-needle {
+        width: 2px;
+        height: 45%;
+        background-color: var(--text-color-dark);
+        position: absolute;
+        bottom: 50%;
+        left: calc(50% - 1px);
+        transform-origin: 50% 100%;
+        transition: transform 0.1s linear;
+      }
+      .rpm-gauge small {
+        font-size: 0.9em;
+        margin-top: 0;
+      }
+
+      .history-chart-canvas {
         display: block;
         width: 100%;
         height: 156px;
-        background-color: #fdfdfd;
+        background-color: var(--chart-bg);
         border: 1px solid var(--border-light-color);
         border-radius: 4px;
         margin-top: auto;
@@ -194,6 +354,9 @@
         padding: 15px 20px;
         background-color: #fafafa;
       }
+      html[data-theme="dark"] #controls-container fieldset {
+        background-color: #303030;
+      }
       #controls-container legend {
         font-weight: 600;
         color: var(--text-color-dark);
@@ -203,56 +366,77 @@
 
       .control-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-        gap: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px 20px;
         align-items: center;
       }
-
+      .control-grid-initial {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 15px 15px;
+      }
       .control-grid-force {
         grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        gap: 12px;
+        gap: 12px 15px;
+      }
+      .control-grid-data {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px 15px;
+        align-items: end;
       }
 
       .control-item {
         display: flex;
         flex-direction: column;
         gap: 6px;
+        position: relative;
       }
-
       .control-item label {
         font-size: 0.9em;
-        color: #333;
+        color: var(--text-color-dark);
         font-weight: 500;
       }
       .control-item input[type="number"],
-      .control-item input[type="checkbox"],
+      .control-item input[type="text"],
       .control-item select {
-        padding: 9px 12px;
+        padding: 8px 10px;
         border: 1px solid var(--accent-light-grey);
         border-radius: 4px;
-        font-size: 0.95em;
-        width: 100%;
-      }
-      .control-item input[type="range"] {
-        width: 100%;
-        cursor: pointer;
-      }
-      .control-item output {
         font-size: 0.9em;
-        font-weight: bold;
-        color: var(--accent-cyan);
+        width: 100%;
+        background-color: #fff;
+        color: var(--text-color-dark);
+      }
+      html[data-theme="dark"] .control-item input[type="number"],
+      html[data-theme="dark"] .control-item input[type="text"],
+      html[data-theme="dark"] .control-item select {
+        background-color: #444;
+        color: var(--text-color-dark);
+        border-color: #666;
+      }
+      .control-item input[readonly] {
+        background-color: #eee;
+        cursor: default;
+      }
+      html[data-theme="dark"] .control-item input[readonly] {
+        background-color: #555;
       }
 
-      .control-item input[type="checkbox"] {
-        width: auto;
-        height: auto;
+      .control-item input[type="radio"] {
         margin-right: 5px;
-        align-self: flex-start;
-        margin-top: 5px;
       }
-      .control-item.checkbox-item {
-        flex-direction: row;
+      .radio-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 5px;
         align-items: center;
+        flex-wrap: wrap;
+      }
+      .radio-group label {
+        font-size: 0.9em;
+        font-weight: normal;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
       }
 
       button {
@@ -264,6 +448,7 @@
         cursor: pointer;
         transition: background-color 0.2s ease, transform 0.1s ease;
         color: white;
+        background-color: var(--accent-grey);
       }
       button:hover {
         opacity: 0.9;
@@ -301,223 +486,714 @@
         font-size: 0.9em;
         min-height: 1.2em;
       }
+      #estimated-size {
+        font-size: 0.85em;
+        color: var(--accent-grey);
+        margin-top: 4px;
+        display: block;
+      }
+
+      .tooltip {
+        visibility: hidden;
+        width: max-content;
+        max-width: 250px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 4px;
+        padding: 6px 10px;
+        position: absolute;
+        z-index: 10;
+        bottom: 110%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.85em;
+        white-space: normal;
+        pointer-events: none;
+      }
+      .control-item:hover .tooltip,
+      .radio-group label:hover .tooltip,
+      button:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      #equations-card math {
+        display: block;
+        padding: 8px 0;
+        overflow-x: auto;
+        font-size: 1.05em;
+      }
+      #equations-card p {
+        margin: 15px 0 5px 0;
+        font-weight: 600;
+      }
+      #equations-card .explanation {
+        font-size: 0.95em;
+        font-weight: normal;
+        margin-top: 10px;
+        line-height: 1.5;
+        color: var(--accent-grey);
+      }
+      html[data-theme="dark"] #equations-card .explanation {
+        color: var(--accent-light-grey);
+      }
     </style>
   </head>
   <body>
-    <h1>Double Pendulum Simulator (RK4 + Visuals)</h1>
+    <button id="theme-toggle">Toggle Theme</button>
+    <h1>Double Pendulum Simulator</h1>
 
     <div class="main-container">
       <div class="card" id="visuals-card">
-        <h2>Visualizations</h2>
-        <div id="visuals-container">
-          <div class="visual-item">
-            <h3>Node Angle</h3>
-            <div class="position-visual">
-              <div class="pos-circle" title="Theta 1 Angle (Rel. Vertical)">
-                <div id="pos-dot-1" class="pos-dot"></div>
-              </div>
-              <div class="pos-circle" title="Theta 2 Angle (Rel. Vertical)">
-                <div id="pos-dot-2" class="pos-dot"></div>
+        <div class="card-header">
+          <h2>Visualizations</h2>
+          <span class="card-toggle">−</span>
+        </div>
+        <div class="card-content">
+          <div id="visuals-container">
+            <div class="visual-item">
+              <h3>Node Angles</h3>
+              <div class="position-visual">
+                <div class="pos-circle" title="θ₁ Angle">
+                  <div id="pos-dot-1" class="pos-dot"></div>
+                </div>
+                <div class="pos-circle" title="θ₂ Angle">
+                  <div id="pos-dot-2" class="pos-dot"></div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="visual-item data-display">
-            <h3>Angular Velocities</h3>
-            <p>ω₁: <span id="omega1-display">0.00</span> rad/s</p>
-            <p>ω₂: <span id="omega2-display">0.00</span> rad/s</p>
-          </div>
-          <div class="visual-item data-display">
-            <h3>Energy & Chaos</h3>
-            <p>E: <span id="energy-display">0.00</span> J</p>
-            <p>ΔE: <span id="chaos-display">0.00</span> %</p>
-            <small>Chaos: Energy StDev %</small>
-          </div>
-          <div class="visual-item chart-item">
-            <h3>History</h3>
-            <canvas id="history-chart-canvas"></canvas>
+            <div class="visual-item rpm-gauge-item">
+              <h3>Angular Velocity</h3>
+              <div class="rpm-gauge-container">
+                <div class="rpm-gauge" title="Bob 1 Angular Velocity (ω₁)">
+                  <div class="rpm-needle" id="rpm-needle-1"></div>
+                  <small>ω₁</small>
+                </div>
+                <div class="rpm-gauge" title="Bob 2 Angular Velocity (ω₂)">
+                  <div class="rpm-needle" id="rpm-needle-2"></div>
+                  <small>ω₂</small>
+                </div>
+              </div>
+              <p>
+                <span>ω₁:</span> <span id="omega1-display">0.00</span> rad/s
+              </p>
+              <p>
+                <span>ω₂:</span> <span id="omega2-display">0.00</span> rad/s
+              </p>
+            </div>
+            <div class="visual-item data-display">
+              <h3>System Energy (J)</h3>
+              <p><span>KE</span> <span id="ke-total-display">0.00</span></p>
+              <p><span>PE</span> <span id="pe-total-display">0.00</span></p>
+              <p>
+                <span>E<sub>total</sub></span>
+                <span id="energy-display">0.00</span>
+              </p>
+              <p>
+                <span>Avg E</span> <span id="avg-energy-display">0.00</span>
+              </p>
+              <p><span>ΔE</span> <span id="chaos-display">0.00</span> %</p>
+              <small>Avg & StDev % (last ~1s)</small>
+            </div>
+            <div class="visual-item data-display">
+              <h3>Energy Detail (J)</h3>
+              <p><span>KE₁</span> <span id="ke1-display">0.00</span></p>
+              <p><span>KE₂</span> <span id="ke2-display">0.00</span></p>
+              <p><span>PE₁</span> <span id="pe1-display">0.00</span></p>
+              <p><span>PE₂</span> <span id="pe2-display">0.00</span></p>
+            </div>
+            <div class="visual-item data-display">
+              <h3>Forces on Bob 1 (N)</h3>
+              <p>
+                <span>F<sub>g,x</sub></span> <span id="f1gx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>g,y</sub></span> <span id="f1gy-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>d,x</sub></span> <span id="f1dx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>d,y</sub></span> <span id="f1dy-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>B,x</sub></span> <span id="f1bx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>B,y</sub></span> <span id="f1by-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>W,x</sub></span> <span id="f1wx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>W,y</sub></span> <span id="f1wy-display">0.00</span>
+              </p>
+            </div>
+            <div class="visual-item data-display">
+              <h3>Forces on Bob 2 (N)</h3>
+              <p>
+                <span>F<sub>g,x</sub></span> <span id="f2gx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>g,y</sub></span> <span id="f2gy-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>d,x</sub></span> <span id="f2dx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>d,y</sub></span> <span id="f2dy-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>B,x</sub></span> <span id="f2bx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>B,y</sub></span> <span id="f2by-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>W,x</sub></span> <span id="f2wx-display">0.00</span>
+              </p>
+              <p>
+                <span>F<sub>W,y</sub></span> <span id="f2wy-display">0.00</span>
+              </p>
+            </div>
+            <div class="visual-item chart-item">
+              <h3>Angular Velocity History</h3>
+              <canvas
+                id="omega-history-chart-canvas"
+                class="history-chart-canvas"
+              ></canvas>
+            </div>
+            <div class="visual-item chart-item">
+              <h3>Energy History</h3>
+              <canvas
+                id="energy-history-chart-canvas"
+                class="history-chart-canvas"
+              ></canvas>
+            </div>
+            <div class="visual-item chart-item">
+              <h3>Chaos History</h3>
+              <canvas
+                id="chaos-history-chart-canvas"
+                class="history-chart-canvas"
+              ></canvas>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="card" id="simulation-card">
-        <canvas id="pendulum-canvas" width="600" height="450"></canvas>
+      <div class="simulation-row">
+        <div class="card" id="simulation-card">
+          <div class="card-header">
+            <h2>Simulation Canvas</h2>
+            <span class="card-toggle">−</span>
+          </div>
+          <div class="card-content">
+            <canvas id="pendulum-canvas" width="600" height="600"></canvas>
+          </div>
+        </div>
+
+        <div class="card" id="controls-card">
+          <div class="card-header">
+            <h2>Controls & Parameters</h2>
+            <span class="card-toggle">−</span>
+          </div>
+          <div class="card-content" id="controls-container">
+            <fieldset>
+              <legend>Simulation Control</legend>
+              <div class="button-group">
+                <button id="start-button" class="start">
+                  Start<span class="tooltip"
+                    >Begin or resume the simulation</span
+                  >
+                </button>
+                <button id="stop-button" class="stop">
+                  Stop<span class="tooltip">Pause the simulation</span>
+                </button>
+                <button id="reset-button" class="reset">
+                  Reset<span class="tooltip"
+                    >Reset to default initial state and parameters</span
+                  >
+                </button>
+              </div>
+              <div class="control-grid" style="margin-top: 15px">
+                <div class="control-item">
+                  <label for="sim-rate-input">Physics Rate (Hz)</label>
+                  <input
+                    type="number"
+                    id="sim-rate-input"
+                    value="120"
+                    step="10"
+                    min="10"
+                  />
+                  <span class="tooltip"
+                    >Updates per second for physics calculations. Higher is more
+                    accurate but slower. (e.g., 120)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="render-rate-input">Render Rate (FPS)</label>
+                  <input
+                    type="number"
+                    id="render-rate-input"
+                    value="60"
+                    step="5"
+                    min="1"
+                  />
+                  <span class="tooltip"
+                    >Frames per second for updating the canvas visuals. (e.g.,
+                    60)</span
+                  >
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Initial State (Defaults on Reset)</legend>
+              <div class="control-grid control-grid-initial">
+                <div class="control-item">
+                  <label for="default-theta1-input">θ₁ (deg)</label>
+                  <input
+                    type="number"
+                    id="default-theta1-input"
+                    value="120"
+                    step="1"
+                  />
+                  <span class="tooltip"
+                    >Default initial angle for Bob 1. Vertical down is 0. (e.g.,
+                    120)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="default-theta2-input">θ₂ (deg)</label>
+                  <input
+                    type="number"
+                    id="default-theta2-input"
+                    value="-30"
+                    step="1"
+                  />
+                  <span class="tooltip"
+                    >Default initial angle for Bob 2. Vertical down is 0. (e.g.,
+                    -30)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label>x₁ (m)</label>
+                  <input type="text" id="default-x1-display" readonly />
+                  <span class="tooltip"
+                    >Calculated default X position of Bob 1</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label>y₁ (m)</label>
+                  <input type="text" id="default-y1-display" readonly />
+                  <span class="tooltip"
+                    >Calculated default Y position of Bob 1 (relative to
+                    pivot)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label>x₂ (m)</label>
+                  <input type="text" id="default-x2-display" readonly />
+                  <span class="tooltip"
+                    >Calculated default X position of Bob 2</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label>y₂ (m)</label>
+                  <input type="text" id="default-y2-display" readonly />
+                  <span class="tooltip"
+                    >Calculated default Y position of Bob 2 (relative to
+                    pivot)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label>Current θ₁ (deg)</label>
+                  <input
+                    type="text"
+                    id="current-theta1-display"
+                    readonly
+                    value="120.0"
+                  />
+                  <span class="tooltip"
+                    >Current angle of Bob 1. Can be set by dragging when
+                    paused.</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label>Current θ₂ (deg)</label>
+                  <input
+                    type="text"
+                    id="current-theta2-display"
+                    readonly
+                    value="-30.0"
+                  />
+                  <span class="tooltip"
+                    >Current angle of Bob 2. Can be set by dragging when
+                    paused.</span
+                  >
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Pendulum Parameters</legend>
+              <div class="control-grid">
+                <div class="control-item">
+                  <label for="length1-input">Length 1 (m)</label>
+                  <input
+                    type="number"
+                    id="length1-input"
+                    value="1.0"
+                    step="0.1"
+                    min="0.1"
+                  />
+                  <span class="tooltip"
+                    >Length of the first rod. (e.g., 1.0)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="length2-input">Length 2 (m)</label>
+                  <input
+                    type="number"
+                    id="length2-input"
+                    value="1.0"
+                    step="0.1"
+                    min="0.1"
+                  />
+                  <span class="tooltip"
+                    >Length of the second rod. (e.g., 1.0)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="mass1-input">Mass 1 (kg)</label>
+                  <input
+                    type="number"
+                    id="mass1-input"
+                    value="1.0"
+                    step="0.1"
+                    min="0.1"
+                  />
+                  <span class="tooltip"
+                    >Mass of the first bob (at end of L1). (e.g., 1.0)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="mass2-input">Mass 2 (kg)</label>
+                  <input
+                    type="number"
+                    id="mass2-input"
+                    value="1.0"
+                    step="0.1"
+                    min="0.1"
+                  />
+                  <span class="tooltip"
+                    >Mass of the second bob (at end of L2). (e.g., 1.0)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="gravity-input">Gravity (m/s²)</label>
+                  <input
+                    type="number"
+                    id="gravity-input"
+                    value="9.80665"
+                    step="0.1"
+                    min="0"
+                  />
+                  <span class="tooltip"
+                    >Acceleration due to gravity. (e.g., 9.81)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="damping1-input">Damping 1</label>
+                  <input
+                    type="number"
+                    id="damping1-input"
+                    value="0"
+                    step="0.005"
+                    min="0"
+                    max="1"
+                  />
+                  <span class="tooltip"
+                    >Frictional drag coefficient for Bob 1 (proportional to
+                    velocity). 0 = no damping. (e.g., 0.01)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="damping2-input">Damping 2</label>
+                  <input
+                    type="number"
+                    id="damping2-input"
+                    value="0"
+                    step="0.005"
+                    min="0"
+                    max="1"
+                  />
+                  <span class="tooltip"
+                    >Frictional drag coefficient for Bob 2. (e.g., 0.01)</span
+                  >
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Visualization Settings</legend>
+              <div class="control-grid">
+                <div class="control-item">
+                  <label for="trace1-length-input">Trace 1 Length</label>
+                  <input
+                    type="number"
+                    id="trace1-length-input"
+                    value="600"
+                    step="50"
+                    min="0"
+                  />
+                  <span class="tooltip"
+                    >Number of points in the trail of Bob 1. (e.g., 500)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="trace2-length-input">Trace 2 Length</label>
+                  <input
+                    type="number"
+                    id="trace2-length-input"
+                    value="600"
+                    step="50"
+                    min="0"
+                  />
+                  <span class="tooltip"
+                    >Number of points in the trail of Bob 2. (e.g., 500)</span
+                  >
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Scene Forces (Optional)</legend>
+              <div class="control-grid control-grid-force">
+                <div class="control-item">
+                  <label for="dir-force-mag-input">Wind Mag (N)</label>
+                  <input
+                    type="number"
+                    id="dir-force-mag-input"
+                    value="0"
+                    step="0.1"
+                    min="0"
+                  />
+                  <span class="tooltip"
+                    >Magnitude of a constant wind force applied to both bobs.
+                    (e.g., 0.5)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="dir-force-angle-input">Wind Angle (deg)</label>
+                  <input
+                    type="number"
+                    id="dir-force-angle-input"
+                    value="0"
+                    step="5"
+                  />
+                  <span class="tooltip"
+                    >Direction of the wind force (0=right, 90=up). (e.g.,
+                    0)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="charge1-input">Charge 1 (q)</label>
+                  <input
+                    type="number"
+                    id="charge1-input"
+                    value="0"
+                    step="0.1"
+                  />
+                  <span class="tooltip"
+                    >Electric charge of Bob 1 (for Lorentz force). (e.g.,
+                    1.0)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="charge2-input">Charge 2 (q)</label>
+                  <input
+                    type="number"
+                    id="charge2-input"
+                    value="0"
+                    step="0.1"
+                  />
+                  <span class="tooltip"
+                    >Electric charge of Bob 2. (e.g., -1.0)</span
+                  >
+                </div>
+                <div class="control-item">
+                  <label for="mag-field-input">Mag Field (Bz)</label>
+                  <input
+                    type="number"
+                    id="mag-field-input"
+                    value="0"
+                    step="0.1"
+                  />
+                  <span class="tooltip"
+                    >Strength of a uniform magnetic field perpendicular to the
+                    plane (z-axis). >0 is into page (⊗), <0 is out of page (⊙).
+                    (e.g., 0.5)</span
+                  >
+                </div>
+              </div>
+              <small
+                >Applies uniform wind force and/or Lorentz force
+                (simplified).</small
+              >
+            </fieldset>
+
+            <fieldset>
+              <legend>Data Recording & Export</legend>
+              <div class="control-grid control-grid-data">
+                <div class="control-item">
+                  <label for="max-record-time-input">Max Record Time (s)</label>
+                  <input
+                    type="number"
+                    id="max-record-time-input"
+                    value="60"
+                    step="10"
+                    min="1"
+                  />
+                  <span class="tooltip"
+                    >Maximum duration of simulation data to record. Large values
+                    use more memory. (e.g., 60)</span
+                  >
+                  <span id="estimated-size">Est. Size: 0.0 MB</span>
+                </div>
+                <div class="control-item">
+                  <label>Recording Mode</label>
+                  <div class="radio-group">
+                    <label>
+                      <input
+                        type="radio"
+                        name="recordMode"
+                        value="live"
+                        checked
+                      />
+                      Live
+                      <span class="tooltip"
+                        >Record data progressively while the simulation runs and
+                        renders normally.</span
+                      >
+                    </label>
+                    <label>
+                      <input type="radio" name="recordMode" value="fast" /> Fast
+                      CSV
+                      <span class="tooltip"
+                        >Run simulation at maximum speed without rendering to
+                        generate the CSV data quickly. UI will be unresponsive
+                        during generation.</span
+                      >
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="button-group" style="margin-top: 15px">
+                <button id="download-data-button" class="download">
+                  Download Recorded Data (CSV)
+                  <span class="tooltip"
+                    >Download the data currently stored from the last recording
+                    session.</span
+                  >
+                </button>
+              </div>
+              <div id="data-recording-status">
+                Ready to record. Press Start.
+              </div>
+            </fieldset>
+          </div>
+        </div>
       </div>
 
-      <div class="card" id="controls-card">
-        <h2>Controls & Parameters</h2>
-        <div id="controls-container">
-          <fieldset>
-            <legend>Simulation Control</legend>
-            <div class="button-group">
-              <button id="start-button" class="start">Start</button>
-              <button id="stop-button" class="stop">Stop</button>
-              <button id="reset-button" class="reset">Reset</button>
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend>Initial State & Parameters</legend>
-            <div class="control-grid">
-              <div class="control-item">
-                <label for="theta1-input">Theta 1 (deg)</label>
-                <input type="number" id="theta1-input" value="120" step="1" />
-              </div>
-              <div class="control-item">
-                <label for="theta2-input">Theta 2 (deg)</label>
-                <input type="number" id="theta2-input" value="-30" step="1" />
-              </div>
-              <div class="control-item">
-                <label for="length1-input">Length 1 (m)</label>
-                <input
-                  type="number"
-                  id="length1-input"
-                  value="1.0"
-                  step="0.1"
-                  min="0.1"
-                />
-              </div>
-              <div class="control-item">
-                <label for="length2-input">Length 2 (m)</label>
-                <input
-                  type="number"
-                  id="length2-input"
-                  value="1.0"
-                  step="0.1"
-                  min="0.1"
-                />
-              </div>
-              <div class="control-item">
-                <label for="mass1-input">Mass 1 (kg)</label>
-                <input
-                  type="number"
-                  id="mass1-input"
-                  value="1.0"
-                  step="0.1"
-                  min="0.1"
-                />
-              </div>
-              <div class="control-item">
-                <label for="mass2-input">Mass 2 (kg)</label>
-                <input
-                  type="number"
-                  id="mass2-input"
-                  value="1.0"
-                  step="0.1"
-                  min="0.1"
-                />
-              </div>
-              <div class="control-item">
-                <label for="gravity-input">Gravity (m/s²)</label>
-                <input
-                  type="number"
-                  id="gravity-input"
-                  value="9.81"
-                  step="0.1"
-                  min="0"
-                />
-              </div>
-              <div class="control-item">
-                <label for="damping1-input">Damping 1</label>
-                <input
-                  type="number"
-                  id="damping1-input"
-                  value="0"
-                  step="0.005"
-                  min="0"
-                  max="1"
-                />
-              </div>
-              <div class="control-item">
-                <label for="damping2-input">Damping 2</label>
-                <input
-                  type="number"
-                  id="damping2-input"
-                  value="0"
-                  step="0.005"
-                  min="0"
-                  max="1"
-                />
-              </div>
-              <div class="control-item">
-                <label for="trace1-length-input">Trace 1 Length</label>
-                <input
-                  type="number"
-                  id="trace1-length-input"
-                  value="600"
-                  step="50"
-                  min="0"
-                />
-              </div>
-              <div class="control-item">
-                <label for="trace2-length-input">Trace 2 Length</label>
-                <input
-                  type="number"
-                  id="trace2-length-input"
-                  value="600"
-                  step="50"
-                  min="0"
-                />
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend>Scene Forces (Optional)</legend>
-            <div class="control-grid control-grid-force">
-              <div class="control-item">
-                <label for="dir-force-mag-input">Wind Mag (N)</label>
-                <input
-                  type="number"
-                  id="dir-force-mag-input"
-                  value="0"
-                  step="0.1"
-                  min="0"
-                />
-              </div>
-              <div class="control-item">
-                <label for="dir-force-angle-input">Wind Angle (deg)</label>
-                <input
-                  type="number"
-                  id="dir-force-angle-input"
-                  value="0"
-                  step="5"
-                />
-              </div>
-              <div class="control-item">
-                <label for="charge1-input">Charge 1 (q)</label>
-                <input type="number" id="charge1-input" value="0" step="0.1" />
-              </div>
-              <div class="control-item">
-                <label for="charge2-input">Charge 2 (q)</label>
-                <input type="number" id="charge2-input" value="0" step="0.1" />
-              </div>
-              <div class="control-item">
-                <label for="mag-field-input">Mag Field (Bz)</label>
-                <input
-                  type="number"
-                  id="mag-field-input"
-                  value="0"
-                  step="0.1"
-                />
-              </div>
-            </div>
-            <small
-              >Applies uniform wind force and/or Lorentz force
-              (simplified).</small
-            >
-          </fieldset>
-
-          <fieldset>
-            <legend>Data Recording</legend>
-            <div class="button-group">
-              <button id="download-data-button" class="download">
-                Download Recorded Data (CSV)
-              </button>
-            </div>
-            <div id="data-recording-status">
-              Recording status will appear here.
-            </div>
-          </fieldset>
+      <div class="card" id="equations-card">
+        <div class="card-header">
+          <h2>Equations Used</h2>
+          <span class="card-toggle">−</span>
+        </div>
+        <div class="card-content">
+          <p>Coordinates:</p>
+          <math>
+            x_1 = L_1 \sin \theta_1 \\ y_1 = L_1 \cos \theta_1 \\ x_2 = x_1 +
+            L_2 \sin \theta_2 = L_1 \sin \theta_1 + L_2 \sin \theta_2 \\ y_2 =
+            y_1 + L_2 \cos \theta_2 = L_1 \cos \theta_1 + L_2 \cos \theta_2
+          </math>
+          <p>Lagrangian ( $\mathcal{L} = T - V$ ):</p>
+          <math>
+            T = \frac{1}{2} m_1 (L_1 \dot{\theta}_1)^2 + \frac{1}{2} m_2 \left[
+            (L_1 \dot{\theta}_1)^2 + (L_2 \dot{\theta}_2)^2 + 2 L_1 L_2
+            \dot{\theta}_1 \dot{\theta}_2 \cos(\theta_1 - \theta_2) \right] \\ V
+            = -m_1 g L_1 \cos \theta_1 - m_2 g (L_1 \cos \theta_1 + L_2 \cos
+            \theta_2)
+          </math>
+          <p>
+            Equations of Motion (from Euler-Lagrange $\frac{d}{dt}
+            \frac{\partial \mathcal{L}}{\partial \dot{\theta}_i} -
+            \frac{\partial \mathcal{L}}{\partial \theta_i} = Q_i$ ):
+          </p>
+          <math display="block">
+            \begin{pmatrix} M_{11} & M_{12} \\ M_{21} & M_{22} \end{pmatrix}
+            \begin{pmatrix} \ddot{\theta}_1 \\ \ddot{\theta}_2 \end{pmatrix} =
+            \begin{pmatrix} F_1 \\ F_2 \end{pmatrix} + \begin{pmatrix} Q_{1,ext}
+            \\ Q_{2,ext} \end{pmatrix}
+          </math>
+          <small
+            >Where $M$ is the mass matrix, $F$ contains gravitational and
+            centrifugal/Coriolis terms, and $Q_{ext}$ are external generalized
+            forces (damping, wind, Lorentz).</small
+          >
+          <math display="block">
+            \ddot{\theta}_1 = \frac{-g(2m_1+m_2)\sin\theta_1 - m_2 g
+            \sin(\theta_1-2\theta_2) -
+            2\sin(\theta_1-\theta_2)m_2(L_2\dot{\theta}_2^2 +
+            L_1\dot{\theta}_1^2\cos(\theta_1-\theta_2))}{L_1(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2))}
+            + Q'_{1} \\ \ddot{\theta}_2 =
+            \frac{2\sin(\theta_1-\theta_2)\left(L_1\dot{\theta}_1^2(m_1+m_2) +
+            g(m_1+m_2)\cos\theta_1 + L_2\dot{\theta}_2^2 m_2
+            \cos(\theta_1-\theta_2)\right)}{L_2(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2))}
+            + Q'_{2}
+          </math>
+          <small
+            >$Q'_{i}$ represents the effect of external torques after inverting
+            the mass matrix.</small
+          >
+          <p>
+            External Forces (Cartesian Components & Generalized Torques $Q_i$):
+          </p>
+          <math>
+            \vec{F}_{g,j} = (0, -m_j g) \\ \vec{F}_{d,j} = -d_j \vec{v}_j \\
+            \vec{F}_{wind} = (F_W \cos \phi_W, F_W \sin \phi_W) \\ \vec{F}_{B,j}
+            = q_j (\vec{v}_j \times \vec{B}) = q_j (v_{j,y} B_z, -v_{j,x} B_z)
+            \\ Q_{i,ext} = \sum_{j=1,2} (\vec{r}_j \times (\vec{F}_{d,j} +
+            \vec{F}_{wind} + \vec{F}_{B,j}))_z
+          </math>
+          <p>Total Energy ( $E = T + V$ ):</p>
+          <math>
+            E = \text{Kinetic Energy (T)} + \text{Potential Energy (V)}
+          </math>
+          <p>Numerical Integration (4th Order Runge-Kutta):</p>
+          <math>
+            \vec{y}_{n+1} = \vec{y}_n + \frac{h}{6}(\vec{k}_1 + 2\vec{k}_2 +
+            2\vec{k}_3 + \vec{k}_4) \quad \text{where} \quad \vec{y} =
+            (\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2)
+          </math>
+          <p class="explanation">
+            <b>Energy Conservation:</b> In an ideal system with no damping
+            ($d_1=d_2=0$) and no external forces (wind/Lorentz forces = 0), the
+            total mechanical energy $E = T + V$ should remain constant over
+            time. This is because gravity is a conservative force. However,
+            numerical integration methods like RK4 introduce small computational
+            errors at each step, which can cause the calculated energy to drift
+            slightly over long simulations. The "Energy Variation" metric
+            reflects these numerical fluctuations or actual energy changes if
+            non-conservative forces are active. For the default parameters
+            ($L_1=L_2=1$, $m_1=m_2=1$, $g=9.80665$, $\theta_1=120^\circ$,
+            $\theta_2=-30^\circ$, $\dot{\theta}_1=\dot{\theta}_2=0$), the
+            initial total energy is approximately $1.314$ Joules.
+          </p>
         </div>
       </div>
     </div>
@@ -525,16 +1201,43 @@
     <script>
       const canvas = document.getElementById("pendulum-canvas");
       const ctx = canvas.getContext("2d");
-      const historyChartCanvas = document.getElementById(
-        "history-chart-canvas"
+
+      const omegaHistoryChartCanvas = document.getElementById(
+        "omega-history-chart-canvas"
       );
-      const chartCtx = historyChartCanvas.getContext("2d");
+      const omegaChartCtx = omegaHistoryChartCanvas.getContext("2d");
+      const energyHistoryChartCanvas = document.getElementById(
+        "energy-history-chart-canvas"
+      );
+      const energyChartCtx = energyHistoryChartCanvas.getContext("2d");
+      const chaosHistoryChartCanvas = document.getElementById(
+        "chaos-history-chart-canvas"
+      );
+      const chaosChartCtx = chaosHistoryChartCanvas.getContext("2d");
 
       const startButton = document.getElementById("start-button");
       const stopButton = document.getElementById("stop-button");
       const resetButton = document.getElementById("reset-button");
-      const theta1Input = document.getElementById("theta1-input");
-      const theta2Input = document.getElementById("theta2-input");
+      const themeToggleButton = document.getElementById("theme-toggle");
+
+      const simRateInput = document.getElementById("sim-rate-input");
+      const renderRateInput = document.getElementById("render-rate-input");
+      const defaultTheta1Input = document.getElementById(
+        "default-theta1-input"
+      );
+      const defaultTheta2Input = document.getElementById(
+        "default-theta2-input"
+      );
+      const defaultX1Display = document.getElementById("default-x1-display");
+      const defaultY1Display = document.getElementById("default-y1-display");
+      const defaultX2Display = document.getElementById("default-x2-display");
+      const defaultY2Display = document.getElementById("default-y2-display");
+      const currentTheta1Display = document.getElementById(
+        "current-theta1-display"
+      );
+      const currentTheta2Display = document.getElementById(
+        "current-theta2-display"
+      );
       const length1Input = document.getElementById("length1-input");
       const length2Input = document.getElementById("length2-input");
       const gravityInput = document.getElementById("gravity-input");
@@ -551,21 +1254,55 @@
       const charge1Input = document.getElementById("charge1-input");
       const charge2Input = document.getElementById("charge2-input");
       const magFieldInput = document.getElementById("mag-field-input");
+
+      const maxRecordTimeInput = document.getElementById(
+        "max-record-time-input"
+      );
+      const estimatedSizeDisplay = document.getElementById("estimated-size");
       const downloadDataButton = document.getElementById(
         "download-data-button"
       );
       const dataRecordingStatus = document.getElementById(
         "data-recording-status"
       );
+      const recordingModeRadios = document.querySelectorAll(
+        'input[name="recordMode"]'
+      );
 
       const omega1Display = document.getElementById("omega1-display");
       const omega2Display = document.getElementById("omega2-display");
+      const rpmNeedle1 = document.getElementById("rpm-needle-1");
+      const rpmNeedle2 = document.getElementById("rpm-needle-2");
+      const keTotalDisplay = document.getElementById("ke-total-display");
+      const peTotalDisplay = document.getElementById("pe-total-display");
       const energyDisplay = document.getElementById("energy-display");
+      const ke1Display = document.getElementById("ke1-display");
+      const ke2Display = document.getElementById("ke2-display");
+      const pe1Display = document.getElementById("pe1-display");
+      const pe2Display = document.getElementById("pe2-display");
+      const avgEnergyDisplay = document.getElementById("avg-energy-display");
       const chaosDisplay = document.getElementById("chaos-display");
       const posDot1 = document.getElementById("pos-dot-1");
       const posDot2 = document.getElementById("pos-dot-2");
 
-      let gravity = 9.81;
+      const f1gxDisplay = document.getElementById("f1gx-display");
+      const f1gyDisplay = document.getElementById("f1gy-display");
+      const f1dxDisplay = document.getElementById("f1dx-display");
+      const f1dyDisplay = document.getElementById("f1dy-display");
+      const f1bxDisplay = document.getElementById("f1bx-display");
+      const f1byDisplay = document.getElementById("f1by-display");
+      const f1wxDisplay = document.getElementById("f1wx-display");
+      const f1wyDisplay = document.getElementById("f1wy-display");
+      const f2gxDisplay = document.getElementById("f2gx-display");
+      const f2gyDisplay = document.getElementById("f2gy-display");
+      const f2dxDisplay = document.getElementById("f2dx-display");
+      const f2dyDisplay = document.getElementById("f2dy-display");
+      const f2bxDisplay = document.getElementById("f2bx-display");
+      const f2byDisplay = document.getElementById("f2by-display");
+      const f2wxDisplay = document.getElementById("f2wx-display");
+      const f2wyDisplay = document.getElementById("f2wy-display");
+
+      let gravity = 9.80665;
       let length1 = 1.0;
       let length2 = 1.0;
       let mass1 = 1.0;
@@ -580,13 +1317,21 @@
       let charge2 = 0;
       let magFieldBz = 0;
 
-      let theta1 = (120 * Math.PI) / 180;
-      let theta2 = (-30 * Math.PI) / 180;
+      let defaultTheta1 = (120 * Math.PI) / 180;
+      let defaultTheta2 = (-30 * Math.PI) / 180;
+      let theta1 = defaultTheta1;
+      let theta2 = defaultTheta2;
       let omega1 = 0;
       let omega2 = 0;
 
       let time = 0;
-      const timeStep = 1 / 120;
+      let simulationUpdateRateHz = 120;
+      let timeStep = 1 / simulationUpdateRateHz;
+      let canvasRenderRateFps = 60;
+      let timeSinceLastRender = 0;
+      let timeSinceLastPhysicsUpdate = 0;
+      let lastTimestamp = 0;
+
       let pixelsPerMeter = 100;
       let isRunning = false;
       let animationFrameId = null;
@@ -596,7 +1341,7 @@
 
       let trace1 = [];
       let trace2 = [];
-      let chaosEnergyHistory = [];
+      let chaosValueHistory = [];
       const CHAOS_HISTORY_LENGTH = 120;
       let colorBob1, colorBob2, colorTrace1, colorTrace2, colorRod, colorPivot;
       let colorEnergy,
@@ -605,14 +1350,24 @@
         colorOmega2,
         colorChartBg,
         colorChartGrid;
+      let colorKE, colorPE, colorKE1, colorKE2, colorPE1, colorPE2;
+
       const HISTORY_LENGTH = 200;
       let omega1History = [];
       let omega2History = [];
       let energyPlotHistory = [];
+      let kePlotHistory = [];
+      let pePlotHistory = [];
+      let ke1PlotHistory = [];
+      let ke2PlotHistory = [];
+      let pe1PlotHistory = [];
+      let pe2PlotHistory = [];
 
       let recordedData = [];
-      const MAX_RECORDING_TIME = 600;
-      const LOCAL_STORAGE_KEY = "pendulumRecordedData";
+      let maxRecordingTime = 60;
+      let currentRecordingMode = "live";
+      const LOCAL_STORAGE_KEY = "pendulumRecordedData_v2";
+      let isGeneratingFastCSV = false;
 
       function getCssVariable(varName) {
         return getComputedStyle(document.documentElement)
@@ -631,13 +1386,25 @@
         colorChaos = getCssVariable("--accent-pink");
         colorOmega1 = colorBob1;
         colorOmega2 = colorBob2;
-        colorChartBg = "#fdfdfd";
+        colorKE = getCssVariable("--accent-green");
+        colorPE = getCssVariable("--accent-blue");
+        colorKE1 = `${colorKE}aa`;
+        colorKE2 = `${colorKE}66`;
+        colorPE1 = `${colorPE}aa`;
+        colorPE2 = `${colorPE}66`;
+        colorChartBg = getCssVariable("--chart-bg");
         colorChartGrid = getCssVariable("--accent-light-grey");
-
         omega1Display.style.color = colorOmega1;
         omega2Display.style.color = colorOmega2;
         energyDisplay.style.color = colorEnergy;
+        keTotalDisplay.style.color = colorKE;
+        peTotalDisplay.style.color = colorPE;
+        ke1Display.style.color = colorKE1;
+        ke2Display.style.color = colorKE2;
+        pe1Display.style.color = colorPE1;
+        pe2Display.style.color = colorPE2;
         chaosDisplay.style.color = colorChaos;
+        avgEnergyDisplay.style.color = colorEnergy;
       }
 
       function calculateAccelerations(
@@ -650,110 +1417,77 @@
         const c1 = Math.cos(currentTheta1);
         const s2 = Math.sin(currentTheta2);
         const c2 = Math.cos(currentTheta2);
-        const deltaTheta = currentTheta1 - currentTheta2; // Difference in angles
+        const deltaTheta = currentTheta1 - currentTheta2;
         const sinDeltaTheta = Math.sin(deltaTheta);
         const cosDeltaTheta = Math.cos(deltaTheta);
-
         const m1PlusM2 = mass1 + mass2;
         const epsilon = 1e-9;
-
-        // Denominator term common in both acceleration equations (part of the effective inertia matrix)
-        // Derived from the Lagrangian: L = T - V = 1/2 m1 v1^2 + 1/2 m2 v2^2 - (m1 g y1 + m2 g y2)
-        // The kinetic energy T involves terms quadratic in omega1, omega2, with coefficients forming the mass matrix M.
-        // The Euler-Lagrange equations d/dt(dL/d(omega_i)) - dL/d(theta_i) = Q_i lead to M * [alpha1, alpha2]^T = F(theta, omega) + Torque_external
-        // This denominator arises from the determinant or inversion of the mass matrix M.
         const commonDenominatorTerm =
           2 * mass1 + mass2 - mass2 * Math.cos(2 * deltaTheta);
-
-        // --- Calculate Angular Acceleration for Theta1 (angularAccel1) ---
-        // This equation comes from the first Euler-Lagrange equation for theta1.
-        // It represents (Inertia Matrix Inverse * Force/Torque Vector)_1
-        let num1 = -gravity * (2 * mass1 + mass2) * s1; // Term from dV/d(theta1): Gravitational torque on m1 & effect of m2's weight on joint 1.
-        num1 -= mass2 * gravity * Math.sin(currentTheta1 - 2 * currentTheta2); // Another gravitational term from dV/d(theta1) involving m2.
-        // Terms involving omega^2 come from d/dt(dL/d(omega1)) and dL/d(theta1) (Coriolis/centrifugal forces).
+        let num1 = -gravity * (2 * mass1 + mass2) * s1;
+        num1 -= mass2 * gravity * Math.sin(currentTheta1 - 2 * currentTheta2);
         num1 -=
           2 *
           sinDeltaTheta *
           mass2 *
           (currentOmega2 * currentOmega2 * length2 +
             currentOmega1 * currentOmega1 * length1 * cosDeltaTheta);
-
         let den1 = length1 * commonDenominatorTerm;
         let angularAccel1 = Math.abs(den1) > epsilon ? num1 / den1 : 0;
-
-        // --- Calculate Angular Acceleration for Theta2 (angularAccel2) ---
-        // This equation comes from the second Euler-Lagrange equation for theta2.
-        // It represents (Inertia Matrix Inverse * Force/Torque Vector)_2
         let num2 = 2 * sinDeltaTheta;
-        // Terms involving omega^2 (Coriolis/centrifugal) and gravity (from dV/d(theta2)).
         num2 *=
           currentOmega1 * currentOmega1 * length1 * m1PlusM2 +
           gravity * m1PlusM2 * c1 +
           currentOmega2 * currentOmega2 * length2 * mass2 * cosDeltaTheta;
-
         let den2 = length2 * commonDenominatorTerm;
         let angularAccel2 = Math.abs(den2) > epsilon ? num2 / den2 : 0;
-
         let torque1Ext = 0;
         let torque2Ext = 0;
-
-        if (dirForceMag > epsilon) {
-          const forceWindX = dirForceMag * Math.cos(dirForceAngleRad);
-          const forceWindY = dirForceMag * Math.sin(dirForceAngleRad);
-          const x1Pos = length1 * s1;
-          const y1Pos = length1 * c1;
-          const x2PosRel = length2 * s2;
-          const y2PosRel = length2 * c2;
-          torque1Ext += x1Pos * forceWindY - y1Pos * forceWindX;
-          torque1Ext +=
-            (x1Pos + x2PosRel) * forceWindY - (y1Pos + y2PosRel) * forceWindX;
-          torque2Ext += x2PosRel * forceWindY - y2PosRel * forceWindX;
-        }
-
+        const { f1bx, f1by, f1wx, f1wy, f2bx, f2by, f2wx, f2wy } =
+          calculateExternalForces(
+            currentTheta1,
+            currentTheta2,
+            currentOmega1,
+            currentOmega2
+          );
         if (
-          Math.abs(magFieldBz) > epsilon &&
-          (Math.abs(charge1) > epsilon || Math.abs(charge2) > epsilon)
+          Math.abs(f1wx) > epsilon ||
+          Math.abs(f1wy) > epsilon ||
+          Math.abs(f1bx) > epsilon ||
+          Math.abs(f1by) > epsilon ||
+          Math.abs(f2wx) > epsilon ||
+          Math.abs(f2wy) > epsilon ||
+          Math.abs(f2bx) > epsilon ||
+          Math.abs(f2by) > epsilon
         ) {
-          const vx1 = length1 * c1 * currentOmega1;
-          const vy1 = length1 * s1 * currentOmega1;
-          const vx2 = vx1 + length2 * c2 * currentOmega2;
-          const vy2 = vy1 + length2 * s2 * currentOmega2;
-          const force1MagX = charge1 * vy1 * magFieldBz;
-          const force1MagY = -charge1 * vx1 * magFieldBz;
-          const force2MagX = charge2 * vy2 * magFieldBz;
-          const force2MagY = -charge2 * vx2 * magFieldBz;
           const x1Pos = length1 * s1;
           const y1Pos = length1 * c1;
           const x2PosRel = length2 * s2;
           const y2PosRel = length2 * c2;
-          torque1Ext += x1Pos * force1MagY - y1Pos * force1MagX;
-          torque1Ext +=
-            (x1Pos + x2PosRel) * force2MagY - (y1Pos + y2PosRel) * force2MagX;
-          torque2Ext += x2PosRel * force2MagY - y2PosRel * force2MagX;
+          const r1CrossF1 = x1Pos * (f1wy + f1by) - y1Pos * (f1wx + f1bx);
+          const r2CrossF2 =
+            (x1Pos + x2PosRel) * (f2wy + f2by) -
+            (y1Pos + y2PosRel) * (f2wx + f2bx);
+          const r2RelCrossF2 =
+            x2PosRel * (f2wy + f2by) - y2PosRel * (f2wx + f2bx);
+          torque1Ext += r1CrossF1 + r2CrossF2;
+          torque2Ext += r2RelCrossF2;
         }
-
         if (Math.abs(torque1Ext) > epsilon || Math.abs(torque2Ext) > epsilon) {
           const M11 = (mass1 + mass2) * length1 * length1;
           const M12 = mass2 * length1 * length2 * cosDeltaTheta;
-          const M21 = M12;
           const M22 = mass2 * length2 * length2;
-          const detM = M11 * M22 - M12 * M21;
-
+          const detM = M11 * M22 - M12 * M12;
           if (Math.abs(detM) > epsilon) {
             const invM11 = M22 / detM;
             const invM12 = -M12 / detM;
-            const invM21 = -M21 / detM;
             const invM22 = M11 / detM;
             angularAccel1 += invM11 * torque1Ext + invM12 * torque2Ext;
-            angularAccel2 += invM21 * torque1Ext + invM22 * torque2Ext;
+            angularAccel2 += invM12 * torque1Ext + invM22 * torque2Ext;
           }
         }
-
-        // --- Apply Damping ---
-        // Added as a non-conservative force (generalized force Q_i = -damping_i * omega_i)
         angularAccel1 -= damping1 * currentOmega1;
         angularAccel2 -= damping2 * currentOmega2;
-
         return { angularAccel1, angularAccel2 };
       }
 
@@ -776,7 +1510,6 @@
         const k3 = getDerivatives(k3State);
         const k4State = currentState.map((val, i) => val + dt * k3[i]);
         const k4 = getDerivatives(k4State);
-
         const newState = currentState.map(
           (val, i) => val + (dt / 6.0) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i])
         );
@@ -786,78 +1519,97 @@
       function updatePhysics() {
         const currentState = [theta1, theta2, omega1, omega2];
         const newState = rk4Step(currentState, timeStep);
-
         [theta1, theta2, omega1, omega2] = newState;
-
         time += timeStep;
-
-        if (time <= MAX_RECORDING_TIME) {
-          const s1 = Math.sin(theta1);
-          const c1 = Math.cos(theta1);
-          const s2 = Math.sin(theta2);
-          const c2 = Math.cos(theta2);
-          const x1m = length1 * s1;
-          const y1m = length1 * c1;
-          const x2m = x1m + length2 * s2;
-          const y2m = y1m + length2 * c2;
-
-          recordedData.push({
-            time: time,
-            theta1,
-            theta2,
-            omega1,
-            omega2,
-            x1: x1m,
-            y1: y1m,
-            x2: x2m,
-            y2: y2m,
-          });
-          if (recordedData.length === 1 || recordedData.length % 100 === 0) {
-            // Update status less frequently
-            if (time > MAX_RECORDING_TIME - timeStep) {
-              dataRecordingStatus.textContent = `Recording complete (${MAX_RECORDING_TIME}s). Data saved.`;
-            } else {
-              const progress = (time / MAX_RECORDING_TIME) * 100;
-              dataRecordingStatus.textContent = `Recording... ${time.toFixed(
-                1
-              )}s / ${MAX_RECORDING_TIME}s (${progress.toFixed(0)}%)`;
-            }
+        if (
+          currentRecordingMode === "live" &&
+          time <= maxRecordingTime &&
+          isRunning
+        ) {
+          recordDataPoint();
+          if (
+            recordedData.length === 1 ||
+            recordedData.length % simulationUpdateRateHz === 0
+          ) {
+            updateRecordingStatus();
           }
         }
-
-        updateHistory();
       }
 
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        drawMagneticField();
-
-        const l1Px = length1 * pixelsPerMeter;
-        const l2Px = length2 * pixelsPerMeter;
-
+      function recordDataPoint() {
+        const { ke1, ke2, pe1, pe2 } = calculateEnergies();
         const s1 = Math.sin(theta1);
         const c1 = Math.cos(theta1);
         const s2 = Math.sin(theta2);
         const c2 = Math.cos(theta2);
+        const x1m = length1 * s1;
+        const y1m = length1 * c1;
+        const x2m = x1m + length2 * s2;
+        const y2m = y1m + length2 * c2;
+        recordedData.push({
+          time: time,
+          theta1,
+          theta2,
+          omega1,
+          omega2,
+          x1: x1m,
+          y1: y1m,
+          x2: x2m,
+          y2: y2m,
+          ke1,
+          ke2,
+          pe1,
+          pe2,
+          ke_total: ke1 + ke2,
+          pe_total: pe1 + pe2,
+          e_total: ke1 + ke2 + pe1 + pe2,
+        });
+      }
 
+      function updateRecordingStatus() {
+        if (isGeneratingFastCSV) return;
+        if (time > maxRecordingTime) {
+          dataRecordingStatus.textContent = `Max recording time (${maxRecordingTime}s) reached. Data saved.`;
+        } else if (isRunning) {
+          const progress = (time / maxRecordingTime) * 100;
+          dataRecordingStatus.textContent = `Recording... ${time.toFixed(
+            1
+          )}s / ${maxRecordingTime}s (${progress.toFixed(0)}%)`;
+        } else if (recordedData.length > 0) {
+          dataRecordingStatus.textContent = `Recording paused at ${time.toFixed(
+            1
+          )}s. Data saved.`;
+        } else {
+          dataRecordingStatus.textContent = `Ready to record (max ${maxRecordingTime}s). Press Start.`;
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = getCssVariable("--bg-color");
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawMagneticField();
+        drawWindField();
+        const l1Px = length1 * pixelsPerMeter;
+        const l2Px = length2 * pixelsPerMeter;
+        const s1 = Math.sin(theta1);
+        const c1 = Math.cos(theta1);
+        const s2 = Math.sin(theta2);
+        const c2 = Math.cos(theta2);
         const x1Rel = l1Px * s1;
         const y1Rel = l1Px * c1;
         const x2Rel = x1Rel + l2Px * s2;
         const y2Rel = y1Rel + l2Px * c2;
-
         const x1 = originX + x1Rel;
         const y1 = originY + y1Rel;
         const x2 = originX + x2Rel;
         const y2 = originY + y2Rel;
-
         if (isRunning || isDraggingM1 || isDraggingM2) {
           trace1.push({ x: x1, y: y1 });
           trace2.push({ x: x2, y: y2 });
           if (trace1.length > trace1MaxLength) trace1.shift();
           if (trace2.length > trace2MaxLength) trace2.shift();
         }
-
         drawTrace(trace1, colorTrace1);
         drawTrace(trace2, colorTrace2);
         drawRod(originX, originY, x1, y1);
@@ -865,30 +1617,26 @@
         drawPivot(originX, originY);
         drawBob(x1, y1, mass1, colorBob1);
         drawBob(x2, y2, mass2, colorBob2);
-
         drawDampingForces(x1, y1, x2, y2);
-
-        updateVisualsPanel();
-        drawHistoryChart();
       }
 
       function drawMagneticField() {
         const fieldStrength = Math.abs(magFieldBz);
         if (fieldStrength < 0.01) return;
-
-        const symbol = magFieldBz > 0 ? "+" : "-";
-        const color =
-          magFieldBz > 0 ? "rgba(0, 0, 255, 0.1)" : "rgba(255, 0, 0, 0.1)";
-        const densityFactor = Math.min(5, fieldStrength) * 50; // Adjust density based on strength
+        const symbol = magFieldBz > 0 ? "⊗" : "⊙";
+        const baseColor =
+          magFieldBz > 0 ? "rgba(0, 0, 255," : "rgba(255, 0, 0,";
+        const densityFactor = Math.min(10, 1 + fieldStrength * 2);
+        const canvasArea = canvas.width * canvas.height;
+        const baseDensityArea = 400 * 400;
         const numSymbols = Math.floor(
-          (canvas.width * canvas.height) / (10000 / (densityFactor * 0.1 + 1))
-        ); // Less dense for low strength
-
-        ctx.font = "12px Arial";
-        ctx.fillStyle = color;
+          (canvasArea / baseDensityArea) * densityFactor * 20
+        );
+        const alpha = Math.min(0.35, 0.1 + fieldStrength * 0.05);
+        ctx.font = `${10 + Math.min(10, fieldStrength * 2)}px Arial`;
+        ctx.fillStyle = baseColor + alpha + ")";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-
         for (let i = 0; i < numSymbols; i++) {
           const x = Math.random() * canvas.width;
           const y = Math.random() * canvas.height;
@@ -896,61 +1644,88 @@
         }
       }
 
+      function drawWindField() {
+        const windMag = dirForceMag;
+        if (windMag < 0.01) return;
+        const angleRad = dirForceAngleRad;
+        const densityFactor = Math.min(5, windMag) * 10;
+        const canvasArea = canvas.width * canvas.height;
+        const baseDensityArea = 400 * 400;
+        const numArrows = Math.floor(
+          (canvasArea / baseDensityArea) * densityFactor * 10
+        );
+        const alpha = Math.min(0.4, 0.1 + windMag * 0.1);
+        const arrowLength = 15 + Math.min(15, windMag * 10);
+        const color = `rgba(100, 100, 100, ${alpha})`;
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < numArrows; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          drawArrow(x, y, angleRad, arrowLength, color, true);
+        }
+      }
+
       function drawDampingForces(x1, y1, x2, y2) {
         const epsilon = 0.01;
-        // Calculate velocities
-        const vx1 = length1 * Math.cos(theta1) * omega1; // dx/dt = d(L1*sin(t1))/dt
-        const vy1 = length1 * Math.sin(theta1) * omega1; // dy/dt = d(L1*cos(t1))/dt (y points down)
-        const vx2 = vx1 + length2 * Math.cos(theta2) * omega2;
-        const vy2 = vy1 + length2 * Math.sin(theta2) * omega2;
-
-        // Draw damping arrow for bob 1
-        const speed1 = Math.hypot(vx1, vy1);
-        if (damping1 > epsilon && speed1 > epsilon) {
-          const forceMag1 = damping1 * speed1;
-          const scale = Math.min(30, 5 + forceMag1 * 10); // Arrow length scales with force, capped
-          const angle1 = Math.atan2(vy1, vx1); // Angle of velocity
+        const { f1dx, f1dy, f2dx, f2dy } = calculateExternalForces(
+          theta1,
+          theta2,
+          omega1,
+          omega2
+        );
+        const dampingForce1Mag = Math.hypot(f1dx, f1dy);
+        if (dampingForce1Mag > epsilon) {
+          const scale = Math.min(40, 10 + dampingForce1Mag * 5);
+          const angle1 = Math.atan2(f1dy, f1dx);
           drawArrow(
             x1,
             y1,
-            angle1 + Math.PI,
+            angle1,
             scale,
-            `rgba(100, 100, 100, ${Math.min(0.8, 0.1 + forceMag1 * 0.5)})`
-          ); // Opposite direction
+            `rgba(100, 100, 100, ${Math.min(
+              0.8,
+              0.1 + dampingForce1Mag * 0.5
+            )})`
+          );
         }
-
-        // Draw damping arrow for bob 2
-        const speed2 = Math.hypot(vx2, vy2);
-        if (damping2 > epsilon && speed2 > epsilon) {
-          const forceMag2 = damping2 * speed2;
-          const scale = Math.min(30, 5 + forceMag2 * 10);
-          const angle2 = Math.atan2(vy2, vx2);
+        const dampingForce2Mag = Math.hypot(f2dx, f2dy);
+        if (dampingForce2Mag > epsilon) {
+          const scale = Math.min(40, 10 + dampingForce2Mag * 5);
+          const angle2 = Math.atan2(f2dy, f2dx);
           drawArrow(
             x2,
             y2,
-            angle2 + Math.PI,
+            angle2,
             scale,
-            `rgba(100, 100, 100, ${Math.min(0.8, 0.1 + forceMag2 * 0.5)})`
+            `rgba(100, 100, 100, ${Math.min(
+              0.8,
+              0.1 + dampingForce2Mag * 0.5
+            )})`
           );
         }
       }
 
-      function drawArrow(x, y, angleRad, length, color) {
+      function drawArrow(x, y, angleRad, length, color, isWind = false) {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(angleRad);
         ctx.strokeStyle = color;
         ctx.fillStyle = color;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = isWind ? 1 : 1.5;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(-length, 0);
+        ctx.lineTo(isWind ? length : -length, 0);
         ctx.stroke();
-        // Arrowhead
+        const headSize = isWind ? 4 : 6;
+        const headOffset = isWind ? length : -length;
         ctx.beginPath();
-        ctx.moveTo(-length, 0);
-        ctx.lineTo(-length + 6, -3);
-        ctx.lineTo(-length + 6, 3);
+        ctx.moveTo(headOffset, 0);
+        ctx.lineTo(headOffset - headSize, -headSize / 2);
+        ctx.lineTo(headOffset - headSize, headSize / 2);
         ctx.closePath();
         ctx.fill();
         ctx.restore();
@@ -983,7 +1758,6 @@
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fill();
       }
-
       function drawBob(x, y, m, color) {
         const radius = 6 + Math.sqrt(Math.max(0.1, m)) * 5;
         ctx.fillStyle = color;
@@ -997,75 +1771,167 @@
 
       function updateHistory() {
         if (!isRunning && !isDraggingM1 && !isDraggingM2) return;
-
-        const currentEnergy = calculateTotalEnergy();
-        chaosEnergyHistory.push(currentEnergy);
-        if (chaosEnergyHistory.length > CHAOS_HISTORY_LENGTH)
-          chaosEnergyHistory.shift();
-
+        const { ke1, ke2, pe1, pe2, totalEnergy } = calculateEnergies();
+        const { chaosValue, meanEnergy } = calculateChaosMetric(totalEnergy);
+        energyPlotHistory.push(totalEnergy);
+        kePlotHistory.push(ke1 + ke2);
+        pePlotHistory.push(pe1 + pe2);
+        ke1PlotHistory.push(ke1);
+        ke2PlotHistory.push(ke2);
+        pe1PlotHistory.push(pe1);
+        pe2PlotHistory.push(pe2);
         omega1History.push(omega1);
         omega2History.push(omega2);
-        energyPlotHistory.push(currentEnergy);
-
-        if (omega1History.length > HISTORY_LENGTH) omega1History.shift();
-        if (omega2History.length > HISTORY_LENGTH) omega2History.shift();
-        if (energyPlotHistory.length > HISTORY_LENGTH)
-          energyPlotHistory.shift();
+        chaosValueHistory.push(chaosValue);
+        const shiftIfLonger = (arr) => {
+          if (arr.length > HISTORY_LENGTH) arr.shift();
+        };
+        [
+          energyPlotHistory,
+          kePlotHistory,
+          pePlotHistory,
+          ke1PlotHistory,
+          ke2PlotHistory,
+          pe1PlotHistory,
+          pe2PlotHistory,
+          omega1History,
+          omega2History,
+          chaosValueHistory,
+        ].forEach(shiftIfLonger);
       }
 
-      function calculateTotalEnergy() {
+      function calculateEnergies() {
         const c1 = Math.cos(theta1);
         const c2 = Math.cos(theta2);
         const cosDeltaTheta = Math.cos(theta1 - theta2);
-        const ke1 = 0.5 * mass1 * length1 ** 2 * omega1 ** 2;
-        const ke2 =
-          0.5 *
-          mass2 *
-          (length1 ** 2 * omega1 ** 2 +
-            length2 ** 2 * omega2 ** 2 +
-            2 * length1 * length2 * omega1 * omega2 * cosDeltaTheta);
+        const ke1 = 0.5 * mass1 * (length1 * omega1) ** 2;
+        const ke2_term1 = (length1 * omega1) ** 2;
+        const ke2_term2 = (length2 * omega2) ** 2;
+        const ke2_term3 =
+          2 * length1 * length2 * omega1 * omega2 * cosDeltaTheta;
+        const ke2 = 0.5 * mass2 * (ke2_term1 + ke2_term2 + ke2_term3);
         const kineticEnergy = ke1 + ke2;
         const pe1 = -mass1 * gravity * length1 * c1;
         const pe2 = -mass2 * gravity * (length1 * c1 + length2 * c2);
         const potentialEnergy = pe1 + pe2;
-        return kineticEnergy + potentialEnergy;
+        const totalEnergy = kineticEnergy + potentialEnergy;
+        return {
+          ke1,
+          ke2,
+          pe1,
+          pe2,
+          kineticEnergy,
+          potentialEnergy,
+          totalEnergy,
+        };
       }
 
-      function calculateChaosMetric() {
-        if (
-          chaosEnergyHistory.length < CHAOS_HISTORY_LENGTH / 2 ||
-          isDraggingM1 ||
-          isDraggingM2
-        ) {
-          return 0; // Not enough data or system disturbed
+      let energyHistoryForChaos = [];
+      function calculateChaosMetric(currentEnergy) {
+        if (isDraggingM1 || isDraggingM2) {
+          energyHistoryForChaos = [];
+          return { chaosValue: 0, meanEnergy: calculateEnergies().totalEnergy };
         }
-
-        const recentHistory = chaosEnergyHistory.slice(-CHAOS_HISTORY_LENGTH); // Use full history if available
-        const n = recentHistory.length;
-        if (n < 2) return 0;
-
-        const meanEnergy = recentHistory.reduce((sum, e) => sum + e, 0) / n;
+        energyHistoryForChaos.push(currentEnergy);
+        if (energyHistoryForChaos.length > CHAOS_HISTORY_LENGTH)
+          energyHistoryForChaos.shift();
+        const n = energyHistoryForChaos.length;
+        if (n < CHAOS_HISTORY_LENGTH / 2)
+          return {
+            chaosValue: 0,
+            meanEnergy:
+              n > 0
+                ? energyHistoryForChaos.reduce((s, e) => s + e, 0) / n
+                : currentEnergy,
+          };
+        const meanEnergy =
+          energyHistoryForChaos.reduce((sum, e) => sum + e, 0) / n;
+        if (Math.abs(meanEnergy) < 1e-6) return { chaosValue: 0, meanEnergy };
         const variance =
-          recentHistory.reduce((sum, e) => sum + (e - meanEnergy) ** 2, 0) / n;
+          energyHistoryForChaos.reduce(
+            (sum, e) => sum + (e - meanEnergy) ** 2,
+            0
+          ) / n;
         const stDev = Math.sqrt(variance);
+        const chaosValue = (stDev / Math.abs(meanEnergy)) * 100;
+        return { chaosValue, meanEnergy };
+      }
 
-        // Return stdev as percentage of mean energy magnitude, avoid division by zero
-        return Math.abs(meanEnergy) > 1e-6
-          ? (stDev / Math.abs(meanEnergy)) * 100
-          : 0;
+      function calculateExternalForces(
+        currentTheta1,
+        currentTheta2,
+        currentOmega1,
+        currentOmega2
+      ) {
+        const s1 = Math.sin(currentTheta1);
+        const c1 = Math.cos(currentTheta1);
+        const s2 = Math.sin(currentTheta2);
+        const c2 = Math.cos(currentTheta2);
+        const vx1 = length1 * c1 * currentOmega1;
+        const vy1 = -length1 * s1 * currentOmega1;
+        const vx2 = vx1 + length2 * c2 * currentOmega2;
+        const vy2 = vy1 - length2 * s2 * currentOmega2;
+        const f1gx = 0;
+        const f1gy = -mass1 * gravity;
+        const f2gx = 0;
+        const f2gy = -mass2 * gravity;
+        const f1dx = -damping1 * vx1;
+        const f1dy = -damping1 * vy1;
+        const f2dx = -damping2 * vx2;
+        const f2dy = -damping2 * vy2;
+        let f1bx = 0,
+          f1by = 0,
+          f2bx = 0,
+          f2by = 0;
+        if (Math.abs(magFieldBz) > 1e-9 && Math.abs(charge1) > 1e-9) {
+          f1bx = charge1 * vy1 * magFieldBz;
+          f1by = -charge1 * vx1 * magFieldBz;
+        }
+        if (Math.abs(magFieldBz) > 1e-9 && Math.abs(charge2) > 1e-9) {
+          f2bx = charge2 * vy2 * magFieldBz;
+          f2by = -charge2 * vx2 * magFieldBz;
+        }
+        let f1wx = 0,
+          f1wy = 0,
+          f2wx = 0,
+          f2wy = 0;
+        if (dirForceMag > 1e-9) {
+          const windX = dirForceMag * Math.cos(dirForceAngleRad);
+          const windY = dirForceMag * Math.sin(dirForceAngleRad);
+          f1wx = windX;
+          f1wy = windY;
+          f2wx = windX;
+          f2wy = windY;
+        }
+        return {
+          f1gx,
+          f1gy,
+          f1dx,
+          f1dy,
+          f1bx,
+          f1by,
+          f1wx,
+          f1wy,
+          f2gx,
+          f2gy,
+          f2dx,
+          f2dy,
+          f2bx,
+          f2by,
+          f2wx,
+          f2wy,
+        };
       }
 
       function updateVisualsPanel() {
-        const circleRadius = 30;
-        const dotRadius = 5;
+        const circleRadius = 25;
+        const dotRadius = 4;
         const angleVizRadius = circleRadius - dotRadius;
-
         const angle1X = Math.sin(theta1);
         const angle1Y = Math.cos(theta1);
         posDot1.style.transform = `translate(calc(-50% + ${
           angle1X * angleVizRadius
         }px), calc(-50% + ${angle1Y * angleVizRadius}px))`;
-
         const angle2X = Math.sin(theta2);
         const angle2Y = Math.cos(theta2);
         posDot2.style.transform = `translate(calc(-50% + ${
@@ -1074,21 +1940,110 @@
 
         omega1Display.textContent = omega1.toFixed(2);
         omega2Display.textContent = omega2.toFixed(2);
+        const maxOmegaVis = 10;
+        rpmNeedle1.style.transform = `rotate(${Math.max(
+          -135,
+          Math.min(135, omega1 * (135 / maxOmegaVis))
+        )}deg)`;
+        rpmNeedle2.style.transform = `rotate(${Math.max(
+          -135,
+          Math.min(135, omega2 * (135 / maxOmegaVis))
+        )}deg)`;
 
-        const totalEnergy = calculateTotalEnergy();
+        const {
+          ke1,
+          ke2,
+          pe1,
+          pe2,
+          kineticEnergy,
+          potentialEnergy,
+          totalEnergy,
+        } = calculateEnergies();
+        keTotalDisplay.textContent = kineticEnergy.toFixed(2);
+        peTotalDisplay.textContent = potentialEnergy.toFixed(2);
         energyDisplay.textContent = totalEnergy.toFixed(2);
-
-        const chaosValue = calculateChaosMetric();
+        ke1Display.textContent = ke1.toFixed(2);
+        ke2Display.textContent = ke2.toFixed(2);
+        pe1Display.textContent = pe1.toFixed(2);
+        pe2Display.textContent = pe2.toFixed(2);
+        const { chaosValue, meanEnergy } = calculateChaosMetric(totalEnergy);
+        avgEnergyDisplay.textContent =
+          isDraggingM1 || isDraggingM2 ? "N/A" : meanEnergy.toFixed(2);
         chaosDisplay.textContent =
           isDraggingM1 || isDraggingM2 ? "N/A" : chaosValue.toFixed(2);
+
+        const forces = calculateExternalForces(theta1, theta2, omega1, omega2);
+        f1gxDisplay.textContent = forces.f1gx.toFixed(2);
+        f1gyDisplay.textContent = forces.f1gy.toFixed(2);
+        f1dxDisplay.textContent = forces.f1dx.toFixed(2);
+        f1dyDisplay.textContent = forces.f1dy.toFixed(2);
+        f1bxDisplay.textContent = forces.f1bx.toFixed(2);
+        f1byDisplay.textContent = forces.f1by.toFixed(2);
+        f1wxDisplay.textContent = forces.f1wx.toFixed(2);
+        f1wyDisplay.textContent = forces.f1wy.toFixed(2);
+        f2gxDisplay.textContent = forces.f2gx.toFixed(2);
+        f2gyDisplay.textContent = forces.f2gy.toFixed(2);
+        f2dxDisplay.textContent = forces.f2dx.toFixed(2);
+        f2dyDisplay.textContent = forces.f2dy.toFixed(2);
+        f2bxDisplay.textContent = forces.f2bx.toFixed(2);
+        f2byDisplay.textContent = forces.f2by.toFixed(2);
+        f2wxDisplay.textContent = forces.f2wx.toFixed(2);
+        f2wyDisplay.textContent = forces.f2wy.toFixed(2);
+
+        currentTheta1Display.value = ((theta1 * 180) / Math.PI).toFixed(1);
+        currentTheta2Display.value = ((theta2 * 180) / Math.PI).toFixed(1);
       }
 
-      function drawHistoryChart() {
-        const w = historyChartCanvas.width;
-        const h = historyChartCanvas.height;
+      function drawHistoryCharts() {
+        drawOmegaHistoryChart();
+        drawEnergyHistoryChart();
+        drawChaosHistoryChart();
+      }
+      function drawOmegaHistoryChart() {
+        const chartCtx = omegaChartCtx;
+        const canvas = omegaHistoryChartCanvas;
+        const w = canvas.width;
+        const h = canvas.height;
         chartCtx.fillStyle = colorChartBg;
         chartCtx.fillRect(0, 0, w, h);
-
+        chartCtx.strokeStyle = colorChartGrid;
+        chartCtx.lineWidth = 0.5;
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, h / 2);
+        chartCtx.lineTo(w, h / 2);
+        chartCtx.stroke();
+        const maxAbsOmega = Math.max(
+          1,
+          ...omega1History.map(Math.abs),
+          ...omega2History.map(Math.abs)
+        );
+        const scaleOmega = h / 2 / (maxAbsOmega + 1e-6);
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          omega1History,
+          colorOmega1,
+          scaleOmega,
+          h / 2,
+          1.5
+        );
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          omega2History,
+          colorOmega2,
+          scaleOmega,
+          h / 2,
+          1.5
+        );
+      }
+      function drawEnergyHistoryChart() {
+        const chartCtx = energyChartCtx;
+        const canvas = energyHistoryChartCanvas;
+        const w = canvas.width;
+        const h = canvas.height;
+        chartCtx.fillStyle = colorChartBg;
+        chartCtx.fillRect(0, 0, w, h);
         chartCtx.strokeStyle = colorChartGrid;
         chartCtx.lineWidth = 0.5;
         chartCtx.beginPath();
@@ -1096,36 +2051,127 @@
         chartCtx.lineTo(w, h / 3);
         chartCtx.moveTo(0, (2 * h) / 3);
         chartCtx.lineTo(w, (2 * h) / 3);
-
-        const maxOmegaAbs = Math.max(
-          1,
-          ...omega1History.map(Math.abs),
-          ...omega2History.map(Math.abs)
-        );
-        const energyVals = energyPlotHistory.filter((e) => isFinite(e));
-        const minEnergy = energyVals.length > 0 ? Math.min(...energyVals) : -1; // Adjust default min/max
-        const maxEnergy = energyVals.length > 0 ? Math.max(...energyVals) : 1;
-        const energyRange = Math.max(1e-6, maxEnergy - minEnergy);
-
-        const scaleOmega = h / 2 / (maxOmegaAbs + 1e-6);
+        chartCtx.stroke();
+        const allEnergies = [
+          ...energyPlotHistory,
+          ...kePlotHistory,
+          ...pePlotHistory,
+        ];
+        const finiteEnergies = allEnergies.filter((e) => isFinite(e));
+        const minE =
+          finiteEnergies.length > 0 ? Math.min(...finiteEnergies) : -1;
+        const maxE =
+          finiteEnergies.length > 0 ? Math.max(...finiteEnergies) : 1;
+        const energyRange = Math.max(1e-6, maxE - minE);
         const scaleEnergy = h / (energyRange + 1e-6);
-
-        plotHistory(
+        const yOffsetEnergy = h - maxE * scaleEnergy;
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          pePlotHistory,
+          colorPE,
+          scaleEnergy,
+          yOffsetEnergy,
+          1.5
+        );
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          kePlotHistory,
+          colorKE,
+          scaleEnergy,
+          yOffsetEnergy,
+          1.5
+        );
+        plotHistoryLine(
+          chartCtx,
+          canvas,
           energyPlotHistory,
           colorEnergy,
           scaleEnergy,
-          h - maxEnergy * scaleEnergy,
+          yOffsetEnergy,
+          1.0
+        );
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          pe1PlotHistory,
+          colorPE1,
+          scaleEnergy,
+          yOffsetEnergy,
           0.8
         );
-        plotHistory(omega1History, colorOmega1, scaleOmega, h / 2, 1.5);
-        plotHistory(omega2History, colorOmega2, scaleOmega, h / 2, 1.5);
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          pe2PlotHistory,
+          colorPE2,
+          scaleEnergy,
+          yOffsetEnergy,
+          0.8
+        );
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          ke1PlotHistory,
+          colorKE1,
+          scaleEnergy,
+          yOffsetEnergy,
+          0.8
+        );
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          ke2PlotHistory,
+          colorKE2,
+          scaleEnergy,
+          yOffsetEnergy,
+          0.8
+        );
       }
-
-      function plotHistory(history, color, yScale, yOffset, lineWidth = 1.5) {
+      function drawChaosHistoryChart() {
+        const chartCtx = chaosChartCtx;
+        const canvas = chaosHistoryChartCanvas;
+        const w = canvas.width;
+        const h = canvas.height;
+        chartCtx.fillStyle = colorChartBg;
+        chartCtx.fillRect(0, 0, w, h);
+        chartCtx.strokeStyle = colorChartGrid;
+        chartCtx.lineWidth = 0.5;
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, h);
+        chartCtx.lineTo(w, h);
+        chartCtx.stroke();
+        const finiteChaos = chaosValueHistory.filter(
+          (c) => isFinite(c) && c >= 0
+        );
+        const maxChaos =
+          finiteChaos.length > 0 ? Math.max(0.1, ...finiteChaos) : 0.1;
+        const scaleChaos = h / (maxChaos + 1e-6);
+        plotHistoryLine(
+          chartCtx,
+          canvas,
+          chaosValueHistory,
+          colorChaos,
+          scaleChaos,
+          h,
+          1.5,
+          true
+        );
+      }
+      function plotHistoryLine(
+        chartCtx,
+        canvas,
+        history,
+        color,
+        yScale,
+        yOffset,
+        lineWidth = 1.5,
+        plotFromBottom = false
+      ) {
         if (history.length < 2) return;
-        const w = historyChartCanvas.width;
+        const w = canvas.width;
         const stepX = w / (HISTORY_LENGTH - 1);
-
         chartCtx.strokeStyle = color;
         chartCtx.lineWidth = lineWidth;
         chartCtx.beginPath();
@@ -1133,16 +2179,18 @@
           isFinite(val * yScale)
         );
         if (firstValidIndex === -1) return;
-
+        const getY = (val) =>
+          plotFromBottom
+            ? yOffset - Math.max(0, val) * yScale
+            : yOffset - val * yScale;
         chartCtx.moveTo(
           firstValidIndex * stepX,
-          yOffset - history[firstValidIndex] * yScale
+          getY(history[firstValidIndex])
         );
-
         for (let i = firstValidIndex + 1; i < history.length; i++) {
           let yVal = history[i] * yScale;
           if (isFinite(yVal)) {
-            chartCtx.lineTo(i * stepX, yOffset - yVal);
+            chartCtx.lineTo(i * stepX, getY(history[i]));
           } else {
             chartCtx.stroke();
             let nextValidIndex = history.findIndex(
@@ -1152,9 +2200,9 @@
               chartCtx.beginPath();
               chartCtx.moveTo(
                 nextValidIndex * stepX,
-                yOffset - history[nextValidIndex] * yScale
+                getY(history[nextValidIndex])
               );
-              i = nextValidIndex;
+              i = nextValidIndex - 1;
             } else {
               break;
             }
@@ -1163,58 +2211,183 @@
         chartCtx.stroke();
       }
 
-      function gameLoop() {
+      function gameLoop(timestamp) {
+        if (!lastTimestamp) lastTimestamp = timestamp;
+        const elapsed = (timestamp - lastTimestamp) / 1000.0;
+        lastTimestamp = timestamp;
         if (isRunning) {
-          updatePhysics();
+          timeSinceLastPhysicsUpdate += elapsed;
+          const physicsInterval = 1.0 / simulationUpdateRateHz;
+          while (timeSinceLastPhysicsUpdate >= physicsInterval) {
+            updatePhysics();
+            updateHistory();
+            timeSinceLastPhysicsUpdate -= physicsInterval;
+          }
+          timeSinceLastRender += elapsed;
+          const renderInterval = 1.0 / canvasRenderRateFps;
+          if (timeSinceLastRender >= renderInterval) {
+            draw();
+            updateVisualsPanel();
+            drawHistoryCharts();
+            timeSinceLastRender = 0;
+          }
+        } else if (isDraggingM1 || isDraggingM2) {
+          draw();
+          updateVisualsPanel();
+          drawHistoryCharts();
         }
-        draw();
         animationFrameId = requestAnimationFrame(gameLoop);
       }
 
       function startSimulation() {
+        if (isGeneratingFastCSV) return;
+        currentRecordingMode = document.querySelector(
+          'input[name="recordMode"]:checked'
+        ).value;
+        if (currentRecordingMode === "fast") {
+          generateFastCSV();
+          return;
+        }
         if (!isRunning) {
           isRunning = true;
           startButton.disabled = true;
           stopButton.disabled = false;
+          disableInputs(true);
+          if (time <= 1e-6) {
+            recordedData = [];
+            energyHistoryForChaos = [];
+            dataRecordingStatus.textContent = "Recording started...";
+          }
+          updateRecordingStatus();
           if (!animationFrameId) {
-            if (Math.abs(time) < 1e-6) {
-              recordedData = [];
-              chaosEnergyHistory = []; // Also clear chaos history on fresh start
-              dataRecordingStatus.textContent = "Recording started...";
-            } else if (time > MAX_RECORDING_TIME) {
-              dataRecordingStatus.textContent =
-                "Max recording time reached. Restart to record again.";
-            } else {
-              dataRecordingStatus.textContent = `Resuming recording... ${time.toFixed(
-                1
-              )}s / ${MAX_RECORDING_TIME}s`;
-            }
-            gameLoop();
+            lastTimestamp = performance.now();
+            timeSinceLastRender = 0;
+            timeSinceLastPhysicsUpdate = 0;
+            gameLoop(lastTimestamp);
           }
         }
       }
-
       function stopSimulation() {
+        if (isGeneratingFastCSV) {
+          isGeneratingFastCSV = false;
+          dataRecordingStatus.textContent = "Fast CSV generation cancelled.";
+          startButton.disabled = false;
+          stopButton.disabled = true;
+          downloadDataButton.disabled = recordedData.length === 0;
+          disableInputs(false);
+          return;
+        }
         if (isRunning) {
           isRunning = false;
           startButton.disabled = false;
           stopButton.disabled = true;
+          disableInputs(false);
           saveRecordedData();
-          if (time <= MAX_RECORDING_TIME) {
-            dataRecordingStatus.textContent = `Recording paused at ${time.toFixed(
-              1
-            )}s. Data saved.`;
-          } else {
-            dataRecordingStatus.textContent = `Recording complete. Data saved.`;
-          }
+          updateRecordingStatus();
+          downloadDataButton.disabled = recordedData.length === 0;
         }
       }
-
+      function generateFastCSV() {
+        if (isRunning || isGeneratingFastCSV) return;
+        resetSimulationStateOnly();
+        isGeneratingFastCSV = true;
+        recordedData = [];
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        downloadDataButton.disabled = true;
+        disableInputs(true);
+        dataRecordingStatus.textContent = `Generating CSV (0s / ${maxRecordingTime}s)...`;
+        let startTime = performance.now();
+        let lastUpdate = startTime;
+        function runChunk() {
+          if (!isGeneratingFastCSV) return;
+          const chunkEndTime = time + 1.0;
+          const loopStartTime = performance.now();
+          while (
+            time <= chunkEndTime &&
+            time <= maxRecordingTime &&
+            isGeneratingFastCSV
+          ) {
+            updatePhysics();
+            recordDataPoint();
+            if (performance.now() - loopStartTime > 50) {
+              requestAnimationFrame(runChunk);
+              return;
+            }
+          }
+          if (performance.now() - lastUpdate > 500) {
+            const progress = (time / maxRecordingTime) * 100;
+            dataRecordingStatus.textContent = `Generating CSV... ${time.toFixed(
+              1
+            )}s / ${maxRecordingTime}s (${progress.toFixed(0)}%)`;
+            lastUpdate = performance.now();
+          }
+          if (time >= maxRecordingTime || !isGeneratingFastCSV) {
+            finishFastCSV();
+          } else {
+            requestAnimationFrame(runChunk);
+          }
+        }
+        requestAnimationFrame(runChunk);
+      }
+      function finishFastCSV() {
+        isGeneratingFastCSV = false;
+        const endTime = performance.now();
+        const duration = (
+          (endTime - (lastTimestamp || startTime)) /
+          1000
+        ).toFixed(2);
+        dataRecordingStatus.textContent = `CSV generation complete (${recordedData.length} points in ${duration}s). Data ready.`;
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        downloadDataButton.disabled = false;
+        disableInputs(false);
+        saveRecordedData();
+        resetSimulation();
+      }
+      function resetSimulationStateOnly() {
+        theta1 = defaultTheta1;
+        theta2 = defaultTheta2;
+        omega1 = 0;
+        omega2 = 0;
+        time = 0;
+        trace1 = [];
+        trace2 = [];
+        chaosValueHistory = [];
+        omega1History = [];
+        omega2History = [];
+        energyPlotHistory = [];
+        kePlotHistory = [];
+        pePlotHistory = [];
+        ke1PlotHistory = [];
+        ke2PlotHistory = [];
+        pe1PlotHistory = [];
+        pe2PlotHistory = [];
+        energyHistoryForChaos = [];
+        recordedData = [];
+      }
+      function updateDefaultPositionDisplays() {
+        const th1 = (parseFloat(defaultTheta1Input.value) * Math.PI) / 180;
+        const th2 = (parseFloat(defaultTheta2Input.value) * Math.PI) / 180;
+        const l1 = Math.max(0.1, parseFloat(length1Input.value));
+        const l2 = Math.max(0.1, parseFloat(length2Input.value));
+        const s1 = Math.sin(th1);
+        const c1 = Math.cos(th1);
+        const s2 = Math.sin(th2);
+        const c2 = Math.cos(th2);
+        const x1 = l1 * s1;
+        const y1 = l1 * c1;
+        const x2 = x1 + l2 * s2;
+        const y2 = y1 + l2 * c2;
+        defaultX1Display.value = x1.toFixed(3);
+        defaultY1Display.value = y1.toFixed(3);
+        defaultX2Display.value = x2.toFixed(3);
+        defaultY2Display.value = y2.toFixed(3);
+      }
       function resetSimulation() {
         stopSimulation();
-
-        theta1 = (parseFloat(theta1Input.value) * Math.PI) / 180;
-        theta2 = (parseFloat(theta2Input.value) * Math.PI) / 180;
+        defaultTheta1 = (parseFloat(defaultTheta1Input.value) * Math.PI) / 180;
+        defaultTheta2 = (parseFloat(defaultTheta2Input.value) * Math.PI) / 180;
         length1 = Math.max(0.1, parseFloat(length1Input.value));
         length2 = Math.max(0.1, parseFloat(length2Input.value));
         gravity = Math.max(0, parseFloat(gravityInput.value));
@@ -1230,42 +2403,29 @@
         charge1 = parseFloat(charge1Input.value);
         charge2 = parseFloat(charge2Input.value);
         magFieldBz = parseFloat(magFieldInput.value);
-
-        omega1 = 0;
-        omega2 = 0;
-        time = 0;
-        trace1 = [];
-        trace2 = [];
-        chaosEnergyHistory = [];
-        omega1History = [];
-        omega2History = [];
-        energyPlotHistory = [];
-        recordedData = [];
-
+        simulationUpdateRateHz = Math.max(10, parseInt(simRateInput.value, 10));
+        canvasRenderRateFps = Math.max(1, parseInt(renderRateInput.value, 10));
+        timeStep = 1.0 / simulationUpdateRateHz;
+        maxRecordingTime = Math.max(1, parseInt(maxRecordTimeInput.value, 10));
+        resetSimulationStateOnly();
+        updateDefaultPositionDisplays();
         startButton.disabled = false;
         stopButton.disabled = true;
-        dataRecordingStatus.textContent =
-          "Ready to record (max 600s). Press Start.";
-
+        downloadDataButton.disabled = true;
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        calculateEstimatedSize();
+        updateRecordingStatus();
         resizeCanvas();
         draw();
-
-        omega1Display.textContent = "0.00";
-        omega2Display.textContent = "0.00";
-        energyDisplay.textContent = calculateTotalEnergy().toFixed(2);
-        chaosDisplay.textContent = "0.00";
-        posDot1.style.transform = `translate(-50%, -50%)`;
-        posDot2.style.transform = `translate(-50%, -50%)`;
+        updateVisualsPanel();
+        drawHistoryCharts();
       }
-
       function getMousePos(canvasEl, evt) {
         const rect = canvasEl.getBoundingClientRect();
         return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
       }
-
       function handleMouseDown(e) {
-        if (isRunning) return;
-
+        if (isRunning || isGeneratingFastCSV) return;
         const mousePos = getMousePos(canvas, e);
         const l1Px = length1 * pixelsPerMeter;
         const l2Px = length2 * pixelsPerMeter;
@@ -1277,43 +2437,44 @@
         const y1 = originY + l1Px * c1;
         const x2 = originX + l1Px * s1 + l2Px * s2;
         const y2 = originY + l1Px * c1 + l2Px * c2;
-
         const grabRadius1 = 6 + Math.sqrt(mass1) * 5 + 15;
         const grabRadius2 = 6 + Math.sqrt(mass2) * 5 + 15;
-
         const distToM2 = Math.hypot(mousePos.x - x2, mousePos.y - y2);
         const distToM1 = Math.hypot(mousePos.x - x1, mousePos.y - y1);
-
+        const clearHistory = () => {
+          chaosValueHistory = [];
+          omega1History = [];
+          omega2History = [];
+          energyPlotHistory = [];
+          kePlotHistory = [];
+          pePlotHistory = [];
+          ke1PlotHistory = [];
+          ke2PlotHistory = [];
+          pe1PlotHistory = [];
+          pe2PlotHistory = [];
+          energyHistoryForChaos = [];
+        };
         if (distToM2 < grabRadius2) {
           isDraggingM2 = true;
           isDraggingM1 = false;
           canvas.style.cursor = "grabbing";
-          chaosEnergyHistory = [];
-          omega1History = [];
-          omega2History = [];
-          energyPlotHistory = [];
+          clearHistory();
         } else if (distToM1 < grabRadius1) {
           isDraggingM1 = true;
           isDraggingM2 = false;
           canvas.style.cursor = "grabbing";
-          chaosEnergyHistory = [];
-          omega1History = [];
-          omega2History = [];
-          energyPlotHistory = [];
+          clearHistory();
         }
       }
-
       function handleMouseMove(e) {
         if (!isDraggingM1 && !isDraggingM2) return;
-        if (isRunning) {
+        if (isRunning || isGeneratingFastCSV) {
           isDraggingM1 = false;
           isDraggingM2 = false;
           canvas.style.cursor = "grab";
           return;
         }
-
         const mousePos = getMousePos(canvas, e);
-
         if (isDraggingM1) {
           const dx = mousePos.x - originX;
           const dy = mousePos.y - originY;
@@ -1330,49 +2491,54 @@
           omega1 = 0;
           omega2 = 0;
         }
-        draw();
+        time = 0;
+        updateVisualsPanel();
       }
-
       function handleMouseUpOrLeave() {
         if (isDraggingM1 || isDraggingM2) {
           isDraggingM1 = false;
           isDraggingM2 = false;
           canvas.style.cursor = "grab";
-          theta1Input.value = ((theta1 * 180) / Math.PI).toFixed(1);
-          theta2Input.value = ((theta2 * 180) / Math.PI).toFixed(1);
           omega1 = 0;
           omega2 = 0;
           time = 0;
           recordedData = [];
-          chaosEnergyHistory = []; // Clear history after drag
-          dataRecordingStatus.textContent =
-            "Ready to record (max 600s). Press Start.";
+          updateRecordingStatus();
           startButton.disabled = false;
           stopButton.disabled = true;
           draw();
+          updateVisualsPanel();
+          drawHistoryCharts();
         }
       }
-
       function saveRecordedData() {
         if (recordedData && recordedData.length > 0) {
           try {
-            localStorage.setItem(
-              LOCAL_STORAGE_KEY,
-              JSON.stringify(recordedData)
+            const dataString = JSON.stringify(recordedData);
+            localStorage.setItem(LOCAL_STORAGE_KEY, dataString);
+            console.log(
+              `Saved ${recordedData.length} points (${(
+                dataString.length /
+                (1024 * 1024)
+              ).toFixed(2)} MB) to localStorage.`
             );
+            downloadDataButton.disabled = false;
           } catch (e) {
             console.error("Error saving data to local storage:", e);
             dataRecordingStatus.textContent =
               "Error saving data. Storage might be full.";
+            alert(
+              `Error saving data to local storage. The browser limit (often 5-10MB) might have been exceeded.\nRecorded data length: ${recordedData.length}. Try reducing Max Record Time.`
+            );
+            downloadDataButton.disabled = true;
           }
         } else {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
+          downloadDataButton.disabled = true;
         }
       }
-
       function downloadStoredData() {
         stopSimulation();
-
         let dataString;
         try {
           dataString = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -1389,7 +2555,6 @@
           alert("Error retrieving data from local storage.");
           return;
         }
-
         let dataArray;
         try {
           dataArray = JSON.parse(dataString);
@@ -1405,9 +2570,7 @@
           alert("Error parsing stored data.");
           return;
         }
-
         dataRecordingStatus.textContent = `Preparing ${dataArray.length} data points for download...`;
-
         const header = Object.keys(dataArray[0]).join(",");
         const csvRows = dataArray.map((row) =>
           Object.values(row)
@@ -1417,7 +2580,6 @@
             .join(",")
         );
         const csvContent = [header, ...csvRows].join("\n");
-
         try {
           const blob = new Blob([csvContent], {
             type: "text/csv;charset=utf-8;",
@@ -1443,86 +2605,176 @@
           alert("Error generating download file.");
         }
       }
-
       function resizeCanvas() {
-        const container = canvas.parentElement;
-        if (!container) return;
-        const computedStyle = getComputedStyle(container);
-        const availableWidth =
-          container.clientWidth -
-          parseFloat(computedStyle.paddingLeft) -
-          parseFloat(computedStyle.paddingRight);
-        const aspectRatio = 4 / 3;
-        const height = availableWidth / aspectRatio;
+        const simRow = document.querySelector(".simulation-row");
+        const availableWidth = simRow.clientWidth;
+        const gap = 20;
+        const cardWidth = Math.floor((availableWidth - gap) / 2);
 
-        canvas.width = availableWidth;
-        canvas.height = height;
+        const simCard = document.getElementById("simulation-card");
+        const controlsCard = document.getElementById("controls-card");
+        simCard.style.flexBasis = `${cardWidth}px`;
+        controlsCard.style.flexBasis = `${cardWidth}px`;
 
-        const chartContainer = historyChartCanvas.parentElement;
-        if (chartContainer) {
-          historyChartCanvas.width =
-            chartContainer.clientWidth -
-            parseFloat(getComputedStyle(chartContainer).paddingLeft) -
-            parseFloat(getComputedStyle(chartContainer).paddingRight);
-          historyChartCanvas.height = 156;
-        }
+        canvas.width = cardWidth;
+        canvas.height = cardWidth;
 
+        [
+          omegaHistoryChartCanvas,
+          energyHistoryChartCanvas,
+          chaosHistoryChartCanvas,
+        ].forEach((chartCanvas) => {
+          const chartContainer = chartCanvas.parentElement;
+          if (chartContainer) {
+            const containerStyle = getComputedStyle(chartContainer);
+            chartCanvas.width =
+              chartContainer.clientWidth -
+              parseFloat(containerStyle.paddingLeft) -
+              parseFloat(containerStyle.paddingRight);
+            chartCanvas.height = 156;
+          }
+        });
         const maxExtent = length1 + length2;
         const paddingFactor = 1.2;
         const scaleX = canvas.width / (maxExtent * 2 * paddingFactor);
         const scaleY = (canvas.height * 0.8) / (maxExtent * 2 * paddingFactor);
-
         pixelsPerMeter = Math.max(20, Math.min(scaleX, scaleY));
         if (maxExtent < 1e-6) pixelsPerMeter = 50;
-
         originX = canvas.width / 2;
         originY = canvas.height * 0.4;
-
-        if (!isRunning && !isDraggingM1 && !isDraggingM2) draw();
+        if (
+          !isRunning &&
+          !isDraggingM1 &&
+          !isDraggingM2 &&
+          !isGeneratingFastCSV
+        ) {
+          draw();
+          drawHistoryCharts();
+        }
       }
-
+      function calculateEstimatedSize() {
+        const pointsPerSecond = simulationUpdateRateHz;
+        const totalPoints = pointsPerSecond * maxRecordingTime;
+        const fieldsPerPoint = 16;
+        const avgCharsPerField = 15;
+        const avgCharsPerPoint = fieldsPerPoint * (avgCharsPerField + 5);
+        const totalChars = totalPoints * avgCharsPerPoint;
+        const estimatedMB = totalChars / (1024 * 1024);
+        estimatedSizeDisplay.textContent = `Est. Size: ${estimatedMB.toFixed(
+          1
+        )} MB`;
+        if (estimatedMB > 5) {
+          estimatedSizeDisplay.style.color = "red";
+          estimatedSizeDisplay.title =
+            "Warning: Estimated size exceeds typical 5MB localStorage limit. Saving may fail.";
+        } else {
+          estimatedSizeDisplay.style.color = getCssVariable("--accent-grey");
+          estimatedSizeDisplay.title = "";
+        }
+      }
+      function disableInputs(disabled) {
+        const inputs = document.querySelectorAll(
+          "#controls-container input, #controls-container select"
+        );
+        inputs.forEach((input) => {
+          if (
+            !input.closest(".button-group") &&
+            input.type !== "radio" &&
+            input.id !== "max-record-time-input"
+          ) {
+            input.disabled = disabled;
+          }
+        });
+        resetButton.disabled = disabled;
+        downloadDataButton.disabled =
+          disabled ||
+          (recordedData.length === 0 &&
+            !localStorage.getItem(LOCAL_STORAGE_KEY));
+        recordingModeRadios.forEach((radio) => (radio.disabled = disabled));
+        maxRecordTimeInput.disabled = disabled;
+      }
+      function toggleCard(cardHeader) {
+        const cardContent = cardHeader.nextElementSibling;
+        const toggle = cardHeader.querySelector(".card-toggle");
+        const isCollapsed = cardContent.classList.toggle("collapsed");
+        toggle.textContent = isCollapsed ? "+" : "−";
+      }
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        localStorage.setItem("theme", theme);
+        loadColors();
+        if (!isRunning && !isGeneratingFastCSV) {
+          draw();
+          drawHistoryCharts();
+        }
+      }
       function initialize() {
         loadColors();
         resetButton.addEventListener("click", resetSimulation);
         startButton.addEventListener("click", startSimulation);
         stopButton.addEventListener("click", stopSimulation);
         downloadDataButton.addEventListener("click", downloadStoredData);
-
-        [
-          theta1Input,
-          theta2Input,
-          length1Input,
-          length2Input,
-          gravityInput,
-          mass1Input,
-          mass2Input,
-          damping1Input,
-          damping2Input,
-          trace1LengthInput,
-          trace2LengthInput,
-          dirForceMagInput,
-          dirForceAngleInput,
-          charge1Input,
-          charge2Input,
-          magFieldInput,
-        ].forEach((input) => {
+        maxRecordTimeInput.addEventListener("change", calculateEstimatedSize);
+        simRateInput.addEventListener("change", () => {
+          if (!isRunning && !isGeneratingFastCSV) resetSimulation();
+        });
+        renderRateInput.addEventListener("change", () => {
+          if (!isRunning && !isGeneratingFastCSV) resetSimulation();
+        });
+        const controlInputs = document.querySelectorAll(
+          '#controls-container input[type="number"], #controls-container input[type="checkbox"], #controls-container select'
+        );
+        controlInputs.forEach((input) => {
           input.addEventListener("change", () => {
-            if (!isRunning) resetSimulation();
+            if (
+              input.id === "default-theta1-input" ||
+              input.id === "default-theta2-input" ||
+              input.id === "length1-input" ||
+              input.id === "length2-input"
+            ) {
+              updateDefaultPositionDisplays();
+            }
+            if (
+              !isRunning &&
+              !isGeneratingFastCSV &&
+              input.id !== "sim-rate-input" &&
+              input.id !== "render-rate-input" &&
+              input.id !== "max-record-time-input"
+            ) {
+              resetSimulation();
+            }
           });
         });
-
+        document.querySelectorAll(".card-header").forEach((header) => {
+          header.addEventListener("click", () => toggleCard(header));
+        });
         canvas.addEventListener("mousedown", handleMouseDown);
         canvas.addEventListener("mousemove", handleMouseMove);
         canvas.addEventListener("mouseup", handleMouseUpOrLeave);
         canvas.addEventListener("mouseleave", handleMouseUpOrLeave);
-
         window.addEventListener("resize", resizeCanvas);
-
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+        const savedTheme = localStorage.getItem("theme");
+        applyTheme(
+          savedTheme ? savedTheme : prefersDark.matches ? "dark" : "light"
+        );
+        prefersDark.addEventListener("change", (e) => {
+          if (!localStorage.getItem("theme")) {
+            applyTheme(e.matches ? "dark" : "light");
+          }
+        });
+        themeToggleButton.addEventListener("click", () => {
+          const currentTheme =
+            document.documentElement.getAttribute("data-theme");
+          applyTheme(currentTheme === "dark" ? "light" : "dark");
+        });
         resetSimulation();
         stopSimulation();
-        gameLoop();
+        requestAnimationFrame((ts) => {
+          lastTimestamp = ts;
+          gameLoop(ts);
+        });
       }
-
       document.addEventListener("DOMContentLoaded", initialize);
     </script>
   </body>
