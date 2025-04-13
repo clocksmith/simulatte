@@ -36,7 +36,7 @@
         user-select: none;
       }
       .content a {
-        color: #0f0;
+        color: #f0f;
         text-decoration: none;
         pointer-events: auto;
       }
@@ -106,25 +106,24 @@
       }
       .controls {
         position: fixed;
-        bottom: 15px;
-        right: 15px;
+        top: 16px;
+        right: 16px;
         left: auto;
-        width: auto;
-        background: rgba(0, 0, 0, 0.8);
-        padding: 8px 15px;
+        width: 256px;
+        background: rgba(0, 0, 0, 0.256);
+        padding: 8px 16px;
         box-sizing: border-box;
         z-index: 100;
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        border: 1px solid #444;
-        border-radius: 5px;
+        gap: 16px;
+        border: 1px solid #d0d0d0;
         align-items: flex-end;
       }
       .control-row {
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: end;
         justify-content: flex-end;
         gap: 12px;
         flex-wrap: wrap;
@@ -135,7 +134,7 @@
         color: #eee;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
         white-space: nowrap;
       }
       .controls input[type="checkbox"] {
@@ -195,6 +194,8 @@
       <br />
       <p>an n-gram and anagram collective</p>
       <p>created for mages who like games</p>
+      <br />
+      <br />
       <p>
         <sub>some</sub>d<sup>emos</sup>
         <a href="/2">d<sup>2</sup></a>
@@ -204,6 +205,30 @@
     </div>
 
     <div class="controls">
+      <div class="control-row">
+        <label>
+          <input type="checkbox" id="showNetwork" checked />
+          Network
+        </label>
+      </div>
+      <div class="control-row">
+        <label>
+          <input type="checkbox" id="starTwinkle" checked />
+          Twinkle
+        </label>
+      </div>
+      <div class="control-row">
+        <label>
+          <input type="checkbox" id="showStarfield" />
+          Starfield
+        </label>
+      </div>
+      <div class="control-row">
+      <label>
+        <input type="checkbox" id="vortexMode" />
+        Vortex
+      </label>
+      </div>
       <div class="control-row">
         <label>
           Line Life (s):
@@ -217,6 +242,8 @@
           />
           <span id="lineLifeValue">5</span>
         </label>
+      </div>
+      <div class="control-row">
         <label>
           Vertex Speed:
           <input
@@ -229,88 +256,91 @@
           />
           <span id="vertexSpeedValue">0.5</span>
         </label>
-        <label>
-          Density:
-          <input
-            type="range"
-            id="connectionDensity"
-            min="0.01"
-            max="0.5"
-            value="0.1"
-            step="0.01"
-          />
-          <span id="connectionDensityValue">0.10</span>
-        </label>
-        <label>
-          Connect Dist:
-          <input
-            type="range"
-            id="maxLineDist"
-            min="20"
-            max="300"
-            value="100"
-            step="5"
-          />
-          <span id="maxLineDistValue">100</span>
-        </label>
-        <label>
-          Vertices:
-          <input
-            type="range"
-            id="numVertices"
-            min="10"
-            max="200"
-            value="64"
-            step="1"
-          />
-          <span id="numVerticesValue">64</span>
-        </label>
-        <label
-          >Network: <input type="checkbox" id="showNetwork" checked />
-        </label>
-      </div>
-      <div class="control-row">
-        <label>
-          Twinkle: <input type="checkbox" id="starTwinkle" checked />
-        </label>
-        <label>
-          Vortex Str:
-          <input
-            type="range"
-            id="vortexStrength"
-            min="0.001"
-            max="0.05"
-            value="0.01"
-            step="0.001"
-          />
-          <span id="vortexStrengthValue">0.010</span>
-        </label>
-        <label> Vortex Mode: <input type="checkbox" id="vortexMode" /> </label>
-        <label>
-          Warp Speed:
-          <input
-            type="range"
-            id="warpSpeed"
-            min="0.1"
-            max="5"
-            value="0.5"
-            step="0.1"
-          />
-          <span id="warpSpeedValue">0.5</span>
-        </label>
-        <label>
-          Stars:
-          <input
-            type="range"
-            id="numStars"
-            min="50"
-            max="1000"
-            value="300"
-            step="10"
-          />
-          <span id="numStarsValue">300</span>
-        </label>
-        <label> Starfield: <input type="checkbox" id="showStarfield" /> </label>
+        </div>
+        <div class="control-row">
+          <label>
+            Density:
+            <input
+              type="range"
+              id="connectionDensity"
+              min="0.01"
+              max="0.5"
+              value="0.1"
+              step="0.01"
+            />
+            <span id="connectionDensityValue">0.10</span>
+          </label>
+        </div>
+        <div class="control-row">
+          <label>
+            Connect Dist:
+            <input
+              type="range"
+              id="maxLineDist"
+              min="20"
+              max="300"
+              value="100"
+              step="5"
+            />
+            <span id="maxLineDistValue">100</span>
+          </label>
+        </div>
+        <div class="control-row">
+          <label>
+            Vertices:
+            <input
+              type="range"
+              id="numVertices"
+              min="10"
+              max="200"
+              value="64"
+              step="1"
+            />
+            <span id="numVerticesValue">64</span>
+          </label>
+        </div>
+        <div class="control-row">
+          <label>
+            Vortex Str:
+            <input
+              type="range"
+              id="vortexStrength"
+              min="0.001"
+              max="0.05"
+              value="0.01"
+              step="0.001"
+            />
+            <span id="vortexStrengthValue">0.010</span>
+          </label>
+          <div class="control-row">
+          <label>
+            Warp Speed:
+            <input
+              type="range"
+              id="warpSpeed"
+              min="0.1"
+              max="5"
+              value="0.5"
+              step="0.1"
+            />
+            <span id="warpSpeedValue">0.5</span>
+          </div>
+          </label>
+          </div>
+          <div class="control-row">
+          <label>
+            Stars:
+            <input
+              type="range"
+              id="numStars"
+              min="50"
+              max="1000"
+              value="300"
+              step="10"
+            />
+            <span id="numStarsValue">300</span>
+          </label>
+        </div>
       </div>
     </div>
 
