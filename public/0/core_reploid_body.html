@@ -4,8 +4,7 @@
     REPLOID v0.0
     <small
       >REPLOID (Reflective Embodiment Providing Logical Oversight for
-      Intelligent DREAMER (Deep Recursive Exploration Around Multimodal
-      Embodying REPLOID))</small
+      Intelligent DREAMER)</small
     >
   </h1>
 
@@ -208,8 +207,11 @@
           History<strong id="html-history-count">0</strong>
         </div>
         <div class="metric-item" id="metric-context-tokens">
-          Ctx Tokens<strong id="context-token-estimate">0</strong> / ~1M
-          <span id="context-token-warning" class="token-warning hidden">!</span>
+          Ctx Tokens<strong id="context-token-estimate">0</strong> / ~1M<span
+            id="context-token-warning"
+            class="token-warning hidden"
+            >!</span
+          >
         </div>
       </div>
 
@@ -280,14 +282,15 @@
       <span class="summary-line"></span>
     </legend>
     <div class="content-wrapper">
-      <p>
-        <i
-          >Inputs used, decisions made, and artifacts generated/modified during
-          the current/last cycle.</i
-        >
-      </p>
+      <p><i>Inputs, decisions, and artifacts for the current/last cycle.</i></p>
       <div id="current-cycle-content" class="artifact-display">
         <p>Waiting for cycle...</p>
+      </div>
+      <div id="streaming-output-container" class="hidden">
+        <span class="artifact-label"
+          ><span class="type-indicator">[STR]</span>LLM Streaming Output</span
+        >
+        <pre id="streaming-output-pre">(No stream active)</pre>
       </div>
       <div id="diagram-display-container" class="hidden">
         <div id="diagram-svg-container">
@@ -309,6 +312,7 @@
     <legend>
       <span class="toggle-icon"></span>Execution Timeline
       <span id="status-indicator">Status: Idle</span>
+      <span id="api-progress"></span>
       <span class="summary-line"></span>
     </legend>
     <div class="content-wrapper">
@@ -364,7 +368,7 @@
           reload.
         </p>
         <iframe id="meta-sandbox-output"></iframe>
-        <div style="margin-top: 15px">
+        <div class="controls-grid meta-sandbox-controls">
           <button id="approve-meta-change-button">Approve and Apply</button>
           <button id="discard-meta-change-button">Discard</button>
         </div>
@@ -392,14 +396,11 @@
           ><input type="radio" name="goalType" value="System" checked />
           System</label
         >
-        <label
-          ><input type="radio" name="goalType" value="Meta" /> Meta
-          (Self-Improvement)</label
-        >
+        <label><input type="radio" name="goalType" value="Meta" /> Meta</label>
       </div>
       <textarea
         id="goal-input"
-        placeholder="e.g., Create a landing page with a signup form... OR Add a dark mode toggle button..."
+        placeholder="e.g., Create a landing page... OR Add a dark mode toggle..."
       ></textarea>
 
       <div class="cfg-grid">

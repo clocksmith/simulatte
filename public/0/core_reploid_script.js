@@ -2,7 +2,8 @@ const REPLOID_CORE = (() => {
   let Utils;
   let Storage;
   let logger;
-  let loadedStaticTools = []; // Holds static tools loaded from artifact
+  let ToolRunner;
+  let loadedStaticTools = [];
   let isCoreInitialized = false;
 
   const coreBootstrap = {
@@ -30,10 +31,13 @@ const REPLOID_CORE = (() => {
         return func();
       } catch (e) {
         try {
-          console.warn(`Executing ${artifactId} directly (may use window).`);
+          const globalName = artifactId.split(".").pop();
+          console.warn(
+            `Executing ${artifactId} directly (may use window.${globalName}).`
+          );
           const func = new Function(scriptContent);
           func();
-          return null;
+          return window[globalName];
         } catch (execError) {
           console.error(
             `Error executing core dependency artifact: ${artifactId}`,
@@ -74,17 +78,25 @@ const REPLOID_CORE = (() => {
       "reploid.core.storage",
       0
     );
+    const toolRunnerModule = coreBootstrap.loadAndExecuteReturn(
+      "reploid.core.toolrunner",
+      0
+    );
+
     Utils = utilsModule || window.Utils;
-    Storage = storageModule || window.Storage;
-    if (!Utils || !Storage) {
+    Storage = storageModule || window.LS || window.Storage;
+    ToolRunner = toolRunnerModule || window.ToolRunner;
+
+    if (!Utils || !Storage || !ToolRunner) {
       throw new Error(
-        "Failed to load/execute core Utils/Storage dependencies."
+        "Failed to load/execute core Utils/Storage/ToolRunner dependencies."
       );
     }
     logger = Utils.logger;
     if (!logger) {
       throw new Error("Logger not found within loaded Utils module.");
     }
+
     try {
       loadedStaticTools = coreBootstrap.loadJsonArtifact(
         "reploid.core.static-tools",
@@ -95,11 +107,12 @@ const REPLOID_CORE = (() => {
         "error",
         `Failed to load static tools artifact: ${e.message}`
       );
-      loadedStaticTools = []; // Fallback to empty array
+      loadedStaticTools = [];
     }
+
     isCoreInitialized = true;
     console.log(
-      "Core dependencies (Utils, Storage, Logger, StaticTools) initialized."
+      "Core dependencies (Utils, Storage, Logger, ToolRunner, StaticTools) initialized."
     );
   };
 
@@ -114,10 +127,12 @@ const REPLOID_CORE = (() => {
   let dynamicToolDefinitions = [];
   let artifactMetadata = {};
   let lastCycleLogItem = null;
+  let currentAbortController = null;
 
   const APP_CONFIG = {
-    BASE_GEMINI_MODEL: "gemini-1.5-flash-latest",
-    ADVANCED_GEMINI_MODEL: "gemini-1.5-pro-latest",
+    BASE_GEMINI_MODEL: "gemini-2.0-flash-thinking-exp-01-21",
+    ADVANCED_GEMINI_MODEL: "gemini-2.5-pro-exp-03-25",
+    GEMINI_MODEL_OPTIMIZER: "model-optimizer-exp-04-09",
   };
 
   const StateManager = {
@@ -166,7 +181,6 @@ const REPLOID_CORE = (() => {
       artifactMetadata: {},
       dynamicTools: [],
     }),
-
     init: () => {
       const savedState = Storage.getState();
       if (
@@ -343,12 +357,10 @@ const REPLOID_CORE = (() => {
         return false;
       }
     },
-
     getState: () => globalState,
     setState: (newState) => {
       globalState = newState;
     },
-
     save: () => {
       if (!globalState || !Storage) return;
       try {
@@ -365,7 +377,6 @@ const REPLOID_CORE = (() => {
         UI.showNotification(`Save state failed: ${e.message}`, "error");
       }
     },
-
     getArtifactMetadata: (id) =>
       artifactMetadata[id] || {
         id: id,
@@ -388,7 +399,6 @@ const REPLOID_CORE = (() => {
       if (globalState) globalState.artifactMetadata = artifactMetadata;
     },
     getAllArtifactMetadata: () => ({ ...artifactMetadata }),
-
     capturePreservationState: () => {
       const stateToSave = JSON.parse(
         JSON.stringify({ ...globalState, lastApiResponse: null })
@@ -402,7 +412,6 @@ const REPLOID_CORE = (() => {
       stateToSave.metaSandboxPending = metaSandboxPending;
       return stateToSave;
     },
-
     restoreStateFromSession: () => {
       const preservedData = Storage.getSessionState();
       if (!preservedData) return false;
@@ -481,7 +490,6 @@ const REPLOID_CORE = (() => {
         logger.logEvent("info", "Cleared session state.");
       }
     },
-
     exportState: () => {
       try {
         const stateData = StateManager.capturePreservationState();
@@ -514,7 +522,6 @@ const REPLOID_CORE = (() => {
         );
       }
     },
-
     importState: (file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -589,7 +596,7 @@ const REPLOID_CORE = (() => {
       };
       reader.readAsText(file);
     },
-  }; // End StateManager
+  };
 
   const ApiClient = {
     sanitizeLlmJsonResp: (rawText) => {
@@ -642,20 +649,20 @@ const REPLOID_CORE = (() => {
       }
     },
 
-    callGeminiAPI: async (
+    callGeminiAPIStream: async (
       prompt,
       sysInstr,
       modelName,
       apiKey,
       funcDecls = [],
-      isContinuation = false,
-      prevContent = null
+      prevContent = null,
+      abortSignal,
+      progressCallback
     ) => {
-      const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-      logger.logEvent(
-        "info",
-        `Call API: ${modelName}${isContinuation ? " (Cont)" : ""}`
-      );
+      const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent`;
+      logger.logEvent("info", `Streaming API: ${modelName}`);
+      UI.updateApiProgress("Starting...");
+
       const baseGenCfg = { temperature: 0.777, maxOutputTokens: 8192 };
       const safetySettings = [
         "HARASSMENT",
@@ -686,14 +693,21 @@ const REPLOID_CORE = (() => {
         reqBody.generationConfig.responseMimeType = "application/json";
       }
 
+      let accumulatedText = "";
+      let accumulatedFunctionCall = null;
+      let totalTokens = 0;
+      let finalFinishReason = "UNKNOWN";
+      let finalRawResponse = null; // Store the last chunk for metadata
+
       try {
-        const resp = await fetch(`${apiEndpoint}?key=${apiKey}`, {
+        const response = await fetch(`${apiEndpoint}?key=${apiKey}&alt=sse`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(reqBody),
+          signal: abortSignal,
         });
-        if (!resp.ok) {
-          let errBody = await resp.text();
+        if (!response.ok) {
+          let errBody = await response.text();
           let errJson = {};
           try {
             errJson = JSON.parse(errBody);
@@ -701,96 +715,134 @@ const REPLOID_CORE = (() => {
             /* ignore */
           }
           throw new Error(
-            `API Error (${resp.status}): ${
-              errJson?.error?.message || resp.statusText || "Unknown"
+            `API Error (${response.status}): ${
+              errJson?.error?.message || response.statusText || "Unknown"
             }`
           );
         }
-        const data = await resp.json();
-        if (data.promptFeedback?.blockReason) {
-          throw new Error(`API Blocked: ${data.promptFeedback.blockReason}`);
-        }
-        if (data.error) {
-          throw new Error(`API Error: ${data.error.message || "Unknown"}`);
-        }
-        if (!data.candidates?.length) {
-          if (resp.status === 200 && JSON.stringify(data) === "{}") {
-            logger.logEvent("warn", "API returned empty JSON {}");
-            return {
-              type: "empty",
-              content: null,
-              tokenCount: 0,
-              finishReason: "STOP",
-              rawResp: data,
-            };
+        UI.updateApiProgress("Receiving...");
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop(); // Keep potential partial line
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const chunk = JSON.parse(line.substring(6));
+                finalRawResponse = chunk; // Keep overwriting, last one has final metadata
+                if (chunk.promptFeedback?.blockReason) {
+                  throw new Error(
+                    `API Blocked: ${chunk.promptFeedback.blockReason}`
+                  );
+                }
+                if (chunk.error) {
+                  throw new Error(
+                    `API Error: ${chunk.error.message || "Unknown"}`
+                  );
+                }
+
+                const candidate = chunk.candidates?.[0];
+                if (candidate) {
+                  totalTokens =
+                    candidate.tokenCount ||
+                    chunk.usageMetadata?.totalTokenCount ||
+                    totalTokens;
+                  finalFinishReason =
+                    candidate.finishReason || finalFinishReason;
+                  if (finalFinishReason === "SAFETY") {
+                    throw new Error(`API Response Blocked: SAFETY`);
+                  }
+
+                  const part = candidate.content?.parts?.[0];
+                  if (part?.text) {
+                    accumulatedText += part.text;
+                    if (progressCallback)
+                      progressCallback({
+                        type: "text",
+                        content: part.text,
+                        accumulated: accumulatedText,
+                      });
+                  } else if (part?.functionCall) {
+                    if (!accumulatedFunctionCall) {
+                      accumulatedFunctionCall = {
+                        name: part.functionCall.name,
+                        args: {},
+                      };
+                    }
+                    // Deep merge args - Gemini might stream args object incrementally
+                    Object.assign(
+                      accumulatedFunctionCall.args,
+                      part.functionCall.args
+                    );
+                    if (progressCallback)
+                      progressCallback({
+                        type: "functionCall",
+                        content: part.functionCall,
+                        accumulated: accumulatedFunctionCall,
+                      });
+                  }
+                }
+                UI.updateApiProgress(`Tokens: ${totalTokens}`);
+              } catch (e) {
+                logger.logEvent(
+                  "warn",
+                  `Failed to parse SSE chunk: ${e.message}`,
+                  line
+                );
+              }
+            }
           }
-          throw new Error("API Invalid Response: No candidates.");
-        }
-        const cand = data.candidates[0];
-        const tokenCount =
-          cand.tokenCount || data.usageMetadata?.totalTokenCount || 0;
-        const finishReason = cand.finishReason || "UNKNOWN";
-        if (
-          finishReason !== "STOP" &&
-          finishReason !== "MAX_TOKENS" &&
-          !cand.content
-        ) {
-          if (finishReason === "SAFETY") {
-            throw new Error(`API Response Blocked: ${finishReason}`);
-          }
-          logger.logEvent(
-            "warn",
-            `API finishReason: ${finishReason} with no content.`
-          );
-          return {
-            type: "empty",
-            content: null,
-            tokenCount: tokenCount,
-            finishReason: finishReason,
-            rawResp: data,
-          };
-        }
-        const part = cand.content?.parts?.[0];
-        if (!part) {
-          logger.logEvent(
-            "info",
-            `API OK. Finish:${finishReason}. Tokens:${tokenCount}. No content part.`
-          );
-          return {
-            type: "empty",
-            content: null,
-            tokenCount: tokenCount,
-            finishReason: finishReason,
-            rawResp: data,
-          };
         }
         logger.logEvent(
           "info",
-          `API OK. Finish:${finishReason}. Tokens:${tokenCount}`
+          `API Stream OK. Finish:${finalFinishReason}. Tokens:${totalTokens}`
         );
-        if (part.text !== undefined) {
-          return {
-            type: "text",
-            content: part.text,
-            tokenCount: tokenCount,
-            finishReason: finishReason,
-            rawResp: data,
-          };
-        }
-        if (part.functionCall) {
+        UI.updateApiProgress("Done");
+
+        if (accumulatedFunctionCall) {
           return {
             type: "functionCall",
-            content: part.functionCall,
-            tokenCount: tokenCount,
-            finishReason: finishReason,
-            rawResp: data,
+            content: accumulatedFunctionCall,
+            tokenCount: totalTokens,
+            finishReason: finalFinishReason,
+            rawResp: finalRawResponse,
+          };
+        } else if (accumulatedText) {
+          return {
+            type: "text",
+            content: accumulatedText,
+            tokenCount: totalTokens,
+            finishReason: finalFinishReason,
+            rawResp: finalRawResponse,
+          };
+        } else {
+          logger.logEvent(
+            "info",
+            `API Stream ended with no text or function call. Finish: ${finalFinishReason}`
+          );
+          return {
+            type: "empty",
+            content: null,
+            tokenCount: totalTokens,
+            finishReason: finalFinishReason,
+            rawResp: finalRawResponse,
           };
         }
-        throw new Error(
-          "API response part contains neither text nor functionCall."
-        );
       } catch (error) {
-        logger.logEvent("error", `API Fetch Error: ${error.message}`);
+        if (error.name === "AbortError") {
+          logger.logEvent("info", "API call aborted by user.");
+        } else {
+          logger.logEvent("error", `API Stream Error: ${error.message}`);
+        }
+        UI.updateApiProgress("Error");
         throw error;
       }
     },
@@ -806,8 +858,15 @@ const REPLOID_CORE = (() => {
       retries = globalState?.cfg?.maxRetries ?? 1,
       updateStatusFn = () => {},
       logTimelineFn = () => ({}),
-      updateTimelineFn = () => {}
+      updateTimelineFn = () => {},
+      progressCallback = () => {}
     ) => {
+      if (currentAbortController) {
+        logger.logEvent("warn", "Aborting previous API call.");
+        currentAbortController.abort();
+      }
+      currentAbortController = new AbortController();
+
       if (!isCont) updateStatusFn(`Calling Gemini (${modelName})...`, true);
       let logItem = logTimelineFn(
         `[API] Calling ${modelName}...`,
@@ -815,15 +874,17 @@ const REPLOID_CORE = (() => {
         true,
         true
       );
+
       try {
-        const result = await ApiClient.callGeminiAPI(
+        const result = await ApiClient.callGeminiAPIStream(
           prompt,
           sysInstr,
           modelName,
           apiKey,
           funcDecls,
-          isCont,
-          prevContent
+          prevContent,
+          currentAbortController.signal,
+          progressCallback
         );
         updateTimelineFn(
           logItem,
@@ -831,8 +892,19 @@ const REPLOID_CORE = (() => {
           "info",
           true
         );
+        currentAbortController = null;
         return result;
       } catch (error) {
+        if (error.name === "AbortError") {
+          updateTimelineFn(
+            logItem,
+            `[API Aborted:${modelName}] User cancelled`,
+            "warn",
+            true
+          );
+          currentAbortController = null;
+          throw error; // Re-throw abort error
+        }
         logger.logEvent(
           "warn",
           `API call failed: ${error.message}. Retries left: ${retries}`
@@ -846,6 +918,8 @@ const REPLOID_CORE = (() => {
           "error",
           true
         );
+        currentAbortController = null; // Clear controller on non-abort error
+
         if (
           retries > 0 &&
           (error.message.includes("API Error (5") ||
@@ -869,16 +943,28 @@ const REPLOID_CORE = (() => {
             retries - 1,
             updateStatusFn,
             logTimelineFn,
-            updateTimelineFn
+            updateTimelineFn,
+            progressCallback
           );
         } else {
           throw error;
         }
       } finally {
-        if (!isCont) updateStatusFn("Idle");
+        if (!isCont && !currentAbortController) updateStatusFn("Idle"); // Don't reset status if abort is pending
+        UI.updateApiProgress(""); // Clear progress indicator
       }
     },
-  }; // End ApiClient
+    abortCurrentCall: () => {
+      if (currentAbortController) {
+        logger.logEvent("info", "User requested API call abort.");
+        currentAbortController.abort();
+        currentAbortController = null;
+        UI.updateStatus("Aborting API call...");
+      } else {
+        logger.logEvent("info", "No active API call to abort.");
+      }
+    },
+  };
 
   const UI = {
     initializeUIElementReferences: () => {
@@ -956,15 +1042,16 @@ const REPLOID_CORE = (() => {
         "notifications-container",
         "core-model-selector",
         "critique-model-selector",
+        "streaming-output-container",
+        "streaming-output-pre",
+        "api-progress",
       ];
       uiRefs = {};
       elementIds.forEach((kebabId) => {
-        const camelId = Utils.kabobToCamel(kebabId);
-        uiRefs[camelId] = Utils.$id(kebabId);
+        uiRefs[Utils.kabobToCamel(kebabId)] = Utils.$id(kebabId);
       });
       logger.logEvent("debug", "UI element references initialized.");
     },
-
     updateStatus: (message, isActive = false, isError = false) => {
       if (!uiRefs.statusIndicator) return;
       uiRefs.statusIndicator.textContent = `Status: ${message}`;
@@ -980,7 +1067,32 @@ const REPLOID_CORE = (() => {
         ? "yellow"
         : "#ccc";
     },
-
+    updateApiProgress: (message) => {
+      if (uiRefs.apiProgress) {
+        uiRefs.apiProgress.textContent = message ? `API: ${message}` : "";
+      }
+    },
+    updateStreamingOutput: (content, isFinal = false) => {
+      if (uiRefs.streamingOutputContainer && uiRefs.streamingOutputPre) {
+        uiRefs.streamingOutputContainer.classList.remove("hidden");
+        uiRefs.streamingOutputPre.textContent = content;
+        uiRefs.streamingOutputPre.scrollTop =
+          uiRefs.streamingOutputPre.scrollHeight;
+        if (isFinal) {
+          // TODO: Hide after a delay if it's final? Or leave visible?
+          // setTimeout(() => uiRefs.streamingOutputContainer.classList.add('hidden'), 3000);
+        }
+      }
+    },
+    clearStreamingOutput: () => {
+      if (uiRefs.streamingOutputContainer && uiRefs.streamingOutputPre) {
+        uiRefs.streamingOutputPre.textContent = "(Stream ended)";
+        setTimeout(
+          () => uiRefs.streamingOutputContainer.classList.add("hidden"),
+          2000
+        );
+      }
+    },
     highlightCoreStep: (stepIndex) => {
       activeCoreStepIdx = stepIndex;
       logger.logEvent("debug", `Highlighting step: ${stepIndex}`);
@@ -990,7 +1102,6 @@ const REPLOID_CORE = (() => {
         });
       }
     },
-
     showNotification: (message, type = "info", duration = 5000) => {
       const container = Utils.$id("notifications-container");
       if (!container) {
@@ -1010,13 +1121,11 @@ const REPLOID_CORE = (() => {
         }, duration);
       }
     },
-
     createSvgElement: (name, attrs = {}) => {
       const el = document.createElementNS(SVG_NS, name);
       for (const key in attrs) el.setAttribute(key, attrs[key]);
       return el;
     },
-
     updateMetricsDisplay: () => {
       if (!globalState || !uiRefs.avgConfidence) return;
       const confHistory = globalState.confidenceHistory.slice(-10);
@@ -1046,7 +1155,6 @@ const REPLOID_CORE = (() => {
         uiRefs.failCount.textContent = globalState.failCount;
       UI.checkContextTokenWarning();
     },
-
     checkContextTokenWarning: () => {
       if (!globalState || !uiRefs.contextTokenWarning) return;
       const isWarn = globalState.contextTokenEstimate >= CTX_WARN_THRESH;
@@ -1058,14 +1166,12 @@ const REPLOID_CORE = (() => {
         );
       }
     },
-
     updateHtmlHistoryControls: () => {
       if (!uiRefs.htmlHistoryCount || !globalState) return;
       const count = globalState.htmlHistory?.length || 0;
       uiRefs.htmlHistoryCount.textContent = count.toString();
       if (uiRefs.goBackButton) uiRefs.goBackButton.disabled = count === 0;
     },
-
     updateFieldsetSummaries: () => {
       if (!globalState) return;
       const updateSummary = (fieldsetRefOrId, text) => {
@@ -1126,15 +1232,14 @@ const REPLOID_CORE = (() => {
         `API Key: ${globalState.apiKey ? "Set" : "Not Set"}`
       );
     },
-
     updateStateDisplay: () => {
       if (!globalState || !uiRefs.totalCycles) return;
       uiRefs.lsdPersonaPercentInput.value =
         globalState.cfg.personaBalance ?? 50;
       uiRefs.xyzPersonaPercentInput.value =
         100 - (globalState.cfg.personaBalance ?? 50);
-      uiRefs.llmCritiqueProbInput.value = globalState.cfg.llmCritiqueProb ?? 70;
-      uiRefs.humanReviewProbInput.value = globalState.cfg.humanReviewProb ?? 36;
+      uiRefs.llmCritiqueProbInput.value = globalState.cfg.llmCritiqueProb ?? 50; // Corrected default
+      uiRefs.humanReviewProbInput.value = globalState.cfg.humanReviewProb ?? 50; // Corrected default
       uiRefs.maxCycleTimeInput.value = globalState.cfg.maxCycleTime ?? 600;
       uiRefs.autoCritiqueThreshInput.value =
         globalState.cfg.autoCritiqueThresh ?? 0.75;
@@ -1182,7 +1287,6 @@ const REPLOID_CORE = (() => {
       }
       UI.updateFieldsetSummaries();
     },
-
     displayGenesisState: () => {
       if (!uiRefs.genesisMetricsDisplay || !uiRefs.genesisDiagramJson) return;
       const metricsEl = Utils.$id("core-metrics-display");
@@ -1198,7 +1302,6 @@ const REPLOID_CORE = (() => {
       uiRefs.genesisDiagramJson.value =
         diagramJsonContent || "(Genesis Diagram JSON Not Found)";
     },
-
     logToTimeline: (
       cycle,
       message,
@@ -1244,7 +1347,6 @@ const REPLOID_CORE = (() => {
       }
       return li;
     },
-
     logCoreLoopStep: (cycle, stepIndex, message) => {
       UI.highlightCoreStep(stepIndex);
       if (!uiRefs.timelineLog) return null;
@@ -1262,7 +1364,6 @@ const REPLOID_CORE = (() => {
       uiRefs.timelineLog.insertBefore(li, uiRefs.timelineLog.firstChild);
       return li;
     },
-
     updateTimelineItem: (
       logItem,
       newMessage,
@@ -1299,7 +1400,6 @@ const REPLOID_CORE = (() => {
       if (newType === "error") logItem.classList.add("error");
       if (newType === "warn") logItem.classList.add("warn");
     },
-
     summarizeCompletedCycleLog: (logItem, outcome) => {
       if (!logItem || !logItem.classList.contains("log-entry")) return;
       logItem.classList.add("summary");
@@ -1310,7 +1410,6 @@ const REPLOID_CORE = (() => {
         )} Completed: ${outcome} (Expand?)`;
       }
     },
-
     clearCurrentCycleDetails: () => {
       if (!uiRefs.currentCycleDetails || !uiRefs.currentCycleContent) return;
       uiRefs.currentCycleDetails.classList.add("collapsed");
@@ -1319,8 +1418,13 @@ const REPLOID_CORE = (() => {
       if (uiRefs.diagramDisplayContainer) {
         uiRefs.diagramDisplayContainer.classList.add("hidden");
       }
+      if (uiRefs.streamingOutputContainer) {
+        uiRefs.streamingOutputContainer.classList.add("hidden");
+      }
+      if (uiRefs.streamingOutputPre) {
+        uiRefs.streamingOutputPre.textContent = "(No stream active)";
+      }
     },
-
     getArtifactTypeIndicator: (type) => {
       switch (type) {
         case "JS":
@@ -1345,7 +1449,6 @@ const REPLOID_CORE = (() => {
           return "[???]";
       }
     },
-
     displayCycleArtifact: (
       label,
       content,
@@ -1388,7 +1491,6 @@ const REPLOID_CORE = (() => {
       uiRefs.currentCycleContent.appendChild(section);
       UI.updateFieldsetSummaries();
     },
-
     hideHumanInterventionUI: () => {
       if (!uiRefs.humanInterventionSection) return;
       uiRefs.humanInterventionSection.classList.add("hidden");
@@ -1401,7 +1503,6 @@ const REPLOID_CORE = (() => {
         uiRefs.runCycleButton.disabled = false;
       }
     },
-
     showHumanInterventionUI: (
       mode = "prompt",
       reason = "",
@@ -1499,22 +1600,34 @@ const REPLOID_CORE = (() => {
         }
         const selectArtifact = (id) => {
           let content = "";
+          let cycle = null;
           if (id === "full_html_source") {
             content =
               globalState.lastGeneratedFullSource ||
               "(Full source not available)";
+            cycle = currentCycle;
           } else {
             const meta = StateManager.getArtifactMetadata(id);
             if (meta && meta.latestCycle >= 0) {
+              cycle = meta.latestCycle;
               content =
-                Storage.getArtifactContent(id, meta.latestCycle) ??
-                `(Artifact ${id} - Cycle ${meta.latestCycle} content not found)`;
+                Storage.getArtifactContent(id, cycle) ??
+                `(Artifact ${id} - Cycle ${cycle} content not found)`;
             } else {
               content = `(Artifact ${id} not found)`;
+              cycle = -1;
             }
           }
           uiRefs.humanEditArtifactTextarea.value = content;
           uiRefs.humanEditArtifactTextarea.scrollTop = 0;
+          uiRefs.humanEditArtifactTextarea.setAttribute(
+            "data-current-artifact-id",
+            id
+          );
+          uiRefs.humanEditArtifactTextarea.setAttribute(
+            "data-current-artifact-cycle",
+            cycle
+          );
         };
         uiRefs.humanEditArtifactSelector.onchange = () =>
           selectArtifact(uiRefs.humanEditArtifactSelector.value);
@@ -1531,6 +1644,12 @@ const REPLOID_CORE = (() => {
         } else {
           uiRefs.humanEditArtifactTextarea.value =
             "(No editable artifacts found)";
+          uiRefs.humanEditArtifactTextarea.removeAttribute(
+            "data-current-artifact-id"
+          );
+          uiRefs.humanEditArtifactTextarea.removeAttribute(
+            "data-current-artifact-cycle"
+          );
         }
       } else {
         if (uiRefs.hitlPromptMode && uiRefs.humanCritiqueInput) {
@@ -1545,7 +1664,6 @@ const REPLOID_CORE = (() => {
         block: "center",
       });
     },
-
     hideMetaSandbox: () => {
       if (!uiRefs.metaSandboxContainer) return;
       uiRefs.metaSandboxContainer.classList.add("hidden");
@@ -1557,7 +1675,6 @@ const REPLOID_CORE = (() => {
         uiRefs.runCycleButton.disabled = false;
       }
     },
-
     showMetaSandbox: (htmlSource) => {
       if (
         !uiRefs.metaSandboxContainer ||
@@ -1610,7 +1727,6 @@ const REPLOID_CORE = (() => {
         if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = false;
       }
     },
-
     renderCycleSVG: (cycleData, svgElement) => {
       if (!svgElement) {
         logger.logEvent("error", "SVG element not found for rendering");
@@ -1868,13 +1984,6 @@ const REPLOID_CORE = (() => {
         logger.logEvent("warn", "RenderCycleSVG: No finite bounds.");
       }
     },
-
-    renderCycleSVGToMarkup: (cycleData) => {
-      const tempSvg = document.createElementNS(SVG_NS, "svg");
-      UI.renderCycleSVG(cycleData, tempSvg);
-      return tempSvg.outerHTML;
-    },
-
     renderDiagramDisplay: (cycleNum) => {
       const svgContainer = uiRefs.diagramSvgContainer;
       const jsonDisplay = uiRefs.diagramJsonDisplay;
@@ -1887,7 +1996,7 @@ const REPLOID_CORE = (() => {
       const jsonContent = Storage.getArtifactContent(
         "reploid.core.diagram",
         cycleNum
-      ); // Load appropriate diagram artifact
+      );
       if (jsonContent) {
         jsonDisplay.value = jsonContent;
         try {
@@ -1909,7 +2018,6 @@ const REPLOID_CORE = (() => {
         diagramContainer.classList.remove("hidden");
       }
     },
-
     renderGeneratedUI: (cycleNum) => {
       const headMeta = StateManager.getArtifactMetadata("target.head");
       const bodyMeta = StateManager.getArtifactMetadata("target.body");
@@ -1972,7 +2080,6 @@ const REPLOID_CORE = (() => {
         logger.logEvent("error", `Failed to render UI preview: ${e.message}`);
       }
     },
-
     loadPromptsFromLS: () => {
       if (
         !uiRefs.seedPromptCore ||
@@ -1990,7 +2097,6 @@ const REPLOID_CORE = (() => {
         Storage.getArtifactContent("reploid.core.summarizer-prompt", 0) || "";
       logger.logEvent("info", "Loaded prompts from LS.");
     },
-
     loadCoreLoopSteps: () => {
       if (!uiRefs.coreLoopStepsList) {
         logger.logEvent("warn", "Core loop steps list not found.");
@@ -2001,11 +2107,11 @@ const REPLOID_CORE = (() => {
         "Error loading steps.";
       logger.logEvent("info", "Loaded core loop steps from LS.");
     },
-
     populateModelSelectors: () => {
       const models = [
         APP_CONFIG.BASE_GEMINI_MODEL,
         APP_CONFIG.ADVANCED_GEMINI_MODEL,
+        APP_CONFIG.GEMINI_MODEL_OPTIMIZER,
       ];
       [uiRefs.coreModelSelector, uiRefs.critiqueModelSelector].forEach(
         (selector) => {
@@ -2020,13 +2126,18 @@ const REPLOID_CORE = (() => {
         }
       );
     },
-
     setupEventListeners: () => {
       if (!uiRefs.runCycleButton) {
         logger.logEvent("error", "UI elements not ready for event listeners.");
         return;
       }
-      uiRefs.runCycleButton.addEventListener("click", CycleLogic.executeCycle);
+      uiRefs.runCycleButton.addEventListener("click", () => {
+        if (CycleLogic.isRunning()) {
+          ApiClient.abortCurrentCall();
+        } else {
+          CycleLogic.executeCycle();
+        }
+      });
       uiRefs.submitCritiqueButton?.addEventListener("click", () => {
         CycleLogic.proceedAfterHumanIntervention(
           "Human Prompt",
@@ -2044,65 +2155,82 @@ const REPLOID_CORE = (() => {
           selected || "None"
         );
       });
-      uiRefs.submitHumanCodeEditButton?.addEventListener("click", () => {
-        const artifactId = uiRefs.humanEditArtifactSelector.value;
+      uiRefs.submitHumanCodeEditButton?.addEventListener("click", async () => {
+        const artifactId = uiRefs.humanEditArtifactTextarea.getAttribute(
+          "data-current-artifact-id"
+        );
+        const cycleStr = uiRefs.humanEditArtifactTextarea.getAttribute(
+          "data-current-artifact-cycle"
+        );
         const newContent = uiRefs.humanEditArtifactTextarea.value;
         const isFullSource = artifactId === "full_html_source";
-        let originalContent = null;
-        let currentMeta = null;
-        let resultData = {
-          id: artifactId,
-          success: false,
-          summary: `Edit check for ${artifactId}`,
-          newContent: newContent,
-        };
-        try {
-          if (isFullSource) {
-            originalContent = globalState.lastGeneratedFullSource;
-          } else {
-            currentMeta = StateManager.getArtifactMetadata(artifactId);
-            if (currentMeta && currentMeta.latestCycle >= 0) {
-              originalContent = Storage.getArtifactContent(
-                artifactId,
-                currentMeta.latestCycle
-              );
-            } else {
-              throw new Error(`Original content not found for ${artifactId}`);
-            }
-          }
-          if (newContent !== originalContent) {
-            if (!isFullSource && currentMeta?.type === "JSON") {
-              JSON.parse(newContent);
-            }
-            resultData.summary = `Content updated for ${artifactId}`;
-            resultData.success = true;
-            if (isFullSource) {
-              logger.logEvent("warn", "Full source edited via HITL.");
-              globalState.lastGeneratedFullSource = newContent;
-              CycleLogic.proceedAfterHumanIntervention(
-                "Human Code Edit (Full Source)",
-                resultData,
-                true
-              );
-              return;
-            }
-          } else {
-            resultData.summary = `No changes detected for ${artifactId}`;
-            resultData.success = true;
-          }
-        } catch (e) {
-          logger.logEvent(
-            "error",
-            `Error validating human edit for ${artifactId}: ${e.message}`
-          );
+
+        if (!artifactId || cycleStr === null) {
           UI.showNotification(
-            `Error validating edit for ${artifactId}: ${e.message}`,
+            "Error: No artifact selected or cycle info missing.",
             "error"
           );
-          resultData.summary = `Validation failed: ${e.message}`;
-          resultData.success = false;
+          return;
         }
-        CycleLogic.proceedAfterHumanIntervention("Human Code Edit", resultData);
+        const cycle = parseInt(cycleStr, 10);
+        if (isNaN(cycle)) {
+          UI.showNotification(
+            "Error: Invalid cycle number for artifact.",
+            "error"
+          );
+          return;
+        }
+
+        UI.updateStatus("Validating Edit...", true);
+        try {
+          let toolResult;
+          if (isFullSource) {
+            toolResult = {
+              success: true,
+              validatedContent: newContent,
+              artifactId: artifactId,
+              cycle: cycle,
+              contentChanged:
+                newContent !== globalState.lastGeneratedFullSource,
+            };
+          } else {
+            toolResult = await ToolRunner.runTool(
+              "code_edit",
+              { artifactId, cycle, newContent },
+              loadedStaticTools,
+              dynamicToolDefinitions
+            );
+          }
+          UI.updateStatus("Idle");
+          if (toolResult.success) {
+            UI.showNotification(
+              `Edit for ${artifactId} validated. Proceeding...`,
+              "info"
+            );
+            CycleLogic.proceedAfterHumanIntervention(
+              "Human Code Edit",
+              toolResult
+            );
+          } else {
+            UI.showNotification(
+              `Edit Validation Failed: ${
+                toolResult.error || "Unknown validation error"
+              }`,
+              "error"
+            );
+            logger.logEvent(
+              "error",
+              `Human edit validation failed for ${artifactId}: ${toolResult.error}`
+            );
+          }
+        } catch (e) {
+          UI.updateStatus("Idle");
+          logger.logEvent(
+            "error",
+            `Error running code_edit tool for ${artifactId}: ${e.message}`
+          );
+          UI.showNotification(`Error validating edit: ${e.message}`, "error");
+        }
       });
       uiRefs.forceHumanReviewButton?.addEventListener("click", () => {
         if (globalState) globalState.forceHumanReview = true;
@@ -2337,9 +2465,11 @@ const REPLOID_CORE = (() => {
       });
       logger.logEvent("info", "UI Event listeners set up.");
     },
-  }; // End UI
+  };
 
   const CycleLogic = {
+    _isRunning: false,
+    isRunning: () => CycleLogic._isRunning,
     getActiveGoalInfo: () => {
       if (!globalState)
         return {
@@ -2357,7 +2487,6 @@ const REPLOID_CORE = (() => {
         type: globalState.currentGoal.latestType || "Idle",
       };
     },
-
     getArtifactListSummary: () => {
       const allMeta = StateManager.getAllArtifactMetadata();
       return (
@@ -2369,7 +2498,6 @@ const REPLOID_CORE = (() => {
           .join("\n") || "None"
       );
     },
-
     getToolListSummary: () => {
       const staticToolSummary = loadedStaticTools
         .map((t) => `* [S] ${t.name}: ${t.description}`)
@@ -2382,8 +2510,7 @@ const REPLOID_CORE = (() => {
         "None"
       );
     },
-
-    runCoreIteration: async (apiKey, currentGoalInfo) => {
+    runCoreIteration: async (apiKey, currentGoalInfo, currentCycle) => {
       UI.highlightCoreStep(1);
       if (!globalState) throw new Error("Global state is not initialized");
       const personaBalance = globalState.cfg.personaBalance ?? 50;
@@ -2391,11 +2518,11 @@ const REPLOID_CORE = (() => {
       globalState.personaMode = primaryPersona;
       const corePromptTemplate = Storage.getArtifactContent(
         "reploid.core.sys-prompt",
-        0
+        currentCycle
       );
       if (!corePromptTemplate)
         throw new Error(
-          "Core prompt artifact 'reploid.core.sys-prompt' not found!"
+          "Core prompt artifact 'reploid.core.sys-prompt' not found for current cycle!"
         );
       let prompt = corePromptTemplate;
       prompt = prompt
@@ -2455,7 +2582,7 @@ const REPLOID_CORE = (() => {
         .slice(0, 10);
       let snippets = "";
       for (const id of relevantArtifacts) {
-        const meta = StateManager.getArtifactMetadata(id);
+        const meta = allMeta[id];
         const content = Storage.getArtifactContent(id, meta.latestCycle);
         if (content) {
           snippets += `\n---\ Artifact: ${id} (Cycle ${meta.latestCycle}) ---\n`;
@@ -2466,23 +2593,64 @@ const REPLOID_CORE = (() => {
         /\[\[ARTIFACT_CONTENT_SNIPPETS\]\]/g,
         snippets || "No relevant artifact snippets."
       );
-      let partialOutput = null;
-      const sysInstruction = `You are x0. DELIBERATE, adopt ${primaryPersona}. Respond ONLY valid JSON. Refer to artifacts by ID.`;
-      const allToolsForApi = [
-        ...loadedStaticTools,
-        ...dynamicToolDefinitions.map((t) => t.declaration),
-      ];
-      const allFuncDecls = allToolsForApi.map(
-        ({ name, description, params }) => ({
-          name,
-          description,
-          parameters: params,
-        })
-      );
+
+      const sysInstruction = `You are x0. DELIBERATE, adopt ${primaryPersona}. Respond ONLY valid JSON. Refer to artifacts by ID. Use artifactId argument for tools requiring artifact content.`;
+      let allFuncDecls = [];
+      let conversionMap = {};
+      try {
+        const staticFuncDecls = (
+          await Promise.all(
+            loadedStaticTools.map(async (toolDef) => {
+              try {
+                const result = await ToolRunner.runTool(
+                  "convert_to_gemini_fc",
+                  { mcpToolDefinition: toolDef },
+                  loadedStaticTools,
+                  []
+                );
+                return result.geminiFunctionDeclaration;
+              } catch (e) {
+                logger.logEvent(
+                  "error",
+                  `Failed converting static tool ${toolDef.name}: ${e.message}`
+                );
+                return null;
+              }
+            })
+          )
+        ).filter(Boolean);
+        const dynamicFuncDecls = (
+          await Promise.all(
+            dynamicToolDefinitions.map(async (toolDef) => {
+              try {
+                const result = await ToolRunner.runTool(
+                  "convert_to_gemini_fc",
+                  { mcpToolDefinition: toolDef.declaration },
+                  loadedStaticTools,
+                  []
+                );
+                return result.geminiFunctionDeclaration;
+              } catch (e) {
+                logger.logEvent(
+                  "error",
+                  `Failed converting dynamic tool ${toolDef.declaration.name}: ${e.message}`
+                );
+                return null;
+              }
+            })
+          )
+        ).filter(Boolean);
+        allFuncDecls = [...staticFuncDecls, ...dynamicFuncDecls];
+      } catch (toolConvError) {
+        logger.logEvent(
+          "error",
+          `Error during tool conversion: ${toolConvError.message}`
+        );
+      }
+
       const coreModel = globalState.cfg.coreModel;
       const startTime = performance.now();
-      let tokens = 0;
-      let apiResult = null;
+      let finalResult = null;
       let apiHistory = [];
       UI.displayCycleArtifact(
         "LLM Input",
@@ -2491,7 +2659,7 @@ const REPLOID_CORE = (() => {
         false,
         "System",
         "prompt.core",
-        globalState.totalCycles
+        currentCycle
       );
       if (globalState.currentGoal.summaryContext) {
         UI.displayCycleArtifact(
@@ -2501,44 +2669,53 @@ const REPLOID_CORE = (() => {
           false,
           "System",
           "prompt.summary",
-          globalState.totalCycles
+          currentCycle
         );
       }
+      UI.clearStreamingOutput();
 
       try {
         UI.highlightCoreStep(2);
-        let currentPromptText = prompt;
-        let isContinuation = false;
-        do {
-          apiResult = await ApiClient.callApiWithRetry(
-            currentPromptText,
-            sysInstruction,
-            coreModel,
-            apiKey,
-            allFuncDecls,
-            isContinuation,
-            apiHistory.length > 0 ? apiHistory : null,
-            globalState.cfg.maxRetries,
-            UI.updateStatus,
-            UI.logToTimeline,
-            UI.updateTimelineItem
-          );
-          tokens += apiResult.tokenCount || 0;
-          if (!isContinuation && apiHistory.length === 0) {
-            apiHistory.push({ role: "user", parts: [{ text: prompt }] });
+        let accumulatedText = "";
+        let functionCallParts = [];
+        let currentApiResult = {};
+        await ApiClient.callApiWithRetry(
+          prompt,
+          sysInstruction,
+          coreModel,
+          apiKey,
+          allFuncDecls,
+          false,
+          null,
+          globalState.cfg.maxRetries,
+          UI.updateStatus,
+          UI.logToTimeline,
+          UI.updateTimelineItem,
+          (progress) => {
+            if (progress.type === "text") {
+              accumulatedText += progress.content;
+              UI.updateStreamingOutput(accumulatedText);
+            } else if (progress.type === "functionCall") {
+              functionCallParts.push(
+                progress.content
+              ); /* Maybe update UI differently for function calls? */
+            }
+            currentApiResult = progress.accumulatedResult; // Keep track of the last reported state
           }
-          if (apiResult.rawResp?.candidates?.[0]?.content) {
-            apiHistory.push(apiResult.rawResp.candidates[0].content);
-          }
-          isContinuation = false;
-          currentPromptText = null;
+        );
 
-          if (apiResult.type === "functionCall") {
-            isContinuation = true;
-            const fc = apiResult.content;
+        UI.updateStreamingOutput(accumulatedText || "(No text output)", true); // Show final accumulated text
+
+        if (functionCallParts.length > 0) {
+          UI.updateStatus("Processing Tool Calls...", true);
+          apiHistory.push({ role: "user", parts: [{ text: prompt }] });
+          if (currentApiResult?.rawResp?.candidates?.[0]?.content)
+            apiHistory.push(currentApiResult.rawResp.candidates[0].content);
+
+          for (const fc of functionCallParts) {
             UI.updateStatus(`Running Tool: ${fc.name}...`, true);
             let toolLogItem = UI.logToTimeline(
-              globalState.totalCycles,
+              currentCycle,
               `[TOOL] Calling '${fc.name}'...`,
               "info",
               true,
@@ -2551,14 +2728,13 @@ const REPLOID_CORE = (() => {
               false,
               "LLM",
               "tool.call",
-              globalState.totalCycles
+              currentCycle
             );
             let funcRespContent;
             try {
               const toolResult = await ToolRunner.runTool(
                 fc.name,
                 fc.args,
-                apiKey,
                 loadedStaticTools,
                 dynamicToolDefinitions
               );
@@ -2579,7 +2755,7 @@ const REPLOID_CORE = (() => {
                 false,
                 "Tool",
                 "tool.response",
-                globalState.totalCycles
+                currentCycle
               );
             } catch (e) {
               logger.logEvent("error", `Tool failed ${fc.name}: ${e.message}`);
@@ -2600,142 +2776,119 @@ const REPLOID_CORE = (() => {
                 false,
                 "Tool",
                 "tool.error",
-                globalState.totalCycles
+                currentCycle
               );
             }
-            UI.updateStatus(
-              `Calling Gemini (${coreModel}) (tool resp)...`,
-              true
-            );
             apiHistory.push({
               role: "function",
               parts: [{ functionResponse: funcRespContent }],
             });
-            apiResult = null;
-          } else if (apiResult.finishReason === "MAX_TOKENS") {
-            isContinuation = true;
-            if (apiResult.type === "text") {
-              partialOutput = (partialOutput || "") + apiResult.content;
+          }
+
+          UI.updateStatus(
+            `Calling Gemini (${coreModel}) (tool results)...`,
+            true
+          );
+          accumulatedText = "";
+          await ApiClient.callApiWithRetry(
+            null,
+            sysInstr,
+            coreModel,
+            apiKey,
+            allFuncDecls,
+            true,
+            apiHistory,
+            globalState.cfg.maxRetries,
+            UI.updateStatus,
+            UI.logToTimeline,
+            UI.updateTimelineItem,
+            (progress) => {
+              if (progress.type === "text") {
+                accumulatedText += progress.content;
+                UI.updateStreamingOutput(accumulatedText);
+              }
+              currentApiResult = progress.accumulatedResult;
             }
-            logger.logEvent("warn", "MAX_TOKENS reached. Continuing.");
-            UI.logToTimeline(
-              globalState.totalCycles,
-              `[API WARN] MAX_TOKENS. Continuing...`,
-              "warn",
-              true
-            );
-            UI.updateStatus(
-              `Calling Gemini (${coreModel}) (MAX_TOKENS cont)...`,
-              true
-            );
-            apiResult = null;
-          } else if (apiResult.finishReason === "SAFETY") {
-            throw new Error("Iteration stopped due to API Safety Filter.");
-          }
-        } while (isContinuation);
-        UI.updateStatus("Processing Response...");
-        if (!apiResult) {
-          throw new Error("API loop finished without final response.");
+          );
+          UI.updateStreamingOutput(accumulatedText, true);
         }
-        if (apiResult.type === "text") {
-          const raw = (partialOutput || "") + (apiResult.content || "");
-          partialOutput = null;
-          logger.logEvent("info", `LLM core response length: ${raw.length}.`);
-          const sanitized = ApiClient.sanitizeLlmJsonResp(raw);
-          const cycleMs = performance.now() - startTime;
-          let parsedResp;
-          UI.displayCycleArtifact(
-            "LLM Output Raw",
-            raw,
-            "info",
-            false,
-            "LLM",
-            "llm.raw",
-            globalState.totalCycles
+        UI.updateStatus("Processing Final Response...");
+        const finalContent = accumulatedText;
+        const sanitized = ApiClient.sanitizeLlmJsonResp(finalContent);
+        const cycleMs = performance.now() - startTime;
+        let parsedResp;
+        UI.displayCycleArtifact(
+          "LLM Final Output Raw",
+          finalContent,
+          "info",
+          false,
+          "LLM",
+          "llm.raw",
+          currentCycle
+        );
+        UI.displayCycleArtifact(
+          "LLM Final Output Sanitized",
+          sanitized,
+          "output",
+          false,
+          "LLM",
+          "llm.sanitized",
+          currentCycle
+        );
+        try {
+          parsedResp = JSON.parse(sanitized);
+          logger.logEvent("info", "Parsed final LLM JSON.");
+          UI.logToTimeline(
+            currentCycle,
+            `[LLM OK] Received and parsed final response.`
           );
-          UI.displayCycleArtifact(
-            "LLM Output Sanitized",
-            sanitized,
-            "output",
-            false,
-            "LLM",
-            "llm.sanitized",
-            globalState.totalCycles
-          );
-          try {
-            parsedResp = JSON.parse(sanitized);
-            logger.logEvent("info", "Parsed LLM JSON.");
-            UI.logToTimeline(
-              globalState.totalCycles,
-              `[LLM OK] Received and parsed response.`
-            );
-          } catch (e) {
-            logger.logEvent(
-              "error",
-              `LLM JSON parse failed: ${e.message}. Content: ${Utils.trunc(
-                sanitized,
-                500
-              )}`
-            );
-            UI.logToTimeline(
-              globalState.totalCycles,
-              `[LLM ERR] Invalid JSON response.`,
-              "error"
-            );
-            UI.displayCycleArtifact(
-              "Parse Error",
-              e.message,
-              "error",
-              false,
-              "System",
-              "parse.error",
-              globalState.totalCycles
-            );
-            throw new Error(`LLM response invalid JSON: ${e.message}`);
-          }
-          globalState.tokenHistory.push(tokens);
-          if (globalState.tokenHistory.length > 20)
-            globalState.tokenHistory.shift();
-          globalState.avgTokens =
-            globalState.tokenHistory.length > 0
-              ? globalState.tokenHistory.reduce((a, b) => a + b, 0) /
-                globalState.tokenHistory.length
-              : 0;
-          globalState.contextTokenEstimate += tokens;
-          UI.checkContextTokenWarning();
-          return {
-            response: parsedResp,
-            cycleTimeMillis: cycleMs,
-            error: null,
-          };
-        } else {
+        } catch (e) {
           logger.logEvent(
-            "warn",
-            `Unexpected final API response type: ${apiResult?.type}`
+            "error",
+            `LLM final JSON parse failed: ${e.message}. Content: ${Utils.trunc(
+              sanitized,
+              500
+            )}`
           );
           UI.logToTimeline(
-            globalState.totalCycles,
-            `[API WARN] Unexpected final response type: ${apiResult?.type}.`,
-            "warn"
+            currentCycle,
+            `[LLM ERR] Invalid final JSON response.`,
+            "error"
           );
-          return {
-            response: {
-              agent_confidence_score: 0.0,
-              proposed_changes_description: "(No valid response)",
-            },
-            cycleTimeMillis: performance.now() - startTime,
-            error: `Unexpected API response type: ${apiResult?.type}`,
-          };
+          UI.displayCycleArtifact(
+            "Parse Error",
+            e.message,
+            "error",
+            false,
+            "System",
+            "parse.error",
+            currentCycle
+          );
+          throw new Error(`LLM response invalid JSON: ${e.message}`);
         }
+
+        const tokens = currentApiResult?.tokenCount || 0;
+        globalState.tokenHistory.push(tokens);
+        if (globalState.tokenHistory.length > 20)
+          globalState.tokenHistory.shift();
+        globalState.avgTokens =
+          globalState.tokenHistory.length > 0
+            ? globalState.tokenHistory.reduce((a, b) => a + b, 0) /
+              globalState.tokenHistory.length
+            : 0;
+        globalState.contextTokenEstimate += tokens;
+        UI.checkContextTokenWarning();
+
+        finalResult = {
+          response: parsedResp,
+          cycleTimeMillis: cycleMs,
+          error: null,
+        };
       } catch (error) {
-        partialOutput = null;
         logger.logEvent("error", `Core Iteration failed: ${error.message}`);
-        UI.logToTimeline(
-          globalState.totalCycles,
-          `[CYCLE ERR] ${error.message}`,
-          "error"
-        );
+        UI.logToTimeline(currentCycle, `[CYCLE ERR] ${error.message}`, "error");
         const cycleMs = performance.now() - startTime;
+        const tokens = currentApiResult?.tokenCount || 0;
         if (tokens > 0) {
           globalState.tokenHistory.push(tokens);
           if (globalState.tokenHistory.length > 20)
@@ -2748,7 +2901,7 @@ const REPLOID_CORE = (() => {
           globalState.contextTokenEstimate += tokens;
           UI.checkContextTokenWarning();
         }
-        return {
+        finalResult = {
           response: null,
           cycleTimeMillis: cycleMs,
           error: error.message,
@@ -2756,16 +2909,17 @@ const REPLOID_CORE = (() => {
       } finally {
         UI.updateStatus("Idle");
         UI.highlightCoreStep(-1);
+        UI.clearStreamingOutput();
       }
+      return finalResult;
     },
-
-    runAutoCritique: async (apiKey, llmProposal, goalInfo) => {
+    runAutoCritique: async (apiKey, llmProposal, goalInfo, currentCycle) => {
       UI.highlightCoreStep(5);
       UI.updateStatus("Running Auto-Critique...", true);
       if (!globalState) throw new Error("State not initialized for critique");
       const template = Storage.getArtifactContent(
         "reploid.core.critiquer-prompt",
-        0
+        currentCycle
       );
       if (!template) throw new Error("Critique prompt artifact not found!");
       let prompt = template;
@@ -2820,10 +2974,11 @@ const REPLOID_CORE = (() => {
         false,
         "System",
         "prompt.critique",
-        globalState.totalCycles
+        currentCycle
       );
       try {
-        const apiResp = await ApiClient.callApiWithRetry(
+        let critiqueResultText = "";
+        await ApiClient.callApiWithRetry(
           prompt,
           sysInstruction,
           critiqueModel,
@@ -2834,87 +2989,78 @@ const REPLOID_CORE = (() => {
           globalState.cfg.maxRetries,
           UI.updateStatus,
           UI.logToTimeline,
-          UI.updateTimelineItem
-        );
-        if (apiResp.type === "text") {
-          UI.displayCycleArtifact(
-            "Critique Output Raw",
-            apiResp.content,
-            "info",
-            false,
-            "LLM",
-            "critique.raw",
-            globalState.totalCycles
-          );
-          const sanitized = ApiClient.sanitizeLlmJsonResp(apiResp.content);
-          UI.displayCycleArtifact(
-            "Critique Output Sanitized",
-            sanitized,
-            "output",
-            false,
-            "LLM",
-            "critique.sanitized",
-            globalState.totalCycles
-          );
-          try {
-            const parsedCritique = JSON.parse(sanitized);
-            if (
-              typeof parsedCritique.critique_passed !== "boolean" ||
-              typeof parsedCritique.critique_report !== "string"
-            ) {
-              throw new Error("Critique JSON missing fields.");
+          UI.updateTimelineItem,
+          (progress) => {
+            if (progress.type === "text") {
+              critiqueResultText += progress.content;
+              UI.updateStreamingOutput(critiqueResultText);
             }
-            UI.logToTimeline(
-              globalState.totalCycles,
-              `[CRITIQUE] Auto-Critique completed. Passed: ${parsedCritique.critique_passed}`
-            );
-            return parsedCritique;
-          } catch (e) {
-            logger.logEvent(
-              "error",
-              `Critique JSON parse failed: ${e.message}. Content: ${Utils.trunc(
-                sanitized,
-                300
-              )}`
-            );
-            UI.logToTimeline(
-              globalState.totalCycles,
-              `[CRITIQUE ERR] Invalid JSON format.`,
-              "error"
-            );
-            UI.displayCycleArtifact(
-              "Critique Parse Error",
-              e.message,
-              "error",
-              false,
-              "System",
-              "critique.parse.error",
-              globalState.totalCycles
-            );
-            return {
-              critique_passed: false,
-              critique_report: `Critique invalid JSON: ${e.message}`,
-            };
+          } // Stream critique output
+        );
+        UI.updateStreamingOutput(critiqueResultText, true);
+        UI.displayCycleArtifact(
+          "Critique Output Raw",
+          critiqueResultText,
+          "info",
+          false,
+          "LLM",
+          "critique.raw",
+          currentCycle
+        );
+        const sanitized = ApiClient.sanitizeLlmJsonResp(critiqueResultText);
+        UI.displayCycleArtifact(
+          "Critique Output Sanitized",
+          sanitized,
+          "output",
+          false,
+          "LLM",
+          "critique.sanitized",
+          currentCycle
+        );
+        try {
+          const parsedCritique = JSON.parse(sanitized);
+          if (
+            typeof parsedCritique.critique_passed !== "boolean" ||
+            typeof parsedCritique.critique_report !== "string"
+          ) {
+            throw new Error("Critique JSON missing fields.");
           }
-        } else {
+          UI.logToTimeline(
+            currentCycle,
+            `[CRITIQUE] Auto-Critique completed. Passed: ${parsedCritique.critique_passed}`
+          );
+          return parsedCritique;
+        } catch (e) {
           logger.logEvent(
-            "warn",
-            `Critique API non-text response: ${apiResp.type}.`
+            "error",
+            `Critique JSON parse failed: ${e.message}. Content: ${Utils.trunc(
+              sanitized,
+              300
+            )}`
           );
           UI.logToTimeline(
-            globalState.totalCycles,
-            `[CRITIQUE ERR] Non-text response.`,
+            currentCycle,
+            `[CRITIQUE ERR] Invalid JSON format.`,
             "error"
+          );
+          UI.displayCycleArtifact(
+            "Critique Parse Error",
+            e.message,
+            "error",
+            false,
+            "System",
+            "critique.parse.error",
+            currentCycle
           );
           return {
             critique_passed: false,
-            critique_report: `Critique API failed (non-text: ${apiResp.type}).`,
+            critique_report: `Critique invalid JSON: ${e.message}`,
           };
         }
       } catch (e) {
         logger.logEvent("error", `Critique API call failed: ${e.message}`);
         UI.logToTimeline(
-          globalState.totalCycles,
+          currentCycle,
           `[CRITIQUE ERR] API Error: ${e.message}`,
           "error"
         );
@@ -2925,7 +3071,7 @@ const REPLOID_CORE = (() => {
           false,
           "System",
           "critique.api.error",
-          globalState.totalCycles
+          currentCycle
         );
         return {
           critique_passed: false,
@@ -2934,16 +3080,16 @@ const REPLOID_CORE = (() => {
       } finally {
         UI.updateStatus("Idle");
         UI.highlightCoreStep(-1);
+        UI.clearStreamingOutput();
       }
     },
-
-    runSummarization: async (apiKey, stateSnapshotForSummary) => {
+    runSummarization: async (apiKey, stateSnapshotForSummary, currentCycle) => {
       UI.updateStatus("Running Summarization...", true);
       if (!globalState)
         throw new Error("State not initialized for summarization");
       const template = Storage.getArtifactContent(
         "reploid.core.summarizer-prompt",
-        0
+        currentCycle
       );
       if (!template)
         throw new Error("Summarization prompt artifact not found!");
@@ -2960,7 +3106,6 @@ const REPLOID_CORE = (() => {
         )
         .replace(/\[\[RECENT_LOGS\]\]/g, Utils.trunc(recentLogs, 1000));
       const critiqueModel = globalState.cfg.critiqueModel;
-      const currentCycle = globalState.totalCycles;
       UI.logToTimeline(
         currentCycle,
         `[CONTEXT] Running summarization...`,
@@ -2977,7 +3122,8 @@ const REPLOID_CORE = (() => {
         currentCycle
       );
       try {
-        const apiResp = await ApiClient.callApiWithRetry(
+        let summaryText = "";
+        await ApiClient.callApiWithRetry(
           prompt,
           'Summarizer x0. Respond ONLY valid JSON: {"summary": "string"}',
           critiqueModel,
@@ -2988,77 +3134,71 @@ const REPLOID_CORE = (() => {
           globalState.cfg.maxRetries,
           UI.updateStatus,
           UI.logToTimeline,
-          UI.updateTimelineItem
-        );
-        if (apiResp.type === "text") {
-          UI.displayCycleArtifact(
-            "Summarize Output Raw",
-            apiResp.content,
-            "info",
-            false,
-            "LLM",
-            "summary.raw",
-            currentCycle
-          );
-          const sanitized = ApiClient.sanitizeLlmJsonResp(apiResp.content);
-          UI.displayCycleArtifact(
-            "Summarize Output Sanitized",
-            sanitized,
-            "output",
-            false,
-            "LLM",
-            "summary.sanitized",
-            currentCycle
-          );
-          try {
-            const parsed = JSON.parse(sanitized);
-            if (parsed.summary && typeof parsed.summary === "string") {
-              UI.logToTimeline(
-                currentCycle,
-                `[CONTEXT] Summarization successful.`,
-                "info",
-                true
-              );
-              return parsed.summary;
-            } else {
-              throw new Error("Summary format incorrect.");
+          UI.updateTimelineItem,
+          (progress) => {
+            if (progress.type === "text") {
+              summaryText += progress.content;
+              UI.updateStreamingOutput(summaryText);
             }
-          } catch (e) {
-            logger.logEvent(
-              "error",
-              `Summarize JSON parse failed: ${
-                e.message
-              }. Content: ${Utils.trunc(sanitized, 300)}`
-            );
+          } // Stream summary output
+        );
+        UI.updateStreamingOutput(summaryText, true);
+        UI.displayCycleArtifact(
+          "Summarize Output Raw",
+          summaryText,
+          "info",
+          false,
+          "LLM",
+          "summary.raw",
+          currentCycle
+        );
+        const sanitized = ApiClient.sanitizeLlmJsonResp(summaryText);
+        UI.displayCycleArtifact(
+          "Summarize Output Sanitized",
+          sanitized,
+          "output",
+          false,
+          "LLM",
+          "summary.sanitized",
+          currentCycle
+        );
+        try {
+          const parsed = JSON.parse(sanitized);
+          if (parsed.summary && typeof parsed.summary === "string") {
             UI.logToTimeline(
               currentCycle,
-              `[CONTEXT ERR] Invalid JSON from summarizer.`,
-              "error",
+              `[CONTEXT] Summarization successful.`,
+              "info",
               true
             );
-            UI.displayCycleArtifact(
-              "Summarize Parse Error",
-              e.message,
-              "error",
-              false,
-              "System",
-              "summary.parse.error",
-              currentCycle
-            );
-            throw e;
+            return parsed.summary;
+          } else {
+            throw new Error("Summary format incorrect.");
           }
-        } else {
+        } catch (e) {
           logger.logEvent(
-            "warn",
-            `Summarizer API non-text response: ${apiResp.type}.`
+            "error",
+            `Summarize JSON parse failed: ${e.message}. Content: ${Utils.trunc(
+              sanitized,
+              300
+            )}`
           );
           UI.logToTimeline(
             currentCycle,
-            `[CONTEXT ERR] Non-text response from summarizer.`,
+            `[CONTEXT ERR] Invalid JSON from summarizer.`,
             "error",
             true
           );
-          throw new Error(`Summarizer API failed (non-text: ${apiResp.type}).`);
+          UI.displayCycleArtifact(
+            "Summarize Parse Error",
+            e.message,
+            "error",
+            false,
+            "System",
+            "summary.parse.error",
+            currentCycle
+          );
+          throw e;
         }
       } catch (e) {
         logger.logEvent("error", `Summarization failed: ${e.message}`);
@@ -3080,9 +3220,9 @@ const REPLOID_CORE = (() => {
         throw e;
       } finally {
         UI.updateStatus("Idle");
+        UI.clearStreamingOutput();
       }
     },
-
     applyLLMChanges: (llmResp, currentCycleNum, critiqueSource) => {
       UI.highlightCoreStep(6);
       if (!globalState)
@@ -3279,7 +3419,7 @@ const REPLOID_CORE = (() => {
           true,
           critiqueSource
         );
-        if (decl.name && decl.description && decl.params && impl) {
+        if (decl.name && decl.description && decl.inputSchema && impl) {
           const existingIndex = dynamicToolDefinitions.findIndex(
             (t) => t.declaration.name === decl.name
           );
@@ -3374,7 +3514,6 @@ const REPLOID_CORE = (() => {
         nextCycle: errors.length === 0 ? nextCycleNum : currentCycleNum,
       };
     },
-
     proceedAfterHumanIntervention: (
       feedbackType,
       feedbackData = "",
@@ -3386,60 +3525,74 @@ const REPLOID_CORE = (() => {
       let feedbackMsg = feedbackData;
       let applySuccess = true;
       if (feedbackType === "Human Code Edit") {
-        feedbackMsg = `Edited ${feedbackData.id}: ${feedbackData.summary}`;
-        if (feedbackData.success && feedbackData.id !== "full_html_source") {
+        const {
+          artifactId,
+          cycle,
+          success,
+          validatedContent,
+          error,
+          contentChanged,
+        } = feedbackData;
+        feedbackMsg = `Edited ${artifactId}: ${
+          success
+            ? contentChanged
+              ? "Applied successfully."
+              : "No changes detected."
+            : `Validation Failed: ${error}`
+        }`;
+        if (success && contentChanged && artifactId !== "full_html_source") {
           nextCycle = currentCycle + 1;
           try {
-            Storage.setArtifactContent(
-              feedbackData.id,
-              nextCycle,
-              feedbackData.newContent
-            );
-            const currentMeta = StateManager.getArtifactMetadata(
-              feedbackData.id
-            );
+            Storage.setArtifactContent(artifactId, nextCycle, validatedContent);
+            const currentMeta = StateManager.getArtifactMetadata(artifactId);
             StateManager.updateArtifactMetadata(
-              feedbackData.id,
+              artifactId,
               currentMeta.type,
               currentMeta.description,
               nextCycle
             );
             UI.displayCycleArtifact(
               `Human Edit Applied`,
-              feedbackData.newContent,
+              validatedContent,
               "info",
               true,
               "Human",
-              feedbackData.id,
+              artifactId,
               nextCycle
             );
             logger.logEvent(
               "info",
-              `Human edit applied to ${feedbackData.id} for cycle ${nextCycle}`
+              `Human edit applied to ${artifactId} for cycle ${nextCycle}`
             );
             UI.logToTimeline(
               currentCycle,
-              `[HUMAN] Applied edit to ${feedbackData.id} for cycle ${nextCycle}`,
+              `[HUMAN] Applied edit to ${artifactId} for cycle ${nextCycle}`,
               "info",
               true
             );
-            if (feedbackData.id.startsWith("target."))
+            if (artifactId.startsWith("target."))
               UI.renderGeneratedUI(nextCycle);
-            if (feedbackData.id === "target.diagram")
+            if (artifactId === "target.diagram")
               UI.renderDiagramDisplay(nextCycle);
           } catch (e) {
             logger.logEvent(
               "error",
-              `Failed saving human edit for ${feedbackData.id}: ${e.message}`
+              `Failed saving human edit for ${artifactId}: ${e.message}`
             );
             UI.showNotification(`Failed saving edit: ${e.message}`, "error");
             applySuccess = false;
             nextCycle = currentCycle;
           }
-        } else if (feedbackData.id === "full_html_source") {
-          logger.logEvent("info", `Human edit for full_html_source processed.`);
+        } else if (
+          artifactId === "full_html_source" &&
+          success &&
+          contentChanged
+        ) {
+          logger.logEvent("warn", "Full source edited via HITL.");
+          globalState.lastGeneratedFullSource = validatedContent;
           applySuccess = true;
-        } else {
+          skipCycleIncrement = true; // Apply immediately via sandbox approval later
+        } else if (!success) {
           applySuccess = false;
         }
       } else if (feedbackType === "Human Options") {
@@ -3499,7 +3652,6 @@ const REPLOID_CORE = (() => {
       UI.highlightCoreStep(-1);
       StateManager.save();
     },
-
     saveHtmlToHistory: (htmlContent) => {
       if (!globalState) return;
       const limit = globalState.cfg?.htmlHistoryLimit ?? 5;
@@ -3514,7 +3666,6 @@ const REPLOID_CORE = (() => {
         `Saved HTML state. History: ${globalState.htmlHistory.length}`
       );
     },
-
     handleSummarizeContext: async () => {
       if (!globalState || !globalState.apiKey) {
         UI.showNotification("API Key required.", "warn");
@@ -3552,7 +3703,8 @@ const REPLOID_CORE = (() => {
         };
         const summaryText = await CycleLogic.runSummarization(
           globalState.apiKey,
-          stateSummary
+          stateSummary,
+          currentCycle
         );
         Storage.setArtifactContent(
           "meta.summary_context",
@@ -3600,550 +3752,469 @@ const REPLOID_CORE = (() => {
         StateManager.save();
       }
     },
-
     executeCycle: async () => {
-      if (!globalState) {
-        UI.showNotification("State not initialized!", "error");
+      if (CycleLogic._isRunning) {
+        UI.showNotification("Cycle already running.", "warn");
         return;
       }
-      if (metaSandboxPending) {
-        UI.showNotification("Meta Sandbox pending.", "warn");
-        return;
-      }
-      if (!uiRefs.humanInterventionSection?.classList.contains("hidden")) {
-        UI.showNotification("Human Intervention required.", "warn");
-        return;
-      }
-      if (lastCycleLogItem)
-        UI.summarizeCompletedCycleLog(lastCycleLogItem, "Interrupted");
-      UI.clearCurrentCycleDetails();
-      currentLlmResponse = null;
-      globalState.apiKey = uiRefs.apiKeyInput.value.trim(); // Removed || APP_CONFIG.API_KEY fallback
-      if (!globalState.apiKey || globalState.apiKey.length < 10) {
-        UI.showNotification("Valid Gemini API Key required.", "warn");
-        return;
-      }
-      UI.logCoreLoopStep(globalState.totalCycles, 0, "Define Goal");
-      const goalText = uiRefs.goalInput.value.trim();
-      const goalTypeElement = document.querySelector(
-        'input[name="goalType"]:checked'
-      );
-      const goalType = goalTypeElement ? goalTypeElement.value : "System";
-      if (!goalText && !globalState.currentGoal.seed) {
-        UI.showNotification("Initial Goal required.", "warn");
-        return;
-      }
-      const maxC = globalState.cfg.maxCycles || 0;
-      if (maxC > 0 && globalState.totalCycles >= maxC) {
-        UI.showNotification(`Max cycles (${maxC}) reached.`, "info");
-        if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true;
-        return;
-      }
-      if (globalState.contextTokenEstimate >= CTX_WARN_THRESH) {
-        UI.showNotification(
-          "Context tokens high. Consider summarizing.",
-          "warn"
-        );
-      }
-      const currentCycle = globalState.totalCycles;
-      const newGoalProvided = !!goalText;
-      if (newGoalProvided) {
-        if (!globalState.currentGoal.seed) {
-          globalState.currentGoal.seed = goalText;
-          globalState.currentGoal.cumulative = goalText;
-          globalState.currentGoal.latestType = goalType;
-        } else {
-          globalState.currentGoal.cumulative += `\n\n[Cycle ${currentCycle} Refinement (${goalType})]: ${goalText}`;
-          globalState.currentGoal.latestType = goalType;
-        }
-        UI.displayCycleArtifact(
-          "New Goal Input",
-          `${goalType}: ${goalText}`,
-          "input",
-          false,
-          "User",
-          "goal.input",
-          currentCycle
-        );
-      } else if (!globalState.currentGoal.seed) {
-        UI.showNotification("No goal provided.", "error");
-        return;
-      }
-      const goalInfo = CycleLogic.getActiveGoalInfo();
-      globalState.retryCount = 0;
-      if (uiRefs.currentCycleNumber)
-        uiRefs.currentCycleNumber.textContent = currentCycle;
+      CycleLogic._isRunning = true;
       if (uiRefs.runCycleButton) {
-        uiRefs.runCycleButton.disabled = true;
-        uiRefs.runCycleButton.textContent = "Processing...";
-      }
-      UI.updateStatus("Starting Cycle...", true);
-      UI.updateStateDisplay();
-      lastCycleLogItem = UI.logToTimeline(
-        currentCycle,
-        `[CYCLE] === Cycle ${currentCycle} Start === Latest Goal Type: ${goalInfo.type}`
-      );
-      UI.logToTimeline(
-        currentCycle,
-        `[GOAL] Latest: "${Utils.trunc(goalInfo.latestGoal, 70)}..."`,
-        "info",
-        true
-      );
-      UI.displayCycleArtifact(
-        "Cumulative Goal",
-        goalInfo.cumulativeGoal,
-        "input",
-        false,
-        "System",
-        "goal.cumulative",
-        currentCycle
-      );
-      UI.renderDiagramDisplay(currentCycle);
-      let iterationResult = null;
-      let successfulIteration = false;
-      do {
+        uiRefs.runCycleButton.textContent = "Abort Cycle";
+        uiRefs.runCycleButton.disabled = false;
+      } // Enable abort
+
+      try {
+        if (!globalState) {
+          UI.showNotification("State not initialized!", "error");
+          return;
+        }
+        if (metaSandboxPending) {
+          UI.showNotification("Meta Sandbox pending.", "warn");
+          return;
+        }
+        if (!uiRefs.humanInterventionSection?.classList.contains("hidden")) {
+          UI.showNotification("Human Intervention required.", "warn");
+          return;
+        }
+        if (lastCycleLogItem)
+          UI.summarizeCompletedCycleLog(lastCycleLogItem, "Interrupted");
+        UI.clearCurrentCycleDetails();
+        currentLlmResponse = null;
+        globalState.apiKey = uiRefs.apiKeyInput.value.trim();
+        if (!globalState.apiKey || globalState.apiKey.length < 10) {
+          UI.showNotification("Valid Gemini API Key required.", "warn");
+          return;
+        }
+        UI.logCoreLoopStep(globalState.totalCycles, 0, "Define Goal");
+        const goalText = uiRefs.goalInput.value.trim();
+        const goalTypeElement = document.querySelector(
+          'input[name="goalType"]:checked'
+        );
+        const goalType = goalTypeElement ? goalTypeElement.value : "System";
+        if (!goalText && !globalState.currentGoal.seed) {
+          UI.showNotification("Initial Goal required.", "warn");
+          return;
+        }
+        const maxC = globalState.cfg.maxCycles || 0;
+        if (maxC > 0 && globalState.totalCycles >= maxC) {
+          UI.showNotification(`Max cycles (${maxC}) reached.`, "info");
+          if (uiRefs.runCycleButton) uiRefs.runCycleButton.disabled = true;
+          return;
+        }
+        if (globalState.contextTokenEstimate >= CTX_WARN_THRESH) {
+          UI.showNotification(
+            "Context tokens high. Consider summarizing.",
+            "warn"
+          );
+        }
+        const currentCycle = globalState.totalCycles;
+        const newGoalProvided = !!goalText;
+        if (newGoalProvided) {
+          if (!globalState.currentGoal.seed) {
+            globalState.currentGoal.seed = goalText;
+            globalState.currentGoal.cumulative = goalText;
+            globalState.currentGoal.latestType = goalType;
+          } else {
+            globalState.currentGoal.cumulative += `\n\n[Cycle ${currentCycle} Refinement (${goalType})]: ${goalText}`;
+            globalState.currentGoal.latestType = goalType;
+          }
+          UI.displayCycleArtifact(
+            "New Goal Input",
+            `${goalType}: ${goalText}`,
+            "input",
+            false,
+            "User",
+            "goal.input",
+            currentCycle
+          );
+        } else if (!globalState.currentGoal.seed) {
+          UI.showNotification("No goal provided.", "error");
+          return;
+        }
+        const goalInfo = CycleLogic.getActiveGoalInfo();
+        globalState.retryCount = 0;
+        if (uiRefs.currentCycleNumber)
+          uiRefs.currentCycleNumber.textContent = currentCycle;
+        UI.updateStatus("Starting Cycle...", true);
+        UI.updateStateDisplay();
+        lastCycleLogItem = UI.logToTimeline(
+          currentCycle,
+          `[CYCLE] === Cycle ${currentCycle} Start === Latest Goal Type: ${goalInfo.type}`
+        );
         UI.logToTimeline(
           currentCycle,
-          `[STATE] Agent Iteration Attempt (Retry: ${globalState.retryCount})`,
+          `[GOAL] Latest: "${Utils.trunc(goalInfo.latestGoal, 70)}..."`,
           "info",
           true
         );
-        iterationResult = await CycleLogic.runCoreIteration(
-          globalState.apiKey,
-          goalInfo
+        UI.displayCycleArtifact(
+          "Cumulative Goal",
+          goalInfo.cumulativeGoal,
+          "input",
+          false,
+          "System",
+          "goal.cumulative",
+          currentCycle
         );
-        if (iterationResult.error || !iterationResult.response) {
-          logger.logEvent(
-            "error",
-            `Iteration attempt failed: ${
-              iterationResult.error || "No response"
-            }`
+        UI.renderDiagramDisplay(currentCycle);
+
+        let iterationResult = null;
+        let successfulIteration = false;
+        do {
+          UI.logToTimeline(
+            currentCycle,
+            `[STATE] Agent Iteration Attempt (Retry: ${globalState.retryCount})`,
+            "info",
+            true
           );
-          globalState.retryCount++;
-          if (globalState.retryCount > globalState.cfg.maxRetries) {
+          iterationResult = await CycleLogic.runCoreIteration(
+            globalState.apiKey,
+            goalInfo,
+            currentCycle
+          );
+          if (iterationResult.error || !iterationResult.response) {
+            logger.logEvent(
+              "error",
+              `Iteration attempt failed: ${
+                iterationResult.error || "No response"
+              }`
+            );
+            globalState.retryCount++;
+            if (globalState.retryCount > globalState.cfg.maxRetries) {
+              UI.logToTimeline(
+                currentCycle,
+                `[RETRY] Max retries exceeded. Forcing HITL.`,
+                "error"
+              );
+              globalState.failCount++;
+              UI.updateMetricsDisplay();
+              UI.showHumanInterventionUI(
+                "prompt",
+                `Cycle failed after ${globalState.retryCount} attempts: ${
+                  iterationResult.error || "Unknown"
+                }`
+              );
+              StateManager.save();
+              return;
+            } else {
+              UI.logToTimeline(
+                currentCycle,
+                `[RETRY] Attempting retry ${globalState.retryCount}/${globalState.cfg.maxRetries}...`,
+                "warn",
+                true
+              );
+              globalState.lastFeedback = `Retry ${globalState.retryCount}: ${
+                Utils.trunc(iterationResult.error, 100) || "No response"
+              }`;
+              await new Promise((r) =>
+                setTimeout(r, 1000 * globalState.retryCount)
+              );
+            }
+          } else {
+            successfulIteration = true;
+            globalState.retryCount = 0;
             UI.logToTimeline(
               currentCycle,
-              `[RETRY] Max retries exceeded. Forcing HITL.`,
-              "error"
+              `[STATE] Agent Iteration successful.`,
+              "info",
+              true
+            );
+          }
+        } while (!successfulIteration);
+
+        currentLlmResponse = iterationResult.response;
+        UI.displayCycleArtifact(
+          "Agent Deliberation",
+          currentLlmResponse.persona_analysis_musing || "(N/A)",
+          "info",
+          false,
+          "LLM",
+          "llm.musing",
+          currentCycle
+        );
+        UI.displayCycleArtifact(
+          "Proposed Changes",
+          currentLlmResponse.proposed_changes_description || "(N/A)",
+          "info",
+          false,
+          "LLM",
+          "llm.proposal",
+          currentCycle
+        );
+        UI.displayCycleArtifact(
+          "Agent Justification",
+          currentLlmResponse.justification_persona_musing || "(N/A)",
+          "info",
+          false,
+          "LLM",
+          "llm.justification",
+          currentCycle
+        );
+        UI.displayCycleArtifact(
+          "Agent Confidence",
+          currentLlmResponse.agent_confidence_score?.toFixed(3) || "(N/A)",
+          "info",
+          false,
+          "LLM",
+          "llm.confidence",
+          currentCycle
+        );
+
+        UI.logCoreLoopStep(currentCycle, 4, "Critique Trigger Check");
+        const { cycleTimeMillis } = iterationResult;
+        const cycleSecs = cycleTimeMillis / 1000;
+        const confidence = currentLlmResponse.agent_confidence_score ?? 0.0;
+        const pauseThresh = globalState.cfg.pauseAfterCycles || 0;
+        const confThresh = globalState.cfg.autoCritiqueThresh ?? 0.75;
+        const humanProb = (globalState.cfg.humanReviewProb ?? 50) / 100.0;
+        const llmProb = (globalState.cfg.llmCritiqueProb ?? 50) / 100.0;
+        const maxTime = globalState.cfg.maxCycleTime ?? 600;
+        let humanNeeded = false;
+        let critReason = "";
+        let hitlModePref = "prompt";
+        if (globalState.forceHumanReview) {
+          humanNeeded = true;
+          critReason = "Forced Review";
+          globalState.forceHumanReview = false;
+        } else if (
+          pauseThresh > 0 &&
+          currentCycle > 0 &&
+          currentCycle % pauseThresh === 0
+        ) {
+          humanNeeded = true;
+          critReason = `Auto Pause (${currentCycle}/${pauseThresh})`;
+        } else if (Math.random() < humanProb) {
+          humanNeeded = true;
+          critReason = `Random Review (${(humanProb * 100).toFixed(0)}%)`;
+          hitlModePref = "code_edit";
+        } else if (cycleSecs > maxTime) {
+          humanNeeded = true;
+          critReason = `Time Limit (${cycleSecs.toFixed(1)}s > ${maxTime}s)`;
+        } else if (confidence < confThresh) {
+          humanNeeded = true;
+          critReason = `Low Confidence (${confidence.toFixed(
+            2
+          )} < ${confThresh})`;
+        }
+        UI.logToTimeline(
+          currentCycle,
+          `[DECIDE] Time:${cycleSecs.toFixed(1)}s, Conf:${confidence.toFixed(
+            2
+          )}. Human: ${humanNeeded ? critReason : "No"}.`,
+          "info",
+          true
+        );
+
+        let critiquePassed = false;
+        let critiqueReport = "Critique Skipped";
+        let applySource = "Skipped";
+        if (humanNeeded) {
+          critiquePassed = false;
+          critiqueReport = `Human Intervention: ${critReason}`;
+          applySource = "Human";
+          globalState.lastCritiqueType = `Human (${critReason})`;
+          globalState.critiqueFailHistory.push(false);
+          UI.updateMetricsDisplay();
+          UI.logCoreLoopStep(
+            currentCycle,
+            5,
+            `Critique: Human Intervention (${critReason})`
+          );
+          UI.updateStatus(`Paused: Human Review (${critReason})`);
+          const firstModifiedId =
+            currentLlmResponse.modified_artifacts?.[0]?.id;
+          const firstNewId = currentLlmResponse.new_artifacts?.[0]?.id;
+          const artifactToEdit =
+            firstModifiedId ||
+            firstNewId ||
+            (currentLlmResponse.full_html_source ? "full_html_source" : null);
+          UI.showHumanInterventionUI(
+            hitlModePref,
+            critReason,
+            [],
+            artifactToEdit
+          );
+          StateManager.save();
+          return;
+        } else if (Math.random() < llmProb) {
+          UI.logToTimeline(
+            currentCycle,
+            `[DECIDE] Triggering Auto Critique (${(llmProb * 100).toFixed(
+              0
+            )}%).`,
+            "info",
+            true
+          );
+          UI.logCoreLoopStep(currentCycle, 5, "Critique: Auto");
+          const critiqueResult = await CycleLogic.runAutoCritique(
+            globalState.apiKey,
+            currentLlmResponse,
+            goalInfo,
+            currentCycle
+          );
+          critiquePassed = critiqueResult.critique_passed;
+          critiqueReport = critiqueResult.critique_report;
+          applySource = `AutoCrit ${critiquePassed ? "Pass" : "Fail"}`;
+          globalState.lastCritiqueType = `Automated (${
+            critiquePassed ? "Pass" : "Fail"
+          })`;
+          globalState.critiqueFailHistory.push(!critiquePassed);
+          UI.updateMetricsDisplay();
+          UI.logToTimeline(
+            currentCycle,
+            `[CRITIQUE] AutoCrit Result: ${
+              critiquePassed ? "Pass" : "Fail"
+            }. Report: ${Utils.trunc(critiqueReport, 100)}...`,
+            critiquePassed ? "info" : "error",
+            true
+          );
+          UI.displayCycleArtifact(
+            "Auto Critique Report",
+            critiqueReport,
+            critiquePassed ? "info" : "error",
+            false,
+            "LLM",
+            "critique.report",
+            currentCycle
+          );
+          if (!critiquePassed) {
+            UI.logToTimeline(
+              currentCycle,
+              `[STATE] Auto-Critique failed. Forcing HITL.`,
+              "warn",
+              true
             );
             globalState.failCount++;
             UI.updateMetricsDisplay();
             UI.showHumanInterventionUI(
               "prompt",
-              `Cycle failed after ${globalState.retryCount} attempts: ${
-                iterationResult.error || "Unknown"
-              }`
+              `Auto Critique Failed: ${Utils.trunc(critiqueReport, 150)}...`
             );
             StateManager.save();
             return;
-          } else {
-            UI.logToTimeline(
-              currentCycle,
-              `[RETRY] Attempting retry ${globalState.retryCount}/${globalState.cfg.maxRetries}...`,
-              "warn",
-              true
-            );
-            globalState.lastFeedback = `Retry ${globalState.retryCount}: ${
-              Utils.trunc(iterationResult.error, 100) || "No response"
-            }`;
-            await new Promise((r) =>
-              setTimeout(r, 1000 * globalState.retryCount)
-            );
           }
         } else {
-          successfulIteration = true;
-          globalState.retryCount = 0;
+          critiquePassed = true;
+          applySource = "Skipped";
+          globalState.lastCritiqueType = "Skipped";
+          globalState.critiqueFailHistory.push(false);
+          UI.updateMetricsDisplay();
+          UI.logCoreLoopStep(currentCycle, 5, "Critique: Skipped");
           UI.logToTimeline(
             currentCycle,
-            `[STATE] Agent Iteration successful.`,
+            `[DECIDE] Critique Skipped (Below threshold). Applying.`,
             "info",
             true
           );
         }
-      } while (!successfulIteration);
-      currentLlmResponse = iterationResult.response;
-      UI.displayCycleArtifact(
-        "Agent Deliberation",
-        currentLlmResponse.persona_analysis_musing || "(N/A)",
-        "info",
-        false,
-        "LLM",
-        "llm.musing",
-        currentCycle
-      );
-      UI.displayCycleArtifact(
-        "Proposed Changes",
-        currentLlmResponse.proposed_changes_description || "(N/A)",
-        "info",
-        false,
-        "LLM",
-        "llm.proposal",
-        currentCycle
-      );
-      UI.displayCycleArtifact(
-        "Agent Justification",
-        currentLlmResponse.justification_persona_musing || "(N/A)",
-        "info",
-        false,
-        "LLM",
-        "llm.justification",
-        currentCycle
-      );
-      UI.displayCycleArtifact(
-        "Agent Confidence",
-        currentLlmResponse.agent_confidence_score?.toFixed(3) || "(N/A)",
-        "info",
-        false,
-        "LLM",
-        "llm.confidence",
-        currentCycle
-      );
-      UI.logCoreLoopStep(currentCycle, 4, "Critique Trigger Check");
-      const { cycleTimeMillis } = iterationResult;
-      const cycleSecs = cycleTimeMillis / 1000;
-      const confidence = currentLlmResponse.agent_confidence_score ?? 0.0;
-      const pauseThresh = globalState.cfg.pauseAfterCycles || 0;
-      const confThresh = globalState.cfg.autoCritiqueThresh ?? 0.6;
-      const humanProb = (globalState.cfg.humanReviewProb ?? 50) / 100.0;
-      const llmProb = (globalState.cfg.llmCritiqueProb ?? 50) / 100.0;
-      const maxTime = globalState.cfg.maxCycleTime ?? 600;
-      let humanNeeded = false;
-      let critReason = "";
-      let hitlModePref = "prompt";
-      if (globalState.forceHumanReview) {
-        humanNeeded = true;
-        critReason = "Forced Review";
-        globalState.forceHumanReview = false;
-      } else if (
-        pauseThresh > 0 &&
-        currentCycle > 0 &&
-        currentCycle % pauseThresh === 0
-      ) {
-        humanNeeded = true;
-        critReason = `Auto Pause (${currentCycle}/${pauseThresh})`;
-      } else if (Math.random() < humanProb) {
-        humanNeeded = true;
-        critReason = `Random Review (${(humanProb * 100).toFixed(0)}%)`;
-        hitlModePref = "code_edit";
-      } else if (cycleSecs > maxTime) {
-        humanNeeded = true;
-        critReason = `Time Limit (${cycleSecs.toFixed(1)}s > ${maxTime}s)`;
-      } else if (confidence < confThresh) {
-        humanNeeded = true;
-        critReason = `Low Confidence (${confidence.toFixed(
-          2
-        )} < ${confThresh})`;
-      }
-      UI.logToTimeline(
-        currentCycle,
-        `[DECIDE] Time:${cycleSecs.toFixed(1)}s, Conf:${confidence.toFixed(
-          2
-        )}. Human: ${humanNeeded ? critReason : "No"}.`,
-        "info",
-        true
-      );
-      let critiquePassed = false;
-      let critiqueReport = "Critique Skipped";
-      let applySource = "Skipped";
-      if (humanNeeded) {
-        critiquePassed = false;
-        critiqueReport = `Human Intervention: ${critReason}`;
-        applySource = "Human";
-        globalState.lastCritiqueType = `Human (${critReason})`;
-        globalState.critiqueFailHistory.push(false);
-        UI.updateMetricsDisplay();
-        UI.logCoreLoopStep(
-          currentCycle,
-          5,
-          `Critique: Human Intervention (${critReason})`
-        );
-        UI.updateStatus(`Paused: Human Review (${critReason})`);
-        const firstModifiedId = currentLlmResponse.modified_artifacts?.[0]?.id;
-        const firstNewId = currentLlmResponse.new_artifacts?.[0]?.id;
-        const artifactToEdit =
-          firstModifiedId ||
-          firstNewId ||
-          (currentLlmResponse.full_html_source ? "full_html_source" : null);
-        UI.showHumanInterventionUI(
-          hitlModePref,
-          critReason,
-          [],
-          artifactToEdit
-        );
-        StateManager.save();
-        return;
-      } else if (Math.random() < llmProb) {
-        UI.logToTimeline(
-          currentCycle,
-          `[DECIDE] Triggering Auto Critique (${(llmProb * 100).toFixed(0)}%).`,
-          "info",
-          true
-        );
-        UI.logCoreLoopStep(currentCycle, 5, "Critique: Auto");
-        const critiqueResult = await CycleLogic.runAutoCritique(
-          globalState.apiKey,
-          currentLlmResponse,
-          goalInfo
-        );
-        critiquePassed = critiqueResult.critique_passed;
-        critiqueReport = critiqueResult.critique_report;
-        applySource = `AutoCrit ${critiquePassed ? "Pass" : "Fail"}`;
-        globalState.lastCritiqueType = `Automated (${
-          critiquePassed ? "Pass" : "Fail"
-        })`;
-        globalState.critiqueFailHistory.push(!critiquePassed);
-        UI.updateMetricsDisplay();
-        UI.logToTimeline(
-          currentCycle,
-          `[CRITIQUE] AutoCrit Result: ${
-            critiquePassed ? "Pass" : "Fail"
-          }. Report: ${Utils.trunc(critiqueReport, 100)}...`,
-          critiquePassed ? "info" : "error",
-          true
-        );
-        UI.displayCycleArtifact(
-          "Auto Critique Report",
-          critiqueReport,
-          critiquePassed ? "info" : "error",
-          false,
-          "LLM",
-          "critique.report",
-          currentCycle
-        );
-        if (!critiquePassed) {
-          UI.logToTimeline(
+
+        if (critiquePassed) {
+          UI.updateStatus("Applying Changes...", true);
+          UI.logCoreLoopStep(currentCycle, 6, "Refine & Apply");
+          const applyResult = CycleLogic.applyLLMChanges(
+            currentLlmResponse,
             currentCycle,
-            `[STATE] Auto-Critique failed. Forcing HITL.`,
-            "warn",
-            true
+            applySource
           );
-          globalState.failCount++;
-          UI.updateMetricsDisplay();
-          UI.showHumanInterventionUI(
-            "prompt",
-            `Auto Critique Failed: ${Utils.trunc(critiqueReport, 150)}...`
-          );
-          StateManager.save();
-          return;
-        }
-      } else {
-        critiquePassed = true;
-        applySource = "Skipped";
-        globalState.lastCritiqueType = "Skipped";
-        globalState.critiqueFailHistory.push(false);
-        UI.updateMetricsDisplay();
-        UI.logCoreLoopStep(currentCycle, 5, "Critique: Skipped");
-        UI.logToTimeline(
-          currentCycle,
-          `[DECIDE] Critique Skipped (Below threshold). Applying.`,
-          "info",
-          true
-        );
-      }
-      if (critiquePassed) {
-        UI.updateStatus("Applying Changes...", true);
-        UI.logCoreLoopStep(currentCycle, 6, "Refine & Apply");
-        const applyResult = CycleLogic.applyLLMChanges(
-          currentLlmResponse,
-          currentCycle,
-          applySource
-        );
-        if (metaSandboxPending) {
-          globalState.lastCritiqueType = `${applySource} (Sandbox Pending)`;
-          UI.updateStateDisplay();
-          UI.updateStatus("Awaiting Meta Sandbox Approval...");
-          UI.highlightCoreStep(6);
-          StateManager.save();
-          return;
-        }
-        if (applyResult.success) {
-          globalState.agentIterations++;
-          globalState.lastFeedback = `${applySource}, applied successfully for Cycle ${applyResult.nextCycle}.`;
-        } else {
-          globalState.lastFeedback = `${applySource}, apply failed: ${applyResult.errors.join(
-            ", "
-          )}`;
-          globalState.failCount++;
-          UI.updateMetricsDisplay();
-          UI.logToTimeline(
-            currentCycle,
-            `[APPLY ERR] Failed apply: ${applyResult.errors.join(
+          if (metaSandboxPending) {
+            globalState.lastCritiqueType = `${applySource} (Sandbox Pending)`;
+            UI.updateStateDisplay();
+            UI.updateStatus("Awaiting Meta Sandbox Approval...");
+            UI.highlightCoreStep(6);
+            StateManager.save();
+            return;
+          }
+          if (applyResult.success) {
+            globalState.agentIterations++;
+            globalState.lastFeedback = `${applySource}, applied successfully for Cycle ${applyResult.nextCycle}.`;
+          } else {
+            globalState.lastFeedback = `${applySource}, apply failed: ${applyResult.errors.join(
               ", "
-            )}. Forcing HITL.`,
+            )}`;
+            globalState.failCount++;
+            UI.updateMetricsDisplay();
+            UI.logToTimeline(
+              currentCycle,
+              `[APPLY ERR] Failed apply: ${applyResult.errors.join(
+                ", "
+              )}. Forcing HITL.`,
+              "error"
+            );
+            UI.showHumanInterventionUI(
+              "prompt",
+              `Failed apply after critique: ${applyResult.errors.join(", ")}`
+            );
+            StateManager.save();
+            return;
+          }
+          const summaryOutcome = applyResult.success
+            ? `OK (${globalState.lastCritiqueType})`
+            : `Failed (Apply Fail after ${globalState.lastCritiqueType})`;
+          UI.summarizeCompletedCycleLog(lastCycleLogItem, summaryOutcome);
+          lastCycleLogItem = null;
+          UI.updateStateDisplay();
+          UI.clearCurrentCycleDetails();
+          UI.logCoreLoopStep(applyResult.nextCycle - 1, 7, "Repeat/Pause");
+          UI.logToTimeline(
+            globalState.totalCycles,
+            `[STATE] Cycle ended (${globalState.lastCritiqueType}). Ready.`
+          );
+          if (uiRefs.goalInput) uiRefs.goalInput.value = "";
+        } else {
+          logger.logEvent(
+            "error",
+            "Reached end of cycle unexpectedly after critique check."
+          );
+          UI.updateStatus("Error", false, true);
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          logger.logEvent("error", `Unhandled cycle error: ${error.message}`);
+          UI.showNotification(`Cycle Error: ${error.message}`, "error");
+          UI.logToTimeline(
+            globalState.totalCycles || 0,
+            `[CYCLE FATAL] ${error.message}`,
             "error"
           );
-          UI.showHumanInterventionUI(
-            "prompt",
-            `Failed apply after critique: ${applyResult.errors.join(", ")}`
+          UI.updateStatus("Cycle Failed", false, true);
+        } else {
+          UI.logToTimeline(
+            globalState.totalCycles || 0,
+            `[CYCLE] Cycle aborted by user.`,
+            "warn"
           );
-          StateManager.save();
-          return;
+          UI.updateStatus("Aborted");
         }
-        const summaryOutcome = applyResult.success
-          ? `OK (${globalState.lastCritiqueType})`
-          : `Failed (Apply Fail after ${globalState.lastCritiqueType})`;
-        UI.summarizeCompletedCycleLog(lastCycleLogItem, summaryOutcome);
-        lastCycleLogItem = null;
-        UI.updateStateDisplay();
-        UI.clearCurrentCycleDetails();
-        UI.logCoreLoopStep(applyResult.nextCycle - 1, 7, "Repeat/Pause");
-        UI.logToTimeline(
-          globalState.totalCycles,
-          `[STATE] Cycle ended (${globalState.lastCritiqueType}). Ready.`
-        );
-        if (uiRefs.goalInput) uiRefs.goalInput.value = "";
+      } finally {
+        CycleLogic._isRunning = false;
         if (uiRefs.runCycleButton) {
-          uiRefs.runCycleButton.disabled = false;
           uiRefs.runCycleButton.textContent = "Run Cycle";
+          uiRefs.runCycleButton.disabled =
+            metaSandboxPending ||
+            !uiRefs.humanInterventionSection?.classList.contains("hidden");
         }
-        UI.updateStatus("Idle");
-        UI.highlightCoreStep(-1);
-      } else {
-        logger.logEvent(
-          "error",
-          "Reached end of cycle unexpectedly after critique check."
-        );
-        UI.updateStatus("Error", false, true);
-      }
-      StateManager.save();
-    },
-  }; // End CycleLogic
-
-  // --- ToolRunner Module --- (Placeholder - Needs Implementation)
-  const ToolRunner = {
-    runTool: async (
-      toolName,
-      args,
-      apiKey,
-      staticToolDefs,
-      dynamicToolDefs
-    ) => {
-      logger.logEvent("info", `Attempting to run tool: ${toolName}`);
-      // Find tool definition (check dynamic first, then static)
-      let toolDef = dynamicToolDefs.find(
-        (t) => t.declaration.name === toolName
-      );
-      let isStatic = false;
-      if (!toolDef) {
-        toolDef = staticToolDefs.find((t) => t.name === toolName);
-        isStatic = true;
-      }
-
-      if (!toolDef) {
-        throw new Error(`Tool '${toolName}' not found.`);
-      }
-
-      if (isStatic) {
-        // Implement static tool logic here or dispatch
-        switch (toolName) {
-          case "code_linter":
-          case "json_validator":
-          case "diagram_schema_validator":
-          case "svg_diagram_renderer":
-          case "token_counter":
-          case "self_correction":
-            logger.logEvent(
-              "warn",
-              `Static tool '${toolName}' execution not fully implemented.`
-            );
-            return {
-              success: true,
-              message: `Static tool ${toolName} placeholder executed.`,
-              argsReceived: args,
-            };
-          default:
-            throw new Error(`Unknown static tool: ${toolName}`);
+        if (
+          !CycleLogic._isRunning &&
+          !metaSandboxPending &&
+          uiRefs.humanInterventionSection?.classList.contains("hidden")
+        ) {
+          UI.updateStatus("Idle");
         }
-      } else {
-        // Dynamic tool execution (using Web Worker)
-        logger.logEvent(
-          "info",
-          `Running dynamic tool '${toolName}' in worker.`
-        );
-        const workerScriptContent = toolDef.implementation;
-        return new Promise((resolve, reject) => {
-          // Create a worker from a Blob URL
-          const blob = new Blob(
-            [
-              `
-                      self.onmessage = async (e) => {
-                          const { toolArgs } = e.data;
-                          let result;
-                          let error = null;
-                          try {
-                              // --- Injected Tool Implementation ---
-                              ${workerScriptContent}
-                              // ------------------------------------
-                              // Assume implementation defines an async function named 'run'
-                              if (typeof run !== 'function') {
-                                 throw new Error("Tool implementation must define an async function named 'run'.");
-                              }
-                              result = await run(toolArgs);
-                          } catch (err) {
-                              error = err.message || String(err);
-                          }
-                          self.postMessage({ result, error });
-                          self.close(); // Terminate worker after execution
-                      };
-                      `,
-            ],
-            { type: "application/javascript" }
-          );
-          const workerUrl = URL.createObjectURL(blob);
-          const worker = new Worker(workerUrl);
-
-          const timeout = setTimeout(() => {
-            worker.terminate();
-            URL.revokeObjectURL(workerUrl);
-            reject(new Error(`Tool '${toolName}' timed out after 10 seconds.`));
-          }, 10000); // 10 second timeout
-
-          worker.onmessage = (e) => {
-            clearTimeout(timeout);
-            URL.revokeObjectURL(workerUrl);
-            if (e.data.error) {
-              reject(new Error(`Tool '${toolName}' error: ${e.data.error}`));
-            } else {
-              resolve(e.data.result);
-            }
-          };
-
-          worker.onerror = (e) => {
-            clearTimeout(timeout);
-            URL.revokeObjectURL(workerUrl);
-            reject(new Error(`Tool '${toolName}' worker error: ${e.message}`));
-          };
-
-          worker.postMessage({ toolArgs: args });
-        });
+        StateManager.save();
       }
     },
-  }; // End ToolRunner
+  };
 
   const initialize = () => {
-    if (!isCoreInitialized) {
-      console.error(
-        "Attempting core initialization before dependencies are ready."
-      );
-      // Try loading dependencies again just in case
-      try {
-        initializeCoreDependencies();
-      } catch (depError) {
-        console.error(
-          "FATAL: Core dependency initialization failed.",
-          depError
-        );
-        // Display a user-facing error message
-        const body = document.body;
-        if (body) {
-          body.innerHTML = `<div style="color:red; padding: 20px; font-family: monospace;">
-                    <h1>FATAL ERROR</h1>
-                    <p>Could not load core REPLOID dependencies (Utils/Storage). Check console.</p>
-                    <p>Ensure 'core_utils_script.js' and 'core_storage_script.js' artifacts exist in localStorage (Cycle 0) and are correctly formatted.</p>
-                </div>`;
-        }
-        return; // Stop initialization
+    try {
+      initializeCoreDependencies();
+    } catch (depError) {
+      console.error("FATAL: Core dependency initialization failed.", depError);
+      const body = document.body;
+      if (body) {
+        body.innerHTML = `<div style="color:red; padding: 20px; font-family: monospace;"><h1>FATAL ERROR</h1><p>Could not load core REPLOID dependencies (Utils/Storage/ToolRunner). Check console.</p><p>Ensure core artifacts exist in localStorage (Cycle 0) and are correctly formatted.</p></div>`;
       }
+      return;
     }
 
     logger.logEvent("info", `Initializing x0 Engine v${Utils.STATE_VERSION}`);
@@ -4189,5 +4260,3 @@ if (document.readyState === "loading") {
 } else {
   REPLOID_CORE.initialize();
 }
-
-console.log("reploid_core.js loaded and initialization process started.");

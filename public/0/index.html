@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>REPLOID x0 v0 - Bootstrap</title>
-
     <style id="boot-style">
       body {
         font-family: monospace;
@@ -13,21 +12,32 @@
         margin: 0;
         padding: 0;
         display: flex;
-        justify-content: flex-start;
-        align-items: flex-start;
+        justify-content: center;
+        align-items: center;
         min-height: 100vh;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #start-prompt {
+        font-size: 1.3em;
+        color: white;
+        cursor: pointer;
+        text-align: center;
+        line-height: 1.5;
+        padding: 20px;
       }
       #loading-container {
-        padding: 0;
+        padding: 10px;
         width: 100%;
-        width: auto;
+        max-width: 90vw;
         text-align: left;
+        box-sizing: border-box;
       }
       #loading-indicator {
         font-size: 10px;
         white-space: pre-wrap;
         word-wrap: break-word;
-        max-height: calc(100vh - 100px);
+        max-height: calc(100vh - 40px);
         overflow-y: auto;
         margin-bottom: 12px;
         text-align: left;
@@ -53,7 +63,7 @@
       }
       #loading-indicator .log-detail {
         color: #bbb;
-        margin-left: 10px;
+        margin-left: 15px;
       }
       #app-root {
         visibility: hidden;
@@ -74,9 +84,12 @@
       }
     </style>
   </head>
-
   <body id="boot-body">
-    <div id="loading-container">
+    <div id="start-prompt">
+      Press [Enter] or Tap/Click to Continue Session.<br />
+      Press [Esc] or Tap & Hold (1s) to Reset & Start Fresh.
+    </div>
+    <div id="loading-container" class="hidden">
       <div id="loading-indicator"></div>
     </div>
     <div id="app-root"></div>
@@ -86,8 +99,8 @@
         const LS_PREFIX = "_x0_";
         const STATE_VERSION = "0.0.0";
         const MAX_ARTIFACT_SIZE_BYTES = 4 * 1024 * 1024;
-
-        const stateKey = "x0_state_" + performance.now();
+        const STATE_KEY = "x0_state_v" + STATE_VERSION.split(".")[0];
+        const HOLD_DURATION_MILLIS = 1000;
 
         const genesisArtifactDefs = {
           "reploid.core.logic": {
@@ -156,27 +169,32 @@
             description: "Cycle step definitions",
           },
         };
+        const ESSENTIAL_ARTIFACT_IDS = Object.keys(genesisArtifactDefs);
 
-        const essentialCoreArtifactIds = Array.from(
-          Object.keys(genesisArtifactDefs)
-        );
-
+        const startPrompt = document.getElementById("start-prompt");
+        const loadingContainer = document.getElementById("loading-container");
         const loadingIndicator = document.getElementById("loading-indicator");
         const appRoot = document.getElementById("app-root");
-
         let bootstrapLogMessages = `REPLOID Bootstrap Log - ${new Date().toISOString()}\n=========================================\n`;
+        let audioCtx = null;
+        let isAudioInitAttempted = false;
+        let holdTimeoutId = null;
+        let interactionStarted = false;
+
+        const getArtifactKey = (id, cycle = 0) => `${LS_PREFIX}${id}_${cycle}`;
 
         const bl = (() => {
-          let audioCtx;
-          let isAudioInitAttempted = false;
           let uiUpdatePromise = Promise.resolve();
+          let typingQueue = "";
+          let isProcessingQueue = false;
 
           const initAudioContext = () => {
-            if (!isAudioInitAttempted) {
+            if (!isAudioInitAttempted && !audioCtx) {
               isAudioInitAttempted = true;
               try {
                 audioCtx = new (window.AudioContext ||
                   window.webkitAudioContext)();
+                console.log("AudioContext initialized on user interaction.");
               } catch (e) {
                 console.warn("AudioContext init failed:", e.message);
                 audioCtx = null;
@@ -185,32 +203,51 @@
             return audioCtx;
           };
 
-          const playTone = (context, level = "info", charDelay) => {
-            if (!context || typeof context.createOscillator !== "function")
+          const playTone = (level = "info", charDelay = 1) => {
+            if (!audioCtx || typeof audioCtx.createOscillator !== "function")
               return;
             try {
-              const oscillator = context.createOscillator();
-              const gainNode = context.createGain();
+              const oscillator = audioCtx.createOscillator();
+              const gainNode = audioCtx.createGain();
               const frequency = level === "error" ? 440 : 880;
-
+              const duration = Math.min(Math.max(charDelay / 1000, 0.01), 0.1);
               oscillator.type = "square";
               oscillator.frequency.setValueAtTime(
                 frequency,
-                context.currentTime
+                audioCtx.currentTime
               );
-              gainNode.gain.setValueAtTime(0.8, context.currentTime);
+              gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
               gainNode.gain.exponentialRampToValueAtTime(
                 0.001,
-                context.currentTime + charDelay / 1000
+                audioCtx.currentTime + duration
               );
-              oscillator.connect(gainNode).connect(context.destination);
+              oscillator.connect(gainNode).connect(audioCtx.destination);
               oscillator.start();
-              oscillator.stop(context.currentTime + charDelay / 1000);
+              oscillator.stop(audioCtx.currentTime + duration);
             } catch (e) {
               console.warn("Tone playback error:", e.message);
               audioCtx = null;
             }
           };
+
+          async function processTypingQueue(targetElement, level, charDelay) {
+            isProcessingQueue = true;
+            while (typingQueue.length > 0) {
+              const batch = typingQueue.substring(0, 1);
+              typingQueue = typingQueue.substring(1);
+              targetElement.textContent += batch;
+              if (batch.trim()) {
+                playTone(level, charDelay);
+              }
+              await new Promise((resolve) =>
+                setTimeout(resolve, Math.max(charDelay, 1))
+              );
+            }
+            if (loadingIndicator.scrollTop !== undefined) {
+              loadingIndicator.scrollTop = loadingIndicator.scrollHeight;
+            }
+            isProcessingQueue = false;
+          }
 
           return function bl(
             message,
@@ -218,289 +255,344 @@
             detail = null,
             charDelay = 1
           ) {
-            let skip = false;
-            if (level == "skip") {
-              skip = true;
+            let skipOutput = false;
+            if (level === "skip") {
+              skipOutput = true;
               level = "info";
             }
             const timestamp = new Date().toISOString();
             const logLine = `[${timestamp}] [${level.toUpperCase()}] ${message}${
-              detail ? `\n   Detail: ${detail}` : ""
+              detail ? `\n   └─ ${detail}` : ""
             }`;
-
-            if (typeof bootstrapLogMessages !== "undefined") {
-              bootstrapLogMessages += logLine + "\n";
-            }
+            bootstrapLogMessages += logLine + "\n";
             console[level] ? console[level](logLine) : console.log(logLine);
-
-            if (skip) return;
-
+            if (skipOutput || !loadingIndicator) return;
             uiUpdatePromise = uiUpdatePromise
               .then(async () => {
-                if (
-                  !loadingIndicator ||
-                  typeof loadingIndicator.appendChild !== "function"
-                )
-                  return;
-
                 const logEntryContainer = document.createElement("div");
                 logEntryContainer.className = `log-entry log-${level}`;
                 loadingIndicator.appendChild(logEntryContainer);
-
-                const ctx = initAudioContext();
-
-                const typeChar = async (char, targetElement, level) => {
-                  targetElement.textContent += char;
-                  if (loadingIndicator.scrollTop !== undefined) {
-                    loadingIndicator.scrollTop = loadingIndicator.scrollHeight;
-                  }
-
-                  await new Promise((resolve) => {
-                    setTimeout(resolve, charDelay);
-                    playTone(ctx, level, charDelay);
-                  });
-                };
-
                 const fullText = `${message}${
                   detail ? `\n   └─ ${detail}` : ""
                 }`;
-                for (const char of fullText) {
-                  // Don't play tone for whitespace characters for less noise
-                  if (char.trim()) {
-                    await typeChar(char, logEntryContainer, level);
-                  } else {
-                    logEntryContainer.textContent += char; // Add whitespace without sound/delay
+                if (charDelay < 4) {
+                  typingQueue += fullText;
+                  if (!isProcessingQueue) {
+                    processTypingQueue(logEntryContainer, level, charDelay);
+                  }
+                } else {
+                  for (const char of fullText) {
+                    logEntryContainer.textContent += char;
+                    if (loadingIndicator.scrollTop !== undefined) {
+                      loadingIndicator.scrollTop =
+                        loadingIndicator.scrollHeight;
+                    }
+                    if (char.trim()) {
+                      playTone(level, charDelay);
+                    }
+                    await new Promise((resolve) =>
+                      setTimeout(resolve, charDelay)
+                    );
                   }
                 }
-
                 if (loadingIndicator.scrollTop !== undefined) {
                   loadingIndicator.scrollTop = loadingIndicator.scrollHeight;
                 }
               })
               .catch((error) => {
-                console.error("Error during sequential UI update:", error);
+                console.error(
+                  "Error during bootstrap logging UI update:",
+                  error
+                );
                 uiUpdatePromise = Promise.resolve();
               });
           };
         })();
-
-        const localUtils = {
-          $: (selector) => document.querySelector(selector),
-          lc: (s) => (s ? String(s).toLowerCase() : ""),
-          uc: (s) => (s ? String(s).toUpperCase() : ""),
-          _lsGet: (key) => {
+        bl.initAudioContext = () => {
+          if (!isAudioInitAttempted && !audioCtx) {
+            isAudioInitAttempted = true;
             try {
-              return localStorage.getItem(key);
+              audioCtx = new (window.AudioContext ||
+                window.webkitAudioContext)();
+              console.log("AudioContext initialized on user interaction.");
             } catch (e) {
-              bl(`LocalStorage GET Error: ${key}`, "error", e.message);
-              return null;
+              console.warn("AudioContext init failed:", e.message);
+              audioCtx = null;
             }
-          },
-          _lsSet: (key, value) => {
-            if (
-              value &&
-              typeof value === "string" &&
-              value.length > MAX_ARTIFACT_SIZE_BYTES
-            ) {
-              bl(
-                `Artifact size limit exceeded (${value.length} > ${MAX_ARTIFACT_SIZE_BYTES}) for key: ${key}`,
-                "error"
-              );
-              return false;
-            }
-            try {
-              localStorage.setItem(key, value);
-              return true;
-            } catch (e) {
-              bl(`LocalStorage SET Error: ${key}`, "error", e.message);
-              if (e.name === "QuotaExceededError")
-                bl("LocalStorage quota exceeded.", "error");
-              return false;
-            }
-          },
-          _lsRemove: (key) => {
-            try {
-              localStorage.removeItem(key);
-              return true;
-            } catch (e) {
-              bl(`LocalStorage REMOVE Error: ${key}`, "error", e.message);
-              return false;
-            }
-          },
-          generateArtifactKey: (id, cycle = 0) => `${LS_PREFIX}${id}_${cycle}`,
+          }
+          return audioCtx;
         };
+
+        function lsGet(key) {
+          try {
+            return localStorage.getItem(key);
+          } catch (e) {
+            bl(`LocalStorage GET Error: ${key}`, "error", e.message);
+            return null;
+          }
+        }
+        function lsSet(key, value) {
+          if (
+            value &&
+            typeof value === "string" &&
+            value.length > MAX_ARTIFACT_SIZE_BYTES
+          ) {
+            bl(
+              `Artifact size limit exceeded (${value.length} > ${MAX_ARTIFACT_SIZE_BYTES}) for key: ${key}`,
+              "error"
+            );
+            return false;
+          }
+          try {
+            localStorage.setItem(key, value);
+            return true;
+          } catch (e) {
+            bl(`LocalStorage SET Error: ${key}`, "error", e.message);
+            if (e.name === "QuotaExceededError")
+              bl("LocalStorage quota exceeded.", "error");
+            return false;
+          }
+        }
+        function lsRemove(key) {
+          try {
+            localStorage.removeItem(key);
+            return true;
+          } catch (e) {
+            bl(`LocalStorage REMOVE Error: ${key}`, "error", e.message);
+            return false;
+          }
+        }
 
         function isValidState(parsedState) {
           return (
             parsedState &&
             typeof parsedState === "object" &&
-            typeof parsedState.cycle === "number" &&
-            parsedState.cycle >= 0 &&
+            typeof parsedState.totalCycles === "number" &&
+            parsedState.totalCycles >= 0 &&
             parsedState.artifactMetadata &&
-            typeof parsedState.artifactMetadata === "object"
+            typeof parsedState.artifactMetadata === "object" &&
+            parsedState.version?.split(".")[0] === STATE_VERSION.split(".")[0]
           );
         }
 
-        function checkEssentialArtifacts(state) {
-          bl(`checking essential artifacts`, "info");
-          for (const id of essentialCoreArtifactIds) {
-            const key = localUtils.generateArtifactKey(id, state.cycle);
-            const content = localUtils._lsGet(key);
-            if (content === null || content === undefined) {
-              // Check if actually missing
-              bl(`esential artifact missing: ${id} (Key: ${key})`, "error");
-              return false; // Missing essential artifact
+        function checkEssentialArtifactsPresent(stateCycle) {
+          bl(`Checking essential artifacts for cycle ${stateCycle}...`, "info");
+          let allFound = true;
+          for (const id of ESSENTIAL_ARTIFACT_IDS) {
+            const key = getArtifactKey(id, stateCycle);
+            if (lsGet(key) === null) {
+              bl(
+                `Essential artifact missing: ${id} (Cycle ${stateCycle}, Key: ${key})`,
+                "warn"
+              );
+              allFound = false;
+            } else {
+              bl(`Verified: ${id} (Cycle ${stateCycle})`, "detail");
             }
-            bl(`verified: ${id}`, "detail");
           }
-          bl("essential artifacts verified", "info");
-          return true; // All found
+          if (!allFound) {
+            bl(
+              "One or more essential artifacts missing for the state's current cycle.",
+              "error"
+            );
+          } else {
+            bl(
+              "All essential artifacts verified for the state's current cycle.",
+              "info"
+            );
+          }
+          return allFound;
         }
 
-        async function bootstrapReploid() {
+        function clearAllReploidData() {
+          bl("Clearing all REPLOID data from LocalStorage...", "warn");
+          let keysToRemove = [];
+          try {
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith(LS_PREFIX) || key === STATE_KEY)) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach((key) => lsRemove(key));
+            lsRemove(STATE_KEY);
+            bl(`Removed ${keysToRemove.length} artifact/state keys.`, "info");
+            try {
+              sessionStorage.clear();
+              bl("Cleared SessionStorage.", "info");
+            } catch (e) {
+              bl("Failed to clear SessionStorage.", "warn", e.message);
+            }
+          } catch (e) {
+            bl(
+              "Error during LocalStorage clear operation.",
+              "error",
+              e.message
+            );
+          }
+        }
+
+        async function bootstrapReploid(performGenesis = false) {
           bl("Model CPS-9204", "info", null, 32);
-          bl(" ", "info", null, 32);
+          bl(" ", "info", null, 10);
           bl("Copyright (c) 2105, 2109, 2114", "info", null, 32);
+          bl(" ", "info", null, 10);
           bl("NOM Corporation", "info", null, 32);
           bl(" ", "info", null, 32);
-          let state = null;
-          let needsGenesis = true;
 
-          try {
-            const stateJSON = localUtils._lsGet(stateKey);
+          let state = null;
+          let needsGenesis = performGenesis;
+          let stateSource = performGenesis ? "Forced Genesis" : "None";
+
+          if (!performGenesis) {
+            const stateJSON = lsGet(STATE_KEY);
             if (stateJSON) {
               try {
                 state = JSON.parse(stateJSON);
                 if (isValidState(state)) {
-                  if (checkEssentialArtifacts(state)) {
+                  stateSource = `localStorage (Cycle ${state.totalCycles})`;
+                  if (checkEssentialArtifactsPresent(state.totalCycles)) {
                     bl(
-                      `found valid state and essential artifacts (cycle ${state.cycle}). skipping genesis.`,
+                      `Found valid state and essential artifacts for cycle ${state.totalCycles}.`,
                       "info"
                     );
                     needsGenesis = false;
                   } else {
                     bl(
-                      `state object valid but essential artifacts missing for cycle ${state.cycle}.`,
-                      "warn",
-                      "Discarding state and rebooting..."
+                      `State object valid (Cycle ${state.totalCycles}) but essential artifacts missing for that cycle. Discarding state.`,
+                      "error"
                     );
                     state = null;
-                    localUtils._lsRemove(stateKey);
+                    lsRemove(STATE_KEY);
                     needsGenesis = true;
+                    stateSource = "Discarded Invalid State";
                   }
                 } else {
                   bl(
-                    `found invalid state object in local storage. discarding...`,
+                    `Found invalid or incompatible state object (v${
+                      state?.version || "?"
+                    }). Discarding.`,
                     "warn"
                   );
                   state = null;
-                  localUtils._lsRemove(stateKey);
+                  lsRemove(STATE_KEY);
                   needsGenesis = true;
+                  stateSource = "Discarded Invalid State";
                 }
               } catch (parseError) {
                 bl(
-                  `failed to parse state from local storage.`,
+                  `Failed to parse state from localStorage. Discarding corrupted state.`,
                   "error",
                   parseError.message
                 );
-                bl("discarding corrupted state.", "warn");
                 state = null;
-                localUtils._lsRemove(stateKey);
+                lsRemove(STATE_KEY);
                 needsGenesis = true;
+                stateSource = "Discarded Corrupted State";
               }
             } else {
-              bl("no existing state key found. initiating genesis.", "skip");
+              bl("No existing state found. Initiating genesis.", "info");
               needsGenesis = true;
+              stateSource = "Genesis";
             }
+          } else {
+            bl("Reset requested. Initiating genesis.", "warn");
+            needsGenesis = true;
+            stateSource = "Forced Genesis";
+          }
 
+          try {
             if (needsGenesis) {
+              bl("Running Genesis Process...", "info");
               state = await runGenesisProcess();
               if (!state) {
-                bl("genesis process failed. REPLOID cannot start.", "error");
+                bl("Genesis process failed. REPLOID cannot start.", "error");
                 return;
               }
-              bl("Bootstrap complete", "success");
+              bl("Genesis complete.", "success");
             }
 
-            if (state) {
-              // State is guaranteed to be valid and have essential artifacts if needsGenesis is false
-              await loadAndExecuteApp(state);
-            } else {
-              bl("cannot start application: no valid state available", "error");
-            }
+            bl(`Loading application with state from: ${stateSource}`, "info");
+            await loadAndExecuteApp(state);
           } catch (error) {
             bl("Fatal bootstrap error", "error", error.message);
             console.error("Bootstrap stack trace:", error);
+            loadingIndicator.innerHTML += `<div class="log-error">FATAL BOOTSTRAP ERROR: ${error.message}. Check console.</div>`;
           }
         }
 
         async function fetchGenesisArtifacts() {
-          bl(">device -dvl -a bootstrapping artifacts...", "info");
-          bl(" ", "info");
+          bl("Fetching genesis artifacts...", "info");
           const fetchedArtifacts = {};
           let success = true;
           const fetchPromises = Object.entries(genesisArtifactDefs).map(
             async ([id, def]) => {
-              const { filename, type } = def;
               try {
-                const response = await fetch(filename);
+                const response = await fetch(def.filename);
                 if (!response.ok)
-                  throw new Error(`HTTP ${response.status} for ${filename}`);
-                let content =
-                  type === "JSON"
+                  throw new Error(
+                    `HTTP ${response.status} for ${def.filename}`
+                  );
+                const content =
+                  def.type === "JSON"
                     ? JSON.stringify(await response.json(), null, 2)
                     : await response.text();
                 fetchedArtifacts[id] = content;
-                bl(`fetched: ${filename}`, "detail", `${content.length} bytes`);
+                bl(
+                  `Fetched: ${def.filename}`,
+                  "detail",
+                  `${content.length} bytes`
+                );
               } catch (error) {
-                bl(`failed to fetch ${filename}`, "error", error.message);
+                bl(`Failed to fetch ${def.filename}`, "error", error.message);
                 success = false;
               }
             }
           );
           await Promise.all(fetchPromises);
           if (!success) {
-            bl("genesis artifact fetch failed.", "error");
+            bl("Genesis artifact fetch failed.", "error");
             return null;
           }
           bl(
-            `fetched ${Object.keys(fetchedArtifacts).length} genesis artifacts`,
+            `Fetched ${
+              Object.keys(fetchedArtifacts).length
+            } genesis artifacts.`,
             "skip"
           );
           return fetchedArtifacts;
         }
 
         function saveGenesisArtifacts(artifacts) {
-          bl("saving genesis artifacts (Cycle 0)...", "skip");
+          bl("Saving genesis artifacts (Cycle 0)...", "info");
           const metadata = {};
           let success = true;
           for (const id in artifacts) {
-            const key = localUtils.generateArtifactKey(id, 0);
-            const content = artifacts[id];
-            const definition = genesisArtifactDefs[id];
-            if (localUtils._lsSet(key, content)) {
+            const key = getArtifactKey(id, 0);
+            if (lsSet(key, artifacts[id])) {
               metadata[id] = {
                 id: id,
-                cycle: 0,
-                type: definition.type,
-                description: definition.description,
-                size: content.length,
+                latestCycle: 0,
+                type: genesisArtifactDefs[id].type,
+                description: genesisArtifactDefs[id].description,
                 source: "Genesis",
               };
-              bl(`saved: ${key}`, "detail", `${definition.type}`);
+              bl(`Saved: ${id} (Cycle 0)`, "detail");
             } else {
-              bl(`failed to save artifact: ${id}`, "error", `Key: ${key}`);
+              bl(`Failed to save artifact: ${id} (Cycle 0)`, "error");
               success = false;
+              return null;
             }
           }
           const bootArtifactsToSave = {
             "reploid.boot.style": {
-              content: localUtils.$("#boot-style")?.textContent || "",
+              content: document.getElementById("boot-style")?.textContent || "",
               type: "CSS",
               description: "Bootstrap CSS",
             },
             "reploid.boot.script": {
-              content: localUtils.$("#boot-script")?.textContent || "",
+              content:
+                document.getElementById("boot-script")?.textContent || "",
               type: "JS",
               description: "Bootstrap script",
             },
@@ -511,31 +603,25 @@
             },
           };
           for (const id in bootArtifactsToSave) {
-            const key = localUtils.generateArtifactKey(id, 0);
+            const key = getArtifactKey(id, 0);
             const { content, type, description } = bootArtifactsToSave[id];
-            if (localUtils._lsSet(key, content)) {
+            if (lsSet(key, content)) {
               metadata[id] = {
                 id: id,
-                cycle: 0,
+                latestCycle: 0,
                 type: type,
                 description: description,
-                size: content.length,
                 source: "Bootstrap",
               };
-              bl(`saved: ${key}`, "detail", `${type}`);
+              bl(`Saved: ${id} (Cycle 0)`, "detail");
             } else {
-              bl(
-                `Failed to save bootstrap artifact: ${id}`,
-                "error",
-                `Key: ${key}`
-              );
-              success = false;
+              bl(`Failed to save bootstrap artifact: ${id}`, "warn");
             }
           }
-          if (!success) {
-            bl("genesis artifact save failed", "error");
-            return null;
-          }
+          bl(
+            "Genesis artifact save process completed.",
+            success ? "info" : "warn"
+          );
           return metadata;
         }
 
@@ -546,96 +632,180 @@
           if (!artifactMetadata) return null;
           const initialState = {
             version: STATE_VERSION,
-            cycle: 0,
-            config: {},
-            metrics: {},
-            logBufferKey: null,
-            history: [],
+            totalCycles: 0,
+            agentIterations: 0,
+            humanInterventions: 0,
+            failCount: 0,
+            currentGoal: {
+              seed: null,
+              cumulative: null,
+              latestType: "Idle",
+              summaryContext: null,
+            },
+            lastCritiqueType: "N/A",
+            personaMode: "XYZ",
+            lastFeedback: "Genesis completed.",
+            forceHumanReview: false,
+            apiKey: "",
+            confidenceHistory: [],
+            critiqueFailHistory: [],
+            tokenHistory: [],
+            failHistory: [],
+            avgConfidence: null,
+            critiqueFailRate: null,
+            avgTokens: null,
+            contextTokenEstimate: 0,
+            lastGeneratedFullSource: null,
+            htmlHistory: [],
+            lastApiResponse: null,
+            retryCount: 0,
+            cfg: {
+              personaBalance: 50,
+              llmCritiqueProb: 50,
+              humanReviewProb: 50,
+              maxCycleTime: 600,
+              autoCritiqueThresh: 0.75,
+              maxCycles: 0,
+              htmlHistoryLimit: 5,
+              pauseAfterCycles: 10,
+              maxRetries: 1,
+              coreModel: "gemini-1.5-flash-latest",
+              critiqueModel: "gemini-1.5-flash-latest",
+            },
             artifactMetadata: artifactMetadata,
-            cumulativeGoal: "Initial seed goal.",
-            seedGoal: "",
+            dynamicTools: [],
           };
           const stateJSON = JSON.stringify(initialState, null, 2);
-          if (localUtils._lsSet(stateKey, stateJSON)) {
-            bl("initial state saved", "info", `key: ${stateKey}`);
+          if (lsSet(STATE_KEY, stateJSON)) {
+            bl("Initial state saved successfully.", "info");
             return initialState;
           } else {
-            bl("failed to save initial state!", "error");
+            bl("Failed to save initial state!", "error");
             return null;
           }
         }
 
         async function loadAndExecuteApp(currentState) {
-          bl(`loading cycle ${currentState.cycle}...`, "info");
-          const coreScriptId = "reploid.core.logic";
-          const coreStyleId = "reploid.core.style";
-          const scriptMetadata = currentState.artifactMetadata[coreScriptId];
-          const styleMetadata = currentState.artifactMetadata[coreStyleId];
-          // Essential artifacts already verified by checkEssentialArtifacts if we got here without genesis
-
-          const currentCycle = currentState.cycle;
-          const scriptKey = localUtils.generateArtifactKey(
-            coreScriptId,
-            currentCycle
+          bl(
+            `Loading application core (State Cycle ${currentState.totalCycles})...`,
+            "info"
           );
-          const styleKey = styleMetadata
-            ? localUtils.generateArtifactKey(coreStyleId, currentCycle)
-            : null;
-          const scriptContent = localUtils._lsGet(scriptKey);
-          const styleContent = styleKey ? localUtils._lsGet(styleKey) : null;
-
-          // We already verified essential script exists, but check again just in case? Maybe redundant.
-          if (!scriptContent) {
-            bl(
-              `core script content unexpectedly missing. key: ${scriptKey}`,
-              "error"
-            );
-            return;
-          }
-          if (styleKey && !styleContent && styleMetadata) {
-            bl(
-              `core style content missing though metadata exists. key: ${styleKey}`,
-              "warn"
-            );
-          }
-
+          const coreScriptId = "reploid.core.logic",
+            coreStyleId = "reploid.core.style",
+            coreUtilsId = "reploid.core.utils",
+            coreStorageId = "reploid.core.storage";
+          const currentCycle = currentState.totalCycles;
           try {
+            const utilsKey = getArtifactKey(coreUtilsId, currentCycle),
+              storageKey = getArtifactKey(coreStorageId, currentCycle);
+            const utilsContent = lsGet(utilsKey),
+              storageContent = lsGet(storageKey);
+            if (!utilsContent || !storageContent) {
+              throw new Error(
+                `Core dependency script missing for Cycle ${currentCycle}`
+              );
+            }
+            new Function(utilsContent + "\n /* Executed Utils */")();
+            new Function(storageContent + "\n /* Executed Storage */")();
+            bl("Executed core Utils & Storage scripts.", "skip");
+            const styleKey = getArtifactKey(coreStyleId, currentCycle),
+              styleContent = lsGet(styleKey);
             if (styleContent) {
               const styleElement = document.createElement("style");
               styleElement.id = `${coreStyleId}-loaded-${currentCycle}`;
               styleElement.textContent = styleContent;
               document.head.appendChild(styleElement);
               bl(
-                `applied style: ${coreStyleId} (Cycle ${currentCycle})`,
+                `Applied core style: ${coreStyleId} (Cycle ${currentCycle})`,
                 "skip"
+              );
+            } else {
+              bl(
+                `Core style artifact missing for Cycle ${currentCycle}.`,
+                "warn"
+              );
+            }
+            const scriptKey = getArtifactKey(coreScriptId, currentCycle),
+              scriptContent = lsGet(scriptKey);
+            if (!scriptContent) {
+              throw new Error(
+                `Core application script artifact missing for Cycle ${currentCycle}.`
               );
             }
             bl(
-              `executing script: ${coreScriptId} (Cycle ${currentCycle})...`,
-              "skip"
+              `Executing core application script: ${coreScriptId} (Cycle ${currentCycle})...`,
+              "info"
             );
-            const coreAppFunction = new Function(scriptContent);
+            const coreAppFunction = new Function(
+              scriptContent + "\n /* Executed Core Logic */"
+            );
             coreAppFunction();
-            bl("core script executed", "success");
+            bl("Core application script execution initiated.", "success");
+            await uiUpdatePromise;
             setTimeout(() => {
-              const loaderContainer = localUtils.$("#loading-container");
-              if (loaderContainer) {
-                loaderContainer.style.transition = "opacity 0.5s ease-out";
-                loaderContainer.style.opacity = "0";
-                setTimeout(() => loaderContainer.classList.add("hidden"), 500);
-              }
-            }, 1000);
+              loadingContainer.style.transition = "opacity 0.5s ease-out";
+              loadingContainer.style.opacity = "0";
+              setTimeout(() => loadingContainer.classList.add("hidden"), 500);
+              appRoot.classList.add("visible");
+            }, 500);
           } catch (error) {
             bl(
-              `error executing core script: ${coreScriptId}`,
+              `Error loading/executing core application components`,
               "error",
               error.message
             );
-            console.error("core script execution failed:", error);
+            console.error("Core execution failed:", error);
+            loadingIndicator.innerHTML += `<div class="log-error">ERROR LOADING CORE APP: ${error.message}. See console.</div>`;
           }
         }
 
-        await bootstrapReploid();
+        function startInteraction(action) {
+          if (interactionStarted) return;
+          interactionStarted = true;
+          startPrompt.classList.add("hidden");
+          loadingContainer.classList.remove("hidden");
+          bl.initAudioContext();
+          removeInteractionListeners();
+
+          if (action === "reset") {
+            clearAllReploidData();
+            bootstrapReploid(true);
+          } else {
+            bootstrapReploid(false);
+          }
+        }
+
+        function handleKeydown(e) {
+          if (e.key === "Enter") {
+            startInteraction("continue");
+          } else if (e.key === "Escape") {
+            startInteraction("reset");
+          }
+        }
+        function handleClick() {
+          startInteraction("continue");
+        }
+        function handleTouchStart() {
+          holdTimeoutId = setTimeout(() => {
+            startInteraction("reset");
+          }, HOLD_DURATION_MILLIS);
+        }
+        function handleTouchEnd() {
+          clearTimeout(holdTimeoutId);
+        }
+        function removeInteractionListeners() {
+          document.removeEventListener("keydown", handleKeydown);
+          document.removeEventListener("click", handleClick);
+          document.removeEventListener("touchstart", handleTouchStart);
+          document.removeEventListener("touchend", handleTouchEnd);
+          document.removeEventListener("touchcancel", handleTouchEnd);
+        }
+
+        document.addEventListener("keydown", handleKeydown);
+        document.addEventListener("click", handleClick);
+        document.addEventListener("touchstart", handleTouchStart);
+        document.addEventListener("touchend", handleTouchEnd);
+        document.addEventListener("touchcancel", handleTouchEnd);
       })();
     </script>
   </body>

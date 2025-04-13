@@ -1,66 +1,131 @@
 [
   {
     "name": "code_linter",
-    "description": "Analyzes code snippet syntax.",
-    "params": {
-      "type": "OBJECT",
+    "description": "Analyzes code artifact syntax for potential errors.",
+    "inputSchema": {
+      "type": "object",
       "properties": {
-        "code": { "type": "STRING" },
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact to lint."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version to lint."
+        },
         "language": {
-          "type": "STRING",
-          "enum": ["javascript", "css", "html", "json"]
+          "type": "string",
+          "enum": ["javascript", "css", "html", "json"],
+          "description": "The language of the code artifact."
         }
       },
-      "required": ["code", "language"]
+      "required": ["artifactId", "cycle", "language"]
     }
   },
   {
     "name": "json_validator",
-    "description": "Validates JSON string structure.",
-    "params": {
-      "type": "OBJECT",
-      "properties": { "json_string": { "type": "STRING" } },
-      "required": ["json_string"]
-    }
-  },
-  {
-    "name": "diagram_schema_validator",
-    "description": "Validates diagram JSON schema.",
-    "params": {
-      "type": "OBJECT",
-      "properties": { "diagram_json": { "type": "OBJECT" } },
-      "required": ["diagram_json"]
-    }
-  },
-  {
-    "name": "svg_diagram_renderer",
-    "description": "Generates SVG markup string for diagram JSON.",
-    "params": {
-      "type": "OBJECT",
-      "properties": { "diagram_json": { "type": "OBJECT" } },
-      "required": ["diagram_json"]
-    }
-  },
-  {
-    "name": "token_counter",
-    "description": "Estimates token count for text.",
-    "params": {
-      "type": "OBJECT",
-      "properties": { "text": { "type": "STRING" } },
-      "required": ["text"]
-    }
-  },
-  {
-    "name": "self_correction",
-    "description": "Attempts self-correction based on error.",
-    "params": {
-      "type": "OBJECT",
+    "description": "Validates the JSON structure of a specific artifact version.",
+    "inputSchema": {
+      "type": "object",
       "properties": {
-        "failed_task_description": { "type": "STRING" },
-        "error_message": { "type": "STRING" },
-        "previous_goal": { "type": "OBJECT" }
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the JSON artifact to validate."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version to validate."
+        }
       },
-      "required": ["failed_task_description", "error_message", "previous_goal"]
+      "required": ["artifactId", "cycle"]
+    }
+  },
+  {
+    "name": "read_artifact",
+    "description": "Reads and returns the full content of a specific artifact version.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact to read."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version to read."
+        }
+      },
+      "required": ["artifactId", "cycle"]
+    }
+  },
+  {
+    "name": "list_artifacts",
+    "description": "Lists artifact IDs based on optional filters.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filterType": {
+          "type": "string",
+          "description": "Optional: Filter artifacts by type (e.g., JS, CSS, HTML)."
+        },
+        "filterPattern": {
+          "type": "string",
+          "description": "Optional: Filter artifact IDs by a regex pattern."
+        },
+        "includeCycle": {
+          "type": "boolean",
+          "description": "Optional: If true, returns objects {id, latestCycle}, otherwise just IDs. Default false."
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "diff_text",
+    "description": "Performs a basic line-by-line difference check between two text inputs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "textA": { "type": "string", "description": "The first text string." },
+        "textB": { "type": "string", "description": "The second text string." }
+      },
+      "required": ["textA", "textB"]
+    }
+  },
+  {
+    "name": "convert_to_gemini_fc",
+    "description": "Converts an MCP-style tool definition into the Gemini FunctionDeclaration format.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mcpToolDefinition": {
+          "type": "object",
+          "description": "A tool definition object following the MCP Tool schema structure ({ name, description, inputSchema: { type: 'object', properties: {...}, required: [...] } })."
+        }
+      },
+      "required": ["mcpToolDefinition"]
+    }
+  },
+  {
+    "name": "code_edit",
+    "description": "Validates proposed code edits for an artifact. Used internally by HITL.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact being edited."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the original artifact version being edited."
+        },
+        "newContent": {
+          "type": "string",
+          "description": "The proposed new content for the artifact."
+        }
+      },
+      "required": ["artifactId", "cycle", "newContent"]
     }
   }
 ]
