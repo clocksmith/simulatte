@@ -1,6 +1,5 @@
-const moduleExport = (() => {
+const Utils = (() => {
   const STATE_VERSION = "0.0.0";
-
   let logBuffer = `REPLOID Session Log - ${new Date().toISOString()}\n=========================================\n`;
   const MAX_LOG_LENGTH = 50000;
 
@@ -46,23 +45,18 @@ const moduleExport = (() => {
   const $id = (id) => document.getElementById(id);
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
-
   const kabobToCamel = (s) =>
     s ? s.replace(/-([a-z])/g, (g) => g[1].toUpperCase()) : "";
   const camelToKabob = (s) =>
     s ? s.replace(/([A-Z])/g, "-$1").toLowerCase() : "";
-
   const trunc = (str, len, ellipsis = "...") => {
     str = String(str ?? "");
     if (str.length <= len) return str;
     return str.substring(0, len - ellipsis.length) + ellipsis;
   };
-
   const lc = (s) => (s ? String(s).toLowerCase() : "");
   const uc = (s) => (s ? String(s).toUpperCase() : "");
-
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
   const getRandomInt = (min, max) => {
     min = Math.ceil(min);
     max = Math.floor(max);
@@ -84,3 +78,5 @@ const moduleExport = (() => {
     getRandomInt,
   };
 })();
+
+window.Utils = Utils; // Attach to global scope

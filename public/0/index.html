@@ -12,40 +12,38 @@
         margin: 0;
         padding: 0;
         display: flex;
-        justify-content: center;
-        align-items: center;
         min-height: 100vh;
         user-select: none;
         -webkit-user-select: none;
       }
       #start-prompt {
-        font-size: 1.3em;
+        font-size: 1em;
         color: white;
         cursor: pointer;
-        text-align: center;
+        text-align: left;
         line-height: 1.5;
-        padding: 20px;
+        padding: 5px;
       }
       #loading-container {
-        padding: 10px;
         width: 100%;
-        max-width: 90vw;
         text-align: left;
+        align-self: flex-start;
         box-sizing: border-box;
+        padding: 5px;
       }
       #loading-indicator {
-        font-size: 10px;
+        font-size: 1em;
         white-space: pre-wrap;
         word-wrap: break-word;
-        max-height: calc(100vh - 40px);
+        max-height: calc(100vh - 10px);
         overflow-y: auto;
-        margin-bottom: 12px;
         text-align: left;
       }
       #loading-indicator div.log-entry {
         display: block;
         margin-bottom: 1px;
         text-align: left;
+        line-height: 1.3;
       }
       #loading-indicator .log-info {
         color: #ddd;
@@ -86,8 +84,8 @@
   </head>
   <body id="boot-body">
     <div id="start-prompt">
-      Press [Enter] or Tap/Click to Continue Session.<br />
-      Press [Esc] or Tap & Hold (1s) to Reset & Start Fresh.
+      >> Press [Enter] or Tap/Click to Continue Session.<br />
+      >> Press [Space] or Tap & Hold (1s) to Reset & Start Fresh.
     </div>
     <div id="loading-container" class="hidden">
       <div id="loading-indicator"></div>
@@ -169,7 +167,7 @@
             description: "Cycle step definitions",
           },
         };
-        const ESSENTIAL_ARTIFACT_IDS = Object.keys(genesisArtifactDefs);
+        const essentialArtifactIds = Object.keys(genesisArtifactDefs);
 
         const startPrompt = document.getElementById("start-prompt");
         const loadingContainer = document.getElementById("loading-container");
@@ -182,19 +180,16 @@
         let interactionStarted = false;
 
         const getArtifactKey = (id, cycle = 0) => `${LS_PREFIX}${id}_${cycle}`;
+        let uiUpdatePromise = Promise.resolve();
 
         const bl = (() => {
-          let uiUpdatePromise = Promise.resolve();
-          let typingQueue = "";
-          let isProcessingQueue = false;
-
           const initAudioContext = () => {
             if (!isAudioInitAttempted && !audioCtx) {
               isAudioInitAttempted = true;
               try {
                 audioCtx = new (window.AudioContext ||
                   window.webkitAudioContext)();
-                console.log("AudioContext initialized on user interaction.");
+                console.log("AudioContext initialized.");
               } catch (e) {
                 console.warn("AudioContext init failed:", e.message);
                 audioCtx = null;
@@ -202,16 +197,14 @@
             }
             return audioCtx;
           };
-
-          const playTone = (level = "info", charDelay = 1) => {
+          const playTone = (frequency, charDelay, oscType) => {
             if (!audioCtx || typeof audioCtx.createOscillator !== "function")
               return;
             try {
               const oscillator = audioCtx.createOscillator();
               const gainNode = audioCtx.createGain();
-              const frequency = level === "error" ? 440 : 880;
               const duration = Math.min(Math.max(charDelay / 1000, 0.01), 0.1);
-              oscillator.type = "square";
+              oscillator.type = oscType;
               oscillator.frequency.setValueAtTime(
                 frequency,
                 audioCtx.currentTime
@@ -229,27 +222,7 @@
               audioCtx = null;
             }
           };
-
-          async function processTypingQueue(targetElement, level, charDelay) {
-            isProcessingQueue = true;
-            while (typingQueue.length > 0) {
-              const batch = typingQueue.substring(0, 1);
-              typingQueue = typingQueue.substring(1);
-              targetElement.textContent += batch;
-              if (batch.trim()) {
-                playTone(level, charDelay);
-              }
-              await new Promise((resolve) =>
-                setTimeout(resolve, Math.max(charDelay, 1))
-              );
-            }
-            if (loadingIndicator.scrollTop !== undefined) {
-              loadingIndicator.scrollTop = loadingIndicator.scrollHeight;
-            }
-            isProcessingQueue = false;
-          }
-
-          return function bl(
+          return async function blInternal(
             message,
             level = "info",
             detail = null,
@@ -269,31 +242,26 @@
             if (skipOutput || !loadingIndicator) return;
             uiUpdatePromise = uiUpdatePromise
               .then(async () => {
+                if (level === "error") {
+                  playTone(220, charDelay, "square");
+                }
                 const logEntryContainer = document.createElement("div");
                 logEntryContainer.className = `log-entry log-${level}`;
                 loadingIndicator.appendChild(logEntryContainer);
-                const fullText = `${message}${
+                const fullText = `> ${message}${
                   detail ? `\n   └─ ${detail}` : ""
                 }`;
-                if (charDelay < 4) {
-                  typingQueue += fullText;
-                  if (!isProcessingQueue) {
-                    processTypingQueue(logEntryContainer, level, charDelay);
+                for (const char of fullText) {
+                  logEntryContainer.textContent += char;
+                  if (loadingIndicator.scrollTop !== undefined) {
+                    loadingIndicator.scrollTop = loadingIndicator.scrollHeight;
                   }
-                } else {
-                  for (const char of fullText) {
-                    logEntryContainer.textContent += char;
-                    if (loadingIndicator.scrollTop !== undefined) {
-                      loadingIndicator.scrollTop =
-                        loadingIndicator.scrollHeight;
-                    }
-                    if (char.trim()) {
-                      playTone(level, charDelay);
-                    }
-                    await new Promise((resolve) =>
-                      setTimeout(resolve, charDelay)
-                    );
+                  if (char.trim() && level !== "error") {
+                    playTone(990, charDelay, "triangle");
                   }
+                  await new Promise((resolve) =>
+                    setTimeout(resolve, Math.max(charDelay, 1))
+                  );
                 }
                 if (loadingIndicator.scrollTop !== undefined) {
                   loadingIndicator.scrollTop = loadingIndicator.scrollHeight;
@@ -306,6 +274,7 @@
                 );
                 uiUpdatePromise = Promise.resolve();
               });
+            await uiUpdatePromise;
           };
         })();
         bl.initAudioContext = () => {
@@ -314,7 +283,7 @@
             try {
               audioCtx = new (window.AudioContext ||
                 window.webkitAudioContext)();
-              console.log("AudioContext initialized on user interaction.");
+              console.log("AudioContext initialized.");
             } catch (e) {
               console.warn("AudioContext init failed:", e.message);
               audioCtx = null;
@@ -378,7 +347,7 @@
         function checkEssentialArtifactsPresent(stateCycle) {
           bl(`Checking essential artifacts for cycle ${stateCycle}...`, "info");
           let allFound = true;
-          for (const id of ESSENTIAL_ARTIFACT_IDS) {
+          for (const id of essentialArtifactIds) {
             const key = getArtifactKey(id, stateCycle);
             if (lsGet(key) === null) {
               bl(
@@ -405,7 +374,12 @@
         }
 
         function clearAllReploidData() {
-          bl("Clearing all REPLOID data from LocalStorage...", "warn");
+          bl(
+            "Clearing all REPLOID data from LocalStorage...",
+            "info",
+            null,
+            16
+          );
           let keysToRemove = [];
           try {
             for (let i = 0; i < localStorage.length; i++) {
@@ -416,10 +390,14 @@
             }
             keysToRemove.forEach((key) => lsRemove(key));
             lsRemove(STATE_KEY);
-            bl(`Removed ${keysToRemove.length} artifact/state keys.`, "info");
+            bl(
+              `Removed ${keysToRemove.length} artifact/state keys.`,
+              "info",
+              null,
+              16
+            );
             try {
               sessionStorage.clear();
-              bl("Cleared SessionStorage.", "info");
             } catch (e) {
               bl("Failed to clear SessionStorage.", "warn", e.message);
             }
@@ -430,20 +408,18 @@
               e.message
             );
           }
+          bl("    ", "info", null, 32);
         }
 
         async function bootstrapReploid(performGenesis = false) {
           bl("Model CPS-9204", "info", null, 32);
-          bl(" ", "info", null, 10);
           bl("Copyright (c) 2105, 2109, 2114", "info", null, 32);
-          bl(" ", "info", null, 10);
           bl("NOM Corporation", "info", null, 32);
-          bl(" ", "info", null, 32);
-
+          bl("All Rights Reserved", "info", null, 32);
+          bl(" ", "info", null, 64);
           let state = null;
           let needsGenesis = performGenesis;
           let stateSource = performGenesis ? "Forced Genesis" : "None";
-
           if (!performGenesis) {
             const stateJSON = lsGet(STATE_KEY);
             if (stateJSON) {
@@ -496,23 +472,30 @@
               stateSource = "Genesis";
             }
           } else {
-            bl("Reset requested. Initiating genesis.", "warn");
+            bl("Reset requested...", "info");
+            bl(".", "info", null, 256);
+            bl(".", "info", null, 256);
+            bl(".", "info", null, 256);
             needsGenesis = true;
             stateSource = "Forced Genesis";
           }
-
           try {
             if (needsGenesis) {
-              bl("Running Genesis Process...", "info");
+              bl("Running genesis boot process...", "info");
+              bl("    ", "info", null, 16);
               state = await runGenesisProcess();
               if (!state) {
-                bl("Genesis process failed. REPLOID cannot start.", "error");
+                bl(
+                  "genesis boot process failed. REPLOID cannot start.",
+                  "error"
+                );
+                bl("    ", "info", null, 16);
                 return;
               }
               bl("Genesis complete.", "success");
             }
-
             bl(`Loading application with state from: ${stateSource}`, "info");
+            await uiUpdatePromise;
             await loadAndExecuteApp(state);
           } catch (error) {
             bl("Fatal bootstrap error", "error", error.message);
@@ -562,7 +545,6 @@
           );
           return fetchedArtifacts;
         }
-
         function saveGenesisArtifacts(artifacts) {
           bl("Saving genesis artifacts (Cycle 0)...", "info");
           const metadata = {};
@@ -624,7 +606,6 @@
           );
           return metadata;
         }
-
         async function runGenesisProcess() {
           const fetchedArtifacts = await fetchGenesisArtifacts();
           if (!fetchedArtifacts) return null;
@@ -693,21 +674,36 @@
           const coreScriptId = "reploid.core.logic",
             coreStyleId = "reploid.core.style",
             coreUtilsId = "reploid.core.utils",
-            coreStorageId = "reploid.core.storage";
+            coreStorageId = "reploid.core.storage",
+            coreToolRunnerId = "reploid.core.toolrunner";
           const currentCycle = currentState.totalCycles;
           try {
-            const utilsKey = getArtifactKey(coreUtilsId, currentCycle),
-              storageKey = getArtifactKey(coreStorageId, currentCycle);
-            const utilsContent = lsGet(utilsKey),
-              storageContent = lsGet(storageKey);
-            if (!utilsContent || !storageContent) {
+            const dependencyIds = [
+              coreUtilsId,
+              coreStorageId,
+              coreToolRunnerId,
+            ];
+            for (const depId of dependencyIds) {
+              const key = getArtifactKey(depId, currentCycle);
+              const content = lsGet(key);
+              if (!content) {
+                throw new Error(
+                  `Core dependency script missing: ${depId} (Cycle ${currentCycle})`
+                );
+              }
+              try {
+                new Function(content)();
+              } catch (e) {
+                throw new Error(`Failed to execute ${depId}: ${e.message}`);
+              }
+            }
+            if (!window.Utils || !window.LS || !window.ToolRunner) {
               throw new Error(
-                `Core dependency script missing for Cycle ${currentCycle}`
+                "Core dependencies (Utils, LS, ToolRunner) did not attach to window."
               );
             }
-            new Function(utilsContent + "\n /* Executed Utils */")();
-            new Function(storageContent + "\n /* Executed Storage */")();
-            bl("Executed core Utils & Storage scripts.", "skip");
+            bl("Executed core dependencies globally.", "skip");
+
             const styleKey = getArtifactKey(coreStyleId, currentCycle),
               styleContent = lsGet(styleKey);
             if (styleContent) {
@@ -725,6 +721,7 @@
                 "warn"
               );
             }
+
             const scriptKey = getArtifactKey(coreScriptId, currentCycle),
               scriptContent = lsGet(scriptKey);
             if (!scriptContent) {
@@ -736,12 +733,9 @@
               `Executing core application script: ${coreScriptId} (Cycle ${currentCycle})...`,
               "info"
             );
-            const coreAppFunction = new Function(
-              scriptContent + "\n /* Executed Core Logic */"
-            );
+            const coreAppFunction = new Function(scriptContent);
             coreAppFunction();
             bl("Core application script execution initiated.", "success");
-            await uiUpdatePromise;
             setTimeout(() => {
               loadingContainer.style.transition = "opacity 0.5s ease-out";
               loadingContainer.style.opacity = "0";
@@ -754,8 +748,8 @@
               "error",
               error.message
             );
-            console.error("Core execution failed:", error);
-            loadingIndicator.innerHTML += `<div class="log-error">ERROR LOADING CORE APP: ${error.message}. See console.</div>`;
+            bl(`ERROR LOADING CORE APP`, "error", error.message, 4);
+            console.error("Core execution failed", error);
           }
         }
 
@@ -766,19 +760,23 @@
           loadingContainer.classList.remove("hidden");
           bl.initAudioContext();
           removeInteractionListeners();
-
           if (action === "reset") {
             clearAllReploidData();
-            bootstrapReploid(true);
+            bl("Rebooting...", "info", null, 64);
+            bl("            ", "info", null, 8);
+            setTimeout(() => {
+              bootstrapReploid(true);
+            }, 256);
           } else {
-            bootstrapReploid(false);
+            setTimeout(() => {
+              bootstrapReploid(false);
+            }, 256);
           }
         }
-
         function handleKeydown(e) {
           if (e.key === "Enter") {
             startInteraction("continue");
-          } else if (e.key === "Escape") {
+          } else if (e.key === " ") {
             startInteraction("reset");
           }
         }

@@ -1,23 +1,30 @@
-window.LS = (() => {
-  let logger = window.Utils?.logger;
-  if (!logger) {
-    console.error("FATAL: Utils.logger not found for Storage module!");
-    // Default to console logger.
-    logger = {
-      logEvent: (level, message) => console[level](message),
-    };
-  }
-
+const LS = (() => {
   const LS_PREFIX = "_x0_";
-  const STATE_KEY = "x0_state_v0.0";
-  const SESSION_STATE_KEY = "x0_session_state_v0.0";
-  const MAX_ART_TKN_SZ = 65000;
+  const STATE_KEY_BASE = "x0_state_v";
+  const SESSION_STATE_KEY_BASE = "x0_session_state_v";
+  const MAX_ART_TKN_SZ = 4 * 1024 * 1024; // Use same limit as bootstrap
+
+  let stateKey = STATE_KEY_BASE + "0.0"; // Default, needs update from Utils if possible
+  let sessionStateKey = SESSION_STATE_KEY_BASE + "0.0";
+
+  const _getLogger = () =>
+    window.Utils?.logger || {
+      logEvent: (lvl, msg) => console[lvl || "log"](msg),
+    };
+
+  const _updateKeys = () => {
+    if (window.Utils?.STATE_VERSION) {
+      const majorVersion = window.Utils.STATE_VERSION.split(".")[0];
+      stateKey = STATE_KEY_BASE + majorVersion;
+      sessionStateKey = SESSION_STATE_KEY_BASE + majorVersion;
+    }
+  };
 
   const _get = (key) => {
     try {
       return localStorage.getItem(key);
     } catch (e) {
-      logger.logEvent("error", `LocalStorage GET Error: ${key}, ${e}`);
+      _getLogger().logEvent("error", `LocalStorage GET Error: ${key}, ${e}`);
       return null;
     }
   };
@@ -25,14 +32,14 @@ window.LS = (() => {
   const _set = (key, value) => {
     if (value && typeof value === "string" && value.length > MAX_ART_TKN_SZ) {
       const msg = `Artifact content exceeds size limit (${value.length} > ${MAX_ART_TKN_SZ}) for key: ${key}`;
-      logger.logEvent("error", msg);
+      _getLogger().logEvent("error", msg);
       throw new Error(msg);
     }
     try {
       localStorage.setItem(key, value);
       return true;
     } catch (e) {
-      logger.logEvent("error", `LocalStorage SET Error: ${key}, ${e}`);
+      _getLogger().logEvent("error", `LocalStorage SET Error: ${key}, ${e}`);
       throw e;
     }
   };
@@ -42,7 +49,7 @@ window.LS = (() => {
       localStorage.removeItem(key);
       return true;
     } catch (e) {
-      logger.logEvent("error", `LocalStorage REMOVE Error: ${key}, ${e}`);
+      _getLogger().logEvent("error", `LocalStorage REMOVE Error: ${key}, ${e}`);
       return false;
     }
   };
@@ -53,75 +60,105 @@ window.LS = (() => {
     LS_PREFIX,
     getArtifactKey: (id, cycle) => _key(id, cycle),
     getArtifactContent: (id, cycle) => _get(_key(id, cycle)),
-    setArtifactContent: (id, cycle, content) => {
-      return _set(_key(id, cycle), content);
-    },
+    setArtifactContent: (id, cycle, content) => _set(_key(id, cycle), content),
     deleteArtifactVersion: (id, cycle) => _remove(_key(id, cycle)),
     getState: () => {
-      const json = _get(STATE_KEY);
+      _updateKeys();
+      const json = _get(stateKey);
       try {
         return json ? JSON.parse(json) : null;
       } catch (e) {
-        logger.logEvent(
+        _getLogger().logEvent(
           "error",
           `Failed to parse state from localStorage: ${e.message}`
         );
-        _remove(STATE_KEY);
+        _remove(stateKey);
         return null;
       }
     },
-    saveState: (stateObj) => _set(STATE_KEY, JSON.stringify(stateObj)),
-    removeState: () => _remove(STATE_KEY),
+    saveState: (stateObj) => {
+      _updateKeys();
+      return _set(stateKey, JSON.stringify(stateObj));
+    },
+    removeState: () => {
+      _updateKeys();
+      return _remove(stateKey);
+    },
     getSessionState: () => {
+      _updateKeys();
       try {
-        const json = sessionStorage.getItem(SESSION_STATE_KEY);
+        const json = sessionStorage.getItem(sessionStateKey);
         return json ? JSON.parse(json) : null;
       } catch (e) {
-        logger.logEvent("error", `Failed to parse session state: ${e.message}`);
-        sessionStorage.removeItem(SESSION_STATE_KEY);
+        _getLogger().logEvent(
+          "error",
+          `Failed to parse session state: ${e.message}`
+        );
+        sessionStorage.removeItem(sessionStateKey);
         return null;
       }
     },
     saveSessionState: (stateObj) => {
+      _updateKeys();
       try {
-        sessionStorage.setItem(SESSION_STATE_KEY, JSON.stringify(stateObj));
+        sessionStorage.setItem(sessionStateKey, JSON.stringify(stateObj));
         return true;
       } catch (e) {
-        logger.logEvent("error", `SessionStorage SET Error: ${e.message}`);
+        _getLogger().logEvent(
+          "error",
+          `SessionStorage SET Error: ${e.message}`
+        );
         throw e;
       }
     },
     removeSessionState: () => {
+      _updateKeys();
       try {
-        sessionStorage.removeItem(SESSION_STATE_KEY);
+        sessionStorage.removeItem(sessionStateKey);
       } catch (e) {
-        logger.logEvent("error", `SessionStorage REMOVE Error: ${e.message}`);
+        _getLogger().logEvent(
+          "error",
+          `SessionStorage REMOVE Error: ${e.message}`
+        );
       }
     },
     clearAllReploidData: () => {
-      logger.logEvent("warn", "User initiated LocalStorage clear.");
+      _updateKeys();
+      _getLogger().logEvent(
+        "warn",
+        "Initiating LocalStorage clear for Reploid data."
+      );
       let keysToRemove = [];
       try {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key && (key.startsWith(LS_PREFIX) || key === STATE_KEY)) {
+          if (key && (key.startsWith(LS_PREFIX) || key === stateKey)) {
             keysToRemove.push(key);
           }
         }
-        keysToRemove.forEach((key) => {
-          _remove(key);
-          logger.logEvent("info", `Removed key: ${key}`);
-        });
-        _remove(STATE_KEY);
-        logger.logEvent("info", `Removed state key: ${STATE_KEY}`);
+        keysToRemove.forEach((key) => _remove(key));
+        _remove(stateKey);
+        _getLogger().logEvent(
+          "info",
+          `Removed ${keysToRemove.length} artifact/state keys.`
+        );
+        try {
+          sessionStorage.clear();
+          _getLogger().logEvent("info", "Cleared SessionStorage.");
+        } catch (e) {
+          _getLogger().logEvent(
+            "warn",
+            "Failed to clear SessionStorage.",
+            e.message
+          );
+        }
       } catch (e) {
-        logger.logEvent(
+        _getLogger().logEvent(
           "error",
           `Error during key iteration/removal in clearAllReploidData: ${e.message}`
         );
-      } finally {
-        Storage.removeSessionState();
       }
     },
   };
 })();
+window.LS = LS;

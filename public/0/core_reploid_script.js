@@ -1,8 +1,15 @@
 const REPLOID_CORE = (() => {
-  let Utils;
-  let Storage;
-  let logger;
-  let ToolRunner;
+  const Utils = window.Utils;
+  const Storage = window.LS; // Use the established alias
+  const ToolRunner = window.ToolRunner;
+  const logger = Utils?.logger; // Get logger from Utils
+
+  // Add checks immediately after to ensure they loaded
+  if (!Utils || !Storage || !ToolRunner || !logger) {
+    throw new Error(
+      "Core dependencies (Utils, LS, ToolRunner, Logger) failed to initialize globally."
+    );
+  }
   let loadedStaticTools = [];
   let isCoreInitialized = false;
 
@@ -70,32 +77,6 @@ const REPLOID_CORE = (() => {
 
   const initializeCoreDependencies = () => {
     if (isCoreInitialized) return;
-    const utilsModule = coreBootstrap.loadAndExecuteReturn(
-      "reploid.core.utils",
-      0
-    );
-    const storageModule = coreBootstrap.loadAndExecuteReturn(
-      "reploid.core.storage",
-      0
-    );
-    const toolRunnerModule = coreBootstrap.loadAndExecuteReturn(
-      "reploid.core.toolrunner",
-      0
-    );
-
-    Utils = utilsModule || window.Utils;
-    Storage = storageModule || window.LS || window.Storage;
-    ToolRunner = toolRunnerModule || window.ToolRunner;
-
-    if (!Utils || !Storage || !ToolRunner) {
-      throw new Error(
-        "Failed to load/execute core Utils/Storage/ToolRunner dependencies."
-      );
-    }
-    logger = Utils.logger;
-    if (!logger) {
-      throw new Error("Logger not found within loaded Utils module.");
-    }
 
     try {
       loadedStaticTools = coreBootstrap.loadJsonArtifact(

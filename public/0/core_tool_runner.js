@@ -379,3 +379,4 @@ const ToolRunner = (() => {
     runTool: runToolInternal,
   };
 })();
+window.ToolRunner = ToolRunner;
