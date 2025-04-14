@@ -3,7 +3,7 @@
   <head id="boot-head">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>REPLOID x0 v0 - Bootstrap</title>
+    <title>REPLOID x0 v0.1 - Bootstrap</title>
     <style id="boot-style">
       body {
         font-family: monospace;
@@ -94,81 +94,6 @@
 
     <script id="boot-script">
       (async () => {
-        const LS_PREFIX = "_x0_";
-        const STATE_VERSION = "0.0.0";
-        const MAX_ARTIFACT_SIZE_BYTES = 4 * 1024 * 1024;
-        const STATE_KEY = "x0_state_v" + STATE_VERSION.split(".")[0];
-        const HOLD_DURATION_MILLIS = 1000;
-
-        const genesisArtifactDefs = {
-          "reploid.core.logic": {
-            filename: "core_reploid_script.js",
-            type: "JS",
-            description: "Main application logic",
-          },
-          "reploid.core.style": {
-            filename: "core_reploid_style.css",
-            type: "CSS",
-            description: "Main application styles",
-          },
-          "reploid.core.body": {
-            filename: "core_reploid_body.html",
-            type: "HTML",
-            description: "App root HTML structure",
-          },
-          "reploid.core.utils": {
-            filename: "core_utils_script.js",
-            type: "JS",
-            description: "Core utility functions",
-          },
-          "reploid.core.storage": {
-            filename: "core_storage_script.js",
-            type: "JS",
-            description: "Core storage functions",
-          },
-          "reploid.core.sys-prompt": {
-            filename: "core_prompt_x0.txt",
-            type: "PROMPT",
-            description: "Core LLM prompt",
-          },
-          "reploid.core.critiquer-prompt": {
-            filename: "core_prompt_critiquer.txt",
-            type: "PROMPT",
-            description: "Critique prompt",
-          },
-          "reploid.core.summarizer-prompt": {
-            filename: "core_prompt_summarizer.txt",
-            type: "PROMPT",
-            description: "Summarization prompt",
-          },
-          "reploid.core.static-tools": {
-            filename: "core_static_tools.json",
-            type: "JSON",
-            description: "Static tool definitions",
-          },
-          "reploid.core.toolrunner": {
-            filename: "core_tool_runner.js",
-            type: "JS",
-            description: "Tool execution worker",
-          },
-          "reploid.core.diagram": {
-            filename: "core_diagram.json",
-            type: "JSON",
-            description: "Default diagram",
-          },
-          "reploid.core.diagram-factory": {
-            filename: "core_diagram_factory.js",
-            type: "JS",
-            description: "Diagram renderer",
-          },
-          "reploid.core.cycle-steps": {
-            filename: "core_cycle.txt",
-            type: "TEXT",
-            description: "Cycle step definitions",
-          },
-        };
-        const essentialArtifactIds = Object.keys(genesisArtifactDefs);
-
         const startPrompt = document.getElementById("start-prompt");
         const loadingContainer = document.getElementById("loading-container");
         const loadingIndicator = document.getElementById("loading-indicator");
@@ -178,9 +103,13 @@
         let isAudioInitAttempted = false;
         let holdTimeoutId = null;
         let interactionStarted = false;
-
-        const getArtifactKey = (id, cycle = 0) => `${LS_PREFIX}${id}_${cycle}`;
+        const HOLD_DURATION_MILLIS = 1000;
         let uiUpdatePromise = Promise.resolve();
+
+        let config = null;
+        let Utils = null;
+        let Storage = null;
+        let blLogger = null;
 
         const bl = (() => {
           const initAudioContext = () => {
@@ -189,9 +118,14 @@
               try {
                 audioCtx = new (window.AudioContext ||
                   window.webkitAudioContext)();
-                console.log("AudioContext initialized.");
               } catch (e) {
-                console.warn("AudioContext init failed:", e.message);
+                if (blLogger)
+                  blLogger.logEvent(
+                    "warn",
+                    "AudioContext init failed:",
+                    e.message
+                  );
+                else console.warn("AudioContext init failed:", e.message);
                 audioCtx = null;
               }
             }
@@ -218,7 +152,9 @@
               oscillator.start();
               oscillator.stop(audioCtx.currentTime + duration);
             } catch (e) {
-              console.warn("Tone playback error:", e.message);
+              if (blLogger)
+                blLogger.logEvent("warn", "Tone playback error:", e.message);
+              else console.warn("Tone playback error:", e.message);
               audioCtx = null;
             }
           };
@@ -238,7 +174,14 @@
               detail ? `\n   └─ ${detail}` : ""
             }`;
             bootstrapLogMessages += logLine + "\n";
-            console[level] ? console[level](logLine) : console.log(logLine);
+
+            // Use the dedicated Utils logger *if* it has been loaded
+            if (blLogger) {
+              blLogger.logEvent(level, message, detail || "");
+            } else {
+              console[level] ? console[level](logLine) : console.log(logLine);
+            }
+
             if (skipOutput || !loadingIndicator) return;
             uiUpdatePromise = uiUpdatePromise
               .then(async () => {
@@ -268,10 +211,9 @@
                 }
               })
               .catch((error) => {
-                console.error(
-                  "Error during bootstrap logging UI update:",
-                  error
-                );
+                const logMsg = "Error during bootstrap logging UI update:";
+                if (blLogger) blLogger.logEvent("error", logMsg, error);
+                else console.error(logMsg, error);
                 uiUpdatePromise = Promise.resolve();
               });
             await uiUpdatePromise;
@@ -283,56 +225,75 @@
             try {
               audioCtx = new (window.AudioContext ||
                 window.webkitAudioContext)();
-              console.log("AudioContext initialized.");
             } catch (e) {
-              console.warn("AudioContext init failed:", e.message);
+              if (blLogger)
+                blLogger.logEvent(
+                  "warn",
+                  "AudioContext init failed:",
+                  e.message
+                );
+              else console.warn("AudioContext init failed:", e.message);
               audioCtx = null;
             }
           }
           return audioCtx;
         };
 
-        function lsGet(key) {
+        async function fetchAndExecuteModule(
+          filePath,
+          exportName,
+          dependencies = {}
+        ) {
           try {
-            return localStorage.getItem(key);
-          } catch (e) {
-            bl(`LocalStorage GET Error: ${key}`, "error", e.message);
-            return null;
-          }
-        }
-        function lsSet(key, value) {
-          if (
-            value &&
-            typeof value === "string" &&
-            value.length > MAX_ARTIFACT_SIZE_BYTES
-          ) {
-            bl(
-              `Artifact size limit exceeded (${value.length} > ${MAX_ARTIFACT_SIZE_BYTES}) for key: ${key}`,
-              "error"
+            const response = await fetch(filePath);
+            if (!response.ok)
+              throw new Error(`HTTP ${response.status} for ${filePath}`);
+            const scriptContent = await response.text();
+            const factoryFunction = new Function(
+              scriptContent + `\nreturn ${exportName};`
             );
-            return false;
-          }
-          try {
-            localStorage.setItem(key, value);
-            return true;
-          } catch (e) {
-            bl(`LocalStorage SET Error: ${key}`, "error", e.message);
-            if (e.name === "QuotaExceededError")
-              bl("LocalStorage quota exceeded.", "error");
-            return false;
+            // Pass dependencies to the factory function if needed (like for StorageModule)
+            return factoryFunction(...Object.values(dependencies));
+          } catch (error) {
+            bl(
+              `Fatal Error loading/executing module ${filePath}`,
+              "error",
+              error.message
+            );
+            throw error;
           }
         }
-        function lsRemove(key) {
+
+        async function loadCoreDependencies() {
           try {
-            localStorage.removeItem(key);
+            const configResponse = await fetch("reploid.core.config.json");
+            if (!configResponse.ok)
+              throw new Error(`HTTP ${configResponse.status} for config.json`);
+            config = await configResponse.json();
+
+            Utils = await fetchAndExecuteModule(
+              "core_utils_script.js",
+              "UtilsModule"
+            );
+            // Set the logger for bl to use
+            blLogger = Utils.logger;
+
+            Storage = await fetchAndExecuteModule(
+              "core_storage_script.js",
+              "StorageModule",
+              { config, logger: Utils.logger }
+            );
+
+            bl("Core dependencies loaded (Config, Utils, Storage).", "info");
             return true;
-          } catch (e) {
-            bl(`LocalStorage REMOVE Error: ${key}`, "error", e.message);
+          } catch (error) {
+            bl("Failed to load core dependencies.", "error", error.message);
             return false;
           }
         }
 
         function isValidState(parsedState) {
+          if (!config) return false; // Config needed for version check
           return (
             parsedState &&
             typeof parsedState === "object" &&
@@ -340,16 +301,23 @@
             parsedState.totalCycles >= 0 &&
             parsedState.artifactMetadata &&
             typeof parsedState.artifactMetadata === "object" &&
-            parsedState.version?.split(".")[0] === STATE_VERSION.split(".")[0]
+            parsedState.version?.split(".")[0] ===
+              config.STATE_VERSION.split(".")[0]
           );
         }
 
-        function checkEssentialArtifactsPresent(stateCycle) {
+        function checkEssentialArtifactsPresent(
+          stateCycle,
+          essentialArtifactDefs
+        ) {
+          if (!Storage) return false;
           bl(`Checking essential artifacts for cycle ${stateCycle}...`, "info");
           let allFound = true;
-          for (const id of essentialArtifactIds) {
-            const key = getArtifactKey(id, stateCycle);
-            if (lsGet(key) === null) {
+          for (const id in essentialArtifactDefs) {
+            if (id === "reploid.core.config") continue; // Config isn't stored like other artifacts
+            const key = Storage.getArtifactKey(id, stateCycle); // Use Storage module
+            const content = Storage.getArtifactContent(id, stateCycle); // Use Storage module
+            if (content === null) {
               bl(
                 `Essential artifact missing: ${id} (Cycle ${stateCycle}, Key: ${key})`,
                 "warn"
@@ -374,40 +342,17 @@
         }
 
         function clearAllReploidData() {
+          if (!Storage) {
+            bl("Cannot clear data, Storage module not loaded.", "error");
+            return;
+          }
           bl(
             "Clearing all REPLOID data from LocalStorage...",
             "info",
             null,
             16
           );
-          let keysToRemove = [];
-          try {
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key && (key.startsWith(LS_PREFIX) || key === STATE_KEY)) {
-                keysToRemove.push(key);
-              }
-            }
-            keysToRemove.forEach((key) => lsRemove(key));
-            lsRemove(STATE_KEY);
-            bl(
-              `Removed ${keysToRemove.length} artifact/state keys.`,
-              "info",
-              null,
-              16
-            );
-            try {
-              sessionStorage.clear();
-            } catch (e) {
-              bl("Failed to clear SessionStorage.", "warn", e.message);
-            }
-          } catch (e) {
-            bl(
-              "Error during LocalStorage clear operation.",
-              "error",
-              e.message
-            );
-          }
+          Storage.clearAllReploidData(); // Use Storage module method
           bl("    ", "info", null, 32);
         }
 
@@ -417,54 +362,57 @@
           bl("NOM Corporation", "info", null, 32);
           bl("All Rights Reserved", "info", null, 32);
           bl(" ", "info", null, 64);
+
+          if (!config || !Utils || !Storage) {
+            bl("Core dependencies failed to load, cannot bootstrap.", "error");
+            return;
+          }
+          blLogger = Utils.logger; // Ensure blLogger is set if Utils loaded
+
           let state = null;
           let needsGenesis = performGenesis;
           let stateSource = performGenesis ? "Forced Genesis" : "None";
+          const stateKey =
+            config.STATE_KEY_BASE + config.STATE_VERSION.split(".")[0];
+
           if (!performGenesis) {
-            const stateJSON = lsGet(STATE_KEY);
+            const stateJSON = Storage.getState(); // Use Storage module
             if (stateJSON) {
-              try {
-                state = JSON.parse(stateJSON);
-                if (isValidState(state)) {
-                  stateSource = `localStorage (Cycle ${state.totalCycles})`;
-                  if (checkEssentialArtifactsPresent(state.totalCycles)) {
-                    bl(
-                      `Found valid state and essential artifacts for cycle ${state.totalCycles}.`,
-                      "info"
-                    );
-                    needsGenesis = false;
-                  } else {
-                    bl(
-                      `State object valid (Cycle ${state.totalCycles}) but essential artifacts missing for that cycle. Discarding state.`,
-                      "error"
-                    );
-                    state = null;
-                    lsRemove(STATE_KEY);
-                    needsGenesis = true;
-                    stateSource = "Discarded Invalid State";
-                  }
+              state = stateJSON; // Already parsed by Storage.getState
+              if (isValidState(state)) {
+                stateSource = `localStorage (Cycle ${state.totalCycles})`;
+                if (
+                  checkEssentialArtifactsPresent(
+                    state.totalCycles,
+                    config.GENESIS_ARTIFACT_DEFS
+                  )
+                ) {
+                  bl(
+                    `Found valid state and essential artifacts for cycle ${state.totalCycles}.`,
+                    "info"
+                  );
+                  needsGenesis = false;
                 } else {
                   bl(
-                    `Found invalid or incompatible state object (v${
-                      state?.version || "?"
-                    }). Discarding.`,
-                    "warn"
+                    `State object valid (Cycle ${state.totalCycles}) but essential artifacts missing for that cycle. Discarding state.`,
+                    "error"
                   );
                   state = null;
-                  lsRemove(STATE_KEY);
+                  Storage.removeState(); // Use Storage module
                   needsGenesis = true;
                   stateSource = "Discarded Invalid State";
                 }
-              } catch (parseError) {
+              } else {
                 bl(
-                  `Failed to parse state from localStorage. Discarding corrupted state.`,
-                  "error",
-                  parseError.message
+                  `Found invalid or incompatible state object (v${
+                    state?.version || "?"
+                  }). Discarding.`,
+                  "warn"
                 );
                 state = null;
-                lsRemove(STATE_KEY);
+                Storage.removeState(); // Use Storage module
                 needsGenesis = true;
-                stateSource = "Discarded Corrupted State";
+                stateSource = "Discarded Invalid State";
               }
             } else {
               bl("No existing state found. Initiating genesis.", "info");
@@ -505,33 +453,33 @@
         }
 
         async function fetchGenesisArtifacts() {
+          if (!config) return null;
           bl("Fetching genesis artifacts...", "info");
           const fetchedArtifacts = {};
           let success = true;
-          const fetchPromises = Object.entries(genesisArtifactDefs).map(
-            async ([id, def]) => {
-              try {
-                const response = await fetch(def.filename);
-                if (!response.ok)
-                  throw new Error(
-                    `HTTP ${response.status} for ${def.filename}`
-                  );
-                const content =
-                  def.type === "JSON"
-                    ? JSON.stringify(await response.json(), null, 2)
-                    : await response.text();
-                fetchedArtifacts[id] = content;
-                bl(
-                  `Fetched: ${def.filename}`,
-                  "detail",
-                  `${content.length} bytes`
-                );
-              } catch (error) {
-                bl(`Failed to fetch ${def.filename}`, "error", error.message);
-                success = false;
-              }
+          const fetchPromises = Object.entries(
+            config.GENESIS_ARTIFACT_DEFS
+          ).map(async ([id, def]) => {
+            if (id === "reploid.core.config") return; // Skip config file itself
+            try {
+              const response = await fetch(def.filename);
+              if (!response.ok)
+                throw new Error(`HTTP ${response.status} for ${def.filename}`);
+              const content =
+                def.type === "JSON" || def.type === "JSON_CONFIG"
+                  ? JSON.stringify(await response.json(), null, 2)
+                  : await response.text();
+              fetchedArtifacts[id] = content;
+              bl(
+                `Fetched: ${def.filename}`,
+                "detail",
+                `${content.length} bytes`
+              );
+            } catch (error) {
+              bl(`Failed to fetch ${def.filename}`, "error", error.message);
+              success = false;
             }
-          );
+          });
           await Promise.all(fetchPromises);
           if (!success) {
             bl("Genesis artifact fetch failed.", "error");
@@ -545,27 +493,37 @@
           );
           return fetchedArtifacts;
         }
+
         function saveGenesisArtifacts(artifacts) {
+          if (!Storage || !config) return null;
           bl("Saving genesis artifacts (Cycle 0)...", "info");
           const metadata = {};
           let success = true;
+          const genesisDefs = config.GENESIS_ARTIFACT_DEFS;
+
           for (const id in artifacts) {
-            const key = getArtifactKey(id, 0);
-            if (lsSet(key, artifacts[id])) {
+            try {
+              Storage.setArtifactContent(id, 0, artifacts[id]); // Use Storage module
               metadata[id] = {
                 id: id,
                 latestCycle: 0,
-                type: genesisArtifactDefs[id].type,
-                description: genesisArtifactDefs[id].description,
+                type: genesisDefs[id]?.type || "UNKNOWN",
+                description:
+                  genesisDefs[id]?.description || "Unknown Genesis Artifact",
                 source: "Genesis",
               };
               bl(`Saved: ${id} (Cycle 0)`, "detail");
-            } else {
-              bl(`Failed to save artifact: ${id} (Cycle 0)`, "error");
+            } catch (e) {
+              bl(
+                `Failed to save artifact: ${id} (Cycle 0)`,
+                "error",
+                e.message
+              );
               success = false;
-              return null;
+              return null; // Abort if any save fails
             }
           }
+
           const bootArtifactsToSave = {
             "reploid.boot.style": {
               content: document.getElementById("boot-style")?.textContent || "",
@@ -584,10 +542,11 @@
               description: "Bootstrap log",
             },
           };
+
           for (const id in bootArtifactsToSave) {
-            const key = getArtifactKey(id, 0);
             const { content, type, description } = bootArtifactsToSave[id];
-            if (lsSet(key, content)) {
+            try {
+              Storage.setArtifactContent(id, 0, content);
               metadata[id] = {
                 id: id,
                 latestCycle: 0,
@@ -596,23 +555,56 @@
                 source: "Bootstrap",
               };
               bl(`Saved: ${id} (Cycle 0)`, "detail");
-            } else {
-              bl(`Failed to save bootstrap artifact: ${id}`, "warn");
+            } catch (e) {
+              bl(`Failed to save bootstrap artifact: ${id}`, "warn", e.message);
+              // Don't consider bootstrap artifact save failure as fatal for genesis
             }
           }
+
           bl(
             "Genesis artifact save process completed.",
             success ? "info" : "warn"
           );
           return metadata;
         }
+
         async function runGenesisProcess() {
           const fetchedArtifacts = await fetchGenesisArtifacts();
           if (!fetchedArtifacts) return null;
           const artifactMetadata = saveGenesisArtifacts(fetchedArtifacts);
           if (!artifactMetadata) return null;
+
+          if (!config) {
+            bl("Config not loaded, cannot create initial state.", "error");
+            return null;
+          }
+
+          // Ensure genesis defs include the new modules if they are files
+          Object.keys(config.GENESIS_ARTIFACT_DEFS).forEach((id) => {
+            if (!artifactMetadata[id] && id !== "reploid.core.config") {
+              const def = config.GENESIS_ARTIFACT_DEFS[id];
+              // Add metadata for potentially new core JS modules defined in config
+              // They might not be fetched if they don't exist yet, but we need metadata
+              if (def && def.type === "JS" && !fetchedArtifacts[id]) {
+                artifactMetadata[id] = {
+                  id: id,
+                  latestCycle: -1,
+                  type: def.type,
+                  description: def.description,
+                  source: "Genesis Placeholder",
+                };
+                bl(`Added placeholder metadata for ${id}`, "detail");
+              }
+            }
+          });
+
+          const defaultCoreModel =
+            config.DEFAULT_MODELS.BASE || "gemini-1.5-flash-latest";
+          const defaultCritiqueModel =
+            config.DEFAULT_MODELS.CRITIQUE || defaultCoreModel;
+
           const initialState = {
-            version: STATE_VERSION,
+            version: config.STATE_VERSION,
             totalCycles: 0,
             agentIterations: 0,
             humanInterventions: 0,
@@ -641,27 +633,19 @@
             lastApiResponse: null,
             retryCount: 0,
             cfg: {
-              personaBalance: 50,
-              llmCritiqueProb: 50,
-              humanReviewProb: 50,
-              maxCycleTime: 600,
-              autoCritiqueThresh: 0.75,
-              maxCycles: 0,
-              htmlHistoryLimit: 5,
-              pauseAfterCycles: 10,
-              maxRetries: 1,
-              coreModel: "gemini-1.5-flash-latest",
-              critiqueModel: "gemini-1.5-flash-latest",
+              ...config.DEFAULT_CFG, // Use defaults from config
+              coreModel: defaultCoreModel,
+              critiqueModel: defaultCritiqueModel,
             },
             artifactMetadata: artifactMetadata,
             dynamicTools: [],
           };
-          const stateJSON = JSON.stringify(initialState, null, 2);
-          if (lsSet(STATE_KEY, stateJSON)) {
+          try {
+            Storage.saveState(initialState); // Use Storage module
             bl("Initial state saved successfully.", "info");
             return initialState;
-          } else {
-            bl("Failed to save initial state!", "error");
+          } catch (e) {
+            bl("Failed to save initial state!", "error", e.message);
             return null;
           }
         }
@@ -671,41 +655,23 @@
             `Loading application core (State Cycle ${currentState.totalCycles})...`,
             "info"
           );
-          const coreScriptId = "reploid.core.logic",
-            coreStyleId = "reploid.core.style",
-            coreUtilsId = "reploid.core.utils",
-            coreStorageId = "reploid.core.storage",
-            coreToolRunnerId = "reploid.core.toolrunner";
-          const currentCycle = currentState.totalCycles;
-          try {
-            const dependencyIds = [
-              coreUtilsId,
-              coreStorageId,
-              coreToolRunnerId,
-            ];
-            for (const depId of dependencyIds) {
-              const key = getArtifactKey(depId, currentCycle);
-              const content = lsGet(key);
-              if (!content) {
-                throw new Error(
-                  `Core dependency script missing: ${depId} (Cycle ${currentCycle})`
-                );
-              }
-              try {
-                new Function(content)();
-              } catch (e) {
-                throw new Error(`Failed to execute ${depId}: ${e.message}`);
-              }
-            }
-            if (!window.Utils || !window.LS || !window.ToolRunner) {
-              throw new Error(
-                "Core dependencies (Utils, LS, ToolRunner) did not attach to window."
-              );
-            }
-            bl("Executed core dependencies globally.", "skip");
+          if (!config || !Utils || !Storage) {
+            bl("Core dependencies not available, cannot execute app.", "error");
+            return;
+          }
 
-            const styleKey = getArtifactKey(coreStyleId, currentCycle),
-              styleContent = lsGet(styleKey);
+          // The logic to load core tool runner is removed as it will be loaded by the main orchestrator script.
+          // Only need to load style and the main orchestrator script here.
+
+          const currentCycle = currentState.totalCycles;
+          const coreStyleId = "reploid.core.style";
+          const coreLogicId = "reploid.core.logic"; // This is now the orchestrator
+
+          try {
+            const styleContent = Storage.getArtifactContent(
+              coreStyleId,
+              currentCycle
+            );
             if (styleContent) {
               const styleElement = document.createElement("style");
               styleElement.id = `${coreStyleId}-loaded-${currentCycle}`;
@@ -722,20 +688,32 @@
               );
             }
 
-            const scriptKey = getArtifactKey(coreScriptId, currentCycle),
-              scriptContent = lsGet(scriptKey);
-            if (!scriptContent) {
+            const orchestratorScriptContent = Storage.getArtifactContent(
+              coreLogicId,
+              currentCycle
+            );
+            if (!orchestratorScriptContent) {
               throw new Error(
-                `Core application script artifact missing for Cycle ${currentCycle}.`
+                `Core application orchestrator script artifact missing for Cycle ${currentCycle}.`
               );
             }
+
             bl(
-              `Executing core application script: ${coreScriptId} (Cycle ${currentCycle})...`,
+              `Executing core application orchestrator: ${coreLogicId} (Cycle ${currentCycle})...`,
               "info"
             );
-            const coreAppFunction = new Function(scriptContent);
-            coreAppFunction();
-            bl("Core application script execution initiated.", "success");
+            // Execute the orchestrator script. It's expected to initialize everything else.
+            // We pass the already loaded config, Utils, and Storage to it.
+            const orchestratorFunction = new Function(
+              "config",
+              "Utils",
+              "Storage",
+              orchestratorScriptContent
+            );
+            orchestratorFunction(config, Utils, Storage);
+
+            bl("Core application orchestrator execution initiated.", "success");
+
             setTimeout(() => {
               loadingContainer.style.transition = "opacity 0.5s ease-out";
               loadingContainer.style.opacity = "0";
@@ -760,25 +738,31 @@
           loadingContainer.classList.remove("hidden");
           bl.initAudioContext();
           removeInteractionListeners();
-          if (action === "reset") {
-            clearAllReploidData();
-            bl("Rebooting...", "info", null, 64);
-            bl("            ", "info", null, 8);
-            setTimeout(() => {
-              bootstrapReploid(true);
-            }, 256);
-          } else {
-            setTimeout(() => {
-              bootstrapReploid(false);
-            }, 256);
-          }
+
+          // Load core dependencies *after* interaction starts
+          loadCoreDependencies().then((dependenciesLoaded) => {
+            if (!dependenciesLoaded) {
+              loadingIndicator.innerHTML += `<div class="log-error">FATAL: Could not load core modules. REPLOID cannot start.</div>`;
+              return;
+            }
+            if (action === "reset") {
+              clearAllReploidData();
+              bl("Rebooting...", "info", null, 64);
+              bl("            ", "info", null, 8);
+              setTimeout(() => {
+                bootstrapReploid(true);
+              }, 256);
+            } else {
+              setTimeout(() => {
+                bootstrapReploid(false);
+              }, 256);
+            }
+          });
         }
+
         function handleKeydown(e) {
-          if (e.key === "Enter") {
-            startInteraction("continue");
-          } else if (e.key === " ") {
-            startInteraction("reset");
-          }
+          if (e.key === "Enter") startInteraction("continue");
+          else if (e.key === " ") startInteraction("reset");
         }
         function handleClick() {
           startInteraction("continue");

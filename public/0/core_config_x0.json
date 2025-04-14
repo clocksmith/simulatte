@@ -1,0 +1,123 @@
+{
+  "LS_PREFIX": "_x0_",
+  "STATE_KEY_BASE": "x0_state_v",
+  "SESSION_STATE_KEY_BASE": "x0_session_state_v",
+  "STATE_VERSION": "0.1.0",
+  "MAX_ARTIFACT_SIZE_BYTES": 4194304,
+  "MAX_LOG_LENGTH": 50000,
+  "CTX_WARN_THRESH": 925000,
+  "SVG_NS": "http://www.w3.org/2000/svg",
+  "GEMINI_STREAM_ENDPOINT_BASE": "https://generativelanguage.googleapis.com/v1beta/models/",
+  "API_RETRY_DELAY_BASE_MS": 1500,
+  "DYNAMIC_TOOL_TIMEOUT_MS": 10000,
+  "DEFAULT_MODELS": {
+    "BASE": "gemini-1.5-flash-latest",
+    "ADVANCED": "gemini-1.5-pro-latest",
+    "CRITIQUE": "gemini-1.5-flash-latest"
+  },
+  "DEFAULT_CFG": {
+    "personaBalance": 50,
+    "llmCritiqueProb": 50,
+    "humanReviewProb": 50,
+    "maxCycleTime": 600,
+    "autoCritiqueThresh": 0.75,
+    "maxCycles": 0,
+    "htmlHistoryLimit": 5,
+    "pauseAfterCycles": 10,
+    "maxRetries": 1,
+    "coreModel": "gemini-1.5-flash-latest",
+    "critiqueModel": "gemini-1.5-flash-latest"
+  },
+  "GENESIS_ARTIFACT_DEFS": {
+    "reploid.core.config": {
+      "filename": "reploid.core.config.json",
+      "type": "JSON_CONFIG",
+      "description": "Central application configuration"
+    },
+    "reploid.core.logic": {
+      "filename": "core_reploid_script.js",
+      "type": "JS",
+      "description": "Main application logic orchestrator"
+    },
+    "reploid.core.style": {
+      "filename": "core_reploid_style.css",
+      "type": "CSS",
+      "description": "Main application styles"
+    },
+    "reploid.core.body": {
+      "filename": "core_reploid_body.html",
+      "type": "HTML",
+      "description": "App root HTML structure"
+    },
+    "reploid.core.utils": {
+      "filename": "core_utils_script.js",
+      "type": "JS",
+      "description": "Core utility functions"
+    },
+    "reploid.core.storage": {
+      "filename": "core_storage_script.js",
+      "type": "JS",
+      "description": "Core storage functions"
+    },
+    "reploid.core.statemanager": {
+      "filename": "reploid.core.statemanager.js",
+      "type": "JS",
+      "description": "Core state management logic"
+    },
+    "reploid.core.ui": {
+      "filename": "reploid.core.ui.js",
+      "type": "JS",
+      "description": "Core UI rendering and event handling"
+    },
+    "reploid.core.apiclient": {
+      "filename": "reploid.core.apiclient.js",
+      "type": "JS",
+      "description": "Handles API communication"
+    },
+    "reploid.core.cyclelogic": {
+      "filename": "reploid.core.cyclelogic.js",
+      "type": "JS",
+      "description": "Main application cycle orchestration"
+    },
+    "reploid.core.sys-prompt": {
+      "filename": "core_prompt_x0.txt",
+      "type": "PROMPT",
+      "description": "Core LLM prompt"
+    },
+    "reploid.core.critiquer-prompt": {
+      "filename": "core_prompt_critiquer.txt",
+      "type": "PROMPT",
+      "description": "Critique prompt"
+    },
+    "reploid.core.summarizer-prompt": {
+      "filename": "core_prompt_summarizer.txt",
+      "type": "PROMPT",
+      "description": "Summarization prompt"
+    },
+    "reploid.core.static-tools": {
+      "filename": "core_static_tools.json",
+      "type": "JSON",
+      "description": "Static tool definitions"
+    },
+    "reploid.core.toolrunner": {
+      "filename": "core_tool_runner.js",
+      "type": "JS",
+      "description": "Tool execution worker"
+    },
+    "reploid.core.diagram": {
+      "filename": "core_diagram.json",
+      "type": "JSON",
+      "description": "Default diagram"
+    },
+    "reploid.core.diagram-factory": {
+      "filename": "core_diagram_factory.js",
+      "type": "JS",
+      "description": "Diagram renderer"
+    },
+    "reploid.core.cycle-steps": {
+      "filename": "core_cycle.txt",
+      "type": "TEXT",
+      "description": "Cycle step definitions"
+    }
+  }
+}

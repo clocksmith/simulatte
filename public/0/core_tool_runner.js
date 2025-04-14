@@ -1,4 +1,28 @@
-const ToolRunner = (() => {
+const ToolRunnerModule = (config, logger, Storage, StateManager) => {
+  if (!config || !logger || !Storage || !StateManager) {
+    console.error(
+      "ToolRunnerModule requires config, logger, Storage, and StateManager."
+    );
+    const log = logger || {
+      logEvent: (lvl, msg) =>
+        console[lvl === "error" ? "error" : "log"](
+          `[TOOLRUNNER FALLBACK] ${msg}`
+        ),
+    };
+    log.logEvent(
+      "error",
+      "ToolRunnerModule initialization failed: Missing dependencies."
+    );
+    return {
+      runTool: async (toolName) => {
+        throw new Error(`ToolRunner not initialized, cannot run ${toolName}`);
+      },
+    };
+  }
+
+  const DYNAMIC_TOOL_TIMEOUT_MS = config.DYNAMIC_TOOL_TIMEOUT_MS || 10000;
+  const LS_PREFIX = config.LS_PREFIX; // Needed for worker shim localStorage key construction
+
   function mapMcpTypeToGemini(mcpType) {
     switch (mcpType?.toLowerCase()) {
       case "string":
@@ -53,14 +77,7 @@ const ToolRunner = (() => {
     injectedStaticTools,
     injectedDynamicTools
   ) {
-    if (!window.LS || !window.StateManager) {
-      throw new Error(
-        "ToolRunner requires global LS (Storage) and StateManager."
-      );
-    }
-    const logger = window.Utils?.logger || console;
-
-    logger.logEvent("info", `Run tool: ${toolName}`);
+    logger.logEvent("info", `Run tool: ${toolName}`, toolArgs || {});
     const staticTool = injectedStaticTools.find((t) => t.name === toolName);
 
     if (staticTool) {
@@ -71,13 +88,13 @@ const ToolRunner = (() => {
         toolArgs.artifactId &&
         typeof toolArgs.cycle === "number"
       ) {
-        artifactContent = LS.getArtifactContent(
+        artifactContent = Storage.getArtifactContent(
           toolArgs.artifactId,
           toolArgs.cycle
         );
         artifactMetaData = StateManager.getArtifactMetadata(
           toolArgs.artifactId
-        ); // Assumes StateManager is global
+        );
         if (artifactContent === null) {
           throw new Error(
             `Artifact content not found for ${toolArgs.artifactId} cycle ${toolArgs.cycle}`
@@ -89,6 +106,7 @@ const ToolRunner = (() => {
         case "code_linter":
           const code = artifactContent;
           let hasError = false;
+          let errorMessage = "";
           try {
             if (toolArgs.language === "json") {
               JSON.parse(code);
@@ -98,6 +116,7 @@ const ToolRunner = (() => {
               !code.includes("</script>")
             ) {
               hasError = true;
+              errorMessage = "Potentially unclosed script tag.";
             } else if (
               toolArgs.language === "javascript" &&
               ((code.match(/{/g) || []).length !==
@@ -106,15 +125,16 @@ const ToolRunner = (() => {
                   (code.match(/\)/g) || []).length)
             ) {
               hasError = true;
+              errorMessage = "Mismatched braces or parentheses.";
             }
-            // Placeholder for more robust linting
           } catch (e) {
             hasError = true;
+            errorMessage = e.message;
           }
           return {
             result: `Basic lint ${hasError ? "failed" : "passed"} for ${
               toolArgs.language
-            }.`,
+            }.${hasError ? " Error: " + errorMessage : ""}`,
             linting_passed: !hasError,
           };
 
@@ -173,7 +193,9 @@ const ToolRunner = (() => {
           for (let i = 0; i < maxLen; i++) {
             if (linesA[i] !== linesB[i]) {
               diff.push(
-                `L${i + 1}: A='${linesA[i] || ""}' B='${linesB[i] || ""}'`
+                `L${i + 1}: A='${(linesA[i] || "").substring(0, 50)}' B='${(
+                  linesB[i] || ""
+                ).substring(0, 50)}'`
               );
               diffCount++;
             }
@@ -182,7 +204,7 @@ const ToolRunner = (() => {
             differences: diffCount,
             result: `Found ${diffCount} differing lines.`,
             details: diff.slice(0, 20),
-          }; // Limit details
+          };
 
         case "convert_to_gemini_fc":
           const mcpDef = toolArgs.mcpToolDefinition;
@@ -211,7 +233,7 @@ const ToolRunner = (() => {
 
         case "code_edit":
           const { artifactId, cycle, newContent } = toolArgs;
-          const originalContent = LS.getArtifactContent(artifactId, cycle);
+          const originalContent = Storage.getArtifactContent(artifactId, cycle);
           if (originalContent === null) {
             throw new Error(
               `Original artifact not found for ${artifactId} cycle ${cycle}`
@@ -221,21 +243,40 @@ const ToolRunner = (() => {
           let validationError = null;
           const meta = StateManager.getArtifactMetadata(artifactId);
 
-          if (meta.type === "JSON") {
+          if (meta && meta.type === "JSON") {
             try {
               JSON.parse(newContent);
             } catch (e) {
               isValid = false;
               validationError = `Invalid JSON: ${e.message}`;
             }
+          } else if (meta && meta.type === "JS") {
+            if (
+              (newContent.match(/{/g) || []).length !==
+                (newContent.match(/}/g) || []).length ||
+              (newContent.match(/\(/g) || []).length !==
+                (newContent.match(/\)/g) || []).length
+            ) {
+              isValid = false;
+              validationError =
+                "Mismatched braces or parentheses detected in JS.";
+            }
+          } else if (meta && meta.type === "HTML") {
+            if (
+              newContent.includes("<script") &&
+              !newContent.includes("</script>")
+            ) {
+              isValid = false;
+              validationError =
+                "Potentially unclosed script tag detected in HTML.";
+            }
           }
-          // Add other type-specific validations if needed
 
           return {
             success: isValid,
             validatedContent: isValid ? newContent : null,
             error: validationError,
-            originalContent: originalContent, // Return original for comparison if needed
+            originalContent: originalContent,
             artifactId: artifactId,
             cycle: cycle,
             contentChanged: newContent !== originalContent,
@@ -269,35 +310,40 @@ const ToolRunner = (() => {
       );
 
       return new Promise((resolve, reject) => {
+        // Worker code now uses LS_PREFIX passed via config
         const workerCode = `
+                const LS_PREFIX = "${LS_PREFIX}"; // Use prefix from config
+
+                self.LS_shim = {
+                   getArtifactContent: (id, cycle) => self.localStorage.getItem(\`\${LS_PREFIX}\${id}_\${cycle}\`),
+                };
+
+                self.StateManager_shim = {
+                    getArtifactMetadata: (id) => {
+                       console.warn('StateManager_shim.getArtifactMetadata called, but not fully implemented in worker.');
+                       return { id: id, type: 'UNKNOWN', latestCycle: -1};
+                    },
+                    getAllArtifactMetadata: () => {
+                         console.warn('StateManager_shim.getAllArtifactMetadata called, but not fully implemented in worker.');
+                         return {};
+                    }
+                };
+
                 self.onmessage = async (event) => {
                     const { toolCode, toolArgs } = event.data;
                     try {
                         const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-                        const func = new AsyncFunction('params', 'LS', 'StateManager', toolCode + '\\n\\nreturn await run(params);'); // Inject LS, StateManager
-                        const result = await func(toolArgs, self.LS_shim, self.StateManager_shim); // Pass shims
+                        // Inject shims into the dynamic function
+                        const func = new AsyncFunction('params', 'LS', 'StateManager', toolCode + '\\n\\nreturn await run(params);');
+                        const result = await func(toolArgs, self.LS_shim, self.StateManager_shim);
                         self.postMessage({ success: true, result: result });
                     } catch (e) {
-                        self.postMessage({ success: false, error: e.message });
+                         // Include stack trace if available
+                         const errorMsg = e.stack ? e.stack : e.message;
+                         self.postMessage({ success: false, error: errorMsg });
                     } finally {
                         self.close();
                     }
-                };
-
-                // Basic shims for read-only access if needed by tool code
-                self.LS_shim = {
-                   getArtifactContent: (id, cycle) => self.localStorage.getItem(\`_x0_\${id}_\${cycle}\`),
-                   // Add other LS functions if tools *absolutely* need them (use cautiously)
-                };
-                // Avoid passing full StateManager unless necessary and carefully implemented
-                self.StateManager_shim = {
-                    getArtifactMetadata: (id) => {
-                       // This would require passing the *entire* metadata object to the worker,
-                       // or making another async call back, which complicates things.
-                       // Best practice: If a dynamic tool needs metadata, it should be passed in 'toolArgs'.
-                       console.warn('StateManager_shim.getArtifactMetadata called, but not fully implemented in worker.');
-                       return { id: id, type: 'UNKNOWN', latestCycle: -1};
-                    },
                 };
             `;
         let worker = null;
@@ -310,13 +356,16 @@ const ToolRunner = (() => {
           workerUrl = URL.createObjectURL(blob);
           worker = new Worker(workerUrl);
           timeoutId = setTimeout(() => {
-            logger.logEvent("error", `Dynamic tool '${toolName}' timed out.`);
+            logger.logEvent(
+              "error",
+              `Dynamic tool '${toolName}' timed out after ${DYNAMIC_TOOL_TIMEOUT_MS}ms.`
+            );
             if (worker) worker.terminate();
             if (workerUrl) URL.revokeObjectURL(workerUrl);
             reject(
               new Error(`Dynamic tool '${toolName}' execution timed out.`)
             );
-          }, 10000);
+          }, DYNAMIC_TOOL_TIMEOUT_MS);
           worker.onmessage = (event) => {
             clearTimeout(timeoutId);
             if (event.data.success) {
@@ -324,7 +373,7 @@ const ToolRunner = (() => {
                 "info",
                 `Dynamic tool '${toolName}' execution succeeded.`
               );
-              resolve({ result: event.data.result, success: true });
+              resolve(event.data.result); // Resolve directly with the result
             } else {
               logger.logEvent(
                 "error",
@@ -342,7 +391,8 @@ const ToolRunner = (() => {
             clearTimeout(timeoutId);
             logger.logEvent(
               "error",
-              `Web Worker error for tool '${toolName}': ${error.message}`
+              `Web Worker error for tool '${toolName}': ${error.message}`,
+              error
             );
             reject(
               new Error(
@@ -378,5 +428,4 @@ const ToolRunner = (() => {
   return {
     runTool: runToolInternal,
   };
-})();
-window.ToolRunner = ToolRunner;
+};

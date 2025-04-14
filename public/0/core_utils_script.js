@@ -1,5 +1,5 @@
-const Utils = (() => {
-  const STATE_VERSION = "0.0.0";
+const UtilsModule = (() => {
+  const STATE_VERSION = "0.1.0";
   let logBuffer = `REPLOID Session Log - ${new Date().toISOString()}\n=========================================\n`;
   const MAX_LOG_LENGTH = 50000;
 
@@ -28,9 +28,13 @@ const Utils = (() => {
       }
       logBuffer += logLine + "\n";
       if (logBuffer.length > MAX_LOG_LENGTH) {
+        const logLines = logBuffer.split("\n");
+        const startIndex = Math.max(
+          0,
+          logLines.length - Math.floor((MAX_LOG_LENGTH * 0.8) / 80)
+        ); // Estimate lines
         logBuffer =
-          logBuffer.substring(logBuffer.length - MAX_LOG_LENGTH * 0.8) +
-          "\n... (log truncated) ...\n";
+          logLines.slice(startIndex).join("\n") + "\n... (log truncated) ...\n";
       }
     },
     getLogBuffer: () => logBuffer,
@@ -78,5 +82,3 @@ const Utils = (() => {
     getRandomInt,
   };
 })();
-
-window.Utils = Utils; // Attach to global scope
