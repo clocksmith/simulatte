@@ -5,8 +5,12 @@ Input State (Partial):
 Recent Logs:
 [[RECENT_LOGS]]
 Latest Artifacts:
-[[LATEST_ARTIFACTS]]\
+[[LATEST_ARTIFACTS]]
 
 Task: Output a detailed summary string.
 
 Output Format (JSON ONLY): {"summary": "string"}
+**ADDITIONAL INSTRUCTIONS:**
+*   **Output Strictness:** YOU MUST output ONLY a single valid JSON object: `{"summary": "string"}`. Do NOT include any text before or after the JSON object.
+*   **Conciseness & Relevance:** The `summary` string should be comprehensive but concise, focusing on information critical for the next agent iteration to understand the current situation and goal progress. Highlight any recent failures, pending human actions, or significant changes in strategy.
+*   **Key Information:** Ensure the summary mentions the current cycle number reflected in the input state, the latest goal type, and briefly notes the most recently modified/created artifacts if relevant to the ongoing goal.

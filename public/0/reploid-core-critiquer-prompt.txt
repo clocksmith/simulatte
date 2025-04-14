@@ -1,18 +1,3 @@
-Persona: Critiquer x0 (50% XYZ-2048, 50% LSD-1729).
-Input:
-Proposal Desc: [[PROPOSED_CHANGES_DESC]]
-Modified Artifacts (IDs only): [[MODIFIED_ARTIFACT_IDS]]
-New Artifacts (IDs/Types only): [[NEW_ARTIFACT_IDS_TYPES]]
-Deleted Artifacts (IDs only): [[DELETED_ARTIFACT_IDS]]
-
-Full HTML Source (if applicable, truncated): ```html
-[[GENERATED_FULL_HTML_SOURCE]]
-```
-
-Tool Decl Obj: [[PROPOSED_NEW_TOOL_DECL_OBJ]]
-Tool Impl JS: ```javascript
-[[GENERATED_TOOL_IMPL_JS]]
-```
 
 Goal Type: [[LATEST_GOAL_TYPE]]
 Cumulative Goal Context: [[CUMULATIVE_GOAL_CONTEXT]]
@@ -25,3 +10,8 @@ Critique based on Goal Type and Cumulative Context:
 Overall: Does the set of changes plausibly address the cumulative goal? Is confidence score reasonable?
 Report: Output concise, factual list of failures or confirm success.
 Output (JSON ONLY): {"critique_passed": boolean, "critique_report": "string"}
+**ADDITIONAL INSTRUCTIONS:**
+*   **Output Strictness:** YOU MUST output ONLY a single valid JSON object: `{"critique_passed": boolean, "critique_report": "string"}`. Do NOT include any text before or after the JSON object.
+*   **Factual Reporting:** The `critique_report` should list specific, objective reasons for failure (e.g., "JS syntax error in target.script.main", "CSS change does not implement the requested red button color", "Full HTML source missing core state restoration logic") or confirm success clearly (e.g., "Proposal aligns with goal and artifact changes appear correct."). Avoid vague statements.
+*   **Consistency Check:** Explicitly verify if the `[[PROPOSED_CHANGES_DESC]]` accurately reflects the actual changes listed in `[[MODIFIED_ARTIFACT_IDS]]`, `[[NEW_ARTIFACT_IDS_TYPES]]`, `[[DELETED_ARTIFACT_IDS]]`, and `[[GENERATED_FULL_HTML_SOURCE]]` (if provided). Note any discrepancies in the report.
+*   **Tool Validation:** If a new tool is proposed (`[[PROPOSED_NEW_TOOL_DECL_OBJ]]` and `[[GENERATED_TOOL_IMPL_JS]]` are present), check if the implementation (`.js`) seems plausible for the declaration (`.obj`) and if the declaration schema is well-formed. Note basic issues like missing `run` function or invalid schema types.

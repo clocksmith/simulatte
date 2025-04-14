@@ -1,7 +1,6 @@
 const StorageModule = (config, logger) => {
   if (!config || !logger) {
     console.error("StorageModule requires config and logger to be provided.");
-    // Fallback to console if logger isn't available, but this shouldn't happen in normal flow
     const log = logger || {
       logEvent: (lvl, msg) =>
         console[lvl === "error" ? "error" : "log"](`[STORAGE FALLBACK] ${msg}`),
@@ -10,7 +9,6 @@ const StorageModule = (config, logger) => {
       "error",
       "StorageModule initialization failed: Missing config or logger."
     );
-    // Return a dummy object to prevent immediate crashes elsewhere, but log the error
     return {
       LS_PREFIX: "_x0_",
       getArtifactKey: () => null,
@@ -32,16 +30,37 @@ const StorageModule = (config, logger) => {
       clearAllReploidData: () => {
         log.logEvent("error", "Cannot clear storage, module not initialized.");
       },
+      getStorageUsage: () => ({ used: 0, quota: 0, percent: 0 }),
     };
   }
 
   const LS_PREFIX = config.LS_PREFIX;
   const STATE_KEY_BASE = config.STATE_KEY_BASE;
   const SESSION_STATE_KEY_BASE = config.SESSION_STATE_KEY_BASE;
-  const MAX_ART_TKN_SZ = config.MAX_ARTIFACT_SIZE_BYTES;
+  const MAX_ART_TKN_SZ = config.MAX_ARTIFACT_SIZE_BYTES || 4 * 1024 * 1024;
   const STATE_VERSION_MAJOR = config.STATE_VERSION.split(".")[0];
   const stateKey = STATE_KEY_BASE + STATE_VERSION_MAJOR;
   const sessionStateKey = SESSION_STATE_KEY_BASE + STATE_VERSION_MAJOR;
+  const QUOTA_BYTES = 5 * 1024 * 1024;
+  const QUOTA_WARNING_THRESHOLD = 0.9;
+
+  const getStorageUsage = () => {
+    let totalBytes = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if ((key && key.startsWith(LS_PREFIX)) || key === stateKey) {
+          const value = localStorage.getItem(key);
+          totalBytes += (value?.length || 0) * 2;
+        }
+      }
+      const percent = QUOTA_BYTES > 0 ? (totalBytes / QUOTA_BYTES) * 100 : 0;
+      return { used: totalBytes, quota: QUOTA_BYTES, percent: percent };
+    } catch (e) {
+      logger.logEvent("error", "Failed to calculate storage usage", e);
+      return { used: -1, quota: QUOTA_BYTES, percent: -1 };
+    }
+  };
 
   const _get = (key) => {
     try {
@@ -53,17 +72,57 @@ const StorageModule = (config, logger) => {
   };
 
   const _set = (key, value) => {
-    if (value && typeof value === "string" && value.length > MAX_ART_TKN_SZ) {
-      const msg = `Artifact content exceeds size limit (${value.length} > ${MAX_ART_TKN_SZ}) for key: ${key}`;
+    if (
+      value &&
+      typeof value === "string" &&
+      value.length * 2 > MAX_ART_TKN_SZ
+    ) {
+      // Check size estimate
+      const msg = `Artifact content exceeds size limit (${
+        value.length * 2
+      } > ${MAX_ART_TKN_SZ} bytes) for key: ${key}`;
       logger.logEvent("error", msg);
       throw new Error(msg);
     }
+
+    const usage = getStorageUsage();
+    const estimatedNewSize = (value?.length || 0) * 2;
+    const currentItemSize = (_get(key)?.length || 0) * 2;
+    const estimatedUsageAfter = usage.used - currentItemSize + estimatedNewSize;
+
+    if (
+      usage.used >= 0 &&
+      estimatedUsageAfter / QUOTA_BYTES > QUOTA_WARNING_THRESHOLD
+    ) {
+      logger.logEvent(
+        "warn",
+        `LocalStorage usage high (${(
+          (estimatedUsageAfter / QUOTA_BYTES) *
+          100
+        ).toFixed(1)}%) after setting key: ${key}`
+      );
+    }
+
     try {
       localStorage.setItem(key, value);
       return true;
     } catch (e) {
-      logger.logEvent("error", `LocalStorage SET Error: ${key}`, e);
-      throw e;
+      let errorMessage = `LocalStorage SET Error: ${key}`;
+      if (
+        e.name === "QuotaExceededError" ||
+        (e.code && (e.code === 22 || e.code === 1014))
+      ) {
+        errorMessage = `LocalStorage Quota Exceeded while setting key: ${key}. Usage: ${(
+          usage.used /
+          1024 /
+          1024
+        ).toFixed(2)}MB / ${(QUOTA_BYTES / 1024 / 1024).toFixed(2)}MB.`;
+        logger.logEvent("error", errorMessage, e);
+        throw new Error(errorMessage);
+      } else {
+        logger.logEvent("error", errorMessage, e);
+        throw e;
+      }
     }
   };
 
@@ -101,12 +160,16 @@ const StorageModule = (config, logger) => {
   };
 
   const saveState = (stateObj) => {
-    return _set(stateKey, JSON.stringify(stateObj));
+    try {
+      return _set(stateKey, JSON.stringify(stateObj));
+    } catch (e) {
+      logger.logEvent("error", "Failed to save state due to storage error.", e);
+      // Potentially trigger UI notification here if needed
+      throw e; // Re-throw to allow caller to handle
+    }
   };
 
-  const removeState = () => {
-    return _remove(stateKey);
-  };
+  const removeState = () => _remove(stateKey);
 
   const getSessionState = () => {
     try {
@@ -114,7 +177,11 @@ const StorageModule = (config, logger) => {
       return json ? JSON.parse(json) : null;
     } catch (e) {
       logger.logEvent("error", `Failed to parse session state: ${e.message}`);
-      sessionStorage.removeItem(sessionStateKey);
+      try {
+        sessionStorage.removeItem(sessionStateKey);
+      } catch (e) {
+        /* Ignore remove error */
+      }
       return null;
     }
   };
@@ -125,6 +192,9 @@ const StorageModule = (config, logger) => {
       return true;
     } catch (e) {
       logger.logEvent("error", `SessionStorage SET Error: ${e.message}`);
+      if (e.name === "QuotaExceededError") {
+        throw new Error(`SessionStorage Quota Exceeded.`);
+      }
       throw e;
     }
   };
@@ -133,7 +203,7 @@ const StorageModule = (config, logger) => {
     try {
       sessionStorage.removeItem(sessionStateKey);
     } catch (e) {
-      logger.logEvent("error", `SessionStorage REMOVE Error: ${e.message}`);
+      logger.logEvent("warn", `SessionStorage REMOVE Error: ${e.message}`);
     }
   };
 
@@ -148,7 +218,7 @@ const StorageModule = (config, logger) => {
         }
       }
       keysToRemove.forEach((key) => _remove(key));
-      _remove(stateKey);
+      removeState();
       logger.logEvent(
         "info",
         `Removed ${keysToRemove.length} artifact/state keys from localStorage.`
@@ -180,5 +250,6 @@ const StorageModule = (config, logger) => {
     saveSessionState,
     removeSessionState,
     clearAllReploidData,
+    getStorageUsage,
   };
 };

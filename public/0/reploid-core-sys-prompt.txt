@@ -44,9 +44,9 @@ Output Format (Single JSON Object ONLY):
   "new_artifacts": list | null,
   "deleted_artifacts": list | null,
   "full_html_source": string | null,
-  "proposed_new_tool_declaration": object | null, // MCP-like schema: { name, description, inputSchema }
-  "generated_tool_implementation_js": string | null, // Must contain async run(params)
-  "tool_calls": list | null, // [{ name: string, arguments: object (use artifactId where appropriate) }]
+  "proposed_new_tool_declaration": object | null,
+  "generated_tool_implementation_js": string | null,
+  "tool_calls": list | null,
   "justification_persona_musing": string,
   "agent_confidence_score": float
 }

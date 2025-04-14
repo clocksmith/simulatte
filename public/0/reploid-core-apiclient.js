@@ -26,86 +26,111 @@ const ApiClientModule = (config, logger) => {
   const API_ENDPOINT_BASE =
     config.GEMINI_STREAM_ENDPOINT_BASE ||
     "https://generativelanguage.googleapis.com/v1beta/models/";
-  const RETRY_DELAY_BASE = config.API_RETRY_DELAY_BASE_MS || 1500;
+  const RETRY_DELAY_BASE_MS = config.API_RETRY_DELAY_BASE_MS || 1500;
+  const RETRY_DELAY_MAX_MS = 30000;
 
   const sanitizeLlmJsonResp = (rawText) => {
     if (!rawText || typeof rawText !== "string") return "{}";
-    let s = rawText.trim();
-    const codeBlockMatch = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch && codeBlockMatch[1]) {
-      s = codeBlockMatch[1].trim();
-    } else {
-      const firstBrace = s.indexOf("{");
-      const firstBracket = s.indexOf("[");
-      let start = -1;
-      if (firstBrace === -1 && firstBracket === -1) return "{}";
-      if (firstBrace === -1) start = firstBracket;
-      else if (firstBracket === -1) start = firstBrace;
-      else start = Math.min(firstBrace, firstBracket);
-      if (start === -1) return "{}";
-      s = s.substring(start);
-    }
-
-    let balance = 0;
-    let lastValidIndex = -1;
-    const startChar = s[0];
-    const endChar = startChar === "{" ? "}" : startChar === "[" ? "]" : null;
-    if (!endChar) return "{}";
-
-    let inString = false;
-    let escapeNext = false;
-
-    for (let i = 0; i < s.length; i++) {
-      const char = s[i];
-
-      if (inString) {
-        if (escapeNext) {
-          escapeNext = false;
-        } else if (char === "\\") {
-          escapeNext = true;
-        } else if (char === '"') {
-          inString = false;
-        }
-      } else {
-        if (char === '"') {
-          inString = true;
-        } else if (char === startChar) {
-          balance++;
-        } else if (char === endChar) {
-          balance--;
-        }
-      }
-
-      if (!inString && balance === 0) {
-        if (start === -1) start = i;
-        lastValidIndex = i;
-        break;
-      }
-    }
-
-    if (lastValidIndex !== -1) {
-      s = s.substring(0, lastValidIndex + 1);
-    } else {
-      // If balance never reached 0, it's likely truncated/invalid
-      logger.logEvent(
-        "warn",
-        "JSON sanitization failed: Unbalanced structure.",
-        s.substring(0, 50)
-      );
-      return "{}";
-    }
+    let text = rawText.trim();
+    let jsonString = null;
+    let method = "none";
 
     try {
-      JSON.parse(s);
-      return s;
-    } catch (e) {
-      logger.logEvent(
-        "warn",
-        `Sanitized JSON still invalid: ${e.message}`,
-        s.substring(0, 50) + "..."
-      );
-      return "{}";
+      JSON.parse(text);
+      jsonString = text;
+      method = "direct parse";
+    } catch (e1) {
+      const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch && codeBlockMatch[1]) {
+        text = codeBlockMatch[1].trim();
+        method = "code block";
+        try {
+          JSON.parse(text);
+          jsonString = text;
+        } catch (e2) {
+          // Code block content wasn't valid JSON, fall through to heuristic
+        }
+      }
+
+      if (!jsonString) {
+        const firstBrace = text.indexOf("{");
+        const firstBracket = text.indexOf("[");
+        let startIndex = -1;
+        if (firstBrace !== -1 && firstBracket !== -1) {
+          startIndex = Math.min(firstBrace, firstBracket);
+        } else if (firstBrace !== -1) {
+          startIndex = firstBrace;
+        } else {
+          startIndex = firstBracket;
+        }
+
+        if (startIndex !== -1) {
+          text = text.substring(startIndex);
+          const startChar = text[0];
+          const endChar = startChar === "{" ? "}" : "]";
+          let balance = 0;
+          let lastValidIndex = -1;
+          let inString = false;
+          let escapeNext = false;
+          method = "heuristic balance";
+
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (inString) {
+              if (escapeNext) {
+                escapeNext = false;
+              } else if (char === "\\") {
+                escapeNext = true;
+              } else if (char === '"') {
+                inString = false;
+              }
+            } else {
+              if (char === '"') {
+                inString = true;
+              } else if (char === startChar) {
+                balance++;
+              } else if (char === endChar) {
+                balance--;
+              }
+            }
+            if (!inString && balance === 0) {
+              lastValidIndex = i;
+              break;
+            }
+          }
+
+          if (lastValidIndex !== -1) {
+            text = text.substring(0, lastValidIndex + 1);
+            try {
+              JSON.parse(text);
+              jsonString = text;
+            } catch (e3) {
+              logger.logEvent(
+                "warn",
+                `JSON sanitization failed (heuristic parse): ${e3.message}`,
+                text.substring(0, 50) + "..."
+              );
+              method = "heuristic failed";
+              jsonString = null;
+            }
+          } else {
+            logger.logEvent(
+              "warn",
+              "JSON sanitization failed: Unbalanced structure after heuristic.",
+              text.substring(0, 50)
+            );
+            method = "heuristic unbalanced";
+            jsonString = null;
+          }
+        } else {
+          method = "no structure found";
+          jsonString = null;
+        }
+      }
     }
+
+    logger.logEvent("debug", `JSON sanitization method: ${method}`);
+    return jsonString || "{}";
   };
 
   const callGeminiAPIStream = async (
@@ -164,6 +189,8 @@ const ApiClientModule = (config, logger) => {
     let finalFinishReason = "UNKNOWN";
     let finalRawResponse = null;
     let lastReportedAccumulatedResult = null;
+    let responseStatus = 0;
+    let responseHeaders = {};
 
     try {
       const response = await fetch(`${apiEndpoint}?key=${apiKey}&alt=sse`, {
@@ -173,24 +200,33 @@ const ApiClientModule = (config, logger) => {
         signal: abortSignal,
       });
 
+      responseStatus = response.status;
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+
       if (!response.ok || !response.body) {
-        let errBodyText = "Unknown error structure";
+        let errBodyText = "(Failed to read error body)";
         try {
           errBodyText = await response.text();
         } catch (e) {
-          /* ignore read error */
+          /* ignore */
         }
         let errJson = {};
         try {
           errJson = JSON.parse(errBodyText);
         } catch (e) {
-          /* ignore parse error */
+          /* ignore */
         }
-        throw new Error(
-          `API Error (${response.status}): ${
-            errJson?.error?.message || response.statusText || errBodyText
-          }`
+        const errorMessage =
+          errJson?.error?.message || response.statusText || errBodyText;
+        const error = new Error(
+          `API Error (${response.status}): ${errorMessage}`
         );
+        error.status = response.status;
+        error.headers = responseHeaders;
+        error.body = errBodyText;
+        throw error;
       }
 
       if (progressCallback)
@@ -201,7 +237,11 @@ const ApiClientModule = (config, logger) => {
       let buffer = "";
 
       while (true) {
-        if (abortSignal?.aborted) throw new Error("Aborted");
+        if (abortSignal?.aborted) {
+          const abortError = new Error("Aborted");
+          abortError.name = "AbortError";
+          throw abortError;
+        }
         const { value, done } = await reader.read();
         if (done) break;
 
@@ -216,14 +256,20 @@ const ApiClientModule = (config, logger) => {
               finalRawResponse = chunk;
 
               if (chunk.promptFeedback?.blockReason) {
-                throw new Error(
+                const blockError = new Error(
                   `API Blocked: ${chunk.promptFeedback.blockReason}`
                 );
+                blockError.status = 400; // Indicate a client-side type error (prompt caused block)
+                blockError.reason = "PROMPT_BLOCK";
+                throw blockError;
               }
               if (chunk.error) {
-                throw new Error(
-                  `API Error: ${chunk.error.message || "Unknown"}`
+                const apiError = new Error(
+                  `API Error in chunk: ${chunk.error.message || "Unknown"}`
                 );
+                apiError.status = chunk.error.code || 500;
+                apiError.reason = "API_CHUNK_ERROR";
+                throw apiError;
               }
 
               const candidate = chunk.candidates?.[0];
@@ -238,7 +284,31 @@ const ApiClientModule = (config, logger) => {
                   finalFinishReason === "SAFETY" ||
                   candidate.finishReason === "SAFETY"
                 ) {
-                  throw new Error(`API Response Blocked: SAFETY`);
+                  const safetyError = new Error(`API Response Blocked: SAFETY`);
+                  safetyError.status = 400; // Indicate content generated was blocked
+                  safetyError.reason = "RESPONSE_BLOCK_SAFETY";
+                  throw safetyError;
+                }
+                if (
+                  finalFinishReason === "RECITATION" ||
+                  candidate.finishReason === "RECITATION"
+                ) {
+                  const recitationError = new Error(
+                    `API Response Blocked: RECITATION`
+                  );
+                  safetyError.status = 400;
+                  safetyError.reason = "RESPONSE_BLOCK_RECITATION";
+                  throw safetyError;
+                }
+                if (
+                  finalFinishReason === "OTHER" ||
+                  candidate.finishReason === "OTHER"
+                ) {
+                  logger.logEvent(
+                    "warn",
+                    `API response finished with reason OTHER.`,
+                    chunk
+                  );
                 }
 
                 const part = candidate.content?.parts?.[0];
@@ -258,27 +328,25 @@ const ApiClientModule = (config, logger) => {
                       args: {},
                     };
                   }
-                  // Deep merge args to handle potential object streaming
                   if (
                     typeof part.functionCall.args === "object" &&
                     part.functionCall.args !== null
                   ) {
-                    for (const key in part.functionCall.args) {
-                      if (
-                        typeof part.functionCall.args[key] === "object" &&
-                        accumulatedFunctionCall.args[key] &&
-                        typeof accumulatedFunctionCall.args[key] === "object"
-                      ) {
-                        Object.assign(
-                          accumulatedFunctionCall.args[key],
-                          part.functionCall.args[key]
-                        );
-                      } else {
-                        accumulatedFunctionCall.args[key] =
-                          part.functionCall.args[key];
-                      }
-                    }
+                    Object.assign(
+                      accumulatedFunctionCall.args,
+                      part.functionCall.args
+                    );
+                  } else if (
+                    part.functionCall.name &&
+                    !accumulatedFunctionCall.name
+                  ) {
+                    accumulatedFunctionCall.name = part.functionCall.name;
                   }
+                  logger.logEvent(
+                    "debug",
+                    `Received function call chunk: ${part.functionCall.name}`,
+                    part.functionCall.args
+                  );
                   progressUpdate = {
                     type: "functionCall",
                     content: part.functionCall,
@@ -299,6 +367,8 @@ const ApiClientModule = (config, logger) => {
                     tokenCount: totalTokens,
                     finishReason: finalFinishReason,
                     rawResp: finalRawResponse,
+                    status: responseStatus,
+                    headers: responseHeaders,
                   };
                   progressUpdate.accumulatedResult =
                     lastReportedAccumulatedResult;
@@ -311,12 +381,14 @@ const ApiClientModule = (config, logger) => {
                   content: `Tokens: ${totalTokens}`,
                 });
             } catch (e) {
-              // Don't throw here, just log, could be a single bad chunk
+              if (e.name === "AbortError") throw e;
               logger.logEvent(
                 "warn",
                 `Failed to parse/process SSE chunk: ${e.message}`,
                 line
               );
+              // Don't re-throw here unless it's a critical blocking error
+              if (e.reason?.includes("_BLOCK")) throw e;
             }
           }
         }
@@ -331,7 +403,6 @@ const ApiClientModule = (config, logger) => {
 
       if (lastReportedAccumulatedResult) return lastReportedAccumulatedResult;
 
-      // Construct final result if no progress was reported but stream finished
       const finalResultType = accumulatedFunctionCall
         ? "functionCall"
         : accumulatedText
@@ -345,20 +416,25 @@ const ApiClientModule = (config, logger) => {
         tokenCount: totalTokens,
         finishReason: finalFinishReason,
         rawResp: finalRawResponse,
+        status: responseStatus,
+        headers: responseHeaders,
       };
     } catch (error) {
-      // Don't log AbortError as an error, it's expected user action
-      if (error.message !== "Aborted" && error.name !== "AbortError") {
-        logger.logEvent("error", `API Stream Error: ${error.message}`, error);
+      if (error.name !== "AbortError") {
+        logger.logEvent("error", `API Stream Error: ${error.message}`, {
+          status: error.status,
+          reason: error.reason,
+          error,
+        });
       } else {
         logger.logEvent("info", "API call aborted by user or signal.");
       }
       if (progressCallback)
         progressCallback({
           type: "status",
-          content: error.message === "Aborted" ? "Aborted" : "Error",
+          content: error.name === "AbortError" ? "Aborted" : "Error",
         });
-      throw error; // Re-throw error after logging
+      throw error;
     }
   };
 
@@ -368,7 +444,7 @@ const ApiClientModule = (config, logger) => {
     modelName,
     apiKey,
     funcDecls = [],
-    isContinuation = false, // Renamed for clarity
+    isContinuation = false,
     prevContent = null,
     maxRetries = 1,
     updateStatusFn = () => {},
@@ -385,12 +461,16 @@ const ApiClientModule = (config, logger) => {
     }
     currentAbortController = new AbortController();
     let attempt = 0;
+    let currentDelay = RETRY_DELAY_BASE_MS;
 
     while (attempt <= maxRetries) {
       let logItem = null;
       try {
+        const attemptMsg =
+          attempt > 0 ? `[RETRY ${attempt}/${maxRetries}]` : "";
+        const statusMsg = `${attemptMsg} Calling Gemini (${modelName})...`;
         if (attempt === 0 && !isContinuation) {
-          updateStatusFn(`Calling Gemini (${modelName})...`, true);
+          updateStatusFn(statusMsg, true);
           logItem = logTimelineFn(
             `[API] Calling ${modelName}...`,
             "info",
@@ -398,10 +478,7 @@ const ApiClientModule = (config, logger) => {
             true
           );
         } else if (attempt > 0) {
-          updateStatusFn(
-            `Retrying Gemini (${modelName}) [${attempt}/${maxRetries}]...`,
-            true
-          );
+          updateStatusFn(statusMsg, true);
           logItem = logTimelineFn(
             `[API RETRY ${attempt}] Calling ${modelName}...`,
             "warn",
@@ -419,14 +496,12 @@ const ApiClientModule = (config, logger) => {
           prevContent,
           currentAbortController.signal,
           (progress) => {
-            // Pass merged progress handler
             if (
               progress.type === "status" &&
-              progress.content !== "Starting..." &&
-              progress.content !== "Receiving..." &&
-              progress.content !== "Done"
+              !["Starting...", "Receiving...", "Done"].includes(
+                progress.content
+              )
             ) {
-              // Update timeline item with status like token count
               if (logItem)
                 updateTimelineFn(
                   logItem,
@@ -435,7 +510,6 @@ const ApiClientModule = (config, logger) => {
                   false
                 );
             }
-            // Forward original progress object
             progressCallback(progress);
             if (
               progress.type === "status" &&
@@ -451,16 +525,17 @@ const ApiClientModule = (config, logger) => {
         if (logItem)
           updateTimelineFn(
             logItem,
-            `[API OK:${modelName}] Finish: ${result.finishReason}, Tokens: ${result.tokenCount}`,
+            `[API OK:${modelName}] Finish: ${result.finishReason}, Tokens: ${result.tokenCount}, Status: ${result.status}`,
             "info",
             true
           );
         if (!isContinuation) updateStatusFn("Processing...");
 
-        if (attempt === maxRetries || result) currentAbortController = null;
-        return result; // Success
+        currentAbortController = null;
+        return result;
       } catch (error) {
-        if (error.name === "AbortError" || error.message === "Aborted") {
+        const isAbort = error.name === "AbortError";
+        if (isAbort) {
           if (logItem)
             updateTimelineFn(
               logItem,
@@ -473,18 +548,22 @@ const ApiClientModule = (config, logger) => {
           throw error;
         }
 
+        const status = error.status || 0;
+        const reason = error.reason || "UNKNOWN_ERROR";
+        const errorMessage = error.message || "Unknown API error";
+
         logger.logEvent(
           "warn",
-          `API attempt ${attempt} failed: ${error.message}. Retries left: ${
+          `API attempt ${attempt} failed: ${errorMessage}. Status: ${status}, Reason: ${reason}. Retries left: ${
             maxRetries - attempt
           }`
         );
         if (logItem)
           updateTimelineFn(
             logItem,
-            `[API ERR ${attempt}:${modelName}] ${String(
-              error.message || "Unknown"
-            ).substring(0, 80)} (Retries left: ${maxRetries - attempt})`,
+            `[API ERR ${attempt}:${modelName}] ${status} ${reason} ${String(
+              errorMessage
+            ).substring(0, 50)} (Retries left: ${maxRetries - attempt})`,
             "error",
             true
           );
@@ -495,37 +574,95 @@ const ApiClientModule = (config, logger) => {
             "error",
             `API call failed after ${maxRetries} retries.`
           );
-          if (!isContinuation) updateStatusFn("API Failed", false, true);
-          currentAbortController = null; // Clear controller on final failure
-          throw error; // Throw final error
-        }
-
-        // Check if error is retryable
-        const isRetryable =
-          error.message.includes("API Error (5") ||
-          error.message.includes("NetworkError") ||
-          error.message.includes("Failed to fetch");
-        if (!isRetryable) {
-          logger.logEvent(
-            "error",
-            `API error deemed non-retryable: ${error.message}`
-          );
           if (!isContinuation)
-            updateStatusFn("API Failed (Non-retryable)", false, true);
+            updateStatusFn(`API Failed (${status} ${reason})`, false, true);
           currentAbortController = null;
+          error.finalAttempt = true; // Mark the error as the final one
           throw error;
         }
 
-        const delayMs = RETRY_DELAY_BASE * attempt;
+        // Retry logic based on status code
+        let shouldRetry = false;
+        let specificDelay = null;
+
+        if (status === 429) {
+          shouldRetry = true;
+          const retryAfterHeader = error.headers?.["retry-after"];
+          if (retryAfterHeader) {
+            const retrySeconds = parseInt(retryAfterHeader, 10);
+            if (!isNaN(retrySeconds)) {
+              specificDelay = Math.min(retrySeconds * 1000, RETRY_DELAY_MAX_MS);
+              logger.logEvent(
+                "info",
+                `API Rate limit hit (429). Retrying after specified ${retrySeconds}s.`
+              );
+            }
+          }
+          if (!specificDelay) {
+            logger.logEvent(
+              "info",
+              `API Rate limit hit (429). Retrying with exponential backoff.`
+            );
+          }
+        } else if (status >= 500 && status < 600) {
+          shouldRetry = true; // Retry on server errors
+          logger.logEvent(
+            "info",
+            `API server error (${status}). Retrying with exponential backoff.`
+          );
+        } else if (
+          reason === "PROMPT_BLOCK" ||
+          reason === "RESPONSE_BLOCK_SAFETY" ||
+          reason === "RESPONSE_BLOCK_RECITATION"
+        ) {
+          shouldRetry = false; // Don't retry content blocks
+          logger.logEvent(
+            "error",
+            `API error non-retryable (content block): ${reason}`
+          );
+        } else if (
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("NetworkError")
+        ) {
+          shouldRetry = true; // Retry network errors
+          logger.logEvent(
+            "info",
+            `API network error. Retrying with exponential backoff.`
+          );
+        } else {
+          // Consider other errors (e.g., 400 bad request unless block) non-retryable by default
+          shouldRetry = false;
+          logger.logEvent(
+            "error",
+            `API error deemed non-retryable: Status ${status}, Reason ${reason}, Msg: ${errorMessage}`
+          );
+        }
+
+        if (!shouldRetry) {
+          if (!isContinuation)
+            updateStatusFn(`API Failed (${status} Non-retryable)`, false, true);
+          currentAbortController = null;
+          error.finalAttempt = true;
+          throw error;
+        }
+
+        const delayMs = specificDelay !== null ? specificDelay : currentDelay;
         if (!isContinuation)
-          updateStatusFn(`API Error. Retrying in ${delayMs / 1000}s...`);
+          updateStatusFn(
+            `API Error (${status}). Retrying in ${Math.round(
+              delayMs / 1000
+            )}s...`
+          );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-        // If retrying, need to ensure prevContent reflects the *start* of this attempt sequence
-        // For now, assuming prevContent passed initially is static for the retry sequence
+        // Increase delay for next potential retry (exponential backoff)
+        currentDelay = Math.min(currentDelay * 2, RETRY_DELAY_MAX_MS);
       }
     }
-    throw new Error("callApiWithRetry reached end unexpectedly.");
+    // Should not be reached if loop logic is correct
+    const finalError = new Error("callApiWithRetry reached end unexpectedly.");
+    currentAbortController = null;
+    throw finalError;
   };
 
   const abortCurrentCall = () => {

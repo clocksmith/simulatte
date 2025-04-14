@@ -21,7 +21,6 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
   }
 
   const DYNAMIC_TOOL_TIMEOUT_MS = config.DYNAMIC_TOOL_TIMEOUT_MS || 10000;
-  const LS_PREFIX = config.LS_PREFIX; // Needed for worker shim localStorage key construction
 
   function mapMcpTypeToGemini(mcpType) {
     switch (mcpType?.toLowerCase()) {
@@ -38,6 +37,7 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
       case "object":
         return "OBJECT";
       default:
+        logger.logEvent("warn", `Unsupported MCP type encountered: ${mcpType}`);
         return "TYPE_UNSPECIFIED";
     }
   }
@@ -95,7 +95,7 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
         artifactMetaData = StateManager.getArtifactMetadata(
           toolArgs.artifactId
         );
-        if (artifactContent === null) {
+        if (artifactContent === null && toolName !== "list_artifacts") {
           throw new Error(
             `Artifact content not found for ${toolArgs.artifactId} cycle ${toolArgs.cycle}`
           );
@@ -110,22 +110,21 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
           try {
             if (toolArgs.language === "json") {
               JSON.parse(code);
-            } else if (
-              toolArgs.language === "html" &&
-              code.includes("<script") &&
-              !code.includes("</script>")
-            ) {
-              hasError = true;
-              errorMessage = "Potentially unclosed script tag.";
-            } else if (
-              toolArgs.language === "javascript" &&
-              ((code.match(/{/g) || []).length !==
-                (code.match(/}/g) || []).length ||
+            } else if (toolArgs.language === "html") {
+              if (code.includes("<script") && !code.includes("</script>")) {
+                hasError = true;
+                errorMessage = "Potentially unclosed script tag.";
+              }
+            } else if (toolArgs.language === "javascript") {
+              if (
+                (code.match(/{/g) || []).length !==
+                  (code.match(/}/g) || []).length ||
                 (code.match(/\(/g) || []).length !==
-                  (code.match(/\)/g) || []).length)
-            ) {
-              hasError = true;
-              errorMessage = "Mismatched braces or parentheses.";
+                  (code.match(/\)/g) || []).length
+              ) {
+                hasError = true;
+                errorMessage = "Mismatched braces or parentheses.";
+              }
             }
           } catch (e) {
             hasError = true;
@@ -136,6 +135,7 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
               toolArgs.language
             }.${hasError ? " Error: " + errorMessage : ""}`,
             linting_passed: !hasError,
+            error_message: hasError ? errorMessage : null,
           };
 
         case "json_validator":
@@ -143,7 +143,11 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
             JSON.parse(artifactContent);
             return { result: "JSON structure is valid.", valid: true };
           } catch (e) {
-            return { result: `JSON invalid: ${e.message}`, valid: false };
+            return {
+              result: `JSON invalid: ${e.message}`,
+              valid: false,
+              error: e.message,
+            };
           }
 
         case "read_artifact":
@@ -261,6 +265,7 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
               validationError =
                 "Mismatched braces or parentheses detected in JS.";
             }
+            // Future: Consider adding lightweight AST parse check via worker/library
           } else if (meta && meta.type === "HTML") {
             if (
               newContent.includes("<script") &&
@@ -270,6 +275,7 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
               validationError =
                 "Potentially unclosed script tag detected in HTML.";
             }
+            // Future: Consider adding basic tag balancing check
           }
 
           return {
@@ -310,42 +316,74 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
       );
 
       return new Promise((resolve, reject) => {
-        // Worker code now uses LS_PREFIX passed via config
         const workerCode = `
-                const LS_PREFIX = "${LS_PREFIX}"; // Use prefix from config
+          let messageCallbacks = {};
+          let messageIdCounter = 0;
 
-                self.LS_shim = {
-                   getArtifactContent: (id, cycle) => self.localStorage.getItem(\`\${LS_PREFIX}\${id}_\${cycle}\`),
-                };
+          self.onmessage = async (event) => {
+              const { type, payload, id, data, error } = event.data;
 
-                self.StateManager_shim = {
-                    getArtifactMetadata: (id) => {
-                       console.warn('StateManager_shim.getArtifactMetadata called, but not fully implemented in worker.');
-                       return { id: id, type: 'UNKNOWN', latestCycle: -1};
-                    },
-                    getAllArtifactMetadata: () => {
-                         console.warn('StateManager_shim.getAllArtifactMetadata called, but not fully implemented in worker.');
-                         return {};
-                    }
-                };
+              if (type === 'init') {
+                  const { toolCode, toolArgs } = payload;
+                  try {
+                      const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+                      const func = new AsyncFunction('params', 'LS', 'StateManager', toolCode + '\\n\\nreturn await run(params);');
+                      const result = await func(toolArgs, self.LS_shim, self.StateManager_shim);
+                      self.postMessage({ success: true, result: result });
+                  } catch (e) {
+                      const errorDetail = {
+                          message: e.message || 'Unknown worker execution error',
+                          stack: e.stack,
+                          name: e.name
+                      };
+                      self.postMessage({ success: false, error: errorDetail });
+                  } finally {
+                      self.close();
+                  }
+              } else if (type === 'response') {
+                  const callback = messageCallbacks[id];
+                  if (callback) {
+                      if (error) {
+                          callback.reject(new Error(error.message || 'Worker shim request failed'));
+                      } else {
+                          callback.resolve(data);
+                      }
+                      delete messageCallbacks[id];
+                  } else {
+                      console.warn('Worker received response for unknown message ID:', id);
+                  }
+              }
+          };
 
-                self.onmessage = async (event) => {
-                    const { toolCode, toolArgs } = event.data;
-                    try {
-                        const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-                        // Inject shims into the dynamic function
-                        const func = new AsyncFunction('params', 'LS', 'StateManager', toolCode + '\\n\\nreturn await run(params);');
-                        const result = await func(toolArgs, self.LS_shim, self.StateManager_shim);
-                        self.postMessage({ success: true, result: result });
-                    } catch (e) {
-                         // Include stack trace if available
-                         const errorMsg = e.stack ? e.stack : e.message;
-                         self.postMessage({ success: false, error: errorMsg });
-                    } finally {
-                        self.close();
-                    }
-                };
-            `;
+          function makeShimRequest(requestType, payload) {
+              return new Promise((resolve, reject) => {
+                  const id = messageIdCounter++;
+                  messageCallbacks[id] = { resolve, reject };
+                  self.postMessage({ type: 'request', id: id, requestType: requestType, payload: payload });
+              });
+          }
+
+          self.LS_shim = {
+              getArtifactContent: (id, cycle) => {
+                  if (typeof id !== 'string' || typeof cycle !== 'number') {
+                      return Promise.reject(new Error('Invalid arguments for getArtifactContent'));
+                  }
+                  return makeShimRequest('getArtifactContent', { id, cycle });
+              },
+          };
+
+          self.StateManager_shim = {
+              getArtifactMetadata: (id) => {
+                  if (typeof id !== 'string') {
+                      return Promise.reject(new Error('Invalid arguments for getArtifactMetadata'));
+                  }
+                  return makeShimRequest('getArtifactMetadata', { id });
+              },
+              getAllArtifactMetadata: () => {
+                  return makeShimRequest('getAllArtifactMetadata', {});
+              }
+          };
+        `;
         let worker = null;
         let timeoutId = null;
         let workerUrl = null;
@@ -355,55 +393,112 @@ const ToolRunnerModule = (config, logger, Storage, StateManager) => {
           });
           workerUrl = URL.createObjectURL(blob);
           worker = new Worker(workerUrl);
+
           timeoutId = setTimeout(() => {
-            logger.logEvent(
-              "error",
-              `Dynamic tool '${toolName}' timed out after ${DYNAMIC_TOOL_TIMEOUT_MS}ms.`
-            );
+            const errorMsg = `Dynamic tool '${toolName}' timed out after ${DYNAMIC_TOOL_TIMEOUT_MS}ms.`;
+            logger.logEvent("error", errorMsg);
             if (worker) worker.terminate();
             if (workerUrl) URL.revokeObjectURL(workerUrl);
             reject(
               new Error(`Dynamic tool '${toolName}' execution timed out.`)
             );
           }, DYNAMIC_TOOL_TIMEOUT_MS);
-          worker.onmessage = (event) => {
-            clearTimeout(timeoutId);
-            if (event.data.success) {
-              logger.logEvent(
-                "info",
-                `Dynamic tool '${toolName}' execution succeeded.`
-              );
-              resolve(event.data.result); // Resolve directly with the result
+
+          worker.onmessage = async (event) => {
+            const { type, success, result, error, id, requestType, payload } =
+              event.data;
+
+            if (type === "request") {
+              try {
+                let responseData = null;
+                let responseError = null;
+                switch (requestType) {
+                  case "getArtifactContent":
+                    responseData = Storage.getArtifactContent(
+                      payload.id,
+                      payload.cycle
+                    );
+                    break;
+                  case "getArtifactMetadata":
+                    responseData = StateManager.getArtifactMetadata(payload.id);
+                    break;
+                  case "getAllArtifactMetadata":
+                    responseData = StateManager.getAllArtifactMetadata();
+                    break;
+                  default:
+                    responseError = {
+                      message: `Unknown request type: ${requestType}`,
+                    };
+                    logger.logEvent(
+                      "warn",
+                      `Worker requested unknown type: ${requestType}`
+                    );
+                }
+                worker.postMessage({
+                  type: "response",
+                  id: id,
+                  data: responseData,
+                  error: responseError,
+                });
+              } catch (e) {
+                logger.logEvent(
+                  "error",
+                  `Error handling worker request ${requestType}: ${e.message}`
+                );
+                worker.postMessage({
+                  type: "response",
+                  id: id,
+                  data: null,
+                  error: {
+                    message: e.message || "Main thread error handling request",
+                  },
+                });
+              }
             } else {
-              logger.logEvent(
-                "error",
-                `Dynamic tool '${toolName}' execution failed in worker: ${event.data.error}`
-              );
-              reject(
-                new Error(
-                  `Dynamic tool '${toolName}' failed: ${event.data.error}`
-                )
-              );
+              clearTimeout(timeoutId);
+              if (success) {
+                logger.logEvent(
+                  "info",
+                  `Dynamic tool '${toolName}' execution succeeded.`
+                );
+                resolve(result);
+              } else {
+                const errorMsg = error?.message || "Unknown worker error";
+                const errorStack = error?.stack || "(No stack trace)";
+                logger.logEvent(
+                  "error",
+                  `Dynamic tool '${toolName}' execution failed in worker: ${errorMsg}\nStack: ${errorStack}`
+                );
+                reject(
+                  new Error(`Dynamic tool '${toolName}' failed: ${errorMsg}`)
+                );
+              }
+              if (workerUrl) URL.revokeObjectURL(workerUrl);
             }
-            if (workerUrl) URL.revokeObjectURL(workerUrl);
           };
+
           worker.onerror = (error) => {
             clearTimeout(timeoutId);
+            const errorMsg = error.message || "Unknown worker error";
             logger.logEvent(
               "error",
-              `Web Worker error for tool '${toolName}': ${error.message}`,
+              `Web Worker error for tool '${toolName}': ${errorMsg}`,
               error
             );
             reject(
               new Error(
-                `Worker error for dynamic tool '${toolName}': ${error.message}`
+                `Worker error for dynamic tool '${toolName}': ${errorMsg}`
               )
             );
             if (workerUrl) URL.revokeObjectURL(workerUrl);
           };
+
           worker.postMessage({
-            toolCode: dynamicTool.implementation,
-            toolArgs: toolArgs,
+            type: "init",
+            payload: {
+              toolCode: dynamicTool.implementation,
+              toolArgs: toolArgs,
+            },
           });
         } catch (e) {
           clearTimeout(timeoutId);

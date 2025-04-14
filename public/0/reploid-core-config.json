@@ -5,15 +5,15 @@
   "STATE_VERSION": "0.1.0",
   "MAX_ARTIFACT_SIZE_BYTES": 4194304,
   "MAX_LOG_LENGTH": 50000,
-  "CTX_WARN_THRESH": 925000,
+  "CTX_WARN_THRESH": 250000,
   "SVG_NS": "http://www.w3.org/2000/svg",
   "GEMINI_STREAM_ENDPOINT_BASE": "https://generativelanguage.googleapis.com/v1beta/models/",
   "API_RETRY_DELAY_BASE_MS": 1500,
   "DYNAMIC_TOOL_TIMEOUT_MS": 10000,
   "DEFAULT_MODELS": {
-    "BASE": "gemini-1.5-flash-latest",
-    "ADVANCED": "gemini-1.5-pro-latest",
-    "CRITIQUE": "gemini-1.5-flash-latest"
+    "BASE": "gemini-2.0-flash-thinking-exp-01-21",
+    "ADVANCED": "gemini-2.5-pro-exp-03-25",
+    "CRITIQUE": "gemini-2.0-flash-thinking-exp-01-21"
   },
   "DEFAULT_CFG": {
     "personaBalance": 50,
@@ -60,22 +60,22 @@
       "description": "Core storage functions"
     },
     "reploid.core.statemanager": {
-      "filename": "reploid.core.statemanager.js",
+      "filename": "reploid-core-statemanager.js",
       "type": "JS",
       "description": "Core state management logic"
     },
     "reploid.core.ui": {
-      "filename": "reploid.core.ui.js",
+      "filename": "reploid-core-ui.js",
       "type": "JS",
       "description": "Core UI rendering and event handling"
     },
     "reploid.core.apiclient": {
-      "filename": "reploid.core.apiclient.js",
+      "filename": "reploid-core-apiclient.js",
       "type": "JS",
       "description": "Handles API communication"
     },
     "reploid.core.cyclelogic": {
-      "filename": "reploid.core.cyclelogic.js",
+      "filename": "reploid-core-cyclelogic.js",
       "type": "JS",
       "description": "Main application cycle orchestration"
     },
