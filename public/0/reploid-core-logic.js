@@ -52,7 +52,7 @@ const REPLOID_CORE_Orchestrator = (
 
       // Load remaining modules, passing dependencies
       const ToolRunner = await loadModule(
-        "core_tool_runner.js",
+        "reploid-core-toolrunner.js",
         "ToolRunnerModule",
         { config, logger, Storage, StateManager: null }
       ); // StateManager not needed directly by ToolRunner init usually

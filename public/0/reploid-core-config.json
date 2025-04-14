@@ -30,32 +30,32 @@
   },
   "GENESIS_ARTIFACT_DEFS": {
     "reploid.core.config": {
-      "filename": "reploid.core.config.json",
+      "filename": "reploid-core-config.json",
       "type": "JSON_CONFIG",
       "description": "Central application configuration"
     },
     "reploid.core.logic": {
-      "filename": "core_reploid_script.js",
+      "filename": "reploid-core-logic.js",
       "type": "JS",
       "description": "Main application logic orchestrator"
     },
     "reploid.core.style": {
-      "filename": "core_reploid_style.css",
+      "filename": "reploid-core-style.css",
       "type": "CSS",
       "description": "Main application styles"
     },
     "reploid.core.body": {
-      "filename": "core_reploid_body.html",
+      "filename": "reploid-core-body.html",
       "type": "HTML",
       "description": "App root HTML structure"
     },
     "reploid.core.utils": {
-      "filename": "core_utils_script.js",
+      "filename": "reploid-core-utils.js",
       "type": "JS",
       "description": "Core utility functions"
     },
     "reploid.core.storage": {
-      "filename": "core_storage_script.js",
+      "filename": "reploid-core-storage.js",
       "type": "JS",
       "description": "Core storage functions"
     },
@@ -80,42 +80,42 @@
       "description": "Main application cycle orchestration"
     },
     "reploid.core.sys-prompt": {
-      "filename": "core_prompt_x0.txt",
+      "filename": "reploid-core-sys-prompt.txt",
       "type": "PROMPT",
       "description": "Core LLM prompt"
     },
     "reploid.core.critiquer-prompt": {
-      "filename": "core_prompt_critiquer.txt",
+      "filename": "reploid-core-critiquer-prompt.txt",
       "type": "PROMPT",
       "description": "Critique prompt"
     },
     "reploid.core.summarizer-prompt": {
-      "filename": "core_prompt_summarizer.txt",
+      "filename": "reploid-core-summarizer-prompt.txt",
       "type": "PROMPT",
       "description": "Summarization prompt"
     },
     "reploid.core.static-tools": {
-      "filename": "core_static_tools.json",
+      "filename": "reploid-core-static-tools.json",
       "type": "JSON",
       "description": "Static tool definitions"
     },
     "reploid.core.toolrunner": {
-      "filename": "core_tool_runner.js",
+      "filename": "reploid-core-toolrunner.js",
       "type": "JS",
       "description": "Tool execution worker"
     },
     "reploid.core.diagram": {
-      "filename": "core_diagram.json",
+      "filename": "reploid-core-diagram.json",
       "type": "JSON",
       "description": "Default diagram"
     },
     "reploid.core.diagram-factory": {
-      "filename": "core_diagram_factory.js",
+      "filename": "reploid-core-diagram-factory.js",
       "type": "JS",
       "description": "Diagram renderer"
     },
     "reploid.core.cycle-steps": {
-      "filename": "core_cycle.txt",
+      "filename": "reploid-core-cycle-steps.txt",
       "type": "TEXT",
       "description": "Cycle step definitions"
     }
