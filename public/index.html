@@ -99,34 +99,35 @@
         top: 16px;
         right: 16px;
         left: auto;
-        width: 270px;
-        background: rgba(0, 0, 0, 0.3);
+        width: 320px;
+        background: rgba(0, 0, 0, 0.4);
         padding: 12px 16px;
         box-sizing: border-box;
         z-index: 100;
         display: flex;
         flex-direction: column;
         gap: 16px;
-        border: 1px solid #444;
+        border: 1px solid #555;
         border-radius: 4px;
       }
       .mode-selector {
         display: flex;
-        justify-content: space-around;
-        border: 1px solid #555;
+        justify-content: center;
+        border: 1px solid #0a0;
         border-radius: 4px;
         overflow: hidden;
       }
-      .mode-selector label {
+      .controls .mode-selector label {
         flex-grow: 1;
         text-align: center;
         padding: 5px 0;
-        font-size: 11px;
+        font-size: 12px;
         cursor: pointer;
-        background-color: #222;
-        color: #aaa;
+        background-color: #111;
+        color: #ccc;
         transition: background-color 0.2s, color 0.2s;
         user-select: none;
+        justify-content: center;
       }
       .mode-selector input[type="radio"] {
         display: none;
@@ -137,7 +138,7 @@
         font-weight: bold;
       }
       .mode-selector label:not(:last-child) {
-        border-right: 1px solid #555;
+        border-right: 1px solid #0a0;
       }
       .control-row {
         display: flex;
@@ -161,10 +162,11 @@
         justify-content: flex-end;
       }
       .controls label > span:first-child {
-        margin-right: auto; /* Push label text to left */
+        margin-right: auto;
+        flex-shrink: 0;
       }
       .controls input[type="range"] {
-        width: 80px;
+        width: 100px;
         height: 6px;
         vertical-align: middle;
         cursor: pointer;
@@ -174,6 +176,8 @@
         appearance: none;
         -webkit-appearance: none;
         outline: none;
+        flex-grow: 1;
+        min-width: 50px;
       }
       .controls input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none;
@@ -199,6 +203,7 @@
         color: #fff;
         font-size: 12px;
         font-weight: bold;
+        flex-shrink: 0;
       }
     </style>
   </head>
@@ -232,26 +237,25 @@
           checked
         />
         <label for="mode-network">Network</label>
-        <input type="radio" name="mode" id="mode-starfield" value="starfield" />
-        <label for="mode-starfield">Starfield</label>
-        <input type="radio" name="mode" id="mode-vortex" value="vortex" />
-        <label for="mode-vortex">Vortex</label>
+        <input type="radio" name="mode" id="mode-space" value="space" />
+        <label for="mode-space">Space</label>
       </div>
 
-      <div class="control-row" data-mode="network">
+      <div class="control-row" data-mode="network space">
         <label>
           <span>Particles:</span>
           <input
             type="range"
             id="num-particles"
             min="10"
-            max="200"
+            max="1000"
             value="64"
             step="1"
           />
           <span class="value-display" id="num-particles-value">64</span>
         </label>
       </div>
+
       <div class="control-row" data-mode="network">
         <label>
           <span>Connect Dist:</span>
@@ -309,63 +313,63 @@
         </label>
       </div>
 
-      <div class="control-row" data-mode="starfield vortex">
+      <div class="control-row" data-mode="space">
         <label>
-          <span>Particles:</span>
+          <span>Space Speed:</span>
           <input
             type="range"
-            id="num-stars"
-            min="50"
-            max="1000"
-            value="300"
-            step="10"
-          />
-          <span class="value-display" id="num-stars-value">300</span>
-        </label>
-      </div>
-      <div class="control-row" data-mode="starfield">
-        <label>
-          <span>Warp Speed:</span>
-          <input
-            type="range"
-            id="warp-speed"
-            min="0.1"
-            max="5"
-            value="0.5"
-            step="0.1"
-          />
-          <span class="value-display" id="warp-speed-value">0.5</span>
-        </label>
-      </div>
-      <div class="control-row" data-mode="vortex">
-        <label>
-          <span>Vortex Speed:</span>
-          <input
-            type="range"
-            id="vortex-speed"
+            id="space-speed"
             min="0.1"
             max="5"
             value="0.8"
             step="0.1"
           />
-          <span class="value-display" id="vortex-speed-value">0.8</span>
+          <span class="value-display" id="space-speed-value">0.8</span>
         </label>
       </div>
-      <div class="control-row" data-mode="vortex">
+      <div class="control-row" data-mode="space">
         <label>
-          <span>Vortex Spin:</span>
+          <span>Spin Strength:</span>
           <input
             type="range"
-            id="vortex-strength"
-            min="0.001"
+            id="spin-strength"
+            min="0"
             max="0.05"
             value="0.01"
             step="0.001"
           />
-          <span class="value-display" id="vortex-strength-value">0.010</span>
+          <span class="value-display" id="spin-strength-value">0.010</span>
         </label>
       </div>
-      <div class="control-row" data-mode="starfield vortex">
+      <div class="control-row" data-mode="space">
+        <label>
+          <span>Stretch Amt:</span>
+          <input
+            type="range"
+            id="stretch-amount"
+            min="0"
+            max="1.0"
+            value="0.0"
+            step="0.01"
+          />
+          <span class="value-display" id="stretch-amount-value">0.00</span>
+        </label>
+      </div>
+      <div class="control-row" data-mode="space">
+        <label>
+          <span>Emit Radius:</span>
+          <input
+            type="range"
+            id="emanation-radius"
+            min="0"
+            max="100"
+            value="30"
+            step="1"
+          />
+          <span class="value-display" id="emanation-radius-value">30</span>
+        </label>
+      </div>
+      <div class="control-row" data-mode="space">
         <label>
           <span>Twinkle:</span>
           <input
@@ -396,19 +400,19 @@
 
       let config = {
         mode: "network",
-        numParticlesNetwork: 64,
+        numParticles: 64,
         maxLineDist: 100,
         connectionDensity: 0.1,
         vertexSpeed: 0.5,
         lineLifetime: 5000,
-        numParticlesStarfield: 300,
-        warpSpeed: 0.5,
-        vortexSpeed: 0.8,
-        vortexStrength: 0.01,
+        spaceSpeed: 0.8,
+        spinStrength: 0.01,
+        stretchAmount: 0.0,
+        emanationRadius: 30,
         twinkleIntensity: 0.8,
         minStarSize: 0.5,
         maxStarSize: 2.5,
-        stretchFactorBase: 0.1,
+        stretchFactorBase: 0.15,
       };
 
       function random(min, max) {
@@ -426,13 +430,19 @@
         particleContainer.style.height = `${height}px`;
         particles.forEach((p) => {
           if (
-            currentMode !== "network" &&
+            currentMode === "space" &&
             (p.x > width + 150 ||
               p.y > height + 150 ||
               p.x < -150 ||
               p.y < -150)
           ) {
-            resetParticleForStarfield(p);
+            resetParticleForSpace(p);
+          } else if (
+            currentMode === "network" &&
+            (p.x > width || p.y > height || p.x < 0 || p.y < 0)
+          ) {
+            p.x = Math.max(0, Math.min(width, p.x));
+            p.y = Math.max(0, Math.min(height, p.y));
           }
         });
       }
@@ -472,13 +482,15 @@
 
       function initializeParticleState(particle, mode) {
         particle.id = nextParticleId++;
-        particle.x = random(0, width);
-        particle.y = random(0, height);
         particle.opacity = 0;
         particle.targetOpacity = mode === "network" ? 1 : random(0.4, 1);
-        particle.el = createParticleElement(mode);
+        if (!particle.el) {
+          particle.el = createParticleElement(mode);
+        }
 
         if (mode === "network") {
+          particle.x = random(0, width);
+          particle.y = random(0, height);
           const angle = random(0, Math.PI * 2);
           const speed = random(
             0.1 * config.vertexSpeed,
@@ -486,22 +498,35 @@
           );
           particle.vx = Math.cos(angle) * speed;
           particle.vy = Math.sin(angle) * speed;
+          particle.z = undefined;
         } else {
-          const centerBias = 30;
-          particle.x = width / 2 + random(-centerBias, centerBias);
-          particle.y = height / 2 + random(-centerBias, centerBias);
+          const angle = random(0, Math.PI * 2);
+          const radius = config.emanationRadius;
+          particle.x = width / 2 + Math.cos(angle) * radius;
+          particle.y = height / 2 + Math.sin(angle) * radius;
           particle.z = random(0.1, 1);
+          particle.vx = undefined;
+          particle.vy = undefined;
+          if (particle.el && particle.el.tagName === "DIV") {
+            const size = random(config.minStarSize, config.maxStarSize);
+            particle.el.style.width = `${size}px`;
+            particle.el.style.height = `${size}px`;
+            particle.el.dataset.size = size;
+            updateParticleTwinkle(particle);
+          }
         }
+        if (particle.el) particle.el.style.opacity = particle.opacity;
       }
 
-      function resetParticleForStarfield(particle) {
-        const centerBias = 30;
-        particle.x = width / 2 + random(-centerBias, centerBias);
-        particle.y = height / 2 + random(-centerBias, centerBias);
+      function resetParticleForSpace(particle) {
+        const angle = random(0, Math.PI * 2);
+        const radius = config.emanationRadius;
+        particle.x = width / 2 + Math.cos(angle) * radius;
+        particle.y = height / 2 + Math.sin(angle) * radius;
         particle.z = random(0.1, 1);
         particle.targetOpacity = random(0.4, 1);
         particle.opacity = 0;
-        if (particle.el) {
+        if (particle.el && particle.el.tagName === "DIV") {
           particle.el.style.opacity = 0;
           const size = random(config.minStarSize, config.maxStarSize);
           particle.el.style.width = `${size}px`;
@@ -565,63 +590,15 @@
         }
       }
 
-      function updateParticleStarfield(particle) {
-        const centerX = width / 2;
-        const centerY = height / 2;
-        let dx = particle.x - centerX;
-        let dy = particle.y - centerY;
-        const distFromCenter = Math.sqrt(dx * dx + dy * dy) || 1;
-        const speed = (1 / particle.z) * config.warpSpeed * 4;
-        const moveX = (dx / distFromCenter) * speed;
-        const moveY = (dy / distFromCenter) * speed;
-
-        particle.x += moveX;
-        particle.y += moveY;
-
-        if (particle.opacity < particle.targetOpacity) {
-          particle.opacity = Math.min(
-            particle.targetOpacity,
-            particle.opacity + 0.05
-          );
-        }
-
-        const size = parseFloat(particle.el.dataset.size) || 1;
-        particle.el.style.left = `${particle.x - size / 2}px`;
-        particle.el.style.top = `${particle.y - size / 2}px`;
-
-        updateParticleTwinkle(particle);
-
-        if (config.twinkleIntensity === 0) {
-          const speedMag = Math.sqrt(moveX * moveX + moveY * moveY);
-          const stretchFactor =
-            1 + speedMag * config.stretchFactorBase * config.warpSpeed;
-          const angleRad = Math.atan2(moveY, moveX);
-          particle.el.style.transform = `rotate(${angleRad}rad) scaleX(${stretchFactor.toFixed(
-            3
-          )})`;
-          particle.el.style.opacity = particle.opacity;
-        }
-
-        const border = 150;
-        if (
-          particle.x < -border ||
-          particle.x > width + border ||
-          particle.y < -border ||
-          particle.y > height + border
-        ) {
-          resetParticleForStarfield(particle);
-        }
-      }
-
-      function updateParticleVortex(particle) {
+      function updateParticleSpace(particle) {
         const centerX = width / 2;
         const centerY = height / 2;
         let dx = particle.x - centerX;
         let dy = particle.y - centerY;
         const distFromCenter = Math.sqrt(dx * dx + dy * dy);
-        const baseRadialSpeed = (1 / particle.z) * config.vortexSpeed * 4;
+        const baseRadialSpeed = (1 / particle.z) * config.spaceSpeed * 4;
         const angle = Math.atan2(dy, dx);
-        const angularSpeed = config.vortexStrength * 50;
+        const angularSpeed = config.spinStrength * 50;
 
         const newAngle = angle + angularSpeed * 0.016; // Approx delta time
         const radialMoveDist = baseRadialSpeed;
@@ -651,9 +628,18 @@
 
         if (config.twinkleIntensity === 0) {
           const speedMag = Math.sqrt(moveX * moveX + moveY * moveY);
+          const baseStretch =
+            1 + speedMag * config.stretchFactorBase * config.spaceSpeed;
+          const stretchRandomness = random(0.8, 1.2); // Random factor +/- 20%
           const stretchFactor =
-            1 + speedMag * config.stretchFactorBase * config.vortexSpeed;
+            config.stretchAmount === 0
+              ? 1
+              : Math.max(
+                  1,
+                  baseStretch * config.stretchAmount * stretchRandomness
+                );
           const angleRad = Math.atan2(moveY, moveX);
+
           particle.el.style.transform = `rotate(${angleRad}rad) scaleX(${stretchFactor.toFixed(
             3
           )})`;
@@ -667,7 +653,7 @@
           particle.y < -border ||
           particle.y > height + border
         ) {
-          resetParticleForStarfield(particle);
+          resetParticleForSpace(particle);
         }
       }
 
@@ -768,10 +754,7 @@
       }
 
       function manageParticles() {
-        const targetCount =
-          currentMode === "network"
-            ? config.numParticlesNetwork
-            : config.numParticlesStarfield;
+        const targetCount = config.numParticles;
 
         while (particles.length < targetCount) {
           const newParticle = {};
@@ -794,6 +777,9 @@
 
         if (currentMode === "network") {
           particles.forEach((p) => {
+            if (p.vx === undefined || p.vy === undefined) {
+              initializeParticleState(p, "network"); // Re-init if switching back
+            }
             const speedMagnitude = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
             const desiredSpeed = random(
               0.1 * config.vertexSpeed,
@@ -810,7 +796,12 @@
             }
           });
         } else {
-          particles.forEach(updateParticleTwinkle);
+          particles.forEach((p) => {
+            if (p.z === undefined) {
+              initializeParticleState(p, "space"); // Re-init if switching back
+            }
+            updateParticleTwinkle(p);
+          });
         }
       }
 
@@ -821,16 +812,13 @@
         if (currentMode === "network") {
           particles.forEach((p) => updateParticleNetwork(p));
           updateLines(now);
-        } else if (currentMode === "starfield") {
-          particles.forEach((p) => updateParticleStarfield(p));
-        } else if (currentMode === "vortex") {
-          particles.forEach((p) => updateParticleVortex(p));
+        } else if (currentMode === "space") {
+          particles.forEach((p) => updateParticleSpace(p));
         }
       }
 
       function setMode(newMode) {
         if (newMode === currentMode) return;
-        const previousMode = currentMode;
         currentMode = newMode;
         config.mode = newMode;
 
@@ -870,10 +858,10 @@
       function setupControls() {
         const controlsMap = {
           "num-particles": {
-            key: "numParticlesNetwork",
+            key: "numParticles",
             valueId: "num-particles-value",
             callback: manageParticles,
-            mode: "network",
+            mode: "network space",
           },
           "max-line-dist": {
             key: "maxLineDist",
@@ -890,7 +878,6 @@
             key: "vertexSpeed",
             valueId: "vertex-speed-value",
             fixed: 1,
-            callback: manageParticles,
             mode: "network",
           },
           "line-life": {
@@ -899,36 +886,35 @@
             multiplier: 1000,
             mode: "network",
           },
-          "num-stars": {
-            key: "numParticlesStarfield",
-            valueId: "num-stars-value",
-            callback: manageParticles,
-            mode: "starfield vortex",
-          },
-          "warp-speed": {
-            key: "warpSpeed",
-            valueId: "warp-speed-value",
+          "space-speed": {
+            key: "spaceSpeed",
+            valueId: "space-speed-value",
             fixed: 1,
-            mode: "starfield",
+            mode: "space",
           },
-          "vortex-speed": {
-            key: "vortexSpeed",
-            valueId: "vortex-speed-value",
-            fixed: 1,
-            mode: "vortex",
-          },
-          "vortex-strength": {
-            key: "vortexStrength",
-            valueId: "vortex-strength-value",
+          "spin-strength": {
+            key: "spinStrength",
+            valueId: "spin-strength-value",
             fixed: 3,
-            mode: "vortex",
+            mode: "space",
+          },
+          "stretch-amount": {
+            key: "stretchAmount",
+            valueId: "stretch-amount-value",
+            fixed: 2,
+            mode: "space",
+          },
+          "emanation-radius": {
+            key: "emanationRadius",
+            valueId: "emanation-radius-value",
+            mode: "space",
           },
           "twinkle-intensity": {
             key: "twinkleIntensity",
             valueId: "twinkle-intensity-value",
             fixed: 2,
             callback: manageParticles,
-            mode: "starfield vortex",
+            mode: "space",
           },
         };
 
@@ -960,7 +946,13 @@
                 control.fixed !== undefined
                   ? value.toFixed(control.fixed)
                   : value;
-            if (control.callback) control.callback();
+
+            if (id === "num-particles") {
+              config.numParticles = parseInt(value);
+              if (control.callback) control.callback();
+            } else if (control.callback) {
+              control.callback();
+            }
           });
         });
 
@@ -977,7 +969,11 @@
         setupControls();
         resizeHandler();
         setMode(config.mode);
+        manageParticles();
         updateControlVisibility();
+        if (!animationId) {
+          animationId = requestAnimationFrame(animate);
+        }
       }
 
       init();
