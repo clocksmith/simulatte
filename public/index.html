@@ -69,7 +69,8 @@
       }
       #particle-container circle {
         fill: rgba(255, 255, 255, 0.8);
-        transition: opacity 0.5s ease-out, r 0.1s linear;
+        transition: opacity 0.5s ease-out, r 0.1s linear, cx 0.1s linear,
+          cy 0.1s linear;
         transform-origin: center center;
       }
       .particle-div {
@@ -223,7 +224,7 @@
       <br />
       <br />
       <p>
-        <sub>some</sub>d<sup>emos</sup>\
+        <sub>some</sub>d<sup>emos</sup>
         <a href="/4">d<sup>4</sup></a>
         <a href="/2">d<sup>2</sup></a>
         <a href="/0">d<sup>0</sup></a>
@@ -278,13 +279,13 @@
           <span>Density:</span>
           <input
             type="range"
-            id="connection-density"
+            id="conn-density"
             min="0.01"
             max="0.5"
             value="0.1"
             step="0.01"
           />
-          <span class="value-display" id="connection-density-value">0.10</span>
+          <span class="value-display" id="conn-density-value">0.10</span>
         </label>
       </div>
       <div class="control-row" data-mode="network">
@@ -292,13 +293,13 @@
           <span>Net Speed:</span>
           <input
             type="range"
-            id="vertex-speed"
+            id="net-speed"
             min="0.1"
             max="2.0"
             value="0.5"
             step="0.1"
           />
-          <span class="value-display" id="vertex-speed-value">0.5</span>
+          <span class="value-display" id="net-speed-value">0.5</span>
         </label>
       </div>
       <div class="control-row" data-mode="network">
@@ -306,13 +307,13 @@
           <span>Net Twinkle:</span>
           <input
             type="range"
-            id="network-twinkle"
+            id="net-twinkle"
             min="0"
             max="1"
             value="0.0"
             step="0.05"
           />
-          <span class="value-display" id="network-twinkle-value">0.00</span>
+          <span class="value-display" id="net-twinkle-value">0.00</span>
         </label>
       </div>
       <div class="control-row" data-mode="network">
@@ -349,13 +350,13 @@
           <span>Spin Strength:</span>
           <input
             type="range"
-            id="spin-strength"
+            id="spin"
             min="0"
             max="0.05"
             value="0.01"
             step="0.001"
           />
-          <span class="value-display" id="spin-strength-value">0.010</span>
+          <span class="value-display" id="spin-value">0.010</span>
         </label>
       </div>
       <div class="control-row" data-mode="space">
@@ -363,13 +364,13 @@
           <span>Stretch Amt:</span>
           <input
             type="range"
-            id="stretch-amount"
+            id="stretch"
             min="0"
             max="1.0"
             value="0.0"
             step="0.01"
           />
-          <span class="value-display" id="stretch-amount-value">0.00</span>
+          <span class="value-display" id="stretch-value">0.00</span>
         </label>
       </div>
       <div class="control-row" data-mode="space">
@@ -377,13 +378,13 @@
           <span>Emit Radius:</span>
           <input
             type="range"
-            id="emanation-radius"
+            id="emit-radius"
             min="0"
             max="100"
             value="30"
             step="1"
           />
-          <span class="value-display" id="emanation-radius-value">30</span>
+          <span class="value-display" id="emit-radius-value">30</span>
         </label>
       </div>
       <div class="control-row" data-mode="space">
@@ -391,254 +392,215 @@
           <span>Space Twinkle:</span>
           <input
             type="range"
-            id="twinkle-intensity"
+            id="space-twinkle"
             min="0"
             max="1"
             value="0.8"
             step="0.05"
           />
-          <span class="value-display" id="twinkle-intensity-value">0.80</span>
+          <span class="value-display" id="space-twinkle-value">0.80</span>
         </label>
       </div>
     </div>
 
     <script>
       const svgNS = "http://www.w3.org/2000/svg";
-      const particleContainer = document.getElementById("particle-container");
-      const networkSvg = document.getElementById("network-svg");
+      const pCont = document.getElementById("particle-container");
+      const netSvg = document.getElementById("network-svg");
 
       let particles = [];
       let lines = [];
-      let width = window.innerWidth;
-      let height = window.innerHeight;
-      let animationId;
-      let nextParticleId = 0;
-      let currentMode = "network";
+      let w = window.innerWidth;
+      let h = window.innerHeight;
+      let animId;
+      let nextPId = 0;
+      let mode = "network";
       let transitioningTo = null;
-      let transitionStartTime = 0;
-      const transitionDuration = 2000;
+      let transStartT = 0;
+      const transDur = 2000;
+      const PI = Math.PI;
 
-      let config = {
+      let cfg = {
         mode: "network",
         numParticles: 64,
         maxLineDist: 100,
-        connectionDensity: 0.1,
-        vertexSpeed: 0.5,
-        networkTwinkle: 0.0,
-        lineLifetime: 5000,
+        connDensity: 0.1,
+        netSpeed: 0.5,
+        netTwinkle: 0.0,
+        lineLife: 5000,
         spaceSpeed: 0.8,
-        spinStrength: 0.01,
-        stretchAmount: 0.0,
-        emanationRadius: 30,
-        spaceTwinkleIntensity: 0.8,
+        spin: 0.01,
+        stretch: 0.0,
+        emitRadius: 30,
+        spaceTwinkle: 0.8,
         minStarSize: 0.5,
         maxStarSize: 2.5,
         stretchFactorBase: 0.15,
         baseCircleRadius: 1.2,
       };
 
-      function random(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-      function randomInt(min, max) {
-        return Math.floor(random(min, max + 1));
-      }
+      function rnd(min, max) { return Math.random() * (max - min) + min; }
+      function rndInt(min, max) { return Math.floor(rnd(min, max + 1)); }
 
-      function resizeHandler() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        networkSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-        particleContainer.style.width = `${width}px`;
-        particleContainer.style.height = `${height}px`;
+      function onResize() {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        netSvg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+        pCont.style.width = `${w}px`;
+        pCont.style.height = `${h}px`;
         particles.forEach((p) => {
-          if (
-            (currentMode === "space" || transitioningTo === "space") &&
-            (p.x > width + 150 ||
-              p.y > height + 150 ||
-              p.x < -150 ||
-              p.y < -150)
-          ) {
-            resetParticleForSpace(p);
-          } else if (
-            (currentMode === "network" || transitioningTo === "network") &&
-            (p.x > width || p.y > height || p.x < 0 || p.y < 0)
-          ) {
-            p.x = Math.max(0, Math.min(width, p.x));
-            p.y = Math.max(0, Math.min(height, p.y));
-            if (p.vx !== undefined) {
-              if (p.x <= 0 || p.x >= width) p.vx *= -1;
-              if (p.y <= 0 || p.y >= height) p.vy *= -1;
-            }
+          const stableMode = transitioningTo || mode;
+          if ( (stableMode === "space") &&
+            (p.x > w + 150 || p.y > h + 150 || p.x < -150 || p.y < -150)) {
+            resetPForSpace(p);
+          } else if ( (stableMode === 'network') && (p.x > w || p.y > h || p.x < 0 || p.y < 0)) {
+             p.x = Math.max(0, Math.min(w, p.x));
+             p.y = Math.max(0, Math.min(h, p.y));
+             if (p.vx !== undefined) {
+                 if (p.x <= 0 || p.x >= w) p.vx *= -1;
+                 if (p.y <= 0 || p.y >= h) p.vy *= -1;
+             }
           }
         });
       }
-      window.addEventListener("resize", resizeHandler);
+      window.addEventListener("resize", onResize);
 
-      function createParticleElement(type) {
-        if (type === "circle") {
-          const el = document.createElementNS(svgNS, "circle");
-          el.setAttribute("r", config.baseCircleRadius);
-          el.style.opacity = 0;
-          networkSvg.appendChild(el);
-          return el;
-        } else {
-          // div
-          const el = document.createElement("div");
-          el.classList.add("particle-div");
-          const size = random(config.minStarSize, config.maxStarSize);
-          el.style.width = `${size}px`;
-          el.style.height = `${size}px`;
-          el.dataset.size = size;
-          el.style.opacity = 0;
-          particleContainer.appendChild(el);
-          return el;
-        }
-      }
-
-      function ensureElement(particle, type) {
-        if (
-          !particle.el ||
-          (type === "circle" && particle.el.tagName !== "circle") ||
-          (type === "div" && particle.el.tagName !== "DIV")
-        ) {
-          if (particle.el && particle.el.parentNode) {
-            particle.el.remove();
+      function createPElement(type) {
+          if (type === 'circle') {
+              const el = document.createElementNS(svgNS, "circle");
+              el.setAttribute("r", cfg.baseCircleRadius);
+              el.style.opacity = 0;
+              netSvg.appendChild(el);
+              return el;
+          } else {
+              const el = document.createElement("div");
+              el.classList.add("particle-div");
+              const size = rnd(cfg.minStarSize, cfg.maxStarSize);
+              el.style.width = `${size}px`;
+              el.style.height = `${size}px`;
+              el.dataset.size = size;
+              el.style.opacity = 0;
+              pCont.appendChild(el);
+              return el;
           }
-          particle.el = createParticleElement(type);
-        }
-        return particle.el;
       }
 
-      function initializeParticleState(particle, mode) {
-        particle.id = particle.id ?? nextParticleId++;
-        particle.transitionProgress = 0;
-        particle.mode = mode;
-
-        const isNetwork = mode === "network";
-        ensureElement(particle, isNetwork ? "circle" : "div");
-
-        particle.targetOpacity = isNetwork ? 1 : random(0.4, 1);
-
-        if (isNetwork) {
-          particle.x = particle.x ?? random(0, width);
-          particle.y = particle.y ?? random(0, height);
-          const angle = random(0, Math.PI * 2);
-          const speed = random(
-            0.1 * config.vertexSpeed,
-            1.0 * config.vertexSpeed
-          );
-          particle.vx = Math.cos(angle) * speed;
-          particle.vy = Math.sin(angle) * speed;
-          particle.z = undefined;
-          particle.twinklePhase = random(0, PI * 2);
-        } else {
-          const angle = random(0, Math.PI * 2);
-          const radius =
-            config.emanationRadius === 0
-              ? random(0, 5)
-              : config.emanationRadius;
-          particle.x = particle.x ?? width / 2 + Math.cos(angle) * radius;
-          particle.y = particle.y ?? height / 2 + Math.sin(angle) * radius;
-          particle.z = particle.z ?? random(0.1, 1);
-          particle.vx = undefined;
-          particle.vy = undefined;
-          if (particle.el && particle.el.tagName === "DIV") {
-            const size =
-              parseFloat(particle.el.dataset.size) ||
-              random(config.minStarSize, config.maxStarSize);
-            particle.el.style.width = `${size}px`;
-            particle.el.style.height = `${size}px`;
-            particle.el.dataset.size = size;
-            updateParticleTwinkle(particle);
+      function ensureElement(p, type) {
+          const currentType = (p.el && p.el.tagName === 'circle') ? 'circle' : 'div';
+          if (!p.el || type !== currentType) {
+              if (p.el && p.el.parentNode) p.el.remove();
+              p.el = createPElement(type);
+              p.el.style.opacity = p.opacity !== undefined ? p.opacity.toFixed(3) : '0';
           }
-        }
-        particle.opacity = particle.opacity ?? 0;
-        if (particle.el) particle.el.style.opacity = particle.opacity;
+          return p.el;
       }
 
-      function resetParticleForSpace(particle) {
-        const angle = random(0, Math.PI * 2);
-        const radius =
-          config.emanationRadius === 0 ? random(0, 5) : config.emanationRadius;
-        particle.x = width / 2 + Math.cos(angle) * radius;
-        particle.y = height / 2 + Math.sin(angle) * radius;
-        particle.z = random(0.1, 1);
-        particle.targetOpacity = random(0.4, 1);
-        particle.opacity = 0;
-        if (particle.el && particle.el.tagName === "DIV") {
-          particle.el.style.opacity = 0;
-          const size = random(config.minStarSize, config.maxStarSize);
-          particle.el.style.width = `${size}px`;
-          particle.el.style.height = `${size}px`;
-          particle.el.dataset.size = size;
-          particle.el.style.transform = `rotate(0deg) scaleX(1)`;
-          updateParticleTwinkle(particle);
-        }
-      }
+      function initPState(p, targetMode) {
+        p.id = p.id ?? nextPId++;
+        p.mode = targetMode;
+        p.targetOpacity = targetMode === 'network' ? 1 : rnd(0.4, 1);
 
-      function updateParticleNetwork(particle, now) {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        if (particle.x <= 0 || particle.x >= width) particle.vx *= -1;
-        if (particle.y <= 0 || particle.y >= height) particle.vy *= -1;
-        particle.x = Math.max(0, Math.min(width, particle.x));
-        particle.y = Math.max(0, Math.min(height, particle.y));
-
-        if (particle.opacity < particle.targetOpacity)
-          particle.opacity = Math.min(
-            particle.targetOpacity,
-            particle.opacity + 0.05
-          );
-        else if (particle.opacity > particle.targetOpacity)
-          particle.opacity = Math.max(
-            particle.targetOpacity,
-            particle.opacity - 0.05
-          );
-
-        ensureElement(particle, "circle");
-        particle.el.setAttribute("cx", particle.x);
-        particle.el.setAttribute("cy", particle.y);
-
-        if (config.networkTwinkle > 0) {
-          const twinkleAmount = config.networkTwinkle;
-          particle.twinklePhase += 0.05 + random(0, 0.05);
-          const baseOpacity = particle.opacity * (0.6 + twinkleAmount * 0.4);
-          const phaseOpacity = Math.sin(particle.twinklePhase) * 0.5 + 0.5;
-          const finalOpacity =
-            baseOpacity * (1.0 - twinkleAmount) +
-            baseOpacity * twinkleAmount * phaseOpacity;
-          particle.el.style.opacity = finalOpacity.toFixed(3);
-
-          const baseRadius = config.baseCircleRadius;
-          const scaleFactor = 1.0 + (phaseOpacity - 0.5) * 0.4 * twinkleAmount;
-          particle.el.setAttribute("r", (baseRadius * scaleFactor).toFixed(2));
+        if (!p.el) {
+            p.el = createPElement(targetMode === 'network' ? 'circle' : 'div');
+            p.opacity = 0;
         } else {
-          particle.el.style.opacity = particle.opacity.toFixed(3);
-          particle.el.setAttribute("r", config.baseCircleRadius);
+            ensureElement(p, targetMode === 'network' ? 'circle' : 'div');
+        }
+
+        if (targetMode === 'network') {
+            p.x = p.x ?? rnd(0, w);
+            p.y = p.y ?? rnd(0, h);
+            const angle = rnd(0, PI * 2);
+            const speed = rnd(0.1 * cfg.netSpeed, 1.0 * cfg.netSpeed);
+            p.vx = p.vx ?? (Math.cos(angle) * speed);
+            p.vy = p.vy ?? (Math.sin(angle) * speed);
+            p.z = undefined;
+            p.twinklePhase = p.twinklePhase ?? rnd(0, PI * 2);
+        } else {
+            const angle = rnd(0, PI * 2);
+            const radius = cfg.emitRadius === 0 ? rnd(0, 5) : parseFloat(cfg.emitRadius);
+            p.x = p.x ?? (w / 2 + Math.cos(angle) * radius);
+            p.y = p.y ?? (h / 2 + Math.sin(angle) * radius);
+            p.z = p.z ?? rnd(0.1, 1);
+            p.vx = undefined;
+            p.vy = undefined;
+            if (p.el && p.el.tagName === 'DIV') {
+                const size = parseFloat(p.el.dataset.size) || rnd(cfg.minStarSize, cfg.maxStarSize);
+                p.el.style.width = `${size}px`;
+                p.el.style.height = `${size}px`;
+                p.el.dataset.size = size;
+                updatePTwinkle(p);
+            }
+        }
+        p.opacity = p.opacity ?? 0;
+      }
+
+      function resetPForSpace(p) {
+          const angle = rnd(0, PI * 2);
+          const radius = cfg.emitRadius === 0 ? rnd(0, 5) : parseFloat(cfg.emitRadius);
+          p.x = w / 2 + Math.cos(angle) * radius;
+          p.y = h / 2 + Math.sin(angle) * radius;
+          p.z = rnd(0.1, 1);
+          p.targetOpacity = rnd(0.4, 1);
+          p.opacity = 0;
+          if (p.el && p.el.tagName === 'DIV') {
+            p.el.style.opacity = 0;
+            const size = rnd(cfg.minStarSize, cfg.maxStarSize);
+            p.el.style.width = `${size}px`;
+            p.el.style.height = `${size}px`;
+            p.el.dataset.size = size;
+            p.el.style.transform = `rotate(0deg) scaleX(1)`;
+            updatePTwinkle(p);
+          }
+      }
+
+      function updatePNetwork(p, now) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x <= 0 || p.x >= w) p.vx *= -1;
+        if (p.y <= 0 || p.y >= h) p.vy *= -1;
+        p.x = Math.max(0, Math.min(w, p.x));
+        p.y = Math.max(0, Math.min(h, p.y));
+
+        if (p.opacity < p.targetOpacity) p.opacity = Math.min( p.targetOpacity, p.opacity + 0.05 );
+        else if (p.opacity > p.targetOpacity) p.opacity = Math.max( p.targetOpacity, p.opacity - 0.05 );
+
+        ensureElement(p, 'circle');
+        p.el.setAttribute("cx", p.x);
+        p.el.setAttribute("cy", p.y);
+
+        if (cfg.netTwinkle > 0) {
+             const tAmt = cfg.netTwinkle;
+             p.twinklePhase += 0.05 + rnd(0, 0.05);
+             const baseOp = p.opacity * (0.6 + tAmt * 0.4);
+             const phaseVal = Math.sin(p.twinklePhase) * 0.5 + 0.5;
+             const finalOp = baseOp * (1.0 - tAmt) + baseOp * tAmt * phaseVal;
+             p.el.style.opacity = finalOp.toFixed(3);
+
+             const baseR = cfg.baseCircleRadius;
+             const scaleF = 1.0 + (phaseVal - 0.5) * 0.4 * tAmt;
+             p.el.setAttribute("r", (baseR * scaleF).toFixed(2));
+        } else {
+             p.el.style.opacity = p.opacity.toFixed(3);
+             p.el.setAttribute("r", cfg.baseCircleRadius);
         }
       }
 
-      function updateParticleTwinkle(particle) {
-        if (!particle.el || particle.el.tagName === "circle") return;
-        const intensity = config.spaceTwinkleIntensity;
-        const el = particle.el;
+      function updatePTwinkle(p) {
+        if (!p.el || p.el.tagName === "circle") return;
+        const intensity = cfg.spaceTwinkle;
+        const el = p.el;
 
         if (intensity > 0) {
-          if (!el.classList.contains("twinkle")) {
-            el.classList.add("twinkle");
-          }
+          if (!el.classList.contains("twinkle")) el.classList.add("twinkle");
           const duration = 2 + (1 - intensity) * 4;
-          const minOpacity = 0.1 + intensity * 0.2;
-          const maxOpacity = 0.6 + intensity * 0.4;
-          el.style.animationDuration = `${random(
-            duration * 0.8,
-            duration * 1.2
-          ).toFixed(2)}s`;
-          el.style.setProperty("--twinkle-min-opacity", minOpacity.toFixed(2));
-          el.style.setProperty("--twinkle-max-opacity", maxOpacity.toFixed(2));
+          const minOp = 0.1 + intensity * 0.2;
+          const maxOp = 0.6 + intensity * 0.4;
+          el.style.animationDuration = `${rnd(duration*0.8, duration*1.2).toFixed(2)}s`;
+          el.style.setProperty("--twinkle-min-opacity", minOp.toFixed(2));
+          el.style.setProperty("--twinkle-max-opacity", maxOp.toFixed(2));
           el.style.animationPlayState = "running";
           el.style.opacity = "";
-          el.style.transform = "";
         } else {
           if (el.classList.contains("twinkle")) {
             el.classList.remove("twinkle");
@@ -647,126 +609,107 @@
         }
       }
 
-      function updateParticleSpace(particle, now) {
-        const centerX = width / 2;
-        const centerY = height / 2;
-        let dx = particle.x - centerX;
-        let dy = particle.y - centerY;
-        const distFromCenter = Math.sqrt(dx * dx + dy * dy);
-        const baseRadialSpeed = (1 / particle.z) * config.spaceSpeed * 4;
+      function updatePSpace(p, now) {
+        const cx = w / 2;
+        const cy = h / 2;
+        let dx = p.x - cx;
+        let dy = p.y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const radialSpeed = (1 / p.z) * cfg.spaceSpeed * 4;
         const angle = Math.atan2(dy, dx);
-        const angularSpeed = config.spinStrength * 50;
+        const angularSpeed = cfg.spin * 50;
 
         const newAngle = angle + angularSpeed * 0.016;
-        const radialMoveDist = baseRadialSpeed;
-        const nextX =
-          centerX + (distFromCenter + radialMoveDist) * Math.cos(newAngle);
-        const nextY =
-          centerY + (distFromCenter + radialMoveDist) * Math.sin(newAngle);
+        const radialMove = radialSpeed;
+        const nextX = cx + (dist + radialMove) * Math.cos(newAngle);
+        const nextY = cy + (dist + radialMove) * Math.sin(newAngle);
 
-        const moveX = nextX - particle.x;
-        const moveY = nextY - particle.y;
+        const moveX = nextX - p.x;
+        const moveY = nextY - p.y;
 
-        particle.x = nextX;
-        particle.y = nextY;
+        p.x = nextX;
+        p.y = nextY;
 
-        if (particle.opacity < particle.targetOpacity) {
-          particle.opacity = Math.min(
-            particle.targetOpacity,
-            particle.opacity + 0.05
-          );
-        }
+        if (p.opacity < p.targetOpacity) p.opacity = Math.min( p.targetOpacity, p.opacity + 0.05 );
 
-        ensureElement(particle, "div");
-        const size = parseFloat(particle.el.dataset.size) || 1;
-        particle.el.style.left = `${particle.x - size / 2}px`;
-        particle.el.style.top = `${particle.y - size / 2}px`;
+        ensureElement(p, 'div');
+        const size = parseFloat(p.el.dataset.size) || 1;
+        p.el.style.left = `${p.x - size / 2}px`;
+        p.el.style.top = `${p.y - size / 2}px`;
 
-        updateParticleTwinkle(particle);
+        updatePTwinkle(p);
 
-        if (config.spaceTwinkleIntensity === 0) {
-          const speedMag = Math.sqrt(moveX * moveX + moveY * moveY);
-          const baseStretch =
-            1 + speedMag * config.stretchFactorBase * config.spaceSpeed;
-          const stretchRandomness = random(0.8, 1.2);
-          const stretchFactor =
-            config.stretchAmount === 0
-              ? 1
-              : Math.max(
-                  1,
-                  baseStretch * config.stretchAmount * stretchRandomness
-                );
-          const angleRad = Math.atan2(moveY, moveX);
-
-          particle.el.style.transform = `rotate(${angleRad}rad) scaleX(${stretchFactor.toFixed(
-            3
-          )})`;
-          particle.el.style.opacity = particle.opacity.toFixed(3);
+        if (cfg.spaceTwinkle === 0) {
+            const speedMag = Math.sqrt(moveX * moveX + moveY * moveY);
+            const baseStretch = 1 + speedMag * cfg.stretchFactorBase * cfg.spaceSpeed;
+            const stretchRnd = rnd(0.8, 1.2);
+            const stretchF = cfg.stretch === 0 ? 1 : Math.max(1, baseStretch * cfg.stretch * stretchRnd);
+            const angleRad = Math.atan2(moveY, moveX);
+            p.el.style.transform = `rotate(${angleRad}rad) scaleX(${stretchF.toFixed(3)})`;
+            p.el.style.opacity = p.opacity.toFixed(3);
+        } else if (!p.el.classList.contains('twinkle')) {
+             p.el.style.transform = 'rotate(0deg) scaleX(1)';
         }
 
         const border = 150;
-        if (
-          particle.x < -border ||
-          particle.x > width + border ||
-          particle.y < -border ||
-          particle.y > height + border
-        ) {
-          resetParticleForSpace(particle);
+        if ( p.x < -border || p.x > w + border || p.y < -border || p.y > h + border ) {
+          resetPForSpace(p);
         }
       }
 
-      function updateParticleTransition(particle, now, progress) {
-        const easedProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-        const targetMode = transitioningTo;
-        const sourceMode = targetMode === "network" ? "space" : "network";
+      function updatePTransition(p, now, progress) {
+           const easedP = 0.5 - 0.5 * Math.cos(progress * PI);
+           const targetM = transitioningTo;
 
-        ensureElement(particle, targetMode === "network" ? "circle" : "div");
+           let startX = p.startX;
+           let startY = p.startY;
+           let targetX, targetY;
+           let targetOp = p.targetOpacity;
 
-        let targetX, targetY;
-        if (targetMode === "network") {
-          targetX = particle.x + particle.vx * (1.0 - easedProgress);
-          targetY = particle.y + particle.vy * (1.0 - easedProgress);
-        } else {
-          const centerX = width / 2;
-          const centerY = height / 2;
-          const angle = Math.atan2(particle.y - centerY, particle.x - centerX);
-          const radius =
-            config.emanationRadius === 0
-              ? random(0, 5)
-              : config.emanationRadius;
-          const startX = centerX + Math.cos(angle) * radius;
-          const startY = centerY + Math.sin(angle) * radius;
-          targetX = particle.x * (1.0 - easedProgress) + startX * easedProgress;
-          targetY = particle.y * (1.0 - easedProgress) + startY * easedProgress;
-        }
+           ensureElement(p, targetM === 'network' ? 'circle' : 'div');
 
-        particle.x = targetX;
-        particle.y = targetY;
-        particle.opacity = particle.targetOpacity * easedProgress;
+           if (targetM === 'network') {
+                targetX = p.networkX ?? startX;
+                targetY = p.networkY ?? startY;
+                targetOp = 1;
+           } else {
+                const angle = p.spaceAngle ?? Math.atan2(startY - h/2, startX - w/2) || rnd(0, PI * 2);
+                const radius = cfg.emitRadius === 0 ? rnd(0, 5) : parseFloat(cfg.emitRadius);
+                targetX = w / 2 + Math.cos(angle) * radius;
+                targetY = h / 2 + Math.sin(angle) * radius;
+                targetOp = p.spaceTargetOpacity ?? rnd(0.4, 1);
+           }
 
-        if (particle.el) {
-          if (particle.el.tagName === "circle") {
-            particle.el.setAttribute("cx", particle.x);
-            particle.el.setAttribute("cy", particle.y);
-            particle.el.style.opacity = particle.opacity.toFixed(3);
-          } else {
-            const size = parseFloat(particle.el.dataset.size) || 1;
-            particle.el.style.left = `${particle.x - size / 2}px`;
-            particle.el.style.top = `${particle.y - size / 2}px`;
-            particle.el.style.opacity = particle.opacity.toFixed(3);
-            particle.el.style.transform = "";
-            if (particle.el.classList.contains("twinkle")) {
-              particle.el.style.animation = "none";
-              particle.el.classList.remove("twinkle");
-            }
-          }
-        }
+           p.x = startX * (1.0 - easedP) + targetX * easedP;
+           p.y = startY * (1.0 - easedP) + targetY * easedP;
+           p.opacity = p.startOpacity * (1.0 - easedP) + targetOp * easedP;
+
+
+           if (p.el) {
+               p.el.style.opacity = p.opacity.toFixed(3);
+               if (p.el.tagName === 'circle') {
+                   p.el.setAttribute("cx", p.x);
+                   p.el.setAttribute("cy", p.y);
+                   p.el.setAttribute("r", cfg.baseCircleRadius);
+               } else {
+                   const size = parseFloat(p.el.dataset.size) || 1;
+                   p.el.style.left = `${p.x - size / 2}px`;
+                   p.el.style.top = `${p.y - size / 2}px`;
+                   p.el.style.transform = `scale(${0.5 + easedP * 0.5})`;
+                   if (p.el.classList.contains('twinkle')) {
+                        p.el.style.animationPlayState = 'paused';
+                        p.el.style.animation = 'none';
+                        p.el.classList.remove('twinkle');
+                   }
+               }
+           }
       }
+
 
       function calculateEffectiveMaxLineDist() {
-        const referenceDimension = 800;
-        const currentDimension = Math.sqrt(width * height);
-        return config.maxLineDist * (currentDimension / referenceDimension);
+        const refDim = 800;
+        const currDim = Math.sqrt(w * h);
+        return cfg.maxLineDist * (currDim / refDim);
       }
 
       function createLine(p1, p2) {
@@ -776,89 +719,70 @@
         line.setAttribute("x2", p2.x);
         line.setAttribute("y2", p2.y);
         line.style.opacity = 0;
-        networkSvg.appendChild(line);
+        netSvg.appendChild(line);
         return {
-          el: line,
-          p1,
-          p2,
-          opacity: 0,
-          targetOpacity: 0.6,
+          el: line, p1, p2,
+          opacity: 0, targetOpacity: 0.6,
           born: performance.now(),
-          maxLifetime: config.lineLifetime + random(-500, 500),
+          maxLifetime: cfg.lineLife + rnd(-500, 500),
         };
       }
 
-      function updateLines(now, transitionProgress = 1) {
-        const visibleParticles = particles.filter((p) => p.opacity > 0.1);
-        const existingLineKeys = new Set(
-          lines.map(
-            (l) => `${Math.min(l.p1.id, l.p2.id)}-${Math.max(l.p1.id, l.p2.id)}`
-          )
-        );
-        const effectiveMaxDist = calculateEffectiveMaxLineDist();
+      function updateLines(now, transProgress = 1) {
+        const isTargetNet = (transitioningTo === 'network') || (!transitioningTo && mode === 'network');
+        const lineTargetOpBase = isTargetNet ? 0.5 : 0;
+        const effectiveP = isTargetNet ? transProgress : (1 - transProgress);
 
-        if (transitionProgress === 1) {
-          for (let i = 0; i < visibleParticles.length; i++) {
-            for (let j = i + 1; j < visibleParticles.length; j++) {
-              const p1 = visibleParticles[i];
-              const p2 = visibleParticles[j];
-              const lineKey = `${Math.min(p1.id, p2.id)}-${Math.max(
-                p1.id,
-                p2.id
-              )}`;
-              if (existingLineKeys.has(lineKey)) continue;
-              const dx = p1.x - p2.x;
-              const dy = p1.y - p2.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (
-                dist < effectiveMaxDist &&
-                Math.random() < config.connectionDensity
-              ) {
-                const newLine = createLine(p1, p2);
-                lines.push(newLine);
-                existingLineKeys.add(lineKey);
-              }
+        const visiblePs = particles.filter((p) => p.opacity > 0.1);
+        const existingKeys = new Set( lines.map( (l) => `${Math.min(l.p1.id, l.p2.id)}-${Math.max(l.p1.id, l.p2.id)}`) );
+        const maxDist = calculateEffectiveMaxLineDist();
+
+        if (isTargetNet && effectiveP > 0.5) {
+            for (let i = 0; i < visiblePs.length; i++) {
+                for (let j = i + 1; j < visiblePs.length; j++) {
+                    const p1 = visiblePs[i];
+                    const p2 = visiblePs[j];
+                    const key = `${Math.min(p1.id, p2.id)}-${Math.max(p1.id, p2.id)}`;
+                    if (existingKeys.has(key)) continue;
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < maxDist && Math.random() < cfg.connDensity) {
+                        const newLine = createLine(p1, p2);
+                        newLine.opacity = 0;
+                        lines.push(newLine);
+                        existingKeys.add(key);
+                    }
+                }
             }
-          }
         }
 
         for (let i = lines.length - 1; i >= 0; i--) {
           const line = lines[i];
           const age = now - line.born;
-          const fadeDuration = 500;
+          const fadeDur = 500;
+          let currentTargetOp = lineTargetOpBase;
 
-          if (transitionProgress < 1) {
-            line.targetOpacity = 0; // Fade out lines during transition away from network
-          } else if (age >= line.maxLifetime) {
-            line.targetOpacity = 0;
-          } else if (age >= line.maxLifetime - fadeDuration) {
-            line.targetOpacity = Math.max(
-              0,
-              1 - (age - (line.maxLifetime - fadeDuration)) / fadeDuration
-            );
-          } else {
-            line.targetOpacity = 0.5;
+          if (isTargetNet) {
+              if (age >= line.maxLifetime) currentTargetOp = 0;
+              else if (age >= line.maxLifetime - fadeDur) currentTargetOp = Math.max(0, lineTargetOpBase * (1 - (age - (line.maxLifetime - fadeDur)) / fadeDur));
           }
 
-          if (line.opacity < line.targetOpacity)
-            line.opacity = Math.min(line.targetOpacity, line.opacity + 0.05);
-          else if (line.opacity > line.targetOpacity)
-            line.opacity = Math.max(line.targetOpacity, line.opacity - 0.03);
+          line.targetOpacity = currentTargetOp * effectiveP;
 
-          if (
-            line.opacity <= 0.01 &&
-            (age >= line.maxLifetime || transitionProgress < 1)
-          ) {
+          if (line.opacity < line.targetOpacity) line.opacity = Math.min(line.targetOpacity, line.opacity + 0.05);
+          else if (line.opacity > line.targetOpacity) line.opacity = Math.max(line.targetOpacity, line.opacity - 0.03);
+
+          if (line.opacity <= 0.01 && (!isTargetNet || age >= line.maxLifetime) ) {
             if (line.el.parentNode) line.el.remove();
             lines.splice(i, 1);
           } else {
-            if (line.p1 && line.p2) {
+            if (line.p1 && line.p2 && line.p1.el && line.p2.el) {
               line.el.setAttribute("x1", line.p1.x);
               line.el.setAttribute("y1", line.p1.y);
               line.el.setAttribute("x2", line.p2.x);
               line.el.setAttribute("y2", line.p2.y);
-              line.el.style.opacity =
-                line.opacity * Math.min(line.p1.opacity, line.p2.opacity);
+              line.el.style.opacity = (line.opacity * Math.min(line.p1.opacity, line.p2.opacity)).toFixed(3);
             } else {
               line.el.style.opacity = 0;
             }
@@ -867,254 +791,150 @@
       }
 
       function manageParticles() {
-        const targetCount = config.numParticles;
+        const targetCount = cfg.numParticles;
+        const stableMode = transitioningTo || mode;
 
         while (particles.length < targetCount) {
-          const newParticle = {};
-          initializeParticleState(newParticle, currentMode);
-          particles.push(newParticle);
+          const newP = {};
+          initPState(newP, stableMode);
+          newP.opacity = transitioningTo ? 0 : newP.targetOpacity;
+          particles.push(newP);
         }
         while (particles.length > targetCount) {
-          const removedParticle = particles.pop();
-          removeParticleElement(removedParticle);
-          lines = lines.filter(
-            (line) => line.p1 !== removedParticle && line.p2 !== removedParticle
-          );
+          const removedP = particles.pop();
+          if (removedP.el && removedP.el.parentNode) {
+               removedP.el.style.transition = 'opacity 0.5s linear';
+               removedP.el.style.opacity = 0;
+               setTimeout(() => { if (removedP.el && removedP.el.parentNode) removedP.el.remove()}, 500);
+           }
+          lines = lines.filter(line => line.p1 !== removedP && line.p2 !== removedP);
         }
 
-        if (currentMode === "network") {
-          particles.forEach((p) => {
-            if (p.vx === undefined || p.vy === undefined) {
-              initializeParticleState(p, "network");
-            }
-            const speedMagnitude = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-            const desiredSpeed = random(
-              0.1 * config.vertexSpeed,
-              1.0 * config.vertexSpeed
-            );
-            if (speedMagnitude > 0) {
-              const scale = desiredSpeed / speedMagnitude;
-              p.vx *= scale;
-              p.vy *= scale;
-            } else {
-              const angle = random(0, Math.PI * 2);
-              p.vx = Math.cos(angle) * desiredSpeed;
-              p.vy = Math.sin(angle) * desiredSpeed;
-            }
-          });
-        } else {
-          particles.forEach((p) => {
-            if (p.z === undefined) {
-              initializeParticleState(p, "space");
-            }
-            updateParticleTwinkle(p);
-          });
-        }
+         particles.forEach(p => {
+             if (p.mode !== stableMode && !transitioningTo) initPState(p, stableMode);
+             if (stableMode === 'space') updatePTwinkle(p);
+         });
       }
 
       function animate(timestamp) {
-        animationId = requestAnimationFrame(animate);
+        animId = requestAnimationFrame(animate);
         const now = timestamp || performance.now();
 
         if (transitioningTo) {
-          const elapsed = now - transitionStartTime;
-          const progress = Math.min(1, elapsed / transitionDuration);
+          const elapsed = now - transStartT;
+          const progress = Math.min(1, elapsed / transDur);
 
-          particles.forEach((p) => updateParticleTransition(p, now, progress));
-          updateLines(
-            now,
-            transitioningTo === "network" ? progress : 1 - progress
-          );
+          particles.forEach((p) => updatePTransition(p, now, progress));
+          updateLines(now, progress);
 
           if (progress >= 1) {
-            currentMode = transitioningTo;
+            const finalMode = transitioningTo;
+            mode = transitioningTo;
             transitioningTo = null;
             particles.forEach((p) => {
-              p.mode = currentMode;
+              p.mode = finalMode;
               p.opacity = p.targetOpacity;
-              if (p.mode === "space") updateParticleTwinkle(p);
+              initPState(p, finalMode);
             });
             manageParticles();
-            updateControlVisibility();
+            updateCtrlVisibility();
           }
         } else {
-          if (currentMode === "network") {
-            particles.forEach((p) => updateParticleNetwork(p, now));
+          if (mode === "network") {
+            particles.forEach((p) => updatePNetwork(p, now));
             updateLines(now);
-          } else if (currentMode === "space") {
-            particles.forEach((p) => updateParticleSpace(p, now));
+          } else if (mode === "space") {
+            particles.forEach((p) => updatePSpace(p, now));
           }
         }
       }
 
       function setMode(newMode) {
-        if (newMode === currentMode || transitioningTo) return;
+        if (newMode === mode || transitioningTo) return;
 
         transitioningTo = newMode;
-        transitionStartTime = performance.now();
-        config.mode = newMode;
+        transStartT = performance.now();
+        cfg.mode = newMode;
 
         particles.forEach((p) => {
-          if (newMode === "network") {
-            p.targetOpacity = 1;
-            if (p.vx === undefined) initializeParticleState(p, "network");
-          } else {
-            p.targetOpacity = random(0.4, 1);
-            if (p.z === undefined) initializeParticleState(p, "space");
-          }
+            p.targetOpacity = (newMode === 'network') ? 1 : rnd(0.4, 1);
+            p.startX = p.x;
+            p.startY = p.y;
+            p.startOpacity = p.opacity;
+            if (newMode === 'network' && p.vx === undefined) {
+                 p.networkX = p.x; p.networkY = p.y; // Store potential target
+            }
+            if (newMode === 'space' && p.z === undefined) {
+                 p.spaceAngle = Math.atan2(p.y - h/2, p.x - w/2) || rnd(0, PI * 2);
+                 p.spaceTargetOpacity = rnd(0.4, 1);
+            }
         });
 
-        updateControlVisibility();
+        updateCtrlVisibility();
 
-        if (!animationId) {
-          animationId = requestAnimationFrame(animate);
-        }
+        if (!animId) animId = requestAnimationFrame(animate);
       }
 
-      function updateControlVisibility() {
-        document
-          .querySelectorAll(".controls .control-row[data-mode]")
+      function updateCtrlVisibility() {
+        document.querySelectorAll(".controls .control-row[data-mode]")
           .forEach((row) => {
             const modes = row.dataset.mode.split(" ");
-            const targetMode = transitioningTo || currentMode;
-            if (modes.includes(targetMode)) {
-              row.classList.add("visible");
-            } else {
-              row.classList.remove("visible");
-            }
+            const targetM = transitioningTo || mode;
+            row.classList.toggle("visible", modes.includes(targetM));
           });
-        networkSvg.style.display =
-          currentMode === "network" || transitioningTo === "network"
-            ? "block"
-            : "none";
+        netSvg.style.display = (mode === "network" || transitioningTo === "network") ? "block" : "none";
       }
 
-      function setupControls() {
-        const controlsMap = {
-          "num-particles": {
-            key: "numParticles",
-            valueId: "num-particles-value",
-            callback: manageParticles,
-            mode: "network space",
-          },
-          "max-line-dist": {
-            key: "maxLineDist",
-            valueId: "max-line-dist-value",
-            mode: "network",
-          },
-          "connection-density": {
-            key: "connectionDensity",
-            valueId: "connection-density-value",
-            fixed: 2,
-            mode: "network",
-          },
-          "vertex-speed": {
-            key: "vertexSpeed",
-            valueId: "vertex-speed-value",
-            fixed: 1,
-            mode: "network",
-          },
-          "network-twinkle": {
-            key: "networkTwinkle",
-            valueId: "network-twinkle-value",
-            fixed: 2,
-            mode: "network",
-          },
-          "line-life": {
-            key: "lineLifetime",
-            valueId: "line-life-value",
-            multiplier: 1000,
-            mode: "network",
-          },
-          "space-speed": {
-            key: "spaceSpeed",
-            valueId: "space-speed-value",
-            fixed: 1,
-            mode: "space",
-          },
-          "spin-strength": {
-            key: "spinStrength",
-            valueId: "spin-strength-value",
-            fixed: 3,
-            mode: "space",
-          },
-          "stretch-amount": {
-            key: "stretchAmount",
-            valueId: "stretch-amount-value",
-            fixed: 2,
-            mode: "space",
-          },
-          "emanation-radius": {
-            key: "emanationRadius",
-            valueId: "emanation-radius-value",
-            mode: "space",
-          },
-          "twinkle-intensity": {
-            key: "spaceTwinkleIntensity",
-            valueId: "twinkle-intensity-value",
-            fixed: 2,
-            callback: manageParticles,
-            mode: "space",
-          },
+      function setupCtrls() {
+        const ctrlMap = {
+          "num-particles": { key: "numParticles", cb: manageParticles, mode: "network space" },
+          "max-line-dist": { key: "maxLineDist", mode: "network" },
+          "conn-density": { key: "connDensity", fixed: 2, mode: "network" },
+          "net-speed": { key: "netSpeed", fixed: 1, mode: "network" },
+          "net-twinkle": { key: "netTwinkle", fixed: 2, mode: "network" },
+          "line-life": { key: "lineLife", mult: 1000, mode: "network" },
+          "space-speed": { key: "spaceSpeed", fixed: 1, mode: "space" },
+          "spin": { key: "spin", fixed: 3, mode: "space" },
+          "stretch": { key: "stretch", fixed: 2, mode: "space" },
+          "emit-radius": { key: "emitRadius", mode: "space" },
+          "space-twinkle": { key: "spaceTwinkle", fixed: 2, cb: manageParticles, mode: "space" },
         };
 
-        Object.entries(controlsMap).forEach(([id, control]) => {
-          const element = document.getElementById(id);
-          if (!element) return;
-          const valueElement = document.getElementById(control.valueId);
-          const initialConfigValue = config[control.key];
-          const displayValue = control.multiplier
-            ? initialConfigValue / control.multiplier
-            : initialConfigValue;
+        Object.entries(ctrlMap).forEach(([id, ctrl]) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const valEl = document.getElementById(id + "-value");
+          const initVal = cfg[ctrl.key];
+          const dispVal = ctrl.mult ? initVal / ctrl.mult : initVal;
 
-          element.value = displayValue;
-          if (valueElement)
-            valueElement.textContent =
-              control.fixed !== undefined
-                ? displayValue.toFixed(control.fixed)
-                : displayValue;
+          el.value = dispVal;
+          if (valEl) valEl.textContent = ctrl.fixed !== undefined ? dispVal.toFixed(ctrl.fixed) : dispVal;
 
-          element.addEventListener("input", (e) => {
+          el.addEventListener("input", (e) => {
             const value = parseFloat(e.target.value);
-            const configValue = control.multiplier
-              ? value * control.multiplier
-              : value;
-            config[control.key] = configValue;
+            const cfgVal = ctrl.mult ? value * ctrl.mult : value;
+            cfg[ctrl.key] = cfgVal;
 
-            if (valueElement)
-              valueElement.textContent =
-                control.fixed !== undefined
-                  ? value.toFixed(control.fixed)
-                  : value;
+            if (valEl) valEl.textContent = ctrl.fixed !== undefined ? value.toFixed(ctrl.fixed) : value;
 
-            if (id === "num-particles") {
-              config.numParticles = parseInt(value);
-              if (control.callback) control.callback();
-            } else if (control.callback) {
-              control.callback();
-            }
+            if (id === "num-particles") cfg.numParticles = parseInt(value);
+
+            if (ctrl.cb) ctrl.cb();
           });
         });
 
-        document
-          .querySelectorAll('.mode-selector input[name="mode"]')
-          .forEach((radio) => {
-            radio.addEventListener("change", (e) => {
-              setMode(e.target.value);
-            });
-          });
+        document.querySelectorAll('.mode-selector input[name="mode"]')
+          .forEach((radio) => radio.addEventListener("change", (e) => setMode(e.target.value)) );
       }
 
       function init() {
-        setupControls();
-        resizeHandler();
-        currentMode = config.mode;
-        document.getElementById(`mode-${currentMode}`).checked = true;
+        setupCtrls();
+        onResize();
+        mode = cfg.mode;
+        document.getElementById(`mode-${mode}`).checked = true;
         manageParticles();
-        updateControlVisibility();
-        if (!animationId) {
-          animationId = requestAnimationFrame(animate);
-        }
+        updateCtrlVisibility();
+        if (!animId) animId = requestAnimationFrame(animate);
       }
 
       init();
