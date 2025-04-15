@@ -1,100 +1,1394 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head id="boot-head">
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>REPLOID x0 v0</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0id2hpdGUiLz48L3N2Zz4="
-    />
-    <style id="boot-style">
-      body {
-        font-family: monospace;
-        background-color: black;
-        color: #ccc;
+    <title>Zero</title>
+    <style>
+      :root {
+        --bg-color: #050505;
+        --text-color: #e5e5e5;
+        --primary-glow: #ffffff;
+        --secondary-glow: #b0b0b0;
+        --tertiary-glow: #606060;
+        --accent-color: #f0f0f0;
+        --border-color: #444;
+        --control-bg: #121212;
+        --control-border: #555;
+        --button-hover-bg: #252525;
+        --slider-thumb: #e0e0e0;
+        --slider-track: #303030;
+        --font-family: "Courier New", Courier, monospace;
+        --link-color: #a0f0a0;
+      }
+
+      .light-theme {
+        --bg-color: #f5f5f5;
+        --text-color: #101010;
+        --primary-glow: #000000;
+        --secondary-glow: #404040;
+        --tertiary-glow: #909090;
+        --accent-color: #0a0a0a;
+        --border-color: #b0b0b0;
+        --control-bg: #e8e8e8;
+        --control-border: #c0c0c0;
+        --button-hover-bg: #d8d8d8;
+        --slider-thumb: #151515;
+        --slider-track: #d0d0d0;
+        --link-color: #008000;
+      }
+
+      * {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        display: flex;
-        min-height: 100vh;
-        user-select: none;
       }
-      #start-prompt {
-        font-size: 1em;
-        color: white;
-        cursor: pointer;
-        text-align: left;
-        line-height: 1.5;
-        padding: 5px;
-      }
-      #loading-container {
-        width: 100%;
-        text-align: left;
-        align-self: flex-start;
-        box-sizing: border-box;
-        padding: 5px;
-      }
-      #loading-indicator {
-        font-size: 1em;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        max-height: calc(100vh - 10px);
-        overflow-y: auto;
-        text-align: left;
-      }
-      #loading-indicator div.log-entry {
-        display: block;
-        margin-bottom: 1px;
-        text-align: left;
-        line-height: 1.3;
-      }
-      #loading-indicator .log-info {
-        color: #ddd;
-      }
-      #loading-indicator .log-warn {
-        color: #f9d71c;
-      }
-      #loading-indicator .log-error {
-        color: #ff6b6b;
-        font-weight: bold;
-      }
-      #loading-indicator .log-success {
-        color: #76ff7a;
-        font-weight: bold;
-      }
-      #loading-indicator .log-detail {
-        color: #bbb;
-        margin-left: 15px;
-      }
-      #app-root {
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.5s ease-in-out;
-        position: absolute;
-        top: 0;
-        left: 0;
+
+      html,
+      body {
         width: 100%;
         height: 100%;
+        overflow: hidden;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: var(--font-family);
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.6;
       }
-      #app-root.visible {
-        visibility: visible;
-        opacity: 1;
+
+      #app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
       }
-      .hidden {
-        display: none !important;
+
+      header {
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      header h1 {
+        font-size: 1.3em;
+        font-weight: bold;
+      }
+
+      #theme-toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      #theme-toggle {
+        appearance: none;
+        width: 44px;
+        height: 22px;
+        background-color: var(--control-bg);
+        border: 1px solid var(--control-border);
+        border-radius: 11px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        order: 2;
+      }
+
+      #theme-toggle::before {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: var(--slider-thumb);
+        top: 1px;
+        left: 1px;
+        transition: transform 0.3s ease;
+        box-shadow: 0 0 4px var(--secondary-glow);
+      }
+
+      #theme-toggle:checked::before {
+        transform: translateX(22px);
+      }
+
+      #theme-toggle:checked {
+        background-color: var(--control-bg);
+      }
+
+      #main-content {
+        display: flex;
+        flex-grow: 1;
+        overflow: hidden;
+      }
+
+      #simulation-container {
+        flex-grow: 1;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      #gl-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background-color: transparent;
+      }
+
+      #controls-info-container {
+        width: 370px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        padding: 15px;
+        gap: 20px;
+        background-color: var(--bg-color);
+        border-left: 1px solid var(--border-color);
+      }
+
+      .control-group,
+      .info-group {
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        border-radius: 4px;
+        background-color: var(--control-bg);
+      }
+
+      .control-group h3,
+      .info-group h3 {
+        margin-bottom: 12px;
+        font-size: 1.05em;
+        font-weight: bold;
+        color: var(--accent-color);
+        border-bottom: 1px dashed var(--border-color);
+        padding-bottom: 6px;
+      }
+
+      .control-item,
+      .info-item {
+        margin-bottom: 14px;
+      }
+
+      .control-item:last-child,
+      .info-item:last-child {
+        margin-bottom: 0;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.95em;
+      }
+
+      #theme-label {
+        margin-bottom: 0;
+        cursor: pointer;
+        font-size: 1.1em;
+        order: 1;
+        font-weight: bold;
+        color: var(--accent-color);
+      }
+
+      input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+        appearance: none;
+        height: 8px;
+        background: var(--slider-track);
+        border-radius: 4px;
+        outline: none;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--slider-thumb);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 4px var(--secondary-glow);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        background: var(--slider-thumb);
+        border-radius: 50%;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 0 4px var(--secondary-glow);
+      }
+
+      button {
+        display: block;
+        width: 100%;
+        padding: 10px 12px;
+        background-color: var(--control-bg);
+        border: 1px solid var(--control-border);
+        color: var(--text-color);
+        font-family: var(--font-family);
+        font-size: 0.95em;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 3px;
+        transition: background-color 0.2s ease;
+        margin-top: 10px;
+      }
+
+      button:hover {
+        background-color: var(--button-hover-bg);
+      }
+
+      #info-values span,
+      #concept-context p,
+      #unity-link p {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+      }
+
+      #info-values strong,
+      #concept-context strong,
+      #unity-link strong {
+        color: var(--accent-color);
+        font-weight: bold;
+      }
+      #unity-link a {
+        color: var(--link-color);
+        text-decoration: none;
+        font-weight: bold;
+      }
+      #unity-link a:hover {
+        text-decoration: underline;
+      }
+
+      #url-hash-display {
+        font-size: 0.85em;
+        color: var(--tertiary-glow);
+        padding-right: 5px;
+        border-right: 1px solid var(--border-color);
+        margin-right: 5px;
       }
     </style>
   </head>
-  <body id="boot-body">
-    <div id="start-prompt">
-      >> Press [Enter] or Tap/Click to Continue Session.<br />
-      >> Press [Space] or Tap & Hold (1s) to Reset & Start Fresh.
-    </div>
-    <div id="loading-container" class="hidden">
-      <div id="loading-indicator"></div>
-    </div>
-    <div id="app-root"></div>
+  <body>
+    <div id="app-container">
+      <header>
+        <h1>Zero</h1>
+        <div id="theme-toggle-container">
+          <span id="url-hash-display">URL: #</span>
+          <label id="theme-label" for="theme-toggle">|0⟩</label>
+          <input type="checkbox" id="theme-toggle" />
+        </div>
+      </header>
 
-    <script src="reploid-boot-script.js" async defer></script>
+      <main id="main-content">
+        <div id="simulation-container">
+          <canvas id="gl-canvas"></canvas>
+        </div>
+
+        <div id="controls-info-container">
+          <div class="control-group">
+            <h3>Controls</h3>
+            <div class="control-item">
+              <label for="velocity-slider"
+                >Velocity (v/c): <span id="velocity-value">0.00</span></label
+              >
+              <input
+                type="range"
+                id="velocity-slider"
+                min="-0.995"
+                max="0.995"
+                step="0.005"
+                value="0"
+              />
+            </div>
+            <div class="control-item">
+              <label for="energy-slider"
+                >Packet Width (σ): <span id="energy-value">0.50</span></label
+              >
+              <input
+                type="range"
+                id="energy-slider"
+                min="0.1"
+                max="1.0"
+                step="0.01"
+                value="0.5"
+              />
+            </div>
+            <div class="control-item">
+              <label for="barrier-height-slider"
+                >Barrier Height:
+                <span id="barrier-height-value">0.80</span></label
+              >
+              <input
+                type="range"
+                id="barrier-height-slider"
+                min="0"
+                max="2.0"
+                step="0.05"
+                value="0.8"
+              />
+            </div>
+            <div class="control-item">
+              <label for="barrier-width-slider"
+                >Barrier Width:
+                <span id="barrier-width-value">0.10</span></label
+              >
+              <input
+                type="range"
+                id="barrier-width-slider"
+                min="0.01"
+                max="0.5"
+                step="0.01"
+                value="0.1"
+              />
+            </div>
+            <div class="control-item">
+              <button id="init-particle-btn">[ ψ ] Initialize Particle</button>
+            </div>
+            <div class="control-item">
+              <button id="zero-state-btn">
+                [ 0 ] Set Ground State / Zero Velocity
+              </button>
+            </div>
+            <div class="control-item">
+              <button id="add-barrier-btn">
+                [ ↔ ] Toggle Reflection Barrier
+              </button>
+            </div>
+            <div class="control-item">
+              <button id="parity-flip-btn">
+                [ P ] Apply Parity Flip (x → -x)
+              </button>
+            </div>
+            <div class="control-item">
+              <button id="identity-evolve-btn">[ ▶ Evolve ] Time</button>
+            </div>
+            <div class="control-item">
+              <button id="reset-sim-btn">[ Reset ] Reset Simulation</button>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3>Simulation State</h3>
+            <div id="info-values" class="info-item">
+              <span>Position (Center): <strong id="info-pos">N/A</strong></span>
+              <span>Momentum (Avg): <strong id="info-mom">N/A</strong></span>
+              <span>Width (σ): <strong id="info-width">N/A</strong></span>
+              <span
+                >Lorentz Factor (γ):
+                <strong id="info-gamma">1.000</strong></span
+              >
+              <span>Barrier Active: <strong id="info-barrier">No</strong></span>
+              <span>Time Evolving: <strong id="info-evolving">No</strong></span>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3 id="concept-title">Concept Context</h3>
+            <div id="concept-context" class="info-item">
+              <p>Interact with the simulation to explore concepts.</p>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3 id="unity-title">Unity Link</h3>
+            <div id="unity-link" class="info-item">
+              <p>Invariant principle: <a href="/1">X⁰ = 1</a></p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      attribute vec2 a_position;
+      void main() {
+          gl_Position = vec4(a_position, 0.0, 1.0);
+      }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      precision highp float;
+
+      uniform vec2 u_resolution;
+      uniform float u_time;
+      uniform vec3 u_theme_colors;
+      uniform float u_particle_x;
+      uniform float u_particle_p;
+      uniform float u_particle_width;
+      uniform float u_lorentz_gamma;
+      uniform bool u_parity_flipped;
+      uniform bool u_barrier_active;
+      uniform float u_barrier_x;
+      uniform float u_barrier_width;
+      uniform float u_barrier_height;
+      uniform float u_flash_intensity;
+      uniform float u_flash_time;
+
+      const float PI = 3.14159265359;
+
+      float gaussian(float x, float mu, float sigma) {
+          float arg = (x - mu) / max(sigma, 0.001);
+          return exp(-0.5 * arg * arg);
+      }
+
+      float noise(vec2 st) {
+          return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123 + u_time * 0.1);
+      }
+
+       vec3 hsv2rgb(vec3 c) {
+          vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+          vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+          return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+      }
+
+      float sdBox(vec2 p, vec2 b) {
+          vec2 d = abs(p) - b;
+          return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+      }
+
+      void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec2 world_st_raw = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+          float aspect = u_resolution.x / u_resolution.y;
+
+          float gamma_effect = (u_lorentz_gamma - 1.0) * 0.5;
+          float world_warp = 1.0 + gamma_effect * smoothstep(0.0, 1.5, abs(world_st_raw.x * aspect * 2.0 - u_particle_x));
+          world_st_raw.x /= world_warp; // Apply subtle world distortion based on gamma
+
+          vec2 world_st = world_st_raw;
+          world_st.x *= aspect;
+          float x_coord = world_st.x * 2.0;
+
+          vec3 color = vec3(u_theme_colors.x);
+
+          float grid_spacing = 0.1 * world_warp;
+          vec2 grid_coord = world_st / grid_spacing;
+          float grid_intensity = pow(max(0.0, sin(grid_coord.x * PI) * sin(grid_coord.y * PI * aspect)), 20.0);
+          grid_intensity *= (0.05 + gamma_effect * 0.1);
+          color += vec3(u_theme_colors.z) * grid_intensity * (0.5 + 0.5*cos(u_time*0.5));
+
+
+          if (u_barrier_active) {
+              float barrier_half_width_visual = u_barrier_width * 0.5 * aspect * 2.0;
+              vec2 barrier_center_world = vec2(u_barrier_x / (aspect * 2.0), 0.0);
+              vec2 barrier_size_world = vec2(barrier_half_width_visual / (aspect * 2.0), 0.8);
+
+              float dist_to_barrier = sdBox(world_st_raw - barrier_center_world, barrier_size_world);
+              float barrier_glow = smoothstep(0.05, 0.0, dist_to_barrier) * 0.8;
+              float barrier_fill = smoothstep(0.0, -0.01, dist_to_barrier) * 0.3;
+              float barrier_energy = clamp(u_barrier_height, 0.0, 2.0) * 0.5;
+
+              vec3 barrier_color = vec3(u_theme_colors.z) * (0.5 + barrier_energy * 0.5);
+              color = mix(color, barrier_color * 1.5, barrier_glow * barrier_energy);
+              color = mix(color, barrier_color * 0.5, barrier_fill * barrier_energy);
+
+              float noise_val = noise(gl_FragCoord.xy * 0.02 + vec2(u_time * 0.2, 0.0));
+              float energy_flicker = pow(noise_val, 5.0) * barrier_energy * 1.5;
+              color += barrier_glow * energy_flicker * vec3(u_theme_colors.y);
+          }
+
+
+          float particle_sigma_base = u_particle_width * 0.2 + 0.05;
+          float particle_sigma = particle_sigma_base / u_lorentz_gamma;
+          particle_sigma = max(particle_sigma, 0.01);
+
+          float particle_pos = u_particle_x;
+          if (u_parity_flipped) {
+              particle_pos = -particle_pos;
+          }
+
+          float wave_intensity = gaussian(x_coord, particle_pos, particle_sigma);
+
+          float momentum_hue_shift = u_particle_p * 0.05;
+          float base_hue = (u_theme_colors.y > 0.5) ? 0.0 : 0.6;
+          vec3 base_particle_color = hsv2rgb(vec3(mod(base_hue + momentum_hue_shift, 1.0), 0.8, 1.0));
+          base_particle_color = mix(vec3(u_theme_colors.y), base_particle_color, clamp(abs(u_particle_p * 0.5), 0.0, 1.0));
+
+          float fuzz_scale = 80.0 / particle_sigma;
+          float fuzz_time_scale = 1.0 + abs(u_particle_p) * 2.0;
+          float fuzziness = noise(vec2(x_coord * fuzz_scale, u_time * fuzz_time_scale * 0.1)) * 0.6 + 0.7;
+          wave_intensity *= fuzziness;
+
+          vec3 wave_color_primary = base_particle_color * u_theme_colors.y * 1.5;
+          vec3 wave_color_secondary = vec3(u_theme_colors.z);
+
+          float glow_intensity_primary = pow(wave_intensity, 0.5) * 1.6;
+          color = mix(color, wave_color_primary, clamp(glow_intensity_primary, 0.0, 1.0));
+
+          float glow_intensity_secondary = pow(wave_intensity, 0.8) * 1.1;
+          color = mix(color, wave_color_secondary, clamp(glow_intensity_secondary, 0.0, 1.0));
+
+          float core_intensity = pow(wave_intensity, 1.5) * 2.0;
+          color = mix(color, vec3(1.0), clamp(core_intensity * u_theme_colors.y, 0.0, 0.8));
+
+
+          float flash_time_elapsed = u_time - u_flash_time;
+          if (u_flash_intensity > 0.0 && flash_time_elapsed < 0.20) {
+              float flash_falloff = pow(1.0 - smoothstep(0.0, 0.20, flash_time_elapsed), 1.5);
+              float flash_value = u_flash_intensity * flash_falloff;
+              float radial_dist = length(world_st_raw.xy);
+              flash_value *= (1.0 - smoothstep(0.0, 0.6, radial_dist));
+              color += vec3(flash_value) * base_particle_color * 1.2;
+          }
+
+          float grain_intensity = noise(gl_FragCoord.xy * 0.1 + u_time * 2.0) * 0.04;
+          color += vec3(grain_intensity);
+
+          gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+      }
+    </script>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      const appState = {
+        gl: null,
+        program: null,
+        canvas: null,
+        locations: {
+          attributes: { position: null },
+          uniforms: {},
+        },
+        buffers: { position: null },
+        sim: {
+          particleX: 0.0,
+          particleP: 0.0,
+          particleV: 0.0,
+          particleWidth: 0.5,
+          lorentzGamma: 1.0,
+          isInitialized: false,
+          isEvolving: false,
+          isParityFlipped: false,
+          barrierActive: false,
+          barrierX: 1.5,
+          barrierWidth: 0.1,
+          barrierHeight: 0.8,
+          time: 0.0,
+          lastFrameTime: 0.0,
+          flashIntensity: 0.0,
+          flashTime: 0.0,
+        },
+        ui: {
+          theme: "dark",
+          elements: {},
+        },
+        constants: {
+          C_SPEED: 1.0,
+          HBAR: 1.0,
+          MASS: 1.0,
+          BARRIER_DEFAULT_X: 1.5,
+        },
+        interactionMap: {
+          "velocity-slider": {
+            principle: "Rest Mass (m₀)",
+            constant: "c",
+            concept: "ZERO / IDENTITY (Relativity)",
+          },
+          "energy-slider": {
+            principle: "Uncertainty Relation",
+            constant: "ħ",
+            concept: "ZERO (QM Uncertainty)",
+          },
+          "barrier-height-slider": {
+            principle: "Interaction Potential",
+            constant: "V",
+            concept: "REFLECTION",
+          },
+          "barrier-width-slider": {
+            principle: "Barrier Geometry",
+            constant: "Δx",
+            concept: "REFLECTION",
+          },
+          "init-particle-btn": {
+            principle: "Initial State Definition",
+            constant: "1",
+            concept: "ZERO (Origin)",
+          },
+          "zero-state-btn": {
+            principle: "Rest Frame (γ=1)",
+            constant: "γ",
+            concept: "ZERO / IDENTITY",
+          },
+          "add-barrier-btn": {
+            principle: "Environment Configuration",
+            constant: "Σ",
+            concept: "REFLECTION",
+          },
+          "parity-flip-btn": {
+            principle: "Symmetry Operation (Unitary)",
+            constant: "P",
+            concept: "REFLECTION / IDENTITY",
+          },
+          "identity-evolve-btn": {
+            principle: "Time Evolution (Unitary)",
+            constant: "U",
+            concept: "IDENTITY (Evolution)",
+          },
+          "reset-sim-btn": {
+            principle: "System Reset",
+            constant: "Ø",
+            concept: "ZERO",
+          },
+          "theme-toggle": {
+            principle: "Observer Basis State",
+            constant: "Φ",
+            concept: "IDENTITY (Observation)",
+          },
+        },
+      };
+
+      const domOps = {
+        initUIReferences() {
+          appState.ui.elements = {
+            canvas: $("gl-canvas"),
+            velocitySlider: $("velocity-slider"),
+            velocityValue: $("velocity-value"),
+            energySlider: $("energy-slider"),
+            energyValue: $("energy-value"),
+            barrierHeightSlider: $("barrier-height-slider"),
+            barrierHeightValue: $("barrier-height-value"),
+            barrierWidthSlider: $("barrier-width-slider"),
+            barrierWidthValue: $("barrier-width-value"),
+            initParticleBtn: $("init-particle-btn"),
+            zeroStateBtn: $("zero-state-btn"),
+            addBarrierBtn: $("add-barrier-btn"),
+            parityFlipBtn: $("parity-flip-btn"),
+            identityEvolveBtn: $("identity-evolve-btn"),
+            resetSimBtn: $("reset-sim-btn"),
+            themeToggle: $("theme-toggle"),
+            themeLabel: $("theme-label"),
+            urlHashDisplay: $("url-hash-display"),
+            infoPos: $("info-pos"),
+            infoMom: $("info-mom"),
+            infoWidth: $("info-width"),
+            infoGamma: $("info-gamma"),
+            infoBarrier: $("info-barrier"),
+            infoEvolving: $("info-evolving"),
+            conceptTitle: $("concept-title"),
+            conceptContext: $("concept-context"),
+            unityTitle: $("unity-title"),
+            unityLink: $("unity-link"),
+            appContainer: $("app-container"),
+          };
+          appState.canvas = appState.ui.elements.canvas;
+        },
+
+        updateSliderValue(sliderIdSuffix, value, fixed = 2) {
+          const el = appState.ui.elements[sliderIdSuffix + "Value"];
+          if (el) el.textContent = parseFloat(value).toFixed(fixed);
+        },
+
+        updateInfoPanel() {
+          const sim = appState.sim;
+          const ui = appState.ui.elements;
+          ui.infoPos.textContent = sim.isInitialized
+            ? sim.particleX.toFixed(3)
+            : "N/A";
+          ui.infoMom.textContent = sim.isInitialized
+            ? sim.particleP.toFixed(3)
+            : "N/A";
+          ui.infoWidth.textContent = sim.isInitialized
+            ? sim.particleWidth.toFixed(2)
+            : "N/A";
+          ui.infoGamma.textContent = sim.lorentzGamma.toFixed(3);
+          ui.infoBarrier.textContent = sim.barrierActive
+            ? `Active @ ${sim.barrierX.toFixed(2)}`
+            : "No";
+          ui.infoEvolving.textContent = sim.isEvolving ? "Yes" : "No";
+        },
+
+        updateConceptContext(interactionId, conceptText) {
+          const interactionInfo = appState.interactionMap[interactionId];
+          const title = interactionInfo
+            ? `Concept: ${interactionInfo.concept}`
+            : "Concept Context";
+          appState.ui.elements.conceptTitle.textContent = title;
+          appState.ui.elements.conceptContext.innerHTML = `<p>${conceptText}</p>`;
+        },
+
+        updateUnityLink(interactionId) {
+          const interactionInfo = appState.interactionMap[interactionId];
+          if (!interactionInfo) return;
+          const principle = interactionInfo.principle;
+          const constantSymbol = interactionInfo.constant;
+          appState.ui.elements.unityLink.innerHTML = `<p>${principle} → <a href="/1" target="_blank">${constantSymbol}⁰ = 1</a></p>`;
+        },
+
+        setTheme(theme) {
+          appState.ui.theme = theme;
+          const isLight = theme === "light";
+          appState.ui.elements.appContainer.classList.toggle(
+            "light-theme",
+            isLight
+          );
+          appState.ui.elements.themeToggle.checked = isLight;
+          appState.ui.elements.themeLabel.textContent = isLight ? "|1⟩" : "|0⟩";
+          webGLOps.updateThemeUniform();
+        },
+
+        updateURLHash() {
+          window.location.hash = "1";
+          appState.ui.elements.urlHashDisplay.textContent = `URL: ${window.location.hash}`;
+        },
+
+        triggerUnityFlash() {
+          appState.sim.flashIntensity = 1.0;
+          appState.sim.flashTime = appState.sim.time;
+        },
+      };
+
+      const webGLOps = {
+        initContext() {
+          appState.gl =
+            appState.canvas.getContext("webgl", { antialias: true }) ||
+            appState.canvas.getContext("experimental-webgl", {
+              antialias: true,
+            });
+          if (!appState.gl) {
+            console.error("WebGL not supported!");
+            alert("WebGL is required for this application.");
+            return false;
+          }
+          return true;
+        },
+
+        createShader(type, source) {
+          const gl = appState.gl;
+          const shader = gl.createShader(type);
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.error(
+              "Shader compilation error:",
+              gl.getShaderInfoLog(shader)
+            );
+            gl.deleteShader(shader);
+            return null;
+          }
+          return shader;
+        },
+
+        createProgram(vertexShader, fragmentShader) {
+          const gl = appState.gl;
+          const program = gl.createProgram();
+          gl.attachShader(program, vertexShader);
+          gl.attachShader(program, fragmentShader);
+          gl.linkProgram(program);
+          if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.error(
+              "Program linking error:",
+              gl.getProgramInfoLog(program)
+            );
+            gl.deleteProgram(program);
+            return null;
+          }
+          return program;
+        },
+
+        setupProgram() {
+          const vertexShaderSource = $("vertex-shader").textContent;
+          const fragmentShaderSource = $("fragment-shader").textContent;
+
+          const vertexShader = webGLOps.createShader(
+            appState.gl.VERTEX_SHADER,
+            vertexShaderSource
+          );
+          const fragmentShader = webGLOps.createShader(
+            appState.gl.FRAGMENT_SHADER,
+            fragmentShaderSource
+          );
+          appState.program = webGLOps.createProgram(
+            vertexShader,
+            fragmentShader
+          );
+
+          if (!appState.program) return false;
+
+          appState.locations.attributes.position =
+            appState.gl.getAttribLocation(appState.program, "a_position");
+
+          const uniforms = [
+            "u_resolution",
+            "u_time",
+            "u_theme_colors",
+            "u_particle_x",
+            "u_particle_p",
+            "u_particle_width",
+            "u_lorentz_gamma",
+            "u_parity_flipped",
+            "u_barrier_active",
+            "u_barrier_x",
+            "u_barrier_width",
+            "u_barrier_height",
+            "u_flash_intensity",
+            "u_flash_time",
+          ];
+          uniforms.forEach((name) => {
+            appState.locations.uniforms[name] = appState.gl.getUniformLocation(
+              appState.program,
+              name
+            );
+          });
+
+          return true;
+        },
+
+        setupBuffers() {
+          const gl = appState.gl;
+          appState.buffers.position = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, appState.buffers.position);
+          const positions = [-1, -1, 1, -1, -1, 1, 1, 1];
+          gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(positions),
+            gl.STATIC_DRAW
+          );
+        },
+
+        setupWebGL() {
+          if (!webGLOps.initContext()) return false;
+          if (!webGLOps.setupProgram()) return false;
+          webGLOps.setupBuffers();
+          webGLOps.resizeCanvas();
+          webGLOps.updateThemeUniform();
+          return true;
+        },
+
+        resizeCanvas() {
+          const gl = appState.gl;
+          const canvas = appState.canvas;
+          const displayWidth = canvas.clientWidth;
+          const displayHeight = canvas.clientHeight;
+
+          if (
+            canvas.width !== displayWidth ||
+            canvas.height !== displayHeight
+          ) {
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            return true;
+          }
+          return false;
+        },
+
+        updateThemeUniform() {
+          const gl = appState.gl;
+          if (!gl || !appState.program) return;
+          const styles = getComputedStyle(document.documentElement);
+          const bgColor = webGLOps.parseColor(
+            styles.getPropertyValue("--bg-color").trim()
+          );
+          const primaryColor = webGLOps.parseColor(
+            styles.getPropertyValue("--primary-glow").trim()
+          );
+          const secondaryColor = webGLOps.parseColor(
+            styles.getPropertyValue("--secondary-glow").trim()
+          );
+          gl.useProgram(appState.program);
+          gl.uniform3f(
+            appState.locations.uniforms.u_theme_colors,
+            bgColor[0],
+            primaryColor[0],
+            secondaryColor[0]
+          );
+        },
+
+        parseColor(cssColor) {
+          if (cssColor.startsWith("#")) {
+            const hex = cssColor.substring(1);
+            const bigint = parseInt(
+              hex.length === 3
+                ? hex
+                    .split("")
+                    .map((c) => c + c)
+                    .join("")
+                : hex,
+              16
+            );
+            const r = ((bigint >> 16) & 255) / 255;
+            const g = ((bigint >> 8) & 255) / 255;
+            const b = (bigint & 255) / 255;
+            return [r, g, b];
+          }
+          return [0, 0, 0];
+        },
+
+        render() {
+          const gl = appState.gl;
+          const sim = appState.sim;
+          const locations = appState.locations;
+
+          webGLOps.resizeCanvas();
+
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+
+          gl.useProgram(appState.program);
+
+          gl.bindBuffer(gl.ARRAY_BUFFER, appState.buffers.position);
+          gl.enableVertexAttribArray(locations.attributes.position);
+          gl.vertexAttribPointer(
+            locations.attributes.position,
+            2,
+            gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          gl.uniform2f(
+            locations.uniforms.u_resolution,
+            gl.canvas.width,
+            gl.canvas.height
+          );
+          gl.uniform1f(locations.uniforms.u_time, sim.time);
+          webGLOps.updateThemeUniform();
+
+          gl.uniform1f(
+            locations.uniforms.u_particle_x,
+            sim.isInitialized ? sim.particleX : -1000.0
+          );
+          gl.uniform1f(locations.uniforms.u_particle_p, sim.particleP);
+          gl.uniform1f(locations.uniforms.u_particle_width, sim.particleWidth);
+          gl.uniform1f(locations.uniforms.u_lorentz_gamma, sim.lorentzGamma);
+          gl.uniform1i(
+            locations.uniforms.u_parity_flipped,
+            sim.isParityFlipped
+          );
+
+          gl.uniform1i(locations.uniforms.u_barrier_active, sim.barrierActive);
+          gl.uniform1f(locations.uniforms.u_barrier_x, sim.barrierX);
+          gl.uniform1f(locations.uniforms.u_barrier_width, sim.barrierWidth);
+          gl.uniform1f(locations.uniforms.u_barrier_height, sim.barrierHeight);
+
+          gl.uniform1f(
+            locations.uniforms.u_flash_intensity,
+            sim.flashIntensity
+          );
+          gl.uniform1f(locations.uniforms.u_flash_time, sim.flashTime);
+
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+          if (sim.flashIntensity > 0) {
+            sim.flashIntensity = Math.max(0.0, sim.flashIntensity - 0.05);
+          }
+        },
+      };
+
+      const simulationOps = {
+        update(deltaTime) {
+          const sim = appState.sim;
+          const C = appState.constants.C_SPEED;
+
+          if (!sim.isInitialized || !sim.isEvolving) {
+            appState.sim.lastFrameTime = performance.now();
+            return;
+          }
+
+          sim.time += deltaTime;
+
+          sim.lorentzGamma =
+            1.0 / Math.sqrt(1.0 - (sim.particleV * sim.particleV) / (C * C));
+          sim.lorentzGamma =
+            isNaN(sim.lorentzGamma) || !isFinite(sim.lorentzGamma)
+              ? 1.0
+              : sim.lorentzGamma;
+
+          const effectiveV = sim.particleV * C;
+          sim.particleX += effectiveV * deltaTime;
+
+          sim.particleP =
+            appState.constants.MASS * sim.particleV * sim.lorentzGamma;
+          sim.particleP =
+            isNaN(sim.particleP) || !isFinite(sim.particleP)
+              ? 0.0
+              : sim.particleP;
+
+          if (sim.barrierActive) {
+            const aspect =
+              appState.canvas.width /
+              Math.min(appState.canvas.width, appState.canvas.height);
+            const barrierHalfWidthWorld = sim.barrierWidth * 0.5 * aspect * 2.0;
+            const barrierLeft = sim.barrierX - barrierHalfWidthWorld;
+            const barrierRight = sim.barrierX + barrierHalfWidthWorld;
+
+            const particleSigmaVisual =
+              (sim.particleWidth * 0.2 + 0.05) / sim.lorentzGamma;
+            const particleEdgeRight = sim.particleX + particleSigmaVisual * 0.5;
+            const particleEdgeLeft = sim.particleX - particleSigmaVisual * 0.5;
+
+            const tunnelingProb = Math.exp(
+              -sim.barrierHeight * 2.0 * sim.barrierWidth * 5.0
+            );
+
+            if (
+              sim.particleV > 0 &&
+              particleEdgeRight >= barrierLeft &&
+              sim.particleX < barrierLeft + particleSigmaVisual
+            ) {
+              if (Math.random() > tunnelingProb) {
+                simulationOps.reflectParticle();
+                sim.particleX = barrierLeft - particleSigmaVisual * 0.6;
+                simulationOps.triggerReflectionConcept();
+              }
+            } else if (
+              sim.particleV < 0 &&
+              particleEdgeLeft <= barrierRight &&
+              sim.particleX > barrierRight - particleSigmaVisual
+            ) {
+              if (Math.random() > tunnelingProb) {
+                simulationOps.reflectParticle();
+                sim.particleX = barrierRight + particleSigmaVisual * 0.6;
+                simulationOps.triggerReflectionConcept();
+              }
+            }
+          }
+
+          const worldLimit =
+            (appState.canvas.width /
+              Math.min(appState.canvas.width, appState.canvas.height)) *
+            2.0 *
+            1.2;
+          if (Math.abs(sim.particleX) > worldLimit) {
+            simulationOps.setVelocity(-sim.particleV);
+            sim.particleX = Math.sign(sim.particleX) * worldLimit * 0.98;
+          }
+        },
+
+        initializeParticle() {
+          const sim = appState.sim;
+          sim.isInitialized = true;
+          sim.particleX = 0.0;
+          sim.isParityFlipped = false;
+          simulationOps.setVelocity(
+            parseFloat(appState.ui.elements.velocitySlider.value)
+          );
+          simulationOps.setParticleWidth(
+            parseFloat(appState.ui.elements.energySlider.value)
+          );
+          simulationOps.setBarrierWidth(
+            parseFloat(appState.ui.elements.barrierWidthSlider.value)
+          );
+          simulationOps.setBarrierHeight(
+            parseFloat(appState.ui.elements.barrierHeightSlider.value)
+          );
+          domOps.updateInfoPanel();
+        },
+
+        setVelocity(v) {
+          const sim = appState.sim;
+          sim.particleV = Math.max(-0.995, Math.min(0.995, parseFloat(v)));
+          sim.lorentzGamma =
+            1.0 / Math.sqrt(1.0 - sim.particleV * sim.particleV);
+          sim.lorentzGamma =
+            isNaN(sim.lorentzGamma) || !isFinite(sim.lorentzGamma)
+              ? 1.0
+              : sim.lorentzGamma;
+          sim.particleP =
+            appState.constants.MASS * sim.particleV * sim.lorentzGamma;
+          sim.particleP =
+            isNaN(sim.particleP) || !isFinite(sim.particleP)
+              ? 0.0
+              : sim.particleP;
+          domOps.updateSliderValue("velocity", sim.particleV, 3);
+          domOps.updateInfoPanel();
+        },
+
+        reflectParticle() {
+          simulationOps.setVelocity(-appState.sim.particleV);
+        },
+
+        setZeroState() {
+          const sim = appState.sim;
+          sim.particleX = 0.0;
+          simulationOps.setVelocity(0.0);
+          appState.ui.elements.velocitySlider.value = 0;
+          sim.isParityFlipped = false;
+          sim.isInitialized = true;
+          domOps.updateInfoPanel();
+        },
+
+        toggleBarrier() {
+          const sim = appState.sim;
+          sim.barrierActive = !sim.barrierActive;
+          if (sim.barrierActive) {
+            sim.barrierX =
+              appState.constants.BARRIER_DEFAULT_X *
+              (Math.random() > 0.5 ? 1 : -1) *
+              random(0.5, 1.0);
+          }
+          domOps.updateInfoPanel();
+        },
+
+        setBarrierHeight(h) {
+          appState.sim.barrierHeight = parseFloat(h);
+          domOps.updateSliderValue("barrierHeight", h);
+          domOps.updateInfoPanel();
+        },
+
+        setBarrierWidth(w) {
+          appState.sim.barrierWidth = parseFloat(w);
+          domOps.updateSliderValue("barrierWidth", w);
+          domOps.updateInfoPanel();
+        },
+
+        setParticleWidth(w) {
+          appState.sim.particleWidth = parseFloat(w);
+          domOps.updateSliderValue("energy", w);
+          domOps.updateInfoPanel();
+        },
+
+        toggleParity() {
+          appState.sim.isParityFlipped = !appState.sim.isParityFlipped;
+          simulationOps.setVelocity(-appState.sim.particleV);
+          appState.sim.particleX = -appState.sim.particleX;
+          domOps.updateInfoPanel();
+        },
+
+        toggleEvolution() {
+          const sim = appState.sim;
+          sim.isEvolving = !sim.isEvolving;
+          if (sim.isEvolving) {
+            sim.lastFrameTime = performance.now();
+          }
+          domOps.updateInfoPanel();
+          appState.ui.elements.identityEvolveBtn.textContent = `[ ${
+            sim.isEvolving ? "|| Pause" : "▶ Evolve"
+          } ] Time`;
+        },
+
+        reset() {
+          const sim = appState.sim;
+          sim.particleX = 0.0;
+          sim.particleP = 0.0;
+          sim.particleV = 0.0;
+          sim.particleWidth = 0.5;
+          sim.lorentzGamma = 1.0;
+          sim.isInitialized = false;
+          sim.isEvolving = false;
+          sim.isParityFlipped = false;
+          sim.barrierActive = false;
+          sim.barrierHeight = 0.8;
+          sim.barrierWidth = 0.1;
+          sim.time = 0.0;
+          sim.flashIntensity = 0.0;
+
+          appState.ui.elements.velocitySlider.value = 0;
+          appState.ui.elements.energySlider.value = 0.5;
+          appState.ui.elements.barrierHeightSlider.value = 0.8;
+          appState.ui.elements.barrierWidthSlider.value = 0.1;
+
+          domOps.updateSliderValue("velocity", 0, 3);
+          domOps.updateSliderValue("energy", 0.5);
+          domOps.updateSliderValue("barrierHeight", 0.8);
+          domOps.updateSliderValue("barrierWidth", 0.1);
+          domOps.updateInfoPanel();
+          domOps.updateConceptContext(
+            "reset-sim-btn",
+            "Simulation reset to initial zero state."
+          );
+          domOps.updateUnityLink("reset-sim-btn");
+          appState.ui.elements.identityEvolveBtn.textContent = `[ ▶ Evolve ] Time`;
+        },
+
+        triggerReflectionConcept() {
+          handleInteraction("barrier-reflection");
+        },
+      };
+
+      const handleInteraction = (interactionId, eventSourceElement = null) => {
+        domOps.updateURLHash();
+        domOps.triggerUnityFlash();
+
+        let conceptText = "";
+        const sim = appState.sim;
+        const interactionMap = appState.interactionMap;
+
+        switch (interactionId) {
+          case "velocity-slider":
+            const newV = eventSourceElement.value;
+            simulationOps.setVelocity(newV);
+            conceptText = `Velocity → ${sim.particleV.toFixed(
+              3
+            )}c. γ = ${sim.lorentzGamma.toFixed(3)}. At v=0, γ=1 (${
+              interactionMap[interactionId].concept
+            }). Invariance: Rest Mass (${
+              interactionMap[interactionId].principle
+            }).`;
+            break;
+          case "energy-slider":
+            const newW = eventSourceElement.value;
+            simulationOps.setParticleWidth(newW);
+            conceptText = `Packet Width σ → ${sim.particleWidth.toFixed(
+              2
+            )}. Affects Δx. Link to Δp via Uncertainty Principle (${
+              interactionMap[interactionId].concept
+            }).`;
+            break;
+          case "barrier-height-slider":
+            const newH = eventSourceElement.value;
+            simulationOps.setBarrierHeight(newH);
+            conceptText = `Barrier Height → ${sim.barrierHeight.toFixed(
+              2
+            )}. Modifies ${
+              interactionMap[interactionId].concept
+            } & tunneling probability.`;
+            break;
+          case "barrier-width-slider":
+            const newBw = eventSourceElement.value;
+            simulationOps.setBarrierWidth(newBw);
+            conceptText = `Barrier Width → ${sim.barrierWidth.toFixed(
+              2
+            )}. Affects ${
+              interactionMap[interactionId].concept
+            } interaction time/tunneling.`;
+            break;
+          case "init-particle-btn":
+            simulationOps.initializeParticle();
+            conceptText = `Particle Initialized at Origin (${interactionMap[interactionId].concept}). State defined.`;
+            break;
+          case "zero-state-btn":
+            simulationOps.setZeroState();
+            conceptText = `Set to Zero State: v=0, x=0. Rest Frame (${interactionMap[interactionId].concept}).`;
+            break;
+          case "add-barrier-btn":
+            simulationOps.toggleBarrier();
+            conceptText = sim.barrierActive
+              ? `Barrier Active. Demonstrates ${interactionMap[interactionId].concept}.`
+              : `Barrier Deactivated. Free evolution restored.`;
+            break;
+          case "parity-flip-btn":
+            simulationOps.toggleParity();
+            conceptText = sim.isParityFlipped
+              ? `Parity Applied (x → -x). Spatial ${interactionMap[interactionId].concept}.`
+              : `Parity Applied Again (P²). Returns to original state (${interactionMap[interactionId].concept}).`;
+            break;
+          case "identity-evolve-btn":
+            simulationOps.toggleEvolution();
+            conceptText = sim.isEvolving
+              ? `Time Evolution Enabled. Unitary evolution (${interactionMap[interactionId].concept}).`
+              : `Time Evolution Paused. State frozen.`;
+            break;
+          case "reset-sim-btn":
+            simulationOps.reset();
+            conceptText = `Simulation Reset. Returned to ${interactionMap[interactionId].concept} state.`;
+            break;
+          case "theme-toggle":
+            const newTheme = eventSourceElement.checked ? "light" : "dark";
+            domOps.setTheme(newTheme);
+            conceptText = `Theme basis state set to ${
+              newTheme === "light" ? "|1⟩" : "|0⟩"
+            }. Observer frame shift (${
+              interactionMap[interactionId].concept
+            }).`;
+            break;
+          case "barrier-reflection":
+            interactionId = "add-barrier-btn";
+            conceptText = `Particle Reflected! Momentum reversed due to barrier interaction (${interactionMap[interactionId].concept}).`;
+            break;
+          default:
+            conceptText = "Interaction context unavailable.";
+            interactionId = "unknown";
+        }
+
+        if (interactionId !== "unknown") {
+          domOps.updateConceptContext(interactionId, conceptText);
+          domOps.updateUnityLink(interactionId);
+        }
+        domOps.updateInfoPanel();
+      };
+
+      const setupEventListeners = () => {
+        const ui = appState.ui.elements;
+
+        ui.velocitySlider.addEventListener("input", (e) =>
+          domOps.updateSliderValue("velocity", e.target.value, 3)
+        );
+        ui.velocitySlider.addEventListener("change", (e) =>
+          handleInteraction("velocity-slider", e.target)
+        );
+
+        ui.energySlider.addEventListener("input", (e) =>
+          domOps.updateSliderValue("energy", e.target.value)
+        );
+        ui.energySlider.addEventListener("change", (e) =>
+          handleInteraction("energy-slider", e.target)
+        );
+
+        ui.barrierHeightSlider.addEventListener("input", (e) =>
+          domOps.updateSliderValue("barrierHeight", e.target.value)
+        );
+        ui.barrierHeightSlider.addEventListener("change", (e) =>
+          handleInteraction("barrier-height-slider", e.target)
+        );
+
+        ui.barrierWidthSlider.addEventListener("input", (e) =>
+          domOps.updateSliderValue("barrierWidth", e.target.value)
+        );
+        ui.barrierWidthSlider.addEventListener("change", (e) =>
+          handleInteraction("barrier-width-slider", e.target)
+        );
+
+        ui.initParticleBtn.addEventListener("click", () =>
+          handleInteraction("init-particle-btn")
+        );
+        ui.zeroStateBtn.addEventListener("click", () =>
+          handleInteraction("zero-state-btn")
+        );
+        ui.addBarrierBtn.addEventListener("click", () =>
+          handleInteraction("add-barrier-btn")
+        );
+        ui.parityFlipBtn.addEventListener("click", () =>
+          handleInteraction("parity-flip-btn")
+        );
+        ui.identityEvolveBtn.addEventListener("click", () =>
+          handleInteraction("identity-evolve-btn")
+        );
+        ui.resetSimBtn.addEventListener("click", () =>
+          handleInteraction("reset-sim-btn")
+        );
+        ui.themeToggle.addEventListener("change", (e) =>
+          handleInteraction("theme-toggle", e.target)
+        );
+
+        window.addEventListener("resize", webGLOps.resizeCanvas);
+      };
+
+      const mainLoop = (currentTime) => {
+        const deltaTime = (currentTime - appState.sim.lastFrameTime) / 1000.0;
+        appState.sim.lastFrameTime = currentTime;
+
+        simulationOps.update(Math.min(deltaTime, 0.05));
+        webGLOps.render();
+        domOps.updateInfoPanel();
+
+        requestAnimationFrame(mainLoop);
+      };
+
+      const initApp = () => {
+        domOps.initUIReferences();
+        if (!webGLOps.setupWebGL()) {
+          return;
+        }
+        setupEventListeners();
+        domOps.setTheme("dark");
+        simulationOps.reset();
+        handleInteraction("init-particle-btn");
+        handleInteraction("zero-state-btn");
+        domOps.updateURLHash();
+        appState.sim.lastFrameTime = performance.now();
+        requestAnimationFrame(mainLoop);
+      };
+
+      window.addEventListener("load", initApp);
+    </script>
   </body>
 </html>
