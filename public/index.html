@@ -24,7 +24,8 @@
       .title {
         z-index: 10;
         pointer-events: none;
-        font-size: 24px;
+        font-size: 20px;
+        letter-spacing: 3px;
       }
       .content {
         z-index: 10;
@@ -59,15 +60,17 @@
         left: 0;
         width: 100%;
         height: 100%;
+        display: none;
       }
       #particle-container line {
         stroke: rgba(255, 255, 255, 0.5);
         stroke-width: 0.5;
-        transition: opacity 0.3s ease-out;
+        transition: opacity 0.5s ease-out;
       }
       #particle-container circle {
         fill: rgba(255, 255, 255, 0.8);
-        transition: opacity 0.3s ease-out;
+        transition: opacity 0.5s ease-out, r 0.1s linear;
+        transform-origin: center center;
       }
       .particle-div {
         position: absolute;
@@ -75,7 +78,7 @@
         border-radius: 50%;
         transition: opacity 0.5s linear;
         transform-origin: center center;
-        will-change: transform, opacity, left, top;
+        will-change: transform, opacity, left, top, width, height;
       }
       @keyframes twinkle-anim {
         0%,
@@ -213,16 +216,16 @@
     </div>
 
     <div class="content">
-      <p class="title">Simulatte</p>
+      <p class="title">SIMULATTE</p>
       <br />
       <p>an n-gram and anagram collective</p>
       <p>created for mages who like games</p>
       <br />
       <br />
       <p>
-        <sub>some</sub>d<sup>emos</sup>
-        <a href="/2">d<sup>2</sup></a>
+        <sub>some</sub>d<sup>emos</sup>\
         <a href="/4">d<sup>4</sup></a>
+        <a href="/2">d<sup>2</sup></a>
         <a href="/0">d<sup>0</sup></a>
       </p>
     </div>
@@ -300,6 +303,20 @@
       </div>
       <div class="control-row" data-mode="network">
         <label>
+          <span>Net Twinkle:</span>
+          <input
+            type="range"
+            id="network-twinkle"
+            min="0"
+            max="1"
+            value="0.0"
+            step="0.05"
+          />
+          <span class="value-display" id="network-twinkle-value">0.00</span>
+        </label>
+      </div>
+      <div class="control-row" data-mode="network">
+        <label>
           <span>Line Life (s):</span>
           <input
             type="range"
@@ -371,7 +388,7 @@
       </div>
       <div class="control-row" data-mode="space">
         <label>
-          <span>Twinkle:</span>
+          <span>Space Twinkle:</span>
           <input
             type="range"
             id="twinkle-intensity"
@@ -397,6 +414,9 @@
       let animationId;
       let nextParticleId = 0;
       let currentMode = "network";
+      let transitioningTo = null;
+      let transitionStartTime = 0;
+      const transitionDuration = 2000;
 
       let config = {
         mode: "network",
@@ -404,15 +424,17 @@
         maxLineDist: 100,
         connectionDensity: 0.1,
         vertexSpeed: 0.5,
+        networkTwinkle: 0.0,
         lineLifetime: 5000,
         spaceSpeed: 0.8,
         spinStrength: 0.01,
         stretchAmount: 0.0,
         emanationRadius: 30,
-        twinkleIntensity: 0.8,
+        spaceTwinkleIntensity: 0.8,
         minStarSize: 0.5,
         maxStarSize: 2.5,
         stretchFactorBase: 0.15,
+        baseCircleRadius: 1.2,
       };
 
       function random(min, max) {
@@ -430,7 +452,7 @@
         particleContainer.style.height = `${height}px`;
         particles.forEach((p) => {
           if (
-            currentMode === "space" &&
+            (currentMode === "space" || transitioningTo === "space") &&
             (p.x > width + 150 ||
               p.y > height + 150 ||
               p.x < -150 ||
@@ -438,59 +460,68 @@
           ) {
             resetParticleForSpace(p);
           } else if (
-            currentMode === "network" &&
+            (currentMode === "network" || transitioningTo === "network") &&
             (p.x > width || p.y > height || p.x < 0 || p.y < 0)
           ) {
             p.x = Math.max(0, Math.min(width, p.x));
             p.y = Math.max(0, Math.min(height, p.y));
+            if (p.vx !== undefined) {
+              if (p.x <= 0 || p.x >= width) p.vx *= -1;
+              if (p.y <= 0 || p.y >= height) p.vy *= -1;
+            }
           }
         });
       }
       window.addEventListener("resize", resizeHandler);
 
-      function createParticleElement(mode) {
-        if (mode === "network") {
-          const circle = document.createElementNS(svgNS, "circle");
-          circle.setAttribute("r", 1.2);
-          circle.style.opacity = 0;
-          networkSvg.appendChild(circle);
-          return circle;
+      function createParticleElement(type) {
+        if (type === "circle") {
+          const el = document.createElementNS(svgNS, "circle");
+          el.setAttribute("r", config.baseCircleRadius);
+          el.style.opacity = 0;
+          networkSvg.appendChild(el);
+          return el;
         } else {
-          const star = document.createElement("div");
-          star.classList.add("particle-div");
+          // div
+          const el = document.createElement("div");
+          el.classList.add("particle-div");
           const size = random(config.minStarSize, config.maxStarSize);
-          star.style.width = `${size}px`;
-          star.style.height = `${size}px`;
-          star.dataset.size = size;
-          star.style.opacity = 0;
-          particleContainer.appendChild(star);
-          return star;
+          el.style.width = `${size}px`;
+          el.style.height = `${size}px`;
+          el.dataset.size = size;
+          el.style.opacity = 0;
+          particleContainer.appendChild(el);
+          return el;
         }
       }
 
-      function removeParticleElement(particle) {
-        if (particle.el && particle.el.parentNode) {
-          particle.el.remove();
+      function ensureElement(particle, type) {
+        if (
+          !particle.el ||
+          (type === "circle" && particle.el.tagName !== "circle") ||
+          (type === "div" && particle.el.tagName !== "DIV")
+        ) {
+          if (particle.el && particle.el.parentNode) {
+            particle.el.remove();
+          }
+          particle.el = createParticleElement(type);
         }
-        particle.el = null;
-      }
-
-      function switchParticleElement(particle, newMode) {
-        removeParticleElement(particle);
-        particle.el = createParticleElement(newMode);
+        return particle.el;
       }
 
       function initializeParticleState(particle, mode) {
-        particle.id = nextParticleId++;
-        particle.opacity = 0;
-        particle.targetOpacity = mode === "network" ? 1 : random(0.4, 1);
-        if (!particle.el) {
-          particle.el = createParticleElement(mode);
-        }
+        particle.id = particle.id ?? nextParticleId++;
+        particle.transitionProgress = 0;
+        particle.mode = mode;
 
-        if (mode === "network") {
-          particle.x = random(0, width);
-          particle.y = random(0, height);
+        const isNetwork = mode === "network";
+        ensureElement(particle, isNetwork ? "circle" : "div");
+
+        particle.targetOpacity = isNetwork ? 1 : random(0.4, 1);
+
+        if (isNetwork) {
+          particle.x = particle.x ?? random(0, width);
+          particle.y = particle.y ?? random(0, height);
           const angle = random(0, Math.PI * 2);
           const speed = random(
             0.1 * config.vertexSpeed,
@@ -499,28 +530,36 @@
           particle.vx = Math.cos(angle) * speed;
           particle.vy = Math.sin(angle) * speed;
           particle.z = undefined;
+          particle.twinklePhase = random(0, PI * 2);
         } else {
           const angle = random(0, Math.PI * 2);
-          const radius = config.emanationRadius;
-          particle.x = width / 2 + Math.cos(angle) * radius;
-          particle.y = height / 2 + Math.sin(angle) * radius;
-          particle.z = random(0.1, 1);
+          const radius =
+            config.emanationRadius === 0
+              ? random(0, 5)
+              : config.emanationRadius;
+          particle.x = particle.x ?? width / 2 + Math.cos(angle) * radius;
+          particle.y = particle.y ?? height / 2 + Math.sin(angle) * radius;
+          particle.z = particle.z ?? random(0.1, 1);
           particle.vx = undefined;
           particle.vy = undefined;
           if (particle.el && particle.el.tagName === "DIV") {
-            const size = random(config.minStarSize, config.maxStarSize);
+            const size =
+              parseFloat(particle.el.dataset.size) ||
+              random(config.minStarSize, config.maxStarSize);
             particle.el.style.width = `${size}px`;
             particle.el.style.height = `${size}px`;
             particle.el.dataset.size = size;
             updateParticleTwinkle(particle);
           }
         }
+        particle.opacity = particle.opacity ?? 0;
         if (particle.el) particle.el.style.opacity = particle.opacity;
       }
 
       function resetParticleForSpace(particle) {
         const angle = random(0, Math.PI * 2);
-        const radius = config.emanationRadius;
+        const radius =
+          config.emanationRadius === 0 ? random(0, 5) : config.emanationRadius;
         particle.x = width / 2 + Math.cos(angle) * radius;
         particle.y = height / 2 + Math.sin(angle) * radius;
         particle.z = random(0.1, 1);
@@ -537,11 +576,11 @@
         }
       }
 
-      function updateParticleNetwork(particle) {
+      function updateParticleNetwork(particle, now) {
         particle.x += particle.vx;
         particle.y += particle.vy;
-        if (particle.x < 0 || particle.x > width) particle.vx *= -1;
-        if (particle.y < 0 || particle.y > height) particle.vy *= -1;
+        if (particle.x <= 0 || particle.x >= width) particle.vx *= -1;
+        if (particle.y <= 0 || particle.y >= height) particle.vy *= -1;
         particle.x = Math.max(0, Math.min(width, particle.x));
         particle.y = Math.max(0, Math.min(height, particle.y));
 
@@ -556,14 +595,32 @@
             particle.opacity - 0.05
           );
 
+        ensureElement(particle, "circle");
         particle.el.setAttribute("cx", particle.x);
         particle.el.setAttribute("cy", particle.y);
-        particle.el.style.opacity = particle.opacity;
+
+        if (config.networkTwinkle > 0) {
+          const twinkleAmount = config.networkTwinkle;
+          particle.twinklePhase += 0.05 + random(0, 0.05);
+          const baseOpacity = particle.opacity * (0.6 + twinkleAmount * 0.4);
+          const phaseOpacity = Math.sin(particle.twinklePhase) * 0.5 + 0.5;
+          const finalOpacity =
+            baseOpacity * (1.0 - twinkleAmount) +
+            baseOpacity * twinkleAmount * phaseOpacity;
+          particle.el.style.opacity = finalOpacity.toFixed(3);
+
+          const baseRadius = config.baseCircleRadius;
+          const scaleFactor = 1.0 + (phaseOpacity - 0.5) * 0.4 * twinkleAmount;
+          particle.el.setAttribute("r", (baseRadius * scaleFactor).toFixed(2));
+        } else {
+          particle.el.style.opacity = particle.opacity.toFixed(3);
+          particle.el.setAttribute("r", config.baseCircleRadius);
+        }
       }
 
       function updateParticleTwinkle(particle) {
         if (!particle.el || particle.el.tagName === "circle") return;
-        const intensity = config.twinkleIntensity;
+        const intensity = config.spaceTwinkleIntensity;
         const el = particle.el;
 
         if (intensity > 0) {
@@ -590,7 +647,7 @@
         }
       }
 
-      function updateParticleSpace(particle) {
+      function updateParticleSpace(particle, now) {
         const centerX = width / 2;
         const centerY = height / 2;
         let dx = particle.x - centerX;
@@ -600,7 +657,7 @@
         const angle = Math.atan2(dy, dx);
         const angularSpeed = config.spinStrength * 50;
 
-        const newAngle = angle + angularSpeed * 0.016; // Approx delta time
+        const newAngle = angle + angularSpeed * 0.016;
         const radialMoveDist = baseRadialSpeed;
         const nextX =
           centerX + (distFromCenter + radialMoveDist) * Math.cos(newAngle);
@@ -620,17 +677,18 @@
           );
         }
 
+        ensureElement(particle, "div");
         const size = parseFloat(particle.el.dataset.size) || 1;
         particle.el.style.left = `${particle.x - size / 2}px`;
         particle.el.style.top = `${particle.y - size / 2}px`;
 
         updateParticleTwinkle(particle);
 
-        if (config.twinkleIntensity === 0) {
+        if (config.spaceTwinkleIntensity === 0) {
           const speedMag = Math.sqrt(moveX * moveX + moveY * moveY);
           const baseStretch =
             1 + speedMag * config.stretchFactorBase * config.spaceSpeed;
-          const stretchRandomness = random(0.8, 1.2); // Random factor +/- 20%
+          const stretchRandomness = random(0.8, 1.2);
           const stretchFactor =
             config.stretchAmount === 0
               ? 1
@@ -643,7 +701,7 @@
           particle.el.style.transform = `rotate(${angleRad}rad) scaleX(${stretchFactor.toFixed(
             3
           )})`;
-          particle.el.style.opacity = particle.opacity;
+          particle.el.style.opacity = particle.opacity.toFixed(3);
         }
 
         const border = 150;
@@ -654,6 +712,54 @@
           particle.y > height + border
         ) {
           resetParticleForSpace(particle);
+        }
+      }
+
+      function updateParticleTransition(particle, now, progress) {
+        const easedProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+        const targetMode = transitioningTo;
+        const sourceMode = targetMode === "network" ? "space" : "network";
+
+        ensureElement(particle, targetMode === "network" ? "circle" : "div");
+
+        let targetX, targetY;
+        if (targetMode === "network") {
+          targetX = particle.x + particle.vx * (1.0 - easedProgress);
+          targetY = particle.y + particle.vy * (1.0 - easedProgress);
+        } else {
+          const centerX = width / 2;
+          const centerY = height / 2;
+          const angle = Math.atan2(particle.y - centerY, particle.x - centerX);
+          const radius =
+            config.emanationRadius === 0
+              ? random(0, 5)
+              : config.emanationRadius;
+          const startX = centerX + Math.cos(angle) * radius;
+          const startY = centerY + Math.sin(angle) * radius;
+          targetX = particle.x * (1.0 - easedProgress) + startX * easedProgress;
+          targetY = particle.y * (1.0 - easedProgress) + startY * easedProgress;
+        }
+
+        particle.x = targetX;
+        particle.y = targetY;
+        particle.opacity = particle.targetOpacity * easedProgress;
+
+        if (particle.el) {
+          if (particle.el.tagName === "circle") {
+            particle.el.setAttribute("cx", particle.x);
+            particle.el.setAttribute("cy", particle.y);
+            particle.el.style.opacity = particle.opacity.toFixed(3);
+          } else {
+            const size = parseFloat(particle.el.dataset.size) || 1;
+            particle.el.style.left = `${particle.x - size / 2}px`;
+            particle.el.style.top = `${particle.y - size / 2}px`;
+            particle.el.style.opacity = particle.opacity.toFixed(3);
+            particle.el.style.transform = "";
+            if (particle.el.classList.contains("twinkle")) {
+              particle.el.style.animation = "none";
+              particle.el.classList.remove("twinkle");
+            }
+          }
         }
       }
 
@@ -682,7 +788,7 @@
         };
       }
 
-      function updateLines(now) {
+      function updateLines(now, transitionProgress = 1) {
         const visibleParticles = particles.filter((p) => p.opacity > 0.1);
         const existingLineKeys = new Set(
           lines.map(
@@ -691,25 +797,27 @@
         );
         const effectiveMaxDist = calculateEffectiveMaxLineDist();
 
-        for (let i = 0; i < visibleParticles.length; i++) {
-          for (let j = i + 1; j < visibleParticles.length; j++) {
-            const p1 = visibleParticles[i];
-            const p2 = visibleParticles[j];
-            const lineKey = `${Math.min(p1.id, p2.id)}-${Math.max(
-              p1.id,
-              p2.id
-            )}`;
-            if (existingLineKeys.has(lineKey)) continue;
-            const dx = p1.x - p2.x;
-            const dy = p1.y - p2.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (
-              dist < effectiveMaxDist &&
-              Math.random() < config.connectionDensity
-            ) {
-              const newLine = createLine(p1, p2);
-              lines.push(newLine);
-              existingLineKeys.add(lineKey);
+        if (transitionProgress === 1) {
+          for (let i = 0; i < visibleParticles.length; i++) {
+            for (let j = i + 1; j < visibleParticles.length; j++) {
+              const p1 = visibleParticles[i];
+              const p2 = visibleParticles[j];
+              const lineKey = `${Math.min(p1.id, p2.id)}-${Math.max(
+                p1.id,
+                p2.id
+              )}`;
+              if (existingLineKeys.has(lineKey)) continue;
+              const dx = p1.x - p2.x;
+              const dy = p1.y - p2.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (
+                dist < effectiveMaxDist &&
+                Math.random() < config.connectionDensity
+              ) {
+                const newLine = createLine(p1, p2);
+                lines.push(newLine);
+                existingLineKeys.add(lineKey);
+              }
             }
           }
         }
@@ -719,7 +827,9 @@
           const age = now - line.born;
           const fadeDuration = 500;
 
-          if (age >= line.maxLifetime) {
+          if (transitionProgress < 1) {
+            line.targetOpacity = 0; // Fade out lines during transition away from network
+          } else if (age >= line.maxLifetime) {
             line.targetOpacity = 0;
           } else if (age >= line.maxLifetime - fadeDuration) {
             line.targetOpacity = Math.max(
@@ -735,7 +845,10 @@
           else if (line.opacity > line.targetOpacity)
             line.opacity = Math.max(line.targetOpacity, line.opacity - 0.03);
 
-          if (line.opacity <= 0.01 && age >= line.maxLifetime) {
+          if (
+            line.opacity <= 0.01 &&
+            (age >= line.maxLifetime || transitionProgress < 1)
+          ) {
             if (line.el.parentNode) line.el.remove();
             lines.splice(i, 1);
           } else {
@@ -763,22 +876,16 @@
         }
         while (particles.length > targetCount) {
           const removedParticle = particles.pop();
-          removedParticle.targetOpacity = 0;
-          setTimeout(() => removeParticleElement(removedParticle), 1000);
-          if (currentMode === "network") {
-            lines = lines.filter((line) => {
-              if (line.p1 === removedParticle || line.p2 === removedParticle) {
-                line.targetOpacity = 0;
-              }
-              return true;
-            });
-          }
+          removeParticleElement(removedParticle);
+          lines = lines.filter(
+            (line) => line.p1 !== removedParticle && line.p2 !== removedParticle
+          );
         }
 
         if (currentMode === "network") {
           particles.forEach((p) => {
             if (p.vx === undefined || p.vy === undefined) {
-              initializeParticleState(p, "network"); // Re-init if switching back
+              initializeParticleState(p, "network");
             }
             const speedMagnitude = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
             const desiredSpeed = random(
@@ -798,7 +905,7 @@
         } else {
           particles.forEach((p) => {
             if (p.z === undefined) {
-              initializeParticleState(p, "space"); // Re-init if switching back
+              initializeParticleState(p, "space");
             }
             updateParticleTwinkle(p);
           });
@@ -809,31 +916,54 @@
         animationId = requestAnimationFrame(animate);
         const now = timestamp || performance.now();
 
-        if (currentMode === "network") {
-          particles.forEach((p) => updateParticleNetwork(p));
-          updateLines(now);
-        } else if (currentMode === "space") {
-          particles.forEach((p) => updateParticleSpace(p));
+        if (transitioningTo) {
+          const elapsed = now - transitionStartTime;
+          const progress = Math.min(1, elapsed / transitionDuration);
+
+          particles.forEach((p) => updateParticleTransition(p, now, progress));
+          updateLines(
+            now,
+            transitioningTo === "network" ? progress : 1 - progress
+          );
+
+          if (progress >= 1) {
+            currentMode = transitioningTo;
+            transitioningTo = null;
+            particles.forEach((p) => {
+              p.mode = currentMode;
+              p.opacity = p.targetOpacity;
+              if (p.mode === "space") updateParticleTwinkle(p);
+            });
+            manageParticles();
+            updateControlVisibility();
+          }
+        } else {
+          if (currentMode === "network") {
+            particles.forEach((p) => updateParticleNetwork(p, now));
+            updateLines(now);
+          } else if (currentMode === "space") {
+            particles.forEach((p) => updateParticleSpace(p, now));
+          }
         }
       }
 
       function setMode(newMode) {
-        if (newMode === currentMode) return;
-        currentMode = newMode;
+        if (newMode === currentMode || transitioningTo) return;
+
+        transitioningTo = newMode;
+        transitionStartTime = performance.now();
         config.mode = newMode;
 
         particles.forEach((p) => {
-          switchParticleElement(p, newMode);
-          initializeParticleState(p, newMode);
+          if (newMode === "network") {
+            p.targetOpacity = 1;
+            if (p.vx === undefined) initializeParticleState(p, "network");
+          } else {
+            p.targetOpacity = random(0.4, 1);
+            if (p.z === undefined) initializeParticleState(p, "space");
+          }
         });
 
-        lines.forEach((l) => {
-          if (l.el.parentNode) l.el.remove();
-        });
-        lines = [];
-        networkSvg.innerHTML = "";
-
-        manageParticles();
         updateControlVisibility();
 
         if (!animationId) {
@@ -846,13 +976,17 @@
           .querySelectorAll(".controls .control-row[data-mode]")
           .forEach((row) => {
             const modes = row.dataset.mode.split(" ");
-            if (modes.includes(currentMode)) {
+            const targetMode = transitioningTo || currentMode;
+            if (modes.includes(targetMode)) {
               row.classList.add("visible");
             } else {
               row.classList.remove("visible");
             }
           });
-        networkSvg.style.display = currentMode === "network" ? "block" : "none";
+        networkSvg.style.display =
+          currentMode === "network" || transitioningTo === "network"
+            ? "block"
+            : "none";
       }
 
       function setupControls() {
@@ -878,6 +1012,12 @@
             key: "vertexSpeed",
             valueId: "vertex-speed-value",
             fixed: 1,
+            mode: "network",
+          },
+          "network-twinkle": {
+            key: "networkTwinkle",
+            valueId: "network-twinkle-value",
+            fixed: 2,
             mode: "network",
           },
           "line-life": {
@@ -910,7 +1050,7 @@
             mode: "space",
           },
           "twinkle-intensity": {
-            key: "twinkleIntensity",
+            key: "spaceTwinkleIntensity",
             valueId: "twinkle-intensity-value",
             fixed: 2,
             callback: manageParticles,
@@ -968,7 +1108,8 @@
       function init() {
         setupControls();
         resizeHandler();
-        setMode(config.mode);
+        currentMode = config.mode;
+        document.getElementById(`mode-${currentMode}`).checked = true;
         manageParticles();
         updateControlVisibility();
         if (!animationId) {
