@@ -3,18 +3,43 @@ import os
 import argparse
 import base64
 import re  # Using regex for more robust marker parsing
+import binascii  # Import for catching specific Base64 errors
 
 # Define markers (must match cats.py)
 # Regex pattern accounts for potential whitespace variations around path
 FILE_START_MARKER_REGEX = re.compile(r"--- CATS_START_FILE: (.*?) ---")
 FILE_END_MARKER = "--- CATS_END_FILE ---"
-ENCODING = "utf-8"  # Encoding for markers and paths
+ENCODING = "utf-8"  # Encoding for markers, paths, and non-base64 content
+
+
+def is_base64(s):
+    """
+    Checks if a string appears to be valid Base64 encoded data.
+    The most reliable check is to attempt decoding.
+    """
+    try:
+        # Encode the string to bytes using the defined encoding
+        # before attempting to decode from Base64
+        encoded_bytes = s.encode(ENCODING)
+        # Attempt to decode from Base64
+        base64.b64decode(encoded_bytes, validate=True)
+        # The 'validate=True' flag ensures only valid Base64 characters are present
+        return True
+    except (binascii.Error, ValueError):
+        # binascii.Error is raised for incorrect padding or non-alphabet characters
+        # ValueError can be raised if the input string itself cannot be encoded (less likely here)
+        return False
+    except Exception as e:
+        # Catch any other unexpected errors during the check
+        print(f"  Warning: Unexpected error during Base64 check: {e}", file=sys.stderr)
+        return False
 
 
 def extract_files(input_file_path, output_dir_path, force_overwrite=False):
     """
     Reads the concatenated file, extracts files based on markers,
-    decodes base64 content, and recreates the file structure in the output directory.
+    auto-detects if content is Base64, decodes if necessary,
+    and recreates the file structure in the output directory.
     """
     extracted_files = 0
     skipped_files = 0
@@ -75,7 +100,9 @@ def extract_files(input_file_path, output_dir_path, force_overwrite=False):
             # Content starts after the full start marker match
             start_marker_end_pos = start_match.end()
             # Need to handle potential newline after marker before content
-            base64_content_raw = block[start_marker_end_pos:].strip()
+            content_raw = block[
+                start_marker_end_pos:
+            ].strip()  # Renamed from base64_content_raw
 
             if not relative_path:
                 print(
@@ -136,22 +163,39 @@ def extract_files(input_file_path, output_dir_path, force_overwrite=False):
                 if not os.path.exists(output_file_dir):
                     os.makedirs(output_file_dir, exist_ok=True)
 
-                # Decode base64 content
-                binary_content = base64.b64decode(base64_content_raw.encode(ENCODING))
+                # --- Base64 Detection Logic ---
+                file_content_bytes = None
+                if is_base64(content_raw):
+                    print("  Content detected as Base64. Decoding...")
+                    try:
+                        # Decode base64 content
+                        file_content_bytes = base64.b64decode(
+                            content_raw.encode(ENCODING)
+                        )
+                    except binascii.Error as e:
+                        print(
+                            f"  Warning: Skipping file '{relative_path}' due to Base64 decode error even after check: {e}",
+                            file=sys.stderr,
+                        )
+                        skipped_files += 1
+                        continue  # Skip writing this file
+                else:
+                    print(
+                        "  Content does not appear to be Base64. Writing raw content..."
+                    )
+                    # Assume raw content is text, encode it using defined ENCODING
+                    file_content_bytes = content_raw.encode(ENCODING)
+                # --- End of Detection Logic ---
 
-                # Write the actual file content as binary
-                with open(full_output_path, "wb") as outfile:
-                    outfile.write(binary_content)
+                # Write the actual file content as binary ('wb' mode)
+                # This handles both decoded Base64 (binary) and raw text (encoded to bytes)
+                if file_content_bytes is not None:
+                    with open(full_output_path, "wb") as outfile:
+                        outfile.write(file_content_bytes)
+                    print(f"  Successfully extracted to: {full_output_path}")
+                    extracted_files += 1
+                # else: file was skipped due to decode error above
 
-                print(f"  Successfully extracted to: {full_output_path}")
-                extracted_files += 1
-
-            except base64.binascii.Error as e:
-                print(
-                    f"  Warning: Skipping file '{relative_path}' due to Base64 decode error: {e}",
-                    file=sys.stderr,
-                )
-                skipped_files += 1
             except IOError as e:
                 print(
                     f"  Warning: Skipping file '{relative_path}' due to write error: {e}",
@@ -191,8 +235,8 @@ def extract_files(input_file_path, output_dir_path, force_overwrite=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Extracts files from a 'cats_output.txt' file (created by cats.py) "
-            "and recreates the original directory structure."
+            "Extracts files from a 'cats_output.txt' file (created by cats.py), "
+            "auto-detecting Base64 content, and recreates the original directory structure."
         )
     )
     parser.add_argument(

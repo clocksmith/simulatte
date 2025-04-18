@@ -1,120 +1,198 @@
 import sys
 import os
 import argparse
-import base64  # Using base64 to handle binary data safely within a text-like format
+import base64
 
-# Define unique markers
-# Using base64 for the content makes the markers safer as raw binary sequences
-# matching the markers are less likely, but we still use clear text markers for structure.
-FILE_START_MARKER_TEMPLATE = "--- CATS_START_FILE: {} ---"
+# Define markers (must match uncats.py)
+FILE_START_MARKER = "--- CATS_START_FILE: {} ---"
 FILE_END_MARKER = "--- CATS_END_FILE ---"
-ENCODING = "utf-8"  # Encoding for markers and paths
+ENCODING = "utf-8"  # Encoding for markers, paths, and non-base64 content
 
 
-def concatenate_files_recursively(directory_path, output_file_path):
+def process_file(file_path, output_file, base_dir, use_base64=True):
     """
-    Recursively walks through a directory, reads files, encodes them in base64,
-    and writes them to an output file with start/end markers containing relative paths.
+    Reads a single file, optionally encodes it, and writes it to the
+    output file with markers.
     """
-    absolute_output_path = os.path.abspath(output_file_path)
+    try:
+        # Calculate relative path from the base directory for the marker
+        relative_path = os.path.relpath(file_path, base_dir)
+        # Normalize path separators for consistency
+        relative_path = relative_path.replace(os.path.sep, "/")
+
+        print(f"Processing: {relative_path}")
+
+        # Write the start marker
+        output_file.write(f"\n{FILE_START_MARKER.format(relative_path)}\n")
+
+        # Read the file content in binary mode first
+        with open(file_path, "rb") as infile:
+            binary_content = infile.read()
+
+        content_to_write = None
+        if use_base64:
+            # Encode binary content to Base64, then decode Base64 bytes to string
+            print(f"  Encoding '{relative_path}' using Base64...")
+            encoded_bytes = base64.b64encode(binary_content)
+            content_to_write = encoded_bytes.decode(ENCODING)
+        else:
+            # Try to decode the binary content as raw text using ENCODING
+            print(
+                f"  Attempting to include '{relative_path}' as raw text ({ENCODING})..."
+            )
+            try:
+                content_to_write = binary_content.decode(ENCODING)
+                print(f"  Successfully included '{relative_path}' as raw text.")
+            except UnicodeDecodeError:
+                print(
+                    f"  Warning: Skipping file '{relative_path}'."
+                    f" Cannot decode content using '{ENCODING}'. "
+                    f"Use Base64 (default) for binary files.",
+                    file=sys.stderr,
+                )
+                # Skip writing content and end marker for this file
+                # Need to backtrack to remove the start marker we already wrote
+                current_pos = output_file.tell()
+                marker_len = len(f"\n{FILE_START_MARKER.format(relative_path)}\n")
+                # Seek back and truncate (Note: This might be inefficient for large files)
+                output_file.seek(current_pos - marker_len)
+                output_file.truncate()
+                return False  # Indicate failure/skip
+
+        # Write the content (either Base64 string or raw text string)
+        output_file.write(content_to_write)
+
+        # Write the end marker
+        output_file.write(f"\n{FILE_END_MARKER}\n")
+        return True  # Indicate success
+
+    except IOError as e:
+        print(f"  Error: Could not read file '{file_path}': {e}", file=sys.stderr)
+        # Attempt to remove the start marker if it was written
+        try:
+            current_pos = output_file.tell()
+            marker_len = len(f"\n{FILE_START_MARKER.format(relative_path)}\n")
+            if current_pos >= marker_len:  # Basic check
+                output_file.seek(current_pos - marker_len)
+                output_file.truncate()
+        except Exception as seek_err:
+            print(
+                f"  Error trying to clean up marker for '{relative_path}': {seek_err}",
+                file=sys.stderr,
+            )
+        return False  # Indicate failure/skip
+    except Exception as e:
+        print(
+            f"  Error: Unexpected error processing file '{file_path}': {e}",
+            file=sys.stderr,
+        )
+        # Attempt to remove the start marker if it was written (similar logic as above)
+        try:
+            current_pos = output_file.tell()
+            marker_len = len(f"\n{FILE_START_MARKER.format(relative_path)}\n")
+            if current_pos >= marker_len:
+                output_file.seek(current_pos - marker_len)
+                output_file.truncate()
+        except Exception as seek_err:
+            print(
+                f"  Error trying to clean up marker for '{relative_path}': {seek_err}",
+                file=sys.stderr,
+            )
+        return False  # Indicate failure/skip
+
+
+def concatenate_files(input_paths, output_file_path, use_base64=True):
+    """
+    Walks through input paths (files or directories) and concatenates
+    them into the output file.
+    """
     processed_files = 0
     skipped_files = 0
 
-    print(
-        f"Starting concatenation from '{directory_path}' into '{output_file_path}'..."
-    )
-
+    # Open the output file in text mode with specified encoding
     try:
-        # Open output in text mode, as base64 is text-safe
         with open(output_file_path, "w", encoding=ENCODING) as outfile:
-            for root, _, files in os.walk(directory_path):
-                for filename in files:
-                    file_path = os.path.join(root, filename)
-                    absolute_file_path = os.path.abspath(file_path)
+            print(f"Writing concatenated output to: '{output_file_path}'")
+            print(f"Using Base64 encoding: {use_base64}")
+            outfile.write(f"# Concatenated output generated by cats.py\n")
+            outfile.write(f"# Base64 Encoded: {use_base64}\n")
 
-                    # Prevent reading the output file itself
-                    if absolute_file_path == absolute_output_path:
-                        print(f"Skipping output file itself: {file_path}")
-                        skipped_files += 1
-                        continue
-
-                    try:
-                        # Get relative path for storing in the marker
-                        relative_path = os.path.relpath(file_path, directory_path)
-                        print(f"Processing: {relative_path}")
-
-                        # Write start marker with relative path
-                        start_marker = FILE_START_MARKER_TEMPLATE.format(relative_path)
-                        outfile.write(f"\n{start_marker}\n")
-
-                        # Read file content as binary
-                        with open(file_path, "rb") as infile:
-                            binary_content = infile.read()
-
-                        # Encode binary content to base64 string
-                        base64_content = base64.b64encode(binary_content).decode(
-                            ENCODING
-                        )
-                        outfile.write(base64_content)
-
-                        # Write end marker
-                        outfile.write(f"\n{FILE_END_MARKER}\n")
+            for input_path in input_paths:
+                # Determine the base directory for relative path calculation
+                # If input is a file, base_dir is its containing directory
+                # If input is a directory, base_dir is the directory itself
+                if os.path.isfile(input_path):
+                    base_dir = os.path.dirname(input_path)
+                    if process_file(input_path, outfile, base_dir, use_base64):
                         processed_files += 1
-
-                    except Exception as e:
-                        print(
-                            f"Warning: Skipping file '{file_path}' due to error: {e}",
-                            file=sys.stderr,
-                        )
+                    else:
                         skipped_files += 1
-
-        print("-" * 20)
-        print(f"Success! Concatenated {processed_files} files.")
-        if skipped_files > 0:
-            print(
-                f"Skipped {skipped_files} files (including potentially the output file or due to errors)."
-            )
-        print(f"Output written to: {output_file_path}")
+                elif os.path.isdir(input_path):
+                    base_dir = input_path
+                    for dirpath, _, filenames in os.walk(input_path):
+                        for filename in filenames:
+                            file_path = os.path.join(dirpath, filename)
+                            if process_file(file_path, outfile, base_dir, use_base64):
+                                processed_files += 1
+                            else:
+                                skipped_files += 1
+                else:
+                    print(
+                        f"Warning: Input path '{input_path}' is not a valid file or directory. Skipping.",
+                        file=sys.stderr,
+                    )
+                    skipped_files += 1
 
     except IOError as e:
         print(
-            f"\nError: Could not write to output file '{output_file_path}': {e}",
+            f"Error: Could not open or write to output file '{output_file_path}': {e}",
             file=sys.stderr,
         )
         sys.exit(1)
     except Exception as e:
         print(
-            f"\nAn unexpected error occurred during concatenation: {e}", file=sys.stderr
+            f"An unexpected error occurred: {e}",
+            file=sys.stderr,
         )
         sys.exit(1)
+
+    print("-" * 20)
+    print(f"Finished concatenation.")
+    print(f"Successfully processed: {processed_files} files.")
+    if skipped_files > 0:
+        print(f"Skipped: {skipped_files} files due to errors or incompatibility.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Recursively concatenates files from a directory into a single output file. "
-            "File content is base64 encoded to handle binary data safely."
+            "Concatenates files/directories into a single output file, "
+            "optionally using Base64 encoding (default)."
         )
     )
     parser.add_argument(
-        "directory", help="The source directory to scan recursively for files."
+        "input_paths",
+        nargs="+",
+        help="One or more files or directories to concatenate.",
     )
     parser.add_argument(
         "-o",
         "--output",
         default="cats_output.txt",
-        help="The path for the concatenated output file (default: cats_output.txt).",
+        help="The name of the output file (default: cats_output.txt).",
+    )
+    parser.add_argument(
+        "--no-base64",
+        action="store_true",
+        help=(
+            "Store content as raw text (UTF-8) instead of Base64. "
+            "Files that cannot be decoded as UTF-8 will be skipped."
+        ),
     )
 
     args = parser.parse_args()
-    target_directory = args.directory
-    output_file = args.output
 
-    if not os.path.isdir(target_directory):
-        print(
-            f"Error: Source '{target_directory}' is not a valid directory.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    # Determine if Base64 should be used based on the flag
+    should_use_base64 = not args.no_base64
 
-    concatenate_files_recursively(target_directory, output_file)
+    concatenate_files(args.input_paths, args.output, should_use_base64)
