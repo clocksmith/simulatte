@@ -32,6 +32,6 @@ Example MCP Definition Structure:
 }
 
 Example JS Implementation Structure (String):
-"async function run(args) {\n  const { param1, param2 } = args;\n  console.log('Executing tool with:', args);\n  try {\n    const result = String(param1).toUpperCase() + (Number(param2) || 0);\n    return { success: true, data: result };\n  } catch (error) {\n    console.error('Tool execution failed:', error);\n    return { success: false, error: error.message };\n  }\n}"
+"async function run(args) {\\n  const { param1, param2 } = args;\\n  console.log('Executing tool with:', args);\\n  try {\\n    const result = String(param1).toUpperCase() + (Number(param2) || 0);\\n    return { success: true, data: result };\\n  } catch (error) {\\n    console.error('Tool execution failed:', error);\\n    return { success: false, error: error.message };\\n  }\\n}"
 
 Ensure the generated JSON is valid and the JavaScript string is correctly escaped if necessary within the final JSON output. Do not include ```json markdown backticks around the final JSON output.

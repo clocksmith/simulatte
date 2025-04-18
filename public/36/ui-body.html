@@ -52,10 +52,9 @@
 
   <section id="tool-creation-section">
     <fieldset>
-      <legend>Create New Tool</legend>
+      <legend>Create New Tool/Edit Request</legend>
       <label for="tool-request-input"
-        >Describe the tool you want to create:</label
-      >
+        >Describe the tool you want to create( or modify the request below):</label>
       <textarea
         id="tool-request-input"
         rows="4"
@@ -67,6 +66,16 @@
 
   <section id="tool-library-section">
     <h2>Generated Tool Library</h2>
+    <div id="tool-library-controls" class="tool-list-settings">
+      <label for="tool-list-search">Search:</label>
+      <input type="search" id="tool-list-search" placeholder="Filter by name..." />
+      <label for="tool-list-sort">Sort by:</label>
+      <select id="tool-list-sort">
+        <option value="name">Name</option>
+        <option value="date">Date Created</option>
+      </select>
+    </div>
+
     <div id="tool-list-container" class="tool-list">
       <p>No tools generated yet.</p>
     </div>
@@ -74,7 +83,7 @@
 </main>
 <footer>
   <p>
-    Dreamer x<sup>2</sup> - v<span id="app-version"><sup>?.<sup>?.<sup>?.</sup></sub></sup></span>
+    Dreamer x<sup>2</sup> - v<span id="app-version"></span>
     <div>| Storage: <span id="storage-usage">?KB (?%)</span></div>
   </p>
 </footer>

@@ -85,7 +85,6 @@ const bootstrap = async () => {
       config,
       logger
     );
-
     const ToolRunner = (await import("./tool-runner.js")).default(
       config,
       logger

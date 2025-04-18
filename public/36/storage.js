@@ -6,11 +6,9 @@ const StorageModule = (config, logger) => {
 
   const LS_PREFIX = config.storagePrefix;
   const STATE_KEY_BASE = config.stateKeyBase;
-  const SESSION_KEY_BASE = config.sessionKeyBase;
   const MAX_ARTIFACT_SIZE_BYTES = config.maxArtifactSizeBytes;
   const VERSION_MAJOR = String(config.version).split(".")[0];
   const stateKey = STATE_KEY_BASE + VERSION_MAJOR;
-  const sessionStateKey = SESSION_KEY_BASE + VERSION_MAJOR;
   const QUOTA_BYTES = config.storageQuotaBytes;
   const QUOTA_WARN_THRESHOLD = config.storageQuotaWarnThreshold;
 
@@ -21,7 +19,7 @@ const StorageModule = (config, logger) => {
         const key = localStorage.key(i);
         if (key && (key.startsWith(LS_PREFIX) || key === stateKey)) {
           const value = localStorage.getItem(key);
-          totalBytes += (value?.length ?? 0) * 2;
+          totalBytes += (value?.length ?? 0) * 2; // Estimate bytes (UTF-16)
         }
       }
       const percent = QUOTA_BYTES > 0 ? (totalBytes / QUOTA_BYTES) * 100 : 0;
@@ -40,6 +38,7 @@ const StorageModule = (config, logger) => {
 
     if (
       usage.used >= 0 &&
+      QUOTA_BYTES > 0 &&
       estimatedUsageAfter / QUOTA_BYTES > QUOTA_WARN_THRESHOLD
     ) {
       logger.logEvent(
@@ -50,20 +49,25 @@ const StorageModule = (config, logger) => {
         ).toFixed(1)}%) after setting key: ${key}`
       );
     }
-    if (usage.used >= 0 && estimatedUsageAfter > QUOTA_BYTES) {
-      const errorMsg = `Estimated usage ${(
+    if (
+      usage.used >= 0 &&
+      MAX_ARTIFACT_SIZE_BYTES > 0 &&
+      estimatedUsageAfter > QUOTA_BYTES
+    ) {
+      const errMng = `Estimated usage ${(
         (estimatedUsageAfter / QUOTA_BYTES) *
         100
       ).toFixed(1)}% exceeds quota.`;
       logger.logEvent(
         "error",
         `LocalStorage Quota Exceeded estimation for key: ${key}`,
-        errorMsg
+        errMng
       );
-
-      return false;
+      // We will let the setItem fail naturally, but we logged the warning/error
+      // Returning false here is less useful as the actual setItem might still succeed briefly
+      // return false;
     }
-    return true;
+    return true; // Indicate check passed (doesn't guarantee setItem success)
   };
 
   const _get = (key) => {
@@ -92,7 +96,7 @@ const StorageModule = (config, logger) => {
       throw new Error(msg);
     }
 
-    checkQuotaAndLog(key, value);
+    checkQuotaAndLog(key, value); // Log warnings/errors but don't prevent the attempt
 
     try {
       localStorage.setItem(key, value);
@@ -101,7 +105,7 @@ const StorageModule = (config, logger) => {
       let errorMessage = `LocalStorage SET Error: ${key}`;
       if (
         e.name === "QuotaExceededError" ||
-        (e.code && (e.code === 22 || e.code === 1014))
+        (e.code && (e.code === 22 || e.code === 1014)) // DOMException codes for quota exceeded in older browsers
       ) {
         const usage = getStorageUsage();
         errorMessage = `LocalStorage Quota Exceeded for key: ${key}. Usage: ${(
@@ -110,10 +114,11 @@ const StorageModule = (config, logger) => {
           1024
         ).toFixed(2)}MB / ${(QUOTA_BYTES / 1024 / 1024).toFixed(2)}MB.`;
         logger.logEvent("error", errorMessage, e);
-        throw new Error(errorMessage);
+        throw new Error(errorMessage); // Throw a specific error for quota
       } else {
+        // Other potential errors (security, etc.)
         logger.logEvent("error", errorMessage, e);
-        throw e;
+        throw e; // Re-throw the original error
       }
     }
   };
@@ -129,6 +134,7 @@ const StorageModule = (config, logger) => {
   };
 
   const getArtifactKey = (artifactId, version = "latest") => {
+    // Using simple concatenation, ensuring parts are valid strings
     if (
       !artifactId ||
       typeof artifactId !== "string" ||
@@ -138,7 +144,10 @@ const StorageModule = (config, logger) => {
         `Invalid arguments for getArtifactKey: ID=${artifactId}, Version=${version}`
       );
     }
-    return `${LS_PREFIX}artifact:${artifactId}:${version}`;
+    // Basic sanitization: replace potentially problematic chars like ':' or '/'
+    const cleanId = artifactId.replace(/[:/]/g, "_");
+    const cleanVersion = version.replace(/[:/]/g, "_");
+    return `${LS_PREFIX}artifact:${cleanId}:${cleanVersion}`;
   };
 
   const getArtifactContent = (artifactId, version = "latest") => {
@@ -146,11 +155,27 @@ const StorageModule = (config, logger) => {
   };
 
   const setArtifactContent = (artifactId, version = "latest", content) => {
-    return _set(getArtifactKey(artifactId, version), content);
+    // Important: Use the same key generation logic as getArtifactContent
+    const key = getArtifactKey(
+      artifactId,
+      version.endsWith(".js") || version.endsWith(".json")
+        ? version
+        : `${version}.impl.js`
+    ); // Adjust based on how version is used
+    if (version === "mcp.json" || version === "impl.js") {
+      key = getArtifactKey(artifactId, version);
+    } else {
+      // Fallback or default if only ID and content are passed
+      key = getArtifactKey(artifactId, "latest");
+    }
+
+    return _set(key, content);
   };
 
   const deleteArtifact = (artifactId, version = "latest") => {
-    return _remove(getArtifactKey(artifactId, version));
+    // Allow deleting specific versions like "mcp.json" or "impl.js" directly
+    const key = getArtifactKey(artifactId, version);
+    return _remove(key);
   };
 
   const listArtifacts = () => {
@@ -161,8 +186,11 @@ const StorageModule = (config, logger) => {
         const key = localStorage.key(i);
         if (key?.startsWith(prefix)) {
           const parts = key.substring(prefix.length).split(":");
-          if (parts.length === 2) {
-            artifacts.push({ id: parts[0], version: parts[1], key: key });
+          if (parts.length >= 2) {
+            // Expecting ID:version at least
+            const id = parts[0];
+            const version = parts.slice(1).join(":"); // Rejoin if version had ':'
+            artifacts.push({ id: id, version: version, key: key });
           } else {
             logger.logEvent("warn", `Found malformed artifact key: ${key}`);
           }
@@ -198,7 +226,10 @@ const StorageModule = (config, logger) => {
       return _set(stateKey, stateString);
     } catch (e) {
       logger.logEvent("error", "Failed to save state", e);
-
+      // Re-throw specific QuotaExceededError if caught by _set
+      if (e.message.includes("Quota Exceeded")) {
+        throw e;
+      }
       throw new Error(`Failed to save state: ${e.message}`);
     }
   };
@@ -207,59 +238,21 @@ const StorageModule = (config, logger) => {
     return _remove(stateKey);
   };
 
-  const getSessionState = () => {
-    try {
-      const json = sessionStorage.getItem(sessionStateKey);
-      if (!json) return null;
-      return JSON.parse(json);
-    } catch (e) {
-      logger.logEvent("error", `Failed to parse session state: ${e.message}`);
-      try {
-        sessionStorage.removeItem(sessionStateKey);
-      } catch (removeError) {
-        logger.logEvent(
-          "warn",
-          "Failed to remove invalid session state item.",
-          removeError
-        );
-      }
-      return null;
-    }
-  };
-
-  const saveSessionState = (stateObj) => {
-    if (!stateObj || typeof stateObj !== "object") {
-      throw new Error("Invalid state object provided to saveSessionState.");
-    }
-    try {
-      const stateString = JSON.stringify(stateObj);
-      sessionStorage.setItem(sessionStateKey, stateString);
-      return true;
-    } catch (e) {
-      logger.logEvent("error", `SessionStorage SET Error`, e);
-      if (e.name === "QuotaExceededError") {
-        throw new Error(`SessionStorage Quota Exceeded.`);
-      }
-      throw e;
-    }
-  };
-
-  const removeSessionState = () => {
-    try {
-      sessionStorage.removeItem(sessionStateKey);
-    } catch (e) {
-      logger.logEvent("warn", `SessionStorage REMOVE Error`, e);
-    }
-  };
+  // Session state functions removed as API key is handled directly by StateManager now.
 
   const clearAllReploidData = () => {
-    logger.logEvent("warn", "Initiating storage clear for Reploid v2 data.");
+    logger.logEvent("warn", "Initiating storage clear for Dreamer data.");
     let keysToRemove = [];
     let removedCount = 0;
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith(LS_PREFIX) || key === stateKey)) {
+        if (
+          key &&
+          (key.startsWith(LS_PREFIX) ||
+            key === stateKey ||
+            key === "sessionKey") /* old session key */
+        ) {
           keysToRemove.push(key);
         }
       }
@@ -274,7 +267,7 @@ const StorageModule = (config, logger) => {
       );
 
       try {
-        sessionStorage.clear();
+        sessionStorage.clear(); // Clear session storage too
         logger.logEvent("info", "Cleared SessionStorage.");
       } catch (e) {
         logger.logEvent("warn", "Failed to clear SessionStorage.", e);
@@ -295,9 +288,7 @@ const StorageModule = (config, logger) => {
     getState,
     saveState,
     removeState,
-    getSessionState,
-    saveSessionState,
-    removeSessionState,
+    // No session state methods exported
     clearAllReploidData,
     getStorageUsage,
   };

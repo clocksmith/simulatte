@@ -4,7 +4,7 @@ const UtilsModule = (() => {
   let logBufferIndex = 0;
   let logBufferInitialized = false;
 
-  const MAX_LOG_ENTRIES = () => config?.maxLogEntries ?? 1000;
+  const MAX_LOG_ENTRIES = () => config?.maxLogEntries || 1000;
 
   const initLogBuffer = (cfg) => {
     config = cfg;

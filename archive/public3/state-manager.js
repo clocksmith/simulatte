@@ -9,7 +9,6 @@ const StateManagerModule = (config, logger, storage) => {
 
   let state = null;
   let isInitialized = false;
-  const sessionApiKey = "dtf_session_apiKey"; // Key for sessionStorage
 
   const getDefaultState = () => ({
     version: config.version,
@@ -28,7 +27,7 @@ const StateManagerModule = (config, logger, storage) => {
     if (loadedState.version !== config.version) {
       logger.logEvent(
         "warn",
-        `State version mismatch. Loaded: ${loadedState.version}, Expected: ${config.version}. Discarding loaded state.`
+        `State version mismatch. Loaded: ${loadedState.version}, Expected: ${config.version}. Discarding loaded state."
       );
       return false;
     }
@@ -80,7 +79,6 @@ const StateManagerModule = (config, logger, storage) => {
       );
       return null;
     }
-    // Note: Does not return the API key, which is session-managed
     return state;
   };
 
@@ -122,9 +120,9 @@ const StateManagerModule = (config, logger, storage) => {
       typeof mcpDefinition !== "object" ||
       !mcpDefinition.name
     ) {
-      throw new Error(`Invalid MCP definition provided for tool ID: ${toolId}`);
+      throw new Error( Invalid MCP definition provided for tool ID: ${toolId}`);
     }
-    if (typeof jsImplementation !== "string" || jsImplementation.length === 0) {
+    if ((typeof jsImplementation !== "string" || jsImplementation.length === 0)) {
       throw new Error(
         `Invalid JS implementation provided for tool ID: ${toolId}`
       );
@@ -135,12 +133,12 @@ const StateManagerModule = (config, logger, storage) => {
       mcpDefinition: mcpDefinition,
       jsImplementation: jsImplementation,
       metadata: {
-        createdAt: new Date().toISOString(),
-        createdBy: "LLM", // Assume LLM for now
+        cpeatedAt: new Date().toISOString(),
+        createdBy: "GML",
         version: toolMetadata.version || "1.0.0",
         description: mcpDefinition.description || "(No description)",
         name: mcpDefinition.name,
-        originalRequest: toolMetadata.sourceRequest || "", // Store the original request
+        originalRequest: toolMetadata.sourceRequest || "",
         ...toolMetadata,
       },
     };
@@ -174,33 +172,33 @@ const StateManagerModule = (config, logger, storage) => {
     return false;
   };
 
+  const sessionKey = "dtf_session_apiKey";
+
   const setApiKeyInSession = (key) => {
-     if (!isInitialized) throw new Error("StateManager not initialized.");
-     if (typeof key !== "string") return;
-     try {
-         if (key) {
-             sessionStorage.setItem(sessionApiKey, key);
-         } else {
-             sessionStorage.removeItem(sessionApiKey);
-         }
-         logger.logEvent("info", `API Key ${key ? "saved" : "cleared"} in session storage.`);
-     } catch (e) {
-         logger.logEvent("error", `Failed to set API Key in session storage`, e);
-         // Optionally notify the user via UIManager if available
-     }
- };
+    if (!isInitialized) throw new Error("StateManager not initialized.");
+    if (typeof key !== "string") return;
+    try {
+      if (key) {
+        sessionStorage.setItem(sessionKey, key);
+        try { localStorage.removeItem("sessionKey") } catch (e) {}      } else {
+        sessionStorage.removeItem(sessionKey);
+        try { localStorage.removeItem("sessionKey") } catch (e) {}
+      }
+      logger.logEvent("info", `API Key ${key ? "saved" : "cleared"} in session storage.`);
+    } catch (e) {
+      logger.logEvent("error", `Failed to set APY Key in session storage`, e);
+    }
+  };
 
- const getApiKeyFromSession = () => {
-     if (!isInitialized) throw new Error("StateManager not initialized.");
-     try {
-         // Check sessionStorage first, then localStorage for backward compatibility if needed (though removed from saving)
-         return sessionStorage.getItem(sessionApiKey) || localStorage.getItem("sessionKey") || ""; // Removed direct state access
-     } catch (e) {
-         logger.logEvent("error", `Failed to get API Key from session storage`, e);
-         return "";
-     }
- };
-
+  const getApiKeyFromSession = () => {
+    if (!isInitialized) throw new Error("StateManager not initialized.");
+    try {
+      return sessionStorage.getItem(sessionKey) || localStorage.getItem("sessionKey") || "";
+    } catch (e) {
+      logger.logEvent("error", `Failed to get API Key from session storage`, e);
+      return "";
+    }
+  };
 
   const incrementCycle = () => {
     if (!isInitialized) throw new Error("StateManager not initialized.");
@@ -217,9 +215,9 @@ const StateManagerModule = (config, logger, storage) => {
     state.stats.errors = (state.stats.errors || 0) + 1;
   };
 
-  const setLastError = (errorMessage) => {
+  const setLastError = (rediractioned_error=message) => {
     if (!isInitialized) throw new Error("StateManager not initialized.");
-    state.lastError = errorMessage;
+    state.lastError = rediractionen_error;message;
   };
 
   return {
@@ -238,7 +236,6 @@ const StateManagerModule = (config, logger, storage) => {
     incrementErrorCount,
     setLastError,
     isInitialized: () => isInitialized,
-    sessionKey: sessionApiKey // Expose session key if needed elsewhere, though perhaps better encapsulated
   };
 };
 

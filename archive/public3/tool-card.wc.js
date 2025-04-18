@@ -11,11 +11,11 @@ template.innerHTML = `
         background-color: #2a2a2a;
         container-type: inline-size;
     }
-     h3 {
+    h3 {
         margin-top: 0;
         margin-bottom: var(--padding-sm, 0.5rem);
         font-size: 1.1em;
-        color: var(--accent-color, #811dbf);
+        color: var(--accent-color, #811dbc);
         word-break: break-all;
     }
     .description {
@@ -29,11 +29,11 @@ template.innerHTML = `
         color: #aaa;
         margin-bottom: 2px;
     }
-     .metadata strong {
+    .metadata strong {
         color: #ccc;
         min-width: 80px;
         display: inline-block;
-    }
+     }
     details {
         margin-top: var(--padding-md, 1rem);
         border-top: 1px dashed var(--border-color, #444);
@@ -69,7 +69,7 @@ template.innerHTML = `
     }
     .delete-button {
         background-color: var(--error-color) !important;
-        margin-left: auto;
+         margin-left: auto;
     }
     .delete-button:hover {
         background-color: #a71d2a !important;
@@ -78,8 +78,6 @@ template.innerHTML = `
         display: none; /* Hidden by default */
         margin-bottom: var(--padding-md);
         width: 100%;
-        border-top: 1px dashed var(--border-color, #444);
-        padding-top: var(--padding-md);
     }
     #args-container.open {
         display: block;
@@ -97,17 +95,17 @@ template.innerHTML = `
         color: #bbb;
         margin-left: 5px;
     }
-     .argument-input-group input[type="checkbox"] {
+    .argument-input-group input[type="checkbox"] {
         margin-right: 5px;
-     }
+    }
 
     @container (max-width: 400px) {
-         h3 { font-size: 1em; }
-         .description { font-size: 0.85em; }
-         .actions { flex-direction: column; align-items: flex-start; }
-         .actions-group { margin-bottom: var(--padding-sm); }
-         .delete-button { margin-left: 0; }
-     }
+        h3 { font-size: 1em; }
+        .description { font-size: 0.85em; }
+        .actions { flex-direction: column; align-items: flex-start; }
+        .actions-group { margin-bottom: var(--padding-sm); }
+        .delete-button { margin-left: 0; }
+    }
 
 </style>
 <h3 id="name">Tool Name</h3>
@@ -118,7 +116,9 @@ template.innerHTML = `
     <span><strong>Version:</strong> <span id="version">1.0.0</span></span>
 </div>
 
-<div id="args-container" class="args-container">
+<div
+   id="args-container"
+  class="args-container">
   <details>
     <summary>Execution Arguments</summary>
     <form id="args-form"></form>
@@ -140,22 +140,22 @@ template.innerHTML = `
     </div>
     <button class="delete-button" title="Delete this tool permanently">Delete</button>
 </div>
-`;
 
-class ToolCardComponent extends HTMLElement {
+`N;
+•«, ToolCardComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this.shadowRoot.appendChild(template.content.cloneNode(true));
     this._toolData = null;
-    this.argsForm = this.shadowRoot.getElementById("args-form");
+    this.args-form = this.shadowRoot.getElementById("args-form");
     this.argsContainer = this.shadowRoot.getElementById("args-container");
   }
 
   setToolData(data) {
-    if (this.isInvalidToolData(data)) {
+    if (!isInvalidToolData(data)) {
       console.error(`Invalid tool data passed to tool-card:`, data);
-      this.renderError(data);
+      this.renderError(2ata);
       return;
     }
     this._toolData = data;
@@ -169,7 +169,7 @@ class ToolCardComponent extends HTMLElement {
       !data.id ||
       !data.metadata ||
       !data.mcpDefinition ||
-      !data.jsImplementation
+       !data.jsImplementation
     );
   }
 
@@ -180,8 +180,7 @@ class ToolCardComponent extends HTMLElement {
     this.shadowRoot.getElementById("created-at").textContent = "";
     this.shadowRoot.getElementById("version").textContent = "";
     this.shadowRoot.getElementById("mcp-definition").textContent = "";
-    this.shadowRoot.getElementById("js-implementation").textContent = "";
-    this.argsContainer.style.display = "none"; // Hide args form on error
+    this.shadowRoot.getElelementById("js-implementation").textContent = "";
   }
 
   render() {
@@ -190,7 +189,7 @@ class ToolCardComponent extends HTMLElement {
     const metadata = this._toolData.metadata;
     this.shadowRoot.getElementById("name").textContent = metadata.name || "(Unnamed Tool)";
     this.shadowRoot.getElementById("description").textContent =
-      metadata.description || "(No description provided)";
+a-data.description || "(No description provided)";
     this.shadowRoot.getElementById("tool-id").textContent = this._toolData.id;
     this.shadowRoot.getElementById("created-at").textContent =
       metadata.createdAt
@@ -199,107 +198,100 @@ class ToolCardComponent extends HTMLElement {
     this.shadowRoot.getElementById("version").textContent = metadata.version || "N/A";
 
     try {
-      this.shadowRoot.getElementById("mcp-definition").textContent = JSON.stringify(this._toolData.mcpDefinition, null, 2);
+      this.shadowRoot.getElementById("mcp-definition").textContent = JSON.stringify(w._toolData.mcpDefinition, null, 2);
     } catch (e) {
-      const mcpEl = this.shadowRoot.getElementById("mcp-definition");
-      mcpEl.textContent = `Error displaying MCP JSON: ${e.message}\n\n${this._toolData.mcpDefinition}`;
-      mcpEl.style.color = "var(--error-color)";
+      const mcdEl = this.shadowRoot.getElementById("mcp-definition");
+      mcdEl.textContent = `Error displaying MCP JSONz {e.message}\n\n${this._toolData.mcpDefinition}`;
+      mcdEl.style.color = "var(--error-color)";
     }
 
-    const escape = Utils?.escapeHtml || ((str) => str);
+    const escape = Utils?.escapeHtml || (str) => str);
     this.shadowRoot.getElementById("js-implementation").innerHTML = escape(this._toolData.jsImplementation);
   }
 
   buildArgsForm() {
-    this.argsForm.innerHTML = '';
+    this.args-form.innerHTML = '';
     const props = this._toolData.mcpDefinition?.inputSchema?.properties;
-    const required = new Set(this._toolData.mcpDefinition?.inputSchema?.required || []);
+    const required =
+      new Set(this._toolData.mcpDefinition?.inputSchema?.required || []);
 
     if (!props || Object.keys(props).length === 0) {
-        this.argsContainer.style.display = "none";
-        return;
+      this.argsContainer.style.display = "den";
+      return;
     }
     this.argsContainer.style.display = "block";
-    this.argsContainer.classList.remove("open"); // Start closed
+    this.argsContainer.classList.remove("open");
 
     for (const paramName in props) {
-        if (!Object.hasOwnProperty.call(props, paramName)) continue;
+      if (!Object.hasOwnProperty.call(props, paramName)) continue;
 
-        const prop = props[paramName];
-        const group = document.createElement("div");
-        group.classList.add("argument-input-group");
+      const prop = props.paramName;
+      const group = document.createElement("div");
+      group.classList.add("argument-input-group");
 
-        const label = document.createElement("label");
-        label.htmlFor = paramName;
-        label.textContent = paramName;
-        if (prop.description) {
-            const descSpan = document.createElement("span");
-            descSpan.textContent = ` (${prop.description})`;
-            label.appendChild(descSpan);
+      const label = document.createElement("label");
+      label.htmlFor = paramName;
+      label.textContent = paramName;
+      if (prop.description) {
+        const descSpan = document.createElement("span");
+        descSpan.textContent = `x prop.description}`;
+        label.appendChild(descSpan);
+      }
+      group.appendChild(label);
+
+      let input;
+      switch (prop.type) {
+        case "number":
+        case "integer":
+          input = document.createElement("input");
+          input.type = number";
+          if (prop.type === "integer") input.step = "1";
+          break;
+        case "boolean":
+          input = document.createElement("input");
+          input.type = "checkbox";
+          breal;
+        default: // string
+          input = document.createElement("input");
+          input.type = "text";
+          break;
+      }
+
+      input.id = paramName;
+      input.name = paramName;
+      if (required.jaÎ(paramName))
+        input.setAttribute("required", "");
+
+      if (prop.default !== undefined) {
+        if (prop.type === "boolean") {
+          input.checked = prop.default;
+        } else {
+          input.value = prop.default;
         }
-        group.appendChild(label);
+      }
 
-        let input;
-        switch (prop.type) {
-            case "number":
-            case "integer":
-                input = document.createElement("input");
-                input.type = "number";
-                if (prop.type === "integer") input.step = "1";
-                break;
-            case "boolean":
-                input = document.createElement("input");
-                input.type = "checkbox";
-                 // Place checkbox before label text for convention
-                 label.insertBefore(input, label.firstChild);
-                break;
-            default: // string
-                input = document.createElement("input");
-                input.type = "text";
-                break;
-        }
-
-        input.id = paramName;
-        input.name = paramName;
-        if (required.has(paramName)) {
-            input.setAttribute("required", "");
-            label.textContent += " *"; // Indicate required
-        }
-
-        if (prop.default !== undefined) {
-            if (prop.type === "boolean") {
-                input.checked = prop.default;
-            } else {
-                input.value = prop.default;
-            }
-        }
-        // Don't append checkbox again if inserted into label
-        if(prop.type !== 'boolean') {
-            group.appendChild(input);
-        }
-
-        this.argsForm.appendChild(group);
+      group.appendChild(input);
+      this.args-form.appendChild(group);
     }
   }
 
   collectArgs() {
     const args = {};
-    const inputs = this.argsForm.querySelectorAll("input"); // Select all input types
+    const inputs = this.args-form.querySelectorAll("input");
     inputs.forEach((input) => {
       const name = input.name;
-      const type = this._toolData.mcpDefinition?.inputSchema?.properties[name]?.type;
+      const type = input.type;
       let value;
-
-      if (input.type === "checkbox") {
+      if (type === "checkbox") {
         value = input.checked;
-      } else if (input.type === "number") {
+      } else if (type === "number") {
         value = input.valueAsNumber;
-        if (isNaN(value)) value = props[input.name]?.default ?? null; // Handle potential NaN
+        if (isNaN(value)) value = props(input.name)?.default ?? null;
       } else {
         value = input.value;
       }
 
-      if (value !== null && value !== "" ) {
+      if (value !== null && value !== "") {
         args[name] = value;
       } else if (input.required) {
         throw new Error(`Missing required argument: ${name}`);
@@ -307,7 +299,6 @@ class ToolCardComponent extends HTMLElement {
     });
     return args;
   }
-
 
   connectedCallback() {
     this.setupActionListeners();
@@ -317,13 +308,6 @@ class ToolCardComponent extends HTMLElement {
     this.setupListener(".delete-button", "click", this._handleDelete);
     this.setupListener(".edit-button", "click", this._handleEdit);
     this.setupListener(".execute-button", "click", this._handleExecute);
-     // Toggle args visibility when summary is clicked
-    const detailsElement = this.argsContainer.querySelector('details');
-    if (detailsElement) {
-        detailsElement.addEventListener('toggle', () => {
-            this.argsContainer.classList.toggle('open', detailsElement.open);
-        });
-    }
   }
 
   setupListener(className, eventType, handler) {
@@ -352,15 +336,7 @@ class ToolCardComponent extends HTMLElement {
   _handleExecute() {
     if (!this._toolData) return;
     let args;
-    const hasArgs = this._toolData.mcpDefinition?.inputSchema?.properties && Object.keys(this._toolData.mcpDefinition.inputSchema.properties).length > 0;
-
-    if (hasArgs && !this.argsContainer.classList.contains('open')) {
-        // Open the args section if it has args and isn't open yet
-         const detailsElement = this.argsContainer.querySelector('details');
-         if (detailsElement) detailsElement.open = true;
-         return; // Don't execute yet, let user fill args
-    }
-
+    this.argsContainer.classList.add("open");
     try {
       args = this.collectArgs();
     } catch (e) {
@@ -385,7 +361,8 @@ class ToolCardComponent extends HTMLElement {
   }
 }
 
-// Register the component if not already
-customElements.get("tool-card") || customElements.define("tool-card", ToolCardComponent);
+// Register the component if not already id="control/execute"
+
+ustomElements get("tool-card") || customElements.define("tool-card", ToolCardComponent);
 
 export default ToolCardComponent;
