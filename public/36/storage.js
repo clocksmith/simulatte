@@ -39,7 +39,7 @@ const StorageModule = (config, logger) => {
     if (
       usage.used >= 0 &&
       QUOTA_BYTES > 0 &&
-      (estimatedUsageAfter / QUOTA_BYTES) > QUOTA_WARN_THRESHOLD
+      estimatedUsageAfter / QUOTA_BYTES > QUOTA_WARN_THRESHOLD
     ) {
       logger.logEvent(
         "warn",
@@ -49,8 +49,15 @@ const StorageModule = (config, logger) => {
         ).toFixed(1)}%) after setting key: ${key}`
       );
     }
-    if (usage.used >= 0 && MAX_ARTIFACT_SIZE_BYTES > 0 && estimatedUsageAfter > QUOTA_BYTES) {
-        const errMng = `Estimated usage ${((estimatedUsageAfter / QUOTA_BYTES) * 100).toFixed(1)}% exceeds quota.`;
+    if (
+      usage.used >= 0 &&
+      MAX_ARTIFACT_SIZE_BYTES > 0 &&
+      estimatedUsageAfter > QUOTA_BYTES
+    ) {
+      const errMng = `Estimated usage ${(
+        (estimatedUsageAfter / QUOTA_BYTES) *
+        100
+      ).toFixed(1)}% exceeds quota.`;
       logger.logEvent(
         "error",
         `LocalStorage Quota Exceeded estimation for key: ${key}`,
@@ -62,7 +69,6 @@ const StorageModule = (config, logger) => {
     }
     return true; // Indicate check passed (doesn't guarantee setItem success)
   };
-
 
   const _get = (key) => {
     try {
@@ -83,36 +89,39 @@ const StorageModule = (config, logger) => {
       throw new Error(`Invalid value type for localStorage: ${typeof value}`);
     }
     if (value.length * 2 > MAX_ARTIFACT_SIZE_BYTES) {
-        const msg = `Value exceeds size limit (${value.length * 2} > ${MAX_ARTIFACT_SIZE_BYTES} bytes) for key: ${key}`;
-        logger.logEvent("error", msg);
-        throw new Error(msg);
+      const msg = `Value exceeds size limit (${
+        value.length * 2
+      } > ${MAX_ARTIFACT_SIZE_BYTES} bytes) for key: ${key}`;
+      logger.logEvent("error", msg);
+      throw new Error(msg);
     }
 
     checkQuotaAndLog(key, value); // Log warnings/errors but don't prevent the attempt
 
     try {
-        localStorage.setItem(key, value);
-        return true;
+      localStorage.setItem(key, value);
+      return true;
     } catch (e) {
-        let errorMessage = `LocalStorage SET Error: ${key}`;
-        if (
-            e.name === "QuotaExceededError" ||
-            (e.code && (e.code === 22 || e.code === 1014)) // DOMException codes for quota exceeded in older browsers
-        ) {
-            const usage = getStorageUsage();
-            errorMessage = `LocalStorage Quota Exceeded for key: ${key}. Usage: ${(
-                usage.used / 1024 / 1024
-            ).toFixed(2)}MB / ${(QUOTA_BYTES / 1024 / 1024).toFixed(2)}MB.`;
-            logger.logEvent("error", errorMessage, e);
-            throw new Error(errorMessage); // Throw a specific error for quota
-        } else {
-            // Other potential errors (security, etc.)
-            logger.logEvent("error", errorMessage, e);
-            throw e; // Re-throw the original error
-        }
+      let errorMessage = `LocalStorage SET Error: ${key}`;
+      if (
+        e.name === "QuotaExceededError" ||
+        (e.code && (e.code === 22 || e.code === 1014)) // DOMException codes for quota exceeded in older browsers
+      ) {
+        const usage = getStorageUsage();
+        errorMessage = `LocalStorage Quota Exceeded for key: ${key}. Usage: ${(
+          usage.used /
+          1024 /
+          1024
+        ).toFixed(2)}MB / ${(QUOTA_BYTES / 1024 / 1024).toFixed(2)}MB.`;
+        logger.logEvent("error", errorMessage, e);
+        throw new Error(errorMessage); // Throw a specific error for quota
+      } else {
+        // Other potential errors (security, etc.)
+        logger.logEvent("error", errorMessage, e);
+        throw e; // Re-throw the original error
+      }
     }
-};
-
+  };
 
   const _remove = (key) => {
     try {
@@ -127,38 +136,41 @@ const StorageModule = (config, logger) => {
   const getArtifactKey = (artifactId, version = "latest") => {
     // Using simple concatenation, ensuring parts are valid strings
     if (
-        !artifactId ||
-        typeof artifactId !== "string" ||
-        typeof version !== "string"
+      !artifactId ||
+      typeof artifactId !== "string" ||
+      typeof version !== "string"
     ) {
-        throw new Error(
-            `Invalid arguments for getArtifactKey: ID=${artifactId}, Version=${version}`
-        );
+      throw new Error(
+        `Invalid arguments for getArtifactKey: ID=${artifactId}, Version=${version}`
+      );
     }
     // Basic sanitization: replace potentially problematic chars like ':' or '/'
-    const cleanId = artifactId.replace(/[:/]/g, '_');
-    const cleanVersion = version.replace(/[:/]/g, '_');
+    const cleanId = artifactId.replace(/[:/]/g, "_");
+    const cleanVersion = version.replace(/[:/]/g, "_");
     return `${LS_PREFIX}artifact:${cleanId}:${cleanVersion}`;
   };
-
 
   const getArtifactContent = (artifactId, version = "latest") => {
     return _get(getArtifactKey(artifactId, version));
   };
 
   const setArtifactContent = (artifactId, version = "latest", content) => {
-     // Important: Use the same key generation logic as getArtifactContent
-     const key = getArtifactKey(artifactId, version.endsWith('.js') || version.endsWith('.json') ? version : `${version}.impl.js`); // Adjust based on how version is used
-     if(version === "mcp.json" || version === "impl.js") {
-         key = getArtifactKey(artifactId, version);
-     } else {
-         // Fallback or default if only ID and content are passed
-         key = getArtifactKey(artifactId, "latest");
-     }
+    // Important: Use the same key generation logic as getArtifactContent
+    const key = getArtifactKey(
+      artifactId,
+      version.endsWith(".js") || version.endsWith(".json")
+        ? version
+        : `${version}.impl.js`
+    ); // Adjust based on how version is used
+    if (version === "mcp.json" || version === "impl.js") {
+      key = getArtifactKey(artifactId, version);
+    } else {
+      // Fallback or default if only ID and content are passed
+      key = getArtifactKey(artifactId, "latest");
+    }
 
-     return _set(key, content);
+    return _set(key, content);
   };
-
 
   const deleteArtifact = (artifactId, version = "latest") => {
     // Allow deleting specific versions like "mcp.json" or "impl.js" directly
@@ -174,9 +186,10 @@ const StorageModule = (config, logger) => {
         const key = localStorage.key(i);
         if (key?.startsWith(prefix)) {
           const parts = key.substring(prefix.length).split(":");
-          if (parts.length >= 2) { // Expecting ID:version at least
+          if (parts.length >= 2) {
+            // Expecting ID:version at least
             const id = parts[0];
-            const version = parts.slice(1).join(':'); // Rejoin if version had ':'
+            const version = parts.slice(1).join(":"); // Rejoin if version had ':'
             artifacts.push({ id: id, version: version, key: key });
           } else {
             logger.logEvent("warn", `Found malformed artifact key: ${key}`);
@@ -188,7 +201,6 @@ const StorageModule = (config, logger) => {
     }
     return artifacts;
   };
-
 
   const getState = () => {
     const json = _get(stateKey);
@@ -216,12 +228,11 @@ const StorageModule = (config, logger) => {
       logger.logEvent("error", "Failed to save state", e);
       // Re-throw specific QuotaExceededError if caught by _set
       if (e.message.includes("Quota Exceeded")) {
-           throw e;
+        throw e;
       }
       throw new Error(`Failed to save state: ${e.message}`);
     }
   };
-
 
   const removeState = () => {
     return _remove(stateKey);
@@ -236,7 +247,12 @@ const StorageModule = (config, logger) => {
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith(LS_PREFIX) || key === stateKey || key === "sessionKey" /* old session key */)) {
+        if (
+          key &&
+          (key.startsWith(LS_PREFIX) ||
+            key === stateKey ||
+            key === "sessionKey") /* old session key */
+        ) {
           keysToRemove.push(key);
         }
       }
@@ -279,5 +295,3 @@ const StorageModule = (config, logger) => {
 };
 
 export default StorageModule;
-
---- CATS_END_FILE ---
