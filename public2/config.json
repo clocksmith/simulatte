@@ -1,0 +1,17 @@
+{
+  "appName": "Dreamer Tool Factory (DTF)",
+  "version": "1.0.0",
+  "storagePrefix": "_dtf_",
+  "stateKeyBase": "dtf_state_v",
+  "sessionKeyBase": "dtf_session_v",
+  "maxLogEntries": 10000,
+  "maxArtifactSizeBytes": 4194304,
+  "defaultModel": "gemini-1.5-flash-latest",
+  "geminiApiBaseUrl": "https://generativelanguage.googleapis.com/v1beta/models/",
+  "apiKeyRetryDelayBaseMs": 1500,
+  "apiMaxRetries": 2,
+  "toolRunnerTimeoutMs": 15000,
+  "defaultPromptArtifactId": "prompt.tool-generator.default",
+  "storageQuotaBytes": 5242880,
+  "storageQuotaWarnThreshold": 0.9
+}
