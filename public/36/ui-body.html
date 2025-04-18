@@ -1,0 +1,70 @@
+<header>
+  <h1>Dreamer (Tool Factory)</h1>
+</header>
+<main id="main-content">
+  <section id="controls-section">
+    <fieldset>
+      <legend>Controls</legend>
+      <div class="control-grid">
+        <div class="api-key-input">
+          <label for="api-key-input">Gemini API Key:</label>
+          <input
+            type="password"
+            id="api-key-input"
+            placeholder="Enter your API key"
+          />
+        </div>
+        <button id="save-api-key-button">Save Key</button>
+        <button id="export-state-button">Export State</button>
+        <button id="import-state-button">Import State</button>
+        <input
+          type="file"
+          id="import-file-input"
+          accept=".json"
+          class="hidden"
+        />
+        <button id="download-log-button">Download Logs</button>
+        <button
+          id="clear-storage-button"
+          style="background-color: var(--error-color)"
+        >
+          Clear Storage
+        </button>
+      </div>
+      <div
+        id="status-indicator"
+        style="margin-top: var(--padding-sm); font-style: italic; color: #aaa"
+      >
+        Status: Idle
+      </div>
+    </fieldset>
+  </section>
+
+  <section id="tool-creation-section">
+    <fieldset>
+      <legend>Create New Tool</legend>
+      <label for="tool-request-input"
+        >Describe the tool you want to create:</label
+      >
+      <textarea
+        id="tool-request-input"
+        rows="4"
+        placeholder="e.g., 'Create a tool named calculateCircleArea that takes a radius number and returns the area.'"
+      ></textarea>
+      <button id="create-tool-button">Generate Tool</button>
+    </fieldset>
+  </section>
+
+  <section id="tool-library-section">
+    <h2>Generated Tool Library</h2>
+    <div id="tool-list-container" class="tool-list">
+      <p>No tools generated yet.</p>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>
+    Reploid v2 - v<span id="app-version">?.?.?</span> | Storage:
+    <span id="storage-usage">?KB (?%)</span>
+  </p>
+</footer>
