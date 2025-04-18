@@ -1,5 +1,5 @@
 import Utils from "./utils.js";
-import ToolCardComponent from "./tool-card.wc.js";
+import ToolCardComponent from "./tool-card.wc.js"; // Ensure this is imported correctly
 
 const UIManagerModule = (
   config,
@@ -42,13 +42,15 @@ const UIManagerModule = (
       "notifications-container",
       "main-content",
       "app-root",
+      "tool-list-search", // Added
+      "tool-list-sort",   // Added
+      "tool-library-controls" // Added container for search/sort
     ];
     const refs = {};
     ids.forEach((id) => {
-      refs[id.replace(/-(\w)/g, (match, p1) => p1.toUpperCase())] =
-        Utils.$id(id);
+      const camelCase = id.replace(/-(\w)/g, (match, p1) => p1.toUpperCase());
+      refs[camelCase] = Utils.$id(id);
     });
-
     return refs;
   };
 
@@ -72,7 +74,7 @@ const UIManagerModule = (
     notification.textContent = message;
 
     const closeButton = document.createElement("button");
-    closeButton.innerHTML = "&times;";
+    closeButton.innerHTML = "×";
     closeButton.onclick = () => notification.remove();
     notification.appendChild(closeButton);
 
@@ -81,7 +83,6 @@ const UIManagerModule = (
     if (duration > 0) {
       setTimeout(() => {
         if (notification.parentElement) {
-          // Check if still attached
           notification.remove();
         }
       }, duration);
@@ -111,92 +112,45 @@ const UIManagerModule = (
 
   const renderToolList = () => {
     if (!uiRefs.toolListContainer) return;
-    const tools = StateManager.listTools();
+    let tools = StateManager.listTools();
     uiRefs.toolListContainer.innerHTML = "";
 
-    if (tools.length === 0) {
-      uiRefs.toolListContainer.innerHTML = "<p>No tools generated yet.</p>";
-      return;
+    const searchTerm = (uiRefs.toolListSearch?.value || "").toLowerCase();
+    const sortBy = uiRefs.toolListSort?.value || "name";
+
+    if (searchTerm) {
+      tools = tools.filter((t) => {
+        return (t.metadata?.name?.toLowerCase().includes(searchTerm) ||
+                t.metadata?.description?.toLowerCase().includes(searchTerm) ||
+                t.id?.toLowerCase().includes(searchTerm));
+      });
     }
 
-    tools.sort((a, b) =>
-      (a.metadata?.name ?? "").localeCompare(b.metadata?.name ?? "")
-    );
+    tools.sort((a, b) => {
+      const aVal = sortBy === "date"
+        ? a.metadata?.createdAt
+        : a.metadata?.name || "";
+      const bVal = sortBy === "date"
+        ? b.metadata?.createdAt
+        : b.metadata?.name || "";
+
+        if (sortBy === 'date') {
+            // Sort newest first
+            return new Date(bVal || 0) - new Date(aVal || 0);
+        } else {
+            // Sort alphabetically by name
+            return (aVal || "").localeCompare(bVal || "");
+        }
+    });
+
+    if (tools.length === 0) {
+      uiRefs.toolListContainer.innerHTML = `<p>No tools found${searchTerm ? ' matching filter' : ''}.</p>`;
+      return;
+    }
 
     tools.forEach((toolData) => {
       const toolCard = document.createElement("tool-card");
       toolCard.setToolData(toolData);
-
-      toolCard.addEventListener("delete-tool", (event) => {
-        const toolIdToDelete = event.detail.toolId;
-        if (
-          confirm(
-            `Are you sure you want to delete the tool "${event.detail.toolName}" (${toolIdToDelete})? This cannot be undone.`
-          )
-        ) {
-          try {
-            storage.deleteArtifact(toolIdToDelete, "mcp.json");
-            storage.deleteArtifact(toolIdToDelete, "impl.js");
-
-            if (StateManager.deleteTool(toolIdToDelete)) {
-              showNotification(
-                `Tool "${event.detail.toolName}" deleted.`,
-                "success"
-              );
-              renderToolList();
-              updateStorageUsageDisplay();
-            } else {
-              showNotification(
-                `Failed to delete tool "${event.detail.toolName}" from state.`,
-                "error"
-              );
-            }
-          } catch (e) {
-            logger.logEvent(
-              "error",
-              `Error deleting tool ${toolIdToDelete} artifacts or state.`,
-              e
-            );
-            showNotification(`Error deleting tool: ${e.message}`, "error");
-          }
-        }
-      });
-
-      toolCard.addEventListener("execute-tool", async (event) => {
-        const { toolId, toolName, args } = event.detail;
-        const tool = StateManager.getTool(toolId);
-        if (tool && ToolRunner) {
-          updateStatus(`Executing ${toolName}...`, true);
-          try {
-            const result = await ToolRunner.runJsImplementation(
-              tool.jsImplementation,
-              args
-            );
-            showNotification(
-              `Tool ${toolName} executed. Result: ${JSON.stringify(result)}`,
-              "info",
-              8000
-            );
-            updateStatus("Idle");
-          } catch (e) {
-            showNotification(
-              `Tool ${toolName} execution failed: ${e.message}`,
-              "error"
-            );
-            updateStatus(`Execution failed`, false, true);
-          }
-        } else {
-          showNotification(
-            `Could not find tool or runner for ${toolName}.`,
-            "error"
-          );
-          logger.logEvent(
-            "error",
-            `Execute failed: Tool data or runner missing for ${toolId}`
-          );
-        }
-      });
-
       uiRefs.toolListContainer.appendChild(toolCard);
     });
   };
@@ -204,9 +158,8 @@ const UIManagerModule = (
   const setupEventListeners = () => {
     uiRefs.saveApiKeyButton?.addEventListener("click", () => {
       const key = uiRefs.apiKeyInput?.value.trim() ?? "";
-      StateManager.setApiKey(key);
-      StateManager.saveState();
-      showNotification(key ? "API Key saved." : "API Key cleared.", "info");
+      StateManager.setApiKeyInSession(key);
+      showNotification(key ? "API Key saved for session." : "API Key cleared for session.", "info");
     });
 
     uiRefs.createToolButton?.addEventListener("click", async () => {
@@ -215,7 +168,8 @@ const UIManagerModule = (
         showNotification("Please enter a description for the tool.", "warn");
         return;
       }
-      if (!StateManager.getState()?.apiKey) {
+      const apiKey = StateManager.getApiKeyFromSession();
+      if (!apiKey) {
         showNotification("Please set your Gemini API Key first.", "warn");
         return;
       }
@@ -230,7 +184,7 @@ const UIManagerModule = (
           updateStatus(data.message, data.active, data.isError);
         } else if (type === "error") {
           showNotification(`Generation Error: ${data.message}`, "error");
-        } else if (type === "success") {
+        } else if (type === 'success') {
           showNotification(
             `Tool "${data.tool?.metadata?.name}" generated successfully!`,
             "success"
@@ -259,7 +213,7 @@ const UIManagerModule = (
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `reploid-v2-state_${
+        a.download = `dreamer-state_${
           new Date().toISOString().split("T")[0]
         }.json`;
         document.body.appendChild(a);
@@ -298,11 +252,20 @@ const UIManagerModule = (
                 "error"
               );
             } else {
-              StateManager.updateState(importedState);
+               // Attempt to get API key from old state format if necessary (should be session now)
+              const importedApiKey = importedState.apiKey || "";
+
+              // Update the main state (excluding the api key which is now session-managed)
+              const stateToUpdate = { ...importedState };
+              delete stateToUpdate.apiKey; // Remove apiKey before updating state
+
+              StateManager.updateState(stateToUpdate);
               StateManager.saveState();
 
-              if (uiRefs.apiKeyInput)
-                uiRefs.apiKeyInput.value = importedState.apiKey || "";
+              // Set the API key in session storage
+              StateManager.setApiKeyInSession(importedApiKey);
+              if (uiRefs.apiKeyInput) uiRefs.apiKeyInput.value = importedApiKey; // Update UI field
+
               renderToolList();
               updateStorageUsageDisplay();
               showNotification("State imported successfully.", "success");
@@ -332,7 +295,7 @@ const UIManagerModule = (
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `reploid-v2-log_${new Date()
+        a.download = `dreamer-log_${new Date()
           .toISOString()
           .replace(/[:.]/g, "-")}.txt`;
         document.body.appendChild(a);
@@ -348,7 +311,7 @@ const UIManagerModule = (
     uiRefs.clearStorageButton?.addEventListener("click", () => {
       if (
         confirm(
-          "WARNING: This will delete ALL Reploid v2 data (state and generated tools) from your browser. Are you sure?"
+          "WARNING: This will delete ALL Dreamer data (state and generated tools) from your browser. Are you sure?"
         )
       ) {
         try {
@@ -365,20 +328,105 @@ const UIManagerModule = (
         }
       }
     });
+
+    // Listener for search input
+     uiRefs.toolListSearch?.addEventListener("input", () => {
+         renderToolList();
+     });
+     // Listener for sort dropdown
+     uiRefs.toolListSort?.addEventListener("change", () => {
+         renderToolList();
+     });
+
+     // Listener for edit tool request events bubbling up from tool cards
+     uiRefs.appRoot?.addEventListener("edit-tool-request", (event) => {
+        const { toolId, originalRequest } = event.detail;
+        if (uiRefs.toolRequestInput) {
+            logger.logEvent("info", `Editing request for tool ${toolId}`);
+            uiRefs.toolRequestInput.value = originalRequest || "";
+            uiRefs.toolRequestInput.focus();
+            uiRefs.toolRequestInput.scrollIntoView({ behavior: "smooth", block: "center"});
+
+            // Temporarily change button text
+            if(uiRefs.createToolButton){
+                uiRefs.createToolButton.textContent = "Regenerate Tool";
+                setTimeout(() => {
+                     if (uiRefs.createToolButton) { // Check if still exists
+                        uiRefs.createToolButton.textContent = "Generate Tool";
+                     }
+                }, 5000); // Reset after 5 seconds
+            }
+        }
+     });
+
+     // Central listener for tool execution events
+     uiRefs.appRoot?.addEventListener("execute-tool", async (event) => {
+        const { toolId, toolName, args } = event.detail;
+        const tool = StateManager.getTool(toolId);
+        if (tool && ToolRunner) {
+            updateStatus(`Executing ${toolName}...`, true);
+            try {
+                const result = await ToolRunner.runJsImplementation(
+                    tool.jsImplementation,
+                    args
+                );
+                showNotification(
+                    `Tool ${toolName} executed. Result: ${JSON.stringify(result)}`,
+                    "info",
+                    8000
+                );
+                updateStatus("Idle");
+            } catch (e) {
+                showNotification(
+                    `Tool ${toolName} execution failed: ${e.message}`,
+                    "error"
+                );
+                updateStatus(`Execution failed`, false, true);
+            }
+        } else {
+            showNotification(
+                `Could not find tool or runner for ${toolName}.`,
+                "error"
+            );
+            logger.logEvent(
+                "error",
+                `Execute failed: Tool data or runner missing for ${toolId}`
+            );
+        }
+    });
+
+    // Central listener for tool deletion events
+    uiRefs.appRoot?.addEventListener("delete-tool", (event) => {
+        const { toolId, toolName } = event.detail;
+        if (confirm(`Are you sure you want to delete the tool "${toolName}" (${toolId})? This cannot be undone.`)) {
+            try {
+                storage.deleteArtifact(toolId, "mcp.json");
+                storage.deleteArtifact(toolId, "impl.js");
+
+                if (StateManager.deleteTool(toolId)) {
+                    showNotification(`Tool "${toolName}" deleted.`, "success");
+                    renderToolList();
+                    updateStorageUsageDisplay();
+                } else {
+                    showNotification(`Failed to delete tool "${toolName}" from state.`, "error");
+                }
+            } catch (e) {
+                logger.logEvent("error", `Error deleting tool ${toolId} artifacts or state.`, e);
+                showNotification(`Error deleting tool: ${e.message}`, "error");
+            }
+        }
+    });
   };
+
 
   const init = async () => {
     if (isInitialized) return;
     logger.logEvent("info", "Initializing UIManager...");
 
+    // Ensure tool-card WC is registered
     if (!customElements.get("tool-card")) {
       customElements.define("tool-card", ToolCardComponent);
-      logger.logEvent("debug", "Registered tool-card Web Component.");
-    } else {
-      logger.logEvent("debug", "tool-card Web Component already registered.");
     }
-
-    uiRefs = getRefs();
 
     try {
       const response = await fetch("ui-body.html");
@@ -386,10 +434,10 @@ const UIManagerModule = (
         throw new Error(`Failed to fetch ui-body.html: ${response.status}`);
       const uiHtml = await response.text();
 
-      const appRoot = uiRefs.appRoot || Utils.$id("app-root");
-      if (appRoot) {
-        appRoot.innerHTML = uiHtml;
-        uiRefs = getRefs();
+      const appRootContainer = Utils.$id("app-root");
+      if (appRootContainer) {
+        appRootContainer.innerHTML = uiHtml;
+        uiRefs = getRefs(); // Re-fetch refs after loading body
       } else {
         throw new Error(
           "App root container (#app-root) not found in index.html"
@@ -401,16 +449,15 @@ const UIManagerModule = (
       return;
     }
 
-    const initialState = StateManager.getState();
-    if (initialState && uiRefs.apiKeyInput) {
-      uiRefs.apiKeyInput.value = initialState.apiKey || "";
+    if (uiRefs.apiKeyInput) {
+        uiRefs.apiKeyInput.value = StateManager.getApiKeyFromSession() || "";
     }
     if (uiRefs.appVersion) {
       uiRefs.appVersion.textContent = config.version;
     }
 
     updateStorageUsageDisplay();
-    renderToolList();
+    renderToolList(); // Initial render
     setupEventListeners();
     updateStatus("Initialized");
 

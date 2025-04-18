@@ -39,23 +39,25 @@ const CycleLogicModule = (
   const isRunning = () => _isRunning;
 
   const _assembleGeneratorPrompt = (toolRequest) => {
-    const promptTemplate = ```
+    // In a real scenario, you might fetch this template content,
+    // but for simplicity now, it's hardcoded (matching prompt-tool-generator.txt)
+    const promptTemplate = `
 You are an expert tool designer and JavaScript developer. Your task is to create BOTH a valid MCP (Model Context Protocol) tool definition JSON object AND a functional JavaScript implementation string based on the user's request.
 
 User Request:
-"${toolRequest}"
+"[[USER_REQUEST]]"
 
 Instructions:
 1.  **Design the MCP Tool Definition:**
     *   Create a JSON object representing the tool according to MCP schema standards (focus on 'name', 'description', 'inputSchema' with properties, types, descriptions, and required fields).
     *   The tool name should be descriptive, use camelCase or snake_case.
-    *   Ensure inputSchema types are standard JSON types ('string', 'number', 'integer', 'boolean', 'array', 'object'). Provide clear descriptions for each parameter.
+    *   Ensure inputSchema types are standard JSON types ('string', 'number', 'integer', 'boolean', 'array', 'object'). Provide clear descriptions for each parameter. Only use simple types (string, number, integer, boolean) or arrays of these simple types for parameters. Avoid nested objects in the schema properties.
 2.  **Implement the JavaScript Function:**
     *   Write a JavaScript string containing an 'async function run(args)' that takes a single argument 'args' (matching the 'properties' defined in your MCP inputSchema).
-    *   The function should perform the requested action and return the result.
-    *   Use standard JavaScript (ES6+). You have access to a restricted 'console' object for logging (console.log, console.warn, console.error). Do NOT attempt to access 'window', 'document', or make external network calls directly unless the tool's explicit purpose is to wrap an API call (which is advanced). Keep implementations self-contained if possible.
-    *   Handle potential errors gracefully within the function (e.g., using try/catch) and return meaningful error information if necessary.
-3.  **Output Format:** Respond ONLY with a single JSON object containing two keys:
+    *   The function should perform the requested action and return the result. The result should ideally be a JSON-serializable object, often indicating success/failure, e.g., \`{ success: true, data: ... }\` or \`{ success: false, error: '...' }\`.
+    *   Use standard JavaScript (ES6+). You have access to a restricted 'console' object for logging (console.log, console.warn, console.error). Do NOT attempt to access 'window', 'document', make direct external network calls (like fetch), or use other browser-specific APIs. Keep implementations self-contained and focused on data processing or simple logic based on the inputs.
+    *   Handle potential errors gracefully within the function (e.g., using try/catch) and return meaningful error information.
+3.  **Output Format:** Respond ONLY with a single valid JSON object containing exactly two keys:
     *   \`mcpDefinition\`: The JSON object for the MCP tool definition.
     *   \`jsImplementation\`: The JavaScript code string for the 'async function run(args)'.
 
@@ -74,16 +76,17 @@ Example MCP Definition Structure:
 }
 
 Example JS Implementation Structure (String):
-"async function run(args) {\\n  const { param1, param2 } = args;\\n  console.log('Executing tool with:', args);\\n  try {\\n    const result = param1.toUpperCase() + (param2 || 0);\\n    return { success: true, data: result };\\n  } catch (error) {\\n    console.error('Tool execution failed:', error);\\n    return { success: false, error: error.message };\\n  }\\n}"
+"async function run(args) {\\n  const { param1, param2 } = args;\\n  console.log('Executing tool with:', args);\\n  try {\\n    const result = String(param1).toUpperCase() + (Number(param2) || 0);\\n    return { success: true, data: result };\\n  } catch (error) {\\n    console.error('Tool execution failed:', error);\\n    return { success: false, error: error.message };\\n  }\\n}"
 
-Ensure the generated JSON is valid and the JavaScript string is correctly escaped if necessary within the final JSON output.
-        ```;
+Ensure the generated JSON is valid and the JavaScript string is correctly escaped if necessary within the final JSON output. Do not include \`\`\`json markdown backticks around the final JSON output.
+        `;
+    const finalPrompt = promptTemplate.replace('[[USER_REQUEST]]', toolRequest);
     logger.logEvent(
       "debug",
       "Assembled tool generator prompt for request:",
       toolRequest
     );
-    return promptTemplate;
+    return finalPrompt;
   };
 
   const generateTool = async (
@@ -110,13 +113,8 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
       return null;
     }
 
-    const state = StateManager.getState();
-    if (!state) {
-      logger.logEvent("error", "Cannot generate tool: StateManager not ready.");
-      progressCallback("error", { message: "System state not available." });
-      return null;
-    }
-    if (!state.apiKey) {
+    const apiKey = StateManager.getApiKeyFromSession();
+    if (!apiKey) {
       logger.logEvent("error", "Cannot generate tool: API Key not set.");
       progressCallback("error", { message: "API Key is required." });
       return null;
@@ -133,15 +131,14 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
     try {
       const prompt = _assembleGeneratorPrompt(toolRequest);
       const modelName = config.defaultModel;
-      const apiKey = state.apiKey;
 
       StateManager.incrementApiCall();
       const apiResult = await ApiClient.callApiWithRetry(
         prompt,
         modelName,
         apiKey,
-        [],
-        { temperature: 0.3 },
+        [], // No function declarations needed for this call
+        { temperature: 0.3 }, // Adjust generation config if needed
         progressCallback
       );
       StateManager.setLastError(null);
@@ -192,6 +189,7 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
 
       const mcpDef = parsedResponse.mcpDefinition;
       const jsImpl = parsedResponse.jsImplementation;
+      // Ensure name uniqueness or handle collision - using UUID for now
       const toolId = `${mcpDef.name}-${Utils.generateUUID().substring(0, 8)}`;
 
       logger.logEvent(
@@ -219,9 +217,9 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
           `Failed to save MCP definition artifact for ${toolId}`,
           e
         );
-
         StateManager.incrementErrorCount();
         StateManager.setLastError(`Failed to save MCP artifact: ${e.message}`);
+        // Continue saving JS and state if possible
       }
 
       try {
@@ -239,13 +237,14 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
           `Failed to save JS implementation artifact for ${toolId}`,
           e
         );
-
         StateManager.incrementErrorCount();
         StateManager.setLastError(`Failed to save JS artifact: ${e.message}`);
+         // Continue saving state if possible
       }
 
+      // Add to state, including the original request in metadata
       StateManager.addTool(toolId, mcpDef, jsImpl, {
-        sourceRequest: toolRequest,
+        sourceRequest: toolRequest, // Pass original request here
       });
 
       generatedToolData = StateManager.getTool(toolId);
@@ -255,6 +254,7 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
         active: false,
       });
       progressCallback("success", { tool: generatedToolData });
+
     } catch (error) {
       logger.logEvent("error", "Tool generation cycle failed.", error);
       StateManager.incrementErrorCount();
@@ -268,7 +268,6 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
       generatedToolData = null;
     } finally {
       _isRunning = false;
-
       progressCallback("final", {});
     }
     return generatedToolData;
@@ -278,7 +277,7 @@ Ensure the generated JSON is valid and the JavaScript string is correctly escape
     if (_isRunning) {
       logger.logEvent("info", "Attempting to abort tool generation.");
       ApiClient.abortCurrentCall("User abort request");
-      _isRunning = false;
+      _isRunning = false; // Ensure state is reset even if abort signal is slow
     } else {
       logger.logEvent("info", "Abort request ignored: No generation running.");
     }

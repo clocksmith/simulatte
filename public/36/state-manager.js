@@ -9,10 +9,10 @@ const StateManagerModule = (config, logger, storage) => {
 
   let state = null;
   let isInitialized = false;
+  const sessionApiKey = "dtf_session_apiKey"; // Key for sessionStorage
 
   const getDefaultState = () => ({
     version: config.version,
-    apiKey: "",
     tools: {},
     lastError: null,
     stats: {
@@ -80,6 +80,7 @@ const StateManagerModule = (config, logger, storage) => {
       );
       return null;
     }
+    // Note: Does not return the API key, which is session-managed
     return state;
   };
 
@@ -135,10 +136,11 @@ const StateManagerModule = (config, logger, storage) => {
       jsImplementation: jsImplementation,
       metadata: {
         createdAt: new Date().toISOString(),
-        createdBy: "LLM",
+        createdBy: "LLM", // Assume LLM for now
         version: toolMetadata.version || "1.0.0",
         description: mcpDefinition.description || "(No description)",
         name: mcpDefinition.name,
+        originalRequest: toolMetadata.sourceRequest || "", // Store the original request
         ...toolMetadata,
       },
     };
@@ -172,12 +174,33 @@ const StateManagerModule = (config, logger, storage) => {
     return false;
   };
 
-  const setApiKey = (key) => {
-    if (!isInitialized) throw new Error("StateManager not initialized.");
-    if (typeof key !== "string") return;
-    state.apiKey = key;
-    logger.logEvent("info", `API Key ${key ? "set" : "cleared"} in state.`);
-  };
+  const setApiKeyInSession = (key) => {
+     if (!isInitialized) throw new Error("StateManager not initialized.");
+     if (typeof key !== "string") return;
+     try {
+         if (key) {
+             sessionStorage.setItem(sessionApiKey, key);
+         } else {
+             sessionStorage.removeItem(sessionApiKey);
+         }
+         logger.logEvent("info", `API Key ${key ? "saved" : "cleared"} in session storage.`);
+     } catch (e) {
+         logger.logEvent("error", `Failed to set API Key in session storage`, e);
+         // Optionally notify the user via UIManager if available
+     }
+ };
+
+ const getApiKeyFromSession = () => {
+     if (!isInitialized) throw new Error("StateManager not initialized.");
+     try {
+         // Check sessionStorage first, then localStorage for backward compatibility if needed (though removed from saving)
+         return sessionStorage.getItem(sessionApiKey) || localStorage.getItem("sessionKey") || ""; // Removed direct state access
+     } catch (e) {
+         logger.logEvent("error", `Failed to get API Key from session storage`, e);
+         return "";
+     }
+ };
+
 
   const incrementCycle = () => {
     if (!isInitialized) throw new Error("StateManager not initialized.");
@@ -208,12 +231,14 @@ const StateManagerModule = (config, logger, storage) => {
     getTool,
     listTools,
     deleteTool,
-    setApiKey,
+    setApiKeyInSession,
+    getApiKeyFromSession,
     incrementCycle,
     incrementApiCall,
     incrementErrorCount,
     setLastError,
     isInitialized: () => isInitialized,
+    sessionKey: sessionApiKey // Expose session key if needed elsewhere, though perhaps better encapsulated
   };
 };
 

@@ -2,7 +2,7 @@
   --bg-color: #2d2d2d;
   --fg-color: #dadada;
   --border-color: #777;
-  --accent-color: #811dbc;
+  --accent-color: #811dbf;
   --error-color: #dd3642;
   --warn-color: #ffc410;
   --success-color: #66aa66;
@@ -103,6 +103,9 @@ label {
 
 input[type="text"],
 input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="checkbox"],
 textarea,
 select {
   width: 100%;
@@ -115,6 +118,16 @@ select {
   font-size: 1em;
   margin-bottom: var(--padding-md);
 }
+
+input[type="checkbox"] {
+  width: auto;
+  height: 1.2em;
+  vertical-align: middle;
+  margin-left: var(--padding-sm);
+  margin-right: var(--padding-sm);
+  margin-bottom: 0.7rem; /* Align better with labels */
+}
+
 
 textarea {
   min-height: 100px;
@@ -217,6 +230,27 @@ code {
   opacity: 1;
 }
 
+.tool-list-settings {
+  display: flex;
+  align-items: center;
+  gap: var(--padding-md);
+  margin-bottom: var(--padding-md);
+  flex-wrap: wrap;
+}
+
+.tool-list-settings label {
+  margin-bottom: 0; /* Override default */
+  white-space: nowrap;
+}
+
+.tool-list-settings input,
+.tool-list-settings select {
+  margin-bottom: 0; /* Override default */
+  width: auto;
+  flex-grow: 1;
+  max-width: 250px;
+}
+
 .tool-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -265,4 +299,21 @@ code {
 .api-key-input input {
   flex-grow: 1;
   margin-bottom: 0;
+}
+.argument-input-group {
+    margin-bottom: var(--padding-sm);
+}
+.argument-input-group label {
+    display: block;
+    margin-bottom: 2px;
+}
+.argument-input-group label span {
+    font-size: 0.8em;
+    font-weight: normal;
+    color: #bbb;
+    margin-left: 5px;
+}
+.argument-input-group input,
+.argument-input-group select {
+    margin-bottom: 0;
 }

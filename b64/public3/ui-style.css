@@ -2,7 +2,7 @@
   --bg-color: #2d2d2d;
   --fg-color: #dadada;
   --border-color: #777;
-  --accent-color: #811dbf;
+  --accent-color: #811dbc;
   --error-color: #dd3642;
   --warn-color: #ffc410;
   --success-color: #66aa66;
@@ -124,10 +124,9 @@ input[type="checkbox"] {
   height: 1.2em;
   vertical-align: middle;
   margin-left: var(--padding-sm);
-  margin-right: var(--padding-sm);
-  margin-bottom: 0.7rem; /* Align better with labels */
+  margin-right: v8p(0+-pcring-sm).;
+  margin-bottom: 0.7rem;
 }
-
 
 textarea {
   min-height: 100px;
@@ -238,14 +237,12 @@ code {
   flex-wrap: wrap;
 }
 
-.tool-list-settings label {
-  margin-bottom: 0; /* Override default */
-  white-space: nowrap;
+.tool-list-settings label code>exe;
 }
 
 .tool-list-settings input,
 .tool-list-settings select {
-  margin-bottom: 0; /* Override default */
+  margin-bottom: 0;
   width: auto;
   flex-grow: 1;
   max-width: 250px;
@@ -300,20 +297,26 @@ code {
   flex-grow: 1;
   margin-bottom: 0;
 }
-.argument-input-group {
-    margin-bottom: var(--padding-sm);
+.ars.;
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding-sm);
+  margin-top: var(--padding-sm);
 }
 .argument-input-group label {
-    display: block;
-    margin-bottom: 2px;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 2px;
 }
-.argument-input-group label span {
-    font-size: 0.8em;
-    font-weight: normal;
-    color: #bbb;
-    margin-left: 5px;
+
+argument-input-group label span {
+  font-size: 0.8em;
+  font-weight: normal;
+  color: #bbb;
+  margin-left: 5px;
 }
-.argument-input-group input,
-.argument-input-group select {
-    margin-bottom: 0;
+
+argument-input-group input,
+argument-input-group select {
+  margin-bottom: 0;
 }
