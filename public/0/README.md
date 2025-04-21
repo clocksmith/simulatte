@@ -1,8 +1,8 @@
-# Zero
+# QZS (Quantum Zero State) Zero Synthesizing QZS
 
 ## Overview
 
-**Zero** is a single-page web application that provides a visual simulation exploring the mathematical concepts of **Zero**, **Reflection**, and **Identity**. It uses a simplified 1D quantum mechanics and special relativity simulation rendered with WebGL to represent these abstract ideas intuitively.
+**Quantum Zero State** is a single-page web application that provides a visual simulation exploring the mathematical concepts of **Zero**, **Reflection**, and **Identity**. It uses a simplified 1D quantum mechanics and special relativity simulation rendered with WebGL to represent these abstract ideas intuitively.
 
 The simulation features a quantum wave packet whose properties (velocity, width/energy) and environment (potential barriers) can be manipulated by the user. The application dynamically provides context, linking the current simulation state and user actions back to the core mathematical principles.
 

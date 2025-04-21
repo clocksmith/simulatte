@@ -1,9 +1,10 @@
 # Private config
-config.js
+/config.js
 .env
 
 # Generated helpers
-cats.txt
+cats_out.txt
+dogs_in.txt
 
 # Firebase config
 .firebase/
@@ -14,6 +15,7 @@ logs
 *.log
 firebase-debug.log*
 firebase-debug.*.log*
+.archive
 
 # Runtime data
 pids

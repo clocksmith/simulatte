@@ -1,4 +1,4 @@
-# Double Pendulum Simulator
+# DPS (Double Pendulum System) Pendulum Simulating DPS
 
 An interactive web-based simulator for exploring the chaotic dynamics of a double pendulum system using the 4th-Order Runge-Kutta (RK4) numerical integration method.
 
