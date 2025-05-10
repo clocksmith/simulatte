@@ -47,13 +47,13 @@ created for games who like mages
 
 ## /utils
 
-### Cats And Dogs
+### PAWS <-> SWAP
 
-[CAD](utils/64/README.md)
+[PAWS](utils/paws/README.md)
 
-### Simply Basic Scripts
+### SIMP <-> PROS
 
-[SBS](utils/4/README.md)
+[SIMP](utils/simp/README.md)
 
 ---
 

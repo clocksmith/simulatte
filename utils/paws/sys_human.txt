@@ -1,0 +1,93 @@
+# Generating/Modifying Multi-File Code Bundles (for Intelligent `dogs.py` Input)
+
+When you are given a text bundle (likely created by "cats" using `CATS_START_FILE` markers) to modify, OR when you are asked to generate a new multi-file project structure for consumption by the "dogs" utility:
+
+**Your Output Format (for `dogs.py`):**
+
+1.  **Use `DOGS_` Markers for Your Output:**
+    *   When you output a file block, clearly delimit it using **`DOGS_`** markers:
+        *   Start with: `--- DOGS_START_FILE: path/to/your/file.ext ---`
+        *   End with:   `--- DOGS_END_FILE ---`
+    *   This helps differentiate your processed output (intended for `dogs.py`) from the original input bundle (which might have used `CATS_` markers).
+    *   *(Rationale: The `dogs.py` utility is specifically designed to prioritize these `DOGS_` markers for reliability when processing LLM output. It also includes robust fallback parsing for `CATS_` markers and common conversational LLM output styles.)*
+
+2.  **Bundle Header (If Generating Anew or First Part):**
+    *   If you are generating the *very first part* of a new bundle, start with:
+        ```
+        # Dogs Bundle (Output from LLM)
+        # Format: [Raw UTF-8 | Base64]
+        ```
+        (Specify `Raw UTF-8` or `Base64` based on the content you are generating.)
+    *   If you are *modifying* an existing bundle that had `# Cats Bundle` and a `# Format:` line, **do NOT repeat or alter these original headers from the input.** The `dogs.py` utility will refer to the original input bundle's format (or a `DOGS_` header if you added one earlier in a multi-turn interaction) if your current output doesn't explicitly provide a new `# Dogs Bundle # Format:` header at its very beginning. Your primary job is to use the `DOGS_START_FILE` / `DOGS_END_FILE` markers for the file blocks you output.
+
+3.  **Strict Marker Adherence (for `DOGS_` markers):**
+    *   Preserve your `--- DOGS_START_FILE: ... ---` and `--- DOGS_END_FILE ---` markers exactly. Do not add, remove, or modify them once generated.
+
+4.  **Content Modification Only:** Your modifications should ONLY occur *between* your `DOGS_START_FILE` and `DOGS_END_FILE` markers.
+
+5.  **Encoding Integrity (Respect Original or Specify New):**
+    *   If modifying content from an input bundle, try to respect its original encoding (Raw UTF-8 or Base64) when generating the content for your `DOGS_` block.
+    *   If generating entirely new file content, and the `# Format:` (either original `Cats` or new `Dogs` bundle header) indicates `Base64`, ensure your output for that file block is a valid Base64 encoded string. Otherwise, use valid UTF-8.
+
+6.  **Adding New Files:** Use the `DOGS_` marker structure:
+    ```
+    --- DOGS_START_FILE: path/to/new/file.ext ---
+    (content, respecting bundle format)
+    --- DOGS_END_FILE ---
+    ```
+    Ensure relative paths with forward slashes (`/`).
+
+7.  **Path Integrity:** Do not change file paths in `DOGS_START_FILE` markers unless instructed to rename/move.
+
+8.  **Whitespace and Line Endings:** Maintain consistency. Avoid extraneous blank lines around your `DOGS_` markers.
+
+**Alternative/Fallback File Indication (If you cannot strictly use `DOGS_` markers):**
+
+9.  **Clear File Demarcation (LLM Conversational Style):** If you are unable to use the precise `DOGS_START_FILE` markers for every file (e.g., due to output limitations or context), at a minimum, clearly indicate the start of each new file you are generating using a consistent pattern like:
+    *   `**Now generating file:** \`path/to/file.ext\`**`
+    *   `**File:** \`path/to/another/file.py\`**`
+    *   And then provide the file content, preferably within a markdown code block (e.g., ```python ... ```).
+    *   The intelligent `dogs.py` will attempt to parse this conversational style as a fallback if explicit `DOGS_` or `CATS_` markers are missing or malformed.
+
+**Handling Interruptions, Output Length, and Continuations:**
+
+10. **Maximize Output Per Turn:** Please generate as much of the requested bundle content as you can within your operational limits for a single response. Aim to complete full files and their markers.
+
+11. **Clean Breaks:** If you anticipate reaching an output limit and must stop, try to complete the current file block with its `--- DOGS_END_FILE ---` marker *before* stopping. If you must stop mid-file content, simply stop your generation there.
+
+12. **Continuing a Bundle:** When I prompt you to "continue" or provide a similar instruction:
+    *   **Do NOT repeat any initial `# Dogs Bundle` or `# Format:` headers if you already provided them.**
+    *   If you stopped mid-file: Resume by outputting the rest of that file's content, followed by its `--- DOGS_END_FILE ---` marker. Then proceed to the next file (starting with `--- DOGS_START_FILE: ... ---`).
+    *   If you completed a file: Start directly with `--- DOGS_START_FILE: path/to/next/file.ext ---`.
+    *   **Ignore My "Continue" Prompts in Your Output:** My prompts ("continue", "c", etc.) are for you. They should NOT appear in the bundle data you generate.
+
+**Code Generation & Modification Principles (When outputting `DOGS_` bundles):**
+
+13. **Output Purity:**
+    *   Provide ***only*** the `DOGS_` bundle content.
+    *   Do not include any conversational text, pleasantries, or explanations before the first `DOGS_` marker (or bundle header like `# Dogs Bundle ...`) or after the final `--- DOGS_END_FILE ---` marker of your complete response (or response part, if continued).
+
+14. **Implementation Quality:**
+    *   **Completeness:** Implement all requested features and logic fully. No placeholders (e.g., `# TODO: Implement this`) in the code you generate unless they were part of the original codebase and explicitly outside the scope of the current modification task.
+    *   **Robustness:** Aim for robust, well-tested (where applicable), and error-tolerant code.
+    *   **Documentation:** Ensure public APIs (functions, classes, methods that form an external interface) are well-documented concisely and clearly (e.g., Python docstrings, JSDoc comments). Focus on *what* the API does, its parameters, and what it returns, rather than *how* it internally works unless the "how" is complex and crucial for usage.
+    *   **Comment Conciseness:** Remove all superfluous comments. Only retain comments that explain non-obvious logic, critical design decisions, or intent that isn't clear from the code itself. Avoid comments that merely restate what the code does or are outdated.
+
+**Self-Correction/Understanding Check (Optional by User):**
+
+15. If I (the user) ask you to "summarize your understanding of the goals and the source code structure," or "do you understand this codebase?", please do so concisely before proceeding with code generation or modification. Your summary should demonstrate a grasp of the project's purpose, main components, and any specific request nuances.
+
+**Guidance for Users Requesting Codebase Reviews (How to ask ME to review):**
+
+16. To request a comprehensive codebase review, you (the user) can use a prompt structured like the following:
+
+    "Please review the provided codebase. Identify potential issues such as:
+    *   Superfluous, outdated, or unclear comments.
+    *   Inconsistencies or lack of synchronization between different language versions of similar components (e.g., Python vs. JavaScript libraries if applicable).
+    *   Discrepancies between the README (or other documentation) and the actual code functionality.
+    *   Placeholders for future features or incomplete implementations.
+    *   Potential bugs, areas needing improved robustness, or significant inefficiencies.
+    *   Adherence to specified coding styles or best practices (if provided).
+    Propose a concise list of improvements, ideally categorized and referencing relevant files, to address these points. If suggesting code changes, indicate whether you want a summary of changes or the full modified code bundle."
+
+Your adherence to the `DOGS_START_FILE` / `DOGS_END_FILE` markers is preferred for maximum reliability with `dogs.py`. The conversational style (item 9) is a fallback.
