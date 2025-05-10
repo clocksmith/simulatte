@@ -7,7 +7,6 @@ const readline = require("readline");
 
 const DEFAULT_ENCODING = "utf-8";
 
-// Regex for explicit CATS/DOGS markers (case-insensitive for robustness)
 const CATS_FILE_START_MARKER_REGEX =
   /^-{3,}\s*CATS_START_FILE\s*:\s*(.+?)\s*-{3,}$/i;
 const CATS_FILE_END_MARKER_REGEX = /^-{3,}\s*CATS_END_FILE\s*-{3,}$/i;
@@ -28,9 +27,10 @@ function sanitizePathComponent(comp) {
   if (!comp || comp === "." || comp === "..") {
     return "_sanitized_dots_";
   }
-  let sanitized = comp.replace(/[^\w.\-_]/g, "_"); // \w is [A-Za-z0-9_]
+  let sanitized = comp.replace(/[^\w.\-_~ ]/g, "_"); // Allow spaces, tilde too
+  sanitized = sanitized.replace(/\s+/g, "_"); // Replace spaces with single underscore
   sanitized = sanitized.replace(/_+/g, "_");
-  sanitized = sanitized.replace(/^[._]+|[._]+$/g, ""); // Trim leading/trailing _ or .
+  sanitized = sanitized.replace(/^[._]+|[._]+$/g, "");
   return sanitized || "sanitized_empty_comp";
 }
 
@@ -40,20 +40,19 @@ function sanitizePathComponent(comp) {
  * @returns {string} Sanitized relative path using OS-specific separators.
  */
 function sanitizeRelativePath(relPathFromBundle) {
-  const normalizedPath = relPathFromBundle.replace(/\\/g, "/"); // Normalize to forward slashes for splitting
+  const normalizedPath = relPathFromBundle.replace(/\\/g, "/");
   const parts = normalizedPath.split("/");
   const sanitizedParts = parts
     .map((p) => sanitizePathComponent(p))
-    .filter((p) => p && p !== "." && p !== ".."); // Filter out empty, '.', '..'
+    .filter((p) => p && p !== "." && p !== "..");
 
   if (sanitizedParts.length === 0) {
-    // Fallback if all parts were sanitized away
     return (
       sanitizePathComponent(path.basename(relPathFromBundle)) ||
       "unnamed_file_from_bundle"
     );
   }
-  return path.join(...sanitizedParts); // path.join uses OS-specific separators
+  return path.join(...sanitizedParts);
 }
 
 /**
@@ -77,11 +76,9 @@ function parseBundleContent(
 ) {
   const lines = bundleContent.split(/\r?\n/);
   const parsedFiles = [];
-
   let bundleFormatIsB64 = null;
   let formatDescription = "Unknown (Header not found or not recognized)";
   let headerLinesConsumed = 0;
-
   const possibleHeaders = [
     { prefix: DOGS_BUNDLE_HEADER_PREFIX, desc: "Dogs Bundle (LLM Output)" },
     {
@@ -89,8 +86,8 @@ function parseBundleContent(
       desc: "Cats Bundle (Original Source)",
     },
   ];
-
   let headerTypeFound = null;
+
   for (let i = 0; i < Math.min(lines.length, 10); i++) {
     const lineTextTrimmed = lines[i].trim();
     if (!headerTypeFound) {
@@ -103,14 +100,12 @@ function parseBundleContent(
       }
       if (headerTypeFound) continue;
     }
-
     if (headerTypeFound && lineTextTrimmed.startsWith(BUNDLE_FORMAT_PREFIX)) {
       headerLinesConsumed = Math.max(headerLinesConsumed, i + 1);
       const tempFormatDesc = lineTextTrimmed
         .substring(BUNDLE_FORMAT_PREFIX.length)
         .trim();
       formatDescription = `${headerTypeFound} - Format: ${tempFormatDesc}`;
-
       if (tempFormatDesc.toLowerCase().includes("base64")) {
         bundleFormatIsB64 = true;
       } else if (
@@ -122,7 +117,7 @@ function parseBundleContent(
       ) {
         bundleFormatIsB64 = false;
       } else {
-        bundleFormatIsB64 = false; // Default for safety
+        bundleFormatIsB64 = false;
         formatDescription += ` (Unrecognized format details, defaulting to Raw UTF-8)`;
         if (verbose)
           console.warn(
@@ -149,21 +144,17 @@ function parseBundleContent(
   }
 
   if (bundleFormatIsB64 === null) {
-    // Still undetermined
-    bundleFormatIsB64 = false; // Default to UTF-8
+    bundleFormatIsB64 = false;
     formatDescription = `Raw ${DEFAULT_ENCODING} (Assumed, no valid header found. Override with --input-format if needed.)`;
     if (verbose) console.warn(`  Warning: ${formatDescription}`);
   }
-
   const effectiveIsB64ForDecode = bundleFormatIsB64 === true;
-
   let currentFileRelativePathFromMarker = null;
   let contentBufferLines = [];
 
   for (let lineNum = headerLinesConsumed; lineNum < lines.length; lineNum++) {
-    const lineText = lines[lineNum]; // Keep original line structure for content
-    const strippedLine = lineText.trim(); // For marker matching
-
+    const lineText = lines[lineNum];
+    const strippedLine = lineText.trim();
     let startMatch =
       DOGS_FILE_START_MARKER_REGEX.exec(strippedLine) ||
       CATS_FILE_START_MARKER_REGEX.exec(strippedLine);
@@ -172,14 +163,12 @@ function parseBundleContent(
       CATS_FILE_END_MARKER_REGEX.test(strippedLine);
 
     if (startMatch) {
-      if (currentFileRelativePathFromMarker) {
-        // New file started before old one ended
-        if (verbose)
-          console.warn(
-            `  Warning (L${
-              lineNum + 1
-            }): New file started before '${currentFileRelativePathFromMarker}' ended. Previous block discarded.`
-          );
+      if (currentFileRelativePathFromMarker && verbose) {
+        console.warn(
+          `  Warning (L${
+            lineNum + 1
+          }): New file started before '${currentFileRelativePathFromMarker}' ended. Previous block discarded.`
+        );
       }
       currentFileRelativePathFromMarker = startMatch[1].trim();
       contentBufferLines = [];
@@ -191,17 +180,15 @@ function parseBundleContent(
         );
       continue;
     }
-
     if (endMatch && currentFileRelativePathFromMarker) {
-      const rawContentStr = contentBufferLines.join("\n"); // Reconstruct with original newlines
+      const rawContentStr = contentBufferLines.join("\n");
       let fileContentBytes;
-
       try {
         if (effectiveIsB64ForDecode) {
           fileContentBytes = Buffer.from(
             rawContentStr.replace(/\s/g, ""),
             "base64"
-          ); // Remove all whitespace for B64
+          );
         } else {
           fileContentBytes = Buffer.from(rawContentStr, DEFAULT_ENCODING);
         }
@@ -229,14 +216,11 @@ function parseBundleContent(
       contentBufferLines = [];
       continue;
     }
-
     if (currentFileRelativePathFromMarker !== null) {
-      contentBufferLines.push(lineText); // Preserve exact line including its ending
+      contentBufferLines.push(lineText);
     }
   }
-
   if (currentFileRelativePathFromMarker) {
-    // Bundle ended before last file was closed
     console.warn(
       `  Warning: Bundle ended before file '${currentFileRelativePathFromMarker}' was closed by an END marker. Block discarded.`
     );
@@ -248,13 +232,6 @@ function parseBundleContent(
   };
 }
 
-/**
- * Core extraction logic. Parses bundle and returns file data in memory.
- * @param {string} bundleContent - The bundle string.
- * @param {string|null} [inputFormatOverride=null] - 'b64', 'utf8', or null for auto.
- * @param {boolean} [verbose=false] - Enable verbose logging.
- * @returns {Promise<ParsedFileFromBundle[]>} Array of extracted file objects.
- */
 async function extractToMemory(
   bundleContent,
   inputFormatOverride = null,
@@ -265,27 +242,9 @@ async function extractToMemory(
     inputFormatOverride,
     verbose
   );
-  // ParsedFileFromBundle already uses Buffer for contentBytes.
   return parsedFiles;
 }
 
-/**
- * @typedef {Object} ExtractionResultNode
- * @property {string} path - Original path from bundle marker.
- * @property {string} status - 'extracted', 'skipped', 'error'.
- * @property {string} message - Details of the operation.
- */
-/**
- * Extracts files from bundle content to disk (Node.js specific).
- * @param {Object} params
- * @param {string} [params.bundleFilePath] - Path to the bundle file.
- * @param {string} [params.bundleFileContent] - Content of the bundle file (if already read).
- * @param {string} params.outputDir - Base directory to extract files into.
- * @param {string} [params.overwritePolicy='prompt'] - 'yes', 'no', 'prompt'.
- * @param {string|null} [params.inputFormat='auto'] - 'auto', 'b64', 'utf8'.
- * @param {boolean} [params.verbose=false] - Enable verbose logging.
- * @returns {Promise<ExtractionResultNode[]>} Summary of extraction results.
- */
 async function extractToDiskNode({
   bundleFilePath,
   bundleFileContent,
@@ -295,7 +254,7 @@ async function extractToDiskNode({
   verbose = false,
 }) {
   const results = [];
-  const absOutputDirBase = path.resolve(outputDir); // Resolve to absolute path
+  const absOutputDirBase = path.resolve(outputDir);
 
   if (!fs.existsSync(absOutputDirBase)) {
     try {
@@ -314,10 +273,7 @@ async function extractToDiskNode({
     results.push({ path: outputDir, status: "error", message: msg });
     return results;
   }
-
-  // Ensure absOutputDirBase is a real path for subsequent safety checks
   const realAbsOutputDirBase = fs.realpathSync(absOutputDirBase);
-
   let contentStr = bundleFileContent;
   if (!contentStr && bundleFilePath) {
     try {
@@ -333,7 +289,6 @@ async function extractToDiskNode({
     }
   }
   if (!contentStr && contentStr !== "") {
-    // Allow empty bundle string
     results.push({
       path: "bundle",
       status: "error",
@@ -341,20 +296,22 @@ async function extractToDiskNode({
     });
     return results;
   }
-
   const formatOverride = inputFormat === "auto" ? null : inputFormat;
-  const { parsedFiles } = parseBundleContent(
+  const { parsedFiles, formatDescription } = parseBundleContent(
     contentStr,
     formatOverride,
     verbose
   );
+  if (verbose)
+    console.log(
+      `  Info: Bundle parsed. Format: ${formatDescription}. Files: ${parsedFiles.length}.`
+    );
 
   if (parsedFiles.length === 0) return results;
 
   let alwaysYes = overwritePolicy === "yes";
   let alwaysNo = overwritePolicy === "no";
   let userQuitExtraction = false;
-
   const rl =
     overwritePolicy === "prompt" && process.stdin.isTTY
       ? readline.createInterface({
@@ -362,20 +319,18 @@ async function extractToDiskNode({
           output: process.stdout,
         })
       : null;
-
   const promptUser = rl
     ? (query) =>
         new Promise((resolve) =>
           rl.question(query, (answer) => resolve(answer))
         )
     : null;
-
   if (overwritePolicy === "prompt" && !process.stdin.isTTY) {
     if (verbose)
       console.log(
         "Info: Non-interactive mode, 'prompt' for overwrite policy defaults to 'no'."
       );
-    alwaysNo = true; // Default to non-destructive in non-TTY if prompt was chosen
+    alwaysNo = true;
   }
 
   for (const fileToExtract of parsedFiles) {
@@ -387,35 +342,65 @@ async function extractToDiskNode({
       });
       continue;
     }
-
     const originalPathFromMarker = fileToExtract.path;
     const sanitizedFinalRelPath = sanitizeRelativePath(originalPathFromMarker);
     const prospectiveAbsOutputPath = path.normalize(
       path.join(realAbsOutputDirBase, sanitizedFinalRelPath)
     );
 
+    // Security check against path traversal
     if (
       !fs
-        .realpathSync(prospectiveAbsOutputPath)
-        .startsWith(realAbsOutputDirBase)
+        .realpathSync(path.dirname(prospectiveAbsOutputPath))
+        .startsWith(realAbsOutputDirBase) &&
+      fs.realpathSync(prospectiveAbsOutputPath) !== realAbsOutputDirBase
     ) {
-      const msg = `Security Alert: Path '${sanitizedFinalRelPath}' (from bundle path '${originalPathFromMarker}') resolved to '${fs.realpathSync(
-        prospectiveAbsOutputPath
-      )}', outside base '${realAbsOutputDirBase}'. Skipping.`;
-      console.error(`  Error: ${msg}`);
-      results.push({
-        path: originalPathFromMarker,
-        status: "error",
-        message: msg,
-      });
-      continue;
+      // The check needs to ensure the DIR is within base, or if it's a top-level file, that it IS the base (less likely for files)
+      // A simpler check for files is: if path.dirname(prospective) starts with realBase, OR prospective itself IS realBase (for a file directly in outputDir)
+      // For a file, its realpath must start with parent. For a dir, its realpath must start with parent.
+      // path.dirname(prospectiveAbsOutputPath) gets the dir.
+      // fs.realpathSync(path.dirname(prospectiveAbsOutputPath)) gets the real dir.
+      let dirToTest = path.dirname(prospectiveAbsOutputPath);
+      if (!fs.existsSync(dirToTest)) {
+        // If dir doesn't exist yet, use prospective path as-is for check basis
+        dirToTest = prospectiveAbsOutputPath;
+      }
+      let isSafe = false;
+      try {
+        // realpathSync can fail if path doesn't exist, but dirname should point to existing parent or root
+        isSafe = fs.realpathSync(dirToTest).startsWith(realAbsOutputDirBase);
+        if (
+          !isSafe &&
+          fs.realpathSync(prospectiveAbsOutputPath) === realAbsOutputDirBase &&
+          fs.statSync(prospectiveAbsOutputPath).isFile()
+        ) {
+          isSafe = true; // File directly in the output dir
+        }
+      } catch (e) {
+        // If realpath fails on dirToTest, it implies a deeper issue or non-existent path segment
+        // The most direct check is `prospectiveAbsOutputPath` itself
+        isSafe =
+          prospectiveAbsOutputPath.startsWith(
+            realAbsOutputDirBase + path.sep
+          ) || prospectiveAbsOutputPath === realAbsOutputDirBase;
+      }
+
+      if (!isSafe) {
+        const msg = `Security Alert: Path '${sanitizedFinalRelPath}' (from '${originalPathFromMarker}') resolved to '${prospectiveAbsOutputPath}', potentially outside base '${realAbsOutputDirBase}'. Skipping.`;
+        console.error(`  Error: ${msg}`);
+        results.push({
+          path: originalPathFromMarker,
+          status: "error",
+          message: msg,
+        });
+        continue;
+      }
     }
 
     let performActualWrite = true;
     if (fs.existsSync(prospectiveAbsOutputPath)) {
-      const stat = await fs.promises.lstat(prospectiveAbsOutputPath); // Use lstat to check symlinks themselves
+      const stat = await fs.promises.lstat(prospectiveAbsOutputPath);
       if (stat.isDirectory() && !stat.isSymbolicLink()) {
-        // Don't overwrite actual directory, but allow overwriting symlink
         const msg = `Path '${sanitizedFinalRelPath}' exists as directory. Cannot overwrite. Skipping.`;
         if (verbose) console.warn(`  Warning: ${msg}`);
         results.push({
@@ -451,7 +436,6 @@ async function extractToDiskNode({
             .toLowerCase();
           if (choice === "y") break;
           if (choice === "n" || choice === "") {
-            // Default N
             performActualWrite = false;
             results.push({
               path: originalPathFromMarker,
@@ -482,7 +466,6 @@ async function extractToDiskNode({
           console.log("Invalid choice. Please enter y, n, a, s, or q.");
         }
       } else {
-        // Should be covered by non-interactive defaulting to 'no'
         performActualWrite = false;
         results.push({
           path: originalPathFromMarker,
@@ -491,29 +474,24 @@ async function extractToDiskNode({
         });
       }
     }
-
     if (userQuitExtraction && !performActualWrite) {
       if (
         !results.find(
           (r) => r.path === originalPathFromMarker && r.status === "skipped"
         )
-      ) {
+      )
         results.push({
           path: originalPathFromMarker,
           status: "skipped",
           message: "User quit extraction.",
         });
-      }
       continue;
     }
-
     if (performActualWrite) {
       try {
         const outputFileDir = path.dirname(prospectiveAbsOutputPath);
-        if (!fs.existsSync(outputFileDir)) {
+        if (!fs.existsSync(outputFileDir))
           await fs.promises.mkdir(outputFileDir, { recursive: true });
-        }
-        // If overwriting a symlink, unlink it first.
         if (
           fs.existsSync(prospectiveAbsOutputPath) &&
           (await fs.promises.lstat(prospectiveAbsOutputPath)).isSymbolicLink()
@@ -522,7 +500,7 @@ async function extractToDiskNode({
         }
         await fs.promises.writeFile(
           prospectiveAbsOutputPath,
-          fileToExtract.contentBytes // This is a Buffer
+          fileToExtract.contentBytes
         );
         results.push({
           path: originalPathFromMarker,
@@ -545,26 +523,6 @@ async function extractToDiskNode({
   return results;
 }
 
-/**
- * @typedef {'FileSystemAPI' | 'Downloads' | 'Console' | 'Error'} ExtractionMethodBrowser
- * @typedef {Object} ExtractionResultBrowser
- * @property {ExtractionMethodBrowser} method - Method used for extraction.
- * @property {string} [message] - Optional message about the outcome.
- * @property {string} [path] - Path (e.g. chosen directory name for FS API).
- * @property {number} [filesAttempted]
- * @property {number} [filesWritten]
- */
-/**
- * Extracts files from bundle content in a browser environment.
- * Tries File System Access API -> Individual Downloads -> Console.
- * LocalStorage is too limited and generally not a good fit, so it's removed.
- * @param {string} bundleContent - The bundle string.
- * @param {Object} [options={}]
- * @param {string|null} [options.inputFormat='auto'] - 'auto', 'b64', 'utf8'.
- * @param {FileSystemDirectoryHandle} [options.targetDirectoryHandle] - Pre-selected directory handle for FS API.
- * @param {boolean} [options.verbose=false] - Enable verbose logging.
- * @returns {Promise<ExtractionResultBrowser>}
- */
 async function extractFromBrowser(bundleContent, options = {}) {
   const {
     inputFormat = "auto",
@@ -572,52 +530,44 @@ async function extractFromBrowser(bundleContent, options = {}) {
     verbose = false,
   } = options;
   const formatOverride = inputFormat === "auto" ? null : inputFormat;
-  // Use Buffer for contentBytes from parseBundleContent
   const { parsedFiles } = parseBundleContent(
     bundleContent,
     formatOverride,
     verbose
   );
-
-  if (!parsedFiles || parsedFiles.length === 0) {
+  if (!parsedFiles || parsedFiles.length === 0)
     return {
       method: "Error",
       message: "No files found in bundle to extract.",
       filesAttempted: 0,
     };
-  }
   const filesAttempted = parsedFiles.length;
   let filesWritten = 0;
-
-  // 1. Try File System Access API
   if (typeof window !== "undefined" && window.showDirectoryPicker) {
     try {
       const dirHandle =
         targetDirectoryHandle || (await window.showDirectoryPicker());
       if (dirHandle) {
         for (const file of parsedFiles) {
-          // Sanitize path for browser FS API
           const sanitizedPathForBrowser = file.path
             .replace(/\\/g, "/")
             .split("/")
             .map((p) => sanitizePathComponent(p))
             .filter((p) => p)
             .join("/");
-          if (!sanitizedPathForBrowser) continue; // Skip if path becomes empty
-
+          if (!sanitizedPathForBrowser) continue;
           const parts = sanitizedPathForBrowser.split("/");
           let currentHandle = dirHandle;
-          for (let i = 0; i < parts.length - 1; i++) {
+          for (let i = 0; i < parts.length - 1; i++)
             currentHandle = await currentHandle.getDirectoryHandle(parts[i], {
               create: true,
             });
-          }
           const fileHandle = await currentHandle.getFileHandle(
             parts[parts.length - 1],
             { create: true }
           );
           const writable = await fileHandle.createWritable();
-          await writable.write(file.contentBytes); // contentBytes is Buffer
+          await writable.write(file.contentBytes);
           await writable.close();
           filesWritten++;
         }
@@ -636,8 +586,6 @@ async function extractFromBrowser(bundleContent, options = {}) {
         );
     }
   }
-
-  // 2. Fallback to Individual Downloads
   if (
     typeof window !== "undefined" &&
     typeof document !== "undefined" &&
@@ -647,11 +595,10 @@ async function extractFromBrowser(bundleContent, options = {}) {
     try {
       let downloadsInitiated = 0;
       for (const file of parsedFiles) {
-        const blob = new Blob([file.contentBytes]); // Buffer can be source for Blob
+        const blob = new Blob([file.contentBytes]);
         const objectUrl = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = objectUrl;
-        // Sanitize filename for download attribute
         const filename = sanitizePathComponent(
           file.path.split(/[\/\\]/).pop() || "downloaded_file"
         );
@@ -662,34 +609,28 @@ async function extractFromBrowser(bundleContent, options = {}) {
         URL.revokeObjectURL(objectUrl);
         downloadsInitiated++;
       }
-      if (downloadsInitiated > 0) {
+      if (downloadsInitiated > 0)
         return {
           method: "Downloads",
           message:
             "Files offered for individual download. Recreate directory structure manually.",
           filesAttempted,
-          filesWritten: downloadsInitiated, // Represents attempts
+          filesWritten: downloadsInitiated,
         };
-      }
     } catch (e) {
       if (verbose) console.warn("Individual file downloads failed:", e.message);
     }
   }
-
-  // 3. Fallback to Console Output
   if (verbose || filesAttempted > 0) {
-    // Only log to console if verbose or if other methods failed for some files
     console.log("--- Extracted File Contents (Console Fallback) ---");
     parsedFiles.forEach((file) => {
       console.log(`\nFile: ${file.path}`);
       try {
-        // Attempt to decode as UTF-8 for display, non-fatal
         const textContent = new TextDecoder(DEFAULT_ENCODING, {
           fatal: false,
         }).decode(file.contentBytes);
         console.log("Content (UTF-8 Attempt):\n", textContent);
       } catch (e) {
-        // Should not happen with fatal:false, but as safety
         console.log(
           "Content (Base64 as fallback for non-UTF-8 display):\n",
           file.contentBytes.toString("base64")
@@ -703,7 +644,6 @@ async function extractFromBrowser(bundleContent, options = {}) {
       filesWritten: 0,
     };
   }
-
   return {
     method: "Error",
     message: "No extraction method succeeded.",
@@ -714,7 +654,7 @@ async function extractFromBrowser(bundleContent, options = {}) {
 
 function parseCliArgsDogs(argv) {
   const args = {
-    bundleFile: null, // Default handled later
+    bundleFile: null,
     outputDir: ".",
     inputFormat: "auto",
     overwrite: "prompt",
@@ -724,7 +664,6 @@ function parseCliArgsDogs(argv) {
   const cliArgs = argv.slice(2);
   let i = 0;
   let positionalCount = 0;
-
   while (i < cliArgs.length) {
     const arg = cliArgs[i];
     if (arg === "-h" || arg === "--help") {
@@ -736,27 +675,20 @@ function parseCliArgsDogs(argv) {
         !cliArgs[i + 1].startsWith("-") &&
         ["auto", "b64", "utf8"].includes(cliArgs[i + 1].toLowerCase())
       ) {
-        args.inputFormat = cliArgs[i + 1].toLowerCase();
-        i++;
-      } else {
+        args.inputFormat = cliArgs[++i].toLowerCase();
+      } else
         throw new Error(
           `Argument ${arg} requires a valid value (auto, b64, utf8).`
         );
-      }
-    } else if (arg === "-y" || arg === "--yes") {
-      args.overwrite = "yes";
-    } else if (arg === "-n" || arg === "--no") {
-      args.overwrite = "no";
-    } else if (arg === "-v" || arg === "--verbose") {
-      args.verbose = true;
-    } else if (!arg.startsWith("-")) {
+    } else if (arg === "-y" || arg === "--yes") args.overwrite = "yes";
+    else if (arg === "-n" || arg === "--no") args.overwrite = "no";
+    else if (arg === "-v" || arg === "--verbose") args.verbose = true;
+    else if (!arg.startsWith("-")) {
       if (positionalCount === 0) args.bundleFile = arg;
       else if (positionalCount === 1) args.outputDir = arg;
       else throw new Error(`Too many positional arguments: ${arg}`);
       positionalCount++;
-    } else {
-      throw new Error(`Unknown option: ${arg}`);
-    }
+    } else throw new Error(`Unknown option: ${arg}`);
     i++;
   }
   return args;
@@ -783,12 +715,10 @@ Example: node dogs.js my_project.bundle ./extracted_project -y -v`);
 async function mainCliDogs() {
   try {
     const args = parseCliArgsDogs(process.argv);
-
     if (args.help) {
       printCliHelpDogs();
       process.exit(0);
     }
-
     if (args.bundleFile === null) {
       if (fs.existsSync("cats_out.bundle")) {
         args.bundleFile = "cats_out.bundle";
@@ -804,7 +734,6 @@ async function mainCliDogs() {
         process.exit(1);
       }
     }
-
     const absBundlePath = path.resolve(args.bundleFile);
     if (
       !fs.existsSync(absBundlePath) ||
@@ -815,8 +744,6 @@ async function mainCliDogs() {
       );
       process.exit(1);
     }
-
-    // Pre-parse for confirmation if interactive prompt
     let preliminaryFormatDesc = "Parsing...";
     let filesToProcessCount = 0;
     if (args.overwrite === "prompt" && process.stdin.isTTY) {
@@ -831,7 +758,6 @@ async function mainCliDogs() {
       );
       preliminaryFormatDesc = pd;
       filesToProcessCount = pf.length;
-
       console.log("\n--- Bundle Extraction Plan ---");
       console.log(`  Source Bundle:    ${absBundlePath}`);
       console.log(`  Detected Format:  ${preliminaryFormatDesc}`);
@@ -868,7 +794,6 @@ async function mainCliDogs() {
         process.exit(0);
       }
     } else if (args.verbose) {
-      // Not prompting, but verbose
       const tempContent = await fs.promises.readFile(
         absBundlePath,
         DEFAULT_ENCODING
@@ -889,17 +814,14 @@ async function mainCliDogs() {
       );
       console.log(`  Files to process: ${pf.length}`);
     }
-
     console.log("\nStarting extraction process...");
-    // Actual extraction
     const extractionResults = await extractToDiskNode({
-      bundleFilePath: absBundlePath, // Pass path, let function read it
+      bundleFilePath: absBundlePath,
       outputDir: args.outputDir,
       overwritePolicy: args.overwrite,
       inputFormat: args.inputFormat,
       verbose: args.verbose,
     });
-
     const extractedCount = extractionResults.filter(
       (r) => r.status === "extracted"
     ).length;
@@ -909,36 +831,27 @@ async function mainCliDogs() {
     const errorCount = extractionResults.filter(
       (r) => r.status === "error"
     ).length;
-
     console.log(`\n--- Extraction Summary ---`);
     console.log(`  Files Extracted: ${extractedCount}`);
     if (skippedCount > 0) console.log(`  Files Skipped:   ${skippedCount}`);
     if (errorCount > 0) console.log(`  Errors:          ${errorCount}`);
-    if (extractionResults.length === 0 && filesToProcessCount === 0) {
+    if (extractionResults.length === 0 && filesToProcessCount === 0)
       console.log(
         "  No file content was found or parsed in the bundle to attempt extraction."
       );
-    }
   } catch (error) {
     console.error(`\nError: ${error.message}`);
     if (
       error.message.includes("Too many positional") ||
       error.message.includes("Unknown option") ||
       error.message.includes("requires a value")
-    ) {
+    )
       printCliHelpDogs();
-    }
     process.exit(1);
   }
 }
 
-module.exports = {
-  extractToMemory,
-  extractToDiskNode,
-  extractFromBrowser,
-  // parseBundleContent, // Expose if needed for detailed external parsing
-};
-
+module.exports = { extractToMemory, extractToDiskNode, extractFromBrowser };
 if (require.main === module) {
   mainCliDogs();
 }

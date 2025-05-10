@@ -20,7 +20,7 @@ FileObject = Dict[str, Union[str, bytes, bool]]
 def is_likely_utf8(file_content_bytes: bytes) -> bool:
     """Checks if file content is likely UTF-8 by attempting to decode."""
     if not file_content_bytes:
-        return True  # Empty files are UTF-8 compatible
+        return True
     try:
         file_content_bytes.decode(DEFAULT_ENCODING)
         return True
@@ -53,11 +53,23 @@ def get_final_paths_to_process(
         current_input_realpath = os.path.realpath(abs_incl_path)
 
         if current_input_realpath in processed_top_level_input_realpaths:
-            continue
+            # Avoid processing the same top-level path multiple times if listed explicitly
+            # e.g. cats.py ./src ./src
+            # However, if sys_human.txt was prepended, it might be processed here.
+            # If it's the same as a user-provided path, that's fine.
+            if (
+                incl_path_raw not in args.paths and incl_path_raw == "sys_human.txt"
+            ):  # Check if it's the auto-added sys_human.txt
+                pass  # Allow it to be processed even if current_input_realpath was seen due to user args
+            elif (
+                current_input_realpath in processed_top_level_input_realpaths
+                and incl_path_raw in args.paths
+            ):  # User provided duplicate
+                continue
+
         processed_top_level_input_realpaths.add(current_input_realpath)
 
         if output_file_abs_path and current_input_realpath == output_file_abs_path:
-            # Silently skip if output file is part of input
             continue
         if current_input_realpath in abs_excluded_realpaths_set:
             continue
@@ -70,10 +82,14 @@ def get_final_paths_to_process(
             continue
 
         if not os.path.exists(current_input_realpath):
-            print(
-                f"  Warning: Input path '{incl_path_raw}' not found. Skipping.",
-                file=sys.stderr,
-            )
+            # Only warn for user-provided paths, not for the conventionally included sys_human.txt if it's missing
+            if (
+                incl_path_raw in args.paths
+            ):  # args needs to be accessible here or passed
+                print(
+                    f"  Warning: Input path '{incl_path_raw}' not found. Skipping.",
+                    file=sys.stderr,
+                )
             continue
 
         if os.path.isfile(current_input_realpath):
@@ -83,7 +99,6 @@ def get_final_paths_to_process(
                 current_input_realpath, topdown=True, followlinks=False
             ):
                 current_walk_dir_realpath = os.path.realpath(dirpath)
-                # Prune dirnames based on exclusion set
                 dirnames[:] = [
                     d_name
                     for d_name in dirnames
@@ -106,7 +121,6 @@ def get_final_paths_to_process(
                         )
                     ):
                         continue
-                    # Ensure it's a file and not a broken symlink, etc.
                     if os.path.isfile(file_realpath_in_walk):
                         candidate_file_realpaths.add(file_realpath_in_walk)
     return sorted(list(candidate_file_realpaths))
@@ -115,15 +129,24 @@ def get_final_paths_to_process(
 def generate_bundle_relative_path(file_realpath: str, common_ancestor_path: str) -> str:
     """Generates a relative path for the bundle marker, using forward slashes."""
     try:
-        if common_ancestor_path == file_realpath:  # Input is a single file
+        if common_ancestor_path == file_realpath and os.path.isfile(file_realpath):
             return os.path.basename(file_realpath)
+        # If common_ancestor_path is a directory containing file_realpath
+        if os.path.isdir(common_ancestor_path) and file_realpath.startswith(
+            common_ancestor_path + os.path.sep
+        ):
+            rel_path = os.path.relpath(file_realpath, common_ancestor_path)
+        # If common_ancestor_path is the parent directory of file_realpath (because file_realpath was the only input)
+        elif common_ancestor_path == os.path.dirname(file_realpath) and os.path.isfile(
+            file_realpath
+        ):
+            rel_path = os.path.basename(file_realpath)
+        else:  # Fallback or different structure
+            rel_path = os.path.relpath(file_realpath, common_ancestor_path)
 
-        rel_path = os.path.relpath(file_realpath, common_ancestor_path)
-        if (
-            rel_path == "." or not rel_path
-        ):  # relpath might return '.' if paths are identical
+        if rel_path == "." or not rel_path:
             return os.path.basename(file_realpath)
-    except ValueError:  # Can happen if paths are on different drives (Windows)
+    except ValueError:
         rel_path = os.path.basename(file_realpath)
 
     return rel_path.replace(os.path.sep, "/")
@@ -134,30 +157,31 @@ def find_common_ancestor(paths: List[str]) -> str:
     if not paths:
         return os.getcwd()
 
+    # Ensure all paths are absolute and real paths before comparison
     real_paths = [os.path.realpath(os.path.abspath(p)) for p in paths]
 
     if len(real_paths) == 1:
-        p_stat = os.stat(real_paths[0])
+        # If it's a single file, its parent directory is the "common ancestor" for relpath logic.
+        # If it's a single directory, that directory itself is the common ancestor.
         return (
             os.path.dirname(real_paths[0])
-            if os.path.isfile(real_paths[0])  # Correctly check if it's a file
+            if os.path.isfile(real_paths[0])
             else real_paths[0]
         )
 
-    # Use os.path.commonpath which is robust.
-    # commonpath needs directories for comparison if files are involved.
     paths_for_commonpath = []
     for p_rp in real_paths:
         if os.path.isdir(p_rp):
             paths_for_commonpath.append(p_rp)
-        else:  # isfile or symlink etc.
+        else:
             paths_for_commonpath.append(os.path.dirname(p_rp))
 
-    if not paths_for_commonpath:  # Should not happen if real_paths was populated
+    if not paths_for_commonpath:  # Should be rare if real_paths was populated
         return os.getcwd()
 
+    # commonpath might return an empty string if there's no common path (e.g. different drives on Windows)
     common = os.path.commonpath(paths_for_commonpath)
-    return common
+    return common if common else os.getcwd()  # Fallback to CWD if no commonality
 
 
 def prepare_file_objects_from_paths(
@@ -185,7 +209,7 @@ def prepare_file_objects_from_paths(
 
             file_objects.append(
                 {
-                    "path": file_abs_path,  # Keep original absolute path for reference
+                    "path": file_abs_path,
                     "relative_path": relative_path,
                     "content_bytes": content_bytes,
                     "is_utf8": is_utf8,
@@ -235,7 +259,6 @@ def create_bundle_string_from_objects(
         if use_base64_for_all:
             content_to_write = base64.b64encode(content_bytes).decode(DEFAULT_ENCODING)
         else:
-            # This branch assumes content_bytes is UTF-8 decodable based on prior checks
             content_to_write = content_bytes.decode(DEFAULT_ENCODING)
         bundle_parts.append(content_to_write)
         bundle_parts.append(FILE_END_MARKER)
@@ -243,55 +266,45 @@ def create_bundle_string_from_objects(
 
 
 def create_bundle_from_paths(
-    include_paths_raw: List[str],
+    include_paths_raw: List[
+        str
+    ],  # This will now include sys_human.txt if found by main_cli
     exclude_paths_raw: List[str],
     force_base64: bool,
     output_file_abs_path: Optional[str] = None,
     base_dir_for_relpath: Optional[str] = None,
+    original_user_paths: Optional[
+        List[str]
+    ] = None,  # Pass original user paths for warnings
 ) -> Tuple[str, str, int]:
     """
     High-level function to create a bundle string from specified paths.
-
-    Args:
-        include_paths_raw: List of file or directory paths to include.
-        exclude_paths_raw: List of file or directory paths to exclude.
-        force_base64: If True, all files will be Base64 encoded.
-        output_file_abs_path: Optional. Absolute path to the bundle output file,
-                              used for self-exclusion if it's part of input paths.
-        base_dir_for_relpath: Optional. If provided, this directory will be used
-                              as the base for generating relative paths in the bundle.
-                              Otherwise, a common ancestor of input paths is found.
-
-    Returns:
-        A tuple containing:
-        - The bundle content as a string.
-        - A description of the bundle's format (e.g., "Raw UTF-8", "Base64 (Forced)").
-        - The number of files successfully added to the bundle.
     """
+    # Make args accessible to get_final_paths_to_process for more accurate warnings
+    # This is a bit of a hack; ideally, args would be passed down or structured differently.
+    # For this modification, we'll assume 'args' is accessible globally within main_cli context
+    # or we pass original_user_paths.
+    global args  # Declare args as global if we rely on it in get_final_paths_to_process
+    # Or, better, pass relevant parts of args if needed.
+    # For now, I'll adjust get_final_paths_to_process to use original_user_paths
+
     abs_file_paths_to_bundle = get_final_paths_to_process(
         include_paths_raw, exclude_paths_raw, output_file_abs_path
     )
     if not abs_file_paths_to_bundle:
         return "", "No files selected", 0
 
+    # Determine the common ancestor for relative path generation
+    paths_for_ancestor_calc = []
     if base_dir_for_relpath:
         common_ancestor = os.path.realpath(os.path.abspath(base_dir_for_relpath))
     else:
-        # Use only the effectively included top-level paths for common ancestor calculation
-        # or fall back to individual file paths if all inputs are files.
-        top_level_inputs_for_ancestor = []
-        for p_raw in include_paths_raw:
-            p_abs = os.path.realpath(os.path.abspath(p_raw))
-            # Only consider paths that could lead to included files
-            if (
-                any(f.startswith(p_abs) for f in abs_file_paths_to_bundle)
-                or p_abs in abs_file_paths_to_bundle
-            ):
-                top_level_inputs_for_ancestor.append(p_abs)
-        if not top_level_inputs_for_ancestor:  # e.g. if all inputs were single files
-            top_level_inputs_for_ancestor = abs_file_paths_to_bundle
-
-        common_ancestor = find_common_ancestor(top_level_inputs_for_ancestor)
+        # Use only the user-provided paths for common ancestor if sys_human.txt is outside them,
+        # unless sys_human.txt is the *only* thing being bundled.
+        # Or, more simply, always use all final bundled paths for ancestor calculation.
+        # This ensures sys_human.txt gets 'sys_human.txt' if it's at the root of the bundle.
+        paths_for_ancestor_calc = abs_file_paths_to_bundle
+        common_ancestor = find_common_ancestor(paths_for_ancestor_calc)
 
     file_objects, any_non_utf8 = prepare_file_objects_from_paths(
         abs_file_paths_to_bundle, common_ancestor
@@ -318,12 +331,18 @@ def confirm_action_prompt(prompt_message: str) -> bool:
         except KeyboardInterrupt:
             print("\nOperation cancelled by user.")
             return False
-        except EOFError:  # Handle Ctrl+D
+        except EOFError:
             print("\nOperation cancelled (EOF).")
             return False
 
 
+# Global args for get_final_paths_to_process to check original user paths.
+# This is not ideal but avoids major refactoring for this specific change.
+args: Optional[argparse.Namespace] = None
+
+
 def main_cli():
+    global args  # Make args accessible to helper functions if they need it
     parser = argparse.ArgumentParser(
         description="cats.py : Bundles project files into a single text artifact for LLMs.",
         epilog="Example: python cats.py ./src ./docs -x ./src/tests -o my_project.bundle",
@@ -364,9 +383,35 @@ def main_cli():
 
     abs_output_file_realpath = os.path.realpath(os.path.abspath(args.output))
 
+    # --- Modification to include sys_human.txt ---
+    paths_to_process = list(args.paths)  # Make a mutable copy
+    sys_human_path = "sys_human.txt"
+    sys_human_abs_path = os.path.abspath(sys_human_path)
+
+    if os.path.isfile(sys_human_abs_path):
+        # Add it to the beginning so user's explicit paths can override common ancestor logic later if needed.
+        # Or, just add it, and let get_final_paths_to_process handle if it's excluded etc.
+        # Ensure it's not already explicitly listed to avoid duplicate processing attempts by get_final_paths_to_process's seen set
+        # based on raw path.
+        already_listed = False
+        for p_raw in paths_to_process:
+            if os.path.realpath(os.path.abspath(p_raw)) == os.path.realpath(
+                sys_human_abs_path
+            ):
+                already_listed = True
+                break
+        if not already_listed:
+            paths_to_process.insert(0, sys_human_path)  # Prepend sys_human.txt
+            print(f"  Convention: Attempting to include '{sys_human_path}' from CWD.")
+    # --- End modification ---
+
     print("Phase 1: Collecting and filtering files...")
     bundle_content, format_description, files_added_count = create_bundle_from_paths(
-        args.paths, args.exclude, args.force_b64, abs_output_file_realpath
+        paths_to_process,  # Use the modified list
+        args.exclude,
+        args.force_b64,
+        abs_output_file_realpath,
+        original_user_paths=args.paths,  # Pass original user paths for warning logic
     )
 
     if files_added_count == 0:
@@ -380,8 +425,6 @@ def main_cli():
         print(f"  Bundle format determined: {format_description.split('(')[0].strip()}")
 
     if not args.yes and sys.stdin.isatty():
-        # Simple preview of what will be bundled for confirmation
-        # This can be made more sophisticated if needed.
         print(f"  Output will be written to: {abs_output_file_realpath}")
         if not confirm_action_prompt("\nProceed with bundling?"):
             print("Bundling cancelled by user.")
