@@ -47,10 +47,6 @@ created for games who like mages
 
 ## /utils
 
-### PAWS <-> SWAP
-
-[PAWS](utils/paws/README.md)
-
 ### SIMP <-> PROS
 
 [SIMP](utils/simp/README.md)
@@ -69,7 +65,11 @@ The fundamental difference lies in the reference structure and constraints. A st
 
 Why engage in this **fun game** with acronyms? The underlying patterns resonate with concepts central to the project's ambitions. The self-reference in "Category 1r" and the interlinked dependency in "Category 2t" directly mirror the logic found in **recursive networks** and algorithms where components are defined or operate in terms of themselves or each other. Furthermore, the challenge of constructing or discovering acronym pairs that satisfy the strict, **interlocking axioms** of "Category 2t" is analogous to searching for viable solutions within highly constrained search spaces, reminiscent of evolutionary processes explored in **genetic algorithms**. Even the notion of definitions containing references that loop back (`A` includes `B`, `B` includes `A`) touches upon foundational ideas related to closed systems and, conceptually, **self-modifying code**, where components interact to define or alter the system's behavior. Therefore, exploring these rule-based generative structures, even through the lens of **cyclical acronyms**, serves as a valuable exercise in understanding the kinds of recursive, emergent, and tightly coupled systems relevant to the **long-term goals** of this project in understanding sophisticated generative systems.
 
-### LA-LA-LA (you're still here?)
+## LA-LA-LA (you're still here?)
+
+### PAWS <-> SWAP
+
+[PAWS](https://github.com/clocksmith/paws)
 
 ```md
 ~ REPLOID <---> DREAMER ~
