@@ -1,4 +1,4 @@
-# Simulatte ♁
+# Simulatte ♘
 
 an n-gram and anagram collective
 created for games who like mages
