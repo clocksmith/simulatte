@@ -55,6 +55,8 @@ created for games who like mages
 
 ## WITR? Project Concepts And Cyclical Acronyms
 
+what is this really? write it to read?
+
 While seemingly a linguistic curiosity, the exploration of self-referential and mutually-referential acronyms offers a playful yet insightful parallel to some core concepts relevant to this project. Treating these acronyms formally, as we have done with our custom "Category 1r" and "Category 2t" taxonomies, allows us to rigorously examine rule-based structures and recursive patterns.
 
 From a formal perspective, we treat acronyms as non-empty strings `A, B` from an alphabet `Σ+`. Their expansions are sequences of word strings, `Expand(A) = (a_1, ..., a_lenA)` and `Expand(B) = (b_1, ..., b_lenB)`. Acronyms like GNU or PHP belong to what is officially known as a **recursive acronym** structure (our "Category 1r"). These are defined by a single axiom: `∃ i ∈ [1, lenA] : a_i == A`. This signifies a direct self-reference; the string `A` itself appears as 1 of the words (`a_i`) within its own expansion sequence. Verification simply involves searching for string `A` within the sequence `Expand(A)`.
