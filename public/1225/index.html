@@ -3,18 +3,895 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DTF Tool Factory</title>
+    <title>DTF - Dynamic Tool Factory</title>
+    <meta name="description" content="Modular web app framework for building and running tools with MCP converters" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='15' fill='%234a4a4a'/%3E%3Cpath d='M30 75 L50 25 L70 75 Z M40 65 L60 65' stroke='%23811dbf' stroke-width='5' fill='none'/%3E%3Cpath d='M45 55 L55 55 L50 45 Z' fill='%23eee'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* Performance optimizations */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      :root {
+        --bg-dark: #0a0a0a;
+        --bg-darker: #050505;
+        --text-main: #e0e0e0;
+        --text-dim: #a0a0a0;
+        --text-bright: #ffffff;
+        --primary: #811dbf;
+        --primary-light: #a64bdb;
+        --primary-dark: #5e0f8f;
+        --secondary: #1db88d;
+        --accent: #f0a020;
+        --error: #ff4444;
+        --warning: #ffaa00;
+        --success: #00ff88;
+        --border: #333;
+        --shadow: rgba(0, 0, 0, 0.5);
+        --shadow-strong: rgba(0, 0, 0, 0.8);
+        --btn-bg: #2a2a2a;
+        --btn-hover: #3a3a3a;
+        --input-bg: #1a1a1a;
+        --card-bg: #151515;
+        --card-border: #2a2a2a;
+        --header-height: 48px;
+        --font-main: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-mono: 'Courier New', monospace;
+        --transition-fast: 150ms;
+        --transition-normal: 300ms;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        font-family: var(--font-main);
+        background: var(--bg-dark);
+        color: var(--text-main);
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+        /* Hardware acceleration */
+        transform: translateZ(0);
+        backface-visibility: hidden;
+      }
+
+      /* Loading screen */
+      #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--bg-darker);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        transition: opacity var(--transition-normal);
+      }
+
+      #loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #loading h1 {
+        color: var(--primary-light);
+        margin-bottom: 2rem;
+        font-size: 2rem;
+        font-weight: 300;
+        letter-spacing: 0.1em;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+      }
+
+      #boot_log {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        width: 90%;
+        max-width: 800px;
+        height: 200px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        scrollbar-width: thin;
+      }
+
+      /* Main app container */
+      #app {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #app.hidden {
+        display: none;
+      }
+
+      /* Header */
+      .header {
+        height: var(--header-height);
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        box-shadow: 0 2px 10px var(--shadow-strong);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        contain: layout style;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+        font-weight: 300;
+        letter-spacing: 0.05em;
+        color: var(--text-bright);
+        margin-right: auto;
+      }
+
+      /* Controls */
+      .controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem;
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .btn {
+        background: var(--btn-bg);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all var(--transition-fast);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+        /* Prevent layout shift */
+        contain: layout style;
+      }
+
+      .btn:hover:not(:disabled) {
+        background: var(--btn-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px var(--shadow);
+      }
+
+      .btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-light);
+      }
+
+      /* Tool cards grid */
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      /* Tool card component */
+      .tool-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all var(--transition-normal);
+        position: relative;
+        /* Optimize rendering */
+        contain: layout style paint;
+        will-change: transform;
+      }
+
+      .tool-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px var(--shadow);
+        border-color: var(--primary);
+      }
+
+      .tool-card-header {
+        padding: 1rem;
+        border-bottom: 1px solid var(--card-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tool-card-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--text-bright);
+      }
+
+      .tool-card-status {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--text-dim);
+      }
+
+      .tool-card-status.active {
+        background: var(--success);
+        animation: pulse 2s infinite;
+      }
+
+      .tool-card-body {
+        padding: 1rem;
+        min-height: 100px;
+      }
+
+      .tool-card-description {
+        color: var(--text-dim);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+
+      .tool-card-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+
+      /* Notifications */
+      #notify {
+        position: fixed;
+        top: calc(var(--header-height) + 1rem);
+        right: 1rem;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        pointer-events: none;
+      }
+
+      .notification {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1rem;
+        min-width: 300px;
+        max-width: 500px;
+        box-shadow: 0 4px 10px var(--shadow-strong);
+        pointer-events: auto;
+        animation: slideIn var(--transition-normal) ease-out;
+        position: relative;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .notification.error {
+        border-color: var(--error);
+        background: rgba(255, 68, 68, 0.1);
+      }
+
+      .notification.warning {
+        border-color: var(--warning);
+        background: rgba(255, 170, 0, 0.1);
+      }
+
+      .notification.success {
+        border-color: var(--success);
+        background: rgba(0, 255, 136, 0.1);
+      }
+
+      /* Utility classes */
+      .hidden {
+        display: none !important;
+      }
+
+      .flex {
+        display: flex;
+      }
+
+      .flex-col {
+        flex-direction: column;
+      }
+
+      .flex-1 {
+        flex: 1;
+      }
+
+      .gap-1 {
+        gap: 1rem;
+      }
+
+      .p-1 {
+        padding: 1rem;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-darker);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+      }
+
+      /* Mobile responsiveness */
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 1.2rem;
+        }
+
+        .controls {
+          flex-wrap: wrap;
+        }
+
+        .tools-grid {
+          grid-template-columns: 1fr;
+        }
+
+        #notify {
+          left: 1rem;
+          right: 1rem;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="loading">
       <h1>Loading DTF...</h1>
       <pre id="boot_log"></pre>
     </div>
-    <div id="app" class="hidden"></div>
+    <div id="app" class="hidden">
+      <header class="header">
+        <h1>DTF Tool Factory</h1>
+        <button class="btn" id="theme-toggle">🌙</button>
+      </header>
+      <div class="controls">
+        <button class="btn btn-primary" id="start-cycle">Start Cycle</button>
+        <button class="btn" id="stop-cycle" disabled>Stop Cycle</button>
+        <button class="btn" id="clear-storage">Clear Storage</button>
+        <span class="flex-1"></span>
+        <span id="status">Ready</span>
+      </div>
+      <main class="tools-grid" id="tools-container">
+        <!-- Tool cards will be dynamically inserted here -->
+      </main>
+    </div>
     <div id="notify"></div>
-    <script type="module" src="boot.js"></script>
+
+    <script>
+      'use strict';
+
+      // Performance optimizations
+      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+      const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
+      const PERF = window.performance || Date;
+
+      // Configuration
+      const config = {
+        version: "1.0.0",
+        apiUrl: "/api",
+        wsUrl: "ws://localhost:8080",
+        logMax: 1000,
+        storageKey: "dtf_data",
+        storageLimit: 5 * 1024 * 1024, // 5MB
+        cycleInterval: 1000,
+        maxRetries: 3,
+        retryDelay: 1000,
+        notificationTimeout: 5000
+      };
+
+      // Utils module
+      const Utils = (() => {
+        let cfg = config;
+        let log_buf = [];
+        let log_idx = 0;
+        let log_ok = false;
+
+        const MAX_LOG = () => cfg?.logMax || 1000;
+
+        const init_log = (config) => {
+          cfg = config;
+          log_buf = new Array(MAX_LOG()).fill(null);
+          log_idx = 0;
+          log_buf[log_idx++] = `DTF Log Start - ${new Date().toISOString()}\n=================\n`;
+          log_ok = true;
+        };
+
+        const stringify = (detail, indent = 0) => {
+          const space = ' '.repeat(indent);
+          if (detail === undefined) return `${space}undefined`;
+          if (detail === null) return `${space}null`;
+          if (typeof detail === 'string') return `${space}${detail}`;
+          if (typeof detail === 'number' || typeof detail === 'boolean') {
+            return `${space}${detail}`;
+          }
+          if (typeof detail === 'function') {
+            return `${space}[Function: ${detail.name || 'anonymous'}]`;
+          }
+          if (detail instanceof Error) {
+            return `${space}Error: ${detail.message}\n${detail.stack}`;
+          }
+          try {
+            const seen = new WeakSet();
+            return JSON.stringify(detail, (key, value) => {
+              if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) return '[Circular]';
+                seen.add(value);
+              }
+              return value;
+            }, 2).split('\n').map(line => space + line).join('\n');
+          } catch (e) {
+            return `${space}[Unstringifiable: ${e.message}]`;
+          }
+        };
+
+        const id = (elementId) => document.getElementById(elementId);
+        const qs = (selector) => document.querySelector(selector);
+        const qsa = (selector) => document.querySelectorAll(selector);
+        const ce = (tag) => document.createElement(tag);
+
+        const debounce = (fn, delay) => {
+          let timeoutId;
+          return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn(...args), delay);
+          };
+        };
+
+        const throttle = (fn, limit) => {
+          let inThrottle;
+          return (...args) => {
+            if (!inThrottle) {
+              fn(...args);
+              inThrottle = true;
+              setTimeout(() => inThrottle = false, limit);
+            }
+          };
+        };
+
+        const logger = {
+          init: init_log,
+          _log: (level, msg, ...details) => {
+            if (!log_ok) return;
+            const ts = new Date().toISOString();
+            const entry = `[${ts}] [${level}] ${msg} ${details.map(d => stringify(d)).join(' ')}`;
+            
+            if (log_idx >= MAX_LOG()) {
+              log_buf.shift();
+              log_buf.push(entry);
+            } else {
+              log_buf[log_idx++] = entry;
+            }
+            
+            const method = level === 'ERROR' ? console.error :
+                          level === 'WARN' ? console.warn :
+                          console.log;
+            method(entry);
+          },
+          debug: (msg, ...details) => logger._log('DEBUG', msg, ...details),
+          info: (msg, ...details) => logger._log('INFO', msg, ...details),
+          warn: (msg, ...details) => logger._log('WARN', msg, ...details),
+          error: (msg, ...details) => logger._log('ERROR', msg, ...details),
+          getLogs: () => log_buf.filter(Boolean).join('\n')
+        };
+
+        return {
+          id,
+          qs,
+          qsa,
+          ce,
+          debounce,
+          throttle,
+          stringify,
+          logger
+        };
+      })();
+
+      // Storage module
+      const Storage = (config, log) => {
+        const KEY = config.storageKey;
+        const LIMIT = config.storageLimit;
+
+        const get = (key) => {
+          try {
+            const data = localStorage.getItem(KEY);
+            if (!data) return null;
+            const parsed = JSON.parse(data);
+            return key ? parsed[key] : parsed;
+          } catch (e) {
+            log.error('Storage get error:', e);
+            return null;
+          }
+        };
+
+        const set = (key, value) => {
+          try {
+            let data = get() || {};
+            if (value === undefined) {
+              delete data[key];
+            } else {
+              data[key] = value;
+            }
+            const str = JSON.stringify(data);
+            if (str.length > LIMIT) {
+              log.warn('Storage limit exceeded');
+              return false;
+            }
+            localStorage.setItem(KEY, str);
+            return true;
+          } catch (e) {
+            log.error('Storage set error:', e);
+            return false;
+          }
+        };
+
+        const clear = () => {
+          try {
+            localStorage.removeItem(KEY);
+            return true;
+          } catch (e) {
+            log.error('Storage clear error:', e);
+            return false;
+          }
+        };
+
+        const usage = () => {
+          const data = localStorage.getItem(KEY) || '';
+          const used = data.length;
+          return {
+            used,
+            limit: LIMIT,
+            pct: (used / LIMIT) * 100
+          };
+        };
+
+        return { get, set, clear, usage };
+      };
+
+      // State Manager
+      const StateManager = (config, log, storage) => {
+        let state = {
+          tools: [],
+          activeTool: null,
+          cycleRunning: false,
+          cycleCount: 0,
+          lastError: null
+        };
+
+        const subscribers = new Set();
+
+        const getState = () => ({ ...state });
+
+        const setState = (updates) => {
+          state = { ...state, ...updates };
+          notify();
+          storage.set('state', state);
+        };
+
+        const subscribe = (callback) => {
+          subscribers.add(callback);
+          return () => subscribers.delete(callback);
+        };
+
+        const notify = () => {
+          subscribers.forEach(cb => {
+            try {
+              cb(state);
+            } catch (e) {
+              log.error('State subscriber error:', e);
+            }
+          });
+        };
+
+        const init = () => {
+          const saved = storage.get('state');
+          if (saved) {
+            state = { ...state, ...saved };
+            log.info('State restored from storage');
+          }
+          notify();
+        };
+
+        return {
+          getState,
+          setState,
+          subscribe,
+          init
+        };
+      };
+
+      // UI Manager
+      const UiManager = (config, log, utils, storage, stateManager) => {
+        let elements = {};
+
+        const init = async () => {
+          cacheElements();
+          attachEventListeners();
+          renderTools();
+          
+          // Subscribe to state changes
+          stateManager.subscribe((state) => {
+            updateUI(state);
+          });
+        };
+
+        const cacheElements = () => {
+          elements = {
+            app: utils.id('app'),
+            loading: utils.id('loading'),
+            bootLog: utils.id('boot_log'),
+            toolsContainer: utils.id('tools-container'),
+            startBtn: utils.id('start-cycle'),
+            stopBtn: utils.id('stop-cycle'),
+            clearBtn: utils.id('clear-storage'),
+            status: utils.id('status'),
+            notify: utils.id('notify')
+          };
+        };
+
+        const attachEventListeners = () => {
+          elements.startBtn?.addEventListener('click', () => {
+            stateManager.setState({ cycleRunning: true });
+            startCycle();
+          });
+
+          elements.stopBtn?.addEventListener('click', () => {
+            stateManager.setState({ cycleRunning: false });
+            stopCycle();
+          });
+
+          elements.clearBtn?.addEventListener('click', () => {
+            if (confirm('Clear all storage?')) {
+              storage.clear();
+              location.reload();
+            }
+          });
+
+          // Debounce resize handler
+          let resizeTimeout;
+          window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+              renderTools();
+            }, 100);
+          }, { passive: true });
+        };
+
+        const renderTools = () => {
+          const state = stateManager.getState();
+          const container = elements.toolsContainer;
+          if (!container) return;
+
+          container.innerHTML = '';
+          
+          state.tools.forEach(tool => {
+            const card = createToolCard(tool);
+            container.appendChild(card);
+          });
+        };
+
+        const createToolCard = (tool) => {
+          const card = utils.ce('div');
+          card.className = 'tool-card';
+          card.innerHTML = `
+            <div class="tool-card-header">
+              <span class="tool-card-title">${tool.name}</span>
+              <span class="tool-card-status ${tool.active ? 'active' : ''}"></span>
+            </div>
+            <div class="tool-card-body">
+              <p class="tool-card-description">${tool.description || 'No description'}</p>
+              <div class="tool-card-actions">
+                <button class="btn btn-sm" data-action="run" data-tool="${tool.id}">Run</button>
+                <button class="btn btn-sm" data-action="config" data-tool="${tool.id}">Config</button>
+              </div>
+            </div>
+          `;
+
+          // Add event listeners
+          card.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const action = e.target.dataset.action;
+              const toolId = e.target.dataset.tool;
+              handleToolAction(action, toolId);
+            });
+          });
+
+          return card;
+        };
+
+        const handleToolAction = (action, toolId) => {
+          log.info(`Tool action: ${action} for ${toolId}`);
+          // Tool action logic would go here
+          showNotification(`${action} tool ${toolId}`, 'info');
+        };
+
+        const updateUI = (state) => {
+          if (elements.status) {
+            elements.status.textContent = state.cycleRunning ? 
+              `Running (${state.cycleCount} cycles)` : 'Ready';
+          }
+          
+          if (elements.startBtn) {
+            elements.startBtn.disabled = state.cycleRunning;
+          }
+          
+          if (elements.stopBtn) {
+            elements.stopBtn.disabled = !state.cycleRunning;
+          }
+        };
+
+        const showNotification = (message, type = 'info') => {
+          const notification = utils.ce('div');
+          notification.className = `notification ${type}`;
+          notification.textContent = message;
+          
+          elements.notify?.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.style.animation = 'slideOut 300ms ease-in';
+            setTimeout(() => notification.remove(), 300);
+          }, config.notificationTimeout);
+        };
+
+        let cycleInterval;
+        
+        const startCycle = () => {
+          log.info('Starting cycle');
+          cycleInterval = setInterval(() => {
+            const state = stateManager.getState();
+            stateManager.setState({ 
+              cycleCount: state.cycleCount + 1 
+            });
+          }, config.cycleInterval);
+        };
+
+        const stopCycle = () => {
+          log.info('Stopping cycle');
+          clearInterval(cycleInterval);
+        };
+
+        return {
+          init,
+          showNotification
+        };
+      };
+
+      // Bootstrap
+      const bootstrap = async () => {
+        const loadEl = Utils.id("loading");
+        const logEl = Utils.id("boot_log");
+        const appEl = Utils.id("app");
+
+        const boot_log = (lvl, msg, ...details) => {
+          const ts = new Date().toISOString();
+          const line = `[${ts}] [${lvl.toUpperCase()}] ${msg} ${details
+            .map((d) => Utils.stringify(d))
+            .join(" ")}\n`;
+          if (logEl) {
+            logEl.textContent += line;
+            logEl.scrollTop = logEl.scrollHeight;
+          }
+          console.log(line.trim());
+        };
+
+        try {
+          boot_log("info", "Boot sequence started...");
+          boot_log("info", `Config loaded (v${config.version})`);
+
+          Utils.logger.init(config);
+          const log = Utils.logger;
+          log.info("Utils & Logger initialized.");
+
+          const storage = Storage(config, log);
+          if (!storage) throw new Error("Storage init failed.");
+          log.info("Storage initialized.");
+
+          const stateManager = StateManager(config, log, storage);
+          const uiManager = UiManager(config, log, Utils, storage, stateManager);
+
+          log.info("Core modules loaded.");
+
+          stateManager.init();
+          log.info("StateManager initialized.");
+
+          await uiManager.init();
+          log.info("UiManager initialized.");
+
+          // Add some demo tools
+          stateManager.setState({
+            tools: [
+              { id: '1', name: 'Tool Alpha', description: 'First demo tool', active: true },
+              { id: '2', name: 'Tool Beta', description: 'Second demo tool', active: false },
+              { id: '3', name: 'Tool Gamma', description: 'Third demo tool', active: false }
+            ]
+          });
+
+          log.info("Bootstrap complete. Launching app.");
+          
+          // Hide loading, show app
+          setTimeout(() => {
+            if (loadEl) loadEl.classList.add("hidden");
+            if (appEl) appEl.classList.remove("hidden");
+          }, 500);
+          
+        } catch (error) {
+          const errorMsg = `FATAL BOOTSTRAP ERROR: ${error.message}`;
+          boot_log("error", errorMsg, error.stack);
+          if (logEl) {
+            logEl.style.color = "red";
+            logEl.style.borderColor = "red";
+          }
+        }
+      };
+
+      // Start when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap);
+      } else {
+        bootstrap();
+      }
+    </script>
   </body>
 </html>
-

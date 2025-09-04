@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QZS SPQ</title>
+    <title>QZS - Quantum Zero State Simulation</title>
+    <meta name="description" content="Interactive quantum particle wave packet simulator with relativistic effects and barrier mechanics" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <style>
       :root {
         --bg-color: #050505;
@@ -44,6 +46,15 @@
         padding: 0;
       }
 
+      /* Performance optimizations */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
       html,
       body {
         width: 100%;
@@ -55,6 +66,9 @@
         font-size: 15px;
         font-weight: 500;
         line-height: 1.6;
+        /* Hardware acceleration */
+        transform: translateZ(0);
+        backface-visibility: hidden;
       }
 
       #app-container {
@@ -136,6 +150,10 @@
         width: 100%;
         height: 100%;
         background-color: transparent;
+        /* Optimize rendering */
+        image-rendering: optimizeSpeed;
+        image-rendering: -webkit-optimize-contrast;
+        contain: strict;
       }
 
       #controls-info-container {
@@ -237,6 +255,9 @@
         border-radius: 3px;
         transition: background-color 0.2s ease;
         margin-top: 10px;
+        /* Prevent layout shift */
+        contain: layout style;
+        will-change: background-color;
       }
 
       button:hover {
@@ -546,12 +567,22 @@
     </script>
 
     <script>
+      'use strict';
+      
+      // Performance optimizations
+      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+      const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
+      const PERF = window.performance || Date;
+      
+      // Cache DOM queries
       const $ = (id) => document.getElementById(id);
+      const $$ = (selector) => document.querySelectorAll(selector);
 
       const appState = {
         gl: null,
         program: null,
         canvas: null,
+        shaderCache: new Map(), // Cache compiled shaders
         locations: {
           attributes: { position: null },
           uniforms: {},
@@ -644,7 +675,27 @@
         },
       };
 
+      // Optimize DOM operations with batching
       const domOps = {
+        pendingUpdates: new Map(),
+        updateScheduled: false,
+        
+        scheduleUpdate(key, fn) {
+          this.pendingUpdates.set(key, fn);
+          if (!this.updateScheduled) {
+            this.updateScheduled = true;
+            RAF(() => {
+              this.flushUpdates();
+            });
+          }
+        },
+        
+        flushUpdates() {
+          this.pendingUpdates.forEach(fn => fn());
+          this.pendingUpdates.clear();
+          this.updateScheduled = false;
+        },
+        
         initUIReferences() {
           appState.ui.elements = {
             canvas: $("gl-canvas"),
@@ -686,22 +737,25 @@
         },
 
         updateInfoPanel() {
-          const sim = appState.sim;
-          const ui = appState.ui.elements;
-          ui.infoPos.textContent = sim.isInitialized
-            ? sim.particleX.toFixed(3)
-            : "N/A";
-          ui.infoMom.textContent = sim.isInitialized
-            ? sim.particleP.toFixed(3)
-            : "N/A";
-          ui.infoWidth.textContent = sim.isInitialized
-            ? sim.particleWidth.toFixed(2)
-            : "N/A";
-          ui.infoGamma.textContent = sim.lorentzGamma.toFixed(3);
-          ui.infoBarrier.textContent = sim.barrierActive
-            ? `Active @ ${sim.barrierX.toFixed(2)}`
-            : "No";
-          ui.infoEvolving.textContent = sim.isEvolving ? "Yes" : "No";
+          // Batch DOM updates
+          this.scheduleUpdate('info', () => {
+            const sim = appState.sim;
+            const ui = appState.ui.elements;
+            ui.infoPos.textContent = sim.isInitialized
+              ? sim.particleX.toFixed(3)
+              : "N/A";
+            ui.infoMom.textContent = sim.isInitialized
+              ? sim.particleP.toFixed(3)
+              : "N/A";
+            ui.infoWidth.textContent = sim.isInitialized
+              ? sim.particleWidth.toFixed(2)
+              : "N/A";
+            ui.infoGamma.textContent = sim.lorentzGamma.toFixed(3);
+            ui.infoBarrier.textContent = sim.barrierActive
+              ? `Active @ ${sim.barrierX.toFixed(2)}`
+              : "No";
+            ui.infoEvolving.textContent = sim.isEvolving ? "Yes" : "No";
+          });
         },
 
         updateConceptContext(interactionId, conceptText) {
@@ -761,6 +815,13 @@
 
         createShader(type, source) {
           const gl = appState.gl;
+          const cacheKey = `${type}_${source.substring(0, 50)}`;
+          
+          // Check shader cache
+          if (appState.shaderCache.has(cacheKey)) {
+            return appState.shaderCache.get(cacheKey);
+          }
+          
           const shader = gl.createShader(type);
           gl.shaderSource(shader, source);
           gl.compileShader(shader);
@@ -772,6 +833,9 @@
             gl.deleteShader(shader);
             return null;
           }
+          
+          // Cache compiled shader
+          appState.shaderCache.set(cacheKey, shader);
           return shader;
         },
 
@@ -1308,20 +1372,28 @@
 
       const setupEventListeners = () => {
         const ui = appState.ui.elements;
+        
+        // Use passive listeners for better performance
+        const passiveOpt = { passive: true };
 
-        ui.velocitySlider.addEventListener("input", (e) =>
-          domOps.updateSliderValue("velocity", e.target.value, 3)
-        );
-        ui.velocitySlider.addEventListener("change", (e) =>
-          handleInteraction("velocity-slider", e.target)
-        );
+        // Debounce slider updates
+        let velocityTimeout;
+        ui.velocitySlider.addEventListener("input", (e) => {
+          clearTimeout(velocityTimeout);
+          domOps.updateSliderValue("velocity", e.target.value, 3);
+          velocityTimeout = setTimeout(() => {
+            handleInteraction("velocity-slider", e.target);
+          }, 50);
+        }, passiveOpt);
 
-        ui.energySlider.addEventListener("input", (e) =>
-          domOps.updateSliderValue("energy", e.target.value)
-        );
-        ui.energySlider.addEventListener("change", (e) =>
-          handleInteraction("energy-slider", e.target)
-        );
+        let energyTimeout;
+        ui.energySlider.addEventListener("input", (e) => {
+          clearTimeout(energyTimeout);
+          domOps.updateSliderValue("energy", e.target.value);
+          energyTimeout = setTimeout(() => {
+            handleInteraction("energy-slider", e.target);
+          }, 50);
+        }, passiveOpt);
 
         ui.barrierHeightSlider.addEventListener("input", (e) =>
           domOps.updateSliderValue("barrierHeight", e.target.value)
@@ -1359,18 +1431,33 @@
           handleInteraction("theme-toggle", e.target)
         );
 
-        window.addEventListener("resize", webGLOps.resizeCanvas);
+        // Debounce resize handler
+        let resizeTimeout;
+        window.addEventListener("resize", () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            webGLOps.resizeCanvas();
+          }, 100);
+        }, passiveOpt);
       };
 
+      let frameSkip = 0;
       const mainLoop = (currentTime) => {
         const deltaTime = (currentTime - appState.sim.lastFrameTime) / 1000.0;
         appState.sim.lastFrameTime = currentTime;
 
+        // Update simulation every frame
         simulationOps.update(Math.min(deltaTime, 0.05));
+        
+        // Render every frame
         webGLOps.render();
-        domOps.updateInfoPanel();
+        
+        // Update UI less frequently (every 3rd frame)
+        if (frameSkip++ % 3 === 0) {
+          domOps.updateInfoPanel();
+        }
 
-        requestAnimationFrame(mainLoop);
+        RAF(mainLoop);
       };
 
       const initApp = () => {
@@ -1384,11 +1471,16 @@
         handleInteraction("init-particle-btn");
         handleInteraction("zero-state-btn");
         domOps.updateURLHash();
-        appState.sim.lastFrameTime = performance.now();
-        requestAnimationFrame(mainLoop);
+        appState.sim.lastFrameTime = PERF.now();
+        RAF(mainLoop);
       };
 
-      window.addEventListener("load", initApp);
+      // Start immediately if DOM is ready
+      if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', initApp);
+      } else {
+        initApp();
+      }
     </script>
   </body>
 </html>
