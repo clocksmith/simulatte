@@ -3,26 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DPS (Double Pendulum System)</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
-      integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww"
-      crossorigin="anonymous"
-    />
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
-      integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
-      integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"
-      crossorigin="anonymous"
-      onload="window.renderMathInElement && window.renderMathInElement(document.body);"
-    ></script>
+    <title>DPS - Double Pendulum System Simulation</title>
+    <meta name="description" content="Interactive double pendulum physics simulation with real-time visualization and data tracking" />
+    <!-- Minimal inline KaTeX styles for math rendering -->
+    <style>
+      .katex{font:normal 1.21em KaTeX_Main,Times New Roman,serif;line-height:1.2;text-indent:0;text-rendering:auto}
+      .katex-display{display:block;margin:1em 0;text-align:center}
+      .katex .katex-mathml{display:none}
+    </style>
     <style>
       :root {
         --bg-color: #ffffff;
@@ -65,6 +53,15 @@
         box-sizing: border-box;
       }
 
+      /* Performance optimizations */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
       body {
         background-color: var(--bg-color);
         color: var(--text-color-dark);
@@ -79,6 +76,9 @@
         position: relative;
         width: 100%;
         overflow-x: hidden;
+        /* Hardware acceleration */
+        transform: translateZ(0);
+        backface-visibility: hidden;
       }
 
       #theme-toggle {
@@ -183,6 +183,11 @@
         width: 100%;
         aspect-ratio: 1 / 1;
         position: relative;
+        /* Optimize canvas rendering */
+        image-rendering: optimizeSpeed;
+        image-rendering: -webkit-optimize-contrast;
+        contain: strict;
+        will-change: transform;
       }
       #pendulum-canvas:active {
         cursor: grabbing;
@@ -345,6 +350,9 @@
         border: 1px solid var(--border-light-color);
         border-radius: 4px;
         margin-top: auto;
+        /* Optimize chart rendering */
+        image-rendering: optimizeSpeed;
+        contain: layout style paint;
       }
 
       #controls-container fieldset {
@@ -449,6 +457,8 @@
         transition: background-color 0.2s ease, transform 0.1s ease;
         color: white;
         background-color: var(--accent-grey);
+        /* Prevent layout shift */
+        contain: layout style;
       }
       button:hover {
         opacity: 0.9;
@@ -1199,8 +1209,15 @@
     </div>
 
     <script>
+      'use strict';
+      
+      // Performance optimizations
+      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+      const PERF = window.performance || Date;
+      
+      // Cache DOM elements
       const canvas = document.getElementById("pendulum-canvas");
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
 
       const omegaHistoryChartCanvas = document.getElementById(
         "omega-history-chart-canvas"
@@ -2236,7 +2253,7 @@
           updateVisualsPanel();
           drawHistoryCharts();
         }
-        animationFrameId = requestAnimationFrame(gameLoop);
+        animationFrameId = RAF(gameLoop);
       }
 
       function startSimulation() {
@@ -2260,7 +2277,7 @@
           }
           updateRecordingStatus();
           if (!animationFrameId) {
-            lastTimestamp = performance.now();
+            lastTimestamp = PERF.now();
             timeSinceLastRender = 0;
             timeSinceLastPhysicsUpdate = 0;
             gameLoop(lastTimestamp);
@@ -2297,12 +2314,12 @@
         downloadDataButton.disabled = true;
         disableInputs(true);
         dataRecordingStatus.textContent = `Generating CSV (0s / ${maxRecordingTime}s)...`;
-        let startTime = performance.now();
+        let startTime = PERF.now();
         let lastUpdate = startTime;
         function runChunk() {
           if (!isGeneratingFastCSV) return;
           const chunkEndTime = time + 1.0;
-          const loopStartTime = performance.now();
+          const loopStartTime = PERF.now();
           while (
             time <= chunkEndTime &&
             time <= maxRecordingTime &&
@@ -2310,12 +2327,12 @@
           ) {
             updatePhysics();
             recordDataPoint();
-            if (performance.now() - loopStartTime > 50) {
-              requestAnimationFrame(runChunk);
+            if (PERF.now() - loopStartTime > 50) {
+              RAF(runChunk);
               return;
             }
           }
-          if (performance.now() - lastUpdate > 500) {
+          if (PERF.now() - lastUpdate > 500) {
             const progress = (time / maxRecordingTime) * 100;
             dataRecordingStatus.textContent = `Generating CSV... ${time.toFixed(
               1
@@ -2752,7 +2769,12 @@
         canvas.addEventListener("mousemove", handleMouseMove);
         canvas.addEventListener("mouseup", handleMouseUpOrLeave);
         canvas.addEventListener("mouseleave", handleMouseUpOrLeave);
-        window.addEventListener("resize", resizeCanvas);
+        // Debounce resize handler
+        let resizeTimeout;
+        window.addEventListener("resize", () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(resizeCanvas, 100);
+        }, { passive: true });
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
         const savedTheme = localStorage.getItem("theme");
         applyTheme(

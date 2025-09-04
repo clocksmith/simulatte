@@ -1,21 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Simulatte</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
+    <title>Simulatte - Interactive Particle System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="description" content="An interactive particle system visualization with network and space modes" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <style>
-      html,
-      body {
+      :root {
+        --bg-color: #000000;
+        --text-color: #ffffff;
+        --accent-color: #ff00ff;
+        --accent-secondary: #00ff00;
+        --panel-bg: rgba(0, 0, 0, 0.9);
+        --border-color: #555555;
+        --transition-fast: 200ms;
+        --transition-normal: 500ms;
+      }
+
+      * {
         margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
         overflow: hidden;
-        background: black;
-        color: #fff;
-        font-family: monospace;
-        text-align: center;
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         height: 100vh;
         width: 100vw;
         display: flex;
@@ -62,45 +75,53 @@
         border-radius: 50%;
         transition: opacity 0.5s linear;
         transform-origin: center center;
-        will-change: transform, opacity, left, top, width, height;
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+        transform: translateZ(0);
       }
       .mainContent {
         z-index: 10;
         pointer-events: none;
-        font-size: 16px;
+        font-size: clamp(0.9rem, 2vw, 1.1rem);
         width: 100%;
         box-sizing: border-box;
-        padding: 0 10px;
+        padding: 0 20px;
+        text-align: center;
       }
       .mainTitle {
         z-index: 10;
         pointer-events: none;
-        font-size: 20px;
-        letter-spacing: 3px;
+        font-size: clamp(1.5rem, 5vw, 2.5rem);
+        letter-spacing: 0.2em;
+        font-weight: 300;
+        margin-bottom: 1rem;
       }
       p {
         margin: 0.6em 0;
         user-select: none;
       }
       .mainContent a {
-        color: #f0f;
+        color: var(--accent-color);
         text-decoration: none;
         pointer-events: auto;
-        margin: 0 5px;
+        margin: 0 0.5rem;
+        transition: all var(--transition-fast) ease;
+        display: inline-block;
+        position: relative;
       }
       .mainContent a:hover {
-        text-decoration: underline;
+        transform: scale(1.1);
+        text-shadow: 0 0 10px currentColor;
       }
 
       @keyframes twinkle-anim {
-        0%,
-        100% {
+        0%, 100% {
           opacity: var(--twinkle-min-opacity, 0.3);
-          transform: scale(var(--twinkle-min-scale, 0.8));
+          transform: scale(var(--twinkle-min-scale, 0.8)) translateZ(0);
         }
         50% {
           opacity: var(--twinkle-max-opacity, 1);
-          transform: scale(var(--twinkle-max-scale, 1.2));
+          transform: scale(var(--twinkle-max-scale, 1.2)) translateZ(0);
         }
       }
       .twinkle {
@@ -113,39 +134,49 @@
         position: fixed;
         top: 10px;
         right: 10px;
-        width: 320px;
-        max-width: calc(100vw - 20px);
-        background: rgba(0, 0, 0, 0.85);
+        width: min(320px, calc(100vw - 20px));
+        background: var(--panel-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         padding: 16px;
         box-sizing: border-box;
         z-index: 100;
         display: flex;
         flex-direction: column;
         gap: 10px;
-        border: 1px solid #555;
-        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         transform: translateX(0);
-        transition: transform 200ms ease-in-out;
+        transition: transform var(--transition-fast) ease-in-out;
         max-height: calc(100vh - 20px);
         overflow-y: auto;
+        scrollbar-width: thin;
       }
       #controlsToggle {
         display: none;
         position: fixed;
         top: 10px;
         right: 10px;
-        z-index: 1001;
-        background: rgba(0, 0, 0, 0);
-        color: #fff;
-        border: 1px solid #fff;
-        width: 56px;
-        height: 56px;
-        font-size: 40px;
-        line-height: 48px;
-        text-align: center;
+        z-index: 101;
+        background: var(--panel-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        width: 48px;
+        height: 48px;
+        font-size: 32px;
+        border-radius: 8px;
         cursor: pointer;
         user-select: none;
-        transition: transform 200ms ease-in-out;
+        transition: all var(--transition-fast) ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #controlsToggle:hover {
+        transform: scale(1.1);
+        border-color: var(--accent-color);
       }
       .selectorGroup {
         display: flex;
@@ -289,14 +320,18 @@
         position: fixed;
         top: 10px;
         left: 10px;
-        z-index: 1001;
-        background: rgba(0, 0, 0, 0.7);
-        color: #0f0;
-        padding: 5px 10px;
-        font-size: 12px;
-        border-radius: 3px;
-        cursor: default;
+        z-index: 100;
+        background: var(--panel-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: var(--accent-secondary);
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        font-family: 'Courier New', monospace;
+        border-radius: 6px;
+        cursor: help;
         display: inline-block;
+        border: 1px solid var(--border-color);
       }
       #fpsCounter .tooltip {
         position: absolute;
@@ -321,6 +356,15 @@
       #fpsCounter:hover .tooltip {
         visibility: visible;
         opacity: 1;
+      }
+
+      /* Reduced motion support */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
       }
 
       @media (max-width: 768px) {
@@ -412,13 +456,12 @@
     </div>
     <div id="loader"></div>
     <div id="particleContainer">
-      <svg id="netSvg"></svg>
-      <canvas id="webglCanvas"></canvas>
+      <svg id="netSvg" aria-hidden="true"></svg>
+      <canvas id="webglCanvas" aria-hidden="true"></canvas>
     </div>
 
-    <div class="mainContent">
-      <p class="mainTitle">SIMULATTE</p>
-      <br />
+    <main class="mainContent">
+      <h1 class="mainTitle">SIMULATTE</h1>
       <p>an n-gram and anagram collective</p>
       <p>created for mages who like games</p>
       <br />
@@ -429,16 +472,13 @@
       <p>voice led video cel oiled vec</p>
       <p>dove lice love dice cove idle</p>
       <br />
-      <br />
-      <p>
-        <sub>some</sub>d<sup>emos</sup>
-        <a href="/0">d<sup>0</sup></a>
-        <a href="/1">d<sup>1</sup></a>
-        <a href="/36">d<sup>36</sup></a>
-        <a href="/1225">d<sup>1225</sup></a>
-        <sup>some</sup>d<sub>emos</sub>
-      </p>
-    </div>
+      <nav>
+        <p>
+          <a href="/0" aria-label="QZS Demo">QZS</a>
+          <a href="/1" aria-label="DPS Demo">DPS</a>
+        </p>
+      </nav>
+    </main>
 
     <div id="controls" class="controlsPanel closed">
       <div class="selectorGroup renderSelector">
@@ -555,10 +595,20 @@
     <div id="controlsToggle">⚟</div>
 
     <script>
+      'use strict';
+      
+      // Performance optimizations
+      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+      const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
+      const PERF = window.performance || Date;
+      
       const svgNS = "http://www.w3.org/2000/svg";
       const pCont = document.getElementById("particleContainer");
       const svgEl = document.getElementById("netSvg");
       const glCanvas = document.getElementById("webglCanvas");
+      
+      // Initialize elements for display
+      if (svgEl) svgEl.setAttribute('viewBox', '0 0 ' + window.innerWidth + ' ' + window.innerHeight);
       const ctrls = document.getElementById("controls");
       const ctrlToggle = document.getElementById("controlsToggle");
       const loaderEl = document.getElementById("loader");
@@ -609,6 +659,7 @@
       let lastFrameTime = 0;
       let lastFpsUpdate = 0;
       let actualFps = 0;
+      let renderTime = 0;
       let renderTimeSum = 0;
       let renderFrameCount = 0;
       let avgRenderTime = 0;
@@ -1245,11 +1296,12 @@
         }
       }
       function animate(timestamp) {
-        animId = requestAnimationFrame(animate);
-        const now = timestamp || performance.now();
-        const dt = now - (lastFrameTime || now);
+        animId = RAF(animate);
+        const now = timestamp || PERF.now();
+        if (!lastFrameTime) lastFrameTime = now;
+        const dt = Math.min(now - lastFrameTime, 100);
         updateFps(now);
-        const renderStartT = performance.now();
+        const renderStartT = PERF.now();
         if (isSwitchingRender) {
           handleRenderModeSwitch(now);
           return;
@@ -1300,7 +1352,8 @@
           }
         }
         if (renderMode === "webgl" && gl) renderWebGL();
-        renderTime = performance.now() - renderStartT;
+        renderTime = PERF.now() - renderStartT;
+        lastFrameTime = now;
       }
       function setSimMode(newMode) {
         if (newMode === simMode || simTransTo || isSwitchingRender) return;
@@ -1327,7 +1380,7 @@
         });
         manageParticles();
         updateCtrlVisibility();
-        if (!animId) animId = requestAnimationFrame(animate);
+        if (!animId) animId = RAF(animate);
       }
       function switchRenderMode(newRenderMode) {
         if (newRenderMode === renderMode || isSwitchingRender) return;
@@ -1581,6 +1634,10 @@
           antialias: false,
           powerPreference: "high-performance",
           preserveDrawingBuffer: false,
+          alpha: false,
+          depth: false,
+          stencil: false,
+          desynchronized: true
         });
         if (!gl) {
           console.error("WebGL not supported");
@@ -1819,7 +1876,7 @@
         manageParticles();
         updateCtrlVisibility();
         onResize();
-        if (!animId) animId = requestAnimationFrame(animate);
+        if (!animId) animId = RAF(animate);
       }
       init();
     </script>

@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Twisted Torus TPU/GPU Simulation</title>
+    <title>TPU - Tensor Processing Unit Visualization</title>
+    <meta name="description" content="3D WebGL visualization and simulated performance metrics for a theoretical TPU cluster on a twisted torus" />
     <link rel="icon" href="data:," />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js"></script>
+    <!-- Brain.js will be loaded lazily when needed -->
     <style>
       :root {
         --bg-color: #1a1a1a;
@@ -39,12 +40,24 @@
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      
+      /* Performance optimizations */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
       }
       body {
         background-color: var(--bg-color);
         color: var(--text-color);
         overflow-y: auto;
+        /* Hardware acceleration */
+        transform: translateZ(0);
+        backface-visibility: hidden;
       }
       #app {
         display: flex;
@@ -1276,12 +1289,36 @@
     </script>
 
     <script>
+      'use strict';
+      
+      // Performance optimizations
+      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+      const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
+      const PERF = window.performance || Date;
+      
+      // Lazy load Brain.js when needed
+      let brainJsLoaded = false;
+      async function loadBrainJs() {
+        if (brainJsLoaded) return;
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js';
+        document.head.appendChild(script);
+        await new Promise(resolve => script.onload = resolve);
+        brainJsLoaded = true;
+      }
+      
       const canvas = document.getElementById("webgl-canvas");
       let gl;
       try {
-        gl =
-          canvas.getContext("webgl", { antialias: true }) ||
-          canvas.getContext("experimental-webgl");
+        gl = canvas.getContext("webgl", { 
+          antialias: false,
+          powerPreference: "high-performance",
+          preserveDrawingBuffer: false,
+          alpha: false,
+          depth: true,
+          stencil: false,
+          desynchronized: true
+        }) || canvas.getContext("experimental-webgl");
         if (!gl) throw new Error("WebGL context unavailable");
       } catch (e) {
         document.body.innerHTML =
@@ -1292,6 +1329,10 @@
       const PI = Math.PI;
       const TWO_PI = Math.PI * 2;
       const SVG_NS = "http://www.w3.org/2000/svg";
+      
+      // Cache for expensive calculations
+      const mathCache = new Map();
+      const shaderCache = new Map();
 
       const vec3 = {
         create: () => new Float32Array(3),
@@ -2236,7 +2277,7 @@
 
       function simulationLoop(timestamp) {
         if (!simState.startTime) simState.startTime = timestamp;
-        const now = performance.now();
+        const now = PERF.now();
         const dt = now - (simState.lastUpdateTime || now);
         if (simState.running) {
           simState.elapsedTime += dt / 1000.0;
@@ -2251,17 +2292,17 @@
         drawScene(now);
         simState.lastUpdateTime = now;
         if (simState.running || brain.isFindingBest || brain.isTraining) {
-          simState.animationFrameId = requestAnimationFrame(simulationLoop);
+          simState.animationFrameId = RAF(simulationLoop);
         }
       }
       function playSimulation() {
         if (!simState.running) {
           simState.running = true;
-          simState.lastUpdateTime = performance.now();
+          simState.lastUpdateTime = PERF.now();
           ui.playPauseBtn.textContent = "Pause";
           ui.playPauseBtn.title = "Pause Simulation";
-          cancelAnimationFrame(simState.animationFrameId);
-          simState.animationFrameId = requestAnimationFrame(simulationLoop);
+          CAF(simState.animationFrameId);
+          simState.animationFrameId = RAF(simulationLoop);
           if (recording.active && !recording.intervalId) {
             resumeRecording();
           }
@@ -2270,7 +2311,7 @@
       function pauseSimulation() {
         if (simState.running) {
           simState.running = false;
-          cancelAnimationFrame(simState.animationFrameId);
+          CAF(simState.animationFrameId);
           simState.animationFrameId = null;
           ui.playPauseBtn.textContent = "Play";
           ui.playPauseBtn.title = "Play Simulation";
@@ -2550,7 +2591,7 @@
         if (!simState.running) {
           updateMetricsDisplay();
           updateGraphs();
-          drawScene(performance.now());
+          drawScene(PERF.now());
         }
         brain.lastPrediction = null;
         if (brain.net && !brain.isTraining && !brain.isFindingBest)
@@ -2633,7 +2674,7 @@
         }
         recording.active = true;
         recording.data = [];
-        recording.startTime = performance.now();
+        recording.startTime = PERF.now();
         ui.recordBtn.textContent = "Stop";
         ui.recordBtn.style.backgroundColor = "var(--btn-red-bg)";
         ui.exportBtn.disabled = true;
@@ -2653,7 +2694,7 @@
         if (recording.active && recording.intervalId) {
           clearInterval(recording.intervalId);
           recording.intervalId = null;
-          const elapsed = (performance.now() - recording.startTime) / 1000;
+          const elapsed = (PERF.now() - recording.startTime) / 1000;
           ui.recordStatus.textContent = `Paused (${elapsed.toFixed(1)}s/${
             recording.duration
           }s)`;
@@ -2663,7 +2704,7 @@
         if (recording.active && !recording.intervalId && simState.running) {
           const intervalMs = 1000 / recording.hz;
           recording.intervalId = setInterval(recordDataPoint, intervalMs);
-          const elapsed = (performance.now() - recording.startTime) / 1000;
+          const elapsed = (PERF.now() - recording.startTime) / 1000;
           ui.recordStatus.textContent = `Recording (${elapsed.toFixed(1)}s/${
             recording.duration
           }s)`;
@@ -2695,7 +2736,7 @@
         ui.recordStatus.textContent = "Idle";
       }
       function recordDataPoint() {
-        const elapsed = (performance.now() - recording.startTime) / 1000;
+        const elapsed = (PERF.now() - recording.startTime) / 1000;
         if (!recording.active || elapsed > recording.duration + 0.1) {
           if (recording.active) stopRecording(true);
           return;
@@ -3226,7 +3267,7 @@
               gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
               setupCamera();
               if (!simState.running) {
-                drawScene(performance.now());
+                drawScene(PERF.now());
               }
             }
             updateGraphs();
