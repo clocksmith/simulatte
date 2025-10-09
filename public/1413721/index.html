@@ -502,6 +502,7 @@
       // Traffic simulation
       packets: [],
       trafficRate: 10,              // packets per second
+      packetAccumulator: 0,
 
       // Canvas
       needsRender: true,
@@ -544,11 +545,19 @@
 
     function getNeighbors2D(x, y) {
       const size = state.gridSize;
+      const xm = (x - 1 + size) % size;
+      const xp = (x + 1) % size;
+      const ym = (y - 1 + size) % size;
+      const yp = (y + 1) % size;
       return [
-        [(x - 1 + size) % size, y, 0],          // left
-        [(x + 1) % size, y, 0],                 // right
-        [x, (y - 1 + size) % size, 0],          // top
-        [x, (y + 1) % size, 0],                 // bottom
+        [xm, y, 0],          // left
+        [xp, y, 0],          // right
+        [x, ym, 0],          // up
+        [x, yp, 0],          // down
+        [xm, ym, 0],         // upper-left
+        [xp, ym, 0],         // upper-right
+        [xm, yp, 0],         // lower-left
+        [xp, yp, 0],         // lower-right
       ];
     }
 
@@ -583,46 +592,46 @@
     // ==================== SIMULATION MODES ====================
     function updateGameOfLife() {
       const size = state.gridSize;
-      const newGrid = Array(size).fill(null).map(() =>
-        Array(size).fill(null).map(() => Array(size).fill(0))
-      );
-
-      for (let z = 0; z < size; z++) {
+      if (state.topology === '2d-torus') {
+        const newPlane = Array(size).fill(null).map(() => Array(size).fill(0));
+        const plane = state.grid[0];
         for (let y = 0; y < size; y++) {
           for (let x = 0; x < size; x++) {
-            let neighbors = 0;
-            let neighborList;
-
-            if (state.topology === '2d-torus') {
-              neighborList = getNeighbors2D(x, y);
-            } else if (state.topology === '3d-torus') {
-              neighborList = getNeighbors3D(x, y, z);
-            } else {
-              neighborList = getNeighborsTwisted(x, y, z);
-            }
-
-            neighborList.forEach(([nx, ny, nz]) => {
-              neighbors += state.grid[nz][ny][nx];
-            });
-
-            const current = state.grid[z][y][x];
-            if (current === 1) {
-              newGrid[z][y][x] = state.survivalRule.includes(neighbors) ? 1 : 0;
-            } else {
-              newGrid[z][y][x] = state.birthRule.includes(neighbors) ? 1 : 0;
+            const neighbors = getNeighbors2D(x, y).reduce((sum, [nx, ny]) => sum + plane[ny][nx], 0);
+            const current = plane[y][x];
+            newPlane[y][x] = current === 1
+              ? (state.survivalRule.includes(neighbors) ? 1 : 0)
+              : (state.birthRule.includes(neighbors) ? 1 : 0);
+          }
+        }
+        state.grid[0] = newPlane;
+      } else {
+        const newGrid = Array(size).fill(null).map(() =>
+          Array(size).fill(null).map(() => Array(size).fill(0))
+        );
+        for (let z = 0; z < size; z++) {
+          for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+              const neighbors = (state.topology === '3d-torus' ? getNeighbors3D(x, y, z) : getNeighborsTwisted(x, y, z))
+                .reduce((sum, [nx, ny, nz]) => sum + state.grid[nz][ny][nx], 0);
+              const current = state.grid[z][y][x];
+              newGrid[z][y][x] = current === 1
+                ? (state.survivalRule.includes(neighbors) ? 1 : 0)
+                : (state.birthRule.includes(neighbors) ? 1 : 0);
             }
           }
         }
+        state.grid = newGrid;
       }
-
-      state.grid = newGrid;
       state.generation++;
       updateMetrics();
     }
 
     function updateBandwidthSimulation() {
       // Generate new packets
-      const packetsToGenerate = Math.floor(state.trafficRate / 10); // Per frame
+      state.packetAccumulator = (state.packetAccumulator || 0) + state.trafficRate / 60;
+      const packetsToGenerate = Math.floor(state.packetAccumulator);
+      state.packetAccumulator -= packetsToGenerate;
       for (let i = 0; i < packetsToGenerate; i++) {
         const srcX = Math.floor(Math.random() * state.gridSize);
         const srcY = Math.floor(Math.random() * state.gridSize);
@@ -686,9 +695,11 @@
       for (let z = 0; z < size; z++) {
         for (let y = 0; y < size; y++) {
           for (let x = 0; x < size; x++) {
-            let neighborList = state.topology === '2d-torus'
-              ? getNeighbors2D(x, y)
-              : getNeighbors3D(x, y, z);
+            const neighborList = state.topology === '2d-torus'
+              ? getNeighbors2D(x, y).map(([nx, ny]) => [nx, ny, 0])
+              : (state.topology === '3d-torus'
+                ? getNeighbors3D(x, y, z)
+                : getNeighborsTwisted(x, y, z));
 
             let avgHeat = state.grid[z][y][x];
             neighborList.forEach(([nx, ny, nz]) => {
@@ -696,12 +707,11 @@
             });
             avgHeat /= (neighborList.length + 1);
 
-            // Add random compute load
             if (Math.random() < 0.05) {
               avgHeat = Math.min(100, avgHeat + Math.random() * 20);
             }
 
-            newGrid[z][y][x] = avgHeat * 0.95; // Cooling factor
+            newGrid[z][y][x] = avgHeat * 0.95;
           }
         }
       }
@@ -731,7 +741,11 @@
 
       state.activeNodes = activeNodes;
       const totalNodes = size * size * (state.topology === '2d-torus' ? 1 : size);
-      const degree = state.topology === '2d-torus' ? 4 : 6;
+      const degree = state.topology === '2d-torus'
+        ? 8
+        : state.topology === '3d-torus'
+          ? 6
+          : 8;
 
       // Network metrics
       const totalBandwidth = totalNodes * state.bandwidth * degree / 2; // Divided by 2 to avoid double-counting links
@@ -857,60 +871,60 @@
     }
 
     function render3DTorus() {
+      const minorRadius = Math.min(canvas.width, canvas.height) * 0.15;
+      const majorRadius = Math.min(canvas.width, canvas.height) * 0.35;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
       const size = state.gridSize;
+
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const scale = Math.min(canvas.width, canvas.height) / (size * 2.5);
-
-      // Project 3D cube to 2D using rotation
       const cosX = Math.cos(state.rotationX);
       const sinX = Math.sin(state.rotationX);
       const cosY = Math.cos(state.rotationY);
       const sinY = Math.sin(state.rotationY);
 
       const points = [];
+      const pointMap = new Map();
 
-      // Create all nodes in 3D space
       for (let z = 0; z < size; z++) {
         for (let y = 0; y < size; y++) {
           for (let x = 0; x < size; x++) {
-            // Center the cube
-            const x3d = (x - size / 2) * scale;
-            const y3d = (y - size / 2) * scale;
-            const z3d = (z - size / 2) * scale;
+            const u = (x / size) * TWO_PI;
+            const v = (y / size) * TWO_PI;
+            const w = (z / size) * TWO_PI;
 
-            // Apply rotation around Y axis
-            const x1 = x3d * cosY - z3d * sinY;
-            const z1 = x3d * sinY + z3d * cosY;
+            const baseX = (majorRadius + minorRadius * Math.cos(v)) * Math.cos(u);
+            const baseY = (majorRadius + minorRadius * Math.cos(v)) * Math.sin(u);
+            const baseZ = minorRadius * Math.sin(v);
 
-            // Apply rotation around X axis
-            const y2 = y3d * cosX - z1 * sinX;
-            const z2 = y3d * sinX + z1 * cosX;
+            const x3d = baseX;
+            const y3d = baseY * cosX - baseZ * sinX;
+            const z3d = baseY * sinX + baseZ * cosX;
 
-            // Project to 2D (simple perspective)
-            const perspective = 400 / (400 + z2);
-            const screenX = centerX + x1 * perspective;
-            const screenY = centerY + y2 * perspective;
+            const rotX = x3d * cosY - z3d * sinY;
+            const rotZ = x3d * sinY + z3d * cosY;
 
-            points.push({
+            const perspective = 400 / (400 + rotZ);
+            const screenX = centerX + rotX * perspective;
+            const screenY = centerY + y3d * perspective;
+
+            const point = {
               x, y, z,
               screenX, screenY,
-              depth: z2,
+              depth: rotZ,
               value: state.grid[z][y][x],
               scale: perspective,
-            });
+            };
+            points.push(point);
+            pointMap.set(`${x},${y},${z}`, point);
           }
         }
       }
 
-      // Sort by depth (painter's algorithm)
       points.sort((a, b) => a.depth - b.depth);
 
-      // Draw connections first (edges)
-      ctx.lineWidth = 0.5;
       points.forEach(point => {
         const neighbors = [
           [(point.x + 1) % size, point.y, point.z],
@@ -918,7 +932,6 @@
           [point.x, point.y, (point.z + 1) % size],
         ];
 
-        // Add twisted connections if twisted torus
         if (state.topology === 'twisted-torus') {
           if (point.x === size - 1) {
             neighbors.push([0, (size - 1 - point.y + size) % size, point.z]);
@@ -926,51 +939,35 @@
         }
 
         neighbors.forEach(([nx, ny, nz], idx) => {
-          const neighbor = points.find(p => p.x === nx && p.y === ny && p.z === nz);
-          if (neighbor && neighbor.depth >= point.depth) {
-            const active = point.value > 0 || neighbor.value > 0;
-            const isTwisted = state.topology === 'twisted-torus' && idx >= 3;
+          const neighbor = pointMap.get(`${nx},${ny},${nz}`);
+          if (!neighbor) return;
+          const active = point.value > 0 || neighbor.value > 0;
+          const isTwisted = state.topology === 'twisted-torus' && idx >= 3;
 
-            if (isTwisted) {
-              // Draw twisted connections in magenta
-              ctx.strokeStyle = active ? 'rgba(153, 102, 204, 0.5)' : 'rgba(153, 102, 204, 0.2)';
-              ctx.lineWidth = 1;
-            } else {
-              ctx.strokeStyle = active ? 'rgba(102, 187, 102, 0.3)' : 'rgba(50, 50, 50, 0.2)';
-              ctx.lineWidth = 0.5;
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(point.screenX, point.screenY);
-            ctx.lineTo(neighbor.screenX, neighbor.screenY);
-            ctx.stroke();
-          }
+          ctx.strokeStyle = isTwisted
+            ? (active ? 'rgba(153, 102, 204, 0.5)' : 'rgba(153, 102, 204, 0.2)')
+            : (active ? 'rgba(102, 187, 102, 0.35)' : 'rgba(60, 60, 60, 0.15)');
+          ctx.lineWidth = isTwisted ? 1.2 : 0.6;
+          ctx.beginPath();
+          ctx.moveTo(point.screenX, point.screenY);
+          ctx.lineTo(neighbor.screenX, neighbor.screenY);
+          ctx.stroke();
         });
       });
 
-      // Draw nodes
       points.forEach(point => {
-        const radius = Math.max(2, 4 * point.scale);
-
+        const radius = Math.max(2, 3 * point.scale);
         if (state.simulationMode === 'compute') {
           const intensity = Math.min(255, Math.floor(point.value * 2.55));
           ctx.fillStyle = `rgb(${intensity}, ${Math.floor(intensity * 0.3)}, 0)`;
         } else {
           ctx.fillStyle = point.value > 0 ? '#66bb66' : '#222';
         }
-
         ctx.beginPath();
         ctx.arc(point.screenX, point.screenY, radius, 0, Math.PI * 2);
         ctx.fill();
-
-        if (point.value > 0) {
-          ctx.strokeStyle = '#66bb66';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        }
       });
 
-      // Draw rotation instructions
       ctx.fillStyle = '#666';
       ctx.font = '12px monospace';
       ctx.textAlign = 'left';
