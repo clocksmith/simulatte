@@ -13,7 +13,7 @@ template.innerHTML = `
   details { margin-top: 1rem; border-top: 1px dashed #555; padding-top: 0.5rem; }
   summary { cursor: pointer; font-weight: bold; margin-bottom: 0.5rem; list-style: none; } /* Remove default marker */
   summary::-webkit-details-marker { display: none; } /* Chrome/Safari */
-  summary::before { content: '▶ '; font-size: 0.8em; margin-right: 4px; }
+  summary::before { content: '☛ '; font-size: 0.8em; margin-right: 4px; }
   details[open] > summary::before { content: '▼ '; }
   pre { margin: 0.5rem 0; white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto; background: #222; padding: 0.5rem; border-radius: 3px; font-size: 0.85em; }
   .actions { margin-top: 1rem; border-top: 1px solid #555; padding-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
@@ -84,6 +84,29 @@ class ToolCard extends HTMLElement {
       show_wc_btn: this.shadowRoot.querySelector('.show-wc-btn'),
       del_btn: this.shadowRoot.querySelector('.del-btn'),
     };
+
+    const stopInteractivePropagation = (evt) => {
+      const composedPath = evt.composedPath?.() || [];
+      const interactive = composedPath.find((node) => {
+        const tag = node?.tagName;
+        return (
+          tag === 'BUTTON' ||
+          tag === 'INPUT' ||
+          tag === 'SELECT' ||
+          tag === 'TEXTAREA' ||
+          tag === 'LABEL' ||
+          tag === 'SUMMARY' ||
+          tag === 'DETAILS'
+        );
+      });
+      if (interactive) {
+        evt.stopPropagation();
+        evt.stopImmediatePropagation?.();
+      }
+    };
+
+    this.shadowRoot.addEventListener('click', stopInteractivePropagation, { capture: true });
+    this.shadowRoot.addEventListener('pointerdown', stopInteractivePropagation, { capture: true });
   }
 
   set_data(data, is_pending = false) {
@@ -243,4 +266,3 @@ class ToolCard extends HTMLElement {
 
 customElements.define('tool-card', ToolCard);
 export default ToolCard;
-

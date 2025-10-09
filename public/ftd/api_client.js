@@ -51,7 +51,13 @@ const ApiClient = (cfg, log) => {
     return null;
   };
 
-  const call = async (prompt, apiKey, genCfgOverrides = {}, cb = () => {}) => {
+  const call = async (
+    prompt,
+    apiKey,
+    genCfgOverrides = {},
+    cb = () => {},
+    modelName = cfg.model
+  ) => {
     if (abortCtrl) {
       log.warn("Aborting previous API call");
       abortCtrl.abort("New call");
@@ -62,13 +68,14 @@ const ApiClient = (cfg, log) => {
     while (attempt <= cfg.apiMaxRetries) {
       const retryMsg =
         attempt > 0 ? `[RETRY ${attempt}/${cfg.apiMaxRetries}]` : "";
+      const modelForCall = modelName || cfg.model;
       cb("status", {
-        msg: `${retryMsg} Calling Gemini (${cfg.model})...`,
+        msg: `${retryMsg} Calling Gemini (${modelForCall})...`,
         active: true,
       });
 
       try {
-        const url = `${cfg.apiBaseUrl}${cfg.model}:streamGenerateContent?key=${apiKey}&alt=sse`;
+        const url = `${cfg.apiBaseUrl}${modelForCall}:streamGenerateContent?key=${apiKey}&alt=sse`;
         const safety = cfg.apiSafetySettings.map((cat) => ({
           category: `HARM_CATEGORY_${cat}`,
           threshold: "BLOCK_MEDIUM_AND_ABOVE",
@@ -224,7 +231,10 @@ const ApiClient = (cfg, log) => {
         }
 
         const status = error.status || 0;
-        const reason = error.message || "Unknown API error";
+        let reason = error.message || "Unknown API error";
+        if (status === 404 && reason.includes('models/')) {
+          reason += "\nHint: Check the model alias. e.g. gemini-2.5-flash or gemini-flash-latest.";
+        }
         cb("status", {
           msg: `Error (${status}): ${reason.substring(0, 50)}... Retrying?`,
           active: true,

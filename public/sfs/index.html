@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SFS - Strategic Flip Simulation</title>
+  <meta name="description" content="Monte Carlo card game simulator with web worker processing" />
+  <link rel="stylesheet" href="../simulatte-core.css">
+  <style>
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+      border-bottom: 2px solid var(--accent-primary);
+      margin-bottom: 30px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .panel {
+      background: var(--bg-medium);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+
+    .panel h2 {
+      color: var(--accent-primary);
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-group label {
+      display: block;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .control-group select,
+    .control-group input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .control-group select:focus,
+    .control-group input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .strategies-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .strategy-card {
+      background: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .strategy-card.selected {
+      border-color: var(--accent-primary);
+      background: rgba(0, 230, 118, 0.1);
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
+    }
+
+    .strategy-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-secondary);
+    }
+
+    .strategy-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: var(--text-primary);
+    }
+
+    .strategy-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .player-chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .player-chip {
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .player-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 230, 118, 0.2);
+    }
+
+    .player-chip.cautious {
+      border-color: var(--accent-orange);
+      background: rgba(255, 165, 0, 0.1);
+    }
+
+    .player-chip.risky {
+      border-color: var(--accent-tertiary);
+      background: rgba(0, 255, 255, 0.1);
+    }
+
+    .player-chip.super_risky {
+      border-color: var(--accent-primary);
+      background: rgba(255, 0, 255, 0.1);
+    }
+
+    .player-chip-label {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .player-chip-strategy {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .rule-toggle-group {
+      margin-bottom: 10px;
+    }
+
+    .toggle-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .rule-toggle-chip {
+      position: relative;
+    }
+
+    .rule-toggle-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .rule-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 2px solid var(--border);
+      background: var(--bg-light);
+      color: var(--text-primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .rule-toggle-label::before {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: #000;
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+
+    .rule-toggle-input:checked + .rule-toggle-label {
+      border-color: var(--accent-secondary);
+      background: rgba(0, 255, 0, 0.12);
+      box-shadow: var(--glow-green);
+      color: var(--text-primary);
+    }
+
+    .rule-toggle-input:checked + .rule-toggle-label::before {
+      content: '✓';
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+      color: #000;
+      box-shadow: 0 0 6px rgba(0, 255, 0, 0.4);
+    }
+
+    .rule-toggle-label:hover {
+      border-color: var(--accent-secondary);
+      transform: translateY(-1px);
+    }
+
+    .rule-mode-note {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    .strategy-thresholds-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .strategy-threshold-group {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      background: var(--bg-light);
+    }
+
+    .strategy-threshold-group.cautious {
+      border-color: var(--accent-orange);
+    }
+
+    .strategy-threshold-group.risky {
+      border-color: var(--accent-tertiary);
+    }
+
+    .strategy-threshold-group.super_risky {
+      border-color: var(--accent-primary);
+    }
+
+    .strategy-threshold-title {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text-primary);
+      text-align: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .strategy-threshold-group.cautious .strategy-threshold-title {
+      color: var(--accent-orange);
+    }
+
+    .strategy-threshold-group.risky .strategy-threshold-title {
+      color: var(--accent-tertiary);
+    }
+
+    .strategy-threshold-group.super_risky .strategy-threshold-title {
+      color: var(--accent-primary);
+    }
+
+    .strategy-threshold-group .control-group {
+      margin-bottom: 12px;
+    }
+
+    .strategy-threshold-group .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .add-player-btn {
+      margin-top: var(--space-sm);
+    }
+
+    .progress-section {
+      margin-top: 25px;
+      display: none;
+    }
+
+    .progress-section.active {
+      display: block;
+    }
+
+    .progress-bar-container {
+      background: var(--bg-light);
+      border-radius: 8px;
+      height: 40px;
+      overflow: hidden;
+      margin: 15px 0;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      width: 0%;
+      transition: width 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    .progress-text {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .results-container {
+      margin-top: 30px;
+    }
+
+    .results-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .summary-card {
+      background: var(--bg-light);
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .summary-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      color: var(--accent-primary);
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .strategy-results {
+      margin-top: 25px;
+    }
+
+    .result-item {
+      background: var(--bg-light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .result-strategy {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+
+    .result-winrate {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--accent-primary);
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .stat-mini {
+      text-align: center;
+      padding: 10px;
+      background: var(--bg-dark);
+      border-radius: 6px;
+    }
+
+    .stat-mini-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .stat-mini-value {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+
+    .result-bar {
+      height: 30px;
+      background: var(--bg-dark);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .result-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.5s;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .info-box {
+      background: rgba(0, 188, 212, 0.1);
+      border: 1px solid var(--accent-secondary);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .info-box h3 {
+      color: var(--accent-secondary);
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .info-box ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-box li {
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .info-box li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--accent-secondary);
+    }
+
+    .chart-container {
+      margin-top: 30px;
+      background: var(--bg-light);
+      padding: 25px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .chart-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 1200px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .strategies-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .results-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .result-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .strategy-thresholds-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .loading {
+      animation: pulse 1.5s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SFS - Strategic Flip Simulation</h1>
+      <p class="subtitle">Monte Carlo strategy analyzer with 94-card deck dynamics</p>
+    </header>
+
+    <div class="main-layout">
+      <!-- Left Panel: Configuration -->
+      <div class="panel">
+        <h2>Simulation Configuration</h2>
+
+        <div class="info-box">
+          <h3>Deck Composition (94 Cards)</h3>
+          <ul>
+            <li><strong>Numbers 0-12:</strong> Variable counts (69 total)</li>
+            <li><strong>Modifiers:</strong> +2, +4, +6, +8, +10, x2 (6 cards)</li>
+            <li><strong>Actions:</strong> Flip Three, Freeze, Second Chance (9 cards)</li>
+            <li><strong>Win Condition:</strong> Collect 7 unique numbers (+15 bonus)</li>
+          </ul>
+        </div>
+
+        <div class="control-group">
+          <label for="simulations">Number of Simulations:</label>
+          <input type="number" id="simulations" min="10" max="100000" value="100" step="10">
+        </div>
+
+        <div class="control-group">
+          <label>Strategy Rule Mode:</label>
+          <div class="rule-toggle-group toggle-group">
+            <div class="rule-toggle-chip">
+              <input
+                type="checkbox"
+                id="rule-toggle-probability"
+                class="rule-toggle-input"
+                data-rule="probability"
+                checked
+              />
+              <label for="rule-toggle-probability" class="rule-toggle-label">
+                Probability
+              </label>
+            </div>
+            <div class="rule-toggle-chip">
+              <input
+                type="checkbox"
+                id="rule-toggle-score"
+                class="rule-toggle-input"
+                data-rule="score"
+                checked
+              />
+              <label for="rule-toggle-score" class="rule-toggle-label">
+                Score
+              </label>
+            </div>
+          </div>
+          <div class="rule-mode-note" id="ruleModeNote"></div>
+        </div>
+
+        <div class="control-group">
+          <label>Strategy Thresholds</label>
+          <div class="strategy-thresholds-container">
+            <div class="strategy-threshold-group cautious">
+              <h4 class="strategy-threshold-title">Cautious</h4>
+              <div class="control-group">
+                <label>Bust Limit <span class="value-display" id="cautious-bust-label">10%</span></label>
+                <input type="range" id="cautious-bust" min="0" max="100" step="1" value="10">
+              </div>
+              <div class="control-group">
+                <label>Min Score <span class="value-display" id="cautious-score-label">15</span></label>
+                <input type="range" id="cautious-score" min="0" max="50" step="1" value="15">
+              </div>
+            </div>
+
+            <div class="strategy-threshold-group risky">
+              <h4 class="strategy-threshold-title">Risky</h4>
+              <div class="control-group">
+                <label>Bust Limit <span class="value-display" id="risky-bust-label">30%</span></label>
+                <input type="range" id="risky-bust" min="0" max="100" step="1" value="30">
+              </div>
+              <div class="control-group">
+                <label>Min Score <span class="value-display" id="risky-score-label">20</span></label>
+                <input type="range" id="risky-score" min="0" max="50" step="1" value="20">
+              </div>
+            </div>
+
+            <div class="strategy-threshold-group super_risky">
+              <h4 class="strategy-threshold-title">Super Risky</h4>
+              <div class="control-group">
+                <label>Bust Limit <span class="value-display" id="super_risky-bust-label">50%</span></label>
+                <input type="range" id="super-bust" min="0" max="100" step="1" value="50">
+              </div>
+              <div class="control-group">
+                <label>Min Score <span class="value-display" id="super_risky-score-label">25</span></label>
+                <input type="range" id="super-score" min="0" max="50" step="1" value="25">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label style="margin-bottom: 10px;">Player Strategies (click to cycle):</label>
+          <div id="playerChips" class="player-chips-container">
+            <!-- Player chips will be inserted here -->
+          </div>
+          <button class="btn btn-outline btn-block add-player-btn" id="addPlayerBtn">+ Add Player</button>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="startBtn" style="background: linear-gradient(135deg, #00e676, #00c853); border-color: #00e676;">Run Monte Carlo Simulation</button>
+        <button class="btn btn-secondary btn-block" id="stopBtn" style="margin-top: 12px; display: none;">Stop Simulation</button>
+
+        <div class="progress-section" id="progressSection">
+          <div class="progress-text" id="progressText">Preparing simulation...</div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar">0%</div>
+          </div>
+          <div style="text-align: center; margin-top: 10px;">
+            <small id="statsText" style="color: var(--text-secondary);">Starting...</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Results -->
+      <div class="panel">
+        <h2>Simulation Results</h2>
+
+        <div id="resultsPlaceholder" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+          <p style="font-size: 1.2rem; margin-bottom: 15px;">No simulation run yet</p>
+          <p>Configure your simulation parameters and click "Run Monte Carlo Simulation" to begin</p>
+        </div>
+
+        <div id="resultsContainer" style="display: none;">
+          <div class="results-summary" id="resultsSummary"></div>
+          <div class="strategy-results" id="strategyResults"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // Performance optimizations
+    const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+
+    // State
+    let worker = null;
+    let isRunning = false;
+    let playerStrategies = ['cautious', 'risky', 'super_risky'];
+
+    const STRATEGY_THRESHOLDS = {
+      cautious: { bust: 0.1, minScore: 15 },
+      risky: { bust: 0.3, minScore: 20 },
+      super_risky: { bust: 0.5, minScore: 25 },
+    };
+
+    let ruleMode = {
+      useProbability: true,
+      useScore: true,
+    };
+
+    // DOM Elements - will be initialized on DOMContentLoaded
+    let startBtn, stopBtn, progressSection, progressBar, progressText, statsText;
+    let resultsPlaceholder, resultsContainer, resultsSummary, strategyResults;
+    let playerChipsContainer, addPlayerBtn, ruleModeNote;
+    let ruleToggleInputs;
+
+    const strategyOrder = ['cautious', 'risky', 'super_risky'];
+
+    function formatPercent(value) {
+      return `${Math.round(value * 100)}%`;
+    }
+
+    function getStrategyLabel(strategy) {
+      const thresholds = STRATEGY_THRESHOLDS[strategy];
+      if (!thresholds) return strategy;
+      const { bust, minScore } = thresholds;
+      const bustText = `bust<=${formatPercent(bust)}`;
+      const scoreText = `score<${minScore}`;
+      const base = strategy.replace('_', ' ');
+      const title = base.charAt(0).toUpperCase() + base.slice(1);
+      if (ruleMode.useProbability && ruleMode.useScore) {
+        return `${title} (${bustText} OR ${scoreText})`;
+      }
+      if (ruleMode.useProbability) {
+        return `${title} (${bustText})`;
+      }
+      return `${title} (${scoreText})`;
+    }
+
+    function createPlayerChip(index, strategy) {
+      const chip = document.createElement('div');
+      chip.className = `chip player-chip ${strategy}`;
+      chip.dataset.index = index;
+      chip.innerHTML = `
+        <span class="player-chip-label">Player ${index + 1}</span>
+        <span class="player-chip-strategy">${getStrategyLabel(strategy)}</span>
+        <span class="chip-remove player-chip-remove">×</span>
+      `;
+
+      // Click chip body to cycle strategy
+      const chipBody = chip;
+      chipBody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('player-chip-remove')) {
+          return; // Let remove handler deal with it
+        }
+        cycleStrategy(index);
+      });
+
+      // Click X to remove player
+      const removeBtn = chip.querySelector('.player-chip-remove');
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removePlayer(index);
+      });
+
+      return chip;
+    }
+
+    function cycleStrategy(index) {
+      const currentStrategy = playerStrategies[index];
+      const currentIndex = strategyOrder.indexOf(currentStrategy);
+      const nextIndex = (currentIndex + 1) % strategyOrder.length;
+      playerStrategies[index] = strategyOrder[nextIndex];
+      renderPlayerChips();
+    }
+
+    function removePlayer(index) {
+      if (playerStrategies.length <= 2) {
+        alert('You need at least 2 players!');
+        return;
+      }
+      playerStrategies.splice(index, 1);
+      renderPlayerChips();
+    }
+
+    function addPlayer() {
+      if (playerStrategies.length >= 5) {
+        alert('Maximum 5 players allowed!');
+        return;
+      }
+      playerStrategies.push('risky');
+      renderPlayerChips();
+    }
+
+    function renderPlayerChips() {
+      if (!playerChipsContainer) return;
+      playerChipsContainer.innerHTML = '';
+      playerStrategies.forEach((strategy, index) => {
+        const chip = createPlayerChip(index, strategy);
+        playerChipsContainer.appendChild(chip);
+      });
+    }
+
+    function describeRuleMode() {
+      if (ruleMode.useProbability && ruleMode.useScore) return 'Probability OR Score';
+      if (ruleMode.useProbability) return 'Probability only';
+      return 'Score only';
+    }
+
+    function getRuleModeNoteText() {
+      if (ruleMode.useProbability && ruleMode.useScore)
+        return 'Using bust probability OR minimum score thresholds to decide when to hit.';
+      if (ruleMode.useProbability)
+        return 'Using bust probability thresholds only; strategies stop drawing once the probability limit is exceeded.';
+      return 'Using minimum score thresholds only; strategies draw until they reach the score floor.';
+    }
+
+    function updateRuleModeNote() {
+      if (ruleModeNote) ruleModeNote.textContent = getRuleModeNoteText();
+    }
+
+    function updateRuleToggleInputs() {
+      if (!ruleToggleInputs) return;
+      ruleToggleInputs.forEach((input) => {
+        const type = input.dataset.rule;
+        const shouldCheck = type === 'probability' ? ruleMode.useProbability : ruleMode.useScore;
+        input.checked = shouldCheck;
+      });
+    }
+
+    function applyRuleModeChange() {
+      updateRuleToggleInputs();
+      updateRuleModeNote();
+      renderPlayerChips();
+      updateResultStrategyLabels();
+      if (resultsSummary) {
+        const valueEl = resultsSummary.querySelector('[data-summary="rule-mode"] .summary-value');
+        if (valueEl) valueEl.textContent = describeRuleMode();
+      }
+    }
+
+    function handleRuleToggleChange(input) {
+      const type = input.dataset.rule;
+      const isChecked = input.checked;
+      if (type === 'probability') {
+        ruleMode.useProbability = isChecked;
+      } else if (type === 'score') {
+        ruleMode.useScore = isChecked;
+      }
+      if (!ruleMode.useProbability && !ruleMode.useScore) {
+        if (type === 'probability') {
+          ruleMode.useProbability = true;
+          input.checked = true;
+        } else {
+          ruleMode.useScore = true;
+          input.checked = true;
+        }
+      }
+      applyRuleModeChange();
+    }
+
+    function updateThresholdFromSlider(strategyKey, slider, type) {
+      const value = parseInt(slider.value, 10);
+      if (type === 'bust') {
+        STRATEGY_THRESHOLDS[strategyKey].bust = value / 100;
+        const label = document.getElementById(`${strategyKey}-bust-label`);
+        if (label) label.textContent = `${value}%`;
+      } else if (type === 'score') {
+        STRATEGY_THRESHOLDS[strategyKey].minScore = value;
+        const label = document.getElementById(`${strategyKey}-score-label`);
+        if (label) label.textContent = `${value}`;
+      }
+      renderPlayerChips();
+      updateResultStrategyLabels();
+    }
+
+    function updateResultStrategyLabels() {
+      if (!strategyResults) return;
+      const items = strategyResults.querySelectorAll('.result-item');
+      items.forEach((item) => {
+        const key = item.dataset.strategy;
+        if (!key) return;
+        const labelEl = item.querySelector('.result-strategy');
+        if (labelEl) labelEl.textContent = getStrategyLabel(key);
+      });
+    }
+
+    // Create Web Worker inline
+    function createWorker() {
+      const workerCode = `
+        // Deck creation
+        function createDeck() {
+          const deck = [];
+          for (let i = 0; i <= 12; i++) {
+            let count = i < 2 ? 1 : i;
+            for (let j = 0; j < count; j++) {
+              deck.push({ type: 'number', value: i });
+            }
+          }
+          ['+2', '+4', '+6', '+8', '+10'].forEach(m => deck.push({ type: 'modifier', value: m }));
+          deck.push({ type: 'modifier', value: 'x2' });
+          ['Flip Three', 'Freeze', 'Second Chance'].forEach(a => {
+            for (let i = 0; i < 3; i++) deck.push({ type: 'action', value: a });
+          });
+          return deck;
+        }
+
+        function shuffleDeck(deck) {
+          for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+          }
+          return deck;
+        }
+
+        const STRATEGY_THRESHOLDS = ${JSON.stringify(STRATEGY_THRESHOLDS)};
+        let RULE_MODE = { useProbability: true, useScore: true };
+
+        function calculateScore(hand) {
+          let score = 0;
+          let hasX2 = false;
+          let numberCards = [];
+          let modifierTotal = 0;
+
+          hand.forEach(card => {
+            if (card.type === 'number') {
+              numberCards.push(card.value);
+            } else if (card.type === 'modifier') {
+              if (card.value === 'x2') {
+                hasX2 = true;
+              } else {
+                modifierTotal += parseInt(card.value.substring(1));
+              }
+            }
+          });
+
+          const uniqueNumbers = new Set(numberCards);
+          const isFlip7 = uniqueNumbers.size === 7 && numberCards.length === 7;
+
+          score = hasX2 ? numberCards.reduce((a, b) => a + b, 0) * 2 : numberCards.reduce((a, b) => a + b, 0);
+          score += modifierTotal;
+          if (isFlip7) score += 15;
+
+          return score;
+        }
+
+        function hasBusted(hand) {
+          const numberCards = hand.filter(c => c.type === 'number').map(c => c.value);
+          return numberCards.length !== new Set(numberCards).size;
+        }
+
+        function calculateBustProbability(hand, deck, discarded = []) {
+          // Count remaining cards in deck by number value
+          const numberCounts = deck.reduce((acc, card) => {
+            if (card.type === 'number') {
+              acc[card.value] = (acc[card.value] || 0) + 1;
+            }
+            return acc;
+          }, {});
+
+          // Subtract discarded cards from counts
+          discarded.forEach(card => {
+            if (card.type === 'number' && numberCounts[card.value] > 0) {
+              numberCounts[card.value]--;
+            }
+          });
+
+          // Get number cards currently in player's hand
+          const numberCards = hand
+            .filter(card => card.type === 'number')
+            .map(card => card.value);
+          const uniqueNumbers = new Set(numberCards);
+
+          // Count bust cards (cards matching numbers in hand)
+          let bustCards = 0;
+          uniqueNumbers.forEach(num => {
+            bustCards += numberCounts[num] || 0;
+          });
+
+          const remainingCards = deck.length;
+          return remainingCards > 0 ? bustCards / remainingCards : 0;
+        }
+
+        function shouldHit(strategy, hand, deck, discarded = [], currentScore = calculateScore(hand)) {
+          const thresholds = STRATEGY_THRESHOLDS[strategy] || STRATEGY_THRESHOLDS.risky;
+          const bustProb = calculateBustProbability(hand, deck, discarded);
+          const useProbability = RULE_MODE.useProbability;
+          const useScore = RULE_MODE.useScore;
+          const allowProb = useProbability ? bustProb < thresholds.bust : false;
+          const allowScore = useScore ? currentScore < thresholds.minScore : false;
+          if (useProbability && useScore) return allowProb || allowScore;
+          if (useProbability) return allowProb;
+          if (useScore) return allowScore;
+          return true;
+        }
+
+        function playRound(strategies) {
+          const deck = shuffleDeck(createDeck());
+          const players = strategies.map((strategy) => ({
+            strategy,
+            hand: [],
+            discarded: [],
+            busted: false,
+            score: 0,
+            secondChance: false,
+            frozen: false,
+          }));
+
+          players.forEach((player) => {
+            const starter = deck.pop();
+            if (starter) player.hand.push(starter);
+          });
+
+          const applyCard = (player, card) => {
+            if (!card || player.busted) return;
+            if (card.type === 'number') {
+              player.hand.push(card);
+              if (hasBusted(player.hand)) {
+                if (player.secondChance) {
+                  const discardedCard = player.hand.pop();
+                  player.discarded.push(discardedCard);
+                  player.secondChance = false;
+                } else {
+                  player.busted = true;
+                }
+              }
+            } else if (card.type === 'modifier') {
+              player.hand.push(card);
+            } else if (card.type === 'action') {
+              if (card.value === 'Flip Three') {
+                for (let draws = 0; draws < 3 && deck.length > 0; draws++) {
+                  if (player.busted) break;
+                  applyCard(player, deck.pop());
+                }
+              } else if (card.value === 'Freeze') {
+                player.frozen = true;
+              } else if (card.value === 'Second Chance') {
+                player.secondChance = true;
+              }
+            }
+          };
+
+          const activePlayers = players.map((_, index) => index);
+          while (activePlayers.length > 0) {
+            const playerIdx = activePlayers.shift();
+            const player = players[playerIdx];
+            if (player.busted || player.frozen) {
+              player.score = player.busted ? 0 : calculateScore(player.hand);
+              continue;
+            }
+
+            const currentScore = calculateScore(player.hand);
+            if (!shouldHit(player.strategy, player.hand, deck, player.discarded, currentScore)) {
+              player.score = currentScore;
+              continue;
+            }
+
+            const nextCard = deck.pop();
+            if (!nextCard) {
+              player.score = calculateScore(player.hand);
+              continue;
+            }
+            applyCard(player, nextCard);
+
+            if (!player.busted && !player.frozen) {
+              activePlayers.push(playerIdx);
+            } else if (!player.busted) {
+              player.score = calculateScore(player.hand);
+            }
+          }
+
+          players.forEach((player) => {
+            if (!player.busted) {
+              player.score = calculateScore(player.hand);
+            } else {
+              player.score = 0;
+            }
+          });
+
+          return players.map((p) => ({
+            strategy: p.strategy,
+            roundScore: p.score,
+            busted: p.busted,
+          }));
+        }
+
+        function playGame(strategies) {
+          const totals = strategies.map(() => 0);
+          const bustCounts = strategies.map(() => 0);
+          let rounds = 0;
+
+          while (true) {
+            rounds++;
+            const roundResults = playRound(strategies);
+            roundResults.forEach((result, idx) => {
+              totals[idx] += result.roundScore;
+              if (result.busted) bustCounts[idx] += 1;
+            });
+
+            const maxScore = Math.max(...totals);
+            if (maxScore >= 200 || rounds >= 100) {
+              break;
+            }
+          }
+
+          const finalMax = Math.max(...totals);
+          return strategies.map((strategy, idx) => ({
+            strategy,
+            score: totals[idx],
+            won: totals[idx] === finalMax,
+            busted: bustCounts[idx] > 0,
+            rounds,
+          }));
+        }
+
+        self.onmessage = function(e) {
+          const { simulations, strategies, numPlayers, ruleMode, thresholds } = e.data;
+          RULE_MODE = ruleMode || RULE_MODE;
+          if (thresholds) {
+            Object.assign(STRATEGY_THRESHOLDS, thresholds);
+          }
+          const results = {};
+          strategies.forEach(s => {
+            results[s] = { wins: 0, totalScore: 0, busts: 0, games: 0, totalRounds: 0 };
+          });
+
+          const batchSize = 100;
+          let completed = 0;
+
+          for (let i = 0; i < simulations; i++) {
+            const gameResults = playGame(strategies);
+
+            gameResults.forEach(r => {
+              results[r.strategy].games++;
+              results[r.strategy].totalScore += r.score;
+              if (r.won) results[r.strategy].wins++;
+              if (r.busted) results[r.strategy].busts++;
+              results[r.strategy].totalRounds += r.rounds;
+            });
+
+            completed++;
+            if (completed % batchSize === 0 || completed === simulations) {
+              self.postMessage({
+                type: 'progress',
+                completed,
+                total: simulations,
+                results
+              });
+            }
+          }
+
+          // Calculate convergence statistics
+          const convergenceStats = {};
+          Object.entries(results).forEach(([strategy, data]) => {
+            const winRate = data.games > 0 ? data.wins / data.games : 0;
+            const stderr = data.games > 0
+              ? Math.sqrt(winRate * (1 - winRate) / data.games)
+              : 0;
+            const confidenceInterval95 = 1.96 * stderr;
+            convergenceStats[strategy] = {
+              winRate,
+              stderr,
+              confidenceInterval95,
+              converged: stderr < 0.01 // Converged if stderr < 1%
+            };
+          });
+
+          self.postMessage({
+            type: 'complete',
+            results,
+            convergenceStats
+          });
+        };
+      `;
+
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      return new Worker(URL.createObjectURL(blob));
+    }
+
+    // Start simulation
+    function startSimulation() {
+      if (isRunning) return;
+
+      const simulations = parseInt(document.getElementById('simulations').value);
+      const numPlayers = playerStrategies.length;
+      const strategies = [...playerStrategies];
+
+      isRunning = true;
+      startBtn.disabled = true;
+      stopBtn.style.display = 'block';
+      progressSection.classList.add('active');
+      resultsPlaceholder.style.display = 'none';
+      resultsContainer.style.display = 'none';
+
+      progressText.textContent = 'Initializing simulation...';
+      progressBar.style.width = '0%';
+      progressBar.textContent = '0%';
+
+      worker = createWorker();
+
+      worker.onmessage = function(e) {
+        if (e.data.type === 'progress') {
+          const percent = (e.data.completed / e.data.total * 100).toFixed(1);
+          progressBar.style.width = percent + '%';
+          progressBar.textContent = percent + '%';
+          progressText.textContent = `Running simulation: ${e.data.completed.toLocaleString()} / ${e.data.total.toLocaleString()} games`;
+          statsText.textContent = `Processing at ~${Math.round(e.data.completed / ((Date.now() - startTime) / 1000))} games/sec`;
+        } else if (e.data.type === 'complete') {
+          displayResults(e.data.results, simulations, e.data.convergenceStats);
+          worker.terminate();
+          worker = null;
+          isRunning = false;
+          startBtn.disabled = false;
+          stopBtn.style.display = 'none';
+          const durationSec = (Date.now() - startTime) / 1000;
+          const gamesPerSec = simulations / Math.max(durationSec, 0.001);
+          progressText.textContent = `Simulation complete in ${durationSec.toFixed(1)}s`;
+          statsText.textContent = `Average throughput ≈ ${Math.round(gamesPerSec).toLocaleString()} games/sec`;
+        }
+      };
+
+      const startTime = Date.now();
+      worker.postMessage({
+        simulations,
+        strategies,
+        numPlayers,
+        ruleMode: {
+          useProbability: ruleMode.useProbability,
+          useScore: ruleMode.useScore,
+        },
+        thresholds: STRATEGY_THRESHOLDS,
+      });
+    }
+
+    // Stop simulation
+    function stopSimulation() {
+      if (worker) {
+        worker.terminate();
+        worker = null;
+      }
+      isRunning = false;
+      startBtn.disabled = false;
+      stopBtn.style.display = 'none';
+      progressSection.classList.remove('active');
+      progressText.textContent = 'Simulation stopped';
+    }
+
+    // Display results
+    function displayResults(results, totalSims, convergenceStats = {}) {
+      resultsContainer.style.display = 'block';
+
+      // Summary
+      const totalGames = Object.values(results).reduce((sum, r) => sum + r.games, 0);
+      const totalWins = Object.values(results).reduce((sum, r) => sum + r.wins, 0);
+      const allConverged = Object.values(convergenceStats).every(s => s.converged);
+      const modeLabel = describeRuleMode();
+
+      resultsSummary.innerHTML = `
+        <div class="summary-card">
+          <div class="summary-label">Total Simulations</div>
+          <div class="summary-value">${totalSims.toLocaleString()}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Games Played</div>
+          <div class="summary-value">${totalGames.toLocaleString()}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Convergence</div>
+          <div class="summary-value" style="color: ${allConverged ? 'var(--accent-primary)' : 'var(--accent-warn)'}">
+            ${allConverged ? '✓' : '~'}
+          </div>
+        </div>
+        <div class="summary-card" data-summary="rule-mode">
+          <div class="summary-label">Rule Mode</div>
+          <div class="summary-value" style="font-size: 1.2rem;">${modeLabel}</div>
+        </div>
+      `;
+
+      // Strategy results
+      const sortedResults = Object.entries(results).sort((a, b) => b[1].wins - a[1].wins);
+
+      strategyResults.innerHTML = '';
+      sortedResults.forEach(([strategy, data]) => {
+        const winProbability = data.games > 0 ? data.wins / data.games : 0;
+        const winRate = (winProbability * 100).toFixed(1);
+        const stderr = data.games > 0
+          ? Math.sqrt(winProbability * (1 - winProbability) / data.games) * 100
+          : 0;
+        const formattedWinRate =
+          data.games > 0
+            ? `${winRate}% ± ${stderr.toFixed(1)}%`
+            : '0%';
+        const avgScore =
+          data.games > 0 ? (data.totalScore / data.games).toFixed(1) : '0.0';
+        const bustRate =
+          data.games > 0 ? ((data.busts / data.games) * 100).toFixed(1) : '0.0';
+        const avgRounds =
+          data.games > 0 ? (data.totalRounds / data.games).toFixed(1) : '0.0';
+
+        const resultItem = document.createElement('div');
+        resultItem.className = 'result-item';
+        resultItem.dataset.strategy = strategy;
+        const strategyLabel = getStrategyLabel(strategy);
+        resultItem.innerHTML = `
+          <div class="result-header">
+            <div class="result-strategy">${strategyLabel}</div>
+            <div class="result-winrate">${formattedWinRate}</div>
+          </div>
+          <div class="result-bar">
+            <div class="result-fill" style="width: ${winRate}%">${data.wins.toLocaleString()} wins</div>
+          </div>
+          <div class="result-stats">
+            <div class="stat-mini">
+              <div class="stat-mini-label">Win Rate</div>
+              <div class="stat-mini-value">${formattedWinRate}</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Avg Score</div>
+              <div class="stat-mini-value">${avgScore}</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Bust Rate</div>
+              <div class="stat-mini-value">${bustRate}%</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Total Games</div>
+              <div class="stat-mini-value">${data.games.toLocaleString()}</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Avg Rounds</div>
+              <div class="stat-mini-value">${avgRounds}</div>
+            </div>
+          </div>
+        `;
+        strategyResults.appendChild(resultItem);
+      });
+    }
+
+    // Initialize on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get DOM elements
+      startBtn = document.getElementById('startBtn');
+      stopBtn = document.getElementById('stopBtn');
+      progressSection = document.getElementById('progressSection');
+      progressBar = document.getElementById('progressBar');
+      progressText = document.getElementById('progressText');
+      statsText = document.getElementById('statsText');
+      resultsPlaceholder = document.getElementById('resultsPlaceholder');
+      resultsContainer = document.getElementById('resultsContainer');
+      resultsSummary = document.getElementById('resultsSummary');
+      strategyResults = document.getElementById('strategyResults');
+      playerChipsContainer = document.getElementById('playerChips');
+      addPlayerBtn = document.getElementById('addPlayerBtn');
+      ruleModeNote = document.getElementById('ruleModeNote');
+      ruleToggleInputs = document.querySelectorAll('.rule-toggle-input');
+
+      // Setup event listeners
+      if (startBtn) startBtn.addEventListener('click', startSimulation);
+      if (stopBtn) stopBtn.addEventListener('click', stopSimulation);
+      if (addPlayerBtn) addPlayerBtn.addEventListener('click', addPlayer);
+      if (ruleToggleInputs && ruleToggleInputs.length) {
+        ruleToggleInputs.forEach((input) => {
+          input.addEventListener('change', () => handleRuleToggleChange(input));
+        });
+      }
+
+      const cautiousBustSlider = document.getElementById('cautious-bust');
+      const riskyBustSlider = document.getElementById('risky-bust');
+      const superBustSlider = document.getElementById('super-bust');
+      const cautiousScoreSlider = document.getElementById('cautious-score');
+      const riskyScoreSlider = document.getElementById('risky-score');
+      const superScoreSlider = document.getElementById('super-score');
+
+      if (cautiousBustSlider) cautiousBustSlider.addEventListener('input', () => updateThresholdFromSlider('cautious', cautiousBustSlider, 'bust'));
+      if (riskyBustSlider) riskyBustSlider.addEventListener('input', () => updateThresholdFromSlider('risky', riskyBustSlider, 'bust'));
+      if (superBustSlider) superBustSlider.addEventListener('input', () => updateThresholdFromSlider('super_risky', superBustSlider, 'bust'));
+
+      if (cautiousScoreSlider) cautiousScoreSlider.addEventListener('input', () => updateThresholdFromSlider('cautious', cautiousScoreSlider, 'score'));
+      if (riskyScoreSlider) riskyScoreSlider.addEventListener('input', () => updateThresholdFromSlider('risky', riskyScoreSlider, 'score'));
+      if (superScoreSlider) superScoreSlider.addEventListener('input', () => updateThresholdFromSlider('super_risky', superScoreSlider, 'score'));
+
+      // Initialize UI
+      if (cautiousBustSlider) updateThresholdFromSlider('cautious', cautiousBustSlider, 'bust');
+      if (riskyBustSlider) updateThresholdFromSlider('risky', riskyBustSlider, 'bust');
+      if (superBustSlider) updateThresholdFromSlider('super_risky', superBustSlider, 'bust');
+      if (cautiousScoreSlider) updateThresholdFromSlider('cautious', cautiousScoreSlider, 'score');
+      if (riskyScoreSlider) updateThresholdFromSlider('risky', riskyScoreSlider, 'score');
+      if (superScoreSlider) updateThresholdFromSlider('super_risky', superScoreSlider, 'score');
+      applyRuleModeChange();
+    });
+  </script>
+</body>
+</html>

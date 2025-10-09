@@ -6,7 +6,7 @@ const config = {
   sessionKey: "dtf_session",
   logMax: 500000,
   artifactMaxBytes: 4194304,
-  model: "gemini-2.5-pro-exp-03-25",
+  model: "gemini-2.5-flash",
   promptTemplateArtifactId: "prompt.tpl", // ID for fetching prompt from storage
   apiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/models/",
   apiRetryDelay: 1500,

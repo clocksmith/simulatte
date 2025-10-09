@@ -3,25 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Definitive Interactive Hold'em Equity Analyzer</title>
+    <title>AEH - Adversarial Equity Heuristics</title>
+    <link rel="stylesheet" href="../simulatte-core.css">
     <style>
+      /* HEA-specific variables */
       :root {
-        --bg-color: #121212;
-        --surface-color: #1e1e1e;
-        --primary-text: #e0e0e0;
-        --secondary-text: #b3b3b3;
-        --border-color: #333;
-        --highlight-color: #fde725;
-        --win-color: #4caf50;
-        --loss-color: #f44336;
-        --tie-color: #ffc107;
-        --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+        --win-color: var(--accent-secondary);   /* Green for wins */
+        --loss-color: var(--accent-primary);    /* Magenta for losses */
+        --tie-color: var(--accent-tertiary);    /* Cyan for ties */
       }
       body {
-        font-family: var(--font-family);
-        background-color: var(--bg-color);
-        color: var(--primary-text);
         margin: 0;
         padding: 20px;
         display: flex;
@@ -42,7 +33,16 @@
         padding: 20px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
-      h1,
+      h1 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+        margin-top: 0;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
       h2,
       h3 {
         color: var(--primary-text);
@@ -119,7 +119,7 @@
       .poker-table {
         position: relative;
         width: 100%;
-        aspect-ratio: 1.8/1;
+        aspect-ratio: 1.6/1;
         border: 2px solid #2a2a2a;
         border-radius: 50%;
         display: flex;
@@ -169,7 +169,9 @@
       }
       #hero-hand-container {
         position: absolute;
-        bottom: 5%;
+        bottom: 8%;
+        left: 50%;
+        transform: translateX(-50%);
       }
       .opponent-position {
         position: absolute;
@@ -180,6 +182,29 @@
       }
       #hero-hand-container.winner .card {
         box-shadow: 0 0 0 3px var(--highlight-color);
+      }
+      .card.winning-card {
+        box-shadow: 0 0 0 4px gold !important;
+        transform: scale(1.05);
+      }
+      .opponent-position.leader::after,
+      #hero-hand-container.leader::after {
+        content: "★";
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 20px;
+        color: gold;
+      }
+      .position-label {
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        color: var(--secondary-text);
+        white-space: nowrap;
       }
 
       .equity-display {
@@ -282,12 +307,26 @@
         .charts-grid {
           grid-template-columns: 1fr;
         }
+        .poker-table {
+          aspect-ratio: 1.2/1;
+        }
+        .opponent-position {
+          transform: translate(-50%, -50%) scale(0.85);
+        }
+        .card {
+          width: 32px;
+          height: 48px;
+          font-size: 14px;
+        }
+        #hero-hand-container {
+          bottom: 2%;
+        }
       }
     </style>
   </head>
   <body>
     <div style="text-align: center; margin-bottom: 20px">
-      <h1>Definitive Interactive Hold'em Equity Analyzer</h1>
+      <h1>AEH - Adversarial Equity Heuristics</h1>
       <p>
         Explore pre-flop strategy and see how equity shifts post-flop with full
         showdown analysis.
@@ -311,13 +350,13 @@
             <span id="opponent-count-label">8 Opponents</span>
           </div>
         </div>
+        <div id="heatmap" class="heatmap-container"></div>
         <div class="info-box">
           <p>
-            Select a hand from the grid. Color shows absolute strength (Yellow =
-            Strong, Purple = Weak).
+            Select a hand from the grid. Color shows absolute strength (Bright/Yellow =
+            Strong, Teal = Medium, Dark Purple = Weak).
           </p>
         </div>
-        <div id="heatmap" class="heatmap-container"></div>
       </div>
 
       <!-- RIGHT PANEL -->
@@ -328,14 +367,19 @@
             <span id="selected-hand-title">No Hand Selected</span>
           </h2>
           <div class="equity-display">
-            <div class="equity-box">
-              <h4>Theoretical Pre-Flop Equity</h4>
+            <div class="equity-box" title="Average win rate for this hand across all possible scenarios with this many opponents">
+              <h4>Expected Win Rate (All Scenarios)</h4>
               <span class="value" id="theoretical-equity-val">--</span>
             </div>
-            <div class="equity-box">
-              <h4>Live Hand Equity</h4>
+            <div class="equity-box" id="live-equity-box" title="Win probability based on the specific cards dealt in this hand">
+              <h4>Current Hand Win Probability</h4>
               <span class="value live" id="live-equity-val">--</span>
             </div>
+          </div>
+          <div class="info-box" id="equity-explainer" style="display: none;">
+            <p>
+              <strong>Current Hand Win Probability</strong> simulates all possible remaining cards to calculate your exact chance of winning with the specific cards that were dealt to all players in this hand.
+            </p>
           </div>
           <div class="poker-table" id="poker-table-area">
             <div id="board-cards-container" class="hand-display"></div>
@@ -359,6 +403,13 @@
               style="display: none"
             >
               New Hand
+            </button>
+            <button
+              id="toggle-cards-btn"
+              class="sim-button"
+              style="display: none"
+            >
+              Reveal Opponent Cards
             </button>
           </div>
         </div>
@@ -405,8 +456,6 @@
           "4-of-a-Kind",
           "Straight Flush",
         ];
-        const SIM_COUNT_PREFLOP = 2000;
-        const SIM_COUNT_POSTFLOP = 5000;
         const equityData = {
           AA: {
             1: 85.2,
@@ -1672,8 +1721,11 @@
         const appState = {
           numOpponents: 8,
           selectedHand: null,
-          isSimulating: false,
+          currentTheoretical: null,
+          theoreticalCache: new Map(),
           currentDeal: null,
+          latestLiveResult: null,
+          showOpponentCards: false,
         };
 
         // SECTION 2: UI & UTILITIES
@@ -1733,35 +1785,87 @@
           cardDiv.innerHTML = `${rank}<br>${suitSymbols[suit]}`;
           return cardDiv;
         }
-        function renderPokerTable(showdown = false, winners = []) {
+        function renderPokerTable(showdown = false, winners = [], winningHands = []) {
           const table = document.getElementById("poker-table-area");
           const heroDiv = document.getElementById("hero-hand-container");
           const boardDiv = document.getElementById("board-cards-container");
+          if (!table || !heroDiv || !boardDiv) return;
+
           heroDiv.innerHTML = "";
+          heroDiv.classList.remove("winner", "leader");
           boardDiv.innerHTML = "";
           table
             .querySelectorAll(".opponent-position")
             .forEach((el) => el.remove());
-          if (!appState.currentDeal) return;
-          const { heroHand, opponentHands, board, street } =
-            appState.currentDeal;
-          heroHand.forEach((c) => heroDiv.appendChild(createCardElement(c)));
+
+          if (!appState.currentDeal) {
+            // Show static display before dealing
+            const heroCards = appState.selectedHand
+              ? displayHandFromString(appState.selectedHand)
+              : [];
+            heroCards.forEach((c) => heroDiv.appendChild(createCardElement(c)));
+
+            const opponents = appState.numOpponents;
+            const radius = 45;
+            const angleStep = 360 / (opponents + 1);
+            for (let i = 0; i < opponents; i++) {
+              const angle = ((90 + (i + 1) * angleStep) * Math.PI) / 180;
+              const x = 50 + radius * Math.cos(angle);
+              const y = 50 + radius * Math.sin(angle) * 0.75;
+              const oppDiv = document.createElement("div");
+              oppDiv.className = "opponent-position hand-display";
+              oppDiv.style.left = `${x}%`;
+              oppDiv.style.top = `${y}%`;
+              oppDiv.appendChild(createCardElement(null));
+              oppDiv.appendChild(createCardElement(null));
+              table.appendChild(oppDiv);
+            }
+            return;
+          }
+
+          // Show live dealt cards
+          const { heroHand, opponentHands, board, street } = appState.currentDeal;
+          const showCards = showdown || appState.showOpponentCards;
+
+          heroHand.forEach((c) => {
+            const card = createCardElement(c);
+            if (winningHands[0] && winningHands[0].includes(c)) {
+              card.classList.add("winning-card");
+            }
+            heroDiv.appendChild(card);
+          });
           heroDiv.classList.toggle("winner", winners.includes(0));
-          const radius = 40;
-          const angleStep = 360 / appState.numOpponents;
+
+          const radius = 45;
+          const angleStep = 360 / (appState.numOpponents + 1);
           opponentHands.forEach((hand, i) => {
-            const angle = ((180 + i * angleStep) * Math.PI) / 180;
+            const angle = ((90 + (i + 1) * angleStep) * Math.PI) / 180;
             const x = 50 + radius * Math.cos(angle);
-            const y = 50 + radius * Math.sin(angle) * 0.7; // elliptical
+            const y = 50 + radius * Math.sin(angle) * 0.75;
             const oppDiv = document.createElement("div");
             oppDiv.className = "opponent-position hand-display";
             oppDiv.style.left = `${x}%`;
             oppDiv.style.top = `${y}%`;
-            oppDiv.appendChild(createCardElement(showdown ? hand[0] : null));
-            oppDiv.appendChild(createCardElement(showdown ? hand[1] : null));
-            oppDiv.classList.toggle("winner", winners.includes(i + 1));
+
+            const card1 = createCardElement(showCards ? hand[0] : null);
+            const card2 = createCardElement(showCards ? hand[1] : null);
+            const playerIndex = i + 1;
+            if (winningHands[playerIndex] && showCards) {
+              if (winningHands[playerIndex].includes(hand[0])) card1.classList.add("winning-card");
+              if (winningHands[playerIndex].includes(hand[1])) card2.classList.add("winning-card");
+            }
+            oppDiv.appendChild(card1);
+            oppDiv.appendChild(card2);
+            oppDiv.classList.toggle("winner", winners.includes(playerIndex));
+
+            const label = document.createElement("div");
+            label.className = "position-label";
+            label.textContent = `Opp ${i + 1}`;
+            oppDiv.appendChild(label);
+
             table.appendChild(oppDiv);
           });
+
           const boardCards =
             street === "preflop"
               ? []
@@ -1769,30 +1873,78 @@
                   0,
                   street === "flop" ? 3 : street === "turn" ? 4 : 5
                 );
-          boardCards.forEach((c) => boardDiv.appendChild(createCardElement(c)));
+          boardCards.forEach((c) => {
+            const card = createCardElement(c);
+            // Check if this board card is part of any winning hand
+            if (showdown && winningHands.some(wh => wh && wh.includes(c))) {
+              card.classList.add("winning-card");
+            }
+            boardDiv.appendChild(card);
+          });
+        }
+
+        function displayHandFromString(handStr) {
+          if (!handStr || handStr.length < 2) return [];
+          const r1 = handStr[0];
+          const r2 = handStr[1];
+          if (handStr.length === 2) {
+            return [r1 + "s", r1 + "h"];
+          }
+          if (handStr[2] === "s") {
+            return [r1 + "s", r2 + "s"];
+          }
+          return [r1 + "s", r2 + "h"];
         }
         function resetUIForNewSelection() {
           document.getElementById("selected-hand-title").textContent =
             appState.selectedHand || "No Hand Selected";
+          appState.currentTheoretical = null;
+          appState.latestLiveResult = null;
+          appState.currentDeal = null;
+          appState.showOpponentCards = false;
           updateEquityDisplay(null, null);
           document.getElementById("preflop-charts-grid").innerHTML =
             '<div class="info-box" style="grid-column: 1 / -1; text-align: center;"><p>Select a hand to see its analysis.</p></div>';
           document.getElementById("live-charts-section").style.display = "none";
-          document.getElementById("start-interactive-btn").disabled =
-            !appState.selectedHand;
-          document.getElementById("start-interactive-btn").style.display =
-            "inline-block";
+          document.getElementById("equity-explainer").style.display = "none";
+          document.getElementById("start-interactive-btn").disabled = !appState.selectedHand;
+          document.getElementById("start-interactive-btn").style.display = "inline-block";
           document.getElementById("deal-street-btn").style.display = "none";
           document.getElementById("reset-hand-btn").style.display = "none";
-          appState.currentDeal = null;
+          document.getElementById("toggle-cards-btn").style.display = "none";
           renderPokerTable();
         }
         function updateEquityDisplay(theoretical, live) {
-          document.getElementById("theoretical-equity-val").textContent =
-            theoretical !== null ? `${theoretical.toFixed(1)}%` : "--";
-          document.getElementById("live-equity-val").textContent =
-            live !== null ? `${live.toFixed(1)}%` : "--";
+          const theoreticalEl = document.getElementById(
+            "theoretical-equity-val"
+          );
+          const liveEl = document.getElementById("live-equity-val");
+
+          if (theoreticalEl) {
+            if (theoretical && typeof theoretical.equity === "number") {
+              theoreticalEl.textContent = `${theoretical.equity.toFixed(1)}%`;
+              if (theoretical.samples) {
+                theoreticalEl.title = `Precomputed table value`;
+              } else {
+                theoreticalEl.removeAttribute("title");
+              }
+            } else {
+              theoreticalEl.textContent = "--";
+              theoreticalEl.removeAttribute("title");
+            }
+          }
+
+          if (liveEl) {
+            if (live && typeof live.equity === "number") {
+              liveEl.textContent = `${live.equity.toFixed(1)}%`;
+              liveEl.title = live.stderr ? `Std Err: ${live.stderr.toFixed(2)}%` : "";
+            } else {
+              liveEl.textContent = "--";
+              liveEl.removeAttribute("title");
+            }
+          }
         }
+
 
         // SECTION 3: POKER LOGIC & SIMULATION
         function createDeck() {
@@ -1808,10 +1960,26 @@
         function handStringToCards(handStr) {
           const r1 = handStr[0],
             r2 = handStr[1];
-          if (handStr.length === 2) return [r1 + "s", r1 + "h"];
-          return handStr[2] === "s"
-            ? [r1 + "s", r2 + "s"]
-            : [r1 + "s", r2 + "h"];
+
+          // For pairs, return same rank with different suits
+          if (handStr.length === 2) {
+            const suit1 = SUITS[Math.floor(Math.random() * SUITS.length)];
+            const availableSuits = SUITS.filter(s => s !== suit1);
+            const suit2 = availableSuits[Math.floor(Math.random() * availableSuits.length)];
+            return [r1 + suit1, r1 + suit2];
+          }
+
+          // For suited hands, pick a random suit for both cards
+          if (handStr[2] === "s") {
+            const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+            return [r1 + suit, r2 + suit];
+          }
+
+          // For offsuit hands, pick two different random suits
+          const suit1 = SUITS[Math.floor(Math.random() * SUITS.length)];
+          const availableSuits = SUITS.filter(s => s !== suit1);
+          const suit2 = availableSuits[Math.floor(Math.random() * availableSuits.length)];
+          return [r1 + suit1, r2 + suit2];
         }
         function evaluateHand(sevenCards) {
           const rankValues = "23456789TJQKA";
@@ -1893,10 +2061,115 @@
           return 0;
         }
 
-        async function runLiveEquitySim() {
-          const { heroHand, opponentHands, board, street } =
-            appState.currentDeal;
-          const cardsOnTable = [...heroHand, ...opponentHands.flat()];
+        function computeEquityForDeal(heroHand, opponentHands, boardCards) {
+          const deck = createDeck().filter(
+            c => !heroHand.includes(c) && !opponentHands.flat().includes(c) && !boardCards.includes(c)
+          );
+
+          const numSims = 1000;
+          let wins = 0, ties = 0;
+          const handDistribution = new Array(9).fill(0);
+
+          for (let sim = 0; sim < numSims; sim++) {
+            const shuffled = shuffleDeck([...deck]);
+            const fullBoard = [...boardCards];
+            while (fullBoard.length < 5) {
+              fullBoard.push(shuffled.pop());
+            }
+
+            const heroScore = evaluateHand([...heroHand, ...fullBoard]);
+            handDistribution[heroScore[0]]++;
+
+            const oppScores = opponentHands.map(hand => evaluateHand([...hand, ...fullBoard]));
+            let heroWins = true;
+            let isTie = false;
+
+            for (const oppScore of oppScores) {
+              const cmp = compareScores(heroScore, oppScore);
+              if (cmp < 0) {
+                heroWins = false;
+                break;
+              } else if (cmp === 0) {
+                isTie = true;
+              }
+            }
+
+            if (heroWins && isTie) {
+              ties++;
+            } else if (heroWins) {
+              wins++;
+            }
+          }
+
+          const equity = ((wins + ties * 0.5) / numSims) * 100;
+          return {
+            equity,
+            samples: numSims,
+            handDistribution,
+          };
+        }
+
+        function startInteractiveHand() {
+          if (!appState.selectedHand) return;
+
+          const heroCards = handStringToCards(appState.selectedHand);
+          const deck = shuffleDeck(
+            createDeck().filter((c) => !heroCards.includes(c))
+          );
+          const opponentHands = Array.from(
+            { length: appState.numOpponents },
+            () => [deck.pop(), deck.pop()]
+          );
+          const board = Array.from({ length: 5 }, () => deck.pop());
+
+          appState.currentDeal = {
+            street: "preflop",
+            deck,
+            heroHand: heroCards,
+            opponentHands,
+            board,
+          };
+
+          document.getElementById("start-interactive-btn").style.display = "none";
+          const dealBtn = document.getElementById("deal-street-btn");
+          dealBtn.style.display = "inline-block";
+          dealBtn.textContent = "Deal Flop";
+          dealBtn.disabled = false;
+          document.getElementById("reset-hand-btn").style.display = "inline-block";
+          document.getElementById("toggle-cards-btn").style.display = "inline-block";
+          document.getElementById("live-charts-section").style.display = "block";
+          document.getElementById("equity-explainer").style.display = "block";
+
+          updateLiveAnalysis();
+        }
+
+        function dealNextStreet() {
+          if (!appState.currentDeal) return;
+          const dealBtn = document.getElementById("deal-street-btn");
+          dealBtn.disabled = true;
+
+          const streets = ["preflop", "flop", "turn", "river"];
+          const currentIdx = streets.indexOf(appState.currentDeal.street);
+          if (currentIdx < streets.length - 1) {
+            appState.currentDeal.street = streets[currentIdx + 1];
+          }
+
+          updateLiveAnalysis();
+          const nextIdx = streets.indexOf(appState.currentDeal.street) + 1;
+          if (nextIdx < streets.length) {
+            dealBtn.textContent = `Deal ${
+              streets[nextIdx].charAt(0).toUpperCase() + streets[nextIdx].slice(1)
+            }`;
+            dealBtn.disabled = false;
+          } else {
+            dealBtn.textContent = "Showdown!";
+            handleShowdown();
+          }
+        }
+
+        function updateLiveAnalysis() {
+          renderPokerTable();
+          const { heroHand, opponentHands, board, street } = appState.currentDeal;
           const boardCards =
             street === "preflop"
               ? []
@@ -1904,38 +2177,110 @@
                   0,
                   street === "flop" ? 3 : street === "turn" ? 4 : 5
                 );
-          const remainingDeck = createDeck().filter(
-            (c) => !cardsOnTable.includes(c) && !boardCards.includes(c)
+
+          const result = computeEquityForDeal(heroHand, opponentHands, boardCards);
+          appState.latestLiveResult = result;
+          updateEquityDisplay(appState.currentTheoretical, result);
+
+          const liveChartsGrid = document.getElementById("live-charts-grid");
+          liveChartsGrid.innerHTML =
+            '<div class="chart-container" id="live-dist-chart"></div>';
+          createDistributionBarChart(
+            document.getElementById("live-dist-chart"),
+            "Final Hand Strength %",
+            result.handDistribution.map((count, i) => ({
+              label: HAND_RANKS_TXT[i],
+              value: count / result.samples,
+            }))
           );
-          const cardsToDeal = 5 - boardCards.length;
-          let wins = 0,
-            ties = 0;
-          const handDistribution = new Array(9).fill(0);
-          for (let i = 0; i < SIM_COUNT_POSTFLOP; i++) {
-            shuffleDeck(remainingDeck);
-            const finalBoard = [
-              ...boardCards,
-              ...remainingDeck.slice(0, cardsToDeal),
-            ];
-            const heroScore = evaluateHand([...heroHand, ...finalBoard]);
-            let bestOpponentScore = [-1];
-            opponentHands.forEach((oppHand) => {
-              const oppScore = evaluateHand([...oppHand, ...finalBoard]);
-              if (compareScores(oppScore, bestOpponentScore) > 0)
-                bestOpponentScore = oppScore;
-            });
-            const result = compareScores(heroScore, bestOpponentScore);
-            if (result > 0) wins++;
-            else if (result === 0) ties++;
-            handDistribution[heroScore[0]]++;
+        }
+
+        function handleShowdown() {
+          const { heroHand, opponentHands, board } = appState.currentDeal;
+          const allHands = [heroHand, ...opponentHands];
+          const allScores = allHands.map((h) => evaluateHand([...h, ...board]));
+          let bestScore = [-1];
+          allScores.forEach((score) => {
+            if (compareScores(score, bestScore) > 0) bestScore = score;
+          });
+          const winners = [];
+          allScores.forEach((score, i) => {
+            if (compareScores(score, bestScore) === 0) winners.push(i);
+          });
+
+          // Identify winning cards for each player
+          const winningHands = allHands.map((hand, i) => {
+            if (!winners.includes(i)) return null;
+            return identifyWinningCards([...hand, ...board]);
+          });
+
+          renderPokerTable(true, winners, winningHands);
+
+          const allPlayerEquities = allHands.map((_, i) => ({
+            label: i === 0 ? "Hero" : `Opp. ${i}`,
+            percent: winners.includes(i) ? 1 / winners.length : 0,
+          }));
+
+          const liveChartsGrid = document.getElementById("live-charts-grid");
+          liveChartsGrid.innerHTML +=
+            '<div class="chart-container" id="showdown-pie-chart"></div>';
+          createPieChart(
+            document.getElementById("showdown-pie-chart"),
+            "Showdown Results (All Hands Known)",
+            allPlayerEquities
+          );
+        }
+
+        function identifyWinningCards(sevenCards) {
+          const score = evaluateHand(sevenCards);
+          const handType = score[0];
+          const rankValues = "23456789TJQKA";
+
+          // Return the 5 cards that make the winning hand
+          if (handType === 8 || handType === 4) { // Straight Flush or Straight
+            const highRank = score[1];
+            if (highRank === 3) { // Wheel (A-2-3-4-5)
+              return sevenCards.filter(c => [12, 0, 1, 2, 3].includes(rankValues.indexOf(c[0])));
+            }
+            return sevenCards.filter(c => {
+              const r = rankValues.indexOf(c[0]);
+              return r <= highRank && r >= highRank - 4;
+            }).slice(0, 5);
           }
-          return {
-            equity:
-              ((wins + ties / (1 + opponentHands.length)) /
-                SIM_COUNT_POSTFLOP) *
-              100,
-            handDistribution,
-          };
+
+          if (handType === 7) { // Quads
+            const quadRank = score[1];
+            return sevenCards.filter(c => rankValues.indexOf(c[0]) === quadRank ||
+                                          rankValues.indexOf(c[0]) === score[2]).slice(0, 5);
+          }
+
+          if (handType === 6) { // Full House
+            return sevenCards.filter(c => [score[1], score[2]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
+          }
+
+          if (handType === 5) { // Flush
+            const suits = sevenCards.map(c => c[1]);
+            const flushSuit = Object.entries(suits.reduce((acc, s) => ({...acc, [s]: (acc[s]||0)+1}), {}))
+              .find(([s, count]) => count >= 5)?.[0];
+            return sevenCards.filter(c => c[1] === flushSuit).slice(0, 5);
+          }
+
+          if (handType === 3) { // Three of a kind
+            const tripRank = score[1];
+            return sevenCards.filter(c => rankValues.indexOf(c[0]) === tripRank ||
+                                          [score[2], score[3]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
+          }
+
+          if (handType === 2) { // Two Pair
+            return sevenCards.filter(c => [score[1], score[2], score[3]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
+          }
+
+          if (handType === 1) { // One Pair
+            return sevenCards.filter(c => [score[1], score[2], score[3], score[4]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
+          }
+
+          // High card
+          return sevenCards.slice(0, 5);
         }
 
         // SECTION 4: CHARTING ENGINE
@@ -2089,9 +2434,23 @@
             .addEventListener("click", dealNextStreet);
           document
             .getElementById("reset-hand-btn")
-            .addEventListener("click", () =>
-              handleHandSelection(appState.selectedHand)
-            );
+            .addEventListener("click", () => {
+              if (appState.selectedHand) {
+                handleHandSelection(appState.selectedHand);
+              }
+            });
+          document
+            .getElementById("toggle-cards-btn")
+            .addEventListener("click", toggleOpponentCards);
+        }
+
+        function toggleOpponentCards() {
+          appState.showOpponentCards = !appState.showOpponentCards;
+          const btn = document.getElementById("toggle-cards-btn");
+          btn.textContent = appState.showOpponentCards
+            ? "Hide Opponent Cards"
+            : "Reveal Opponent Cards";
+          renderPokerTable();
         }
 
         function handleOpponentChange(e) {
@@ -2105,162 +2464,63 @@
           }
         }
 
-        async function handleHeatmapClick(e) {
+        function handleHeatmapClick(e) {
           const cell = e.target.closest(".heatmap-cell");
-          if (cell && !appState.isSimulating) {
-            await handleHandSelection(cell.dataset.hand);
+          if (cell) {
+            handleHandSelection(cell.dataset.hand);
           }
         }
 
-        async function handleHandSelection(hand) {
-          if (appState.isSimulating) return;
-          appState.isSimulating = true;
+        function handleHandSelection(hand) {
           appState.selectedHand = hand;
           resetUIForNewSelection();
           document
             .querySelectorAll(".heatmap-cell.selected")
             .forEach((c) => c.classList.remove("selected"));
-          document
-            .querySelector(`.heatmap-cell[data-hand="${hand}"]`)
-            .classList.add("selected");
+          const selectedCell = document.querySelector(`.heatmap-cell[data-hand="${hand}"]`);
+          if (selectedCell) selectedCell.classList.add("selected");
 
-          const theoreticalEquity =
-            (equityData[hand] && equityData[hand][appState.numOpponents]) || 0;
-          updateEquityDisplay(theoreticalEquity, null);
-
-          const preflopChartsGrid = document.getElementById(
-            "preflop-charts-grid"
-          );
+          const cacheKey = `${hand}|${appState.numOpponents}`;
+          const tableEntry = equityData[hand] && equityData[hand][appState.numOpponents];
+          const preflopChartsGrid = document.getElementById("preflop-charts-grid");
           preflopChartsGrid.innerHTML =
             '<div class="chart-container" id="line-chart-container"></div>';
-          createLineChart(
-            document.getElementById("line-chart-container"),
-            "Theoretical Equity vs. Opponents",
-            Object.entries(equityData[hand] || {}).map(([opps, eq]) => ({
-              x: parseInt(opps),
-              y: eq,
-            })),
-            "Equity"
-          );
 
-          appState.isSimulating = false;
-        }
-
-        async function startInteractiveHand() {
-          if (!appState.selectedHand || appState.isSimulating) return;
-          appState.isSimulating = true;
-          document.getElementById("start-interactive-btn").disabled = true;
-
-          const heroCards = handStringToCards(appState.selectedHand);
-          const deck = shuffleDeck(
-            createDeck().filter((c) => !heroCards.includes(c))
-          );
-          const opponentHands = Array.from(
-            { length: appState.numOpponents },
-            () => [deck.pop(), deck.pop()]
-          );
-          const board = Array.from({ length: 5 }, () => deck.pop());
-
-          appState.currentDeal = {
-            street: "preflop",
-            deck,
-            heroHand: heroCards,
-            opponentHands,
-            board,
-          };
-
-          document.getElementById("start-interactive-btn").style.display =
-            "none";
-          const dealBtn = document.getElementById("deal-street-btn");
-          dealBtn.style.display = "inline-block";
-          dealBtn.textContent = "Deal Flop";
-          dealBtn.disabled = false;
-          document.getElementById("reset-hand-btn").style.display =
-            "inline-block";
-          document.getElementById("live-charts-section").style.display =
-            "block";
-
-          await updateLiveAnalysis();
-          appState.isSimulating = false;
-        }
-
-        async function dealNextStreet() {
-          if (!appState.currentDeal || appState.isSimulating) return;
-          appState.isSimulating = true;
-          const dealBtn = document.getElementById("deal-street-btn");
-          dealBtn.disabled = true;
-
-          const streets = ["preflop", "flop", "turn", "river"];
-          const currentIdx = streets.indexOf(appState.currentDeal.street);
-          if (currentIdx < streets.length - 1)
-            appState.currentDeal.street = streets[currentIdx + 1];
-
-          await updateLiveAnalysis();
-          const nextIdx = streets.indexOf(appState.currentDeal.street) + 1;
-          if (nextIdx < streets.length) {
-            dealBtn.textContent = `Deal ${
-              streets[nextIdx].charAt(0).toUpperCase() +
-              streets[nextIdx].slice(1)
-            }`;
-            dealBtn.disabled = false;
+          if (equityData[hand]) {
+            createLineChart(
+              document.getElementById("line-chart-container"),
+              "Theoretical Equity vs. Opponents",
+              Object.entries(equityData[hand]).map(([opps, eq]) => ({
+                x: parseInt(opps, 10),
+                y: eq,
+              })),
+              "Equity"
+            );
           } else {
-            dealBtn.textContent = "Showdown!";
-            await handleShowdown();
+            document.getElementById("line-chart-container").innerHTML =
+              '<div class="info-box"><p>No precomputed data available for this hand.</p></div>';
           }
 
-          appState.isSimulating = false;
-        }
+          if (typeof tableEntry === "number") {
+            const result = {
+              equity: tableEntry,
+              samples: null,
+            };
+            appState.theoreticalCache.set(cacheKey, result);
+            appState.currentTheoretical = result;
+            updateEquityDisplay(result, appState.latestLiveResult);
+          } else {
+            const cached = appState.theoreticalCache.get(cacheKey);
+            if (cached) {
+              appState.currentTheoretical = cached;
+              updateEquityDisplay(cached, appState.latestLiveResult);
+            } else {
+              appState.currentTheoretical = null;
+              updateEquityDisplay(null, appState.latestLiveResult);
+            }
+          }
 
-        async function updateLiveAnalysis() {
           renderPokerTable();
-          const { equity, handDistribution } = await runLiveEquitySim();
-          updateEquityDisplay(
-            (equityData[appState.selectedHand] &&
-              equityData[appState.selectedHand][appState.numOpponents]) ||
-              0,
-            equity
-          );
-          const liveChartsGrid = document.getElementById("live-charts-grid");
-          liveChartsGrid.innerHTML =
-            '<div class="chart-container" id="live-dist-chart"></div>';
-          createDistributionBarChart(
-            document.getElementById("live-dist-chart"),
-            "Final Hand Strength %",
-            handDistribution.map((count, i) => ({
-              label: HAND_RANKS_TXT[i],
-              value: count / SIM_COUNT_POSTFLOP,
-            }))
-          );
-        }
-
-        async function handleShowdown() {
-          const { heroHand, opponentHands, board } = appState.currentDeal;
-          const allHands = [heroHand, ...opponentHands];
-          const allScores = allHands.map((h) => evaluateHand([...h, ...board]));
-          let bestScore = [-1];
-          allScores.forEach((score) => {
-            if (compareScores(score, bestScore) > 0) bestScore = score;
-          });
-          const winners = [];
-          allScores.forEach((score, i) => {
-            if (compareScores(score, bestScore) === 0) winners.push(i);
-          });
-
-          renderPokerTable(true, winners);
-
-          const allPlayerEquities = allHands.map((_, i) => ({
-            label: i === 0 ? "Hero" : `Opp. ${i}`,
-            percent: winners.includes(i) ? 1 / winners.length : 0,
-          }));
-
-          const liveChartsGrid = document.getElementById("live-charts-grid");
-          liveChartsGrid.innerHTML +=
-            '<div class="chart-container" id="showdown-pie-chart"></div>';
-          createPieChart(
-            document.getElementById("showdown-pie-chart"),
-            "Showdown Results (All Hands Known)",
-            allPlayerEquities
-          );
         }
 
         // Initialize the application
