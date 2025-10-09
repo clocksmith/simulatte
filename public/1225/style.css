@@ -42,8 +42,8 @@ code { font-family: var(--font); }
 .input-group { display: flex; flex-direction: column; margin-bottom: var(--pad-md); }
 .input-group label { margin-bottom: 0.2rem; }
 .input-group input, .input-group button, .input-group textarea { margin-bottom: 0; } /* Remove bottom margin inside groups */
-.api-key-group { flex-direction: row; align-items: baseline; gap: var(--pad-sm); margin-bottom: var(--pad-sm);}
-.api-key-group label { flex-shrink: 0; margin-bottom: 0; } .api-key-group input { flex-grow: 1; margin-bottom: 0; }
+.api-key-group { display: flex; flex-direction: row; align-items: center; gap: var(--pad-sm); margin-bottom: var(--pad-sm); grid-column: 1 / -1;}
+.api-key-group label { flex-shrink: 0; margin-bottom: 0; white-space: nowrap; } .api-key-group input { flex-grow: 1; margin-bottom: 0; } .api-key-group button { flex-shrink: 0; }
 .storage-info { font-size: 0.85em; color: var(--idle); margin-top: var(--pad-sm); text-align: right; }
 #status { font-size: 0.9em; padding: 0.2rem 0.5rem; border-radius: var(--radius); }
 .status-idle { color: var(--idle); background-color: #3a3a3a; }

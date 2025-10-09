@@ -41,9 +41,42 @@ const CycleLogic = (cfg, log, Utils, storage, State, Api, Mcp, Run) => {
     return { temp_id, req, mcp: parsed.mcp, impl: parsed.impl, wc: parsed.wc };
   };
 
+  const generate_mock_response = (req) => {
+    // Simulation mode: generate a simple mock tool
+    const toolName = req.split(' ').slice(0, 3).join('_').replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 30) || 'mock_tool';
+    return {
+      type: 'text',
+      data: JSON.stringify({
+        mcp: {
+          name: toolName,
+          description: `Mock tool for: ${req.substring(0, 100)}`,
+          inputSchema: {
+            type: 'object',
+            properties: {
+              input: { type: 'string', description: 'Input parameter' }
+            },
+            required: ['input']
+          }
+        },
+        impl: `// Mock implementation for: ${req}\nfunction run(args) {\n  return { result: 'Mock result for: ' + args.input, timestamp: Date.now() };\n}\nreturn run;`,
+        wc: `// Mock Web Component for: ${req}\nclass MockComponent extends HTMLElement {\n  connectedCallback() {\n    this.innerHTML = '<div style="padding:1rem;border:2px dashed #b16ee0;border-radius:4px;"><h3>Mock Tool</h3><p>${req.substring(0, 100)}</p><input placeholder="Input..." /><button>Run</button><pre id="output">No output yet</pre></div>';\n    this.querySelector('button').onclick = () => {\n      const input = this.querySelector('input').value;\n      this.querySelector('#output').textContent = 'Mock result for: ' + input;\n    };\n  }\n}\ncustomElements.define('${toolName.replace(/_/g, '-')}', MockComponent);`
+      }),
+      finishReason: 'STOP'
+    };
+  };
+
   const generate_single = async (req, cb) => {
     const session = State.get_session();
-    if (!session.apiKey) throw new Error('API Key required.');
+    if (!session.apiKey) {
+      // Simulation mode: generate mock response
+      log.warn('No API key - using simulation mode');
+      cb('status', { msg: 'Simulation Mode: Generating mock tool...', active: true });
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
+      const mock_result = generate_mock_response(req);
+      State.increment_stat('apiCalls'); // Still count as call for stats
+      State.set_last_error(null);
+      return process_api_response(mock_result, req);
+    }
 
     const prompt = assemble_prompt(req);
     const gen_cfg_overrides = {

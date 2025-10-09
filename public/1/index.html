@@ -15,36 +15,37 @@
       :root {
         --bg-color: #ffffff;
         --card-bg-color: #f8f8f8;
-        --text-color-dark: #1a1a1a;
-        --text-color-light: #e5e5e5;
-        --border-color: #444;
-        --border-light-color: #ddd;
-        --accent-crimson: #dc143c;
-        --accent-pink: #ff1493;
-        --accent-purple: #8a2be2;
-        --accent-cyan: #008b8b;
-        --accent-green: #2e8b57;
-        --accent-blue: #4682b4;
-        --accent-orange: #ff8c00;
-        --accent-grey: #555;
-        --accent-light-grey: #ccc;
+        --text-color-dark: #000000;
+        --text-color-light: #ffffff;
+        --border-color: #999999;
+        --border-light-color: #dddddd;
+        --accent-magenta: #ff00ff;
+        --accent-green: #00ff00;
+        --accent-cyan: #00ffff;
+        --accent-crimson: #ff00ff;
+        --accent-pink: #ff00ff;
+        --accent-purple: #ff00ff;
+        --accent-blue: #00ffff;
+        --accent-orange: #00ff00;
+        --accent-grey: #555555;
+        --accent-light-grey: #cccccc;
         --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        --card-border: 1px solid black;
+        --card-border: 1px solid #000000;
         --chart-bg: #fdfdfd;
         --page-padding: 24px;
       }
 
       html[data-theme="dark"] {
-        --bg-color: #1a1a1a;
-        --card-bg-color: #2a2a2a;
-        --text-color-dark: #e5e5e5;
-        --text-color-light: #1a1a1a;
-        --border-color: #aaa;
-        --border-light-color: #444;
-        --accent-grey: #bbb;
-        --accent-light-grey: #555;
-        --card-border: 1px solid #555;
-        --chart-bg: #333;
+        --bg-color: #000000;
+        --card-bg-color: #0f0f0f;
+        --text-color-dark: #ffffff;
+        --text-color-light: #000000;
+        --border-color: #555555;
+        --border-light-color: #333333;
+        --accent-grey: #a0a0a0;
+        --accent-light-grey: #555555;
+        --card-border: 1px solid #555555;
+        --chart-bg: #1a1a1a;
       }
 
       *,
@@ -1126,83 +1127,87 @@
         </div>
         <div class="card-content">
           <p>Coordinates:</p>
-          <math>
-            x_1 = L_1 \sin \theta_1 \\ y_1 = L_1 \cos \theta_1 \\ x_2 = x_1 +
-            L_2 \sin \theta_2 = L_1 \sin \theta_1 + L_2 \sin \theta_2 \\ y_2 =
-            y_1 + L_2 \cos \theta_2 = L_1 \cos \theta_1 + L_2 \cos \theta_2
-          </math>
-          <p>Lagrangian ( $\mathcal{L} = T - V$ ):</p>
-          <math>
-            T = \frac{1}{2} m_1 (L_1 \dot{\theta}_1)^2 + \frac{1}{2} m_2 \left[
-            (L_1 \dot{\theta}_1)^2 + (L_2 \dot{\theta}_2)^2 + 2 L_1 L_2
-            \dot{\theta}_1 \dot{\theta}_2 \cos(\theta_1 - \theta_2) \right] \\ V
-            = -m_1 g L_1 \cos \theta_1 - m_2 g (L_1 \cos \theta_1 + L_2 \cos
-            \theta_2)
-          </math>
+          <div style="font-family: 'Times New Roman', serif; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid #00ff00;">
+            x<sub>1</sub> = L<sub>1</sub> sin θ<sub>1</sub><br>
+            y<sub>1</sub> = L<sub>1</sub> cos θ<sub>1</sub><br>
+            x<sub>2</sub> = x<sub>1</sub> + L<sub>2</sub> sin θ<sub>2</sub> = L<sub>1</sub> sin θ<sub>1</sub> + L<sub>2</sub> sin θ<sub>2</sub><br>
+            y<sub>2</sub> = y<sub>1</sub> + L<sub>2</sub> cos θ<sub>2</sub> = L<sub>1</sub> cos θ<sub>1</sub> + L<sub>2</sub> cos θ<sub>2</sub>
+          </div>
+          <p>Lagrangian (ℒ = T − V):</p>
+          <div style="font-family: 'Times New Roman', serif; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid #00ff00;">
+            T = ½ m<sub>1</sub> (L<sub>1</sub> θ̇<sub>1</sub>)<sup>2</sup> + ½ m<sub>2</sub> [(L<sub>1</sub> θ̇<sub>1</sub>)<sup>2</sup> + (L<sub>2</sub> θ̇<sub>2</sub>)<sup>2</sup> + 2L<sub>1</sub>L<sub>2</sub> θ̇<sub>1</sub> θ̇<sub>2</sub> cos(θ<sub>1</sub> − θ<sub>2</sub>)]<br>
+            V = −m<sub>1</sub> g L<sub>1</sub> cos θ<sub>1</sub> − m<sub>2</sub> g (L<sub>1</sub> cos θ<sub>1</sub> + L<sub>2</sub> cos θ<sub>2</sub>)
+          </div>
           <p>
-            Equations of Motion (from Euler-Lagrange $\frac{d}{dt}
-            \frac{\partial \mathcal{L}}{\partial \dot{\theta}_i} -
-            \frac{\partial \mathcal{L}}{\partial \theta_i} = Q_i$ ):
+            Equations of Motion (from Euler-Lagrange: d/dt(∂ℒ/∂θ̇<sub>i</sub>) − ∂ℒ/∂θ<sub>i</sub> = Q<sub>i</sub>):
           </p>
-          <math display="block">
-            \begin{pmatrix} M_{11} & M_{12} \\ M_{21} & M_{22} \end{pmatrix}
-            \begin{pmatrix} \ddot{\theta}_1 \\ \ddot{\theta}_2 \end{pmatrix} =
-            \begin{pmatrix} F_1 \\ F_2 \end{pmatrix} + \begin{pmatrix} Q_{1,ext}
-            \\ Q_{2,ext} \end{pmatrix}
-          </math>
+          <div style="font-family: 'Times New Roman', serif; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid #00ff00; text-align: center;">
+            <div style="display: inline-block; vertical-align: middle;">
+              <div style="border: 1px solid #666; padding: 5px; display: inline-block;">
+                M<sub>11</sub> &nbsp; M<sub>12</sub><br>
+                M<sub>21</sub> &nbsp; M<sub>22</sub>
+              </div>
+              <div style="display: inline-block; vertical-align: middle; padding: 5px; border: 1px solid #666; margin: 0 10px;">
+                θ̈<sub>1</sub><br>
+                θ̈<sub>2</sub>
+              </div>
+              =
+              <div style="display: inline-block; vertical-align: middle; padding: 5px; border: 1px solid #666; margin: 0 10px;">
+                F<sub>1</sub><br>
+                F<sub>2</sub>
+              </div>
+              +
+              <div style="display: inline-block; vertical-align: middle; padding: 5px; border: 1px solid #666; margin: 0 10px;">
+                Q<sub>1,ext</sub><br>
+                Q<sub>2,ext</sub>
+              </div>
+            </div>
+          </div>
           <small
-            >Where $M$ is the mass matrix, $F$ contains gravitational and
-            centrifugal/Coriolis terms, and $Q_{ext}$ are external generalized
+            >Where M is the mass matrix, F contains gravitational and
+            centrifugal/Coriolis terms, and Q<sub>ext</sub> are external generalized
             forces (damping, wind, Lorentz).</small
           >
-          <math display="block">
-            \ddot{\theta}_1 = \frac{-g(2m_1+m_2)\sin\theta_1 - m_2 g
-            \sin(\theta_1-2\theta_2) -
-            2\sin(\theta_1-\theta_2)m_2(L_2\dot{\theta}_2^2 +
-            L_1\dot{\theta}_1^2\cos(\theta_1-\theta_2))}{L_1(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2))}
-            + Q'_{1} \\ \ddot{\theta}_2 =
-            \frac{2\sin(\theta_1-\theta_2)\left(L_1\dot{\theta}_1^2(m_1+m_2) +
-            g(m_1+m_2)\cos\theta_1 + L_2\dot{\theta}_2^2 m_2
-            \cos(\theta_1-\theta_2)\right)}{L_2(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2))}
-            + Q'_{2}
-          </math>
+          <div style="font-family: 'Times New Roman', serif; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid #00ff00; font-size: 0.9em;">
+            θ̈<sub>1</sub> = [−g(2m<sub>1</sub>+m<sub>2</sub>)sin θ<sub>1</sub> − m<sub>2</sub>g sin(θ<sub>1</sub>−2θ<sub>2</sub>) − 2sin(θ<sub>1</sub>−θ<sub>2</sub>)m<sub>2</sub>(L<sub>2</sub>θ̇<sub>2</sub><sup>2</sup> + L<sub>1</sub>θ̇<sub>1</sub><sup>2</sup>cos(θ<sub>1</sub>−θ<sub>2</sub>))] / [L<sub>1</sub>(2m<sub>1</sub>+m<sub>2</sub>−m<sub>2</sub>cos(2θ<sub>1</sub>−2θ<sub>2</sub>))] + Q′<sub>1</sub><br><br>
+            θ̈<sub>2</sub> = [2sin(θ<sub>1</sub>−θ<sub>2</sub>)(L<sub>1</sub>θ̇<sub>1</sub><sup>2</sup>(m<sub>1</sub>+m<sub>2</sub>)+g(m<sub>1</sub>+m<sub>2</sub>)cos θ<sub>1</sub>+L<sub>2</sub>m<sub>2</sub>θ̇<sub>2</sub><sup>2</sup>cos(θ<sub>1</sub>−θ<sub>2</sub>))] / [L<sub>2</sub>(2m<sub>1</sub>+m<sub>2</sub>−m<sub>2</sub>cos(2θ<sub>1</sub>−2θ<sub>2</sub>))] + Q′<sub>2</sub>
+          </div>
           <small
-            >$Q'_{i}$ represents the effect of external torques after inverting
+            >Q′<sub>i</sub> represents the effect of external torques after inverting
             the mass matrix.</small
           >
           <p>
-            External Forces (Cartesian Components & Generalized Torques $Q_i$):
+            External Forces (Cartesian Components & Generalized Torques Q<sub>i</sub>):
           </p>
-          <math>
-            \vec{F}_{g,j} = (0, -m_j g) \\ \vec{F}_{d,j} = -d_j \vec{v}_j \\
-            \vec{F}_{wind} = (F_W \cos \phi_W, F_W \sin \phi_W) \\ \vec{F}_{B,j}
-            = q_j (\vec{v}_j \times \vec{B}) = q_j (v_{j,y} B_z, -v_{j,x} B_z)
-            \\ Q_{i,ext} = \sum_{j=1,2} (\vec{r}_j \times (\vec{F}_{d,j} +
-            \vec{F}_{wind} + \vec{F}_{B,j}))_z
-          </math>
-          <p>Total Energy ( $E = T + V$ ):</p>
-          <math>
-            E = \text{Kinetic Energy (T)} + \text{Potential Energy (V)}
-          </math>
-          <p>Numerical Integration (4th Order Runge-Kutta):</p>
-          <math>
-            \vec{y}_{n+1} = \vec{y}_n + \frac{h}{6}(\vec{k}_1 + 2\vec{k}_2 +
-            2\vec{k}_3 + \vec{k}_4) \quad \text{where} \quad \vec{y} =
-            (\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2)
-          </math>
+          <div style="font-family: 'Times New Roman', serif; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid #00ff00;">
+            <b>F</b><sub>g,j</sub> = (0, −m<sub>j</sub> g)<br>
+            <b>F</b><sub>d,j</sub> = −d<sub>j</sub> <b>v</b><sub>j</sub><br>
+            <b>F</b><sub>wind</sub> = (F<sub>W</sub> cos φ<sub>W</sub>, F<sub>W</sub> sin φ<sub>W</sub>)<br>
+            <b>F</b><sub>B,j</sub> = q<sub>j</sub> (<b>v</b><sub>j</sub> × <b>B</b>) = q<sub>j</sub> (v<sub>j,y</sub> B<sub>z</sub>, −v<sub>j,x</sub> B<sub>z</sub>)<br>
+            Q<sub>i,ext</sub> = Σ<sub>j=1,2</sub> (<b>r</b><sub>j</sub> × (<b>F</b><sub>d,j</sub> + <b>F</b><sub>wind</sub> + <b>F</b><sub>B,j</sub>))<sub>z</sub>
+          </div>
+          <p>Total Energy (E = T + V):</p>
+          <div style="font-family: 'Times New Roman', serif; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid #00ff00;">
+            E = Kinetic Energy (T) + Potential Energy (V)
+          </div>
+          <p>Numerical Integration (Symplectic Semi-Implicit Euler):</p>
+          <div style="font-family: 'Times New Roman', serif; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid #00ff00;">
+            θ̇<sub>n+½</sub> = θ̇<sub>n</sub> + (h/2)θ̈(θ<sub>n</sub>, θ̇<sub>n</sub>)<br>
+            θ<sub>n+1</sub> = θ<sub>n</sub> + h θ̇<sub>n+½</sub><br>
+            θ̇<sub>n+1</sub> = θ̇<sub>n+½</sub> + (h/2)θ̈(θ<sub>n+1</sub>, θ̇<sub>n+½</sub>)
+          </div>
           <p class="explanation">
-            <b>Energy Conservation:</b> In an ideal system with no damping
-            ($d_1=d_2=0$) and no external forces (wind/Lorentz forces = 0), the
-            total mechanical energy $E = T + V$ should remain constant over
-            time. This is because gravity is a conservative force. However,
-            numerical integration methods like RK4 introduce small computational
-            errors at each step, which can cause the calculated energy to drift
-            slightly over long simulations. The "Energy Variation" metric
-            reflects these numerical fluctuations or actual energy changes if
+            <b>Energy Conservation:</b> This simulation uses a symplectic (energy-preserving) integrator
+            that maintains the Hamiltonian structure of the system. In an ideal system with no damping
+            (d<sub>1</sub>=d<sub>2</sub>=0) and no external forces (wind/Lorentz forces = 0), the
+            total mechanical energy E = T + V remains nearly constant over
+            long simulations. Unlike standard explicit methods, symplectic integrators prevent
+            long-term energy drift by preserving the phase-space volume. The "Energy Variation" metric
+            reflects small bounded oscillations in energy (not cumulative drift) or actual energy changes if
             non-conservative forces are active. For the default parameters
-            ($L_1=L_2=1$, $m_1=m_2=1$, $g=9.80665$, $\theta_1=120^\circ$,
-            $\theta_2=-30^\circ$, $\dot{\theta}_1=\dot{\theta}_2=0$), the
-            initial total energy is approximately $1.314$ Joules.
+            (L<sub>1</sub>=L<sub>2</sub>=1, m<sub>1</sub>=m<sub>2</sub>=1, g=9.80665, θ<sub>1</sub>=120°,
+            θ<sub>2</sub>=−30°, θ̇<sub>1</sub>=θ̇<sub>2</sub>=0), the
+            initial total energy is approximately 1.314 Joules.
           </p>
         </div>
       </div>
@@ -1356,8 +1361,82 @@
       let isDraggingM2 = false;
       let originX, originY;
 
-      let trace1 = [];
-      let trace2 = [];
+      const sanitizeTraceLimit = (value) => Math.max(0, Math.floor(value));
+      const computeTraceCapacity = (limit) => Math.max(1, limit || 1);
+
+      const createTraceBuffer = (maxPoints) => {
+        const limit = sanitizeTraceLimit(maxPoints);
+        const capacity = computeTraceCapacity(limit);
+        return {
+          xs: new Float32Array(capacity),
+          ys: new Float32Array(capacity),
+          start: 0,
+          size: 0,
+          capacity,
+          limit,
+        };
+      };
+
+      const resizeTraceBuffer = (buffer, maxPoints) => {
+        const limit = sanitizeTraceLimit(maxPoints);
+        const capacity = computeTraceCapacity(limit);
+        if (buffer.capacity !== capacity) {
+          buffer.xs = new Float32Array(capacity);
+          buffer.ys = new Float32Array(capacity);
+          buffer.capacity = capacity;
+        }
+        buffer.start = 0;
+        buffer.size = 0;
+        buffer.limit = limit;
+        return buffer;
+      };
+
+      const clearTraceBuffer = (buffer) => {
+        buffer.start = 0;
+        buffer.size = 0;
+      };
+
+      const pushTracePoint = (buffer, x, y) => {
+        if (buffer.limit === 0) return;
+        const idx = (buffer.start + buffer.size) % buffer.capacity;
+        buffer.xs[idx] = x;
+        buffer.ys[idx] = y;
+        if (buffer.size < buffer.limit) {
+          buffer.size++;
+        } else {
+          buffer.start = (buffer.start + 1) % buffer.capacity;
+        }
+      };
+
+      let trace1 = createTraceBuffer(trace1MaxLength);
+      let trace2 = createTraceBuffer(trace2MaxLength);
+
+      const fieldVisualCache = {
+        magnetic: {
+          positions: new Float32Array(0),
+          strength: 0,
+          symbol: "⊗",
+          fillStyle: "",
+          fontSize: 12,
+          fieldLines: [], // Array of {x, y, vx, vy} for field line segments
+        },
+        wind: {
+          positions: new Float32Array(0),
+          color: "",
+          magnitude: 0,
+          length: 0,
+          angle: 0,
+          streamlines: [], // Better visualization with streamlines
+        },
+        electric: {
+          charges: [], // {x, y, q} for visualizing charges
+          fieldArrows: [], // Electric field arrows around charges
+        },
+      };
+
+      const fract = (value) => value - Math.floor(value);
+      const seededRandom = (index, salt) =>
+        fract(Math.sin(index * 12.9898 + salt * 78.233) * 43758.5453);
       let chaosValueHistory = [];
       const CHAOS_HISTORY_LENGTH = 120;
       let colorBob1, colorBob2, colorTrace1, colorTrace2, colorRod, colorPivot;
@@ -1385,6 +1464,7 @@
       let currentRecordingMode = "live";
       const LOCAL_STORAGE_KEY = "pendulumRecordedData_v2";
       let isGeneratingFastCSV = false;
+      let fastCsvStartTime = 0;
 
       function getCssVariable(varName) {
         return getComputedStyle(document.documentElement)
@@ -1508,35 +1588,39 @@
         return { angularAccel1, angularAccel2 };
       }
 
-      function getDerivatives(state) {
-        const [th1, th2, om1, om2] = state;
-        const { angularAccel1, angularAccel2 } = calculateAccelerations(
-          th1,
-          th2,
-          om1,
-          om2
-        );
-        return [om1, om2, angularAccel1, angularAccel2];
-      }
+      // Symplectic (energy-preserving) integrator
+      // This is actually a semi-implicit Euler variant, not RK4
+      // It conserves energy better than standard explicit methods
+      function symplecticIntegrate(dt) {
+        const halfStep = dt * 0.5;
 
-      function rk4Step(currentState, dt) {
-        const k1 = getDerivatives(currentState);
-        const k2State = currentState.map((val, i) => val + 0.5 * dt * k1[i]);
-        const k2 = getDerivatives(k2State);
-        const k3State = currentState.map((val, i) => val + 0.5 * dt * k2[i]);
-        const k3 = getDerivatives(k3State);
-        const k4State = currentState.map((val, i) => val + dt * k3[i]);
-        const k4 = getDerivatives(k4State);
-        const newState = currentState.map(
-          (val, i) => val + (dt / 6.0) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i])
+        // Half-step velocity update using current positions
+        const firstAccel = calculateAccelerations(
+          theta1,
+          theta2,
+          omega1,
+          omega2
         );
-        return newState;
+        omega1 += firstAccel.angularAccel1 * halfStep;
+        omega2 += firstAccel.angularAccel2 * halfStep;
+
+        // Full-step position update using half-stepped velocities
+        theta1 += omega1 * dt;
+        theta2 += omega2 * dt;
+
+        // Complete velocity update using new positions
+        const secondAccel = calculateAccelerations(
+          theta1,
+          theta2,
+          omega1,
+          omega2
+        );
+        omega1 += secondAccel.angularAccel1 * halfStep;
+        omega2 += secondAccel.angularAccel2 * halfStep;
       }
 
       function updatePhysics() {
-        const currentState = [theta1, theta2, omega1, omega2];
-        const newState = rk4Step(currentState, timeStep);
-        [theta1, theta2, omega1, omega2] = newState;
+        symplecticIntegrate(timeStep);
         time += timeStep;
         if (
           currentRecordingMode === "live" &&
@@ -1601,6 +1685,83 @@
         }
       }
 
+      function drawElectricCharges(x1, y1, x2, y2) {
+        const epsilon = 0.01;
+        if (Math.abs(charge1) < epsilon && Math.abs(charge2) < epsilon) return;
+
+        ctx.save();
+
+        // Draw charge indicators on the bobs
+        if (Math.abs(charge1) >= epsilon) {
+          const radius = 8 + Math.min(12, Math.abs(charge1) * 10);
+          ctx.strokeStyle = charge1 > 0
+            ? `rgba(255, 0, 255, ${Math.min(0.8, 0.3 + Math.abs(charge1) * 0.2)})`
+            : `rgba(0, 255, 255, ${Math.min(0.8, 0.3 + Math.abs(charge1) * 0.2)})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x1, y1, radius, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Draw + or - symbol
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.font = 'bold 16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(charge1 > 0 ? '+' : '−', x1, y1 - radius - 12);
+        }
+
+        if (Math.abs(charge2) >= epsilon) {
+          const radius = 8 + Math.min(12, Math.abs(charge2) * 10);
+          ctx.strokeStyle = charge2 > 0
+            ? `rgba(255, 0, 255, ${Math.min(0.8, 0.3 + Math.abs(charge2) * 0.2)})`
+            : `rgba(0, 255, 255, ${Math.min(0.8, 0.3 + Math.abs(charge2) * 0.2)})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x2, y2, radius, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.font = 'bold 16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(charge2 > 0 ? '+' : '−', x2, y2 - radius - 12);
+        }
+
+        // Draw electric field lines if both charges exist and magnetic field is present
+        if (Math.abs(charge1) >= epsilon && Math.abs(charge2) >= epsilon && Math.abs(magFieldBz) >= epsilon) {
+          // Show Lorentz force effect - curved trajectory indicators
+          const s1 = Math.sin(theta1);
+          const c1 = Math.cos(theta1);
+          const s2 = Math.sin(theta2);
+          const c2 = Math.cos(theta2);
+          const vx1 = length1 * c1 * omega1;
+          const vy1 = -length1 * s1 * omega1;
+          const vx2 = vx1 + length2 * c2 * omega2;
+          const vy2 = vy1 - length2 * s2 * omega2;
+
+          const v1mag = Math.hypot(vx1, vy1);
+          const v2mag = Math.hypot(vx2, vy2);
+
+          if (v1mag > epsilon) {
+            const forceScale = 30;
+            const fx = charge1 * vy1 * magFieldBz * forceScale;
+            const fy = -charge1 * vx1 * magFieldBz * forceScale;
+            drawArrow(x1, y1, Math.atan2(fy, fx), Math.min(40, Math.hypot(fx, fy)),
+              `rgba(255, 0, 255, 0.6)`, false);
+          }
+
+          if (v2mag > epsilon) {
+            const forceScale = 30;
+            const fx = charge2 * vy2 * magFieldBz * forceScale;
+            const fy = -charge2 * vx2 * magFieldBz * forceScale;
+            drawArrow(x2, y2, Math.atan2(fy, fx), Math.min(40, Math.hypot(fx, fy)),
+              `rgba(255, 0, 255, 0.6)`, false);
+          }
+        }
+
+        ctx.restore();
+      }
+
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = getCssVariable("--bg-color");
@@ -1621,11 +1782,10 @@
         const y1 = originY + y1Rel;
         const x2 = originX + x2Rel;
         const y2 = originY + y2Rel;
+        drawElectricCharges(x1, y1, x2, y2);
         if (isRunning || isDraggingM1 || isDraggingM2) {
-          trace1.push({ x: x1, y: y1 });
-          trace2.push({ x: x2, y: y2 });
-          if (trace1.length > trace1MaxLength) trace1.shift();
-          if (trace2.length > trace2MaxLength) trace2.shift();
+          pushTracePoint(trace1, x1, y1);
+          pushTracePoint(trace2, x2, y2);
         }
         drawTrace(trace1, colorTrace1);
         drawTrace(trace2, colorTrace2);
@@ -1637,52 +1797,206 @@
         drawDampingForces(x1, y1, x2, y2);
       }
 
-      function drawMagneticField() {
-        const fieldStrength = Math.abs(magFieldBz);
-        if (fieldStrength < 0.01) return;
-        const symbol = magFieldBz > 0 ? "⊗" : "⊙";
-        const baseColor =
-          magFieldBz > 0 ? "rgba(0, 0, 255," : "rgba(255, 0, 0,";
-        const densityFactor = Math.min(10, 1 + fieldStrength * 2);
-        const canvasArea = canvas.width * canvas.height;
+      function refreshMagneticFieldCache() {
+        const cache = fieldVisualCache.magnetic;
+        cache.strength = Math.abs(magFieldBz);
+        cache.symbol = magFieldBz >= 0 ? "⊗" : "⊙";
+        cache.fillStyle = cache.strength < 0.01
+          ? ""
+          : `${magFieldBz >= 0 ? "rgba(0, 0, 255," : "rgba(255, 0, 0,"}${Math.min(
+              0.35,
+              0.1 + cache.strength * 0.05
+            )})`;
+        cache.fontSize = 10 + Math.min(10, cache.strength * 2);
+
+        if (cache.strength < 0.01 || canvas.width === 0 || canvas.height === 0) {
+          cache.positions = new Float32Array(0);
+          cache.fieldLines = [];
+          return;
+        }
+
+        const densityFactor = Math.min(10, 1 + cache.strength * 2);
         const baseDensityArea = 400 * 400;
         const numSymbols = Math.floor(
-          (canvasArea / baseDensityArea) * densityFactor * 20
+          ((canvas.width * canvas.height) / baseDensityArea) * densityFactor * 20
         );
-        const alpha = Math.min(0.35, 0.1 + fieldStrength * 0.05);
-        ctx.font = `${10 + Math.min(10, fieldStrength * 2)}px Arial`;
-        ctx.fillStyle = baseColor + alpha + ")";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        const positions = new Float32Array(numSymbols * 2);
         for (let i = 0; i < numSymbols; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          ctx.fillText(symbol, x, y);
+          const x = seededRandom(i + 1, 0.5) * canvas.width;
+          const y = seededRandom(i + 1, 1.5) * canvas.height;
+          positions[i * 2] = x;
+          positions[i * 2 + 1] = y;
+        }
+        cache.positions = positions;
+
+        // Generate circular magnetic field lines (perpendicular to B field)
+        cache.fieldLines = [];
+        const numCircles = Math.min(8, Math.floor(2 + cache.strength));
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const maxRadius = Math.min(canvas.width, canvas.height) * 0.45;
+
+        for (let i = 1; i <= numCircles; i++) {
+          const radius = (maxRadius / numCircles) * i;
+          const numPoints = Math.max(24, Math.floor(radius / 8));
+          const points = [];
+          for (let j = 0; j < numPoints; j++) {
+            const angle = (j / numPoints) * Math.PI * 2;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            // Tangent direction (perpendicular to radius)
+            const tx = -Math.sin(angle) * (magFieldBz >= 0 ? 1 : -1);
+            const ty = Math.cos(angle) * (magFieldBz >= 0 ? 1 : -1);
+            points.push({ x, y, tx, ty });
+          }
+          cache.fieldLines.push(points);
         }
       }
 
-      function drawWindField() {
-        const windMag = dirForceMag;
-        if (windMag < 0.01) return;
-        const angleRad = dirForceAngleRad;
-        const densityFactor = Math.min(5, windMag) * 10;
-        const canvasArea = canvas.width * canvas.height;
+      function refreshWindFieldCache() {
+        const cache = fieldVisualCache.wind;
+        cache.magnitude = dirForceMag;
+        cache.angle = dirForceAngleRad;
+
+        if (cache.magnitude < 0.01 || canvas.width === 0 || canvas.height === 0) {
+          cache.positions = new Float32Array(0);
+          cache.color = "";
+          cache.length = 0;
+          cache.streamlines = [];
+          return;
+        }
+
+        const densityFactor = Math.min(5, cache.magnitude) * 10;
         const baseDensityArea = 400 * 400;
         const numArrows = Math.floor(
-          (canvasArea / baseDensityArea) * densityFactor * 10
+          ((canvas.width * canvas.height) / baseDensityArea) * densityFactor * 10
         );
-        const alpha = Math.min(0.4, 0.1 + windMag * 0.1);
-        const arrowLength = 15 + Math.min(15, windMag * 10);
-        const color = `rgba(100, 100, 100, ${alpha})`;
-
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color;
-        ctx.lineWidth = 1;
-
+        const alpha = Math.min(0.4, 0.1 + cache.magnitude * 0.1);
+        cache.color = `rgba(0, 255, 0, ${alpha})`;
+        cache.length = 15 + Math.min(15, cache.magnitude * 10);
+        const positions = new Float32Array(numArrows * 2);
         for (let i = 0; i < numArrows; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          drawArrow(x, y, angleRad, arrowLength, color, true);
+          const x = seededRandom(i + 1, 2.5) * canvas.width;
+          const y = seededRandom(i + 1, 3.5) * canvas.height;
+          positions[i * 2] = x;
+          positions[i * 2 + 1] = y;
+        }
+        cache.positions = positions;
+
+        // Generate streamlines for better wind visualization
+        cache.streamlines = [];
+        const numStreams = Math.max(5, Math.floor(cache.magnitude * 3));
+        const streamLength = cache.length * 2;
+        const dx = Math.cos(cache.angle);
+        const dy = Math.sin(cache.angle);
+
+        for (let i = 0; i < numStreams; i++) {
+          const startX = seededRandom(i + 100, 4.5) * canvas.width;
+          const startY = seededRandom(i + 100, 5.5) * canvas.height;
+          const points = [];
+          for (let j = 0; j <= 8; j++) {
+            const t = j / 8;
+            points.push({
+              x: startX + dx * streamLength * t,
+              y: startY + dy * streamLength * t,
+            });
+          }
+          cache.streamlines.push(points);
+        }
+      }
+
+      function drawMagneticField() {
+        const cache = fieldVisualCache.magnetic;
+        if (cache.positions.length < 2 || cache.strength < 0.01) return;
+        ctx.save();
+
+        // Draw circular field lines (improved visualization)
+        if (cache.fieldLines.length > 0) {
+          ctx.strokeStyle = magFieldBz >= 0
+            ? `rgba(0, 255, 255, ${Math.min(0.6, 0.2 + cache.strength * 0.1)})`
+            : `rgba(255, 0, 255, ${Math.min(0.6, 0.2 + cache.strength * 0.1)})`;
+          ctx.lineWidth = 2;
+
+          for (const circle of cache.fieldLines) {
+            ctx.beginPath();
+            ctx.moveTo(circle[0].x, circle[0].y);
+            for (let i = 1; i < circle.length; i++) {
+              ctx.lineTo(circle[i].x, circle[i].y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            // Draw direction arrows on field lines
+            const arrowCount = Math.max(3, Math.floor(circle.length / 8));
+            for (let i = 0; i < arrowCount; i++) {
+              const idx = Math.floor((i / arrowCount) * circle.length);
+              const pt = circle[idx];
+              const arrowSize = 8;
+              ctx.save();
+              ctx.translate(pt.x, pt.y);
+              const angle = Math.atan2(pt.ty, pt.tx);
+              ctx.rotate(angle);
+              ctx.fillStyle = ctx.strokeStyle;
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              ctx.lineTo(-arrowSize, -arrowSize/2);
+              ctx.lineTo(-arrowSize, arrowSize/2);
+              ctx.closePath();
+              ctx.fill();
+              ctx.restore();
+            }
+          }
+        }
+
+        // Still draw symbols for density indication
+        ctx.font = `${cache.fontSize}px Arial`;
+        ctx.fillStyle = cache.fillStyle;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (let i = 0; i < cache.positions.length; i += 2) {
+          ctx.fillText(cache.symbol, cache.positions[i], cache.positions[i + 1]);
+        }
+        ctx.restore();
+      }
+
+      function drawWindField() {
+        const cache = fieldVisualCache.wind;
+        if (cache.positions.length < 2 || cache.magnitude < 0.01) return;
+
+        // Draw streamlines for better flow visualization
+        if (cache.streamlines.length > 0) {
+          ctx.save();
+          const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+          gradient.addColorStop(0, `rgba(0, 255, 0, ${Math.min(0.3, cache.magnitude * 0.1)})`);
+          gradient.addColorStop(1, `rgba(0, 255, 0, ${Math.min(0.6, cache.magnitude * 0.2)})`);
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 2;
+
+          for (const stream of cache.streamlines) {
+            ctx.beginPath();
+            ctx.moveTo(stream[0].x, stream[0].y);
+            for (let i = 1; i < stream.length; i++) {
+              ctx.lineTo(stream[i].x, stream[i].y);
+            }
+            ctx.stroke();
+
+            // Draw arrow at end of streamline
+            const last = stream[stream.length - 1];
+            drawArrow(last.x, last.y, cache.angle, cache.length * 0.6, cache.color, true);
+          }
+          ctx.restore();
+        }
+
+        // Draw individual arrows
+        for (let i = 0; i < cache.positions.length; i += 2) {
+          drawArrow(
+            cache.positions[i],
+            cache.positions[i + 1],
+            cache.angle,
+            cache.length,
+            cache.color,
+            true
+          );
         }
       }
 
@@ -1748,14 +2062,17 @@
         ctx.restore();
       }
 
-      function drawTrace(trace, color) {
-        if (trace.length < 2) return;
+      function drawTrace(traceBuffer, color) {
+        if (traceBuffer.size < 2 || traceBuffer.limit === 0) return;
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(trace[0].x, trace[0].y);
-        for (let i = 1; i < trace.length; i++)
-          ctx.lineTo(trace[i].x, trace[i].y);
+        let idx = traceBuffer.start;
+        ctx.moveTo(traceBuffer.xs[idx], traceBuffer.ys[idx]);
+        for (let i = 1; i < traceBuffer.size; i++) {
+          idx = (idx + 1) % traceBuffer.capacity;
+          ctx.lineTo(traceBuffer.xs[idx], traceBuffer.ys[idx]);
+        }
         ctx.stroke();
       }
 
@@ -1913,12 +2230,13 @@
           f2wx = 0,
           f2wy = 0;
         if (dirForceMag > 1e-9) {
-          const windX = dirForceMag * Math.cos(dirForceAngleRad);
-          const windY = dirForceMag * Math.sin(dirForceAngleRad);
-          f1wx = windX;
-          f1wy = windY;
-          f2wx = windX;
-          f2wy = windY;
+          // dirForceMag is in Newtons (force), use directly without multiplying by mass
+          const windForceX = dirForceMag * Math.cos(dirForceAngleRad);
+          const windForceY = dirForceMag * Math.sin(dirForceAngleRad);
+          f1wx = windForceX;
+          f1wy = windForceY;
+          f2wx = windForceX;
+          f2wy = windForceY;
         }
         return {
           f1gx,
@@ -2012,6 +2330,7 @@
       }
 
       function drawHistoryCharts() {
+        if (isGeneratingFastCSV) return;
         drawOmegaHistoryChart();
         drawEnergyHistoryChart();
         drawChaosHistoryChart();
@@ -2258,6 +2577,8 @@
 
       function startSimulation() {
         if (isGeneratingFastCSV) return;
+
+        applyInputConstraints();
         currentRecordingMode = document.querySelector(
           'input[name="recordMode"]:checked'
         ).value;
@@ -2306,6 +2627,7 @@
       }
       function generateFastCSV() {
         if (isRunning || isGeneratingFastCSV) return;
+        applyInputConstraints();
         resetSimulationStateOnly();
         isGeneratingFastCSV = true;
         recordedData = [];
@@ -2314,8 +2636,8 @@
         downloadDataButton.disabled = true;
         disableInputs(true);
         dataRecordingStatus.textContent = `Generating CSV (0s / ${maxRecordingTime}s)...`;
-        let startTime = PERF.now();
-        let lastUpdate = startTime;
+        fastCsvStartTime = PERF.now();
+        let lastUpdate = fastCsvStartTime;
         function runChunk() {
           if (!isGeneratingFastCSV) return;
           const chunkEndTime = time + 1.0;
@@ -2351,7 +2673,7 @@
         isGeneratingFastCSV = false;
         const endTime = performance.now();
         const duration = (
-          (endTime - (lastTimestamp || startTime)) /
+          (endTime - (fastCsvStartTime || endTime)) /
           1000
         ).toFixed(2);
         dataRecordingStatus.textContent = `CSV generation complete (${recordedData.length} points in ${duration}s). Data ready.`;
@@ -2368,8 +2690,8 @@
         omega1 = 0;
         omega2 = 0;
         time = 0;
-        trace1 = [];
-        trace2 = [];
+        clearTraceBuffer(trace1);
+        clearTraceBuffer(trace2);
         chaosValueHistory = [];
         omega1History = [];
         omega2History = [];
@@ -2401,29 +2723,51 @@
         defaultX2Display.value = x2.toFixed(3);
         defaultY2Display.value = y2.toFixed(3);
       }
+
+      function applyInputConstraints() {
+        const clampNumber = (input, min, fallback) => {
+          let value = parseFloat(input.value);
+          if (!Number.isFinite(value)) value = fallback;
+          if (min !== null) value = Math.max(min, value);
+          input.value = value.toString();
+          return value;
+        };
+
+        const clampInt = (input, min, fallback) => {
+          let value = parseInt(input.value, 10);
+          if (!Number.isFinite(value)) value = fallback;
+          value = Math.max(min, value);
+          input.value = value.toString();
+          return value;
+        };
+
+        gravity = clampNumber(gravityInput, 0, gravity);
+        length1 = clampNumber(length1Input, 0.1, length1);
+        length2 = clampNumber(length2Input, 0.1, length2);
+        mass1 = clampNumber(mass1Input, 0.1, mass1);
+        mass2 = clampNumber(mass2Input, 0.1, mass2);
+        damping1 = clampNumber(damping1Input, 0, damping1);
+        damping2 = clampNumber(damping2Input, 0, damping2);
+        dirForceMag = clampNumber(dirForceMagInput, 0, dirForceMag);
+        dirForceAngleRad =
+          ((parseFloat(dirForceAngleInput.value) || 0) * Math.PI) / 180;
+        charge1 = parseFloat(charge1Input.value) || charge1;
+        charge2 = parseFloat(charge2Input.value) || charge2;
+        magFieldBz = parseFloat(magFieldInput.value) || magFieldBz;
+        trace1MaxLength = clampInt(trace1LengthInput, 0, trace1MaxLength);
+        trace2MaxLength = clampInt(trace2LengthInput, 0, trace2MaxLength);
+        simulationUpdateRateHz = clampInt(simRateInput, 10, simulationUpdateRateHz);
+        canvasRenderRateFps = clampInt(renderRateInput, 1, canvasRenderRateFps);
+        maxRecordingTime = clampInt(maxRecordTimeInput, 1, maxRecordingTime);
+        timeStep = 1.0 / simulationUpdateRateHz;
+        resizeTraceBuffer(trace1, trace1MaxLength);
+        resizeTraceBuffer(trace2, trace2MaxLength);
+      }
       function resetSimulation() {
         stopSimulation();
         defaultTheta1 = (parseFloat(defaultTheta1Input.value) * Math.PI) / 180;
         defaultTheta2 = (parseFloat(defaultTheta2Input.value) * Math.PI) / 180;
-        length1 = Math.max(0.1, parseFloat(length1Input.value));
-        length2 = Math.max(0.1, parseFloat(length2Input.value));
-        gravity = Math.max(0, parseFloat(gravityInput.value));
-        mass1 = Math.max(0.1, parseFloat(mass1Input.value));
-        mass2 = Math.max(0.1, parseFloat(mass2Input.value));
-        damping1 = Math.max(0, parseFloat(damping1Input.value));
-        damping2 = Math.max(0, parseFloat(damping2Input.value));
-        trace1MaxLength = Math.max(0, parseInt(trace1LengthInput.value, 10));
-        trace2MaxLength = Math.max(0, parseInt(trace2LengthInput.value, 10));
-        dirForceMag = Math.max(0, parseFloat(dirForceMagInput.value));
-        dirForceAngleRad =
-          (parseFloat(dirForceAngleInput.value) * Math.PI) / 180;
-        charge1 = parseFloat(charge1Input.value);
-        charge2 = parseFloat(charge2Input.value);
-        magFieldBz = parseFloat(magFieldInput.value);
-        simulationUpdateRateHz = Math.max(10, parseInt(simRateInput.value, 10));
-        canvasRenderRateFps = Math.max(1, parseInt(renderRateInput.value, 10));
-        timeStep = 1.0 / simulationUpdateRateHz;
-        maxRecordingTime = Math.max(1, parseInt(maxRecordTimeInput.value, 10));
+        applyInputConstraints();
         resetSimulationStateOnly();
         updateDefaultPositionDisplays();
         startButton.disabled = false;
@@ -2432,6 +2776,8 @@
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         calculateEstimatedSize();
         updateRecordingStatus();
+        refreshMagneticFieldCache();
+        refreshWindFieldCache();
         resizeCanvas();
         draw();
         updateVisualsPanel();
@@ -2659,6 +3005,8 @@
         if (maxExtent < 1e-6) pixelsPerMeter = 50;
         originX = canvas.width / 2;
         originY = canvas.height * 0.4;
+        refreshMagneticFieldCache();
+        refreshWindFieldCache();
         if (
           !isRunning &&
           !isDraggingM1 &&

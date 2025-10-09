@@ -1,5 +1,6 @@
 import config from "./config.js";
 import Storage from "./storage.js";
+import Utils from "./utils.js";
 
 const bootstrap = async () => {
   const loadEl = Utils.id("loading");

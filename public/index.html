@@ -59,19 +59,18 @@
         transition: opacity 0.5s ease-in-out;
       }
       #particleContainer line {
-        stroke: rgba(255, 255, 255, 0.5);
+        stroke: rgb(255, 255, 255);
         stroke-width: 0.5;
-        transition: opacity 0.5s ease-out;
       }
       #particleContainer circle {
-        fill: rgba(255, 255, 255, 0.8);
+        /* fill color set dynamically per particle to match WebGL */
         transition: opacity 0.5s ease-out, r 0.1s linear, cx 0.1s linear,
           cy 0.1s linear;
         transform-origin: center center;
       }
       .particleDiv {
         position: absolute;
-        background-color: white;
+        /* background-color set dynamically per particle to match WebGL */
         border-radius: 50%;
         transition: opacity 0.5s linear;
         transform-origin: center center;
@@ -102,7 +101,10 @@
       }
       .mainContent a {
         color: var(--accent-color);
-        text-decoration: none;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 2px;
+        font-weight: bold;
         pointer-events: auto;
         margin: 0 0.5rem;
         transition: all var(--transition-fast) ease;
@@ -112,6 +114,7 @@
       .mainContent a:hover {
         transform: scale(1.1);
         text-shadow: 0 0 10px currentColor;
+        text-decoration-color: var(--accent-secondary);
       }
 
       @keyframes twinkle-anim {
@@ -154,29 +157,54 @@
       }
       #controlsToggle {
         display: none;
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        z-index: 101;
-        background: var(--panel-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        width: 48px;
-        height: 48px;
-        font-size: 32px;
-        border-radius: 8px;
-        cursor: pointer;
-        user-select: none;
-        transition: all var(--transition-fast) ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
-      #controlsToggle:hover {
-        transform: scale(1.1);
-        border-color: var(--accent-color);
+      @media (max-width: 768px) {
+        #controlsToggle {
+          display: flex;
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          z-index: 101;
+          background: var(--panel-bg);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          color: var(--text-color);
+          border: 1px solid var(--border-color);
+          width: 52px;
+          height: 52px;
+          border-radius: 8px;
+          cursor: pointer;
+          user-select: none;
+          transition: all var(--transition-fast) ease;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          flex-direction: column;
+          gap: 4px;
+        }
+        #controlsToggle span {
+          width: 26px;
+          height: 3px;
+          background: var(--text-color);
+          border-radius: 2px;
+          transition: all var(--transition-fast) ease;
+        }
+        #controlsToggle:hover {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+        #controlsToggle:hover span {
+          background: var(--accent-color);
+        }
+        .controlsPanel:not(.closed) + #controlsToggle span:nth-child(1) {
+          transform: translateY(7px) rotate(45deg);
+        }
+        .controlsPanel:not(.closed) + #controlsToggle span:nth-child(2) {
+          opacity: 0;
+        }
+        .controlsPanel:not(.closed) + #controlsToggle span:nth-child(3) {
+          transform: translateY(-7px) rotate(-45deg);
+        }
       }
       .selectorGroup {
         display: flex;
@@ -195,8 +223,8 @@
       .controlsPanel label.radioLabel {
         flex-basis: 50%;
         text-align: center;
-        padding: 5px 0;
-        font-size: 12px;
+        padding: 8px 0;
+        font-size: 13px;
         cursor: pointer;
         background-color: #111;
         color: #ccc;
@@ -238,11 +266,11 @@
         display: none;
       }
       .controlsPanel label {
-        font-size: 12px;
+        font-size: 13px;
         color: #eee;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         white-space: nowrap;
         flex-grow: 1;
         justify-content: flex-end;
@@ -253,41 +281,43 @@
       }
       .controlsPanel input[type="range"] {
         width: 100px;
-        height: 6px;
+        height: 8px;
         vertical-align: middle;
         cursor: pointer;
         accent-color: #0f0;
         background: #333;
-        border-radius: 3px;
+        border-radius: 4px;
         appearance: none;
         -webkit-appearance: none;
         outline: none;
         flex-grow: 1;
-        min-width: 50px;
+        min-width: 60px;
       }
       .controlsPanel input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         background: #eee;
         border-radius: 50%;
         cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       }
       .controlsPanel input[type="range"]::-moz-range-thumb {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         background: #eee;
         border-radius: 50%;
         cursor: pointer;
         border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       }
       .controlsPanel .valueDisplay {
-        min-width: 35px;
+        min-width: 38px;
         display: inline-block;
         text-align: right;
         color: #fff;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: bold;
         flex-shrink: 0;
       }
@@ -369,31 +399,34 @@
 
       @media (max-width: 768px) {
         body {
-          justify-content: flex-start;
+          justify-content: center;
+          padding: 20px 10px;
         }
         #particleContainer {
-          position: relative;
-          height: auto;
-          flex-grow: 1;
-          order: 1;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
         }
         .mainContent {
-          order: 2;
           position: relative;
           z-index: 10;
-          padding: 15px 10px;
-          font-size: 18px;
+          padding: 20px;
+          max-width: 90vw;
+          margin: 0 auto;
         }
         .mainTitle {
-          font-size: 24px;
-          margin-bottom: 10px;
+          font-size: clamp(1.5rem, 8vw, 2rem);
+          margin-bottom: 0.8rem;
         }
         p {
-          margin: 0.5em 0;
+          margin: 0.4em 0;
+          font-size: clamp(0.9rem, 3.5vw, 1rem);
         }
         .mainContent a {
-          font-size: 20px;
-          margin: 0 8px;
+          font-size: clamp(1rem, 4vw, 1.2rem);
+          margin: 0 6px;
           display: inline-block;
         }
         .controlsPanel {
@@ -416,16 +449,6 @@
         .controlsPanel:not(.closed) {
           transform: translateX(0);
           overflow-y: auto;
-        }
-        #controlsToggle {
-          display: block;
-          order: 4;
-        }
-        .controlsPanel.closed + #controlsToggle {
-          transform: rotate(0deg);
-        }
-        .controlsPanel:not(.closed) + #controlsToggle {
-          transform: rotate(180deg);
         }
         #fpsCounter {
           top: auto;
@@ -465,17 +488,14 @@
       <p>an n-gram and anagram collective</p>
       <p>created for mages who like games</p>
       <br />
-      <p>neural net logic lucent argil net</p>
-      <p>lure cent lining ruling net lance</p>
-      <br />
-      <p>live code code live evil deco</p>
-      <p>voice led video cel oiled vec</p>
-      <p>dove lice love dice cove idle</p>
-      <br />
       <nav>
         <p>
           <a href="/0" aria-label="QZS Demo">QZS</a>
           <a href="/1" aria-label="DPS Demo">DPS</a>
+          <a href="/36" aria-label="HEA Demo">HEA</a>
+          <a href="/1225" aria-label="DTF Demo">DTF</a>
+          <a href="/41616" aria-label="FSS Demo">FSS</a>
+          <a href="/1413721" aria-label="TPU Demo">TPU</a>
         </p>
       </nav>
     </main>
@@ -487,10 +507,9 @@
           name="renderMode"
           id="render-svg"
           value="svg"
-          checked
         />
         <label for="render-svg" class="radioLabel">SVG</label>
-        <input type="radio" name="renderMode" id="render-webgl" value="webgl" />
+        <input type="radio" name="renderMode" id="render-webgl" value="webgl" checked />
         <label for="render-webgl" class="radioLabel">WebGL</label>
       </div>
 
@@ -592,7 +611,11 @@
         </label>
       </div>
     </div>
-    <div id="controlsToggle">⚟</div>
+    <div id="controlsToggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
 
     <script>
       'use strict';
@@ -614,8 +637,9 @@
       const loaderEl = document.getElementById("loader");
       const fpsValEl = document.getElementById("fpsValue");
       let particles = [];
-      let svgLines = [];
-      let webglLines = [];
+      const networkLinks = new Map();
+      const svgLineElements = new Map();
+      let frameSeed = 0;
       let w = 1,
         h = 1,
         simW = 1,
@@ -623,7 +647,7 @@
       let animId;
       let nextPId = 0;
       let simMode = "network";
-      let renderMode = "svg";
+      let renderMode = "webgl";
       let simTransTo = null;
       let simTransStartT = 0;
       const simTransDur = 1000;
@@ -657,6 +681,7 @@
       let targetRenderMode = null;
       let savedParticleState = null;
       let lastFrameTime = 0;
+      let lastFpsSampleTime = 0;
       let lastFpsUpdate = 0;
       let actualFps = 0;
       let renderTime = 0;
@@ -664,6 +689,21 @@
       let renderFrameCount = 0;
       let avgRenderTime = 0;
       const fpsUpdateInterval = 500;
+
+      const HASH_CONSTANT = 0x9e3779b9;
+      function hashCombine(seed, value) {
+        let h = seed ^ Math.imul(value + 0x7fffffff, HASH_CONSTANT);
+        h = Math.imul(h ^ (h >>> 16), HASH_CONSTANT);
+        return (h ^ (h >>> 16)) >>> 0;
+      }
+
+      function pairRandom(id1, id2, salt = 0, epoch = 0) {
+        let h = hashCombine(0x1234abcd, id1 + 1);
+        h = hashCombine(h, id2 + 1);
+        h = hashCombine(h, Math.floor(salt));
+        h = hashCombine(h, Math.floor(epoch));
+        return (h & 0xfffffff) / 0x10000000;
+      }
       const ctrlDefs = {
         "num-particles-network": {
           key: "numPN",
@@ -781,11 +821,12 @@
         },
       };
       const cfg = {};
+      cfg.debugParity = false;
       Object.values(ctrlDefs).forEach((d) => {
         cfg[d.key] = d.val * (d.mult || 1);
       });
       cfg.simMode = "network";
-      cfg.baseSizeNet = 0.75;
+      cfg.baseSizeNet = 1.5;
       cfg.baseSizeSpaceMin = 0.5;
       cfg.baseSizeSpaceMax = 1.5;
       cfg.stretchFBase = 0.05;
@@ -823,9 +864,12 @@
           pCont.style.width = `${w}px`;
           pCont.style.height = w <= 768 ? "" : `${h}px`;
         } else if (gl) {
-          glCanvas.width = simW;
-          glCanvas.height = simH;
-          gl.viewport(0, 0, simW, simH);
+          const dpr = window.devicePixelRatio || 1;
+          glCanvas.width = Math.round(simW * dpr);
+          glCanvas.height = Math.round(simH * dpr);
+          glCanvas.style.width = `${simW}px`;
+          glCanvas.style.height = `${simH}px`;
+          gl.viewport(0, 0, glCanvas.width, glCanvas.height);
         }
         particles.forEach((p) => {
           p.x = clamp(p.x ?? rnd(0, simW), -simW * 0.5, simW * 1.5);
@@ -1027,6 +1071,11 @@
           p.el.setAttribute("cx", p.x.toFixed(1));
           p.el.setAttribute("cy", p.y.toFixed(1));
           p.el.setAttribute("r", p.currSize.toFixed(2));
+          // Apply per-particle RGB color to match WebGL
+          const r = Math.floor(p.r * 255);
+          const g = Math.floor(p.g * 255);
+          const b = Math.floor(p.b * 255);
+          p.el.setAttribute("fill", `rgb(${r},${g},${b})`);
           p.el.style.opacity = p.currOpacity.toFixed(3);
         } else {
           const size = p.currSize * 2;
@@ -1034,6 +1083,11 @@
           p.el.style.height = `${size}px`;
           p.el.style.left = `${p.x - size / 2}px`;
           p.el.style.top = `${p.y - size / 2}px`;
+          // Apply per-particle RGB color to match WebGL
+          const r = Math.floor(p.r * 255);
+          const g = Math.floor(p.g * 255);
+          const b = Math.floor(p.b * 255);
+          p.el.style.backgroundColor = `rgb(${r},${g},${b})`;
           updatePTwinkleSVG(p);
           if (cfg.spcTw <= 0) {
             let tfm = "scale(1)";
@@ -1060,28 +1114,24 @@
       }
       function updatePTwinkleSVG(p) {
         if (!p.el || p.simMode === "network" || renderMode !== "svg") return;
-        const t = cfg.spcTw;
         const el = p.el;
-        if (t > 0) {
-          if (!el.classList.contains("twinkle")) el.classList.add("twinkle");
-          const dur = (2 + (1 - t) * cfg.twinkleDurFactor) * rnd(0.8, 1.2);
-          const minOp = lerp(p.opacity, 0.3 * p.opacity, t);
-          const maxOp = lerp(p.opacity, 1.0 * p.opacity, t);
-          const minScale = lerp(1.0, 0.8, t);
-          const maxScale = lerp(1.0, 1.2, t);
-          el.style.animationDuration = `${dur.toFixed(2)}s`;
-          el.style.setProperty("--twinkle-min-opacity", minOp.toFixed(2));
-          el.style.setProperty("--twinkle-max-opacity", maxOp.toFixed(2));
-          el.style.setProperty("--twinkle-min-scale", minScale.toFixed(2));
-          el.style.setProperty("--twinkle-max-scale", maxScale.toFixed(2));
-          el.style.animationPlayState = "running";
-          el.style.opacity = "";
-        } else {
-          if (el.classList.contains("twinkle")) {
-            el.classList.remove("twinkle");
-            el.style.animation = "none";
+        el.style.animation = "none";
+        el.classList.remove("twinkle");
+        el.style.opacity = p.currOpacity.toFixed(3);
+        if (cfg.stretch > 0) {
+          const dx = p.directionX;
+          const dy = p.directionY;
+          if (dx !== 0 || dy !== 0) {
+            const angleRad = Math.atan2(dy, dx);
+            el.style.transform = `rotate(${angleRad}rad) scaleX(${clamp(
+              p.stretchFactor,
+              0.1,
+              10
+            ).toFixed(3)})`;
+            return;
           }
         }
+        el.style.transform = `scale(${(p.currSize / p.baseSize).toFixed(3)})`;
       }
       function updatePTransition(p, progress) {
         const t = 0.5 - 0.5 * Math.cos(progress * PI);
@@ -1147,85 +1197,176 @@
       function calcMaxLineDist() {
         return cfg.maxDist * (Math.sqrt(simW * simH) / 800);
       }
-      function createLineSVG(p1, p2) {
-        const l = document.createElementNS(svgNS, "line");
-        l.style.opacity = 0;
-        svgEl.appendChild(l);
-        return {
-          el: l,
-          p1Id: p1.id,
-          p2Id: p2.id,
-          op: 0,
-          targetOp: 0.6,
-          born: performance.now(),
-          maxLt: cfg.lineMs + rnd(-500, 500),
-        };
+      const DRAW_DURATION = 300;
+      function getLineCapacity(visibleCount) {
+        if (visibleCount <= 1) return 0;
+        const theoretical = (visibleCount * (visibleCount - 1)) / 2;
+        const estimated = Math.min(Math.max(0, theoretical), visibleCount * 4, 65534);
+        if (maxLines && maxLines > 0) return Math.min(estimated, maxLines);
+        return estimated;
       }
-      function updateLinesSVG(now, transProgress = 1) {
+
+      function updateNetworkLinks(now, transProgress = 1) {
+        frameSeed++;
         const isTargetNet =
           simTransTo === "network" || (!simTransTo && simMode === "network");
+        const effectiveProgress = isTargetNet ? transProgress : 1 - transProgress;
         const targetOpBase = isTargetNet ? 0.5 : 0;
-        const eP = isTargetNet ? transProgress : 1 - transProgress;
-        if (eP < 0.01 && svgLines.length === 0) return;
         const pMap = new Map(
           particles.filter((p) => p.currOpacity > 0.01).map((p) => [p.id, p])
         );
-        const keys = new Set(
-          svgLines.map(
-            (l) => `${Math.min(l.p1Id, l.p2Id)}-${Math.max(l.p1Id, l.p2Id)}`
-          )
-        );
         const maxDistSq = Math.pow(calcMaxLineDist(), 2);
-        if (isTargetNet && (!simTransTo || eP > 0.95) && pMap.size > 1) {
-          const pts = Array.from(pMap.values());
-          const density = cfg.density;
-          for (let i = 0; i < pts.length; i++) {
-            for (let j = i + 1; j < pts.length; j++) {
-              const p1 = pts[i],
-                p2 = pts[j];
-              const k = `${Math.min(p1.id, p2.id)}-${Math.max(p1.id, p2.id)}`;
-              if (keys.has(k)) continue;
-              const dx = p1.x - p2.x,
-                dy = p1.y - p2.y;
-              if (dx * dx + dy * dy < maxDistSq && Math.random() < density) {
-                const nl = createLineSVG(p1, p2);
-                svgLines.push(nl);
-                keys.add(k);
-              }
-            }
-          }
-        }
-        for (let i = svgLines.length - 1; i >= 0; i--) {
-          const l = svgLines[i];
-          const p1 = pMap.get(l.p1Id),
-            p2 = pMap.get(l.p2Id);
-          if (!p1 || !p2 || !l.el) {
-            l.el?.remove();
-            svgLines.splice(i, 1);
+        const fadeDur = 500;
+        const spawnEpoch = Math.floor(now / 1000);
+        const linkCapacity = getLineCapacity(pMap.size);
+
+        for (const [key, link] of networkLinks) {
+          const p1 = pMap.get(link.p1Id);
+          const p2 = pMap.get(link.p2Id);
+          if (!p1 || !p2) {
+            svgLineElements.get(key)?.remove();
+            svgLineElements.delete(key);
+            networkLinks.delete(key);
             continue;
           }
-          const age = now - l.born,
-            fadeDur = 500;
-          let currentTarget = targetOpBase;
-          if (isTargetNet && age >= l.maxLt) currentTarget = 0;
-          else if (isTargetNet && age >= l.maxLt - fadeDur)
-            currentTarget = Math.max(
+          const age = now - link.born;
+          let target = targetOpBase * effectiveProgress;
+          if (!isTargetNet || effectiveProgress < 0.05) target = 0;
+          else if (age >= link.maxLt) target = 0;
+          else if (age >= link.maxLt - fadeDur)
+            target = Math.max(
               0,
-              targetOpBase * (1 - (age - (l.maxLt - fadeDur)) / fadeDur)
+              target * (1 - (age - (link.maxLt - fadeDur)) / fadeDur)
             );
-          l.targetOp = currentTarget * eP;
-          l.op = clamp(lerp(l.op, l.targetOp, 0.1), 0, 1);
-          if (l.op <= 0.01 && (!isTargetNet || age >= l.maxLt)) {
-            l.el.remove();
-            svgLines.splice(i, 1);
-          } else {
-            l.el.setAttribute("x1", p1.x.toFixed(1));
-            l.el.setAttribute("y1", p1.y.toFixed(1));
-            l.el.setAttribute("x2", p2.x.toFixed(1));
-            l.el.setAttribute("y2", p2.y.toFixed(1));
-            l.el.style.opacity = (
-              l.op * Math.min(p1.currOpacity, p2.currOpacity)
-            ).toFixed(3);
+
+          link.targetOp = target;
+          link.op = clamp(lerp(link.op, link.targetOp, 0.15), 0, 1);
+          link.x1 = p1.x;
+          link.y1 = p1.y;
+          link.x2 = p2.x;
+          link.y2 = p2.y;
+          const drawProgress = Math.min(1, (now - link.born) / DRAW_DURATION);
+          const drawEase = 0.5 - 0.5 * Math.cos(drawProgress * Math.PI);
+          link.renderX1 = link.x1;
+          link.renderY1 = link.y1;
+          link.renderX2 = lerp(link.startX2, link.x2, drawEase);
+          link.renderY2 = lerp(link.startY2, link.y2, drawEase);
+          const minOpacity = Math.min(p1.currOpacity, p2.currOpacity);
+          link.finalOp = link.op * minOpacity;
+
+          if (link.finalOp <= 0.01 && link.targetOp === 0) {
+            svgLineElements.get(key)?.remove();
+            svgLineElements.delete(key);
+            networkLinks.delete(key);
+          }
+        }
+
+        if (
+          !isTargetNet ||
+          effectiveProgress <= 0.05 ||
+          pMap.size <= 1 ||
+          networkLinks.size >= linkCapacity
+        )
+          return;
+
+        const pts = Array.from(pMap.values());
+        outer: for (let i = 0; i < pts.length; i++) {
+          for (let j = i + 1; j < pts.length; j++) {
+            if (networkLinks.size >= linkCapacity) break outer;
+            const p1 = pts[i];
+            const p2 = pts[j];
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            if (dx * dx + dy * dy > maxDistSq) continue;
+            const key = `${Math.min(p1.id, p2.id)}-${Math.max(p1.id, p2.id)}`;
+            if (networkLinks.has(key)) continue;
+            const densityRoll = pairRandom(p1.id, p2.id, spawnEpoch, frameSeed);
+            if (densityRoll > cfg.density) continue;
+            const lifeVariance =
+              (pairRandom(p1.id, p2.id, spawnEpoch + 1, frameSeed) - 0.5) * 1000;
+            networkLinks.set(key, {
+              key,
+              p1Id: p1.id,
+              p2Id: p2.id,
+              born: now,
+              maxLt: Math.max(300, cfg.lineMs + lifeVariance),
+              startX1: p1.x,
+              startY1: p1.y,
+              startX2: p1.x,
+              startY2: p1.y,
+              x1: p1.x,
+              y1: p1.y,
+              x2: p2.x,
+              y2: p2.y,
+              targetOp: 0,
+              op: 0,
+              finalOp: 0,
+              renderX1: p1.x,
+              renderY1: p1.y,
+              renderX2: p1.x,
+              renderY2: p1.y,
+            });
+          }
+        }
+
+        if (networkLinks.size > linkCapacity) {
+          const excess = networkLinks.size - linkCapacity;
+          const sorted = Array.from(networkLinks.entries()).sort(
+            (a, b) => (a[1].finalOp || 0) - (b[1].finalOp || 0)
+          );
+          for (let i = 0; i < excess && i < sorted.length; i++) {
+            const [key] = sorted[i];
+            svgLineElements.get(key)?.remove();
+            svgLineElements.delete(key);
+            networkLinks.delete(key);
+          }
+        }
+      }
+
+      function syncSvgLinks(now) {
+        if (renderMode !== "svg") return;
+        // Apply same line limit as WebGL to maintain parity
+        const maxSvgLines = Math.min(particles.length * 4, 65534);
+        let lineCount = 0;
+
+        for (const [key, link] of networkLinks) {
+          if (link.finalOp <= 0.01) continue;
+          if (lineCount >= maxSvgLines) break;
+
+          let lineEl = svgLineElements.get(key);
+          if (!lineEl) {
+            lineEl = document.createElementNS(svgNS, "line");
+            lineEl.style.opacity = "0";
+            svgEl.appendChild(lineEl);
+            svgLineElements.set(key, lineEl);
+          }
+          lineEl.setAttribute("x1", link.renderX1.toFixed(1));
+          lineEl.setAttribute("y1", link.renderY1.toFixed(1));
+          lineEl.setAttribute("x2", link.renderX2.toFixed(1));
+          lineEl.setAttribute("y2", link.renderY2.toFixed(1));
+          // Match WebGL: apply 0.5 base opacity multiplier
+          lineEl.style.opacity = (link.finalOp * 0.5).toFixed(3);
+          lineCount++;
+        }
+        for (const [key, el] of svgLineElements) {
+          if (!networkLinks.has(key) || networkLinks.get(key).finalOp <= 0.01) {
+            el.remove();
+            svgLineElements.delete(key);
+          }
+        }
+      }
+
+      function debugParityCheck() {
+        if (!cfg.debugParity) return;
+        const activeLinks = Array.from(networkLinks.values()).filter(
+          (link) => link.finalOp > 0.01
+        ).length;
+        if (renderMode === "svg") {
+          const svgActive = svgLineElements.size;
+          if (Math.abs(activeLinks - svgActive) > 1) {
+            console.warn(
+              `[PARITY] Link mismatch detected. active=${activeLinks}, svg=${svgActive}`
+            );
           }
         }
       }
@@ -1259,28 +1400,33 @@
           const removed = particles.splice(targetCount);
           if (renderMode === "svg") removed.forEach((p) => p.el?.remove());
           const removedIds = new Set(removed.map((p) => p.id));
-          svgLines = svgLines.filter(
-            (l) => !removedIds.has(l.p1Id) && !removedIds.has(l.p2Id)
-          );
-          webglLines = webglLines.filter(
-            (l) => !removedIds.has(l.p1Id) && !removedIds.has(l.p2Id)
-          );
+          for (const key of Array.from(networkLinks.keys())) {
+            const link = networkLinks.get(key);
+            if (removedIds.has(link.p1Id) || removedIds.has(link.p2Id)) {
+              svgLineElements.get(key)?.remove();
+              svgLineElements.delete(key);
+              networkLinks.delete(key);
+            }
+          }
         }
-        particles.forEach((p, i) => initPState(p, stableMode, !p.id));
+        particles.forEach((p) => {
+          const isNew = p.id === undefined || p.id === null;
+          initPState(p, stableMode, isNew);
+        });
         if (renderMode === "webgl") resizeWebGLBufs(targetCount);
       }
-      function updateFps(now) {
-        if (!lastFrameTime) {
-          lastFrameTime = now;
+      function updateFps(now, frameRenderTime) {
+        if (!lastFpsSampleTime) {
+          lastFpsSampleTime = now;
           return;
         }
-        const dt = now - lastFrameTime;
-        lastFrameTime = now;
+        const dt = now - lastFpsSampleTime;
+        lastFpsSampleTime = now;
         if (dt <= 0) return;
         actualFps = 1000 / dt;
+        renderFrameCount++;
+        renderTimeSum += frameRenderTime;
         if (now - lastFpsUpdate > fpsUpdateInterval) {
-          renderFrameCount++;
-          renderTimeSum += renderTime;
           avgRenderTime = renderTimeSum / renderFrameCount;
           const maxFps =
             avgRenderTime > 0 ? (1000 / avgRenderTime).toFixed(0) : "--";
@@ -1290,9 +1436,6 @@
           lastFpsUpdate = now;
           renderTimeSum = 0;
           renderFrameCount = 0;
-        } else {
-          renderFrameCount++;
-          renderTimeSum += renderTime;
         }
       }
       function animate(timestamp) {
@@ -1300,18 +1443,24 @@
         const now = timestamp || PERF.now();
         if (!lastFrameTime) lastFrameTime = now;
         const dt = Math.min(now - lastFrameTime, 100);
-        updateFps(now);
         const renderStartT = PERF.now();
         if (isSwitchingRender) {
           handleRenderModeSwitch(now);
+          const switchRenderTime = PERF.now() - renderStartT;
+          renderTime = switchRenderTime;
+          updateFps(now, switchRenderTime);
+          lastFrameTime = now;
           return;
         }
         if (simTransTo) {
           const elapsed = now - simTransStartT;
           const progress = Math.min(1, elapsed / simTransDur);
           particles.forEach((p) => updatePTransition(p, progress));
-          if (renderMode === "svg") updateLinesSVG(now, progress);
-          else updateLinesWebGL(now, progress);
+          updateNetworkLinks(now, progress);
+          if (renderMode === "svg") {
+            particles.forEach(renderPSVG);
+            syncSvgLinks(now);
+          }
           if (progress >= 1) {
             const finalMode = simTransTo;
             simMode = simTransTo;
@@ -1338,23 +1487,41 @@
             updatePPhysics(p, dt);
             updatePVisuals(p, now);
           });
-          if (simMode === "network") {
-            if (renderMode === "svg") {
-              particles.forEach(renderPSVG);
-              updateLinesSVG(now);
-            } else updateLinesWebGL(now);
-          } else {
-            if (renderMode === "svg") {
-              particles.forEach(renderPSVG);
-              svgLines.forEach((l) => l.el?.remove());
-              svgLines = [];
-            } else webglLines = [];
+          updateNetworkLinks(now);
+          if (renderMode === "svg") {
+            particles.forEach(renderPSVG);
+            syncSvgLinks(now);
           }
         }
         if (renderMode === "webgl" && gl) renderWebGL();
+        debugParityCheck();
         renderTime = PERF.now() - renderStartT;
+        updateFps(now, renderTime);
         lastFrameTime = now;
       }
+      function pauseAnimation() {
+        if (animId) {
+          CAF(animId);
+          animId = null;
+        }
+      }
+      function resumeAnimation() {
+        if (!animId) {
+          lastFrameTime = 0;
+          lastFpsSampleTime = 0;
+          lastFpsUpdate = 0;
+          renderFrameCount = 0;
+          renderTimeSum = 0;
+          animId = RAF(animate);
+        }
+      }
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          pauseAnimation();
+        } else {
+          resumeAnimation();
+        }
+      });
       function setSimMode(newMode) {
         if (newMode === simMode || simTransTo || isSwitchingRender) return;
         simTransTo = newMode;
@@ -1433,7 +1600,7 @@
         const prevMode = renderMode;
         if (prevMode === "svg") {
           while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
-          svgLines = [];
+          svgLineElements.clear();
           pCont.querySelectorAll(".particleDiv").forEach((el) => el.remove());
           particles.forEach((p) => (p.el = null));
         } else if (gl) {
@@ -1463,7 +1630,6 @@
               null;
           gl = null;
           maxParticles = maxLines = 0;
-          webglLines = [];
         }
       }
       function setupNewRenderer(stateToRestore) {
@@ -1478,7 +1644,7 @@
         if (newMode === "svg") {
           renderMode = "svg";
           particles.forEach((p) => createPSVG(p));
-          svgLines = [];
+          syncSvgLinks(PERF.now());
         } else if (newMode === "webgl") {
           if (!initWebGL()) {
             console.error("WebGL init failed, reverting");
@@ -1489,7 +1655,6 @@
             return;
           }
           renderMode = "webgl";
-          webglLines = [];
           resizeWebGLBufs(particles.length);
         }
       }
@@ -1710,43 +1875,6 @@
           gl.bufferData(gl.ARRAY_BUFFER, lColData.byteLength, gl.DYNAMIC_DRAW);
         }
       }
-      function updateLinesWebGL(now, transProgress = 1) {
-        webglLines = [];
-        if (simMode !== "network" || simTransTo === "space") return;
-        const isTargetNet =
-          simTransTo === "network" || (!simTransTo && simMode === "network");
-        const eP = isTargetNet ? transProgress : 1 - transProgress;
-        if (eP < 0.01) return;
-        const visPs = particles.filter((p) => p.currOpacity > 0.01);
-        const maxDistSq = Math.pow(calcMaxLineDist(), 2);
-        const density = cfg.density;
-        for (let i = 0; i < visPs.length; i++) {
-          const p1 = visPs[i];
-          for (let j = i + 1; j < visPs.length; j++) {
-            const p2 = visPs[j];
-            const dx = p1.x - p2.x,
-              dy = p1.y - p2.y;
-            if (dx * dx + dy * dy < maxDistSq && Math.random() < density) {
-              const op =
-                cfg.glLineOpacity *
-                Math.min(p1.currOpacity, p2.currOpacity) *
-                eP;
-              if (op > 0.01) {
-                webglLines.push({
-                  x1: p1.x,
-                  y1: p1.y,
-                  x2: p2.x,
-                  y2: p2.y,
-                  op: op,
-                  p1Id: p1.id,
-                  p2Id: p2.id,
-                });
-                if (webglLines.length >= maxLines) return;
-              }
-            }
-          }
-        }
-      }
       function renderWebGL() {
         if (!gl || isSwitchingRender || !pPosData) return;
         gl.clearColor(0, 0, 0, 1);
@@ -1808,22 +1936,23 @@
           gl.uniform1f(pStretchLoc, useStretch ? cfg.stretch / 50.0 : 0.0);
           gl.drawArrays(gl.POINTS, 0, currentParticleCount);
         }
-        for (let i = 0; i < webglLines.length; i++) {
-          const l = webglLines[i];
-          if (l.op <= 0.01) continue;
+        for (const link of networkLinks.values()) {
+          const op = link.finalOp;
+          if (op <= 0.01) continue;
           const idx = currentLineCount++;
           if (idx >= maxLines) break;
-          lPosData[idx * 4] = l.x1;
-          lPosData[idx * 4 + 1] = l.y1;
-          lPosData[idx * 4 + 2] = l.x2;
-          lPosData[idx * 4 + 3] = l.y2;
-          const op = l.op;
+          lPosData[idx * 4] = link.renderX1;
+          lPosData[idx * 4 + 1] = link.renderY1;
+          lPosData[idx * 4 + 2] = link.renderX2;
+          lPosData[idx * 4 + 3] = link.renderY2;
+          // Match SVG line appearance: rgba(255, 255, 255, 0.5) base opacity
+          const finalOpacity = op * 0.5;
           for (let k = 0; k < 2; k++) {
             const base = idx * 8 + k * 4;
             lColData[base] = 1;
             lColData[base + 1] = 1;
             lColData[base + 2] = 1;
-            lColData[base + 3] = op;
+            lColData[base + 3] = finalOpacity;
           }
         }
         if (currentLineCount > 0) {
@@ -1876,7 +2005,7 @@
         manageParticles();
         updateCtrlVisibility();
         onResize();
-        if (!animId) animId = RAF(animate);
+        resumeAnimation();
       }
       init();
     </script>

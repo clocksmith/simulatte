@@ -3,3292 +3,2560 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TPU - Tensor Processing Unit Visualization</title>
-    <meta name="description" content="3D WebGL visualization and simulated performance metrics for a theoretical TPU cluster on a twisted torus" />
-    <link rel="icon" href="data:," />
-    <!-- Brain.js will be loaded lazily when needed -->
+    <title>HEA - Hold'em Equity Analyzer</title>
     <style>
       :root {
-        --bg-color: #1a1a1a;
-        --panel-bg-color: #2a2a2a;
-        --text-color: #e0e0e0;
-        --border-color: #444;
-        --input-bg: #333;
-        --accent1: #ffa500;
-        --accent2: #add8e6;
-        --accent3: #90ee90;
-        --accent4: #ffb6c1;
-        --accent5: #da70d6;
-        --btn-bg: #4a90e2;
-        --btn-hover-bg: #357abd;
-        --btn-red-bg: #e24a4a;
-        --btn-red-hover-bg: #bd3535;
-        --btn-green-bg: #5cb85c;
-        --btn-green-hover-bg: #4cae4c;
-        --graph-line1: var(--accent1);
-        --graph-line2: var(--accent3);
-        --graph-line3: var(--accent5);
-        --graph-bg: #383838;
-        --wireframe-color: rgba(100, 100, 100, 0.5);
-        --disabled-overlay: rgba(42, 42, 42, 0.7);
-        --ai-node-input: #ffb6c1;
-        --ai-node-hidden: #da70d6;
-        --ai-node-output: #ffb6c1;
-        --ai-line: rgba(200, 200, 200, 0.3);
-      }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      }
-      
-      /* Performance optimizations */
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
+        --bg-color: #000000;
+        --surface-color: #0f0f0f;
+        --primary-text: #ffffff;
+        --secondary-text: #a0a0a0;
+        --border-color: #555555;
+        --accent-magenta: #ff00ff;
+        --accent-green: #00ff00;
+        --highlight-color: #ff00ff;
+        --win-color: #00ff00;
+        --loss-color: #ff00ff;
+        --tie-color: #00ffff;
+        --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
       }
       body {
+        font-family: var(--font-family);
         background-color: var(--bg-color);
-        color: var(--text-color);
-        overflow-y: auto;
-        /* Hardware acceleration */
-        transform: translateZ(0);
-        backface-visibility: hidden;
-      }
-      #app {
+        color: var(--primary-text);
+        margin: 0;
+        padding: 20px;
         display: flex;
         flex-direction: column;
-        padding: 15px;
-        gap: 15px;
-        min-height: 100vh;
+        align-items: center;
       }
-      #live-metrics-card {
-        background-color: var(--panel-bg-color);
-        border-radius: 8px;
-        padding: 15px;
-        border: 1px solid var(--border-color);
+      .container {
+        width: 100%;
+        max-width: 1400px;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-        align-items: start;
+        grid-template-columns: 450px 1fr;
+        gap: 20px;
       }
-      #live-metrics-card h3 {
-        color: var(--accent1);
-        margin-bottom: 10px;
+      .panel {
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      h1,
+      h2,
+      h3 {
+        color: var(--primary-text);
         border-bottom: 1px solid var(--border-color);
         padding-bottom: 8px;
-        font-size: 1.1em;
-        grid-column: 1 / -1;
         margin-top: 0;
+        font-weight: 400;
       }
-      .metric-item p {
-        font-size: 0.9em;
-        line-height: 1.5;
-        margin-bottom: 5px;
+      p,
+      label {
+        color: var(--secondary-text);
+        line-height: 1.6;
       }
-      .metric-item strong {
-        color: var(--accent3);
-        min-width: 120px;
-        display: inline-block;
-        font-weight: 600;
-      }
-      .metric-value {
-        color: var(--accent2);
-        font-weight: bold;
-        float: right;
-        background-color: var(--input-bg);
-        padding: 0 5px;
-        border-radius: 3px;
-      }
-      #live-graphs {
-        grid-column: 1 / -1;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 15px;
-        margin-top: 10px;
-      }
-      .graph-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        min-width: 200px;
-      }
-      .graph-container label {
-        font-size: 0.85em;
-        color: #aaa;
-        min-width: 40px;
-        text-align: right;
-      }
-      .graph-container canvas {
-        display: block;
-        flex-grow: 1;
-        height: 35px;
-        background-color: var(--graph-bg);
+      .info-box {
+        background-color: rgba(68, 1, 84, 0.2);
+        border-left: 3px solid #440154;
+        padding: 10px 15px;
+        margin: 15px 0;
         border-radius: 4px;
       }
-      #main-content {
+
+      /* LEFT PANEL */
+      .controls {
+        margin-bottom: 20px;
+      }
+      .slider-container {
         display: flex;
-        flex-grow: 1;
+        align-items: center;
         gap: 15px;
-        min-height: 450px;
-        flex-wrap: wrap;
       }
-      #simulation-area {
-        flex: 3;
+      input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+      }
+      #opponent-count-label {
+        font-weight: bold;
+        font-size: 1.2em;
+        color: var(--highlight-color);
+        min-width: 120px;
+      }
+
+      .heatmap-container {
+        display: grid;
+        grid-template-columns: repeat(13, 1fr);
+        width: 100%;
+        aspect-ratio: 1/1;
+        gap: 1px;
+        background-color: var(--border-color);
+        border: 2px solid var(--border-color);
+      }
+      .heatmap-cell {
         display: flex;
-        flex-direction: column;
-        min-width: 350px;
-        min-height: 400px;
-        position: relative;
+        justify-content: center;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        user-select: none;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
       }
-      #simulation-visual-tooltip {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
+      .heatmap-cell:hover {
+        transform: scale(1.1);
+        z-index: 10;
+      }
+      .heatmap-cell.selected {
+        box-shadow: 0 0 0 3px var(--highlight-color) inset;
+        transform: scale(1.05);
         z-index: 5;
       }
-      #webgl-canvas {
-        border: 1px solid var(--border-color);
-        background-color: #050505;
-        display: block;
-        width: 100%;
-        height: 100%;
-        border-radius: 8px;
-      }
-      #controls-and-export-column {
-        flex: 1;
-        min-width: 300px;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        max-height: 600px;
-        overflow: hidden;
-      }
-      #top-controls-container {
-        display: flex;
-        gap: 10px;
-        padding: 10px 15px;
-        background-color: var(--panel-bg-color);
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        flex-shrink: 0;
-      }
-      #top-controls-container button {
-        flex-grow: 1;
-        padding: 8px 10px;
-        font-size: 1.1em;
-        font-weight: bold;
-        background-color: var(--btn-bg);
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        line-height: 1;
-      }
-      #top-controls-container button:hover {
-        background-color: var(--btn-hover-bg);
-      }
-      #top-controls-container button#init-reset-btn {
-        background-color: var(--accent1);
-        color: var(--bg-color);
-      }
-      #top-controls-container button#init-reset-btn:hover {
-        background-color: #e09400;
-      }
-      #control-panel {
-        background-color: var(--panel-bg-color);
-        border-radius: 8px;
-        padding: 15px;
-        overflow-y: auto;
-        border: 1px solid var(--border-color);
-        flex-grow: 1;
+
+      /* RIGHT PANEL */
+      .poker-table {
         position: relative;
-        min-height: 150px;
-      }
-      #control-panel.disabled-overlay::after {
-        content: "AI Process Active";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: var(--disabled-overlay);
-        color: var(--text-color);
+        width: 100%;
+        aspect-ratio: 1.6/1;
+        border: 2px solid #2a2a2a;
+        border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 1.2em;
-        font-weight: bold;
-        z-index: 10;
-        border-radius: 8px;
       }
-      #control-panel h3 {
-        color: var(--accent2);
-        margin-bottom: 10px;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 8px;
-        font-size: 1.1em;
-        position: sticky;
-        top: -15px;
-        background-color: var(--panel-bg-color);
-        z-index: 1;
-        padding-top: 10px;
-      }
-      .control-group {
+      .hand-display {
         display: flex;
-        flex-direction: column;
-        gap: 6px;
-        padding-bottom: 10px;
-        border-bottom: 1px dashed #383838;
-        margin-bottom: 10px;
-      }
-      .control-group:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-        margin-bottom: 0;
-      }
-      .control-group label {
-        font-size: 0.9em;
-        color: #ccc;
-        font-weight: 500;
-        display: flex;
-        justify-content: space-between;
+        gap: 5px;
         align-items: center;
       }
-      .control-group input[type="range"],
-      .control-group input[type="number"],
-      .control-group input[type="text"],
-      .control-group select {
-        width: 100%;
-        padding: 6px 8px;
-        border: 1px solid var(--border-color);
-        background-color: var(--input-bg);
-        color: var(--text-color);
-        border-radius: 4px;
-        font-size: 0.9em;
-      }
-      .control-group input:disabled,
-      .control-group select:disabled,
-      .control-group input[type="text"]:disabled {
-        background-color: #444;
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-      .control-group input[type="range"]:disabled::-webkit-slider-thumb {
-        background: #777;
-      }
-      .control-group input[type="range"]:disabled::-moz-range-thumb {
-        background: #777;
-      }
-      .control-group input[type="range"] {
-        cursor: pointer;
-        padding: 0;
-        height: 8px;
-        -webkit-appearance: none;
-        appearance: none;
-        background: #555;
+      .card {
+        width: 40px;
+        height: 60px;
         border-radius: 5px;
-        outline: none;
-      }
-      .control-group input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 16px;
-        height: 16px;
-        background: var(--accent2);
-        border-radius: 50%;
-        cursor: pointer;
-      }
-      .control-group input[type="range"]::-moz-range-thumb {
-        width: 16px;
-        height: 16px;
-        background: var(--accent2);
-        border-radius: 50%;
-        cursor: pointer;
-        border: none;
-      }
-      .control-group .value-display {
-        font-size: 0.85em;
-        color: #bbb;
-        font-weight: bold;
-        background-color: #404040;
-        padding: 1px 4px;
-        border-radius: 3px;
-        margin-left: 5px;
-        white-space: nowrap;
-      }
-      .value-display-wide {
-        flex-grow: 1;
-        text-align: right;
-      }
-      #export-panel {
-        background-color: var(--panel-bg-color);
-        border-radius: 8px;
-        padding: 15px;
-        border: 1px solid var(--border-color);
+        background-color: white;
+        color: black;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        flex-shrink: 0;
-        max-height: 250px;
-        overflow-y: auto;
-      }
-      #export-panel h3 {
-        color: var(--accent3);
-        margin-bottom: 5px;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 8px;
-        font-size: 1.1em;
-      }
-      .export-controls {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 8px 10px;
-        align-items: center;
-      }
-      .export-controls label {
-        font-size: 0.9em;
-        color: #ccc;
-        white-space: nowrap;
-        text-align: right;
-      }
-      .export-controls input[type="number"] {
-        width: 100%;
-        padding: 6px 8px;
-        border: 1px solid var(--border-color);
-        background-color: var(--input-bg);
-        color: var(--text-color);
-        border-radius: 4px;
-        font-size: 0.9em;
-      }
-      .export-controls span {
-        font-size: 0.9em;
-        color: #aaa;
-      }
-      #export-panel .button-group {
-        margin-top: 15px;
-        display: flex;
-        gap: 10px;
-      }
-      #export-panel button {
-        padding: 9px 14px;
-        border: none;
-        border-radius: 5px;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.2s ease, transform 0.1s ease;
-        font-size: 0.9em;
-        font-weight: 600;
-        flex-grow: 1;
-      }
-      #export-panel button:hover {
-        background-color: var(--btn-hover-bg);
-      }
-      #export-panel button:active {
-        transform: scale(0.98);
-      }
-      #export-panel button#record-btn {
-        background-color: var(--btn-bg);
-      }
-      #export-panel button#export-btn {
-        background-color: var(--accent3);
-        color: #1a1a1a;
-      }
-      #export-panel button#export-btn:disabled {
-        background-color: #555;
-        color: #999;
-        cursor: not-allowed;
-      }
-      #export-panel button#clear-record-btn {
-        background-color: var(--btn-red-bg);
-      }
-      #export-panel button#clear-record-btn:hover {
-        background-color: var(--btn-red-hover-bg);
-      }
-      #record-status {
-        font-size: 0.8em;
-        color: #aaa;
-        text-align: center;
-        margin-top: 5px;
-        height: 1.2em;
-      }
-      #ai-section {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        background-color: var(--panel-bg-color);
-        border-radius: 8px;
-        padding: 15px;
-        border: 1px solid var(--border-color);
-      }
-      #ai-section h3 {
-        color: var(--accent5);
-        font-size: 1.1em;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 8px;
-        margin-bottom: 10px;
-        margin-top: 0;
-      }
-      #ai-config-and-display {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-      }
-      #ai-config-card {
-        background-color: var(--input-bg);
-        border-radius: 8px;
-        padding: 10px 15px;
-        border: 1px solid var(--border-color);
-        flex: 2;
-        min-width: 300px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      #ai-config-card h4 {
-        color: var(--accent4);
-        font-size: 1em;
-        margin-bottom: 5px;
-        border-bottom: 1px dashed #555;
-        padding-bottom: 5px;
-      }
-      #ai-config-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
-        overflow-y: auto;
-        max-height: 200px;
-      }
-      .ai-config-item label {
-        font-size: 0.85em;
-        color: #ccc;
-        margin-bottom: 3px;
-        display: block;
-      }
-      .ai-config-item input,
-      .ai-config-item select {
-        width: 100%;
-        padding: 4px 6px;
-        font-size: 0.85em;
-      }
-      #ai-display-card {
-        background-color: var(--input-bg);
-        border-radius: 8px;
-        padding: 10px 15px;
-        border: 1px solid var(--border-color);
-        flex: 1;
-        min-width: 250px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      #ai-display-card h4 {
-        color: var(--accent5);
-        font-size: 1em;
-        margin-bottom: 8px;
-      }
-      #ai-display-card p {
-        font-size: 0.85em;
-        line-height: 1.4;
-        margin-bottom: 4px;
-      }
-      #ai-display-card strong {
-        color: var(--accent4);
-        min-width: 110px;
-        display: inline-block;
-      }
-      #ai-display-card .metric-value {
-        color: var(--accent1);
-        font-size: 0.95em;
-        background: none;
-        padding: 0;
-        float: none;
-      }
-      #ai-controls-and-status {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 15px;
-      }
-      #ai-controls {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      #ai-controls button {
-        padding: 7px 12px;
-        font-size: 0.9em;
-        flex-grow: 1;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background-color 0.2s ease;
-      }
-      #init-ai-btn {
-        background-color: var(--accent2);
-        color: var(--bg-color);
-        min-width: 80px;
-      }
-      #init-ai-btn:hover {
-        background-color: #9bc8dd;
-      }
-      #train-ai-btn {
-        background-color: var(--accent5);
-        color: var(--bg-color);
-        min-width: 100px;
-      }
-      #train-ai-btn:hover {
-        background-color: #c760c1;
-      }
-      #find-best-ai-btn {
-        background-color: var(--btn-green-bg);
-        color: white;
-        min-width: 150px;
-      }
-      #find-best-ai-btn:hover {
-        background-color: var(--btn-green-hover-bg);
-      }
-      #ai-controls button:disabled {
-        background-color: #777;
-        cursor: not-allowed;
-        color: #bbb;
-      }
-      #ai-status-area {
-        font-size: 0.85em;
-        color: #bbb;
-        text-align: center;
-        min-height: 1.2em;
-        font-style: italic;
-      }
-      #ai-recommendation-area {
-        font-size: 0.85em;
-        background-color: var(--panel-bg-color);
-        padding: 10px;
-        border-radius: 4px;
-        border: 1px dashed var(--border-color);
-        min-height: 60px;
-        overflow-y: auto;
-        flex-grow: 1;
-        line-height: 1.4;
-      }
-      #ai-recommendation-area strong {
-        color: var(--accent3);
-        display: block;
-        margin-bottom: 3px;
-      }
-      #ai-recommendation-area span {
-        color: var(--accent2);
-      }
-      #ai-recommendation-area em {
-        color: #aaa;
-      }
-      #ai-network-visualization {
-        min-height: 200px;
-        background-color: var(--input-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        margin-top: 10px;
-        padding: 10px;
-        display: flex;
         justify-content: center;
         align-items: center;
-        overflow: hidden;
+        font-size: 18px;
+        font-weight: bold;
+        border: 1px solid #ccc;
+        user-select: none;
+        box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
       }
-      #ai-network-svg {
-        width: 100%;
-        height: 100%;
-        min-height: 180px;
+      .card.red {
+        color: #d32f2f;
       }
-      #ai-network-svg line {
-        stroke: var(--ai-line);
-        stroke-width: 0.5;
+      .card.black {
+        color: #000000;
       }
-      #ai-network-svg circle {
-        stroke: rgba(255, 255, 255, 0.5);
-        stroke-width: 1;
+      .card-back {
+        background: #212121;
+        border: 1px solid #444;
+        background-image: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 3px,
+          rgba(255, 255, 255, 0.05) 3px,
+          rgba(255, 255, 255, 0.05) 6px
+        );
       }
-      #ai-network-svg .input-node {
-        fill: var(--ai-node-input);
-        opacity: 0.8;
-      }
-      #ai-network-svg .hidden-node {
-        fill: var(--ai-node-hidden);
-        opacity: 0.8;
-      }
-      #ai-network-svg .output-node {
-        fill: var(--ai-node-output);
-        opacity: 0.8;
-      }
-      .tooltip {
-        position: relative;
-        display: inline-block;
-        cursor: help;
-      }
-      .tooltip .tooltiptext {
-        visibility: hidden;
-        width: 250px;
-        background-color: #555;
-        color: #fff;
-        text-align: left;
-        border-radius: 6px;
-        padding: 8px 10px;
+      #board-cards-container {
         position: absolute;
-        z-index: 10;
-        bottom: 125%;
+      }
+      #hero-hand-container {
+        position: absolute;
+        bottom: 8%;
         left: 50%;
-        margin-left: -125px;
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 0.85em;
-        font-weight: normal;
-        line-height: 1.4;
-        pointer-events: none;
+        transform: translateX(-50%);
       }
-      .tooltip.tooltip-top .tooltiptext {
-        bottom: auto;
-        top: 125%;
+      .opponent-position {
+        position: absolute;
+        transform: translate(-50%, -50%);
       }
-      .tooltip.tooltip-right .tooltiptext {
-        left: 105%;
-        bottom: 50%;
-        transform: translateY(50%);
-        margin-left: 0;
+      .opponent-position.winner .card:not(.card-back) {
+        box-shadow: 0 0 0 3px var(--highlight-color);
       }
-      .tooltip.tooltip-left .tooltiptext {
-        left: auto;
-        right: 105%;
-        bottom: 50%;
-        transform: translateY(50%);
-        margin-left: 0;
+      #hero-hand-container.winner .card {
+        box-shadow: 0 0 0 3px var(--highlight-color);
       }
-      .tooltip:hover .tooltiptext {
-        visibility: visible;
-        opacity: 0.95;
-      }
-      .help-icon {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 1px solid #888;
-        border-radius: 50%;
-        color: #888;
+
+      .equity-display {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
         text-align: center;
-        line-height: 12px;
-        font-size: 10px;
+        margin-bottom: 15px;
+        width: 100%;
+      }
+      .equity-box {
+        background-color: #2a2a2a;
+        padding: 10px;
+        border-radius: 6px;
+      }
+      .equity-box h4 {
+        margin: 0 0 5px 0;
+        font-size: 0.9em;
+        color: var(--secondary-text);
+        border: none;
+      }
+      .equity-box .value {
+        font-size: 1.5em;
         font-weight: bold;
-        margin-left: 5px;
-        cursor: help;
+        color: #55c667ff;
+      }
+      .equity-box .value.live {
+        font-size: 1.8em;
+        color: var(--highlight-color);
+      }
+
+      #interactive-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .sim-button {
+        background-color: #35b779;
+        color: black;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+      }
+      .sim-button:hover:not(:disabled) {
+        background-color: #44c489;
+      }
+      .sim-button:disabled {
+        background-color: #555;
+        color: #888;
+        cursor: not-allowed;
+      }
+
+      /* CHARTING STYLES */
+      .charts-section {
+        margin-top: 20px;
+      }
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .chart-container {
+        background-color: #2a2a2a;
+        padding: 15px;
+        border-radius: 6px;
+      }
+      .chart-container h3 {
+        margin: 0 0 10px 0;
+        font-size: 1em;
+        text-align: center;
+      }
+      .chart-container svg {
+        width: 100%;
+        height: 200px;
+        display: block;
+      }
+      .chart-tooltip {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 100;
+      }
+
+      @media (max-width: 1200px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 600px) {
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+        .poker-table {
+          aspect-ratio: 1.2/1;
+        }
+        .opponent-position {
+          transform: translate(-50%, -50%) scale(0.85);
+        }
+        .card {
+          width: 32px;
+          height: 48px;
+          font-size: 14px;
+        }
+        #hero-hand-container {
+          bottom: 2%;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="app">
-      <div class="metrics-card" id="live-metrics-card">
-        <h3>Live Simulation Metrics</h3>
-        <div class="metric-item">
-          <p>
-            <strong>
-              Throughput
-              <span class="tooltip tooltip-top">
-                <span class="help-icon">?</span>
-                <span class="tooltiptext"
-                  >Estimated TeraFLOPs/second. Based on TPU count, float type
-                  (lower precision = higher potential FLOPs), interconnect
-                  speed, torus knot twist (minor impact), and scaling efficiency
-                  (drops slightly with more TPUs). Includes minor random
-                  variation.</span
-                > </span
-              >:
-            </strong>
-            <span id="metric-throughput" class="metric-value">0 TFLOPS</span>
-          </p>
-        </div>
-        <div class="metric-item">
-          <p>
-            <strong>
-              Efficiency
-              <span class="tooltip tooltip-top">
-                <span class="help-icon">?</span>
-                <span class="tooltiptext"
-                  >Percentage of theoretical peak performance achieved.
-                  Primarily affected by interconnect speed and scaling
-                  efficiency (communication overhead increases with size). Torus
-                  knot twist has a minor negative impact. Base is 95%, capped
-                  between 50-98%. Includes minor random variation.</span
-                > </span
-              >:
-            </strong>
-            <span id="metric-efficiency" class="metric-value">0 %</span>
-          </p>
-        </div>
-        <div class="metric-item">
-          <p>
-            <strong>
-              Est. Latency
-              <span class="tooltip tooltip-top">
-                <span class="help-icon">?</span>
-                <span class="tooltiptext"
-                  >Estimated communication latency in milliseconds. Increases
-                  logarithmically with TPU count (more hops). Decreases with
-                  better interconnects. Torus knot twist slightly reduces
-                  latency (potentially shorter paths). Base is 5ms. Includes
-                  minor random variation.</span
-                > </span
-              >:
-            </strong>
-            <span id="metric-latency" class="metric-value">0 ms</span>
-          </p>
-        </div>
-        <div class="metric-item">
-          <p>
-            <strong>
-              Est. Cost Factor
-              <span class="tooltip tooltip-top">
-                <span class="help-icon">?</span>
-                <span class="tooltiptext"
-                  >Abstract relative cost. Primarily driven by the number of
-                  TPUs. Better interconnects add a moderate cost increase. Lower
-                  precision float types (FP8/INT8) slightly reduce cost factor,
-                  FP32 slightly increases it. Includes minor random
-                  variation.</span
-                > </span
-              >:
-            </strong>
-            <span id="metric-cost" class="metric-value">0</span>
-          </p>
-        </div>
-        <div id="live-graphs">
-          <div class="graph-container">
-            <label for="throughput-graph">Thrpt:</label>
-            <canvas id="throughput-graph"></canvas>
-          </div>
-          <div class="graph-container">
-            <label for="efficiency-graph">Effic:</label>
-            <canvas id="efficiency-graph"></canvas>
-          </div>
-          <div class="graph-container">
-            <label for="latency-graph">Latcy:</label>
-            <canvas id="latency-graph"></canvas>
+    <div style="text-align: center; margin-bottom: 20px">
+      <h1>HEA (Hold'em Equity Analyzer)</h1>
+      <p>
+        Explore pre-flop strategy and see how equity shifts post-flop with full
+        showdown analysis.
+      </p>
+    </div>
+
+    <div class="container">
+      <!-- LEFT PANEL -->
+      <div class="left-panel panel">
+        <h2>1. Pre-Flop Strategy</h2>
+        <div class="controls">
+          <label for="opponent-slider">Number of Opponents:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="opponent-slider"
+              min="1"
+              max="9"
+              value="8"
+            />
+            <span id="opponent-count-label">8 Opponents</span>
           </div>
         </div>
+        <div class="info-box">
+          <p>
+            Select a hand from the grid. Color shows absolute strength (Yellow =
+            Strong, Purple = Weak).
+          </p>
+        </div>
+        <div id="heatmap" class="heatmap-container"></div>
       </div>
 
-      <div id="main-content">
-        <div id="simulation-area">
-          <div id="simulation-visual-tooltip" class="tooltip tooltip-right">
-            <span
-              class="help-icon"
-              style="
-                background-color: rgba(42, 42, 42, 0.7);
-                border-color: #888;
-                color: #eee;
-              "
-              >?</span
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+        <div class="panel">
+          <h2>
+            2. In-Game Analysis:
+            <span id="selected-hand-title">No Hand Selected</span>
+          </h2>
+          <div class="equity-display">
+            <div class="equity-box">
+              <h4>Theoretical Pre-Flop Equity</h4>
+              <span class="value" id="theoretical-equity-val">--</span>
+            </div>
+            <div class="equity-box">
+              <h4>Live Hand Equity</h4>
+              <span class="value live" id="live-equity-val">--</span>
+            </div>
+          </div>
+          <div class="poker-table" id="poker-table-area">
+            <div id="board-cards-container" class="hand-display"></div>
+            <div id="hero-hand-container" class="hand-display"></div>
+            <!-- Opponent hands will be added here dynamically -->
+          </div>
+          <div id="interactive-controls">
+            <button id="start-interactive-btn" class="sim-button" disabled>
+              Play This Hand
+            </button>
+            <button
+              id="deal-street-btn"
+              class="sim-button"
+              style="display: none"
             >
-            <span class="tooltiptext">
-              <b>Visuals:</b><br />
-              - Each rectangle represents a simulated TPU.<br />
-              - <b>Color Intensity/Glow:</b> Intensity and emission indicate
-              overall simulated network activity level (based on efficiency
-              metric).<br />
-              - <b>Base Color:</b> Varies cyclically by TPU ID for visual
-              distinction.
-            </span>
-          </div>
-          <canvas id="webgl-canvas"></canvas>
-        </div>
-        <div id="controls-and-export-column">
-          <div id="top-controls-container">
-            <button id="init-reset-btn" title="Initialize / Reset Simulation">
-              Reset
+              Deal Flop
             </button>
-            <button id="play-pause-btn" title="Play / Pause Simulation">
-              Play
+            <button
+              id="reset-hand-btn"
+              class="sim-button"
+              style="display: none"
+            >
+              New Hand
             </button>
           </div>
-          <div id="control-panel">
-            <h3>Configuration</h3>
-            <div class="control-group">
-              <label for="num-tpus">
-                Number of TPUs
-                <span id="num-tpus-value" class="value-display">64</span>
-                <span class="tooltip">
-                  <span class="help-icon">?</span>
-                  <span class="tooltiptext"
-                    >Total simulated TPU units in the network. Affects
-                    throughput, latency, cost, and scaling efficiency.</span
-                  >
-                </span>
-              </label>
-              <input
-                type="range"
-                id="num-tpus"
-                min="4"
-                max="512"
-                value="64"
-                step="4"
-              />
-            </div>
-            <div class="control-group">
-              <label for="torus-r">
-                Major Radius
-                <span id="torus-r-value" class="value-display">1.8</span>
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Radius of the main torus ring. Primarily affects the visual
-                    layout.</span
-                  ></span
-                >
-              </label>
-              <input
-                type="range"
-                id="torus-r"
-                min="0.5"
-                max="5.0"
-                value="1.8"
-                step="0.1"
-              />
-            </div>
-            <div class="control-group">
-              <label for="torus-tube-r">
-                Tube Radius
-                <span id="torus-tube-r-value" class="value-display">0.5</span>
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Radius of the torus tube cross-section. Affects visual
-                    layout.</span
-                  ></span
-                >
-              </label>
-              <input
-                type="range"
-                id="torus-tube-r"
-                min="0.1"
-                max="1.5"
-                value="0.5"
-                step="0.05"
-              />
-            </div>
-            <div class="control-group">
-              <label for="torus-twist">
-                Torus Knot Twist
-                <span id="torus-twist-value" class="value-display">1</span>
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Mathematical twist factor for the torus embedding
-                    (0=standard). Affects geometry and slightly impacts
-                    performance metrics (throughput, efficiency, latency).</span
-                  ></span
-                >
-              </label>
-              <input
-                type="range"
-                id="torus-twist"
-                min="0"
-                max="10"
-                value="1"
-                step="1"
-              />
-            </div>
-            <div class="control-group">
-              <label for="tube-twist">
-                Tube Surface Twist
-                <span id="tube-twist-value" class="value-display">1.0</span>
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Rotates the TPU placement basis around the tube's
-                    centerline as you move along the main ring (0 = no surface
-                    twist). Affects visual layout and local orientation.</span
-                  ></span
-                >
-              </label>
-              <input
-                type="range"
-                id="tube-twist"
-                min="0"
-                max="5"
-                value="1.0"
-                step="0.1"
-              />
-            </div>
-            <div class="control-group">
-              <label for="tpu-density">
-                TPU Density
-                <span id="tpu-density-value" class="value-display">0.8</span>
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Adjusts visual spacing of TPUs on the torus surface. Higher
-                    values place them closer together. Purely visual.</span
-                  ></span
-                >
-              </label>
-              <input
-                type="range"
-                id="tpu-density"
-                min="0.1"
-                max="1.5"
-                value="0.8"
-                step="0.05"
-              />
-            </div>
-            <div class="control-group">
-              <label for="tpu-size">
-                TPU Base Size
-                <span id="tpu-size-value" class="value-display">0.030</span>
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Base size factor for individual TPU visuals. Purely
-                    visual.</span
-                  ></span
-                >
-              </label>
-              <input
-                type="range"
-                id="tpu-size"
-                min="0.005"
-                max="0.1"
-                value="0.03"
-                step="0.001"
-              />
-            </div>
-            <div class="control-group">
-              <label for="float-type">
-                Float Type
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Simulated numerical precision used for calculations. Lower
-                    precision (e.g., BF16, FP8, INT8) generally allows higher
-                    theoretical throughput but may affect model accuracy (not
-                    simulated here). Impacts calculated Throughput and Cost
-                    Factor.</span
-                  ></span
-                >
-              </label>
-              <select id="float-type">
-                <option value="FP32">FP32</option>
-                <option value="BF16" selected>BF16</option>
-                <option value="FP16">FP16</option>
-                <option value="FP8">FP8</option>
-                <option value="INT8">INT8</option>
-              </select>
-            </div>
-            <div class="control-group">
-              <label for="quantization">
-                Quantization
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Simulated technique for reducing model precision, often
-                    used with lower Float Types. 'None' uses the selected Float
-                    Type directly. 'Post-Training' and 'QAT' apply simulated
-                    efficiency gains. Slightly impacts Throughput.</span
-                  ></span
-                >
-              </label>
-              <select id="quantization">
-                <option value="None" selected>None</option>
-                <option value="PostTraining">Post-Training</option>
-                <option value="QAT">Quantization-Aware Training</option>
-              </select>
-            </div>
-            <div class="control-group">
-              <label for="interconnect">
-                Interconnect
-                <span class="tooltip"
-                  ><span class="help-icon">?</span
-                  ><span class="tooltiptext"
-                    >Simulated network connection type between TPUs. Better
-                    interconnects (Copper, Optical, Custom) improve Throughput
-                    and Efficiency, and reduce Latency, but increase the Cost
-                    Factor.</span
-                  ></span
-                >
-              </label>
-              <select id="interconnect">
-                <option value="Ethernet">Ethernet (Baseline)</option>
-                <option value="Copper" selected>High-Speed Copper</option>
-                <option value="Optical">Optical/Fabric</option>
-                <option value="CustomInterconnect">
-                  Custom TPU Interconnect
-                </option>
-              </select>
-            </div>
-          </div>
-          <div id="export-panel">
-            <h3>Record & Export</h3>
-            <div class="export-controls">
-              <label for="record-hz">Rate:</label>
-              <input type="number" id="record-hz" value="10" min="1" max="60" />
-              <span>Hz</span>
-              <label for="record-duration">Duration:</label>
-              <input
-                type="number"
-                id="record-duration"
-                value="10"
-                min="1"
-                max="300"
-              />
-              <span>s</span>
-            </div>
-            <p id="record-status">Status: Idle</p>
-            <div class="button-group">
-              <button id="record-btn">Record</button>
-              <button id="export-btn" disabled>Export Run</button>
-              <button id="clear-record-btn" disabled>Clear Data</button>
-            </div>
-          </div>
         </div>
-      </div>
 
-      <div id="ai-section">
-        <h3>AI Analysis & Control</h3>
-        <div id="ai-config-and-display">
-          <div id="ai-config-card">
-            <h4>AI Configuration</h4>
-            <div id="ai-config-grid">
-              <div class="ai-config-item">
-                <label for="ai-hidden-layers">Hidden Layers (e.g., 10,8)</label>
-                <input type="text" id="ai-hidden-layers" value="10,8" />
-              </div>
-              <div class="ai-config-item">
-                <label for="ai-activation">Activation Fn</label>
-                <select id="ai-activation">
-                  <option value="leaky-relu" selected>Leaky ReLU</option>
-                  <option value="relu">ReLU</option>
-                  <option value="sigmoid">Sigmoid</option>
-                  <option value="tanh">Tanh</option>
-                </select>
-              </div>
-              <div class="ai-config-item">
-                <label for="ai-learning-rate"
-                  >Learn Rate (<span id="ai-learning-rate-value">0.03</span
-                  >)</label
-                >
-                <input
-                  type="range"
-                  id="ai-learning-rate"
-                  min="0.001"
-                  max="0.1"
-                  step="0.001"
-                  value="0.03"
-                />
-              </div>
-              <div class="ai-config-item">
-                <label for="ai-iterations"
-                  >Max Iterations (<span id="ai-iterations-value">300</span
-                  >)</label
-                >
-                <input
-                  type="range"
-                  id="ai-iterations"
-                  min="50"
-                  max="2000"
-                  step="50"
-                  value="300"
-                />
-              </div>
-              <div class="ai-config-item">
-                <label for="ai-error-thresh"
-                  >Error Thresh (<span id="ai-error-thresh-value">0.005</span
-                  >)</label
-                >
-                <input
-                  type="range"
-                  id="ai-error-thresh"
-                  min="0.001"
-                  max="0.1"
-                  step="0.001"
-                  value="0.005"
-                />
-              </div>
-              <div class="ai-config-item">
-                <label for="ai-max-samples"
-                  >Max Samples (<span id="ai-max-samples-value">2000</span
-                  >)</label
-                >
-                <input
-                  type="range"
-                  id="ai-max-samples"
-                  min="100"
-                  max="10000"
-                  step="100"
-                  value="2000"
-                />
-              </div>
-              <div class="ai-config-item">
-                <label for="ai-find-samples"
-                  >Find Samples (<span id="ai-find-samples-value">5000</span
-                  >)</label
-                >
-                <input
-                  type="range"
-                  id="ai-find-samples"
-                  min="500"
-                  max="20000"
-                  step="500"
-                  value="5000"
-                />
-              </div>
+        <div class="panel">
+          <h2>3. Performance & Showdown</h2>
+          <div id="charts-sections">
+            <div class="charts-section" id="preflop-charts-section">
+              <h3>Pre-Flop Analysis (Long-Term)</h3>
+              <div class="charts-grid" id="preflop-charts-grid"></div>
             </div>
-            <button
-              id="init-ai-btn"
-              title="Re-initialize AI with current settings"
+            <div
+              class="charts-section"
+              id="live-charts-section"
+              style="display: none"
             >
-              Initialize AI
-            </button>
-          </div>
-          <div id="ai-display-card">
-            <h4>AI Prediction (Current Config)</h4>
-            <p>
-              <strong>Est. Throughput:</strong>
-              <span id="brain-throughput" class="metric-value">N/A</span>
-            </p>
-            <p>
-              <strong>Est. Efficiency:</strong>
-              <span id="brain-efficiency" class="metric-value">N/A</span>
-            </p>
-            <p>
-              <strong>Est. Cost Factor:</strong>
-              <span id="brain-cost" class="metric-value">N/A</span>
-            </p>
-            <div id="ai-recommendation-area">
-              <strong>AI Recommendation:</strong>
-              <span id="ai-recommendation-text"
-                >Train the AI and click 'Find Best Config' to get a
-                recommendation.</span
-              >
+              <h3>Live Hand Analysis</h3>
+              <div class="charts-grid" id="live-charts-grid"></div>
             </div>
           </div>
-        </div>
-        <div id="ai-controls-and-status">
-          <div id="ai-status-area">
-            <span id="brain-status">Idle</span> | Samples:
-            <span id="brain-samples">0</span>
-            <span class="tooltip tooltip-left">
-              <span class="help-icon">?</span>
-              <span class="tooltiptext"
-                >Number of data points (Config vs. Metrics) collected from the
-                live simulation used to train the AI estimator. More samples
-                generally lead to better estimations/recommendations. Training
-                occurs when manually triggered. Recommendations use the latest
-                trained model.</span
-              >
-            </span>
-          </div>
-          <div id="ai-controls">
-            <button
-              id="train-ai-btn"
-              title="Train the AI model using collected data"
-            >
-              Train AI Now
-            </button>
-            <button
-              id="find-best-ai-btn"
-              title="Use trained AI to recommend the best configuration"
-            >
-              Find Best Config (AI)
-            </button>
-          </div>
-        </div>
-        <div id="ai-network-visualization">
-          <svg id="ai-network-svg"></svg>
         </div>
       </div>
     </div>
 
-    <script id="tpuVertexShader" type="x-shader/x-vertex">
-      precision mediump float;
-      attribute vec3 a_position;
-      attribute vec3 a_normal;
-      attribute float a_tpuId;
-      uniform mat4 u_worldViewProjection;
-      uniform float u_time;
-      uniform float u_globalActivityFactor;
-      varying vec3 v_normal;
-      varying float v_tpuId;
-      varying float v_activity;
-      const float PI = 3.14159265359;
-
-      void main() {
-        v_normal = a_normal;
-        v_tpuId = a_tpuId;
-        float activityFrequency = 1.5 + u_globalActivityFactor * 3.0;
-        float activityCycle = u_time * activityFrequency + a_tpuId * PI * 0.1;
-        v_activity = 0.5 + 0.5 * sin(activityCycle);
-        float sizePulse = 1.0 + 0.05 * sin(u_time * 5.0 + a_tpuId * 0.5);
-        vec3 scaledPosition = a_position * sizePulse;
-        gl_Position = u_worldViewProjection * vec4(scaledPosition, 1.0);
-      }
-    </script>
-
-    <script id="tpuFragmentShader" type="x-shader/x-fragment">
-      precision mediump float;
-      varying vec3 v_normal;
-      varying float v_tpuId;
-      varying float v_activity;
-      uniform float u_globalActivityFactor;
-
-      vec3 hsv2rgb(vec3 c) {
-        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-      }
-
-      void main() {
-        vec3 lightDir = normalize(vec3(0.5, 0.5, 1.0));
-        float diffuse = max(0.0, dot(normalize(v_normal), lightDir)) * 0.6 + 0.3;
-
-        float hue = mod(v_tpuId * 0.1, 1.0);
-        vec3 baseColor = hsv2rgb(vec3(hue, 0.7, 0.9));
-
-        float glowAmount = pow(v_activity, 2.0) * pow(u_globalActivityFactor, 0.7);
-        vec3 glowColor = vec3(1.0, 0.9, 0.7);
-
-        float minIntensity = 0.3;
-        float maxIntensity = 1.0;
-        float activityIntensity = mix(minIntensity, maxIntensity, v_activity * pow(u_globalActivityFactor, 0.5));
-
-        vec3 surfaceColor = baseColor * activityIntensity * diffuse;
-        vec3 emissiveColor = glowColor * glowAmount * 0.8;
-
-        vec3 finalColor = surfaceColor + emissiveColor;
-
-        gl_FragColor = vec4(finalColor, 1.0);
-      }
-    </script>
-
-    <script id="wireframeVertexShader" type="x-shader/x-vertex">
-      attribute vec3 a_position;
-      uniform mat4 u_worldViewProjection;
-      void main() {
-        gl_Position = u_worldViewProjection * vec4(a_position, 1.0);
-      }
-    </script>
-
-    <script id="wireframeFragmentShader" type="x-shader/x-fragment">
-      precision mediump float;
-      uniform vec4 u_color;
-      void main() {
-        gl_FragColor = u_color;
-      }
-    </script>
+    <div id="tooltip" class="chart-tooltip"></div>
 
     <script>
-      'use strict';
-      
-      // Performance optimizations
-      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
-      const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
-      const PERF = window.performance || Date;
-      
-      // Lazy load Brain.js when needed
-      let brainJsLoaded = false;
-      async function loadBrainJs() {
-        if (brainJsLoaded) return;
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js';
-        document.head.appendChild(script);
-        await new Promise(resolve => script.onload = resolve);
-        brainJsLoaded = true;
-      }
-      
-      const canvas = document.getElementById("webgl-canvas");
-      let gl;
-      try {
-        gl = canvas.getContext("webgl", { 
-          antialias: false,
-          powerPreference: "high-performance",
-          preserveDrawingBuffer: false,
-          alpha: false,
-          depth: true,
-          stencil: false,
-          desynchronized: true
-        }) || canvas.getContext("experimental-webgl");
-        if (!gl) throw new Error("WebGL context unavailable");
-      } catch (e) {
-        document.body.innerHTML =
-          '<p style="color:white; padding: 20px;">WebGL initialization failed. Please use a modern browser that supports WebGL.</p>';
-        throw e;
-      }
+      // ===================================================================================
+      //               DEFINITIVE HOLD'EM ANALYZER SCRIPT
+      // ===================================================================================
 
-      const PI = Math.PI;
-      const TWO_PI = Math.PI * 2;
-      const SVG_NS = "http://www.w3.org/2000/svg";
-      
-      // Cache for expensive calculations
-      const mathCache = new Map();
-      const shaderCache = new Map();
-
-      const vec3 = {
-        create: () => new Float32Array(3),
-        clone: (a) => new Float32Array(a),
-        copy: (out, a) => {
-          out[0] = a[0];
-          out[1] = a[1];
-          out[2] = a[2];
-          return out;
-        },
-        add: (out, a, b) => {
-          out[0] = a[0] + b[0];
-          out[1] = a[1] + b[1];
-          out[2] = a[2] + b[2];
-          return out;
-        },
-        subtract: (out, a, b) => {
-          out[0] = a[0] - b[0];
-          out[1] = a[1] - b[1];
-          out[2] = a[2] - b[2];
-          return out;
-        },
-        multiply: (out, a, b) => {
-          out[0] = a[0] * b[0];
-          out[1] = a[1] * b[1];
-          out[2] = a[2] * b[2];
-          return out;
-        },
-        scale: (out, a, b) => {
-          out[0] = a[0] * b;
-          out[1] = a[1] * b;
-          out[2] = a[2] * b;
-          return out;
-        },
-        scaleAndAdd: (out, a, b, scale) => {
-          out[0] = a[0] + b[0] * scale;
-          out[1] = a[1] + b[1] * scale;
-          out[2] = a[2] + b[2] * scale;
-          return out;
-        },
-        normalize: (out, a) => {
-          let x = a[0],
-            y = a[1],
-            z = a[2];
-          let len = x * x + y * y + z * z;
-          if (len > 0) {
-            len = 1 / Math.sqrt(len);
-            out[0] = a[0] * len;
-            out[1] = a[1] * len;
-            out[2] = a[2] * len;
-          }
-          return out;
-        },
-        dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
-        cross: (out, a, b) => {
-          let ax = a[0],
-            ay = a[1],
-            az = a[2],
-            bx = b[0],
-            by = b[1],
-            bz = b[2];
-          out[0] = ay * bz - az * by;
-          out[1] = az * bx - ax * bz;
-          out[2] = ax * by - ay * bx;
-          return out;
-        },
-        transformQuat: (out, a, q) => {
-          let qx = q[0],
-            qy = q[1],
-            qz = q[2],
-            qw = q[3],
-            x = a[0],
-            y = a[1],
-            z = a[2];
-          let uvx = qy * z - qz * y,
-            uvy = qz * x - qx * z,
-            uvz = qx * y - qy * x;
-          let uuvx = qy * uvz - qz * uvy,
-            uuvy = qz * uvx - qx * uvz,
-            uuvz = qx * uvy - qy * uvx;
-          let w2 = qw * 2;
-          uvx *= w2;
-          uvy *= w2;
-          uvz *= w2;
-          uuvx *= 2;
-          uuvy *= 2;
-          uuvz *= 2;
-          out[0] = x + uvx + uuvx;
-          out[1] = y + uvy + uuvy;
-          out[2] = z + uvz + uuvz;
-          return out;
-        },
-      };
-      const quat = {
-        create: () => new Float32Array(4),
-        setAxisAngle: (out, axis, rad) => {
-          rad = rad * 0.5;
-          let s = Math.sin(rad);
-          out[0] = s * axis[0];
-          out[1] = s * axis[1];
-          out[2] = s * axis[2];
-          out[3] = Math.cos(rad);
-          return out;
-        },
-        multiply: (out, a, b) => {
-          let ax = a[0],
-            ay = a[1],
-            az = a[2],
-            aw = a[3],
-            bx = b[0],
-            by = b[1],
-            bz = b[2],
-            bw = b[3];
-          out[0] = ax * bw + aw * bx + ay * bz - az * by;
-          out[1] = ay * bw + aw * by + az * bx - ax * bz;
-          out[2] = az * bw + aw * bz + ax * by - ay * bx;
-          out[3] = aw * bw - ax * bx - ay * by - az * bz;
-          return out;
-        },
-        rotationTo: (out, a, b) => {
-          let dot = vec3.dot(a, b);
-          if (dot < -0.999999) {
-            let cross = vec3.cross(vec3.create(), [1, 0, 0], a);
-            if (vec3.dot(cross, cross) < 0.000001)
-              vec3.cross(cross, [0, 1, 0], a);
-            vec3.normalize(out, cross);
-            quat.setAxisAngle(out, out, Math.PI);
-            return out;
-          } else if (dot > 0.999999) {
-            out[0] = 0;
-            out[1] = 0;
-            out[2] = 0;
-            out[3] = 1;
-            return out;
-          } else {
-            vec3.cross(out, a, b);
-            out[3] = 1 + dot;
-            return quat.normalize(out, out);
-          }
-        },
-        normalize: (out, a) => {
-          let len = a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
-          if (len > 0) {
-            len = 1 / Math.sqrt(len);
-            out[0] = a[0] * len;
-            out[1] = a[1] * len;
-            out[2] = a[2] * len;
-            out[3] = a[3] * len;
-          }
-          return out;
-        },
-      };
-      const mat4 = {
-        create: () =>
-          new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
-        perspective: (o, f, a, n, r) => {
-          const t = 1 / Math.tan(f / 2);
-          o[0] = t / a;
-          o[1] = 0;
-          o[2] = 0;
-          o[3] = 0;
-          o[4] = 0;
-          o[5] = t;
-          o[6] = 0;
-          o[7] = 0;
-          o[8] = 0;
-          o[9] = 0;
-          o[11] = -1;
-          o[15] = 0;
-          if (r != null && r !== Infinity) {
-            const e = 1 / (n - r);
-            o[10] = (r + n) * e;
-            o[14] = 2 * r * n * e;
-          } else {
-            o[10] = -1;
-            o[14] = -2 * n;
-          }
-          return o;
-        },
-        lookAt: (o, e, t, a) => {
-          let n,
-            r,
-            i,
-            l,
-            s,
-            c,
-            d,
-            u,
-            m,
-            p,
-            f = e[0],
-            h = e[1],
-            g = e[2],
-            b = a[0],
-            v = a[1],
-            x = a[2];
-          let w = t[0],
-            _ = t[1],
-            M = t[2];
-          if (
-            Math.abs(f - w) < 1e-6 &&
-            Math.abs(h - _) < 1e-6 &&
-            Math.abs(g - M) < 1e-6
-          )
-            return mat4.identity(o);
-          d = f - w;
-          u = h - _;
-          m = g - M;
-          p = 1 / Math.sqrt(d * d + u * u + m * m);
-          d *= p;
-          u *= p;
-          m *= p;
-          n = v * m - x * u;
-          r = x * d - b * m;
-          i = b * u - v * d;
-          p = Math.sqrt(n * n + r * r + i * i);
-          if (!p) {
-            n = 0;
-            r = 0;
-            i = 0;
-          } else {
-            p = 1 / p;
-            n *= p;
-            r *= p;
-            i *= p;
-          }
-          l = u * i - m * r;
-          s = m * n - d * i;
-          c = d * r - u * n;
-          p = Math.sqrt(l * l + s * s + c * c);
-          if (!p) {
-            l = 0;
-            s = 0;
-            c = 0;
-          } else {
-            p = 1 / p;
-            l *= p;
-            s *= p;
-            c *= p;
-          }
-          o[0] = n;
-          o[1] = l;
-          o[2] = d;
-          o[3] = 0;
-          o[4] = r;
-          o[5] = s;
-          o[6] = u;
-          o[7] = 0;
-          o[8] = i;
-          o[9] = c;
-          o[10] = m;
-          o[11] = 0;
-          o[12] = -(n * f + r * h + i * g);
-          o[13] = -(l * f + s * h + c * g);
-          o[14] = -(d * f + u * h + m * g);
-          o[15] = 1;
-          return o;
-        },
-        multiply: (o, t, a) => {
-          let n = t[0],
-            r = t[1],
-            i = t[2],
-            l = t[3],
-            s = t[4],
-            c = t[5],
-            d = t[6],
-            u = t[7];
-          let m = t[8],
-            p = t[9],
-            f = t[10],
-            h = t[11],
-            g = t[12],
-            b = t[13],
-            v = t[14],
-            x = t[15];
-          let w = a[0],
-            _ = a[1],
-            M = a[2],
-            y = a[3];
-          o[0] = w * n + _ * s + M * m + y * g;
-          o[1] = w * r + _ * c + M * p + y * b;
-          o[2] = w * i + _ * d + M * f + y * v;
-          o[3] = w * l + _ * u + M * h + y * x;
-          w = a[4];
-          _ = a[5];
-          M = a[6];
-          y = a[7];
-          o[4] = w * n + _ * s + M * m + y * g;
-          o[5] = w * r + _ * c + M * p + y * b;
-          o[6] = w * i + _ * d + M * f + y * v;
-          o[7] = w * l + _ * u + M * h + y * x;
-          w = a[8];
-          _ = a[9];
-          M = a[10];
-          y = a[11];
-          o[8] = w * n + _ * s + M * m + y * g;
-          o[9] = w * r + _ * c + M * p + y * b;
-          o[10] = w * i + _ * d + M * f + y * v;
-          o[11] = w * l + _ * u + M * h + y * x;
-          w = a[12];
-          _ = a[13];
-          M = a[14];
-          y = a[15];
-          o[12] = w * n + _ * s + M * m + y * g;
-          o[13] = w * r + _ * c + M * p + y * b;
-          o[14] = w * i + _ * d + M * f + y * v;
-          o[15] = w * l + _ * u + M * h + y * x;
-          return o;
-        },
-        rotateY: (o, t, a) => {
-          let n = Math.sin(a),
-            r = Math.cos(a),
-            i = t[0],
-            l = t[1],
-            s = t[2],
-            c = t[3];
-          let d = t[8],
-            u = t[9],
-            m = t[10],
-            p = t[11];
-          if (t !== o) {
-            o[4] = t[4];
-            o[5] = t[5];
-            o[6] = t[6];
-            o[7] = t[7];
-            o[12] = t[12];
-            o[13] = t[13];
-            o[14] = t[14];
-            o[15] = t[15];
-          }
-          o[0] = i * r - d * n;
-          o[1] = l * r - u * n;
-          o[2] = s * r - m * n;
-          o[3] = c * r - p * n;
-          o[8] = i * n + d * r;
-          o[9] = l * n + u * r;
-          o[10] = s * n + m * r;
-          o[11] = c * n + p * r;
-          return o;
-        },
-        identity: (o) => {
-          o[0] = 1;
-          o[1] = 0;
-          o[2] = 0;
-          o[3] = 0;
-          o[4] = 0;
-          o[5] = 1;
-          o[6] = 0;
-          o[7] = 0;
-          o[8] = 0;
-          o[9] = 0;
-          o[10] = 1;
-          o[11] = 0;
-          o[12] = 0;
-          o[13] = 0;
-          o[14] = 0;
-          o[15] = 1;
-          return o;
-        },
-      };
-
-      let simState = {
-        running: false,
-        startTime: 0,
-        elapsedTime: 0,
-        animationFrameId: null,
-        lastUpdateTime: 0,
-      };
-      let config = {
-        numTPUs: 64,
-        torusR: 1.8,
-        torusTubeR: 0.5,
-        torusTwist: 1,
-        tubeTwist: 1.0,
-        tpuDensity: 0.8,
-        tpuSize: 0.03,
-        floatType: "BF16",
-        quantization: "None",
-        interconnect: "Copper",
-      };
-      let metrics = {
-        throughput: 0,
-        efficiency: 0,
-        latency: 0,
-        cost: 0,
-        history: { throughput: [], efficiency: [], latency: [] },
-        historyMaxLength: 150,
-      };
-      let recording = {
-        active: false,
-        hz: 10,
-        duration: 10,
-        intervalId: null,
-        startTime: 0,
-        data: [],
-      };
-      let brainConfig = {
-        hiddenLayers: [10, 8],
-        activation: "leaky-relu",
-        learningRate: 0.03,
-        iterations: 300,
-        errorThresh: 0.005,
-        maxSamples: 2000,
-        findSamples: 5000,
-      };
-      let brain = {
-        net: null,
-        trainingData: [],
-        status: "Unitialized",
-        samples: 0,
-        isTraining: false,
-        isFindingBest: false,
-        lastPrediction: null,
-        lastRecommendation: null,
-        minSamplesForManualTrain: 20,
-        minSamplesForFindingBest: 50,
-        inputSize: 0,
-        outputSize: 0,
-      };
-
-      const ui = {
-        numTPUsSlider: document.getElementById("num-tpus"),
-        numTPUsValue: document.getElementById("num-tpus-value"),
-        torusRSlider: document.getElementById("torus-r"),
-        torusRValue: document.getElementById("torus-r-value"),
-        torusTubeRSlider: document.getElementById("torus-tube-r"),
-        torusTubeRValue: document.getElementById("torus-tube-r-value"),
-        torusTwistSlider: document.getElementById("torus-twist"),
-        torusTwistValue: document.getElementById("torus-twist-value"),
-        tubeTwistSlider: document.getElementById("tube-twist"),
-        tubeTwistValue: document.getElementById("tube-twist-value"),
-        tpuDensitySlider: document.getElementById("tpu-density"),
-        tpuDensityValue: document.getElementById("tpu-density-value"),
-        tpuSizeSlider: document.getElementById("tpu-size"),
-        tpuSizeValue: document.getElementById("tpu-size-value"),
-        floatTypeSelect: document.getElementById("float-type"),
-        quantizationSelect: document.getElementById("quantization"),
-        interconnectSelect: document.getElementById("interconnect"),
-        controlPanel: document.getElementById("control-panel"),
-        controlInputs: document.querySelectorAll(
-          "#control-panel input, #control-panel select"
-        ),
-        initResetBtn: document.getElementById("init-reset-btn"),
-        playPauseBtn: document.getElementById("play-pause-btn"),
-        recordBtn: document.getElementById("record-btn"),
-        exportBtn: document.getElementById("export-btn"),
-        clearRecordBtn: document.getElementById("clear-record-btn"),
-        recordHzInput: document.getElementById("record-hz"),
-        recordDurationInput: document.getElementById("record-duration"),
-        recordStatus: document.getElementById("record-status"),
-        metricThroughput: document.getElementById("metric-throughput"),
-        metricEfficiency: document.getElementById("metric-efficiency"),
-        metricLatency: document.getElementById("metric-latency"),
-        metricCost: document.getElementById("metric-cost"),
-        throughputGraph: document.getElementById("throughput-graph"),
-        efficiencyGraph: document.getElementById("efficiency-graph"),
-        latencyGraph: document.getElementById("latency-graph"),
-        brainThroughput: document.getElementById("brain-throughput"),
-        brainEfficiency: document.getElementById("brain-efficiency"),
-        brainCost: document.getElementById("brain-cost"),
-        brainStatus: document.getElementById("brain-status"),
-        brainSamples: document.getElementById("brain-samples"),
-        trainAiBtn: document.getElementById("train-ai-btn"),
-        findAiBtn: document.getElementById("find-best-ai-btn"),
-        aiRecommendationText: document.getElementById("ai-recommendation-text"),
-        aiHiddenLayersInput: document.getElementById("ai-hidden-layers"),
-        aiActivationSelect: document.getElementById("ai-activation"),
-        aiLearningRateSlider: document.getElementById("ai-learning-rate"),
-        aiLearningRateValue: document.getElementById("ai-learning-rate-value"),
-        aiIterationsSlider: document.getElementById("ai-iterations"),
-        aiIterationsValue: document.getElementById("ai-iterations-value"),
-        aiErrorThreshSlider: document.getElementById("ai-error-thresh"),
-        aiErrorThreshValue: document.getElementById("ai-error-thresh-value"),
-        aiMaxSamplesSlider: document.getElementById("ai-max-samples"),
-        aiMaxSamplesValue: document.getElementById("ai-max-samples-value"),
-        aiFindSamplesSlider: document.getElementById("ai-find-samples"),
-        aiFindSamplesValue: document.getElementById("ai-find-samples-value"),
-        initAiBtn: document.getElementById("init-ai-btn"),
-        aiNetworkSvg: document.getElementById("ai-network-svg"),
-        aiConfigInputs: document.querySelectorAll(
-          "#ai-config-card input, #ai-config-card select"
-        ),
-      };
-
-      let glResources = {
-        tpuProgram: null,
-        wireframeProgram: null,
-        tpuBuffer: null,
-        tpuIndexBuffer: null,
-        wireframeBuffer: null,
-        wireframeIndexBuffer: null,
-        tpuAttributeLocations: {},
-        wireframeAttributeLocations: {},
-        tpuUniformLocations: {},
-        wireframeUniformLocations: {},
-        viewMatrix: mat4.create(),
-        projectionMatrix: mat4.create(),
-        worldViewProjectionMatrix: mat4.create(),
-        numTpuIndices: 0,
-        numWireframeIndices: 0,
-      };
-
-      function checkGLError(operation) {
-        const error = gl.getError();
-        if (error !== gl.NO_ERROR && error !== gl.CONTEXT_LOST_WEBGL) {
-          console.error(`WebGL Error after ${operation}: ${error}`);
-          return true;
-        }
-        return false;
-      }
-
-      function initWebGL() {
-        glResources.tpuProgram = createShaderProgram(
-          gl,
-          document.getElementById("tpuVertexShader").textContent,
-          document.getElementById("tpuFragmentShader").textContent
-        );
-        glResources.wireframeProgram = createShaderProgram(
-          gl,
-          document.getElementById("wireframeVertexShader").textContent,
-          document.getElementById("wireframeFragmentShader").textContent
-        );
-        if (!glResources.tpuProgram || !glResources.wireframeProgram)
-          return false;
-        glResources.tpuAttributeLocations = {
-          position: gl.getAttribLocation(glResources.tpuProgram, "a_position"),
-          normal: gl.getAttribLocation(glResources.tpuProgram, "a_normal"),
-          tpuId: gl.getAttribLocation(glResources.tpuProgram, "a_tpuId"),
-        };
-        glResources.tpuUniformLocations = {
-          worldViewProjection: gl.getUniformLocation(
-            glResources.tpuProgram,
-            "u_worldViewProjection"
-          ),
-          time: gl.getUniformLocation(glResources.tpuProgram, "u_time"),
-          globalActivityFactor: gl.getUniformLocation(
-            glResources.tpuProgram,
-            "u_globalActivityFactor"
-          ),
-        };
-        glResources.wireframeAttributeLocations = {
-          position: gl.getAttribLocation(
-            glResources.wireframeProgram,
-            "a_position"
-          ),
-        };
-        glResources.wireframeUniformLocations = {
-          worldViewProjection: gl.getUniformLocation(
-            glResources.wireframeProgram,
-            "u_worldViewProjection"
-          ),
-          color: gl.getUniformLocation(glResources.wireframeProgram, "u_color"),
-        };
-        if (
-          glResources.tpuAttributeLocations.position < 0 ||
-          glResources.tpuAttributeLocations.normal < 0 ||
-          glResources.tpuAttributeLocations.tpuId < 0 ||
-          glResources.tpuUniformLocations.globalActivityFactor === null
-        ) {
-          console.error("TPU shader attribute/uniform location error.");
-          return false;
-        }
-        if (glResources.wireframeAttributeLocations.position < 0) {
-          console.error("Wireframe shader attribute location error.");
-          return false;
-        }
-        glResources.tpuBuffer = gl.createBuffer();
-        glResources.tpuIndexBuffer = gl.createBuffer();
-        glResources.wireframeBuffer = gl.createBuffer();
-        glResources.wireframeIndexBuffer = gl.createBuffer();
-        if (
-          !glResources.tpuBuffer ||
-          !glResources.tpuIndexBuffer ||
-          !glResources.wireframeBuffer ||
-          !glResources.wireframeIndexBuffer
-        ) {
-          console.error("Failed to create WebGL buffers");
-          return false;
-        }
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.clearColor(0.05, 0.05, 0.05, 1.0);
-        setupCamera();
-        updateGeometry();
-        return true;
-      }
-      function createShaderProgram(gl, vsSource, fsSource) {
-        const vs = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-        const fs = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-        if (!vs || !fs) return null;
-        const p = gl.createProgram();
-        gl.attachShader(p, vs);
-        gl.attachShader(p, fs);
-        gl.linkProgram(p);
-        if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-          console.error(`Shader Link Error: ${gl.getProgramInfoLog(p)}`);
-          gl.deleteProgram(p);
-          gl.deleteShader(vs);
-          gl.deleteShader(fs);
-          return null;
-        }
-        return p;
-      }
-      function loadShader(gl, type, source) {
-        const s = gl.createShader(type);
-        gl.shaderSource(s, source);
-        gl.compileShader(s);
-        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-          console.error(
-            `Shader Compile Error (${
-              type === gl.VERTEX_SHADER ? "VS" : "FS"
-            }): ${gl.getShaderInfoLog(s)}`
-          );
-          gl.deleteShader(s);
-          return null;
-        }
-        return s;
-      }
-
-      function setupCamera() {
-        const fovy = (45 * PI) / 180;
-        const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight || 1;
-        mat4.perspective(
-          glResources.projectionMatrix,
-          fovy,
-          aspect,
-          0.1,
-          100.0
-        );
-        resetCameraView();
-      }
-      function resetCameraView() {
-        const eyeDist = config.torusR * 2.8 + config.torusTubeR * 2.0 + 2.0;
-        const eyeY = config.torusR * 0.4 + config.torusTubeR;
-        const eye = [0, eyeY, eyeDist];
-        mat4.lookAt(glResources.viewMatrix, eye, [0, 0, 0], [0, 1, 0]);
-        mat4.multiply(
-          glResources.worldViewProjectionMatrix,
-          glResources.projectionMatrix,
-          glResources.viewMatrix
-        );
-      }
-
-      function getTorusPoint(u, v, R, r, knotTwist) {
-        const aU = u * TWO_PI;
-        const aV = v * TWO_PI + u * knotTwist * TWO_PI;
-        const cV = Math.cos(aV);
-        const sV = Math.sin(aV);
-        const cU = Math.cos(aU);
-        const sU = Math.sin(aU);
-        const RrCV = R + r * cV;
-        const x = RrCV * cU;
-        const y = RrCV * sU;
-        const z = r * sV;
-        return [x, y, z];
-      }
-
-      function getTorusVectors(u, v, R, r, knotTwist, tubeTwistFactor) {
-        const eps = 1e-4;
-        const p0 = getTorusPoint(u, v, R, r, knotTwist);
-        const pU = getTorusPoint(u + eps, v, R, r, knotTwist);
-        const pV = getTorusPoint(u, v + eps, R, r, knotTwist);
-        const tanU = vec3.create();
-        vec3.subtract(tanU, pU, p0);
-        vec3.normalize(tanU, tanU);
-        const tanV_geom = vec3.create();
-        vec3.subtract(tanV_geom, pV, p0);
-        vec3.normalize(tanV_geom, tanV_geom);
-        const normal_geom = vec3.create();
-        vec3.cross(normal_geom, tanU, tanV_geom);
-        vec3.normalize(normal_geom, normal_geom);
-        const pDir = vec3.normalize(vec3.create(), p0);
-        if (vec3.dot(normal_geom, pDir) < 0) {
-          vec3.scale(normal_geom, normal_geom, -1);
-        }
-        const tubeTwistAngle = u * TWO_PI * tubeTwistFactor;
-        const twistQuat = quat.create();
-        quat.setAxisAngle(twistQuat, tanU, tubeTwistAngle);
-        const twistedTanV = vec3.create();
-        vec3.transformQuat(twistedTanV, tanV_geom, twistQuat);
-        const twistedNormal = vec3.create();
-        vec3.transformQuat(twistedNormal, normal_geom, twistQuat);
-        return { tangentU: tanU, tangentV: twistedTanV, normal: twistedNormal };
-      }
-
-      function updateGeometry() {
-        updateTPUGeometry();
-        updateWireframeGeometry();
-      }
-
-      function updateTPUGeometry() {
-        const numTPUs = config.numTPUs;
-        const R = config.torusR;
-        const r = config.torusTubeR;
-        const knotTwist = config.torusTwist;
-        const tubeTwist = config.tubeTwist;
-        const sz = config.tpuSize;
-        const den = config.tpuDensity;
-        const vertsPer = 4;
-        const stride = 7;
-        const vertData = new Float32Array(numTPUs * vertsPer * stride);
-        const indsPer = 6;
-        const idxData = new Uint16Array(numTPUs * indsPer);
-        const gridDim = Math.ceil(Math.sqrt(numTPUs));
-        const uStep = 1 / gridDim;
-        const vStep = 1 / gridDim;
-        let tpuCount = 0;
-        let vertOff = 0;
-        let idxOff = 0;
-
-        for (let i = 0; i < gridDim && tpuCount < numTPUs; i++) {
-          for (let j = 0; j < gridDim && tpuCount < numTPUs; j++) {
-            const uC = (i + 0.5) * uStep;
-            const vC = (j + 0.5) * vStep;
-            const {
-              tangentU: tU,
-              tangentV: tV,
-              normal: n,
-            } = getTorusVectors(uC, vC, R, r, knotTwist, tubeTwist);
-            const cPos = getTorusPoint(uC, vC, R, r, knotTwist);
-            const majRadFactor =
-              R + r * Math.cos(vC * TWO_PI + uC * knotTwist * TWO_PI);
-            const scaleFactor = sz * den * 0.5;
-            const uH =
-              majRadFactor > 1e-6
-                ? (scaleFactor * R) / majRadFactor
-                : scaleFactor;
-            const vH = scaleFactor;
-            const cornersLocal = [
-              [-uH, -vH],
-              [uH, -vH],
-              [uH, vH],
-              [-uH, vH],
-            ];
-
-            for (let k = 0; k < 4; k++) {
-              const [uO, vO] = cornersLocal[k];
-              const offsetU = vec3.create();
-              vec3.scale(offsetU, tU, uO);
-              const offsetV = vec3.create();
-              vec3.scale(offsetV, tV, vO);
-              const offset = vec3.create();
-              vec3.add(offset, offsetU, offsetV);
-              const vertexPos = vec3.create();
-              vec3.add(vertexPos, cPos, offset);
-
-              const px = vertexPos[0];
-              const py = vertexPos[1];
-              const pz = vertexPos[2];
-              const base = vertOff * stride;
-              vertData[base + 0] = px;
-              vertData[base + 1] = py;
-              vertData[base + 2] = pz;
-              vertData[base + 3] = n[0];
-              vertData[base + 4] = n[1];
-              vertData[base + 5] = n[2];
-              vertData[base + 6] = tpuCount;
-              vertOff++;
-            }
-
-            const bIdx = tpuCount * vertsPer;
-            idxData[idxOff++] = bIdx + 0;
-            idxData[idxOff++] = bIdx + 1;
-            idxData[idxOff++] = bIdx + 2;
-            idxData[idxOff++] = bIdx + 0;
-            idxData[idxOff++] = bIdx + 2;
-            idxData[idxOff++] = bIdx + 3;
-            tpuCount++;
-          }
-        }
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, glResources.tpuBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertData, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glResources.tpuIndexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idxData, gl.STATIC_DRAW);
-        glResources.numTpuIndices = idxOff;
-      }
-
-      function updateWireframeGeometry() {
-        const R = config.torusR;
-        const r = config.torusTubeR;
-        const knotTwist = config.torusTwist;
-        const majS = 32;
-        const minS = 16;
-        const verts = [];
-        const inds = [];
-        for (let i = 0; i <= majS; i++) {
-          for (let j = 0; j <= minS; j++) {
-            verts.push(...getTorusPoint(i / majS, j / minS, R, r, knotTwist));
-          }
-        }
-        for (let i = 0; i < majS; i++) {
-          for (let j = 0; j < minS; j++) {
-            const p1 = i * (minS + 1) + j;
-            const p2 = p1 + 1;
-            const p3 = (i + 1) * (minS + 1) + j;
-            const p4 = p3 + 1;
-            inds.push(p1, p2, p1, p3);
-            if (i === majS - 1) inds.push(p3, p4);
-            if (j === minS - 1) inds.push(p2, p4);
-          }
-        }
-        gl.bindBuffer(gl.ARRAY_BUFFER, glResources.wireframeBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-        gl.bindBuffer(
-          gl.ELEMENT_ARRAY_BUFFER,
-          glResources.wireframeIndexBuffer
-        );
-        gl.bufferData(
-          gl.ELEMENT_ARRAY_BUFFER,
-          new Uint16Array(inds),
-          gl.STATIC_DRAW
-        );
-        glResources.numWireframeIndices = inds.length;
-      }
-
-      function drawScene(time) {
-        if (!gl) return;
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        checkGLError("clear");
-        if (resizeCanvasToDisplaySize(gl.canvas)) {
-          gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-          const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight || 1;
-          mat4.perspective(
-            glResources.projectionMatrix,
-            (45 * PI) / 180,
-            aspect,
-            0.1,
-            100.0
-          );
-        }
-        if (simState.running) {
-          const rotSpeed = 0.0001;
-          const dt = time - simState.lastUpdateTime;
-          mat4.rotateY(
-            glResources.viewMatrix,
-            glResources.viewMatrix,
-            rotSpeed * dt
-          );
-        }
-        mat4.multiply(
-          glResources.worldViewProjectionMatrix,
-          glResources.projectionMatrix,
-          glResources.viewMatrix
-        );
-
-        if (
-          glResources.wireframeProgram &&
-          glResources.wireframeBuffer &&
-          glResources.wireframeIndexBuffer &&
-          glResources.numWireframeIndices > 0
-        ) {
-          gl.useProgram(glResources.wireframeProgram);
-          gl.uniformMatrix4fv(
-            glResources.wireframeUniformLocations.worldViewProjection,
-            false,
-            glResources.worldViewProjectionMatrix
-          );
-          gl.uniform4fv(
-            glResources.wireframeUniformLocations.color,
-            [0.4, 0.4, 0.4, 0.5]
-          );
-          gl.bindBuffer(gl.ARRAY_BUFFER, glResources.wireframeBuffer);
-          const posLocW = glResources.wireframeAttributeLocations.position;
-          if (posLocW >= 0) {
-            gl.enableVertexAttribArray(posLocW);
-            gl.vertexAttribPointer(posLocW, 3, gl.FLOAT, false, 0, 0);
-          }
-          gl.bindBuffer(
-            gl.ELEMENT_ARRAY_BUFFER,
-            glResources.wireframeIndexBuffer
-          );
-          gl.drawElements(
-            gl.LINES,
-            glResources.numWireframeIndices,
-            gl.UNSIGNED_SHORT,
-            0
-          );
-          if (posLocW >= 0) gl.disableVertexAttribArray(posLocW);
-        }
-        if (
-          glResources.tpuProgram &&
-          glResources.tpuBuffer &&
-          glResources.tpuIndexBuffer &&
-          glResources.numTpuIndices > 0
-        ) {
-          gl.useProgram(glResources.tpuProgram);
-          gl.uniformMatrix4fv(
-            glResources.tpuUniformLocations.worldViewProjection,
-            false,
-            glResources.worldViewProjectionMatrix
-          );
-          gl.uniform1f(
-            glResources.tpuUniformLocations.time,
-            simState.elapsedTime
-          );
-          gl.uniform1f(
-            glResources.tpuUniformLocations.globalActivityFactor,
-            Math.max(0, Math.min(1, metrics.efficiency / 100.0))
-          );
-          gl.bindBuffer(gl.ARRAY_BUFFER, glResources.tpuBuffer);
-          const stride = 7 * 4;
-          const posLocT = glResources.tpuAttributeLocations.position;
-          const normLocT = glResources.tpuAttributeLocations.normal;
-          const idLocT = glResources.tpuAttributeLocations.tpuId;
-          if (posLocT >= 0) {
-            gl.enableVertexAttribArray(posLocT);
-            gl.vertexAttribPointer(posLocT, 3, gl.FLOAT, false, stride, 0);
-          }
-          if (normLocT >= 0) {
-            gl.enableVertexAttribArray(normLocT);
-            gl.vertexAttribPointer(normLocT, 3, gl.FLOAT, false, stride, 3 * 4);
-          }
-          if (idLocT >= 0) {
-            gl.enableVertexAttribArray(idLocT);
-            gl.vertexAttribPointer(idLocT, 1, gl.FLOAT, false, stride, 6 * 4);
-          }
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glResources.tpuIndexBuffer);
-          gl.drawElements(
-            gl.TRIANGLES,
-            glResources.numTpuIndices,
-            gl.UNSIGNED_SHORT,
-            0
-          );
-          if (posLocT >= 0) gl.disableVertexAttribArray(posLocT);
-          if (normLocT >= 0) gl.disableVertexAttribArray(normLocT);
-          if (idLocT >= 0) gl.disableVertexAttribArray(idLocT);
-        }
-        checkGLError("drawScene end");
-      }
-      function resizeCanvasToDisplaySize(canvas) {
-        const dw = canvas.clientWidth;
-        const dh = canvas.clientHeight;
-        if (canvas.width !== dw || canvas.height !== dh) {
-          canvas.width = dw;
-          canvas.height = dh;
-          return true;
-        }
-        return false;
-      }
-
-      function simulationLoop(timestamp) {
-        if (!simState.startTime) simState.startTime = timestamp;
-        const now = PERF.now();
-        const dt = now - (simState.lastUpdateTime || now);
-        if (simState.running) {
-          simState.elapsedTime += dt / 1000.0;
-          calculateMetrics();
-          if (!brain.isTraining && !brain.isFindingBest) {
-            predictWithBrain();
-            collectBrainData();
-          }
-        }
-        updateMetricsDisplay();
-        updateGraphs();
-        drawScene(now);
-        simState.lastUpdateTime = now;
-        if (simState.running || brain.isFindingBest || brain.isTraining) {
-          simState.animationFrameId = RAF(simulationLoop);
-        }
-      }
-      function playSimulation() {
-        if (!simState.running) {
-          simState.running = true;
-          simState.lastUpdateTime = PERF.now();
-          ui.playPauseBtn.textContent = "Pause";
-          ui.playPauseBtn.title = "Pause Simulation";
-          CAF(simState.animationFrameId);
-          simState.animationFrameId = RAF(simulationLoop);
-          if (recording.active && !recording.intervalId) {
-            resumeRecording();
-          }
-        }
-      }
-      function pauseSimulation() {
-        if (simState.running) {
-          simState.running = false;
-          CAF(simState.animationFrameId);
-          simState.animationFrameId = null;
-          ui.playPauseBtn.textContent = "Play";
-          ui.playPauseBtn.title = "Play Simulation";
-          if (recording.active) {
-            pauseRecording();
-          }
-        }
-      }
-      function togglePlayPause() {
-        simState.running ? pauseSimulation() : playSimulation();
-      }
-      function resetSimulation() {
-        pauseSimulation();
-        simState.elapsedTime = 0;
-        simState.startTime = 0;
-        simState.lastUpdateTime = 0;
-        metrics.history = { throughput: [], efficiency: [], latency: [] };
-        calculateMetrics();
-        updateMetricsDisplay();
-        updateGraphs();
-        resetCameraView();
-        drawScene(0);
-        ui.playPauseBtn.textContent = "Play";
-        ui.playPauseBtn.title = "Play Simulation";
-        if (recording.active || recording.data.length > 0) {
-          stopRecording(false);
-          clearRecordedData();
-        }
-        brain.lastPrediction = null;
-        brain.lastRecommendation = null;
-        predictWithBrain();
-        updateAiDisplay();
-        setAiButtonsEnabled(true);
-      }
-
-      function calculateMetrics() {
-        const baseFlops = 10;
-        let fM = 1.0,
-          qM = 1.0,
-          iM = 1.0,
-          sE = 1.0;
-        switch (config.floatType) {
-          case "FP32":
-            fM = 0.5;
-            break;
-          case "BF16":
-            fM = 1.0;
-            break;
-          case "FP16":
-            fM = 1.2;
-            break;
-          case "FP8":
-            fM = 2.0;
-            break;
-          case "INT8":
-            fM = 2.5;
-            break;
-        }
-        if (config.quantization === "PostTraining") qM = 1.1;
-        else if (config.quantization === "QAT") qM = 1.15;
-        switch (config.interconnect) {
-          case "Ethernet":
-            iM = 0.7;
-            break;
-          case "Copper":
-            iM = 1.0;
-            break;
-          case "Optical":
-            iM = 1.3;
-            break;
-          case "CustomInterconnect":
-            iM = 1.5;
-            break;
-        }
-        const tF = 1.0 + config.torusTwist * 0.02;
-        sE = Math.pow(0.995, Math.max(0, Math.log2(config.numTPUs / 4)));
-        metrics.throughput =
-          config.numTPUs * baseFlops * fM * qM * iM * tF * sE;
-        metrics.efficiency = 95 * iM * sE * (1.0 - config.torusTwist * 0.01);
-        metrics.efficiency = Math.max(50, Math.min(98, metrics.efficiency));
-        const baseL = 5;
-        let lS = Math.max(1, Math.log2(config.numTPUs));
-        let tR = 1.0 / (1.0 + config.torusTwist * 0.1);
-        metrics.latency = baseL * (1.0 / iM) * lS * tR;
-        metrics.latency = Math.max(1, metrics.latency);
-        let fCF = 1.0;
-        if (config.floatType === "FP32") fCF = 1.2;
-        else if (config.floatType === "FP8" || config.floatType === "INT8")
-          fCF = 0.8;
-        metrics.cost = config.numTPUs * (1 + (iM - 1.0) * 0.5) * fCF;
-        metrics.throughput *= 1.0 + (Math.random() - 0.5) * 0.05;
-        metrics.efficiency *= 1.0 + (Math.random() - 0.5) * 0.02;
-        metrics.latency *= 1.0 + (Math.random() - 0.5) * 0.03;
-        metrics.cost *= 1.0 + (Math.random() - 0.5) * 0.01;
-        if (simState.running) {
-          metrics.history.throughput.push(metrics.throughput);
-          metrics.history.efficiency.push(metrics.efficiency);
-          metrics.history.latency.push(metrics.latency);
-          if (metrics.history.throughput.length > metrics.historyMaxLength)
-            metrics.history.throughput.shift();
-          if (metrics.history.efficiency.length > metrics.historyMaxLength)
-            metrics.history.efficiency.shift();
-          if (metrics.history.latency.length > metrics.historyMaxLength)
-            metrics.history.latency.shift();
-        }
-      }
-      const maxEstCost = 900;
-      function updateMetricsDisplay() {
-        ui.metricThroughput.textContent = `${metrics.throughput.toFixed(
-          1
-        )} TFLOPS`;
-        ui.metricEfficiency.textContent = `${metrics.efficiency.toFixed(1)} %`;
-        ui.metricLatency.textContent = `${metrics.latency.toFixed(2)} ms`;
-        ui.metricCost.textContent = `${metrics.cost.toFixed(1)}`;
-        updateAiDisplay();
-      }
-      function updateAiDisplay() {
-        ui.brainStatus.textContent = brain.status;
-        ui.brainSamples.textContent = brain.samples;
-        if (brain.lastPrediction) {
-          ui.brainThroughput.textContent = `${brain.lastPrediction.throughput.toFixed(
-            1
-          )} TFLOPS`;
-          ui.brainEfficiency.textContent = `${brain.lastPrediction.efficiency.toFixed(
-            1
-          )} %`;
-          ui.brainCost.textContent = `${(
-            brain.lastPrediction.cost * maxEstCost
-          ).toFixed(1)}`;
-        } else {
-          ui.brainThroughput.textContent = "N/A";
-          ui.brainEfficiency.textContent = "N/A";
-          ui.brainCost.textContent = "N/A";
-        }
-        if (brain.lastRecommendation) {
-          const rec = brain.lastRecommendation;
-          const cfg = rec.config;
-          const metr = rec.metrics;
-          const target = rec.targetMetric;
-          ui.aiRecommendationText.innerHTML = `<em>Best predicted config (Target: ${(
-            target * 100
-          ).toFixed(1)}):</em><br>TPUs: <span>${
-            cfg.numTPUs
-          }</span>, KnotTwist: <span>${
-            cfg.torusTwist
-          }</span>, TubeTwist: <span>${cfg.tubeTwist.toFixed(
-            1
-          )}</span><br>Float: <span>${cfg.floatType}</span>, Quant: <span>${
-            cfg.quantization
-          }</span>, Intercon: <span>${
-            cfg.interconnect
-          }</span><br>Predicted Thr: <span>${metr.throughput.toFixed(
-            0
-          )}</span>, Eff: <span>${metr.efficiency.toFixed(
-            1
-          )}%</span>, Cost: <span>${(metr.cost * maxEstCost).toFixed(
-            0
-          )}</span>`;
-        } else if (brain.isFindingBest) {
-          ui.aiRecommendationText.innerHTML = `<em>Searching for best configuration...</em>`;
-        } else {
-          ui.aiRecommendationText.innerHTML = `<em>${
-            brain.net
-              ? "Train the AI and click 'Find Best Config'."
-              : "Initialize AI first."
-          }</em>`;
-        }
-        setAiButtonsEnabled(true);
-      }
-      function drawGraph(c, d, col, maxV = null) {
-        const ctx = c.getContext("2d");
-        if (!ctx) return;
-        const w = c.width;
-        const h = c.height;
-        ctx.clearRect(0, 0, w, h);
-        if (!d || d.length === 0) return;
-        let curMax = maxV;
-        if (curMax === null) {
-          curMax = Math.max(...d);
-          if (curMax <= 0) curMax = 1;
-        }
-        if (curMax <= 0) curMax = 1;
-        ctx.strokeStyle = col;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        const len = d.length;
-        const maxPts = metrics.historyMaxLength;
-        const stepX = w / Math.max(1, Math.min(len, maxPts) - 1);
-        const start = Math.max(0, len - maxPts);
-        for (let i = 0; i < len - start; i++) {
-          const x = i * stepX;
-          const y = h - (d[i + start] / curMax) * h * 0.9;
-          const cY = Math.min(h - 1, Math.max(1, y));
-          if (i === 0) {
-            ctx.moveTo(x, cY);
-          } else {
-            ctx.lineTo(x, cY);
-          }
-        }
-        ctx.stroke();
-      }
-      function updateGraphs() {
-        try {
-          const s = getComputedStyle(document.documentElement);
-          const c1 = s.getPropertyValue("--graph-line1").trim() || "#ffa500";
-          const c2 = s.getPropertyValue("--graph-line2").trim() || "#90ee90";
-          const c3 = s.getPropertyValue("--graph-line3").trim() || "#da70d6";
-          drawGraph(ui.throughputGraph, metrics.history.throughput, c1);
-          drawGraph(ui.efficiencyGraph, metrics.history.efficiency, c2, 100);
-          const maxL =
-            metrics.history.latency.length > 0
-              ? Math.max(...metrics.history.latency) * 1.2 + 5
-              : 10;
-          drawGraph(ui.latencyGraph, metrics.history.latency, c3, maxL);
-        } catch (e) {
-          console.error("Graph err:", e);
-        }
-      }
-
-      function handleConfigChange() {
-        let needsGeom = false,
-          needsCam = false;
-        const nTPU = parseInt(ui.numTPUsSlider.value);
-        if (nTPU !== config.numTPUs) {
-          config.numTPUs = nTPU;
-          needsGeom = true;
-        }
-        const nR = parseFloat(ui.torusRSlider.value);
-        if (nR !== config.torusR) {
-          config.torusR = nR;
-          needsGeom = true;
-          needsCam = true;
-        }
-        const nTR = parseFloat(ui.torusTubeRSlider.value);
-        if (nTR !== config.torusTubeR) {
-          config.torusTubeR = nTR;
-          needsGeom = true;
-          needsCam = true;
-        }
-        const nKnotTw = parseInt(ui.torusTwistSlider.value);
-        if (nKnotTw !== config.torusTwist) {
-          config.torusTwist = nKnotTw;
-          needsGeom = true;
-        }
-        const nTubeTw = parseFloat(ui.tubeTwistSlider.value);
-        if (nTubeTw !== config.tubeTwist) {
-          config.tubeTwist = nTubeTw;
-          needsGeom = true;
-        }
-        const nDen = parseFloat(ui.tpuDensitySlider.value);
-        if (nDen !== config.tpuDensity) {
-          config.tpuDensity = nDen;
-          needsGeom = true;
-        }
-        const nSz = parseFloat(ui.tpuSizeSlider.value);
-        if (nSz !== config.tpuSize) {
-          config.tpuSize = nSz;
-          needsGeom = true;
-        }
-        config.floatType = ui.floatTypeSelect.value;
-        config.quantization = ui.quantizationSelect.value;
-        config.interconnect = ui.interconnectSelect.value;
-        ui.numTPUsValue.textContent = config.numTPUs;
-        ui.torusRValue.textContent = config.torusR.toFixed(1);
-        ui.torusTubeRValue.textContent = config.torusTubeR.toFixed(2);
-        ui.torusTwistValue.textContent = config.torusTwist;
-        ui.tubeTwistValue.textContent = config.tubeTwist.toFixed(1);
-        ui.tpuDensityValue.textContent = config.tpuDensity.toFixed(2);
-        ui.tpuSizeValue.textContent = config.tpuSize.toFixed(3);
-        if (needsGeom) {
-          updateGeometry();
-        }
-        if (needsCam) {
-          resetCameraView();
-        }
-        calculateMetrics();
-        if (!simState.running) {
-          updateMetricsDisplay();
-          updateGraphs();
-          drawScene(PERF.now());
-        }
-        brain.lastPrediction = null;
-        if (brain.net && !brain.isTraining && !brain.isFindingBest)
-          predictWithBrain();
-      }
-
-      function handleAiConfigChange() {
-        try {
-          const layersStr = ui.aiHiddenLayersInput.value.trim();
-          if (layersStr) {
-            brainConfig.hiddenLayers = layersStr
-              .split(",")
-              .map((s) => parseInt(s.trim()))
-              .filter((n) => !isNaN(n) && n > 0);
-          } else {
-            brainConfig.hiddenLayers = [];
-          }
-        } catch (e) {
-          console.error("Invalid hidden layers format:", e);
-          brainConfig.hiddenLayers = [10, 8];
-          ui.aiHiddenLayersInput.value = brainConfig.hiddenLayers.join(",");
-        }
-        brainConfig.activation = ui.aiActivationSelect.value;
-        brainConfig.learningRate = parseFloat(ui.aiLearningRateSlider.value);
-        brainConfig.iterations = parseInt(ui.aiIterationsSlider.value);
-        brainConfig.errorThresh = parseFloat(ui.aiErrorThreshSlider.value);
-        brainConfig.maxSamples = parseInt(ui.aiMaxSamplesSlider.value);
-        brainConfig.findSamples = parseInt(ui.aiFindSamplesSlider.value);
-        ui.aiLearningRateValue.textContent =
-          brainConfig.learningRate.toFixed(3);
-        ui.aiIterationsValue.textContent = brainConfig.iterations;
-        ui.aiErrorThreshValue.textContent = brainConfig.errorThresh.toFixed(3);
-        ui.aiMaxSamplesValue.textContent = brainConfig.maxSamples;
-        ui.aiFindSamplesValue.textContent = brainConfig.findSamples;
-        brain.status = "Config Changed - Re-Init AI";
-        brain.net = null;
-        updateAiDisplay();
-        renderAiNetworkVisualization();
-      }
-
-      function setAiButtonsEnabled(enabled) {
-        ui.trainAiBtn.disabled =
-          !enabled ||
-          brain.isTraining ||
-          brain.isFindingBest ||
-          !brain.net ||
-          brain.samples < brain.minSamplesForManualTrain;
-        ui.findAiBtn.disabled =
-          !enabled ||
-          brain.isTraining ||
-          brain.isFindingBest ||
-          !brain.net ||
-          brain.samples < brain.minSamplesForFindingBest;
-        ui.initAiBtn.disabled =
-          !enabled || brain.isTraining || brain.isFindingBest;
-      }
-      function setControlsEnabled(enabled) {
-        ui.controlInputs.forEach((input) => (input.disabled = !enabled));
-        ui.aiConfigInputs.forEach((input) => (input.disabled = !enabled));
-        if (enabled) {
-          ui.controlPanel.classList.remove("disabled-overlay");
-        } else {
-          ui.controlPanel.classList.add("disabled-overlay");
-        }
-        setAiButtonsEnabled(enabled);
-      }
-
-      function startRecording() {
-        if (recording.active) return;
-        recording.hz = parseInt(ui.recordHzInput.value);
-        recording.duration = parseInt(ui.recordDurationInput.value);
-        if (
-          isNaN(recording.hz) ||
-          recording.hz <= 0 ||
-          isNaN(recording.duration) ||
-          recording.duration <= 0
-        ) {
-          alert("Invalid recording params.");
-          return;
-        }
-        recording.active = true;
-        recording.data = [];
-        recording.startTime = PERF.now();
-        ui.recordBtn.textContent = "Stop";
-        ui.recordBtn.style.backgroundColor = "var(--btn-red-bg)";
-        ui.exportBtn.disabled = true;
-        ui.clearRecordBtn.disabled = true;
-        ui.recordStatus.textContent = `Recording (0 / ${recording.duration}s)`;
-        if (simState.running) {
-          resumeRecording();
-        }
-        setTimeout(() => {
-          if (recording.active) stopRecording(true);
-        }, recording.duration * 1000 + 100);
-        if (!simState.running) {
-          playSimulation();
-        }
-      }
-      function pauseRecording() {
-        if (recording.active && recording.intervalId) {
-          clearInterval(recording.intervalId);
-          recording.intervalId = null;
-          const elapsed = (PERF.now() - recording.startTime) / 1000;
-          ui.recordStatus.textContent = `Paused (${elapsed.toFixed(1)}s/${
-            recording.duration
-          }s)`;
-        }
-      }
-      function resumeRecording() {
-        if (recording.active && !recording.intervalId && simState.running) {
-          const intervalMs = 1000 / recording.hz;
-          recording.intervalId = setInterval(recordDataPoint, intervalMs);
-          const elapsed = (PERF.now() - recording.startTime) / 1000;
-          ui.recordStatus.textContent = `Recording (${elapsed.toFixed(1)}s/${
-            recording.duration
-          }s)`;
-        }
-      }
-      function stopRecording(finalize) {
-        if (!recording.active && !finalize) return;
-        recording.active = false;
-        if (recording.intervalId) {
-          clearInterval(recording.intervalId);
-          recording.intervalId = null;
-        }
-        ui.recordBtn.textContent = "Record";
-        ui.recordBtn.style.backgroundColor = "var(--btn-bg)";
-        ui.clearRecordBtn.disabled = !(recording.data.length > 0);
-        if (finalize && recording.data.length > 0) {
-          ui.exportBtn.disabled = false;
-          ui.recordStatus.textContent = `Finished (${recording.data.length} samples)`;
-        } else {
-          ui.exportBtn.disabled = true;
-          ui.recordStatus.textContent = finalize ? "Stopped" : "Cleared";
-          if (!finalize) recording.data = [];
-        }
-      }
-      function clearRecordedData() {
-        recording.data = [];
-        ui.exportBtn.disabled = true;
-        ui.clearRecordBtn.disabled = true;
-        ui.recordStatus.textContent = "Idle";
-      }
-      function recordDataPoint() {
-        const elapsed = (PERF.now() - recording.startTime) / 1000;
-        if (!recording.active || elapsed > recording.duration + 0.1) {
-          if (recording.active) stopRecording(true);
-          return;
-        }
-        recording.data.push({
-          ts: elapsed.toFixed(3),
-          thr: metrics.throughput.toFixed(2),
-          eff: metrics.efficiency.toFixed(2),
-          lat: metrics.latency.toFixed(3),
-          cost: metrics.cost.toFixed(2),
-          N: config.numTPUs,
-          R: config.torusR,
-          r: config.torusTubeR,
-          knotTw: config.torusTwist,
-          tubeTw: config.tubeTwist,
-          flt: config.floatType,
-          qnt: config.quantization,
-          int: config.interconnect,
-        });
-        ui.recordStatus.textContent = `Recording (${elapsed.toFixed(1)}s/${
-          recording.duration
-        }s)`;
-      }
-      function exportData() {
-        if (!recording.data || recording.data.length === 0) {
-          alert("No data to export.");
-          return;
-        }
-        const header = Object.keys(recording.data[0]).join(",");
-        const rows = recording.data.map((row) => Object.values(row).join(","));
-        const csv = `data:text/csv;charset=utf-8,${header}\n${rows.join("\n")}`;
-        const link = document.createElement("a");
-        link.setAttribute("href", encodeURI(csv));
-        const ts = new Date().toISOString().replace(/[:.]/g, "-");
-        link.setAttribute("download", `tpu_sim_${ts}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      async function initBrain(force = false) {
-        if (brain.net && !force) return;
-        if (brain.isTraining || brain.isFindingBest) return;
-        brain.status = "Initializing AI...";
-        updateAiDisplay();
-        setAiButtonsEnabled(false);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        try {
-          if (
-            typeof brain === "undefined" ||
-            typeof brain.NeuralNetworkGPU !== "function"
-          ) {
-            throw new Error("Brain.js library not loaded or invalid.");
-          }
-          brain.net = new brain.NeuralNetworkGPU({
-            hiddenLayers: brainConfig.hiddenLayers,
-            activation: brainConfig.activation,
-            learningRate: brainConfig.learningRate,
-          });
-          const sampleInput = normalizeInput(config);
-          brain.inputSize = Object.keys(sampleInput).length;
-          const sampleOutput = normalizeOutput(metrics);
-          brain.outputSize = Object.keys(sampleOutput).length;
-          brain.status = "AI Ready";
-          brain.lastPrediction = null;
-          brain.lastRecommendation = null;
-          renderAiNetworkVisualization();
-        } catch (e) {
-          console.error("Error initializing Brain.js:", e);
-          brain.status = e.message.includes("not loaded")
-            ? "Error: Brain.js missing"
-            : "AI Init Error";
-          brain.net = null;
-          renderAiNetworkVisualization();
-        } finally {
-          updateAiDisplay();
-          setAiButtonsEnabled(true);
-        }
-      }
-
-      const floatTypes = ["FP32", "BF16", "FP16", "FP8", "INT8"];
-      const quantTypes = ["None", "PostTraining", "QAT"];
-      const interTypes = [
-        "Ethernet",
-        "Copper",
-        "Optical",
-        "CustomInterconnect",
-      ];
-      function normalizeInput(cfg) {
-        return {
-          n: cfg.numTPUs / 512,
-          R: (cfg.torusR - 0.5) / 4.5,
-          r: (cfg.torusTubeR - 0.1) / 1.4,
-          knotTw: cfg.torusTwist / 10,
-          tubeTw: cfg.tubeTwist / 5,
-          den: (cfg.tpuDensity - 0.1) / 1.4,
-          fl: floatTypes.indexOf(cfg.floatType) / (floatTypes.length - 1),
-          qn: quantTypes.indexOf(cfg.quantization) / (quantTypes.length - 1),
-          ic: interTypes.indexOf(cfg.interconnect) / (interTypes.length - 1),
-        };
-      }
-      function denormalizeConfig(normCfg) {
-        return {
-          numTPUs: Math.max(4, Math.round((normCfg.n * 512) / 4) * 4),
-          torusR: parseFloat(
-            Math.max(0.5, Math.min(5.0, normCfg.R * 4.5 + 0.5)).toFixed(1)
-          ),
-          torusTubeR: parseFloat(
-            Math.max(0.1, Math.min(1.5, normCfg.r * 1.4 + 0.1)).toFixed(2)
-          ),
-          torusTwist: Math.max(
-            0,
-            Math.min(10, Math.round(normCfg.knotTw * 10))
-          ),
-          tubeTwist: parseFloat(
-            Math.max(0, Math.min(5, normCfg.tubeTw * 5)).toFixed(1)
-          ),
-          tpuDensity: parseFloat(
-            Math.max(0.1, Math.min(1.5, normCfg.den * 1.4 + 0.1)).toFixed(2)
-          ),
-          floatType:
-            floatTypes[
-              Math.min(
-                floatTypes.length - 1,
-                Math.max(0, Math.round(normCfg.fl * (floatTypes.length - 1)))
-              )
-            ],
-          quantization:
-            quantTypes[
-              Math.min(
-                quantTypes.length - 1,
-                Math.max(0, Math.round(normCfg.qn * (quantTypes.length - 1)))
-              )
-            ],
-          interconnect:
-            interTypes[
-              Math.min(
-                interTypes.length - 1,
-                Math.max(0, Math.round(normCfg.ic * (interTypes.length - 1)))
-              )
-            ],
-        };
-      }
-      function normalizeOutput(met) {
-        const maxT = 25000;
-        return {
-          thr: Math.min(1, Math.max(0, met.throughput / maxT)),
-          eff: Math.min(1, Math.max(0, met.efficiency / 100)),
-          cst: Math.min(1, Math.max(0, met.cost / maxEstCost)),
-        };
-      }
-      function denormalizeOutput(bOut) {
-        const maxT = 25000;
-        return {
-          throughput: Math.max(0, bOut.thr * maxT),
-          efficiency: Math.max(0, Math.min(100, bOut.eff * 100)),
-          cost: Math.max(0, bOut.cst),
-        };
-      }
-
-      function collectBrainData() {
-        if (!simState.running || brain.isTraining || brain.isFindingBest)
-          return;
-        const inp = normalizeInput(config);
-        const out = normalizeOutput(metrics);
-        if (
-          Object.values(inp).every((v) => !isNaN(v) && isFinite(v)) &&
-          Object.values(out).every((v) => !isNaN(v) && isFinite(v))
-        ) {
-          brain.trainingData.push({ input: inp, output: out });
-          brain.samples = brain.trainingData.length;
-          if (brain.samples > brainConfig.maxSamples) {
-            const excess = brain.samples - brainConfig.maxSamples;
-            brain.trainingData.splice(0, excess);
-            brain.samples = brain.trainingData.length;
-          }
-          setAiButtonsEnabled(true);
-          updateAiDisplay();
-        }
-      }
-
-      async function trainBrain() {
-        if (
-          !brain.net ||
-          brain.isTraining ||
-          brain.isFindingBest ||
-          brain.samples < brain.minSamplesForManualTrain
-        ) {
-          if (!brain.net) brain.status = "AI Not Initialized";
-          else if (brain.samples < brain.minSamplesForManualTrain)
-            brain.status = `Need ${
-              brain.minSamplesForManualTrain - brain.samples
-            } more samples`;
-          updateAiDisplay();
-          return;
-        }
-        brain.isTraining = true;
-        brain.status = "AI Training Active...";
-        setControlsEnabled(false);
-        updateAiDisplay();
-        if (!simState.running) requestAnimationFrame(simulationLoop);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        try {
-          const dataToTrain = brain.trainingData.slice(-brainConfig.maxSamples);
-          const stats = await brain.net.trainAsync(dataToTrain, {
-            iterations: brainConfig.iterations,
-            log: false,
-            errorThresh: brainConfig.errorThresh,
-            learningRate: brainConfig.learningRate,
-            timeout: 120000,
-          });
-          brain.status = `AI Model Trained (Error: ${stats.error.toFixed(4)})`;
-          renderAiNetworkVisualization();
-        } catch (err) {
-          console.error("AI Training error:", err);
-          brain.status = err.message.includes("Timeout")
-            ? "AI Training Timeout"
-            : "AI Training Error";
-        } finally {
-          brain.isTraining = false;
-          setControlsEnabled(true);
-          updateAiDisplay();
-          predictWithBrain();
-        }
-      }
-      function predictWithBrain() {
-        if (!brain.net || brain.isTraining || brain.isFindingBest) {
-          brain.lastPrediction = null;
-          updateAiDisplay();
-          return;
-        }
-        if (
-          !brain.status.includes("Ready") &&
-          !brain.status.includes("Trained")
-        ) {
-          brain.lastPrediction = null;
-          updateAiDisplay();
-          return;
-        }
-        const inp = normalizeInput(config);
-        if (Object.values(inp).every((v) => !isNaN(v) && isFinite(v))) {
-          try {
-            const p = brain.net.run(inp);
-            brain.lastPrediction = denormalizeOutput(p);
-          } catch (e) {
-            console.error("Predict err:", e);
-            brain.lastPrediction = null;
-          }
-        } else {
-          brain.lastPrediction = null;
-        }
-        updateAiDisplay();
-      }
-      async function findBestConfigAI() {
-        if (
-          !brain.net ||
-          brain.isTraining ||
-          brain.isFindingBest ||
-          brain.samples < brain.minSamplesForFindingBest
-        ) {
-          if (!brain.net) brain.status = "AI Not Ready for Rec.";
-          else if (brain.samples < brain.minSamplesForFindingBest)
-            brain.status = `Need ${
-              brain.minSamplesForFindingBest - brain.samples
-            } samples for Rec.`;
-          updateAiDisplay();
-          return;
-        }
-        brain.isFindingBest = true;
-        brain.status = "AI Finding Best Config...";
-        brain.lastRecommendation = null;
-        setControlsEnabled(false);
-        updateAiDisplay();
-        if (!simState.running) requestAnimationFrame(simulationLoop);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        let bestConfig = null;
-        let bestPrediction = null;
-        let bestTargetMetric = -Infinity;
-        const numSearchSamples = brainConfig.findSamples;
-        try {
-          for (let i = 0; i < numSearchSamples; i++) {
-            if (i % 500 === 0) {
-              brain.status = `AI Finding... (${Math.round(
-                (i / numSearchSamples) * 100
-              )}%)`;
-              updateAiDisplay();
-              await new Promise((resolve) => setTimeout(resolve, 1));
-            }
-            const randomNormInput = {
-              n: Math.random(),
-              R: Math.random(),
-              r: Math.random(),
-              knotTw: Math.random(),
-              tubeTw: Math.random(),
-              den: Math.random(),
-              fl: Math.random(),
-              qn: Math.random(),
-              ic: Math.random(),
-            };
-            const predictedNormOutput = brain.net.run(randomNormInput);
-            const predictedDenormOutput =
-              denormalizeOutput(predictedNormOutput);
-            const denormInputConfig = denormalizeConfig(randomNormInput);
-            const costFactor = Math.max(
-              1,
-              predictedDenormOutput.cost * maxEstCost
-            );
-            const targetMetric = predictedDenormOutput.throughput / costFactor;
-            if (
-              targetMetric > bestTargetMetric &&
-              predictedDenormOutput.efficiency > 60
-            ) {
-              bestTargetMetric = targetMetric;
-              bestPrediction = predictedDenormOutput;
-              bestConfig = denormInputConfig;
-            }
-          }
-          if (bestConfig) {
-            brain.lastRecommendation = {
-              config: bestConfig,
-              metrics: bestPrediction,
-              targetMetric: bestTargetMetric,
-            };
-            brain.status = "AI Recommendation Ready";
-          } else {
-            brain.status = "AI Rec. Failed (No valid found)";
-          }
-        } catch (err) {
-          console.error("Error during AI recommendation finding:", err);
-          brain.status = "AI Rec. Error";
-          brain.lastRecommendation = null;
-        } finally {
-          brain.isFindingBest = false;
-          setControlsEnabled(true);
-          updateAiDisplay();
-        }
-      }
-
-      function renderAiNetworkVisualization() {
-        const svg = ui.aiNetworkSvg;
-        svg.innerHTML = "";
-        if (
-          !brain.net ||
-          !brain.inputSize ||
-          !brain.outputSize ||
-          brainConfig.hiddenLayers === null
-        ) {
-          const text = document.createElementNS(SVG_NS, "text");
-          text.setAttribute("x", "50%");
-          text.setAttribute("y", "50%");
-          text.setAttribute("fill", "#888");
-          text.setAttribute("font-size", "12");
-          text.setAttribute("text-anchor", "middle");
-          text.setAttribute("dominant-baseline", "middle");
-          text.textContent = brain.net
-            ? "Network structure unavailable"
-            : "AI not initialized";
-          svg.appendChild(text);
-          return;
-        }
-        const layers = [
-          brain.inputSize,
-          ...brainConfig.hiddenLayers,
-          brain.outputSize,
+      document.addEventListener("DOMContentLoaded", () => {
+        // SECTION 1: DATA, CONSTANTS, & STATE
+        const RANKS = "AKQJT98765432".split("");
+        const SUITS = ["s", "h", "d", "c"];
+        const HAND_RANKS_TXT = [
+          "High Card",
+          "Pair",
+          "Two Pair",
+          "3-of-a-Kind",
+          "Straight",
+          "Flush",
+          "Full House",
+          "4-of-a-Kind",
+          "Straight Flush",
         ];
-        const layerCount = layers.length;
-        const maxNodesInLayer = Math.max(...layers, 1);
-        const width = svg.clientWidth;
-        const height = svg.clientHeight;
-        const padding = 30;
-        const nodeRadius = 5;
-        const layerSpacing =
-          (width - 2 * padding) / Math.max(1, layerCount - 1);
-        const nodeSpacingVert =
-          (height - 2 * padding) / Math.max(1, maxNodesInLayer - 1);
-        const nodePositions = [];
-        for (let i = 0; i < layerCount; i++) {
-          const layerNodes = [];
-          const numNodes = layers[i];
-          const x = padding + i * layerSpacing;
-          const totalHeight = Math.max(
-            nodeRadius * 2,
-            (numNodes - 1) * nodeSpacingVert
-          );
-          const startY = (height - totalHeight) / 2;
-          for (let j = 0; j < numNodes; j++) {
-            const y =
-              startY + (numNodes === 1 ? totalHeight / 2 : j * nodeSpacingVert);
-            layerNodes.push({ x, y });
-          }
-          nodePositions.push(layerNodes);
-        }
-        for (let i = 0; i < layerCount - 1; i++) {
-          for (const node1 of nodePositions[i]) {
-            for (const node2 of nodePositions[i + 1]) {
-              const line = document.createElementNS(SVG_NS, "line");
-              line.setAttribute("x1", node1.x);
-              line.setAttribute("y1", node1.y);
-              line.setAttribute("x2", node2.x);
-              line.setAttribute("y2", node2.y);
-              svg.appendChild(line);
-            }
-          }
-        }
-        nodePositions.forEach((layer, i) => {
-          const nodeClass =
-            i === 0
-              ? "input-node"
-              : i === layerCount - 1
-              ? "output-node"
-              : "hidden-node";
-          layer.forEach((pos) => {
-            const circle = document.createElementNS(SVG_NS, "circle");
-            circle.setAttribute("cx", pos.x);
-            circle.setAttribute("cy", pos.y);
-            circle.setAttribute("r", nodeRadius);
-            circle.classList.add(nodeClass);
-            svg.appendChild(circle);
-          });
-        });
-      }
+        const SIM_COUNT_PREFLOP = 2000;
+        const SIM_COUNT_POSTFLOP = 5000;
+        const PREFLOP_MONTE_CARLO_SAMPLES = 20000;
+        const equityData = {
+          AA: {
+            1: 85.2,
+            2: 73.5,
+            3: 64.5,
+            4: 57.2,
+            5: 51.2,
+            6: 46.2,
+            7: 41.9,
+            8: 38.3,
+            9: 35.1,
+          },
+          KK: {
+            1: 82.4,
+            2: 69.1,
+            3: 58.7,
+            4: 50.8,
+            5: 44.4,
+            6: 39.2,
+            7: 34.9,
+            8: 31.3,
+            9: 28.3,
+          },
+          QQ: {
+            1: 79.9,
+            2: 65.3,
+            3: 54.4,
+            4: 46.5,
+            5: 39.9,
+            6: 34.7,
+            7: 30.5,
+            8: 27.1,
+            9: 24.3,
+          },
+          JJ: {
+            1: 77.5,
+            2: 61.6,
+            3: 50.3,
+            4: 42.3,
+            5: 36,
+            6: 30.8,
+            7: 26.7,
+            8: 23.5,
+            9: 20.9,
+          },
+          TT: {
+            1: 75,
+            2: 58,
+            3: 46.5,
+            4: 38.4,
+            5: 32.3,
+            6: 27.4,
+            7: 23.5,
+            8: 20.5,
+            9: 18,
+          },
+          99: {
+            1: 72.1,
+            2: 54.5,
+            3: 42.8,
+            4: 34.9,
+            5: 29.1,
+            6: 24.5,
+            7: 20.8,
+            8: 17.9,
+            9: 15.6,
+          },
+          88: {
+            1: 69.1,
+            2: 50.9,
+            3: 39.2,
+            4: 31.6,
+            5: 26,
+            6: 21.7,
+            7: 18.3,
+            8: 15.6,
+            9: 13.5,
+          },
+          77: {
+            1: 66.2,
+            2: 47.5,
+            3: 35.8,
+            4: 28.4,
+            5: 23.2,
+            6: 19.2,
+            7: 16,
+            8: 13.6,
+            9: 11.6,
+          },
+          66: {
+            1: 63.2,
+            2: 44.1,
+            3: 32.5,
+            4: 25.4,
+            5: 20.5,
+            6: 16.8,
+            7: 13.9,
+            8: 11.6,
+            9: 9.8,
+          },
+          55: {
+            1: 60.1,
+            2: 40.8,
+            3: 29.4,
+            4: 22.5,
+            5: 17.9,
+            6: 14.6,
+            7: 12,
+            8: 9.9,
+            9: 8.2,
+          },
+          44: {
+            1: 56.9,
+            2: 37.4,
+            3: 26.4,
+            4: 19.8,
+            5: 15.6,
+            6: 12.6,
+            7: 10.2,
+            8: 8.3,
+            9: 6.8,
+          },
+          33: {
+            1: 53.7,
+            2: 34.2,
+            3: 23.6,
+            4: 17.3,
+            5: 13.4,
+            6: 10.7,
+            7: 8.6,
+            8: 6.9,
+            9: 5.6,
+          },
+          22: {
+            1: 50.4,
+            2: 31,
+            3: 20.9,
+            4: 14.9,
+            5: 11.4,
+            6: 9,
+            7: 7.1,
+            8: 5.7,
+            9: 4.6,
+          },
+          AKs: {
+            1: 67,
+            2: 51.2,
+            3: 41.2,
+            4: 34.1,
+            5: 28.9,
+            6: 24.9,
+            7: 21.7,
+            8: 19.1,
+            9: 17,
+          },
+          AQs: {
+            1: 66.1,
+            2: 49.8,
+            3: 39.5,
+            4: 32.3,
+            5: 27.2,
+            6: 23.2,
+            7: 20.1,
+            8: 17.6,
+            9: 15.6,
+          },
+          AJs: {
+            1: 65.2,
+            2: 48.4,
+            3: 38,
+            4: 30.7,
+            5: 25.6,
+            6: 21.8,
+            7: 18.8,
+            8: 16.4,
+            9: 14.5,
+          },
+          ATs: {
+            1: 64.3,
+            2: 47.1,
+            3: 36.5,
+            4: 29.2,
+            5: 24.2,
+            6: 20.4,
+            7: 17.5,
+            8: 15.2,
+            9: 13.3,
+          },
+          A9s: {
+            1: 62.5,
+            2: 44.9,
+            3: 34.4,
+            4: 27.1,
+            5: 22.2,
+            6: 18.6,
+            7: 15.8,
+            8: 13.6,
+            9: 11.9,
+          },
+          A8s: {
+            1: 61.5,
+            2: 43.7,
+            3: 33.2,
+            4: 26,
+            5: 21.1,
+            6: 17.6,
+            7: 14.9,
+            8: 12.8,
+            9: 11.1,
+          },
+          A7s: {
+            1: 60.4,
+            2: 42.4,
+            3: 31.9,
+            4: 24.8,
+            5: 20,
+            6: 16.6,
+            7: 14,
+            8: 12,
+            9: 10.4,
+          },
+          A6s: {
+            1: 59.3,
+            2: 41.2,
+            3: 30.7,
+            4: 23.6,
+            5: 18.9,
+            6: 15.6,
+            7: 13.1,
+            8: 11.2,
+            9: 9.7,
+          },
+          A5s: {
+            1: 59.7,
+            2: 41.6,
+            3: 31.3,
+            4: 24.3,
+            5: 19.6,
+            6: 16.2,
+            7: 13.7,
+            8: 11.7,
+            9: 10.2,
+          },
+          A4s: {
+            1: 58.5,
+            2: 40.4,
+            3: 30.1,
+            4: 23.1,
+            5: 18.5,
+            6: 15.2,
+            7: 12.8,
+            8: 10.9,
+            9: 9.4,
+          },
+          A3s: {
+            1: 57.4,
+            2: 39.1,
+            3: 28.8,
+            4: 22,
+            5: 17.4,
+            6: 14.3,
+            7: 12,
+            8: 10.2,
+            9: 8.8,
+          },
+          A2s: {
+            1: 56.2,
+            2: 37.9,
+            3: 27.6,
+            4: 21,
+            5: 16.5,
+            6: 13.4,
+            7: 11.2,
+            8: 9.5,
+            9: 8.1,
+          },
+          KQs: {
+            1: 63.4,
+            2: 46.5,
+            3: 36.2,
+            4: 29,
+            5: 24,
+            6: 20.2,
+            7: 17.3,
+            8: 15,
+            9: 13.2,
+          },
+          KJs: {
+            1: 62.4,
+            2: 45.1,
+            3: 34.6,
+            4: 27.4,
+            5: 22.4,
+            6: 18.8,
+            7: 16,
+            8: 13.8,
+            9: 12.1,
+          },
+          KTs: {
+            1: 61.5,
+            2: 43.8,
+            3: 33.3,
+            4: 26.1,
+            5: 21.3,
+            6: 17.8,
+            7: 15.1,
+            8: 13,
+            9: 11.3,
+          },
+          K9s: {
+            1: 59.5,
+            2: 41.5,
+            3: 31.1,
+            4: 24.1,
+            5: 19.4,
+            6: 16.1,
+            7: 13.6,
+            8: 11.6,
+            9: 10,
+          },
+          K8s: {
+            1: 58.4,
+            2: 40.2,
+            3: 29.9,
+            4: 23,
+            5: 18.4,
+            6: 15.2,
+            7: 12.7,
+            8: 10.8,
+            9: 9.3,
+          },
+          K7s: {
+            1: 57.2,
+            2: 38.9,
+            3: 28.7,
+            4: 21.9,
+            5: 17.4,
+            6: 14.3,
+            7: 12,
+            8: 10.2,
+            9: 8.7,
+          },
+          K6s: {
+            1: 55.9,
+            2: 37.5,
+            3: 27.4,
+            4: 20.8,
+            5: 16.5,
+            6: 13.5,
+            7: 11.3,
+            8: 9.5,
+            9: 8.1,
+          },
+          K5s: {
+            1: 54.7,
+            2: 36.3,
+            3: 26.3,
+            4: 19.8,
+            5: 15.6,
+            6: 12.7,
+            7: 10.6,
+            8: 8.9,
+            9: 7.6,
+          },
+          K4s: {
+            1: 53.4,
+            2: 35,
+            3: 25.1,
+            4: 18.8,
+            5: 14.7,
+            6: 12,
+            7: 9.9,
+            8: 8.3,
+            9: 7,
+          },
+          K3s: {
+            1: 52.2,
+            2: 33.7,
+            3: 23.9,
+            4: 17.8,
+            5: 13.8,
+            6: 11.2,
+            7: 9.2,
+            8: 7.7,
+            9: 6.5,
+          },
+          K2s: {
+            1: 51,
+            2: 32.5,
+            3: 22.8,
+            4: 16.9,
+            5: 13,
+            6: 10.5,
+            7: 8.6,
+            8: 7.2,
+            9: 6,
+          },
+          QJs: {
+            1: 60.4,
+            2: 43,
+            3: 32.7,
+            4: 25.6,
+            5: 20.7,
+            6: 17.3,
+            7: 14.7,
+            8: 12.6,
+            9: 11,
+          },
+          QTs: {
+            1: 59.4,
+            2: 41.7,
+            3: 31.4,
+            4: 24.4,
+            5: 19.6,
+            6: 16.3,
+            7: 13.8,
+            8: 11.8,
+            9: 10.3,
+          },
+          Q9s: {
+            1: 57.4,
+            2: 39.4,
+            3: 29.2,
+            4: 22.4,
+            5: 17.9,
+            6: 14.7,
+            7: 12.4,
+            8: 10.5,
+            9: 9.1,
+          },
+          Q8s: {
+            1: 56.1,
+            2: 38,
+            3: 27.8,
+            4: 21.2,
+            5: 16.8,
+            6: 13.8,
+            7: 11.5,
+            8: 9.7,
+            9: 8.3,
+          },
+          Q7s: {
+            1: 54.7,
+            2: 36.6,
+            3: 26.5,
+            4: 19.9,
+            5: 15.7,
+            6: 12.8,
+            7: 10.7,
+            8: 9,
+            9: 7.6,
+          },
+          Q6s: {
+            1: 53.4,
+            2: 35.2,
+            3: 25.3,
+            4: 18.9,
+            5: 14.8,
+            6: 12,
+            7: 10,
+            8: 8.4,
+            9: 7.1,
+          },
+          Q5s: {
+            1: 52.1,
+            2: 33.9,
+            3: 24.2,
+            4: 17.9,
+            5: 13.9,
+            6: 11.3,
+            7: 9.3,
+            8: 7.8,
+            9: 6.6,
+          },
+          Q4s: {
+            1: 50.8,
+            2: 32.6,
+            3: 23,
+            4: 16.9,
+            5: 13.1,
+            6: 10.6,
+            7: 8.7,
+            8: 7.2,
+            9: 6.1,
+          },
+          Q3s: {
+            1: 49.6,
+            2: 31.3,
+            3: 21.8,
+            4: 15.9,
+            5: 12.3,
+            6: 9.9,
+            7: 8.1,
+            8: 6.7,
+            9: 5.6,
+          },
+          Q2s: {
+            1: 48.4,
+            2: 30.1,
+            3: 20.8,
+            4: 15.1,
+            5: 11.6,
+            6: 9.3,
+            7: 7.6,
+            8: 6.3,
+            9: 5.3,
+          },
+          JTs: {
+            1: 57.3,
+            2: 40,
+            3: 29.9,
+            4: 23,
+            5: 18.4,
+            6: 15.2,
+            7: 12.8,
+            8: 11,
+            9: 9.5,
+          },
+          J9s: {
+            1: 55.2,
+            2: 37.7,
+            3: 27.7,
+            4: 21,
+            5: 16.6,
+            6: 13.6,
+            7: 11.4,
+            8: 9.6,
+            9: 8.2,
+          },
+          J8s: {
+            1: 53.8,
+            2: 36.2,
+            3: 26.3,
+            4: 19.7,
+            5: 15.5,
+            6: 12.6,
+            7: 10.5,
+            8: 8.8,
+            9: 7.5,
+          },
+          J7s: {
+            1: 52.3,
+            2: 34.7,
+            3: 24.9,
+            4: 18.5,
+            5: 14.4,
+            6: 11.7,
+            7: 9.7,
+            8: 8.1,
+            9: 6.8,
+          },
+          J6s: {
+            1: 50.8,
+            2: 33.3,
+            3: 23.6,
+            4: 17.4,
+            5: 13.4,
+            6: 10.8,
+            7: 8.9,
+            8: 7.4,
+            9: 6.2,
+          },
+          J5s: {
+            1: 49.4,
+            2: 31.9,
+            3: 22.3,
+            4: 16.3,
+            5: 12.5,
+            6: 10.1,
+            7: 8.3,
+            8: 6.9,
+            9: 5.7,
+          },
+          J4s: {
+            1: 48,
+            2: 30.6,
+            3: 21.2,
+            4: 15.3,
+            5: 11.7,
+            6: 9.4,
+            7: 7.7,
+            8: 6.4,
+            9: 5.3,
+          },
+          J3s: {
+            1: 46.7,
+            2: 29.3,
+            3: 20.1,
+            4: 14.4,
+            5: 11,
+            6: 8.8,
+            7: 7.2,
+            8: 5.9,
+            9: 4.9,
+          },
+          J2s: {
+            1: 45.4,
+            2: 28,
+            3: 19,
+            4: 13.6,
+            5: 10.3,
+            6: 8.2,
+            7: 6.7,
+            8: 5.5,
+            9: 4.6,
+          },
+          T9s: {
+            1: 54.2,
+            2: 37,
+            3: 27.2,
+            4: 20.8,
+            5: 16.5,
+            6: 13.6,
+            7: 11.4,
+            8: 9.7,
+            9: 8.4,
+          },
+          T8s: {
+            1: 52,
+            2: 34.9,
+            3: 25.2,
+            4: 18.9,
+            5: 14.8,
+            6: 12,
+            7: 10,
+            8: 8.4,
+            9: 7.1,
+          },
+          T7s: {
+            1: 50.5,
+            2: 33.4,
+            3: 23.8,
+            4: 17.7,
+            5: 13.7,
+            6: 11,
+            7: 9.1,
+            8: 7.6,
+            9: 6.4,
+          },
+          T6s: {
+            1: 48.9,
+            2: 31.8,
+            3: 22.4,
+            4: 16.5,
+            5: 12.7,
+            6: 10.2,
+            7: 8.4,
+            8: 6.9,
+            9: 5.8,
+          },
+          "98s": {
+            1: 51.3,
+            2: 34.3,
+            3: 24.8,
+            4: 18.8,
+            5: 14.8,
+            6: 12.1,
+            7: 10.1,
+            8: 8.6,
+            9: 7.3,
+          },
+          "97s": {
+            1: 49.1,
+            2: 32.2,
+            3: 22.8,
+            4: 17,
+            5: 13.2,
+            6: 10.7,
+            7: 8.8,
+            8: 7.4,
+            9: 6.2,
+          },
+          "96s": {
+            1: 47.4,
+            2: 30.6,
+            3: 21.4,
+            4: 15.8,
+            5: 12.2,
+            6: 9.8,
+            7: 8,
+            8: 6.7,
+            9: 5.6,
+          },
+          "87s": {
+            1: 48.5,
+            2: 31.7,
+            3: 22.5,
+            4: 16.9,
+            5: 13.2,
+            6: 10.7,
+            8: 7.5,
+            9: 6.4,
+            7: 8.9,
+          },
+          "86s": {
+            1: 46.2,
+            2: 29.6,
+            3: 20.6,
+            4: 15.1,
+            5: 11.7,
+            6: 9.4,
+            7: 7.7,
+            8: 6.4,
+            9: 5.4,
+          },
+          "76s": {
+            1: 45.7,
+            2: 29.2,
+            3: 20.4,
+            4: 15.1,
+            5: 11.8,
+            6: 9.5,
+            7: 7.9,
+            8: 6.6,
+            9: 5.6,
+          },
+          "75s": {
+            1: 43.5,
+            2: 27.1,
+            3: 18.6,
+            4: 13.6,
+            5: 10.5,
+            6: 8.4,
+            7: 6.9,
+            8: 5.7,
+            9: 4.8,
+          },
+          "65s": {
+            1: 43.4,
+            2: 27.2,
+            3: 18.8,
+            4: 13.8,
+            5: 10.7,
+            6: 8.6,
+            7: 7.1,
+            8: 5.9,
+            9: 5,
+          },
+          "54s": {
+            1: 42.2,
+            2: 26.2,
+            3: 18,
+            4: 13.2,
+            5: 10.2,
+            6: 8.1,
+            7: 6.7,
+            8: 5.5,
+            9: 4.6,
+          },
+          AKo: {
+            1: 65,
+            2: 48.6,
+            3: 38.3,
+            4: 31.1,
+            5: 25.9,
+            6: 22,
+            7: 18.9,
+            8: 16.4,
+            9: 14.4,
+          },
+          AQo: {
+            1: 64,
+            2: 47.1,
+            3: 36.5,
+            4: 29.3,
+            5: 24.2,
+            6: 20.3,
+            7: 17.3,
+            8: 15,
+            9: 13.1,
+          },
+          AJo: {
+            1: 63.1,
+            2: 45.7,
+            3: 35,
+            4: 27.8,
+            5: 22.8,
+            6: 19,
+            7: 16.2,
+            8: 14,
+            9: 12.2,
+          },
+          ATo: {
+            1: 62.1,
+            2: 44.4,
+            3: 33.6,
+            4: 26.3,
+            5: 21.4,
+            6: 17.8,
+            7: 15.1,
+            8: 13,
+            9: 11.3,
+          },
+          A9o: {
+            1: 60.1,
+            2: 42,
+            3: 31.3,
+            4: 24.2,
+            5: 19.5,
+            6: 16,
+            7: 13.5,
+            8: 11.5,
+            9: 9.9,
+          },
+          A8o: {
+            1: 59.1,
+            2: 40.8,
+            3: 30.1,
+            4: 23.1,
+            5: 18.4,
+            6: 15.1,
+            7: 12.6,
+            8: 10.8,
+            9: 9.3,
+          },
+          A7o: {
+            1: 57.9,
+            2: 39.4,
+            3: 28.8,
+            4: 21.9,
+            5: 17.4,
+            6: 14.2,
+            7: 11.8,
+            8: 10,
+            9: 8.6,
+          },
+          A6o: {
+            1: 56.7,
+            2: 38.1,
+            3: 27.5,
+            4: 20.8,
+            5: 16.4,
+            6: 13.3,
+            7: 11.1,
+            8: 9.4,
+            9: 8,
+          },
+          A5o: {
+            1: 55.4,
+            2: 36.8,
+            3: 26.4,
+            4: 19.8,
+            5: 15.5,
+            6: 12.6,
+            7: 10.5,
+            8: 8.8,
+            9: 7.5,
+          },
+          A4o: {
+            1: 54.2,
+            2: 35.5,
+            3: 25.2,
+            4: 18.8,
+            5: 14.7,
+            6: 11.9,
+            7: 9.8,
+            8: 8.2,
+            9: 7,
+          },
+          A3o: {
+            1: 53,
+            2: 34.2,
+            3: 24.1,
+            4: 17.8,
+            5: 13.8,
+            6: 11.1,
+            7: 9.2,
+            8: 7.7,
+            9: 6.5,
+          },
+          A2o: {
+            1: 51.8,
+            2: 32.9,
+            3: 22.9,
+            4: 16.8,
+            5: 13,
+            6: 10.4,
+            7: 8.6,
+            8: 7.2,
+            9: 6.1,
+          },
+          KQo: {
+            1: 61.2,
+            2: 43.6,
+            3: 33.2,
+            4: 26.1,
+            5: 21.2,
+            6: 17.6,
+            7: 14.9,
+            8: 12.8,
+            9: 11.1,
+          },
+          KJo: {
+            1: 60.1,
+            2: 42.2,
+            3: 31.7,
+            4: 24.6,
+            5: 19.8,
+            6: 16.4,
+            7: 13.8,
+            8: 11.8,
+            9: 10.2,
+          },
+          KTo: {
+            1: 59.1,
+            2: 40.8,
+            3: 30.3,
+            4: 23.3,
+            5: 18.6,
+            6: 15.3,
+            7: 12.8,
+            8: 11,
+            9: 9.5,
+          },
+          K9o: {
+            1: 56.9,
+            2: 38.4,
+            3: 28.1,
+            4: 21.3,
+            5: 16.8,
+            6: 13.7,
+            7: 11.3,
+            8: 9.6,
+            9: 8.2,
+          },
+          K8o: {
+            1: 55.7,
+            2: 37,
+            3: 26.8,
+            4: 20.1,
+            5: 15.8,
+            6: 12.8,
+            7: 10.5,
+            8: 8.9,
+            9: 7.6,
+          },
+          K7o: {
+            1: 54.5,
+            2: 35.7,
+            3: 25.6,
+            4: 19.1,
+            5: 14.8,
+            6: 11.9,
+            7: 9.8,
+            8: 8.2,
+            9: 7,
+          },
+          K6o: {
+            1: 53.1,
+            2: 34.2,
+            3: 24.2,
+            4: 17.9,
+            5: 13.8,
+            6: 11.1,
+            7: 9.1,
+            8: 7.6,
+            9: 6.4,
+          },
+          K5o: {
+            1: 51.7,
+            2: 32.8,
+            3: 22.9,
+            4: 16.8,
+            5: 12.8,
+            6: 10.3,
+            7: 8.4,
+            8: 7,
+            9: 5.9,
+          },
+          K4o: {
+            1: 50.3,
+            2: 31.4,
+            3: 21.7,
+            4: 15.8,
+            5: 11.9,
+            6: 9.5,
+            7: 7.8,
+            8: 6.4,
+            9: 5.4,
+          },
+          K3o: {
+            1: 48.9,
+            2: 30,
+            3: 20.5,
+            4: 14.8,
+            5: 11.1,
+            6: 8.8,
+            7: 7.2,
+            8: 5.9,
+            9: 4.9,
+          },
+          K2o: {
+            1: 47.6,
+            2: 28.7,
+            3: 19.4,
+            4: 13.8,
+            5: 10.3,
+            6: 8.2,
+            7: 6.6,
+            8: 5.4,
+            9: 4.5,
+          },
+          QJo: {
+            1: 58,
+            2: 40,
+            3: 29.8,
+            4: 22.8,
+            5: 18.2,
+            6: 15,
+            7: 12.6,
+            8: 10.7,
+            9: 9.3,
+          },
+          QTo: {
+            1: 56.9,
+            2: 38.6,
+            3: 28.5,
+            4: 21.6,
+            5: 17.1,
+            6: 14,
+            7: 11.7,
+            8: 9.9,
+            9: 8.5,
+          },
+          Q9o: {
+            1: 54.7,
+            2: 36.2,
+            3: 26.2,
+            4: 19.5,
+            5: 15.2,
+            6: 12.3,
+            7: 10.1,
+            8: 8.5,
+            9: 7.2,
+          },
+          Q8o: {
+            1: 53.3,
+            2: 34.7,
+            3: 24.8,
+            4: 18.3,
+            5: 14.2,
+            6: 11.4,
+            7: 9.4,
+            8: 7.8,
+            9: 6.6,
+          },
+          Q7o: {
+            1: 51.9,
+            2: 33.2,
+            3: 23.5,
+            4: 17.2,
+            5: 13.2,
+            6: 10.6,
+            7: 8.7,
+            8: 7.2,
+            9: 6,
+          },
+          Q6o: {
+            1: 50.5,
+            2: 31.8,
+            3: 22.2,
+            4: 16.1,
+            5: 12.3,
+            6: 9.8,
+            7: 8,
+            8: 6.6,
+            9: 5.5,
+          },
+          Q5o: {
+            1: 49,
+            2: 30.4,
+            3: 21,
+            4: 15.1,
+            5: 11.5,
+            6: 9.1,
+            7: 7.4,
+            8: 6.1,
+            9: 5.1,
+          },
+          Q4o: {
+            1: 47.6,
+            2: 29,
+            3: 19.8,
+            4: 14.1,
+            5: 10.7,
+            6: 8.4,
+            7: 6.8,
+            8: 5.6,
+            9: 4.7,
+          },
+          Q3o: {
+            1: 46.2,
+            2: 27.6,
+            3: 18.7,
+            4: 13.2,
+            5: 9.9,
+            6: 7.8,
+            7: 6.3,
+            8: 5.2,
+            9: 4.3,
+          },
+          Q2o: {
+            1: 44.9,
+            2: 26.3,
+            3: 17.6,
+            4: 12.4,
+            5: 9.2,
+            6: 7.2,
+            7: 5.8,
+            8: 4.8,
+            9: 3.9,
+          },
+          JTo: {
+            1: 54.8,
+            2: 36.9,
+            3: 27,
+            4: 20.2,
+            5: 15.9,
+            6: 13,
+            7: 10.8,
+            8: 9.2,
+            9: 7.9,
+          },
+          J9o: {
+            1: 52.6,
+            2: 34.5,
+            3: 24.7,
+            4: 18.2,
+            5: 14.1,
+            6: 11.4,
+            7: 9.4,
+            8: 7.9,
+            9: 6.7,
+          },
+          J8o: {
+            1: 51.1,
+            2: 32.9,
+            3: 23.3,
+            4: 17,
+            5: 13.1,
+            6: 10.5,
+            7: 8.6,
+            8: 7.2,
+            9: 6,
+          },
+          J7o: {
+            1: 49.5,
+            2: 31.4,
+            3: 21.9,
+            4: 15.8,
+            5: 12.1,
+            6: 9.6,
+            7: 7.8,
+            8: 6.5,
+            9: 5.4,
+          },
+          T9o: {
+            1: 51.5,
+            2: 33.8,
+            3: 24.3,
+            4: 18,
+            5: 14,
+            6: 11.3,
+            7: 9.4,
+            8: 7.9,
+            9: 6.7,
+          },
+          T8o: {
+            1: 49.2,
+            2: 31.6,
+            3: 22.3,
+            4: 16.3,
+            5: 12.5,
+            6: 10,
+            7: 8.2,
+            8: 6.8,
+            9: 5.7,
+          },
+          "98o": {
+            1: 48.4,
+            2: 31,
+            3: 21.9,
+            4: 16.1,
+            5: 12.4,
+            6: 10,
+            7: 8.2,
+            8: 6.9,
+            9: 5.8,
+          },
+          "97o": {
+            1: 46.1,
+            2: 28.9,
+            3: 20,
+            4: 14.5,
+            5: 11.1,
+            6: 8.8,
+            7: 7.2,
+            8: 6,
+            9: 5,
+          },
+          "87o": {
+            1: 45.4,
+            2: 28.3,
+            3: 19.6,
+            4: 14.3,
+            5: 11,
+            6: 8.8,
+            7: 7.2,
+            8: 6,
+            9: 5,
+          },
+          "86o": {
+            1: 42.9,
+            2: 26.1,
+            3: 17.8,
+            4: 12.8,
+            5: 9.7,
+            6: 7.7,
+            7: 6.2,
+            8: 5.1,
+            9: 4.3,
+          },
+          "76o": {
+            1: 42.4,
+            2: 25.6,
+            3: 17.5,
+            4: 12.6,
+            5: 9.6,
+            6: 7.6,
+            7: 6.2,
+            8: 5.1,
+            9: 4.3,
+          },
+          "72o": {
+            1: 32.3,
+            2: 19,
+            3: 13.3,
+            4: 9.7,
+            5: 7.4,
+            6: 5.9,
+            7: 4.8,
+            8: 4,
+            9: 3.3,
+          },
+        };
+        const VIRIDIS_PALETTE = [
+          [0.267, 0.00487, 0.329],
+          [0.282, 0.1, 0.422],
+          [0.274, 0.199, 0.495],
+          [0.247, 0.294, 0.542],
+          [0.211, 0.387, 0.563],
+          [0.174, 0.481, 0.561],
+          [0.141, 0.573, 0.54],
+          [0.122, 0.665, 0.506],
+          [0.134, 0.755, 0.459],
+          [0.208, 0.838, 0.389],
+          [0.327, 0.914, 0.299],
+          [0.48, 0.973, 0.207],
+          [0.655, 1.012, 0.135],
+          [0.84, 1.025, 0.106],
+          [0.993, 1.009, 0.128],
+        ];
+        const appState = {
+          numOpponents: 8,
+          selectedHand: null,
+          isSimulating: false,
+          currentDeal: null,
+          theoreticalCache: new Map(),
+          liveSimCache: new Map(),
+          currentTheoretical: null,
+          latestLiveResult: null,
+          liveWorker: null,
+        };
 
-      function initEventListeners() {
-        ui.numTPUsSlider.addEventListener(
-          "input",
-          () => (ui.numTPUsValue.textContent = ui.numTPUsSlider.value)
-        );
-        ui.numTPUsSlider.addEventListener("change", handleConfigChange);
-        ui.torusRSlider.addEventListener(
-          "input",
-          () =>
-            (ui.torusRValue.textContent = parseFloat(
-              ui.torusRSlider.value
-            ).toFixed(1))
-        );
-        ui.torusRSlider.addEventListener("change", handleConfigChange);
-        ui.torusTubeRSlider.addEventListener(
-          "input",
-          () =>
-            (ui.torusTubeRValue.textContent = parseFloat(
-              ui.torusTubeRSlider.value
-            ).toFixed(2))
-        );
-        ui.torusTubeRSlider.addEventListener("change", handleConfigChange);
-        ui.torusTwistSlider.addEventListener(
-          "input",
-          () => (ui.torusTwistValue.textContent = ui.torusTwistSlider.value)
-        );
-        ui.torusTwistSlider.addEventListener("change", handleConfigChange);
-        ui.tubeTwistSlider.addEventListener(
-          "input",
-          () =>
-            (ui.tubeTwistValue.textContent = parseFloat(
-              ui.tubeTwistSlider.value
-            ).toFixed(1))
-        );
-        ui.tubeTwistSlider.addEventListener("change", handleConfigChange);
-        ui.tpuDensitySlider.addEventListener(
-          "input",
-          () =>
-            (ui.tpuDensityValue.textContent = parseFloat(
-              ui.tpuDensitySlider.value
-            ).toFixed(2))
-        );
-        ui.tpuDensitySlider.addEventListener("change", handleConfigChange);
-        ui.tpuSizeSlider.addEventListener(
-          "input",
-          () =>
-            (ui.tpuSizeValue.textContent = parseFloat(
-              ui.tpuSizeSlider.value
-            ).toFixed(3))
-        );
-        ui.tpuSizeSlider.addEventListener("change", handleConfigChange);
-        ui.floatTypeSelect.addEventListener("change", handleConfigChange);
-        ui.quantizationSelect.addEventListener("change", handleConfigChange);
-        ui.interconnectSelect.addEventListener("change", handleConfigChange);
-        ui.initResetBtn.addEventListener("click", resetSimulation);
-        ui.playPauseBtn.addEventListener("click", togglePlayPause);
-        ui.recordBtn.addEventListener("click", () => {
-          if (recording.active) stopRecording(true);
-          else startRecording();
-        });
-        ui.exportBtn.addEventListener("click", exportData);
-        ui.clearRecordBtn.addEventListener("click", clearRecordedData);
-        ui.aiHiddenLayersInput.addEventListener("change", handleAiConfigChange);
-        ui.aiActivationSelect.addEventListener("change", handleAiConfigChange);
-        ui.aiLearningRateSlider.addEventListener(
-          "input",
-          () =>
-            (ui.aiLearningRateValue.textContent = parseFloat(
-              ui.aiLearningRateSlider.value
-            ).toFixed(3))
-        );
-        ui.aiLearningRateSlider.addEventListener(
-          "change",
-          handleAiConfigChange
-        );
-        ui.aiIterationsSlider.addEventListener(
-          "input",
-          () => (ui.aiIterationsValue.textContent = ui.aiIterationsSlider.value)
-        );
-        ui.aiIterationsSlider.addEventListener("change", handleAiConfigChange);
-        ui.aiErrorThreshSlider.addEventListener(
-          "input",
-          () =>
-            (ui.aiErrorThreshValue.textContent = parseFloat(
-              ui.aiErrorThreshSlider.value
-            ).toFixed(3))
-        );
-        ui.aiErrorThreshSlider.addEventListener("change", handleAiConfigChange);
-        ui.aiMaxSamplesSlider.addEventListener(
-          "input",
-          () => (ui.aiMaxSamplesValue.textContent = ui.aiMaxSamplesSlider.value)
-        );
-        ui.aiMaxSamplesSlider.addEventListener("change", handleAiConfigChange);
-        ui.aiFindSamplesSlider.addEventListener(
-          "input",
-          () =>
-            (ui.aiFindSamplesValue.textContent = ui.aiFindSamplesSlider.value)
-        );
-        ui.aiFindSamplesSlider.addEventListener("change", handleAiConfigChange);
-        ui.initAiBtn.addEventListener("click", () => initBrain(true));
-        ui.trainAiBtn.addEventListener("click", trainBrain);
-        ui.findAiBtn.addEventListener("click", findBestConfigAI);
-        window.addEventListener("resize", () => {
-          if (gl) {
-            if (resizeCanvasToDisplaySize(gl.canvas)) {
-              gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-              setupCamera();
-              if (!simState.running) {
-                drawScene(PERF.now());
+        // SECTION 2: UI & UTILITIES
+        function getViridisColor(t) {
+          t = Math.max(0, Math.min(1, t));
+          const i = Math.floor(t * (VIRIDIS_PALETTE.length - 1));
+          const f = t * (VIRIDIS_PALETTE.length - 1) - i;
+          const c1 = VIRIDIS_PALETTE[i];
+          const c2 =
+            VIRIDIS_PALETTE[Math.min(VIRIDIS_PALETTE.length - 1, i + 1)];
+          const r = (c1[0] + (c2[0] - c1[0]) * f) * 255;
+          const g = (c1[1] + (c2[1] - c1[1]) * f) * 255;
+          const b = (c1[2] + (c2[2] - c1[2]) * f) * 255;
+          return `rgb(${r},${g},${b})`;
+        }
+        function getEquityColor(equity) {
+          const minEquity = 5;
+          const maxEquity = 85;
+          const normalized = (equity - minEquity) / (maxEquity - minEquity);
+          return getViridisColor(normalized);
+        }
+        function renderHeatmap() {
+          const heatmap = document.getElementById("heatmap");
+          heatmap.innerHTML = "";
+          RANKS.forEach((r1, i) => {
+            RANKS.forEach((r2, j) => {
+              const cell = document.createElement("div");
+              cell.classList.add("heatmap-cell");
+              let hand =
+                i < j ? r1 + r2 + "s" : i > j ? r2 + r1 + "o" : r1 + r2;
+              cell.textContent = hand.replace(/[so]/, "");
+              cell.dataset.hand = hand;
+              heatmap.appendChild(cell);
+            });
+          });
+        }
+        function updateHeatmapColors() {
+          document.querySelectorAll(".heatmap-cell").forEach((cell) => {
+            const equity =
+              (equityData[cell.dataset.hand] &&
+                equityData[cell.dataset.hand][appState.numOpponents]) ||
+              0;
+            cell.style.backgroundColor = getEquityColor(equity);
+          });
+        }
+        function createCardElement(cardStr) {
+          const cardDiv = document.createElement("div");
+          if (!cardStr) {
+            cardDiv.className = "card card-back";
+            return cardDiv;
+          }
+          const rank = cardStr.slice(0, -1);
+          const suit = cardStr.slice(-1);
+          const suitSymbols = { s: "♠", h: "♥", d: "♦", c: "♣" };
+          const colorClass = suit === "h" || suit === "d" ? "red" : "black";
+          cardDiv.className = `card ${colorClass}`;
+          cardDiv.innerHTML = `${rank}<br>${suitSymbols[suit]}`;
+          return cardDiv;
+        }
+        function renderPokerTable(showdown = false, winners = []) {
+          const table = document.getElementById("poker-table-area");
+          const heroDiv = document.getElementById("hero-hand-container");
+          const boardDiv = document.getElementById("board-cards-container");
+          heroDiv.innerHTML = "";
+          boardDiv.innerHTML = "";
+          table
+            .querySelectorAll(".opponent-position")
+            .forEach((el) => el.remove());
+          if (!appState.currentDeal) return;
+          const { heroHand, opponentHands, board, street } =
+            appState.currentDeal;
+          heroHand.forEach((c) => heroDiv.appendChild(createCardElement(c)));
+          heroDiv.classList.toggle("winner", winners.includes(0));
+          const totalPlayers = appState.numOpponents + 1; // Include hero
+          const radius = 45;
+          const angleStep = 360 / totalPlayers;
+          // Hero is at bottom center (90 degrees in standard coords), opponents distributed around remaining positions
+          opponentHands.forEach((hand, i) => {
+            // Start from position 1 and wrap around (hero is at position 0 = bottom center)
+            const position = i + 1;
+            const angle = ((90 + position * angleStep) * Math.PI) / 180;
+            const x = 50 + radius * Math.cos(angle);
+            const y = 50 + radius * Math.sin(angle) * 0.75; // elliptical
+            const oppDiv = document.createElement("div");
+            oppDiv.className = "opponent-position hand-display";
+            oppDiv.style.left = `${x}%`;
+            oppDiv.style.top = `${y}%`;
+            oppDiv.appendChild(createCardElement(showdown ? hand[0] : null));
+            oppDiv.appendChild(createCardElement(showdown ? hand[1] : null));
+            oppDiv.classList.toggle("winner", winners.includes(i + 1));
+            table.appendChild(oppDiv);
+          });
+          const boardCards =
+            street === "preflop"
+              ? []
+              : board.slice(
+                  0,
+                  street === "flop" ? 3 : street === "turn" ? 4 : 5
+                );
+          boardCards.forEach((c) => boardDiv.appendChild(createCardElement(c)));
+        }
+        function resetUIForNewSelection() {
+          document.getElementById("selected-hand-title").textContent =
+            appState.selectedHand || "No Hand Selected";
+          appState.currentTheoretical = null;
+          appState.latestLiveResult = null;
+          appState.latestLiveResult = null;
+          if (appState.liveWorker) {
+            appState.liveWorker.terminate();
+            appState.liveWorker = null;
+          }
+          updateEquityDisplay(null, null);
+          document.getElementById("preflop-charts-grid").innerHTML =
+            '<div class="info-box" style="grid-column: 1 / -1; text-align: center;"><p>Select a hand to see its analysis.</p></div>';
+          document.getElementById("live-charts-section").style.display = "none";
+          document.getElementById("start-interactive-btn").disabled =
+            !appState.selectedHand;
+          document.getElementById("start-interactive-btn").style.display =
+            "inline-block";
+          document.getElementById("deal-street-btn").style.display = "none";
+          document.getElementById("reset-hand-btn").style.display = "none";
+          appState.currentDeal = null;
+          renderPokerTable();
+        }
+        function updateEquityDisplay(theoretical, live) {
+          const theoreticalEl = document.getElementById(
+            "theoretical-equity-val"
+          );
+          const liveEl = document.getElementById("live-equity-val");
+
+          const formatResult = (result) => {
+            if (!result) return "--";
+            if (result.loading) {
+              if (typeof result.progress === "number") {
+                return `… ${Math.round(result.progress * 100)}%`;
+              }
+              return "…";
+            }
+            const base = `${result.equity.toFixed(1)}%`;
+            if (result.stderr) {
+              return `${base} ± ${result.stderr.toFixed(1)}%`;
+            }
+            return base;
+          };
+
+          const setTooltip = (el, result) => {
+            if (!el) return;
+            if (result && !result.loading && result.samples) {
+              const parts = [
+                `Samples: ${result.samples.toLocaleString()}`,
+              ];
+              if (result.stderr) {
+                parts.push(`Std Err: ${result.stderr.toFixed(2)}%`);
+              }
+              el.title = parts.join("\n");
+            } else {
+              el.removeAttribute("title");
+            }
+          };
+
+          if (theoreticalEl) {
+            theoreticalEl.textContent = formatResult(theoretical);
+            setTooltip(theoreticalEl, theoretical);
+          }
+          if (liveEl) {
+            liveEl.textContent = formatResult(live);
+            setTooltip(liveEl, live);
+          }
+        }
+
+        function computePreflopEquityMonteCarlo(
+          hand,
+          opponentCount,
+          samples = PREFLOP_MONTE_CARLO_SAMPLES,
+          onProgress = () => {}
+        ) {
+          const batchSize = 200;
+          let trials = 0;
+          let sum = 0;
+          let sumSq = 0;
+
+          return new Promise((resolve) => {
+            function drawRandomCard(deck) {
+              const idx = Math.floor(Math.random() * deck.length);
+              const card = deck[idx];
+              deck[idx] = deck[deck.length - 1];
+              deck.pop();
+              return card;
+            }
+
+            function drawSpecificCard(deck, rank, preferredSuit) {
+              if (preferredSuit) {
+                const specificCard = rank + preferredSuit;
+                const idx = deck.indexOf(specificCard);
+                if (idx !== -1) {
+                  deck.splice(idx, 1);
+                  return specificCard;
+                }
+              }
+              for (let i = 0; i < deck.length; i++) {
+                if (deck[i][0] === rank) {
+                  const card = deck[i];
+                  deck.splice(i, 1);
+                  return card;
+                }
+              }
+              throw new Error(`Card with rank ${rank} not found in deck`);
+            }
+
+            function pickDistinctSuits(count) {
+              const available = SUITS.slice();
+              const chosen = [];
+              while (chosen.length < count && available.length > 0) {
+                const idx = Math.floor(Math.random() * available.length);
+                chosen.push(available.splice(idx, 1)[0]);
+              }
+              return chosen;
+            }
+
+            function sampleHeroHand(handStr, deck) {
+              const rank1 = handStr[0];
+              const rank2 = handStr[1];
+              if (handStr.length === 2) {
+                const suits = pickDistinctSuits(2);
+                const card1 = drawSpecificCard(deck, rank1, suits[0]);
+                const card2 = drawSpecificCard(deck, rank2, suits[1]);
+                return [card1, card2];
+              }
+              const suited = handStr[2] === 's';
+              if (suited) {
+                const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+                const card1 = drawSpecificCard(deck, rank1, suit);
+                const card2 = drawSpecificCard(deck, rank2, suit);
+                return [card1, card2];
+              }
+              const suits = pickDistinctSuits(2);
+              if (suits.length < 2) {
+                suits.push(pickDistinctSuits(1)[0]);
+              }
+              const card1 = drawSpecificCard(deck, rank1, suits[0]);
+              const card2 = drawSpecificCard(deck, rank2, suits[1]);
+              if (card1[1] === card2[1]) {
+                const altSuit = SUITS.find((s) => s !== card1[1]);
+                return [card1, drawSpecificCard(deck, rank2, altSuit)];
+              }
+              return [card1, card2];
+            }
+
+            function runBatch() {
+              const iterations = Math.min(batchSize, samples - trials);
+              for (let i = 0; i < iterations; i++) {
+                trials++;
+                const deck = createDeck();
+                const heroCards = sampleHeroHand(hand, deck);
+                const opponentHands = [];
+                for (let opp = 0; opp < opponentCount; opp++) {
+                  const c1 = drawRandomCard(deck);
+                  const c2 = drawRandomCard(deck);
+                  opponentHands.push([c1, c2]);
+                }
+                const board = [];
+                for (let b = 0; b < 5; b++) {
+                  board.push(drawRandomCard(deck));
+                }
+                const heroScore = evaluateHand([...heroCards, ...board]);
+                const opponentScores = opponentHands.map((handCards) =>
+                  evaluateHand([...handCards, ...board])
+                );
+                let bestScore = heroScore;
+                opponentScores.forEach((score) => {
+                  if (compareScores(score, bestScore) > 0) bestScore = score;
+                });
+                const heroComparison = compareScores(heroScore, bestScore);
+                let share = 0;
+                if (heroComparison === 0) {
+                  let tieCount = 0;
+                  opponentScores.forEach((score) => {
+                    if (compareScores(score, bestScore) === 0) tieCount++;
+                  });
+                  share = 1 / (tieCount + 1);
+                }
+                sum += share;
+                sumSq += share * share;
+              }
+              onProgress(trials / samples);
+              if (trials < samples) {
+                setTimeout(runBatch, 0);
+              } else {
+                const mean = sum / samples;
+                const variance = Math.max(0, sumSq / samples - mean * mean);
+                const stderr = Math.sqrt(variance / samples);
+                resolve({
+                  equity: mean * 100,
+                  stderr: stderr * 100,
+                  samples,
+                });
               }
             }
-            updateGraphs();
-            renderAiNetworkVisualization();
-          }
-        });
-      }
 
-      async function init() {
-        if (!initWebGL()) {
-          console.error("WebGL failed. Aborting.");
-          return;
+            runBatch();
+          });
         }
-        initEventListeners();
-        handleConfigChange();
-        handleAiConfigChange();
-        await initBrain(true);
-        resetSimulation();
-      }
 
-      window.onload = init;
+        // SECTION 3: POKER LOGIC & SIMULATION
+        function createDeck() {
+          return SUITS.flatMap((s) => RANKS.map((r) => r + s));
+        }
+        function shuffleDeck(deck) {
+          for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+          }
+          return deck;
+        }
+        function handStringToCards(handStr) {
+          const r1 = handStr[0],
+            r2 = handStr[1];
+
+          // For pairs, return same rank with different suits
+          if (handStr.length === 2) {
+            const suit1 = SUITS[Math.floor(Math.random() * SUITS.length)];
+            const availableSuits = SUITS.filter(s => s !== suit1);
+            const suit2 = availableSuits[Math.floor(Math.random() * availableSuits.length)];
+            return [r1 + suit1, r1 + suit2];
+          }
+
+          // For suited hands, pick a random suit for both cards
+          if (handStr[2] === "s") {
+            const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+            return [r1 + suit, r2 + suit];
+          }
+
+          // For offsuit hands, pick two different random suits
+          const suit1 = SUITS[Math.floor(Math.random() * SUITS.length)];
+          const availableSuits = SUITS.filter(s => s !== suit1);
+          const suit2 = availableSuits[Math.floor(Math.random() * availableSuits.length)];
+          return [r1 + suit1, r2 + suit2];
+        }
+        function evaluateHand(sevenCards) {
+          const rankValues = "23456789TJQKA";
+          const cardRanks = sevenCards
+            .map((c) => rankValues.indexOf(c[0]))
+            .sort((a, b) => b - a);
+          const cardSuits = sevenCards.map((c) => c[1]);
+          const rankCounts = cardRanks.reduce(
+            (acc, r) => ((acc[r] = (acc[r] || 0) + 1), acc),
+            {}
+          );
+          const suitCounts = cardSuits.reduce(
+            (acc, s) => ((acc[s] = (acc[s] || 0) + 1), acc),
+            {}
+          );
+          const isFlush = Object.values(suitCounts).some((c) => c >= 5);
+          const flushSuit = isFlush
+            ? Object.keys(suitCounts).find((s) => suitCounts[s] >= 5)
+            : null;
+          const flushRanks = isFlush
+            ? sevenCards
+                .filter((c) => c[1] === flushSuit)
+                .map((c) => rankValues.indexOf(c[0]))
+                .sort((a, b) => b - a)
+            : [];
+          const uniqueRanks = [...new Set(cardRanks)];
+          let isStraight = false,
+            straightHighRank = -1;
+          if ([12, 3, 2, 1, 0].every((r) => uniqueRanks.includes(r))) {
+            isStraight = true;
+            straightHighRank = 3;
+          } else {
+            for (let i = 0; i <= uniqueRanks.length - 5; i++) {
+              if (uniqueRanks[i] - uniqueRanks[i + 4] === 4) {
+                isStraight = true;
+                straightHighRank = uniqueRanks[i];
+                break;
+              }
+            }
+          }
+          let isStraightFlush = false,
+            sfHighRank = -1;
+          if (isFlush) {
+            const uniqueFlushRanks = [...new Set(flushRanks)];
+            if ([12, 3, 2, 1, 0].every((r) => uniqueFlushRanks.includes(r))) {
+              isStraightFlush = true;
+              sfHighRank = 3;
+            } else {
+              for (let i = 0; i <= uniqueFlushRanks.length - 5; i++) {
+                if (uniqueFlushRanks[i] - uniqueFlushRanks[i + 4] === 4) {
+                  isStraightFlush = true;
+                  sfHighRank = uniqueFlushRanks[i];
+                  break;
+                }
+              }
+            }
+          }
+          if (isStraightFlush) return [8, sfHighRank];
+          const counts = Object.values(rankCounts).sort((a, b) => b - a);
+          const rankKeys = Object.keys(rankCounts)
+            .sort((a, b) => rankCounts[b] - rankCounts[a] || b - a)
+            .map(Number);
+          if (counts[0] === 4) return [7, rankKeys[0], rankKeys[1]];
+          if (counts[0] === 3 && counts[1] >= 2)
+            return [6, rankKeys[0], rankKeys[1]];
+          if (isFlush) return [5, ...flushRanks.slice(0, 5)];
+          if (isStraight) return [4, straightHighRank];
+          if (counts[0] === 3) return [3, rankKeys[0], ...rankKeys.slice(1, 3)];
+          if (counts[0] === 2 && counts[1] === 2)
+            return [2, rankKeys[0], rankKeys[1], rankKeys[2]];
+          if (counts[0] === 2) return [1, rankKeys[0], ...rankKeys.slice(1, 4)];
+          return [0, ...cardRanks.slice(0, 5)];
+        }
+        function compareScores(sA, sB) {
+          for (let i = 0; i < sA.length; i++) {
+            if (sA[i] > sB[i]) return 1;
+            if (sA[i] < sB[i]) return -1;
+          }
+          return 0;
+        }
+
+        function createLiveWorker() {
+          return new Worker('./live_worker.js');
+        }
+
+        function runLiveEquitySim() {
+          const { heroHand, opponentHands, board, street } = appState.currentDeal;
+          const boardCards =
+            street === "preflop"
+              ? []
+              : board.slice(
+                  0,
+                  street === "flop" ? 3 : street === "turn" ? 4 : 5
+                );
+
+          // Create cache key from hero hand, opponent count, board cards, and street
+          const cacheKey = JSON.stringify({
+            hero: heroHand.sort(),
+            opps: appState.numOpponents,
+            board: boardCards.sort(),
+            street
+          });
+
+          // Return cached result if available
+          if (appState.liveSimCache.has(cacheKey)) {
+            return Promise.resolve(appState.liveSimCache.get(cacheKey));
+          }
+
+          if (appState.liveWorker) {
+            appState.liveWorker.terminate();
+            appState.liveWorker = null;
+          }
+
+          return new Promise((resolve, reject) => {
+            const worker = createLiveWorker();
+            appState.liveWorker = worker;
+            worker.onmessage = (event) => {
+              const { type, payload, progress } = event.data;
+              if (type === "progress") {
+                updateEquityDisplay(appState.currentTheoretical, {
+                  loading: true,
+                  progress,
+                });
+              } else if (type === "complete") {
+                worker.terminate();
+                appState.liveWorker = null;
+                // Cache the result
+                appState.liveSimCache.set(cacheKey, payload);
+                resolve(payload);
+              }
+            };
+            worker.onerror = (err) => {
+              console.error('Live equity worker error', err);
+              worker.terminate();
+              appState.liveWorker = null;
+              resolve({
+                equity: 0,
+                stderr: 0,
+                samples: SIM_COUNT_POSTFLOP,
+                handDistribution: new Array(9).fill(0),
+              });
+            };
+            worker.postMessage({
+              heroHand,
+              opponentHands,
+              boardCards,
+              iterations: SIM_COUNT_POSTFLOP,
+            });
+          });
+        }
+
+        // SECTION 4: CHARTING ENGINE
+        const tooltip = document.getElementById("tooltip");
+        function showTooltip(evt, text) {
+          tooltip.innerHTML = text;
+          tooltip.style.opacity = "1";
+          tooltip.style.left = `${evt.pageX + 10}px`;
+          tooltip.style.top = `${evt.pageY + 10}px`;
+        }
+        function hideTooltip() {
+          tooltip.style.opacity = "0";
+        }
+        function createLineChart(container, title, data, dataLabel) {
+          container.innerHTML = `<h3>${title}</h3><svg viewBox="0 0 300 200"></svg>`;
+          const svg = container.querySelector("svg");
+          const points = data.map((d, i) => ({
+            x: 30 + i * (260 / (data.length - 1)),
+            y: 180 - d.y * 1.6,
+          }));
+          svg.innerHTML = `<line x1="30" y1="180" x2="290" y2="180" stroke="#777" /><line x1="30" y1="20" x2="30" y2="180" stroke="#777" /><text x="160" y="195" text-anchor="middle" font-size="10" fill="#aaa">Opponents</text><text x="15" y="100" transform="rotate(-90 15 100)" text-anchor="middle" font-size="10" fill="#aaa">Equity %</text>`;
+          const path = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path"
+          );
+          path.setAttribute(
+            "d",
+            "M" + points.map((p) => `${p.x} ${p.y}`).join(" L ")
+          );
+          path.setAttribute("fill", "none");
+          path.setAttribute("stroke", "#35b779");
+          path.setAttribute("stroke-width", "2");
+          svg.appendChild(path);
+          data.forEach((d, i) => {
+            const circle = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "circle"
+            );
+            circle.setAttribute("cx", points[i].x);
+            circle.setAttribute("cy", points[i].y);
+            circle.setAttribute("r", "4");
+            circle.setAttribute("fill", "#35b779");
+            circle.addEventListener("mouseover", (evt) =>
+              showTooltip(
+                evt,
+                `Vs ${d.x} Opps<br>${dataLabel}: ${d.y.toFixed(1)}%`
+              )
+            );
+            circle.addEventListener("mouseout", hideTooltip);
+            svg.appendChild(circle);
+          });
+        }
+        function createPieChart(container, title, data) {
+          container.innerHTML = `<h3>${title}</h3><svg viewBox="-1.1 -1.1 2.2 2.2" style="transform: rotate(-90deg)"></svg>`;
+          const svg = container.querySelector("svg");
+          let cumulativePercent = 0;
+          data.forEach((slice, i) => {
+            if (slice.percent === 0) return;
+            const sliceColor =
+              slice.color || getViridisColor(i / (data.length - 1));
+            const [x1, y1] = [
+              Math.cos(2 * Math.PI * cumulativePercent),
+              Math.sin(2 * Math.PI * cumulativePercent),
+            ];
+            cumulativePercent += slice.percent;
+            const [x2, y2] = [
+              Math.cos(2 * Math.PI * cumulativePercent),
+              Math.sin(2 * Math.PI * cumulativePercent),
+            ];
+            const path = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path"
+            );
+            path.setAttribute(
+              "d",
+              `M ${x1} ${y1} A 1 1 0 ${
+                slice.percent > 0.5 ? 1 : 0
+              } 1 ${x2} ${y2} L 0 0`
+            );
+            path.setAttribute("fill", sliceColor);
+            path.addEventListener("mouseover", (evt) =>
+              showTooltip(
+                evt,
+                `${slice.label}: ${(slice.percent * 100).toFixed(1)}%`
+              )
+            );
+            path.addEventListener("mouseout", hideTooltip);
+            svg.appendChild(path);
+          });
+        }
+        function createDistributionBarChart(container, title, data) {
+          container.innerHTML = `<h3>${title}</h3><svg viewBox="0 0 300 200"></svg>`;
+          const svg = container.querySelector("svg");
+          const maxVal = Math.max(...data.map((d) => d.value));
+          if (maxVal === 0) {
+            svg.innerHTML = `<text x="150" y="100" text-anchor="middle" fill="#aaa">No Data</text>`;
+            return;
+          }
+          const barWidth = 300 / data.length;
+          data.forEach((d, i) => {
+            if (d.value === 0) return;
+            const barHeight = (d.value / maxVal) * 160;
+            const rect = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "rect"
+            );
+            rect.setAttribute("x", i * barWidth + barWidth * 0.1);
+            rect.setAttribute("y", 180 - barHeight);
+            rect.setAttribute("width", barWidth * 0.8);
+            rect.setAttribute("height", barHeight);
+            rect.setAttribute("fill", getViridisColor(i / (data.length - 1)));
+            rect.addEventListener("mouseover", (evt) =>
+              showTooltip(
+                evt,
+                `${d.label}<br>Prob: ${(d.value * 100).toFixed(1)}%`
+              )
+            );
+            rect.addEventListener("mouseout", hideTooltip);
+            svg.appendChild(rect);
+            const text = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "text"
+            );
+            text.setAttribute("x", i * barWidth + barWidth / 2);
+            text.setAttribute("y", 195);
+            text.setAttribute("font-size", "8px");
+            text.setAttribute("fill", "#aaa");
+            text.setAttribute("text-anchor", "middle");
+            text.textContent = d.label
+              .replace("3-of-a-Kind", "Set")
+              .replace("4-of-a-Kind", "Quads")
+              .replace("Straight Flush", "Str. Flush")
+              .split(" ")[0];
+            svg.appendChild(text);
+          });
+        }
+
+        // SECTION 5: EVENT HANDLERS & WORKFLOW
+        function setupEventListeners() {
+          document
+            .getElementById("opponent-slider")
+            .addEventListener("input", handleOpponentChange);
+          document
+            .getElementById("heatmap")
+            .addEventListener("click", handleHeatmapClick);
+          document
+            .getElementById("start-interactive-btn")
+            .addEventListener("click", startInteractiveHand);
+          document
+            .getElementById("deal-street-btn")
+            .addEventListener("click", dealNextStreet);
+          document
+            .getElementById("reset-hand-btn")
+            .addEventListener("click", () =>
+              handleHandSelection(appState.selectedHand)
+            );
+        }
+
+        function handleOpponentChange(e) {
+          appState.numOpponents = parseInt(e.target.value);
+          document.getElementById("opponent-count-label").textContent = `${
+            appState.numOpponents
+          } Opponent${appState.numOpponents > 1 ? "s" : ""}`;
+          updateHeatmapColors();
+          if (appState.selectedHand) {
+            handleHandSelection(appState.selectedHand);
+          }
+        }
+
+        async function handleHeatmapClick(e) {
+          const cell = e.target.closest(".heatmap-cell");
+          if (cell && !appState.isSimulating) {
+            await handleHandSelection(cell.dataset.hand);
+          }
+        }
+
+        async function handleHandSelection(hand) {
+          if (appState.isSimulating) return;
+          appState.isSimulating = true;
+          appState.selectedHand = hand;
+          resetUIForNewSelection();
+          document
+            .querySelectorAll(".heatmap-cell.selected")
+            .forEach((c) => c.classList.remove("selected"));
+          document
+            .querySelector(`.heatmap-cell[data-hand="${hand}"]`)
+            .classList.add("selected");
+
+          appState.currentTheoretical = null;
+          const cacheKey = `${hand}|${appState.numOpponents}`;
+          const tableEntry = equityData[hand] &&
+            equityData[hand][appState.numOpponents];
+          const preflopChartsGrid = document.getElementById(
+            "preflop-charts-grid"
+          );
+          preflopChartsGrid.innerHTML =
+            '<div class="chart-container" id="line-chart-container"></div>';
+
+          if (equityData[hand]) {
+            createLineChart(
+              document.getElementById("line-chart-container"),
+              "Theoretical Equity vs. Opponents",
+              Object.entries(equityData[hand]).map(([opps, eq]) => ({
+                x: parseInt(opps, 10),
+                y: eq,
+              })),
+              "Equity"
+            );
+          } else {
+            document.getElementById("line-chart-container").innerHTML =
+              '<div class="info-box"><p>No precomputed table available for this hand. Running Monte Carlo estimate…</p></div>';
+          }
+
+          if (typeof tableEntry === "number") {
+            const result = {
+              equity: tableEntry,
+              samples: null,
+            };
+            appState.theoreticalCache.set(cacheKey, result);
+            appState.currentTheoretical = result;
+            updateEquityDisplay(result, appState.latestLiveResult);
+          } else {
+            const cached = appState.theoreticalCache.get(cacheKey);
+            if (cached) {
+              appState.currentTheoretical = cached;
+              updateEquityDisplay(cached, appState.latestLiveResult);
+            } else {
+              updateEquityDisplay({ loading: true }, appState.latestLiveResult);
+              const monteCarloResult = await computePreflopEquityMonteCarlo(
+                hand,
+                appState.numOpponents,
+                PREFLOP_MONTE_CARLO_SAMPLES,
+                (progress) => {
+                  updateEquityDisplay(
+                    { loading: true, progress },
+                    appState.latestLiveResult
+                  );
+                }
+              );
+              appState.theoreticalCache.set(cacheKey, monteCarloResult);
+              appState.currentTheoretical = monteCarloResult;
+              updateEquityDisplay(monteCarloResult, appState.latestLiveResult);
+            }
+          }
+
+          appState.isSimulating = false;
+        }
+
+        async function startInteractiveHand() {
+          if (!appState.selectedHand || appState.isSimulating) return;
+          appState.isSimulating = true;
+          document.getElementById("start-interactive-btn").disabled = true;
+
+          const heroCards = handStringToCards(appState.selectedHand);
+          const deck = shuffleDeck(
+            createDeck().filter((c) => !heroCards.includes(c))
+          );
+          const opponentHands = Array.from(
+            { length: appState.numOpponents },
+            () => [deck.pop(), deck.pop()]
+          );
+          const board = Array.from({ length: 5 }, () => deck.pop());
+
+          appState.currentDeal = {
+            street: "preflop",
+            deck,
+            heroHand: heroCards,
+            opponentHands,
+            board,
+          };
+
+          document.getElementById("start-interactive-btn").style.display =
+            "none";
+          const dealBtn = document.getElementById("deal-street-btn");
+          dealBtn.style.display = "inline-block";
+          dealBtn.textContent = "Deal Flop";
+          dealBtn.disabled = false;
+          document.getElementById("reset-hand-btn").style.display =
+            "inline-block";
+          document.getElementById("live-charts-section").style.display =
+            "block";
+
+          await updateLiveAnalysis();
+          appState.isSimulating = false;
+        }
+
+        async function dealNextStreet() {
+          if (!appState.currentDeal || appState.isSimulating) return;
+          appState.isSimulating = true;
+          const dealBtn = document.getElementById("deal-street-btn");
+          dealBtn.disabled = true;
+
+          const streets = ["preflop", "flop", "turn", "river"];
+          const currentIdx = streets.indexOf(appState.currentDeal.street);
+          if (currentIdx < streets.length - 1)
+            appState.currentDeal.street = streets[currentIdx + 1];
+
+          await updateLiveAnalysis();
+          const nextIdx = streets.indexOf(appState.currentDeal.street) + 1;
+          if (nextIdx < streets.length) {
+            dealBtn.textContent = `Deal ${
+              streets[nextIdx].charAt(0).toUpperCase() +
+              streets[nextIdx].slice(1)
+            }`;
+            dealBtn.disabled = false;
+          } else {
+            dealBtn.textContent = "Showdown!";
+            await handleShowdown();
+          }
+
+          appState.isSimulating = false;
+        }
+
+        async function updateLiveAnalysis() {
+          renderPokerTable();
+          updateEquityDisplay(appState.currentTheoretical, { loading: true });
+          const result = await runLiveEquitySim();
+          appState.latestLiveResult = {
+            equity: result.equity,
+            stderr: result.stderr,
+            samples: result.samples,
+          };
+          updateEquityDisplay(appState.currentTheoretical, appState.latestLiveResult);
+          const liveChartsGrid = document.getElementById("live-charts-grid");
+          liveChartsGrid.innerHTML =
+            '<div class="chart-container" id="live-dist-chart"></div>';
+          const totalSamples = result.samples || SIM_COUNT_POSTFLOP;
+          createDistributionBarChart(
+            document.getElementById("live-dist-chart"),
+            "Final Hand Strength %",
+            result.handDistribution.map((count, i) => ({
+              label: HAND_RANKS_TXT[i],
+              value: count / totalSamples,
+            }))
+          );
+        }
+
+        async function handleShowdown() {
+          const { heroHand, opponentHands, board } = appState.currentDeal;
+          const allHands = [heroHand, ...opponentHands];
+          const allScores = allHands.map((h) => evaluateHand([...h, ...board]));
+          let bestScore = [-1];
+          allScores.forEach((score) => {
+            if (compareScores(score, bestScore) > 0) bestScore = score;
+          });
+          const winners = [];
+          allScores.forEach((score, i) => {
+            if (compareScores(score, bestScore) === 0) winners.push(i);
+          });
+
+          renderPokerTable(true, winners);
+
+          const allPlayerEquities = allHands.map((_, i) => ({
+            label: i === 0 ? "Hero" : `Opp. ${i}`,
+            percent: winners.includes(i) ? 1 / winners.length : 0,
+          }));
+
+          const liveChartsGrid = document.getElementById("live-charts-grid");
+          liveChartsGrid.innerHTML +=
+            '<div class="chart-container" id="showdown-pie-chart"></div>';
+          createPieChart(
+            document.getElementById("showdown-pie-chart"),
+            "Showdown Results (All Hands Known)",
+            allPlayerEquities
+          );
+        }
+
+        // Initialize the application
+        renderHeatmap();
+        updateHeatmapColors();
+        setupEventListeners();
+        resetUIForNewSelection();
+      });
     </script>
   </body>
 </html>

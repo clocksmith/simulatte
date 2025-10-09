@@ -1,0 +1,3356 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TPU - Tensor Processing Unit Visualization</title>
+    <meta name="description" content="3D WebGL visualization and simulated performance metrics for a theoretical TPU cluster on a twisted torus" />
+    <link rel="icon" href="data:," />
+    <!-- Brain.js will be loaded lazily when needed -->
+    <style>
+      :root {
+        --bg-color: #1a1a1a;
+        --panel-bg-color: #2a2a2a;
+        --text-color: #e0e0e0;
+        --border-color: #444;
+        --input-bg: #333;
+        --accent1: #ffa500;
+        --accent2: #add8e6;
+        --accent3: #90ee90;
+        --accent4: #ffb6c1;
+        --accent5: #da70d6;
+        --btn-bg: #4a90e2;
+        --btn-hover-bg: #357abd;
+        --btn-red-bg: #e24a4a;
+        --btn-red-hover-bg: #bd3535;
+        --btn-green-bg: #5cb85c;
+        --btn-green-hover-bg: #4cae4c;
+        --graph-line1: var(--accent1);
+        --graph-line2: var(--accent3);
+        --graph-line3: var(--accent5);
+        --graph-bg: #383838;
+        --wireframe-color: rgba(100, 100, 100, 0.5);
+        --disabled-overlay: rgba(42, 42, 42, 0.7);
+        --ai-node-input: #ffb6c1;
+        --ai-node-hidden: #da70d6;
+        --ai-node-output: #ffb6c1;
+        --ai-line: rgba(200, 200, 200, 0.3);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      
+      /* Performance optimizations */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        overflow-y: auto;
+        /* Hardware acceleration */
+        transform: translateZ(0);
+        backface-visibility: hidden;
+      }
+      #app {
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+        min-height: 100vh;
+      }
+      #live-metrics-card {
+        background-color: var(--panel-bg-color);
+        border-radius: 8px;
+        padding: 15px;
+        border: 1px solid var(--border-color);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        align-items: start;
+      }
+      #live-metrics-card h3 {
+        color: var(--accent1);
+        margin-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        font-size: 1.1em;
+        grid-column: 1 / -1;
+        margin-top: 0;
+      }
+      .metric-item p {
+        font-size: 0.9em;
+        line-height: 1.5;
+        margin-bottom: 5px;
+      }
+      .metric-item strong {
+        color: var(--accent3);
+        min-width: 120px;
+        display: inline-block;
+        font-weight: 600;
+      }
+      .metric-value {
+        color: var(--accent2);
+        font-weight: bold;
+        float: right;
+        background-color: var(--input-bg);
+        padding: 0 5px;
+        border-radius: 3px;
+      }
+      #live-graphs {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 10px;
+      }
+      .graph-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 200px;
+      }
+      .graph-container label {
+        font-size: 0.85em;
+        color: #aaa;
+        min-width: 40px;
+        text-align: right;
+      }
+      .graph-container canvas {
+        display: block;
+        flex-grow: 1;
+        height: 35px;
+        background-color: var(--graph-bg);
+        border-radius: 4px;
+      }
+      #main-content {
+        display: flex;
+        flex-grow: 1;
+        gap: 15px;
+        min-height: 450px;
+        flex-wrap: wrap;
+      }
+      #simulation-area {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+        min-width: 350px;
+        min-height: 400px;
+        position: relative;
+      }
+      #simulation-visual-tooltip {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        z-index: 5;
+      }
+      #webgl-canvas {
+        border: 1px solid var(--border-color);
+        background-color: #050505;
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+      }
+      #controls-and-export-column {
+        flex: 1;
+        min-width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-height: 600px;
+        overflow: hidden;
+      }
+      #top-controls-container {
+        display: flex;
+        gap: 10px;
+        padding: 10px 15px;
+        background-color: var(--panel-bg-color);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        flex-shrink: 0;
+      }
+      #top-controls-container button {
+        flex-grow: 1;
+        padding: 8px 10px;
+        font-size: 1.1em;
+        font-weight: bold;
+        background-color: var(--btn-bg);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        line-height: 1;
+      }
+      #top-controls-container button:hover {
+        background-color: var(--btn-hover-bg);
+      }
+      #top-controls-container button#init-reset-btn {
+        background-color: var(--accent1);
+        color: var(--bg-color);
+      }
+      #top-controls-container button#init-reset-btn:hover {
+        background-color: #e09400;
+      }
+      #control-panel {
+        background-color: var(--panel-bg-color);
+        border-radius: 8px;
+        padding: 15px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        flex-grow: 1;
+        position: relative;
+        min-height: 150px;
+      }
+      #control-panel.disabled-overlay::after {
+        content: "AI Process Active";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--disabled-overlay);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2em;
+        font-weight: bold;
+        z-index: 10;
+        border-radius: 8px;
+      }
+      #control-panel h3 {
+        color: var(--accent2);
+        margin-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        font-size: 1.1em;
+        position: sticky;
+        top: -15px;
+        background-color: var(--panel-bg-color);
+        z-index: 1;
+        padding-top: 10px;
+      }
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #383838;
+        margin-bottom: 10px;
+      }
+      .control-group:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+      }
+      .control-group label {
+        font-size: 0.9em;
+        color: #ccc;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .control-group input[type="range"],
+      .control-group input[type="number"],
+      .control-group input[type="text"],
+      .control-group select {
+        width: 100%;
+        padding: 6px 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      .control-group input:disabled,
+      .control-group select:disabled,
+      .control-group input[type="text"]:disabled {
+        background-color: #444;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+      .control-group input[type="range"]:disabled::-webkit-slider-thumb {
+        background: #777;
+      }
+      .control-group input[type="range"]:disabled::-moz-range-thumb {
+        background: #777;
+      }
+      .control-group input[type="range"] {
+        cursor: pointer;
+        padding: 0;
+        height: 8px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: #555;
+        border-radius: 5px;
+        outline: none;
+      }
+      .control-group input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--accent2);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      .control-group input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        background: var(--accent2);
+        border-radius: 50%;
+        cursor: pointer;
+        border: none;
+      }
+      .control-group .value-display {
+        font-size: 0.85em;
+        color: #bbb;
+        font-weight: bold;
+        background-color: #404040;
+        padding: 1px 4px;
+        border-radius: 3px;
+        margin-left: 5px;
+        white-space: nowrap;
+      }
+      .value-display-wide {
+        flex-grow: 1;
+        text-align: right;
+      }
+      #export-panel {
+        background-color: var(--panel-bg-color);
+        border-radius: 8px;
+        padding: 15px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+        max-height: 250px;
+        overflow-y: auto;
+      }
+      #export-panel h3 {
+        color: var(--accent3);
+        margin-bottom: 5px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        font-size: 1.1em;
+      }
+      .export-controls {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 8px 10px;
+        align-items: center;
+      }
+      .export-controls label {
+        font-size: 0.9em;
+        color: #ccc;
+        white-space: nowrap;
+        text-align: right;
+      }
+      .export-controls input[type="number"] {
+        width: 100%;
+        padding: 6px 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      .export-controls span {
+        font-size: 0.9em;
+        color: #aaa;
+      }
+      #export-panel .button-group {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+      }
+      #export-panel button {
+        padding: 9px 14px;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        font-size: 0.9em;
+        font-weight: 600;
+        flex-grow: 1;
+      }
+      #export-panel button:hover {
+        background-color: var(--btn-hover-bg);
+      }
+      #export-panel button:active {
+        transform: scale(0.98);
+      }
+      #export-panel button#record-btn {
+        background-color: var(--btn-bg);
+      }
+      #export-panel button#export-btn {
+        background-color: var(--accent3);
+        color: #1a1a1a;
+      }
+      #export-panel button#export-btn:disabled {
+        background-color: #555;
+        color: #999;
+        cursor: not-allowed;
+      }
+      #export-panel button#clear-record-btn {
+        background-color: var(--btn-red-bg);
+      }
+      #export-panel button#clear-record-btn:hover {
+        background-color: var(--btn-red-hover-bg);
+      }
+      #record-status {
+        font-size: 0.8em;
+        color: #aaa;
+        text-align: center;
+        margin-top: 5px;
+        height: 1.2em;
+      }
+      #ai-section {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        background-color: var(--panel-bg-color);
+        border-radius: 8px;
+        padding: 15px;
+        border: 1px solid var(--border-color);
+      }
+      #ai-section h3 {
+        color: var(--accent5);
+        font-size: 1.1em;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+        margin-top: 0;
+      }
+      #ai-config-and-display {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+      #ai-config-card {
+        background-color: var(--input-bg);
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        flex: 2;
+        min-width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      #ai-config-card h4 {
+        color: var(--accent4);
+        font-size: 1em;
+        margin-bottom: 5px;
+        border-bottom: 1px dashed #555;
+        padding-bottom: 5px;
+      }
+      #ai-config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        overflow-y: auto;
+        max-height: 200px;
+      }
+      .ai-config-item label {
+        font-size: 0.85em;
+        color: #ccc;
+        margin-bottom: 3px;
+        display: block;
+      }
+      .ai-config-item input,
+      .ai-config-item select {
+        width: 100%;
+        padding: 4px 6px;
+        font-size: 0.85em;
+      }
+      #ai-display-card {
+        background-color: var(--input-bg);
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        flex: 1;
+        min-width: 250px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      #ai-display-card h4 {
+        color: var(--accent5);
+        font-size: 1em;
+        margin-bottom: 8px;
+      }
+      #ai-display-card p {
+        font-size: 0.85em;
+        line-height: 1.4;
+        margin-bottom: 4px;
+      }
+      #ai-display-card strong {
+        color: var(--accent4);
+        min-width: 110px;
+        display: inline-block;
+      }
+      #ai-display-card .metric-value {
+        color: var(--accent1);
+        font-size: 0.95em;
+        background: none;
+        padding: 0;
+        float: none;
+      }
+      #ai-controls-and-status {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+      }
+      #ai-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      #ai-controls button {
+        padding: 7px 12px;
+        font-size: 0.9em;
+        flex-grow: 1;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s ease;
+      }
+      #init-ai-btn {
+        background-color: var(--accent2);
+        color: var(--bg-color);
+        min-width: 80px;
+      }
+      #init-ai-btn:hover {
+        background-color: #9bc8dd;
+      }
+      #train-ai-btn {
+        background-color: var(--accent5);
+        color: var(--bg-color);
+        min-width: 100px;
+      }
+      #train-ai-btn:hover {
+        background-color: #c760c1;
+      }
+      #find-best-ai-btn {
+        background-color: var(--btn-green-bg);
+        color: white;
+        min-width: 150px;
+      }
+      #find-best-ai-btn:hover {
+        background-color: var(--btn-green-hover-bg);
+      }
+      #ai-controls button:disabled {
+        background-color: #777;
+        cursor: not-allowed;
+        color: #bbb;
+      }
+      #ai-status-area {
+        font-size: 0.85em;
+        color: #bbb;
+        text-align: center;
+        min-height: 1.2em;
+        font-style: italic;
+      }
+      #ai-recommendation-area {
+        font-size: 0.85em;
+        background-color: var(--panel-bg-color);
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px dashed var(--border-color);
+        min-height: 60px;
+        overflow-y: auto;
+        flex-grow: 1;
+        line-height: 1.4;
+      }
+      #ai-recommendation-area strong {
+        color: var(--accent3);
+        display: block;
+        margin-bottom: 3px;
+      }
+      #ai-recommendation-area span {
+        color: var(--accent2);
+      }
+      #ai-recommendation-area em {
+        color: #aaa;
+      }
+      #ai-network-visualization {
+        min-height: 200px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 10px;
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+      #ai-network-svg {
+        width: 100%;
+        height: 100%;
+        min-height: 180px;
+      }
+      #ai-network-svg line {
+        stroke: var(--ai-line);
+        stroke-width: 0.5;
+      }
+      #ai-network-svg circle {
+        stroke: rgba(255, 255, 255, 0.5);
+        stroke-width: 1;
+      }
+      #ai-network-svg .input-node {
+        fill: var(--ai-node-input);
+        opacity: 0.8;
+      }
+      #ai-network-svg .hidden-node {
+        fill: var(--ai-node-hidden);
+        opacity: 0.8;
+      }
+      #ai-network-svg .output-node {
+        fill: var(--ai-node-output);
+        opacity: 0.8;
+      }
+      .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+      }
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 250px;
+        background-color: #555;
+        color: #fff;
+        text-align: left;
+        border-radius: 6px;
+        padding: 8px 10px;
+        position: absolute;
+        z-index: 10;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -125px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.85em;
+        font-weight: normal;
+        line-height: 1.4;
+        pointer-events: none;
+      }
+      .tooltip.tooltip-top .tooltiptext {
+        bottom: auto;
+        top: 125%;
+      }
+      .tooltip.tooltip-right .tooltiptext {
+        left: 105%;
+        bottom: 50%;
+        transform: translateY(50%);
+        margin-left: 0;
+      }
+      .tooltip.tooltip-left .tooltiptext {
+        left: auto;
+        right: 105%;
+        bottom: 50%;
+        transform: translateY(50%);
+        margin-left: 0;
+      }
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 0.95;
+      }
+      .help-icon {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 1px solid #888;
+        border-radius: 50%;
+        color: #888;
+        text-align: center;
+        line-height: 12px;
+        font-size: 10px;
+        font-weight: bold;
+        margin-left: 5px;
+        cursor: help;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="metrics-card" id="live-metrics-card">
+        <h3>Live Simulation Metrics</h3>
+        <div class="metric-item">
+          <p>
+            <strong>
+              Throughput
+              <span class="tooltip tooltip-top">
+                <span class="help-icon">?</span>
+                <span class="tooltiptext"
+                  >Estimated TeraFLOPs/second. Based on TPU count, float type
+                  (lower precision = higher potential FLOPs), interconnect
+                  speed, torus knot twist (minor impact), and scaling efficiency
+                  (drops slightly with more TPUs). Includes minor random
+                  variation.</span
+                > </span
+              >:
+            </strong>
+            <span id="metric-throughput" class="metric-value">0 TFLOPS</span>
+          </p>
+        </div>
+        <div class="metric-item">
+          <p>
+            <strong>
+              Efficiency
+              <span class="tooltip tooltip-top">
+                <span class="help-icon">?</span>
+                <span class="tooltiptext"
+                  >Percentage of theoretical peak performance achieved.
+                  Primarily affected by interconnect speed and scaling
+                  efficiency (communication overhead increases with size). Torus
+                  knot twist has a minor negative impact. Base is 95%, capped
+                  between 50-98%. Includes minor random variation.</span
+                > </span
+              >:
+            </strong>
+            <span id="metric-efficiency" class="metric-value">0 %</span>
+          </p>
+        </div>
+        <div class="metric-item">
+          <p>
+            <strong>
+              Est. Latency
+              <span class="tooltip tooltip-top">
+                <span class="help-icon">?</span>
+                <span class="tooltiptext"
+                  >Estimated communication latency in milliseconds. Increases
+                  logarithmically with TPU count (more hops). Decreases with
+                  better interconnects. Torus knot twist slightly reduces
+                  latency (potentially shorter paths). Base is 5ms. Includes
+                  minor random variation.</span
+                > </span
+              >:
+            </strong>
+            <span id="metric-latency" class="metric-value">0 ms</span>
+          </p>
+        </div>
+        <div class="metric-item">
+          <p>
+            <strong>
+              Est. Cost Factor
+              <span class="tooltip tooltip-top">
+                <span class="help-icon">?</span>
+                <span class="tooltiptext"
+                  >Abstract relative cost. Primarily driven by the number of
+                  TPUs. Better interconnects add a moderate cost increase. Lower
+                  precision float types (FP8/INT8) slightly reduce cost factor,
+                  FP32 slightly increases it. Includes minor random
+                  variation.</span
+                > </span
+              >:
+            </strong>
+            <span id="metric-cost" class="metric-value">0</span>
+          </p>
+        </div>
+        <div id="live-graphs">
+          <div class="graph-container">
+            <label for="throughput-graph">Thrpt:</label>
+            <canvas id="throughput-graph"></canvas>
+          </div>
+          <div class="graph-container">
+            <label for="efficiency-graph">Effic:</label>
+            <canvas id="efficiency-graph"></canvas>
+          </div>
+          <div class="graph-container">
+            <label for="latency-graph">Latcy:</label>
+            <canvas id="latency-graph"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="main-content">
+        <div id="simulation-area">
+          <div id="simulation-visual-tooltip" class="tooltip tooltip-right">
+            <span
+              class="help-icon"
+              style="
+                background-color: rgba(42, 42, 42, 0.7);
+                border-color: #888;
+                color: #eee;
+              "
+              >?</span
+            >
+            <span class="tooltiptext">
+              <b>Visuals:</b><br />
+              - Each rectangle represents a simulated TPU.<br />
+              - <b>Color Intensity/Glow:</b> Intensity and emission indicate
+              overall simulated network activity level (based on efficiency
+              metric).<br />
+              - <b>Base Color:</b> Varies cyclically by TPU ID for visual
+              distinction.
+            </span>
+          </div>
+          <canvas id="webgl-canvas"></canvas>
+        </div>
+        <div id="controls-and-export-column">
+          <div id="top-controls-container">
+            <button id="init-reset-btn" title="Initialize / Reset Simulation">
+              Reset
+            </button>
+            <button id="play-pause-btn" title="Play / Pause Simulation">
+              Play
+            </button>
+          </div>
+          <div id="control-panel">
+            <h3>Configuration</h3>
+            <div class="control-group">
+              <label for="num-tpus">
+                Number of TPUs
+                <span id="num-tpus-value" class="value-display">64</span>
+                <span class="tooltip">
+                  <span class="help-icon">?</span>
+                  <span class="tooltiptext"
+                    >Total simulated TPU units in the network. Affects
+                    throughput, latency, cost, and scaling efficiency.</span
+                  >
+                </span>
+              </label>
+              <input
+                type="range"
+                id="num-tpus"
+                min="4"
+                max="512"
+                value="64"
+                step="4"
+              />
+            </div>
+            <div class="control-group">
+              <label for="torus-r">
+                Major Radius
+                <span id="torus-r-value" class="value-display">1.8</span>
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Radius of the main torus ring. Primarily affects the visual
+                    layout.</span
+                  ></span
+                >
+              </label>
+              <input
+                type="range"
+                id="torus-r"
+                min="0.5"
+                max="5.0"
+                value="1.8"
+                step="0.1"
+              />
+            </div>
+            <div class="control-group">
+              <label for="torus-tube-r">
+                Tube Radius
+                <span id="torus-tube-r-value" class="value-display">0.5</span>
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Radius of the torus tube cross-section. Affects visual
+                    layout.</span
+                  ></span
+                >
+              </label>
+              <input
+                type="range"
+                id="torus-tube-r"
+                min="0.1"
+                max="1.5"
+                value="0.5"
+                step="0.05"
+              />
+            </div>
+            <div class="control-group">
+              <label for="torus-twist">
+                Torus Knot Twist
+                <span id="torus-twist-value" class="value-display">1</span>
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Mathematical twist factor for the torus embedding
+                    (0=standard). Affects geometry and slightly impacts
+                    performance metrics (throughput, efficiency, latency).</span
+                  ></span
+                >
+              </label>
+              <input
+                type="range"
+                id="torus-twist"
+                min="0"
+                max="10"
+                value="1"
+                step="1"
+              />
+            </div>
+            <div class="control-group">
+              <label for="tube-twist">
+                Tube Surface Twist
+                <span id="tube-twist-value" class="value-display">1.0</span>
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Rotates the TPU placement basis around the tube's
+                    centerline as you move along the main ring (0 = no surface
+                    twist). Affects visual layout and local orientation.</span
+                  ></span
+                >
+              </label>
+              <input
+                type="range"
+                id="tube-twist"
+                min="0"
+                max="5"
+                value="1.0"
+                step="0.1"
+              />
+            </div>
+            <div class="control-group">
+              <label for="tpu-density">
+                TPU Density
+                <span id="tpu-density-value" class="value-display">0.8</span>
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Adjusts visual spacing of TPUs on the torus surface. Higher
+                    values place them closer together. Purely visual.</span
+                  ></span
+                >
+              </label>
+              <input
+                type="range"
+                id="tpu-density"
+                min="0.1"
+                max="1.5"
+                value="0.8"
+                step="0.05"
+              />
+            </div>
+            <div class="control-group">
+              <label for="tpu-size">
+                TPU Base Size
+                <span id="tpu-size-value" class="value-display">0.030</span>
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Base size factor for individual TPU visuals. Purely
+                    visual.</span
+                  ></span
+                >
+              </label>
+              <input
+                type="range"
+                id="tpu-size"
+                min="0.005"
+                max="0.1"
+                value="0.03"
+                step="0.001"
+              />
+            </div>
+            <div class="control-group">
+              <label for="float-type">
+                Float Type
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Simulated numerical precision used for calculations. Lower
+                    precision (e.g., BF16, FP8, INT8) generally allows higher
+                    theoretical throughput but may affect model accuracy (not
+                    simulated here). Impacts calculated Throughput and Cost
+                    Factor.</span
+                  ></span
+                >
+              </label>
+              <select id="float-type">
+                <option value="FP32">FP32</option>
+                <option value="BF16" selected>BF16</option>
+                <option value="FP16">FP16</option>
+                <option value="FP8">FP8</option>
+                <option value="INT8">INT8</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="quantization">
+                Quantization
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Simulated technique for reducing model precision, often
+                    used with lower Float Types. 'None' uses the selected Float
+                    Type directly. 'Post-Training' and 'QAT' apply simulated
+                    efficiency gains. Slightly impacts Throughput.</span
+                  ></span
+                >
+              </label>
+              <select id="quantization">
+                <option value="None" selected>None</option>
+                <option value="PostTraining">Post-Training</option>
+                <option value="QAT">Quantization-Aware Training</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="interconnect">
+                Interconnect
+                <span class="tooltip"
+                  ><span class="help-icon">?</span
+                  ><span class="tooltiptext"
+                    >Simulated network connection type between TPUs. Better
+                    interconnects (Copper, Optical, Custom) improve Throughput
+                    and Efficiency, and reduce Latency, but increase the Cost
+                    Factor.</span
+                  ></span
+                >
+              </label>
+              <select id="interconnect">
+                <option value="Ethernet">Ethernet (Baseline)</option>
+                <option value="Copper" selected>High-Speed Copper</option>
+                <option value="Optical">Optical/Fabric</option>
+                <option value="CustomInterconnect">
+                  Custom TPU Interconnect
+                </option>
+              </select>
+            </div>
+          </div>
+          <div id="export-panel">
+            <h3>Record & Export</h3>
+            <div class="export-controls">
+              <label for="record-hz">Rate:</label>
+              <input type="number" id="record-hz" value="10" min="1" max="60" />
+              <span>Hz</span>
+              <label for="record-duration">Duration:</label>
+              <input
+                type="number"
+                id="record-duration"
+                value="10"
+                min="1"
+                max="300"
+              />
+              <span>s</span>
+            </div>
+            <p id="record-status">Status: Idle</p>
+            <div class="button-group">
+              <button id="record-btn">Record</button>
+              <button id="export-btn" disabled>Export Run</button>
+              <button id="clear-record-btn" disabled>Clear Data</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ai-section">
+        <h3>AI Analysis & Control</h3>
+        <div id="ai-config-and-display">
+          <div id="ai-config-card">
+            <h4>AI Configuration</h4>
+            <div id="ai-config-grid">
+              <div class="ai-config-item">
+                <label for="ai-hidden-layers">Hidden Layers (e.g., 10,8)</label>
+                <input type="text" id="ai-hidden-layers" value="10,8" />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-activation">Activation Fn</label>
+                <select id="ai-activation">
+                  <option value="leaky-relu" selected>Leaky ReLU</option>
+                  <option value="relu">ReLU</option>
+                  <option value="sigmoid">Sigmoid</option>
+                  <option value="tanh">Tanh</option>
+                </select>
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-learning-rate"
+                  >Learn Rate (<span id="ai-learning-rate-value">0.03</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-learning-rate"
+                  min="0.001"
+                  max="0.1"
+                  step="0.001"
+                  value="0.03"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-iterations"
+                  >Max Iterations (<span id="ai-iterations-value">300</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-iterations"
+                  min="50"
+                  max="2000"
+                  step="50"
+                  value="300"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-error-thresh"
+                  >Error Thresh (<span id="ai-error-thresh-value">0.005</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-error-thresh"
+                  min="0.001"
+                  max="0.1"
+                  step="0.001"
+                  value="0.005"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-max-samples"
+                  >Max Samples (<span id="ai-max-samples-value">2000</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-max-samples"
+                  min="100"
+                  max="10000"
+                  step="100"
+                  value="2000"
+                />
+              </div>
+              <div class="ai-config-item">
+                <label for="ai-find-samples"
+                  >Find Samples (<span id="ai-find-samples-value">5000</span
+                  >)</label
+                >
+                <input
+                  type="range"
+                  id="ai-find-samples"
+                  min="500"
+                  max="20000"
+                  step="500"
+                  value="5000"
+                />
+              </div>
+            </div>
+            <button
+              id="init-ai-btn"
+              title="Re-initialize AI with current settings"
+            >
+              Initialize AI
+            </button>
+          </div>
+          <div id="ai-display-card">
+            <h4>AI Prediction (Current Config)</h4>
+            <p>
+              <strong>Est. Throughput:</strong>
+              <span id="brain-throughput" class="metric-value">N/A</span>
+            </p>
+            <p>
+              <strong>Est. Efficiency:</strong>
+              <span id="brain-efficiency" class="metric-value">N/A</span>
+            </p>
+            <p>
+              <strong>Est. Cost Factor:</strong>
+              <span id="brain-cost" class="metric-value">N/A</span>
+            </p>
+            <div id="ai-recommendation-area">
+              <strong>AI Recommendation:</strong>
+              <span id="ai-recommendation-text"
+                >Train the AI and click 'Find Best Config' to get a
+                recommendation.</span
+              >
+            </div>
+          </div>
+        </div>
+        <div id="ai-controls-and-status">
+          <div id="ai-status-area">
+            <span id="brain-status">Idle</span> | Samples:
+            <span id="brain-samples">0</span>
+            <span class="tooltip tooltip-left">
+              <span class="help-icon">?</span>
+              <span class="tooltiptext"
+                >Number of data points (Config vs. Metrics) collected from the
+                live simulation used to train the AI estimator. More samples
+                generally lead to better estimations/recommendations. Training
+                occurs when manually triggered. Recommendations use the latest
+                trained model.</span
+              >
+            </span>
+          </div>
+          <div id="ai-controls">
+            <button
+              id="train-ai-btn"
+              title="Train the AI model using collected data"
+            >
+              Train AI Now
+            </button>
+            <button
+              id="find-best-ai-btn"
+              title="Use trained AI to recommend the best configuration"
+            >
+              Find Best Config (AI)
+            </button>
+          </div>
+        </div>
+        <div id="ai-network-visualization">
+          <svg id="ai-network-svg"></svg>
+        </div>
+      </div>
+    </div>
+
+    <script id="tpuVertexShader" type="x-shader/x-vertex">
+      precision mediump float;
+      attribute vec3 a_position;
+      attribute vec3 a_normal;
+      attribute float a_tpuId;
+      uniform mat4 u_worldViewProjection;
+      uniform float u_time;
+      uniform float u_globalActivityFactor;
+      varying vec3 v_normal;
+      varying float v_tpuId;
+      varying float v_activity;
+      const float PI = 3.14159265359;
+
+      void main() {
+        v_normal = a_normal;
+        v_tpuId = a_tpuId;
+        float activityFrequency = 1.5 + u_globalActivityFactor * 3.0;
+        float activityCycle = u_time * activityFrequency + a_tpuId * PI * 0.1;
+        v_activity = 0.5 + 0.5 * sin(activityCycle);
+        float sizePulse = 1.0 + 0.05 * sin(u_time * 5.0 + a_tpuId * 0.5);
+        vec3 scaledPosition = a_position * sizePulse;
+        gl_Position = u_worldViewProjection * vec4(scaledPosition, 1.0);
+      }
+    </script>
+
+    <script id="tpuFragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+      varying vec3 v_normal;
+      varying float v_tpuId;
+      varying float v_activity;
+      uniform float u_globalActivityFactor;
+
+      vec3 hsv2rgb(vec3 c) {
+        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+      }
+
+      void main() {
+        vec3 lightDir = normalize(vec3(0.5, 0.5, 1.0));
+        float diffuse = max(0.0, dot(normalize(v_normal), lightDir)) * 0.6 + 0.3;
+
+        float hue = mod(v_tpuId * 0.1, 1.0);
+        vec3 baseColor = hsv2rgb(vec3(hue, 0.7, 0.9));
+
+        float glowAmount = pow(v_activity, 2.0) * pow(u_globalActivityFactor, 0.7);
+        vec3 glowColor = vec3(1.0, 0.9, 0.7);
+
+        float minIntensity = 0.3;
+        float maxIntensity = 1.0;
+        float activityIntensity = mix(minIntensity, maxIntensity, v_activity * pow(u_globalActivityFactor, 0.5));
+
+        vec3 surfaceColor = baseColor * activityIntensity * diffuse;
+        vec3 emissiveColor = glowColor * glowAmount * 0.8;
+
+        vec3 finalColor = surfaceColor + emissiveColor;
+
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    </script>
+
+    <script id="wireframeVertexShader" type="x-shader/x-vertex">
+      attribute vec3 a_position;
+      uniform mat4 u_worldViewProjection;
+      void main() {
+        gl_Position = u_worldViewProjection * vec4(a_position, 1.0);
+      }
+    </script>
+
+    <script id="wireframeFragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+      uniform vec4 u_color;
+      void main() {
+        gl_FragColor = u_color;
+      }
+    </script>
+
+    <script>
+      'use strict';
+      
+      // Performance optimizations
+      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+      const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
+      const PERF = window.performance || Date;
+      
+      // Lazy load Brain.js when needed
+      let brainJsLoaded = false;
+      async function loadBrainJs() {
+        if (brainJsLoaded) return;
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js';
+        document.head.appendChild(script);
+        await new Promise(resolve => script.onload = resolve);
+        brainJsLoaded = true;
+      }
+      
+      const canvas = document.getElementById("webgl-canvas");
+      let gl;
+      try {
+        gl = canvas.getContext("webgl", { 
+          antialias: false,
+          powerPreference: "high-performance",
+          preserveDrawingBuffer: false,
+          alpha: false,
+          depth: true,
+          stencil: false,
+          desynchronized: true
+        }) || canvas.getContext("experimental-webgl");
+        if (!gl) throw new Error("WebGL context unavailable");
+      } catch (e) {
+        document.body.innerHTML =
+          '<p style="color:white; padding: 20px;">WebGL initialization failed. Please use a modern browser that supports WebGL.</p>';
+        throw e;
+      }
+
+      const PI = Math.PI;
+      const TWO_PI = Math.PI * 2;
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      
+      // Cache for expensive calculations
+      const mathCache = new Map();
+      const shaderCache = new Map();
+
+      const vec3 = {
+        create: () => new Float32Array(3),
+        clone: (a) => new Float32Array(a),
+        copy: (out, a) => {
+          out[0] = a[0];
+          out[1] = a[1];
+          out[2] = a[2];
+          return out;
+        },
+        add: (out, a, b) => {
+          out[0] = a[0] + b[0];
+          out[1] = a[1] + b[1];
+          out[2] = a[2] + b[2];
+          return out;
+        },
+        subtract: (out, a, b) => {
+          out[0] = a[0] - b[0];
+          out[1] = a[1] - b[1];
+          out[2] = a[2] - b[2];
+          return out;
+        },
+        multiply: (out, a, b) => {
+          out[0] = a[0] * b[0];
+          out[1] = a[1] * b[1];
+          out[2] = a[2] * b[2];
+          return out;
+        },
+        scale: (out, a, b) => {
+          out[0] = a[0] * b;
+          out[1] = a[1] * b;
+          out[2] = a[2] * b;
+          return out;
+        },
+        scaleAndAdd: (out, a, b, scale) => {
+          out[0] = a[0] + b[0] * scale;
+          out[1] = a[1] + b[1] * scale;
+          out[2] = a[2] + b[2] * scale;
+          return out;
+        },
+        normalize: (out, a) => {
+          let x = a[0],
+            y = a[1],
+            z = a[2];
+          let len = x * x + y * y + z * z;
+          if (len > 0) {
+            len = 1 / Math.sqrt(len);
+            out[0] = a[0] * len;
+            out[1] = a[1] * len;
+            out[2] = a[2] * len;
+          }
+          return out;
+        },
+        dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+        cross: (out, a, b) => {
+          let ax = a[0],
+            ay = a[1],
+            az = a[2],
+            bx = b[0],
+            by = b[1],
+            bz = b[2];
+          out[0] = ay * bz - az * by;
+          out[1] = az * bx - ax * bz;
+          out[2] = ax * by - ay * bx;
+          return out;
+        },
+        transformQuat: (out, a, q) => {
+          let qx = q[0],
+            qy = q[1],
+            qz = q[2],
+            qw = q[3],
+            x = a[0],
+            y = a[1],
+            z = a[2];
+          let uvx = qy * z - qz * y,
+            uvy = qz * x - qx * z,
+            uvz = qx * y - qy * x;
+          let uuvx = qy * uvz - qz * uvy,
+            uuvy = qz * uvx - qx * uvz,
+            uuvz = qx * uvy - qy * uvx;
+          let w2 = qw * 2;
+          uvx *= w2;
+          uvy *= w2;
+          uvz *= w2;
+          uuvx *= 2;
+          uuvy *= 2;
+          uuvz *= 2;
+          out[0] = x + uvx + uuvx;
+          out[1] = y + uvy + uuvy;
+          out[2] = z + uvz + uuvz;
+          return out;
+        },
+      };
+      const quat = {
+        create: () => new Float32Array(4),
+        setAxisAngle: (out, axis, rad) => {
+          rad = rad * 0.5;
+          let s = Math.sin(rad);
+          out[0] = s * axis[0];
+          out[1] = s * axis[1];
+          out[2] = s * axis[2];
+          out[3] = Math.cos(rad);
+          return out;
+        },
+        multiply: (out, a, b) => {
+          let ax = a[0],
+            ay = a[1],
+            az = a[2],
+            aw = a[3],
+            bx = b[0],
+            by = b[1],
+            bz = b[2],
+            bw = b[3];
+          out[0] = ax * bw + aw * bx + ay * bz - az * by;
+          out[1] = ay * bw + aw * by + az * bx - ax * bz;
+          out[2] = az * bw + aw * bz + ax * by - ay * bx;
+          out[3] = aw * bw - ax * bx - ay * by - az * bz;
+          return out;
+        },
+        rotationTo: (out, a, b) => {
+          let dot = vec3.dot(a, b);
+          if (dot < -0.999999) {
+            let cross = vec3.cross(vec3.create(), [1, 0, 0], a);
+            if (vec3.dot(cross, cross) < 0.000001)
+              vec3.cross(cross, [0, 1, 0], a);
+            vec3.normalize(out, cross);
+            quat.setAxisAngle(out, out, Math.PI);
+            return out;
+          } else if (dot > 0.999999) {
+            out[0] = 0;
+            out[1] = 0;
+            out[2] = 0;
+            out[3] = 1;
+            return out;
+          } else {
+            vec3.cross(out, a, b);
+            out[3] = 1 + dot;
+            return quat.normalize(out, out);
+          }
+        },
+        normalize: (out, a) => {
+          let len = a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
+          if (len > 0) {
+            len = 1 / Math.sqrt(len);
+            out[0] = a[0] * len;
+            out[1] = a[1] * len;
+            out[2] = a[2] * len;
+            out[3] = a[3] * len;
+          }
+          return out;
+        },
+      };
+      const mat4 = {
+        create: () =>
+          new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+        perspective: (o, f, a, n, r) => {
+          const t = 1 / Math.tan(f / 2);
+          o[0] = t / a;
+          o[1] = 0;
+          o[2] = 0;
+          o[3] = 0;
+          o[4] = 0;
+          o[5] = t;
+          o[6] = 0;
+          o[7] = 0;
+          o[8] = 0;
+          o[9] = 0;
+          o[11] = -1;
+          o[15] = 0;
+          if (r != null && r !== Infinity) {
+            const e = 1 / (n - r);
+            o[10] = (r + n) * e;
+            o[14] = 2 * r * n * e;
+          } else {
+            o[10] = -1;
+            o[14] = -2 * n;
+          }
+          return o;
+        },
+        lookAt: (o, e, t, a) => {
+          let n,
+            r,
+            i,
+            l,
+            s,
+            c,
+            d,
+            u,
+            m,
+            p,
+            f = e[0],
+            h = e[1],
+            g = e[2],
+            b = a[0],
+            v = a[1],
+            x = a[2];
+          let w = t[0],
+            _ = t[1],
+            M = t[2];
+          if (
+            Math.abs(f - w) < 1e-6 &&
+            Math.abs(h - _) < 1e-6 &&
+            Math.abs(g - M) < 1e-6
+          )
+            return mat4.identity(o);
+          d = f - w;
+          u = h - _;
+          m = g - M;
+          p = 1 / Math.sqrt(d * d + u * u + m * m);
+          d *= p;
+          u *= p;
+          m *= p;
+          n = v * m - x * u;
+          r = x * d - b * m;
+          i = b * u - v * d;
+          p = Math.sqrt(n * n + r * r + i * i);
+          if (!p) {
+            n = 0;
+            r = 0;
+            i = 0;
+          } else {
+            p = 1 / p;
+            n *= p;
+            r *= p;
+            i *= p;
+          }
+          l = u * i - m * r;
+          s = m * n - d * i;
+          c = d * r - u * n;
+          p = Math.sqrt(l * l + s * s + c * c);
+          if (!p) {
+            l = 0;
+            s = 0;
+            c = 0;
+          } else {
+            p = 1 / p;
+            l *= p;
+            s *= p;
+            c *= p;
+          }
+          o[0] = n;
+          o[1] = l;
+          o[2] = d;
+          o[3] = 0;
+          o[4] = r;
+          o[5] = s;
+          o[6] = u;
+          o[7] = 0;
+          o[8] = i;
+          o[9] = c;
+          o[10] = m;
+          o[11] = 0;
+          o[12] = -(n * f + r * h + i * g);
+          o[13] = -(l * f + s * h + c * g);
+          o[14] = -(d * f + u * h + m * g);
+          o[15] = 1;
+          return o;
+        },
+        multiply: (o, t, a) => {
+          let n = t[0],
+            r = t[1],
+            i = t[2],
+            l = t[3],
+            s = t[4],
+            c = t[5],
+            d = t[6],
+            u = t[7];
+          let m = t[8],
+            p = t[9],
+            f = t[10],
+            h = t[11],
+            g = t[12],
+            b = t[13],
+            v = t[14],
+            x = t[15];
+          let w = a[0],
+            _ = a[1],
+            M = a[2],
+            y = a[3];
+          o[0] = w * n + _ * s + M * m + y * g;
+          o[1] = w * r + _ * c + M * p + y * b;
+          o[2] = w * i + _ * d + M * f + y * v;
+          o[3] = w * l + _ * u + M * h + y * x;
+          w = a[4];
+          _ = a[5];
+          M = a[6];
+          y = a[7];
+          o[4] = w * n + _ * s + M * m + y * g;
+          o[5] = w * r + _ * c + M * p + y * b;
+          o[6] = w * i + _ * d + M * f + y * v;
+          o[7] = w * l + _ * u + M * h + y * x;
+          w = a[8];
+          _ = a[9];
+          M = a[10];
+          y = a[11];
+          o[8] = w * n + _ * s + M * m + y * g;
+          o[9] = w * r + _ * c + M * p + y * b;
+          o[10] = w * i + _ * d + M * f + y * v;
+          o[11] = w * l + _ * u + M * h + y * x;
+          w = a[12];
+          _ = a[13];
+          M = a[14];
+          y = a[15];
+          o[12] = w * n + _ * s + M * m + y * g;
+          o[13] = w * r + _ * c + M * p + y * b;
+          o[14] = w * i + _ * d + M * f + y * v;
+          o[15] = w * l + _ * u + M * h + y * x;
+          return o;
+        },
+        rotateY: (o, t, a) => {
+          let n = Math.sin(a),
+            r = Math.cos(a),
+            i = t[0],
+            l = t[1],
+            s = t[2],
+            c = t[3];
+          let d = t[8],
+            u = t[9],
+            m = t[10],
+            p = t[11];
+          if (t !== o) {
+            o[4] = t[4];
+            o[5] = t[5];
+            o[6] = t[6];
+            o[7] = t[7];
+            o[12] = t[12];
+            o[13] = t[13];
+            o[14] = t[14];
+            o[15] = t[15];
+          }
+          o[0] = i * r - d * n;
+          o[1] = l * r - u * n;
+          o[2] = s * r - m * n;
+          o[3] = c * r - p * n;
+          o[8] = i * n + d * r;
+          o[9] = l * n + u * r;
+          o[10] = s * n + m * r;
+          o[11] = c * n + p * r;
+          return o;
+        },
+        identity: (o) => {
+          o[0] = 1;
+          o[1] = 0;
+          o[2] = 0;
+          o[3] = 0;
+          o[4] = 0;
+          o[5] = 1;
+          o[6] = 0;
+          o[7] = 0;
+          o[8] = 0;
+          o[9] = 0;
+          o[10] = 1;
+          o[11] = 0;
+          o[12] = 0;
+          o[13] = 0;
+          o[14] = 0;
+          o[15] = 1;
+          return o;
+        },
+      };
+
+      let simState = {
+        running: false,
+        startTime: 0,
+        elapsedTime: 0,
+        animationFrameId: null,
+        lastUpdateTime: 0,
+      };
+      let config = {
+        numTPUs: 64,
+        torusR: 1.8,
+        torusTubeR: 0.5,
+        torusTwist: 1,
+        tubeTwist: 1.0,
+        tpuDensity: 0.8,
+        tpuSize: 0.03,
+        floatType: "BF16",
+        quantization: "None",
+        interconnect: "Copper",
+      };
+      let layoutState = {
+        cells: [],
+        majorCount: 0,
+        minorCount: 0,
+        uStep: 0,
+        vStep: 0,
+        capacity: 0,
+      };
+      let metrics = {
+        throughput: 0,
+        efficiency: 0,
+        latency: 0,
+        cost: 0,
+        history: { throughput: [], efficiency: [], latency: [] },
+        historyMaxLength: 150,
+      };
+      let recording = {
+        active: false,
+        hz: 10,
+        duration: 10,
+        intervalId: null,
+        startTime: 0,
+        data: [],
+      };
+      let brainConfig = {
+        hiddenLayers: [10, 8],
+        activation: "leaky-relu",
+        learningRate: 0.03,
+        iterations: 300,
+        errorThresh: 0.005,
+        maxSamples: 2000,
+        findSamples: 5000,
+      };
+      let brain = {
+        net: null,
+        trainingData: [],
+        status: "Unitialized",
+        samples: 0,
+        isTraining: false,
+        isFindingBest: false,
+        lastPrediction: null,
+        lastRecommendation: null,
+        minSamplesForManualTrain: 20,
+        minSamplesForFindingBest: 50,
+        inputSize: 0,
+        outputSize: 0,
+      };
+
+      const ui = {
+        numTPUsSlider: document.getElementById("num-tpus"),
+        numTPUsValue: document.getElementById("num-tpus-value"),
+        torusRSlider: document.getElementById("torus-r"),
+        torusRValue: document.getElementById("torus-r-value"),
+        torusTubeRSlider: document.getElementById("torus-tube-r"),
+        torusTubeRValue: document.getElementById("torus-tube-r-value"),
+        torusTwistSlider: document.getElementById("torus-twist"),
+        torusTwistValue: document.getElementById("torus-twist-value"),
+        tubeTwistSlider: document.getElementById("tube-twist"),
+        tubeTwistValue: document.getElementById("tube-twist-value"),
+        tpuDensitySlider: document.getElementById("tpu-density"),
+        tpuDensityValue: document.getElementById("tpu-density-value"),
+        tpuSizeSlider: document.getElementById("tpu-size"),
+        tpuSizeValue: document.getElementById("tpu-size-value"),
+        floatTypeSelect: document.getElementById("float-type"),
+        quantizationSelect: document.getElementById("quantization"),
+        interconnectSelect: document.getElementById("interconnect"),
+        controlPanel: document.getElementById("control-panel"),
+        controlInputs: document.querySelectorAll(
+          "#control-panel input, #control-panel select"
+        ),
+        initResetBtn: document.getElementById("init-reset-btn"),
+        playPauseBtn: document.getElementById("play-pause-btn"),
+        recordBtn: document.getElementById("record-btn"),
+        exportBtn: document.getElementById("export-btn"),
+        clearRecordBtn: document.getElementById("clear-record-btn"),
+        recordHzInput: document.getElementById("record-hz"),
+        recordDurationInput: document.getElementById("record-duration"),
+        recordStatus: document.getElementById("record-status"),
+        metricThroughput: document.getElementById("metric-throughput"),
+        metricEfficiency: document.getElementById("metric-efficiency"),
+        metricLatency: document.getElementById("metric-latency"),
+        metricCost: document.getElementById("metric-cost"),
+        throughputGraph: document.getElementById("throughput-graph"),
+        efficiencyGraph: document.getElementById("efficiency-graph"),
+        latencyGraph: document.getElementById("latency-graph"),
+        brainThroughput: document.getElementById("brain-throughput"),
+        brainEfficiency: document.getElementById("brain-efficiency"),
+        brainCost: document.getElementById("brain-cost"),
+        brainStatus: document.getElementById("brain-status"),
+        brainSamples: document.getElementById("brain-samples"),
+        trainAiBtn: document.getElementById("train-ai-btn"),
+        findAiBtn: document.getElementById("find-best-ai-btn"),
+        aiRecommendationText: document.getElementById("ai-recommendation-text"),
+        aiHiddenLayersInput: document.getElementById("ai-hidden-layers"),
+        aiActivationSelect: document.getElementById("ai-activation"),
+        aiLearningRateSlider: document.getElementById("ai-learning-rate"),
+        aiLearningRateValue: document.getElementById("ai-learning-rate-value"),
+        aiIterationsSlider: document.getElementById("ai-iterations"),
+        aiIterationsValue: document.getElementById("ai-iterations-value"),
+        aiErrorThreshSlider: document.getElementById("ai-error-thresh"),
+        aiErrorThreshValue: document.getElementById("ai-error-thresh-value"),
+        aiMaxSamplesSlider: document.getElementById("ai-max-samples"),
+        aiMaxSamplesValue: document.getElementById("ai-max-samples-value"),
+        aiFindSamplesSlider: document.getElementById("ai-find-samples"),
+        aiFindSamplesValue: document.getElementById("ai-find-samples-value"),
+        initAiBtn: document.getElementById("init-ai-btn"),
+        aiNetworkSvg: document.getElementById("ai-network-svg"),
+        aiConfigInputs: document.querySelectorAll(
+          "#ai-config-card input, #ai-config-card select"
+        ),
+      };
+
+      let glResources = {
+        tpuProgram: null,
+        wireframeProgram: null,
+        tpuBuffer: null,
+        tpuIndexBuffer: null,
+        wireframeBuffer: null,
+        wireframeIndexBuffer: null,
+        tpuAttributeLocations: {},
+        wireframeAttributeLocations: {},
+        tpuUniformLocations: {},
+        wireframeUniformLocations: {},
+        viewMatrix: mat4.create(),
+        projectionMatrix: mat4.create(),
+        worldViewProjectionMatrix: mat4.create(),
+        numTpuIndices: 0,
+        numWireframeIndices: 0,
+      };
+
+      function checkGLError(operation) {
+        const error = gl.getError();
+        if (error !== gl.NO_ERROR && error !== gl.CONTEXT_LOST_WEBGL) {
+          console.error(`WebGL Error after ${operation}: ${error}`);
+          return true;
+        }
+        return false;
+      }
+
+      function initWebGL() {
+        glResources.tpuProgram = createShaderProgram(
+          gl,
+          document.getElementById("tpuVertexShader").textContent,
+          document.getElementById("tpuFragmentShader").textContent
+        );
+        glResources.wireframeProgram = createShaderProgram(
+          gl,
+          document.getElementById("wireframeVertexShader").textContent,
+          document.getElementById("wireframeFragmentShader").textContent
+        );
+        if (!glResources.tpuProgram || !glResources.wireframeProgram)
+          return false;
+        glResources.tpuAttributeLocations = {
+          position: gl.getAttribLocation(glResources.tpuProgram, "a_position"),
+          normal: gl.getAttribLocation(glResources.tpuProgram, "a_normal"),
+          tpuId: gl.getAttribLocation(glResources.tpuProgram, "a_tpuId"),
+        };
+        glResources.tpuUniformLocations = {
+          worldViewProjection: gl.getUniformLocation(
+            glResources.tpuProgram,
+            "u_worldViewProjection"
+          ),
+          time: gl.getUniformLocation(glResources.tpuProgram, "u_time"),
+          globalActivityFactor: gl.getUniformLocation(
+            glResources.tpuProgram,
+            "u_globalActivityFactor"
+          ),
+        };
+        glResources.wireframeAttributeLocations = {
+          position: gl.getAttribLocation(
+            glResources.wireframeProgram,
+            "a_position"
+          ),
+        };
+        glResources.wireframeUniformLocations = {
+          worldViewProjection: gl.getUniformLocation(
+            glResources.wireframeProgram,
+            "u_worldViewProjection"
+          ),
+          color: gl.getUniformLocation(glResources.wireframeProgram, "u_color"),
+        };
+        if (
+          glResources.tpuAttributeLocations.position < 0 ||
+          glResources.tpuAttributeLocations.normal < 0 ||
+          glResources.tpuAttributeLocations.tpuId < 0 ||
+          glResources.tpuUniformLocations.globalActivityFactor === null
+        ) {
+          console.error("TPU shader attribute/uniform location error.");
+          return false;
+        }
+        if (glResources.wireframeAttributeLocations.position < 0) {
+          console.error("Wireframe shader attribute location error.");
+          return false;
+        }
+        glResources.tpuBuffer = gl.createBuffer();
+        glResources.tpuIndexBuffer = gl.createBuffer();
+        glResources.wireframeBuffer = gl.createBuffer();
+        glResources.wireframeIndexBuffer = gl.createBuffer();
+        if (
+          !glResources.tpuBuffer ||
+          !glResources.tpuIndexBuffer ||
+          !glResources.wireframeBuffer ||
+          !glResources.wireframeIndexBuffer
+        ) {
+          console.error("Failed to create WebGL buffers");
+          return false;
+        }
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.clearColor(0.05, 0.05, 0.05, 1.0);
+        setupCamera();
+        updateGeometry();
+        return true;
+      }
+      function createShaderProgram(gl, vsSource, fsSource) {
+        const vs = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fs = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        if (!vs || !fs) return null;
+        const p = gl.createProgram();
+        gl.attachShader(p, vs);
+        gl.attachShader(p, fs);
+        gl.linkProgram(p);
+        if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+          console.error(`Shader Link Error: ${gl.getProgramInfoLog(p)}`);
+          gl.deleteProgram(p);
+          gl.deleteShader(vs);
+          gl.deleteShader(fs);
+          return null;
+        }
+        return p;
+      }
+      function loadShader(gl, type, source) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, source);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+          console.error(
+            `Shader Compile Error (${
+              type === gl.VERTEX_SHADER ? "VS" : "FS"
+            }): ${gl.getShaderInfoLog(s)}`
+          );
+          gl.deleteShader(s);
+          return null;
+        }
+        return s;
+      }
+
+      function setupCamera() {
+        const fovy = (45 * PI) / 180;
+        const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight || 1;
+        mat4.perspective(
+          glResources.projectionMatrix,
+          fovy,
+          aspect,
+          0.1,
+          100.0
+        );
+        resetCameraView();
+      }
+      function resetCameraView() {
+        const eyeDist = config.torusR * 2.8 + config.torusTubeR * 2.0 + 2.0;
+        const eyeY = config.torusR * 0.4 + config.torusTubeR;
+        const eye = [0, eyeY, eyeDist];
+        mat4.lookAt(glResources.viewMatrix, eye, [0, 0, 0], [0, 1, 0]);
+        mat4.multiply(
+          glResources.worldViewProjectionMatrix,
+          glResources.projectionMatrix,
+          glResources.viewMatrix
+        );
+      }
+
+      function getTorusPoint(u, v, R, r, knotTwist) {
+        const aU = u * TWO_PI;
+        const aV = v * TWO_PI + u * knotTwist * TWO_PI;
+        const cV = Math.cos(aV);
+        const sV = Math.sin(aV);
+        const cU = Math.cos(aU);
+        const sU = Math.sin(aU);
+        const RrCV = R + r * cV;
+        const x = RrCV * cU;
+        const y = RrCV * sU;
+        const z = r * sV;
+        return [x, y, z];
+      }
+
+      function getTorusVectors(u, v, R, r, knotTwist, tubeTwistFactor) {
+        const eps = 1e-4;
+        const p0 = getTorusPoint(u, v, R, r, knotTwist);
+        const pU = getTorusPoint(u + eps, v, R, r, knotTwist);
+        const pV = getTorusPoint(u, v + eps, R, r, knotTwist);
+        const tanU = vec3.create();
+        vec3.subtract(tanU, pU, p0);
+        vec3.normalize(tanU, tanU);
+        const tanV_geom = vec3.create();
+        vec3.subtract(tanV_geom, pV, p0);
+        vec3.normalize(tanV_geom, tanV_geom);
+        const normal_geom = vec3.create();
+        vec3.cross(normal_geom, tanU, tanV_geom);
+        vec3.normalize(normal_geom, normal_geom);
+        const pDir = vec3.normalize(vec3.create(), p0);
+        if (vec3.dot(normal_geom, pDir) < 0) {
+          vec3.scale(normal_geom, normal_geom, -1);
+        }
+        const tubeTwistAngle = u * TWO_PI * tubeTwistFactor;
+        const twistQuat = quat.create();
+        quat.setAxisAngle(twistQuat, tanU, tubeTwistAngle);
+        const twistedTanV = vec3.create();
+        vec3.transformQuat(twistedTanV, tanV_geom, twistQuat);
+        const twistedNormal = vec3.create();
+        vec3.transformQuat(twistedNormal, normal_geom, twistQuat);
+        return { tangentU: tanU, tangentV: twistedTanV, normal: twistedNormal };
+      }
+
+      function generateConfigurationGrid(numItems) {
+        const sanitizedCount = Math.max(0, Math.floor(numItems));
+        if (sanitizedCount === 0) {
+          return {
+            cells: [],
+            majorCount: 0,
+            minorCount: 0,
+            uStep: 0,
+            vStep: 0,
+            capacity: 0,
+          };
+        }
+        const majorCount = Math.ceil(Math.sqrt(sanitizedCount));
+        const minorCount = Math.ceil(sanitizedCount / majorCount);
+        const uStep = majorCount > 0 ? 1 / majorCount : 0;
+        const vStep = minorCount > 0 ? 1 / minorCount : 0;
+        const capacity = majorCount * minorCount;
+        const cells = [];
+        let index = 0;
+        for (let i = 0; i < majorCount && index < sanitizedCount; i++) {
+          const uCenter = (i + 0.5) * uStep;
+          for (let j = 0; j < minorCount && index < sanitizedCount; j++) {
+            const vCenter = (j + 0.5) * vStep;
+            cells.push({
+              index,
+              majorIndex: i,
+              minorIndex: j,
+              u: uCenter,
+              v: vCenter,
+            });
+            index++;
+          }
+        }
+        return { cells, majorCount, minorCount, uStep, vStep, capacity };
+      }
+
+      function updateGeometry() {
+        layoutState = generateConfigurationGrid(config.numTPUs);
+        updateTPUGeometry();
+        updateWireframeGeometry();
+      }
+
+      function updateTPUGeometry() {
+        const numTPUs = Math.max(0, Math.floor(config.numTPUs));
+        const R = config.torusR;
+        const r = config.torusTubeR;
+        const knotTwist = config.torusTwist;
+        const tubeTwist = config.tubeTwist;
+        const vertsPer = 4;
+        const stride = 7;
+        const vertData = new Float32Array(numTPUs * vertsPer * stride);
+        const indsPer = 6;
+        const idxData = new Uint16Array(numTPUs * indsPer);
+        if (layoutState.cells.length !== numTPUs) {
+          layoutState = generateConfigurationGrid(numTPUs);
+        }
+        const cells = layoutState.cells;
+        const uStep = layoutState.uStep;
+        const vStep = layoutState.vStep;
+        let vertOff = 0;
+        let idxOff = 0;
+
+        const sizeFactor = config.tpuSize * config.tpuDensity * 0.5;
+
+        for (const cell of cells) {
+          const uC = cell.u % 1;
+          const vC = cell.v % 1;
+          const {
+            tangentU: tU,
+            tangentV: tV,
+            normal: n,
+          } = getTorusVectors(uC, vC, R, r, knotTwist, tubeTwist);
+          const cPos = getTorusPoint(uC, vC, R, r, knotTwist);
+          const majRadius = Math.max(1e-6, Math.hypot(cPos[0], cPos[1]));
+          const cellSpanU = uStep > 0 ? uStep * TWO_PI * majRadius : 0;
+          const cellSpanV = vStep > 0 ? vStep * TWO_PI * r : 0;
+          const uHalfBase = majRadius > 1e-6 ? (sizeFactor * R) / majRadius : sizeFactor;
+          const vHalfBase = sizeFactor;
+          const uHalfLimit = cellSpanU > 0 ? cellSpanU * 0.45 : uHalfBase;
+          const vHalfLimit = cellSpanV > 0 ? cellSpanV * 0.45 : vHalfBase;
+          const uH = Math.min(uHalfBase, uHalfLimit);
+          const vH = Math.min(vHalfBase, vHalfLimit);
+          const cornersLocal = [
+            [-uH, -vH],
+            [uH, -vH],
+            [uH, vH],
+            [-uH, vH],
+          ];
+
+          for (let k = 0; k < 4; k++) {
+            const [uO, vO] = cornersLocal[k];
+            const offsetU = vec3.create();
+            vec3.scale(offsetU, tU, uO);
+            const offsetV = vec3.create();
+            vec3.scale(offsetV, tV, vO);
+            const offset = vec3.create();
+            vec3.add(offset, offsetU, offsetV);
+            const vertexPos = vec3.create();
+            vec3.add(vertexPos, cPos, offset);
+
+            const base = vertOff * stride;
+            vertData[base + 0] = vertexPos[0];
+            vertData[base + 1] = vertexPos[1];
+            vertData[base + 2] = vertexPos[2];
+            vertData[base + 3] = n[0];
+            vertData[base + 4] = n[1];
+            vertData[base + 5] = n[2];
+            vertData[base + 6] = cell.index;
+            vertOff++;
+          }
+
+          const bIdx = cell.index * vertsPer;
+          idxData[idxOff++] = bIdx + 0;
+          idxData[idxOff++] = bIdx + 1;
+          idxData[idxOff++] = bIdx + 2;
+          idxData[idxOff++] = bIdx + 0;
+          idxData[idxOff++] = bIdx + 2;
+          idxData[idxOff++] = bIdx + 3;
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, glResources.tpuBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertData, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glResources.tpuIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idxData, gl.STATIC_DRAW);
+        glResources.numTpuIndices = idxOff;
+      }
+
+      function updateWireframeGeometry() {
+        const R = config.torusR;
+        const r = config.torusTubeR;
+        const knotTwist = config.torusTwist;
+        const majS = 32;
+        const minS = 16;
+        const verts = [];
+        const inds = [];
+        for (let i = 0; i <= majS; i++) {
+          for (let j = 0; j <= minS; j++) {
+            verts.push(...getTorusPoint(i / majS, j / minS, R, r, knotTwist));
+          }
+        }
+        for (let i = 0; i < majS; i++) {
+          for (let j = 0; j < minS; j++) {
+            const p1 = i * (minS + 1) + j;
+            const p2 = p1 + 1;
+            const p3 = (i + 1) * (minS + 1) + j;
+            const p4 = p3 + 1;
+            inds.push(p1, p2, p1, p3);
+            if (i === majS - 1) inds.push(p3, p4);
+            if (j === minS - 1) inds.push(p2, p4);
+          }
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, glResources.wireframeBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+        gl.bindBuffer(
+          gl.ELEMENT_ARRAY_BUFFER,
+          glResources.wireframeIndexBuffer
+        );
+        gl.bufferData(
+          gl.ELEMENT_ARRAY_BUFFER,
+          new Uint16Array(inds),
+          gl.STATIC_DRAW
+        );
+        glResources.numWireframeIndices = inds.length;
+      }
+
+      function drawScene(time) {
+        if (!gl) return;
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        checkGLError("clear");
+        if (resizeCanvasToDisplaySize(gl.canvas)) {
+          gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+          const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight || 1;
+          mat4.perspective(
+            glResources.projectionMatrix,
+            (45 * PI) / 180,
+            aspect,
+            0.1,
+            100.0
+          );
+        }
+        if (simState.running) {
+          const rotSpeed = 0.0001;
+          const dt = time - simState.lastUpdateTime;
+          mat4.rotateY(
+            glResources.viewMatrix,
+            glResources.viewMatrix,
+            rotSpeed * dt
+          );
+        }
+        mat4.multiply(
+          glResources.worldViewProjectionMatrix,
+          glResources.projectionMatrix,
+          glResources.viewMatrix
+        );
+
+        if (
+          glResources.wireframeProgram &&
+          glResources.wireframeBuffer &&
+          glResources.wireframeIndexBuffer &&
+          glResources.numWireframeIndices > 0
+        ) {
+          gl.useProgram(glResources.wireframeProgram);
+          gl.uniformMatrix4fv(
+            glResources.wireframeUniformLocations.worldViewProjection,
+            false,
+            glResources.worldViewProjectionMatrix
+          );
+          gl.uniform4fv(
+            glResources.wireframeUniformLocations.color,
+            [0.4, 0.4, 0.4, 0.5]
+          );
+          gl.bindBuffer(gl.ARRAY_BUFFER, glResources.wireframeBuffer);
+          const posLocW = glResources.wireframeAttributeLocations.position;
+          if (posLocW >= 0) {
+            gl.enableVertexAttribArray(posLocW);
+            gl.vertexAttribPointer(posLocW, 3, gl.FLOAT, false, 0, 0);
+          }
+          gl.bindBuffer(
+            gl.ELEMENT_ARRAY_BUFFER,
+            glResources.wireframeIndexBuffer
+          );
+          gl.drawElements(
+            gl.LINES,
+            glResources.numWireframeIndices,
+            gl.UNSIGNED_SHORT,
+            0
+          );
+          if (posLocW >= 0) gl.disableVertexAttribArray(posLocW);
+        }
+        if (
+          glResources.tpuProgram &&
+          glResources.tpuBuffer &&
+          glResources.tpuIndexBuffer &&
+          glResources.numTpuIndices > 0
+        ) {
+          gl.useProgram(glResources.tpuProgram);
+          gl.uniformMatrix4fv(
+            glResources.tpuUniformLocations.worldViewProjection,
+            false,
+            glResources.worldViewProjectionMatrix
+          );
+          gl.uniform1f(
+            glResources.tpuUniformLocations.time,
+            simState.elapsedTime
+          );
+          gl.uniform1f(
+            glResources.tpuUniformLocations.globalActivityFactor,
+            Math.max(0, Math.min(1, metrics.efficiency / 100.0))
+          );
+          gl.bindBuffer(gl.ARRAY_BUFFER, glResources.tpuBuffer);
+          const stride = 7 * 4;
+          const posLocT = glResources.tpuAttributeLocations.position;
+          const normLocT = glResources.tpuAttributeLocations.normal;
+          const idLocT = glResources.tpuAttributeLocations.tpuId;
+          if (posLocT >= 0) {
+            gl.enableVertexAttribArray(posLocT);
+            gl.vertexAttribPointer(posLocT, 3, gl.FLOAT, false, stride, 0);
+          }
+          if (normLocT >= 0) {
+            gl.enableVertexAttribArray(normLocT);
+            gl.vertexAttribPointer(normLocT, 3, gl.FLOAT, false, stride, 3 * 4);
+          }
+          if (idLocT >= 0) {
+            gl.enableVertexAttribArray(idLocT);
+            gl.vertexAttribPointer(idLocT, 1, gl.FLOAT, false, stride, 6 * 4);
+          }
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glResources.tpuIndexBuffer);
+          gl.drawElements(
+            gl.TRIANGLES,
+            glResources.numTpuIndices,
+            gl.UNSIGNED_SHORT,
+            0
+          );
+          if (posLocT >= 0) gl.disableVertexAttribArray(posLocT);
+          if (normLocT >= 0) gl.disableVertexAttribArray(normLocT);
+          if (idLocT >= 0) gl.disableVertexAttribArray(idLocT);
+        }
+        checkGLError("drawScene end");
+      }
+      function resizeCanvasToDisplaySize(canvas) {
+        const dw = canvas.clientWidth;
+        const dh = canvas.clientHeight;
+        if (canvas.width !== dw || canvas.height !== dh) {
+          canvas.width = dw;
+          canvas.height = dh;
+          return true;
+        }
+        return false;
+      }
+
+      function simulationLoop(timestamp) {
+        if (!simState.startTime) simState.startTime = timestamp;
+        const now = PERF.now();
+        const dt = now - (simState.lastUpdateTime || now);
+        if (simState.running) {
+          simState.elapsedTime += dt / 1000.0;
+          calculateMetrics();
+          if (!brain.isTraining && !brain.isFindingBest) {
+            predictWithBrain();
+            collectBrainData();
+          }
+        }
+        updateMetricsDisplay();
+        updateGraphs();
+        drawScene(now);
+        simState.lastUpdateTime = now;
+        if (simState.running || brain.isFindingBest || brain.isTraining) {
+          simState.animationFrameId = RAF(simulationLoop);
+        }
+      }
+      function playSimulation() {
+        if (!simState.running) {
+          simState.running = true;
+          simState.lastUpdateTime = PERF.now();
+          ui.playPauseBtn.textContent = "Pause";
+          ui.playPauseBtn.title = "Pause Simulation";
+          CAF(simState.animationFrameId);
+          simState.animationFrameId = RAF(simulationLoop);
+          if (recording.active && !recording.intervalId) {
+            resumeRecording();
+          }
+        }
+      }
+      function pauseSimulation() {
+        if (simState.running) {
+          simState.running = false;
+          CAF(simState.animationFrameId);
+          simState.animationFrameId = null;
+          ui.playPauseBtn.textContent = "Play";
+          ui.playPauseBtn.title = "Play Simulation";
+          if (recording.active) {
+            pauseRecording();
+          }
+        }
+      }
+      function togglePlayPause() {
+        simState.running ? pauseSimulation() : playSimulation();
+      }
+      function resetSimulation() {
+        pauseSimulation();
+        simState.elapsedTime = 0;
+        simState.startTime = 0;
+        simState.lastUpdateTime = 0;
+        metrics.history = { throughput: [], efficiency: [], latency: [] };
+        calculateMetrics();
+        updateMetricsDisplay();
+        updateGraphs();
+        resetCameraView();
+        drawScene(0);
+        ui.playPauseBtn.textContent = "Play";
+        ui.playPauseBtn.title = "Play Simulation";
+        if (recording.active || recording.data.length > 0) {
+          stopRecording(false);
+          clearRecordedData();
+        }
+        brain.lastPrediction = null;
+        brain.lastRecommendation = null;
+        predictWithBrain();
+        updateAiDisplay();
+        setAiButtonsEnabled(true);
+      }
+
+      function calculateMetrics() {
+        if (layoutState.cells.length !== Math.max(0, Math.floor(config.numTPUs))) {
+          layoutState = generateConfigurationGrid(config.numTPUs);
+        }
+        const baseFlops = 10;
+        let fM = 1.0,
+          qM = 1.0,
+          iM = 1.0,
+          sE = 1.0;
+        switch (config.floatType) {
+          case "FP32":
+            fM = 0.5;
+            break;
+          case "BF16":
+            fM = 1.0;
+            break;
+          case "FP16":
+            fM = 1.2;
+            break;
+          case "FP8":
+            fM = 2.0;
+            break;
+          case "INT8":
+            fM = 2.5;
+            break;
+        }
+        if (config.quantization === "PostTraining") qM = 1.1;
+        else if (config.quantization === "QAT") qM = 1.15;
+        switch (config.interconnect) {
+          case "Ethernet":
+            iM = 0.7;
+            break;
+          case "Copper":
+            iM = 1.0;
+            break;
+          case "Optical":
+            iM = 1.3;
+            break;
+          case "CustomInterconnect":
+            iM = 1.5;
+            break;
+        }
+        const gridMajor = Math.max(1, layoutState.majorCount);
+        const gridMinor = Math.max(1, layoutState.minorCount);
+        const gridCapacity = Math.max(1, layoutState.capacity);
+        const tF = 1.0 + config.torusTwist * 0.02;
+        const scalingPenalty = Math.pow(
+          0.995,
+          Math.max(0, Math.log2(Math.max(config.numTPUs / 4, 1)))
+        );
+        const topologyPenalty = Math.pow(
+          0.997,
+          Math.max(0, gridMajor - 1) + Math.max(0, gridMinor - 1)
+        );
+        const aspect = gridMinor > 0 ? gridMajor / gridMinor : 1;
+        const aspectPenaltyRaw = 1 - Math.min(0.08, Math.abs(Math.log2(aspect)) * 0.04);
+        const aspectPenalty = Math.max(0.85, aspectPenaltyRaw);
+        const densityBoost = 1 + (config.tpuDensity - 0.5) * 0.1;
+        const throughputScale = Math.max(0.5, densityBoost);
+        sE = scalingPenalty * topologyPenalty * aspectPenalty;
+        metrics.throughput =
+          config.numTPUs * baseFlops * fM * qM * iM * tF * sE * throughputScale;
+        metrics.efficiency = 95 * iM * sE * (1.0 - config.torusTwist * 0.01);
+        metrics.efficiency = Math.max(50, Math.min(98, metrics.efficiency));
+        const baseL = 5;
+        const layoutLog = Math.max(1, Math.log2(gridCapacity));
+        const densityPenalty = 1 + Math.max(0, config.tpuDensity - 0.5) * 0.5;
+        let tR = 1.0 / (1.0 + config.torusTwist * 0.1);
+        metrics.latency = baseL * (1.0 / iM) * layoutLog * tR * densityPenalty;
+        metrics.latency = Math.max(1, metrics.latency);
+        let fCF = 1.0;
+        if (config.floatType === "FP32") fCF = 1.2;
+        else if (config.floatType === "FP8" || config.floatType === "INT8")
+          fCF = 0.8;
+        metrics.cost = config.numTPUs * (1 + (iM - 1.0) * 0.5) * fCF;
+        metrics.throughput *= 1.0 + (Math.random() - 0.5) * 0.05;
+        metrics.efficiency *= 1.0 + (Math.random() - 0.5) * 0.02;
+        metrics.latency *= 1.0 + (Math.random() - 0.5) * 0.03;
+        metrics.cost *= 1.0 + (Math.random() - 0.5) * 0.01;
+        if (simState.running) {
+          metrics.history.throughput.push(metrics.throughput);
+          metrics.history.efficiency.push(metrics.efficiency);
+          metrics.history.latency.push(metrics.latency);
+          if (metrics.history.throughput.length > metrics.historyMaxLength)
+            metrics.history.throughput.shift();
+          if (metrics.history.efficiency.length > metrics.historyMaxLength)
+            metrics.history.efficiency.shift();
+          if (metrics.history.latency.length > metrics.historyMaxLength)
+            metrics.history.latency.shift();
+        }
+      }
+      const maxEstCost = 900;
+      function updateMetricsDisplay() {
+        ui.metricThroughput.textContent = `${metrics.throughput.toFixed(
+          1
+        )} TFLOPS`;
+        ui.metricEfficiency.textContent = `${metrics.efficiency.toFixed(1)} %`;
+        ui.metricLatency.textContent = `${metrics.latency.toFixed(2)} ms`;
+        ui.metricCost.textContent = `${metrics.cost.toFixed(1)}`;
+        updateAiDisplay();
+      }
+      function updateAiDisplay() {
+        ui.brainStatus.textContent = brain.status;
+        ui.brainSamples.textContent = brain.samples;
+        if (brain.lastPrediction) {
+          ui.brainThroughput.textContent = `${brain.lastPrediction.throughput.toFixed(
+            1
+          )} TFLOPS`;
+          ui.brainEfficiency.textContent = `${brain.lastPrediction.efficiency.toFixed(
+            1
+          )} %`;
+          ui.brainCost.textContent = `${(
+            brain.lastPrediction.cost * maxEstCost
+          ).toFixed(1)}`;
+        } else {
+          ui.brainThroughput.textContent = "N/A";
+          ui.brainEfficiency.textContent = "N/A";
+          ui.brainCost.textContent = "N/A";
+        }
+        if (brain.lastRecommendation) {
+          const rec = brain.lastRecommendation;
+          const cfg = rec.config;
+          const metr = rec.metrics;
+          const target = rec.targetMetric;
+          ui.aiRecommendationText.innerHTML = `<em>Best predicted config (Target: ${(
+            target * 100
+          ).toFixed(1)}):</em><br>TPUs: <span>${
+            cfg.numTPUs
+          }</span>, KnotTwist: <span>${
+            cfg.torusTwist
+          }</span>, TubeTwist: <span>${cfg.tubeTwist.toFixed(
+            1
+          )}</span><br>Float: <span>${cfg.floatType}</span>, Quant: <span>${
+            cfg.quantization
+          }</span>, Intercon: <span>${
+            cfg.interconnect
+          }</span><br>Predicted Thr: <span>${metr.throughput.toFixed(
+            0
+          )}</span>, Eff: <span>${metr.efficiency.toFixed(
+            1
+          )}%</span>, Cost: <span>${(metr.cost * maxEstCost).toFixed(
+            0
+          )}</span>`;
+        } else if (brain.isFindingBest) {
+          ui.aiRecommendationText.innerHTML = `<em>Searching for best configuration...</em>`;
+        } else {
+          ui.aiRecommendationText.innerHTML = `<em>${
+            brain.net
+              ? "Train the AI and click 'Find Best Config'."
+              : "Initialize AI first."
+          }</em>`;
+        }
+        setAiButtonsEnabled(true);
+      }
+      function drawGraph(c, d, col, maxV = null) {
+        const ctx = c.getContext("2d");
+        if (!ctx) return;
+        const w = c.width;
+        const h = c.height;
+        ctx.clearRect(0, 0, w, h);
+        if (!d || d.length === 0) return;
+        let curMax = maxV;
+        if (curMax === null) {
+          curMax = Math.max(...d);
+          if (curMax <= 0) curMax = 1;
+        }
+        if (curMax <= 0) curMax = 1;
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        const len = d.length;
+        const maxPts = metrics.historyMaxLength;
+        const stepX = w / Math.max(1, Math.min(len, maxPts) - 1);
+        const start = Math.max(0, len - maxPts);
+        for (let i = 0; i < len - start; i++) {
+          const x = i * stepX;
+          const y = h - (d[i + start] / curMax) * h * 0.9;
+          const cY = Math.min(h - 1, Math.max(1, y));
+          if (i === 0) {
+            ctx.moveTo(x, cY);
+          } else {
+            ctx.lineTo(x, cY);
+          }
+        }
+        ctx.stroke();
+      }
+      function updateGraphs() {
+        try {
+          const s = getComputedStyle(document.documentElement);
+          const c1 = s.getPropertyValue("--graph-line1").trim() || "#ffa500";
+          const c2 = s.getPropertyValue("--graph-line2").trim() || "#90ee90";
+          const c3 = s.getPropertyValue("--graph-line3").trim() || "#da70d6";
+          drawGraph(ui.throughputGraph, metrics.history.throughput, c1);
+          drawGraph(ui.efficiencyGraph, metrics.history.efficiency, c2, 100);
+          const maxL =
+            metrics.history.latency.length > 0
+              ? Math.max(...metrics.history.latency) * 1.2 + 5
+              : 10;
+          drawGraph(ui.latencyGraph, metrics.history.latency, c3, maxL);
+        } catch (e) {
+          console.error("Graph err:", e);
+        }
+      }
+
+      function handleConfigChange() {
+        let needsGeom = false,
+          needsCam = false;
+        const nTPU = parseInt(ui.numTPUsSlider.value);
+        if (nTPU !== config.numTPUs) {
+          config.numTPUs = nTPU;
+          needsGeom = true;
+        }
+        const nR = parseFloat(ui.torusRSlider.value);
+        if (nR !== config.torusR) {
+          config.torusR = nR;
+          needsGeom = true;
+          needsCam = true;
+        }
+        const nTR = parseFloat(ui.torusTubeRSlider.value);
+        if (nTR !== config.torusTubeR) {
+          config.torusTubeR = nTR;
+          needsGeom = true;
+          needsCam = true;
+        }
+        const nKnotTw = parseInt(ui.torusTwistSlider.value);
+        if (nKnotTw !== config.torusTwist) {
+          config.torusTwist = nKnotTw;
+          needsGeom = true;
+        }
+        const nTubeTw = parseFloat(ui.tubeTwistSlider.value);
+        if (nTubeTw !== config.tubeTwist) {
+          config.tubeTwist = nTubeTw;
+          needsGeom = true;
+        }
+        const nDen = parseFloat(ui.tpuDensitySlider.value);
+        if (nDen !== config.tpuDensity) {
+          config.tpuDensity = nDen;
+          needsGeom = true;
+        }
+        const nSz = parseFloat(ui.tpuSizeSlider.value);
+        if (nSz !== config.tpuSize) {
+          config.tpuSize = nSz;
+          needsGeom = true;
+        }
+        config.floatType = ui.floatTypeSelect.value;
+        config.quantization = ui.quantizationSelect.value;
+        config.interconnect = ui.interconnectSelect.value;
+        ui.numTPUsValue.textContent = config.numTPUs;
+        ui.torusRValue.textContent = config.torusR.toFixed(1);
+        ui.torusTubeRValue.textContent = config.torusTubeR.toFixed(2);
+        ui.torusTwistValue.textContent = config.torusTwist;
+        ui.tubeTwistValue.textContent = config.tubeTwist.toFixed(1);
+        ui.tpuDensityValue.textContent = config.tpuDensity.toFixed(2);
+        ui.tpuSizeValue.textContent = config.tpuSize.toFixed(3);
+        if (needsGeom) {
+          updateGeometry();
+        }
+        if (needsCam) {
+          resetCameraView();
+        }
+        calculateMetrics();
+        if (!simState.running) {
+          updateMetricsDisplay();
+          updateGraphs();
+          drawScene(PERF.now());
+        }
+        brain.lastPrediction = null;
+        if (brain.net && !brain.isTraining && !brain.isFindingBest)
+          predictWithBrain();
+      }
+
+      function handleAiConfigChange() {
+        try {
+          const layersStr = ui.aiHiddenLayersInput.value.trim();
+          if (layersStr) {
+            brainConfig.hiddenLayers = layersStr
+              .split(",")
+              .map((s) => parseInt(s.trim()))
+              .filter((n) => !isNaN(n) && n > 0);
+          } else {
+            brainConfig.hiddenLayers = [];
+          }
+        } catch (e) {
+          console.error("Invalid hidden layers format:", e);
+          brainConfig.hiddenLayers = [10, 8];
+          ui.aiHiddenLayersInput.value = brainConfig.hiddenLayers.join(",");
+        }
+        brainConfig.activation = ui.aiActivationSelect.value;
+        brainConfig.learningRate = parseFloat(ui.aiLearningRateSlider.value);
+        brainConfig.iterations = parseInt(ui.aiIterationsSlider.value);
+        brainConfig.errorThresh = parseFloat(ui.aiErrorThreshSlider.value);
+        brainConfig.maxSamples = parseInt(ui.aiMaxSamplesSlider.value);
+        brainConfig.findSamples = parseInt(ui.aiFindSamplesSlider.value);
+        ui.aiLearningRateValue.textContent =
+          brainConfig.learningRate.toFixed(3);
+        ui.aiIterationsValue.textContent = brainConfig.iterations;
+        ui.aiErrorThreshValue.textContent = brainConfig.errorThresh.toFixed(3);
+        ui.aiMaxSamplesValue.textContent = brainConfig.maxSamples;
+        ui.aiFindSamplesValue.textContent = brainConfig.findSamples;
+        brain.status = "Config Changed - Re-Init AI";
+        brain.net = null;
+        updateAiDisplay();
+        renderAiNetworkVisualization();
+      }
+
+      function setAiButtonsEnabled(enabled) {
+        ui.trainAiBtn.disabled =
+          !enabled ||
+          brain.isTraining ||
+          brain.isFindingBest ||
+          !brain.net ||
+          brain.samples < brain.minSamplesForManualTrain;
+        ui.findAiBtn.disabled =
+          !enabled ||
+          brain.isTraining ||
+          brain.isFindingBest ||
+          !brain.net ||
+          brain.samples < brain.minSamplesForFindingBest;
+        ui.initAiBtn.disabled =
+          !enabled || brain.isTraining || brain.isFindingBest;
+      }
+      function setControlsEnabled(enabled) {
+        ui.controlInputs.forEach((input) => (input.disabled = !enabled));
+        ui.aiConfigInputs.forEach((input) => (input.disabled = !enabled));
+        if (enabled) {
+          ui.controlPanel.classList.remove("disabled-overlay");
+        } else {
+          ui.controlPanel.classList.add("disabled-overlay");
+        }
+        setAiButtonsEnabled(enabled);
+      }
+
+      function startRecording() {
+        if (recording.active) return;
+        recording.hz = parseInt(ui.recordHzInput.value);
+        recording.duration = parseInt(ui.recordDurationInput.value);
+        if (
+          isNaN(recording.hz) ||
+          recording.hz <= 0 ||
+          isNaN(recording.duration) ||
+          recording.duration <= 0
+        ) {
+          alert("Invalid recording params.");
+          return;
+        }
+        recording.active = true;
+        recording.data = [];
+        recording.startTime = PERF.now();
+        ui.recordBtn.textContent = "Stop";
+        ui.recordBtn.style.backgroundColor = "var(--btn-red-bg)";
+        ui.exportBtn.disabled = true;
+        ui.clearRecordBtn.disabled = true;
+        ui.recordStatus.textContent = `Recording (0 / ${recording.duration}s)`;
+        if (simState.running) {
+          resumeRecording();
+        }
+        setTimeout(() => {
+          if (recording.active) stopRecording(true);
+        }, recording.duration * 1000 + 100);
+        if (!simState.running) {
+          playSimulation();
+        }
+      }
+      function pauseRecording() {
+        if (recording.active && recording.intervalId) {
+          clearInterval(recording.intervalId);
+          recording.intervalId = null;
+          const elapsed = (PERF.now() - recording.startTime) / 1000;
+          ui.recordStatus.textContent = `Paused (${elapsed.toFixed(1)}s/${
+            recording.duration
+          }s)`;
+        }
+      }
+      function resumeRecording() {
+        if (recording.active && !recording.intervalId && simState.running) {
+          const intervalMs = 1000 / recording.hz;
+          recording.intervalId = setInterval(recordDataPoint, intervalMs);
+          const elapsed = (PERF.now() - recording.startTime) / 1000;
+          ui.recordStatus.textContent = `Recording (${elapsed.toFixed(1)}s/${
+            recording.duration
+          }s)`;
+        }
+      }
+      function stopRecording(finalize) {
+        if (!recording.active && !finalize) return;
+        recording.active = false;
+        if (recording.intervalId) {
+          clearInterval(recording.intervalId);
+          recording.intervalId = null;
+        }
+        ui.recordBtn.textContent = "Record";
+        ui.recordBtn.style.backgroundColor = "var(--btn-bg)";
+        ui.clearRecordBtn.disabled = !(recording.data.length > 0);
+        if (finalize && recording.data.length > 0) {
+          ui.exportBtn.disabled = false;
+          ui.recordStatus.textContent = `Finished (${recording.data.length} samples)`;
+        } else {
+          ui.exportBtn.disabled = true;
+          ui.recordStatus.textContent = finalize ? "Stopped" : "Cleared";
+          if (!finalize) recording.data = [];
+        }
+      }
+      function clearRecordedData() {
+        recording.data = [];
+        ui.exportBtn.disabled = true;
+        ui.clearRecordBtn.disabled = true;
+        ui.recordStatus.textContent = "Idle";
+      }
+      function recordDataPoint() {
+        const elapsed = (PERF.now() - recording.startTime) / 1000;
+        if (!recording.active || elapsed > recording.duration + 0.1) {
+          if (recording.active) stopRecording(true);
+          return;
+        }
+        recording.data.push({
+          ts: elapsed.toFixed(3),
+          thr: metrics.throughput.toFixed(2),
+          eff: metrics.efficiency.toFixed(2),
+          lat: metrics.latency.toFixed(3),
+          cost: metrics.cost.toFixed(2),
+          N: config.numTPUs,
+          R: config.torusR,
+          r: config.torusTubeR,
+          knotTw: config.torusTwist,
+          tubeTw: config.tubeTwist,
+          flt: config.floatType,
+          qnt: config.quantization,
+          int: config.interconnect,
+        });
+        ui.recordStatus.textContent = `Recording (${elapsed.toFixed(1)}s/${
+          recording.duration
+        }s)`;
+      }
+      function exportData() {
+        if (!recording.data || recording.data.length === 0) {
+          alert("No data to export.");
+          return;
+        }
+        const header = Object.keys(recording.data[0]).join(",");
+        const rows = recording.data.map((row) => Object.values(row).join(","));
+        const csv = `data:text/csv;charset=utf-8,${header}\n${rows.join("\n")}`;
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csv));
+        const ts = new Date().toISOString().replace(/[:.]/g, "-");
+        link.setAttribute("download", `tpu_sim_${ts}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      async function initBrain(force = false) {
+        if (brain.net && !force) return;
+        if (brain.isTraining || brain.isFindingBest) return;
+        brain.status = "Initializing AI...";
+        updateAiDisplay();
+        setAiButtonsEnabled(false);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        try {
+          if (
+            typeof brain === "undefined" ||
+            typeof brain.NeuralNetworkGPU !== "function"
+          ) {
+            throw new Error("Brain.js library not loaded or invalid.");
+          }
+          brain.net = new brain.NeuralNetworkGPU({
+            hiddenLayers: brainConfig.hiddenLayers,
+            activation: brainConfig.activation,
+            learningRate: brainConfig.learningRate,
+          });
+          const sampleInput = normalizeInput(config);
+          brain.inputSize = Object.keys(sampleInput).length;
+          const sampleOutput = normalizeOutput(metrics);
+          brain.outputSize = Object.keys(sampleOutput).length;
+          brain.status = "AI Ready";
+          brain.lastPrediction = null;
+          brain.lastRecommendation = null;
+          renderAiNetworkVisualization();
+        } catch (e) {
+          console.error("Error initializing Brain.js:", e);
+          brain.status = e.message.includes("not loaded")
+            ? "Error: Brain.js missing"
+            : "AI Init Error";
+          brain.net = null;
+          renderAiNetworkVisualization();
+        } finally {
+          updateAiDisplay();
+          setAiButtonsEnabled(true);
+        }
+      }
+
+      const floatTypes = ["FP32", "BF16", "FP16", "FP8", "INT8"];
+      const quantTypes = ["None", "PostTraining", "QAT"];
+      const interTypes = [
+        "Ethernet",
+        "Copper",
+        "Optical",
+        "CustomInterconnect",
+      ];
+      function normalizeInput(cfg) {
+        return {
+          n: cfg.numTPUs / 512,
+          R: (cfg.torusR - 0.5) / 4.5,
+          r: (cfg.torusTubeR - 0.1) / 1.4,
+          knotTw: cfg.torusTwist / 10,
+          tubeTw: cfg.tubeTwist / 5,
+          den: (cfg.tpuDensity - 0.1) / 1.4,
+          fl: floatTypes.indexOf(cfg.floatType) / (floatTypes.length - 1),
+          qn: quantTypes.indexOf(cfg.quantization) / (quantTypes.length - 1),
+          ic: interTypes.indexOf(cfg.interconnect) / (interTypes.length - 1),
+        };
+      }
+      function denormalizeConfig(normCfg) {
+        return {
+          numTPUs: Math.max(4, Math.round((normCfg.n * 512) / 4) * 4),
+          torusR: parseFloat(
+            Math.max(0.5, Math.min(5.0, normCfg.R * 4.5 + 0.5)).toFixed(1)
+          ),
+          torusTubeR: parseFloat(
+            Math.max(0.1, Math.min(1.5, normCfg.r * 1.4 + 0.1)).toFixed(2)
+          ),
+          torusTwist: Math.max(
+            0,
+            Math.min(10, Math.round(normCfg.knotTw * 10))
+          ),
+          tubeTwist: parseFloat(
+            Math.max(0, Math.min(5, normCfg.tubeTw * 5)).toFixed(1)
+          ),
+          tpuDensity: parseFloat(
+            Math.max(0.1, Math.min(1.5, normCfg.den * 1.4 + 0.1)).toFixed(2)
+          ),
+          floatType:
+            floatTypes[
+              Math.min(
+                floatTypes.length - 1,
+                Math.max(0, Math.round(normCfg.fl * (floatTypes.length - 1)))
+              )
+            ],
+          quantization:
+            quantTypes[
+              Math.min(
+                quantTypes.length - 1,
+                Math.max(0, Math.round(normCfg.qn * (quantTypes.length - 1)))
+              )
+            ],
+          interconnect:
+            interTypes[
+              Math.min(
+                interTypes.length - 1,
+                Math.max(0, Math.round(normCfg.ic * (interTypes.length - 1)))
+              )
+            ],
+        };
+      }
+      function normalizeOutput(met) {
+        const maxT = 25000;
+        return {
+          thr: Math.min(1, Math.max(0, met.throughput / maxT)),
+          eff: Math.min(1, Math.max(0, met.efficiency / 100)),
+          cst: Math.min(1, Math.max(0, met.cost / maxEstCost)),
+        };
+      }
+      function denormalizeOutput(bOut) {
+        const maxT = 25000;
+        return {
+          throughput: Math.max(0, bOut.thr * maxT),
+          efficiency: Math.max(0, Math.min(100, bOut.eff * 100)),
+          cost: Math.max(0, bOut.cst),
+        };
+      }
+
+      function collectBrainData() {
+        if (!simState.running || brain.isTraining || brain.isFindingBest)
+          return;
+        const inp = normalizeInput(config);
+        const out = normalizeOutput(metrics);
+        if (
+          Object.values(inp).every((v) => !isNaN(v) && isFinite(v)) &&
+          Object.values(out).every((v) => !isNaN(v) && isFinite(v))
+        ) {
+          brain.trainingData.push({ input: inp, output: out });
+          brain.samples = brain.trainingData.length;
+          if (brain.samples > brainConfig.maxSamples) {
+            const excess = brain.samples - brainConfig.maxSamples;
+            brain.trainingData.splice(0, excess);
+            brain.samples = brain.trainingData.length;
+          }
+          setAiButtonsEnabled(true);
+          updateAiDisplay();
+        }
+      }
+
+      async function trainBrain() {
+        if (
+          !brain.net ||
+          brain.isTraining ||
+          brain.isFindingBest ||
+          brain.samples < brain.minSamplesForManualTrain
+        ) {
+          if (!brain.net) brain.status = "AI Not Initialized";
+          else if (brain.samples < brain.minSamplesForManualTrain)
+            brain.status = `Need ${
+              brain.minSamplesForManualTrain - brain.samples
+            } more samples`;
+          updateAiDisplay();
+          return;
+        }
+        brain.isTraining = true;
+        brain.status = "AI Training Active...";
+        setControlsEnabled(false);
+        updateAiDisplay();
+        if (!simState.running) requestAnimationFrame(simulationLoop);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        try {
+          const dataToTrain = brain.trainingData.slice(-brainConfig.maxSamples);
+          const stats = await brain.net.trainAsync(dataToTrain, {
+            iterations: brainConfig.iterations,
+            log: false,
+            errorThresh: brainConfig.errorThresh,
+            learningRate: brainConfig.learningRate,
+            timeout: 120000,
+          });
+          brain.status = `AI Model Trained (Error: ${stats.error.toFixed(4)})`;
+          renderAiNetworkVisualization();
+        } catch (err) {
+          console.error("AI Training error:", err);
+          brain.status = err.message.includes("Timeout")
+            ? "AI Training Timeout"
+            : "AI Training Error";
+        } finally {
+          brain.isTraining = false;
+          setControlsEnabled(true);
+          updateAiDisplay();
+          predictWithBrain();
+        }
+      }
+      function predictWithBrain() {
+        if (!brain.net || brain.isTraining || brain.isFindingBest) {
+          brain.lastPrediction = null;
+          updateAiDisplay();
+          return;
+        }
+        if (
+          !brain.status.includes("Ready") &&
+          !brain.status.includes("Trained")
+        ) {
+          brain.lastPrediction = null;
+          updateAiDisplay();
+          return;
+        }
+        const inp = normalizeInput(config);
+        if (Object.values(inp).every((v) => !isNaN(v) && isFinite(v))) {
+          try {
+            const p = brain.net.run(inp);
+            brain.lastPrediction = denormalizeOutput(p);
+          } catch (e) {
+            console.error("Predict err:", e);
+            brain.lastPrediction = null;
+          }
+        } else {
+          brain.lastPrediction = null;
+        }
+        updateAiDisplay();
+      }
+      async function findBestConfigAI() {
+        if (
+          !brain.net ||
+          brain.isTraining ||
+          brain.isFindingBest ||
+          brain.samples < brain.minSamplesForFindingBest
+        ) {
+          if (!brain.net) brain.status = "AI Not Ready for Rec.";
+          else if (brain.samples < brain.minSamplesForFindingBest)
+            brain.status = `Need ${
+              brain.minSamplesForFindingBest - brain.samples
+            } samples for Rec.`;
+          updateAiDisplay();
+          return;
+        }
+        brain.isFindingBest = true;
+        brain.status = "AI Finding Best Config...";
+        brain.lastRecommendation = null;
+        setControlsEnabled(false);
+        updateAiDisplay();
+        if (!simState.running) requestAnimationFrame(simulationLoop);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        let bestConfig = null;
+        let bestPrediction = null;
+        let bestTargetMetric = -Infinity;
+        const numSearchSamples = brainConfig.findSamples;
+        try {
+          for (let i = 0; i < numSearchSamples; i++) {
+            if (i % 500 === 0) {
+              brain.status = `AI Finding... (${Math.round(
+                (i / numSearchSamples) * 100
+              )}%)`;
+              updateAiDisplay();
+              await new Promise((resolve) => setTimeout(resolve, 1));
+            }
+            const randomNormInput = {
+              n: Math.random(),
+              R: Math.random(),
+              r: Math.random(),
+              knotTw: Math.random(),
+              tubeTw: Math.random(),
+              den: Math.random(),
+              fl: Math.random(),
+              qn: Math.random(),
+              ic: Math.random(),
+            };
+            const predictedNormOutput = brain.net.run(randomNormInput);
+            const predictedDenormOutput =
+              denormalizeOutput(predictedNormOutput);
+            const denormInputConfig = denormalizeConfig(randomNormInput);
+            const costFactor = Math.max(
+              1,
+              predictedDenormOutput.cost * maxEstCost
+            );
+            const targetMetric = predictedDenormOutput.throughput / costFactor;
+            if (
+              targetMetric > bestTargetMetric &&
+              predictedDenormOutput.efficiency > 60
+            ) {
+              bestTargetMetric = targetMetric;
+              bestPrediction = predictedDenormOutput;
+              bestConfig = denormInputConfig;
+            }
+          }
+          if (bestConfig) {
+            brain.lastRecommendation = {
+              config: bestConfig,
+              metrics: bestPrediction,
+              targetMetric: bestTargetMetric,
+            };
+            brain.status = "AI Recommendation Ready";
+          } else {
+            brain.status = "AI Rec. Failed (No valid found)";
+          }
+        } catch (err) {
+          console.error("Error during AI recommendation finding:", err);
+          brain.status = "AI Rec. Error";
+          brain.lastRecommendation = null;
+        } finally {
+          brain.isFindingBest = false;
+          setControlsEnabled(true);
+          updateAiDisplay();
+        }
+      }
+
+      function renderAiNetworkVisualization() {
+        const svg = ui.aiNetworkSvg;
+        svg.innerHTML = "";
+        if (
+          !brain.net ||
+          !brain.inputSize ||
+          !brain.outputSize ||
+          brainConfig.hiddenLayers === null
+        ) {
+          const text = document.createElementNS(SVG_NS, "text");
+          text.setAttribute("x", "50%");
+          text.setAttribute("y", "50%");
+          text.setAttribute("fill", "#888");
+          text.setAttribute("font-size", "12");
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("dominant-baseline", "middle");
+          text.textContent = brain.net
+            ? "Network structure unavailable"
+            : "AI not initialized";
+          svg.appendChild(text);
+          return;
+        }
+        const layers = [
+          brain.inputSize,
+          ...brainConfig.hiddenLayers,
+          brain.outputSize,
+        ];
+        const layerCount = layers.length;
+        const maxNodesInLayer = Math.max(...layers, 1);
+        const width = svg.clientWidth;
+        const height = svg.clientHeight;
+        const padding = 30;
+        const nodeRadius = 5;
+        const layerSpacing =
+          (width - 2 * padding) / Math.max(1, layerCount - 1);
+        const nodeSpacingVert =
+          (height - 2 * padding) / Math.max(1, maxNodesInLayer - 1);
+        const nodePositions = [];
+        for (let i = 0; i < layerCount; i++) {
+          const layerNodes = [];
+          const numNodes = layers[i];
+          const x = padding + i * layerSpacing;
+          const totalHeight = Math.max(
+            nodeRadius * 2,
+            (numNodes - 1) * nodeSpacingVert
+          );
+          const startY = (height - totalHeight) / 2;
+          for (let j = 0; j < numNodes; j++) {
+            const y =
+              startY + (numNodes === 1 ? totalHeight / 2 : j * nodeSpacingVert);
+            layerNodes.push({ x, y });
+          }
+          nodePositions.push(layerNodes);
+        }
+        for (let i = 0; i < layerCount - 1; i++) {
+          for (const node1 of nodePositions[i]) {
+            for (const node2 of nodePositions[i + 1]) {
+              const line = document.createElementNS(SVG_NS, "line");
+              line.setAttribute("x1", node1.x);
+              line.setAttribute("y1", node1.y);
+              line.setAttribute("x2", node2.x);
+              line.setAttribute("y2", node2.y);
+              svg.appendChild(line);
+            }
+          }
+        }
+        nodePositions.forEach((layer, i) => {
+          const nodeClass =
+            i === 0
+              ? "input-node"
+              : i === layerCount - 1
+              ? "output-node"
+              : "hidden-node";
+          layer.forEach((pos) => {
+            const circle = document.createElementNS(SVG_NS, "circle");
+            circle.setAttribute("cx", pos.x);
+            circle.setAttribute("cy", pos.y);
+            circle.setAttribute("r", nodeRadius);
+            circle.classList.add(nodeClass);
+            svg.appendChild(circle);
+          });
+        });
+      }
+
+      function initEventListeners() {
+        ui.numTPUsSlider.addEventListener(
+          "input",
+          () => (ui.numTPUsValue.textContent = ui.numTPUsSlider.value)
+        );
+        ui.numTPUsSlider.addEventListener("change", handleConfigChange);
+        ui.torusRSlider.addEventListener(
+          "input",
+          () =>
+            (ui.torusRValue.textContent = parseFloat(
+              ui.torusRSlider.value
+            ).toFixed(1))
+        );
+        ui.torusRSlider.addEventListener("change", handleConfigChange);
+        ui.torusTubeRSlider.addEventListener(
+          "input",
+          () =>
+            (ui.torusTubeRValue.textContent = parseFloat(
+              ui.torusTubeRSlider.value
+            ).toFixed(2))
+        );
+        ui.torusTubeRSlider.addEventListener("change", handleConfigChange);
+        ui.torusTwistSlider.addEventListener(
+          "input",
+          () => (ui.torusTwistValue.textContent = ui.torusTwistSlider.value)
+        );
+        ui.torusTwistSlider.addEventListener("change", handleConfigChange);
+        ui.tubeTwistSlider.addEventListener(
+          "input",
+          () =>
+            (ui.tubeTwistValue.textContent = parseFloat(
+              ui.tubeTwistSlider.value
+            ).toFixed(1))
+        );
+        ui.tubeTwistSlider.addEventListener("change", handleConfigChange);
+        ui.tpuDensitySlider.addEventListener(
+          "input",
+          () =>
+            (ui.tpuDensityValue.textContent = parseFloat(
+              ui.tpuDensitySlider.value
+            ).toFixed(2))
+        );
+        ui.tpuDensitySlider.addEventListener("change", handleConfigChange);
+        ui.tpuSizeSlider.addEventListener(
+          "input",
+          () =>
+            (ui.tpuSizeValue.textContent = parseFloat(
+              ui.tpuSizeSlider.value
+            ).toFixed(3))
+        );
+        ui.tpuSizeSlider.addEventListener("change", handleConfigChange);
+        ui.floatTypeSelect.addEventListener("change", handleConfigChange);
+        ui.quantizationSelect.addEventListener("change", handleConfigChange);
+        ui.interconnectSelect.addEventListener("change", handleConfigChange);
+        ui.initResetBtn.addEventListener("click", resetSimulation);
+        ui.playPauseBtn.addEventListener("click", togglePlayPause);
+        ui.recordBtn.addEventListener("click", () => {
+          if (recording.active) stopRecording(true);
+          else startRecording();
+        });
+        ui.exportBtn.addEventListener("click", exportData);
+        ui.clearRecordBtn.addEventListener("click", clearRecordedData);
+        ui.aiHiddenLayersInput.addEventListener("change", handleAiConfigChange);
+        ui.aiActivationSelect.addEventListener("change", handleAiConfigChange);
+        ui.aiLearningRateSlider.addEventListener(
+          "input",
+          () =>
+            (ui.aiLearningRateValue.textContent = parseFloat(
+              ui.aiLearningRateSlider.value
+            ).toFixed(3))
+        );
+        ui.aiLearningRateSlider.addEventListener(
+          "change",
+          handleAiConfigChange
+        );
+        ui.aiIterationsSlider.addEventListener(
+          "input",
+          () => (ui.aiIterationsValue.textContent = ui.aiIterationsSlider.value)
+        );
+        ui.aiIterationsSlider.addEventListener("change", handleAiConfigChange);
+        ui.aiErrorThreshSlider.addEventListener(
+          "input",
+          () =>
+            (ui.aiErrorThreshValue.textContent = parseFloat(
+              ui.aiErrorThreshSlider.value
+            ).toFixed(3))
+        );
+        ui.aiErrorThreshSlider.addEventListener("change", handleAiConfigChange);
+        ui.aiMaxSamplesSlider.addEventListener(
+          "input",
+          () => (ui.aiMaxSamplesValue.textContent = ui.aiMaxSamplesSlider.value)
+        );
+        ui.aiMaxSamplesSlider.addEventListener("change", handleAiConfigChange);
+        ui.aiFindSamplesSlider.addEventListener(
+          "input",
+          () =>
+            (ui.aiFindSamplesValue.textContent = ui.aiFindSamplesSlider.value)
+        );
+        ui.aiFindSamplesSlider.addEventListener("change", handleAiConfigChange);
+        ui.initAiBtn.addEventListener("click", () => initBrain(true));
+        ui.trainAiBtn.addEventListener("click", trainBrain);
+        ui.findAiBtn.addEventListener("click", findBestConfigAI);
+        window.addEventListener("resize", () => {
+          if (gl) {
+            if (resizeCanvasToDisplaySize(gl.canvas)) {
+              gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+              setupCamera();
+              if (!simState.running) {
+                drawScene(PERF.now());
+              }
+            }
+            updateGraphs();
+            renderAiNetworkVisualization();
+          }
+        });
+      }
+
+      async function init() {
+        if (!initWebGL()) {
+          console.error("WebGL failed. Aborting.");
+          return;
+        }
+        initEventListeners();
+        handleConfigChange();
+        handleAiConfigChange();
+        await initBrain(true);
+        resetSimulation();
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>
