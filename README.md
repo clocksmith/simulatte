@@ -5,45 +5,29 @@ created for games who like mages
 
 ## /public
 
-### QZS <-> SPQ
+### ZQS - Zero Quantum State
 
-[QZS](public/0/README.md)
+Interactive quantum wave packet simulator with split-operator spectral methods, demonstrating relativistic Dirac dynamics and quantum tunneling through potential barriers.
 
-**QZS** (Quantum Zeroing **SPQ** (Systems Processing **QZS**))
+### SPD - Stochastic Phase Dynamics
 
-**SPQ** (Systems Processing **QZS** (Quantum Zeroing **SPQ**))
+Double pendulum physics simulator showcasing deterministic chaos, sensitive dependence on initial conditions, and real-time phase space trajectory visualization.
 
-[SPQ](public/0/SPQ.md)
+### UTP - Unified Topology Processor
 
-### DPS <-> SDD
+Google TPU architecture simulator featuring 2D/3D/Twisted torus network topologies with realistic bandwidth traffic modeling and compute heat distribution.
 
-[DPS](public/1/README.md)
+### AEH - Adversarial Equity Heuristics
 
-**DPS** (Double Penduluming **SDD** (Simulation Demonstrating **DPS**))
+Texas Hold'em poker equity analyzer with pre-flop hand strength heatmaps, Monte Carlo simulation, and multi-opponent showdown probability calculations.
 
-**SDD** (Simulation Demonstrating **DPS** (Double Penduluming **SDD**))
+### SFS - Strategic Flip Simulation
 
-[SDD](public/1/SDD.md)
+Monte Carlo card game simulator analyzing three distinct player strategies (cautious, risky, super risky) across millions of hands with real-time convergence statistics.
 
-### TPU <-> UTT
+### FTD - Functional Tool Designer
 
-[TPU](public/36/README.md)
-
-**TPU** (Tensor Processing **UTT** (Univeral Transforming **TPU**))
-
-**UTT** (Units Transforming **TPU** (Tensor Processing **UTT**))
-
-[UTT](public/36/README.md)
-
-### DTF <-> FDD
-
-[DTF](public/1225/README.md)
-
-**DTF** (Design Tooling **FDD** (Factory Developing **DTF**))
-
-**FDD** (Factory Developing **DTF** (Design Tooling **FDD**))
-
-[FDD](public/1225/README.md)
+Meta-programming framework for dynamically generating MCP-compatible tools via LLM API calls, featuring live preview, version comparison, and executable web components.
 
 ## /utils
 

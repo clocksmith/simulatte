@@ -1,6 +1,11 @@
 const StateManager = (cfg, log, storage) => {
   let state = null;
-  let session = { apiKey: '', mode: 'manual', continuousLimit: cfg.continuousModeDefaultIterations };
+  let session = {
+    apiKey: '',
+    mode: 'manual',
+    model: cfg.model,
+    continuousLimit: cfg.continuousModeDefaultIterations,
+  };
 
   const default_state = () => ({
     version: cfg.version,
@@ -31,6 +36,7 @@ const StateManager = (cfg, log, storage) => {
            if (parsed && typeof parsed.apiKey === 'string' && typeof parsed.mode === 'string') {
               // Merge stored session with defaults to ensure all keys exist
               session = { ...session, ...parsed };
+              if (!session.model) session.model = cfg.model;
               log.info('Session state loaded.');
            } else {
               log.warn('Invalid session state found, using defaults.');
@@ -167,4 +173,3 @@ const StateManager = (cfg, log, storage) => {
   };
 };
 export default StateManager;
-

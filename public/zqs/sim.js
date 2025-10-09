@@ -75,7 +75,7 @@ const sim = {
   packet: {
     center: -1.2,
     sigma: 0.5,
-    velocity: 0,
+    velocity: 0.25,
   },
   expectation: {
     position: 0,
@@ -204,8 +204,6 @@ const ui = {
       'unity-title',
       'unity-link',
       'url-hash-display',
-      'theme-toggle',
-      'theme-label',
       'add-barrier-btn',
       'parity-flip-btn',
       'identity-evolve-btn',
@@ -313,7 +311,7 @@ const ui = {
     const evolveBtn = this.elements['identity-evolve-btn'];
     evolveBtn.addEventListener('click', () => {
       sim.isEvolving = !sim.isEvolving;
-      evolveBtn.textContent = sim.isEvolving ? '[ ⏸ Pause ] Time' : '[ ▶ Evolve ] Time';
+      evolveBtn.textContent = sim.isEvolving ? '[ ☋ Pause ] Time' : '[ ☊ Evolve ] Time';
       handleInteraction('identity-evolve-btn');
     });
 
@@ -322,13 +320,6 @@ const ui = {
       handleInteraction('reset-sim-btn');
     });
 
-    const themeToggle = this.elements['theme-toggle'];
-    themeToggle.addEventListener('change', (event) => {
-      this.toggleTheme(event.target.checked);
-      flash();
-    });
-
-    this.toggleTheme(themeToggle.checked);
     this.updateSliderValue('center', sim.packet.center, 2);
     this.updateSliderValue('velocity', sim.packet.velocity, 3);
     this.updateSliderValue('energy', sim.packet.sigma, 2);
@@ -424,12 +415,6 @@ const ui = {
     this.elements['concept-context'].innerHTML = `<p>${detail}</p>`;
     this.elements['unity-title'].textContent = info.principle;
     this.elements['unity-link'].innerHTML = '<a href="/1" target="_blank">X⁰ = 1</a>';
-  },
-  toggleTheme(light) {
-    const container = document.getElementById('app-container');
-    if (container) container.classList.toggle('light-theme', light);
-    const label = this.elements['theme-label'];
-    if (label) label.textContent = light ? '|1⟩' : '|0⟩';
   },
 };
 
@@ -696,13 +681,22 @@ function accumulateFlux(step) {
   const leftCurrent = probabilityCurrent(leftIndex);
   const rightCurrent = probabilityCurrent(rightIndex);
   const direction = sim.waveDirection >= 0 ? 1 : -1;
+
+  // Flux accumulation with directional convention:
+  // - Positive current = rightward flow (increasing x)
+  // - Negative current = leftward flow (decreasing x)
+  // Convention: incident flux is defined by initial wave direction determined from momentum
+  // This approach works for unidirectional wave packets but may underestimate effects
+  // in superposition states with significant bidirectional components
   if (direction >= 0) {
+    // Left-to-right initial wave
     if (leftCurrent > 0) sim.metrics.incidentFlux += leftCurrent * step;
-    else sim.metrics.reflectedFlux += (-leftCurrent) * step;
+    if (leftCurrent < 0) sim.metrics.reflectedFlux += (-leftCurrent) * step;
     if (rightCurrent > 0) sim.metrics.transmittedFlux += rightCurrent * step;
   } else {
+    // Right-to-left initial wave
     if (rightCurrent < 0) sim.metrics.incidentFlux += (-rightCurrent) * step;
-    else if (rightCurrent > 0) sim.metrics.reflectedFlux += rightCurrent * step;
+    if (rightCurrent > 0) sim.metrics.reflectedFlux += rightCurrent * step;
     if (leftCurrent < 0) sim.metrics.transmittedFlux += (-leftCurrent) * step;
   }
 }
@@ -743,20 +737,27 @@ function updateObservables() {
     if (sim.barrier.active && x > rightBarrier) tunnel += prob;
   }
 
-  for (let i = 1; i < size - 1; i++) {
-    const dRe = (sim.psiRe[i + 1] - sim.psiRe[i - 1]) / (2 * sim.dx);
-    const dIm = (sim.psiIm[i + 1] - sim.psiIm[i - 1]) / (2 * sim.dx);
-    const re = sim.psiRe[i];
-    const im = sim.psiIm[i];
-    momentum += re * dIm - im * dRe;
-  }
-
   meanX *= sim.dx;
   meanX2 *= sim.dx;
   tunnel *= sim.dx;
-  momentum *= sim.dx;
 
-  // Momentum expectation via FFT
+  // Momentum expectation via FFT (proper method)
+  sim.scratchRe.set(sim.psiRe);
+  sim.scratchIm.set(sim.psiIm);
+  fftTransform(sim.scratchRe, sim.scratchIm, false);
+  let energySum = 0;
+  let normK = 0;
+  for (let i = 0; i < size; i++) {
+    const re = sim.scratchRe[i];
+    const im = sim.scratchIm[i];
+    const probK = re * re + im * im;
+    momentum += sim.kValues[i] * probK;
+    energySum += sim.dispersion[i] * probK;
+    normK += probK;
+  }
+  momentum /= size;  // FFT convention
+
+  // Determine wave direction from momentum
   if (Math.abs(momentum) > 1e-4) {
     sim.waveDirection = momentum >= 0 ? 1 : -1;
   }
@@ -769,19 +770,7 @@ function updateObservables() {
   sim.expectation.maxProb = maxProb;
 
   // Energy expectation: kinetic from dispersion + potential
-  let energy = 0;
-  let normK = 0;
-  sim.scratchRe.set(sim.psiRe);
-  sim.scratchIm.set(sim.psiIm);
-  fftTransform(sim.scratchRe, sim.scratchIm, false);
-  for (let i = 0; i < size; i++) {
-    const re = sim.scratchRe[i];
-    const im = sim.scratchIm[i];
-    const probK = re * re + im * im;
-    energy += sim.dispersion[i] * probK;
-    normK += probK;
-  }
-  energy = normK > 1e-12 ? energy / normK : 0;
+  const energy = normK > 1e-12 ? (energySum / size) : 0;
   let potentialEnergy = 0;
   for (let i = 0; i < size; i++) {
     potentialEnergy += sim.probability[i] * sim.potential[i];
@@ -871,7 +860,7 @@ function resetSimulation() {
   sim.time = 0;
   sim.isEvolving = false;
   if (ui.elements['identity-evolve-btn']) {
-    ui.elements['identity-evolve-btn'].textContent = '[ ▶ Evolve ] Time';
+    ui.elements['identity-evolve-btn'].textContent = '[ ☊ Evolve ] Time';
   }
   if (ui.elements['add-barrier-btn']) {
     ui.elements['add-barrier-btn'].textContent = '[ + ] Add Barrier';
@@ -974,7 +963,9 @@ function drawPhaseField(ctx, width, height) {
   for (let i = 0; i < sim.gridSize; i += 6) {
     const x = (i / sim.gridSize) * width;
     const phase = sim.phase[i] || 0;
-    const value = Math.floor(((phase + Math.PI) / TWO_PI) * 60 + 20);
+    // Improved resolution: continuous gradient instead of 60 quantized levels
+    const normalizedPhase = (phase + Math.PI) / TWO_PI;  // 0 to 1
+    const value = Math.floor(normalizedPhase * 235 + 20);  // 20-255 range for better visibility
     ctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
     ctx.fillRect(x, 0, bandWidth, height);
   }

@@ -3,37 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FSS - Flip Seven Simulator</title>
+  <title>SFS - Strategic Flip Simulation</title>
   <meta name="description" content="Monte Carlo card game simulator with web worker processing" />
+  <link rel="stylesheet" href="../simulatte-core.css">
   <style>
-    /* Performance optimizations */
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-
-    :root {
-      --bg-dark: #000000;
-      --bg-medium: #0f0f0f;
-      --bg-light: #1a1a1a;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0a0;
-      --accent-primary: #00ff00;
-      --accent-secondary: #ff00ff;
-      --accent-warn: #00ffff;
-      --accent-error: #ff00ff;
-      --border: #555555;
-      --shadow: rgba(0, 0, 0, 0.5);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -60,8 +33,9 @@
     }
 
     h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 8px;
       background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -172,43 +146,33 @@
     }
 
     .player-chip {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 15px;
-      background: var(--bg-light);
-      border: 2px solid var(--border);
-      border-radius: 20px;
       cursor: pointer;
-      transition: all 0.3s;
       user-select: none;
-      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .player-chip:hover {
-      border-color: var(--accent-primary);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 230, 118, 0.2);
     }
 
     .player-chip.cautious {
-      border-color: #ffa500;
+      border-color: var(--accent-orange);
       background: rgba(255, 165, 0, 0.1);
     }
 
     .player-chip.risky {
-      border-color: #00ffff;
+      border-color: var(--accent-tertiary);
       background: rgba(0, 255, 255, 0.1);
     }
 
     .player-chip.super_risky {
-      border-color: #ff00ff;
+      border-color: var(--accent-primary);
       background: rgba(255, 0, 255, 0.1);
     }
 
     .player-chip-label {
-      font-weight: bold;
-      color: var(--text-primary);
+      font-weight: 600;
       font-size: 0.9rem;
     }
 
@@ -217,74 +181,138 @@
       font-size: 0.85rem;
     }
 
-    .player-chip-remove {
-      margin-left: 5px;
-      color: var(--error);
-      font-weight: bold;
-      font-size: 1.1rem;
-      opacity: 0.7;
-      transition: opacity 0.2s;
+    .rule-toggle-group {
+      margin-bottom: 10px;
     }
 
-    .player-chip:hover .player-chip-remove {
-      opacity: 1;
+    .toggle-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .rule-toggle-chip {
+      position: relative;
+    }
+
+    .rule-toggle-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .rule-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 2px solid var(--border);
+      background: var(--bg-light);
+      color: var(--text-primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .rule-toggle-label::before {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: #000;
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+
+    .rule-toggle-input:checked + .rule-toggle-label {
+      border-color: var(--accent-secondary);
+      background: rgba(0, 255, 0, 0.12);
+      box-shadow: var(--glow-green);
+      color: var(--text-primary);
+    }
+
+    .rule-toggle-input:checked + .rule-toggle-label::before {
+      content: '✓';
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+      color: #000;
+      box-shadow: 0 0 6px rgba(0, 255, 0, 0.4);
+    }
+
+    .rule-toggle-label:hover {
+      border-color: var(--accent-secondary);
+      transform: translateY(-1px);
+    }
+
+    .rule-mode-note {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    .strategy-thresholds-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .strategy-threshold-group {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      background: var(--bg-light);
+    }
+
+    .strategy-threshold-group.cautious {
+      border-color: var(--accent-orange);
+    }
+
+    .strategy-threshold-group.risky {
+      border-color: var(--accent-tertiary);
+    }
+
+    .strategy-threshold-group.super_risky {
+      border-color: var(--accent-primary);
+    }
+
+    .strategy-threshold-title {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text-primary);
+      text-align: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .strategy-threshold-group.cautious .strategy-threshold-title {
+      color: var(--accent-orange);
+    }
+
+    .strategy-threshold-group.risky .strategy-threshold-title {
+      color: var(--accent-tertiary);
+    }
+
+    .strategy-threshold-group.super_risky .strategy-threshold-title {
+      color: var(--accent-primary);
+    }
+
+    .strategy-threshold-group .control-group {
+      margin-bottom: 12px;
+    }
+
+    .strategy-threshold-group .control-group:last-child {
+      margin-bottom: 0;
     }
 
     .add-player-btn {
-      padding: 10px 20px;
-      background: var(--bg-light);
-      border: 2px dashed var(--border);
-      border-radius: 20px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.3s;
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .add-player-btn:hover {
-      border-color: var(--accent-primary);
-      color: var(--accent-primary);
-      background: rgba(0, 230, 118, 0.1);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 15px;
-      background: var(--accent-primary);
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
-    }
-
-    .btn:hover:not(:disabled) {
-      background: #00ff88;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 230, 118, 0.4);
-    }
-
-    .btn:disabled {
-      background: #333;
-      color: #666;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .btn-secondary {
-      background: var(--accent-secondary);
-      box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: #26c6da;
-      box-shadow: 0 6px 16px rgba(0, 188, 212, 0.4);
+      margin-top: var(--space-sm);
     }
 
     .progress-section {
@@ -331,7 +359,7 @@
 
     .results-summary {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 15px;
       margin-bottom: 25px;
     }
@@ -389,7 +417,7 @@
 
     .result-stats {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
       margin-top: 12px;
     }
@@ -488,7 +516,7 @@
 
     @media (max-width: 768px) {
       h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
       }
 
       .strategies-grid {
@@ -501,6 +529,10 @@
 
       .result-stats {
         grid-template-columns: repeat(2, 1fr);
+      }
+
+      .strategy-thresholds-container {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -517,7 +549,7 @@
 <body>
   <div class="container">
     <header>
-      <h1>FSS (Flip Seven Simulator)</h1>
+      <h1>SFS - Strategic Flip Simulation</h1>
       <p class="subtitle">Monte Carlo strategy analyzer with 94-card deck dynamics</p>
     </header>
 
@@ -542,15 +574,87 @@
         </div>
 
         <div class="control-group">
+          <label>Strategy Rule Mode:</label>
+          <div class="rule-toggle-group toggle-group">
+            <div class="rule-toggle-chip">
+              <input
+                type="checkbox"
+                id="rule-toggle-probability"
+                class="rule-toggle-input"
+                data-rule="probability"
+                checked
+              />
+              <label for="rule-toggle-probability" class="rule-toggle-label">
+                Probability
+              </label>
+            </div>
+            <div class="rule-toggle-chip">
+              <input
+                type="checkbox"
+                id="rule-toggle-score"
+                class="rule-toggle-input"
+                data-rule="score"
+                checked
+              />
+              <label for="rule-toggle-score" class="rule-toggle-label">
+                Score
+              </label>
+            </div>
+          </div>
+          <div class="rule-mode-note" id="ruleModeNote"></div>
+        </div>
+
+        <div class="control-group">
+          <label>Strategy Thresholds</label>
+          <div class="strategy-thresholds-container">
+            <div class="strategy-threshold-group cautious">
+              <h4 class="strategy-threshold-title">Cautious</h4>
+              <div class="control-group">
+                <label>Bust Limit <span class="value-display" id="cautious-bust-label">10%</span></label>
+                <input type="range" id="cautious-bust" min="0" max="100" step="1" value="10">
+              </div>
+              <div class="control-group">
+                <label>Min Score <span class="value-display" id="cautious-score-label">15</span></label>
+                <input type="range" id="cautious-score" min="0" max="50" step="1" value="15">
+              </div>
+            </div>
+
+            <div class="strategy-threshold-group risky">
+              <h4 class="strategy-threshold-title">Risky</h4>
+              <div class="control-group">
+                <label>Bust Limit <span class="value-display" id="risky-bust-label">30%</span></label>
+                <input type="range" id="risky-bust" min="0" max="100" step="1" value="30">
+              </div>
+              <div class="control-group">
+                <label>Min Score <span class="value-display" id="risky-score-label">20</span></label>
+                <input type="range" id="risky-score" min="0" max="50" step="1" value="20">
+              </div>
+            </div>
+
+            <div class="strategy-threshold-group super_risky">
+              <h4 class="strategy-threshold-title">Super Risky</h4>
+              <div class="control-group">
+                <label>Bust Limit <span class="value-display" id="super_risky-bust-label">50%</span></label>
+                <input type="range" id="super-bust" min="0" max="100" step="1" value="50">
+              </div>
+              <div class="control-group">
+                <label>Min Score <span class="value-display" id="super_risky-score-label">25</span></label>
+                <input type="range" id="super-score" min="0" max="50" step="1" value="25">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
           <label style="margin-bottom: 10px;">Player Strategies (click to cycle):</label>
           <div id="playerChips" class="player-chips-container">
             <!-- Player chips will be inserted here -->
           </div>
-          <button class="add-player-btn" id="addPlayerBtn">+ Add Player</button>
+          <button class="btn btn-outline btn-block add-player-btn" id="addPlayerBtn">+ Add Player</button>
         </div>
 
-        <button class="btn" id="startBtn">Run Monte Carlo Simulation</button>
-        <button class="btn btn-secondary" id="stopBtn" style="margin-top: 12px; display: none;">Stop Simulation</button>
+        <button class="btn btn-primary btn-block" id="startBtn" style="background: linear-gradient(135deg, #00e676, #00c853); border-color: #00e676;">Run Monte Carlo Simulation</button>
+        <button class="btn btn-secondary btn-block" id="stopBtn" style="margin-top: 12px; display: none;">Stop Simulation</button>
 
         <div class="progress-section" id="progressSection">
           <div class="progress-text" id="progressText">Preparing simulation...</div>
@@ -589,29 +693,56 @@
     // State
     let worker = null;
     let isRunning = false;
-    let playerStrategies = ['risky', 'risky', 'risky'];
+    let playerStrategies = ['cautious', 'risky', 'super_risky'];
+
+    const STRATEGY_THRESHOLDS = {
+      cautious: { bust: 0.1, minScore: 15 },
+      risky: { bust: 0.3, minScore: 20 },
+      super_risky: { bust: 0.5, minScore: 25 },
+    };
+
+    let ruleMode = {
+      useProbability: true,
+      useScore: true,
+    };
 
     // DOM Elements - will be initialized on DOMContentLoaded
     let startBtn, stopBtn, progressSection, progressBar, progressText, statsText;
     let resultsPlaceholder, resultsContainer, resultsSummary, strategyResults;
-    let playerChipsContainer, addPlayerBtn;
-
-    const strategyNames = {
-      'cautious': 'Cautious (<25%)',
-      'risky': 'Risky (<50%)',
-      'super_risky': 'Super Risky (<75%)'
-    };
+    let playerChipsContainer, addPlayerBtn, ruleModeNote;
+    let ruleToggleInputs;
 
     const strategyOrder = ['cautious', 'risky', 'super_risky'];
 
+    function formatPercent(value) {
+      return `${Math.round(value * 100)}%`;
+    }
+
+    function getStrategyLabel(strategy) {
+      const thresholds = STRATEGY_THRESHOLDS[strategy];
+      if (!thresholds) return strategy;
+      const { bust, minScore } = thresholds;
+      const bustText = `bust<=${formatPercent(bust)}`;
+      const scoreText = `score<${minScore}`;
+      const base = strategy.replace('_', ' ');
+      const title = base.charAt(0).toUpperCase() + base.slice(1);
+      if (ruleMode.useProbability && ruleMode.useScore) {
+        return `${title} (${bustText} OR ${scoreText})`;
+      }
+      if (ruleMode.useProbability) {
+        return `${title} (${bustText})`;
+      }
+      return `${title} (${scoreText})`;
+    }
+
     function createPlayerChip(index, strategy) {
       const chip = document.createElement('div');
-      chip.className = `player-chip ${strategy}`;
+      chip.className = `chip player-chip ${strategy}`;
       chip.dataset.index = index;
       chip.innerHTML = `
         <span class="player-chip-label">Player ${index + 1}</span>
-        <span class="player-chip-strategy">${strategyNames[strategy]}</span>
-        <span class="player-chip-remove">×</span>
+        <span class="player-chip-strategy">${getStrategyLabel(strategy)}</span>
+        <span class="chip-remove player-chip-remove">×</span>
       `;
 
       // Click chip body to cycle strategy
@@ -660,10 +791,95 @@
     }
 
     function renderPlayerChips() {
+      if (!playerChipsContainer) return;
       playerChipsContainer.innerHTML = '';
       playerStrategies.forEach((strategy, index) => {
         const chip = createPlayerChip(index, strategy);
         playerChipsContainer.appendChild(chip);
+      });
+    }
+
+    function describeRuleMode() {
+      if (ruleMode.useProbability && ruleMode.useScore) return 'Probability OR Score';
+      if (ruleMode.useProbability) return 'Probability only';
+      return 'Score only';
+    }
+
+    function getRuleModeNoteText() {
+      if (ruleMode.useProbability && ruleMode.useScore)
+        return 'Using bust probability OR minimum score thresholds to decide when to hit.';
+      if (ruleMode.useProbability)
+        return 'Using bust probability thresholds only; strategies stop drawing once the probability limit is exceeded.';
+      return 'Using minimum score thresholds only; strategies draw until they reach the score floor.';
+    }
+
+    function updateRuleModeNote() {
+      if (ruleModeNote) ruleModeNote.textContent = getRuleModeNoteText();
+    }
+
+    function updateRuleToggleInputs() {
+      if (!ruleToggleInputs) return;
+      ruleToggleInputs.forEach((input) => {
+        const type = input.dataset.rule;
+        const shouldCheck = type === 'probability' ? ruleMode.useProbability : ruleMode.useScore;
+        input.checked = shouldCheck;
+      });
+    }
+
+    function applyRuleModeChange() {
+      updateRuleToggleInputs();
+      updateRuleModeNote();
+      renderPlayerChips();
+      updateResultStrategyLabels();
+      if (resultsSummary) {
+        const valueEl = resultsSummary.querySelector('[data-summary="rule-mode"] .summary-value');
+        if (valueEl) valueEl.textContent = describeRuleMode();
+      }
+    }
+
+    function handleRuleToggleChange(input) {
+      const type = input.dataset.rule;
+      const isChecked = input.checked;
+      if (type === 'probability') {
+        ruleMode.useProbability = isChecked;
+      } else if (type === 'score') {
+        ruleMode.useScore = isChecked;
+      }
+      if (!ruleMode.useProbability && !ruleMode.useScore) {
+        if (type === 'probability') {
+          ruleMode.useProbability = true;
+          input.checked = true;
+        } else {
+          ruleMode.useScore = true;
+          input.checked = true;
+        }
+      }
+      applyRuleModeChange();
+    }
+
+    function updateThresholdFromSlider(strategyKey, slider, type) {
+      const value = parseInt(slider.value, 10);
+      if (type === 'bust') {
+        STRATEGY_THRESHOLDS[strategyKey].bust = value / 100;
+        const label = document.getElementById(`${strategyKey}-bust-label`);
+        if (label) label.textContent = `${value}%`;
+      } else if (type === 'score') {
+        STRATEGY_THRESHOLDS[strategyKey].minScore = value;
+        const label = document.getElementById(`${strategyKey}-score-label`);
+        if (label) label.textContent = `${value}`;
+      }
+      renderPlayerChips();
+      updateResultStrategyLabels();
+    }
+
+    function updateResultStrategyLabels() {
+      if (!strategyResults) return;
+      const items = strategyResults.querySelectorAll('.result-item');
+      items.forEach((item) => {
+        const key = item.dataset.strategy;
+        if (!key) return;
+        const labelEl = item.querySelector('.result-strategy');
+        if (labelEl) labelEl.textContent = getStrategyLabel(key);
       });
     }
 
@@ -694,6 +910,9 @@
           }
           return deck;
         }
+
+        const STRATEGY_THRESHOLDS = ${JSON.stringify(STRATEGY_THRESHOLDS)};
+        let RULE_MODE = { useProbability: true, useScore: true };
 
         function calculateScore(hand) {
           let score = 0;
@@ -737,6 +956,13 @@
             return acc;
           }, {});
 
+          // Subtract discarded cards from counts
+          discarded.forEach(card => {
+            if (card.type === 'number' && numberCounts[card.value] > 0) {
+              numberCounts[card.value]--;
+            }
+          });
+
           // Get number cards currently in player's hand
           const numberCards = hand
             .filter(card => card.type === 'number')
@@ -753,19 +979,20 @@
           return remainingCards > 0 ? bustCards / remainingCards : 0;
         }
 
-        const STRATEGY_THRESHOLDS = {
-          cautious: { bust: 0.25, minScore: 18 },
-          risky: { bust: 0.5, minScore: 15 },
-          super_risky: { bust: 0.75, minScore: 20 },
-        };
-
         function shouldHit(strategy, hand, deck, discarded = [], currentScore = calculateScore(hand)) {
           const thresholds = STRATEGY_THRESHOLDS[strategy] || STRATEGY_THRESHOLDS.risky;
           const bustProb = calculateBustProbability(hand, deck, discarded);
-          return bustProb < thresholds.bust || currentScore < thresholds.minScore;
+          const useProbability = RULE_MODE.useProbability;
+          const useScore = RULE_MODE.useScore;
+          const allowProb = useProbability ? bustProb < thresholds.bust : false;
+          const allowScore = useScore ? currentScore < thresholds.minScore : false;
+          if (useProbability && useScore) return allowProb || allowScore;
+          if (useProbability) return allowProb;
+          if (useScore) return allowScore;
+          return true;
         }
 
-        function playGame(strategies) {
+        function playRound(strategies) {
           const deck = shuffleDeck(createDeck());
           const players = strategies.map((strategy) => ({
             strategy,
@@ -827,6 +1054,10 @@
             }
 
             const nextCard = deck.pop();
+            if (!nextCard) {
+              player.score = calculateScore(player.hand);
+              continue;
+            }
             applyCard(player, nextCard);
 
             if (!player.busted && !player.frozen) {
@@ -844,20 +1075,51 @@
             }
           });
 
-          const maxScore = Math.max(...players.map((p) => p.score));
           return players.map((p) => ({
             strategy: p.strategy,
-            score: p.score,
-            won: p.score === maxScore,
+            roundScore: p.score,
             busted: p.busted,
           }));
         }
 
+        function playGame(strategies) {
+          const totals = strategies.map(() => 0);
+          const bustCounts = strategies.map(() => 0);
+          let rounds = 0;
+
+          while (true) {
+            rounds++;
+            const roundResults = playRound(strategies);
+            roundResults.forEach((result, idx) => {
+              totals[idx] += result.roundScore;
+              if (result.busted) bustCounts[idx] += 1;
+            });
+
+            const maxScore = Math.max(...totals);
+            if (maxScore >= 200 || rounds >= 100) {
+              break;
+            }
+          }
+
+          const finalMax = Math.max(...totals);
+          return strategies.map((strategy, idx) => ({
+            strategy,
+            score: totals[idx],
+            won: totals[idx] === finalMax,
+            busted: bustCounts[idx] > 0,
+            rounds,
+          }));
+        }
+
         self.onmessage = function(e) {
-          const { simulations, strategies, numPlayers } = e.data;
+          const { simulations, strategies, numPlayers, ruleMode, thresholds } = e.data;
+          RULE_MODE = ruleMode || RULE_MODE;
+          if (thresholds) {
+            Object.assign(STRATEGY_THRESHOLDS, thresholds);
+          }
           const results = {};
           strategies.forEach(s => {
-            results[s] = { wins: 0, totalScore: 0, busts: 0, games: 0 };
+            results[s] = { wins: 0, totalScore: 0, busts: 0, games: 0, totalRounds: 0 };
           });
 
           const batchSize = 100;
@@ -871,6 +1133,7 @@
               results[r.strategy].totalScore += r.score;
               if (r.won) results[r.strategy].wins++;
               if (r.busted) results[r.strategy].busts++;
+              results[r.strategy].totalRounds += r.rounds;
             });
 
             completed++;
@@ -938,8 +1201,8 @@
           const percent = (e.data.completed / e.data.total * 100).toFixed(1);
           progressBar.style.width = percent + '%';
           progressBar.textContent = percent + '%';
-          progressText.textContent = \`Running simulation: \${e.data.completed.toLocaleString()} / \${e.data.total.toLocaleString()} games\`;
-          statsText.textContent = \`Processing at ~\${Math.round(e.data.completed / ((Date.now() - startTime) / 1000))} games/sec\`;
+          progressText.textContent = `Running simulation: ${e.data.completed.toLocaleString()} / ${e.data.total.toLocaleString()} games`;
+          statsText.textContent = `Processing at ~${Math.round(e.data.completed / ((Date.now() - startTime) / 1000))} games/sec`;
         } else if (e.data.type === 'complete') {
           displayResults(e.data.results, simulations, e.data.convergenceStats);
           worker.terminate();
@@ -955,7 +1218,16 @@
       };
 
       const startTime = Date.now();
-      worker.postMessage({ simulations, strategies, numPlayers });
+      worker.postMessage({
+        simulations,
+        strategies,
+        numPlayers,
+        ruleMode: {
+          useProbability: ruleMode.useProbability,
+          useScore: ruleMode.useScore,
+        },
+        thresholds: STRATEGY_THRESHOLDS,
+      });
     }
 
     // Stop simulation
@@ -979,23 +1251,28 @@
       const totalGames = Object.values(results).reduce((sum, r) => sum + r.games, 0);
       const totalWins = Object.values(results).reduce((sum, r) => sum + r.wins, 0);
       const allConverged = Object.values(convergenceStats).every(s => s.converged);
+      const modeLabel = describeRuleMode();
 
-      resultsSummary.innerHTML = \`
+      resultsSummary.innerHTML = `
         <div class="summary-card">
           <div class="summary-label">Total Simulations</div>
-          <div class="summary-value">\${totalSims.toLocaleString()}</div>
+          <div class="summary-value">${totalSims.toLocaleString()}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Games Played</div>
-          <div class="summary-value">\${totalGames.toLocaleString()}</div>
+          <div class="summary-value">${totalGames.toLocaleString()}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Convergence</div>
-          <div class="summary-value" style="color: \${allConverged ? 'var(--accent-primary)' : 'var(--accent-warn)'}">
-            \${allConverged ? '✓' : '~'}
+          <div class="summary-value" style="color: ${allConverged ? 'var(--accent-primary)' : 'var(--accent-warn)'}">
+            ${allConverged ? '✓' : '~'}
           </div>
         </div>
-      \`;
+        <div class="summary-card" data-summary="rule-mode">
+          <div class="summary-label">Rule Mode</div>
+          <div class="summary-value" style="font-size: 1.2rem;">${modeLabel}</div>
+        </div>
+      `;
 
       // Strategy results
       const sortedResults = Object.entries(results).sort((a, b) => b[1].wins - a[1].wins);
@@ -1015,36 +1292,44 @@
           data.games > 0 ? (data.totalScore / data.games).toFixed(1) : '0.0';
         const bustRate =
           data.games > 0 ? ((data.busts / data.games) * 100).toFixed(1) : '0.0';
+        const avgRounds =
+          data.games > 0 ? (data.totalRounds / data.games).toFixed(1) : '0.0';
 
         const resultItem = document.createElement('div');
         resultItem.className = 'result-item';
-        resultItem.innerHTML = \`
+        resultItem.dataset.strategy = strategy;
+        const strategyLabel = getStrategyLabel(strategy);
+        resultItem.innerHTML = `
           <div class="result-header">
-            <div class="result-strategy">\${strategy.replace('_', ' ').toUpperCase()}</div>
-            <div class="result-winrate">\${formattedWinRate}</div>
+            <div class="result-strategy">${strategyLabel}</div>
+            <div class="result-winrate">${formattedWinRate}</div>
           </div>
           <div class="result-bar">
-            <div class="result-fill" style="width: \${winRate}%">\${data.wins.toLocaleString()} wins</div>
+            <div class="result-fill" style="width: ${winRate}%">${data.wins.toLocaleString()} wins</div>
           </div>
           <div class="result-stats">
             <div class="stat-mini">
               <div class="stat-mini-label">Win Rate</div>
-              <div class="stat-mini-value">\${formattedWinRate}</div>
+              <div class="stat-mini-value">${formattedWinRate}</div>
             </div>
             <div class="stat-mini">
               <div class="stat-mini-label">Avg Score</div>
-              <div class="stat-mini-value">\${avgScore}</div>
+              <div class="stat-mini-value">${avgScore}</div>
             </div>
             <div class="stat-mini">
               <div class="stat-mini-label">Bust Rate</div>
-              <div class="stat-mini-value">\${bustRate}%</div>
+              <div class="stat-mini-value">${bustRate}%</div>
             </div>
             <div class="stat-mini">
               <div class="stat-mini-label">Total Games</div>
-              <div class="stat-mini-value">\${data.games.toLocaleString()}</div>
+              <div class="stat-mini-value">${data.games.toLocaleString()}</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Avg Rounds</div>
+              <div class="stat-mini-value">${avgRounds}</div>
             </div>
           </div>
-        \`;
+        `;
         strategyResults.appendChild(resultItem);
       });
     }
@@ -1064,14 +1349,42 @@
       strategyResults = document.getElementById('strategyResults');
       playerChipsContainer = document.getElementById('playerChips');
       addPlayerBtn = document.getElementById('addPlayerBtn');
+      ruleModeNote = document.getElementById('ruleModeNote');
+      ruleToggleInputs = document.querySelectorAll('.rule-toggle-input');
 
       // Setup event listeners
       if (startBtn) startBtn.addEventListener('click', startSimulation);
       if (stopBtn) stopBtn.addEventListener('click', stopSimulation);
       if (addPlayerBtn) addPlayerBtn.addEventListener('click', addPlayer);
+      if (ruleToggleInputs && ruleToggleInputs.length) {
+        ruleToggleInputs.forEach((input) => {
+          input.addEventListener('change', () => handleRuleToggleChange(input));
+        });
+      }
 
-      // Initialize chips
-      if (playerChipsContainer) renderPlayerChips();
+      const cautiousBustSlider = document.getElementById('cautious-bust');
+      const riskyBustSlider = document.getElementById('risky-bust');
+      const superBustSlider = document.getElementById('super-bust');
+      const cautiousScoreSlider = document.getElementById('cautious-score');
+      const riskyScoreSlider = document.getElementById('risky-score');
+      const superScoreSlider = document.getElementById('super-score');
+
+      if (cautiousBustSlider) cautiousBustSlider.addEventListener('input', () => updateThresholdFromSlider('cautious', cautiousBustSlider, 'bust'));
+      if (riskyBustSlider) riskyBustSlider.addEventListener('input', () => updateThresholdFromSlider('risky', riskyBustSlider, 'bust'));
+      if (superBustSlider) superBustSlider.addEventListener('input', () => updateThresholdFromSlider('super_risky', superBustSlider, 'bust'));
+
+      if (cautiousScoreSlider) cautiousScoreSlider.addEventListener('input', () => updateThresholdFromSlider('cautious', cautiousScoreSlider, 'score'));
+      if (riskyScoreSlider) riskyScoreSlider.addEventListener('input', () => updateThresholdFromSlider('risky', riskyScoreSlider, 'score'));
+      if (superScoreSlider) superScoreSlider.addEventListener('input', () => updateThresholdFromSlider('super_risky', superScoreSlider, 'score'));
+
+      // Initialize UI
+      if (cautiousBustSlider) updateThresholdFromSlider('cautious', cautiousBustSlider, 'bust');
+      if (riskyBustSlider) updateThresholdFromSlider('risky', riskyBustSlider, 'bust');
+      if (superBustSlider) updateThresholdFromSlider('super_risky', superBustSlider, 'bust');
+      if (cautiousScoreSlider) updateThresholdFromSlider('cautious', cautiousScoreSlider, 'score');
+      if (riskyScoreSlider) updateThresholdFromSlider('risky', riskyScoreSlider, 'score');
+      if (superScoreSlider) updateThresholdFromSlider('super_risky', superScoreSlider, 'score');
+      applyRuleModeChange();
     });
   </script>
 </body>

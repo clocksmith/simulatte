@@ -84,7 +84,13 @@ const CycleLogic = (cfg, log, Utils, storage, State, Api, Mcp, Run) => {
         // temperature: 0.8 // Example override
     };
     State.increment_stat('apiCalls');
-    const api_result = await Api.call(prompt, session.apiKey, gen_cfg_overrides, cb);
+    const api_result = await Api.call(
+      prompt,
+      session.apiKey,
+      gen_cfg_overrides,
+      cb,
+      session.model || cfg.model
+    );
     State.set_last_error(null);
     return process_api_response(api_result, req);
   };
@@ -138,6 +144,8 @@ const CycleLogic = (cfg, log, Utils, storage, State, Api, Mcp, Run) => {
     State.increment_stat('cyclesRun');
     cb('status', { msg: `Starting ${mode} generation...`, active: true });
 
+    let overall_generated = 0;
+
     try {
       let generated_count_this_cycle = 0;
       while (is_running && (continuous_counter < continuous_limit || !is_continuous)) {
@@ -155,9 +163,25 @@ const CycleLogic = (cfg, log, Utils, storage, State, Api, Mcp, Run) => {
              if (versions_to_generate > 1) {
                  cb('status', { msg: `Generating version ${v + 1}/${versions_to_generate}...`, active: true });
              }
+
+             const iterationNumber = is_continuous ? continuous_counter + 1 : 1;
+             const iterationTotal = is_continuous ? continuous_limit : 1;
+             const versionNumber = is_continuous ? 1 : v + 1;
+             const versionTotal = is_continuous ? 1 : versions_to_generate;
+
              const pending = await generate_single(current_request, cb);
              State.add_pending(pending);
              generated_count_this_cycle++;
+             overall_generated++;
+
+             cb('progress', {
+               mode,
+               iteration: iterationNumber,
+               iterationTotal,
+               version: versionNumber,
+               versionTotal,
+               totalGenerated: overall_generated,
+             });
          }
 
          if (!is_running) break; // Aborted during generation loop
@@ -275,4 +299,3 @@ const CycleLogic = (cfg, log, Utils, storage, State, Api, Mcp, Run) => {
   return { init, running, start_generation, generate_version, handle_approval, handle_rejection, abort_generation };
 };
 export default CycleLogic;
-

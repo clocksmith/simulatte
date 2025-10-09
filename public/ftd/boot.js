@@ -43,6 +43,35 @@ const bootstrap = async () => {
       )}KB (${usage.pct.toFixed(1)}%)`
     );
 
+    const ensurePromptTemplate = async () => {
+      const existing = storage.get_artifact(config.promptTemplateArtifactId);
+      if (existing && existing.trim().length > 0) {
+        log.debug("Prompt template artifact already seeded.");
+        return;
+      }
+      try {
+        const response = await fetch(new URL('./prompt.txt', window.location.href), {
+          cache: 'no-store',
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} while fetching prompt template.`);
+        }
+        const template = await response.text();
+        if (!template || !template.trim()) {
+          throw new Error('Fetched prompt template is empty.');
+        }
+        storage.set_artifact(config.promptTemplateArtifactId, template);
+        log.info('Seeded default prompt template artifact.', {
+          artifact: config.promptTemplateArtifactId,
+          bytes: template.length,
+        });
+      } catch (error) {
+        log.error('Failed to seed prompt template artifact from prompt.txt', error);
+      }
+    };
+
+    await ensurePromptTemplate();
+
     const StateManager = (await import("./state_manager.js")).default(
       config,
       log,

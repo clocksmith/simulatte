@@ -12,6 +12,7 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
       "notify",
       "status",
       "api_key",
+      "model_select",
       "save_key_btn",
       "export_btn",
       "import_btn",
@@ -30,6 +31,10 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
       "approve_btn",
       "version_btn",
       "reject_btn",
+      "progress_info",
+      "progress_iteration",
+      "progress_version",
+      "progress_total",
       "preview_section",
       "preview_area",
       "close_preview_btn",
@@ -62,6 +67,34 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
       : active
       ? "status-active"
       : "status-idle";
+  };
+
+  const update_progress = (payload) => {
+    if (!ui.progressInfo || !ui.progressIteration || !ui.progressVersion || !ui.progressTotal) return;
+    const {
+      mode = 'manual',
+      iteration = 0,
+      iterationTotal = 0,
+      version = 0,
+      versionTotal = 0,
+      totalGenerated = 0,
+    } = payload || {};
+
+    ui.progressInfo.classList.remove('hidden');
+
+    const iterLabel = iterationTotal > 0 ? `${iteration}/${iterationTotal}` : `${iteration}`;
+    const versionLabel = versionTotal > 0 ? `${version}/${versionTotal}` : `${version}`;
+    ui.progressIteration.textContent = `${mode === 'continuous' ? 'C' : 'M'} • ${iterLabel}`;
+    ui.progressVersion.textContent = versionLabel;
+    ui.progressTotal.textContent = totalGenerated;
+  };
+
+  const clear_progress = () => {
+    if (!ui.progressInfo) return;
+    ui.progressInfo.classList.add('hidden');
+    if (ui.progressIteration) ui.progressIteration.textContent = '0 / 0';
+    if (ui.progressVersion) ui.progressVersion.textContent = '0 / 0';
+    if (ui.progressTotal) ui.progressTotal.textContent = '0';
   };
 
   const notify = (msg, type = "info", duration = 5000) => {
@@ -237,6 +270,9 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
       case "status":
         update_status(data.msg, data.active, data.is_error);
         break;
+      case "progress":
+        update_progress(data);
+        break;
       case "error":
         notify(`Generation Error: ${data.msg}`, "error");
         // Ensure buttons are re-enabled on error if logic didn't reach 'final'
@@ -278,6 +314,13 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
       notify(key ? "API Key saved for session." : "API Key cleared.", "info");
     });
 
+    ui.modelSelect?.addEventListener("change", (e) => {
+      const value = e.target.value || cfg.model;
+      State.update_session({ model: value });
+      cfg.model = value; // keep runtime config in sync
+      notify(`Model set to ${value}.`, "info", 2500);
+    });
+
     ui.generateBtn?.addEventListener("click", () => {
       const req = ui.toolReq?.value.trim() ?? "";
       const mode =
@@ -286,6 +329,7 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
       ui.generateBtn.disabled = true;
       ui.abortBtn.classList.remove("hidden");
       ui.previewSection?.classList.add("hidden"); // Hide preview on new generation
+      clear_progress();
       Logic.start_generation(req, mode, limit, generation_callback);
     });
 
@@ -563,6 +607,19 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
 
     const session = State.get_session();
     if (ui.apiKey) ui.apiKey.value = session.apiKey || "";
+    if (ui.modelSelect) {
+      const currentModel = session.model || cfg.model;
+      ui.modelSelect.value = currentModel;
+      if (ui.modelSelect.value !== currentModel) {
+        // Value not in list; add custom option
+        const opt = document.createElement('option');
+        opt.value = currentModel;
+        opt.textContent = `${currentModel} (custom)`;
+        ui.modelSelect.appendChild(opt);
+        ui.modelSelect.value = currentModel;
+      }
+      cfg.model = currentModel;
+    }
     ui.genModeRadios?.forEach((r) => (r.checked = r.value === session.mode));
     ui.contOpts?.classList.toggle("hidden", session.mode !== "continuous");
     if (ui.contLimit)

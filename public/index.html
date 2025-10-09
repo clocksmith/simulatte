@@ -5,23 +5,18 @@
     <title>Simulatte - Interactive Particle System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta name="description" content="An interactive particle system visualization with network and space modes" />
+    <link rel="stylesheet" href="simulatte-core.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <style>
+      /* Main page-specific overrides */
       :root {
-        --bg-color: #000000;
-        --text-color: #ffffff;
-        --accent-color: #ff00ff;
-        --accent-secondary: #00ff00;
         --panel-bg: rgba(0, 0, 0, 0.9);
-        --border-color: #555555;
         --transition-fast: 200ms;
         --transition-normal: 500ms;
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+        --bg-color: var(--bg-dark);
+        --text-color: var(--text-primary);
+        --border-color: var(--border);
+        --accent-color: var(--accent-primary);
       }
 
       html, body {
@@ -57,15 +52,29 @@
         display: none;
         opacity: 1;
         transition: opacity 0.5s ease-in-out;
+        background: transparent;
+      }
+      #particleContainer svg {
+        background: var(--bg-dark);
+      }
+      #renderMask {
+        position: absolute;
+        inset: 0;
+        background: var(--bg-color);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-normal) ease-in-out;
+        z-index: 2;
       }
       #particleContainer line {
         stroke: rgb(255, 255, 255);
-        stroke-width: 0.5;
+        stroke-width: 1;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
       #particleContainer circle {
         /* fill color set dynamically per particle to match WebGL */
-        transition: opacity 0.5s ease-out, r 0.1s linear, cx 0.1s linear,
-          cy 0.1s linear;
+        transition: opacity 0.5s ease-out, r 0.1s linear;
         transform-origin: center center;
       }
       .particleDiv {
@@ -86,6 +95,7 @@
         box-sizing: border-box;
         padding: 0 20px;
         text-align: center;
+        font-family: var(--font-mono);
       }
       .mainTitle {
         z-index: 10;
@@ -98,10 +108,12 @@
       p {
         margin: 0.6em 0;
         user-select: none;
+        font-weight: 500;
       }
       .mainContent a {
-        color: var(--accent-color);
+        color: var(--accent-secondary);
         text-decoration: underline;
+        text-decoration-color: var(--accent-primary);
         text-underline-offset: 3px;
         text-decoration-thickness: 2px;
         font-weight: bold;
@@ -114,7 +126,7 @@
       .mainContent a:hover {
         transform: scale(1.1);
         text-shadow: 0 0 10px currentColor;
-        text-decoration-color: var(--accent-secondary);
+        text-decoration-color: var(--accent-primary);
       }
 
       @keyframes twinkle-anim {
@@ -213,10 +225,10 @@
         overflow: hidden;
       }
       .renderSelector {
-        border: 1px solid #f0f;
+        border: 1px solid var(--accent-primary);
       }
       .modeSelector {
-        border: 1px solid #0a0;
+        border: 1px solid var(--accent-secondary);
         margin-top: 10px;
       }
 
@@ -226,31 +238,32 @@
         padding: 8px 0;
         font-size: 13px;
         cursor: pointer;
-        background-color: #111;
-        color: #ccc;
+        background-color: var(--bg-dark);
+        color: var(--text-secondary);
         transition: background-color 0.2s, color 0.2s;
         user-select: none;
         display: block;
+        margin: 0;
       }
       .renderSelector input[type="radio"],
       .modeSelector input[type="radio"] {
         display: none;
       }
       .renderSelector input[type="radio"]:checked + label.radioLabel {
-        background-color: #f0f;
-        color: #fff;
+        background-color: var(--accent-primary);
+        color: var(--text-primary);
         font-weight: bold;
       }
       .modeSelector input[type="radio"]:checked + label.radioLabel {
-        background-color: #0a0;
-        color: #fff;
+        background-color: var(--accent-secondary);
+        color: var(--bg-dark);
         font-weight: bold;
       }
       .renderSelector label.radioLabel:not(:last-of-type) {
-        border-right: 1px solid #f0f;
+        border-right: 1px solid var(--accent-primary);
       }
       .modeSelector label.radioLabel:not(:last-of-type) {
-        border-right: 1px solid #0a0;
+        border-right: 1px solid var(--accent-secondary);
       }
 
       .controlRow {
@@ -277,48 +290,6 @@
       }
       .controlsPanel label:not(.radioLabel) > span:first-child {
         margin-right: auto;
-        flex-shrink: 0;
-      }
-      .controlsPanel input[type="range"] {
-        width: 100px;
-        height: 8px;
-        vertical-align: middle;
-        cursor: pointer;
-        accent-color: #0f0;
-        background: #333;
-        border-radius: 4px;
-        appearance: none;
-        -webkit-appearance: none;
-        outline: none;
-        flex-grow: 1;
-        min-width: 60px;
-      }
-      .controlsPanel input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        background: #eee;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      }
-      .controlsPanel input[type="range"]::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        background: #eee;
-        border-radius: 50%;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      }
-      .controlsPanel .valueDisplay {
-        min-width: 38px;
-        display: inline-block;
-        text-align: right;
-        color: #fff;
-        font-size: 13px;
-        font-weight: bold;
         flex-shrink: 0;
       }
       #loader {
@@ -358,6 +329,7 @@
         padding: 8px 12px;
         font-size: 0.75rem;
         font-family: 'Courier New', monospace;
+        font-weight: 600;
         border-radius: 6px;
         cursor: help;
         display: inline-block;
@@ -481,6 +453,7 @@
     <div id="particleContainer">
       <svg id="netSvg" aria-hidden="true"></svg>
       <canvas id="webglCanvas" aria-hidden="true"></canvas>
+      <div id="renderMask" aria-hidden="true"></div>
     </div>
 
     <main class="mainContent">
@@ -488,19 +461,20 @@
       <p>an n-gram and anagram collective</p>
       <p>created for mages who like games</p>
       <br />
+      <p><sub>some</sub>D<sup>emos</sup></p>
       <nav>
         <p>
-          <a href="/0" aria-label="QZS Demo">QZS</a>
-          <a href="/1" aria-label="DPS Demo">DPS</a>
-          <a href="/36" aria-label="HEA Demo">HEA</a>
-          <a href="/1225" aria-label="DTF Demo">DTF</a>
-          <a href="/41616" aria-label="FSS Demo">FSS</a>
-          <a href="/1413721" aria-label="TPU Demo">TPU</a>
+          <a href="/zqs" aria-label="ZQS Demo"><sub>Z</sub>Q<sup>S</sup></a>
+          <a href="/spd" aria-label="SPD Demo"><sub>S</sub>P<sup>D</sup></a>
+          <a href="/aeh" aria-label="AEH Demo"><sub>A</sub>E<sup>H</sup></a>
+          <a href="/utp" aria-label="UTP Demo"><sub>U</sub>T<sup>P</sup></a>
+          <a href="/sfs" aria-label="SFS Demo"><sub>S</sub>F<sup>S</sup></a>
+          <a href="/ftd" aria-label="FTD Demo"><sub>F</sub>T<sup>D</sup></a>
         </p>
       </nav>
     </main>
 
-    <div id="controls" class="controlsPanel closed">
+    <div id="controls" class="controlsPanel panel closed">
       <div class="selectorGroup renderSelector">
         <input
           type="radio"
@@ -530,84 +504,84 @@
         <label>
           <span>Particles:</span>
           <input type="range" id="num-particles-network" />
-          <span class="valueDisplay" id="num-particles-network-value"></span>
+          <span class="valueDisplay value-display" id="num-particles-network-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
         <label>
           <span>Particles:</span>
           <input type="range" id="num-particles-space" />
-          <span class="valueDisplay" id="num-particles-space-value"></span>
+          <span class="valueDisplay value-display" id="num-particles-space-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
         <label>
           <span>Connect:</span>
           <input type="range" id="max-line-dist" />
-          <span class="valueDisplay" id="max-line-dist-value"></span>
+          <span class="valueDisplay value-display" id="max-line-dist-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
         <label>
           <span>Density:</span>
           <input type="range" id="conn-density" />
-          <span class="valueDisplay" id="conn-density-value"></span>
+          <span class="valueDisplay value-display" id="conn-density-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
         <label>
           <span>Speed:</span>
           <input type="range" id="net-speed" />
-          <span class="valueDisplay" id="net-speed-value"></span>
+          <span class="valueDisplay value-display" id="net-speed-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
         <label>
           <span>Twinkle:</span>
           <input type="range" id="net-twinkle" />
-          <span class="valueDisplay" id="net-twinkle-value"></span>
+          <span class="valueDisplay value-display" id="net-twinkle-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
         <label>
           <span>Line Life (s):</span>
           <input type="range" id="line-life" />
-          <span class="valueDisplay" id="line-life-value"></span>
+          <span class="valueDisplay value-display" id="line-life-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
         <label>
           <span>Speed:</span>
           <input type="range" id="space-speed" />
-          <span class="valueDisplay" id="space-speed-value"></span>
+          <span class="valueDisplay value-display" id="space-speed-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
         <label>
           <span>Spin:</span>
           <input type="range" id="spin" />
-          <span class="valueDisplay" id="spin-value"></span>
+          <span class="valueDisplay value-display" id="spin-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
         <label>
           <span>Warp:</span>
           <input type="range" id="stretch" />
-          <span class="valueDisplay" id="stretch-value"></span>
+          <span class="valueDisplay value-display" id="stretch-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
         <label>
           <span>Radius:</span>
           <input type="range" id="emit-radius" />
-          <span class="valueDisplay" id="emit-radius-value"></span>
+          <span class="valueDisplay value-display" id="emit-radius-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
         <label>
           <span>Twinkle:</span>
           <input type="range" id="space-twinkle" />
-          <span class="valueDisplay" id="space-twinkle-value"></span>
+          <span class="valueDisplay value-display" id="space-twinkle-value"></span>
         </label>
       </div>
     </div>
@@ -631,7 +605,10 @@
       const glCanvas = document.getElementById("webglCanvas");
       
       // Initialize elements for display
-      if (svgEl) svgEl.setAttribute('viewBox', '0 0 ' + window.innerWidth + ' ' + window.innerHeight);
+      if (svgEl) {
+        svgEl.setAttribute('viewBox', '0 0 ' + window.innerWidth + ' ' + window.innerHeight);
+        svgEl.setAttribute('preserveAspectRatio', 'none');
+      }
       const ctrls = document.getElementById("controls");
       const ctrlToggle = document.getElementById("controlsToggle");
       const loaderEl = document.getElementById("loader");
@@ -639,6 +616,8 @@
       let particles = [];
       const networkLinks = new Map();
       const svgLineElements = new Map();
+      const RENDER_POS_LERP = 0.35;
+      const renderMask = document.getElementById("renderMask");
       let frameSeed = 0;
       let w = 1,
         h = 1,
@@ -679,6 +658,7 @@
       let isSwitchingRender = false;
       let renderSwitchStartT = 0;
       let targetRenderMode = null;
+      let renderSwitchReady = false;
       let savedParticleState = null;
       let lastFrameTime = 0;
       let lastFpsSampleTime = 0;
@@ -753,6 +733,7 @@
           val: 0.5,
           fixed: 1,
           mode: "network",
+          cb: updateNetworkSpeed,
         },
         "net-twinkle": {
           key: "netTw",
@@ -861,6 +842,7 @@
         getSimDimensions();
         if (renderMode === "svg") {
           svgEl.setAttribute("viewBox", `0 0 ${simW} ${simH}`);
+          svgEl.setAttribute("preserveAspectRatio", "none");
           pCont.style.width = `${w}px`;
           pCont.style.height = w <= 768 ? "" : `${h}px`;
         } else if (gl) {
@@ -914,6 +896,8 @@
         "lastY",
         "currOpacity",
         "currSize",
+        "renderX",
+        "renderY",
         "startX",
         "startY",
         "startOpacity",
@@ -973,6 +957,8 @@
           p.lastX = p.lastX ?? p.x;
           p.lastY = p.lastY ?? p.y;
         }
+        p.renderX = p.renderX ?? p.x;
+        p.renderY = p.renderY ?? p.y;
         p.currOpacity = p.currOpacity ?? p.opacity;
         p.currSize = p.currSize ?? p.baseSize;
         if (renderMode === "svg") createPSVG(p);
@@ -990,6 +976,8 @@
         p.currSize = p.baseSize;
         p.lastX = p.x;
         p.lastY = p.y;
+        p.renderX = p.x;
+        p.renderY = p.y;
         if (renderMode === "svg" && p.el) p.el.style.opacity = "0";
       }
       function updatePPhysics(p, dt) {
@@ -1038,8 +1026,17 @@
         const isNet = p.simMode === "network";
         const tCfg = isNet ? cfg.netTw : cfg.spcTw;
         const sCfg = cfg.stretch;
-        p.directionX = p.x - p.lastX;
-        p.directionY = p.y - p.lastY;
+        const prevRenderX = p.renderX ?? p.x;
+        const prevRenderY = p.renderY ?? p.y;
+        if (Number.isFinite(prevRenderX) && Number.isFinite(prevRenderY)) {
+          p.renderX = lerp(prevRenderX, p.x, RENDER_POS_LERP);
+          p.renderY = lerp(prevRenderY, p.y, RENDER_POS_LERP);
+        } else {
+          p.renderX = p.x;
+          p.renderY = p.y;
+        }
+        p.directionX = p.renderX - prevRenderX;
+        p.directionY = p.renderY - prevRenderY;
         if (tCfg > 0) {
           p.twPhase = (p.twPhase + 0.05 + rnd(0, 0.05)) % (PI * 2);
           const phaseVal = Math.sin(p.twPhase) * 0.5 + 0.5;
@@ -1053,8 +1050,7 @@
         } else if (!isNet && sCfg > 0) {
           const dx = p.directionX,
             dy = p.directionY;
-          const speedMag = Math.sqrt(dx * dx + dy * dy);
-          const stretchF = 1 + speedMag * cfg.stretchFBase * (sCfg / 50);
+          const stretchF = 1 + (sCfg / 50) * 5;
           const dist = Math.sqrt(
             Math.pow(p.x - simW / 2, 2) + Math.pow(p.y - simH / 2, 2)
           );
@@ -1068,9 +1064,11 @@
       function renderPSVG(p) {
         if (!p.el || renderMode !== "svg") return;
         if (p.simMode === "network") {
-          p.el.setAttribute("cx", p.x.toFixed(1));
-          p.el.setAttribute("cy", p.y.toFixed(1));
-          p.el.setAttribute("r", p.currSize.toFixed(2));
+          const drawX = p.renderX ?? p.x;
+          const drawY = p.renderY ?? p.y;
+          p.el.setAttribute("cx", String(drawX));
+          p.el.setAttribute("cy", String(drawY));
+          p.el.setAttribute("r", String(p.currSize));
           // Apply per-particle RGB color to match WebGL
           const r = Math.floor(p.r * 255);
           const g = Math.floor(p.g * 255);
@@ -1079,10 +1077,12 @@
           p.el.style.opacity = p.currOpacity.toFixed(3);
         } else {
           const size = p.currSize * 2;
+          const drawX = p.renderX ?? p.x;
+          const drawY = p.renderY ?? p.y;
           p.el.style.width = `${size}px`;
           p.el.style.height = `${size}px`;
-          p.el.style.left = `${p.x - size / 2}px`;
-          p.el.style.top = `${p.y - size / 2}px`;
+          p.el.style.left = `${drawX - size / 2}px`;
+          p.el.style.top = `${drawY - size / 2}px`;
           // Apply per-particle RGB color to match WebGL
           const r = Math.floor(p.r * 255);
           const g = Math.floor(p.g * 255);
@@ -1171,6 +1171,8 @@
           p.opacity = targetOp;
           p.baseSize = targetSize;
         }
+        p.renderX = p.x;
+        p.renderY = p.y;
         p.directionX = targetX - startX;
         p.directionY = targetY - startY;
         p.stretchFactor = lerp(0.5, 1, t);
@@ -1241,16 +1243,32 @@
 
           link.targetOp = target;
           link.op = clamp(lerp(link.op, link.targetOp, 0.15), 0, 1);
-          link.x1 = p1.x;
-          link.y1 = p1.y;
-          link.x2 = p2.x;
-          link.y2 = p2.y;
+          const p1x = p1.renderX ?? p1.x;
+          const p1y = p1.renderY ?? p1.y;
+          const p2x = p2.renderX ?? p2.x;
+          const p2y = p2.renderY ?? p2.y;
+          link.x1 = p1x;
+          link.y1 = p1y;
+          link.x2 = p2x;
+          link.y2 = p2y;
           const drawProgress = Math.min(1, (now - link.born) / DRAW_DURATION);
           const drawEase = 0.5 - 0.5 * Math.cos(drawProgress * Math.PI);
-          link.renderX1 = link.x1;
-          link.renderY1 = link.y1;
-          link.renderX2 = lerp(link.startX2, link.x2, drawEase);
-          link.renderY2 = lerp(link.startY2, link.y2, drawEase);
+          const prevRX1 = link.renderX1 ?? link.x1;
+          const prevRY1 = link.renderY1 ?? link.y1;
+          const prevRX2 = link.renderX2 ?? link.x2;
+          const prevRY2 = link.renderY2 ?? link.y2;
+          if (drawProgress < 1) {
+            const eased = drawEase;
+            link.renderX1 = lerp(link.startX1, link.x1, eased);
+            link.renderY1 = lerp(link.startY1, link.y1, eased);
+            link.renderX2 = lerp(link.startX2, link.x2, eased);
+            link.renderY2 = lerp(link.startY2, link.y2, eased);
+          } else {
+            link.renderX1 = lerp(prevRX1, link.x1, RENDER_POS_LERP);
+            link.renderY1 = lerp(prevRY1, link.y1, RENDER_POS_LERP);
+            link.renderX2 = lerp(prevRX2, link.x2, RENDER_POS_LERP);
+            link.renderY2 = lerp(prevRY2, link.y2, RENDER_POS_LERP);
+          }
           const minOpacity = Math.min(p1.currOpacity, p2.currOpacity);
           link.finalOp = link.op * minOpacity;
 
@@ -1275,8 +1293,12 @@
             if (networkLinks.size >= linkCapacity) break outer;
             const p1 = pts[i];
             const p2 = pts[j];
-            const dx = p1.x - p2.x;
-            const dy = p1.y - p2.y;
+            const p1x = p1.renderX ?? p1.x;
+            const p1y = p1.renderY ?? p1.y;
+            const p2x = p2.renderX ?? p2.x;
+            const p2y = p2.renderY ?? p2.y;
+            const dx = p1x - p2x;
+            const dy = p1y - p2y;
             if (dx * dx + dy * dy > maxDistSq) continue;
             const key = `${Math.min(p1.id, p2.id)}-${Math.max(p1.id, p2.id)}`;
             if (networkLinks.has(key)) continue;
@@ -1290,21 +1312,21 @@
               p2Id: p2.id,
               born: now,
               maxLt: Math.max(300, cfg.lineMs + lifeVariance),
-              startX1: p1.x,
-              startY1: p1.y,
-              startX2: p1.x,
-              startY2: p1.y,
-              x1: p1.x,
-              y1: p1.y,
-              x2: p2.x,
-              y2: p2.y,
+              startX1: p1x,
+              startY1: p1y,
+              startX2: p1x,
+              startY2: p1y,
+              x1: p1x,
+              y1: p1y,
+              x2: p2x,
+              y2: p2y,
               targetOp: 0,
               op: 0,
               finalOp: 0,
-              renderX1: p1.x,
-              renderY1: p1.y,
-              renderX2: p1.x,
-              renderY2: p1.y,
+              renderX1: p1x,
+              renderY1: p1y,
+              renderX2: p1x,
+              renderY2: p1y,
             });
           }
         }
@@ -1320,6 +1342,28 @@
             svgLineElements.delete(key);
             networkLinks.delete(key);
           }
+        }
+      }
+
+      function primeNetworkLinksForRender() {
+        if (!networkLinks.size || !particles.length) return;
+        const pLookup = new Map(particles.map((p) => [p.id, p]));
+        for (const link of networkLinks.values()) {
+          const p1 = pLookup.get(link.p1Id);
+          const p2 = pLookup.get(link.p2Id);
+          if (!p1 || !p2) continue;
+          const p1x = p1.renderX ?? p1.x;
+          const p1y = p1.renderY ?? p1.y;
+          const p2x = p2.renderX ?? p2.x;
+          const p2y = p2.renderY ?? p2.y;
+          link.x1 = p1x;
+          link.y1 = p1y;
+          link.x2 = p2x;
+          link.y2 = p2y;
+          link.renderX1 = p1x;
+          link.renderY1 = p1y;
+          link.renderX2 = p2x;
+          link.renderY2 = p2y;
         }
       }
 
@@ -1340,10 +1384,10 @@
             svgEl.appendChild(lineEl);
             svgLineElements.set(key, lineEl);
           }
-          lineEl.setAttribute("x1", link.renderX1.toFixed(1));
-          lineEl.setAttribute("y1", link.renderY1.toFixed(1));
-          lineEl.setAttribute("x2", link.renderX2.toFixed(1));
-          lineEl.setAttribute("y2", link.renderY2.toFixed(1));
+          lineEl.setAttribute("x1", String(link.renderX1));
+          lineEl.setAttribute("y1", String(link.renderY1));
+          lineEl.setAttribute("x2", String(link.renderX2));
+          lineEl.setAttribute("y2", String(link.renderY2));
           // Match WebGL: apply 0.5 base opacity multiplier
           lineEl.style.opacity = (link.finalOp * 0.5).toFixed(3);
           lineCount++;
@@ -1414,6 +1458,19 @@
           initPState(p, stableMode, isNew);
         });
         if (renderMode === "webgl") resizeWebGLBufs(targetCount);
+      }
+      function updateNetworkSpeed() {
+        particles.forEach((p) => {
+          if (p.simMode === "network" && p.vx !== undefined && p.vy !== undefined) {
+            const currentSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+            if (currentSpeed > 0) {
+              const angle = Math.atan2(p.vy, p.vx);
+              const newSpeed = rnd(0.1 * cfg.netSpd, 1.0 * cfg.netSpd);
+              p.vx = Math.cos(angle) * newSpeed;
+              p.vy = Math.sin(angle) * newSpeed;
+            }
+          }
+        });
       }
       function updateFps(now, frameRenderTime) {
         if (!lastFpsSampleTime) {
@@ -1554,8 +1611,12 @@
         targetRenderMode = newRenderMode;
         isSwitchingRender = true;
         renderSwitchStartT = performance.now();
+        renderSwitchReady = false;
         savedParticleState = particles.map(savePState);
         const currentCanvas = renderMode === "svg" ? svgEl : glCanvas;
+        if (renderMask) {
+          renderMask.style.opacity = "1";
+        }
         currentCanvas.style.transition = `opacity ${
           renderSwitchDur / 1000
         }s ease-in-out`;
@@ -1566,13 +1627,14 @@
           currentCanvas.style.display = "none";
           destroyCurrentRenderer();
           setupNewRenderer(savedParticleState);
+          renderSwitchReady = true;
         }, renderSwitchDur);
       }
       function handleRenderModeSwitch(now) {
         const elapsed = now - renderSwitchStartT;
         const fadeOutEndT = renderSwitchDur;
         const fadeInEndT = fadeOutEndT + renderSwitchDur;
-        if (elapsed >= fadeOutEndT && targetRenderMode) {
+        if (elapsed >= fadeOutEndT && targetRenderMode && renderSwitchReady) {
           renderMode = targetRenderMode;
           targetRenderMode = null;
           const newCanvas = renderMode === "svg" ? svgEl : glCanvas;
@@ -1581,7 +1643,14 @@
             renderSwitchDur / 1000
           }s ease-in-out`;
           newCanvas.style.opacity = 0;
-          requestAnimationFrame(() => (newCanvas.style.opacity = 1));
+          requestAnimationFrame(() => {
+            newCanvas.style.opacity = 1;
+            if (renderMask) {
+              requestAnimationFrame(() => {
+                renderMask.style.opacity = "0";
+              });
+            }
+          });
           loaderEl.style.transition = `opacity ${
             renderSwitchDur / 1000
           }s ease-in-out`;
@@ -1589,6 +1658,7 @@
           setTimeout(() => {
             isSwitchingRender = false;
             loaderEl.style.display = "none";
+            if (renderMask) renderMask.style.opacity = "0";
             onResize();
             updateCtrlVisibility();
             manageParticles();
@@ -1635,27 +1705,30 @@
       function setupNewRenderer(stateToRestore) {
         const newMode = targetRenderMode;
         if (!newMode) return;
+        const prevMode = renderMode;
+        renderMode = newMode;
         particles = [];
         (stateToRestore || []).forEach((state) => {
           const p = {};
           restorePState(p, state);
           particles.push(p);
         });
+        primeNetworkLinksForRender();
         if (newMode === "svg") {
-          renderMode = "svg";
-          particles.forEach((p) => createPSVG(p));
+          particles.forEach(renderPSVG);
           syncSvgLinks(PERF.now());
         } else if (newMode === "webgl") {
           if (!initWebGL()) {
             console.error("WebGL init failed, reverting");
+            renderMode = prevMode;
             document.getElementById("render-svg").checked = true;
             targetRenderMode = "svg";
             glCanvas.style.display = "none";
             setupNewRenderer(stateToRestore);
             return;
           }
-          renderMode = "webgl";
           resizeWebGLBufs(particles.length);
+          renderWebGL(true);
         }
       }
       function updateCtrlVisibility() {
@@ -1811,7 +1884,7 @@
         const pVS = `attribute vec2 aPos;attribute vec4 aCol;attribute float aSize;attribute vec2 aDir;uniform vec2 uRes;uniform float uStretch;varying vec4 vCol;varying vec2 vDir;varying float vStretch;void main(){gl_Position=vec4(((aPos/uRes)*2.0-1.0)*vec2(1,-1),0,1);gl_PointSize=aSize*${cfg.glPtScale.toFixed(
           1
         )};vCol=aCol;vDir=aDir;vStretch=uStretch;}`;
-        const pFS = `precision mediump float;varying vec4 vCol;varying vec2 vDir;varying float vStretch;void main(){vec2 coord=gl_PointCoord-vec2(0.5);float dist=length(coord);if(vStretch>0.0){vec2 dir=normalize(vDir);float stretchFactor=1.0+vStretch;float angle=atan(dir.y,dir.x);float s=sin(-angle),c=cos(-angle);mat2 rot=mat2(c,-s,s,c);vec2 rotatedCoord=rot*coord;float sx=max(0.1,stretchFactor);float sy=1.0/sx;dist=length(vec2(rotatedCoord.x*sx,rotatedCoord.y*sy));}if(dist>0.5)discard;gl_FragColor=vCol;}`;
+        const pFS = `precision mediump float;varying vec4 vCol;varying vec2 vDir;varying float vStretch;void main(){vec2 coord=gl_PointCoord-vec2(0.5);float dist=length(coord);if(vStretch>0.0&&length(vDir)>0.001){vec2 dir=normalize(vDir);float angle=atan(dir.y,dir.x);float s=sin(-angle),c=cos(-angle);mat2 rot=mat2(c,-s,s,c);vec2 rotatedCoord=rot*coord;float stretchF=1.0+(vStretch/50.0)*5.0;dist=length(vec2(rotatedCoord.x/stretchF,rotatedCoord.y));}if(dist>0.5)discard;gl_FragColor=vCol;}`;
         const lVS = `attribute vec2 aPos;attribute vec4 aCol;uniform vec2 uRes;varying vec4 vCol;void main(){gl_Position=vec4(((aPos/uRes)*2.0-1.0)*vec2(1,-1),0,1);vCol=aCol;}`;
         const lFS = `precision mediump float;varying vec4 vCol;void main(){gl_FragColor=vCol;}`;
         pProg = createProgram(pVS, pFS);
@@ -1875,8 +1948,9 @@
           gl.bufferData(gl.ARRAY_BUFFER, lColData.byteLength, gl.DYNAMIC_DRAW);
         }
       }
-      function renderWebGL() {
-        if (!gl || isSwitchingRender || !pPosData) return;
+      function renderWebGL(force = false) {
+        if (!gl || !pPosData) return;
+        if (!force && isSwitchingRender) return;
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         currentParticleCount = 0;
@@ -1888,8 +1962,10 @@
           if (p.currOpacity <= 0.01) continue;
           const idx = currentParticleCount++;
           if (idx >= maxParticles) break;
-          pPosData[idx * 2] = p.x;
-          pPosData[idx * 2 + 1] = p.y;
+          const drawX = p.renderX ?? p.x;
+          const drawY = p.renderY ?? p.y;
+          pPosData[idx * 2] = drawX;
+          pPosData[idx * 2 + 1] = drawY;
           pColData[idx * 4] = p.r;
           pColData[idx * 4 + 1] = p.g;
           pColData[idx * 4 + 2] = p.b;
@@ -1933,7 +2009,7 @@
           gl.enableVertexAttribArray(pDirLoc);
           gl.vertexAttribPointer(pDirLoc, 2, gl.FLOAT, false, 0, 0);
           gl.uniform2f(pResLoc, simW, simH);
-          gl.uniform1f(pStretchLoc, useStretch ? cfg.stretch / 50.0 : 0.0);
+          gl.uniform1f(pStretchLoc, useStretch ? cfg.stretch : 0.0);
           gl.drawArrays(gl.POINTS, 0, currentParticleCount);
         }
         for (const link of networkLinks.values()) {

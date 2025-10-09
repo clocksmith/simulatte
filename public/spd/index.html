@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DPS - Double Pendulum System Simulation</title>
+    <title>SPD - Stochastic Phase Dynamics</title>
     <meta name="description" content="Interactive double pendulum physics simulation with real-time visualization and data tracking" />
+    <link rel="stylesheet" href="../simulatte-core.css">
     <!-- Minimal inline KaTeX styles for math rendering -->
     <style>
       .katex{font:normal 1.21em KaTeX_Main,Times New Roman,serif;line-height:1.2;text-indent:0;text-rendering:auto}
@@ -12,55 +13,25 @@
       .katex .katex-mathml{display:none}
     </style>
     <style>
+      /* DPS-specific overrides */
       :root {
-        --bg-color: #ffffff;
-        --card-bg-color: #f8f8f8;
-        --text-color-dark: #000000;
-        --text-color-light: #ffffff;
-        --border-color: #999999;
-        --border-light-color: #dddddd;
-        --accent-magenta: #ff00ff;
-        --accent-green: #00ff00;
-        --accent-cyan: #00ffff;
-        --accent-crimson: #ff00ff;
-        --accent-pink: #ff00ff;
-        --accent-purple: #ff00ff;
-        --accent-blue: #00ffff;
-        --accent-orange: #00ff00;
-        --accent-grey: #555555;
-        --accent-light-grey: #cccccc;
-        --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        --card-border: 1px solid #000000;
-        --chart-bg: #fdfdfd;
         --page-padding: 24px;
-      }
-
-      html[data-theme="dark"] {
-        --bg-color: #000000;
-        --card-bg-color: #0f0f0f;
-        --text-color-dark: #ffffff;
-        --text-color-light: #000000;
-        --border-color: #555555;
-        --border-light-color: #333333;
-        --accent-grey: #a0a0a0;
-        --accent-light-grey: #555555;
-        --card-border: 1px solid #555555;
-        --chart-bg: #1a1a1a;
-      }
-
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-
-      /* Performance optimizations */
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
+        --font-main: var(--font-sans);
+        --bg-color: var(--bg-dark);
+        --text-color-dark: var(--text-primary);
+        --border-color: var(--border);
+        --border-light-color: var(--border);
+        --card-bg-color: var(--bg-medium);
+        --card-border: 1px solid var(--border);
+        --chart-bg: var(--bg-light);
+        --accent-light-grey: #666666;
+        --accent-grey: var(--text-secondary);
+        --accent-crimson: var(--accent-primary);
+        --accent-purple: #9b66ff;
+        --accent-cyan: var(--accent-tertiary);
+        --accent-pink: var(--accent-primary);
+        --accent-green: var(--accent-secondary);
+        --accent-blue: #46a0ff;
       }
 
       body {
@@ -82,31 +53,17 @@
         backface-visibility: hidden;
       }
 
-      #theme-toggle {
-        position: absolute;
-        top: 15px;
-        right: var(--page-padding);
-        padding: 8px 12px;
-        background-color: var(--card-bg-color);
-        color: var(--text-color-dark);
-        border: 1px solid var(--border-light-color);
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9em;
-        z-index: 100;
-      }
-      #theme-toggle:hover {
-        opacity: 0.8;
-      }
 
       h1 {
-        color: var(--text-color-dark);
-        font-weight: 300;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 10px;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 8px;
         width: 100%;
         text-align: center;
-        margin-bottom: 10px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
       .main-container {
@@ -193,8 +150,8 @@
       #pendulum-canvas:active {
         cursor: grabbing;
       }
-      html[data-theme="dark"] #pendulum-canvas {
-        background-color: #333;
+      #pendulum-canvas {
+        background-color: var(--bg-light);
       }
 
       #visuals-container {
@@ -205,16 +162,14 @@
       }
 
       .visual-item {
-        background-color: #f0f0f0;
+        background-color: var(--bg-medium);
         padding: 12px 15px;
         border-radius: 6px;
-        border: 1px solid var(--border-light-color);
+        border: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-      }
-      html[data-theme="dark"] .visual-item {
-        background-color: #383838;
-        border-color: #555;
+        color: var(--text-primary);
+        box-shadow: var(--shadow-sm);
       }
 
       .visual-item.chart-item {
@@ -230,17 +185,17 @@
       .visual-item h3 {
         margin: 0 0 10px 0;
         font-size: 0.95em;
-        color: var(--text-color-dark);
+        color: var(--accent-secondary);
         font-weight: 600;
         flex-shrink: 0;
-        border-bottom: 1px solid var(--accent-light-grey);
+        border-bottom: 1px solid var(--border);
         padding-bottom: 6px;
         margin-bottom: 8px;
       }
       .visual-item p {
         margin: 4px 0;
         font-size: 0.9em;
-        color: var(--accent-grey);
+        color: var(--text-secondary);
         display: flex;
         justify-content: space-between;
       }
@@ -263,13 +218,10 @@
       .pos-circle {
         width: 50px;
         height: 50px;
-        border: 2px solid var(--accent-light-grey);
+        border: 2px solid var(--border);
         border-radius: 50%;
         position: relative;
-        background-color: #fff;
-      }
-      html[data-theme="dark"] .pos-circle {
-        background-color: #444;
+        background-color: var(--bg-light);
       }
 
       .pos-dot {
@@ -317,21 +269,18 @@
         border: 2px solid var(--accent-light-grey);
         border-radius: 50%;
         position: relative;
-        background-color: #fff;
+        background-color: var(--bg-light);
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: 0.7em;
         color: var(--accent-grey);
       }
-      html[data-theme="dark"] .rpm-gauge {
-        background-color: #444;
-      }
 
       .rpm-needle {
         width: 2px;
         height: 45%;
-        background-color: var(--text-color-dark);
+        background-color: var(--accent-secondary);
         position: absolute;
         bottom: 50%;
         left: calc(50% - 1px);
@@ -357,14 +306,12 @@
       }
 
       #controls-container fieldset {
-        border: 1px solid var(--border-light-color);
+        border: 1px solid var(--border);
         border-radius: 6px;
         margin-bottom: 20px;
         padding: 15px 20px;
-        background-color: #fafafa;
-      }
-      html[data-theme="dark"] #controls-container fieldset {
-        background-color: #303030;
+        background-color: var(--bg-medium);
+        box-shadow: var(--shadow-sm);
       }
       #controls-container legend {
         font-weight: 600;
@@ -408,26 +355,16 @@
       .control-item input[type="text"],
       .control-item select {
         padding: 8px 10px;
-        border: 1px solid var(--accent-light-grey);
+        border: 1px solid var(--border);
         border-radius: 4px;
         font-size: 0.9em;
         width: 100%;
-        background-color: #fff;
-        color: var(--text-color-dark);
-      }
-      html[data-theme="dark"] .control-item input[type="number"],
-      html[data-theme="dark"] .control-item input[type="text"],
-      html[data-theme="dark"] .control-item select {
-        background-color: #444;
-        color: var(--text-color-dark);
-        border-color: #666;
+        background-color: var(--bg-light);
+        color: var(--text-primary);
       }
       .control-item input[readonly] {
-        background-color: #eee;
+        background-color: var(--bg-medium);
         cursor: default;
-      }
-      html[data-theme="dark"] .control-item input[readonly] {
-        background-color: #555;
       }
 
       .control-item input[type="radio"] {
@@ -448,37 +385,25 @@
         cursor: pointer;
       }
 
-      button {
-        padding: 10px 18px;
-        border: none;
-        border-radius: 5px;
-        font-size: 1em;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s ease, transform 0.1s ease;
-        color: white;
-        background-color: var(--accent-grey);
-        /* Prevent layout shift */
-        contain: layout style;
-      }
-      button:hover {
-        opacity: 0.9;
-      }
-      button:active {
-        transform: scale(0.97);
-      }
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
       button.start {
-        background-color: var(--accent-cyan);
+        background-color: var(--accent-secondary);
+        color: #000;
       }
       button.stop {
         background-color: var(--accent-pink);
       }
       button.reset {
         background-color: var(--accent-grey);
+      }
+      button.start:hover:not(:disabled) {
+        background-color: var(--accent-green);
+        border-color: var(--accent-green);
+        color: #000;
+        box-shadow: var(--glow-green);
+      }
+      button.start:active:not(:disabled) {
+        background-color: var(--accent-green-dim);
+        border-color: var(--accent-green-dim);
       }
       button.download {
         background-color: var(--accent-purple);
@@ -546,16 +471,12 @@
         font-weight: normal;
         margin-top: 10px;
         line-height: 1.5;
-        color: var(--accent-grey);
-      }
-      html[data-theme="dark"] #equations-card .explanation {
-        color: var(--accent-light-grey);
+        color: var(--text-secondary);
       }
     </style>
   </head>
   <body>
-    <button id="theme-toggle">Toggle Theme</button>
-    <h1>DPS (Double Pendulum System)</h1>
+    <h1>SPD - Stochastic Phase Dynamics</h1>
 
     <div class="main-container">
       <div class="card" id="visuals-card">
@@ -607,7 +528,7 @@
                 <span>Avg E</span> <span id="avg-energy-display">0.00</span>
               </p>
               <p><span>ΔE</span> <span id="chaos-display">0.00</span> %</p>
-              <small>Avg & StDev % (last ~1s)</small>
+              <small>Coefficient of variation (last ~1s)</small>
             </div>
             <div class="visual-item data-display">
               <h3>Energy Detail (J)</h3>
@@ -685,7 +606,7 @@
               ></canvas>
             </div>
             <div class="visual-item chart-item">
-              <h3>Chaos History</h3>
+              <h3>Energy Stability</h3>
               <canvas
                 id="chaos-history-chart-canvas"
                 class="history-chart-canvas"
@@ -1222,7 +1143,17 @@
       
       // Cache DOM elements
       const canvas = document.getElementById("pendulum-canvas");
-      const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+      const ctxOptions = { alpha: false, desynchronized: true };
+      let ctx = canvas.getContext("2d", ctxOptions);
+      if (!ctx) {
+        ctx = canvas.getContext("2d", { alpha: false });
+      }
+      if (!ctx) {
+        ctx = canvas.getContext("2d");
+      }
+      if (!ctx) {
+        throw new Error("Unable to initialize 2D context for pendulum canvas.");
+      }
 
       const omegaHistoryChartCanvas = document.getElementById(
         "omega-history-chart-canvas"
@@ -1240,7 +1171,6 @@
       const startButton = document.getElementById("start-button");
       const stopButton = document.getElementById("stop-button");
       const resetButton = document.getElementById("reset-button");
-      const themeToggleButton = document.getElementById("theme-toggle");
 
       const simRateInput = document.getElementById("sim-rate-input");
       const renderRateInput = document.getElementById("render-rate-input");
@@ -1588,9 +1518,9 @@
         return { angularAccel1, angularAccel2 };
       }
 
-      // Symplectic (energy-preserving) integrator
-      // This is actually a semi-implicit Euler variant, not RK4
-      // It conserves energy better than standard explicit methods
+      // Velocity Verlet integrator (symplectic, energy-preserving)
+      // Also known as leapfrog method: half-step velocity, full-step position, half-step velocity
+      // Conserves energy better than standard explicit Euler methods
       function symplecticIntegrate(dt) {
         const halfStep = dt * 0.5;
 
@@ -2106,7 +2036,7 @@
       function updateHistory() {
         if (!isRunning && !isDraggingM1 && !isDraggingM2) return;
         const { ke1, ke2, pe1, pe2, totalEnergy } = calculateEnergies();
-        const { chaosValue, meanEnergy } = calculateChaosMetric(totalEnergy);
+        const { stabilityValue, meanEnergy } = calculateEnergyStability(totalEnergy);
         energyPlotHistory.push(totalEnergy);
         kePlotHistory.push(ke1 + ke2);
         pePlotHistory.push(pe1 + pe2);
@@ -2116,7 +2046,7 @@
         pe2PlotHistory.push(pe2);
         omega1History.push(omega1);
         omega2History.push(omega2);
-        chaosValueHistory.push(chaosValue);
+        chaosValueHistory.push(stabilityValue);
         const shiftIfLonger = (arr) => {
           if (arr.length > HISTORY_LENGTH) arr.shift();
         };
@@ -2160,35 +2090,35 @@
         };
       }
 
-      let energyHistoryForChaos = [];
-      function calculateChaosMetric(currentEnergy) {
+      let energyHistoryForStability = [];
+      function calculateEnergyStability(currentEnergy) {
         if (isDraggingM1 || isDraggingM2) {
-          energyHistoryForChaos = [];
-          return { chaosValue: 0, meanEnergy: calculateEnergies().totalEnergy };
+          energyHistoryForStability = [];
+          return { stabilityValue: 0, meanEnergy: calculateEnergies().totalEnergy };
         }
-        energyHistoryForChaos.push(currentEnergy);
-        if (energyHistoryForChaos.length > CHAOS_HISTORY_LENGTH)
-          energyHistoryForChaos.shift();
-        const n = energyHistoryForChaos.length;
+        energyHistoryForStability.push(currentEnergy);
+        if (energyHistoryForStability.length > CHAOS_HISTORY_LENGTH)
+          energyHistoryForStability.shift();
+        const n = energyHistoryForStability.length;
         if (n < CHAOS_HISTORY_LENGTH / 2)
           return {
-            chaosValue: 0,
+            stabilityValue: 0,
             meanEnergy:
               n > 0
-                ? energyHistoryForChaos.reduce((s, e) => s + e, 0) / n
+                ? energyHistoryForStability.reduce((s, e) => s + e, 0) / n
                 : currentEnergy,
           };
         const meanEnergy =
-          energyHistoryForChaos.reduce((sum, e) => sum + e, 0) / n;
-        if (Math.abs(meanEnergy) < 1e-6) return { chaosValue: 0, meanEnergy };
+          energyHistoryForStability.reduce((sum, e) => sum + e, 0) / n;
+        if (Math.abs(meanEnergy) < 1e-6) return { stabilityValue: 0, meanEnergy };
         const variance =
-          energyHistoryForChaos.reduce(
+          energyHistoryForStability.reduce(
             (sum, e) => sum + (e - meanEnergy) ** 2,
             0
           ) / n;
         const stDev = Math.sqrt(variance);
-        const chaosValue = (stDev / Math.abs(meanEnergy)) * 100;
-        return { chaosValue, meanEnergy };
+        const stabilityValue = (stDev / Math.abs(meanEnergy)) * 100;
+        return { stabilityValue, meanEnergy };
       }
 
       function calculateExternalForces(
@@ -2301,11 +2231,11 @@
         ke2Display.textContent = ke2.toFixed(2);
         pe1Display.textContent = pe1.toFixed(2);
         pe2Display.textContent = pe2.toFixed(2);
-        const { chaosValue, meanEnergy } = calculateChaosMetric(totalEnergy);
+        const { stabilityValue, meanEnergy } = calculateEnergyStability(totalEnergy);
         avgEnergyDisplay.textContent =
           isDraggingM1 || isDraggingM2 ? "N/A" : meanEnergy.toFixed(2);
         chaosDisplay.textContent =
-          isDraggingM1 || isDraggingM2 ? "N/A" : chaosValue.toFixed(2);
+          isDraggingM1 || isDraggingM2 ? "N/A" : stabilityValue.toFixed(2);
 
         const forces = calculateExternalForces(theta1, theta2, omega1, omega2);
         f1gxDisplay.textContent = forces.f1gx.toFixed(2);
@@ -2571,6 +2501,9 @@
           draw();
           updateVisualsPanel();
           drawHistoryCharts();
+        } else {
+          // Draw static state when stopped (not running and not dragging)
+          draw();
         }
         animationFrameId = RAF(gameLoop);
       }
@@ -2593,7 +2526,7 @@
           disableInputs(true);
           if (time <= 1e-6) {
             recordedData = [];
-            energyHistoryForChaos = [];
+            energyHistoryForStability = [];
             dataRecordingStatus.textContent = "Recording started...";
           }
           updateRecordingStatus();
@@ -2702,7 +2635,7 @@
         ke2PlotHistory = [];
         pe1PlotHistory = [];
         pe2PlotHistory = [];
-        energyHistoryForChaos = [];
+        energyHistoryForStability = [];
         recordedData = [];
       }
       function updateDefaultPositionDisplays() {
@@ -2815,7 +2748,7 @@
           ke2PlotHistory = [];
           pe1PlotHistory = [];
           pe2PlotHistory = [];
-          energyHistoryForChaos = [];
+          energyHistoryForStability = [];
         };
         if (distToM2 < grabRadius2) {
           isDraggingM2 = true;
@@ -3064,15 +2997,6 @@
         const isCollapsed = cardContent.classList.toggle("collapsed");
         toggle.textContent = isCollapsed ? "+" : "−";
       }
-      function applyTheme(theme) {
-        document.documentElement.setAttribute("data-theme", theme);
-        localStorage.setItem("theme", theme);
-        loadColors();
-        if (!isRunning && !isGeneratingFastCSV) {
-          draw();
-          drawHistoryCharts();
-        }
-      }
       function initialize() {
         loadColors();
         resetButton.addEventListener("click", resetSimulation);
@@ -3123,21 +3047,6 @@
           clearTimeout(resizeTimeout);
           resizeTimeout = setTimeout(resizeCanvas, 100);
         }, { passive: true });
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-        const savedTheme = localStorage.getItem("theme");
-        applyTheme(
-          savedTheme ? savedTheme : prefersDark.matches ? "dark" : "light"
-        );
-        prefersDark.addEventListener("change", (e) => {
-          if (!localStorage.getItem("theme")) {
-            applyTheme(e.matches ? "dark" : "light");
-          }
-        });
-        themeToggleButton.addEventListener("click", () => {
-          const currentTheme =
-            document.documentElement.getAttribute("data-theme");
-          applyTheme(currentTheme === "dark" ? "light" : "dark");
-        });
         resetSimulation();
         stopSimulation();
         requestAnimationFrame((ts) => {

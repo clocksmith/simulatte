@@ -132,13 +132,18 @@ self.onmessage = function (event) {
     });
     const heroComparison = compareScores(heroScore, bestScore);
     let share = 0;
-    if (heroComparison === 0) {
+    if (heroComparison > 0) {
+      // Hero wins outright
+      share = 1;
+    } else if (heroComparison === 0) {
+      // Hero ties for best hand
       let tieCount = 0;
       opponentScores.forEach((score) => {
         if (compareScores(score, bestScore) === 0) tieCount++;
       });
       share = 1 / (tieCount + 1);
     }
+    // If heroComparison < 0, hero loses and share remains 0
     handDistribution[heroScore[0]]++;
     sum += share;
     sumSq += share * share;
