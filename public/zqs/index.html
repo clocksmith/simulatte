@@ -47,6 +47,7 @@
 
       #main-content {
         display: flex;
+        flex-direction: row;
         flex-grow: 1;
         overflow: hidden;
       }
@@ -58,6 +59,8 @@
         justify-content: center;
         align-items: center;
         overflow: hidden;
+        min-height: 0;
+        min-width: 0;
       }
 
       #gl-canvas {
@@ -65,10 +68,10 @@
         width: 100%;
         height: 100%;
         background-color: transparent;
-        /* Optimize rendering */
         image-rendering: optimizeSpeed;
         image-rendering: -webkit-optimize-contrast;
         contain: strict;
+        touch-action: none;
       }
 
       #controls-info-container {
@@ -77,81 +80,27 @@
         display: flex;
         flex-direction: column;
         overflow-y: auto;
+        overflow-x: hidden;
         padding: 15px;
         gap: 20px;
         background-color: var(--bg-dark);
         border-left: 1px solid var(--border);
-        transition: transform 0.3s ease-in-out;
       }
 
-      #controls-toggle {
-        position: fixed;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1000;
-        background: var(--bg-medium);
-        border: 1px solid var(--border);
-        color: var(--text-primary);
-        width: 44px;
-        height: 44px;
-        border-radius: 8px;
-        cursor: pointer;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        gap: 4px;
-        padding: 0;
-        transition: all 0.2s ease;
-      }
-
-      #controls-toggle:hover {
-        background: var(--bg-light);
-        border-color: var(--accent-primary);
-        box-shadow: var(--glow-magenta);
-      }
-
-      #controls-toggle span {
-        width: 24px;
-        height: 2px;
-        background: var(--text-primary);
-        border-radius: 2px;
-        transition: all 0.3s ease;
-      }
-
-      #controls-info-container.closed + #controls-toggle span:nth-child(1) {
-        transform: translateY(6px) rotate(45deg);
-      }
-      #controls-info-container.closed + #controls-toggle span:nth-child(2) {
-        opacity: 0;
-      }
-      #controls-info-container.closed + #controls-toggle span:nth-child(3) {
-        transform: translateY(-6px) rotate(-45deg);
+      #controls-info-container > * {
+        flex: 0 0 auto;
       }
 
       @media (max-width: 1024px) {
+        #main-content {
+          flex-direction: column;
+        }
+
         #controls-info-container {
-          position: fixed;
-          right: 0;
-          top: 60px;
-          bottom: 0;
-          width: min(400px, 90vw);
-          border-left: 1px solid var(--border);
-          box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
-          z-index: 999;
-        }
-
-        #controls-info-container.closed {
-          transform: translateX(100%);
-        }
-
-        #controls-toggle {
-          display: flex;
-        }
-
-        #simulation-container {
           width: 100%;
+          max-height: 50vh;
+          border-left: none;
+          border-top: 1px solid var(--border);
         }
       }
 
@@ -406,12 +355,6 @@
           </div>
         </div>
       </main>
-
-      <button id="controls-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
     </div>
 
     <script id="vertex-shader" type="x-shader/x-vertex">
