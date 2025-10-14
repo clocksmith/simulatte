@@ -1449,15 +1449,41 @@
       }
 
       function resizeCanvas() {
+        // Use lower DPR on mobile to prevent artifacts
+        const baseDPR = window.devicePixelRatio || 1;
+        const dpr = baseDPR > 2 ? 1.5 : Math.min(baseDPR, 2);
+
+        // Grid canvas
         const gridWidth = gridCanvas.clientWidth || 800;
         const gridHeight = gridCanvas.clientHeight || 600;
-        gridCanvas.width = gridWidth;
-        gridCanvas.height = gridHeight;
+        const gridCanvasWidth = Math.round(gridWidth * dpr);
+        const gridCanvasHeight = Math.round(gridHeight * dpr);
 
+        gridCanvas.width = gridCanvasWidth;
+        gridCanvas.height = gridCanvasHeight;
+        gridCanvas.style.width = `${gridWidth}px`;
+        gridCanvas.style.height = `${gridHeight}px`;
+
+        // Scale context for DPR
+        gridCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        gridCtx.imageSmoothingEnabled = true;
+        gridCtx.imageSmoothingQuality = 'high';
+
+        // Torus canvas
         const torusWidth = torusCanvas.clientWidth || 800;
         const torusHeight = torusCanvas.clientHeight || 600;
-        torusCanvas.width = torusWidth;
-        torusCanvas.height = torusHeight;
+        const torusCanvasWidth = Math.round(torusWidth * dpr);
+        const torusCanvasHeight = Math.round(torusHeight * dpr);
+
+        torusCanvas.width = torusCanvasWidth;
+        torusCanvas.height = torusCanvasHeight;
+        torusCanvas.style.width = `${torusWidth}px`;
+        torusCanvas.style.height = `${torusHeight}px`;
+
+        // Scale context for DPR
+        torusCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        torusCtx.imageSmoothingEnabled = true;
+        torusCtx.imageSmoothingQuality = 'high';
 
         state.needsRenderGrid = true;
         state.needsRenderTorus = true;

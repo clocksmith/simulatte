@@ -872,13 +872,50 @@ function resetSimulation() {
 
 function resizeCanvas() {
   if (!app.canvas) return;
-  const rect = app.canvas.getBoundingClientRect();
-  app.width = rect.width;
-  app.height = rect.height;
-  const dpr = app.dpr;
-  app.canvas.width = Math.max(1, Math.round(rect.width * dpr));
-  app.canvas.height = Math.max(1, Math.round(rect.height * dpr));
-  if (app.ctx) app.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // Force a reflow to get accurate dimensions
+  const container = app.canvas.parentElement;
+  if (!container) return;
+
+  const rect = container.getBoundingClientRect();
+  const width = Math.max(1, rect.width);
+  const height = Math.max(1, rect.height);
+
+  app.width = width;
+  app.height = height;
+
+  // Use lower DPR on mobile to prevent artifacts and improve performance
+  // Cap at 1.5 instead of 2 for better mobile compatibility
+  const baseDPR = window.devicePixelRatio || 1;
+  const dpr = baseDPR > 2 ? 1.5 : Math.min(baseDPR, 2);
+  app.dpr = dpr;
+
+  // Ensure canvas dimensions don't exceed mobile GPU limits (typically 4096x4096)
+  const maxDimension = 4096;
+  let canvasWidth = Math.round(width * dpr);
+  let canvasHeight = Math.round(height * dpr);
+
+  if (canvasWidth > maxDimension || canvasHeight > maxDimension) {
+    const scale = Math.min(maxDimension / canvasWidth, maxDimension / canvasHeight);
+    canvasWidth = Math.round(canvasWidth * scale);
+    canvasHeight = Math.round(canvasHeight * scale);
+    app.dpr = dpr * scale;
+  }
+
+  app.canvas.width = canvasWidth;
+  app.canvas.height = canvasHeight;
+
+  // Set canvas CSS size explicitly
+  app.canvas.style.width = `${width}px`;
+  app.canvas.style.height = `${height}px`;
+
+  if (app.ctx) {
+    app.ctx.setTransform(app.dpr, 0, 0, app.dpr, 0, 0);
+    // Enable image smoothing for better rendering on mobile
+    app.ctx.imageSmoothingEnabled = true;
+    app.ctx.imageSmoothingQuality = 'high';
+  }
+
   renderWave();
 }
 
@@ -1147,7 +1184,15 @@ function loop(timestamp) {
 function bootstrap() {
   app.canvas = document.getElementById('gl-canvas');
   if (!app.canvas) return;
-  app.ctx = app.canvas.getContext('2d', { alpha: false, desynchronized: true });
+
+  // Use standard 2D context options for better mobile compatibility
+  // Removed 'desynchronized' which can cause artifacts on some mobile browsers
+  app.ctx = app.canvas.getContext('2d', {
+    alpha: false,
+    willReadFrequently: false,
+    desynchronized: false  // Changed from true to prevent tearing/artifacts
+  });
+
   ui.init();
   initializeArrays();
   resizeCanvas();
