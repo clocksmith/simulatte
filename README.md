@@ -29,6 +29,10 @@ Monte Carlo card game simulator analyzing three distinct player strategies (caut
 
 Meta-programming framework for dynamically generating MCP-compatible tools via LLM API calls, featuring live preview, version comparison, and executable web components.
 
+### CTS - Cap Table Simulator
+
+Founder-focused dilution and cap table explorer pairing a three-panel UI with a transparent, step-by-step math ledger for startup financing journeys.
+
 ## /utils
 
 ### SIMP <-> PROS
