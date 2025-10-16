@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CTS · Cap Table Simulator · Simulatte</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Founder-focused cap table simulator with transparent dilution math." />
+    <link rel="stylesheet" href="../simulatte-core.css" />
+    <link rel="stylesheet" href="./styles/cts.css" />
+  </head>
+  <body class="cts-app" data-theme="dark">
+    <noscript>
+      <div class="cts-noscript">CTS requires JavaScript for interactive simulations. Please enable JavaScript and reload.</div>
+    </noscript>
+
+    <header class="cts-header" aria-label="Application header">
+      <div class="cts-header__brand">
+        <span class="cts-header__label">Simulatte</span>
+        <span class="cts-header__divider" aria-hidden="true">∴</span>
+        <span class="cts-header__title">CTS · Cap Table Simulator</span>
+      </div>
+      <div class="cts-header__actions">
+        <button type="button" class="cts-button" data-command="toggle-theme" aria-label="Toggle theme">Theme</button>
+        <button type="button" class="cts-button" data-command="open-templates">Templates</button>
+        <button type="button" class="cts-button" data-command="open-compare">Compare</button>
+      </div>
+      <nav class="cts-mobile-nav" aria-label="Primary panels">
+        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-timeline">Timeline</button>
+        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-configurator">Stage</button>
+        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-results">Results</button>
+      </nav>
+    </header>
+
+    <main class="cts-stage" aria-label="Simulation workspace">
+      <section id="panel-timeline" class="cts-panel cts-panel--timeline" data-panel="timeline" aria-labelledby="timeline-title">
+        <header class="cts-panel__header">
+          <h2 id="timeline-title">Timeline Builder</h2>
+          <p class="cts-panel__help">Click a stage to edit it. Build your company's fundraising journey from founding to exit.</p>
+          <div class="cts-panel__actions">
+            <button type="button" class="cts-button" data-command="new-scenario">New Scenario</button>
+            <button type="button" class="cts-button" data-command="fork-scenario">Fork</button>
+            <button type="button" class="cts-button" data-command="export-scenario">Export</button>
+          </div>
+        </header>
+        <div class="cts-panel__body" role="navigation" aria-label="Stage timeline">
+          <ol class="cts-stage-list" id="cts-stage-list" tabindex="0" aria-live="polite">
+            <li class="cts-stage-card" data-loading="true">
+              <div class="cts-stage-card__body">
+                <div class="cts-stage-card__title">Loading...</div>
+                <div class="cts-stage-card__meta"><span>Initializing timeline</span></div>
+              </div>
+            </li>
+          </ol>
+          <div class="cts-add-stage-section">
+            <h3 class="cts-add-stage-title">+ Add Funding Stage</h3>
+            <div class="cts-stage-menu-static" id="cts-stage-menu-static"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-configurator" class="cts-panel cts-panel--configurator" data-panel="configurator" aria-labelledby="configurator-title">
+        <header class="cts-panel__header">
+          <h2 id="configurator-title">Stage Configurator</h2>
+          <p class="cts-panel__help">Edit the selected stage's parameters below.</p>
+          <div class="cts-panel__meta" id="cts-stage-meta"></div>
+        </header>
+        <div class="cts-panel__body">
+          <form id="cts-stage-form" class="cts-form" novalidate>
+            <div class="cts-form__placeholder" id="cts-form-placeholder" style="border-color: rgba(255, 255, 255, 0.2);">
+              ← Click a stage on the left to edit its parameters
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="panel-results" class="cts-panel cts-panel--results" data-panel="results" aria-labelledby="results-title">
+        <header class="cts-panel__header">
+          <h2 id="results-title">Results & Analysis</h2>
+          <p class="cts-panel__help">Real-time calculations update as you edit stages.</p>
+          <nav class="cts-tabs" aria-label="Results tabs">
+            <button type="button" class="cts-tab" data-tab="cap-table" aria-selected="true">Cap Table</button>
+            <button type="button" class="cts-tab" data-tab="dilution">Dilution</button>
+            <button type="button" class="cts-tab" data-tab="math">The Math</button>
+            <button type="button" class="cts-tab" data-tab="exit">Exit Waterfall</button>
+          </nav>
+        </header>
+        <div class="cts-panel__body" id="cts-results-root" aria-live="polite">
+          <div class="cts-results-placeholder" style="padding: 32px; text-align: center; opacity: 0.6;">
+            Loading results panel...
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="cts-footer" aria-label="Application status">
+      <output id="cts-status" class="cts-status" aria-live="polite">Initializing...</output>
+    </footer>
+
+    <div id="cts-modal-root" class="cts-modal-root" hidden></div>
+
+    <script type="module" src="./boot.js"></script>
+  </body>
+</html>
