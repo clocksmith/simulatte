@@ -33,6 +33,10 @@ Meta-programming framework for dynamically generating MCP-compatible tools via L
 
 Founder-focused dilution and cap table explorer pairing a three-panel UI with a transparent, step-by-step math ledger for startup financing journeys.
 
+### CBG - City Building Game
+
+Isometric park management simulator set in McCarren Park, Williamsburg Brooklyn. SimCity-style zoning with seasonal activities, Williamsburg culture (accordion players, tarot readers, TV bike guy), and WebGPU-powered rendering.
+
 ## /utils
 
 ### SIMP <-> PROS
