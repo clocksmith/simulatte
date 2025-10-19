@@ -1,0 +1,179 @@
+{
+  "name": "McCarren Park",
+  "width": 64,
+  "height": 48,
+  "metadata": {
+    "location": "Williamsburg & Greenpoint, Brooklyn, NY",
+    "description": "35-acre park serving North Brooklyn with diverse recreational facilities",
+    "realWorldSize": "35 acres",
+    "coordinates": {
+      "lat": 40.7204,
+      "lng": -73.9527
+    }
+  },
+  "facilities": [
+    {
+      "name": "McCarren Pool",
+      "type": "pool",
+      "x": 20,
+      "y": 15,
+      "width": 8,
+      "height": 4,
+      "description": "Olympic-size pool (capacity 1,500), summer only",
+      "seasonal": "summer"
+    },
+    {
+      "name": "Ice Skating Rink (The Beach)",
+      "type": "ice-rink",
+      "x": 20,
+      "y": 15,
+      "width": 8,
+      "height": 4,
+      "description": "Winter ice skating rink on the beach plaza",
+      "seasonal": "winter"
+    },
+    {
+      "name": "Running Track",
+      "type": "track",
+      "x": 35,
+      "y": 25,
+      "width": 10,
+      "height": 8,
+      "description": "Newly renovated running track"
+    },
+    {
+      "name": "Baseball Field #1",
+      "type": "baseball",
+      "x": 12,
+      "y": 25,
+      "width": 6,
+      "height": 6,
+      "description": "Baseball diamond"
+    },
+    {
+      "name": "Baseball Field #2",
+      "type": "baseball",
+      "x": 12,
+      "y": 33,
+      "width": 6,
+      "height": 6,
+      "description": "Baseball diamond"
+    },
+    {
+      "name": "Soccer Field",
+      "type": "soccer",
+      "x": 20,
+      "y": 25,
+      "width": 12,
+      "height": 8,
+      "description": "Large soccer field"
+    },
+    {
+      "name": "Basketball Courts",
+      "type": "basketball",
+      "x": 35,
+      "y": 15,
+      "width": 4,
+      "height": 6,
+      "description": "Multiple basketball courts"
+    },
+    {
+      "name": "Tennis Courts",
+      "type": "tennis",
+      "x": 40,
+      "y": 15,
+      "width": 4,
+      "height": 6,
+      "description": "Tennis courts"
+    },
+    {
+      "name": "Handball Courts",
+      "type": "handball",
+      "x": 45,
+      "y": 15,
+      "width": 3,
+      "height": 4,
+      "description": "Handball courts"
+    },
+    {
+      "name": "Bocce Courts",
+      "type": "bocce",
+      "x": 45,
+      "y": 20,
+      "width": 3,
+      "height": 3,
+      "description": "Bocce ball courts"
+    },
+    {
+      "name": "Skatepark",
+      "type": "skatepark",
+      "x": 50,
+      "y": 25,
+      "width": 5,
+      "height": 5,
+      "description": "Concrete skatepark"
+    },
+    {
+      "name": "Playground",
+      "type": "playground",
+      "x": 8,
+      "y": 15,
+      "width": 5,
+      "height": 5,
+      "description": "Children's playground"
+    },
+    {
+      "name": "Fitness Area",
+      "type": "fitness",
+      "x": 48,
+      "y": 15,
+      "width": 3,
+      "height": 3,
+      "description": "Outdoor fitness equipment"
+    },
+    {
+      "name": "Great Lawn",
+      "type": "lawn",
+      "x": 25,
+      "y": 5,
+      "width": 15,
+      "height": 8,
+      "description": "Large open lawn for picnics and recreation"
+    },
+    {
+      "name": "Greenmarket Area",
+      "type": "market",
+      "x": 15,
+      "y": 8,
+      "width": 6,
+      "height": 3,
+      "description": "Weekend farmers market location"
+    }
+  ],
+  "paths": [
+    {
+      "type": "main",
+      "points": [
+        [10, 10],
+        [30, 10],
+        [30, 20],
+        [50, 20]
+      ]
+    },
+    {
+      "type": "main",
+      "points": [
+        [20, 5],
+        [20, 40]
+      ]
+    },
+    {
+      "type": "secondary",
+      "points": [
+        [15, 15],
+        [45, 15]
+      ]
+    }
+  ],
+  "tiles": []
+}
