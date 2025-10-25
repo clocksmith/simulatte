@@ -153,6 +153,19 @@
       .card.black {
         color: #000000;
       }
+      .card.board-enter {
+        animation: boardReveal 0.35s ease;
+      }
+      @keyframes boardReveal {
+        from {
+          transform: translateY(10px) scale(0.95);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
       .card-back {
         background: #212121;
         border: 1px solid #444;
@@ -209,16 +222,17 @@
 
       .equity-display {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         width: 100%;
       }
       .equity-box {
         background-color: #2a2a2a;
         padding: 10px;
         border-radius: 6px;
+        position: relative;
       }
       .equity-box h4 {
         margin: 0 0 5px 0;
@@ -234,6 +248,55 @@
       .equity-box .value.live {
         font-size: 1.8em;
         color: var(--highlight-color);
+      }
+
+      .equity-box .equity-metadata {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.75em;
+        color: var(--secondary-text);
+      }
+
+      .equity-delta-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .delta-pill {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        font-weight: 600;
+        font-size: 0.85em;
+        color: var(--secondary-text);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        min-width: 120px;
+        text-align: center;
+      }
+      .delta-pill.positive {
+        background: rgba(53, 183, 121, 0.18);
+        border-color: rgba(53, 183, 121, 0.4);
+        color: #35b779;
+      }
+      .delta-pill.negative {
+        background: rgba(255, 105, 180, 0.18);
+        border-color: rgba(255, 105, 180, 0.45);
+        color: var(--accent-primary);
+      }
+      .sparkline-wrapper {
+        flex: 1;
+        min-width: 180px;
+        background: #2a2a2a;
+        border-radius: 6px;
+        padding: 6px 10px 4px;
+      }
+      #equity-delta-sparkline {
+        width: 100%;
+        height: 40px;
+        display: block;
       }
 
       #interactive-controls {
@@ -259,6 +322,115 @@
         background-color: #555;
         color: #888;
         cursor: not-allowed;
+      }
+      .sim-button.small {
+        padding: 6px 10px;
+        font-size: 0.8em;
+      }
+      .sim-button.active {
+        background-color: var(--highlight-color);
+      }
+
+      .suit-tracker-section {
+        margin-top: 18px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 14px;
+        display: none;
+      }
+      .suit-tracker-section h3 {
+        margin-top: 0;
+        text-align: left;
+        font-size: 1em;
+        color: var(--primary-text);
+        border: none;
+      }
+      .suit-tracker-content {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: stretch;
+      }
+      #suit-donut-chart {
+        flex: 0 0 160px;
+      }
+      #suit-donut-chart svg {
+        width: 160px;
+        height: 160px;
+        display: block;
+      }
+      #suit-summary {
+        flex: 1 1 180px;
+        font-size: 0.85em;
+        color: var(--secondary-text);
+      }
+      .suit-summary-item {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .suit-summary-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .suit-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        color: var(--primary-text);
+      }
+      .suit-tag .pip {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75em;
+        color: #111;
+      }
+
+      .sensitivity-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      #sensitivity-section {
+        display: none;
+      }
+      .sensitivity-table {
+        overflow-x: auto;
+      }
+      .sensitivity-table table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85em;
+      }
+      .sensitivity-table th,
+      .sensitivity-table td {
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: left;
+        color: var(--secondary-text);
+      }
+      .sensitivity-table th {
+        font-weight: 600;
+        color: var(--primary-text);
+      }
+      .sensitivity-table tr.improver td.delta {
+        color: #35b779;
+      }
+      .sensitivity-table tr.buster td.delta {
+        color: var(--accent-primary);
+      }
+      .sensitivity-table td.card {
+        font-weight: 600;
+        color: var(--primary-text);
       }
 
       /* CHARTING STYLES */
@@ -370,15 +542,28 @@
             <div class="equity-box" title="Average win rate for this hand across all possible scenarios with this many opponents">
               <h4>Expected Win Rate (All Scenarios)</h4>
               <span class="value" id="theoretical-equity-val">--</span>
+              <span class="equity-metadata" id="theoretical-equity-meta"></span>
             </div>
-            <div class="equity-box" id="live-equity-box" title="Win probability based on the specific cards dealt in this hand">
-              <h4>Current Hand Win Probability</h4>
-              <span class="value live" id="live-equity-val">--</span>
+            <div class="equity-box" id="live-equity-hidden-box" title="Win probability assuming opponents are still hidden and can hold any remaining cards">
+              <h4>Win Probability (Unknown Villains)</h4>
+              <span class="value live" id="live-equity-hidden-val">--</span>
+              <span class="equity-metadata" id="live-equity-hidden-meta"></span>
+            </div>
+            <div class="equity-box" id="live-equity-known-box" title="Win probability with perfect information about every player's hole cards">
+              <h4>Win Probability (All Cards Revealed)</h4>
+              <span class="value live" id="live-equity-known-val">--</span>
+              <span class="equity-metadata" id="live-equity-known-meta"></span>
+            </div>
+          </div>
+          <div class="equity-delta-row" id="equity-delta-row" style="display: none;">
+            <div id="equity-delta-pill" class="delta-pill neutral">Δ --</div>
+            <div class="sparkline-wrapper">
+              <svg id="equity-delta-sparkline" viewBox="0 0 120 40"></svg>
             </div>
           </div>
           <div class="info-box" id="equity-explainer" style="display: none;">
             <p>
-              <strong>Current Hand Win Probability</strong> simulates all possible remaining cards to calculate your exact chance of winning with the specific cards that were dealt to all players in this hand.
+              <strong>Unknown Villains</strong> treats every opponent card as unseen and rerolls their ranges each simulation. <strong>All Cards Revealed</strong> conditions on the exact hands currently dealt. The delta and sparkline show how much perfect information is worth street by street.
             </p>
           </div>
           <div class="poker-table" id="poker-table-area">
@@ -412,6 +597,13 @@
               Reveal Opponent Cards
             </button>
           </div>
+          <div id="suit-tracker-section" class="suit-tracker-section">
+            <h3>Flush Outlook</h3>
+            <div class="suit-tracker-content">
+              <div id="suit-donut-chart"></div>
+              <div id="suit-summary"></div>
+            </div>
+          </div>
         </div>
 
         <div class="panel">
@@ -429,6 +621,18 @@
               <h3>Live Hand Analysis</h3>
               <div class="charts-grid" id="live-charts-grid"></div>
             </div>
+            <div class="charts-section" id="sensitivity-section">
+              <h3>Next Card Impact</h3>
+              <div class="sensitivity-controls">
+                <button class="sim-button small" data-sensitivity-mode="fog" id="sensitivity-fog-btn">
+                  Unknown Villains
+                </button>
+                <button class="sim-button small" data-sensitivity-mode="omniscient" id="sensitivity-known-btn">
+                  All Cards Revealed
+                </button>
+              </div>
+              <div class="sensitivity-table" id="sensitivity-table-container"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -445,6 +649,23 @@
         // SECTION 1: DATA, CONSTANTS, & STATE
         const RANKS = "AKQJT98765432".split("");
         const SUITS = ["s", "h", "d", "c"];
+        const SUIT_SYMBOLS = { s: "♠", h: "♥", d: "♦", c: "♣" };
+        const SUIT_LABELS = {
+          s: "Spades",
+          h: "Hearts",
+          d: "Diamonds",
+          c: "Clubs",
+        };
+        const SUIT_COLOR_MAP = {
+          s: "#4c78ff",
+          h: "#ff5c8d",
+          d: "#f6b26b",
+          c: "#63c35b",
+        };
+        const RANK_INDEX = RANKS.reduce((acc, r, idx) => {
+          acc[r] = idx;
+          return acc;
+        }, {});
         const HAND_RANKS_TXT = [
           "High Card",
           "Pair",
@@ -456,6 +677,23 @@
           "4-of-a-Kind",
           "Straight Flush",
         ];
+        const STREET_SEQUENCE = ["preflop", "flop", "turn", "river"];
+        const STREET_LABELS = {
+          preflop: "Preflop",
+          flop: "Flop",
+          turn: "Turn",
+          river: "River",
+        };
+        const STREET_ORDER = STREET_SEQUENCE.reduce((acc, street, idx) => {
+          acc[street] = idx;
+          return acc;
+        }, {});
+        const SIM_SAMPLES_BY_STREET = {
+          preflop: 1800,
+          flop: 1400,
+          turn: 1000,
+          river: 1,
+        };
         const equityData = {
           AA: {
             1: 85.2,
@@ -1724,8 +1962,11 @@
           currentTheoretical: null,
           theoreticalCache: new Map(),
           currentDeal: null,
-          latestLiveResult: null,
+          latestLiveResult: { omniscient: null, fog: null },
           showOpponentCards: false,
+          equityHistory: [],
+          sensitivityMode: "fog",
+          previousBoardCount: 0,
         };
 
         // SECTION 2: UI & UTILITIES
@@ -1820,6 +2061,7 @@
               oppDiv.appendChild(createCardElement(null));
               table.appendChild(oppDiv);
             }
+            appState.previousBoardCount = 0;
             return;
           }
 
@@ -1873,14 +2115,19 @@
                   0,
                   street === "flop" ? 3 : street === "turn" ? 4 : 5
                 );
-          boardCards.forEach((c) => {
+          const previousBoard = appState.previousBoardCount || 0;
+          boardCards.forEach((c, idx) => {
             const card = createCardElement(c);
             // Check if this board card is part of any winning hand
             if (showdown && winningHands.some(wh => wh && wh.includes(c))) {
               card.classList.add("winning-card");
             }
+            if (idx >= previousBoard) {
+              card.classList.add("board-enter");
+            }
             boardDiv.appendChild(card);
           });
+          appState.previousBoardCount = boardCards.length;
         }
 
         function displayHandFromString(handStr) {
@@ -1899,14 +2146,24 @@
           document.getElementById("selected-hand-title").textContent =
             appState.selectedHand || "No Hand Selected";
           appState.currentTheoretical = null;
-          appState.latestLiveResult = null;
+          appState.latestLiveResult = { omniscient: null, fog: null };
           appState.currentDeal = null;
           appState.showOpponentCards = false;
+          appState.equityHistory = [];
+          appState.sensitivityMode = "fog";
+          appState.previousBoardCount = 0;
           updateEquityDisplay(null, null);
           document.getElementById("preflop-charts-grid").innerHTML =
             '<div class="info-box" style="grid-column: 1 / -1; text-align: center;"><p>Select a hand to see its analysis.</p></div>';
           document.getElementById("live-charts-section").style.display = "none";
           document.getElementById("equity-explainer").style.display = "none";
+          document.getElementById("equity-delta-row").style.display = "none";
+          document.getElementById("suit-tracker-section").style.display = "none";
+          document.getElementById("sensitivity-section").style.display = "none";
+          document.getElementById("sensitivity-table-container").innerHTML = "";
+          document
+            .querySelectorAll(".sensitivity-controls .sim-button")
+            .forEach((btn) => btn.classList.remove("active"));
           document.getElementById("start-interactive-btn").disabled = !appState.selectedHand;
           document.getElementById("start-interactive-btn").style.display = "inline-block";
           document.getElementById("deal-street-btn").style.display = "none";
@@ -1918,30 +2175,105 @@
           const theoreticalEl = document.getElementById(
             "theoretical-equity-val"
           );
-          const liveEl = document.getElementById("live-equity-val");
+          const theoreticalMetaEl = document.getElementById(
+            "theoretical-equity-meta"
+          );
+          const hiddenEl = document.getElementById("live-equity-hidden-val");
+          const hiddenMetaEl = document.getElementById(
+            "live-equity-hidden-meta"
+          );
+          const knownEl = document.getElementById("live-equity-known-val");
+          const knownMetaEl = document.getElementById("live-equity-known-meta");
+          const deltaRow = document.getElementById("equity-delta-row");
+          const deltaPill = document.getElementById("equity-delta-pill");
+          const explainer = document.getElementById("equity-explainer");
+
+          const fog = live && live.fog ? live.fog : null;
+          const omniscient = live && live.omniscient ? live.omniscient : null;
 
           if (theoreticalEl) {
             if (theoretical && typeof theoretical.equity === "number") {
               theoreticalEl.textContent = `${theoretical.equity.toFixed(1)}%`;
-              if (theoretical.samples) {
-                theoreticalEl.title = `Precomputed table value`;
-              } else {
-                theoreticalEl.removeAttribute("title");
+              theoreticalEl.title = theoretical.samples
+                ? `Simulated over ${theoretical.samples} samples`
+                : `Precomputed table value`;
+              if (theoreticalMetaEl) {
+                theoreticalMetaEl.textContent = theoretical.samples
+                  ? `Monte Carlo (${theoretical.samples.toLocaleString()} runs)`
+                  : `Lookup table`;
               }
             } else {
               theoreticalEl.textContent = "--";
               theoreticalEl.removeAttribute("title");
+              if (theoreticalMetaEl) theoreticalMetaEl.textContent = "";
             }
           }
 
-          if (liveEl) {
-            if (live && typeof live.equity === "number") {
-              liveEl.textContent = `${live.equity.toFixed(1)}%`;
-              liveEl.title = live.stderr ? `Std Err: ${live.stderr.toFixed(2)}%` : "";
+          const setLiveBox = (el, metaEl, result) => {
+            if (!el) return;
+            if (result && typeof result.equity === "number") {
+              el.textContent = `${result.equity.toFixed(1)}%`;
+              const stderrVal =
+                result.stderr && !Number.isNaN(result.stderr)
+                  ? result.stderr.toFixed(2)
+                  : null;
+              const titleBits = [];
+              if (stderrVal) titleBits.push(`Std Err ±${stderrVal}%`);
+              if (typeof result.ties === "number" && result.samples) {
+                titleBits.push(`Ties ${(result.ties / result.samples * 100).toFixed(1)}%`);
+              }
+              if (titleBits.length) {
+                el.title = titleBits.join(" · ");
+              } else {
+                el.removeAttribute("title");
+              }
+              if (metaEl) {
+                const metaParts = [];
+                if (result.samples) {
+                  metaParts.push(`${result.samples.toLocaleString()} sims`);
+                }
+                if (stderrVal) {
+                  metaParts.push(`±${stderrVal}%`);
+                }
+                if (typeof result.ties === "number" && result.samples) {
+                  metaParts.push(`ties ${(result.ties / result.samples * 100).toFixed(1)}%`);
+                }
+                metaEl.textContent = metaParts.join(" · ");
+              }
             } else {
-              liveEl.textContent = "--";
-              liveEl.removeAttribute("title");
+              el.textContent = "--";
+              el.removeAttribute("title");
+              if (metaEl) metaEl.textContent = "";
             }
+          };
+
+          setLiveBox(hiddenEl, hiddenMetaEl, fog);
+          setLiveBox(knownEl, knownMetaEl, omniscient);
+
+          if (fog && omniscient) {
+            const delta = fog.equity - omniscient.equity;
+            const rounded = delta.toFixed(1);
+            deltaRow.style.display = "flex";
+            deltaPill.textContent = `Δ Unknown - Revealed: ${delta >= 0 ? "+" : ""}${rounded}%`;
+            deltaPill.classList.remove("positive", "negative");
+            if (Math.abs(delta) < 0.15) {
+              deltaPill.classList.remove("positive", "negative");
+            } else if (delta > 0) {
+              deltaPill.classList.add("positive");
+              deltaPill.classList.remove("negative");
+            } else {
+              deltaPill.classList.add("negative");
+              deltaPill.classList.remove("positive");
+            }
+            renderEquitySparkline(appState.equityHistory);
+          } else {
+            deltaRow.style.display = "none";
+            const spark = document.getElementById("equity-delta-sparkline");
+            if (spark) spark.innerHTML = "";
+          }
+
+          if (explainer) {
+            explainer.style.display = fog || omniscient ? "block" : "none";
           }
         }
 
@@ -2061,33 +2393,69 @@
           return 0;
         }
 
-        function computeEquityForDeal(heroHand, opponentHands, boardCards) {
-          const deck = createDeck().filter(
-            c => !heroHand.includes(c) && !opponentHands.flat().includes(c) && !boardCards.includes(c)
-          );
+        function getSamplesForStreet(street) {
+          return SIM_SAMPLES_BY_STREET[street] || 1200;
+        }
 
-          const numSims = 1000;
-          let wins = 0, ties = 0;
+        function computeEquityForDeal(
+          heroHand,
+          opponentHands,
+          boardCards,
+          options = {}
+        ) {
+          const { mode = "omniscient", samples, trackNextCard = false } = options;
+          const opponentsCount = opponentHands.length;
+          const knownCards = new Set([...heroHand, ...boardCards]);
+          if (mode === "omniscient") {
+            opponentHands.flat().forEach((c) => knownCards.add(c));
+          }
+          const baseDeck = createDeck().filter((card) => !knownCards.has(card));
+          const cardsNeeded = Math.max(0, 5 - boardCards.length);
+          const requestedSamples =
+            samples && samples > 0 ? Math.floor(samples) : 1000;
+          const totalSims =
+            mode === "omniscient" && cardsNeeded === 0 ? 1 : requestedSamples;
+
+          let wins = 0;
+          let ties = 0;
+          let sum = 0;
+          let sumSq = 0;
           const handDistribution = new Array(9).fill(0);
+          const impactMap = trackNextCard ? new Map() : null;
 
-          for (let sim = 0; sim < numSims; sim++) {
-            const shuffled = shuffleDeck([...deck]);
+          for (let sim = 0; sim < totalSims; sim++) {
+            const deckCopy =
+              cardsNeeded > 0 || mode === "fog"
+                ? shuffleDeck([...baseDeck])
+                : [...baseDeck];
+
+            const simOpponents =
+              mode === "omniscient"
+                ? opponentHands
+                : Array.from({ length: opponentsCount }, () => [
+                    deckCopy.pop(),
+                    deckCopy.pop(),
+                  ]);
+
             const fullBoard = [...boardCards];
             while (fullBoard.length < 5) {
-              fullBoard.push(shuffled.pop());
+              fullBoard.push(deckCopy.pop());
             }
 
             const heroScore = evaluateHand([...heroHand, ...fullBoard]);
             handDistribution[heroScore[0]]++;
 
-            const oppScores = opponentHands.map(hand => evaluateHand([...hand, ...fullBoard]));
+            const opponentScores = simOpponents.map((hand) =>
+              evaluateHand([...hand, ...fullBoard])
+            );
+
             let heroWins = true;
             let isTie = false;
-
-            for (const oppScore of oppScores) {
+            for (const oppScore of opponentScores) {
               const cmp = compareScores(heroScore, oppScore);
               if (cmp < 0) {
                 heroWins = false;
+                isTie = false;
                 break;
               } else if (cmp === 0) {
                 isTie = true;
@@ -2099,14 +2467,50 @@
             } else if (heroWins) {
               wins++;
             }
+
+            const outcome = heroWins ? (isTie ? 0.5 : 1) : 0;
+            sum += outcome;
+            sumSq += outcome * outcome;
+
+            if (impactMap && cardsNeeded > 0) {
+              const keyCard = fullBoard[boardCards.length];
+              if (keyCard) {
+                const entry = impactMap.get(keyCard) || { sum: 0, count: 0 };
+                entry.sum += outcome;
+                entry.count += 1;
+                impactMap.set(keyCard, entry);
+              }
+            }
           }
 
-          const equity = ((wins + ties * 0.5) / numSims) * 100;
-          return {
+          const mean = sum / totalSims;
+          const equity = mean * 100;
+          const variance = Math.max(0, sumSq / totalSims - mean * mean);
+          const stderr = Math.sqrt(variance / totalSims) * 100;
+
+          const result = {
             equity,
-            samples: numSims,
+            samples: totalSims,
             handDistribution,
+            wins,
+            ties,
+            stderr,
+            mode,
+            nextCardImpacts: [],
           };
+
+          if (impactMap && impactMap.size) {
+            result.nextCardImpacts = Array.from(impactMap.entries()).map(
+              ([card, stats]) => ({
+                card,
+                equity: (stats.sum / stats.count) * 100,
+                delta: (stats.sum / stats.count) * 100 - equity,
+                count: stats.count,
+              })
+            );
+          }
+
+          return result;
         }
 
         function startInteractiveHand() {
@@ -2129,6 +2533,7 @@
             opponentHands,
             board,
           };
+          appState.previousBoardCount = 0;
 
           document.getElementById("start-interactive-btn").style.display = "none";
           const dealBtn = document.getElementById("deal-street-btn");
@@ -2178,21 +2583,570 @@
                   street === "flop" ? 3 : street === "turn" ? 4 : 5
                 );
 
-          const result = computeEquityForDeal(heroHand, opponentHands, boardCards);
-          appState.latestLiveResult = result;
-          updateEquityDisplay(appState.currentTheoretical, result);
-
-          const liveChartsGrid = document.getElementById("live-charts-grid");
-          liveChartsGrid.innerHTML =
-            '<div class="chart-container" id="live-dist-chart"></div>';
-          createDistributionBarChart(
-            document.getElementById("live-dist-chart"),
-            "Final Hand Strength %",
-            result.handDistribution.map((count, i) => ({
-              label: HAND_RANKS_TXT[i],
-              value: count / result.samples,
-            }))
+          const samples = getSamplesForStreet(street);
+          const fogResult = computeEquityForDeal(heroHand, opponentHands, boardCards, {
+            mode: "fog",
+            samples,
+            trackNextCard: true,
+          });
+          const omniscientResult = computeEquityForDeal(
+            heroHand,
+            opponentHands,
+            boardCards,
+            {
+              mode: "omniscient",
+              samples,
+              trackNextCard: true,
+            }
           );
+
+          appState.latestLiveResult = {
+            fog: fogResult,
+            omniscient: omniscientResult,
+          };
+          recordEquitySnapshot(street, fogResult, omniscientResult);
+          updateEquityDisplay(appState.currentTheoretical, appState.latestLiveResult);
+          renderLiveCharts();
+          renderSuitTracker(heroHand, opponentHands, boardCards);
+          renderSensitivitySection();
+        }
+
+        function recordEquitySnapshot(street, fogResult, omniscientResult) {
+          if (!street) return;
+          const snapshot = {
+            street,
+            fog: fogResult.equity,
+            omniscient: omniscientResult.equity,
+            delta: fogResult.equity - omniscientResult.equity,
+          };
+          const idx = appState.equityHistory.findIndex(
+            (entry) => entry.street === street
+          );
+          if (idx >= 0) {
+            appState.equityHistory[idx] = snapshot;
+          } else {
+            appState.equityHistory.push(snapshot);
+          }
+          appState.equityHistory.sort(
+            (a, b) => STREET_ORDER[a.street] - STREET_ORDER[b.street]
+          );
+        }
+
+        function renderLiveCharts() {
+          const liveSection = document.getElementById("live-charts-section");
+          const liveChartsGrid = document.getElementById("live-charts-grid");
+          if (!liveSection || !liveChartsGrid) return;
+          if (!appState.equityHistory.length) {
+            liveSection.style.display = "none";
+            liveChartsGrid.innerHTML = "";
+            return;
+          }
+
+          liveSection.style.display = "block";
+          liveChartsGrid.innerHTML =
+            '<div class="chart-container" id="equity-timeline-chart"></div>' +
+            '<div class="chart-container" id="live-dist-chart"></div>';
+
+          const timelineContainer = document.getElementById(
+            "equity-timeline-chart"
+          );
+          renderEquityTimeline(timelineContainer, appState.equityHistory);
+
+          const activeMode = appState.sensitivityMode || "fog";
+          const activeResult = appState.latestLiveResult[activeMode];
+          const distContainer = document.getElementById("live-dist-chart");
+          if (activeResult && distContainer) {
+            createDistributionBarChart(
+              distContainer,
+              `Final Hand Strength % (${activeMode === "fog" ? "Unknown Villains" : "All Cards Revealed"})`,
+              activeResult.handDistribution.map((count, i) => ({
+                label: HAND_RANKS_TXT[i],
+                value: activeResult.samples
+                  ? count / activeResult.samples
+                  : 0,
+              }))
+            );
+          }
+        }
+
+        function renderEquityTimeline(container, history) {
+          if (!container) return;
+          container.innerHTML =
+            '<h3>Equity Timeline</h3><svg viewBox="0 0 320 200"></svg>';
+          const svg = container.querySelector("svg");
+          if (!history.length) {
+            svg.innerHTML =
+              '<text x="160" y="100" text-anchor="middle" fill="#aaa">No Data</text>';
+            return;
+          }
+
+          const values = history
+            .flatMap((entry) => [entry.fog, entry.omniscient])
+            .filter((val) => typeof val === "number");
+          if (!values.length) {
+            svg.innerHTML =
+              '<text x="160" y="100" text-anchor="middle" fill="#aaa">No Data</text>';
+            return;
+          }
+
+          const width = 320;
+          const height = 200;
+          const margin = { top: 24, right: 20, bottom: 32, left: 44 };
+          const plotWidth = width - margin.left - margin.right;
+          const plotHeight = height - margin.top - margin.bottom;
+          const minVal = Math.max(0, Math.min(...values) - 5);
+          const maxVal = Math.min(100, Math.max(...values) + 5);
+          const range = Math.max(5, maxVal - minVal);
+          const stepX =
+            history.length > 1 ? plotWidth / (history.length - 1) : plotWidth;
+
+          const buildPoints = (key) =>
+            history.map((entry, idx) => {
+              const value = entry[key];
+              const x =
+                margin.left +
+                (history.length > 1 ? idx * stepX : plotWidth / 2);
+              const y =
+                margin.top +
+                plotHeight -
+                ((value - minVal) / range) * plotHeight;
+              return { x, y, value, entry };
+            });
+
+          const fogPoints = buildPoints("fog");
+          const knownPoints = buildPoints("omniscient");
+
+          const axes = `
+            <line x1="${margin.left}" y1="${margin.top + plotHeight}"
+              x2="${margin.left + plotWidth}" y2="${margin.top + plotHeight}" stroke="#555"/>
+            <line x1="${margin.left}" y1="${margin.top}"
+              x2="${margin.left}" y2="${margin.top + plotHeight}" stroke="#555"/>
+          `;
+          svg.innerHTML = axes;
+
+          const drawPath = (points, color, dashed = false) => {
+            const d = points
+              .map((pt, idx) => `${idx === 0 ? "M" : "L"} ${pt.x} ${pt.y}`)
+              .join(" ");
+            const path = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path"
+            );
+            path.setAttribute("d", d);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", color);
+            path.setAttribute("stroke-width", dashed ? "1.5" : "2.5");
+            if (dashed) path.setAttribute("stroke-dasharray", "6,4");
+            svg.appendChild(path);
+          };
+
+          drawPath(fogPoints, "#35b779", false);
+          drawPath(knownPoints, "rgba(255, 255, 255, 0.55)", true);
+
+          const addPointMarkers = (points, color, label, drawAxisLabels) => {
+            points.forEach((pt, idx) => {
+              if (typeof pt.value !== "number") return;
+              const circle = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "circle"
+              );
+              circle.setAttribute("cx", pt.x);
+              circle.setAttribute("cy", pt.y);
+              circle.setAttribute("r", "4");
+              circle.setAttribute("fill", color);
+              circle.addEventListener("mouseover", (evt) => {
+                const delta =
+                  idx > 0
+                    ? pt.value - points[idx - 1].value
+                    : pt.value - pt.entry.omniscient;
+                const deltaLabel =
+                  idx > 0
+                    ? `Δ prev: ${delta >= 0 ? "+" : ""}${delta.toFixed(1)}%`
+                    : label === "Unknown Villains"
+                    ? `Gap vs revealed: ${delta >= 0 ? "+" : ""}${delta.toFixed(
+                        1
+                      )}%`
+                    : "";
+                showTooltip(
+                  evt,
+                  `${STREET_LABELS[pt.entry.street]}<br>${label}: ${pt.value.toFixed(
+                    1
+                  )}%${deltaLabel ? `<br>${deltaLabel}` : ""}`
+                );
+              });
+              circle.addEventListener("mouseout", hideTooltip);
+              svg.appendChild(circle);
+
+              if (drawAxisLabels) {
+                const axisLabel = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "text"
+                );
+                axisLabel.setAttribute("x", pt.x);
+                axisLabel.setAttribute("y", margin.top + plotHeight + 18);
+                axisLabel.setAttribute("fill", "#aaa");
+                axisLabel.setAttribute("font-size", "10");
+                axisLabel.setAttribute("text-anchor", "middle");
+                axisLabel.textContent = STREET_LABELS[pt.entry.street];
+                svg.appendChild(axisLabel);
+              }
+            });
+          };
+
+          addPointMarkers(fogPoints, "#35b779", "Unknown Villains", true);
+          addPointMarkers(
+            knownPoints,
+            "rgba(255, 255, 255, 0.65)",
+            "All Cards Revealed",
+            false
+          );
+        }
+
+        function renderEquitySparkline(history) {
+          const spark = document.getElementById("equity-delta-sparkline");
+          if (!spark) return;
+          if (!history || !history.length) {
+            spark.innerHTML = "";
+            return;
+          }
+          const width = 120;
+          const height = 40;
+          const padding = 4;
+          const deltas = history.map((entry) => entry.delta || 0);
+          const min = Math.min(...deltas, 0);
+          const max = Math.max(...deltas, 0);
+          const range = Math.max(0.5, max - min || 1);
+          const step =
+            history.length > 1
+              ? (width - padding * 2) / (history.length - 1)
+              : 0;
+          const linePoints = deltas.map((delta, idx) => {
+            const x = padding + (history.length > 1 ? idx * step : (width - padding * 2) / 2);
+            const y =
+              height -
+              padding -
+              ((delta - min) / range) * (height - padding * 2);
+            return `${idx === 0 ? "M" : "L"}${x} ${y}`;
+          });
+          const baselineY =
+            height -
+            padding -
+            ((0 - min) / range) * (height - padding * 2);
+          spark.innerHTML = `
+            <path d="M${padding} ${baselineY} L${width - padding} ${baselineY}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <path d="${linePoints.join(" ")}" fill="none" stroke="#35b779" stroke-width="2"/>
+          `;
+        }
+
+        function renderSuitTracker(heroHand, opponentHands, boardCards) {
+          const section = document.getElementById("suit-tracker-section");
+          if (!section) return;
+          if (!heroHand || !heroHand.length) {
+            section.style.display = "none";
+            return;
+          }
+          section.style.display = "block";
+
+          const heroCounts = SUITS.reduce((acc, suit) => {
+            acc[suit] = 0;
+            return acc;
+          }, {});
+          heroHand.forEach((card) => {
+            heroCounts[card.slice(-1)]++;
+          });
+
+          const boardCounts = SUITS.reduce((acc, suit) => {
+            acc[suit] = 0;
+            return acc;
+          }, {});
+          boardCards.forEach((card) => {
+            boardCounts[card.slice(-1)]++;
+          });
+
+          const baseKnown = new Set([...heroHand, ...boardCards]);
+          const opponentFlat = opponentHands.flat();
+          const opponentSet = new Set(opponentFlat);
+          const blockers = SUITS.reduce((acc, suit) => {
+            acc[suit] = 0;
+            return acc;
+          }, {});
+          opponentFlat.forEach((card) => (blockers[card.slice(-1)] += 1));
+
+          const baseDeck = createDeck().filter((card) => !baseKnown.has(card));
+
+          const actualDeck = appState.showOpponentCards
+            ? baseDeck.filter((card) => !opponentSet.has(card))
+            : baseDeck;
+          const actualCounts = SUITS.reduce((acc, suit) => {
+            acc[suit] = 0;
+            return acc;
+          }, {});
+          actualDeck.forEach((card) => {
+            actualCounts[card.slice(-1)]++;
+          });
+
+          const summary = document.getElementById("suit-summary");
+          const donutContainer = document.getElementById("suit-donut-chart");
+          if (donutContainer) {
+            renderSuitDonut(donutContainer, actualCounts);
+          }
+
+          if (!summary) return;
+          const heroSummaries = SUITS.map((suit) => {
+            const heroCards = heroCounts[suit];
+            if (!heroCards) return null;
+            const boardSuitCards = boardCounts[suit];
+            const totalSeen = heroCards + boardSuitCards;
+            const cardsNeeded = Math.max(0, 5 - totalSeen);
+            const outsWithoutBlockers = Math.max(0, 13 - totalSeen);
+            const blocked = appState.showOpponentCards ? blockers[suit] : 0;
+            const liveOuts = appState.showOpponentCards
+              ? Math.max(0, outsWithoutBlockers - blocked)
+              : outsWithoutBlockers;
+            const remainingSuitCards = actualDeck
+              .filter((card) => card.slice(-1) === suit)
+              .sort(
+                (a, b) =>
+                  RANK_INDEX[a[0]] - RANK_INDEX[b[0]]
+              );
+            const cleanList = remainingSuitCards
+              .slice(0, 4)
+              .map((card) => formatCardLabel(card))
+              .join(", ");
+            let status;
+            if (totalSeen >= 5) {
+              status = "Flush made";
+            } else if (boardSuitCards >= 3 || totalSeen >= 4) {
+              status = "Four to a flush";
+            } else if (totalSeen >= 3) {
+              status = "Backdoor draw";
+            } else {
+              status = "Runner-runner needed";
+            }
+            return {
+              suit,
+              heroCards,
+              boardSuitCards,
+              cardsNeeded,
+              outsWithoutBlockers,
+              liveOuts,
+              blocked,
+              cleanList,
+              status,
+            };
+          }).filter(Boolean);
+
+          const boardThreats = SUITS.map((suit) => {
+            const boardSuitCards = boardCounts[suit];
+            if (boardSuitCards < 3) return null;
+            const blockersKnown = appState.showOpponentCards
+              ? blockers[suit]
+              : null;
+            return {
+              suit,
+              boardSuitCards,
+              blockersKnown,
+            };
+          }).filter(Boolean);
+
+          const buildHeroMarkup = heroSummaries
+            .map((entry) => {
+              const pipStyle = `background:${SUIT_COLOR_MAP[entry.suit]}`;
+              return `
+                <div class="suit-summary-item">
+                  <div class="suit-tag">
+                    <span class="pip" style="${pipStyle}">${SUIT_SYMBOLS[entry.suit]}</span>
+                    ${SUIT_LABELS[entry.suit]}
+                  </div>
+                  <div>${entry.status} · needs ${entry.cardsNeeded} ${
+                entry.cardsNeeded === 1 ? "card" : "cards"
+              }</div>
+                  <div>${entry.liveOuts} live outs${
+                appState.showOpponentCards
+                  ? ` (${entry.blocked} blocked)`
+                  : ""
+              }</div>
+                  ${
+                    entry.cleanList
+                      ? `<div>Top outs: ${entry.cleanList}</div>`
+                      : ""
+                  }
+                </div>
+              `;
+            })
+            .join("");
+
+          const boardMarkup = boardThreats.length
+            ? `<div class="suit-summary-item"><strong>Board Flush Threats</strong>
+              ${boardThreats
+                .map((entry) => {
+                  const pipStyle = `background:${SUIT_COLOR_MAP[entry.suit]}`;
+                  return `<div class="suit-tag">
+                      <span class="pip" style="${pipStyle}">${SUIT_SYMBOLS[entry.suit]}</span>
+                      ${entry.boardSuitCards} on board${
+                    entry.blockersKnown !== null
+                      ? ` · ${entry.blockersKnown} blocked`
+                      : ""
+                  }
+                    </div>`;
+                })
+                .join("")}
+             </div>`
+            : "";
+
+          const blocks = [];
+          if (heroSummaries.length) blocks.push(buildHeroMarkup);
+          if (boardMarkup) blocks.push(boardMarkup);
+          summary.innerHTML = blocks.length
+            ? blocks.join("")
+            : '<div class="suit-summary-item">No flush potential with your current hand.</div>';
+        }
+
+        function renderSuitDonut(container, counts) {
+          const total = Object.values(counts).reduce((acc, val) => acc + val, 0);
+          container.innerHTML = `<svg viewBox="-1.2 -1.2 2.4 2.4"></svg>`;
+          const svg = container.querySelector("svg");
+          if (!total) {
+            svg.innerHTML =
+              '<text x="0" y="0" text-anchor="middle" fill="#aaa" font-size="0.14">No Cards</text>';
+            return;
+          }
+          let cumulative = 0;
+          SUITS.forEach((suit, idx) => {
+            const count = counts[suit];
+            if (!count) return;
+            const percent = count / total;
+            const [startX, startY] = [
+              Math.cos(2 * Math.PI * cumulative),
+              Math.sin(2 * Math.PI * cumulative),
+            ];
+            cumulative += percent;
+            const [endX, endY] = [
+              Math.cos(2 * Math.PI * cumulative),
+              Math.sin(2 * Math.PI * cumulative),
+            ];
+            const path = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path"
+            );
+            path.setAttribute(
+              "d",
+              `M ${startX} ${startY} A 1 1 0 ${
+                percent > 0.5 ? 1 : 0
+              } 1 ${endX} ${endY} L 0 0`
+            );
+            path.setAttribute("fill", SUIT_COLOR_MAP[suit]);
+            path.addEventListener("mouseover", (evt) =>
+              showTooltip(
+                evt,
+                `${SUIT_LABELS[suit]}<br>${count} cards (${(
+                  percent * 100
+                ).toFixed(1)}%)`
+              )
+            );
+            path.addEventListener("mouseout", hideTooltip);
+            svg.appendChild(path);
+          });
+        }
+
+        function renderSensitivitySection() {
+          const section = document.getElementById("sensitivity-section");
+          const container = document.getElementById(
+            "sensitivity-table-container"
+          );
+          const fogBtn = document.getElementById("sensitivity-fog-btn");
+          const knownBtn = document.getElementById("sensitivity-known-btn");
+          if (!section || !container) return;
+
+          const currentStreet =
+            appState.currentDeal && appState.currentDeal.street;
+          const mode = appState.sensitivityMode || "fog";
+          const latest = appState.latestLiveResult || {};
+          const activeResult = latest[mode];
+
+          if (
+            !currentStreet ||
+            currentStreet === "river" ||
+            !activeResult ||
+            !activeResult.nextCardImpacts.length
+          ) {
+            section.style.display = "none";
+            container.innerHTML = "";
+            return;
+          }
+
+          section.style.display = "block";
+          if (fogBtn && knownBtn) {
+            fogBtn.classList.toggle("active", mode === "fog");
+            knownBtn.classList.toggle("active", mode === "omniscient");
+          }
+
+          renderSensitivityTable(
+            container,
+            activeResult.nextCardImpacts,
+            activeResult.equity,
+            mode
+          );
+        }
+
+        function renderSensitivityTable(container, impacts, baseline, mode) {
+          if (!impacts || !impacts.length) {
+            container.innerHTML =
+              '<div class="info-box"><p>No future cards remain to analyse.</p></div>';
+            return;
+          }
+
+          const improvers = impacts
+            .filter((impact) => impact.delta > 0)
+            .sort((a, b) => b.delta - a.delta)
+            .slice(0, 5);
+          const busters = impacts
+            .filter((impact) => impact.delta < 0)
+            .sort((a, b) => a.delta - b.delta)
+            .slice(0, 5);
+
+          const rows = [...improvers, ...busters];
+          const modeLabel =
+            mode === "fog" ? "Unknown Villains" : "All Cards Revealed";
+
+          container.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Card</th>
+                  <th>Δ Equity (${modeLabel})</th>
+                  <th>Equity</th>
+                  <th>Samples</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${
+                  rows.length
+                    ? rows
+                        .map((impact) => {
+                          const isImprover = impact.delta >= 0;
+                          return `<tr class="${
+                            isImprover ? "improver" : "buster"
+                          }">
+                            <td class="card">${formatCardLabel(impact.card)}</td>
+                            <td class="delta">${impact.delta >= 0 ? "+" : ""}${impact.delta.toFixed(2)}%</td>
+                            <td>${impact.equity.toFixed(2)}%</td>
+                            <td>${impact.count}</td>
+                          </tr>`;
+                        })
+                        .join("")
+                    : '<tr><td colspan="4">Insufficient data</td></tr>'
+                }
+              </tbody>
+            </table>
+          `;
+        }
+
+        function formatCardLabel(card) {
+          if (!card) return "--";
+          const rank = card[0];
+          const suit = card.slice(-1);
+          return `${rank}${SUIT_SYMBOLS[suit] || ""}`;
         }
 
         function handleShowdown() {
@@ -2232,55 +3186,36 @@
         }
 
         function identifyWinningCards(sevenCards) {
-          const score = evaluateHand(sevenCards);
-          const handType = score[0];
-          const rankValues = "23456789TJQKA";
-
-          // Return the 5 cards that make the winning hand
-          if (handType === 8 || handType === 4) { // Straight Flush or Straight
-            const highRank = score[1];
-            if (highRank === 3) { // Wheel (A-2-3-4-5)
-              return sevenCards.filter(c => [12, 0, 1, 2, 3].includes(rankValues.indexOf(c[0])));
+          if (sevenCards.length <= 5) return [...sevenCards];
+          const combos = getFiveCardCombinations(sevenCards);
+          let bestCombo = combos[0];
+          let bestScore = evaluateHand(bestCombo);
+          for (let i = 1; i < combos.length; i++) {
+            const combo = combos[i];
+            const comboScore = evaluateHand(combo);
+            if (compareScores(comboScore, bestScore) > 0) {
+              bestScore = comboScore;
+              bestCombo = combo;
             }
-            return sevenCards.filter(c => {
-              const r = rankValues.indexOf(c[0]);
-              return r <= highRank && r >= highRank - 4;
-            }).slice(0, 5);
           }
+          return bestCombo;
+        }
 
-          if (handType === 7) { // Quads
-            const quadRank = score[1];
-            return sevenCards.filter(c => rankValues.indexOf(c[0]) === quadRank ||
-                                          rankValues.indexOf(c[0]) === score[2]).slice(0, 5);
-          }
-
-          if (handType === 6) { // Full House
-            return sevenCards.filter(c => [score[1], score[2]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
-          }
-
-          if (handType === 5) { // Flush
-            const suits = sevenCards.map(c => c[1]);
-            const flushSuit = Object.entries(suits.reduce((acc, s) => ({...acc, [s]: (acc[s]||0)+1}), {}))
-              .find(([s, count]) => count >= 5)?.[0];
-            return sevenCards.filter(c => c[1] === flushSuit).slice(0, 5);
-          }
-
-          if (handType === 3) { // Three of a kind
-            const tripRank = score[1];
-            return sevenCards.filter(c => rankValues.indexOf(c[0]) === tripRank ||
-                                          [score[2], score[3]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
-          }
-
-          if (handType === 2) { // Two Pair
-            return sevenCards.filter(c => [score[1], score[2], score[3]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
-          }
-
-          if (handType === 1) { // One Pair
-            return sevenCards.filter(c => [score[1], score[2], score[3], score[4]].includes(rankValues.indexOf(c[0]))).slice(0, 5);
-          }
-
-          // High card
-          return sevenCards.slice(0, 5);
+        function getFiveCardCombinations(cards) {
+          const result = [];
+          const combo = new Array(5);
+          const n = cards.length;
+          (function backtrack(start, depth) {
+            if (depth === 5) {
+              result.push(combo.slice());
+              return;
+            }
+            for (let i = start; i <= n - (5 - depth); i++) {
+              combo[depth] = cards[i];
+              backtrack(i + 1, depth + 1);
+            }
+          })(0, 0);
+          return result;
         }
 
         // SECTION 4: CHARTING ENGINE
@@ -2442,6 +3377,25 @@
           document
             .getElementById("toggle-cards-btn")
             .addEventListener("click", toggleOpponentCards);
+          document
+            .querySelectorAll(".sensitivity-controls .sim-button")
+            .forEach((btn) =>
+              btn.addEventListener("click", (evt) => {
+                const mode = evt.currentTarget.dataset.sensitivityMode;
+                if (!mode || appState.sensitivityMode === mode) return;
+                appState.sensitivityMode = mode;
+                document
+                  .querySelectorAll(".sensitivity-controls .sim-button")
+                  .forEach((button) =>
+                    button.classList.toggle(
+                      "active",
+                      button.dataset.sensitivityMode === mode
+                    )
+                  );
+                renderLiveCharts();
+                renderSensitivitySection();
+              })
+            );
         }
 
         function toggleOpponentCards() {
@@ -2451,6 +3405,17 @@
             ? "Hide Opponent Cards"
             : "Reveal Opponent Cards";
           renderPokerTable();
+          if (appState.currentDeal) {
+            const { heroHand, opponentHands, board, street } = appState.currentDeal;
+            const boardCards =
+              street === "preflop"
+                ? []
+                : board.slice(
+                    0,
+                    street === "flop" ? 3 : street === "turn" ? 4 : 5
+                  );
+            renderSuitTracker(heroHand, opponentHands, boardCards);
+          }
         }
 
         function handleOpponentChange(e) {

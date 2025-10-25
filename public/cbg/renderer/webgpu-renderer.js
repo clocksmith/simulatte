@@ -4,6 +4,18 @@
  */
 
 import { TextureAtlas } from '../assets/texture-atlas.js';
+import {
+  createGPUContext,
+  createDefaultSampler,
+  createTextureFromCanvas,
+  resizeCanvasToDisplaySize
+} from './gpu-helpers.js';
+
+const FLOATS_PER_VERTEX = 9;
+const VERTICES_PER_QUAD = 6;
+const FLOATS_PER_QUAD = FLOATS_PER_VERTEX * VERTICES_PER_QUAD;
+const UNIFORM_FLOAT_COUNT = 12;
+const UNIFORM_BUFFER_SIZE = UNIFORM_FLOAT_COUNT * 4;
 
 export class Renderer {
   constructor({ canvas }) {
@@ -18,35 +30,59 @@ export class Renderer {
     this.texture = null;
     this.sampler = null;
     this.textureAtlas = null;
+    this.gridCache = null;
+    this.contextInfo = null;
+    this.showGrid = true;
 
     // Rendering state
     this.tileWidth = 64;
     this.tileHeight = 32;
+    this.halfTileWidth = this.tileWidth / 2;
+    this.halfTileHeight = this.tileHeight / 2;
+
+    this.vertexScratch = new Float32Array(FLOATS_PER_QUAD * 256);
+    this.vertexFloatCapacity = this.vertexScratch.length;
+    this.lastVertexCount = 0;
+    this.devicePixelRatio = 1;
+
+    this.tileColors = {
+      grass: [0.25, 0.6, 0.28],
+      dirt: [0.55, 0.45, 0.25],
+      concrete: [0.45, 0.45, 0.45],
+      water: [0.2, 0.45, 0.75],
+      recreation: [0.4, 0.7, 0.95],
+      cultural: [0.95, 0.4, 0.7],
+      sports: [0.95, 0.7, 0.4],
+      nature: [0.4, 0.95, 0.4]
+    };
+
+    this.buildingColors = {
+      path: [0.6, 0.6, 0.6],
+      lighting: [0.95, 0.95, 0.5],
+      bench: [0.5, 0.35, 0.2],
+      fountain: [0.5, 0.75, 0.95],
+      security: [0.2, 0.35, 0.75],
+      maintenance: [0.75, 0.5, 0.2],
+      programs: [0.75, 0.2, 0.75]
+    };
   }
 
   async initialize() {
     console.log('[Renderer] Initializing WebGPU...');
 
-    // Request adapter and device
-    const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) {
-      throw new Error('WebGPU adapter not available');
+    const { width, height, dpr } = resizeCanvasToDisplaySize(this.canvas, { maxDevicePixelRatio: 2 });
+    this.devicePixelRatio = dpr;
+
+    this.contextInfo = await createGPUContext(this.canvas, { powerPreference: 'high-performance' });
+    if (this.contextInfo.type !== 'webgpu') {
+      throw new Error('WebGPU adapter not available; WebGL fallback is not yet implemented in this build.');
     }
 
-    this.device = await adapter.requestDevice();
-    console.log('[Renderer] GPU device acquired');
+    this.device = this.contextInfo.device;
+    this.context = this.contextInfo.context;
+    this.format = this.contextInfo.format;
 
-    // Configure canvas context
-    this.context = this.canvas.getContext('webgpu');
-    this.format = navigator.gpu.getPreferredCanvasFormat();
-
-    this.context.configure({
-      device: this.device,
-      format: this.format,
-      alphaMode: 'premultiplied'
-    });
-
-    console.log('[Renderer] Canvas configured, format:', this.format);
+    console.log('[Renderer] Canvas configured, format:', this.format, '| size:', width, 'x', height, '| DPR:', dpr.toFixed(2));
 
     // Generate texture atlas
     console.log('[Renderer] Generating texture atlas...');
@@ -55,7 +91,7 @@ export class Renderer {
     const atlasImage = this.textureAtlas.getAtlasImage();
     console.log('[Renderer] Texture atlas generated:', atlasImage.width, 'x', atlasImage.height);
 
-    // Create WebGPU texture from atlas
+    // Create GPU texture & sampler from atlas
     await this.createTextureFromAtlas(atlasImage);
 
     // Create rendering pipeline
@@ -68,51 +104,28 @@ export class Renderer {
   }
 
   async createTextureFromAtlas(atlasCanvas) {
-    // Create image bitmap from canvas
-    const imageBitmap = await createImageBitmap(atlasCanvas);
-
-    // Create texture
-    this.texture = this.device.createTexture({
+    const { texture } = await createTextureFromCanvas(this.device, atlasCanvas, {
       label: 'Texture Atlas',
-      size: [imageBitmap.width, imageBitmap.height, 1],
-      format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
     });
-
-    // Copy image to texture
-    this.device.queue.copyExternalImageToTexture(
-      { source: imageBitmap },
-      { texture: this.texture },
-      [imageBitmap.width, imageBitmap.height]
-    );
-
-    // Create sampler with bilinear filtering for SNES-quality smooth graphics
-    this.sampler = this.device.createSampler({
+    this.texture = texture;
+    this.sampler = createDefaultSampler(this.device, {
       label: 'Texture Sampler',
       magFilter: 'linear',
       minFilter: 'linear',
-      mipmapFilter: 'linear',
-      addressModeU: 'clamp-to-edge',
-      addressModeV: 'clamp-to-edge',
-      maxAnisotropy: 16 // High quality anisotropic filtering
+      mipmapFilter: 'linear'
     });
 
-    console.log('[Renderer] WebGPU texture created');
+    console.log('[Renderer] Texture atlas uploaded to GPU');
   }
 
   async createPipeline() {
     // Shader code for isometric rendering with texture support
     const shaderCode = `
       struct Uniforms {
-        cameraX: f32,
-        cameraY: f32,
-        zoom: f32,
-        screenWidth: f32,
-        screenHeight: f32,
-        lightDirX: f32,
-        lightDirY: f32,
-        lightDirZ: f32,
-        ambientLight: f32,
+        view: vec4f;   // cameraX, cameraY, zoom, fogDensity
+        screen: vec4f; // screenWidth, screenHeight, sunIntensity, dayMix
+        light: vec4f;  // lightDirX, lightDirY, lightDirZ, ambient
       };
 
       @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -130,6 +143,7 @@ export class Renderer {
         @builtin(position) position: vec4f,
         @location(0) color: vec3f,
         @location(1) uv: vec2f,
+        @location(2) cameraOffset: vec2f,
       };
 
       @vertex
@@ -149,21 +163,27 @@ export class Renderer {
         let worldY = isoY + input.position.y;
 
         // Apply camera and zoom
-        let cameraOffsetX = worldX - uniforms.cameraX;
-        let cameraOffsetY = worldY - uniforms.cameraY;
+        let cameraOffsetX = worldX - uniforms.view.x;
+        let cameraOffsetY = worldY - uniforms.view.y;
 
-        let zoomedX = cameraOffsetX * uniforms.zoom;
-        let zoomedY = cameraOffsetY * uniforms.zoom;
+        let zoomedX = cameraOffsetX * uniforms.view.z;
+        let zoomedY = cameraOffsetY * uniforms.view.z;
 
         // Convert to clip space (-1 to 1)
-        let clipX = (zoomedX / uniforms.screenWidth) * 2.0;
-        let clipY = -(zoomedY / uniforms.screenHeight) * 2.0;
+        let clipX = (zoomedX / uniforms.screen.x) * 2.0;
+        let clipY = -(zoomedY / uniforms.screen.y) * 2.0;
 
         output.position = vec4f(clipX, clipY, 0.0, 1.0);
         output.color = input.color;
         output.uv = input.uv;
+        output.cameraOffset = vec2f(cameraOffsetX, cameraOffsetY);
 
         return output;
+      }
+
+      fn computeFog(distance: f32, density: f32) -> f32 {
+        let fog = exp(-density * distance);
+        return clamp(fog, 0.0, 1.0);
       }
 
       @fragment
@@ -171,9 +191,21 @@ export class Renderer {
         // Sample texture
         let texColor = textureSample(textureData, textureSampler, input.uv);
 
-        // Mix texture with vertex color (lighting baked into vertex color)
-        let finalColor = texColor.rgb * input.color;
+        let baseColor = texColor.rgb * input.color;
 
+        // Dynamic lighting (Lambert) with ambient
+        let lightDir = normalize(vec3f(uniforms.light.x, uniforms.light.y, uniforms.light.z));
+        let lambert = clamp(dot(lightDir, vec3f(0.0, 0.0, 1.0)), 0.0, 1.0);
+        let litColor = baseColor * (uniforms.light.w + lambert * uniforms.screen.z);
+
+        // Fog based on distance from camera
+        let distance = length(input.cameraOffset);
+        let fogFactor = computeFog(distance, uniforms.view.w);
+
+        // Time-of-day tint (night → dawn → day)
+        let fogColor = mix(vec3f(0.06, 0.07, 0.10), vec3f(0.28, 0.32, 0.45), uniforms.screen.w);
+
+        let finalColor = mix(fogColor, litColor, fogFactor);
         return vec4f(finalColor, texColor.a);
       }
     `;
@@ -270,10 +302,9 @@ export class Renderer {
     });
 
     // Create uniform buffer
-    // 9 floats: camera(3) + screen(2) + lightDir(3) + ambient(1)
     this.uniformBuffer = this.device.createBuffer({
       label: 'Uniform Buffer',
-      size: 9 * 4,
+      size: UNIFORM_BUFFER_SIZE,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });
 
@@ -282,6 +313,40 @@ export class Renderer {
     this.updateBindGroup();
 
     console.log('[Renderer] Pipeline created');
+  }
+
+  _ensureScratchCapacity(minFloats, copyUntil = 0) {
+    if (minFloats <= this.vertexFloatCapacity) return;
+    let newCapacity = this.vertexFloatCapacity || FLOATS_PER_QUAD * 256;
+    while (newCapacity < minFloats) {
+      newCapacity *= 2;
+    }
+    const newBuffer = new Float32Array(newCapacity);
+    if (copyUntil > 0 && this.vertexScratch) {
+      newBuffer.set(this.vertexScratch.subarray(0, copyUntil));
+    }
+    this.vertexScratch = newBuffer;
+    this.vertexFloatCapacity = newCapacity;
+  }
+
+  _reserveFloats(offset, floatsNeeded) {
+    const required = offset + floatsNeeded;
+    if (required > this.vertexFloatCapacity) {
+      this._ensureScratchCapacity(required, offset);
+    }
+  }
+
+  _writeVertex(buffer, offset, px, py, color, tileX, tileY, uvx, uvy) {
+    buffer[offset++] = px;
+    buffer[offset++] = py;
+    buffer[offset++] = color[0];
+    buffer[offset++] = color[1];
+    buffer[offset++] = color[2];
+    buffer[offset++] = tileX;
+    buffer[offset++] = tileY;
+    buffer[offset++] = uvx;
+    buffer[offset++] = uvy;
+    return offset;
   }
 
   updateBindGroup() {
@@ -336,21 +401,16 @@ export class Renderer {
     // Update uniforms
     this.updateUniforms(state.camera);
 
-    // Build vertex data from map, UI, and entities
-    const vertices = this.buildVertexData(state.map, state.ui, state.entities || [], state.camera);
+    const vertexFloatCount = this.buildVertexData(state.map, state.ui, state.entities || [], state.camera);
 
-    if (vertices.length === 0) {
+    if (vertexFloatCount === 0) {
       // Clear screen only
       this.clearScreen();
       return;
     }
 
-    // Write vertex data to buffer
-    this.device.queue.writeBuffer(
-      this.vertexBuffer,
-      0,
-      new Float32Array(vertices)
-    );
+    const vertexView = this.vertexScratch.subarray(0, vertexFloatCount);
+    this.device.queue.writeBuffer(this.vertexBuffer, 0, vertexView, 0, vertexFloatCount);
 
     // Create command encoder
     const commandEncoder = this.device.createCommandEncoder({
@@ -361,11 +421,13 @@ export class Renderer {
     const textureView = this.context.getCurrentTexture().createView();
 
     // Dark background (sky removed for now, but lighting still works)
+    const sky = this.calculateSkyColor(this.lastState?.time?.hour ?? 12);
+
     const renderPass = commandEncoder.beginRenderPass({
       label: 'Render Pass',
       colorAttachments: [{
         view: textureView,
-        clearValue: { r: 0.08, g: 0.08, b: 0.08, a: 1.0 }, // Very dark gray
+        clearValue: { r: sky.r, g: sky.g, b: sky.b, a: 1.0 },
         loadOp: 'clear',
         storeOp: 'store'
       }]
@@ -374,7 +436,7 @@ export class Renderer {
     renderPass.setPipeline(this.pipeline);
     renderPass.setBindGroup(0, this.bindGroup);
     renderPass.setVertexBuffer(0, this.vertexBuffer);
-    renderPass.draw(vertices.length / 9); // 9 floats per vertex
+    renderPass.draw(Math.floor(vertexFloatCount / FLOATS_PER_VERTEX));
 
     renderPass.end();
 
@@ -384,333 +446,238 @@ export class Renderer {
 
   updateUniforms(camera) {
     // Calculate light direction based on time of day
-    const hour = this.lastState?.time?.hour || 12;
+    const hour = this.lastState?.time?.hour ?? 12;
+    const normalizedHour = ((hour % 24) + 24) % 24 / 24; // 0-1
 
-    // Light comes from top-left in day, changes angle at night
-    const lightAngle = (hour / 24) * Math.PI * 2; // Full rotation over 24 hours
-    const lightDirX = Math.cos(lightAngle) * 0.7;
-    const lightDirY = Math.sin(lightAngle) * 0.3;
-    const lightDirZ = 0.6; // Always some downward angle
+    const sunTheta = normalizedHour * Math.PI * 2;
+    const lightDirX = Math.cos(sunTheta) * 0.7;
+    const lightDirY = Math.sin(sunTheta) * 0.25;
+    const lightDirZ = 0.75;
 
-    // Ambient light changes with time (darker at night)
-    let ambientLight = 0.6; // Default day
-    if (hour < 6 || hour >= 20) {
-      ambientLight = 0.3; // Night
-    } else if (hour < 7 || hour >= 19) {
-      ambientLight = 0.45; // Dawn/Dusk
-    }
+    const dayMix = Math.max(0, Math.sin(normalizedHour * Math.PI));
+    const ambientLight = 0.28 + 0.42 * dayMix;
+    const sunIntensity = 0.35 + 0.65 * dayMix;
 
-    const uniforms = new Float32Array([
+    // Fog scales with zoom (closer zoom -> lighter fog) and night time -> denser fog
+    const zoomFactor = Math.max(0.2, Math.min(2.5, camera.zoom || 1));
+    let fogDensity = 0.0015 * (2.0 - Math.min(1.8, zoomFactor));
+    fogDensity *= 1.1 - 0.4 * dayMix;
+
+    const uniforms = new Float32Array(UNIFORM_FLOAT_COUNT);
+    uniforms.set([
       camera.x,
       camera.y,
       camera.zoom,
+      fogDensity,
       this.canvas.width,
       this.canvas.height,
+      sunIntensity,
+      dayMix,
       lightDirX,
       lightDirY,
       lightDirZ,
       ambientLight
     ]);
 
-    this.device.queue.writeBuffer(
-      this.uniformBuffer,
-      0,
-      uniforms
-    );
+    this.device.queue.writeBuffer(this.uniformBuffer, 0, uniforms);
   }
 
   buildVertexData(map, ui, entities, camera) {
+    if (!map || !map.tiles) return 0;
+
     const { tiles, width, height } = map;
-
-    // Calculate visible tile bounds for frustum culling
     const visibleBounds = this.calculateVisibleTileBounds(camera, width, height);
+    const tilesInView = Math.max(0, (visibleBounds.maxX - visibleBounds.minX + 1) * (visibleBounds.maxY - visibleBounds.minY + 1));
 
-    const tilesInView = (visibleBounds.maxX - visibleBounds.minX + 1) * (visibleBounds.maxY - visibleBounds.minY + 1);
-
-    // Debug logging (only occasionally to avoid spam)
-    if (!this._debugCounter) this._debugCounter = 0;
-    this._debugCounter++;
-    if (this._debugCounter % 60 === 0) {
-      console.log(`[Renderer] Tiles in view: ${tilesInView} | Bounds: (${visibleBounds.minX},${visibleBounds.minY}) to (${visibleBounds.maxX},${visibleBounds.maxY})`);
+    if (tilesInView === 0) {
+      return 0;
     }
 
-    // FIRST: Draw grid lines as background layer (only for visible tiles)
-    const ENABLE_GRID = true; // Grid now optimized!
+    const baseEstimate = FLOATS_PER_QUAD * (tilesInView * 3 + 64);
+    this._ensureScratchCapacity(baseEstimate, 0);
+    let offset = 0;
+    const buffer = this.vertexScratch;
 
-    // Pre-allocate vertex array for better performance
-    // Each tile = 6 vertices (2 triangles) * 9 floats = 54 floats
-    // Grid adds ~12 vertices per tile edge = ~108 floats per tile
-    // Estimate: visible tiles * (54 for tile + 108 for grid) * 2 buffer
-    const estimatedVertices = tilesInView * 162 * 2; // Generous buffer for grid + tiles
-    const vertices = new Array(estimatedVertices);
-    let vertexIndex = 0;
+    offset = this.writeGridLayer(buffer, offset, width, height, visibleBounds);
+    offset = this.writeTilesLayer(buffer, offset, tiles, width, height, visibleBounds, ui, camera);
+    offset = this.writeEntityLayer(buffer, offset, entities);
+    offset = this.writePreviewLayer(buffer, offset, ui);
 
-    if (ENABLE_GRID) {
-      const startGrid = performance.now();
-      const gridStartIndex = vertexIndex;
-      // Write grid directly into pre-allocated array
-      vertexIndex = this.createGridLinesDirect(vertices, vertexIndex, width, height, visibleBounds);
-      const gridTime = performance.now() - startGrid;
-      const gridVerticesWritten = vertexIndex - gridStartIndex;
+    this.lastVertexCount = Math.floor(offset / FLOATS_PER_VERTEX);
+    return offset;
+  }
 
-      if (this._debugCounter % 60 === 0) {
-        console.log(`[Renderer] Grid: ${gridTime.toFixed(2)}ms | ${gridVerticesWritten} floats (${(gridVerticesWritten / 9).toFixed(0)} vertices)`);
-      }
-    }
+  writeGridLayer(buffer, offset, width, height, visibleBounds) {
+    if (!this.showGrid) return offset;
+    return this.createGridLinesDirect(buffer, offset, width, height, visibleBounds);
+  }
 
-    // Define tile colors based on type/zone
-    const tileColors = {
-      grass: [0.25, 0.6, 0.28],
-      dirt: [0.55, 0.45, 0.25],
-      concrete: [0.45, 0.45, 0.45],
-      water: [0.2, 0.45, 0.75],
-      recreation: [0.4, 0.7, 0.95],
-      cultural: [0.95, 0.4, 0.7],
-      sports: [0.95, 0.7, 0.4],
-      nature: [0.4, 0.95, 0.4]
-    };
+  writeTilesLayer(buffer, offset, tiles, width, height, visibleBounds, ui, camera) {
+    if (!tiles) return offset;
 
-    const buildingColors = {
-      path: [0.6, 0.6, 0.6],
-      lighting: [0.95, 0.95, 0.5],
-      bench: [0.5, 0.35, 0.2],
-      fountain: [0.5, 0.75, 0.95],
-      security: [0.2, 0.35, 0.75],
-      maintenance: [0.75, 0.5, 0.2],
-      programs: [0.75, 0.2, 0.75]
-    };
+    const hour = this.lastState?.time?.hour ?? 12;
+    const normalizedHour = ((hour % 24) + 24) % 24 / 24;
+    const sunTheta = normalizedHour * Math.PI * 2;
+    const sunContribution = 0.35 + Math.cos(sunTheta) * 0.2;
+    const ambientBase = 0.32 + 0.28 * Math.max(0, Math.sin(normalizedHour * Math.PI));
 
-    // Iterate through visible tiles only (frustum culling)
-    const startTiles = performance.now();
-    let tilesRendered = 0;
+    const zoom = Math.max(0.2, camera.zoom || 1);
+    const fogDistance = 1200 / zoom;
 
-    // Get lighting info once for all tiles (performance optimization)
-    const hour = this.lastState?.time?.hour || 12;
-    const lightAngle = (hour / 24) * Math.PI * 2;
-    const lightIntensity = 0.5 + Math.cos(lightAngle) * 0.2; // Varies 0.3-0.7
-    let ambient = 0.6;
-    if (hour < 6 || hour >= 20) ambient = 0.3;
-    else if (hour < 7 || hour >= 19) ambient = 0.45;
+    const hovered = ui?.hoveredTile;
+    const selected = ui?.selectedTile;
 
     for (let y = visibleBounds.minY; y <= visibleBounds.maxY; y++) {
       for (let x = visibleBounds.minX; x <= visibleBounds.maxX; x++) {
-        // Bounds check
         if (x < 0 || x >= width || y < 0 || y >= height) continue;
-
         const tileIndex = y * width + x;
         const tile = tiles[tileIndex];
-
         if (!tile) continue;
-
-        // Skip empty tiles (just show grid underneath)
         if (!tile.type && !tile.zone && !tile.building) continue;
 
-        tilesRendered++;
-
-        // Determine tile color (default to grass if type is present)
-        let baseColor = tileColors[tile.type] || tileColors.grass;
-
-        // Override with zone color if zoned
-        if (tile.zone && tileColors[tile.zone]) {
-          baseColor = tileColors[tile.zone];
+        let baseColor = this.tileColors[tile.type] || this.tileColors.grass;
+        if (tile.zone && this.tileColors[tile.zone]) {
+          baseColor = this.tileColors[tile.zone];
         }
 
-        // N64-style lighting: apply directional light and ambient (calculated once above)
-        // Apply lighting to base color
-        let color = [
-          baseColor[0] * (ambient + lightIntensity * 0.4),
-          baseColor[1] * (ambient + lightIntensity * 0.4),
-          baseColor[2] * (ambient + lightIntensity * 0.4)
+        const color = [
+          baseColor[0] * (ambientBase + sunContribution * 0.45),
+          baseColor[1] * (ambientBase + sunContribution * 0.45),
+          baseColor[2] * (ambientBase + sunContribution * 0.45)
         ];
 
-        // N64-style distance fog/depth cueing (tiles further from camera are darker)
-        // Calculate distance from camera center
-        const dx = x - camera.x;
-        const dy = y - camera.y;
-        const distanceFromCamera = Math.sqrt(dx * dx + dy * dy);
+        const tileWorldX = (x - y) * this.halfTileWidth;
+        const tileWorldY = (x + y) * this.halfTileHeight;
+        const dx = tileWorldX - camera.x;
+        const dy = tileWorldY - camera.y;
+        const distance = Math.hypot(dx, dy);
+        const fogFactor = Math.max(0.65, 1.0 - Math.min(1.0, distance / fogDistance) * 0.35);
+        color[0] *= fogFactor;
+        color[1] *= fogFactor;
+        color[2] *= fogFactor;
 
-        // Fog based on distance from camera (not absolute map position)
-        // Adjust fog range based on zoom level (more zoom = less fog)
-        const fogDistance = 20 / camera.zoom; // Fog starts at ~20 tiles from camera
-        const fogIntensity = Math.min(1, distanceFromCamera / fogDistance);
-        const depthFactor = Math.max(0.7, 1.0 - fogIntensity * 0.3); // 0.7-1.0 range
-        color = [color[0] * depthFactor, color[1] * depthFactor, color[2] * depthFactor];
-
-        // Add ambient occlusion at tile edges (N64 style)
-        const edgeDarken = 0.85;
-        const isEdge = x === 0 || y === 0 || x === width - 1 || y === height - 1;
-        if (isEdge) {
-          color = [color[0] * edgeDarken, color[1] * edgeDarken, color[2] * edgeDarken];
+        const edgeDarken = 0.9;
+        if (x === 0 || y === 0 || x === width - 1 || y === height - 1) {
+          color[0] *= edgeDarken;
+          color[1] *= edgeDarken;
+          color[2] *= edgeDarken;
         }
 
-        // Highlight hovered tile
-        let isHovered = false;
-        if (ui.hoveredTile && ui.hoveredTile.x === x && ui.hoveredTile.y === y) {
-          color = [Math.min(1, color[0] * 1.4), Math.min(1, color[1] * 1.4), Math.min(1, color[2] * 1.4)];
-          isHovered = true;
+        let isHighlighted = false;
+        if (hovered && hovered.x === x && hovered.y === y) {
+          color[0] = Math.min(1, color[0] * 1.25);
+          color[1] = Math.min(1, color[1] * 1.25);
+          color[2] = Math.min(1, color[2] * 1.25);
+          isHighlighted = true;
         }
 
-        // Highlight selected tile
-        if (ui.selectedTile && ui.selectedTile.x === x && ui.selectedTile.y === y) {
-          color = [Math.min(1, color[0] * 1.6), Math.min(1, color[1] * 1.6), Math.min(1, color[2] * 1.6)];
+        if (selected && selected.x === x && selected.y === y) {
+          color[0] = Math.min(1, color[0] * 1.35);
+          color[1] = Math.min(1, color[1] * 1.35);
+          color[2] = Math.min(1, color[2] * 1.35);
+          isHighlighted = true;
         }
 
-        // Add tile vertices (isometric diamond) with texture
-        const spriteName = tile.zone || tile.type || 'grass';
-        const tileVertices = this.createIsometricTileVertices(x, y, color, spriteName);
+        const spriteName = tile.sprite || tile.zone || tile.type || 'grass';
+        offset = this.emitIsometricTile(buffer, offset, x, y, color, spriteName);
 
-        // Copy directly into pre-allocated array
-        for (let i = 0; i < tileVertices.length; i++) {
-          vertices[vertexIndex++] = tileVertices[i];
+        if (isHighlighted) {
+          offset = this.emitTileOutline(buffer, offset, x, y, [1, 1, 1]);
         }
 
-        // Add outline for tiles
-        if (isHovered || (ui.selectedTile && ui.selectedTile.x === x && ui.selectedTile.y === y)) {
-          const outlineColor = [1, 1, 1];
-          const outlineVertices = this.createTileOutline(x, y, outlineColor);
-          for (let i = 0; i < outlineVertices.length; i++) {
-            vertices[vertexIndex++] = outlineVertices[i];
-          }
-        }
-
-        // Add building if present
-        if (tile.building && buildingColors[tile.building]) {
-          const buildingColor = [1, 1, 1]; // White tint for texture
-          const buildingVertices = this.createBuildingVertices(x, y, buildingColor, tile.building);
-          for (let i = 0; i < buildingVertices.length; i++) {
-            vertices[vertexIndex++] = buildingVertices[i];
-          }
+        if (tile.building && this.buildingColors[tile.building]) {
+          offset = this.emitBuilding(buffer, offset, x, y, [1, 1, 1], tile.building);
         }
       }
     }
 
-    const tilesTime = performance.now() - startTiles;
-
-    if (this._debugCounter % 60 === 0) {
-      console.log(`[Renderer] Tiles rendered: ${tilesRendered} | Tile processing: ${tilesTime.toFixed(2)}ms`);
-    }
-
-    // Render entities (people, characters, activities)
-    if (entities && entities.length > 0) {
-      entities.forEach(entity => {
-        const entityVertices = this.createEntityVertices(entity);
-        if (entityVertices.length > 0) {
-          for (let i = 0; i < entityVertices.length; i++) {
-            vertices[vertexIndex++] = entityVertices[i];
-          }
-        }
-      });
-    }
-
-    // Render preview tiles during drag
-    if (ui.preview && ui.preview.tiles && ui.preview.tiles.length > 0) {
-      const previewColor = [1, 1, 1]; // White ghost
-      const previewSprite = ui.preview.tool || 'grass';
-
-      ui.preview.tiles.forEach(tile => {
-        // Semi-transparent preview (achieved with lighter color)
-        const ghostColor = [0.7, 0.7, 0.7];
-        const previewVertices = this.createIsometricTileVertices(tile.x, tile.y, ghostColor, previewSprite);
-        for (let i = 0; i < previewVertices.length; i++) {
-          vertices[vertexIndex++] = previewVertices[i];
-        }
-
-        // White outline for preview
-        const outlineVertices = this.createTileOutline(tile.x, tile.y, [1, 1, 1]);
-        for (let i = 0; i < outlineVertices.length; i++) {
-          vertices[vertexIndex++] = outlineVertices[i];
-        }
-      });
-    }
-
-    // Trim array to actual size
-    vertices.length = vertexIndex;
-
-    if (this._debugCounter % 60 === 0) {
-      console.log(`[Renderer] Total vertices: ${vertexIndex} | Vertex floats: ${vertexIndex * 4} bytes`);
-    }
-
-    return vertices;
+    return offset;
   }
 
-  createIsometricTileVertices(tileX, tileY, color, spriteName) {
-    // Isometric tile is a diamond shape
-    // We'll create it as 2 triangles (6 vertices)
-    const w = this.tileWidth / 2;
-    const h = this.tileHeight / 2;
+  writeEntityLayer(buffer, offset, entities) {
+    if (!entities || entities.length === 0) return offset;
+    for (const entity of entities) {
+      offset = this.emitEntity(buffer, offset, entity);
+    }
+    return offset;
+  }
 
-    // Four corners of the diamond
+  writePreviewLayer(buffer, offset, ui) {
+    if (!ui?.preview?.tiles || ui.preview.tiles.length === 0) return offset;
+    const sprite = ui.preview.tool || 'grass';
+    const ghostColor = [0.72, 0.72, 0.72];
+
+    for (const tile of ui.preview.tiles) {
+      offset = this.emitIsometricTile(buffer, offset, tile.x, tile.y, ghostColor, sprite);
+      offset = this.emitTileOutline(buffer, offset, tile.x, tile.y, [1, 1, 1]);
+    }
+
+    return offset;
+  }
+
+  emitIsometricTile(buffer, offset, tileX, tileY, color, spriteName) {
+    const w = this.halfTileWidth;
+    const h = this.halfTileHeight;
+
     const top = [0, -h];
     const right = [w, 0];
     const bottom = [0, h];
     const left = [-w, 0];
 
-    // Get UV coordinates for sprite
     const sprite = this.textureAtlas.getSprite(spriteName) || this.textureAtlas.getSprite('grass');
     const u = sprite.u;
     const v = sprite.v;
     const uSize = sprite.uSize;
     const vSize = sprite.vSize;
 
-    // UV coordinates for the four corners (mapping to sprite corners)
     const uvTop = [u + uSize * 0.5, v];
     const uvRight = [u + uSize, v + vSize * 0.5];
     const uvBottom = [u + uSize * 0.5, v + vSize];
     const uvLeft = [u, v + vSize * 0.5];
 
-    // Two triangles: top-right-bottom, top-bottom-left
-    const vertices = [];
+    this._reserveFloats(offset, FLOATS_PER_QUAD);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, tileX, tileY, uvTop[0], uvTop[1]);
+    offset = this._writeVertex(buffer, offset, right[0], right[1], color, tileX, tileY, uvRight[0], uvRight[1]);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, tileX, tileY, uvBottom[0], uvBottom[1]);
 
-    // Triangle 1: top, right, bottom
-    vertices.push(...top, ...color, tileX, tileY, ...uvTop);
-    vertices.push(...right, ...color, tileX, tileY, ...uvRight);
-    vertices.push(...bottom, ...color, tileX, tileY, ...uvBottom);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, tileX, tileY, uvTop[0], uvTop[1]);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, tileX, tileY, uvBottom[0], uvBottom[1]);
+    offset = this._writeVertex(buffer, offset, left[0], left[1], color, tileX, tileY, uvLeft[0], uvLeft[1]);
 
-    // Triangle 2: top, bottom, left
-    vertices.push(...top, ...color, tileX, tileY, ...uvTop);
-    vertices.push(...bottom, ...color, tileX, tileY, ...uvBottom);
-    vertices.push(...left, ...color, tileX, tileY, ...uvLeft);
-
-    return vertices;
+    return offset;
   }
 
-  createBuildingVertices(tileX, tileY, color, buildingType) {
-    // Render building sprite
-    const w = this.tileWidth / 2;
-    const h = this.tileHeight / 2;
-    const offsetY = -this.tileHeight / 3; // Raise it up
+  emitBuilding(buffer, offset, tileX, tileY, color, buildingType) {
+    const w = this.halfTileWidth;
+    const h = this.halfTileHeight;
+    const offsetY = -this.tileHeight / 3;
 
     const top = [0, -h + offsetY];
-    const right = [w, 0 + offsetY];
+    const right = [w, offsetY];
     const bottom = [0, h + offsetY];
-    const left = [-w, 0 + offsetY];
+    const left = [-w, offsetY];
 
-    // Get UV coordinates for building sprite
     const sprite = this.textureAtlas.getSprite(buildingType) || this.textureAtlas.getSprite('path');
     const u = sprite.u;
     const v = sprite.v;
     const uSize = sprite.uSize;
     const vSize = sprite.vSize;
 
-    // UV coordinates for the four corners
     const uvTop = [u + uSize * 0.5, v];
     const uvRight = [u + uSize, v + vSize * 0.5];
     const uvBottom = [u + uSize * 0.5, v + vSize];
     const uvLeft = [u, v + vSize * 0.5];
 
-    const vertices = [];
+    this._reserveFloats(offset, FLOATS_PER_QUAD);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, tileX, tileY, uvTop[0], uvTop[1]);
+    offset = this._writeVertex(buffer, offset, right[0], right[1], color, tileX, tileY, uvRight[0], uvRight[1]);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, tileX, tileY, uvBottom[0], uvBottom[1]);
 
-    // Triangle 1
-    vertices.push(...top, ...color, tileX, tileY, ...uvTop);
-    vertices.push(...right, ...color, tileX, tileY, ...uvRight);
-    vertices.push(...bottom, ...color, tileX, tileY, ...uvBottom);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, tileX, tileY, uvTop[0], uvTop[1]);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, tileX, tileY, uvBottom[0], uvBottom[1]);
+    offset = this._writeVertex(buffer, offset, left[0], left[1], color, tileX, tileY, uvLeft[0], uvLeft[1]);
 
-    // Triangle 2
-    vertices.push(...top, ...color, tileX, tileY, ...uvTop);
-    vertices.push(...bottom, ...color, tileX, tileY, ...uvBottom);
-    vertices.push(...left, ...color, tileX, tileY, ...uvLeft);
-
-    return vertices;
+    return offset;
   }
 
   calculateVisibleTileBounds(camera, mapWidth, mapHeight) {
@@ -750,16 +717,6 @@ export class Renderer {
       minY: Math.max(0, minTileY),
       maxY: Math.min(mapHeight - 1, maxTileY)
     };
-
-    // Debug: Log bounds EVERY frame when zoomed in to debug issue
-    if (!this._boundsDebugCounter) this._boundsDebugCounter = 0;
-    this._boundsDebugCounter++;
-    const expectedTiles = (bounds.maxX - bounds.minX + 1) * (bounds.maxY - bounds.minY + 1);
-
-    // Only log occasionally now that culling is working
-    if (this._boundsDebugCounter % 120 === 0) {
-      console.log(`[Frustum] Camera zoom: ${camera.zoom.toFixed(2)} | Rendering ${expectedTiles} tiles`);
-    }
 
     return bounds;
   }
@@ -812,6 +769,7 @@ export class Renderer {
         // Only draw right and bottom edges to avoid double-drawing lines
         // Right edge (from top to right)
         if (x < width - 1) {
+          this._reserveFloats(idx, FLOATS_PER_VERTEX * 6);
           const topInner = [top[0] + thickness, top[1]];
           const rightInner = [right[0] - thickness, right[1]];
 
@@ -826,6 +784,7 @@ export class Renderer {
 
         // Bottom edge (from right to bottom)
         if (y < height - 1) {
+          this._reserveFloats(idx, FLOATS_PER_VERTEX * 6);
           const rightInner = [right[0], right[1] + thickness];
           const bottomInner = [bottom[0] + thickness, bottom[1]];
 
@@ -840,6 +799,7 @@ export class Renderer {
 
         // Left edge (close left side of map)
         if (x === 0) {
+          this._reserveFloats(idx, FLOATS_PER_VERTEX * 6);
           const topInner = [top[0] - thickness, top[1]];
           const leftInner = [left[0] + thickness, left[1]];
 
@@ -854,6 +814,7 @@ export class Renderer {
 
         // Top edge (close top side of map)
         if (y === 0) {
+          this._reserveFloats(idx, FLOATS_PER_VERTEX * 6);
           const leftInner = [left[0], left[1] - thickness];
           const bottomInner = [bottom[0] - thickness, bottom[1]];
 
@@ -871,122 +832,88 @@ export class Renderer {
     return idx; // Return new index position
   }
 
-  createTileOutline(tileX, tileY, color) {
-    // Create a thin outline around the tile
-    const w = this.tileWidth / 2;
-    const h = this.tileHeight / 2;
-    const thickness = 2; // pixels
+  emitTileOutline(buffer, offset, tileX, tileY, color) {
+    const w = this.halfTileWidth;
+    const h = this.halfTileHeight;
+    const thickness = 2;
 
     const top = [0, -h];
     const right = [w, 0];
     const bottom = [0, h];
     const left = [-w, 0];
 
-    // Use grass sprite UV (just needs something)
     const sprite = this.textureAtlas.getSprite('grass');
-    const uv = [sprite.u + sprite.uSize * 0.5, sprite.v + sprite.vSize * 0.5];
+    const uvx = sprite.u + sprite.uSize * 0.5;
+    const uvy = sprite.v + sprite.vSize * 0.5;
 
-    const vertices = [];
+    this._reserveFloats(offset, FLOATS_PER_VERTEX * 12);
 
-    // Create 4 thin triangles forming the outline
-    // Top edge (from top to right)
-    vertices.push(...top, ...color, tileX, tileY, ...uv);
-    vertices.push(top[0] - thickness, top[1], ...color, tileX, tileY, ...uv);
-    vertices.push(...right, ...color, tileX, tileY, ...uv);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, top[0] - thickness, top[1], color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, right[0], right[1], color, tileX, tileY, uvx, uvy);
 
-    // Right edge (from right to bottom)
-    vertices.push(...right, ...color, tileX, tileY, ...uv);
-    vertices.push(right[0], right[1] + thickness, ...color, tileX, tileY, ...uv);
-    vertices.push(...bottom, ...color, tileX, tileY, ...uv);
+    offset = this._writeVertex(buffer, offset, right[0], right[1], color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, right[0], right[1] + thickness, color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, tileX, tileY, uvx, uvy);
 
-    // Bottom edge (from bottom to left)
-    vertices.push(...bottom, ...color, tileX, tileY, ...uv);
-    vertices.push(bottom[0] + thickness, bottom[1], ...color, tileX, tileY, ...uv);
-    vertices.push(...left, ...color, tileX, tileY, ...uv);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, bottom[0] + thickness, bottom[1], color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, left[0], left[1], color, tileX, tileY, uvx, uvy);
 
-    // Left edge (from left to top)
-    vertices.push(...left, ...color, tileX, tileY, ...uv);
-    vertices.push(left[0], left[1] - thickness, ...color, tileX, tileY, ...uv);
-    vertices.push(...top, ...color, tileX, tileY, ...uv);
+    offset = this._writeVertex(buffer, offset, left[0], left[1], color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, left[0], left[1] - thickness, color, tileX, tileY, uvx, uvy);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, tileX, tileY, uvx, uvy);
 
-    return vertices;
+    return offset;
   }
 
-  createEntityVertices(entity) {
-    // Render entities with textured sprites + N64-style drop shadow
-    let vertices = [];
-
-    // FIRST: Render drop shadow (N64 style)
-    const shadowVertices = this.createEntityShadow(entity);
-    for (let i = 0; i < shadowVertices.length; i++) {
-      vertices.push(shadowVertices[i]);
-    }
-
-    // THEN: Render actual sprite on top
-    const spriteVertices = this.createEntitySprite(entity);
-    for (let i = 0; i < spriteVertices.length; i++) {
-      vertices.push(spriteVertices[i]);
-    }
-
-    return vertices;
+  emitEntity(buffer, offset, entity) {
+    offset = this.emitEntityShadow(buffer, offset, entity);
+    offset = this.emitEntitySprite(buffer, offset, entity);
+    return offset;
   }
 
-  createEntityShadow(entity) {
-    // N64-style drop shadow - dark ellipse on ground
-    const vertices = [];
-
+  emitEntityShadow(buffer, offset, entity) {
     const entityWidth = entity.width || 1;
     const entityHeight = entity.height || 1;
     const isMultiTile = entityWidth > 1 || entityHeight > 1;
 
-    // Shadow size and offset
     const shadowSize = isMultiTile ? 12 : 8;
-    const shadowOffsetY = 2; // Offset down from entity position
-    const shadowColor = [0.0, 0.0, 0.0]; // Black shadow, will be semi-transparent via alpha
+    const shadowOffsetY = 2;
+    const shadowColor = [0.0, 0.0, 0.0];
 
-    // Create flattened ellipse shape (4 triangles forming rough circle)
-    const centerX = 0;
-    const centerY = shadowOffsetY;
-    const radiusX = shadowSize;
-    const radiusY = shadowSize * 0.4; // Squashed vertically for ground projection
-
-    // Use a single dark pixel from texture (grass sprite center works)
     const sprite = this.textureAtlas.getSprite('grass');
     const u = sprite.u + sprite.uSize * 0.5;
     const v = sprite.v + sprite.vSize * 0.5;
 
-    // Create 8-point ellipse
     const points = 8;
+    this._reserveFloats(offset, points * FLOATS_PER_VERTEX * 3);
+
+    const anchorX = entity.x ?? 0;
+    const anchorY = entity.y ?? 0;
+
     for (let i = 0; i < points; i++) {
       const angle1 = (i / points) * Math.PI * 2;
       const angle2 = ((i + 1) / points) * Math.PI * 2;
 
-      const x1 = centerX + Math.cos(angle1) * radiusX;
-      const y1 = centerY + Math.sin(angle1) * radiusY;
-      const x2 = centerX + Math.cos(angle2) * radiusX;
-      const y2 = centerY + Math.sin(angle2) * radiusY;
+      const x1 = Math.cos(angle1) * shadowSize;
+      const y1 = shadowOffsetY + Math.sin(angle1) * (shadowSize * 0.4);
+      const x2 = Math.cos(angle2) * shadowSize;
+      const y2 = shadowOffsetY + Math.sin(angle2) * (shadowSize * 0.4);
 
-      // Triangle from center to edge points
-      vertices.push(
-        centerX, centerY, ...shadowColor, entity.x, entity.y, u, v,
-        x1, y1, ...shadowColor, entity.x, entity.y, u, v,
-        x2, y2, ...shadowColor, entity.x, entity.y, u, v
-      );
+      offset = this._writeVertex(buffer, offset, 0, shadowOffsetY, shadowColor, anchorX, anchorY, u, v);
+      offset = this._writeVertex(buffer, offset, x1, y1, shadowColor, anchorX, anchorY, u, v);
+      offset = this._writeVertex(buffer, offset, x2, y2, shadowColor, anchorX, anchorY, u, v);
     }
 
-    return vertices;
+    return offset;
   }
 
-  createEntitySprite(entity) {
-    // Render the actual entity sprite
-    const vertices = [];
-
-    // Determine sprite name
+  emitEntitySprite(buffer, offset, entity) {
     let spriteName = 'visitor';
     if (entity.type === 'special' && entity.characterType) {
       spriteName = entity.characterType;
     } else if (entity.type === 'visitor' && entity.visitorType) {
-      // Map visitor types to sprite names
       const visitorSpriteMap = {
         'hipster': 'hipster',
         'dog-owner': 'dog-walker',
@@ -995,98 +922,67 @@ export class Renderer {
       spriteName = visitorSpriteMap[entity.visitorType] || 'visitor';
     } else if (entity.type === 'activity' && entity.activityType) {
       spriteName = entity.activityType;
-
-      // Debug log for activities
       if (!this._activityDebug) this._activityDebug = {};
-      if (!this._activityDebug[entity.id]) {
-        console.log(`[Renderer] Rendering activity: ${spriteName} at (${entity.x.toFixed(1)}, ${entity.y.toFixed(1)}) tilesOccupied:`, entity.tilesOccupied);
+      if (entity.id && !this._activityDebug[entity.id]) {
+        console.log(`[Renderer] Rendering activity: ${spriteName}`);
         this._activityDebug[entity.id] = true;
       }
     }
 
-    // Get sprite UV
-    const sprite = this.textureAtlas.getSprite(spriteName);
-    if (!sprite) {
-      console.warn(`[Renderer] No sprite found for: ${spriteName}, using visitor fallback`);
-    }
-    const spriteData = sprite || this.textureAtlas.getSprite('visitor');
-    const u = spriteData.u;
-    const v = spriteData.v;
-    const uSize = spriteData.uSize;
-    const vSize = spriteData.vSize;
+    const sprite = this.textureAtlas.getSprite(spriteName) || this.textureAtlas.getSprite('visitor');
+    const u = sprite.u;
+    const v = sprite.v;
+    const uSize = sprite.uSize;
+    const vSize = sprite.vSize;
 
-    // Get entity dimensions from tilesOccupied or fallback to widthInTiles/heightInTiles
     let entityWidth = 1;
     let entityHeight = 1;
-
     if (entity.tilesOccupied) {
-      // Multi-tile entities (activities)
       entityWidth = entity.tilesOccupied.x;
       entityHeight = entity.tilesOccupied.y;
     } else if (entity.widthInTiles || entity.heightInTiles) {
-      // Single-tile entities with sub-tile dimensions
       entityWidth = entity.widthInTiles || 1;
       entityHeight = entity.heightInTiles || 1;
     }
 
-    // For multi-tile entities, scale the sprite proportionally
     const isMultiTile = entity.tilesOccupied && (entity.tilesOccupied.x > 1 || entity.tilesOccupied.y > 1);
 
-    // Use renderSize from entity config if available, otherwise use defaults
-    let size, height;
+    let size;
+    let height;
     if (entity.renderSize) {
-      // Entity has scaled render size from config (entity-config.js)
       size = entity.renderSize;
       height = isMultiTile ? 8 : 15;
     } else if (isMultiTile) {
-      // Multi-tile activities (sports fields, stages, etc.)
       size = 8;
       height = 8;
     } else {
-      // Single-tile entities (people, small activities) - fallback
       size = 10;
       height = 15;
     }
 
-    const centerX = 0;
-    const centerY = -height;
-
-    // Scale width and height for multi-tile entities
-    let sizeX, sizeY;
+    let sizeX;
+    let sizeY;
     if (isMultiTile) {
-      // Multi-tile entities: scale based on tile footprint in isometric space
-      // Each tile is a diamond: half-width=32px, half-height=16px
-      const tileHalfWidth = 32;  // Half of tileWidth (64px)
-      const tileHalfHeight = 16;  // Half of tileHeight (32px)
-
-      // Multiply by number of tiles to get full footprint
-      sizeX = entityWidth * tileHalfWidth;   // e.g., 2x2 = 64px half-width
-      sizeY = entityHeight * tileHalfHeight;  // e.g., 2x2 = 32px half-height
-
-      // Debug log for multi-tile entities (occasionally)
-      if (!this._multiTileDebug) this._multiTileDebug = {};
-      if (!this._multiTileDebug[entity.id]) {
-        console.log(`[Renderer] Multi-tile entity: ${entity.activityType || entity.type} - ${entityWidth}×${entityHeight} tiles - sprite size: ${sizeX*2}×${sizeY*2}px`);
-        this._multiTileDebug[entity.id] = true;
-      }
+      sizeX = entityWidth * this.halfTileWidth;
+      sizeY = entityHeight * this.halfTileHeight;
     } else {
-      // Single-tile entities: use size directly (people, small items)
       sizeX = size;
       sizeY = size;
     }
+
+    const centerX = 0;
+    const centerY = -height;
 
     const top = [centerX, centerY - sizeY];
     const right = [centerX + sizeX, centerY];
     const bottom = [centerX, centerY + sizeY];
     const left = [centerX - sizeX, centerY];
 
-    // UV coordinates for corners
     const uvTop = [u + uSize * 0.5, v];
     const uvRight = [u + uSize, v + vSize * 0.5];
     const uvBottom = [u + uSize * 0.5, v + vSize];
     const uvLeft = [u, v + vSize * 0.5];
 
-    // N64-style lighting for entities (match tile lighting)
     const hour = this.lastState?.time?.hour || 12;
     const lightAngle = (hour / 24) * Math.PI * 2;
     const lightIntensity = 0.5 + Math.cos(lightAngle) * 0.2;
@@ -1094,36 +990,32 @@ export class Renderer {
     if (hour < 6 || hour >= 20) ambient = 0.3;
     else if (hour < 7 || hour >= 19) ambient = 0.45;
 
-    // Apply lighting to entity
     let brightness = ambient + lightIntensity * 0.4;
 
-    // Distance fog for entities (match tile camera-relative fog)
-    const state = this.lastState;
-    if (state && state.camera) {
-      const camera = state.camera;
-      const dx = entity.x - camera.x;
-      const dy = entity.y - camera.y;
-      const distanceFromCamera = Math.sqrt(dx * dx + dy * dy);
-
-      // Match tile fog calculation
-      const fogDistance = 20 / camera.zoom;
-      const fogIntensity = Math.min(1, distanceFromCamera / fogDistance);
-      const depthFactor = Math.max(0.7, 1.0 - fogIntensity * 0.3);
-      brightness *= depthFactor;
+    if (this.lastState?.camera) {
+      const camera = this.lastState.camera;
+      const dx = (entity.x ?? 0) - camera.x;
+      const dy = (entity.y ?? 0) - camera.y;
+      const distance = Math.hypot(dx, dy);
+      const fogDistance = 20 / Math.max(camera.zoom || 1, 0.1);
+      const fogFactor = Math.max(0.7, 1.0 - Math.min(1, distance / fogDistance) * 0.3);
+      brightness *= fogFactor;
     }
 
     const color = [brightness, brightness, brightness];
+    const anchorX = entity.x ?? 0;
+    const anchorY = entity.y ?? 0;
 
-    // Two triangles for the sprite
-    vertices.push(...top, ...color, entity.x, entity.y, ...uvTop);
-    vertices.push(...right, ...color, entity.x, entity.y, ...uvRight);
-    vertices.push(...bottom, ...color, entity.x, entity.y, ...uvBottom);
+    this._reserveFloats(offset, FLOATS_PER_QUAD);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, anchorX, anchorY, uvTop[0], uvTop[1]);
+    offset = this._writeVertex(buffer, offset, right[0], right[1], color, anchorX, anchorY, uvRight[0], uvRight[1]);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, anchorX, anchorY, uvBottom[0], uvBottom[1]);
 
-    vertices.push(...top, ...color, entity.x, entity.y, ...uvTop);
-    vertices.push(...bottom, ...color, entity.x, entity.y, ...uvBottom);
-    vertices.push(...left, ...color, entity.x, entity.y, ...uvLeft);
+    offset = this._writeVertex(buffer, offset, top[0], top[1], color, anchorX, anchorY, uvTop[0], uvTop[1]);
+    offset = this._writeVertex(buffer, offset, bottom[0], bottom[1], color, anchorX, anchorY, uvBottom[0], uvBottom[1]);
+    offset = this._writeVertex(buffer, offset, left[0], left[1], color, anchorX, anchorY, uvLeft[0], uvLeft[1]);
 
-    return vertices;
+    return offset;
   }
 
   getLastState() {
@@ -1167,11 +1059,12 @@ export class Renderer {
   clearScreen() {
     const commandEncoder = this.device.createCommandEncoder();
     const textureView = this.context.getCurrentTexture().createView();
+    const sky = this.calculateSkyColor(this.lastState?.time?.hour ?? 12);
 
     const renderPass = commandEncoder.beginRenderPass({
       colorAttachments: [{
         view: textureView,
-        clearValue: { r: 0.08, g: 0.08, b: 0.08, a: 1.0 }, // Dark gray
+        clearValue: { r: sky.r, g: sky.g, b: sky.b, a: 1.0 },
         loadOp: 'clear',
         storeOp: 'store'
       }]
@@ -1182,8 +1075,18 @@ export class Renderer {
   }
 
   resize(width, height) {
-    // Canvas is already resized by boot.js
-    console.log('[Renderer] Resized to', width, 'x', height);
+    const { dpr } = resizeCanvasToDisplaySize(this.canvas, {
+      maxDevicePixelRatio: 2
+    });
+    this.devicePixelRatio = dpr;
+
+    if (this.context && this.device) {
+      this.context.configure({
+        device: this.device,
+        format: this.format,
+        alphaMode: 'premultiplied'
+      });
+    }
   }
 
   destroy() {
@@ -1192,6 +1095,9 @@ export class Renderer {
     }
     if (this.uniformBuffer) {
       this.uniformBuffer.destroy();
+    }
+    if (this.texture) {
+      this.texture.destroy();
     }
     if (this.device) {
       this.device.destroy();
