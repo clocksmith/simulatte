@@ -914,21 +914,25 @@
       }
 
       function getGridLayout() {
+        const rect = gridCanvas.getBoundingClientRect();
+        const logicalWidth = rect.width;
+        const logicalHeight = rect.height;
         const size = state.gridSize;
         const margin = 1.4;
-        const cellSize = Math.min(gridCanvas.width, gridCanvas.height) / (size + margin);
+        const cellSize = Math.min(logicalWidth, logicalHeight) / (size + margin);
         const gridWidth = cellSize * size;
         const gridHeight = cellSize * size;
-        const offsetX = (gridCanvas.width - gridWidth) / 2;
-        const offsetY = (gridCanvas.height - gridHeight) / 2;
+        const offsetX = (logicalWidth - gridWidth) / 2;
+        const offsetY = (logicalHeight - gridHeight) / 2;
         return { cellSize, offsetX, offsetY };
       }
 
       function renderGridView() {
         const size = state.gridSize;
         const { cellSize, offsetX, offsetY } = getGridLayout();
+        const logicalRect = gridCanvas.getBoundingClientRect();
         gridCtx.fillStyle = '#050505';
-        gridCtx.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
+        gridCtx.fillRect(0, 0, logicalRect.width, logicalRect.height);
 
         // Draw all edges including wrap-around connections
         gridCtx.lineWidth = 1.5;
@@ -1030,16 +1034,19 @@
       }
 
       function renderTorusView() {
+        const rect = torusCanvas.getBoundingClientRect();
+        const logicalWidth = rect.width;
+        const logicalHeight = rect.height;
         const size = state.gridSize;
-        const centerX = torusCanvas.width / 2;
-        const centerY = torusCanvas.height / 2;
-        const base = Math.min(torusCanvas.width, torusCanvas.height);
+        const centerX = logicalWidth / 2;
+        const centerY = logicalHeight / 2;
+        const base = Math.min(logicalWidth, logicalHeight);
         const majorRadius = base * 0.32;
         const minorRadius = base * 0.16;
         const twistFactor = size > 0 ? state.twist / size : 0;
 
         torusCtx.fillStyle = '#050505';
-        torusCtx.fillRect(0, 0, torusCanvas.width, torusCanvas.height);
+        torusCtx.fillRect(0, 0, logicalWidth, logicalHeight);
 
         const cosX = Math.cos(state.rotationX);
         const sinX = Math.sin(state.rotationX);
@@ -1449,39 +1456,21 @@
       }
 
       function resizeCanvas() {
-        // Use lower DPR on mobile to prevent artifacts
-        const baseDPR = window.devicePixelRatio || 1;
-        const dpr = baseDPR > 2 ? 1.5 : Math.min(baseDPR, 2);
+        const dpr = window.devicePixelRatio || 1;
 
-        // Grid canvas
-        const gridWidth = gridCanvas.clientWidth || 800;
-        const gridHeight = gridCanvas.clientHeight || 600;
-        const gridCanvasWidth = Math.round(gridWidth * dpr);
-        const gridCanvasHeight = Math.round(gridHeight * dpr);
-
-        gridCanvas.width = gridCanvasWidth;
-        gridCanvas.height = gridCanvasHeight;
-        gridCanvas.style.width = `${gridWidth}px`;
-        gridCanvas.style.height = `${gridHeight}px`;
-
-        // Scale context for DPR
-        gridCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const gridRect = gridCanvas.getBoundingClientRect();
+        gridCanvas.width = Math.round(gridRect.width * dpr);
+        gridCanvas.height = Math.round(gridRect.height * dpr);
+        gridCtx.resetTransform();
+        gridCtx.scale(dpr, dpr);
         gridCtx.imageSmoothingEnabled = true;
         gridCtx.imageSmoothingQuality = 'high';
 
-        // Torus canvas
-        const torusWidth = torusCanvas.clientWidth || 800;
-        const torusHeight = torusCanvas.clientHeight || 600;
-        const torusCanvasWidth = Math.round(torusWidth * dpr);
-        const torusCanvasHeight = Math.round(torusHeight * dpr);
-
-        torusCanvas.width = torusCanvasWidth;
-        torusCanvas.height = torusCanvasHeight;
-        torusCanvas.style.width = `${torusWidth}px`;
-        torusCanvas.style.height = `${torusHeight}px`;
-
-        // Scale context for DPR
-        torusCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const torusRect = torusCanvas.getBoundingClientRect();
+        torusCanvas.width = Math.round(torusRect.width * dpr);
+        torusCanvas.height = Math.round(torusRect.height * dpr);
+        torusCtx.resetTransform();
+        torusCtx.scale(dpr, dpr);
         torusCtx.imageSmoothingEnabled = true;
         torusCtx.imageSmoothingQuality = 'high';
 
