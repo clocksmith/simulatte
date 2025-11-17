@@ -1,2090 +1,654 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Simulatte - Interactive Particle System</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <meta name="description" content="An interactive particle system visualization with network and space modes" />
-    <link rel="stylesheet" href="simulatte-core.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <style>
-      /* Main page-specific overrides */
-      :root {
-        --panel-bg: rgba(0, 0, 0, 0.9);
-        --transition-fast: 200ms;
-        --transition-normal: 500ms;
-        --bg-color: var(--bg-dark);
-        --text-color: var(--text-primary);
-        --border-color: var(--border);
-        --accent-color: var(--accent-primary);
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMULATTE // Generative Experiments</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      html, body {
-        overflow: hidden;
-        background: var(--bg-color);
-        color: var(--text-color);
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        height: 100vh;
-        width: 100vw;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-      }
-      #particleContainer {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        overflow: hidden;
-        z-index: 1;
-      }
-      #particleContainer svg,
-      #particleContainer canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: none;
-        opacity: 1;
-        transition: opacity 0.5s ease-in-out;
-        background: transparent;
-      }
-      #particleContainer svg {
-        background: var(--bg-dark);
-      }
-      #renderMask {
-        position: absolute;
-        inset: 0;
-        background: var(--bg-color);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity var(--transition-normal) ease-in-out;
-        z-index: 2;
-      }
-      #particleContainer line {
-        stroke: rgb(255, 255, 255);
-        stroke-width: 1;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-      #particleContainer circle {
-        /* fill color set dynamically per particle to match WebGL */
-        transition: opacity 0.5s ease-out, r 0.1s linear;
-        transform-origin: center center;
-      }
-      .particleDiv {
-        position: absolute;
-        /* background-color set dynamically per particle to match WebGL */
-        border-radius: 50%;
-        transition: opacity 0.5s linear;
-        transform-origin: center center;
-        will-change: transform, opacity;
-        backface-visibility: hidden;
-        transform: translateZ(0);
-      }
-      .mainContent {
-        z-index: 10;
-        pointer-events: none;
-        font-size: clamp(0.9rem, 2vw, 1.1rem);
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0 20px;
-        text-align: center;
-        font-family: var(--font-mono);
-      }
-      .mainTitle {
-        z-index: 10;
-        pointer-events: none;
-        font-size: clamp(1.5rem, 5vw, 2.5rem);
-        letter-spacing: 0.2em;
-        font-weight: 300;
-        margin-bottom: 1rem;
-      }
-      p {
-        margin: 0.6em 0;
-        user-select: none;
-        font-weight: 500;
-      }
-      .mainContent a {
-        color: var(--accent-secondary);
-        text-decoration: underline;
-        text-decoration-color: var(--accent-primary);
-        text-underline-offset: 3px;
-        text-decoration-thickness: 2px;
-        font-weight: bold;
-        pointer-events: auto;
-        margin: 0 0.5rem;
-        transition: all var(--transition-fast) ease;
-        display: inline-block;
-        position: relative;
-      }
-      .mainContent a:hover {
-        transform: scale(1.1);
-        text-shadow: 0 0 10px currentColor;
-        text-decoration-color: var(--accent-primary);
-      }
+    body {
+      background: #000;
+      color: #a0aec0;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      overflow: hidden;
+      cursor: none;
+      transition: opacity 0.5s ease;
+    }
 
-      @keyframes twinkle-anim {
-        0%, 100% {
-          opacity: var(--twinkle-min-opacity, 0.3);
-          transform: scale(var(--twinkle-min-scale, 0.8)) translateZ(0);
-        }
-        50% {
-          opacity: var(--twinkle-max-opacity, 1);
-          transform: scale(var(--twinkle-max-scale, 1.2)) translateZ(0);
-        }
-      }
-      .twinkle {
-        animation-name: twinkle-anim;
-        animation-timing-function: linear;
-        animation-iteration-count: infinite;
-        animation-direction: alternate;
-      }
-      .controlsPanel {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        width: min(320px, calc(100vw - 20px));
-        background: var(--panel-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        padding: 16px;
-        box-sizing: border-box;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        transform: translateX(0);
-        transition: transform var(--transition-fast) ease-in-out;
-        max-height: calc(100vh - 20px);
-        overflow-y: auto;
-        scrollbar-width: thin;
-      }
-      #controlsToggle {
-        display: none;
-      }
-      @media (max-width: 768px) {
-        #controlsToggle {
-          display: flex;
-          position: fixed;
-          top: 10px;
-          right: 10px;
-          z-index: 101;
-          background: var(--panel-bg);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          color: var(--text-color);
-          border: 1px solid var(--border-color);
-          width: 52px;
-          height: 52px;
-          border-radius: 8px;
-          cursor: pointer;
-          user-select: none;
-          transition: all var(--transition-fast) ease;
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-          flex-direction: column;
-          gap: 4px;
-        }
-        #controlsToggle span {
-          width: 26px;
-          height: 3px;
-          background: var(--text-color);
-          border-radius: 2px;
-          transition: all var(--transition-fast) ease;
-        }
-        #controlsToggle:hover {
-          border-color: var(--accent-color);
-          box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
-        }
-        #controlsToggle:hover span {
-          background: var(--accent-color);
-        }
-        .controlsPanel:not(.closed) + #controlsToggle span:nth-child(1) {
-          transform: translateY(7px) rotate(45deg);
-        }
-        .controlsPanel:not(.closed) + #controlsToggle span:nth-child(2) {
-          opacity: 0;
-        }
-        .controlsPanel:not(.closed) + #controlsToggle span:nth-child(3) {
-          transform: translateY(-7px) rotate(-45deg);
-        }
-      }
-      .selectorGroup {
-        display: flex;
-        justify-content: center;
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .renderSelector {
-        border: 1px solid var(--accent-primary);
-      }
-      .modeSelector {
-        border: 1px solid var(--accent-secondary);
-        margin-top: 10px;
-      }
+    body.fade-out {
+      opacity: 0;
+    }
 
-      .controlsPanel label.radioLabel {
-        flex-basis: 50%;
-        text-align: center;
-        padding: 8px 0;
-        font-size: 13px;
-        cursor: pointer;
-        background-color: var(--bg-dark);
-        color: var(--text-secondary);
-        transition: background-color 0.2s, color 0.2s;
-        user-select: none;
-        display: block;
-        margin: 0;
-      }
-      .renderSelector input[type="radio"],
-      .modeSelector input[type="radio"] {
-        display: none;
-      }
-      .renderSelector input[type="radio"]:checked + label.radioLabel {
-        background-color: var(--accent-primary);
-        color: var(--text-primary);
-        font-weight: bold;
-      }
-      .modeSelector input[type="radio"]:checked + label.radioLabel {
-        background-color: var(--accent-secondary);
-        color: var(--bg-dark);
-        font-weight: bold;
-      }
-      .renderSelector label.radioLabel:not(:last-of-type) {
-        border-right: 1px solid var(--accent-primary);
-      }
-      .modeSelector label.radioLabel:not(:last-of-type) {
-        border-right: 1px solid var(--accent-secondary);
-      }
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
 
-      .controlRow {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        gap: 8px;
-        margin-top: 6px;
-      }
-      .controlRow[data-mode]:not(.visible) {
-        display: none;
-      }
-      .controlsPanel label {
-        font-size: 13px;
-        color: #eee;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-        flex-grow: 1;
-        justify-content: flex-end;
-      }
-      .controlsPanel label:not(.radioLabel) > span:first-child {
-        margin-right: auto;
-        flex-shrink: 0;
-      }
-      #loader {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 5px;
-        z-index: 1002;
-        background: linear-gradient(90deg, #0f0, #f0f);
-        background-size: 400% 100%;
-        animation: loader-anim 1.2s linear infinite;
-        box-shadow: 0 0 10px rgba(0, 255, 0, 0.7),
-          0 0 10px rgba(255, 0, 255, 0.7);
-        display: none;
-        opacity: 0;
-        transition: opacity 0.5s ease-in-out;
-      }
-      @keyframes loader-anim {
-        0% {
-          background-position: 0% 0;
-        }
-        100% {
-          background-position: -200% 0;
-        }
-      }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
 
-      #fpsCounter {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        z-index: 100;
-        background: var(--panel-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        color: var(--accent-secondary);
-        padding: 8px 12px;
-        font-size: 0.75rem;
-        font-family: 'Courier New', monospace;
-        font-weight: 600;
-        border-radius: 6px;
-        cursor: help;
-        display: inline-block;
-        border: 1px solid var(--border-color);
-      }
-      #fpsCounter .tooltip {
-        position: absolute;
-        bottom: calc(100% + 5px);
-        left: 0;
-        background-color: rgba(0, 0, 0, 0.9);
-        color: #fff;
-        padding: 8px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        white-space: pre-wrap;
-        text-align: left;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.2s, visibility 0.2s;
-        width: max-content;
-        max-width: 320px;
-        pointer-events: none;
-        line-height: 1.4;
-        transform: translateX(0);
-      }
-      #fpsCounter:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
-      }
+    #cursor {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #00ffff;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+      transform-origin: center;
+    }
 
-      /* Reduced motion support */
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
-      }
+    #cursor.morphed {
+      border-radius: 4px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    }
 
-      @media (max-width: 768px) {
-        body {
-          justify-content: center;
-          padding: 20px 10px;
-        }
-        #particleContainer {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-        }
-        .mainContent {
-          position: relative;
-          z-index: 10;
-          padding: 20px;
-          max-width: 90vw;
-          margin: 0 auto;
-        }
-        .mainTitle {
-          font-size: clamp(1.5rem, 8vw, 2rem);
-          margin-bottom: 0.8rem;
-        }
-        p {
-          margin: 0.4em 0;
-          font-size: clamp(0.9rem, 3.5vw, 1rem);
-        }
-        .mainContent a {
-          font-size: clamp(1rem, 4vw, 1.2rem);
-          margin: 0 6px;
-          display: inline-block;
-        }
-        .controlsPanel {
-          transform: translateX(100%);
-          width: calc(100% - 20px);
-          max-width: 320px;
-          border: 1px solid #555;
-          padding: 16px;
-          top: 10px;
-          right: 10px;
-          max-height: calc(100vh - 86px);
-          order: 3;
-        }
-        .controlsPanel.closed {
-          transform: translateX(100%);
-          padding: 0 16px;
-          border: none;
-          overflow: hidden;
-        }
-        .controlsPanel:not(.closed) {
-          transform: translateX(0);
-          overflow-y: auto;
-        }
-        #fpsCounter {
-          top: auto;
-          bottom: 10px;
-        }
-        #fpsCounter .tooltip {
-          bottom: auto;
-          top: calc(100% + 5px);
-        }
+    #cursor.click {
+      border-color: #ffd700;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    }
+
+    h1 {
+      font-size: clamp(2rem, 8vw, 4rem);
+      background: linear-gradient(135deg, #00ffff, #ffd700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+      letter-spacing: 2px;
+    }
+
+    .tagline {
+      color: #5f6c7b;
+      font-size: 0.9rem;
+      margin-bottom: 3rem;
+      font-style: italic;
+    }
+
+    .exhibits {
+      list-style: none;
+      margin-bottom: 4rem;
+    }
+
+    .exhibit {
+      margin-bottom: 1.5rem;
+      padding-left: 1rem;
+    }
+
+    .exhibit a {
+      color: #fff;
+      text-decoration: none;
+      display: block;
+      font-size: 1.1rem;
+      cursor: none;
+      position: relative;
+      padding: 0.5rem 0;
+      transition: color 0.2s ease;
+    }
+
+    .exhibit a:hover {
+      color: #00ffff;
+    }
+
+    .exhibit a:hover .exhibit-number {
+      color: #ffd700;
+    }
+
+    .exhibit-number {
+      color: #00ffff;
+      font-size: 0.85rem;
+      margin-right: 0.5rem;
+    }
+
+    .exhibit-name {
+      font-weight: bold;
+      margin-right: 0.5rem;
+    }
+
+    .exhibit-desc {
+      color: #718096;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      display: block;
+      padding-left: 2.5rem;
+    }
+
+    .artist-statement {
+      border-top: 1px solid #2d3748;
+      padding-top: 2rem;
+      color: #5f6c7b;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .artist-statement a {
+      color: #00ffff;
+      text-decoration: none;
+    }
+
+    .artist-statement a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .exhibit-desc {
+        padding-left: 0;
+        margin-top: 0.5rem;
       }
-    </style>
-  </head>
-  <body>
-    <div id="fpsCounter">
-      <span id="fpsValue">Actual: -- (Max: --) FPS</span>
-      <div class="tooltip">
-        Actual FPS: Measures how often the browser successfully completes a full
-        animation cycle (simulation + rendering) and displays it. This is based
-        on `requestAnimationFrame` timing and is typically limited by your
-        monitor's refresh rate (e.g., 60Hz or 144Hz). Max Theoretical FPS:
-        Calculated as 1000 / renderTime (ms). This estimates the *potential*
-        frame rate if the *only* work being done was the rendering part (drawing
-        to SVG or WebGL canvas). It excludes the time spent on particle
-        physics/logic updates. Useful for comparing the raw rendering
-        performance between SVG (browser layout/paint) and WebGL (GPU
-        operations). Higher numbers indicate faster rendering capability.
-      </div>
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particleCanvas"></canvas>
+  <div id="cursor"></div>
+  <div class="container">
+    <h1>SIMULATTE</h1>
+    <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem; margin-bottom: 2rem;">
+      a gallery of generative systems
+    </p>
+
+    <ul class="exhibits">
+      <li class="exhibit">
+        <a href="/psc">
+          <span class="exhibit-number">01.</span>
+          <span class="exhibit-name">Personality Shapes</span>
+          <span class="exhibit-desc">Psychological states mapped to deformable geometry through parametric noise</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/spd">
+          <span class="exhibit-number">02.</span>
+          <span class="exhibit-name">Chaotic Pendulum</span>
+          <span class="exhibit-desc">Double pendulum ballet demonstrating sensitive dependence on initial conditions</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/zqs">
+          <span class="exhibit-number">03.</span>
+          <span class="exhibit-name">Wave Collapse</span>
+          <span class="exhibit-desc">Quantum probability distributions evolving through potential barriers</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/pss">
+          <span class="exhibit-number">04.</span>
+          <span class="exhibit-name">Particle Swarm</span>
+          <span class="exhibit-desc">Emergent behavior from simple rules governing autonomous agents</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/utp">
+          <span class="exhibit-number">05.</span>
+          <span class="exhibit-name">Torus Network</span>
+          <span class="exhibit-desc">3D processor topology with heat distribution and bandwidth traffic flows</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/cbg">
+          <span class="exhibit-number">06.</span>
+          <span class="exhibit-name">Urban Simulation</span>
+          <span class="exhibit-desc">Isometric park management exploring human behavior and seasonal rhythms</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/aeh">
+          <span class="exhibit-number">07.</span>
+          <span class="exhibit-name">Poker Equity</span>
+          <span class="exhibit-desc">Monte Carlo probability heatmaps revealing hidden strategic landscapes</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/sfs">
+          <span class="exhibit-number">08.</span>
+          <span class="exhibit-name">Strategic Flip</span>
+          <span class="exhibit-desc">Three competing strategies converging through millions of simulated hands</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/cts">
+          <span class="exhibit-number">09.</span>
+          <span class="exhibit-name">Cap Table</span>
+          <span class="exhibit-desc">Founder dilution trajectories visualized through transparent ledger mathematics</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/ftd">
+          <span class="exhibit-number">10.</span>
+          <span class="exhibit-name">Tool Designer</span>
+          <span class="exhibit-desc">Meta-framework for dynamically generating executable tools via LLM API</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="artist-statement">
+      <p>
+        An <strong>n-gram and anagram collective</strong> created for mages who like games.
+        Each piece explores rule-based generative systems where complexity emerges from mathematical simplicity.
+      </p>
+      <p style="margin-top: 1rem;">
+        Built by <a href="https://github.com/clocksmith" target="_blank">@clocksmith</a>
+      </p>
     </div>
-    <div id="loader"></div>
-    <div id="particleContainer">
-      <svg id="netSvg" aria-hidden="true"></svg>
-      <canvas id="webglCanvas" aria-hidden="true"></canvas>
-      <div id="renderMask" aria-hidden="true"></div>
-    </div>
+  </div>
 
-    <main class="mainContent">
-      <h1 class="mainTitle">SIMULATTE</h1>
-      <p>an n-gram and anagram collective</p>
-      <p>created for mages who like games</p>
-      <br />
-      <p><sub>some</sub>D<sup>emos</sup></p>
-      <nav>
-        <p>
-          <a href="/zqs" aria-label="ZQS Demo"><sub>Z</sub>Q<sup>S</sup></a>
-          <a href="/spd" aria-label="SPD Demo"><sub>S</sub>P<sup>D</sup></a>
-          <a href="/aeh" aria-label="AEH Demo"><sub>A</sub>E<sup>H</sup></a>
-          <a href="/utp" aria-label="UTP Demo"><sub>U</sub>T<sup>P</sup></a>
-          <a href="/sfs" aria-label="SFS Demo"><sub>S</sub>F<sup>S</sup></a>
-          <a href="/ftd" aria-label="FTD Demo"><sub>F</sub>T<sup>D</sup></a>
-          <a href="/cts" aria-label="CTS Demo"><sub>C</sub>T<sup>S</sup></a>
-        </p>
-      </nav>
-    </main>
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    const cursor = document.getElementById('cursor');
 
-    <div id="controls" class="controlsPanel panel closed">
-      <div class="selectorGroup renderSelector">
-        <input
-          type="radio"
-          name="renderMode"
-          id="render-svg"
-          value="svg"
-        />
-        <label for="render-svg" class="radioLabel">SVG</label>
-        <input type="radio" name="renderMode" id="render-webgl" value="webgl" checked />
-        <label for="render-webgl" class="radioLabel">WebGL</label>
-      </div>
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
 
-      <div class="selectorGroup modeSelector">
-        <input
-          type="radio"
-          name="mode"
-          id="mode-network"
-          value="network"
-          checked
-        />
-        <label for="mode-network" class="radioLabel">Network</label>
-        <input type="radio" name="mode" id="mode-space" value="space" />
-        <label for="mode-space" class="radioLabel">Space</label>
-      </div>
+    window.addEventListener('resize', () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    });
 
-      <div class="controlRow" data-mode="network">
-        <label>
-          <span>Particles:</span>
-          <input type="range" id="num-particles-network" />
-          <span class="valueDisplay value-display" id="num-particles-network-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="space">
-        <label>
-          <span>Particles:</span>
-          <input type="range" id="num-particles-space" />
-          <span class="valueDisplay value-display" id="num-particles-space-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="network">
-        <label>
-          <span>Connect:</span>
-          <input type="range" id="max-line-dist" />
-          <span class="valueDisplay value-display" id="max-line-dist-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="network">
-        <label>
-          <span>Density:</span>
-          <input type="range" id="conn-density" />
-          <span class="valueDisplay value-display" id="conn-density-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="network">
-        <label>
-          <span>Speed:</span>
-          <input type="range" id="net-speed" />
-          <span class="valueDisplay value-display" id="net-speed-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="network">
-        <label>
-          <span>Twinkle:</span>
-          <input type="range" id="net-twinkle" />
-          <span class="valueDisplay value-display" id="net-twinkle-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="network">
-        <label>
-          <span>Line Life (s):</span>
-          <input type="range" id="line-life" />
-          <span class="valueDisplay value-display" id="line-life-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="space">
-        <label>
-          <span>Speed:</span>
-          <input type="range" id="space-speed" />
-          <span class="valueDisplay value-display" id="space-speed-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="space">
-        <label>
-          <span>Spin:</span>
-          <input type="range" id="spin" />
-          <span class="valueDisplay value-display" id="spin-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="space">
-        <label>
-          <span>Warp:</span>
-          <input type="range" id="stretch" />
-          <span class="valueDisplay value-display" id="stretch-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="space">
-        <label>
-          <span>Radius:</span>
-          <input type="range" id="emit-radius" />
-          <span class="valueDisplay value-display" id="emit-radius-value"></span>
-        </label>
-      </div>
-      <div class="controlRow" data-mode="space">
-        <label>
-          <span>Twinkle:</span>
-          <input type="range" id="space-twinkle" />
-          <span class="valueDisplay value-display" id="space-twinkle-value"></span>
-        </label>
-      </div>
-    </div>
-    <div id="controlsToggle">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+    // Mouse tracking
+    let mouseX = width / 2;
+    let mouseY = height / 2;
+    let targetMouseX = width / 2;
+    let targetMouseY = height / 2;
+    let mouseVelocityX = 0;
+    let mouseVelocityY = 0;
+    let mouseSpeed = 0;
+    let webOpacity = 0.04;
+    let targetWebOpacity = 0.04;
+    let isMouseDown = false;
+    let time = 0;
 
-    <script>
-      'use strict';
-      
-      // Performance optimizations
-      const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
-      const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
-      const PERF = window.performance || Date;
-      
-      const svgNS = "http://www.w3.org/2000/svg";
-      const pCont = document.getElementById("particleContainer");
-      const svgEl = document.getElementById("netSvg");
-      const glCanvas = document.getElementById("webglCanvas");
-      
-      // Initialize elements for display
-      if (svgEl) {
-        svgEl.setAttribute('viewBox', '0 0 ' + window.innerWidth + ' ' + window.innerHeight);
-        svgEl.setAttribute('preserveAspectRatio', 'none');
-      }
-      const ctrls = document.getElementById("controls");
-      const ctrlToggle = document.getElementById("controlsToggle");
-      const loaderEl = document.getElementById("loader");
-      const fpsValEl = document.getElementById("fpsValue");
-      let particles = [];
-      const networkLinks = new Map();
-      const svgLineElements = new Map();
-      const RENDER_POS_LERP = 0.35;
-      const renderMask = document.getElementById("renderMask");
-      let frameSeed = 0;
-      let w = 1,
-        h = 1,
-        simW = 1,
-        simH = 1;
-      let animId;
-      let nextPId = 0;
-      let simMode = "network";
-      let renderMode = "webgl";
-      let simTransTo = null;
-      let simTransStartT = 0;
-      const simTransDur = 1000;
-      const renderSwitchDur = 500;
-      const PI = Math.PI;
-      let storedTwinkleVal = null;
-      let storedWarpVal = null;
-      let gl = null;
-      let pProg = null,
-        lProg = null;
-      let pPosBuf = null,
-        pColBuf = null,
-        pSizeBuf = null,
-        pDirBuf = null;
-      let lPosBuf = null,
-        lColBuf = null;
-      let pPosLoc, pColLoc, pSizeLoc, pDirLoc, pResLoc, pTimeLoc, pStretchLoc;
-      let lPosLoc, lColLoc, lResLoc;
-      let maxParticles = 0,
-        maxLines = 0;
-      let pPosData = null,
-        pColData = null,
-        pSizeData = null,
-        pDirData = null;
-      let lPosData = null,
-        lColData = null;
-      let currentParticleCount = 0,
-        currentLineCount = 0;
-      let isSwitchingRender = false;
-      let renderSwitchStartT = 0;
-      let targetRenderMode = null;
-      let renderSwitchReady = false;
-      let savedParticleState = null;
-      let lastFrameTime = 0;
-      let lastFpsSampleTime = 0;
-      let lastFpsUpdate = 0;
-      let actualFps = 0;
-      let renderTime = 0;
-      let renderTimeSum = 0;
-      let renderFrameCount = 0;
-      let avgRenderTime = 0;
-      const fpsUpdateInterval = 500;
+    const trail = [];
+    const maxTrailLength = 15;
 
-      const HASH_CONSTANT = 0x9e3779b9;
-      function hashCombine(seed, value) {
-        let h = seed ^ Math.imul(value + 0x7fffffff, HASH_CONSTANT);
-        h = Math.imul(h ^ (h >>> 16), HASH_CONSTANT);
-        return (h ^ (h >>> 16)) >>> 0;
-      }
+    // Bouncy web points with spring physics
+    const webPoints = [
+      { x: 0, y: 0, vx: 0, vy: 0 },           // top-left
+      { x: width, y: 0, vx: 0, vy: 0 },       // top-right
+      { x: width, y: height, vx: 0, vy: 0 },  // bottom-right
+      { x: 0, y: height, vx: 0, vy: 0 },      // bottom-left
+      { x: width / 2, y: 0, vx: 0, vy: 0 },   // top-center
+      { x: width / 2, y: height, vx: 0, vy: 0 } // bottom-center
+    ];
 
-      function pairRandom(id1, id2, salt = 0, epoch = 0) {
-        let h = hashCombine(0x1234abcd, id1 + 1);
-        h = hashCombine(h, id2 + 1);
-        h = hashCombine(h, Math.floor(salt));
-        h = hashCombine(h, Math.floor(epoch));
-        return (h & 0xfffffff) / 0x10000000;
-      }
-      const ctrlDefs = {
-        "num-particles-network": {
-          key: "numPN",
-          min: 8,
-          max: 512,
-          step: 1,
-          val: 48,
-          fixed: 0,
-          mode: "network",
-          cb: manageParticles,
-          glMax: 1024,
-        },
-        "num-particles-space": {
-          key: "numPS",
-          min: 8,
-          max: 2048,
-          step: 1,
-          val: 128,
-          fixed: 0,
-          mode: "space",
-          cb: manageParticles,
-          glMax: 4096,
-        },
-        "max-line-dist": {
-          key: "maxDist",
-          min: 20,
-          max: 250,
-          step: 5,
-          val: 100,
-          fixed: 0,
-          mode: "network",
-        },
-        "conn-density": {
-          key: "density",
-          min: 0.01,
-          max: 0.5,
-          step: 0.01,
-          val: 0.1,
-          fixed: 2,
-          mode: "network",
-        },
-        "net-speed": {
-          key: "netSpd",
-          min: 0.1,
-          max: 2.0,
-          step: 0.1,
-          val: 0.5,
-          fixed: 1,
-          mode: "network",
-          cb: updateNetworkSpeed,
-        },
-        "net-twinkle": {
-          key: "netTw",
-          min: 0,
-          max: 1,
-          step: 0.05,
-          val: 0.0,
-          fixed: 2,
-          mode: "network",
-        },
-        "line-life": {
-          key: "lineMs",
-          min: 1,
-          max: 15,
-          step: 1,
-          val: 5,
-          fixed: 0,
-          mult: 1000,
-          mode: "network",
-        },
-        "space-speed": {
-          key: "spcSpd",
-          min: 0.1,
-          max: 5,
-          step: 0.1,
-          val: 0.8,
-          fixed: 1,
-          mode: "space",
-        },
-        spin: {
-          key: "spin",
-          min: 0,
-          max: 0.05,
-          step: 0.01,
-          val: 0.0,
-          fixed: 2,
-          mode: "space",
-        },
-        stretch: {
-          key: "stretch",
-          min: 0,
-          max: 100.0,
-          step: 1,
-          val: 0.0,
-          fixed: 0,
-          mode: "space",
-        },
-        "emit-radius": {
-          key: "emitR",
-          min: 0,
-          max: 1024,
-          step: 4,
-          val: 256,
-          fixed: 0,
-          mode: "space",
-        },
-        "space-twinkle": {
-          key: "spcTw",
-          min: 0,
-          max: 1,
-          step: 0.05,
-          val: 0.8,
-          fixed: 2,
-          cb: manageParticles,
-          mode: "space",
-        },
-      };
-      const cfg = {};
-      cfg.debugParity = false;
-      Object.values(ctrlDefs).forEach((d) => {
-        cfg[d.key] = d.val * (d.mult || 1);
-      });
-      cfg.simMode = "network";
-      cfg.baseSizeNet = 1.5;
-      cfg.baseSizeSpaceMin = 0.5;
-      cfg.baseSizeSpaceMax = 1.5;
-      cfg.stretchFBase = 0.05;
-      cfg.glLineOpacity = 0.5;
-      cfg.twinkleDurFactor = 2;
-      cfg.twinkleMinOpFactor = 0.2;
-      cfg.twinkleMaxOpFactor = 0.6;
-      cfg.twinkleBaseOpFactor = 0.4;
-      cfg.twinkleScaleFactor = 0.4;
-      cfg.glPtScale = 2.0;
-      function rnd(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-      function clamp(v, min, max) {
-        return Math.max(min, Math.min(max, v));
-      }
-      function lerp(a, b, t) {
-        return a + (b - a) * t;
-      }
-      function getSimDimensions() {
-        simW = pCont.clientWidth || window.innerWidth || 1;
-        simH =
-          (window.innerWidth <= 768
-            ? pCont.clientHeight
-            : window.innerHeight) ||
-          window.innerHeight ||
-          1;
-      }
-      function onResize() {
-        w = window.innerWidth;
-        h = window.innerHeight;
-        getSimDimensions();
-        if (renderMode === "svg") {
-          svgEl.setAttribute("viewBox", `0 0 ${simW} ${simH}`);
-          svgEl.setAttribute("preserveAspectRatio", "none");
-          pCont.style.width = `${w}px`;
-          pCont.style.height = w <= 768 ? "" : `${h}px`;
-        } else if (gl) {
-          const dpr = window.devicePixelRatio || 1;
-          glCanvas.width = Math.round(simW * dpr);
-          glCanvas.height = Math.round(simH * dpr);
-          glCanvas.style.width = `${simW}px`;
-          glCanvas.style.height = `${simH}px`;
-          gl.viewport(0, 0, glCanvas.width, glCanvas.height);
-        }
-        particles.forEach((p) => {
-          p.x = clamp(p.x ?? rnd(0, simW), -simW * 0.5, simW * 1.5);
-          p.y = clamp(p.y ?? rnd(0, simH), -simH * 0.5, simH * 1.5);
-          if (p.simMode === "network") {
-            p.x = clamp(p.x, 0, simW);
-            p.y = clamp(p.y, 0, simH);
-          }
-        });
-      }
-      window.addEventListener("resize", onResize);
-      function createPSVG(p) {
-        const shape = p.simMode === "network" ? "circle" : "div";
-        if (p.el && p.el.matches(shape)) return;
-        p.el?.remove();
-        if (shape === "circle") {
-          p.el = document.createElementNS(svgNS, "circle");
-          svgEl.appendChild(p.el);
-        } else {
-          p.el = document.createElement("div");
-          p.el.classList.add("particleDiv");
-          pCont.appendChild(p.el);
-        }
-        p.el.style.opacity = "0";
-      }
-      const essentialProps = [
-        "id",
-        "simMode",
-        "targetOp",
-        "opacity",
-        "x",
-        "y",
-        "twPhase",
-        "r",
-        "g",
-        "b",
-        "baseSize",
-        "vx",
-        "vy",
-        "z",
-        "lastX",
-        "lastY",
-        "currOpacity",
-        "currSize",
-        "renderX",
-        "renderY",
-        "startX",
-        "startY",
-        "startOpacity",
-        "startSize",
-        "networkX",
-        "networkY",
-        "spaceAngle",
-        "spaceTargetOp",
-        "targetBaseSize",
-      ];
-      function savePState(p) {
-        const state = {};
-        essentialProps.forEach((k) => {
-          if (p[k] !== undefined && p[k] !== null && !isNaN(p[k]))
-            state[k] = p[k];
-        });
-        return state;
-      }
-      function restorePState(p, state) {
-        Object.assign(p, state);
-        initPState(p, p.simMode, false, true);
-      }
-      function initPState(p, targetMode, isNew = false, isRestoring = false) {
-        if (!isRestoring) {
-          p.id = p.id ?? nextPId++;
-          p.simMode = targetMode;
-          p.targetOp = targetMode === "network" ? 1 : rnd(0.4, 1);
-          if (isNew || p.opacity === undefined) p.opacity = 0;
-          if (isNew || p.x === undefined || isNaN(p.x)) p.x = rnd(0, simW);
-          if (isNew || p.y === undefined || isNaN(p.y)) p.y = rnd(0, simH);
-          if (isNew || p.twPhase === undefined) p.twPhase = rnd(0, PI * 2);
-          p.r = p.r ?? 1.0;
-          p.g = p.g ?? 1.0;
-          p.b = p.b ?? 1.0;
-          if (targetMode === "network") {
-            p.baseSize = p.baseSize ?? cfg.baseSizeNet;
-            if (isNew || p.vx === undefined || isNaN(p.vx)) {
-              const angle = rnd(0, PI * 2),
-                speed = rnd(0.1 * cfg.netSpd, 1.0 * cfg.netSpd);
-              p.vx = Math.cos(angle) * speed;
-              p.vy = Math.sin(angle) * speed;
-            }
-            p.z = undefined;
-          } else {
-            p.baseSize =
-              p.baseSize ?? rnd(cfg.baseSizeSpaceMin, cfg.baseSizeSpaceMax);
-            if (isNew || p.z === undefined || isNaN(p.z)) {
-              const angle = rnd(0, PI * 2),
-                radius = cfg.emitR === 0 ? rnd(0, 5) : cfg.emitR;
-              p.x = simW / 2 + Math.cos(angle) * radius;
-              p.y = simH / 2 + Math.sin(angle) * radius;
-              p.z = rnd(0.1, 1);
-            }
-            p.vx = undefined;
-            p.vy = undefined;
-          }
-          p.lastX = p.lastX ?? p.x;
-          p.lastY = p.lastY ?? p.y;
-        }
-        p.renderX = p.renderX ?? p.x;
-        p.renderY = p.renderY ?? p.y;
-        p.currOpacity = p.currOpacity ?? p.opacity;
-        p.currSize = p.currSize ?? p.baseSize;
-        if (renderMode === "svg") createPSVG(p);
-      }
-      function resetPForSpace(p) {
-        const angle = rnd(0, PI * 2);
-        const radius = cfg.emitR === 0 ? rnd(0, 5) : cfg.emitR;
-        p.x = simW / 2 + Math.cos(angle) * radius;
-        p.y = simH / 2 + Math.sin(angle) * radius;
-        p.z = rnd(0.1, 1);
-        p.targetOp = rnd(0.4, 1);
-        p.opacity = 0;
-        p.baseSize = rnd(cfg.baseSizeSpaceMin, cfg.baseSizeSpaceMax);
-        p.currOpacity = 0;
-        p.currSize = p.baseSize;
-        p.lastX = p.x;
-        p.lastY = p.y;
-        p.renderX = p.x;
-        p.renderY = p.y;
-        if (renderMode === "svg" && p.el) p.el.style.opacity = "0";
-      }
-      function updatePPhysics(p, dt) {
-        const ts = Math.min(2, (dt * 60) / 1000);
-        p.opacity = clamp(lerp(p.opacity, p.targetOp, 0.1 * ts), 0, 1);
-        p.lastX = p.x;
-        p.lastY = p.y;
-        if (p.simMode === "network") {
-          p.x += p.vx * ts;
-          p.y += p.vy * ts;
-          if (p.x <= 0 || p.x >= simW) {
-            p.vx *= -1;
-            p.x = clamp(p.x, 0, simW);
-          }
-          if (p.y <= 0 || p.y >= simH) {
-            p.vy *= -1;
-            p.y = clamp(p.y, 0, simH);
-          }
-        } else {
-          const cx = simW / 2,
-            cy = simH / 2;
-          let dx = p.x - cx,
-            dy = p.y - cy;
-          const dist = Math.max(0.1, Math.sqrt(dx * dx + dy * dy));
-          const rs = (1 / Math.max(0.01, p.z)) * cfg.spcSpd * 4 * ts;
-          const angle = Math.atan2(dy, dx);
-          const angS = cfg.spin * 50 * ts;
-          const newAngle = angle + angS * 0.016;
-          const radM = rs;
-          p.x = cx + (dist + radM) * Math.cos(newAngle);
-          p.y = cy + (dist + radM) * Math.sin(newAngle);
-          const border = 150;
-          if (
-            p.x < -border ||
-            p.x > simW + border ||
-            p.y < -border ||
-            p.y > simH + border
-          )
-            resetPForSpace(p);
-        }
-        if (isNaN(p.x) || isNaN(p.y)) initPState(p, p.simMode, true);
-      }
-      function updatePVisuals(p, now) {
-        p.currOpacity = p.opacity;
-        p.currSize = p.baseSize;
-        const isNet = p.simMode === "network";
-        const tCfg = isNet ? cfg.netTw : cfg.spcTw;
-        const sCfg = cfg.stretch;
-        const prevRenderX = p.renderX ?? p.x;
-        const prevRenderY = p.renderY ?? p.y;
-        if (Number.isFinite(prevRenderX) && Number.isFinite(prevRenderY)) {
-          p.renderX = lerp(prevRenderX, p.x, RENDER_POS_LERP);
-          p.renderY = lerp(prevRenderY, p.y, RENDER_POS_LERP);
-        } else {
-          p.renderX = p.x;
-          p.renderY = p.y;
-        }
-        p.directionX = p.renderX - prevRenderX;
-        p.directionY = p.renderY - prevRenderY;
-        if (tCfg > 0) {
-          p.twPhase = (p.twPhase + 0.05 + rnd(0, 0.05)) % (PI * 2);
-          const phaseVal = Math.sin(p.twPhase) * 0.5 + 0.5;
-          const minOp = lerp(p.opacity, 0.3 * p.opacity, tCfg);
-          const maxOp = lerp(p.opacity, p.opacity, tCfg);
-          p.currOpacity = clamp(minOp + phaseVal * (maxOp - minOp), 0, 1);
-          const minScale = lerp(1.0, 0.8, tCfg);
-          const maxScale = lerp(1.0, 1.2, tCfg);
-          const scaleF = minScale + phaseVal * (maxScale - minScale);
-          p.currSize = p.baseSize * scaleF;
-        } else if (!isNet && sCfg > 0) {
-          const dx = p.directionX,
-            dy = p.directionY;
-          const stretchF = 1 + (sCfg / 50) * 5;
-          const dist = Math.sqrt(
-            Math.pow(p.x - simW / 2, 2) + Math.pow(p.y - simH / 2, 2)
-          );
-          if (dist > 10) p.currSize *= Math.max(1, stretchF);
-          p.directionX = dx;
-          p.directionY = dy;
-        }
-        p.currSize = Math.max(0.1, p.currSize);
-        p.stretchFactor = p.currSize / p.baseSize;
-      }
-      function renderPSVG(p) {
-        if (!p.el || renderMode !== "svg") return;
-        if (p.simMode === "network") {
-          const drawX = p.renderX ?? p.x;
-          const drawY = p.renderY ?? p.y;
-          p.el.setAttribute("cx", String(drawX));
-          p.el.setAttribute("cy", String(drawY));
-          p.el.setAttribute("r", String(p.currSize));
-          // Apply per-particle RGB color to match WebGL
-          const r = Math.floor(p.r * 255);
-          const g = Math.floor(p.g * 255);
-          const b = Math.floor(p.b * 255);
-          p.el.setAttribute("fill", `rgb(${r},${g},${b})`);
-          p.el.style.opacity = p.currOpacity.toFixed(3);
-        } else {
-          const size = p.currSize * 2;
-          const drawX = p.renderX ?? p.x;
-          const drawY = p.renderY ?? p.y;
-          p.el.style.width = `${size}px`;
-          p.el.style.height = `${size}px`;
-          p.el.style.left = `${drawX - size / 2}px`;
-          p.el.style.top = `${drawY - size / 2}px`;
-          // Apply per-particle RGB color to match WebGL
-          const r = Math.floor(p.r * 255);
-          const g = Math.floor(p.g * 255);
-          const b = Math.floor(p.b * 255);
-          p.el.style.backgroundColor = `rgb(${r},${g},${b})`;
-          updatePTwinkleSVG(p);
-          if (cfg.spcTw <= 0) {
-            let tfm = "scale(1)";
-            if (cfg.stretch > 0) {
-              const dx = p.directionX,
-                dy = p.directionY;
-              if (dx !== 0 || dy !== 0) {
-                const angleRad = Math.atan2(dy, dx);
-                tfm = `rotate(${angleRad}rad) scaleX(${clamp(
-                  p.stretchFactor,
-                  0.1,
-                  10
-                ).toFixed(3)})`;
-              }
-            }
-            p.el.style.transform = tfm;
-            if (!p.el.classList.contains("twinkle"))
-              p.el.style.opacity = p.currOpacity.toFixed(3);
-          } else if (!p.el.classList.contains("twinkle")) {
-            p.el.style.transform = "scale(1)";
-            p.el.style.opacity = p.currOpacity.toFixed(3);
-          }
-        }
-      }
-      function updatePTwinkleSVG(p) {
-        if (!p.el || p.simMode === "network" || renderMode !== "svg") return;
-        const el = p.el;
-        el.style.animation = "none";
-        el.classList.remove("twinkle");
-        el.style.opacity = p.currOpacity.toFixed(3);
-        if (cfg.stretch > 0) {
-          const dx = p.directionX;
-          const dy = p.directionY;
-          if (dx !== 0 || dy !== 0) {
-            const angleRad = Math.atan2(dy, dx);
-            el.style.transform = `rotate(${angleRad}rad) scaleX(${clamp(
-              p.stretchFactor,
-              0.1,
-              10
-            ).toFixed(3)})`;
-            return;
-          }
-        }
-        el.style.transform = `scale(${(p.currSize / p.baseSize).toFixed(3)})`;
-      }
-      function updatePTransition(p, progress) {
-        const t = 0.5 - 0.5 * Math.cos(progress * PI);
-        const targetM = simTransTo;
-        let startX = p.startX ?? p.x,
-          startY = p.startY ?? p.y;
-        let targetX,
-          targetY,
-          targetOp = p.targetOp,
-          targetSize = p.targetBaseSize;
-        if (targetM === "network") {
-          targetX = p.networkX ?? startX;
-          targetY = p.networkY ?? startY;
-          targetOp = 1;
-          targetSize = cfg.baseSizeNet;
-        } else {
-          const angle =
-            p.spaceAngle ??
-            (Math.atan2(startY - simH / 2, startX - simW / 2) ||
-              rnd(0, PI * 2));
-          const radius = cfg.emitR === 0 ? rnd(0, 5) : cfg.emitR;
-          targetX = simW / 2 + Math.cos(angle) * radius;
-          targetY = simH / 2 + Math.sin(angle) * radius;
-          targetOp = p.spaceTargetOp ?? rnd(0.4, 1);
-          targetSize =
-            p.targetBaseSize ?? rnd(cfg.baseSizeSpaceMin, cfg.baseSizeSpaceMax);
-        }
-        p.x = lerp(startX, targetX, t);
-        p.y = lerp(startY, targetY, t);
-        p.opacity = lerp(p.startOpacity ?? p.opacity, targetOp, t);
-        p.baseSize = lerp(p.startSize ?? p.baseSize, targetSize, t);
-        p.currOpacity = p.opacity;
-        p.currSize = p.baseSize * lerp(0.5, 1, t);
-        if (isNaN(p.x) || isNaN(p.y)) {
-          p.x = targetX;
-          p.y = targetY;
-          p.opacity = targetOp;
-          p.baseSize = targetSize;
-        }
-        p.renderX = p.x;
-        p.renderY = p.y;
-        p.directionX = targetX - startX;
-        p.directionY = targetY - startY;
-        p.stretchFactor = lerp(0.5, 1, t);
-        if (renderMode === "svg") {
-          if (!p.el) createPSVG(p);
-          if (!p.el) return;
-          p.el.style.opacity = p.opacity.toFixed(3);
-          if (p.el.tagName === "circle") {
-            p.el.setAttribute("cx", p.x.toFixed(1));
-            p.el.setAttribute("cy", p.y.toFixed(1));
-            p.el.setAttribute("r", p.currSize.toFixed(2));
-          } else {
-            const size = p.currSize * 2;
-            p.el.style.width = `${size}px`;
-            p.el.style.height = `${size}px`;
-            p.el.style.left = `${p.x - size / 2}px`;
-            p.el.style.top = `${p.y - size / 2}px`;
-            p.el.style.transform = `scale(${lerp(0.5, 1, t)})`;
-            if (p.el.classList.contains("twinkle"))
-              p.el.classList.remove("twinkle");
-          }
-        }
-      }
-      function calcMaxLineDist() {
-        return cfg.maxDist * (Math.sqrt(simW * simH) / 800);
-      }
-      const DRAW_DURATION = 300;
-      function getLineCapacity(visibleCount) {
-        if (visibleCount <= 1) return 0;
-        const theoretical = (visibleCount * (visibleCount - 1)) / 2;
-        const estimated = Math.min(Math.max(0, theoretical), visibleCount * 4, 65534);
-        if (maxLines && maxLines > 0) return Math.min(estimated, maxLines);
-        return estimated;
-      }
+    const webPointsOriginal = webPoints.map(p => ({ x: p.x, y: p.y }));
 
-      function updateNetworkLinks(now, transProgress = 1) {
-        frameSeed++;
-        const isTargetNet =
-          simTransTo === "network" || (!simTransTo && simMode === "network");
-        const effectiveProgress = isTargetNet ? transProgress : 1 - transProgress;
-        const targetOpBase = isTargetNet ? 0.5 : 0;
-        const pMap = new Map(
-          particles.filter((p) => p.currOpacity > 0.01).map((p) => [p.id, p])
-        );
-        const maxDistSq = Math.pow(calcMaxLineDist(), 2);
-        const fadeDur = 500;
-        const spawnEpoch = Math.floor(now / 1000);
-        const linkCapacity = getLineCapacity(pMap.size);
+    // Click ripple effects (anywhere on page)
+    const activeRipples = [];
+    const exhibits = document.querySelectorAll('.exhibit a');
 
-        for (const [key, link] of networkLinks) {
-          const p1 = pMap.get(link.p1Id);
-          const p2 = pMap.get(link.p2Id);
-          if (!p1 || !p2) {
-            svgLineElements.get(key)?.remove();
-            svgLineElements.delete(key);
-            networkLinks.delete(key);
-            continue;
-          }
-          const age = now - link.born;
-          let target = targetOpBase * effectiveProgress;
-          if (!isTargetNet || effectiveProgress < 0.05) target = 0;
-          else if (age >= link.maxLt) target = 0;
-          else if (age >= link.maxLt - fadeDur)
-            target = Math.max(
-              0,
-              target * (1 - (age - (link.maxLt - fadeDur)) / fadeDur)
-            );
+    // Intercept exhibit link clicks for fade transition
+    exhibits.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = link.getAttribute('href');
 
-          link.targetOp = target;
-          link.op = clamp(lerp(link.op, link.targetOp, 0.15), 0, 1);
-          const p1x = p1.renderX ?? p1.x;
-          const p1y = p1.renderY ?? p1.y;
-          const p2x = p2.renderX ?? p2.x;
-          const p2y = p2.renderY ?? p2.y;
-          link.x1 = p1x;
-          link.y1 = p1y;
-          link.x2 = p2x;
-          link.y2 = p2y;
-          const drawProgress = Math.min(1, (now - link.born) / DRAW_DURATION);
-          const drawEase = 0.5 - 0.5 * Math.cos(drawProgress * Math.PI);
-          const prevRX1 = link.renderX1 ?? link.x1;
-          const prevRY1 = link.renderY1 ?? link.y1;
-          const prevRX2 = link.renderX2 ?? link.x2;
-          const prevRY2 = link.renderY2 ?? link.y2;
-          if (drawProgress < 1) {
-            const eased = drawEase;
-            link.renderX1 = lerp(link.startX1, link.x1, eased);
-            link.renderY1 = lerp(link.startY1, link.y1, eased);
-            link.renderX2 = lerp(link.startX2, link.x2, eased);
-            link.renderY2 = lerp(link.startY2, link.y2, eased);
-          } else {
-            link.renderX1 = lerp(prevRX1, link.x1, RENDER_POS_LERP);
-            link.renderY1 = lerp(prevRY1, link.y1, RENDER_POS_LERP);
-            link.renderX2 = lerp(prevRX2, link.x2, RENDER_POS_LERP);
-            link.renderY2 = lerp(prevRY2, link.y2, RENDER_POS_LERP);
-          }
-          const minOpacity = Math.min(p1.currOpacity, p2.currOpacity);
-          link.finalOp = link.op * minOpacity;
+        // Get the bounds of the clicked exhibit row
+        const rect = link.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-          if (link.finalOp <= 0.01 && link.targetOp === 0) {
-            svgLineElements.get(key)?.remove();
-            svgLineElements.delete(key);
-            networkLinks.delete(key);
-          }
-        }
+        // Calculate max radius to fit within box bounds
+        const maxDiagonal = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
 
-        if (
-          !isTargetNet ||
-          effectiveProgress <= 0.05 ||
-          pMap.size <= 1 ||
-          networkLinks.size >= linkCapacity
-        )
-          return;
-
-        const pts = Array.from(pMap.values());
-        outer: for (let i = 0; i < pts.length; i++) {
-          for (let j = i + 1; j < pts.length; j++) {
-            if (networkLinks.size >= linkCapacity) break outer;
-            const p1 = pts[i];
-            const p2 = pts[j];
-            const p1x = p1.renderX ?? p1.x;
-            const p1y = p1.renderY ?? p1.y;
-            const p2x = p2.renderX ?? p2.x;
-            const p2y = p2.renderY ?? p2.y;
-            const dx = p1x - p2x;
-            const dy = p1y - p2y;
-            if (dx * dx + dy * dy > maxDistSq) continue;
-            const key = `${Math.min(p1.id, p2.id)}-${Math.max(p1.id, p2.id)}`;
-            if (networkLinks.has(key)) continue;
-            const densityRoll = pairRandom(p1.id, p2.id, spawnEpoch, frameSeed);
-            if (densityRoll > cfg.density) continue;
-            const lifeVariance =
-              (pairRandom(p1.id, p2.id, spawnEpoch + 1, frameSeed) - 0.5) * 1000;
-            networkLinks.set(key, {
-              key,
-              p1Id: p1.id,
-              p2Id: p2.id,
-              born: now,
-              maxLt: Math.max(300, cfg.lineMs + lifeVariance),
-              startX1: p1x,
-              startY1: p1y,
-              startX2: p1x,
-              startY2: p1y,
-              x1: p1x,
-              y1: p1y,
-              x2: p2x,
-              y2: p2y,
-              targetOp: 0,
-              op: 0,
-              finalOp: 0,
-              renderX1: p1x,
-              renderY1: p1y,
-              renderX2: p1x,
-              renderY2: p1y,
-            });
-          }
-        }
-
-        if (networkLinks.size > linkCapacity) {
-          const excess = networkLinks.size - linkCapacity;
-          const sorted = Array.from(networkLinks.entries()).sort(
-            (a, b) => (a[1].finalOp || 0) - (b[1].finalOp || 0)
-          );
-          for (let i = 0; i < excess && i < sorted.length; i++) {
-            const [key] = sorted[i];
-            svgLineElements.get(key)?.remove();
-            svgLineElements.delete(key);
-            networkLinks.delete(key);
-          }
-        }
-      }
-
-      function primeNetworkLinksForRender() {
-        if (!networkLinks.size || !particles.length) return;
-        const pLookup = new Map(particles.map((p) => [p.id, p]));
-        for (const link of networkLinks.values()) {
-          const p1 = pLookup.get(link.p1Id);
-          const p2 = pLookup.get(link.p2Id);
-          if (!p1 || !p2) continue;
-          const p1x = p1.renderX ?? p1.x;
-          const p1y = p1.renderY ?? p1.y;
-          const p2x = p2.renderX ?? p2.x;
-          const p2y = p2.renderY ?? p2.y;
-          link.x1 = p1x;
-          link.y1 = p1y;
-          link.x2 = p2x;
-          link.y2 = p2y;
-          link.renderX1 = p1x;
-          link.renderY1 = p1y;
-          link.renderX2 = p2x;
-          link.renderY2 = p2y;
-        }
-      }
-
-      function syncSvgLinks(now) {
-        if (renderMode !== "svg") return;
-        // Apply same line limit as WebGL to maintain parity
-        const maxSvgLines = Math.min(particles.length * 4, 65534);
-        let lineCount = 0;
-
-        for (const [key, link] of networkLinks) {
-          if (link.finalOp <= 0.01) continue;
-          if (lineCount >= maxSvgLines) break;
-
-          let lineEl = svgLineElements.get(key);
-          if (!lineEl) {
-            lineEl = document.createElementNS(svgNS, "line");
-            lineEl.style.opacity = "0";
-            svgEl.appendChild(lineEl);
-            svgLineElements.set(key, lineEl);
-          }
-          lineEl.setAttribute("x1", String(link.renderX1));
-          lineEl.setAttribute("y1", String(link.renderY1));
-          lineEl.setAttribute("x2", String(link.renderX2));
-          lineEl.setAttribute("y2", String(link.renderY2));
-          // Match WebGL: apply 0.5 base opacity multiplier
-          lineEl.style.opacity = (link.finalOp * 0.5).toFixed(3);
-          lineCount++;
-        }
-        for (const [key, el] of svgLineElements) {
-          if (!networkLinks.has(key) || networkLinks.get(key).finalOp <= 0.01) {
-            el.remove();
-            svgLineElements.delete(key);
-          }
-        }
-      }
-
-      function debugParityCheck() {
-        if (!cfg.debugParity) return;
-        const activeLinks = Array.from(networkLinks.values()).filter(
-          (link) => link.finalOp > 0.01
-        ).length;
-        if (renderMode === "svg") {
-          const svgActive = svgLineElements.size;
-          if (Math.abs(activeLinks - svgActive) > 1) {
-            console.warn(
-              `[PARITY] Link mismatch detected. active=${activeLinks}, svg=${svgActive}`
-            );
-          }
-        }
-      }
-      function manageParticles() {
-        let targetCount = 0;
-        const stableMode = simTransTo || simMode;
-        let pDef =
-          stableMode === "network"
-            ? ctrlDefs["num-particles-network"]
-            : ctrlDefs["num-particles-space"];
-        targetCount = cfg[pDef.key];
-        if (renderMode === "webgl" && pDef?.glMax) {
-          targetCount = Math.min(targetCount, pDef.glMax);
-          const inputId =
-            stableMode === "network"
-              ? "num-particles-network"
-              : "num-particles-space";
-          const input = document.getElementById(inputId);
-          if (input && parseInt(input.value) > pDef.glMax) {
-            input.value = pDef.glMax;
-            cfg[pDef.key] = pDef.glMax;
-            const valEl = document.getElementById(inputId + "-value");
-            if (valEl) valEl.textContent = pDef.glMax.toFixed(pDef.fixed);
-          }
-        }
-        const currentCount = particles.length;
-        if (targetCount > currentCount) {
-          for (let i = 0; i < targetCount - currentCount; i++)
-            particles.push({});
-        } else if (targetCount < currentCount) {
-          const removed = particles.splice(targetCount);
-          if (renderMode === "svg") removed.forEach((p) => p.el?.remove());
-          const removedIds = new Set(removed.map((p) => p.id));
-          for (const key of Array.from(networkLinks.keys())) {
-            const link = networkLinks.get(key);
-            if (removedIds.has(link.p1Id) || removedIds.has(link.p2Id)) {
-              svgLineElements.get(key)?.remove();
-              svgLineElements.delete(key);
-              networkLinks.delete(key);
-            }
-          }
-        }
-        particles.forEach((p) => {
-          const isNew = p.id === undefined || p.id === null;
-          initPState(p, stableMode, isNew);
-        });
-        if (renderMode === "webgl") resizeWebGLBufs(targetCount);
-      }
-      function updateNetworkSpeed() {
-        particles.forEach((p) => {
-          if (p.simMode === "network" && p.vx !== undefined && p.vy !== undefined) {
-            const currentSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-            if (currentSpeed > 0) {
-              const angle = Math.atan2(p.vy, p.vx);
-              const newSpeed = rnd(0.1 * cfg.netSpd, 1.0 * cfg.netSpd);
-              p.vx = Math.cos(angle) * newSpeed;
-              p.vy = Math.sin(angle) * newSpeed;
-            }
-          }
-        });
-      }
-      function updateFps(now, frameRenderTime) {
-        if (!lastFpsSampleTime) {
-          lastFpsSampleTime = now;
-          return;
-        }
-        const dt = now - lastFpsSampleTime;
-        lastFpsSampleTime = now;
-        if (dt <= 0) return;
-        actualFps = 1000 / dt;
-        renderFrameCount++;
-        renderTimeSum += frameRenderTime;
-        if (now - lastFpsUpdate > fpsUpdateInterval) {
-          avgRenderTime = renderTimeSum / renderFrameCount;
-          const maxFps =
-            avgRenderTime > 0 ? (1000 / avgRenderTime).toFixed(0) : "--";
-          fpsValEl.textContent = `Actual: ${actualFps.toFixed(
-            0
-          )} (Max: ${maxFps}) FPS`;
-          lastFpsUpdate = now;
-          renderTimeSum = 0;
-          renderFrameCount = 0;
-        }
-      }
-      function animate(timestamp) {
-        animId = RAF(animate);
-        const now = timestamp || PERF.now();
-        if (!lastFrameTime) lastFrameTime = now;
-        const dt = Math.min(now - lastFrameTime, 100);
-        const renderStartT = PERF.now();
-        if (isSwitchingRender) {
-          handleRenderModeSwitch(now);
-          const switchRenderTime = PERF.now() - renderStartT;
-          renderTime = switchRenderTime;
-          updateFps(now, switchRenderTime);
-          lastFrameTime = now;
-          return;
-        }
-        if (simTransTo) {
-          const elapsed = now - simTransStartT;
-          const progress = Math.min(1, elapsed / simTransDur);
-          particles.forEach((p) => updatePTransition(p, progress));
-          updateNetworkLinks(now, progress);
-          if (renderMode === "svg") {
-            particles.forEach(renderPSVG);
-            syncSvgLinks(now);
-          }
-          if (progress >= 1) {
-            const finalMode = simTransTo;
-            simMode = simTransTo;
-            simTransTo = null;
-            cfg.simMode = simMode;
-            particles.forEach((p) => {
-              initPState(p, finalMode);
-              p.startX =
-                p.startY =
-                p.networkX =
-                p.networkY =
-                p.spaceAngle =
-                p.spaceTargetOp =
-                p.startOpacity =
-                p.targetBaseSize =
-                p.startSize =
-                  undefined;
-            });
-            manageParticles();
-            updateCtrlVisibility();
-          }
-        } else {
-          particles.forEach((p) => {
-            updatePPhysics(p, dt);
-            updatePVisuals(p, now);
-          });
-          updateNetworkLinks(now);
-          if (renderMode === "svg") {
-            particles.forEach(renderPSVG);
-            syncSvgLinks(now);
-          }
-        }
-        if (renderMode === "webgl" && gl) renderWebGL();
-        debugParityCheck();
-        renderTime = PERF.now() - renderStartT;
-        updateFps(now, renderTime);
-        lastFrameTime = now;
-      }
-      function pauseAnimation() {
-        if (animId) {
-          CAF(animId);
-          animId = null;
-        }
-      }
-      function resumeAnimation() {
-        if (!animId) {
-          lastFrameTime = 0;
-          lastFpsSampleTime = 0;
-          lastFpsUpdate = 0;
-          renderFrameCount = 0;
-          renderTimeSum = 0;
-          animId = RAF(animate);
-        }
-      }
-      document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-          pauseAnimation();
-        } else {
-          resumeAnimation();
-        }
-      });
-      function setSimMode(newMode) {
-        if (newMode === simMode || simTransTo || isSwitchingRender) return;
-        simTransTo = newMode;
-        simTransStartT = performance.now();
-        particles.forEach((p) => {
-          p.startOpacity = p.opacity;
-          p.startX = p.x;
-          p.startY = p.y;
-          p.startSize = p.baseSize;
-          p.targetOp = newMode === "network" ? 1 : rnd(0.4, 1);
-          p.targetBaseSize =
-            newMode === "network"
-              ? cfg.baseSizeNet
-              : rnd(cfg.baseSizeSpaceMin, cfg.baseSizeSpaceMax);
-          if (newMode === "network") {
-            p.networkX = p.x;
-            p.networkY = p.y;
-          } else {
-            p.spaceAngle =
-              Math.atan2(p.y - simH / 2, p.x - simW / 2) || rnd(0, PI * 2);
-            p.spaceTargetOp = rnd(0.4, 1);
-          }
-        });
-        manageParticles();
-        updateCtrlVisibility();
-        if (!animId) animId = RAF(animate);
-      }
-      function switchRenderMode(newRenderMode) {
-        if (newRenderMode === renderMode || isSwitchingRender) return;
-        targetRenderMode = newRenderMode;
-        isSwitchingRender = true;
-        renderSwitchStartT = performance.now();
-        renderSwitchReady = false;
-        savedParticleState = particles.map(savePState);
-        const currentCanvas = renderMode === "svg" ? svgEl : glCanvas;
-        if (renderMask) {
-          renderMask.style.opacity = "1";
-        }
-        currentCanvas.style.transition = `opacity ${
-          renderSwitchDur / 1000
-        }s ease-in-out`;
-        currentCanvas.style.opacity = 0;
-        loaderEl.style.display = "block";
-        requestAnimationFrame(() => (loaderEl.style.opacity = 1));
-        setTimeout(() => {
-          currentCanvas.style.display = "none";
-          destroyCurrentRenderer();
-          setupNewRenderer(savedParticleState);
-          renderSwitchReady = true;
-        }, renderSwitchDur);
-      }
-      function handleRenderModeSwitch(now) {
-        const elapsed = now - renderSwitchStartT;
-        const fadeOutEndT = renderSwitchDur;
-        const fadeInEndT = fadeOutEndT + renderSwitchDur;
-        if (elapsed >= fadeOutEndT && targetRenderMode && renderSwitchReady) {
-          renderMode = targetRenderMode;
-          targetRenderMode = null;
-          const newCanvas = renderMode === "svg" ? svgEl : glCanvas;
-          newCanvas.style.display = "block";
-          newCanvas.style.transition = `opacity ${
-            renderSwitchDur / 1000
-          }s ease-in-out`;
-          newCanvas.style.opacity = 0;
-          requestAnimationFrame(() => {
-            newCanvas.style.opacity = 1;
-            if (renderMask) {
-              requestAnimationFrame(() => {
-                renderMask.style.opacity = "0";
-              });
-            }
-          });
-          loaderEl.style.transition = `opacity ${
-            renderSwitchDur / 1000
-          }s ease-in-out`;
-          loaderEl.style.opacity = 0;
+        // Create contained ripple effect
+        for (let i = 0; i < 2; i++) {
           setTimeout(() => {
-            isSwitchingRender = false;
-            loaderEl.style.display = "none";
-            if (renderMask) renderMask.style.opacity = "0";
-            onResize();
-            updateCtrlVisibility();
-            manageParticles();
-            savedParticleState = null;
-          }, renderSwitchDur);
-        }
-      }
-      function destroyCurrentRenderer() {
-        const prevMode = renderMode;
-        if (prevMode === "svg") {
-          while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
-          svgLineElements.clear();
-          pCont.querySelectorAll(".particleDiv").forEach((el) => el.remove());
-          particles.forEach((p) => (p.el = null));
-        } else if (gl) {
-          if (pProg) gl.deleteProgram(pProg);
-          if (lProg) gl.deleteProgram(lProg);
-          if (pPosBuf) gl.deleteBuffer(pPosBuf);
-          if (pColBuf) gl.deleteBuffer(pColBuf);
-          if (pSizeBuf) gl.deleteBuffer(pSizeBuf);
-          if (pDirBuf) gl.deleteBuffer(pDirBuf);
-          if (lPosBuf) gl.deleteBuffer(lPosBuf);
-          if (lColBuf) gl.deleteBuffer(lColBuf);
-          pProg =
-            lProg =
-            pPosBuf =
-            pColBuf =
-            pSizeBuf =
-            pDirBuf =
-            lPosBuf =
-            lColBuf =
-              null;
-          pPosData =
-            pColData =
-            pSizeData =
-            pDirData =
-            lPosData =
-            lColData =
-              null;
-          gl = null;
-          maxParticles = maxLines = 0;
-        }
-      }
-      function setupNewRenderer(stateToRestore) {
-        const newMode = targetRenderMode;
-        if (!newMode) return;
-        const prevMode = renderMode;
-        renderMode = newMode;
-        particles = [];
-        (stateToRestore || []).forEach((state) => {
-          const p = {};
-          restorePState(p, state);
-          particles.push(p);
-        });
-        primeNetworkLinksForRender();
-        if (newMode === "svg") {
-          particles.forEach(renderPSVG);
-          syncSvgLinks(PERF.now());
-        } else if (newMode === "webgl") {
-          if (!initWebGL()) {
-            console.error("WebGL init failed, reverting");
-            renderMode = prevMode;
-            document.getElementById("render-svg").checked = true;
-            targetRenderMode = "svg";
-            glCanvas.style.display = "none";
-            setupNewRenderer(stateToRestore);
-            return;
-          }
-          resizeWebGLBufs(particles.length);
-          renderWebGL(true);
-        }
-      }
-      function updateCtrlVisibility() {
-        document
-          .querySelectorAll(".controlsPanel .controlRow[data-mode]")
-          .forEach((row) => {
-            const m = row.dataset.mode.split(" ");
-            row.classList.toggle("visible", m.includes(simTransTo || simMode));
-          });
-        Object.entries(ctrlDefs).forEach(([id, d]) => {
-          const input = document.getElementById(id);
-          if (!input) return;
-          const maxV = renderMode === "webgl" && d.glMax ? d.glMax : d.max;
-          if (input.max != maxV) {
-            input.max = maxV;
-            if (parseFloat(input.value) > maxV) {
-              input.value = maxV;
-              cfg[d.key] = maxV * (d.mult || 1);
-              const valEl = document.getElementById(id + "-value");
-              if (valEl) valEl.textContent = maxV.toFixed(d.fixed);
-            }
-          }
-        });
-      }
-      function setupCtrls() {
-        const stretchIn = document.getElementById("stretch"),
-          stretchVal = document.getElementById("stretch-value");
-        const twinkleIn = document.getElementById("space-twinkle"),
-          twinkleVal = document.getElementById("space-twinkle-value");
-        Object.entries(ctrlDefs).forEach(([id, d]) => {
-          const input = document.getElementById(id);
-          if (!input) return;
-          const valEl = document.getElementById(id + "-value");
-          const mult = d.mult || 1,
-            maxV = renderMode === "webgl" && d.glMax ? d.glMax : d.max;
-          const currV = Math.min(cfg[d.key] / mult, maxV);
-          input.min = d.min;
-          input.max = maxV;
-          input.step = d.step;
-          input.value = currV;
-          if (valEl) valEl.textContent = currV.toFixed(d.fixed);
-          input.addEventListener("input", (e) => {
-            let v = parseFloat(e.target.value),
-              cfgV = v * mult;
-            if (d.key.startsWith("numP")) cfgV = Math.round(v);
-            cfg[d.key] = cfgV;
-            if (valEl) valEl.textContent = v.toFixed(d.fixed);
-            if (id === "stretch") {
-              if (v > 0 && cfg.spcTw > 0) {
-                storedTwinkleVal = cfg.spcTw;
-                cfg.spcTw = 0;
-                twinkleIn.value = 0;
-                twinkleVal.textContent = (0).toFixed(
-                  ctrlDefs["space-twinkle"].fixed
-                );
-                if (ctrlDefs["space-twinkle"].cb)
-                  ctrlDefs["space-twinkle"].cb();
-              } else if (v <= 0 && storedTwinkleVal !== null) {
-                cfg.spcTw = storedTwinkleVal;
-                const dispV =
-                  storedTwinkleVal / (ctrlDefs["space-twinkle"].mult || 1);
-                twinkleIn.value = dispV;
-                twinkleVal.textContent = dispV.toFixed(
-                  ctrlDefs["space-twinkle"].fixed
-                );
-                if (ctrlDefs["space-twinkle"].cb)
-                  ctrlDefs["space-twinkle"].cb();
-                storedTwinkleVal = null;
+            activeRipples.push({
+              x: centerX,
+              y: centerY,
+              radius: 0,
+              maxRadius: maxDiagonal * 0.8 + i * 20, // Smaller, more contained
+              life: 1,
+              bounds: {
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height
               }
-            } else if (id === "space-twinkle") {
-              if (v > 0 && cfg.stretch > 0) {
-                storedWarpVal = cfg.stretch;
-                cfg.stretch = 0;
-                stretchIn.value = 0;
-                stretchVal.textContent = (0).toFixed(ctrlDefs["stretch"].fixed);
-              } else if (v <= 0 && storedWarpVal !== null) {
-                cfg.stretch = storedWarpVal;
-                const dispV = storedWarpVal / (ctrlDefs["stretch"].mult || 1);
-                stretchIn.value = dispV;
-                stretchVal.textContent = dispV.toFixed(
-                  ctrlDefs["stretch"].fixed
-                );
-                storedWarpVal = null;
-              }
-            }
-            if (d.cb) d.cb();
-          });
-        });
-        document
-          .querySelectorAll('.modeSelector input[name="mode"]')
-          .forEach((r) =>
-            r.addEventListener("change", (e) => setSimMode(e.target.value))
-          );
-        document
-          .querySelectorAll('.renderSelector input[name="renderMode"]')
-          .forEach((r) =>
-            r.addEventListener("change", (e) =>
-              switchRenderMode(e.target.value)
-            )
-          );
-        ctrlToggle.addEventListener("click", () =>
-          ctrls.classList.toggle("closed")
-        );
-      }
-      function compileShader(src, type) {
-        if (!gl) return null;
-        const s = gl.createShader(type);
-        gl.shaderSource(s, src);
-        gl.compileShader(s);
-        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-          console.error(
-            `Shader error (${
-              type === gl.VERTEX_SHADER ? "VS" : "FS"
-            }): ${gl.getShaderInfoLog(s)}`
-          );
-          gl.deleteShader(s);
-          return null;
+            });
+          }, i * 80);
         }
-        return s;
-      }
-      function createProgram(vsSrc, fsSrc) {
-        if (!gl) return null;
-        const vs = compileShader(vsSrc, gl.VERTEX_SHADER),
-          fs = compileShader(fsSrc, gl.FRAGMENT_SHADER);
-        if (!vs || !fs) return null;
-        const p = gl.createProgram();
-        gl.attachShader(p, vs);
-        gl.attachShader(p, fs);
-        gl.linkProgram(p);
-        gl.deleteShader(vs);
-        gl.deleteShader(fs);
-        if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-          console.error(`Program error: ${gl.getProgramInfoLog(p)}`);
-          gl.deleteProgram(p);
-          return null;
-        }
-        return p;
-      }
-      function initWebGL() {
-        gl = glCanvas.getContext("webgl", {
-          antialias: false,
-          powerPreference: "high-performance",
-          preserveDrawingBuffer: false,
-          alpha: false,
-          depth: false,
-          stencil: false,
-          desynchronized: true
-        });
-        if (!gl) {
-          console.error("WebGL not supported");
-          return false;
-        }
-        const pVS = `attribute vec2 aPos;attribute vec4 aCol;attribute float aSize;attribute vec2 aDir;uniform vec2 uRes;uniform float uStretch;varying vec4 vCol;varying vec2 vDir;varying float vStretch;void main(){gl_Position=vec4(((aPos/uRes)*2.0-1.0)*vec2(1,-1),0,1);gl_PointSize=aSize*${cfg.glPtScale.toFixed(
-          1
-        )};vCol=aCol;vDir=aDir;vStretch=uStretch;}`;
-        const pFS = `precision mediump float;varying vec4 vCol;varying vec2 vDir;varying float vStretch;void main(){vec2 coord=gl_PointCoord-vec2(0.5);float dist=length(coord);if(vStretch>0.0&&length(vDir)>0.001){vec2 dir=normalize(vDir);float angle=atan(dir.y,dir.x);float s=sin(-angle),c=cos(-angle);mat2 rot=mat2(c,-s,s,c);vec2 rotatedCoord=rot*coord;float stretchF=1.0+(vStretch/50.0)*5.0;dist=length(vec2(rotatedCoord.x/stretchF,rotatedCoord.y));}if(dist>0.5)discard;gl_FragColor=vCol;}`;
-        const lVS = `attribute vec2 aPos;attribute vec4 aCol;uniform vec2 uRes;varying vec4 vCol;void main(){gl_Position=vec4(((aPos/uRes)*2.0-1.0)*vec2(1,-1),0,1);vCol=aCol;}`;
-        const lFS = `precision mediump float;varying vec4 vCol;void main(){gl_FragColor=vCol;}`;
-        pProg = createProgram(pVS, pFS);
-        lProg = createProgram(lVS, lFS);
-        if (!pProg || !lProg) return false;
-        pPosLoc = gl.getAttribLocation(pProg, "aPos");
-        pColLoc = gl.getAttribLocation(pProg, "aCol");
-        pSizeLoc = gl.getAttribLocation(pProg, "aSize");
-        pDirLoc = gl.getAttribLocation(pProg, "aDir");
-        pResLoc = gl.getUniformLocation(pProg, "uRes");
-        pStretchLoc = gl.getUniformLocation(pProg, "uStretch");
-        lPosLoc = gl.getAttribLocation(lProg, "aPos");
-        lColLoc = gl.getAttribLocation(lProg, "aCol");
-        lResLoc = gl.getUniformLocation(lProg, "uRes");
-        pPosBuf = gl.createBuffer();
-        pColBuf = gl.createBuffer();
-        pSizeBuf = gl.createBuffer();
-        pDirBuf = gl.createBuffer();
-        lPosBuf = gl.createBuffer();
-        lColBuf = gl.createBuffer();
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(
-          gl.SRC_ALPHA,
-          gl.ONE_MINUS_SRC_ALPHA,
-          gl.ONE,
-          gl.ONE_MINUS_SRC_ALPHA
-        );
-        onResize();
-        return true;
-      }
-      function resizeWebGLBufs(nP) {
-        if (!gl) return;
-        const estMaxL = Math.min(nP * 4, 65534);
-        let needsResize = false;
-        if (nP > maxParticles || !pPosData || pPosData.length / 2 < nP) {
-          maxParticles = Math.max(nP, maxParticles) * 2;
-          needsResize = true;
-        }
-        if (estMaxL > maxLines || !lPosData || lPosData.length / 4 < estMaxL) {
-          maxLines = Math.max(estMaxL, maxLines) * 2;
-          needsResize = true;
-        }
-        if (needsResize) {
-          pPosData = new Float32Array(maxParticles * 2);
-          pColData = new Float32Array(maxParticles * 4);
-          pSizeData = new Float32Array(maxParticles);
-          pDirData = new Float32Array(maxParticles * 2);
-          lPosData = new Float32Array(maxLines * 4);
-          lColData = new Float32Array(maxLines * 8);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pPosBuf);
-          gl.bufferData(gl.ARRAY_BUFFER, pPosData.byteLength, gl.DYNAMIC_DRAW);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pColBuf);
-          gl.bufferData(gl.ARRAY_BUFFER, pColData.byteLength, gl.DYNAMIC_DRAW);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pSizeBuf);
-          gl.bufferData(gl.ARRAY_BUFFER, pSizeData.byteLength, gl.DYNAMIC_DRAW);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pDirBuf);
-          gl.bufferData(gl.ARRAY_BUFFER, pDirData.byteLength, gl.DYNAMIC_DRAW);
-          gl.bindBuffer(gl.ARRAY_BUFFER, lPosBuf);
-          gl.bufferData(gl.ARRAY_BUFFER, lPosData.byteLength, gl.DYNAMIC_DRAW);
-          gl.bindBuffer(gl.ARRAY_BUFFER, lColBuf);
-          gl.bufferData(gl.ARRAY_BUFFER, lColData.byteLength, gl.DYNAMIC_DRAW);
+
+        // Fade out and navigate after ripple animation
+        setTimeout(() => {
+          document.body.classList.add('fade-out');
+        }, 200);
+
+        setTimeout(() => {
+          window.location.href = href;
+        }, 700);
+      });
+    });
+
+    // Regular clicks (not on links) still create ripples
+    document.addEventListener('click', (e) => {
+      // Only if not clicking on an exhibit link (those are handled above)
+      if (!e.target.closest('.exhibit a')) {
+        for (let i = 0; i < 2; i++) {
+          setTimeout(() => {
+            activeRipples.push({
+              x: e.clientX,
+              y: e.clientY,
+              radius: 0,
+              maxRadius: 120 + i * 40,
+              life: 1
+            });
+          }, i * 80);
         }
       }
-      function renderWebGL(force = false) {
-        if (!gl || !pPosData) return;
-        if (!force && isSwitchingRender) return;
-        gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        currentParticleCount = 0;
-        currentLineCount = 0;
-        const useStretch =
-          simMode === "space" && cfg.stretch > 0 && cfg.spcTw <= 0;
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          if (p.currOpacity <= 0.01) continue;
-          const idx = currentParticleCount++;
-          if (idx >= maxParticles) break;
-          const drawX = p.renderX ?? p.x;
-          const drawY = p.renderY ?? p.y;
-          pPosData[idx * 2] = drawX;
-          pPosData[idx * 2 + 1] = drawY;
-          pColData[idx * 4] = p.r;
-          pColData[idx * 4 + 1] = p.g;
-          pColData[idx * 4 + 2] = p.b;
-          pColData[idx * 4 + 3] = p.currOpacity;
-          pSizeData[idx] = p.currSize;
-          pDirData[idx * 2] = p.directionX ?? 0;
-          pDirData[idx * 2 + 1] = p.directionY ?? 0;
-        }
-        if (currentParticleCount > 0) {
-          gl.useProgram(pProg);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pPosBuf);
-          gl.bufferSubData(
-            gl.ARRAY_BUFFER,
-            0,
-            pPosData.subarray(0, currentParticleCount * 2)
-          );
-          gl.enableVertexAttribArray(pPosLoc);
-          gl.vertexAttribPointer(pPosLoc, 2, gl.FLOAT, false, 0, 0);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pColBuf);
-          gl.bufferSubData(
-            gl.ARRAY_BUFFER,
-            0,
-            pColData.subarray(0, currentParticleCount * 4)
-          );
-          gl.enableVertexAttribArray(pColLoc);
-          gl.vertexAttribPointer(pColLoc, 4, gl.FLOAT, false, 0, 0);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pSizeBuf);
-          gl.bufferSubData(
-            gl.ARRAY_BUFFER,
-            0,
-            pSizeData.subarray(0, currentParticleCount)
-          );
-          gl.enableVertexAttribArray(pSizeLoc);
-          gl.vertexAttribPointer(pSizeLoc, 1, gl.FLOAT, false, 0, 0);
-          gl.bindBuffer(gl.ARRAY_BUFFER, pDirBuf);
-          gl.bufferSubData(
-            gl.ARRAY_BUFFER,
-            0,
-            pDirData.subarray(0, currentParticleCount * 2)
-          );
-          gl.enableVertexAttribArray(pDirLoc);
-          gl.vertexAttribPointer(pDirLoc, 2, gl.FLOAT, false, 0, 0);
-          gl.uniform2f(pResLoc, simW, simH);
-          gl.uniform1f(pStretchLoc, useStretch ? cfg.stretch : 0.0);
-          gl.drawArrays(gl.POINTS, 0, currentParticleCount);
-        }
-        for (const link of networkLinks.values()) {
-          const op = link.finalOp;
-          if (op <= 0.01) continue;
-          const idx = currentLineCount++;
-          if (idx >= maxLines) break;
-          lPosData[idx * 4] = link.renderX1;
-          lPosData[idx * 4 + 1] = link.renderY1;
-          lPosData[idx * 4 + 2] = link.renderX2;
-          lPosData[idx * 4 + 3] = link.renderY2;
-          // Match SVG line appearance: rgba(255, 255, 255, 0.5) base opacity
-          const finalOpacity = op * 0.5;
-          for (let k = 0; k < 2; k++) {
-            const base = idx * 8 + k * 4;
-            lColData[base] = 1;
-            lColData[base + 1] = 1;
-            lColData[base + 2] = 1;
-            lColData[base + 3] = finalOpacity;
-          }
-        }
-        if (currentLineCount > 0) {
-          gl.useProgram(lProg);
-          gl.bindBuffer(gl.ARRAY_BUFFER, lPosBuf);
-          gl.bufferSubData(
-            gl.ARRAY_BUFFER,
-            0,
-            lPosData.subarray(0, currentLineCount * 4)
-          );
-          gl.enableVertexAttribArray(lPosLoc);
-          gl.vertexAttribPointer(lPosLoc, 2, gl.FLOAT, false, 0, 0);
-          gl.bindBuffer(gl.ARRAY_BUFFER, lColBuf);
-          gl.bufferSubData(
-            gl.ARRAY_BUFFER,
-            0,
-            lColData.subarray(0, currentLineCount * 8)
-          );
-          gl.enableVertexAttribArray(lColLoc);
-          gl.vertexAttribPointer(lColLoc, 4, gl.FLOAT, false, 0, 0);
-          gl.uniform2f(lResLoc, simW, simH);
-          gl.drawArrays(gl.LINES, 0, currentLineCount * 2);
-        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      // Track mouse velocity for opacity changes
+      const prevMouseX = targetMouseX;
+      const prevMouseY = targetMouseY;
+
+      targetMouseX = e.clientX;
+      targetMouseY = e.clientY;
+
+      mouseVelocityX = targetMouseX - prevMouseX;
+      mouseVelocityY = targetMouseY - prevMouseY;
+      mouseSpeed = Math.sqrt(mouseVelocityX * mouseVelocityX + mouseVelocityY * mouseVelocityY);
+
+      // Increase opacity when mouse moves
+      targetWebOpacity = Math.min(0.15, 0.04 + mouseSpeed * 0.003);
+
+      // Add to trail with wave offset
+      const waveOffset = Math.sin(time * 0.1) * 3;
+      trail.push({
+        x: targetMouseX + waveOffset,
+        y: targetMouseY + Math.cos(time * 0.1) * 3,
+        life: 1
+      });
+      if (trail.length > maxTrailLength) {
+        trail.shift();
       }
-      function init() {
-        renderMode = document.querySelector(
-          'input[name="renderMode"]:checked'
-        ).value;
-        simMode = document.querySelector('input[name="mode"]:checked').value;
-        cfg.simMode = simMode;
-        setupCtrls();
-        getSimDimensions();
-        if (renderMode === "svg") {
-          svgEl.style.display = "block";
-          glCanvas.style.display = "none";
+    });
+
+    // Custom cursor with morphing (smooth lerping)
+    let currentHoveredExhibit = null;
+    let cursorX = width / 2;
+    let cursorY = height / 2;
+    let cursorWidth = 20;
+    let cursorHeight = 20;
+    let targetCursorX = width / 2;
+    let targetCursorY = height / 2;
+    let targetCursorWidth = 20;
+    let targetCursorHeight = 20;
+
+    document.addEventListener('mousemove', (e) => {
+      // Check if hovering over an exhibit
+      const hoveredExhibit = Array.from(exhibits).find(link => {
+        const rect = link.getBoundingClientRect();
+        return e.clientX >= rect.left && e.clientX <= rect.right &&
+               e.clientY >= rect.top && e.clientY <= rect.bottom;
+      });
+
+      if (hoveredExhibit !== currentHoveredExhibit) {
+        currentHoveredExhibit = hoveredExhibit;
+
+        if (hoveredExhibit) {
+          cursor.classList.add('morphed');
         } else {
-          if (!initWebGL()) {
-            renderMode = "svg";
-            document.getElementById("render-svg").checked = true;
-            document.getElementById("render-webgl").disabled = true;
-            svgEl.style.display = "block";
-            glCanvas.style.display = "none";
-          } else {
-            svgEl.style.display = "none";
-            glCanvas.style.display = "block";
+          cursor.classList.remove('morphed');
+        }
+      }
+
+      // Update target position and size
+      if (currentHoveredExhibit) {
+        const rect = currentHoveredExhibit.getBoundingClientRect();
+        targetCursorX = rect.left;
+        targetCursorY = rect.top;
+        targetCursorWidth = rect.width;
+        targetCursorHeight = rect.height;
+      } else {
+        targetCursorX = e.clientX - 10;
+        targetCursorY = e.clientY - 10;
+        targetCursorWidth = 20;
+        targetCursorHeight = 20;
+      }
+    });
+
+    // Smooth cursor animation loop
+    function updateCursor() {
+      // Minimal smoothing - just 1 frame delay for motion visibility
+      const lerpSpeed = 0.95;
+
+      // Lerp position and size
+      cursorX += (targetCursorX - cursorX) * lerpSpeed;
+      cursorY += (targetCursorY - cursorY) * lerpSpeed;
+      cursorWidth += (targetCursorWidth - cursorWidth) * lerpSpeed;
+      cursorHeight += (targetCursorHeight - cursorHeight) * lerpSpeed;
+
+      // Apply to DOM
+      cursor.style.left = cursorX + 'px';
+      cursor.style.top = cursorY + 'px';
+      cursor.style.width = cursorWidth + 'px';
+      cursor.style.height = cursorHeight + 'px';
+
+      requestAnimationFrame(updateCursor);
+    }
+    updateCursor();
+
+    document.addEventListener('mousedown', () => {
+      isMouseDown = true;
+      cursor.classList.add('click');
+    });
+
+    document.addEventListener('mouseup', () => {
+      isMouseDown = false;
+      cursor.classList.remove('click');
+    });
+
+    function animate() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, width, height);
+
+      time += 0.016;
+
+      // Smooth mouse movement
+      mouseX += (targetMouseX - mouseX) * 0.15;
+      mouseY += (targetMouseY - mouseY) * 0.15;
+
+      // Smooth opacity transition
+      webOpacity += (targetWebOpacity - webOpacity) * 0.05;
+      // Fade back to base when mouse stops
+      targetWebOpacity += (0.04 - targetWebOpacity) * 0.02;
+
+      // Update bouncy web points with spring physics
+      const springStrength = 0.015;
+      const damping = 0.85;
+
+      webPoints.forEach((point, i) => {
+        const original = webPointsOriginal[i];
+
+        // Calculate vector from mouse to point
+        const dx = point.x - mouseX;
+        const dy = point.y - mouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Push point away from mouse (inverse square falloff)
+        if (dist < 300) {
+          const force = (300 - dist) / 300;
+          point.vx += (dx / dist) * force * 2;
+          point.vy += (dy / dist) * force * 2;
+        }
+
+        // Spring back to original position
+        point.vx += (original.x - point.x) * springStrength;
+        point.vy += (original.y - point.y) * springStrength;
+
+        // Apply damping
+        point.vx *= damping;
+        point.vy *= damping;
+
+        // Update position
+        point.x += point.vx;
+        point.y += point.vy;
+      });
+
+      // Draw bouncy radial web with smooth opacity
+      ctx.strokeStyle = `rgba(0, 255, 255, ${webOpacity})`;
+      ctx.lineWidth = 0.6;
+
+      webPoints.forEach(point => {
+        ctx.beginPath();
+        ctx.moveTo(mouseX, mouseY);
+        ctx.lineTo(point.x, point.y);
+        ctx.stroke();
+      });
+
+      // Draw sinusoidal mouse trail with wave distortion
+      for (let i = 0; i < trail.length - 1; i++) {
+        const point = trail[i];
+        const nextPoint = trail[i + 1];
+
+        point.life -= 0.06;
+        const opacity = point.life * 0.4;
+        const radius = 2 + Math.sin(i * 0.3 + time * 3) * 1;
+
+        if (radius > 0 && opacity > 0) {
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, Math.abs(radius), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 255, 255, ${opacity})`;
+          ctx.fill();
+
+          // Connect trail with lines
+          if (nextPoint) {
+            ctx.beginPath();
+            ctx.moveTo(point.x, point.y);
+            ctx.lineTo(nextPoint.x, nextPoint.y);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${opacity * 0.3})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
           }
         }
-        if (w > 768) ctrls.classList.remove("closed");
-        else ctrls.classList.add("closed");
-        manageParticles();
-        updateCtrlVisibility();
-        onResize();
-        resumeAnimation();
       }
-      init();
-    </script>
-  </body>
+
+      // Clean up dead trail points
+      while (trail.length > 0 && trail[0].life <= 0) {
+        trail.shift();
+      }
+
+      // Draw click ripple explosions (smooth blue waves with radial fade)
+      activeRipples.forEach((ripple, index) => {
+        ripple.radius += 5;
+        ripple.life -= 0.018;
+
+        if (ripple.life > 0 && ripple.radius < ripple.maxRadius) {
+          // Radial fade: stronger near edge, weaker at center
+          const progress = ripple.radius / ripple.maxRadius;
+          const radialFade = Math.sin(progress * Math.PI); // Peaks at middle, fades at edges
+          const opacity = ripple.life * 0.5 * radialFade;
+
+          // Clip to bounds if ripple has bounds (exhibit clicks)
+          if (ripple.bounds) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(ripple.bounds.left, ripple.bounds.top, ripple.bounds.width, ripple.bounds.height);
+            ctx.clip();
+          }
+
+          // Smoother sinusoidal wave distortion
+          const segments = 80;
+          ctx.beginPath();
+          for (let i = 0; i <= segments; i++) {
+            const angle = (i / segments) * Math.PI * 2;
+            const wave = Math.sin(angle * 5 + time * 3) * 3 * ripple.life;
+            const r = ripple.radius + wave;
+            const x = ripple.x + Math.cos(angle) * r;
+            const y = ripple.y + Math.sin(angle) * r;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          if (ripple.bounds) {
+            ctx.restore();
+          }
+        } else {
+          activeRipples.splice(index, 1);
+        }
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Fade in on page load
+    window.addEventListener('load', () => {
+      document.body.style.opacity = '0';
+      requestAnimationFrame(() => {
+        document.body.style.transition = 'opacity 0.5s ease';
+        document.body.style.opacity = '1';
+      });
+    });
+
+    // Also fade in on back button / page show
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) {
+        // Page was restored from cache (back button)
+        document.body.classList.remove('fade-out');
+        document.body.style.opacity = '1';
+
+        // Reset cursor state to prevent lag
+        currentHoveredExhibit = null;
+        cursor.classList.remove('morphed');
+        targetCursorWidth = 20;
+        targetCursorHeight = 20;
+        cursorWidth = 20;
+        cursorHeight = 20;
+      }
+    });
+
+    // Reset cursor when page becomes visible (tab switching)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Snap cursor to current target immediately to prevent lag
+        cursorX = targetCursorX;
+        cursorY = targetCursorY;
+        cursorWidth = targetCursorWidth;
+        cursorHeight = targetCursorHeight;
+      }
+    });
+  </script>
+</body>
 </html>

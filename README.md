@@ -5,37 +5,75 @@ created for games who like mages
 
 ## /public
 
-### ZQS - Zero Quantum State
+### ZQS ⚭ SQZ
+
+**ZQS** = Zero Quantum **SQZ**
+**SQZ** = State Quantum **ZQS**
 
 Interactive quantum wave packet simulator with split-operator spectral methods, demonstrating relativistic Dirac dynamics and quantum tunneling through potential barriers.
 
-### SPD - Stochastic Phase Dynamics
+### SPD ⚭ DPS
+
+**SPD** = Stochastic Phase **DPS**
+**DPS** = Deterministic Pendulum **SPD**
 
 Double pendulum physics simulator showcasing deterministic chaos, sensitive dependence on initial conditions, and real-time phase space trajectory visualization.
 
-### UTP - Unified Topology Processor
+### UTP ⚭ PUT
+
+**UTP** = Unified Topology **PUT**
+**PUT** = Processor Unified **UTP**
 
 Google TPU architecture simulator featuring 2D/3D/Twisted torus network topologies with realistic bandwidth traffic modeling and compute heat distribution.
 
-### AEH - Adversarial Equity Heuristics
+### AEH ⚭ HEA
+
+**AEH** = Adversarial Equity **HEA**
+**HEA** = Heuristics Equity **AEH**
 
 Texas Hold'em poker equity analyzer with pre-flop hand strength heatmaps, Monte Carlo simulation, and multi-opponent showdown probability calculations.
 
-### SFS - Strategic Flip Simulation
+### SFS ⚭ FSS
+
+**SFS** = Strategic Flip **FSS**
+**FSS** = Flip Strategic **SFS**
 
 Monte Carlo card game simulator analyzing three distinct player strategies (cautious, risky, super risky) across millions of hands with real-time convergence statistics.
 
-### FTD - Functional Tool Designer
+### FTD ⚭ DTF
+
+**FTD** = Functional Tool **DTF**
+**DTF** = Designer Tool **FTD**
 
 Meta-programming framework for dynamically generating MCP-compatible tools via LLM API calls, featuring live preview, version comparison, and executable web components.
 
-### CTS - Cap Table Simulator
+### CTS ⚭ SCT
+
+**CTS** = Cap Table **SCT**
+**SCT** = Simulator Cap **CTS**
 
 Founder-focused dilution and cap table explorer pairing a three-panel UI with a transparent, step-by-step math ledger for startup financing journeys.
 
-### CBG - City Building Game
+### CBG ⚭ GBC
+
+**CBG** = City Building **GBC**
+**GBC** = Game Building **CBG**
 
 Isometric park management simulator set in McCarren Park, Williamsburg Brooklyn. SimCity-style zoning with seasonal activities, Williamsburg culture (accordion players, tarot readers, TV bike guy), and WebGPU-powered rendering.
+
+### PSC ⚭ CSP
+
+**PSC** = Personality Shape **CSP**
+**CSP** = Composer Shape **PSC**
+
+Interactive personality visualizer mapping psychological states to animated deformable circles through parametric mathematics and 3D Perlin noise. Features presets for Grit, Scanner, Flow, and Burnout personalities.
+
+### PSS ⚭ SSP
+
+**PSS** = Particle Swarm **SSP**
+**SSP** = System Swarm **PSS**
+
+Interactive particle system with network and space modes, demonstrating emergent behavior from autonomous agents following simple local rules. Features WebGL and SVG rendering with real-time FPS monitoring.
 
 ## /utils
 

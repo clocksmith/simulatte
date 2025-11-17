@@ -283,11 +283,38 @@
         height: 500px;
       }
     }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .control-row {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 350px;
+      }
+
+      .mode-btn {
+        min-width: 100px;
+        font-size: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div id="loading-screen" style="position: fixed; inset: 0; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; z-index: 9999;">
+      <div style="font-size: 1.5rem; color: var(--accent-cyan);">Initializing TPU Topology...</div>
+      <div style="width: 50px; height: 50px; border: 3px solid rgba(0,255,255,0.2); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin-utp 1s linear infinite;"></div>
+    </div>
+    <style>
+      @keyframes spin-utp { to { transform: rotate(360deg); } }
+    </style>
     <header>
+      <a href="/" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.85rem; display: inline-block; margin-bottom: 8px;">← Back to Gallery</a>
       <h1>UTP - Unified Topology Processor</h1>
       <p class="subtitle">Dual 2D grid and rotatable 3D torus views of TPU networks with configurable twist offsets</p>
     </header>
