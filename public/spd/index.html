@@ -476,7 +476,15 @@
     </style>
   </head>
   <body>
+    <a href="/" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.85rem; display: inline-block; margin-bottom: 12px;">← Back to Gallery</a>
     <h1>SPD - Stochastic Phase Dynamics</h1>
+    <div id="loading-indicator" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 1000; color: var(--accent-cyan);">
+      <div style="font-size: 1.3rem; margin-bottom: 15px;">Initializing Simulation...</div>
+      <div style="width: 40px; height: 40px; border: 3px solid rgba(0,255,255,0.2); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+    </div>
+    <style>
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 
     <div class="main-container">
       <div class="card" id="visuals-card">
@@ -3053,6 +3061,15 @@
           lastTimestamp = ts;
           gameLoop(ts);
         });
+        // Hide loading indicator
+        setTimeout(() => {
+          const loadingIndicator = document.getElementById('loading-indicator');
+          if (loadingIndicator) {
+            loadingIndicator.style.opacity = '0';
+            loadingIndicator.style.transition = 'opacity 0.5s';
+            setTimeout(() => loadingIndicator.remove(), 500);
+          }
+        }, 200);
       }
       document.addEventListener("DOMContentLoaded", initialize);
     </script>
