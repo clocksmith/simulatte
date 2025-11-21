@@ -295,8 +295,8 @@ const ui = {
     this.elements['add-barrier-btn'].addEventListener('click', () => {
       sim.barrier.active = !sim.barrier.active;
       this.elements['add-barrier-btn'].textContent = sim.barrier.active
-        ? '[ − ] Remove Barrier'
-        : '[ + ] Add Barrier';
+        ? '[ ✄ ] Remove Barrier'
+        : '[ ☩ ] Add Barrier';
       updatePotential();
       handleInteraction('add-barrier-btn');
     });
@@ -311,7 +311,7 @@ const ui = {
     const evolveBtn = this.elements['identity-evolve-btn'];
     evolveBtn.addEventListener('click', () => {
       sim.isEvolving = !sim.isEvolving;
-      evolveBtn.textContent = sim.isEvolving ? '[ ☋ Pause ] Time' : '[ ☊ Evolve ] Time';
+      evolveBtn.textContent = sim.isEvolving ? '[ ⚿ ] Pause Time' : '[ ☇ ] Evolve Time';
       handleInteraction('identity-evolve-btn');
     });
 
@@ -682,19 +682,11 @@ function accumulateFlux(step) {
   const rightCurrent = probabilityCurrent(rightIndex);
   const direction = sim.waveDirection >= 0 ? 1 : -1;
 
-  // Flux accumulation with directional convention:
-  // - Positive current = rightward flow (increasing x)
-  // - Negative current = leftward flow (decreasing x)
-  // Convention: incident flux is defined by initial wave direction determined from momentum
-  // This approach works for unidirectional wave packets but may underestimate effects
-  // in superposition states with significant bidirectional components
   if (direction >= 0) {
-    // Left-to-right initial wave
     if (leftCurrent > 0) sim.metrics.incidentFlux += leftCurrent * step;
     if (leftCurrent < 0) sim.metrics.reflectedFlux += (-leftCurrent) * step;
     if (rightCurrent > 0) sim.metrics.transmittedFlux += rightCurrent * step;
   } else {
-    // Right-to-left initial wave
     if (rightCurrent < 0) sim.metrics.incidentFlux += (-rightCurrent) * step;
     if (rightCurrent > 0) sim.metrics.reflectedFlux += rightCurrent * step;
     if (leftCurrent < 0) sim.metrics.transmittedFlux += (-leftCurrent) * step;
@@ -741,7 +733,6 @@ function updateObservables() {
   meanX2 *= sim.dx;
   tunnel *= sim.dx;
 
-  // Momentum expectation via FFT (proper method)
   sim.scratchRe.set(sim.psiRe);
   sim.scratchIm.set(sim.psiIm);
   fftTransform(sim.scratchRe, sim.scratchIm, false);
@@ -755,9 +746,8 @@ function updateObservables() {
     energySum += sim.dispersion[i] * probK;
     normK += probK;
   }
-  momentum /= size;  // FFT convention
+  momentum /= size;
 
-  // Determine wave direction from momentum
   if (Math.abs(momentum) > 1e-4) {
     sim.waveDirection = momentum >= 0 ? 1 : -1;
   }
@@ -769,7 +759,6 @@ function updateObservables() {
   sim.expectation.tunnel = tunnel;
   sim.expectation.maxProb = maxProb;
 
-  // Energy expectation: kinetic from dispersion + potential
   const energy = normK > 1e-12 ? (energySum / size) : 0;
   let potentialEnergy = 0;
   for (let i = 0; i < size; i++) {
@@ -860,10 +849,10 @@ function resetSimulation() {
   sim.time = 0;
   sim.isEvolving = false;
   if (ui.elements['identity-evolve-btn']) {
-    ui.elements['identity-evolve-btn'].textContent = '[ ☊ Evolve ] Time';
+    ui.elements['identity-evolve-btn'].textContent = '[ ☇ ] Evolve Time';
   }
   if (ui.elements['add-barrier-btn']) {
-    ui.elements['add-barrier-btn'].textContent = '[ + ] Add Barrier';
+    ui.elements['add-barrier-btn'].textContent = '[ ☩ ] Add Barrier';
   }
   initializeArrays();
   renderWave();
@@ -873,7 +862,6 @@ function resetSimulation() {
 function resizeCanvas() {
   if (!app.canvas) return;
 
-  // Force a reflow to get accurate dimensions
   const container = app.canvas.parentElement;
   if (!container) return;
 
@@ -884,13 +872,10 @@ function resizeCanvas() {
   app.width = width;
   app.height = height;
 
-  // Use lower DPR on mobile to prevent artifacts and improve performance
-  // Cap at 1.5 instead of 2 for better mobile compatibility
   const baseDPR = window.devicePixelRatio || 1;
   const dpr = baseDPR > 2 ? 1.5 : Math.min(baseDPR, 2);
   app.dpr = dpr;
 
-  // Ensure canvas dimensions don't exceed mobile GPU limits (typically 4096x4096)
   const maxDimension = 4096;
   let canvasWidth = Math.round(width * dpr);
   let canvasHeight = Math.round(height * dpr);
@@ -905,13 +890,11 @@ function resizeCanvas() {
   app.canvas.width = canvasWidth;
   app.canvas.height = canvasHeight;
 
-  // Set canvas CSS size explicitly
   app.canvas.style.width = `${width}px`;
   app.canvas.style.height = `${height}px`;
 
   if (app.ctx) {
     app.ctx.setTransform(app.dpr, 0, 0, app.dpr, 0, 0);
-    // Enable image smoothing for better rendering on mobile
     app.ctx.imageSmoothingEnabled = true;
     app.ctx.imageSmoothingQuality = 'high';
   }
@@ -944,7 +927,6 @@ function renderWave() {
   drawPhaseCurve(ctx, phaseBaseline, phaseAmp);
   drawAxis(ctx, probBaseline, width);
   drawLegend(ctx);
-  drawVelocityIndicator(ctx, width, height);
   drawTunnellingIndicator(ctx, width, height);
   drawFlash(ctx, width, height);
 }
@@ -1000,9 +982,8 @@ function drawPhaseField(ctx, width, height) {
   for (let i = 0; i < sim.gridSize; i += 6) {
     const x = (i / sim.gridSize) * width;
     const phase = sim.phase[i] || 0;
-    // Improved resolution: continuous gradient instead of 60 quantized levels
-    const normalizedPhase = (phase + Math.PI) / TWO_PI;  // 0 to 1
-    const value = Math.floor(normalizedPhase * 235 + 20);  // 20-255 range for better visibility
+    const normalizedPhase = (phase + Math.PI) / TWO_PI;
+    const value = Math.floor(normalizedPhase * 235 + 20);
     ctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
     ctx.fillRect(x, 0, bandWidth, height);
   }
@@ -1101,44 +1082,6 @@ function drawAxis(ctx, baselineY, width) {
   ctx.restore();
 }
 
-function drawVelocityIndicator(ctx, width, height) {
-  const velocity = sim.packet.velocity;
-  if (Math.abs(velocity) < 0.01) return;
-  const centerX = width - 110;
-  const centerY = 110;
-  ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  ctx.fillRect(centerX - 70, centerY - 40, 140, 80);
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-  ctx.strokeRect(centerX - 70, centerY - 40, 140, 80);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 10px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('WAVE MOTION', centerX, centerY - 20);
-  const direction = velocity > 0 ? 1 : -1;
-  ctx.strokeStyle = '#0f0';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(centerX - 30 * direction, centerY);
-  ctx.lineTo(centerX + 30 * direction, centerY);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(centerX + 30 * direction, centerY);
-  ctx.lineTo(centerX + 20 * direction, centerY - 8);
-  ctx.lineTo(centerX + 20 * direction, centerY + 8);
-  ctx.closePath();
-  ctx.fillStyle = '#0f0';
-  ctx.fill();
-  ctx.font = '9px monospace';
-  ctx.fillStyle = '#aaa';
-  if (sim.mode === 'dirac') {
-    ctx.fillText(`β = ${velocity.toFixed(3)}`, centerX, centerY + 18);
-  } else {
-    ctx.fillText(`v = ${velocity.toFixed(3)}c`, centerX, centerY + 18);
-  }
-  ctx.restore();
-}
-
 function drawTunnellingIndicator(ctx, width, height) {
   if (!sim.barrier.active || sim.metrics.incidentFlux <= 1e-6) return;
   ctx.save();
@@ -1185,12 +1128,10 @@ function bootstrap() {
   app.canvas = document.getElementById('gl-canvas');
   if (!app.canvas) return;
 
-  // Use standard 2D context options for better mobile compatibility
-  // Removed 'desynchronized' which can cause artifacts on some mobile browsers
   app.ctx = app.canvas.getContext('2d', {
     alpha: false,
     willReadFrequently: false,
-    desynchronized: false  // Changed from true to prevent tearing/artifacts
+    desynchronized: false
   });
 
   ui.init();

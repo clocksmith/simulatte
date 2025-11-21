@@ -3,6 +3,8 @@
 an n-gram and anagram collective
 created for games who like mages
 
+See [AGENTS.md](AGENTS.md) for the active code-writing agent profile.
+
 ## /public
 
 ### ZQS ⚭ SQZ
@@ -102,13 +104,5 @@ Why engage in this **fun game** with acronyms? The underlying patterns resonate 
 ### PAWS <-> SWAP
 
 [PAWS](https://github.com/clocksmith/paws)
-
-```md
-~ REPLOID <---> DREAMER ~
-~ ---|-------------|--- ~  
-~ xxx|xxxxxxxxxxxxx|xxx ~
-~ ---|-------------|--- ~  
-~ DREAMER <---> REPLOID ~
-```
 
 Would you like to play a game [?](https://github.com/clocksmith/gamma)
