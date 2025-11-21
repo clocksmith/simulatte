@@ -4,168 +4,139 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIMULATTE // Generative Experiments</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  
+  <link rel="stylesheet" href="simulatte-core.css">
 
+  <style>
+    /* 2. Page-Specific Overrides */
     body {
-      background: #000;
-      color: #a0aec0;
-      font-family: 'Courier New', monospace;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 2rem;
       overflow: hidden;
-      cursor: none;
-      transition: opacity 0.5s ease;
-    }
-
-    body.fade-out {
+      cursor: none; /* Custom cursor logic */
       opacity: 0;
+      transition: opacity 0.6s ease-out;
+      /* Core CSS handles bg/font colors */
     }
 
-    #particleCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      pointer-events: none;
-    }
+    body.loaded { opacity: 1; }
+    body.fade-out { opacity: 0; }
 
-    .container {
-      max-width: 800px;
-      width: 100%;
-      position: relative;
-      z-index: 1;
-    }
+    /* Z-Index Layering */
+    #particleCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .container { max-width: 800px; width: 100%; position: relative; z-index: 1; }
 
-    #cursor {
-      position: fixed;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #00ffff;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-      transform-origin: center;
-    }
-
-    #cursor.morphed {
-      border-radius: 4px;
-      box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
-    }
-
-    #cursor.click {
-      border-color: #ffd700;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-    }
-
-    h1 {
-      font-size: clamp(2rem, 8vw, 4rem);
-      background: linear-gradient(135deg, #00ffff, #ffd700);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    /* Typography Overrides */
+    h1.brand-title {
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      font-weight: 300;
+      letter-spacing: -2px;
+      color: var(--text-primary);
       margin-bottom: 0.5rem;
-      letter-spacing: 2px;
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
     }
+    h1.brand-title span { color: var(--accent-tertiary); /* Cyan */ }
 
-    .tagline {
-      color: #5f6c7b;
-      font-size: 0.9rem;
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
       margin-bottom: 3rem;
-      font-style: italic;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 1rem;
+      display: inline-block;
     }
 
-    .exhibits {
-      list-style: none;
-      margin-bottom: 4rem;
-    }
-
-    .exhibit {
-      margin-bottom: 1.5rem;
-      padding-left: 1rem;
-    }
+    /* Exhibit List */
+    .exhibits { list-style: none; margin-bottom: 4rem; }
+    .exhibit { margin-bottom: 1.5rem; }
 
     .exhibit a {
-      color: #fff;
-      text-decoration: none;
       display: block;
-      font-size: 1.1rem;
       cursor: none;
-      position: relative;
-      padding: 0.5rem 0;
-      transition: color 0.2s ease;
+      padding: 0.75rem 1rem;
+      border-left: 2px solid transparent;
+      transition: all 0.2s ease;
     }
 
+    /* Glitch/Hover Effect */
     .exhibit a:hover {
-      color: #00ffff;
-    }
-
-    .exhibit a:hover .exhibit-number {
-      color: #ffd700;
+      border-left-color: var(--accent-primary); /* Magenta */
+      background: linear-gradient(90deg, rgba(255, 0, 255, 0.05), transparent);
+      transform: translateX(10px);
     }
 
     .exhibit-number {
-      color: #00ffff;
-      font-size: 0.85rem;
-      margin-right: 0.5rem;
+      color: var(--accent-tertiary); /* Cyan */
+      font-size: 0.8rem; margin-right: 1rem; opacity: 0.7;
+      font-family: var(--font-mono);
     }
 
     .exhibit-name {
-      font-weight: bold;
-      margin-right: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1.2rem; font-weight: bold; margin-right: 1rem;
+    }
+
+    .exhibit a:hover .exhibit-name {
+      color: var(--accent-primary);
+      text-shadow: 0 0 8px var(--accent-primary);
     }
 
     .exhibit-desc {
-      color: #718096;
-      font-size: 0.85rem;
-      margin-top: 0.25rem;
       display: block;
-      padding-left: 2.5rem;
-    }
-
-    .artist-statement {
-      border-top: 1px solid #2d3748;
-      padding-top: 2rem;
-      color: #5f6c7b;
+      color: var(--text-secondary);
       font-size: 0.85rem;
-      line-height: 1.6;
+      margin-top: 0.4rem; margin-left: 2.5rem;
+      max-width: 500px;
     }
 
-    .artist-statement a {
-      color: #00ffff;
-      text-decoration: none;
+    /* Artist Statement */
+    .artist-statement {
+      border-top: 1px solid var(--border-light);
+      padding-top: 2rem;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
     }
+    .artist-statement a { color: var(--accent-secondary); cursor: none; } /* Green */
 
-    .artist-statement a:hover {
-      text-decoration: underline;
+    /* Custom Cursor */
+    #cursor {
+      position: fixed; top: 0; left: 0;
+      width: 20px; height: 20px;
+      border: 1.5px solid var(--accent-tertiary);
+      border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s;
+      mix-blend-mode: difference;
     }
+    #cursor.hovered {
+      width: 6px; height: 6px;
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 10px var(--accent-primary);
+    }
+    #cursor.click { transform: translate(-50%, -50%) scale(0.8); }
 
     @media (max-width: 640px) {
-      .exhibit-desc {
-        padding-left: 0;
-        margin-top: 0.5rem;
-      }
+      .exhibit-desc { margin-left: 0; margin-top: 0.5rem; }
+      body { cursor: auto; }
+      #cursor { display: none; }
     }
   </style>
 </head>
 <body>
+
   <canvas id="particleCanvas"></canvas>
   <div id="cursor"></div>
+
   <div class="container">
-    <h1>SIMULATTE</h1>
-    <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem; margin-bottom: 2rem;">
-      a gallery of generative systems
-    </p>
+    <h1 class="brand-title">SIMUL<span>ATTE</span></h1>
+    <div class="subtitle">Gallery of Generative Systems</div>
 
     <ul class="exhibits">
       <li class="exhibit">
@@ -250,404 +221,104 @@
     </ul>
 
     <div class="artist-statement">
-      <p>
-        An <strong>n-gram and anagram collective</strong> created for mages who like games.
-        Each piece explores rule-based generative systems where complexity emerges from mathematical simplicity.
-      </p>
-      <p style="margin-top: 1rem;">
-        Built by <a href="https://github.com/clocksmith" target="_blank">@clocksmith</a>
-      </p>
+      <p>An <strong>n-gram and anagram collective</strong> created for mages who like games.</p>
+      <p class="mt-md">Built by <a href="https://github.com/clocksmith" target="_blank">@clocksmith</a></p>
     </div>
   </div>
 
   <script>
-    // Canvas setup
+    /* JS reads CSS variables to keep Canvas synced with Core Theme.
+    */
+    const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    
+    const COLORS = {
+      cyan: getVar('--accent-tertiary') || '#00ffff',
+      magenta: getVar('--accent-primary') || '#ff00ff'
+    };
+
     const canvas = document.getElementById('particleCanvas');
     const ctx = canvas.getContext('2d');
     const cursor = document.getElementById('cursor');
+    const links = document.querySelectorAll('a');
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
+    let width, height;
+    let mouse = { x: -100, y: -100 };
+    let trail = [];
+    let ripples = [];
+    let time = 0;
 
-    window.addEventListener('resize', () => {
+    const resize = () => {
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width;
       canvas.height = height;
+    };
+    window.addEventListener('resize', resize);
+    resize();
+
+    document.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      trail.push({ x: mouse.x, y: mouse.y, age: 0 });
+      cursor.style.left = `${mouse.x}px`;
+      cursor.style.top = `${mouse.y}px`;
     });
 
-    // Mouse tracking
-    let mouseX = width / 2;
-    let mouseY = height / 2;
-    let targetMouseX = width / 2;
-    let targetMouseY = height / 2;
-    let mouseVelocityX = 0;
-    let mouseVelocityY = 0;
-    let mouseSpeed = 0;
-    let webOpacity = 0.04;
-    let targetWebOpacity = 0.04;
-    let isMouseDown = false;
-    let time = 0;
+    document.addEventListener('mousedown', () => {
+      cursor.classList.add('click');
+      ripples.push({ x: mouse.x, y: mouse.y, radius: 0, alpha: 1 });
+    });
+    document.addEventListener('mouseup', () => cursor.classList.remove('click'));
 
-    const trail = [];
-    const maxTrailLength = 15;
-
-    // Bouncy web points with spring physics
-    const webPoints = [
-      { x: 0, y: 0, vx: 0, vy: 0 },           // top-left
-      { x: width, y: 0, vx: 0, vy: 0 },       // top-right
-      { x: width, y: height, vx: 0, vy: 0 },  // bottom-right
-      { x: 0, y: height, vx: 0, vy: 0 },      // bottom-left
-      { x: width / 2, y: 0, vx: 0, vy: 0 },   // top-center
-      { x: width / 2, y: height, vx: 0, vy: 0 } // bottom-center
-    ];
-
-    const webPointsOriginal = webPoints.map(p => ({ x: p.x, y: p.y }));
-
-    // Click ripple effects (anywhere on page)
-    const activeRipples = [];
-    const exhibits = document.querySelectorAll('.exhibit a');
-
-    // Intercept exhibit link clicks for fade transition
-    exhibits.forEach(link => {
+    links.forEach(link => {
+      link.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+      link.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const href = link.getAttribute('href');
-
-        // Get the bounds of the clicked exhibit row
-        const rect = link.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        // Calculate max radius to fit within box bounds
-        const maxDiagonal = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
-
-        // Create contained ripple effect
-        for (let i = 0; i < 2; i++) {
-          setTimeout(() => {
-            activeRipples.push({
-              x: centerX,
-              y: centerY,
-              radius: 0,
-              maxRadius: maxDiagonal * 0.8 + i * 20, // Smaller, more contained
-              life: 1,
-              bounds: {
-                left: rect.left,
-                top: rect.top,
-                width: rect.width,
-                height: rect.height
-              }
-            });
-          }, i * 80);
-        }
-
-        // Fade out and navigate after ripple animation
-        setTimeout(() => {
-          document.body.classList.add('fade-out');
-        }, 200);
-
-        setTimeout(() => {
-          window.location.href = href;
-        }, 700);
+        for(let i=0; i<3; i++) ripples.push({ x: mouse.x, y: mouse.y, radius: -i*20, alpha: 1, speed: 15 + i*2 });
+        setTimeout(() => document.body.classList.add('fade-out'), 300);
+        setTimeout(() => window.location.href = href, 900);
       });
-    });
-
-    // Regular clicks (not on links) still create ripples
-    document.addEventListener('click', (e) => {
-      // Only if not clicking on an exhibit link (those are handled above)
-      if (!e.target.closest('.exhibit a')) {
-        for (let i = 0; i < 2; i++) {
-          setTimeout(() => {
-            activeRipples.push({
-              x: e.clientX,
-              y: e.clientY,
-              radius: 0,
-              maxRadius: 120 + i * 40,
-              life: 1
-            });
-          }, i * 80);
-        }
-      }
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      // Track mouse velocity for opacity changes
-      const prevMouseX = targetMouseX;
-      const prevMouseY = targetMouseY;
-
-      targetMouseX = e.clientX;
-      targetMouseY = e.clientY;
-
-      mouseVelocityX = targetMouseX - prevMouseX;
-      mouseVelocityY = targetMouseY - prevMouseY;
-      mouseSpeed = Math.sqrt(mouseVelocityX * mouseVelocityX + mouseVelocityY * mouseVelocityY);
-
-      // Increase opacity when mouse moves
-      targetWebOpacity = Math.min(0.15, 0.04 + mouseSpeed * 0.003);
-
-      // Add to trail with wave offset
-      const waveOffset = Math.sin(time * 0.1) * 3;
-      trail.push({
-        x: targetMouseX + waveOffset,
-        y: targetMouseY + Math.cos(time * 0.1) * 3,
-        life: 1
-      });
-      if (trail.length > maxTrailLength) {
-        trail.shift();
-      }
-    });
-
-    // Custom cursor with morphing (smooth lerping)
-    let currentHoveredExhibit = null;
-    let cursorX = width / 2;
-    let cursorY = height / 2;
-    let cursorWidth = 20;
-    let cursorHeight = 20;
-    let targetCursorX = width / 2;
-    let targetCursorY = height / 2;
-    let targetCursorWidth = 20;
-    let targetCursorHeight = 20;
-
-    document.addEventListener('mousemove', (e) => {
-      // Check if hovering over an exhibit
-      const hoveredExhibit = Array.from(exhibits).find(link => {
-        const rect = link.getBoundingClientRect();
-        return e.clientX >= rect.left && e.clientX <= rect.right &&
-               e.clientY >= rect.top && e.clientY <= rect.bottom;
-      });
-
-      if (hoveredExhibit !== currentHoveredExhibit) {
-        currentHoveredExhibit = hoveredExhibit;
-
-        if (hoveredExhibit) {
-          cursor.classList.add('morphed');
-        } else {
-          cursor.classList.remove('morphed');
-        }
-      }
-
-      // Update target position and size
-      if (currentHoveredExhibit) {
-        const rect = currentHoveredExhibit.getBoundingClientRect();
-        targetCursorX = rect.left;
-        targetCursorY = rect.top;
-        targetCursorWidth = rect.width;
-        targetCursorHeight = rect.height;
-      } else {
-        targetCursorX = e.clientX - 10;
-        targetCursorY = e.clientY - 10;
-        targetCursorWidth = 20;
-        targetCursorHeight = 20;
-      }
-    });
-
-    // Smooth cursor animation loop
-    function updateCursor() {
-      // Minimal smoothing - just 1 frame delay for motion visibility
-      const lerpSpeed = 0.95;
-
-      // Lerp position and size
-      cursorX += (targetCursorX - cursorX) * lerpSpeed;
-      cursorY += (targetCursorY - cursorY) * lerpSpeed;
-      cursorWidth += (targetCursorWidth - cursorWidth) * lerpSpeed;
-      cursorHeight += (targetCursorHeight - cursorHeight) * lerpSpeed;
-
-      // Apply to DOM
-      cursor.style.left = cursorX + 'px';
-      cursor.style.top = cursorY + 'px';
-      cursor.style.width = cursorWidth + 'px';
-      cursor.style.height = cursorHeight + 'px';
-
-      requestAnimationFrame(updateCursor);
-    }
-    updateCursor();
-
-    document.addEventListener('mousedown', () => {
-      isMouseDown = true;
-      cursor.classList.add('click');
-    });
-
-    document.addEventListener('mouseup', () => {
-      isMouseDown = false;
-      cursor.classList.remove('click');
     });
 
     function animate() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.fillRect(0, 0, width, height);
+      ctx.clearRect(0, 0, width, height);
+      time += 0.05;
 
-      time += 0.016;
-
-      // Smooth mouse movement
-      mouseX += (targetMouseX - mouseX) * 0.15;
-      mouseY += (targetMouseY - mouseY) * 0.15;
-
-      // Smooth opacity transition
-      webOpacity += (targetWebOpacity - webOpacity) * 0.05;
-      // Fade back to base when mouse stops
-      targetWebOpacity += (0.04 - targetWebOpacity) * 0.02;
-
-      // Update bouncy web points with spring physics
-      const springStrength = 0.015;
-      const damping = 0.85;
-
-      webPoints.forEach((point, i) => {
-        const original = webPointsOriginal[i];
-
-        // Calculate vector from mouse to point
-        const dx = point.x - mouseX;
-        const dy = point.y - mouseY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        // Push point away from mouse (inverse square falloff)
-        if (dist < 300) {
-          const force = (300 - dist) / 300;
-          point.vx += (dx / dist) * force * 2;
-          point.vy += (dy / dist) * force * 2;
-        }
-
-        // Spring back to original position
-        point.vx += (original.x - point.x) * springStrength;
-        point.vy += (original.y - point.y) * springStrength;
-
-        // Apply damping
-        point.vx *= damping;
-        point.vy *= damping;
-
-        // Update position
-        point.x += point.vx;
-        point.y += point.vy;
-      });
-
-      // Draw bouncy radial web with smooth opacity
-      ctx.strokeStyle = `rgba(0, 255, 255, ${webOpacity})`;
-      ctx.lineWidth = 0.6;
-
-      webPoints.forEach(point => {
-        ctx.beginPath();
-        ctx.moveTo(mouseX, mouseY);
-        ctx.lineTo(point.x, point.y);
-        ctx.stroke();
-      });
-
-      // Draw sinusoidal mouse trail with wave distortion
-      for (let i = 0; i < trail.length - 1; i++) {
+      // Trail
+      ctx.beginPath();
+      for (let i = 0; i < trail.length; i++) {
         const point = trail[i];
-        const nextPoint = trail[i + 1];
-
-        point.life -= 0.06;
-        const opacity = point.life * 0.4;
-        const radius = 2 + Math.sin(i * 0.3 + time * 3) * 1;
-
-        if (radius > 0 && opacity > 0) {
-          ctx.beginPath();
-          ctx.arc(point.x, point.y, Math.abs(radius), 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(0, 255, 255, ${opacity})`;
-          ctx.fill();
-
-          // Connect trail with lines
-          if (nextPoint) {
-            ctx.beginPath();
-            ctx.moveTo(point.x, point.y);
-            ctx.lineTo(nextPoint.x, nextPoint.y);
-            ctx.strokeStyle = `rgba(0, 255, 255, ${opacity * 0.3})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-        }
+        point.age++;
+        const wave = Math.sin(point.age * 0.2 + time) * 2;
+        if (i === 0) ctx.moveTo(point.x + wave, point.y);
+        else ctx.lineTo(point.x + wave, point.y);
+        if (point.age > 20) { trail.splice(i, 1); i--; }
       }
+      ctx.strokeStyle = COLORS.cyan;
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-      // Clean up dead trail points
-      while (trail.length > 0 && trail[0].life <= 0) {
-        trail.shift();
+      // Ripples
+      for (let i = 0; i < ripples.length; i++) {
+        const r = ripples[i];
+        r.radius += (r.speed || 5);
+        r.alpha -= 0.02;
+        if (r.alpha <= 0) { ripples.splice(i, 1); i--; continue; }
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, Math.max(0, r.radius), 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 255, 255, ${r.alpha})`; 
+        ctx.lineWidth = 2;
+        ctx.stroke();
       }
-
-      // Draw click ripple explosions (smooth blue waves with radial fade)
-      activeRipples.forEach((ripple, index) => {
-        ripple.radius += 5;
-        ripple.life -= 0.018;
-
-        if (ripple.life > 0 && ripple.radius < ripple.maxRadius) {
-          // Radial fade: stronger near edge, weaker at center
-          const progress = ripple.radius / ripple.maxRadius;
-          const radialFade = Math.sin(progress * Math.PI); // Peaks at middle, fades at edges
-          const opacity = ripple.life * 0.5 * radialFade;
-
-          // Clip to bounds if ripple has bounds (exhibit clicks)
-          if (ripple.bounds) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(ripple.bounds.left, ripple.bounds.top, ripple.bounds.width, ripple.bounds.height);
-            ctx.clip();
-          }
-
-          // Smoother sinusoidal wave distortion
-          const segments = 80;
-          ctx.beginPath();
-          for (let i = 0; i <= segments; i++) {
-            const angle = (i / segments) * Math.PI * 2;
-            const wave = Math.sin(angle * 5 + time * 3) * 3 * ripple.life;
-            const r = ripple.radius + wave;
-            const x = ripple.x + Math.cos(angle) * r;
-            const y = ripple.y + Math.sin(angle) * r;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.closePath();
-          ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`;
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-
-          if (ripple.bounds) {
-            ctx.restore();
-          }
-        } else {
-          activeRipples.splice(index, 1);
-        }
-      });
-
       requestAnimationFrame(animate);
     }
-
     animate();
 
-    // Fade in on page load
-    window.addEventListener('load', () => {
-      document.body.style.opacity = '0';
-      requestAnimationFrame(() => {
-        document.body.style.transition = 'opacity 0.5s ease';
-        document.body.style.opacity = '1';
-      });
-    });
-
-    // Also fade in on back button / page show
+    window.addEventListener('load', () => document.body.classList.add('loaded'));
     window.addEventListener('pageshow', (e) => {
-      if (e.persisted) {
-        // Page was restored from cache (back button)
-        document.body.classList.remove('fade-out');
-        document.body.style.opacity = '1';
-
-        // Reset cursor state to prevent lag
-        currentHoveredExhibit = null;
-        cursor.classList.remove('morphed');
-        targetCursorWidth = 20;
-        targetCursorHeight = 20;
-        cursorWidth = 20;
-        cursorHeight = 20;
-      }
-    });
-
-    // Reset cursor when page becomes visible (tab switching)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        // Snap cursor to current target immediately to prevent lag
-        cursorX = targetCursorX;
-        cursorY = targetCursorY;
-        cursorWidth = targetCursorWidth;
-        cursorHeight = targetCursorHeight;
-      }
+      if (e.persisted) { document.body.classList.remove('fade-out'); document.body.classList.add('loaded'); }
     });
   </script>
 </body>
