@@ -118,7 +118,7 @@ export class TimelinePanel {
     actions.innerHTML = `
       <button type="button" class="cts-icon-button" data-stage-action="move-up" data-stage-id="${stage.id}" aria-label="Move stage up" ${index <= 1 ? 'disabled' : ''}>▲</button>
       <button type="button" class="cts-icon-button" data-stage-action="move-down" data-stage-id="${stage.id}" aria-label="Move stage down" ${(index === 0 || index >= lastIndex) ? 'disabled' : ''}>▼</button>
-      <button type="button" class="cts-icon-button" data-stage-action="remove" data-stage-id="${stage.id}" aria-label="Remove stage" ${index === 0 ? 'disabled' : ''}>✕</button>
+      <button type="button" class="cts-icon-button" data-stage-action="remove" data-stage-id="${stage.id}" aria-label="Remove stage" ${index === 0 ? 'disabled' : ''}>☩</button>
     `;
 
     const body = document.createElement('div');

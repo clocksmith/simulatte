@@ -3,6 +3,8 @@
 an n-gram and anagram collective
 created for games who like mages
 
+See [AGENTS.md](AGENTS.md) for the active code-writing agent profile.
+
 ## /public
 
 ### ZQS ⚭ SQZ
