@@ -105,12 +105,4 @@ Why engage in this **fun game** with acronyms? The underlying patterns resonate 
 
 [PAWS](https://github.com/clocksmith/paws)
 
-```md
-~ REPLOID <---> DREAMER ~
-~ ---|-------------|--- ~  
-~ xxx|xxxxxxxxxxxxx|xxx ~
-~ ---|-------------|--- ~  
-~ DREAMER <---> REPLOID ~
-```
-
 Would you like to play a game [?](https://github.com/clocksmith/gamma)
