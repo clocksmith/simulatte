@@ -126,15 +126,53 @@ button:disabled, .btn:disabled {
   filter: grayscale(100%);
 }
 
-/* Variants */
-.btn-primary { background: var(--accent-primary); color: #000; border: none; font-weight: 600; }
-.btn-primary:hover:not(:disabled) { background: var(--accent-magenta-dim); }
+/* Variants - Holo style */
+.btn-primary {
+  background: rgba(255, 0, 255, 0.1);
+  color: var(--accent-primary);
+  border: 1px solid rgba(255, 0, 255, 0.4);
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) {
+  background: rgba(255, 0, 255, 0.18);
+  border-color: var(--accent-primary);
+  box-shadow: var(--glow-magenta), inset 0 0 20px rgba(255, 0, 255, 0.1);
+}
 
-.btn-secondary { background: var(--accent-secondary); color: #000; border: none; font-weight: 600; }
-.btn-secondary:hover:not(:disabled) { background: var(--accent-green-dim); box-shadow: var(--glow-green); }
+.btn-secondary {
+  background: rgba(0, 255, 0, 0.08);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(0, 255, 0, 0.35);
+  font-weight: 600;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(0, 255, 0, 0.15);
+  border-color: var(--accent-secondary);
+  box-shadow: var(--glow-green), inset 0 0 20px rgba(0, 255, 0, 0.08);
+}
 
-.btn-danger { background: var(--accent-red); color: #fff; border: none; }
-.btn-danger:hover:not(:disabled) { background: #d22; box-shadow: 0 0 10px rgba(255, 68, 68, 0.5); }
+.btn-outline {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 500;
+}
+.btn-outline:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background: rgba(255, 68, 68, 0.12);
+  color: var(--accent-red);
+  border: 1px solid rgba(255, 68, 68, 0.4);
+}
+.btn-danger:hover:not(:disabled) {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: var(--accent-red);
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+}
 
 .btn-block { display: flex; width: 100%; }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }

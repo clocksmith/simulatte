@@ -3,7 +3,7 @@ import Utils from './utils.js';
 const template = document.createElement('template');
 template.innerHTML = `
 <style>
-  :host { display: block; border: 1px solid #555; border-radius: 4px; padding: 1rem; background: #3a3a3a; container-type: inline-size; margin-bottom: 1rem; cursor: default; }
+  :host { display: block; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 4px; padding: 1rem; background: rgba(50, 50, 55, 0.6); container-type: inline-size; margin-bottom: 1rem; cursor: default; }
   :host(.selected) { border-color: var(--accent, #b16ee0); box-shadow: 0 0 5px var(--accent, #b16ee0); }
   :host(.status-pending) { border-left: 5px solid orange; padding-left: calc(1rem - 5px); }
   h3 { margin: 0 0 0.5rem; font-size: 1.1em; color: #b16ee0; word-break: break-all; }
@@ -15,18 +15,18 @@ template.innerHTML = `
   summary::-webkit-details-marker { display: none; } /* Chrome/Safari */
   summary::before { content: '☛ '; font-size: 0.8em; margin-right: 4px; }
   details[open] > summary::before { content: '▼ '; }
-  pre { margin: 0.5rem 0; white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto; background: #222; padding: 0.5rem; border-radius: 3px; font-size: 0.85em; }
-  .actions { margin-top: 1rem; border-top: 1px solid #555; padding-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-  button { font-size: 0.9em; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 3px; border: none; background: #b16ee0; color: white; }
-  button:hover:not(:disabled) { opacity: 0.9; }
-  button:disabled { opacity: 0.5; cursor: not-allowed;}
-  .del-btn { background: #c74754; margin-left: auto; }
-  .del-btn:hover:not(:disabled) { background: #a71d2a; }
+  pre { margin: 0.5rem 0; white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto; background: rgba(20, 20, 25, 0.7); padding: 0.5rem; border-radius: 3px; font-size: 0.85em; border: 1px solid rgba(255,255,255,0.1); }
+  .actions { margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  button { font-size: 0.9em; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 3px; border: 1px solid rgba(177, 110, 224, 0.5); background: rgba(177, 110, 224, 0.15); color: #b16ee0; transition: all 0.2s; }
+  button:hover:not(:disabled) { background: rgba(177, 110, 224, 0.25); box-shadow: 0 0 8px rgba(177, 110, 224, 0.4); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .del-btn { background: rgba(199, 71, 84, 0.15); border-color: rgba(199, 71, 84, 0.5); color: #c74754; margin-left: auto; }
+  .del-btn:hover:not(:disabled) { background: rgba(199, 71, 84, 0.25); box-shadow: 0 0 8px rgba(199, 71, 84, 0.4); }
   .args-form { margin-top: 0.5rem; }
   .arg-group { margin-bottom: 0.5rem; }
   .arg-group label { display: block; margin-bottom: 2px; font-size: 0.9em; }
   .arg-group label span { font-size: 0.8em; color: #bbb; margin-left: 5px; }
-  .arg-group input[type=text], .arg-group input[type=number] { width: 100%; padding: 0.3rem; background: #555; color: #eee; border: 1px solid #777; border-radius: 3px; font-size: 0.9em; box-sizing: border-box; }
+  .arg-group input[type=text], .arg-group input[type=number] { width: 100%; padding: 0.3rem; background: rgba(60, 60, 65, 0.6); color: #eee; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 0.9em; box-sizing: border-box; }
   .arg-group input[type=checkbox] { margin-right: 5px; vertical-align: middle; }
 </style>
 <h3 id="name">Tool Name</h3>

@@ -242,10 +242,10 @@
 
     .rule-toggle-input:checked + .rule-toggle-label::before {
       content: '✓';
-      background: var(--accent-secondary);
+      background: rgba(0, 255, 0, 0.2);
       border-color: var(--accent-secondary);
-      color: #000;
-      box-shadow: 0 0 6px rgba(0, 255, 0, 0.4);
+      color: var(--accent-secondary);
+      box-shadow: 0 0 8px rgba(0, 255, 0, 0.4), inset 0 0 10px rgba(0, 255, 0, 0.15);
     }
 
     .rule-toggle-label:hover {
@@ -875,8 +875,8 @@
           <button class="btn btn-outline btn-block add-player-btn" id="addPlayerBtn">+ Add Player</button>
         </div>
 
-        <button class="btn btn-primary btn-block" id="startBtn" style="background: linear-gradient(135deg, #00e676, #00c853); border-color: #00e676;">Run Monte Carlo Simulation</button>
-        <button class="btn btn-secondary btn-block" id="stopBtn" style="margin-top: 12px; display: none;">Stop Simulation</button>
+        <button class="btn btn-primary btn-block" id="startBtn">Run Monte Carlo Simulation</button>
+        <button class="btn btn-danger btn-block" id="stopBtn" style="margin-top: 12px; display: none;">Stop Simulation</button>
 
         <div class="progress-section" id="progressSection">
           <div class="progress-text" id="progressText" aria-live="polite">Preparing simulation...</div>

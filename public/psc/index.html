@@ -209,6 +209,35 @@
       min-height: 2.5em;
       line-height: 1.4;
     }
+
+    #canvas-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(10, 14, 39, 0.95);
+      border: 1px solid var(--tooltip-color, #00ffff);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      color: #c0c8d0;
+      max-width: 240px;
+      opacity: 0;
+      transition: opacity 0.15s ease, border-color 0.2s ease;
+      z-index: 50;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    #canvas-tooltip.visible {
+      opacity: 1;
+    }
+
+    #canvas-tooltip .tooltip-title {
+      color: var(--tooltip-color, #00ffff);
+      font-weight: bold;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
@@ -216,6 +245,10 @@
   <div class="container">
     <div id="canvas-container">
       <canvas id="canvas"></canvas>
+      <div id="canvas-tooltip">
+        <div class="tooltip-title">Shape</div>
+        <div class="tooltip-content">Hover over the shape to see details</div>
+      </div>
       <div id="loading-overlay" style="position: absolute; inset: 0; background: #050714; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; z-index: 100;">
         <div style="font-size: 1.5rem; color: #00ffff;">Loading Personality Shapes...</div>
         <div style="width: 50px; height: 50px; border: 3px solid rgba(0,255,255,0.2); border-top-color: #00ffff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
@@ -274,7 +307,6 @@
 
       <div class="personality-info">
         <p id="personality-desc">Select a personality preset to see description</p>
-        <p style="font-size: 0.65rem; color: #5f6c7b; margin-top: 10px; text-align: center;">💡 Tip: Press 1-6 keys for quick preset selection</p>
       </div>
     </div>
   </div>
@@ -319,13 +351,16 @@
     };
 
     function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
       canvas.width = width;
       canvas.height = height;
     }
     window.addEventListener('resize', resize);
-    resize();
+    // Delay initial resize to ensure container has correct dimensions
+    requestAnimationFrame(resize);
 
     let currentPreset = 'custom';
 
@@ -411,19 +446,20 @@
       ctx.fillStyle = '#050714';
       ctx.fillRect(0, 0, width, height);
 
-      // Get canvas container dimensions for responsive centering
-      const container = document.getElementById('canvas-container');
-      const containerRect = container.getBoundingClientRect();
-      const cx = containerRect.width / 2;
-      // Center vertically with responsive offset (smaller offset on short viewports)
-      const verticalOffset = Math.min(100, containerRect.height * 0.1);
-      const cy = containerRect.height / 2 - verticalOffset;
+      // Center of canvas
+      const cx = width / 2;
+      const cy = height / 2;
+
+      // Scale factor to fit shape within canvas (75% of available space)
+      const maxPossibleRadius = config.radius + config.amplitude * 1.8 + 20;
+      const availableRadius = Math.min(width, height) / 2;
+      const scale = Math.min(1, (availableRadius * 0.75) / maxPossibleRadius);
 
       // Glow layer
       ctx.beginPath();
       for (let i = 0; i <= 360; i += 2) {
         const rad = (i * Math.PI) / 180;
-        const r = getRadiusAtAngle(rad, time - 0.5) + 10;
+        const r = (getRadiusAtAngle(rad, time - 0.5) + 10) * scale;
         const x = cx + Math.cos(rad) * r;
         const y = cy + Math.sin(rad) * r;
         if (i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -439,7 +475,7 @@
       ctx.beginPath();
       for (let i = 0; i <= 360; i += 1) {
         const rad = (i * Math.PI) / 180;
-        const r = getRadiusAtAngle(rad, time);
+        const r = getRadiusAtAngle(rad, time) * scale;
         const x = cx + Math.cos(rad) * r;
         const y = cy + Math.sin(rad) * r;
         if (i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -542,6 +578,96 @@
 
     // Check initial state to see if it matches a preset
     checkIfCustom();
+
+    // Tooltip functionality
+    const tooltip = document.getElementById('canvas-tooltip');
+    const tooltipTitle = tooltip.querySelector('.tooltip-title');
+    const tooltipContent = tooltip.querySelector('.tooltip-content');
+
+    const shapeExplanations = {
+      grit: {
+        title: 'Grit',
+        shape: 'Smooth, circular form with minimal variation',
+        meaning: 'Steady energy, consistent output, focused persistence'
+      },
+      scanner: {
+        title: 'Scanner',
+        shape: 'Multiple spikes with organic texture',
+        meaning: 'Curiosity bursts, multi-directional interests, rapid exploration'
+      },
+      flow: {
+        title: 'Flow',
+        shape: 'Gentle waves, soft undulation',
+        meaning: 'Effortless rhythm, harmonious productivity, natural momentum'
+      },
+      burnout: {
+        title: 'Burnout',
+        shape: 'Collapsed form with static noise',
+        meaning: 'Depleted energy, fragmented attention, recovery needed'
+      },
+      hyperfocus: {
+        title: 'Hyperfocus',
+        shape: 'Sharp singular spike, needle-like intensity',
+        meaning: 'Tunnel vision, deep concentration, singular obsession'
+      },
+      chaos: {
+        title: 'Chaos',
+        shape: 'Rapid jagged movement, high frequency spikes',
+        meaning: 'Creative storm, scattered energy, explosive ideation'
+      },
+      custom: {
+        title: 'Custom Shape',
+        shape: 'User-defined parameters',
+        meaning: 'Spikes = focus points, Amplitude = intensity, Flow = mental rhythm'
+      }
+    };
+
+    let isOverShape = false;
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Calculate distance from center
+      const cx = width / 2;
+      const cy = height / 2;
+
+      const dx = mouseX - cx;
+      const dy = mouseY - cy;
+      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+
+      // Check if mouse is near the shape (within shape radius + buffer)
+      const maxRadius = config.radius + config.amplitude + 50;
+      const minRadius = config.radius - config.amplitude - 30;
+
+      if (distFromCenter < maxRadius && distFromCenter > minRadius * 0.3) {
+        isOverShape = true;
+        tooltip.classList.add('visible');
+
+        // Position tooltip
+        const tooltipX = Math.min(mouseX + 15, width - 260);
+        const tooltipY = Math.min(mouseY + 15, height - 100);
+        tooltip.style.left = tooltipX + 'px';
+        tooltip.style.top = tooltipY + 'px';
+
+        // Update tooltip color to match current shape color
+        tooltip.style.setProperty('--tooltip-color', config.color);
+
+        // Get current explanation
+        const info = shapeExplanations[currentPreset] || shapeExplanations.custom;
+        tooltipTitle.textContent = info.title;
+        tooltipContent.innerHTML = `<strong>Shape:</strong> ${info.shape}<br><strong>Meaning:</strong> ${info.meaning}`;
+      } else {
+        isOverShape = false;
+        tooltip.classList.remove('visible');
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      isOverShape = false;
+      tooltip.classList.remove('visible');
+    });
 
     draw();
   </script>

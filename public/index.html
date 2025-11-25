@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIMULATTE // Generative Experiments</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="simulatte-core.css">
 
   <style>
@@ -15,6 +19,7 @@
       cursor: none;
       position: relative;
       overflow-x: hidden;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
     }
 
     #particleCanvas {
@@ -94,31 +99,38 @@
     }
 
     /* Typography Overrides */
-    h1.brand-title {
-      font-size: clamp(2.5rem, 8vw, 4.5rem);
-      font-weight: 300;
-      letter-spacing: -2px;
-      color: var(--text-primary);
+    h1 {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: clamp(3rem, 10vw, 5.5rem);
+      font-weight: 200;
+      letter-spacing: 0.2em;
+      color: #c8c8c8;
       margin-bottom: 0.5rem;
-      letter-spacing: 2px;
       text-align: center;
-      font-weight: 300;
+      text-transform: uppercase;
     }
 
-    .subtitle {
+    .tagline {
+      font-family: 'DM Sans', system-ui, sans-serif;
       color: var(--text-secondary);
-      font-size: 0.95rem;
+      font-size: 1rem;
       margin-bottom: 3rem;
       font-style: italic;
       text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    .exhibit-name {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 400;
     }
 
     .exhibits {
       list-style: none;
       margin-bottom: 6rem;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 3.5rem 5rem;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 1.5rem;
     }
 
     .exhibit {
@@ -287,23 +299,13 @@
       pointer-events: none; z-index: 9999;
       transform-origin: center center;
       mix-blend-mode: difference;
-      transition: border-radius 0.3s ease;
-    }
-    #cursor.morphed {
-      border-radius: 8px;
-      border-color: rgba(0, 255, 255, 0.4);
     }
     #cursor.click { transform: scale(0.9); }
 
     @media (max-width: 768px) {
-      .exhibits {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-
       .exhibit-desc {
         padding-left: 0;
-        margin-left: 2.5rem;
+        margin-left: 0;
         margin-top: 0.5rem;
       }
     }
@@ -314,7 +316,7 @@
   <canvas id="particleCanvas"></canvas>
   <div id="cursor" aria-hidden="true"></div>
   <div class="container">
-    <h1>Simulatte World</h1>
+    <h1>Simulatte</h1>
     <p class="tagline">
       a gallery of generative systems
     </p>
@@ -400,12 +402,6 @@
         </a>
       </li>
     </ul>
-
-    <div class="artist-statement">
-      <p>
-        Built by <a href="https://github.com/clocksmith" target="_blank">@clocksmith</a>
-      </p>
-    </div>
   </div>
 
   <script>
@@ -424,12 +420,12 @@
         lineWidth: 2
       },
       spring: {
-        strength: 0.015,
-        damping: 0.85,
+        strength: 0.03,
+        damping: 0.88,
         breathAmplitude: 3
       },
       mouse: {
-        lerpSpeed: 0.15
+        lerpSpeed: 0.3
       },
       ripple: {
         expandSpeed: 33,
@@ -600,10 +596,12 @@
     let cursorY = height / 2;
     let cursorWidth = CONFIG.cursor.size;
     let cursorHeight = CONFIG.cursor.size;
+    let cursorBorderRadius = CONFIG.cursor.size / 2; // Start as circle
     let targetCursorX = width / 2;
     let targetCursorY = height / 2;
     let targetCursorWidth = CONFIG.cursor.size;
     let targetCursorHeight = CONFIG.cursor.size;
+    let targetCursorBorderRadius = CONFIG.cursor.size / 2;
 
     // Consolidated mousemove handler for better performance
     document.addEventListener('mousemove', (e) => {
@@ -630,27 +628,23 @@
 
       if (hoveredExhibit !== currentHoveredExhibit) {
         currentHoveredExhibit = hoveredExhibit;
-
-        if (hoveredExhibit) {
-          cursor.classList.add('morphed');
-        } else {
-          cursor.classList.remove('morphed');
-        }
       }
 
-      // Update target position and size
+      // Update target position, size, and border radius
       if (currentHoveredExhibit) {
         const rect = currentHoveredExhibit.getBoundingClientRect();
         targetCursorX = rect.left;
         targetCursorY = rect.top;
         targetCursorWidth = rect.width;
         targetCursorHeight = rect.height;
+        targetCursorBorderRadius = 8; // Rectangle corners
       } else {
         // Center the cursor circle on the mouse position
         targetCursorX = e.clientX - CONFIG.cursor.size / 2;
         targetCursorY = e.clientY - CONFIG.cursor.size / 2;
         targetCursorWidth = CONFIG.cursor.size;
         targetCursorHeight = CONFIG.cursor.size;
+        targetCursorBorderRadius = CONFIG.cursor.size / 2; // Circle
       }
     });
 
@@ -662,19 +656,21 @@
 
     // Smooth cursor animation loop
     function updateCursor() {
-      const lerpSpeed = 0.15; // Smooth lerp for morphing effect
+      const lerpSpeed = 0.3; // Faster, more responsive cursor
 
-      // Lerp position and size
+      // Lerp position, size, and border radius
       cursorX += (targetCursorX - cursorX) * lerpSpeed;
       cursorY += (targetCursorY - cursorY) * lerpSpeed;
       cursorWidth += (targetCursorWidth - cursorWidth) * lerpSpeed;
       cursorHeight += (targetCursorHeight - cursorHeight) * lerpSpeed;
+      cursorBorderRadius += (targetCursorBorderRadius - cursorBorderRadius) * lerpSpeed;
 
       // Apply to DOM
       cursor.style.left = cursorX + 'px';
       cursor.style.top = cursorY + 'px';
       cursor.style.width = cursorWidth + 'px';
       cursor.style.height = cursorHeight + 'px';
+      cursor.style.borderRadius = cursorBorderRadius + 'px';
 
       requestAnimationFrame(updateCursor);
     }
@@ -749,11 +745,24 @@
         point.y += point.vy;
       });
 
-      // Draw bouncy radial web with smooth opacity (muted cyan-gray color)
-      ctx.strokeStyle = `rgba(0, 255, 255, ${webOpacity})`;
+      // Draw bouncy radial web with gradient fade towards middle
       ctx.lineWidth = CONFIG.web.lineWidth;
 
-      webPoints.forEach(point => {
+      webPoints.forEach((point, i) => {
+        // Create gradient for each line (GPU accelerated)
+        const gradient = ctx.createLinearGradient(mouseX, mouseY, point.x, point.y);
+
+        // Lighting reacts to mouse velocity + subtle per-line variation
+        const velocityBoost = Math.min(mouseSpeed * 0.008, 0.25);
+        const linePulse = 0.08 * Math.sin(time * 1.5 + i * 1.2);
+        const innerAlpha = webOpacity * (0.25 + linePulse + velocityBoost);  // Mouse end: dimmer
+        const outerAlpha = webOpacity * (0.85 + linePulse + velocityBoost);  // Corner end: brighter
+
+        // Linear fade: dim at mouse, bright at corners
+        gradient.addColorStop(0, `rgba(0, 255, 255, ${innerAlpha})`);
+        gradient.addColorStop(1, `rgba(0, 255, 255, ${outerAlpha})`);
+
+        ctx.strokeStyle = gradient;
         ctx.beginPath();
         ctx.moveTo(mouseX, mouseY);
         ctx.lineTo(point.x, point.y);
@@ -834,11 +843,12 @@
 
         // Reset cursor state to prevent lag
         currentHoveredExhibit = null;
-        cursor.classList.remove('morphed');
         targetCursorWidth = CONFIG.cursor.size;
         targetCursorHeight = CONFIG.cursor.size;
+        targetCursorBorderRadius = CONFIG.cursor.size / 2;
         cursorWidth = CONFIG.cursor.size;
         cursorHeight = CONFIG.cursor.size;
+        cursorBorderRadius = CONFIG.cursor.size / 2;
       }
     });
 
@@ -913,6 +923,7 @@
         cursorY = targetCursorY;
         cursorWidth = targetCursorWidth;
         cursorHeight = targetCursorHeight;
+        cursorBorderRadius = targetCursorBorderRadius;
       }
     });
   </script>
