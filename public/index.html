@@ -4,19 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIMULATTE // Generative Experiments</title>
-  
+
   <link rel="stylesheet" href="simulatte-core.css">
 
   <style>
     /* 2. Page-Specific Overrides */
     body {
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       padding: 2rem;
-      overflow: hidden;
-      cursor: none; /* Custom cursor logic */
+      cursor: none;
+      position: relative;
+      overflow-x: hidden;
+      opacity: 0;
+    }
+
+    /* Restore native cursor for touch devices */
+    @media (hover: none), (pointer: coarse) {
+      body {
+        cursor: auto;
+      }
+      #cursor {
+        display: none;
+      }
+      .exhibit a {
+        cursor: pointer;
+      }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(
+        circle at 50% 50%,
+        rgba(0, 100, 150, 0.08) 0%,
+        rgba(50, 0, 100, 0.06) 25%,
+        rgba(0, 50, 80, 0.04) 50%,
+        transparent 70%
+      );
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+      z-index: 1;
+      animation: meshGradientFlow 20s ease-in-out infinite;
+    }
+
+    body.mouse-active::before {
+      opacity: 1;
+    }
+
+    @keyframes meshGradientFlow {
+      0%, 100% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+      }
+      25% {
+        transform: translate(5%, -5%) rotate(90deg) scale(1.1);
+      }
+      50% {
+        transform: translate(-3%, 8%) rotate(180deg) scale(0.95);
+      }
+      75% {
+        transform: translate(7%, 3%) rotate(270deg) scale(1.05);
+      }
+    }
+
+    body.fade-out {
       opacity: 0;
       transition: opacity 0.6s ease-out;
       /* Core CSS handles bg/font colors */
@@ -25,9 +80,13 @@
     body.loaded { opacity: 1; }
     body.fade-out { opacity: 0; }
 
-    /* Z-Index Layering */
-    #particleCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-    .container { max-width: 800px; width: 100%; position: relative; z-index: 1; }
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      position: relative;
+      z-index: 10;
+      margin: 0 auto;
+    }
 
     /* Typography Overrides */
     h1.brand-title {
@@ -36,60 +95,173 @@
       letter-spacing: -2px;
       color: var(--text-primary);
       margin-bottom: 0.5rem;
-      text-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+      letter-spacing: 2px;
+      text-align: center;
+      font-weight: 300;
     }
 
     .subtitle {
       color: var(--text-secondary);
       font-size: 0.95rem;
       margin-bottom: 3rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      border-bottom: 1px solid var(--border-light);
-      padding-bottom: 1rem;
-      display: inline-block;
+      font-style: italic;
+      text-align: center;
     }
 
-    /* Exhibit List */
-    .exhibits { list-style: none; margin-bottom: 4rem; }
-    .exhibit { margin-bottom: 1.5rem; }
+    .exhibits {
+      list-style: none;
+      margin-bottom: 6rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3.5rem 5rem;
+    }
+
+    .exhibit {
+      padding-left: 0;
+    }
 
     .exhibit a {
-      display: block;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      font-size: clamp(0.9rem, 1.8vw, 1rem);
       cursor: none;
-      padding: 0.75rem 1rem;
-      border-left: 2px solid transparent;
-      transition: all 0.2s ease;
+      position: relative;
+      padding: clamp(1rem, 2.5vw, 1.25rem);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(255, 255, 255, 0.003) 0%,
+          rgba(255, 255, 255, 0.001) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+      backdrop-filter: blur(0.5px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 20px rgba(255, 255, 255, 0.005),
+        0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
-    /* Glitch/Hover Effect */
-    .exhibit a:hover {
-      border-left-color: var(--accent-primary); /* Magenta */
-      background: linear-gradient(90deg, rgba(255, 0, 255, 0.05), transparent);
+    .exhibit a::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 150%;
+      height: 150%;
+      background:
+        radial-gradient(
+          ellipse at var(--mouse-x, 50%) var(--mouse-y, 50%),
+          rgba(0, 255, 255, 0.08) 0%,
+          rgba(100, 200, 255, 0.04) 20%,
+          rgba(255, 100, 200, 0.02) 40%,
+          transparent 70%
+        );
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: screen;
+      filter: blur(20px);
+      z-index: -1;
+    }
+
+    .exhibit a::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          var(--ray-angle, 45deg),
+          transparent 0%,
+          rgba(0, 255, 255, 0.03) 30%,
+          rgba(100, 200, 255, 0.04) 50%,
+          rgba(255, 100, 200, 0.02) 70%,
+          transparent 100%
+        );
+      opacity: 0;
+      transition: opacity 0.5s ease, background 0.3s ease;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      z-index: -1;
+    }
+
+    .exhibit a:hover::before,
+    .exhibit a:focus::before {
+      opacity: 1;
+      animation: rayPulse 3s ease-in-out infinite;
+    }
+
+    .exhibit a:hover::after,
+    .exhibit a:focus::after {
+      opacity: 1;
+    }
+
+    @keyframes rayPulse {
+      0%, 100% {
+        opacity: 0.6;
+        filter: blur(20px);
+      }
+      50% {
+        opacity: 1;
+        filter: blur(15px);
+      }
+    }
+
+    .exhibit a:hover,
+    .exhibit a:focus {
+      color: #00ffff;
+      background: rgba(0, 255, 255, 0.02);
+      border-color: rgba(0, 255, 255, 0.2);
+      backdrop-filter: blur(2px);
+      outline: none;
+    }
+
+    .exhibit a:hover .exhibit-number,
+    .exhibit a:focus .exhibit-number {
+      color: #ffd700;
+    }
+
+    .exhibit a:focus-visible {
+      outline: 2px solid #00ffff;
+      outline-offset: 2px;
     }
 
     .exhibit-number {
-      color: var(--accent-tertiary); /* Cyan */
-      font-size: 0.8rem; margin-right: 1rem; opacity: 0.7;
-      font-family: var(--font-mono);
+      color: #00ffff;
+      font-size: clamp(0.7rem, 1.3vw, 0.75rem);
+      margin-right: 0.5rem;
+      transition: color 0.3s ease;
     }
 
     .exhibit-name {
-      color: var(--text-primary);
-      font-size: 1.2rem; font-weight: bold; margin-right: 1rem;
-    }
-
-    .exhibit a:hover .exhibit-name {
-      color: var(--accent-primary);
-      text-shadow: 0 0 8px var(--accent-primary);
+      font-weight: bold;
+      margin-right: 0.5rem;
+      line-height: 1.4;
     }
 
     .exhibit-desc {
+      color: #718096;
+      font-size: clamp(0.7rem, 1.3vw, 0.75rem);
+      margin-top: clamp(0.35rem, 0.8vw, 0.5rem);
       display: block;
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      margin-top: 0.4rem; margin-left: 2.5rem;
-      max-width: 500px;
+      padding-left: 0;
+      margin-left: 0;
+      line-height: 1.5;
+      transition: color 0.3s ease;
+    }
+
+    .artist-statement {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 3rem;
+      margin-top: 3rem;
+      color: #5f6c7b;
+      font-size: clamp(0.8rem, 1.5vw, 0.85rem);
+      line-height: 1.8;
     }
 
     /* Artist Statement */
@@ -120,104 +292,160 @@
     }
     #cursor.click { transform: translate(-50%, -50%) scale(0.8); }
 
-    @media (max-width: 640px) {
-      .exhibit-desc { margin-left: 0; margin-top: 0.5rem; }
-      body { cursor: auto; }
-      #cursor { display: none; }
+    @media (max-width: 768px) {
+      .exhibits {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .exhibit-desc {
+        padding-left: 0;
+        margin-left: 2.5rem;
+        margin-top: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
 
   <canvas id="particleCanvas"></canvas>
-  <div id="cursor"></div>
-
+  <div id="cursor" aria-hidden="true"></div>
   <div class="container">
-    <h1 class="brand-title">SIMULATTE</h1>
-    <div class="subtitle">Gallery of Generative Systems</div>
+    <h1>Simulatte World</h1>
+    <p class="tagline">
+      a gallery of generative systems
+    </p>
 
     <ul class="exhibits">
       <li class="exhibit">
-        <a href="/zqs">
-          <span class="exhibit-number">01.</span>
-          <span class="exhibit-name">Wave Collapse</span>
-          <span class="exhibit-desc">Quantum probability distributions evolving through potential barriers</span>
+        <a href="/psc">
+          <span class="exhibit-number">PSC</span>
+          <span class="exhibit-name">Personality Shapes</span>
+          <span class="exhibit-desc">Psychological states as deformable geometry</span>
         </a>
       </li>
 
       <li class="exhibit">
         <a href="/spd">
-          <span class="exhibit-number">02.</span>
+          <span class="exhibit-number">SPD</span>
           <span class="exhibit-name">Chaotic Pendulum</span>
-          <span class="exhibit-desc">Double pendulum ballet demonstrating sensitive dependence on initial conditions</span>
+          <span class="exhibit-desc">Sensitivity to initial conditions</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/zqs">
+          <span class="exhibit-number">ZQS</span>
+          <span class="exhibit-name">Wave Collapse</span>
+          <span class="exhibit-desc">Quantum tunneling through barriers</span>
         </a>
       </li>
 
       <li class="exhibit">
         <a href="/pss">
-          <span class="exhibit-number">03.</span>
+          <span class="exhibit-number">PSS</span>
           <span class="exhibit-name">Particle Swarm</span>
-          <span class="exhibit-desc">Emergent behavior from simple rules governing autonomous agents</span>
-        </a>
-      </li>
-
-      <li class="exhibit">
-        <a href="/psc">
-          <span class="exhibit-number">04.</span>
-          <span class="exhibit-name">Personality Shapes</span>
-          <span class="exhibit-desc">Psychological states mapped to deformable geometry through parametric noise</span>
-        </a>
-      </li>
-
-      <li class="exhibit">
-        <a href="/aeh">
-          <span class="exhibit-number">05.</span>
-          <span class="exhibit-name">Poker Equity</span>
-          <span class="exhibit-desc">Monte Carlo probability heatmaps revealing hidden strategic landscapes</span>
-        </a>
-      </li>
-
-      <li class="exhibit">
-        <a href="/sfs">
-          <span class="exhibit-number">06.</span>
-          <span class="exhibit-name">Strategic Flip</span>
-          <span class="exhibit-desc">Three competing strategies converging through millions of simulated hands</span>
+          <span class="exhibit-desc">Emergent behavior from simple rules</span>
         </a>
       </li>
 
       <li class="exhibit">
         <a href="/utp">
-          <span class="exhibit-number">07.</span>
+          <span class="exhibit-number">UTP</span>
           <span class="exhibit-name">Torus Network</span>
-          <span class="exhibit-desc">3D processor topology with heat distribution and bandwidth traffic flows</span>
+          <span class="exhibit-desc">3D processor heat and bandwidth flows</span>
         </a>
       </li>
 
       <li class="exhibit">
-        <a href="https://replo.id" target="_blank">
-          <span class="exhibit-number">08.</span>
-          <span class="exhibit-name">Reploid</span>
-          <span class="exhibit-desc">Self-modifying AI substrate exploring recursive self-improvement in the browser</span>
+        <a href="/cbg">
+          <span class="exhibit-number">CBG</span>
+          <span class="exhibit-name">Urban Simulation</span>
+          <span class="exhibit-desc">Park management and seasonal rhythms</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/aeh">
+          <span class="exhibit-number">AEH</span>
+          <span class="exhibit-name">Poker Equity</span>
+          <span class="exhibit-desc">Monte Carlo strategic landscapes</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/sfs">
+          <span class="exhibit-number">SFS</span>
+          <span class="exhibit-name">Strategic Flip</span>
+          <span class="exhibit-desc">Strategy convergence simulation</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/cts">
+          <span class="exhibit-number">CTS</span>
+          <span class="exhibit-name">Cap Table</span>
+          <span class="exhibit-desc">Founder dilution trajectories</span>
+        </a>
+      </li>
+
+      <li class="exhibit">
+        <a href="/ftd">
+          <span class="exhibit-number">FTD</span>
+          <span class="exhibit-name">Tool Designer</span>
+          <span class="exhibit-desc">Dynamic tool generation via LLM</span>
         </a>
       </li>
     </ul>
 
     <div class="artist-statement">
-      <p>An <strong>n-gram and anagram collective</strong> created for mages who like games.</p>
-      <p class="mt-md">Built by <a href="https://github.com/clocksmith" target="_blank">@clocksmith</a></p>
+      <p>
+        Built by <a href="https://github.com/clocksmith" target="_blank">@clocksmith</a>
+      </p>
     </div>
   </div>
 
   <script>
-    /* JS reads CSS variables to keep Canvas synced with Core Theme.
-    */
-    const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    
-    const COLORS = {
-      cyan: getVar('--accent-tertiary') || '#00ffff',
-      magenta: getVar('--accent-primary') || '#ff00ff'
+    // Animation constants
+    const CONFIG = {
+      cursor: {
+        size: 20,
+        lerpSpeed: 0.95
+      },
+      web: {
+        baseOpacity: 0.4,
+        maxOpacity: 0.7,
+        opacityVelocityFactor: 0.006,
+        opacityLerpSpeed: 0.05,
+        mouseInfluenceRadius: 300,
+        lineWidth: 2
+      },
+      spring: {
+        strength: 0.015,
+        damping: 0.85,
+        breathAmplitude: 3
+      },
+      mouse: {
+        lerpSpeed: 0.15
+      },
+      ripple: {
+        expandSpeed: 33,
+        decayRate: 0.042,
+        segments: 120,
+        baseOpacity: 0.8
+      },
+      glow: {
+        innerRadius: 3,
+        middleRadius: 6,
+        outerRadius: 10
+      },
+      transition: {
+        fadeDelay: 200,
+        navigateDelay: 700
+      }
     };
 
+    // Canvas setup
     const canvas = document.getElementById('particleCanvas');
     const ctx = canvas.getContext('2d');
     const cursor = document.getElementById('cursor');
@@ -246,61 +474,429 @@
       cursor.style.top = `${mouse.y}px`;
     });
 
-    document.addEventListener('mousedown', () => {
-      cursor.classList.add('click');
-      ripples.push({ x: mouse.x, y: mouse.y, radius: 0, alpha: 1 });
-    });
-    document.addEventListener('mouseup', () => cursor.classList.remove('click'));
+    // Mouse tracking
+    let mouseX = width / 2;
+    let mouseY = height / 2;
+    let targetMouseX = width / 2;
+    let targetMouseY = height / 2;
+    let mouseVelocityX = 0;
+    let mouseVelocityY = 0;
+    let mouseSpeed = 0;
+    let webOpacity = CONFIG.web.baseOpacity;
+    let targetWebOpacity = CONFIG.web.baseOpacity;
+    let isMouseDown = false;
+    time = 0;
 
-    links.forEach(link => {
-      link.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
-      link.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+    const maxTrailLength = 15;
+
+    // Bouncy web points with spring physics
+    const webPoints = [
+      { x: 0, y: 0, vx: 0, vy: 0 },           // top-left
+      { x: width, y: 0, vx: 0, vy: 0 },       // top-right
+      { x: width, y: height, vx: 0, vy: 0 },  // bottom-right
+      { x: 0, y: height, vx: 0, vy: 0 }       // bottom-left
+    ];
+
+    const webPointsOriginal = webPoints.map(p => ({ x: p.x, y: p.y }));
+
+    // Click ripple effects (anywhere on page)
+    const activeRipples = [];
+    const exhibits = document.querySelectorAll('.exhibit a');
+
+    // Intercept exhibit link clicks for fade transition
+    exhibits.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const href = link.getAttribute('href');
-        for(let i=0; i<3; i++) ripples.push({ x: mouse.x, y: mouse.y, radius: -i*20, alpha: 1, speed: 15 + i*2 });
-        setTimeout(() => document.body.classList.add('fade-out'), 300);
-        setTimeout(() => window.location.href = href, 900);
+
+        // Get the bounds of the clicked exhibit row
+        const rect = link.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Calculate max radius to fit within box bounds
+        const maxDiagonal = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
+
+        // Create contained ripple effect
+        for (let i = 0; i < 2; i++) {
+          setTimeout(() => {
+            activeRipples.push({
+              x: centerX,
+              y: centerY,
+              radius: 0,
+              maxRadius: maxDiagonal * 0.8 + i * 20, // Smaller, more contained
+              life: 1,
+              bounds: {
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height
+              }
+            });
+          }, i * 80);
+        }
+
+        // Fade out and navigate after ripple animation
+        setTimeout(() => {
+          document.body.classList.add('fade-out');
+        }, CONFIG.transition.fadeDelay);
+
+        setTimeout(() => {
+          window.location.href = href;
+        }, CONFIG.transition.navigateDelay);
       });
     });
 
+    // Regular clicks (not on links) still create ripples
+    document.addEventListener('click', (e) => {
+      // Only if not clicking on an exhibit link (those are handled above)
+      if (!e.target.closest('.exhibit a')) {
+        // Calculate distance to furthest corner to reach screen edges
+        const distToCorners = [
+          Math.sqrt(e.clientX ** 2 + e.clientY ** 2),
+          Math.sqrt((width - e.clientX) ** 2 + e.clientY ** 2),
+          Math.sqrt(e.clientX ** 2 + (height - e.clientY) ** 2),
+          Math.sqrt((width - e.clientX) ** 2 + (height - e.clientY) ** 2)
+        ];
+        const maxDist = Math.max(...distToCorners);
+
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            activeRipples.push({
+              x: e.clientX,
+              y: e.clientY,
+              radius: 0,
+              maxRadius: maxDist + i * 50,
+              life: 1
+            });
+          }, i * 60);
+        }
+      }
+    });
+
+    // Custom cursor with morphing (smooth lerping)
+    let currentHoveredExhibit = null;
+    let cursorX = width / 2;
+    let cursorY = height / 2;
+    let cursorWidth = CONFIG.cursor.size;
+    let cursorHeight = CONFIG.cursor.size;
+    let targetCursorX = width / 2;
+    let targetCursorY = height / 2;
+    let targetCursorWidth = CONFIG.cursor.size;
+    let targetCursorHeight = CONFIG.cursor.size;
+
+    // Consolidated mousemove handler for better performance
+    document.addEventListener('mousemove', (e) => {
+      // Track mouse velocity for opacity changes
+      const prevMouseX = targetMouseX;
+      const prevMouseY = targetMouseY;
+
+      targetMouseX = e.clientX;
+      targetMouseY = e.clientY;
+
+      mouseVelocityX = targetMouseX - prevMouseX;
+      mouseVelocityY = targetMouseY - prevMouseY;
+      mouseSpeed = Math.sqrt(mouseVelocityX * mouseVelocityX + mouseVelocityY * mouseVelocityY);
+
+      // Increase opacity when mouse moves
+      targetWebOpacity = Math.min(CONFIG.web.maxOpacity, CONFIG.web.baseOpacity + mouseSpeed * CONFIG.web.opacityVelocityFactor);
+
+      // Check if hovering over an exhibit
+      const hoveredExhibit = Array.from(exhibits).find(link => {
+        const rect = link.getBoundingClientRect();
+        return e.clientX >= rect.left && e.clientX <= rect.right &&
+               e.clientY >= rect.top && e.clientY <= rect.bottom;
+      });
+
+      if (hoveredExhibit !== currentHoveredExhibit) {
+        currentHoveredExhibit = hoveredExhibit;
+
+        if (hoveredExhibit) {
+          cursor.classList.add('morphed');
+        } else {
+          cursor.classList.remove('morphed');
+        }
+      }
+
+      // Update target position and size
+      if (currentHoveredExhibit) {
+        const rect = currentHoveredExhibit.getBoundingClientRect();
+        targetCursorX = rect.left;
+        targetCursorY = rect.top;
+        targetCursorWidth = rect.width;
+        targetCursorHeight = rect.height;
+      } else {
+        targetCursorX = e.clientX - CONFIG.cursor.size / 2;
+        targetCursorY = e.clientY - CONFIG.cursor.size / 2;
+        targetCursorWidth = CONFIG.cursor.size;
+        targetCursorHeight = CONFIG.cursor.size;
+      }
+    });
+
+    // Smooth cursor animation loop
+    function updateCursor() {
+      // No delay for position (trail provides motion feedback)
+      // Smooth lerp only for size changes (morph effect)
+      const lerpSpeed = CONFIG.cursor.lerpSpeed;
+
+      // Instant position follow
+      cursorX = targetCursorX;
+      cursorY = targetCursorY;
+      // Smooth size morphing
+      cursorWidth += (targetCursorWidth - cursorWidth) * lerpSpeed;
+      cursorHeight += (targetCursorHeight - cursorHeight) * lerpSpeed;
+
+      // Apply to DOM
+      cursor.style.left = cursorX + 'px';
+      cursor.style.top = cursorY + 'px';
+      cursor.style.width = cursorWidth + 'px';
+      cursor.style.height = cursorHeight + 'px';
+
+      requestAnimationFrame(updateCursor);
+    }
+    updateCursor();
+
+    document.addEventListener('mousedown', () => {
+      isMouseDown = true;
+      cursor.classList.add('click');
+    });
+
+    document.addEventListener('mouseup', () => {
+      isMouseDown = false;
+      cursor.classList.remove('click');
+    });
+
+    // Pause animation when page is not visible
+    let animationPaused = false;
+    document.addEventListener('visibilitychange', () => {
+      animationPaused = document.hidden;
+    });
+
     function animate() {
+      // Skip animation when page is hidden to save CPU/battery
+      if (animationPaused) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      // Clear canvas completely - no fade trail
       ctx.clearRect(0, 0, width, height);
-      time += 0.05;
 
-      // Trail
-      ctx.beginPath();
-      for (let i = 0; i < trail.length; i++) {
-        const point = trail[i];
-        point.age++;
-        const wave = Math.sin(point.age * 0.2 + time) * 2;
-        if (i === 0) ctx.moveTo(point.x + wave, point.y);
-        else ctx.lineTo(point.x + wave, point.y);
-        if (point.age > 20) { trail.splice(i, 1); i--; }
-      }
-      ctx.strokeStyle = COLORS.cyan;
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      time += 0.016;
 
-      // Ripples
-      for (let i = 0; i < ripples.length; i++) {
-        const r = ripples[i];
-        r.radius += (r.speed || 5);
-        r.alpha -= 0.02;
-        if (r.alpha <= 0) { ripples.splice(i, 1); i--; continue; }
+      // Smooth mouse movement
+      mouseX += (targetMouseX - mouseX) * CONFIG.mouse.lerpSpeed;
+      mouseY += (targetMouseY - mouseY) * CONFIG.mouse.lerpSpeed;
+
+      // Smooth opacity transition - keep lines always visible
+      webOpacity += (targetWebOpacity - webOpacity) * CONFIG.web.opacityLerpSpeed;
+
+      // Update bouncy web points with spring physics
+      webPoints.forEach((point, i) => {
+        const original = webPointsOriginal[i];
+
+        // Add subtle breathing motion even at rest
+        const breathOffset = Math.sin(time * 0.5 + i * 0.8) * CONFIG.spring.breathAmplitude;
+        const breathTargetX = original.x + Math.cos(i * Math.PI / 3) * breathOffset;
+        const breathTargetY = original.y + Math.sin(i * Math.PI / 3) * breathOffset;
+
+        // Calculate vector from mouse to point
+        const dx = point.x - mouseX;
+        const dy = point.y - mouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Push point away from mouse (inverse square falloff)
+        if (dist < CONFIG.web.mouseInfluenceRadius) {
+          const force = (CONFIG.web.mouseInfluenceRadius - dist) / CONFIG.web.mouseInfluenceRadius;
+          point.vx += (dx / dist) * force * 2;
+          point.vy += (dy / dist) * force * 2;
+        }
+
+        // Spring back to breathing target position instead of static original
+        point.vx += (breathTargetX - point.x) * CONFIG.spring.strength;
+        point.vy += (breathTargetY - point.y) * CONFIG.spring.strength;
+
+        // Apply damping
+        point.vx *= CONFIG.spring.damping;
+        point.vy *= CONFIG.spring.damping;
+
+        // Update position
+        point.x += point.vx;
+        point.y += point.vy;
+      });
+
+      // Draw bouncy radial web with smooth opacity (muted cyan-gray color)
+      ctx.strokeStyle = `rgba(0, 255, 255, ${webOpacity})`;
+      ctx.lineWidth = CONFIG.web.lineWidth;
+
+      webPoints.forEach(point => {
         ctx.beginPath();
-        ctx.arc(r.x, r.y, Math.max(0, r.radius), 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 255, 255, ${r.alpha})`; 
-        ctx.lineWidth = 2;
+        ctx.moveTo(mouseX, mouseY);
+        ctx.lineTo(point.x, point.y);
         ctx.stroke();
-      }
+      });
+
+      // Draw simple glowing cursor circle at mouse position
+      ctx.beginPath();
+      ctx.arc(targetMouseX, targetMouseY, CONFIG.glow.innerRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+      ctx.fill();
+
+      // Outer glow
+      ctx.beginPath();
+      ctx.arc(targetMouseX, targetMouseY, CONFIG.glow.middleRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+      ctx.fill();
+
+      // Soft outer glow
+      ctx.beginPath();
+      ctx.arc(targetMouseX, targetMouseY, CONFIG.glow.outerRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+      ctx.fill();
+
+      // Draw click ripple explosions (smooth blue waves with radial fade)
+      activeRipples.forEach((ripple, index) => {
+        ripple.radius += CONFIG.ripple.expandSpeed;
+        ripple.life -= CONFIG.ripple.decayRate;
+
+        if (ripple.life > 0 && ripple.radius < ripple.maxRadius) {
+          // Radial fade: fast-out curve with exponential decay
+          const progress = ripple.radius / ripple.maxRadius;
+          const fastOutEase = 1 - Math.pow(1 - progress, 3); // Fast start, ease out
+          const radialFade = Math.pow(1 - progress, 2.5); // Smooth fade outward
+          const opacity = ripple.life * CONFIG.ripple.baseOpacity * radialFade;
+
+          // Clip to bounds if ripple has bounds (exhibit clicks)
+          if (ripple.bounds) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(ripple.bounds.left, ripple.bounds.top, ripple.bounds.width, ripple.bounds.height);
+            ctx.clip();
+          }
+
+          // Smoother sinusoidal wave distortion
+          ctx.beginPath();
+          for (let i = 0; i <= CONFIG.ripple.segments; i++) {
+            const angle = (i / CONFIG.ripple.segments) * Math.PI * 2;
+            const wave = Math.sin(angle * 6 + time * 2) * 2 * ripple.life;
+            const r = ripple.radius + wave;
+            const x = ripple.x + Math.cos(angle) * r;
+            const y = ripple.y + Math.sin(angle) * r;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          if (ripple.bounds) {
+            ctx.restore();
+          }
+        } else {
+          activeRipples.splice(index, 1);
+        }
+      });
+
       requestAnimationFrame(animate);
     }
     animate();
 
-    window.addEventListener('load', () => document.body.classList.add('loaded'));
+    // Fade in on page load
+    setTimeout(() => {
+      document.body.style.transition = 'opacity 0.5s ease';
+      document.body.style.opacity = '1';
+    }, 10);
+
+    // Also fade in on back button / page show
     window.addEventListener('pageshow', (e) => {
-      if (e.persisted) { document.body.classList.remove('fade-out'); document.body.classList.add('loaded'); }
+      if (e.persisted) {
+        // Page was restored from cache (back button)
+        document.body.classList.remove('fade-out');
+        document.body.style.opacity = '1';
+
+        // Reset cursor state to prevent lag
+        currentHoveredExhibit = null;
+        cursor.classList.remove('morphed');
+        targetCursorWidth = CONFIG.cursor.size;
+        targetCursorHeight = CONFIG.cursor.size;
+        cursorWidth = CONFIG.cursor.size;
+        cursorHeight = CONFIG.cursor.size;
+      }
+    });
+
+    // Track mouse activity for mesh gradient
+    let mouseActivityTimeout;
+    document.addEventListener('mousemove', () => {
+      document.body.classList.add('mouse-active');
+      clearTimeout(mouseActivityTimeout);
+      mouseActivityTimeout = setTimeout(() => {
+        document.body.classList.remove('mouse-active');
+      }, 2000);
+    });
+
+    // Dynamic ray casting - update CSS variables based on mouse position
+    document.querySelectorAll('.exhibit a').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        // Calculate angle from center to mouse
+        const centerX = 50;
+        const centerY = 50;
+        const angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+
+        card.style.setProperty('--mouse-x', `${x}%`);
+        card.style.setProperty('--mouse-y', `${y}%`);
+        card.style.setProperty('--ray-angle', `${angle}deg`);
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.setProperty('--mouse-x', '50%');
+        card.style.setProperty('--mouse-y', '50%');
+        card.style.setProperty('--ray-angle', '45deg');
+      });
+    });
+
+    // Keyboard navigation for exhibits
+    const exhibitLinks = Array.from(document.querySelectorAll('.exhibit a'));
+    const githubLink = document.querySelector('.artist-statement a');
+    const allFocusableElements = [...exhibitLinks, githubLink];
+    let currentFocusIndex = -1;
+
+    document.addEventListener('keydown', (e) => {
+      // Arrow keys for navigation
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        currentFocusIndex = (currentFocusIndex + 1) % allFocusableElements.length;
+        allFocusableElements[currentFocusIndex].focus();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        currentFocusIndex = currentFocusIndex <= 0 ? allFocusableElements.length - 1 : currentFocusIndex - 1;
+        allFocusableElements[currentFocusIndex].focus();
+      } else if (e.key === 'Enter' && currentFocusIndex >= 0) {
+        e.preventDefault();
+        allFocusableElements[currentFocusIndex].click();
+      }
+    });
+
+    // Track focus for keyboard navigation
+    allFocusableElements.forEach((el, index) => {
+      el.addEventListener('focus', () => {
+        currentFocusIndex = index;
+      });
+    });
+
+    // Reset cursor when page becomes visible (tab switching)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Snap cursor to current target immediately to prevent lag
+        cursorX = targetCursorX;
+        cursorY = targetCursorY;
+        cursorWidth = targetCursorWidth;
+        cursorHeight = targetCursorHeight;
+      }
     });
   </script>
 </body>

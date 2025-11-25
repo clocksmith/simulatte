@@ -2,10 +2,41 @@ import config from "./config.js";
 import Storage from "./storage.js";
 import Utils from "./utils.js";
 
+const BOOT_TIMEOUT_MS = 30000; // 30 second timeout for boot sequence
+
 const bootstrap = async () => {
   const loadEl = Utils.id("loading");
   const logEl = Utils.id("boot_log");
   const appEl = Utils.id("app");
+  const statusEl = Utils.id("loading_status");
+  const spinnerEl = Utils.id("loading_spinner");
+
+  let bootComplete = false;
+
+  // Set up boot timeout to prevent infinite spinner
+  const bootTimeoutId = setTimeout(() => {
+    if (!bootComplete) {
+      const errorMsg = "Boot timeout: Application failed to initialize within 30 seconds.";
+      if (statusEl) {
+        statusEl.textContent = "Initialization timed out";
+        statusEl.style.color = "var(--err, #ef5350)";
+      }
+      if (spinnerEl) spinnerEl.style.display = "none";
+      if (logEl) {
+        logEl.textContent += `\n[${new Date().toISOString()}] [ERROR] ${errorMsg}\n`;
+        logEl.style.color = "var(--err, #ef5350)";
+        logEl.style.borderColor = "var(--err, #ef5350)";
+        // Auto-expand details on timeout
+        const detailsEl = logEl.closest("details");
+        if (detailsEl) detailsEl.open = true;
+      }
+      console.error(errorMsg);
+    }
+  }, BOOT_TIMEOUT_MS);
+
+  const update_status = (msg) => {
+    if (statusEl) statusEl.textContent = msg;
+  };
 
   const boot_log = (lvl, msg, ...details) => {
     const ts = new Date().toISOString();
@@ -28,11 +59,13 @@ const bootstrap = async () => {
   try {
     boot_log("info", "Boot sequence started...");
     boot_log("info", `Config loaded (v${config.version})`);
+    update_status("Loading configuration...");
 
     Utils.logger.init(config);
     const log = Utils.logger;
     log.info("Utils & Logger initialized.");
 
+    update_status("Initializing storage...");
     const storage = Storage(config, log);
     if (!storage) throw new Error("Storage init failed.");
     log.info("Storage initialized.");
@@ -72,6 +105,7 @@ const bootstrap = async () => {
 
     await ensurePromptTemplate();
 
+    update_status("Loading core modules...");
     const StateManager = (await import("./state_manager.js")).default(
       config,
       log,
@@ -105,19 +139,26 @@ const bootstrap = async () => {
 
     log.info("Core modules loaded.");
 
+    update_status("Initializing application...");
     StateManager.init();
     log.info("StateManager initialized.");
 
     CycleLogic.init();
     log.info("CycleLogic initialized.");
 
+    update_status("Setting up interface...");
     await UiManager.init();
     log.info("UiManager initialized.");
 
+    update_status("Ready!");
     log.info("Bootstrap complete. Launching app.");
+    bootComplete = true;
+    clearTimeout(bootTimeoutId);
     if (loadEl) loadEl.classList.add("hidden");
     if (appEl) appEl.classList.remove("hidden");
   } catch (error) {
+    bootComplete = true;
+    clearTimeout(bootTimeoutId);
     const errorMsg = `FATAL BOOTSTRAP ERROR: ${error.message}`;
     boot_log("error", errorMsg, error.stack);
     if (logEl) {

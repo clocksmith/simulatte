@@ -1,6 +1,9 @@
 const ApiClient = (cfg, log) => {
   let abortCtrl = null;
 
+  // API timeout duration (60 seconds default)
+  const API_TIMEOUT_MS = cfg.apiTimeoutMs || 60000;
+
   const sanitize_json = (raw) => {
     if (!raw || typeof raw !== "string") return null;
     let text = raw.trim();
@@ -97,14 +100,29 @@ const ApiClient = (cfg, log) => {
           // No tools needed for this specific generation task
         };
 
-        log.debug(`API Request (Attempt ${attempt})`, { url });
+        // Sanitize URL for logging (remove API key)
+        const sanitizedUrl = url.replace(/key=[^&]+/, 'key=***');
+        log.debug(`API Request (Attempt ${attempt})`, { url: sanitizedUrl });
 
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-          signal: abortCtrl.signal,
-        });
+        // Create timeout abort controller that combines with user abort
+        const timeoutId = setTimeout(() => {
+          if (abortCtrl && !abortCtrl.signal.aborted) {
+            log.warn(`API request timeout after ${API_TIMEOUT_MS}ms`);
+            abortCtrl.abort("Request timeout");
+          }
+        }, API_TIMEOUT_MS);
+
+        let res;
+        try {
+          res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+            signal: abortCtrl.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         if (!res.ok || !res.body) {
           let errBody = "(Failed to read error body)";
@@ -222,7 +240,7 @@ const ApiClient = (cfg, log) => {
         abortCtrl = null;
         return result; // Return the raw text result
       } catch (error) {
-        const isAbort = error.message.includes("Aborted");
+        const isAbort = error.message.includes("Aborted") || error.message.includes("timeout");
         if (isAbort) {
           cb("status", { msg: "Aborted.", active: false });
           cb("error", { msg: error.message });

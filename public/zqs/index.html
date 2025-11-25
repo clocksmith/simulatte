@@ -104,6 +104,27 @@
         }
       }
 
+      @media (max-width: 480px) {
+        #controls-info-container {
+          padding: 10px;
+          gap: 12px;
+        }
+
+        .control-group,
+        .info-group {
+          padding: 12px;
+        }
+
+        .control-group h3,
+        .info-group h3 {
+          font-size: 0.95em;
+        }
+
+        input[type="range"] {
+          height: 8px;
+        }
+      }
+
       .control-group,
       .info-group {
         border: 1px solid var(--border);
@@ -177,7 +198,10 @@
   <body>
     <div id="app-container">
       <header>
-        <a href="/" style="color: var(--accent-primary); text-decoration: none; font-size: 0.85rem; display: inline-block; margin-bottom: 8px;">☛ Back to Gallery</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <a href="/" style="color: var(--accent-primary); text-decoration: none; font-size: 0.85rem;">← Back to Gallery</a>
+          <button id="zqs-help-btn" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; color: var(--text-secondary); font-size: 0.85rem; cursor: pointer;" title="Show tutorial">? Help</button>
+        </div>
         <h1>ZQS - Zero Quantum State</h1>
         <span id="url-hash-display" style="color: var(--text-secondary);">URL: #</span>
       </header>
@@ -211,6 +235,7 @@
                 max="3.5"
                 step="0.05"
                 value="-1.2"
+                aria-describedby="center-value"
               />
             </div>
             <div class="control-item">
@@ -224,6 +249,7 @@
                 max="0.8"
                 step="0.005"
                 value="0.25"
+                aria-describedby="velocity-value"
               />
             </div>
             <div class="control-item">
@@ -237,6 +263,7 @@
                 max="1.0"
                 step="0.01"
                 value="0.5"
+                aria-describedby="energy-value"
               />
             </div>
             <div class="control-item">
@@ -251,6 +278,7 @@
                 max="3.5"
                 step="0.05"
                 value="0.5"
+                aria-describedby="barrier-position-value"
               />
             </div>
             <div class="control-item">
@@ -265,6 +293,7 @@
                 max="2.0"
                 step="0.05"
                 value="0.8"
+                aria-describedby="barrier-height-value"
               />
             </div>
             <div class="control-item">
@@ -279,6 +308,7 @@
                 max="1.5"
                 step="0.01"
                 value="0.2"
+                aria-describedby="barrier-width-value"
               />
             </div>
             <div class="control-item">
@@ -293,23 +323,24 @@
                 max="5.0"
                 step="0.05"
                 value="1.0"
+                aria-describedby="time-scale-value"
               />
             </div>
             <div class="control-item">
-              <button id="identity-evolve-btn">[ ☇ ] Evolve Time</button>
+              <button id="identity-evolve-btn" aria-label="Toggle time evolution">[ ☊ Evolve ] Time</button>
             </div>
             <div class="control-item">
-              <button id="add-barrier-btn" title="Toggle barrier to observe quantum tunneling">
-                [ ☩ ] Add Barrier
+              <button id="add-barrier-btn" title="Toggle barrier to observe quantum tunneling" aria-label="Add or remove barrier">
+                [ + ] Add Barrier
               </button>
             </div>
             <div class="control-item">
-              <button id="parity-flip-btn">
-                [ ☍ ] Apply Parity Flip (x → -x)
+              <button id="parity-flip-btn" aria-label="Apply parity flip transformation">
+                [ P ] Apply Parity Flip (x → -x)
               </button>
             </div>
             <div class="control-item">
-              <button id="reset-sim-btn">[ ☈ ] Reset Simulation</button>
+              <button id="reset-sim-btn" aria-label="Reset simulation to initial state">[ Reset ] Reset Simulation</button>
             </div>
           </div>
 
@@ -317,7 +348,7 @@
             <h3 style="margin-top: 0; color: var(--accent-secondary); font-size: 0.95em;">☛ Quick Start</h3>
             <p style="margin: 0; font-size: 0.85em; line-height: 1.4; margin-bottom: 8px;">
               The packet launches from the left with a default <strong>velocity</strong> of 0.25c. Adjust the slider, add a <strong>barrier</strong>, then click <strong>Evolve</strong> to observe quantum tunneling!
-              Toggle <strong>Dynamics Mode</strong> to “Dirac” when you want full relativistic behaviour.
+              Toggle <strong>Dynamics Mode</strong> to "Dirac" when you want full relativistic behaviour.
             </p>
             <p style="margin: 0; font-size: 0.8em; line-height: 1.3; color: #aaa;">
               <strong>What you're seeing:</strong> The wave packet starts on the <strong>left</strong> and moves <strong>right</strong> (velocity > 0) or left (velocity < 0).
@@ -358,6 +389,202 @@
         </div>
       </main>
     </div>
-    <script type="module" src="./sim.js"></script>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      attribute vec2 a_position;
+      void main() {
+          gl_Position = vec4(a_position, 0.0, 1.0);
+      }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      precision highp float;
+
+      uniform vec2 u_resolution;
+      uniform float u_time;
+      uniform vec3 u_theme_colors;
+      uniform float u_particle_x;
+      uniform float u_particle_p;
+      uniform float u_particle_width;
+      uniform float u_lorentz_gamma;
+      uniform bool u_parity_flipped;
+      uniform bool u_barrier_active;
+      uniform float u_barrier_x;
+      uniform float u_barrier_width;
+      uniform float u_barrier_height;
+      uniform float u_flash_intensity;
+      uniform float u_flash_time;
+
+      const float PI = 3.14159265359;
+
+      float gaussian(float x, float mu, float sigma) {
+          float arg = (x - mu) / max(sigma, 0.001);
+          return exp(-0.5 * arg * arg);
+      }
+
+      float noise(vec2 st) {
+          return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123 + u_time * 0.1);
+      }
+
+       vec3 hsv2rgb(vec3 c) {
+          vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+          vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+          return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+      }
+
+      float sdBox(vec2 p, vec2 b) {
+          vec2 d = abs(p) - b;
+          return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+      }
+
+      void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec2 world_st_raw = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+          float aspect = u_resolution.x / u_resolution.y;
+
+          float gamma_effect = (u_lorentz_gamma - 1.0) * 0.5;
+          float world_warp = 1.0 + gamma_effect * smoothstep(0.0, 1.5, abs(world_st_raw.x * aspect * 2.0 - u_particle_x));
+          world_st_raw.x /= world_warp; // Apply subtle world distortion based on gamma
+
+          vec2 world_st = world_st_raw;
+          world_st.x *= aspect;
+          float x_coord = world_st.x * 2.0;
+
+          vec3 color = vec3(u_theme_colors.x);
+
+          float grid_spacing = 0.1 * world_warp;
+          vec2 grid_coord = world_st / grid_spacing;
+          float grid_intensity = pow(max(0.0, sin(grid_coord.x * PI) * sin(grid_coord.y * PI * aspect)), 20.0);
+          grid_intensity *= (0.05 + gamma_effect * 0.1);
+          color += vec3(u_theme_colors.z) * grid_intensity * (0.5 + 0.5*cos(u_time*0.5));
+
+
+          if (u_barrier_active) {
+              float barrier_half_width_visual = u_barrier_width * 0.5 * aspect * 2.0;
+              vec2 barrier_center_world = vec2(u_barrier_x / (aspect * 2.0), 0.0);
+              vec2 barrier_size_world = vec2(barrier_half_width_visual / (aspect * 2.0), 0.8);
+
+              float dist_to_barrier = sdBox(world_st_raw - barrier_center_world, barrier_size_world);
+              float barrier_glow = smoothstep(0.05, 0.0, dist_to_barrier) * 0.8;
+              float barrier_fill = smoothstep(0.0, -0.01, dist_to_barrier) * 0.3;
+              float barrier_energy = clamp(u_barrier_height, 0.0, 2.0) * 0.5;
+
+              vec3 barrier_color = vec3(u_theme_colors.z) * (0.5 + barrier_energy * 0.5);
+              color = mix(color, barrier_color * 1.5, barrier_glow * barrier_energy);
+              color = mix(color, barrier_color * 0.5, barrier_fill * barrier_energy);
+
+              float noise_val = noise(gl_FragCoord.xy * 0.02 + vec2(u_time * 0.2, 0.0));
+              float energy_flicker = pow(noise_val, 5.0) * barrier_energy * 1.5;
+              color += barrier_glow * energy_flicker * vec3(u_theme_colors.y);
+          }
+
+
+          float particle_sigma_base = u_particle_width * 0.2 + 0.05;
+          float particle_sigma = particle_sigma_base / u_lorentz_gamma;
+          particle_sigma = max(particle_sigma, 0.01);
+
+          float particle_pos = u_particle_x;
+          if (u_parity_flipped) {
+              particle_pos = -particle_pos;
+          }
+
+          float wave_intensity = gaussian(x_coord, particle_pos, particle_sigma);
+
+          float momentum_hue_shift = u_particle_p * 0.05;
+          float base_hue = (u_theme_colors.y > 0.5) ? 0.0 : 0.6;
+          vec3 base_particle_color = hsv2rgb(vec3(mod(base_hue + momentum_hue_shift, 1.0), 0.8, 1.0));
+          base_particle_color = mix(vec3(u_theme_colors.y), base_particle_color, clamp(abs(u_particle_p * 0.5), 0.0, 1.0));
+
+          float fuzz_scale = 80.0 / particle_sigma;
+          float fuzz_time_scale = 1.0 + abs(u_particle_p) * 2.0;
+          float fuzziness = noise(vec2(x_coord * fuzz_scale, u_time * fuzz_time_scale * 0.1)) * 0.6 + 0.7;
+          wave_intensity *= fuzziness;
+
+          vec3 wave_color_primary = base_particle_color * u_theme_colors.y * 1.5;
+          vec3 wave_color_secondary = vec3(u_theme_colors.z);
+
+          float glow_intensity_primary = pow(wave_intensity, 0.5) * 1.6;
+          color = mix(color, wave_color_primary, clamp(glow_intensity_primary, 0.0, 1.0));
+
+          float glow_intensity_secondary = pow(wave_intensity, 0.8) * 1.1;
+          color = mix(color, wave_color_secondary, clamp(glow_intensity_secondary, 0.0, 1.0));
+
+          float core_intensity = pow(wave_intensity, 1.5) * 2.0;
+          color = mix(color, vec3(1.0), clamp(core_intensity * u_theme_colors.y, 0.0, 0.8));
+
+
+          float flash_time_elapsed = u_time - u_flash_time;
+          if (u_flash_intensity > 0.0 && flash_time_elapsed < 0.20) {
+              float flash_falloff = pow(1.0 - smoothstep(0.0, 0.20, flash_time_elapsed), 1.5);
+              float flash_value = u_flash_intensity * flash_falloff;
+              float radial_dist = length(world_st_raw.xy);
+              flash_value *= (1.0 - smoothstep(0.0, 0.6, radial_dist));
+              color += vec3(flash_value) * base_particle_color * 1.2;
+          }
+
+          float grain_intensity = noise(gl_FragCoord.xy * 0.1 + u_time * 2.0) * 0.04;
+          color += vec3(grain_intensity);
+
+          gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+      }
+    </script>
+
+        <script type="module" src="./sim.js"></script>
+
+    <!-- First-run tutorial overlay -->
+    <div id="zqs-tutorial" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;padding:20px;overflow:auto;">
+      <div style="max-width:600px;margin:40px auto;background:var(--bg-medium);border:1px solid var(--border);border-radius:8px;padding:30px;">
+        <h2 style="color:var(--accent-primary);margin:0 0 20px 0;font-size:1.5rem;">Welcome to ZQS - Quantum Wave Simulator</h2>
+        <div style="color:var(--text-secondary);line-height:1.6;">
+          <p style="margin-bottom:16px;"><strong style="color:var(--accent-secondary);">Quick Start Guide:</strong></p>
+          <ol style="padding-left:20px;margin-bottom:20px;">
+            <li style="margin-bottom:12px;"><strong>Wave Packet Position</strong> - Use the center slider to move the initial wave packet along the x-axis</li>
+            <li style="margin-bottom:12px;"><strong>Velocity</strong> - Adjust the momentum/velocity to see how the wave propagates (positive = right, negative = left)</li>
+            <li style="margin-bottom:12px;"><strong>Add a Barrier</strong> - Click "Toggle Barrier" to add a potential barrier and observe quantum tunneling</li>
+            <li style="margin-bottom:12px;"><strong>Start Evolution</strong> - Click "Evolve Time" to watch the wave packet evolve according to quantum mechanics</li>
+            <li style="margin-bottom:12px;"><strong>Dirac Mode</strong> - Switch to relativistic quantum mechanics for high-energy behavior</li>
+          </ol>
+          <p style="margin-bottom:16px;color:var(--text-secondary);font-size:0.9em;"><strong>Tip:</strong> Share your simulation by copying the URL - it encodes all parameters!</p>
+        </div>
+        <button id="zqs-tutorial-close" style="background:var(--accent-primary);color:#fff;border:none;padding:12px 24px;border-radius:4px;cursor:pointer;font-size:1rem;margin-top:10px;">Got it, let's explore!</button>
+        <label style="display:block;margin-top:15px;color:var(--text-secondary);font-size:0.85em;cursor:pointer;">
+          <input type="checkbox" id="zqs-tutorial-dismiss" style="margin-right:8px;">Don't show this again
+        </label>
+      </div>
+    </div>
+    <script>
+      (function() {
+        const TUTORIAL_KEY = 'zqs_tutorial_seen';
+        const tutorial = document.getElementById('zqs-tutorial');
+        const closeBtn = document.getElementById('zqs-tutorial-close');
+        const dismissCheck = document.getElementById('zqs-tutorial-dismiss');
+        const helpBtn = document.getElementById('zqs-help-btn');
+
+        // Show tutorial if not dismissed
+        if (!localStorage.getItem(TUTORIAL_KEY)) {
+          tutorial.style.display = 'block';
+        }
+
+        closeBtn.addEventListener('click', () => {
+          tutorial.style.display = 'none';
+          if (dismissCheck.checked) {
+            localStorage.setItem(TUTORIAL_KEY, '1');
+          }
+        });
+
+        // Help button shows tutorial
+        helpBtn.addEventListener('click', () => {
+          tutorial.style.display = 'block';
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && tutorial.style.display === 'block') {
+            tutorial.style.display = 'none';
+          }
+        });
+      })();
+    </script>
+
   </body>
 </html>

@@ -19,26 +19,34 @@
       width: 100vw;
       height: 100vh;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: row;
     }
 
-    canvas { z-index: 1; }
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
 
     .ui-layer {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
+      width: 400px;
+      flex-shrink: 0;
       z-index: 10;
-      background: rgba(10, 14, 39, 0.8);
+      background: rgba(10, 14, 39, 0.9);
       backdrop-filter: blur(12px);
       padding: 25px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-      width: 650px;
-      max-width: 90vw;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .header {
@@ -71,17 +79,45 @@
       gap: 20px 30px;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
+      .container {
+        flex-direction: column;
+      }
+
       .controls-grid {
         grid-template-columns: 1fr;
         gap: 15px;
       }
 
       .ui-layer {
-        width: 95vw;
-        bottom: 10px;
-        max-height: 80vh;
-        overflow-y: auto;
+        width: 100%;
+        max-height: 70vh;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .ui-layer {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 0.9rem;
+      }
+
+      .subtitle {
+        font-size: 0.6rem;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        width: 18px;
+        height: 18px;
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
       }
     }
 
@@ -125,19 +161,37 @@
     button {
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.2);
-      color: #00ffff;
+      color: #8892b0;
       padding: 8px 16px;
       font-family: inherit;
       font-size: 0.7rem;
       cursor: pointer;
       border-radius: 4px;
-      transition: 0.2s;
+      transition: all 0.2s;
       text-transform: uppercase;
+      position: relative;
     }
     button:hover {
+      background: rgba(0,255,255,0.1);
+      border-color: rgba(0,255,255,0.5);
+      color: #00ffff;
+    }
+    button.active {
       background: rgba(0,255,255,0.15);
       border-color: #00ffff;
-      box-shadow: 0 0 15px rgba(0,255,255,0.2);
+      color: #00ffff;
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), inset 0 0 10px rgba(0,255,255,0.1);
+    }
+    button.active::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      right: -1px;
+      bottom: -1px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(0,255,255,0));
+      pointer-events: none;
     }
 
     .personality-info {
@@ -160,14 +214,16 @@
 <body>
 
   <div class="container">
-    <canvas id="canvas"></canvas>
-    <div id="loading-overlay" style="position: absolute; inset: 0; background: #050714; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; z-index: 100;">
-      <div style="font-size: 1.5rem; color: #00ffff;">Loading Personality Shapes...</div>
-      <div style="width: 50px; height: 50px; border: 3px solid rgba(0,255,255,0.2); border-top-color: #00ffff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <div id="canvas-container">
+      <canvas id="canvas"></canvas>
+      <div id="loading-overlay" style="position: absolute; inset: 0; background: #050714; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; z-index: 100;">
+        <div style="font-size: 1.5rem; color: #00ffff;">Loading Personality Shapes...</div>
+        <div style="width: 50px; height: 50px; border: 3px solid rgba(0,255,255,0.2); border-top-color: #00ffff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      </div>
+      <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+      </style>
     </div>
-    <style>
-      @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
 
     <div class="ui-layer">
       <div class="header">
@@ -206,14 +262,14 @@
         </div>
       </div>
 
-      <div class="presets">
-        <button onclick="setPreset('grit')">Grit</button>
-        <button onclick="setPreset('scanner')">Scanner</button>
-        <button onclick="setPreset('flow')">Flow</button>
-        <button onclick="setPreset('burnout')">Burnout</button>
-        <button onclick="setPreset('hyperfocus')">Hyperfocus</button>
-        <button onclick="setPreset('chaos')">Chaos</button>
-        <button onclick="resetToDefaults()" style="background: rgba(255,255,255,0.08); border-color: #666;">Reset</button>
+      <div class="presets" id="presets-container">
+        <button data-preset="custom" id="preset-custom" class="active">Custom</button>
+        <button data-preset="grit" id="preset-grit">Grit</button>
+        <button data-preset="scanner" id="preset-scanner">Scanner</button>
+        <button data-preset="flow" id="preset-flow">Flow</button>
+        <button data-preset="burnout" id="preset-burnout">Burnout</button>
+        <button data-preset="hyperfocus" id="preset-hyperfocus">Hyperfocus</button>
+        <button data-preset="chaos" id="preset-chaos">Chaos</button>
       </div>
 
       <div class="personality-info">
@@ -271,6 +327,8 @@
     window.addEventListener('resize', resize);
     resize();
 
+    let currentPreset = 'custom';
+
     const inputs = ['frequency', 'amplitude', 'sharpness', 'detail', 'speed', 'tension'];
     inputs.forEach(key => {
       const input = document.getElementById(key);
@@ -282,8 +340,48 @@
       input.addEventListener('input', (e) => {
         config[key] = parseFloat(e.target.value);
         display.innerText = config[key];
+        checkIfCustom();
       });
     });
+
+    function setActivePreset(presetName) {
+      // Remove active class from all buttons
+      document.querySelectorAll('.presets button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      // Add active class to the selected preset
+      const btn = document.getElementById(`preset-${presetName}`);
+      if (btn) {
+        btn.classList.add('active');
+      }
+      currentPreset = presetName;
+    }
+
+    function checkIfCustom() {
+      // Check if current config matches any preset
+      const presetNames = ['grit', 'scanner', 'flow', 'burnout', 'hyperfocus', 'chaos'];
+      let matchesPreset = false;
+
+      for (const name of presetNames) {
+        const preset = personalities[name];
+        if (preset) {
+          const matches = inputs.every(k => {
+            return Math.abs(config[k] - preset.params[k]) < 0.01;
+          });
+          if (matches) {
+            matchesPreset = true;
+            setActivePreset(name);
+            document.getElementById('personality-desc').innerText = preset.desc;
+            return;
+          }
+        }
+      }
+
+      if (!matchesPreset) {
+        setActivePreset('custom');
+        document.getElementById('personality-desc').innerText = 'Custom configuration - adjust sliders to create your own personality shape';
+      }
+    }
 
     function getRadiusAtAngle(angle, t) {
       const noiseScale = 1.5;
@@ -313,8 +411,13 @@
       ctx.fillStyle = '#050714';
       ctx.fillRect(0, 0, width, height);
 
-      const cx = width / 2;
-      const cy = height / 2 - 100;
+      // Get canvas container dimensions for responsive centering
+      const container = document.getElementById('canvas-container');
+      const containerRect = container.getBoundingClientRect();
+      const cx = containerRect.width / 2;
+      // Center vertically with responsive offset (smaller offset on short viewports)
+      const verticalOffset = Math.min(100, containerRect.height * 0.1);
+      const cy = containerRect.height / 2 - verticalOffset;
 
       // Glow layer
       ctx.beginPath();
@@ -332,9 +435,9 @@
       ctx.stroke();
       ctx.globalAlpha = 1.0;
 
-      // Core layer
+      // Core layer - use 1 degree step for better performance (was 0.5)
       ctx.beginPath();
-      for (let i = 0; i <= 360; i += 0.5) {
+      for (let i = 0; i <= 360; i += 1) {
         const rad = (i * Math.PI) / 180;
         const r = getRadiusAtAngle(rad, time);
         const x = cx + Math.cos(rad) * r;
@@ -390,15 +493,6 @@
       tension: 0.2
     };
 
-    function resetToDefaults() {
-      Object.assign(config, defaultConfig);
-      inputs.forEach(k => {
-        document.getElementById(k).value = config[k];
-        document.getElementById(`${k}-val`).innerText = config[k];
-      });
-      document.getElementById('personality-desc').innerText = 'Reset to default parameters';
-    }
-
     function setPreset(name) {
       const preset = personalities[name];
       if(preset) {
@@ -408,6 +502,7 @@
           document.getElementById(`${k}-val`).innerText = config[k];
         });
         document.getElementById('personality-desc').innerText = preset.desc;
+        setActivePreset(name);
       }
     }
 
@@ -427,6 +522,14 @@
       }
     });
 
+    // Event delegation for preset buttons (replaces inline onclick handlers)
+    document.getElementById('presets-container').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-preset]');
+      if (btn && btn.dataset.preset !== 'custom') {
+        setPreset(btn.dataset.preset);
+      }
+    });
+
     // Hide loading overlay after initialization
     setTimeout(() => {
       const loadingOverlay = document.getElementById('loading-overlay');
@@ -436,6 +539,9 @@
         setTimeout(() => loadingOverlay.remove(), 500);
       }
     }, 100);
+
+    // Check initial state to see if it matches a preset
+    checkIfCustom();
 
     draw();
   </script>

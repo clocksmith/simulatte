@@ -18,25 +18,65 @@ const CycleLogic = (cfg, log, Utils, storage, State, Api, Mcp, Run) => {
     return tpl.replace('[[USER_REQUEST]]', req);
   };
 
+  // Validate tool name - must be safe for use as file name and identifier
+  const validate_tool_name = (name) => {
+    if (!name || typeof name !== 'string') return false;
+    // Must start with letter, contain only alphanumeric and underscores, 1-64 chars
+    const validNamePattern = /^[a-zA-Z][a-zA-Z0-9_]{0,63}$/;
+    return validNamePattern.test(name);
+  };
+
+  // Validate MCP schema structure
+  const validate_mcp_schema = (mcp) => {
+    if (!mcp || typeof mcp !== 'object') return 'MCP must be an object';
+    if (!mcp.name || typeof mcp.name !== 'string') return 'MCP missing name';
+    if (!validate_tool_name(mcp.name)) return `Invalid tool name: ${mcp.name}. Must be alphanumeric with underscores, starting with a letter, max 64 chars`;
+    if (mcp.description && typeof mcp.description !== 'string') return 'MCP description must be a string';
+    if (mcp.inputSchema) {
+      if (typeof mcp.inputSchema !== 'object') return 'MCP inputSchema must be an object';
+      if (mcp.inputSchema.type && mcp.inputSchema.type !== 'object') return 'MCP inputSchema.type must be "object"';
+    }
+    return null;
+  };
+
   const process_api_response = (api_result, req) => {
     if (api_result.type !== 'text' || !api_result.data) {
       throw new Error(`API bad response. Type: ${api_result.type}, Finish: ${api_result.finishReason}`);
     }
     const sanitized = Api.sanitize_json(api_result.data);
     if (!sanitized) {
-      log.error('Failed to sanitize JSON from LLM', { raw: api_result.data });
+      log.error('Failed to sanitize JSON from LLM', { raw: api_result.data.substring(0, 500) });
       throw new Error('LLM response no valid JSON.');
     }
-    const parsed = JSON.parse(sanitized);
-    if (!parsed.mcp || typeof parsed.mcp !== 'object' || !parsed.mcp.name) {
-      throw new Error('LLM response missing valid "mcp" object.');
+
+    let parsed;
+    try {
+      parsed = JSON.parse(sanitized);
+    } catch (e) {
+      log.error('JSON parse error', { error: e.message, raw: sanitized.substring(0, 500) });
+      throw new Error(`LLM response JSON parse error: ${e.message}`);
     }
+
+    // Validate MCP schema
+    const mcpError = validate_mcp_schema(parsed.mcp);
+    if (mcpError) {
+      throw new Error(`Invalid MCP: ${mcpError}`);
+    }
+
     if (!parsed.impl || typeof parsed.impl !== 'string') {
       throw new Error('LLM response missing valid "impl" string.');
     }
+    if (parsed.impl.length < 10) {
+      throw new Error('LLM response "impl" is too short (minimum 10 characters).');
+    }
+
     if (!parsed.wc || typeof parsed.wc !== 'string') {
       throw new Error('LLM response missing valid "wc" string.');
     }
+    if (parsed.wc.length < 10) {
+      throw new Error('LLM response "wc" is too short (minimum 10 characters).');
+    }
+
     const temp_id = Utils.uuid();
     return { temp_id, req, mcp: parsed.mcp, impl: parsed.impl, wc: parsed.wc };
   };

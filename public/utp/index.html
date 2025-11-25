@@ -134,6 +134,7 @@
       display: block;
       width: 100%;
       height: 450px;
+      max-height: 50vh; /* Prevent excessive height on narrow screens */
       border: 1px solid var(--border);
       border-radius: 6px;
       background: #050505;
@@ -294,7 +295,8 @@
       }
 
       canvas {
-        height: 350px;
+        height: 300px;
+        max-height: 40vh;
       }
 
       .mode-btn {
@@ -321,10 +323,10 @@
 
 
     <div class="mode-selector panel">
-      <h3>⎈ Simulation Mode</h3>
-      <div class="mode-buttons toggle-group">
-        <button class="mode-btn toggle-button" data-sim="gameoflife">Game of Life</button>
-        <button class="mode-btn toggle-button active" data-sim="bandwidth">Bandwidth Traffic &amp; Heat</button>
+      <h3>⛭ Simulation Mode</h3>
+      <div class="mode-buttons toggle-group" role="radiogroup" aria-label="Simulation mode selection">
+        <button class="mode-btn toggle-button" data-sim="gameoflife" role="radio" aria-checked="false">Game of Life</button>
+        <button class="mode-btn toggle-button active" data-sim="bandwidth" role="radio" aria-checked="true">Bandwidth Traffic &amp; Heat</button>
       </div>
     </div>
 
@@ -463,6 +465,15 @@
   <script>
     (() => {
       'use strict';
+
+      // Debounce utility for resize handler
+      const debounce = (fn, delay) => {
+        let timeoutId;
+        return (...args) => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => fn(...args), delay);
+        };
+      };
 
       const TWO_PI = Math.PI * 2;
       const SIM = { LIFE: 'gameoflife', BANDWIDTH: 'bandwidth' };
@@ -1352,8 +1363,14 @@
 
       function setActiveButton(buttons, attribute, value) {
         buttons.forEach(btn => {
-          if (btn.getAttribute(attribute) === value) btn.classList.add('active');
-          else btn.classList.remove('active');
+          const isActive = btn.getAttribute(attribute) === value;
+          if (isActive) {
+            btn.classList.add('active');
+            btn.setAttribute('aria-checked', 'true');
+          } else {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-checked', 'false');
+          }
         });
       }
 
@@ -1519,9 +1536,9 @@
         requestAnimationFrame(animate);
       }
 
-      window.addEventListener('resize', () => {
-        resizeCanvas();
-      });
+      // Debounced resize handler (150ms delay prevents excessive redraws)
+      const debouncedResize = debounce(resizeCanvas, 150);
+      window.addEventListener('resize', debouncedResize);
 
       init();
     })();

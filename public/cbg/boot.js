@@ -32,36 +32,41 @@ let canvas = null;
 let loadingEl = null;
 let statusEl = null;
 
+// Debug logging - set to false for production
+const DEBUG = false;
+const log = (...args) => DEBUG && console.log('[CBG]', ...args);
+
 window.addEventListener('DOMContentLoaded', initialize);
 
 async function initialize() {
-  console.log('[CBG] Initializing City Building Game...');
+  log('Initializing City Building Game...');
 
   try {
     // Step 1: Cache DOM
-    console.log('[CBG] Step 1: Caching DOM...');
+    log('Step 1: Caching DOM...');
     cacheDom();
 
     // Step 2: Check WebGPU support
-    console.log('[CBG] Step 2: Checking WebGPU support...');
+    log('Step 2: Checking WebGPU support...');
     if (!navigator.gpu) {
-      throw new Error('WebGPU not supported in this browser. Please use Chrome/Edge 113+');
+      showWebGPUError();
+      return;
     }
 
     // Step 3: Initialize renderer
-    console.log('[CBG] Step 3: Initializing WebGPU renderer...');
+    log('Step 3: Initializing WebGPU renderer...');
     updateLoading('Initializing WebGPU...');
     renderer = new Renderer({ canvas });
     await renderer.initialize();
 
     // Step 4: Initialize input manager
-    console.log('[CBG] Step 4: Initializing input manager...');
+    log('Step 4: Initializing input manager...');
     updateLoading('Setting up input...');
     inputManager = new InputManager({ canvas, store });
     inputManager.initialize();
 
     // Step 5: Initialize managers
-    console.log('[CBG] Step 5: Initializing game systems...');
+    log('Step 5: Initializing game systems...');
     updateLoading('Loading game systems...');
 
     zoneManager = new ZoneManager({ store });
@@ -73,7 +78,7 @@ async function initialize() {
     entityBehaviorManager = new EntityBehaviorManager({ store });
 
     // Step 6: Initialize game engine
-    console.log('[CBG] Step 6: Initializing game engine...');
+    log('Step 6: Initializing game engine...');
     updateLoading('Starting game engine...');
     gameEngine = new GameEngine({
       store,
@@ -90,26 +95,26 @@ async function initialize() {
     await gameEngine.initialize();
 
     // Step 7: Wire UI
-    console.log('[CBG] Step 7: Wiring UI...');
+    log('Step 7: Wiring UI...');
     updateLoading('Setting up interface...');
     wireUI();
 
     // Step 8: Subscribe to store
-    console.log('[CBG] Step 8: Subscribing to state changes...');
+    log('Step 8: Subscribing to state changes...');
     store.subscribe(onStateChange);
 
     // Step 9: Load or create initial state
-    console.log('[CBG] Step 9: Loading game state...');
+    log('Step 9: Loading game state...');
     updateLoading('Loading McCarren Park...');
     await loadInitialState();
 
     // Step 10: Hide loading, start game
-    console.log('[CBG] Step 10: Starting game loop...');
+    log('Step 10: Starting game loop...');
     hideLoading();
     gameEngine.start();
 
     announce('McCarren Park Simulator ready. Welcome to Williamsburg!');
-    console.log('[CBG] Initialization complete!');
+    log('Initialization complete!');
   } catch (error) {
     console.error('[CBG] Initialization failed:', error);
     showFatalError(error.message || 'Unknown initialization error');
@@ -134,7 +139,7 @@ function cacheDom() {
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
 
-    console.log('[CBG] Canvas resized:', canvas.width, 'x', canvas.height, 'DPR:', dpr);
+    log('Canvas resized:', canvas.width, 'x', canvas.height, 'DPR:', dpr);
 
     if (renderer) {
       renderer.resize(canvas.width, canvas.height);
@@ -213,7 +218,7 @@ async function loadInitialState() {
 
     // Initialize tiles array if empty
     if (!mapData.tiles || mapData.tiles.length === 0) {
-      console.log('[CBG] Map tiles empty, generating tiles...');
+      log('Map tiles empty, generating tiles...');
       mapData.tiles = [];
       for (let y = 0; y < mapData.height; y++) {
         for (let x = 0; x < mapData.width; x++) {
@@ -425,7 +430,7 @@ function announce(message) {
   if (statusEl) {
     statusEl.textContent = message;
   }
-  console.log('[CBG]', message);
+  log(message);
 }
 
 function showFatalError(message) {
@@ -467,6 +472,56 @@ function showFatalError(message) {
       <button onclick="location.reload()" class="cbg-button">Reload</button>
     `;
     viewport.appendChild(errorDiv);
+  }
+}
+
+function showWebGPUError() {
+  console.error('[CBG] WebGPU not supported');
+
+  if (loadingEl) {
+    const textEl = loadingEl.querySelector('.cbg-loading__text');
+    if (textEl) {
+      textEl.textContent = 'WebGPU Not Supported';
+      textEl.style.color = 'var(--cbg-warning)';
+    }
+    const spinner = loadingEl.querySelector('.cbg-loading__spinner');
+    if (spinner) spinner.style.display = 'none';
+  }
+
+  // Show helpful error message in viewport
+  const viewport = document.getElementById('cbg-viewport');
+  if (viewport) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 32px;
+      background: var(--cbg-surface);
+      border: 2px solid var(--cbg-warning);
+      border-radius: 8px;
+      max-width: 500px;
+      text-align: center;
+      z-index: 200;
+    `;
+    errorDiv.innerHTML = `
+      <h2 style="color: var(--cbg-warning); margin: 0 0 16px 0;">WebGPU Not Available</h2>
+      <p style="margin: 0 0 16px 0;">This demo requires WebGPU, which is not supported in your browser.</p>
+      <p style="margin: 0 0 16px 0; font-size: 0.9em; opacity: 0.8;">WebGPU is available in:</p>
+      <ul style="text-align: left; margin: 0 0 24px 40px; font-size: 0.9em;">
+        <li>Chrome 113+ / Edge 113+</li>
+        <li>Firefox Nightly (with flag)</li>
+        <li>Safari 17+ (macOS 14+)</li>
+      </ul>
+      <a href="/" class="cbg-button" style="display: inline-block; text-decoration: none;">← Back to Gallery</a>
+    `;
+    viewport.appendChild(errorDiv);
+  }
+
+  if (statusEl) {
+    statusEl.textContent = 'WebGPU not supported in this browser';
+    statusEl.style.color = 'var(--cbg-warning)';
   }
 }
 

@@ -152,6 +152,19 @@ html {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.cts-mobile-nav__item[aria-selected="true"],
+.cts-mobile-nav__item.active {
+  background: var(--cts-accent);
+  border-color: var(--cts-accent);
+  color: #000;
+}
+
+.cts-mobile-nav__item:hover:not([aria-selected="true"]) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .cts-header__brand {

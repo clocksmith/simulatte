@@ -25,10 +25,10 @@
         <button type="button" class="cts-button" data-command="open-templates">Templates</button>
         <button type="button" class="cts-button" data-command="open-compare">Compare</button>
       </div>
-      <nav class="cts-mobile-nav" aria-label="Primary panels">
-        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-timeline">Timeline</button>
-        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-configurator">Stage</button>
-        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-results">Results</button>
+      <nav class="cts-mobile-nav" aria-label="Primary panels" role="tablist">
+        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-timeline" role="tab" aria-selected="true" aria-controls="panel-timeline">Timeline</button>
+        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-configurator" role="tab" aria-selected="false" aria-controls="panel-configurator">Stage</button>
+        <button type="button" class="cts-mobile-nav__item" data-scroll-target="#panel-results" role="tab" aria-selected="false" aria-controls="panel-results">Results</button>
       </nav>
     </header>
 
