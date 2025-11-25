@@ -15,7 +15,16 @@
       cursor: none;
       position: relative;
       overflow-x: hidden;
-      opacity: 0;
+    }
+
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* Restore native cursor for touch devices */
@@ -74,11 +83,7 @@
     body.fade-out {
       opacity: 0;
       transition: opacity 0.6s ease-out;
-      /* Core CSS handles bg/font colors */
     }
-
-    body.loaded { opacity: 1; }
-    body.fade-out { opacity: 0; }
 
     .container {
       max-width: 1200px;
@@ -451,17 +456,44 @@
     const cursor = document.getElementById('cursor');
     const links = document.querySelectorAll('a');
 
-    let width, height;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
     let mouse = { x: -100, y: -100 };
     let trail = [];
     let ripples = [];
     let time = 0;
+
+    // Bouncy web points with spring physics - initialize with actual dimensions
+    const webPoints = [
+      { x: 0, y: 0, vx: 0, vy: 0 },           // top-left
+      { x: width, y: 0, vx: 0, vy: 0 },       // top-right
+      { x: width, y: height, vx: 0, vy: 0 },  // bottom-right
+      { x: 0, y: height, vx: 0, vy: 0 }       // bottom-left
+    ];
+
+    const webPointsOriginal = [
+      { x: 0, y: 0 },
+      { x: width, y: 0 },
+      { x: width, y: height },
+      { x: 0, y: height }
+    ];
 
     const resize = () => {
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width;
       canvas.height = height;
+
+      // Update web points for new dimensions
+      webPointsOriginal[0] = { x: 0, y: 0 };
+      webPointsOriginal[1] = { x: width, y: 0 };
+      webPointsOriginal[2] = { x: width, y: height };
+      webPointsOriginal[3] = { x: 0, y: height };
+
+      webPoints[0].x = 0; webPoints[0].y = 0;
+      webPoints[1].x = width; webPoints[1].y = 0;
+      webPoints[2].x = width; webPoints[2].y = height;
+      webPoints[3].x = 0; webPoints[3].y = height;
     };
     window.addEventListener('resize', resize);
     resize();
@@ -488,16 +520,6 @@
     time = 0;
 
     const maxTrailLength = 15;
-
-    // Bouncy web points with spring physics
-    const webPoints = [
-      { x: 0, y: 0, vx: 0, vy: 0 },           // top-left
-      { x: width, y: 0, vx: 0, vy: 0 },       // top-right
-      { x: width, y: height, vx: 0, vy: 0 },  // bottom-right
-      { x: 0, y: height, vx: 0, vy: 0 }       // bottom-left
-    ];
-
-    const webPointsOriginal = webPoints.map(p => ({ x: p.x, y: p.y }));
 
     // Click ripple effects (anywhere on page)
     const activeRipples = [];
@@ -802,18 +824,11 @@
     }
     animate();
 
-    // Fade in on page load
-    setTimeout(() => {
-      document.body.style.transition = 'opacity 0.5s ease';
-      document.body.style.opacity = '1';
-    }, 10);
-
-    // Also fade in on back button / page show
+    // Handle back button / page show
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) {
         // Page was restored from cache (back button)
         document.body.classList.remove('fade-out');
-        document.body.style.opacity = '1';
 
         // Reset cursor state to prevent lag
         currentHoveredExhibit = null;
