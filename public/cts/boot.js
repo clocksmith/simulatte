@@ -103,7 +103,7 @@ function showFatalError(message) {
       <div style="grid-column: 1 / -1; padding: 48px; text-align: center; border: 2px solid var(--accent-red, #ff4444); border-radius: 12px; background: rgba(255, 68, 68, 0.1);">
         <h2 style="color: var(--accent-red, #ff4444); margin: 0 0 16px 0;">⚠️ Error</h2>
         <p style="margin: 0; font-size: 1rem;">${message}</p>
-        <button onclick="location.reload()" style="margin-top: 24px; padding: 12px 24px; background: var(--accent-red, #ff4444); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem;">Reload Page</button>
+        <button onclick="location.reload()" style="margin-top: 24px; padding: 12px 24px; background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.5); border-radius: 8px; cursor: pointer; font-size: 0.95rem;">Reload Page</button>
       </div>
     `;
   }

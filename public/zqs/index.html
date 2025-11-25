@@ -198,9 +198,8 @@
   <body>
     <div id="app-container">
       <header>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div style="margin-bottom: 8px;">
           <a href="/" style="color: var(--accent-primary); text-decoration: none; font-size: 0.85rem;">← Back to Gallery</a>
-          <button id="zqs-help-btn" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; color: var(--text-secondary); font-size: 0.85rem; cursor: pointer;" title="Show tutorial">? Help</button>
         </div>
         <h1>ZQS - Zero Quantum State</h1>
         <span id="url-hash-display" style="color: var(--text-secondary);">URL: #</span>
@@ -530,61 +529,6 @@
     </script>
 
         <script type="module" src="./sim.js"></script>
-
-    <!-- First-run tutorial overlay -->
-    <div id="zqs-tutorial" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;padding:20px;overflow:auto;">
-      <div style="max-width:600px;margin:40px auto;background:var(--bg-medium);border:1px solid var(--border);border-radius:8px;padding:30px;">
-        <h2 style="color:var(--accent-primary);margin:0 0 20px 0;font-size:1.5rem;">Welcome to ZQS - Quantum Wave Simulator</h2>
-        <div style="color:var(--text-secondary);line-height:1.6;">
-          <p style="margin-bottom:16px;"><strong style="color:var(--accent-secondary);">Quick Start Guide:</strong></p>
-          <ol style="padding-left:20px;margin-bottom:20px;">
-            <li style="margin-bottom:12px;"><strong>Wave Packet Position</strong> - Use the center slider to move the initial wave packet along the x-axis</li>
-            <li style="margin-bottom:12px;"><strong>Velocity</strong> - Adjust the momentum/velocity to see how the wave propagates (positive = right, negative = left)</li>
-            <li style="margin-bottom:12px;"><strong>Add a Barrier</strong> - Click "Toggle Barrier" to add a potential barrier and observe quantum tunneling</li>
-            <li style="margin-bottom:12px;"><strong>Start Evolution</strong> - Click "Evolve Time" to watch the wave packet evolve according to quantum mechanics</li>
-            <li style="margin-bottom:12px;"><strong>Dirac Mode</strong> - Switch to relativistic quantum mechanics for high-energy behavior</li>
-          </ol>
-          <p style="margin-bottom:16px;color:var(--text-secondary);font-size:0.9em;"><strong>Tip:</strong> Share your simulation by copying the URL - it encodes all parameters!</p>
-        </div>
-        <button id="zqs-tutorial-close" style="background:var(--accent-primary);color:#fff;border:none;padding:12px 24px;border-radius:4px;cursor:pointer;font-size:1rem;margin-top:10px;">Got it, let's explore!</button>
-        <label style="display:block;margin-top:15px;color:var(--text-secondary);font-size:0.85em;cursor:pointer;">
-          <input type="checkbox" id="zqs-tutorial-dismiss" style="margin-right:8px;">Don't show this again
-        </label>
-      </div>
-    </div>
-    <script>
-      (function() {
-        const TUTORIAL_KEY = 'zqs_tutorial_seen';
-        const tutorial = document.getElementById('zqs-tutorial');
-        const closeBtn = document.getElementById('zqs-tutorial-close');
-        const dismissCheck = document.getElementById('zqs-tutorial-dismiss');
-        const helpBtn = document.getElementById('zqs-help-btn');
-
-        // Show tutorial if not dismissed
-        if (!localStorage.getItem(TUTORIAL_KEY)) {
-          tutorial.style.display = 'block';
-        }
-
-        closeBtn.addEventListener('click', () => {
-          tutorial.style.display = 'none';
-          if (dismissCheck.checked) {
-            localStorage.setItem(TUTORIAL_KEY, '1');
-          }
-        });
-
-        // Help button shows tutorial
-        helpBtn.addEventListener('click', () => {
-          tutorial.style.display = 'block';
-        });
-
-        // Close on escape key
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && tutorial.style.display === 'block') {
-            tutorial.style.display = 'none';
-          }
-        });
-      })();
-    </script>
 
   </body>
 </html>
