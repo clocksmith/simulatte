@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Simulatte - Interactive Particle System</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="An interactive particle system visualization with network and space modes" />
     <link rel="stylesheet" href="simulatte-core.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -360,12 +360,13 @@
         opacity: 1;
       }
 
-      /* Reduced motion support */
+      /* Reduced motion support - properly disable animations */
       @media (prefers-reduced-motion: reduce) {
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
         }
       }
 
@@ -479,6 +480,7 @@
     </main>
 
     <div id="controls" class="controlsPanel panel closed">
+      <button id="controlsPanelClose" class="panel-close-btn" aria-label="Close controls panel" style="display:none;position:absolute;top:10px;right:10px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);width:32px;height:32px;border-radius:4px;cursor:pointer;font-size:1.2rem;line-height:1;">×</button>
       <div class="selectorGroup renderSelector">
         <input
           type="radio"
@@ -505,86 +507,86 @@
       </div>
 
       <div class="controlRow" data-mode="network">
-        <label>
+        <label for="num-particles-network">
           <span>Particles:</span>
-          <input type="range" id="num-particles-network" />
+          <input type="range" id="num-particles-network" aria-label="Network particle count" aria-describedby="num-particles-network-value" />
           <span class="valueDisplay value-display" id="num-particles-network-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
-        <label>
+        <label for="num-particles-space">
           <span>Particles:</span>
-          <input type="range" id="num-particles-space" />
+          <input type="range" id="num-particles-space" aria-label="Space particle count" aria-describedby="num-particles-space-value" />
           <span class="valueDisplay value-display" id="num-particles-space-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
-        <label>
+        <label for="max-line-dist">
           <span>Connect:</span>
-          <input type="range" id="max-line-dist" />
+          <input type="range" id="max-line-dist" aria-label="Connection distance" aria-describedby="max-line-dist-value" />
           <span class="valueDisplay value-display" id="max-line-dist-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
-        <label>
+        <label for="conn-density">
           <span>Density:</span>
-          <input type="range" id="conn-density" />
+          <input type="range" id="conn-density" aria-label="Connection density" aria-describedby="conn-density-value" />
           <span class="valueDisplay value-display" id="conn-density-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
-        <label>
+        <label for="net-speed">
           <span>Speed:</span>
-          <input type="range" id="net-speed" />
+          <input type="range" id="net-speed" aria-label="Network particle speed" aria-describedby="net-speed-value" />
           <span class="valueDisplay value-display" id="net-speed-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
-        <label>
+        <label for="net-twinkle">
           <span>Twinkle:</span>
-          <input type="range" id="net-twinkle" />
+          <input type="range" id="net-twinkle" aria-label="Network twinkle effect" aria-describedby="net-twinkle-value" />
           <span class="valueDisplay value-display" id="net-twinkle-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="network">
-        <label>
+        <label for="line-life">
           <span>Line Life (s):</span>
-          <input type="range" id="line-life" />
+          <input type="range" id="line-life" aria-label="Connection line lifetime in seconds" aria-describedby="line-life-value" />
           <span class="valueDisplay value-display" id="line-life-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
-        <label>
+        <label for="space-speed">
           <span>Speed:</span>
-          <input type="range" id="space-speed" />
+          <input type="range" id="space-speed" aria-label="Space particle speed" aria-describedby="space-speed-value" />
           <span class="valueDisplay value-display" id="space-speed-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
-        <label>
+        <label for="spin">
           <span>Spin:</span>
-          <input type="range" id="spin" />
+          <input type="range" id="spin" aria-label="Particle spin effect" aria-describedby="spin-value" />
           <span class="valueDisplay value-display" id="spin-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
-        <label>
+        <label for="stretch">
           <span>Warp:</span>
-          <input type="range" id="stretch" />
+          <input type="range" id="stretch" aria-label="Warp stretch effect" aria-describedby="stretch-value" />
           <span class="valueDisplay value-display" id="stretch-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
-        <label>
+        <label for="emit-radius">
           <span>Radius:</span>
-          <input type="range" id="emit-radius" />
+          <input type="range" id="emit-radius" aria-label="Particle emission radius" aria-describedby="emit-radius-value" />
           <span class="valueDisplay value-display" id="emit-radius-value"></span>
         </label>
       </div>
       <div class="controlRow" data-mode="space">
-        <label>
+        <label for="space-twinkle">
           <span>Twinkle:</span>
-          <input type="range" id="space-twinkle" />
+          <input type="range" id="space-twinkle" aria-label="Space twinkle effect" aria-describedby="space-twinkle-value" />
           <span class="valueDisplay value-display" id="space-twinkle-value"></span>
         </label>
       </div>
@@ -597,11 +599,23 @@
 
     <script>
       'use strict';
-      
+
       // Performance optimizations
       const RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
       const CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame;
       const PERF = window.performance || Date;
+
+      // Debounce utility for resize and input events
+      function debounce(fn, delay) {
+        let timeoutId;
+        return function(...args) {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => fn.apply(this, args), delay);
+        };
+      }
+
+      // WebGL context loss tracking
+      let webglContextLost = false;
       
       const svgNS = "http://www.w3.org/2000/svg";
       const pCont = document.getElementById("particleContainer");
@@ -866,7 +880,8 @@
           }
         });
       }
-      window.addEventListener("resize", onResize);
+      const debouncedResize = debounce(onResize, 100);
+      window.addEventListener("resize", debouncedResize);
       function createPSVG(p) {
         const shape = p.simMode === "network" ? "circle" : "div";
         if (p.el && p.el.matches(shape)) return;
@@ -1673,38 +1688,33 @@
       function destroyCurrentRenderer() {
         const prevMode = renderMode;
         if (prevMode === "svg") {
+          // Clear all SVG elements
           while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
           svgLineElements.clear();
-          pCont.querySelectorAll(".particleDiv").forEach((el) => el.remove());
-          particles.forEach((p) => (p.el = null));
-        } else if (gl) {
-          if (pProg) gl.deleteProgram(pProg);
-          if (lProg) gl.deleteProgram(lProg);
-          if (pPosBuf) gl.deleteBuffer(pPosBuf);
-          if (pColBuf) gl.deleteBuffer(pColBuf);
-          if (pSizeBuf) gl.deleteBuffer(pSizeBuf);
-          if (pDirBuf) gl.deleteBuffer(pDirBuf);
-          if (lPosBuf) gl.deleteBuffer(lPosBuf);
-          if (lColBuf) gl.deleteBuffer(lColBuf);
-          pProg =
-            lProg =
-            pPosBuf =
-            pColBuf =
-            pSizeBuf =
-            pDirBuf =
-            lPosBuf =
-            lColBuf =
-              null;
-          pPosData =
-            pColData =
-            pSizeData =
-            pDirData =
-            lPosData =
-            lColData =
-              null;
+          // Clear all particle divs
+          const particleDivs = pCont.querySelectorAll(".particleDiv");
+          particleDivs.forEach((el) => el.remove());
+          // Clear element references to prevent memory leaks
+          particles.forEach((p) => {
+            p.el = null;
+          });
+        } else if (gl && !webglContextLost) {
+          // Only delete resources if context is valid
+          if (pProg) { gl.deleteProgram(pProg); pProg = null; }
+          if (lProg) { gl.deleteProgram(lProg); lProg = null; }
+          if (pPosBuf) { gl.deleteBuffer(pPosBuf); pPosBuf = null; }
+          if (pColBuf) { gl.deleteBuffer(pColBuf); pColBuf = null; }
+          if (pSizeBuf) { gl.deleteBuffer(pSizeBuf); pSizeBuf = null; }
+          if (pDirBuf) { gl.deleteBuffer(pDirBuf); pDirBuf = null; }
+          if (lPosBuf) { gl.deleteBuffer(lPosBuf); lPosBuf = null; }
+          if (lColBuf) { gl.deleteBuffer(lColBuf); lColBuf = null; }
           gl = null;
-          maxParticles = maxLines = 0;
         }
+        // Clear typed arrays to free memory
+        pPosData = pColData = pSizeData = pDirData = lPosData = lColData = null;
+        maxParticles = maxLines = 0;
+        // Clear network links to prevent stale references
+        networkLinks.clear();
       }
       function setupNewRenderer(stateToRestore) {
         const newMode = targetRenderMode;
@@ -1836,6 +1846,22 @@
         ctrlToggle.addEventListener("click", () =>
           ctrls.classList.toggle("closed")
         );
+
+        // Mobile close button for controls panel
+        const closeBtn = document.getElementById('controlsPanelClose');
+        if (closeBtn) {
+          // Show close button only on mobile when panel is open
+          const updateCloseBtn = () => {
+            closeBtn.style.display = (window.innerWidth <= 768 && !ctrls.classList.contains('closed')) ? 'block' : 'none';
+          };
+          closeBtn.addEventListener('click', () => {
+            ctrls.classList.add('closed');
+            updateCloseBtn();
+          });
+          ctrlToggle.addEventListener('click', updateCloseBtn);
+          window.addEventListener('resize', updateCloseBtn);
+          updateCloseBtn();
+        }
       }
       function compileShader(src, type) {
         if (!gl) return null;
@@ -1885,6 +1911,38 @@
           console.error("WebGL not supported");
           return false;
         }
+
+        // WebGL context loss handler
+        glCanvas.addEventListener("webglcontextlost", (e) => {
+          e.preventDefault();
+          webglContextLost = true;
+          console.warn("WebGL context lost");
+          pauseAnimation();
+          // Clean up GL resources - they're all invalid now
+          pProg = lProg = pPosBuf = pColBuf = pSizeBuf = pDirBuf = lPosBuf = lColBuf = null;
+          pPosData = pColData = pSizeData = pDirData = lPosData = lColData = null;
+          maxParticles = maxLines = 0;
+        });
+
+        // WebGL context restore handler
+        glCanvas.addEventListener("webglcontextrestored", () => {
+          console.log("WebGL context restored");
+          webglContextLost = false;
+          // Reinitialize WebGL
+          if (initWebGL()) {
+            resizeWebGLBufs(particles.length);
+            resumeAnimation();
+          } else {
+            // Fallback to SVG if WebGL restore fails
+            console.error("WebGL restore failed, falling back to SVG");
+            renderMode = "svg";
+            document.getElementById("render-svg").checked = true;
+            svgEl.style.display = "block";
+            glCanvas.style.display = "none";
+            particles.forEach(p => createPSVG(p));
+            resumeAnimation();
+          }
+        });
         const pVS = `attribute vec2 aPos;attribute vec4 aCol;attribute float aSize;attribute vec2 aDir;uniform vec2 uRes;uniform float uStretch;varying vec4 vCol;varying vec2 vDir;varying float vStretch;void main(){gl_Position=vec4(((aPos/uRes)*2.0-1.0)*vec2(1,-1),0,1);gl_PointSize=aSize*${cfg.glPtScale.toFixed(
           1
         )};vCol=aCol;vDir=aDir;vStretch=uStretch;}`;
@@ -1953,7 +2011,7 @@
         }
       }
       function renderWebGL(force = false) {
-        if (!gl || !pPosData) return;
+        if (!gl || !pPosData || webglContextLost) return;
         if (!force && isSwitchingRender) return;
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);

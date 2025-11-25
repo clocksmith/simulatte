@@ -11,6 +11,10 @@ import { focusWithin, formatPercent, formatCurrency, structuredCopy, debounce } 
 
 const store = createStore({ bus: appBus });
 
+// Debug logging - set to false for production
+const DEBUG = false;
+const log = (...args) => DEBUG && console.log('[CTS]', ...args);
+
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
     console.error('[CTS] Uncaught error', event.error || event.message);
@@ -38,42 +42,42 @@ const persistSnapshot = debounce((snapshot) => {
 window.addEventListener('DOMContentLoaded', initialize);
 
 async function initialize() {
-  console.log('[CTS] DOMContentLoaded fired, starting initialization...');
+  log('DOMContentLoaded fired, starting initialization...');
   try {
-    console.log('[CTS] Step 1: Loading database...');
+    log('Step 1: Loading database...');
     await loadDatabase();
 
-    console.log('[CTS] Step 2: Caching DOM...');
+    log('Step 2: Caching DOM...');
     cacheDom();
 
-    console.log('[CTS] Step 3: Wiring theme toggle...');
+    log('Step 3: Wiring theme toggle...');
     wireThemeToggle();
 
-    console.log('[CTS] Step 4: Wiring mobile nav...');
+    log('Step 4: Wiring mobile nav...');
     wireMobileNav();
 
-    console.log('[CTS] Step 5: Creating modal host...');
+    log('Step 5: Creating modal host...');
     modalHost = new ModalHost({ root: document.getElementById('cts-modal-root') });
 
-    console.log('[CTS] Step 6: Mounting modules...');
+    log('Step 6: Mounting modules...');
     mountModules();
 
-    console.log('[CTS] Step 7: Subscribing to store...');
+    log('Step 7: Subscribing to store...');
     store.subscribe(onStateChange);
 
-    console.log('[CTS] Step 8: Loading persisted data...');
+    log('Step 8: Loading persisted data...');
     const persisted = loadSnapshot();
     if (persisted) {
-      console.log('[CTS] Found persisted data, hydrating...');
+      log('Found persisted data, hydrating...');
       store.dispatch({ type: 'state:hydrate', payload: persisted });
     } else {
-      console.log('[CTS] No persisted data, will use defaults');
+      log('No persisted data, will use defaults');
     }
 
-    console.log('[CTS] Step 9: Checking for shared scenario...');
+    log('Step 9: Checking for shared scenario...');
     maybeLoadSharedScenario();
 
-    console.log('[CTS] Step 10: Initialization complete!');
+    log('Step 10: Initialization complete!');
     announce('CTS ready. Founding stage initialized.');
   } catch (error) {
     console.error('[CTS] Initialization failed at step:', error);
@@ -132,29 +136,57 @@ function wireThemeToggle() {
 }
 
 function wireMobileNav() {
-  const buttons = document.querySelectorAll('.cts-mobile-nav__item[data-scroll-target]');
-  buttons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const selector = button.getAttribute('data-scroll-target');
-      const target = selector ? document.querySelector(selector) : null;
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        console.warn('[CTS] mobile nav target missing', selector);
+  const buttons = Array.from(document.querySelectorAll('.cts-mobile-nav__item[data-scroll-target]'));
+
+  function activateTab(button) {
+    const selector = button.getAttribute('data-scroll-target');
+    const target = selector ? document.querySelector(selector) : null;
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Update active state for all nav buttons
+      buttons.forEach(btn => btn.setAttribute('aria-selected', 'false'));
+      button.setAttribute('aria-selected', 'true');
+    } else {
+      console.warn('[CTS] mobile nav target missing', selector);
+    }
+  }
+
+  buttons.forEach((button, index) => {
+    button.addEventListener('click', () => activateTab(button));
+
+    // Keyboard navigation (arrow keys for tablist)
+    button.addEventListener('keydown', (e) => {
+      let nextIndex = index;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        nextIndex = (index + 1) % buttons.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        nextIndex = (index - 1 + buttons.length) % buttons.length;
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        nextIndex = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        nextIndex = buttons.length - 1;
+      }
+      if (nextIndex !== index) {
+        buttons[nextIndex].focus();
+        activateTab(buttons[nextIndex]);
       }
     });
   });
 }
 
 function mountModules() {
-  console.log('[CTS] mountModules: Looking for DOM elements...');
+  log('mountModules: Looking for DOM elements...');
   const stageListEl = document.getElementById('cts-stage-list');
   const stageFormEl = document.getElementById('cts-stage-form');
   const stageMetaEl = document.getElementById('cts-stage-meta');
   const resultsRootEl = document.getElementById('cts-results-root');
   const tabsEl = document.querySelector('.cts-tabs');
 
-  console.log('[CTS] mountModules: Found elements:', {
+  log('mountModules: Found elements:', {
     stageList: !!stageListEl,
     stageForm: !!stageFormEl,
     stageMeta: !!stageMetaEl,
@@ -167,7 +199,7 @@ function mountModules() {
     bus: appBus,
     store
   });
-  console.log('[CTS] TimelinePanel created');
+  log('TimelinePanel created');
 
   stageForm = new StageForm({
     form: stageFormEl,
@@ -175,14 +207,14 @@ function mountModules() {
     bus: appBus,
     store
   });
-  console.log('[CTS] StageForm created');
+  log('StageForm created');
 
   resultsPanel = new ResultsPanel({
     container: resultsRootEl,
     tablist: tabsEl,
     bus: appBus
   });
-  console.log('[CTS] ResultsPanel created');
+  log('ResultsPanel created');
 }
 
 function onStateChange(snapshot) {

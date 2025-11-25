@@ -101,9 +101,17 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
     if (!ui.notify) return;
     const el = document.createElement("div");
     el.className = `notification type-${type}`;
-    el.textContent = msg;
+    // ARIA attributes for accessibility
+    el.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    el.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+
+    const msgSpan = document.createElement("span");
+    msgSpan.textContent = msg;
+    el.appendChild(msgSpan);
+
     const close = document.createElement("button");
     close.innerHTML = "&times;";
+    close.setAttribute('aria-label', 'Dismiss notification');
     close.onclick = () => el.remove();
     el.appendChild(close);
     ui.notify.appendChild(el);
@@ -198,6 +206,44 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
     ui.versionBtn.disabled = !has_selection;
   };
 
+  // Track previously focused element for focus restoration
+  let previouslyFocusedElement = null;
+
+  // Focus trap for modal-like sections (preview)
+  const setup_focus_trap = (container) => {
+    if (!container) return null;
+
+    const handleKeydown = (e) => {
+      if (e.key === 'Escape') {
+        ui.closePreviewBtn?.click();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = container.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (!firstElement) return;
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement?.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement?.focus();
+      }
+    };
+
+    container.addEventListener('keydown', handleKeydown);
+    return () => container.removeEventListener('keydown', handleKeydown);
+  };
+
+  let removeFocusTrap = null;
+
   // Dynamically loads WC code via script tag and renders preview
   const load_and_show_wc = (tool_id, wc_code_str, mcp_def) => {
     if (!wc_code_str || !mcp_def?.name) {
@@ -214,15 +260,26 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
 
     const display_preview = () => {
       if (!ui.previewArea || !ui.previewSection || !ui.closePreviewBtn) return;
+
+      // Store currently focused element for later restoration
+      previouslyFocusedElement = document.activeElement;
+
       try {
         const wc_instance = document.createElement(tag_name);
         ui.previewArea.innerHTML = ""; // Clear previous
         ui.previewArea.appendChild(wc_instance);
         ui.previewSection.classList.remove("hidden");
+        ui.previewSection.setAttribute('role', 'dialog');
+        ui.previewSection.setAttribute('aria-modal', 'true');
+        ui.previewSection.setAttribute('aria-label', `Preview of ${mcp_def.name}`);
         ui.previewSection.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
         });
+
+        // Setup focus trap and focus close button
+        removeFocusTrap = setup_focus_trap(ui.previewSection);
+        ui.closePreviewBtn?.focus();
       } catch (e) {
         log.error(`Failed to create WC instance <${tag_name}>`, e);
         notify(`Error creating WC preview: ${e.message}`, "error");
@@ -312,6 +369,22 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
       const key = ui.apiKey?.value.trim() ?? "";
       State.update_session({ apiKey: key });
       notify(key ? "API Key saved for session." : "API Key cleared.", "info");
+
+      // Show visual confirmation
+      const indicator = document.getElementById("key_saved_indicator");
+      if (indicator && key) {
+        indicator.classList.remove("hidden");
+        indicator.classList.add("show");
+        // Reset animation
+        indicator.style.animation = "none";
+        indicator.offsetHeight; // Trigger reflow
+        indicator.style.animation = null;
+        // Hide after animation completes
+        setTimeout(() => {
+          indicator.classList.add("hidden");
+          indicator.classList.remove("show");
+        }, 2000);
+      }
     });
 
     ui.modelSelect?.addEventListener("change", (e) => {
@@ -537,8 +610,23 @@ const UiManager = (cfg, log, Utils, storage, State, Logic, Run) => {
     });
 
     ui.closePreviewBtn?.addEventListener("click", () => {
+      // Clean up focus trap
+      if (removeFocusTrap) {
+        removeFocusTrap();
+        removeFocusTrap = null;
+      }
+
       ui.previewSection?.classList.add("hidden");
+      ui.previewSection?.removeAttribute('role');
+      ui.previewSection?.removeAttribute('aria-modal');
+      ui.previewSection?.removeAttribute('aria-label');
       if (ui.previewArea) ui.previewArea.innerHTML = "";
+
+      // Restore focus to previously focused element
+      if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+        previouslyFocusedElement.focus();
+        previouslyFocusedElement = null;
+      }
     });
 
     ui.app?.addEventListener("delete-tool", (e) => {

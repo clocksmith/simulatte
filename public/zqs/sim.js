@@ -4,6 +4,35 @@ const TWO_PI = Math.PI * 2;
 const HALF_PI = Math.PI * 0.5;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+// Debounce utility for expensive operations
+const debounce = (fn, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
+};
+
+// Throttle for rendering (execute at most once per delay)
+const throttle = (fn, delay) => {
+  let lastCall = 0;
+  let timeoutId;
+  return (...args) => {
+    const now = performance.now();
+    const remaining = delay - (now - lastCall);
+    clearTimeout(timeoutId);
+    if (remaining <= 0) {
+      lastCall = now;
+      fn(...args);
+    } else {
+      timeoutId = setTimeout(() => {
+        lastCall = performance.now();
+        fn(...args);
+      }, remaining);
+    }
+  };
+};
+
 const RAF = window.requestAnimationFrame.bind(window);
 
 const app = {
@@ -234,6 +263,7 @@ const ui = {
         this.updateInfo();
       }
       handleInteraction('center-slider');
+      scheduleHashUpdate();
     });
 
     const velocitySlider = this.elements['velocity-slider'];
@@ -242,47 +272,45 @@ const ui = {
       const range = sim.physics.velocityRange;
       sim.packet.velocity = clamp(parseFloat(event.target.value), range.min, range.max);
       this.updateSliderValue('velocity', sim.packet.velocity, 3);
-      rebuildWavePacket();
-      renderWave();
-      this.updateInfo();
+      throttledRebuildAndRender();
       handleInteraction('velocity-slider');
+      scheduleHashUpdate();
     });
 
     const sigmaSlider = this.elements['energy-slider'];
     sigmaSlider.addEventListener('input', (event) => {
       sim.packet.sigma = clamp(parseFloat(event.target.value), 0.1, 1.5);
       this.updateSliderValue('energy', sim.packet.sigma, 2);
-      rebuildWavePacket();
-      renderWave();
-      this.updateInfo();
+      throttledRebuildAndRender();
       handleInteraction('energy-slider');
+      scheduleHashUpdate();
     });
 
     const posSlider = this.elements['barrier-position-slider'];
     posSlider.addEventListener('input', (event) => {
       sim.barrier.position = clamp(parseFloat(event.target.value), sim.xMin + 0.5, sim.xMax - 0.5);
       this.updateSliderValue('barrier-position', sim.barrier.position, 2);
-      updatePotential();
-      renderWave();
+      throttledPotentialAndRender();
       handleInteraction('barrier-position-slider');
+      scheduleHashUpdate();
     });
 
     const heightSlider = this.elements['barrier-height-slider'];
     heightSlider.addEventListener('input', (event) => {
       sim.barrier.height = clamp(parseFloat(event.target.value), 0, 3);
       this.updateSliderValue('barrier-height', sim.barrier.height, 2);
-      updatePotential();
-      renderWave();
+      throttledPotentialAndRender();
       handleInteraction('barrier-height-slider');
+      scheduleHashUpdate();
     });
 
     const widthSlider = this.elements['barrier-width-slider'];
     widthSlider.addEventListener('input', (event) => {
       sim.barrier.width = clamp(parseFloat(event.target.value), 0.05, 1.5);
       this.updateSliderValue('barrier-width', sim.barrier.width, 2);
-      updatePotential();
-      renderWave();
+      throttledPotentialAndRender();
       handleInteraction('barrier-width-slider');
+      scheduleHashUpdate();
     });
 
     const timeScaleSlider = this.elements['time-scale-slider'];
@@ -290,6 +318,7 @@ const ui = {
       sim.timeScale = clamp(parseFloat(event.target.value), 0.01, 5.0);
       this.updateSliderValue('time-scale', sim.timeScale, 2);
       handleInteraction('time-scale-slider');
+      scheduleHashUpdate();
     });
 
     this.elements['add-barrier-btn'].addEventListener('click', () => {
@@ -902,6 +931,19 @@ function resizeCanvas() {
   renderWave();
 }
 
+// Throttled versions for slider input handlers (16ms ≈ 60fps)
+const SLIDER_THROTTLE_MS = 16;
+const throttledRebuildAndRender = throttle(() => {
+  rebuildWavePacket();
+  renderWave();
+  ui.updateInfo();
+}, SLIDER_THROTTLE_MS);
+
+const throttledPotentialAndRender = throttle(() => {
+  updatePotential();
+  renderWave();
+}, SLIDER_THROTTLE_MS);
+
 function renderWave() {
   const ctx = app.ctx;
   if (!ctx || app.width === 0 || app.height === 0) return;
@@ -1145,3 +1187,98 @@ function bootstrap() {
 
 document.addEventListener('DOMContentLoaded', bootstrap);
 window.addEventListener('resize', resizeCanvas);
+
+// URL hash state management for deep-linking and sharing
+function encodeStateToHash() {
+  const state = {
+    m: sim.mode === 'dirac' ? 'd' : 's',
+    c: sim.packet.center.toFixed(2),
+    v: sim.packet.velocity.toFixed(3),
+    s: sim.packet.sigma.toFixed(2),
+    bp: sim.barrier.position.toFixed(2),
+    bh: sim.barrier.height.toFixed(2),
+    bw: sim.barrier.width.toFixed(2),
+    ba: sim.barrier.active ? '1' : '0',
+    ts: sim.timeScale.toFixed(2),
+  };
+  return Object.entries(state).map(([k, v]) => `${k}=${v}`).join('&');
+}
+
+function decodeStateFromHash(hash) {
+  if (!hash || hash.length < 2) return false;
+  const params = new URLSearchParams(hash.substring(1));
+  let changed = false;
+
+  if (params.has('m')) {
+    const mode = params.get('m') === 'd' ? 'dirac' : 'schrodinger';
+    if (mode !== sim.mode) {
+      setSimulationMode(mode);
+      changed = true;
+    }
+  }
+  if (params.has('c')) { sim.packet.center = parseFloat(params.get('c')); changed = true; }
+  if (params.has('v')) { sim.packet.velocity = parseFloat(params.get('v')); changed = true; }
+  if (params.has('s')) { sim.packet.sigma = parseFloat(params.get('s')); changed = true; }
+  if (params.has('bp')) { sim.barrier.position = parseFloat(params.get('bp')); changed = true; }
+  if (params.has('bh')) { sim.barrier.height = parseFloat(params.get('bh')); changed = true; }
+  if (params.has('bw')) { sim.barrier.width = parseFloat(params.get('bw')); changed = true; }
+  if (params.has('ba')) { sim.barrier.active = params.get('ba') === '1'; changed = true; }
+  if (params.has('ts')) { sim.timeScale = parseFloat(params.get('ts')); changed = true; }
+
+  return changed;
+}
+
+function updateUrlHash() {
+  const hash = '#' + encodeStateToHash();
+  if (window.location.hash !== hash) {
+    history.replaceState(null, '', hash);
+    const display = ui.elements['url-hash-display'];
+    if (display) display.textContent = `URL: ${hash.substring(0, 30)}...`;
+  }
+}
+
+// Load state from URL on page load
+window.addEventListener('load', () => {
+  if (window.location.hash) {
+    const changed = decodeStateFromHash(window.location.hash);
+    if (changed) {
+      rebuildWavePacket();
+      updatePotential();
+      renderWave();
+      ui.updateInfo();
+      // Update UI sliders
+      if (ui.elements['center-slider']) ui.elements['center-slider'].value = sim.packet.center;
+      if (ui.elements['velocity-slider']) ui.elements['velocity-slider'].value = sim.packet.velocity;
+      if (ui.elements['energy-slider']) ui.elements['energy-slider'].value = sim.packet.sigma;
+      if (ui.elements['barrier-position-slider']) ui.elements['barrier-position-slider'].value = sim.barrier.position;
+      if (ui.elements['barrier-height-slider']) ui.elements['barrier-height-slider'].value = sim.barrier.height;
+      if (ui.elements['barrier-width-slider']) ui.elements['barrier-width-slider'].value = sim.barrier.width;
+      if (ui.elements['time-scale-slider']) ui.elements['time-scale-slider'].value = sim.timeScale;
+      ui.updateSliderValue('center', sim.packet.center, 2);
+      ui.updateSliderValue('velocity', sim.packet.velocity, 3);
+      ui.updateSliderValue('energy', sim.packet.sigma, 2);
+      ui.updateSliderValue('barrier-position', sim.barrier.position, 2);
+      ui.updateSliderValue('barrier-height', sim.barrier.height, 2);
+      ui.updateSliderValue('barrier-width', sim.barrier.width, 2);
+      ui.updateSliderValue('time-scale', sim.timeScale, 2);
+    }
+  }
+});
+
+// Update hash when state changes (debounced)
+let hashUpdateTimeout = null;
+function scheduleHashUpdate() {
+  clearTimeout(hashUpdateTimeout);
+  hashUpdateTimeout = setTimeout(updateUrlHash, 500);
+}
+
+// Handle browser back/forward
+window.addEventListener('hashchange', () => {
+  const changed = decodeStateFromHash(window.location.hash);
+  if (changed) {
+    rebuildWavePacket();
+    updatePotential();
+    renderWave();
+    ui.updateInfo();
+  }
+});

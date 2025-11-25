@@ -1152,15 +1152,34 @@
       // Cache DOM elements
       const canvas = document.getElementById("pendulum-canvas");
       const ctxOptions = { alpha: false, desynchronized: true };
-      let ctx = canvas.getContext("2d", ctxOptions);
-      if (!ctx) {
-        ctx = canvas.getContext("2d", { alpha: false });
+      let ctx = null;
+      let canvasError = null;
+
+      // Try to get canvas context with progressively simpler options
+      try {
+        ctx = canvas.getContext("2d", ctxOptions);
+        if (!ctx) {
+          ctx = canvas.getContext("2d", { alpha: false });
+        }
+        if (!ctx) {
+          ctx = canvas.getContext("2d");
+        }
+      } catch (e) {
+        canvasError = e;
       }
+
       if (!ctx) {
-        ctx = canvas.getContext("2d");
-      }
-      if (!ctx) {
-        throw new Error("Unable to initialize 2D context for pendulum canvas.");
+        // Show user-friendly error message in the canvas container
+        const errorMsg = document.createElement('div');
+        errorMsg.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:var(--bg-medium);color:var(--text-primary);padding:20px;text-align:center;';
+        errorMsg.innerHTML = `
+          <h3 style="color:var(--accent-primary);margin:0;">Canvas Error</h3>
+          <p style="margin:0;max-width:400px;">Unable to initialize the simulation canvas. This may be due to browser restrictions or hardware limitations.</p>
+          <p style="margin:0;font-size:0.85em;color:var(--text-secondary);">Try refreshing the page or using a different browser.</p>
+        `;
+        canvas.parentNode.style.position = 'relative';
+        canvas.parentNode.appendChild(errorMsg);
+        console.error("Canvas initialization failed:", canvasError || "Context unavailable");
       }
 
       const omegaHistoryChartCanvas = document.getElementById(
@@ -2999,14 +3018,49 @@
         recordingModeRadios.forEach((radio) => (radio.disabled = disabled));
         maxRecordTimeInput.disabled = disabled;
       }
+      // LocalStorage key for card collapse state persistence
+      const CARD_STATE_KEY = 'spd_card_states';
+
       function toggleCard(cardHeader) {
         const cardContent = cardHeader.nextElementSibling;
         const toggle = cardHeader.querySelector(".card-toggle");
         const isCollapsed = cardContent.classList.toggle("collapsed");
         toggle.textContent = isCollapsed ? "+" : "−";
+
+        // Persist card state to localStorage
+        const cardId = cardHeader.closest('.card').id;
+        if (cardId) {
+          try {
+            const states = JSON.parse(localStorage.getItem(CARD_STATE_KEY) || '{}');
+            states[cardId] = isCollapsed;
+            localStorage.setItem(CARD_STATE_KEY, JSON.stringify(states));
+          } catch (e) {
+            // Silently fail if localStorage is unavailable
+          }
+        }
+      }
+
+      function restoreCardStates() {
+        try {
+          const states = JSON.parse(localStorage.getItem(CARD_STATE_KEY) || '{}');
+          Object.entries(states).forEach(([cardId, isCollapsed]) => {
+            const card = document.getElementById(cardId);
+            if (card && isCollapsed) {
+              const content = card.querySelector('.card-content');
+              const toggle = card.querySelector('.card-toggle');
+              if (content && toggle) {
+                content.classList.add('collapsed');
+                toggle.textContent = '+';
+              }
+            }
+          });
+        } catch (e) {
+          // Silently fail if localStorage is unavailable
+        }
       }
       function initialize() {
         loadColors();
+        restoreCardStates(); // Restore collapsed/expanded card states from localStorage
         resetButton.addEventListener("click", resetSimulation);
         startButton.addEventListener("click", startSimulation);
         stopButton.addEventListener("click", stopSimulation);
