@@ -442,11 +442,13 @@ function parseMultipleLetters(text) {
   if (words.length > 0) console.log(`   🔍 Parsing words: [${words.join(', ')}]`);
 
   for (const word of words) {
+    const wordLower = word.toLowerCase();
+
     // Check letter name variations first
     let foundMatch = false;
     for (const [letter, variations] of Object.entries(letterNames)) {
       for (const variation of variations) {
-        if (word === variation) {
+        if (wordLower === variation) {
           console.log(`   📝 Word "${word}" matches letter ${letter.toUpperCase()}`);
           detected.push(letter);
           foundMatch = true;
@@ -458,9 +460,9 @@ function parseMultipleLetters(text) {
     if (foundMatch) continue;
 
     // Single letter
-    if (word.length === 1 && /[a-z]/.test(word)) {
-      console.log(`   📝 Single char "${word}" → ${word.toUpperCase()}`);
-      detected.push(word);
+    if (wordLower.length === 1 && /[a-z]/.test(wordLower)) {
+      console.log(`   📝 Single char "${word}" → ${wordLower.toUpperCase()}`);
+      detected.push(wordLower);
       continue;
     }
 
@@ -471,16 +473,16 @@ function parseMultipleLetters(text) {
     }
 
     // Intelligent sequential matching for short words
-    if (word.length >= 2 && word.length <= 3 && /^[a-z]+$/.test(word)) {
-      if (phoneticPatterns[word]) {
-        console.log(`   📖 Sequential pattern: "${word}" → [${phoneticPatterns[word].join(', ')}]`);
-        detected.push(...phoneticPatterns[word]);
+    if (wordLower.length >= 2 && wordLower.length <= 3 && /^[a-z]+$/.test(wordLower)) {
+      if (phoneticPatterns[wordLower]) {
+        console.log(`   📖 Sequential pattern: "${word}" → [${phoneticPatterns[wordLower].join(', ')}]`);
+        detected.push(...phoneticPatterns[wordLower]);
         continue;
       }
 
-      if (word.length === 2) {
-        console.log(`   🔤 Split 2-char "${word}" → [${word.split('').join(', ')}]`);
-        for (const char of word) detected.push(char);
+      if (wordLower.length === 2) {
+        console.log(`   🔤 Split 2-char "${word}" → [${wordLower.split('').join(', ')}]`);
+        for (const char of wordLower) detected.push(char);
         continue;
       }
 
@@ -490,7 +492,7 @@ function parseMultipleLetters(text) {
 
     // Sequential intelligence: check if this could be the expected next letter
     const expectedNext = getExpectedNextLetter();
-    if (expectedNext && matchesExpectedNext(word, expectedNext)) {
+    if (expectedNext && matchesExpectedNext(wordLower, expectedNext)) {
       console.log(`   🔮 Sequential match: "${word}" → ${expectedNext.toUpperCase()} (expected after recent letters)`);
       detected.push(expectedNext);
       continue;
