@@ -104,3 +104,53 @@ export function playCelebrationSound() {
     osc.stop(state.audioContext.currentTime + i * 0.1 + 0.5);
   });
 }
+
+// Shape sounds - different sounds for each shape
+const shapeSounds = {
+  heart: { freq: 440, duration: 0.5, type: 'sine' },      // Warm A note
+  star: { freq: 880, duration: 0.3, type: 'triangle' },   // Bright high A
+  triangle: { freq: 330, duration: 0.4, type: 'square' }, // E note, edgy
+  circle: { freq: 523.25, duration: 0.5, type: 'sine' },  // Smooth C
+  diamond: { freq: 659.25, duration: 0.4, type: 'sawtooth' } // Sparkly E
+};
+
+export function playShapeSound(shapeType) {
+  if (!state.audioContext) return;
+
+  const sound = shapeSounds[shapeType] || shapeSounds.circle;
+  const time = state.audioContext.currentTime;
+
+  // Main tone
+  const osc = state.audioContext.createOscillator();
+  const gain = state.audioContext.createGain();
+
+  osc.type = sound.type;
+  osc.frequency.setValueAtTime(sound.freq, time);
+
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(0.3, time + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.01, time + sound.duration);
+
+  osc.connect(gain);
+  gain.connect(state.audioContext.destination);
+
+  osc.start(time);
+  osc.stop(time + sound.duration);
+
+  // Add a harmonic for richness
+  const osc2 = state.audioContext.createOscillator();
+  const gain2 = state.audioContext.createGain();
+
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(sound.freq * 2, time);
+
+  gain2.gain.setValueAtTime(0, time);
+  gain2.gain.linearRampToValueAtTime(0.12, time + 0.03);
+  gain2.gain.exponentialRampToValueAtTime(0.01, time + sound.duration * 0.6);
+
+  osc2.connect(gain2);
+  gain2.connect(state.audioContext.destination);
+
+  osc2.start(time);
+  osc2.stop(time + sound.duration * 0.6);
+}
