@@ -664,14 +664,23 @@
 
     // Smooth cursor animation loop
     function updateCursor() {
-      const lerpSpeed = 0.3; // Faster, more responsive cursor
+      const morphSpeed = 0.25; // Smooth morphing for size/shape
 
-      // Lerp position, size, and border radius
-      cursorX += (targetCursorX - cursorX) * lerpSpeed;
-      cursorY += (targetCursorY - cursorY) * lerpSpeed;
-      cursorWidth += (targetCursorWidth - cursorWidth) * lerpSpeed;
-      cursorHeight += (targetCursorHeight - cursorHeight) * lerpSpeed;
-      cursorBorderRadius += (targetCursorBorderRadius - cursorBorderRadius) * lerpSpeed;
+      // Position: instant when circle, lerped when morphing to exhibit box
+      if (currentHoveredExhibit) {
+        // Lerp position when morphing to exhibit box
+        cursorX += (targetCursorX - cursorX) * morphSpeed;
+        cursorY += (targetCursorY - cursorY) * morphSpeed;
+      } else {
+        // Instant position when normal cursor (no delay)
+        cursorX = targetCursorX;
+        cursorY = targetCursorY;
+      }
+
+      // Size and border radius always lerped for smooth morphing
+      cursorWidth += (targetCursorWidth - cursorWidth) * morphSpeed;
+      cursorHeight += (targetCursorHeight - cursorHeight) * morphSpeed;
+      cursorBorderRadius += (targetCursorBorderRadius - cursorBorderRadius) * morphSpeed;
 
       // Apply to DOM
       cursor.style.left = cursorX + 'px';

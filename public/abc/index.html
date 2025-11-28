@@ -68,10 +68,21 @@
         <div class="model-selector">
           <label class="model-label">Voice Recognition</label>
           <div class="model-options">
-            <button type="button" class="model-option" data-model="none" title="No speech recognition">Off</button>
-            <button type="button" class="model-option selected" data-model="tiny" title="Fastest, least accurate (~75MB)">Tiny</button>
-            <button type="button" class="model-option" data-model="base" title="Balanced speed and accuracy (~145MB)">Base</button>
-            <button type="button" class="model-option" data-model="small" title="Most accurate, slowest (~465MB)">Small</button>
+            <button type="button" class="model-option" data-model="none" title="No speech recognition">
+              <span class="model-name">Off</span>
+            </button>
+            <button type="button" class="model-option selected" data-model="tiny" title="Fastest, least accurate (~150MB)">
+              <span class="model-name">Tiny</span>
+              <span class="model-stats">150MB</span>
+            </button>
+            <button type="button" class="model-option" data-model="base" title="Balanced speed and accuracy (~280MB)">
+              <span class="model-name">Base</span>
+              <span class="model-stats">280MB · 2x</span>
+            </button>
+            <button type="button" class="model-option" data-model="small" title="Most accurate, slowest (~500MB)">
+              <span class="model-name">Small</span>
+              <span class="model-stats">500MB · 4x</span>
+            </button>
           </div>
         </div>
       </div>
