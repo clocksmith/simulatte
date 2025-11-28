@@ -132,15 +132,24 @@ function init() {
   initBackgroundShapes();
   initMarquee();
 
-  // Model selector
+  // Model selector - handle both click and touch to prevent game start
   const modelOptions = document.querySelectorAll('.model-option');
   modelOptions.forEach(option => {
-    option.addEventListener('click', (e) => {
+    const selectModel = (e) => {
       e.stopPropagation();
+      e.preventDefault();
       modelOptions.forEach(opt => opt.classList.remove('selected'));
       option.classList.add('selected');
       state.selectedModel = option.dataset.model;
-    });
+    };
+    option.addEventListener('click', selectModel);
+    option.addEventListener('touchstart', selectModel, { passive: false });
+  });
+
+  // Prevent touches on start screen controls from starting the game
+  const startScreenControls = document.querySelectorAll('.model-selector, .splash-info');
+  startScreenControls.forEach(el => {
+    el.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: false });
   });
 
   // Mic toggle
@@ -163,8 +172,16 @@ function init() {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (state.audioContext) state.audioContext.suspend();
+      // Notify whisper worker to throttle progress updates
+      if (state.whisperWorker) {
+        state.whisperWorker.postMessage({ type: 'visibility', hidden: true });
+      }
     } else {
       if (state.audioContext) state.audioContext.resume();
+      // Notify whisper worker to resume progress updates
+      if (state.whisperWorker) {
+        state.whisperWorker.postMessage({ type: 'visibility', hidden: false });
+      }
       if (state.isModelLoading && !state.isModelLoaded) {
         elements.modelLoader.classList.add('active');
       }

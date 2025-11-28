@@ -302,6 +302,17 @@
     }
     #cursor.click { transform: scale(0.9); }
 
+    #cursor-dot {
+      position: fixed;
+      width: 4px; height: 4px;
+      background: var(--accent-tertiary);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: difference;
+    }
+
     @media (max-width: 768px) {
       .exhibit-desc {
         padding-left: 0;
@@ -315,6 +326,7 @@
 
   <canvas id="particleCanvas"></canvas>
   <div id="cursor" aria-hidden="true"></div>
+  <div id="cursor-dot" aria-hidden="true"></div>
   <div class="container">
     <h1>Simulatte</h1>
     <p class="tagline">
@@ -456,12 +468,11 @@
     const canvas = document.getElementById('particleCanvas');
     const ctx = canvas.getContext('2d');
     const cursor = document.getElementById('cursor');
+    const cursorDot = document.getElementById('cursor-dot');
     const links = document.querySelectorAll('a');
 
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let mouse = { x: -100, y: -100 };
-    let trail = [];
     let ripples = [];
     let time = 0;
 
@@ -500,13 +511,7 @@
     window.addEventListener('resize', resize);
     resize();
 
-    document.addEventListener('mousemove', e => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-      trail.push({ x: mouse.x, y: mouse.y, age: 0 });
-      cursor.style.left = `${mouse.x}px`;
-      cursor.style.top = `${mouse.y}px`;
-    });
+    // Mouse tracking is handled by the consolidated handler below
 
     // Mouse tracking
     let mouseX = width / 2;
@@ -521,7 +526,6 @@
     let isMouseDown = false;
     time = 0;
 
-    const maxTrailLength = 15;
 
     // Click ripple effects (anywhere on page)
     const activeRipples = [];
@@ -620,6 +624,10 @@
       targetMouseX = e.clientX;
       targetMouseY = e.clientY;
 
+      // Position dot at exact mouse location (always instant)
+      cursorDot.style.left = e.clientX + 'px';
+      cursorDot.style.top = e.clientY + 'px';
+
       mouseVelocityX = targetMouseX - prevMouseX;
       mouseVelocityY = targetMouseY - prevMouseY;
       mouseSpeed = Math.sqrt(mouseVelocityX * mouseVelocityX + mouseVelocityY * mouseVelocityY);
@@ -661,17 +669,28 @@
     cursorY = -100;
     targetCursorX = -100;
     targetCursorY = -100;
+    cursorDot.style.left = '-100px';
+    cursorDot.style.top = '-100px';
 
     // Smooth cursor animation loop
     function updateCursor() {
-      const lerpSpeed = 0.3; // Faster, more responsive cursor
+      const morphSpeed = 0.25; // Smooth morphing for size/shape
 
-      // Lerp position, size, and border radius
-      cursorX += (targetCursorX - cursorX) * lerpSpeed;
-      cursorY += (targetCursorY - cursorY) * lerpSpeed;
-      cursorWidth += (targetCursorWidth - cursorWidth) * lerpSpeed;
-      cursorHeight += (targetCursorHeight - cursorHeight) * lerpSpeed;
-      cursorBorderRadius += (targetCursorBorderRadius - cursorBorderRadius) * lerpSpeed;
+      // Position: instant when circle, lerped when morphing to exhibit box
+      if (currentHoveredExhibit) {
+        // Lerp position when morphing to exhibit box
+        cursorX += (targetCursorX - cursorX) * morphSpeed;
+        cursorY += (targetCursorY - cursorY) * morphSpeed;
+      } else {
+        // Instant position when normal cursor (no delay)
+        cursorX = targetCursorX;
+        cursorY = targetCursorY;
+      }
+
+      // Size and border radius always lerped for smooth morphing
+      cursorWidth += (targetCursorWidth - cursorWidth) * morphSpeed;
+      cursorHeight += (targetCursorHeight - cursorHeight) * morphSpeed;
+      cursorBorderRadius += (targetCursorBorderRadius - cursorBorderRadius) * morphSpeed;
 
       // Apply to DOM
       cursor.style.left = cursorX + 'px';
@@ -854,8 +873,7 @@
 
     // Keyboard navigation for exhibits
     const exhibitLinks = Array.from(document.querySelectorAll('.exhibit a'));
-    const githubLink = document.querySelector('.artist-statement a');
-    const allFocusableElements = [...exhibitLinks, githubLink];
+    const allFocusableElements = exhibitLinks.filter(el => el != null);
     let currentFocusIndex = -1;
 
     document.addEventListener('keydown', (e) => {
