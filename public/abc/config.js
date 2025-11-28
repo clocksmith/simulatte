@@ -98,7 +98,7 @@ export const abcSongNotes = {
 // Letter name mappings for speech recognition
 export const letterNames = {
   'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'letter a'],
-  'b': ['b', 'bee', 'bea', 'bi', 'baby', 'letter b'],
+  'b': ['b', 'bee', 'bea', 'bi', 'be', 'baby', 'letter b'],
   'c': ['c', 'see', 'sea', 'si', 'cee', 'letter c'],
   'd': ['d', 'dee', 'di', 'letter d'],
   'e': ['e', 'ee', 'eee', 'letter e'],

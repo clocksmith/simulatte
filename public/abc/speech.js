@@ -488,6 +488,14 @@ function parseMultipleLetters(text) {
       continue;
     }
 
+    // Sequential intelligence: check if this could be the expected next letter
+    const expectedNext = getExpectedNextLetter();
+    if (expectedNext && matchesExpectedNext(word, expectedNext)) {
+      console.log(`   🔮 Sequential match: "${word}" → ${expectedNext.toUpperCase()} (expected after recent letters)`);
+      detected.push(expectedNext);
+      continue;
+    }
+
     console.log(`   ⚠️ Unmatched word: "${word}"`);
   }
 
@@ -496,6 +504,48 @@ function parseMultipleLetters(text) {
 
 function isCommonWord(word) {
   return commonWords.includes(word.toLowerCase());
+}
+
+// Get expected next letter based on recent history (for sequential intelligence)
+function getExpectedNextLetter() {
+  const now = Date.now();
+  const recent = recentLetters
+    .filter(r => now - r.time < 3000) // Last 3 seconds
+    .map(r => r.letter);
+
+  if (recent.length === 0) return null;
+
+  // Get the last letter shown
+  const lastLetter = recent[recent.length - 1];
+  const lastCode = lastLetter.charCodeAt(0);
+
+  // If it's a-y, the expected next is the following letter
+  if (lastCode >= 97 && lastCode < 122) { // 'a' to 'y'
+    return String.fromCharCode(lastCode + 1);
+  }
+
+  return null;
+}
+
+// Check if a word could match the expected next letter
+function matchesExpectedNext(word, expectedLetter) {
+  if (!expectedLetter) return false;
+
+  const w = word.toLowerCase();
+  const exp = expectedLetter.toLowerCase();
+
+  // Direct match with first char
+  if (w.startsWith(exp)) return true;
+
+  // Check if this letter's variations could match
+  const variations = letterNames[exp];
+  if (variations) {
+    for (const v of variations) {
+      if (w === v || w.startsWith(v)) return true;
+    }
+  }
+
+  return false;
 }
 
 // ============================================
