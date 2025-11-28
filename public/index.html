@@ -753,48 +753,6 @@
         point.y += point.vy;
       });
 
-      // Draw bouncy radial web with gradient fade towards middle
-      ctx.lineWidth = CONFIG.web.lineWidth;
-
-      webPoints.forEach((point, i) => {
-        // Create gradient for each line (GPU accelerated)
-        const gradient = ctx.createLinearGradient(mouseX, mouseY, point.x, point.y);
-
-        // Lighting reacts to mouse velocity + subtle per-line variation
-        const velocityBoost = Math.min(mouseSpeed * 0.008, 0.25);
-        const linePulse = 0.08 * Math.sin(time * 1.5 + i * 1.2);
-        const innerAlpha = webOpacity * (0.25 + linePulse + velocityBoost);  // Mouse end: dimmer
-        const outerAlpha = webOpacity * (0.85 + linePulse + velocityBoost);  // Corner end: brighter
-
-        // Linear fade: dim at mouse, bright at corners
-        gradient.addColorStop(0, `rgba(0, 255, 255, ${innerAlpha})`);
-        gradient.addColorStop(1, `rgba(0, 255, 255, ${outerAlpha})`);
-
-        ctx.strokeStyle = gradient;
-        ctx.beginPath();
-        ctx.moveTo(mouseX, mouseY);
-        ctx.lineTo(point.x, point.y);
-        ctx.stroke();
-      });
-
-      // Draw simple glowing cursor circle at mouse position
-      ctx.beginPath();
-      ctx.arc(targetMouseX, targetMouseY, CONFIG.glow.innerRadius, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
-      ctx.fill();
-
-      // Outer glow
-      ctx.beginPath();
-      ctx.arc(targetMouseX, targetMouseY, CONFIG.glow.middleRadius, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
-      ctx.fill();
-
-      // Soft outer glow
-      ctx.beginPath();
-      ctx.arc(targetMouseX, targetMouseY, CONFIG.glow.outerRadius, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
-      ctx.fill();
-
       // Draw click ripple explosions (smooth blue waves with radial fade)
       activeRipples.forEach((ripple, index) => {
         ripple.radius += CONFIG.ripple.expandSpeed;

@@ -125,7 +125,7 @@ const letterNames = {
   'd': ['d', 'dee', 'di', 'letter d'],
   'e': ['e', 'ee', 'eee', 'letter e'],
   'f': ['f', 'ef', 'eff', 'letter f'],
-  'g': ['g', 'gee', 'ji', 'jee', 'we', 'letter g'],
+  'g': ['g', 'gee', 'ji', 'jee', 'we', 'chee', 'letter g'],
   'h': ['h', 'aitch', 'eich', 'letter h'],
   'i': ['i', 'eye', 'ai', 'letter i'],
   'j': ['j', 'jay', 'jae', 'letter j'],
@@ -138,8 +138,8 @@ const letterNames = {
   'q': ['q', 'cue', 'queue', 'kyu', 'letter q'],
   'r': ['r', 'ar', 'are', 'letter r'],
   's': ['s', 'es', 'ess', 'letter s'],
-  't': ['t', 'tee', 'ti', 'letter t'],
-  'u': ['u', 'you', 'yu', 'letter u'],
+  't': ['t', 'tee', 'ti', 'tea', 'letter t'],
+  'u': ['u', 'you', 'yu', 'ooh', 'letter u'],
   'v': ['v', 'vee', 'vi', 'letter v'],
   'w': ['w', 'double', 'double you', 'doubleyou', 'dub', 'duh', 'letter w'],
   'x': ['x', 'ex', 'eks', 'letter x'],
@@ -880,9 +880,9 @@ function parseMultipleLetters(text) {
 function isCommonWord(word) {
   const commonWords = [
     // 2-letter words
-    'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok',
+    'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok', 'im',
     // 3-letter words (note: 'duh' maps to W, 'see' maps to C, so not blocked)
-    'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'bye', 'met', 'hey', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm',
+    'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'bye', 'met', 'hey', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
     // 4-letter words
     'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'okay', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
     // 5+ letter words that might be mistaken
