@@ -97,32 +97,74 @@ export const abcSongNotes = {
 
 // Letter name mappings for speech recognition
 export const letterNames = {
-  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'letter a'],
+  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'aye', 'eight', 'letter a'],
   'b': ['b', 'bee', 'bea', 'bi', 'be', 'baby', 'letter b'],
-  'c': ['c', 'see', 'sea', 'si', 'cee', 'letter c'],
-  'd': ['d', 'dee', 'di', 'letter d'],
-  'e': ['e', 'ee', 'eee', 'letter e'],
+  'c': ['c', 'see', 'sea', 'si', 'cee', 'sie', 'xi', 'letter c'],
+  'd': ['d', 'dee', 'di', 'de', 'letter d'],
+  'e': ['e', 'ee', 'eee', 'ea', 'letter e'],
   'f': ['f', 'ef', 'eff', 'letter f'],
-  'g': ['g', 'gee', 'ji', 'jee', 'we', 'chee', 'letter g'],
-  'h': ['h', 'aitch', 'eich', 'letter h'],
+  'g': ['g', 'gee', 'ji', 'jee', 'ge', 'chee', 'letter g'],
+  'h': ['h', 'aitch', 'eich', 'age', 'ach', 'each', 'letter h'],
   'i': ['i', 'eye', 'ai', 'letter i'],
-  'j': ['j', 'jay', 'jae', 'letter j'],
-  'k': ['k', 'kay', 'kaye', 'letter k'],
-  'l': ['l', 'el', 'ell', 'elle', 'letter l'],
-  'm': ['m', 'em', 'letter m'],
-  'n': ['n', 'en', 'letter n'],
-  'o': ['o', 'oh', 'no', 'letter o'],
-  'p': ['p', 'pee', 'pi', 'letter p'],
-  'q': ['q', 'cue', 'queue', 'kyu', 'letter q'],
-  'r': ['r', 'ar', 'are', 'letter r'],
+  'j': ['j', 'jay', 'jae', 'je', 'jai', 'letter j'],
+  'k': ['k', 'kay', 'kaye', 'ke', 'letter k'],
+  'l': ['l', 'el', 'ell', 'elle', 'al', 'ol', 'letter l'],
+  'm': ['m', 'em', 'um', 'mm', 'letter m'],
+  'n': ['n', 'en', 'an', 'letter n'],
+  'o': ['o', 'oh', 'ow', 'owe', 'letter o'],
+  'p': ['p', 'pee', 'pi', 'pea', 'pe', 'letter p'],
+  'q': ['q', 'cue', 'queue', 'kyu', 'cu', 'qu', 'kew', 'letter q'],
+  'r': ['r', 'ar', 'are', 'er', 'or', 'our', 'letter r'],
   's': ['s', 'es', 'ess', 'letter s'],
-  't': ['t', 'tee', 'ti', 'tea', 'letter t'],
-  'u': ['u', 'you', 'yu', 'ooh', 'letter u'],
-  'v': ['v', 'vee', 'vi', 'letter v'],
-  'w': ['w', 'double', 'double you', 'doubleyou', 'dub', 'duh', 'letter w'],
-  'x': ['x', 'ex', 'eks', 'letter x'],
-  'y': ['y', 'why', 'wai', 'yeah', 'letter y'],
-  'z': ['z', 'zee', 'zed', 'letter z']
+  't': ['t', 'tee', 'ti', 'tea', 'te', 'ty', 'letter t'],
+  'u': ['u', 'you', 'yu', 'ooh', 'ew', 'uu', 'letter u'],
+  'v': ['v', 'vee', 'vi', 've', 'letter v'],
+  'w': ['w', 'double', 'double you', 'doubleyou', 'dub', 'duh', 'daba', 'dabliu', 'letter w'],
+  'x': ['x', 'ex', 'eks', 'eggs', 'ax', 'ecks', 'letter x'],
+  'y': ['y', 'why', 'wai', 'yeah', 'wie', 'wi', 'letter y'],
+  'z': ['z', 'zee', 'ze', 'zi', 'letter z']
+};
+
+// Ambiguous sounds that could be multiple letters - resolved by sequential context
+// Key: sound, Value: array of possible letters (in alphabet order)
+export const ambiguousSounds = {
+  // C vs Z (sibilant + ee sound) - After B→C, After Y→Z
+  'zee': ['c', 'z'],
+  'see': ['c', 'z'],
+  'sea': ['c', 'z'],
+  'si': ['c', 'z'],
+  'zi': ['c', 'z'],
+  'cee': ['c', 'z'],
+  'ze': ['c', 'z'],
+  // B vs P (plosive + ee) - After A→B, After O→P
+  'bee': ['b', 'p'],
+  'pee': ['b', 'p'],
+  'be': ['b', 'p'],
+  'pe': ['b', 'p'],
+  // D vs T (dental + ee) - After C→D, After S→T
+  'dee': ['d', 't'],
+  'tee': ['d', 't'],
+  'de': ['d', 't'],
+  'te': ['d', 't'],
+  // M vs N (nasal) - After L→M, After M→N
+  'em': ['m', 'n'],
+  'en': ['m', 'n'],
+  'um': ['m', 'n'],
+  'an': ['m', 'n'],
+  // G vs J (similar start) - After F→G, After I→J
+  'gee': ['g', 'j'],
+  'jee': ['g', 'j'],
+  'ji': ['g', 'j'],
+  'ge': ['g', 'j'],
+  'je': ['g', 'j'],
+  // E vs I (short sounds) - After D→E, After H→I
+  'ee': ['e', 'i'],
+  'ea': ['e', 'i'],
+  // K vs Q (similar sound) - After J→K, After P→Q
+  'kay': ['k', 'q'],
+  'cue': ['k', 'q'],
+  'kew': ['k', 'q'],
+  'que': ['k', 'q'],
 };
 
 // Phonetic patterns for sequential letter detection

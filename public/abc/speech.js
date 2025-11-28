@@ -2,7 +2,7 @@
 // ABC - Speech Recognition Module
 // ============================================
 
-import { state, elements, letterNames, phoneticPatterns, ABC_TEMPO, commonWords } from './config.js';
+import { state, elements, letterNames, ambiguousSounds, phoneticPatterns, ABC_TEMPO, commonWords } from './config.js';
 
 // Module-level state
 let levelAudioContext = null;
@@ -441,10 +441,39 @@ function parseMultipleLetters(text) {
   const words = cleanText.split(/[\s,.-]+/).filter(w => w.length > 0);
   if (words.length > 0) console.log(`   🔍 Parsing words: [${words.join(', ')}]`);
 
+  // Get sequence confidence once for all words
+  const { confidence: seqConfidence, streak: seqStreak } = getSequenceConfidence();
+  const expectedNext = getExpectedNextLetter();
+  const highConfidence = seqConfidence >= 0.8; // 3+ letters in sequence
+
   for (const word of words) {
     const wordLower = word.toLowerCase();
 
-    // Check letter name variations first
+    // HIGH CONFIDENCE SEQUENCE: If we have a strong sequence (A-B-C),
+    // strongly prefer the expected next letter for any fuzzy match
+    if (highConfidence && expectedNext && fuzzyMatchesLetter(wordLower, expectedNext)) {
+      console.log(`   🔥 High confidence (${seqStreak} streak) "${word}" → ${expectedNext.toUpperCase()} (expected after ${getLastLetter()?.toUpperCase()})`);
+      detected.push(expectedNext);
+      continue;
+    }
+
+    // Check ambiguous sounds - use sequential context to disambiguate
+    if (ambiguousSounds[wordLower]) {
+      const possibleLetters = ambiguousSounds[wordLower];
+
+      if (expectedNext && possibleLetters.includes(expectedNext)) {
+        console.log(`   🎯 Ambiguous "${word}" → ${expectedNext.toUpperCase()} (context: after ${getLastLetter()?.toUpperCase() || '?'})`);
+        detected.push(expectedNext);
+        continue;
+      }
+      // No context match - use first option (alphabetically earlier)
+      const defaultLetter = possibleLetters[0];
+      console.log(`   🎲 Ambiguous "${word}" → ${defaultLetter.toUpperCase()} (no context, default)`);
+      detected.push(defaultLetter);
+      continue;
+    }
+
+    // Check letter name variations
     let foundMatch = false;
     for (const [letter, variations] of Object.entries(letterNames)) {
       for (const variation of variations) {
@@ -466,13 +495,20 @@ function parseMultipleLetters(text) {
       continue;
     }
 
-    // Skip common words
+    // MEDIUM CONFIDENCE: Even with some sequence, try expected letter before skipping
+    if (seqConfidence >= 0.5 && expectedNext && fuzzyMatchesLetter(wordLower, expectedNext)) {
+      console.log(`   🔮 Sequence hint (${seqStreak} streak) "${word}" → ${expectedNext.toUpperCase()}`);
+      detected.push(expectedNext);
+      continue;
+    }
+
+    // Skip common words (but only if no sequence match above)
     if (isCommonWord(word)) {
       console.log(`   ⏭️ Skipped common word: "${word}"`);
       continue;
     }
 
-    // Intelligent sequential matching for short words
+    // Phonetic patterns for sequential letter detection
     if (wordLower.length >= 2 && wordLower.length <= 3 && /^[a-z]+$/.test(wordLower)) {
       if (phoneticPatterns[wordLower]) {
         console.log(`   📖 Sequential pattern: "${word}" → [${phoneticPatterns[wordLower].join(', ')}]`);
@@ -490,10 +526,9 @@ function parseMultipleLetters(text) {
       continue;
     }
 
-    // Sequential intelligence: check if this could be the expected next letter
-    const expectedNext = getExpectedNextLetter();
+    // Last resort: try expected next with loose matching
     if (expectedNext && matchesExpectedNext(wordLower, expectedNext)) {
-      console.log(`   🔮 Sequential match: "${word}" → ${expectedNext.toUpperCase()} (expected after recent letters)`);
+      console.log(`   🔮 Sequential match: "${word}" → ${expectedNext.toUpperCase()}`);
       detected.push(expectedNext);
       continue;
     }
@@ -508,17 +543,51 @@ function isCommonWord(word) {
   return commonWords.includes(word.toLowerCase());
 }
 
-// Get expected next letter based on recent history (for sequential intelligence)
-function getExpectedNextLetter() {
+// Get the last letter shown (for logging/context)
+function getLastLetter() {
   const now = Date.now();
   const recent = recentLetters
-    .filter(r => now - r.time < 3000) // Last 3 seconds
+    .filter(r => now - r.time < 3000)
+    .map(r => r.letter);
+  return recent.length > 0 ? recent[recent.length - 1] : null;
+}
+
+// Get sequence confidence: how many recent letters are in consecutive order
+// Returns { confidence: 0-1, streak: number }
+function getSequenceConfidence() {
+  const now = Date.now();
+  const recent = recentLetters
+    .filter(r => now - r.time < 5000) // 5 second window for sequence
     .map(r => r.letter);
 
-  if (recent.length === 0) return null;
+  if (recent.length < 2) return { confidence: 0, streak: recent.length };
 
-  // Get the last letter shown
-  const lastLetter = recent[recent.length - 1];
+  // Count consecutive letters from the end
+  let streak = 1;
+  for (let i = recent.length - 1; i > 0; i--) {
+    const curr = recent[i].charCodeAt(0);
+    const prev = recent[i - 1].charCodeAt(0);
+    if (curr === prev + 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  // Confidence: 2 in a row = 0.5, 3+ = 0.8, 4+ = 0.95
+  let confidence = 0;
+  if (streak >= 4) confidence = 0.95;
+  else if (streak >= 3) confidence = 0.8;
+  else if (streak >= 2) confidence = 0.5;
+
+  return { confidence, streak };
+}
+
+// Get expected next letter based on recent history (for sequential intelligence)
+function getExpectedNextLetter() {
+  const lastLetter = getLastLetter();
+  if (!lastLetter) return null;
+
   const lastCode = lastLetter.charCodeAt(0);
 
   // If it's a-y, the expected next is the following letter
@@ -527,6 +596,40 @@ function getExpectedNextLetter() {
   }
 
   return null;
+}
+
+// Check if a word loosely/fuzzily matches a letter (for high-confidence sequences)
+function fuzzyMatchesLetter(word, letter) {
+  const variations = letterNames[letter];
+  if (!variations) return false;
+
+  const w = word.toLowerCase();
+
+  // Exact match with any variation
+  for (const v of variations) {
+    if (w === v) return true;
+  }
+
+  // Starts with the letter
+  if (w.startsWith(letter)) return true;
+
+  // First letter matches and word is short (likely mishearing)
+  if (w.length <= 3 && w[0] === letter) return true;
+
+  // Check if any variation starts with the word or vice versa
+  for (const v of variations) {
+    if (v.startsWith(w) || w.startsWith(v)) return true;
+  }
+
+  // Phonetic similarity: same first consonant/vowel pattern
+  const letterSound = variations[1] || letter; // Usually the phonetic spelling
+  if (letterSound && w.length >= 2) {
+    // Similar ending sounds (ee, ay, etc.)
+    if (letterSound.endsWith('ee') && w.endsWith('ee')) return true;
+    if (letterSound.endsWith('ay') && w.endsWith('ay')) return true;
+  }
+
+  return false;
 }
 
 // Check if a word could match the expected next letter
