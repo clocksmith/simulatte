@@ -2,7 +2,7 @@
 // ABC - Main Entry Point
 // ============================================
 
-import { state, elements, initElements, ALPHABET } from './config.js';
+import { state, elements, initElements, ALPHABET, shapeTypes, colors } from './config.js';
 import { initAudio } from './audio.js';
 import { loadWhisperModel, toggleMicrophone, setSpeechCallbacks } from './speech.js';
 import { triggerCelebration, blockShortcuts } from './effects.js';
@@ -33,6 +33,87 @@ function startGame() {
 // Event Handlers
 // ============================================
 
+// Shape display for special keys
+function showShape(shapeType) {
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  const size = Math.min(300, window.innerWidth * 0.4);
+
+  // Create shape element
+  const shapeEl = document.createElement('div');
+  shapeEl.className = 'flying-shape';
+  shapeEl.style.position = 'fixed';
+  shapeEl.style.left = `${centerX}px`;
+  shapeEl.style.top = `${centerY}px`;
+  shapeEl.style.transform = 'translate(-50%, -50%)';
+  shapeEl.style.zIndex = '100';
+  shapeEl.style.pointerEvents = 'none';
+
+  // Create SVG for the shape
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', size);
+  svg.setAttribute('height', size);
+  svg.setAttribute('viewBox', '-50 -50 100 100');
+  svg.style.filter = `drop-shadow(0 0 20px ${color}) drop-shadow(0 0 40px ${color})`;
+  svg.style.animation = 'shapePop 0.8s ease-out forwards';
+
+  let path;
+  switch (shapeType) {
+    case 'heart':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0 -10 C-25 -40, -50 0, 0 35 C50 0, 25 -40, 0 -10');
+      break;
+    case 'star':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const points = [];
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        points.push(`${Math.cos(angle) * 40},${Math.sin(angle) * 40}`);
+      }
+      path.setAttribute('d', `M${points.join(' L')} Z`);
+      break;
+    case 'triangle':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0 -40 L-35 30 L35 30 Z');
+      break;
+    case 'circle':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      path.setAttribute('cx', '0');
+      path.setAttribute('cy', '0');
+      path.setAttribute('r', '35');
+      break;
+    case 'diamond':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0 -40 L25 0 L0 40 L-25 0 Z');
+      break;
+  }
+
+  path.setAttribute('fill', color);
+  svg.appendChild(path);
+  shapeEl.appendChild(svg);
+  document.body.appendChild(shapeEl);
+
+  // Remove after animation
+  setTimeout(() => shapeEl.remove(), 800);
+
+  // Also create some sparkles
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'sparkle';
+      sparkle.style.backgroundColor = color;
+      sparkle.style.left = `${Math.random() * 100}%`;
+      sparkle.style.top = `${Math.random() * 100}%`;
+      sparkle.style.width = `${10 + Math.random() * 20}px`;
+      sparkle.style.height = sparkle.style.width;
+      sparkle.style.boxShadow = `0 0 ${10 + Math.random() * 10}px ${color}`;
+      elements.particlesContainer.appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 800);
+    }, i * 50);
+  }
+}
+
 function handleKeyDown(e) {
   if (!blockShortcuts(e)) return;
 
@@ -41,9 +122,29 @@ function handleKeyDown(e) {
   }
 
   const char = e.key;
-  if (/^[a-zA-Z]$/.test(char)) {
+
+  // Letters and numbers
+  if (/^[a-zA-Z0-9]$/.test(char)) {
     e.preventDefault();
     showLetter(char);
+    return;
+  }
+
+  // Space bar = next letter (like click)
+  if (char === ' ') {
+    e.preventDefault();
+    const nextChar = getNextLetter(state.currentLetter);
+    selectMarqueeLetter(nextChar);
+    return;
+  }
+
+  // Special keys = show shapes
+  const specialKeys = ['Shift', 'Enter', 'Backspace', 'Delete', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'CapsLock', 'Insert', 'Home', 'End', 'PageUp', 'PageDown'];
+  if (specialKeys.includes(char)) {
+    e.preventDefault();
+    const randomShape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+    showShape(randomShape);
+    return;
   }
 }
 
