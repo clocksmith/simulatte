@@ -17,7 +17,7 @@ export const state = {
   isModelLoading: false,
   isModelLoaded: false,
   isListening: false,
-  selectedModel: 'tiny',
+  selectedModel: 'none', // Default off, can be enabled at runtime
   // Audio monitoring
   audioAnalyser: null,
   audioDataArray: null,
@@ -68,6 +68,7 @@ export const abcSongNotes = {
   'v': { freq: 293.66, duration: 0.5 },
   'w': {
     multi: true,
+    gap: 0.053,
     notes: [
       { freq: 392.00, duration: 0.18 },
       { freq: 392.00, duration: 0.18 },
@@ -77,6 +78,7 @@ export const abcSongNotes = {
   'x': { freq: 349.23, duration: 0.4 },
   'y': {
     multi: true,
+    gap: 0.08,
     notes: [
       { freq: 329.63, duration: 0.25 },
       { freq: 329.63, duration: 0.25 }
@@ -97,17 +99,17 @@ export const abcSongNotes = {
 
 // Letter name mappings for speech recognition
 export const letterNames = {
-  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'aye', 'eight', 'letter a'],
+  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'aye', 'letter a'],
   'b': ['b', 'bee', 'bea', 'bi', 'be', 'baby', 'letter b'],
   'c': ['c', 'see', 'sea', 'si', 'cee', 'sie', 'xi', 'letter c'],
-  'd': ['d', 'dee', 'di', 'de', 'letter d'],
+  'd': ['d', 'dee', 'di', 'de', 'the', 'letter d'],
   'e': ['e', 'ee', 'eee', 'ea', 'letter e'],
   'f': ['f', 'ef', 'eff', 'letter f'],
   'g': ['g', 'gee', 'ji', 'jee', 'ge', 'chee', 'letter g'],
   'h': ['h', 'aitch', 'eich', 'age', 'ach', 'each', 'letter h'],
   'i': ['i', 'eye', 'ai', 'letter i'],
   'j': ['j', 'jay', 'jae', 'je', 'jai', 'letter j'],
-  'k': ['k', 'kay', 'kaye', 'ke', 'letter k'],
+  'k': ['k', 'kay', 'kaye', 'ke', 'okay', 'letter k'],
   'l': ['l', 'el', 'ell', 'elle', 'al', 'ol', 'letter l'],
   'm': ['m', 'em', 'um', 'mm', 'letter m'],
   'n': ['n', 'en', 'an', 'letter n'],
@@ -121,8 +123,31 @@ export const letterNames = {
   'v': ['v', 'vee', 'vi', 've', 'letter v'],
   'w': ['w', 'double', 'double you', 'doubleyou', 'dub', 'duh', 'daba', 'dabliu', 'letter w'],
   'x': ['x', 'ex', 'eks', 'eggs', 'ax', 'ecks', 'letter x'],
-  'y': ['y', 'why', 'wai', 'yeah', 'wie', 'wi', 'letter y'],
+  'y': ['y', 'wai', 'yeah', 'wie', 'wi', 'letter y'],
   'z': ['z', 'zee', 'ze', 'zi', 'letter z']
+};
+
+// Number name mappings for speech recognition
+export const numberNames = {
+  '0': ['zero', 'oh', 'o', 'nought', 'nil'],
+  '1': ['one', 'won', 'wan'],
+  '2': ['two', 'too', 'to', 'tu'],
+  '3': ['three', 'tree', 'free'],
+  '4': ['four', 'for', 'fore', 'fourth'],
+  '5': ['five', 'fife', 'hive'],
+  '6': ['six', 'sicks', 'sex'],
+  '7': ['seven', 'sevn'],
+  '8': ['eight', 'ate', 'ait'],
+  '9': ['nine', 'nein', 'mine']
+};
+
+// Shape name mappings for speech recognition
+export const shapeNames = {
+  'heart': ['heart', 'hearts', 'hart', 'love', 'red heart'],
+  'star': ['star', 'stars', 'starr'],
+  'triangle': ['triangle', 'triangles', 'tri', 'pyramid'],
+  'circle': ['circle', 'circles', 'round', 'ball', 'dot'],
+  'diamond': ['diamond', 'diamonds', 'rhombus', 'gem']
 };
 
 // Ambiguous sounds that could be multiple letters - resolved by sequential context
@@ -165,6 +190,10 @@ export const ambiguousSounds = {
   'cue': ['k', 'q'],
   'kew': ['k', 'q'],
   'que': ['k', 'q'],
+  // B vs Y (sounds like "by/bye/why") - After A→B, After X→Y
+  'by': ['b', 'y'],
+  'bye': ['b', 'y'],
+  'why': ['b', 'y'],
 };
 
 // Phonetic patterns for sequential letter detection
@@ -266,11 +295,11 @@ export const ABC_TEMPO = {
 // Common words to filter out (not letter names)
 export const commonWords = [
   // 2-letter words
-  'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok', 'im',
+  'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok', 'im',
   // 3-letter words
-  'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'bye', 'met', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
+  'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'met', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
   // 4-letter words
-  'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'okay', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
+  'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
   // 5+ letter words
   'hello', 'being', 'their', 'about', 'would', 'could', 'there', 'where', 'which', 'these', 'those', 'other', 'after', 'think', 'first', 'going', 'thing', 'right', 'still', 'again', 'never', 'under', 'night', 'great', 'every', 'years', 'maybe', 'meant', 'thank', 'thanks', 'change', 'double', 'effect', 'effects', 'really', 'people', 'before', 'should', 'saying', 'things', 'little', 'always', 'wanted', 'enough', 'pretty'
 ];

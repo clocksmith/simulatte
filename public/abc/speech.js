@@ -2,7 +2,7 @@
 // ABC - Speech Recognition Module
 // ============================================
 
-import { state, elements, letterNames, ambiguousSounds, phoneticPatterns, ABC_TEMPO, commonWords } from './config.js';
+import { state, elements, letterNames, numberNames, shapeNames, ambiguousSounds, phoneticPatterns, ABC_TEMPO, commonWords } from './config.js';
 
 // Module-level state
 let levelAudioContext = null;
@@ -24,16 +24,106 @@ const DEDUPE_WINDOW_MS = 800;
 
 // Callbacks (set by main.js)
 let onShowLetter = null;
+let onShowShape = null;
 let onTriggerCelebration = null;
 
-export function setSpeechCallbacks(showLetterFn, celebrationFn) {
+// Cached models state
+let cachedModels = new Set();
+
+export function setSpeechCallbacks(showLetterFn, celebrationFn, showShapeFn) {
   onShowLetter = showLetterFn;
   onTriggerCelebration = celebrationFn;
+  onShowShape = showShapeFn;
+}
+
+// ============================================
+// Model Cache Detection
+// ============================================
+
+export async function checkCachedModels() {
+  cachedModels.clear();
+
+  try {
+    // Transformers.js uses Cache API with 'transformers-cache'
+    const cache = await caches.open('transformers-cache');
+    const keys = await cache.keys();
+
+    // Check for model files
+    const modelPatterns = {
+      'tiny': 'whisper-tiny',
+      'base': 'whisper-base',
+      'small': 'whisper-small'
+    };
+
+    for (const [modelName, pattern] of Object.entries(modelPatterns)) {
+      // Look for the model's config or weights file
+      const hasModel = keys.some(req => req.url.includes(pattern));
+      if (hasModel) {
+        cachedModels.add(modelName);
+      }
+    }
+
+    console.log('🗄️ Cached models:', [...cachedModels].join(', ') || 'none');
+  } catch (e) {
+    console.log('Could not check model cache:', e);
+  }
+
+  return cachedModels;
+}
+
+export function isModelCached(modelName) {
+  return cachedModels.has(modelName);
+}
+
+export function getCachedModels() {
+  return cachedModels;
 }
 
 // ============================================
 // Whisper Model Loading
 // ============================================
+
+export async function switchModel(newModel) {
+  console.log(`🔄 Switching model to: ${newModel}`);
+
+  // Stop current listening
+  if (state.isListening) {
+    toggleMicrophone(false);
+  }
+
+  // Terminate existing worker
+  if (state.whisperWorker) {
+    state.whisperWorker.terminate();
+    state.whisperWorker = null;
+  }
+
+  // Reset state
+  state.isModelLoaded = false;
+  state.isModelLoading = false;
+  state.selectedModel = newModel;
+
+  // Update UI
+  updateModelSelectorUI(newModel);
+
+  // Load new model if not 'none'
+  if (newModel !== 'none') {
+    loadWhisperModel();
+  } else {
+    elements.micIndicator.classList.remove('visible', 'listening');
+  }
+}
+
+function updateModelSelectorUI(model) {
+  // Update start screen selector
+  document.querySelectorAll('.model-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.model === model);
+  });
+
+  // Update runtime selector if it exists
+  document.querySelectorAll('.runtime-model-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.model === model);
+  });
+}
 
 export function loadWhisperModel() {
   if (state.selectedModel === 'none') {
@@ -41,7 +131,8 @@ export function loadWhisperModel() {
     return;
   }
 
-  if (state.isModelLoading || state.isModelLoaded) return;
+  if (state.isModelLoading) return;
+  if (state.isModelLoaded && state.whisperWorker) return;
 
   state.isModelLoading = true;
   elements.modelLoader.classList.add('active');
@@ -372,6 +463,45 @@ export function toggleMicrophone(enabled) {
 // Letter Matching & Parsing
 // ============================================
 
+function checkForShapes(text) {
+  const detected = [];
+  const words = text.toLowerCase().split(/\s+/);
+
+  for (const word of words) {
+    for (const [shape, variations] of Object.entries(shapeNames)) {
+      if (variations.includes(word)) {
+        detected.push(shape);
+        break;
+      }
+    }
+  }
+
+  return detected;
+}
+
+function checkForNumbers(text) {
+  const detected = [];
+  const words = text.toLowerCase().split(/\s+/);
+
+  for (const word of words) {
+    // Check digit characters
+    if (/^[0-9]$/.test(word)) {
+      detected.push(word);
+      continue;
+    }
+
+    // Check number words
+    for (const [num, variations] of Object.entries(numberNames)) {
+      if (variations.includes(word)) {
+        detected.push(num);
+        break;
+      }
+    }
+  }
+
+  return detected;
+}
+
 function checkForLetterMatch(transcription) {
   let text = transcription.toLowerCase().trim()
     .replace(/[.,!?'"]/g, '')
@@ -399,6 +529,26 @@ function checkForLetterMatch(transcription) {
   const cleanLower = text.replace(/[\[\]\(\)]/g, '').toLowerCase();
   if (hallucinations.some(h => cleanLower.includes(h))) {
     console.log(`🚫 Filtered hallucination: "${text}"`);
+    return;
+  }
+
+  // Check for shapes first (they're distinct words)
+  const detectedShapes = checkForShapes(text);
+  if (detectedShapes.length > 0) {
+    console.log(`🔷 Heard shapes: "${text}" → [${detectedShapes.join(', ')}]`);
+    for (const shape of detectedShapes) {
+      if (onShowShape) {
+        onShowShape(shape);
+      }
+    }
+    return;
+  }
+
+  // Check for numbers
+  const detectedNumbers = checkForNumbers(text);
+  if (detectedNumbers.length > 0) {
+    console.log(`🔢 Heard numbers: "${text}" → [${detectedNumbers.join(', ')}]`);
+    queueLetters(detectedNumbers); // Numbers use same queue as letters
     return;
   }
 
@@ -676,7 +826,7 @@ function getLetterTempo(letter, nextLetter) {
   }
 
   if (l === 'g' || l === 'p' || l === 's' || l === 'v') return ABC_TEMPO.held;
-  if (l === 'w') return ABC_TEMPO.slow;
+  if (l === 'w' || l === 'y') return ABC_TEMPO.slow;
   if (l === 'z') return ABC_TEMPO.final;
 
   if (next) {

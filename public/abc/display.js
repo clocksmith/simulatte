@@ -3,7 +3,7 @@
 // ============================================
 
 import { state, elements, colors, ALPHABET, MARQUEE_SPEED } from './config.js';
-import { playNote } from './audio.js';
+import { playNote, playShapeSound } from './audio.js';
 import { createParticles, createSparkle } from './effects.js';
 import { onLetterChange } from './canvas.js';
 
@@ -201,12 +201,61 @@ function removeOldFlyingLetters() {
 function animateLetterToCenter(letter, color, upperSource, lowerSource) {
   const centerX = window.innerWidth / 2;
   const centerY = window.innerHeight / 2;
+  const isNumber = /^[0-9]$/.test(letter);
 
   const upperTargetSize = Math.min(450, window.innerWidth * 0.38);
   const lowerTargetSize = Math.min(360, window.innerWidth * 0.30);
   const gap = Math.min(80, window.innerWidth * 0.06);
 
-  // Create flying letters
+  // For numbers, just show one centered digit
+  if (isNumber) {
+    const flyingNumber = document.createElement('div');
+    flyingNumber.className = 'flying-letter';
+    flyingNumber.textContent = letter;
+    flyingNumber.dataset.letter = letter;
+    flyingNumber.style.color = color;
+    flyingNumber.style.left = '0px';
+    flyingNumber.style.top = '0px';
+
+    const fromLeft = Math.random() > 0.5;
+    const startX = fromLeft ? -80 : window.innerWidth + 80;
+    const startY = centerY;
+
+    flyingNumber.style.transform = `translate(${startX}px, ${startY}px)`;
+    flyingNumber.style.fontSize = '36px';
+    flyingNumber.style.opacity = '0.4';
+
+    document.body.appendChild(flyingNumber);
+
+    const numberSize = Math.min(500, window.innerWidth * 0.45);
+    const finalX = centerX - numberSize * 0.3;
+    const finalY = centerY - numberSize * 0.4;
+
+    const numberAnim = createLerpAnimation(flyingNumber, {
+      x: finalX,
+      y: finalY,
+      size: numberSize,
+      opacity: 1
+    });
+    numberAnim.current = { x: startX, y: startY, size: 36, opacity: 0.4 };
+
+    activeAnimations.push(numberAnim);
+    startAnimationLoop();
+
+    currentFlyingUpper = flyingNumber;
+    currentFlyingLower = null;
+    currentDisplayColor = color;
+    state.currentLetter = letter;
+
+    onLetterChange(color);
+    createParticles(letter, color);
+    for (let i = 0; i < 15; i++) {
+      setTimeout(() => createSparkle(color), i * 60);
+    }
+    return;
+  }
+
+  // Create flying letters (for A-Z)
   const flyingUpper = document.createElement('div');
   flyingUpper.className = 'flying-letter';
   flyingUpper.textContent = letter.toUpperCase();
@@ -311,4 +360,123 @@ function highlightMarqueeLetter(letter, color) {
 // Show letter (called from speech module)
 export function showLetter(char) {
   selectMarqueeLetter(char.toLowerCase());
+}
+
+// Show shape (called from main for special keys)
+export function showShape(shapeType) {
+  const color = colors[Math.floor(Math.random() * colors.length)];
+
+  cancelAllAnimations();
+  removeOldFlyingLetters();
+  playShapeSound(shapeType);
+
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  const targetSize = Math.min(400, window.innerWidth * 0.4);
+
+  // Create shape element
+  const shapeEl = document.createElement('div');
+  shapeEl.className = 'flying-letter flying-shape';
+  shapeEl.style.left = '0px';
+  shapeEl.style.top = '0px';
+
+  // Create SVG for the shape
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', '100%');
+  svg.setAttribute('viewBox', '-50 -50 100 100');
+  svg.style.filter = `drop-shadow(0 0 20px ${color}) drop-shadow(0 0 40px ${color})`;
+
+  let path;
+  switch (shapeType) {
+    case 'heart':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0 -10 C-25 -40, -50 0, 0 35 C50 0, 25 -40, 0 -10');
+      break;
+    case 'star':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const points = [];
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        points.push(`${Math.cos(angle) * 40},${Math.sin(angle) * 40}`);
+      }
+      path.setAttribute('d', `M${points.join(' L')} Z`);
+      break;
+    case 'triangle':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0 -40 L-35 30 L35 30 Z');
+      break;
+    case 'circle':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      path.setAttribute('cx', '0');
+      path.setAttribute('cy', '0');
+      path.setAttribute('r', '35');
+      break;
+    case 'diamond':
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0 -40 L25 0 L0 40 L-25 0 Z');
+      break;
+  }
+
+  path.setAttribute('fill', color);
+  svg.appendChild(path);
+  shapeEl.appendChild(svg);
+  document.body.appendChild(shapeEl);
+
+  // Animate from off-screen
+  const fromLeft = Math.random() > 0.5;
+  const startX = fromLeft ? -100 : window.innerWidth + 100;
+  const startY = centerY;
+
+  shapeEl.style.transform = `translate(${startX}px, ${startY}px)`;
+  shapeEl.style.width = '50px';
+  shapeEl.style.height = '50px';
+  shapeEl.style.opacity = '0.4';
+
+  const finalX = centerX - targetSize / 2;
+  const finalY = centerY - targetSize / 2;
+
+  const shapeAnim = createLerpAnimation(shapeEl, {
+    x: finalX,
+    y: finalY,
+    size: targetSize,
+    opacity: 1
+  });
+  shapeAnim.current = { x: startX, y: startY, size: 50, opacity: 0.4 };
+
+  // Override the animation update for shapes (width/height instead of fontSize)
+  const origElement = shapeAnim.element;
+  const updateShape = () => {
+    origElement.style.width = `${shapeAnim.current.size}px`;
+    origElement.style.height = `${shapeAnim.current.size}px`;
+  };
+  const origOnComplete = shapeAnim.onComplete;
+  shapeAnim.onComplete = () => {
+    updateShape();
+    if (origOnComplete) origOnComplete();
+  };
+
+  activeAnimations.push(shapeAnim);
+
+  // Custom animation loop for shape sizing
+  const animateShape = () => {
+    if (shapeAnim.done) return;
+    updateShape();
+    requestAnimationFrame(animateShape);
+  };
+  animateShape();
+
+  startAnimationLoop();
+
+  currentFlyingUpper = shapeEl;
+  currentFlyingLower = null;
+  currentDisplayColor = color;
+  state.currentLetter = null;
+
+  onLetterChange(color);
+
+  // Create sparkles
+  for (let i = 0; i < 15; i++) {
+    setTimeout(() => createSparkle(color), i * 60);
+  }
 }
