@@ -302,6 +302,17 @@
     }
     #cursor.click { transform: scale(0.9); }
 
+    #cursor-dot {
+      position: fixed;
+      width: 4px; height: 4px;
+      background: var(--accent-tertiary);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: difference;
+    }
+
     @media (max-width: 768px) {
       .exhibit-desc {
         padding-left: 0;
@@ -315,6 +326,7 @@
 
   <canvas id="particleCanvas"></canvas>
   <div id="cursor" aria-hidden="true"></div>
+  <div id="cursor-dot" aria-hidden="true"></div>
   <div class="container">
     <h1>Simulatte</h1>
     <p class="tagline">
@@ -456,6 +468,7 @@
     const canvas = document.getElementById('particleCanvas');
     const ctx = canvas.getContext('2d');
     const cursor = document.getElementById('cursor');
+    const cursorDot = document.getElementById('cursor-dot');
     const links = document.querySelectorAll('a');
 
     let width = window.innerWidth;
@@ -611,6 +624,10 @@
       targetMouseX = e.clientX;
       targetMouseY = e.clientY;
 
+      // Position dot at exact mouse location (always instant)
+      cursorDot.style.left = e.clientX + 'px';
+      cursorDot.style.top = e.clientY + 'px';
+
       mouseVelocityX = targetMouseX - prevMouseX;
       mouseVelocityY = targetMouseY - prevMouseY;
       mouseSpeed = Math.sqrt(mouseVelocityX * mouseVelocityX + mouseVelocityY * mouseVelocityY);
@@ -652,6 +669,8 @@
     cursorY = -100;
     targetCursorX = -100;
     targetCursorY = -100;
+    cursorDot.style.left = '-100px';
+    cursorDot.style.top = '-100px';
 
     // Smooth cursor animation loop
     function updateCursor() {
