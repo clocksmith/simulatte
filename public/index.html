@@ -460,8 +460,6 @@
 
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let mouse = { x: -100, y: -100 };
-    let trail = [];
     let ripples = [];
     let time = 0;
 
@@ -500,13 +498,7 @@
     window.addEventListener('resize', resize);
     resize();
 
-    document.addEventListener('mousemove', e => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-      trail.push({ x: mouse.x, y: mouse.y, age: 0 });
-      cursor.style.left = `${mouse.x}px`;
-      cursor.style.top = `${mouse.y}px`;
-    });
+    // Mouse tracking is handled by the consolidated handler below
 
     // Mouse tracking
     let mouseX = width / 2;
@@ -521,7 +513,6 @@
     let isMouseDown = false;
     time = 0;
 
-    const maxTrailLength = 15;
 
     // Click ripple effects (anywhere on page)
     const activeRipples = [];
@@ -863,8 +854,7 @@
 
     // Keyboard navigation for exhibits
     const exhibitLinks = Array.from(document.querySelectorAll('.exhibit a'));
-    const githubLink = document.querySelector('.artist-statement a');
-    const allFocusableElements = [...exhibitLinks, githubLink].filter(el => el !== null);
+    const allFocusableElements = exhibitLinks.filter(el => el != null);
     let currentFocusIndex = -1;
 
     document.addEventListener('keydown', (e) => {
