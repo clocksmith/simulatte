@@ -27,6 +27,7 @@ async function checkWebGPU() {
 
 let whisperPipeline = null;
 let isLoading = false;
+let isProcessing = false; // Lock to prevent concurrent transcriptions
 let currentModel = 'Xenova/whisper-base.en';
 
 // Track download progress across all files
@@ -144,6 +145,13 @@ async function transcribe(audioData) {
     return;
   }
 
+  // Skip if already processing (WebGPU can't handle concurrent sessions)
+  if (isProcessing) {
+    return;
+  }
+
+  isProcessing = true;
+
   try {
     const float32Data = new Float32Array(audioData);
 
@@ -156,15 +164,13 @@ async function transcribe(audioData) {
 
     if (rms < 0.005) {
       self.postMessage({ type: 'result', text: '', silent: true, processingTime: 0 });
+      isProcessing = false;
       return;
     }
 
-    // Run Whisper with prompt to guide toward letter recognition
+    // Run Whisper
     const startTime = performance.now();
-    const result = await whisperPipeline(float32Data, {
-      language: 'english',
-      task: 'transcribe'
-    });
+    const result = await whisperPipeline(float32Data);
     const processingTime = Math.round(performance.now() - startTime);
 
     const text = result?.text || '';
@@ -172,5 +178,7 @@ async function transcribe(audioData) {
 
   } catch (error) {
     self.postMessage({ type: 'error', error: error.message });
+  } finally {
+    isProcessing = false;
   }
 }

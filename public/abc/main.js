@@ -84,13 +84,13 @@ const abcSongNotes = {
   't': { freq: 329.63, duration: 0.4 },  // E - "tee"
   'u': { freq: 329.63, duration: 0.4 },  // E - "you"
   'v': { freq: 293.66, duration: 0.5 },  // D - "vee"
-  // W is special - "dub-ble-you" (3 syllables: G G F in melody)
+  // W is special - "dub-ble-you" (3 syllables, all on G)
   'w': {
     multi: true,
     notes: [
       { freq: 392.00, duration: 0.18 },  // G - "dub-"
       { freq: 392.00, duration: 0.18 },  // G - "-ble-"
-      { freq: 349.23, duration: 0.24 }   // F - "-you"
+      { freq: 392.00, duration: 0.24 }   // G - "-you"
     ]
   },
   'x': { freq: 349.23, duration: 0.4 },  // F - "eks"
@@ -355,18 +355,37 @@ function updateAudioLevel() {
   requestAnimationFrame(updateAudioLevel);
 }
 
-// Overlapping recording system - two recorders alternating
+// Overlapping recording system with deduplication
 let recorderA = null;
 let recorderB = null;
 let chunksA = [];
 let chunksB = [];
-const CHUNK_DURATION = 1500; // 1.5 seconds per chunk (balance speed vs accuracy)
-const OVERLAP_DELAY = 750;   // Start second recorder 0.75s after first (50% overlap)
+const CHUNK_DURATION = 1000; // 1 second per chunk
+const OVERLAP_MS = 150;      // 150ms overlap to catch boundary speech
 
-function setupOverlappingRecorders() {
+// Letter display queue for handling multiple letters from one transcription
+let letterQueue = [];
+let isDisplayingQueue = false;
+
+// Deduplication - track recently shown letters
+let recentLetters = []; // Array of { letter, time }
+const DEDUPE_WINDOW_MS = 800; // Skip same letter if shown within 800ms
+
+function isDuplicateLetter(letter) {
+  const now = Date.now();
+  // Clean old entries
+  recentLetters = recentLetters.filter(r => now - r.time < DEDUPE_WINDOW_MS);
+  // Check if duplicate
+  return recentLetters.some(r => r.letter === letter.toLowerCase());
+}
+
+function markLetterShown(letter) {
+  recentLetters.push({ letter: letter.toLowerCase(), time: Date.now() });
+}
+
+function setupRecorders() {
   const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
 
-  // Recorder A
   recorderA = new MediaRecorder(micStream, { mimeType });
   recorderA.ondataavailable = (e) => {
     if (e.data.size > 0) chunksA.push(e.data);
@@ -379,7 +398,6 @@ function setupOverlappingRecorders() {
     }
   };
 
-  // Recorder B
   recorderB = new MediaRecorder(micStream, { mimeType });
   recorderB.ondataavailable = (e) => {
     if (e.data.size > 0) chunksB.push(e.data);
@@ -396,20 +414,19 @@ function setupOverlappingRecorders() {
 function startRecordingCycle() {
   if (!isListening || !micStream) return;
 
-  // Setup overlapping recorders if not already done
   if (!recorderA || !recorderB) {
-    setupOverlappingRecorders();
+    setupRecorders();
   }
 
   // Start recorder A
   startRecorderLoop(recorderA, 'A');
 
-  // Start recorder B with overlap delay
+  // Start recorder B offset by half chunk duration (creates overlap)
   setTimeout(() => {
     if (isListening) {
       startRecorderLoop(recorderB, 'B');
     }
-  }, OVERLAP_DELAY);
+  }, CHUNK_DURATION / 2);
 }
 
 function startRecorderLoop(recorder, label) {
@@ -422,13 +439,14 @@ function startRecorderLoop(recorder, label) {
 
       recorder.start();
 
+      // Record for chunk duration + overlap
       setTimeout(() => {
         if (recorder.state === 'recording') {
           recorder.stop();
-          // Immediately start next cycle for this recorder
+          // Start next cycle for this recorder after a brief pause
           setTimeout(() => startRecorderLoop(recorder, label), 50);
         }
-      }, CHUNK_DURATION);
+      }, CHUNK_DURATION + OVERLAP_MS);
     }
   } catch (e) {
     console.error('Recorder error:', e);
@@ -581,70 +599,121 @@ function checkForLetterMatch(transcription) {
   // Skip empty or very short meaningless transcriptions
   if (!text || text.length === 0) return;
 
-  // Try to detect any spoken letter
-  let detectedLetter = null;
-  let bestMatchLength = 0;
+  // Filter out common Whisper hallucinations on short/quiet audio
+  // Anything in brackets or parentheses is a sound effect annotation
+  if (/^\s*[\[\(].*[\]\)]\s*$/.test(text)) {
+    console.log(`🚫 Filtered sound effect: "${text}"`);
+    return;
+  }
 
-  // Clean up the text - remove common filler words Whisper adds
+  const hallucinations = [
+    'blank_audio', 'blank audio', 'silence', 'no speech',
+    'thank you', 'thanks for watching', 'see you next time',
+    'subscribe', 'like and subscribe', 'goodbye'
+  ];
+  const cleanLower = text.replace(/[\[\]\(\)]/g, '').toLowerCase();
+  if (hallucinations.some(h => cleanLower.includes(h))) {
+    console.log(`🚫 Filtered hallucination: "${text}"`);
+    return;
+  }
+
+  // Parse multiple letters from transcription
+  const detectedLetters = parseMultipleLetters(text);
+
+  if (detectedLetters.length > 0) {
+    console.log(`✅ Matched: [${detectedLetters.map(l => l.toUpperCase()).join(', ')}] from "${text}"`);
+    queueLetters(detectedLetters);
+  }
+}
+
+// Parse transcription for multiple letter sounds
+function parseMultipleLetters(text) {
   const cleanText = text
     .replace(/^(the |a |an |um |uh |oh |ah )/g, '')
     .replace(/(\.|\,|\!|\?)/g, '')
     .trim();
 
-  // Check each letter against its possible pronunciations
-  for (const [letter, variations] of Object.entries(letterNames)) {
-    for (const variation of variations) {
-      // Exact match (highest priority)
-      if (cleanText === variation) {
-        detectedLetter = letter;
-        bestMatchLength = 1000; // Highest priority
-        break;
-      }
-      // Contains match - prefer longer matches
-      if (cleanText.includes(variation) && variation.length > bestMatchLength) {
-        // Make sure it's not part of a longer word (unless it's a short sound like 'a' or 'e')
-        const regex = new RegExp(`(^|\\s)${variation}($|\\s|\\.|,)`, 'i');
-        if (regex.test(cleanText) || variation.length <= 2) {
-          detectedLetter = letter;
-          bestMatchLength = variation.length;
-        }
-      }
-    }
-    if (bestMatchLength >= 1000) break; // Found exact match
-  }
+  const detected = [];
+  let remaining = cleanText;
 
-  // Also check for single letter transcriptions
-  if (!detectedLetter && cleanText.length === 1 && /[a-z]/.test(cleanText)) {
-    detectedLetter = cleanText;
-  }
+  // Try to extract letters sequentially from the text
+  while (remaining.length > 0) {
+    let foundLetter = null;
+    let foundLength = 0;
 
-  // Check if text starts with a letter sound
-  if (!detectedLetter) {
+    // Check each letter against its possible pronunciations
     for (const [letter, variations] of Object.entries(letterNames)) {
       for (const variation of variations) {
-        if (cleanText.startsWith(variation + ' ') || cleanText.startsWith(variation)) {
-          if (variation.length > 1) { // Avoid matching single letters in words
-            detectedLetter = letter;
-            break;
+        // Check if text starts with this variation
+        if (remaining.startsWith(variation)) {
+          // Prefer longer matches
+          if (variation.length > foundLength) {
+            // Make sure it's a word boundary (space or end)
+            const afterMatch = remaining.slice(variation.length);
+            if (afterMatch.length === 0 || /^[\s,.]/.test(afterMatch)) {
+              foundLetter = letter;
+              foundLength = variation.length;
+            }
           }
         }
       }
-      if (detectedLetter) break;
+    }
+
+    if (foundLetter) {
+      detected.push(foundLetter);
+      remaining = remaining.slice(foundLength).replace(/^[\s,.]+/, '');
+    } else {
+      // Skip to next word if no match
+      const nextSpace = remaining.search(/[\s,.]/);
+      if (nextSpace === -1) {
+        // Check if remaining is a single letter
+        if (remaining.length === 1 && /[a-z]/.test(remaining)) {
+          detected.push(remaining);
+        }
+        break;
+      }
+      remaining = remaining.slice(nextSpace + 1).replace(/^[\s,.]+/, '');
     }
   }
 
-  // If we detected a letter, show it!
-  if (detectedLetter) {
-    console.log(`✅ Matched: "${detectedLetter.toUpperCase()}" from "${cleanText}"`);
-    const wasCurrentLetter = currentLetter && detectedLetter.toLowerCase() === currentLetter.toLowerCase();
-    showLetter(detectedLetter);
-    // playNote is called by selectMarqueeLetter
+  return detected;
+}
 
-    // If it matches previous letter, trigger celebration
-    if (wasCurrentLetter) {
-      setTimeout(triggerCelebration, 600);
-    }
+// Queue letters and display them one at a time
+function queueLetters(letters) {
+  letterQueue.push(...letters);
+  processLetterQueue();
+}
+
+function processLetterQueue() {
+  if (isDisplayingQueue || letterQueue.length === 0) return;
+
+  isDisplayingQueue = true;
+  const letter = letterQueue.shift();
+
+  // Deduplicate - skip if same letter was shown recently
+  if (isDuplicateLetter(letter)) {
+    console.log(`🔄 Skipped duplicate: "${letter.toUpperCase()}"`);
+    isDisplayingQueue = false;
+    processLetterQueue(); // Try next letter immediately
+    return;
   }
+
+  markLetterShown(letter);
+
+  const wasCurrentLetter = currentLetter && letter.toLowerCase() === currentLetter.toLowerCase();
+  showLetter(letter);
+
+  // If it matches previous letter, trigger celebration
+  if (wasCurrentLetter) {
+    setTimeout(triggerCelebration, 600);
+  }
+
+  // Process next letter after a delay
+  setTimeout(() => {
+    isDisplayingQueue = false;
+    processLetterQueue();
+  }, 500); // 500ms between letters
 }
 
 // ============================================
@@ -715,9 +784,10 @@ function playNote(char) {
   // Handle multi-syllable letters (like W = "double-you")
   if (noteData.multi && noteData.notes) {
     let time = audioContext.currentTime;
+    const gap = 0.05; // 50ms pause between syllables
     for (const note of noteData.notes) {
       playSingleNote(note.freq, note.duration, time);
-      time += note.duration;
+      time += note.duration + gap;
     }
     return;
   }
