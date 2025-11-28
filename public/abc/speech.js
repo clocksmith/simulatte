@@ -1,0 +1,597 @@
+// ============================================
+// ABC - Speech Recognition Module
+// ============================================
+
+import { state, elements, letterNames, phoneticPatterns, ABC_TEMPO, commonWords } from './config.js';
+
+// Module-level state
+let levelAudioContext = null;
+let smoothedLevel = 0;
+let recorderA = null;
+let recorderB = null;
+let chunksA = [];
+let chunksB = [];
+const CHUNK_DURATION = 1000;
+const OVERLAP_MS = 150;
+
+// Letter queue for handling multiple letters
+let letterQueue = [];
+let isDisplayingQueue = false;
+
+// Deduplication
+let recentLetters = [];
+const DEDUPE_WINDOW_MS = 800;
+
+// Callbacks (set by main.js)
+let onShowLetter = null;
+let onTriggerCelebration = null;
+
+export function setSpeechCallbacks(showLetterFn, celebrationFn) {
+  onShowLetter = showLetterFn;
+  onTriggerCelebration = celebrationFn;
+}
+
+// ============================================
+// Whisper Model Loading
+// ============================================
+
+export function loadWhisperModel() {
+  if (state.selectedModel === 'none') {
+    console.log('🎤 Voice recognition disabled');
+    return;
+  }
+
+  if (state.isModelLoading || state.isModelLoaded) return;
+
+  state.isModelLoading = true;
+  elements.modelLoader.classList.add('active');
+
+  const progressText = elements.modelLoader.querySelector('.loader-progress');
+  const statusText = elements.modelLoader.querySelector('.loader-text');
+
+  try {
+    statusText.textContent = 'Loading Whisper model...';
+
+    state.whisperWorker = new Worker(new URL('./whisper-worker.js', import.meta.url), { type: 'module' });
+
+    state.whisperWorker.onmessage = (e) => {
+      const { type, status, text, error, silent } = e.data;
+
+      switch (type) {
+        case 'status':
+          if (status === 'downloading') {
+            const loaded = e.data.loaded || 0;
+            const total = e.data.total || 0;
+            const mb = (loaded / 1024 / 1024).toFixed(1);
+            const totalMb = (total / 1024 / 1024).toFixed(1);
+            const activeFiles = e.data.activeFiles || 0;
+            statusText.textContent = `Downloading model${activeFiles > 1 ? ` (${activeFiles} files)` : ''}...`;
+            progressText.textContent = total > 0 ? `${mb} / ${totalMb} MB (${e.data.progress}%)` : `${e.data.progress}%`;
+          } else if (status === 'initiate') {
+            statusText.textContent = e.data.file ? `Starting ${e.data.file}...` : 'Initializing...';
+          } else if (status === 'loading') {
+            statusText.textContent = 'Initializing model...';
+            progressText.textContent = '';
+          } else if (status === 'ready') {
+            state.isModelLoaded = true;
+            state.isModelLoading = false;
+            statusText.textContent = 'Model loaded!';
+            progressText.textContent = '100%';
+            setTimeout(() => {
+              elements.modelLoader.classList.remove('active');
+              elements.modelLoader.classList.add('loaded');
+              startMicrophoneListening();
+            }, 500);
+          }
+          break;
+
+        case 'result':
+          const whisperTime = e.data.processingTime || 0;
+          if (!silent) {
+            if (text && text.trim()) {
+              console.log(`🗣️ Whisper: "${text.trim()}" (${whisperTime}ms)`);
+              updateTranscriptDisplay(text.trim());
+              checkForLetterMatch(text);
+            } else {
+              console.log(`🔇 Whisper: (no speech) (${whisperTime}ms)`);
+              const transcriptEl = elements.micIndicator.querySelector('.mic-transcript');
+              if (transcriptEl) {
+                transcriptEl.textContent = '(no speech)';
+                transcriptEl.classList.remove('heard');
+              }
+              setTimeout(setTranscriptListening, 1000);
+            }
+          } else {
+            setTranscriptListening();
+          }
+          break;
+
+        case 'error':
+          console.error('Whisper worker error:', error);
+          break;
+      }
+    };
+
+    state.whisperWorker.onerror = (error) => {
+      console.error('Worker error:', error);
+      statusText.textContent = 'Failed to load model';
+      progressText.textContent = 'Speech recognition unavailable';
+      state.isModelLoading = false;
+      setTimeout(() => elements.modelLoader.classList.remove('active'), 2000);
+    };
+
+    state.whisperWorker.postMessage({ type: 'load', model: state.selectedModel });
+
+  } catch (error) {
+    console.error('Failed to create Whisper worker:', error);
+    statusText.textContent = 'Failed to load model';
+    progressText.textContent = 'Speech recognition unavailable';
+    state.isModelLoading = false;
+    setTimeout(() => elements.modelLoader.classList.remove('active'), 2000);
+  }
+}
+
+// ============================================
+// Microphone Handling
+// ============================================
+
+async function startMicrophoneListening() {
+  if (!state.isModelLoaded || state.isListening) return;
+
+  try {
+    state.micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+
+    levelAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    if (levelAudioContext.state === 'suspended') {
+      await levelAudioContext.resume();
+    }
+
+    const source = levelAudioContext.createMediaStreamSource(state.micStream);
+    state.audioAnalyser = levelAudioContext.createAnalyser();
+    state.audioAnalyser.fftSize = 512;
+    state.audioAnalyser.smoothingTimeConstant = 0.4;
+    state.audioAnalyser.minDecibels = -90;
+    state.audioAnalyser.maxDecibels = -10;
+    source.connect(state.audioAnalyser);
+
+    state.audioDataArray = new Uint8Array(state.audioAnalyser.fftSize);
+    updateAudioLevel();
+
+    state.isListening = true;
+    elements.micIndicator.classList.add('visible', 'listening');
+    setTranscriptListening();
+    startRecordingCycle();
+
+  } catch (error) {
+    console.error('Microphone access denied:', error);
+    elements.micIndicator.classList.add('visible');
+    const transcriptEl = elements.micIndicator.querySelector('.mic-transcript');
+    if (transcriptEl) {
+      transcriptEl.textContent = 'Mic Blocked';
+      transcriptEl.style.color = '#ff6b6b';
+    }
+  }
+}
+
+function updateAudioLevel() {
+  if (!state.audioAnalyser || !state.isListening) {
+    requestAnimationFrame(updateAudioLevel);
+    return;
+  }
+
+  state.audioAnalyser.getByteTimeDomainData(state.audioDataArray);
+
+  let sumSquares = 0;
+  for (let i = 0; i < state.audioDataArray.length; i++) {
+    const normalized = (state.audioDataArray[i] - 128) / 128;
+    sumSquares += normalized * normalized;
+  }
+  const rms = Math.sqrt(sumSquares / state.audioDataArray.length);
+  const rawLevel = Math.min(100, rms * 200);
+  smoothedLevel += (rawLevel - smoothedLevel) * 0.3;
+  const dB = rms > 0.001 ? Math.round(20 * Math.log10(rms) + 60) : 0;
+
+  const meterBar = elements.micIndicator.querySelector('.mic-meter-bar');
+  const dbDisplay = elements.micIndicator.querySelector('.mic-db');
+  if (meterBar) meterBar.style.setProperty('--level', `${smoothedLevel}%`);
+  if (dbDisplay) dbDisplay.textContent = `${Math.max(0, Math.min(60, dB))} dB`;
+
+  requestAnimationFrame(updateAudioLevel);
+}
+
+// ============================================
+// Recording System
+// ============================================
+
+function setupRecorders() {
+  const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+
+  recorderA = new MediaRecorder(state.micStream, { mimeType });
+  recorderA.ondataavailable = (e) => { if (e.data.size > 0) chunksA.push(e.data); };
+  recorderA.onstop = () => {
+    if (chunksA.length > 0 && state.isModelLoaded && state.isListening) {
+      const blob = new Blob(chunksA, { type: mimeType });
+      chunksA = [];
+      processAudio(blob);
+    }
+  };
+
+  recorderB = new MediaRecorder(state.micStream, { mimeType });
+  recorderB.ondataavailable = (e) => { if (e.data.size > 0) chunksB.push(e.data); };
+  recorderB.onstop = () => {
+    if (chunksB.length > 0 && state.isModelLoaded && state.isListening) {
+      const blob = new Blob(chunksB, { type: mimeType });
+      chunksB = [];
+      processAudio(blob);
+    }
+  };
+}
+
+function startRecordingCycle() {
+  if (!state.isListening || !state.micStream) return;
+  if (!recorderA || !recorderB) setupRecorders();
+
+  startRecorderLoop(recorderA, 'A');
+  setTimeout(() => {
+    if (state.isListening) startRecorderLoop(recorderB, 'B');
+  }, CHUNK_DURATION / 2);
+}
+
+function startRecorderLoop(recorder, label) {
+  if (!state.isListening || !recorder) return;
+
+  try {
+    if (recorder.state === 'inactive') {
+      if (label === 'A') chunksA = [];
+      else chunksB = [];
+      recorder.start();
+      setTimeout(() => {
+        if (recorder.state === 'recording') {
+          recorder.stop();
+          setTimeout(() => startRecorderLoop(recorder, label), 50);
+        }
+      }, CHUNK_DURATION + OVERLAP_MS);
+    }
+  } catch (e) {
+    console.error('Recorder error:', e);
+  }
+}
+
+function resampleAudio(audioData, originalSampleRate, targetSampleRate = 16000) {
+  if (originalSampleRate === targetSampleRate) return audioData;
+
+  const ratio = originalSampleRate / targetSampleRate;
+  const newLength = Math.round(audioData.length / ratio);
+  const result = new Float32Array(newLength);
+
+  for (let i = 0; i < newLength; i++) {
+    const srcIndex = i * ratio;
+    const low = Math.floor(srcIndex);
+    const high = Math.min(low + 1, audioData.length - 1);
+    const frac = srcIndex - low;
+    result[i] = audioData[low] * (1 - frac) + audioData[high] * frac;
+  }
+
+  return result;
+}
+
+async function processAudio(audioBlob) {
+  if (!state.whisperWorker || !state.isModelLoaded || !state.isListening) return;
+
+  try {
+    const processStart = performance.now();
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const originalSampleRate = audioBuffer.sampleRate;
+    const audioData = audioBuffer.getChannelData(0);
+    audioCtx.close();
+
+    let sumSquares = 0;
+    for (let i = 0; i < audioData.length; i++) {
+      sumSquares += audioData[i] * audioData[i];
+    }
+    const rms = Math.sqrt(sumSquares / audioData.length);
+    if (rms < 0.003) return;
+
+    const resampled = resampleAudio(audioData, originalSampleRate, 16000);
+    const duration = (resampled.length / 16000).toFixed(2);
+    const prepTime = (performance.now() - processStart).toFixed(0);
+    console.log(`🎤 Audio: ${duration}s, RMS: ${rms.toFixed(3)}, prep: ${prepTime}ms`);
+
+    const transcriptEl = elements.micIndicator.querySelector('.mic-transcript');
+    if (transcriptEl && !transcriptEl.textContent.startsWith('"')) {
+      transcriptEl.textContent = 'Processing...';
+      transcriptEl.style.color = 'rgba(255, 255, 255, 0.5)';
+    }
+
+    state.whisperWorker.postMessage(
+      { type: 'transcribe', data: resampled.buffer },
+      [resampled.buffer]
+    );
+
+  } catch (error) {
+    console.error('Audio processing error:', error);
+  }
+}
+
+// ============================================
+// Transcript Display
+// ============================================
+
+function updateTranscriptDisplay(text) {
+  const transcriptEl = elements.micIndicator.querySelector('.mic-transcript');
+  if (transcriptEl && text && text.trim().length > 0) {
+    transcriptEl.textContent = `"${text}"`;
+    transcriptEl.classList.add('heard');
+    setTimeout(() => {
+      if (transcriptEl.textContent === `"${text}"`) setTranscriptListening();
+    }, 4000);
+  }
+}
+
+function setTranscriptListening() {
+  const transcriptEl = elements.micIndicator.querySelector('.mic-transcript');
+  if (transcriptEl && !transcriptEl.textContent.startsWith('"')) {
+    transcriptEl.textContent = state.isListening ? 'Listening' : 'Muted';
+    transcriptEl.style.color = 'rgba(255, 255, 255, 0.6)';
+    transcriptEl.classList.remove('heard');
+  }
+}
+
+export function toggleMicrophone(enabled) {
+  const toggleCheckbox = document.getElementById('mic-toggle');
+
+  if (enabled) {
+    state.isListening = true;
+    toggleCheckbox.checked = true;
+    elements.micIndicator.classList.add('listening');
+    recorderA = null;
+    recorderB = null;
+    chunksA = [];
+    chunksB = [];
+    startRecordingCycle();
+    setTranscriptListening();
+  } else {
+    state.isListening = false;
+    toggleCheckbox.checked = false;
+    elements.micIndicator.classList.remove('listening');
+    if (recorderA && recorderA.state === 'recording') try { recorderA.stop(); } catch(e) {}
+    if (recorderB && recorderB.state === 'recording') try { recorderB.stop(); } catch(e) {}
+    const transcriptEl = elements.micIndicator.querySelector('.mic-transcript');
+    if (transcriptEl) {
+      transcriptEl.textContent = 'Muted';
+      transcriptEl.style.color = '#ff6b6b';
+    }
+  }
+}
+
+// ============================================
+// Letter Matching & Parsing
+// ============================================
+
+function checkForLetterMatch(transcription) {
+  let text = transcription.toLowerCase().trim()
+    .replace(/[.,!?'"]/g, '')
+    .replace(/♪/g, '')
+    .replace(/🎵/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (text && text.length > 0) updateTranscriptDisplay(text);
+  if (!text || text.length === 0) return;
+
+  // Filter sound effect annotations
+  if (/^\s*[\[\(].*[\]\)]\s*$/.test(text)) {
+    console.log(`🚫 Filtered sound effect: "${text}"`);
+    return;
+  }
+
+  // Filter hallucinations
+  const hallucinations = [
+    'blank_audio', 'blank audio', 'silence', 'no speech',
+    'thank you', 'thanks for watching', 'see you next time',
+    'subscribe', 'like and subscribe', 'goodbye', 'music',
+    'music playing', 'soft music', 'upbeat music'
+  ];
+  const cleanLower = text.replace(/[\[\]\(\)]/g, '').toLowerCase();
+  if (hallucinations.some(h => cleanLower.includes(h))) {
+    console.log(`🚫 Filtered hallucination: "${text}"`);
+    return;
+  }
+
+  const { letters: detectedLetters, phonetic } = parseMultipleLetters(text);
+
+  if (detectedLetters.length > 0) {
+    const letterStr = detectedLetters.map(l => l.toUpperCase()).join(', ');
+    if (phonetic) {
+      console.log(`✅ Heard: "${text}" → Phonetic "${phonetic}" → [${letterStr}]`);
+    } else {
+      console.log(`✅ Heard: "${text}" → [${letterStr}]`);
+    }
+    queueLetters(detectedLetters);
+  } else {
+    console.log(`❓ No match: "${text}"`);
+  }
+}
+
+function parseMultipleLetters(text) {
+  let cleanText = text
+    .replace(/^(the |an |um |uh |oh |ah )/g, '')
+    .replace(/(\.|\,|\!|\?)/g, '')
+    .trim();
+
+  const detected = [];
+  let matchedPhonetic = null;
+
+  // Check phonetic patterns first
+  const lowerText = cleanText.toLowerCase();
+  for (const [pattern, letters] of Object.entries(phoneticPatterns)) {
+    if (lowerText === pattern || lowerText.includes(pattern)) {
+      detected.push(...letters);
+      matchedPhonetic = pattern;
+      console.log(`   📖 Phonetic match: "${pattern}" → [${letters.join(', ')}]`);
+      cleanText = cleanText.toLowerCase().replace(pattern, '').trim();
+      if (cleanText.length === 0) return { letters: detected, phonetic: matchedPhonetic };
+    }
+  }
+
+  const words = cleanText.split(/[\s,.-]+/).filter(w => w.length > 0);
+  if (words.length > 0) console.log(`   🔍 Parsing words: [${words.join(', ')}]`);
+
+  for (const word of words) {
+    // Check letter name variations first
+    let foundMatch = false;
+    for (const [letter, variations] of Object.entries(letterNames)) {
+      for (const variation of variations) {
+        if (word === variation) {
+          console.log(`   📝 Word "${word}" matches letter ${letter.toUpperCase()}`);
+          detected.push(letter);
+          foundMatch = true;
+          break;
+        }
+      }
+      if (foundMatch) break;
+    }
+    if (foundMatch) continue;
+
+    // Single letter
+    if (word.length === 1 && /[a-z]/.test(word)) {
+      console.log(`   📝 Single char "${word}" → ${word.toUpperCase()}`);
+      detected.push(word);
+      continue;
+    }
+
+    // Skip common words
+    if (isCommonWord(word)) {
+      console.log(`   ⏭️ Skipped common word: "${word}"`);
+      continue;
+    }
+
+    // Intelligent sequential matching for short words
+    if (word.length >= 2 && word.length <= 3 && /^[a-z]+$/.test(word)) {
+      if (phoneticPatterns[word]) {
+        console.log(`   📖 Sequential pattern: "${word}" → [${phoneticPatterns[word].join(', ')}]`);
+        detected.push(...phoneticPatterns[word]);
+        continue;
+      }
+
+      if (word.length === 2) {
+        console.log(`   🔤 Split 2-char "${word}" → [${word.split('').join(', ')}]`);
+        for (const char of word) detected.push(char);
+        continue;
+      }
+
+      console.log(`   ⏭️ Skipped unknown 3-char word: "${word}"`);
+      continue;
+    }
+
+    console.log(`   ⚠️ Unmatched word: "${word}"`);
+  }
+
+  return { letters: detected, phonetic: matchedPhonetic };
+}
+
+function isCommonWord(word) {
+  return commonWords.includes(word.toLowerCase());
+}
+
+// ============================================
+// Letter Queue & Tempo
+// ============================================
+
+function isDuplicateLetter(letter) {
+  const now = Date.now();
+  recentLetters = recentLetters.filter(r => now - r.time < DEDUPE_WINDOW_MS);
+  return recentLetters.some(r => r.letter === letter.toLowerCase());
+}
+
+function markLetterShown(letter) {
+  recentLetters.push({ letter: letter.toLowerCase(), time: Date.now() });
+}
+
+function getLetterTempo(letter, nextLetter) {
+  const l = letter.toLowerCase();
+  const next = nextLetter ? nextLetter.toLowerCase() : null;
+
+  if (['l', 'm', 'n', 'o'].includes(l)) {
+    if (next && ['m', 'n', 'o', 'p'].includes(next)) return ABC_TEMPO.fast;
+  }
+
+  if (l === 'g' || l === 'p' || l === 's' || l === 'v') return ABC_TEMPO.held;
+  if (l === 'w') return ABC_TEMPO.slow;
+  if (l === 'z') return ABC_TEMPO.final;
+
+  if (next) {
+    const lCode = l.charCodeAt(0);
+    const nextCode = next.charCodeAt(0);
+    if (nextCode === lCode + 1 && lCode >= 108 && lCode <= 111) return ABC_TEMPO.fast;
+  }
+
+  return ABC_TEMPO.normal;
+}
+
+function queueLetters(letters) {
+  const sequence = letters.map(l => l.toLowerCase());
+
+  for (let i = 0; i < letters.length; i++) {
+    letterQueue.push({
+      letter: letters[i],
+      nextInSequence: i < letters.length - 1 ? letters[i + 1] : null,
+      isSequence: letters.length > 1
+    });
+  }
+
+  const queueStr = letterQueue.map(item =>
+    typeof item === 'string' ? item.toUpperCase() : item.letter.toUpperCase()
+  ).join('→');
+  console.log(`📬 Queue: [${queueStr}] (${letterQueue.length} pending)`);
+
+  processLetterQueue();
+}
+
+function processLetterQueue() {
+  if (isDisplayingQueue || letterQueue.length === 0) return;
+
+  isDisplayingQueue = true;
+  const item = letterQueue.shift();
+  const letter = typeof item === 'string' ? item : item.letter;
+  const nextInSequence = typeof item === 'object' ? item.nextInSequence : null;
+  const isSequence = typeof item === 'object' ? item.isSequence : false;
+
+  if (!isSequence && isDuplicateLetter(letter)) {
+    console.log(`🔄 Skipped duplicate: "${letter.toUpperCase()}"`);
+    isDisplayingQueue = false;
+    processLetterQueue();
+    return;
+  }
+
+  markLetterShown(letter);
+
+  // Call the showLetter callback
+  const wasCurrentLetter = state.currentLetter && letter.toLowerCase() === state.currentLetter.toLowerCase();
+  if (onShowLetter) onShowLetter(letter);
+
+  if (wasCurrentLetter && onTriggerCelebration) {
+    setTimeout(onTriggerCelebration, 600);
+  }
+
+  const nextItem = letterQueue.length > 0 ? letterQueue[0] : null;
+  const nextLetter = nextItem ? (typeof nextItem === 'string' ? nextItem : nextItem.letter) : null;
+  const tempoNextLetter = nextInSequence || nextLetter;
+  const delay = getLetterTempo(letter, tempoNextLetter);
+
+  if (isSequence) {
+    const tempoType = delay === ABC_TEMPO.fast ? '⚡fast' :
+                      delay === ABC_TEMPO.held ? '🎵held' :
+                      delay === ABC_TEMPO.slow ? '🐢slow' : '▶️normal';
+    console.log(`🎶 Tempo: ${letter.toUpperCase()} → ${tempoNextLetter ? tempoNextLetter.toUpperCase() : 'end'} = ${delay}ms (${tempoType})`);
+  }
+
+  setTimeout(() => {
+    isDisplayingQueue = false;
+    processLetterQueue();
+  }, delay);
+}

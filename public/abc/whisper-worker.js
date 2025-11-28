@@ -27,12 +27,22 @@ async function checkWebGPU() {
 
 let whisperPipeline = null;
 let isLoading = false;
+let isProcessing = false; // Lock to prevent concurrent transcriptions
 let currentModel = 'Xenova/whisper-base.en';
+let isPageHidden = false; // Track visibility state
+let lastProgressUpdate = 0; // Throttle progress updates
 
 // Track download progress across all files
 const downloadProgress = new Map();
 
-function updateTotalProgress() {
+function updateTotalProgress(force = false) {
+  // Throttle updates when page is hidden to avoid overwhelming message queue
+  const now = Date.now();
+  if (!force && isPageHidden && now - lastProgressUpdate < 1000) {
+    return; // Only update once per second when hidden
+  }
+  lastProgressUpdate = now;
+
   let totalLoaded = 0;
   let totalSize = 0;
   const files = [];
@@ -62,7 +72,7 @@ function updateTotalProgress() {
 
 // Handle messages from main thread
 self.onmessage = async (e) => {
-  const { type, data, model } = e.data;
+  const { type, data, model, hidden } = e.data;
 
   switch (type) {
     case 'load':
@@ -74,6 +84,13 @@ self.onmessage = async (e) => {
       break;
     case 'transcribe':
       await transcribe(data);
+      break;
+    case 'visibility':
+      isPageHidden = hidden;
+      // When page becomes visible again, send current progress immediately
+      if (!hidden && isLoading) {
+        updateTotalProgress(true);
+      }
       break;
   }
 };
@@ -144,6 +161,13 @@ async function transcribe(audioData) {
     return;
   }
 
+  // Skip if already processing (WebGPU can't handle concurrent sessions)
+  if (isProcessing) {
+    return;
+  }
+
+  isProcessing = true;
+
   try {
     const float32Data = new Float32Array(audioData);
 
@@ -156,15 +180,13 @@ async function transcribe(audioData) {
 
     if (rms < 0.005) {
       self.postMessage({ type: 'result', text: '', silent: true, processingTime: 0 });
+      isProcessing = false;
       return;
     }
 
-    // Run Whisper with prompt to guide toward letter recognition
+    // Run Whisper
     const startTime = performance.now();
-    const result = await whisperPipeline(float32Data, {
-      language: 'english',
-      task: 'transcribe'
-    });
+    const result = await whisperPipeline(float32Data);
     const processingTime = Math.round(performance.now() - startTime);
 
     const text = result?.text || '';
@@ -172,5 +194,7 @@ async function transcribe(audioData) {
 
   } catch (error) {
     self.postMessage({ type: 'error', error: error.message });
+  } finally {
+    isProcessing = false;
   }
 }
