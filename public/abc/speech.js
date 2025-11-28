@@ -26,14 +26,102 @@ const DEDUPE_WINDOW_MS = 800;
 let onShowLetter = null;
 let onTriggerCelebration = null;
 
+// Cached models state
+let cachedModels = new Set();
+
 export function setSpeechCallbacks(showLetterFn, celebrationFn) {
   onShowLetter = showLetterFn;
   onTriggerCelebration = celebrationFn;
 }
 
 // ============================================
+// Model Cache Detection
+// ============================================
+
+export async function checkCachedModels() {
+  cachedModels.clear();
+
+  try {
+    // Transformers.js uses Cache API with 'transformers-cache'
+    const cache = await caches.open('transformers-cache');
+    const keys = await cache.keys();
+
+    // Check for model files
+    const modelPatterns = {
+      'tiny': 'whisper-tiny',
+      'base': 'whisper-base',
+      'small': 'whisper-small'
+    };
+
+    for (const [modelName, pattern] of Object.entries(modelPatterns)) {
+      // Look for the model's config or weights file
+      const hasModel = keys.some(req => req.url.includes(pattern));
+      if (hasModel) {
+        cachedModels.add(modelName);
+      }
+    }
+
+    console.log('🗄️ Cached models:', [...cachedModels].join(', ') || 'none');
+  } catch (e) {
+    console.log('Could not check model cache:', e);
+  }
+
+  return cachedModels;
+}
+
+export function isModelCached(modelName) {
+  return cachedModels.has(modelName);
+}
+
+export function getCachedModels() {
+  return cachedModels;
+}
+
+// ============================================
 // Whisper Model Loading
 // ============================================
+
+export async function switchModel(newModel) {
+  console.log(`🔄 Switching model to: ${newModel}`);
+
+  // Stop current listening
+  if (state.isListening) {
+    toggleMicrophone(false);
+  }
+
+  // Terminate existing worker
+  if (state.whisperWorker) {
+    state.whisperWorker.terminate();
+    state.whisperWorker = null;
+  }
+
+  // Reset state
+  state.isModelLoaded = false;
+  state.isModelLoading = false;
+  state.selectedModel = newModel;
+
+  // Update UI
+  updateModelSelectorUI(newModel);
+
+  // Load new model if not 'none'
+  if (newModel !== 'none') {
+    loadWhisperModel();
+  } else {
+    elements.micIndicator.classList.remove('visible', 'listening');
+  }
+}
+
+function updateModelSelectorUI(model) {
+  // Update start screen selector
+  document.querySelectorAll('.model-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.model === model);
+  });
+
+  // Update runtime selector if it exists
+  document.querySelectorAll('.runtime-model-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.model === model);
+  });
+}
 
 export function loadWhisperModel() {
   if (state.selectedModel === 'none') {
@@ -41,7 +129,8 @@ export function loadWhisperModel() {
     return;
   }
 
-  if (state.isModelLoading || state.isModelLoaded) return;
+  if (state.isModelLoading) return;
+  if (state.isModelLoaded && state.whisperWorker) return;
 
   state.isModelLoading = true;
   elements.modelLoader.classList.add('active');

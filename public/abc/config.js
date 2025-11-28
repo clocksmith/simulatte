@@ -17,7 +17,7 @@ export const state = {
   isModelLoading: false,
   isModelLoaded: false,
   isListening: false,
-  selectedModel: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'tiny' : 'base',
+  selectedModel: 'none', // Default off, can be enabled at runtime
   // Audio monitoring
   audioAnalyser: null,
   audioDataArray: null,

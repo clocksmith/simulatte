@@ -4,7 +4,7 @@
 
 import { state, elements, initElements, ALPHABET, shapeTypes } from './config.js';
 import { initAudio } from './audio.js';
-import { loadWhisperModel, toggleMicrophone, setSpeechCallbacks } from './speech.js';
+import { loadWhisperModel, toggleMicrophone, setSpeechCallbacks, checkCachedModels, isModelCached, switchModel } from './speech.js';
 import { triggerCelebration, blockShortcuts } from './effects.js';
 import { resizeCanvas, updateTrail, initBackgroundShapes, createBackgroundLetter, startBackgroundLetters } from './canvas.js';
 import { initMarquee, selectMarqueeLetter, showLetter, setDisplayCallbacks, showShape } from './display.js';
@@ -25,7 +25,10 @@ function startGame() {
     document.documentElement.requestFullscreen().catch(() => {});
   }
 
-  // Load Whisper model
+  // Show mic indicator for runtime model switching
+  elements.micIndicator.classList.add('visible');
+
+  // Load Whisper model (if one is selected)
   loadWhisperModel();
 }
 
@@ -111,9 +114,13 @@ function handleTouchMove(e) {
 // Initialization
 // ============================================
 
-function init() {
+async function init() {
   // Initialize DOM elements
   initElements();
+
+  // Check which models are cached
+  await checkCachedModels();
+  updateCachedModelIndicators();
 
   // Setup callbacks between modules
   setSpeechCallbacks(showLetter, triggerCelebration);
@@ -153,24 +160,7 @@ function init() {
   initMarquee();
 
   // Model selector - handle both click and touch to prevent game start
-  const modelOptions = document.querySelectorAll('.model-option');
-
-  // Set initial selected based on device (mobile=tiny, desktop=base)
-  modelOptions.forEach(opt => opt.classList.remove('selected'));
-  const defaultOption = document.querySelector(`.model-option[data-model="${state.selectedModel}"]`);
-  if (defaultOption) defaultOption.classList.add('selected');
-
-  modelOptions.forEach(option => {
-    const selectModel = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      modelOptions.forEach(opt => opt.classList.remove('selected'));
-      option.classList.add('selected');
-      state.selectedModel = option.dataset.model;
-    };
-    option.addEventListener('click', selectModel);
-    option.addEventListener('touchstart', selectModel, { passive: false });
-  });
+  setupModelSelector();
 
   // Prevent touches on start screen controls from starting the game
   const startScreenControls = document.querySelectorAll('.model-selector, .splash-info');
@@ -178,18 +168,25 @@ function init() {
     el.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: false });
   });
 
-  // Mic toggle
+  // Mic toggle - now also allows enabling voice when model is not loaded
   const micToggle = document.getElementById('mic-toggle');
   if (micToggle) {
     micToggle.addEventListener('change', (e) => {
       e.stopPropagation();
       if (state.isModelLoaded) {
         toggleMicrophone(e.target.checked);
+      } else if (e.target.checked && state.selectedModel === 'none') {
+        // Prompt to select a model
+        e.target.checked = false;
+        showModelSelector();
       } else {
         e.target.checked = false;
       }
     });
   }
+
+  // Setup runtime model selector in mic indicator
+  setupRuntimeModelSelector();
 
   // Background letters
   startBackgroundLetters();
@@ -213,6 +210,94 @@ function init() {
       }
     }
   });
+}
+
+function updateCachedModelIndicators() {
+  document.querySelectorAll('.model-option').forEach(opt => {
+    const model = opt.dataset.model;
+    if (model && model !== 'none' && isModelCached(model)) {
+      opt.classList.add('cached');
+      // Add cached indicator if not present
+      if (!opt.querySelector('.cached-indicator')) {
+        const indicator = document.createElement('span');
+        indicator.className = 'cached-indicator';
+        indicator.textContent = '✓';
+        indicator.title = 'Downloaded';
+        opt.appendChild(indicator);
+      }
+    }
+  });
+}
+
+function setupModelSelector() {
+  const modelOptions = document.querySelectorAll('.model-option');
+
+  // Set initial selected (default is 'none')
+  modelOptions.forEach(opt => opt.classList.remove('selected'));
+  const defaultOption = document.querySelector(`.model-option[data-model="${state.selectedModel}"]`);
+  if (defaultOption) defaultOption.classList.add('selected');
+
+  modelOptions.forEach(option => {
+    const selectModel = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      modelOptions.forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+      state.selectedModel = option.dataset.model;
+    };
+    option.addEventListener('click', selectModel);
+    option.addEventListener('touchstart', selectModel, { passive: false });
+  });
+}
+
+function setupRuntimeModelSelector() {
+  // Create runtime model selector in mic indicator
+  const micIndicator = document.getElementById('mic-indicator');
+  if (!micIndicator) return;
+
+  const runtimeSelector = document.createElement('div');
+  runtimeSelector.className = 'runtime-model-selector';
+  runtimeSelector.innerHTML = `
+    <div class="runtime-model-options">
+      <button type="button" class="runtime-model-option" data-model="none" title="Off">Off</button>
+      <button type="button" class="runtime-model-option" data-model="tiny" title="Tiny model">T</button>
+      <button type="button" class="runtime-model-option" data-model="base" title="Base model">B</button>
+      <button type="button" class="runtime-model-option" data-model="small" title="Small model">S</button>
+    </div>
+  `;
+  micIndicator.appendChild(runtimeSelector);
+
+  // Update cached indicators and selected state
+  runtimeSelector.querySelectorAll('.runtime-model-option').forEach(opt => {
+    const model = opt.dataset.model;
+
+    // Mark cached models
+    if (model !== 'none' && isModelCached(model)) {
+      opt.classList.add('cached');
+    }
+
+    // Set initial selected
+    if (model === state.selectedModel) {
+      opt.classList.add('selected');
+    }
+
+    // Handle clicks
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (model !== state.selectedModel) {
+        switchModel(model);
+        // Update all runtime options
+        runtimeSelector.querySelectorAll('.runtime-model-option').forEach(o => {
+          o.classList.toggle('selected', o.dataset.model === model);
+        });
+      }
+    });
+  });
+}
+
+function showModelSelector() {
+  // Make mic indicator visible with the runtime selector
+  elements.micIndicator.classList.add('visible');
 }
 
 // Start when DOM is ready
