@@ -97,7 +97,7 @@ export const abcSongNotes = {
 
 // Letter name mappings for speech recognition
 export const letterNames = {
-  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'letter a'],
+  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'letter a'],
   'b': ['b', 'bee', 'bea', 'bi', 'baby', 'letter b'],
   'c': ['c', 'see', 'sea', 'si', 'cee', 'letter c'],
   'd': ['d', 'dee', 'di', 'letter d'],
@@ -114,7 +114,7 @@ export const letterNames = {
   'o': ['o', 'oh', 'no', 'letter o'],
   'p': ['p', 'pee', 'pi', 'letter p'],
   'q': ['q', 'cue', 'queue', 'kyu', 'letter q'],
-  'r': ['r', 'ar', 'are', 'letter r'],
+  'r': ['r', 'ar', 'are', 'ray', 'letter r'],
   's': ['s', 'es', 'ess', 'letter s'],
   't': ['t', 'tee', 'ti', 'tea', 'letter t'],
   'u': ['u', 'you', 'yu', 'ooh', 'letter u'],
@@ -226,7 +226,7 @@ export const commonWords = [
   // 2-letter words
   'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok', 'im',
   // 3-letter words
-  'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'bye', 'met', 'hey', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
+  'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'bye', 'met', 'hay', 'pay', 'lay', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
   // 4-letter words
   'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'okay', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
   // 5+ letter words
