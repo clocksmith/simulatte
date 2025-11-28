@@ -123,7 +123,7 @@ async function init() {
   updateCachedModelIndicators();
 
   // Setup callbacks between modules
-  setSpeechCallbacks(showLetter, triggerCelebration);
+  setSpeechCallbacks(showLetter, triggerCelebration, showShape);
   setDisplayCallbacks(startGame);
 
   // Setup canvas

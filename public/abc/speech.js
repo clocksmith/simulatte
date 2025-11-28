@@ -2,7 +2,7 @@
 // ABC - Speech Recognition Module
 // ============================================
 
-import { state, elements, letterNames, ambiguousSounds, phoneticPatterns, ABC_TEMPO, commonWords } from './config.js';
+import { state, elements, letterNames, numberNames, shapeNames, ambiguousSounds, phoneticPatterns, ABC_TEMPO, commonWords } from './config.js';
 
 // Module-level state
 let levelAudioContext = null;
@@ -24,14 +24,16 @@ const DEDUPE_WINDOW_MS = 800;
 
 // Callbacks (set by main.js)
 let onShowLetter = null;
+let onShowShape = null;
 let onTriggerCelebration = null;
 
 // Cached models state
 let cachedModels = new Set();
 
-export function setSpeechCallbacks(showLetterFn, celebrationFn) {
+export function setSpeechCallbacks(showLetterFn, celebrationFn, showShapeFn) {
   onShowLetter = showLetterFn;
   onTriggerCelebration = celebrationFn;
+  onShowShape = showShapeFn;
 }
 
 // ============================================
@@ -461,6 +463,45 @@ export function toggleMicrophone(enabled) {
 // Letter Matching & Parsing
 // ============================================
 
+function checkForShapes(text) {
+  const detected = [];
+  const words = text.toLowerCase().split(/\s+/);
+
+  for (const word of words) {
+    for (const [shape, variations] of Object.entries(shapeNames)) {
+      if (variations.includes(word)) {
+        detected.push(shape);
+        break;
+      }
+    }
+  }
+
+  return detected;
+}
+
+function checkForNumbers(text) {
+  const detected = [];
+  const words = text.toLowerCase().split(/\s+/);
+
+  for (const word of words) {
+    // Check digit characters
+    if (/^[0-9]$/.test(word)) {
+      detected.push(word);
+      continue;
+    }
+
+    // Check number words
+    for (const [num, variations] of Object.entries(numberNames)) {
+      if (variations.includes(word)) {
+        detected.push(num);
+        break;
+      }
+    }
+  }
+
+  return detected;
+}
+
 function checkForLetterMatch(transcription) {
   let text = transcription.toLowerCase().trim()
     .replace(/[.,!?'"]/g, '')
@@ -488,6 +529,26 @@ function checkForLetterMatch(transcription) {
   const cleanLower = text.replace(/[\[\]\(\)]/g, '').toLowerCase();
   if (hallucinations.some(h => cleanLower.includes(h))) {
     console.log(`🚫 Filtered hallucination: "${text}"`);
+    return;
+  }
+
+  // Check for shapes first (they're distinct words)
+  const detectedShapes = checkForShapes(text);
+  if (detectedShapes.length > 0) {
+    console.log(`🔷 Heard shapes: "${text}" → [${detectedShapes.join(', ')}]`);
+    for (const shape of detectedShapes) {
+      if (onShowShape) {
+        onShowShape(shape);
+      }
+    }
+    return;
+  }
+
+  // Check for numbers
+  const detectedNumbers = checkForNumbers(text);
+  if (detectedNumbers.length > 0) {
+    console.log(`🔢 Heard numbers: "${text}" → [${detectedNumbers.join(', ')}]`);
+    queueLetters(detectedNumbers); // Numbers use same queue as letters
     return;
   }
 

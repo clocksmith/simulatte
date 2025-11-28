@@ -99,7 +99,7 @@ export const abcSongNotes = {
 
 // Letter name mappings for speech recognition
 export const letterNames = {
-  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'aye', 'eight', 'letter a'],
+  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'aye', 'letter a'],
   'b': ['b', 'bee', 'bea', 'bi', 'be', 'baby', 'letter b'],
   'c': ['c', 'see', 'sea', 'si', 'cee', 'sie', 'xi', 'letter c'],
   'd': ['d', 'dee', 'di', 'de', 'the', 'letter d'],
@@ -125,6 +125,29 @@ export const letterNames = {
   'x': ['x', 'ex', 'eks', 'eggs', 'ax', 'ecks', 'letter x'],
   'y': ['y', 'wai', 'yeah', 'wie', 'wi', 'letter y'],
   'z': ['z', 'zee', 'ze', 'zi', 'letter z']
+};
+
+// Number name mappings for speech recognition
+export const numberNames = {
+  '0': ['zero', 'oh', 'o', 'nought', 'nil'],
+  '1': ['one', 'won', 'wan'],
+  '2': ['two', 'too', 'to', 'tu'],
+  '3': ['three', 'tree', 'free'],
+  '4': ['four', 'for', 'fore', 'fourth'],
+  '5': ['five', 'fife', 'hive'],
+  '6': ['six', 'sicks', 'sex'],
+  '7': ['seven', 'sevn'],
+  '8': ['eight', 'ate', 'ait'],
+  '9': ['nine', 'nein', 'mine']
+};
+
+// Shape name mappings for speech recognition
+export const shapeNames = {
+  'heart': ['heart', 'hearts', 'hart', 'love', 'red heart'],
+  'star': ['star', 'stars', 'starr'],
+  'triangle': ['triangle', 'triangles', 'tri', 'pyramid'],
+  'circle': ['circle', 'circles', 'round', 'ball', 'dot'],
+  'diamond': ['diamond', 'diamonds', 'rhombus', 'gem']
 };
 
 // Ambiguous sounds that could be multiple letters - resolved by sequential context
