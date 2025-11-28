@@ -100,12 +100,12 @@ export const letterNames = {
   'a': ['a', 'ay', 'eh', 'ey', 'aa', 'hey', 'aye', 'eight', 'letter a'],
   'b': ['b', 'bee', 'bea', 'bi', 'be', 'baby', 'letter b'],
   'c': ['c', 'see', 'sea', 'si', 'cee', 'sie', 'xi', 'letter c'],
-  'd': ['d', 'dee', 'di', 'de', 'letter d'],
+  'd': ['d', 'dee', 'di', 'de', 'the', 'letter d'],
   'e': ['e', 'ee', 'eee', 'ea', 'letter e'],
   'f': ['f', 'ef', 'eff', 'letter f'],
   'g': ['g', 'gee', 'ji', 'jee', 'ge', 'chee', 'letter g'],
   'h': ['h', 'aitch', 'eich', 'age', 'ach', 'each', 'letter h'],
-  'i': ['i', 'eye', 'ai', 'bye', 'letter i'],
+  'i': ['i', 'eye', 'ai', 'letter i'],
   'j': ['j', 'jay', 'jae', 'je', 'jai', 'letter j'],
   'k': ['k', 'kay', 'kaye', 'ke', 'okay', 'letter k'],
   'l': ['l', 'el', 'ell', 'elle', 'al', 'ol', 'letter l'],
@@ -121,7 +121,7 @@ export const letterNames = {
   'v': ['v', 'vee', 'vi', 've', 'letter v'],
   'w': ['w', 'double', 'double you', 'doubleyou', 'dub', 'duh', 'daba', 'dabliu', 'letter w'],
   'x': ['x', 'ex', 'eks', 'eggs', 'ax', 'ecks', 'letter x'],
-  'y': ['y', 'why', 'wai', 'yeah', 'wie', 'wi', 'letter y'],
+  'y': ['y', 'wai', 'yeah', 'wie', 'wi', 'letter y'],
   'z': ['z', 'zee', 'ze', 'zi', 'letter z']
 };
 
@@ -165,6 +165,10 @@ export const ambiguousSounds = {
   'cue': ['k', 'q'],
   'kew': ['k', 'q'],
   'que': ['k', 'q'],
+  // B vs Y (sounds like "by/bye/why") - After A→B, After X→Y
+  'by': ['b', 'y'],
+  'bye': ['b', 'y'],
+  'why': ['b', 'y'],
 };
 
 // Phonetic patterns for sequential letter detection
@@ -266,9 +270,9 @@ export const ABC_TEMPO = {
 // Common words to filter out (not letter names)
 export const commonWords = [
   // 2-letter words
-  'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok', 'im',
+  'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok', 'im',
   // 3-letter words
-  'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'met', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
+  'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'met', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
   // 4-letter words
   'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
   // 5+ letter words
