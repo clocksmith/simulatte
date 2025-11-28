@@ -116,34 +116,35 @@ const abcSongNotes = {
   '9': { freq: 659.25, duration: 0.4 }
 };
 
-// Letter name mappings (what Whisper might transcribe) - expanded for robustness
+// Letter name mappings (what Whisper might transcribe)
+// IMPORTANT: Only include phonetic spellings of letters, NOT common English words
 const letterNames = {
-  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'ah', 'hey', 'hay', 'letter a', 'the letter a'],
-  'b': ['b', 'be', 'bee', 'bea', 'bi', 'bee.', 'bee!', 'the bee', 'letter b', 'the letter b'],
-  'c': ['c', 'see', 'sea', 'si', 'ce', 'cee', 'the sea', 'letter c', 'the letter c'],
-  'd': ['d', 'de', 'dee', 'di', 'the d', 'letter d', 'the letter d'],
-  'e': ['e', 'ee', 'ea', 'eee', 'he', 'letter e', 'the letter e'],
-  'f': ['f', 'ef', 'eff', 'if', 'have', 'letter f', 'the letter f'],
-  'g': ['g', 'ge', 'gee', 'ji', 'jee', 'the g', 'letter g', 'the letter g'],
-  'h': ['h', 'aitch', 'ache', 'age', 'each', 'eich', 'eight', 'hage', 'letter h', 'the letter h'],
-  'i': ['i', 'eye', 'ai', 'aye', 'ay', 'I.', 'letter i', 'the letter i'],
-  'j': ['j', 'jay', 'je', 'jy', 'jade', 'jae', 'letter j', 'the letter j'],
-  'k': ['k', 'kay', 'ke', 'ca', 'key', 'okay', 'kaye', 'letter k', 'the letter k'],
-  'l': ['l', 'el', 'ell', 'al', 'elle', 'hell', 'letter l', 'the letter l'],
-  'm': ['m', 'em', 'mm', 'am', 'um', 'him', 'letter m', 'the letter m'],
-  'n': ['n', 'en', 'nn', 'an', 'in', 'letter n', 'the letter n'],
-  'o': ['o', 'oh', 'ow', 'oo', 'hoe', 'letter o', 'the letter o'],
-  'p': ['p', 'pe', 'pee', 'pi', 'the p', 'letter p', 'the letter p'],
-  'q': ['q', 'cue', 'que', 'queue', 'ku', 'kyu', 'q.', 'letter q', 'the letter q'],
-  'r': ['r', 'ar', 'are', 'er', 'or', 'our', 'letter r', 'the letter r'],
-  's': ['s', 'es', 'ess', 'as', 'us', 'letter s', 'the letter s'],
-  't': ['t', 'te', 'tee', 'tea', 'ti', 'the t', 'letter t', 'the letter t'],
-  'u': ['u', 'you', 'yu', 'ew', 'ooh', 'letter u', 'the letter u'],
-  'v': ['v', 've', 'vee', 'vi', 'the v', 'letter v', 'the letter v'],
-  'w': ['w', 'double u', 'double you', 'doubleyou', 'dub', 'w.', 'letter w', 'the letter w'],
-  'x': ['x', 'ex', 'ecks', 'eks', 'ax', 'acts', 'letter x', 'the letter x'],
-  'y': ['y', 'why', 'wi', 'wai', 'wie', 'letter y', 'the letter y'],
-  'z': ['z', 'ze', 'zee', 'zed', 'zet', 'the z', 'letter z', 'the letter z']
+  'a': ['a', 'ay', 'eh', 'ey', 'aa', 'letter a'],
+  'b': ['b', 'bee', 'bea', 'bi', 'baby', 'letter b'],
+  'c': ['c', 'see', 'sea', 'si', 'cee', 'letter c'],
+  'd': ['d', 'dee', 'di', 'letter d'],
+  'e': ['e', 'ee', 'eee', 'letter e'],
+  'f': ['f', 'ef', 'eff', 'letter f'],
+  'g': ['g', 'gee', 'ji', 'jee', 'we', 'letter g'],
+  'h': ['h', 'aitch', 'eich', 'letter h'],
+  'i': ['i', 'eye', 'ai', 'letter i'],
+  'j': ['j', 'jay', 'jae', 'letter j'],
+  'k': ['k', 'kay', 'kaye', 'letter k'],
+  'l': ['l', 'el', 'ell', 'elle', 'letter l'],
+  'm': ['m', 'em', 'letter m'],
+  'n': ['n', 'en', 'letter n'],
+  'o': ['o', 'oh', 'no', 'letter o'],
+  'p': ['p', 'pee', 'pi', 'letter p'],
+  'q': ['q', 'cue', 'queue', 'kyu', 'letter q'],
+  'r': ['r', 'ar', 'are', 'letter r'],
+  's': ['s', 'es', 'ess', 'letter s'],
+  't': ['t', 'tee', 'ti', 'letter t'],
+  'u': ['u', 'you', 'yu', 'letter u'],
+  'v': ['v', 'vee', 'vi', 'letter v'],
+  'w': ['w', 'double', 'double you', 'doubleyou', 'dub', 'duh', 'letter w'],
+  'x': ['x', 'ex', 'eks', 'letter x'],
+  'y': ['y', 'why', 'wai', 'yeah', 'letter y'],
+  'z': ['z', 'zee', 'zed', 'letter z']
 };
 
 // ============================================
@@ -589,7 +590,13 @@ function toggleMicrophone(enabled) {
 }
 
 function checkForLetterMatch(transcription) {
-  const text = transcription.toLowerCase().trim().replace(/[.,!?]/g, '');
+  // Clean up transcription - remove punctuation, music symbols, etc.
+  let text = transcription.toLowerCase().trim()
+    .replace(/[.,!?'"]/g, '')
+    .replace(/♪/g, '')           // Remove music note symbols
+    .replace(/🎵/g, '')          // Remove music emoji
+    .replace(/\s+/g, ' ')        // Normalize whitespace
+    .trim();
 
   // Update transcript display
   if (text && text.length > 0) {
@@ -609,7 +616,8 @@ function checkForLetterMatch(transcription) {
   const hallucinations = [
     'blank_audio', 'blank audio', 'silence', 'no speech',
     'thank you', 'thanks for watching', 'see you next time',
-    'subscribe', 'like and subscribe', 'goodbye'
+    'subscribe', 'like and subscribe', 'goodbye', 'music',
+    'music playing', 'soft music', 'upbeat music'
   ];
   const cleanLower = text.replace(/[\[\]\(\)]/g, '').toLowerCase();
   if (hallucinations.some(h => cleanLower.includes(h))) {
@@ -628,6 +636,9 @@ function checkForLetterMatch(transcription) {
       console.log(`✅ Heard: "${text}" → [${letterStr}]`);
     }
     queueLetters(detectedLetters);
+  } else {
+    // Log unmatched transcriptions for debugging
+    console.log(`❓ No match: "${text}"`);
   }
 }
 
@@ -640,49 +651,33 @@ const phoneticPatterns = {
   'abcde': ['a', 'b', 'c', 'd', 'e'],
   'abcdef': ['a', 'b', 'c', 'd', 'e', 'f'],
   'abcdefg': ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
-  'abie': ['a', 'b'],
-  'abi': ['a', 'b'],
-  'abbey': ['a', 'b'],
-  'abby': ['a', 'b'],
   'bc': ['b', 'c'],
   'bcd': ['b', 'c', 'd'],
   'bcde': ['b', 'c', 'd', 'e'],
 
   // C D E patterns (sequential)
-  'seedy': ['c', 'd'],
   'cd': ['c', 'd'],
   'cde': ['c', 'd', 'e'],
   'cdef': ['c', 'd', 'e', 'f'],
-  'de': ['d', 'e'],
   'def': ['d', 'e', 'f'],
-  'defy': ['d', 'e', 'f'],
   'defg': ['d', 'e', 'f', 'g'],
 
   // E F G patterns (sequential)
-  'ef': ['e', 'f'],
   'efg': ['e', 'f', 'g'],
-  'effigy': ['f', 'g'],
   'fg': ['f', 'g'],
-  'fiji': ['f', 'g'],
   'fgh': ['f', 'g', 'h'],
   'gh': ['g', 'h'],
   'ghi': ['g', 'h', 'i'],
 
   // H I J K patterns (sequential)
-  'hi': ['h', 'i'],
-  'high': ['h', 'i'],
   'hij': ['h', 'i', 'j'],
   'hijk': ['h', 'i', 'j', 'k'],
-  'hijack': ['h', 'i', 'j', 'k'],
   'ij': ['i', 'j'],
   'ijk': ['i', 'j', 'k'],
   'ijkl': ['i', 'j', 'k', 'l'],
   'jk': ['j', 'k'],
-  'jake': ['j', 'k'],
   'jkl': ['j', 'k', 'l'],
   'kl': ['k', 'l'],
-  'kale': ['k', 'l'],
-  'cale': ['k', 'l'],
   'klm': ['k', 'l', 'm'],
 
   // L M N O P patterns (the famous fast part! - sequential)
@@ -701,14 +696,11 @@ const phoneticPatterns = {
   'elemenopy': ['l', 'm', 'n', 'o', 'p'],
   'elementy': ['l', 'm', 'n'],
   'mn': ['m', 'n'],
-  'emanate': ['m', 'n'],
-  'eminem': ['m', 'n'],
   'mno': ['m', 'n', 'o'],
   'mnop': ['m', 'n', 'o', 'p'],
-  'no': ['n', 'o'],
-  'nope': ['n', 'o', 'p'],
   'nop': ['n', 'o', 'p'],
-  'noap': ['n', 'o', 'p'],
+  'enop': ['n', 'o', 'p'],
+  'enopy': ['n', 'o', 'p'],
 
   // O P Q R S patterns (sequential)
   'op': ['o', 'p'],
@@ -721,24 +713,16 @@ const phoneticPatterns = {
   'pqrs': ['p', 'q', 'r', 's'],
   'qr': ['q', 'r'],
   'qrs': ['q', 'r', 's'],
-  'cures': ['q', 'r', 's'],
-  'curse': ['q', 'r', 's'],
-  'curus': ['q', 'r', 's'],
   'qrst': ['q', 'r', 's', 't'],
   'rs': ['r', 's'],
   'rst': ['r', 's', 't'],
   'rstu': ['r', 's', 't', 'u'],
-  'arrest': ['r', 's', 't'],
-  'rest': ['r', 's', 't'],
   'st': ['s', 't'],
   'stu': ['s', 't', 'u'],
-  'stew': ['s', 't', 'u'],
   'stuv': ['s', 't', 'u', 'v'],
 
   // T U V W patterns (sequential)
-  'tu': ['t', 'u'],
   'tuv': ['t', 'u', 'v'],
-  'tuvee': ['t', 'u', 'v'],
   'tuvw': ['t', 'u', 'v', 'w'],
   'uv': ['u', 'v'],
   'uvw': ['u', 'v', 'w'],
@@ -752,12 +736,7 @@ const phoneticPatterns = {
   'wxyz': ['w', 'x', 'y', 'z'],
   'xy': ['x', 'y'],
   'xyz': ['x', 'y', 'z'],
-  'exwise': ['x', 'y', 'z'],
   'yz': ['y', 'z'],
-  'wise': ['y', 'z'],
-  'whysy': ['y', 'z'],
-  'wises': ['y', 'z'],
-  'whys': ['y', 'z'],
 };
 
 // ABC Song tempo map - milliseconds between letters
@@ -821,7 +800,8 @@ function getLetterTempo(letter, nextLetter) {
 // Returns { letters: [...], phonetic: string|null }
 function parseMultipleLetters(text) {
   let cleanText = text
-    .replace(/^(the |a |an |um |uh |oh |ah )/g, '')
+    // Don't strip "a " - it's a valid letter! Only strip filler words
+    .replace(/^(the |an |um |uh |oh |ah )/g, '')
     .replace(/(\.|\,|\!|\?)/g, '')
     .trim();
 
@@ -835,6 +815,7 @@ function parseMultipleLetters(text) {
       // Replace the pattern with spaces so we process the letters
       detected.push(...letters);
       matchedPhonetic = pattern;
+      console.log(`   📖 Phonetic match: "${pattern}" → [${letters.join(', ')}]`);
       cleanText = cleanText.toLowerCase().replace(pattern, '').trim();
       if (cleanText.length === 0) return { letters: detected, phonetic: matchedPhonetic };
     }
@@ -843,26 +824,18 @@ function parseMultipleLetters(text) {
   // Split by spaces first to handle word-separated input
   const words = cleanText.split(/[\s,.-]+/).filter(w => w.length > 0);
 
-  for (const word of words) {
-    // Check if entire word is just concatenated letters (e.g., "abc", "abcd")
-    if (/^[a-z]+$/.test(word) && word.length >= 2 && word.length <= 6) {
-      // Check if it looks like concatenated single letters
-      // These are common concatenations Whisper produces
-      const allSingleLetters = word.split('').every(c => /[a-z]/.test(c));
-      if (allSingleLetters && !isCommonWord(word)) {
-        // Split into individual letters
-        for (const char of word) {
-          detected.push(char);
-        }
-        continue;
-      }
-    }
+  if (words.length > 0) {
+    console.log(`   🔍 Parsing words: [${words.join(', ')}]`);
+  }
 
-    // Try to match against letter name variations
+  for (const word of words) {
+    // FIRST: Try to match against letter name variations (exact match only)
+    // This must come BEFORE common word check so "see"→C, "you"→U work
     let foundMatch = false;
     for (const [letter, variations] of Object.entries(letterNames)) {
       for (const variation of variations) {
         if (word === variation) {
+          console.log(`   📝 Word "${word}" matches letter ${letter.toUpperCase()}`);
           detected.push(letter);
           foundMatch = true;
           break;
@@ -871,41 +844,33 @@ function parseMultipleLetters(text) {
       if (foundMatch) break;
     }
 
+    if (foundMatch) continue;
+
     // If no variation match, check if it's a single letter
-    if (!foundMatch && word.length === 1 && /[a-z]/.test(word)) {
+    if (word.length === 1 && /[a-z]/.test(word)) {
+      console.log(`   📝 Single char "${word}" → ${word.toUpperCase()}`);
       detected.push(word);
+      continue;
     }
 
-    // Check for partial matches at start of word (e.g., "abc" -> a, b, c)
-    if (!foundMatch && word.length > 1) {
-      let remaining = word;
-      while (remaining.length > 0) {
-        let matched = false;
+    // THEN: Skip common English words (only if not a letter name)
+    if (isCommonWord(word)) {
+      console.log(`   ⏭️ Skipped common word: "${word}"`);
+      continue;
+    }
 
-        // First try longer letter name matches
-        for (const [letter, variations] of Object.entries(letterNames)) {
-          for (const variation of variations) {
-            if (remaining.startsWith(variation) && variation.length > 1) {
-              detected.push(letter);
-              remaining = remaining.slice(variation.length);
-              matched = true;
-              break;
-            }
-          }
-          if (matched) break;
-        }
-
-        // If no match, take single character if it's a letter
-        if (!matched) {
-          if (/^[a-z]/.test(remaining)) {
-            detected.push(remaining[0]);
-            remaining = remaining.slice(1);
-          } else {
-            break; // Unknown character, stop
-          }
-        }
+    // Only split very short words (2-3 chars) into letters if they look like letter sequences
+    // e.g., "ab" "abc" "bc" - but NOT longer words
+    if (word.length >= 2 && word.length <= 3 && /^[a-z]+$/.test(word)) {
+      console.log(`   🔤 Split short word "${word}" → [${word.split('').join(', ')}]`);
+      for (const char of word) {
+        detected.push(char);
       }
+      continue;
     }
+
+    // Log unmatched words
+    console.log(`   ⚠️ Unmatched word: "${word}"`);
   }
 
   return { letters: detected, phonetic: matchedPhonetic };
@@ -914,10 +879,14 @@ function parseMultipleLetters(text) {
 // Common English words that shouldn't be split into letters
 function isCommonWord(word) {
   const commonWords = [
-    'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us',
-    'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use',
-    'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your',
-    'gene', 'key', 'sea', 'see', 'bee', 'tea', 'pea', 'hey', 'hay', 'day', 'way', 'say', 'pay', 'may', 'lay', 'jay', 'ray'
+    // 2-letter words
+    'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us', 'am', 'hi', 'ok',
+    // 3-letter words (note: 'duh' maps to W, 'see' maps to C, so not blocked)
+    'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'bye', 'met', 'hey', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm',
+    // 4-letter words
+    'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'okay', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
+    // 5+ letter words that might be mistaken
+    'hello', 'being', 'their', 'about', 'would', 'could', 'there', 'where', 'which', 'these', 'those', 'other', 'after', 'think', 'first', 'going', 'thing', 'right', 'still', 'again', 'never', 'under', 'night', 'great', 'every', 'years', 'maybe', 'meant', 'thank', 'thanks', 'change', 'double', 'effect', 'effects', 'really', 'people', 'before', 'should', 'saying', 'things', 'little', 'always', 'wanted', 'enough', 'pretty'
   ];
   return commonWords.includes(word.toLowerCase());
 }
@@ -935,6 +904,12 @@ function queueLetters(letters) {
       isSequence: letters.length > 1
     });
   }
+
+  // Log queue state
+  const queueStr = letterQueue.map(item =>
+    typeof item === 'string' ? item.toUpperCase() : item.letter.toUpperCase()
+  ).join('→');
+  console.log(`📬 Queue: [${queueStr}] (${letterQueue.length} pending)`);
 
   processLetterQueue();
 }
