@@ -886,10 +886,14 @@ body {
   }
 
   .model-option {
-    padding: 14px 20px;
-    font-size: 16px;
-    min-width: 70px;
-    min-height: 48px; /* Minimum touch target size */
+    padding: 12px 18px;
+    font-size: 15px;
+    min-width: 75px;
+    min-height: 54px; /* Minimum touch target size */
+  }
+
+  .model-stats {
+    font-size: 11px;
   }
 
   /* Make info popup visible on touch */
