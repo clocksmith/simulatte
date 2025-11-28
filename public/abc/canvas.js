@@ -1,0 +1,241 @@
+// ============================================
+// ABC - Canvas Module (Mouse Trail, Background Shapes)
+// ============================================
+
+import { state, elements, colors, MAX_SHAPES, shapeTypes } from './config.js';
+
+// Trail color state
+let currentTrailColor = colors[0];
+let trailColorIndex = 0;
+let trailColorTimer = 0;
+
+export function resizeCanvas() {
+  elements.trailCanvas.width = window.innerWidth * window.devicePixelRatio;
+  elements.trailCanvas.height = window.innerHeight * window.devicePixelRatio;
+  elements.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+export function updateTrail() {
+  trailColorTimer++;
+  if (trailColorTimer > 60) {
+    trailColorTimer = 0;
+    trailColorIndex = (trailColorIndex + 1) % colors.length;
+    currentTrailColor = colors[trailColorIndex];
+  }
+
+  state.trailPoints.push({
+    x: state.mouseX,
+    y: state.mouseY,
+    color: currentTrailColor,
+    size: 12,
+    life: 1
+  });
+
+  if (state.trailPoints.length > 30) {
+    state.trailPoints.shift();
+  }
+
+  // Clear with fade
+  elements.ctx.fillStyle = 'rgba(26, 26, 46, 0.1)';
+  elements.ctx.fillRect(0, 0, elements.trailCanvas.width, elements.trailCanvas.height);
+
+  // Draw trail circles
+  state.trailPoints.forEach((point) => {
+    point.life -= 0.03;
+    if (point.life > 0) {
+      elements.ctx.beginPath();
+      elements.ctx.arc(point.x, point.y, point.size * point.life, 0, Math.PI * 2);
+      elements.ctx.fillStyle = point.color;
+      elements.ctx.globalAlpha = point.life * 0.6;
+      elements.ctx.fill();
+    }
+  });
+
+  elements.ctx.globalAlpha = 1;
+  state.trailPoints = state.trailPoints.filter(p => p.life > 0);
+
+  requestAnimationFrame(updateTrail);
+}
+
+// ============================================
+// Background Shapes
+// ============================================
+
+export function initBackgroundShapes() {
+  for (let i = 0; i < MAX_SHAPES; i++) {
+    state.backgroundShapes.push(createShape());
+  }
+  requestAnimationFrame(updateBackgroundShapes);
+}
+
+function createShape() {
+  return {
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 0.5,
+    vy: (Math.random() - 0.5) * 0.5,
+    size: 15 + Math.random() * 25,
+    rotation: Math.random() * 360,
+    rotationSpeed: (Math.random() - 0.5) * 0.5,
+    type: shapeTypes[Math.floor(Math.random() * shapeTypes.length)],
+    color: colors[Math.floor(Math.random() * colors.length)],
+    opacity: 0.1 + Math.random() * 0.15,
+    targetX: null,
+    targetY: null
+  };
+}
+
+function drawShape(shape) {
+  const ctx = elements.ctx;
+  ctx.save();
+  ctx.translate(shape.x, shape.y);
+  ctx.rotate(shape.rotation * Math.PI / 180);
+  ctx.globalAlpha = shape.opacity;
+  ctx.fillStyle = shape.color;
+  ctx.strokeStyle = shape.color;
+  ctx.lineWidth = 2;
+
+  const s = shape.size;
+
+  switch (shape.type) {
+    case 'heart':
+      ctx.beginPath();
+      ctx.moveTo(0, s * 0.3);
+      ctx.bezierCurveTo(-s * 0.5, -s * 0.3, -s, s * 0.3, 0, s);
+      ctx.bezierCurveTo(s, s * 0.3, s * 0.5, -s * 0.3, 0, s * 0.3);
+      ctx.fill();
+      break;
+    case 'star':
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const x = Math.cos(angle) * s;
+        const y = Math.sin(angle) * s;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case 'triangle':
+      ctx.beginPath();
+      ctx.moveTo(0, -s);
+      ctx.lineTo(-s * 0.866, s * 0.5);
+      ctx.lineTo(s * 0.866, s * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case 'circle':
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 'diamond':
+      ctx.beginPath();
+      ctx.moveTo(0, -s);
+      ctx.lineTo(s * 0.6, 0);
+      ctx.lineTo(0, s);
+      ctx.lineTo(-s * 0.6, 0);
+      ctx.closePath();
+      ctx.fill();
+      break;
+  }
+
+  ctx.restore();
+}
+
+function updateBackgroundShapes() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  state.backgroundShapes.forEach(shape => {
+    if (Math.random() < 0.02) {
+      shape.vx += (Math.random() - 0.5) * 0.8;
+      shape.vy += (Math.random() - 0.5) * 0.8;
+    }
+
+    shape.x += shape.vx;
+    shape.y += shape.vy;
+    shape.rotation += shape.rotationSpeed;
+
+    // Mouse attraction
+    if (state.mouseX > 0 && state.mouseY > 0) {
+      const dx = state.mouseX - shape.x;
+      const dy = state.mouseY - shape.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 250 && dist > 20) {
+        shape.vx += (dx / dist) * 0.015;
+        shape.vy += (dy / dist) * 0.015;
+      }
+    }
+
+    shape.vx *= 0.995;
+    shape.vy *= 0.995;
+
+    const speed = Math.sqrt(shape.vx * shape.vx + shape.vy * shape.vy);
+    if (speed < 0.3) {
+      const angle = Math.random() * Math.PI * 2;
+      shape.vx = Math.cos(angle) * 0.5;
+      shape.vy = Math.sin(angle) * 0.5;
+    }
+
+    if (speed > 3) {
+      shape.vx = (shape.vx / speed) * 3;
+      shape.vy = (shape.vy / speed) * 3;
+    }
+
+    // Soft bounce
+    const padding = 60;
+    if (shape.x < padding) { shape.x = padding; shape.vx = Math.abs(shape.vx) * 0.8 + 0.3; }
+    if (shape.x > w - padding) { shape.x = w - padding; shape.vx = -Math.abs(shape.vx) * 0.8 - 0.3; }
+    if (shape.y < padding) { shape.y = padding; shape.vy = Math.abs(shape.vy) * 0.8 + 0.3; }
+    if (shape.y > h - padding) { shape.y = h - padding; shape.vy = -Math.abs(shape.vy) * 0.8 - 0.3; }
+
+    drawShape(shape);
+  });
+
+  requestAnimationFrame(updateBackgroundShapes);
+}
+
+export function onLetterChange(color) {
+  state.backgroundShapes.forEach(shape => {
+    if (Math.random() < 0.3) {
+      shape.color = color;
+    }
+    const dx = shape.x - window.innerWidth / 2;
+    const dy = shape.y - window.innerHeight / 2;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    shape.vx += (dx / dist) * 1;
+    shape.vy += (dy / dist) * 1;
+    shape.opacity = Math.min(0.4, shape.opacity + 0.1);
+    setTimeout(() => {
+      shape.opacity = 0.1 + Math.random() * 0.15;
+    }, 500);
+  });
+}
+
+// ============================================
+// Background Floating Letters
+// ============================================
+
+export function createBackgroundLetter() {
+  const letter = document.createElement('div');
+  letter.className = 'bg-letter';
+  letter.textContent = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+  letter.style.left = `${Math.random() * 100}%`;
+  letter.style.animationDuration = `${15 + Math.random() * 15}s`;
+  letter.style.animationDelay = `${Math.random() * 5}s`;
+  letter.style.fontSize = `${30 + Math.random() * 40}px`;
+  letter.style.color = colors[Math.floor(Math.random() * colors.length)];
+  elements.app.appendChild(letter);
+  setTimeout(() => letter.remove(), 30000);
+}
+
+export function startBackgroundLetters() {
+  // Create initial letters
+  for (let i = 0; i < 5; i++) {
+    setTimeout(createBackgroundLetter, i * 2000);
+  }
+  // Continue creating
+  setInterval(createBackgroundLetter, 6000);
+}
