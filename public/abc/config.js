@@ -107,7 +107,7 @@ export const letterNames = {
   'h': ['h', 'aitch', 'eich', 'age', 'ach', 'each', 'letter h'],
   'i': ['i', 'eye', 'ai', 'bye', 'letter i'],
   'j': ['j', 'jay', 'jae', 'je', 'jai', 'letter j'],
-  'k': ['k', 'kay', 'kaye', 'ke', 'letter k'],
+  'k': ['k', 'kay', 'kaye', 'ke', 'okay', 'letter k'],
   'l': ['l', 'el', 'ell', 'elle', 'al', 'ol', 'letter l'],
   'm': ['m', 'em', 'um', 'mm', 'letter m'],
   'n': ['n', 'en', 'an', 'letter n'],
@@ -270,7 +270,7 @@ export const commonWords = [
   // 3-letter words
   'the', 'and', 'for', 'are', 'but', 'not', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use', 'got', 'yes', 'yet', 'ago', 'age', 'ive', 'met', 'hay', 'pay', 'lay', 'ray', 'end', 'big', 'bad', 'red', 'set', 'run', 'man', 'men', 'try', 'huh', 'umm', 'hmm', 'car',
   // 4-letter words
-  'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'okay', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
+  'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your', 'said', 'went', 'back', 'also', 'into', 'only', 'most', 'next', 'keep', 'mean', 'does', 'done', 'need', 'feel', 'tell', 'last', 'made', 'home', 'love', 'elle', 'gene', 'left', 'ever', 'even', 'hear', 'help', 'told',
   // 5+ letter words
   'hello', 'being', 'their', 'about', 'would', 'could', 'there', 'where', 'which', 'these', 'those', 'other', 'after', 'think', 'first', 'going', 'thing', 'right', 'still', 'again', 'never', 'under', 'night', 'great', 'every', 'years', 'maybe', 'meant', 'thank', 'thanks', 'change', 'double', 'effect', 'effects', 'really', 'people', 'before', 'should', 'saying', 'things', 'little', 'always', 'wanted', 'enough', 'pretty'
 ];
