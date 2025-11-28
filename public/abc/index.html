@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ABC - Simulatte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="description" content="A toddler-friendly alphabet game. Mash the keyboard to see letters come alive!" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="trail-canvas"></canvas>
+    <div id="letter-display"></div>
+    <div id="particles"></div>
+    <div id="celebration-overlay"></div>
+    <div id="marquee-upper-container" class="marquee-container marquee-top">
+      <div class="marquee-row" id="marquee-upper"></div>
+    </div>
+    <div id="marquee-lower-container" class="marquee-container marquee-bottom">
+      <div class="marquee-row" id="marquee-lower"></div>
+    </div>
+    <div id="mic-indicator">
+      <div class="mic-row">
+        <div class="mic-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </div>
+        <div class="mic-meter">
+          <div class="mic-meter-bar"></div>
+        </div>
+        <span class="mic-db">0 dB</span>
+        <label class="mic-switch" title="Toggle microphone">
+          <input type="checkbox" id="mic-toggle" checked>
+          <span class="mic-switch-slider"></span>
+        </label>
+      </div>
+      <div class="mic-transcript">Listening</div>
+    </div>
+    <div id="model-loader">
+      <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading Speech Model...</div>
+        <div class="loader-progress">0%</div>
+      </div>
+    </div>
+    <div id="start-screen">
+      <div class="splash-letters" aria-hidden="true">
+        <span class="splash-letter" style="--delay: 0s; --x: 10%; --color: #ff6b6b;">A</span>
+        <span class="splash-letter" style="--delay: 0.5s; --x: 25%; --color: #feca57;">B</span>
+        <span class="splash-letter" style="--delay: 1s; --x: 40%; --color: #1dd1a1;">C</span>
+        <span class="splash-letter" style="--delay: 1.5s; --x: 55%; --color: #48dbfb;">D</span>
+        <span class="splash-letter" style="--delay: 2s; --x: 70%; --color: #a55eea;">E</span>
+        <span class="splash-letter" style="--delay: 2.5s; --x: 85%; --color: #fd79a8;">F</span>
+        <span class="splash-letter small" style="--delay: 0.3s; --x: 15%; --color: #54a0ff;">G</span>
+        <span class="splash-letter small" style="--delay: 0.8s; --x: 35%; --color: #ff9ff3;">H</span>
+        <span class="splash-letter small" style="--delay: 1.3s; --x: 50%; --color: #00d2d3;">I</span>
+        <span class="splash-letter small" style="--delay: 1.8s; --x: 65%; --color: #feca57;">J</span>
+        <span class="splash-letter small" style="--delay: 2.3s; --x: 80%; --color: #ff6b6b;">K</span>
+      </div>
+      <div class="splash-content">
+        <h1>
+          <span class="title-letter" style="--color: #ff6b6b;">A</span>
+          <span class="title-letter" style="--color: #1dd1a1;">B</span>
+          <span class="title-letter" style="--color: #48dbfb;">C</span>
+        </h1>
+        <div class="model-selector">
+          <label class="model-label">Voice Recognition</label>
+          <div class="model-options">
+            <button type="button" class="model-option" data-model="none" title="No speech recognition">Off</button>
+            <button type="button" class="model-option" data-model="tiny" title="Fastest, least accurate (~40MB)">Tiny</button>
+            <button type="button" class="model-option selected" data-model="base" title="Balanced speed and accuracy (~75MB)">Base</button>
+            <button type="button" class="model-option" data-model="small" title="Most accurate, slowest (~250MB)">Small</button>
+          </div>
+        </div>
+      </div>
+      <div class="splash-info">
+        <div class="info-icon">?</div>
+        <div class="info-popup">
+          <p>Tap anywhere or press any key</p>
+          <p>Say letters out loud</p>
+          <p>Full screen recommended</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
