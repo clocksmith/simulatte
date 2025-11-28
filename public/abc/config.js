@@ -68,6 +68,7 @@ export const abcSongNotes = {
   'v': { freq: 293.66, duration: 0.5 },
   'w': {
     multi: true,
+    gap: 0.04,
     notes: [
       { freq: 392.00, duration: 0.18 },
       { freq: 392.00, duration: 0.18 },
@@ -77,6 +78,7 @@ export const abcSongNotes = {
   'x': { freq: 349.23, duration: 0.4 },
   'y': {
     multi: true,
+    gap: 0.08,
     notes: [
       { freq: 329.63, duration: 0.25 },
       { freq: 329.63, duration: 0.25 }

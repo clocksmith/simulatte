@@ -66,10 +66,10 @@ export function playNote(char) {
 
   const noteData = abcSongNotes[char.toLowerCase()] || { freq: 440, duration: 0.4 };
 
-  // Handle multi-syllable letters (like W = "double-you")
+  // Handle multi-syllable letters (like W = "double-you", Y = "and")
   if (noteData.multi && noteData.notes) {
     let time = state.audioContext.currentTime;
-    const gap = 0.05;
+    const gap = noteData.gap || 0.05;
     for (const note of noteData.notes) {
       playSingleNote(note.freq, note.duration, time);
       time += note.duration + gap;
