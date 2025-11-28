@@ -618,70 +618,324 @@ function checkForLetterMatch(transcription) {
   }
 
   // Parse multiple letters from transcription
-  const detectedLetters = parseMultipleLetters(text);
+  const { letters: detectedLetters, phonetic } = parseMultipleLetters(text);
 
   if (detectedLetters.length > 0) {
-    console.log(`✅ Matched: [${detectedLetters.map(l => l.toUpperCase()).join(', ')}] from "${text}"`);
+    const letterStr = detectedLetters.map(l => l.toUpperCase()).join(', ');
+    if (phonetic) {
+      console.log(`✅ Heard: "${text}" → Phonetic "${phonetic}" → [${letterStr}]`);
+    } else {
+      console.log(`✅ Heard: "${text}" → [${letterStr}]`);
+    }
     queueLetters(detectedLetters);
   }
 }
 
+// Phonetic patterns that Whisper produces for SEQUENTIAL letter sequences only
+// (consecutive letters in the alphabet like A-B-C, L-M-N-O-P, etc.)
+const phoneticPatterns = {
+  // A B C D E F G patterns (sequential)
+  'abc': ['a', 'b', 'c'],
+  'abcd': ['a', 'b', 'c', 'd'],
+  'abcde': ['a', 'b', 'c', 'd', 'e'],
+  'abcdef': ['a', 'b', 'c', 'd', 'e', 'f'],
+  'abcdefg': ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+  'abie': ['a', 'b'],
+  'abi': ['a', 'b'],
+  'abbey': ['a', 'b'],
+  'abby': ['a', 'b'],
+  'bc': ['b', 'c'],
+  'bcd': ['b', 'c', 'd'],
+  'bcde': ['b', 'c', 'd', 'e'],
+
+  // C D E patterns (sequential)
+  'seedy': ['c', 'd'],
+  'cd': ['c', 'd'],
+  'cde': ['c', 'd', 'e'],
+  'cdef': ['c', 'd', 'e', 'f'],
+  'de': ['d', 'e'],
+  'def': ['d', 'e', 'f'],
+  'defy': ['d', 'e', 'f'],
+  'defg': ['d', 'e', 'f', 'g'],
+
+  // E F G patterns (sequential)
+  'ef': ['e', 'f'],
+  'efg': ['e', 'f', 'g'],
+  'effigy': ['f', 'g'],
+  'fg': ['f', 'g'],
+  'fiji': ['f', 'g'],
+  'fgh': ['f', 'g', 'h'],
+  'gh': ['g', 'h'],
+  'ghi': ['g', 'h', 'i'],
+
+  // H I J K patterns (sequential)
+  'hi': ['h', 'i'],
+  'high': ['h', 'i'],
+  'hij': ['h', 'i', 'j'],
+  'hijk': ['h', 'i', 'j', 'k'],
+  'hijack': ['h', 'i', 'j', 'k'],
+  'ij': ['i', 'j'],
+  'ijk': ['i', 'j', 'k'],
+  'ijkl': ['i', 'j', 'k', 'l'],
+  'jk': ['j', 'k'],
+  'jake': ['j', 'k'],
+  'jkl': ['j', 'k', 'l'],
+  'kl': ['k', 'l'],
+  'kale': ['k', 'l'],
+  'cale': ['k', 'l'],
+  'klm': ['k', 'l', 'm'],
+
+  // L M N O P patterns (the famous fast part! - sequential)
+  'lm': ['l', 'm'],
+  'ellum': ['l', 'm'],
+  'elm': ['l', 'm'],
+  'lmn': ['l', 'm', 'n'],
+  'element': ['l', 'm', 'n'],
+  'elements': ['l', 'm', 'n'],
+  'elementary': ['l', 'm', 'n'],
+  'lmno': ['l', 'm', 'n', 'o'],
+  'elemeno': ['l', 'm', 'n', 'o'],
+  'elemental': ['l', 'm', 'n'],
+  'lmnop': ['l', 'm', 'n', 'o', 'p'],
+  'elemenop': ['l', 'm', 'n', 'o', 'p'],
+  'elemenopy': ['l', 'm', 'n', 'o', 'p'],
+  'elementy': ['l', 'm', 'n'],
+  'mn': ['m', 'n'],
+  'emanate': ['m', 'n'],
+  'eminem': ['m', 'n'],
+  'mno': ['m', 'n', 'o'],
+  'mnop': ['m', 'n', 'o', 'p'],
+  'no': ['n', 'o'],
+  'nope': ['n', 'o', 'p'],
+  'nop': ['n', 'o', 'p'],
+  'noap': ['n', 'o', 'p'],
+
+  // O P Q R S patterns (sequential)
+  'op': ['o', 'p'],
+  'opie': ['o', 'p'],
+  'opi': ['o', 'p'],
+  'opy': ['o', 'p'],
+  'opq': ['o', 'p', 'q'],
+  'pq': ['p', 'q'],
+  'pqr': ['p', 'q', 'r'],
+  'pqrs': ['p', 'q', 'r', 's'],
+  'qr': ['q', 'r'],
+  'qrs': ['q', 'r', 's'],
+  'cures': ['q', 'r', 's'],
+  'curse': ['q', 'r', 's'],
+  'curus': ['q', 'r', 's'],
+  'qrst': ['q', 'r', 's', 't'],
+  'rs': ['r', 's'],
+  'rst': ['r', 's', 't'],
+  'rstu': ['r', 's', 't', 'u'],
+  'arrest': ['r', 's', 't'],
+  'rest': ['r', 's', 't'],
+  'st': ['s', 't'],
+  'stu': ['s', 't', 'u'],
+  'stew': ['s', 't', 'u'],
+  'stuv': ['s', 't', 'u', 'v'],
+
+  // T U V W patterns (sequential)
+  'tu': ['t', 'u'],
+  'tuv': ['t', 'u', 'v'],
+  'tuvee': ['t', 'u', 'v'],
+  'tuvw': ['t', 'u', 'v', 'w'],
+  'uv': ['u', 'v'],
+  'uvw': ['u', 'v', 'w'],
+  'uvwx': ['u', 'v', 'w', 'x'],
+  'vw': ['v', 'w'],
+  'vwx': ['v', 'w', 'x'],
+
+  // W X Y Z patterns (sequential)
+  'wx': ['w', 'x'],
+  'wxy': ['w', 'x', 'y'],
+  'wxyz': ['w', 'x', 'y', 'z'],
+  'xy': ['x', 'y'],
+  'xyz': ['x', 'y', 'z'],
+  'exwise': ['x', 'y', 'z'],
+  'yz': ['y', 'z'],
+  'wise': ['y', 'z'],
+  'whysy': ['y', 'z'],
+  'wises': ['y', 'z'],
+  'whys': ['y', 'z'],
+};
+
+// ABC Song tempo map - milliseconds between letters
+// The song has different tempos for different sections
+const ABC_TEMPO = {
+  // Normal tempo letters (about 500ms between)
+  normal: 500,
+  // Fast section L-M-N-O-P (about 220ms between)
+  fast: 220,
+  // Held notes (G, P, S, V at end of phrases)
+  held: 650,
+  // W is slow (3 syllables)
+  slow: 700,
+  // Final Z
+  final: 800,
+};
+
+// Get the appropriate delay for displaying a letter based on ABC song timing
+// Takes into account what letter comes next for proper phrasing
+function getLetterTempo(letter, nextLetter) {
+  const l = letter.toLowerCase();
+  const next = nextLetter ? nextLetter.toLowerCase() : null;
+
+  // Fast section: L, M, N, O (P ends the phrase so it's held)
+  if (['l', 'm', 'n', 'o'].includes(l)) {
+    // If next letter continues the fast section, stay fast
+    if (next && ['m', 'n', 'o', 'p'].includes(next)) {
+      return ABC_TEMPO.fast;
+    }
+  }
+
+  // Held notes at end of phrases
+  if (l === 'g' || l === 'p' || l === 's' || l === 'v') {
+    return ABC_TEMPO.held;
+  }
+
+  // W is slow (3 syllables: dou-ble-you)
+  if (l === 'w') {
+    return ABC_TEMPO.slow;
+  }
+
+  // Z is the final held note
+  if (l === 'z') {
+    return ABC_TEMPO.final;
+  }
+
+  // Check if we're in a sequential fast run (even if starting mid-sequence)
+  if (next) {
+    const lCode = l.charCodeAt(0);
+    const nextCode = next.charCodeAt(0);
+    // If letters are sequential and in LMNOP range
+    if (nextCode === lCode + 1 && lCode >= 108 && lCode <= 111) { // l=108, o=111
+      return ABC_TEMPO.fast;
+    }
+  }
+
+  return ABC_TEMPO.normal;
+}
+
 // Parse transcription for multiple letter sounds
+// Returns { letters: [...], phonetic: string|null }
 function parseMultipleLetters(text) {
-  const cleanText = text
+  let cleanText = text
     .replace(/^(the |a |an |um |uh |oh |ah )/g, '')
     .replace(/(\.|\,|\!|\?)/g, '')
     .trim();
 
   const detected = [];
-  let remaining = cleanText;
+  let matchedPhonetic = null;
 
-  // Try to extract letters sequentially from the text
-  while (remaining.length > 0) {
-    let foundLetter = null;
-    let foundLength = 0;
+  // First check for phonetic patterns in the full text
+  const lowerText = cleanText.toLowerCase();
+  for (const [pattern, letters] of Object.entries(phoneticPatterns)) {
+    if (lowerText === pattern || lowerText.includes(pattern)) {
+      // Replace the pattern with spaces so we process the letters
+      detected.push(...letters);
+      matchedPhonetic = pattern;
+      cleanText = cleanText.toLowerCase().replace(pattern, '').trim();
+      if (cleanText.length === 0) return { letters: detected, phonetic: matchedPhonetic };
+    }
+  }
 
-    // Check each letter against its possible pronunciations
+  // Split by spaces first to handle word-separated input
+  const words = cleanText.split(/[\s,.-]+/).filter(w => w.length > 0);
+
+  for (const word of words) {
+    // Check if entire word is just concatenated letters (e.g., "abc", "abcd")
+    if (/^[a-z]+$/.test(word) && word.length >= 2 && word.length <= 6) {
+      // Check if it looks like concatenated single letters
+      // These are common concatenations Whisper produces
+      const allSingleLetters = word.split('').every(c => /[a-z]/.test(c));
+      if (allSingleLetters && !isCommonWord(word)) {
+        // Split into individual letters
+        for (const char of word) {
+          detected.push(char);
+        }
+        continue;
+      }
+    }
+
+    // Try to match against letter name variations
+    let foundMatch = false;
     for (const [letter, variations] of Object.entries(letterNames)) {
       for (const variation of variations) {
-        // Check if text starts with this variation
-        if (remaining.startsWith(variation)) {
-          // Prefer longer matches
-          if (variation.length > foundLength) {
-            // Make sure it's a word boundary (space or end)
-            const afterMatch = remaining.slice(variation.length);
-            if (afterMatch.length === 0 || /^[\s,.]/.test(afterMatch)) {
-              foundLetter = letter;
-              foundLength = variation.length;
+        if (word === variation) {
+          detected.push(letter);
+          foundMatch = true;
+          break;
+        }
+      }
+      if (foundMatch) break;
+    }
+
+    // If no variation match, check if it's a single letter
+    if (!foundMatch && word.length === 1 && /[a-z]/.test(word)) {
+      detected.push(word);
+    }
+
+    // Check for partial matches at start of word (e.g., "abc" -> a, b, c)
+    if (!foundMatch && word.length > 1) {
+      let remaining = word;
+      while (remaining.length > 0) {
+        let matched = false;
+
+        // First try longer letter name matches
+        for (const [letter, variations] of Object.entries(letterNames)) {
+          for (const variation of variations) {
+            if (remaining.startsWith(variation) && variation.length > 1) {
+              detected.push(letter);
+              remaining = remaining.slice(variation.length);
+              matched = true;
+              break;
             }
+          }
+          if (matched) break;
+        }
+
+        // If no match, take single character if it's a letter
+        if (!matched) {
+          if (/^[a-z]/.test(remaining)) {
+            detected.push(remaining[0]);
+            remaining = remaining.slice(1);
+          } else {
+            break; // Unknown character, stop
           }
         }
       }
     }
-
-    if (foundLetter) {
-      detected.push(foundLetter);
-      remaining = remaining.slice(foundLength).replace(/^[\s,.]+/, '');
-    } else {
-      // Skip to next word if no match
-      const nextSpace = remaining.search(/[\s,.]/);
-      if (nextSpace === -1) {
-        // Check if remaining is a single letter
-        if (remaining.length === 1 && /[a-z]/.test(remaining)) {
-          detected.push(remaining);
-        }
-        break;
-      }
-      remaining = remaining.slice(nextSpace + 1).replace(/^[\s,.]+/, '');
-    }
   }
 
-  return detected;
+  return { letters: detected, phonetic: matchedPhonetic };
 }
 
-// Queue letters and display them one at a time
+// Common English words that shouldn't be split into letters
+function isCommonWord(word) {
+  const commonWords = [
+    'be', 'he', 'we', 'me', 'no', 'so', 'go', 'do', 'to', 'of', 'or', 'an', 'as', 'at', 'by', 'if', 'in', 'is', 'it', 'my', 'on', 'up', 'us',
+    'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'let', 'may', 'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'own', 'say', 'she', 'too', 'use',
+    'have', 'been', 'call', 'come', 'each', 'find', 'from', 'give', 'good', 'here', 'just', 'know', 'like', 'look', 'make', 'more', 'much', 'over', 'part', 'some', 'such', 'take', 'than', 'that', 'them', 'then', 'they', 'this', 'time', 'very', 'want', 'well', 'were', 'what', 'when', 'will', 'with', 'word', 'work', 'yeah', 'your',
+    'gene', 'key', 'sea', 'see', 'bee', 'tea', 'pea', 'hey', 'hay', 'day', 'way', 'say', 'pay', 'may', 'lay', 'jay', 'ray'
+  ];
+  return commonWords.includes(word.toLowerCase());
+}
+
+// Queue letters and display them one at a time with proper ABC song tempo
 function queueLetters(letters) {
-  letterQueue.push(...letters);
+  // Store the full sequence for tempo calculation
+  const sequence = letters.map(l => l.toLowerCase());
+
+  // Add letters with their sequence context
+  for (let i = 0; i < letters.length; i++) {
+    letterQueue.push({
+      letter: letters[i],
+      nextInSequence: i < letters.length - 1 ? letters[i + 1] : null,
+      isSequence: letters.length > 1
+    });
+  }
+
   processLetterQueue();
 }
 
@@ -689,10 +943,13 @@ function processLetterQueue() {
   if (isDisplayingQueue || letterQueue.length === 0) return;
 
   isDisplayingQueue = true;
-  const letter = letterQueue.shift();
+  const item = letterQueue.shift();
+  const letter = typeof item === 'string' ? item : item.letter;
+  const nextInSequence = typeof item === 'object' ? item.nextInSequence : null;
+  const isSequence = typeof item === 'object' ? item.isSequence : false;
 
-  // Deduplicate - skip if same letter was shown recently
-  if (isDuplicateLetter(letter)) {
+  // Deduplicate - skip if same letter was shown recently (but allow in sequences)
+  if (!isSequence && isDuplicateLetter(letter)) {
     console.log(`🔄 Skipped duplicate: "${letter.toUpperCase()}"`);
     isDisplayingQueue = false;
     processLetterQueue(); // Try next letter immediately
@@ -709,11 +966,27 @@ function processLetterQueue() {
     setTimeout(triggerCelebration, 600);
   }
 
-  // Process next letter after a delay
+  // Calculate delay based on ABC song tempo
+  const nextItem = letterQueue.length > 0 ? letterQueue[0] : null;
+  const nextLetter = nextItem ? (typeof nextItem === 'string' ? nextItem : nextItem.letter) : null;
+
+  // Use sequence context if available, otherwise check next in queue
+  const tempoNextLetter = nextInSequence || nextLetter;
+  const delay = getLetterTempo(letter, tempoNextLetter);
+
+  // Log tempo for debugging
+  if (isSequence) {
+    const tempoType = delay === ABC_TEMPO.fast ? '⚡fast' :
+                      delay === ABC_TEMPO.held ? '🎵held' :
+                      delay === ABC_TEMPO.slow ? '🐢slow' : '▶️normal';
+    console.log(`🎶 Tempo: ${letter.toUpperCase()} → ${tempoNextLetter ? tempoNextLetter.toUpperCase() : 'end'} = ${delay}ms (${tempoType})`);
+  }
+
+  // Process next letter after tempo-based delay
   setTimeout(() => {
     isDisplayingQueue = false;
     processLetterQueue();
-  }, 500); // 500ms between letters
+  }, delay);
 }
 
 // ============================================
