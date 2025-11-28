@@ -134,6 +134,12 @@ function init() {
 
   // Model selector - handle both click and touch to prevent game start
   const modelOptions = document.querySelectorAll('.model-option');
+
+  // Set initial selected based on device (mobile=tiny, desktop=base)
+  modelOptions.forEach(opt => opt.classList.remove('selected'));
+  const defaultOption = document.querySelector(`.model-option[data-model="${state.selectedModel}"]`);
+  if (defaultOption) defaultOption.classList.add('selected');
+
   modelOptions.forEach(option => {
     const selectModel = (e) => {
       e.stopPropagation();

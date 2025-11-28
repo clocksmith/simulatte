@@ -676,7 +676,7 @@ function getLetterTempo(letter, nextLetter) {
   }
 
   if (l === 'g' || l === 'p' || l === 's' || l === 'v') return ABC_TEMPO.held;
-  if (l === 'w') return ABC_TEMPO.slow;
+  if (l === 'w' || l === 'y') return ABC_TEMPO.slow;
   if (l === 'z') return ABC_TEMPO.final;
 
   if (next) {

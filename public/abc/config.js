@@ -17,7 +17,7 @@ export const state = {
   isModelLoading: false,
   isModelLoaded: false,
   isListening: false,
-  selectedModel: 'tiny',
+  selectedModel: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'tiny' : 'base',
   // Audio monitoring
   audioAnalyser: null,
   audioDataArray: null,
