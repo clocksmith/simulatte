@@ -586,12 +586,16 @@ body {
   display: none;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 14px;
-  background: rgba(0, 0, 0, 0.6);
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.7);
   border-radius: 12px;
   z-index: 50;
   transition: all 0.3s ease;
-  min-width: 160px;
+  min-width: 180px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 #mic-indicator.visible {
@@ -634,16 +638,19 @@ body {
 /* Toggle switch */
 .mic-switch {
   position: relative;
-  width: 36px;
-  height: 20px;
+  width: 44px;
+  height: 24px;
   flex-shrink: 0;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mic-switch input {
   opacity: 0;
   width: 0;
   height: 0;
+  position: absolute;
 }
 
 .mic-switch-slider {
@@ -660,8 +667,8 @@ body {
 .mic-switch-slider::before {
   content: '';
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   left: 3px;
   bottom: 3px;
   background: rgba(255, 255, 255, 0.6);
@@ -675,7 +682,7 @@ body {
 }
 
 .mic-switch input:checked + .mic-switch-slider::before {
-  transform: translateX(16px);
+  transform: translateX(20px);
   background: #1dd1a1;
   box-shadow: 0 0 8px rgba(29, 209, 161, 0.6);
 }
@@ -734,31 +741,79 @@ body {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .runtime-model-options {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .runtime-model-option {
   flex: 1;
-  padding: 6px 8px;
-  font-size: 11px;
+  padding: 10px 6px;
+  font-size: 12px;
   font-weight: 600;
   font-family: inherit;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.runtime-model-option .btn-text {
+  display: block;
+}
+
+.runtime-model-option .btn-spinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #48dbfb;
+  border-radius: 50%;
+  animation: btnSpin 0.8s linear infinite;
+}
+
+.runtime-model-option .btn-progress {
+  display: none;
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.runtime-model-option.loading .btn-spinner {
+  display: block;
+}
+
+.runtime-model-option.loading .btn-text {
+  font-size: 10px;
+}
+
+@keyframes btnSpin {
+  to { transform: rotate(360deg); }
 }
 
 .runtime-model-option:hover {
   background: rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.8);
+}
+
+.runtime-model-option:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .runtime-model-option.selected {
@@ -771,13 +826,26 @@ body {
   color: #ff6b6b;
 }
 
+.runtime-model-option.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
 .runtime-model-option.cached::after {
   content: '✓';
   position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 8px;
+  top: 3px;
+  right: 3px;
+  font-size: 9px;
   color: #1dd1a1;
+}
+
+.runtime-status {
+  display: none;
+  margin-top: 6px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
 }
 
 /* Cached indicator on start screen */

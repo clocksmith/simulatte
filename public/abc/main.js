@@ -268,13 +268,32 @@ function setupRuntimeModelSelector() {
   runtimeSelector.className = 'runtime-model-selector';
   runtimeSelector.innerHTML = `
     <div class="runtime-model-options">
-      <button type="button" class="runtime-model-option" data-model="none" title="Off">Off</button>
-      <button type="button" class="runtime-model-option" data-model="tiny" title="Tiny model">T</button>
-      <button type="button" class="runtime-model-option" data-model="base" title="Base model">B</button>
-      <button type="button" class="runtime-model-option" data-model="small" title="Small model">S</button>
+      <button type="button" class="runtime-model-option" data-model="none" title="Off">
+        <span class="btn-text">Off</span>
+        <span class="btn-spinner"></span>
+      </button>
+      <button type="button" class="runtime-model-option" data-model="tiny" title="Tiny ~150MB">
+        <span class="btn-text">Tiny</span>
+        <span class="btn-spinner"></span>
+        <span class="btn-progress"></span>
+      </button>
+      <button type="button" class="runtime-model-option" data-model="base" title="Base ~280MB">
+        <span class="btn-text">Base</span>
+        <span class="btn-spinner"></span>
+        <span class="btn-progress"></span>
+      </button>
+      <button type="button" class="runtime-model-option" data-model="small" title="Small ~460MB">
+        <span class="btn-text">Small</span>
+        <span class="btn-spinner"></span>
+        <span class="btn-progress"></span>
+      </button>
     </div>
+    <div class="runtime-status"></div>
   `;
   micIndicator.appendChild(runtimeSelector);
+
+  // Store reference for updates
+  window.runtimeModelSelector = runtimeSelector;
 
   // Update cached indicators and selected state
   runtimeSelector.querySelectorAll('.runtime-model-option').forEach(opt => {
@@ -290,18 +309,35 @@ function setupRuntimeModelSelector() {
       opt.classList.add('selected');
     }
 
-    // Handle clicks
-    opt.addEventListener('click', (e) => {
+    // Handle selection - works for both click and touch
+    const handleSelect = (e) => {
       e.stopPropagation();
-      if (model !== state.selectedModel) {
-        switchModel(model);
-        // Update all runtime options
-        runtimeSelector.querySelectorAll('.runtime-model-option').forEach(o => {
-          o.classList.toggle('selected', o.dataset.model === model);
-        });
+      e.preventDefault();
+
+      if (opt.classList.contains('loading')) return;
+      if (model === state.selectedModel && !state.isModelLoading) return;
+
+      // Update UI immediately
+      runtimeSelector.querySelectorAll('.runtime-model-option').forEach(o => {
+        o.classList.remove('selected');
+        o.classList.remove('loading');
+      });
+      opt.classList.add('selected');
+
+      if (model !== 'none') {
+        opt.classList.add('loading');
       }
-    });
+
+      switchModel(model);
+    };
+
+    opt.addEventListener('click', handleSelect);
+    opt.addEventListener('touchend', handleSelect, { passive: false });
   });
+
+  // Prevent touch events from bubbling to parent
+  runtimeSelector.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: false });
+  runtimeSelector.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: false });
 }
 
 function showModelSelector() {

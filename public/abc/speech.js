@@ -83,6 +83,53 @@ export function getCachedModels() {
 // Whisper Model Loading
 // ============================================
 
+// Helper to update runtime model selector UI
+function updateRuntimeUI(status, progress = 0, message = '') {
+  const selector = window.runtimeModelSelector;
+  if (!selector) return;
+
+  const statusEl = selector.querySelector('.runtime-status');
+  const selectedBtn = selector.querySelector('.runtime-model-option.selected');
+
+  if (status === 'loading' || status === 'downloading') {
+    if (selectedBtn) {
+      selectedBtn.classList.add('loading');
+      const progressEl = selectedBtn.querySelector('.btn-progress');
+      if (progressEl && progress > 0) {
+        progressEl.textContent = `${progress}%`;
+        progressEl.style.display = 'block';
+      }
+    }
+    if (statusEl && message) {
+      statusEl.textContent = message;
+      statusEl.style.display = 'block';
+    }
+  } else if (status === 'ready') {
+    selector.querySelectorAll('.runtime-model-option').forEach(opt => {
+      opt.classList.remove('loading');
+      const progressEl = opt.querySelector('.btn-progress');
+      if (progressEl) {
+        progressEl.style.display = 'none';
+      }
+    });
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.style.display = 'none';
+    }
+    // Update cached status
+    if (selectedBtn && selectedBtn.dataset.model !== 'none') {
+      selectedBtn.classList.add('cached');
+    }
+  } else if (status === 'off') {
+    selector.querySelectorAll('.runtime-model-option').forEach(opt => {
+      opt.classList.remove('loading');
+    });
+    if (statusEl) {
+      statusEl.style.display = 'none';
+    }
+  }
+}
+
 export async function switchModel(newModel) {
   console.log(`🔄 Switching model to: ${newModel}`);
 
@@ -107,9 +154,17 @@ export async function switchModel(newModel) {
 
   // Load new model if not 'none'
   if (newModel !== 'none') {
+    updateRuntimeUI('loading', 0, 'Starting...');
     loadWhisperModel();
   } else {
-    elements.micIndicator.classList.remove('visible', 'listening');
+    updateRuntimeUI('off');
+    // Keep mic indicator visible but update UI
+    const transcriptEl = elements.micIndicator.querySelector('.mic-transcript');
+    if (transcriptEl) {
+      transcriptEl.textContent = 'Voice Off';
+      transcriptEl.style.color = 'rgba(255, 255, 255, 0.4)';
+    }
+    elements.micIndicator.classList.remove('listening');
   }
 }
 
@@ -158,16 +213,21 @@ export function loadWhisperModel() {
             const activeFiles = e.data.activeFiles || 0;
             statusText.textContent = `Downloading model${activeFiles > 1 ? ` (${activeFiles} files)` : ''}...`;
             progressText.textContent = total > 0 ? `${mb} / ${totalMb} MB (${e.data.progress}%)` : `${e.data.progress}%`;
+            // Update runtime UI
+            updateRuntimeUI('downloading', e.data.progress, `${mb}/${totalMb}MB`);
           } else if (status === 'initiate') {
             statusText.textContent = e.data.file ? `Starting ${e.data.file}...` : 'Initializing...';
+            updateRuntimeUI('loading', 0, 'Starting...');
           } else if (status === 'loading') {
             statusText.textContent = 'Initializing model...';
             progressText.textContent = '';
+            updateRuntimeUI('loading', 0, 'Loading...');
           } else if (status === 'ready') {
             state.isModelLoaded = true;
             state.isModelLoading = false;
             statusText.textContent = 'Model loaded!';
             progressText.textContent = '100%';
+            updateRuntimeUI('ready', 100, '');
             setTimeout(() => {
               elements.modelLoader.classList.remove('active');
               elements.modelLoader.classList.add('loaded');
