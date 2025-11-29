@@ -68,6 +68,15 @@ function handleKeyDown(e) {
     showShape(randomShape);
     return;
   }
+
+  // Punctuation keys = show shapes too
+  const punctuationKeys = [',', '.', '/', ';', "'", '[', ']', '-', '=', '`', '\\'];
+  if (punctuationKeys.includes(char)) {
+    e.preventDefault();
+    const randomShape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+    showShape(randomShape);
+    return;
+  }
 }
 
 function handleMouseMove(e) {
