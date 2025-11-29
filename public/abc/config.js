@@ -25,7 +25,7 @@ export const state = {
 };
 
 // Constants
-export const MAX_SHAPES = 25;
+export const MAX_SHAPES = 35;
 export const MARQUEE_SPEED = 0.5;
 export const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const shapeTypes = ['heart', 'star', 'triangle', 'circle', 'diamond'];

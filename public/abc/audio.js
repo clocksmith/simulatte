@@ -105,52 +105,115 @@ export function playCelebrationSound() {
   });
 }
 
-// Shape sounds - different sounds for each shape
-const shapeSounds = {
-  heart: { freq: 440, duration: 0.5, type: 'sine' },      // Warm A note
-  star: { freq: 880, duration: 0.3, type: 'triangle' },   // Bright high A
-  triangle: { freq: 330, duration: 0.4, type: 'square' }, // E note, edgy
-  circle: { freq: 523.25, duration: 0.5, type: 'sine' },  // Smooth C
-  diamond: { freq: 659.25, duration: 0.4, type: 'sawtooth' } // Sparkly E
+// Melodic shape sounds with harmonic progressions
+// Multiple chord progressions to cycle through
+const chordProgressions = [
+  // I - IV - V - I (Classic)
+  [[261.63, 329.63, 392.00], [349.23, 440.00, 523.25], [392.00, 493.88, 587.33], [523.25, 659.25, 783.99]],
+  // I - vi - IV - V (Pop)
+  [[261.63, 329.63, 392.00], [440.00, 523.25, 659.25], [349.23, 440.00, 523.25], [392.00, 493.88, 587.33]],
+  // I - V - vi - IV (Modern Pop)
+  [[261.63, 329.63, 392.00], [392.00, 493.88, 587.33], [440.00, 523.25, 659.25], [349.23, 440.00, 523.25]],
+  // i - VI - III - VII (Minor)
+  [[261.63, 311.13, 392.00], [440.00, 523.25, 659.25], [329.63, 392.00, 493.88], [466.16, 587.33, 698.46]],
+  // I - iii - vi - ii (Jazzy)
+  [[261.63, 329.63, 392.00], [329.63, 392.00, 493.88], [440.00, 523.25, 659.25], [293.66, 349.23, 440.00]],
+  // Pentatonic ascending
+  [[261.63, 293.66, 329.63], [329.63, 392.00, 440.00], [440.00, 523.25, 587.33], [587.33, 659.25, 783.99]],
+];
+
+// Track state for melodic progression
+let currentProgressionIndex = 0;
+let currentChordIndex = 0;
+let lastProgressionTime = 0;
+let recentProgressions = [];
+
+// Shape-specific timbres
+const shapeTimbre = {
+  heart: { type: 'sine', attack: 0.08, decay: 0.6, harmonics: [1, 0.5, 0.25] },
+  star: { type: 'triangle', attack: 0.02, decay: 0.4, harmonics: [1, 0.3, 0.1, 0.05] },
+  triangle: { type: 'triangle', attack: 0.01, decay: 0.35, harmonics: [1, 0, 0.3] },
+  circle: { type: 'sine', attack: 0.05, decay: 0.5, harmonics: [1, 0.4, 0.2] },
+  diamond: { type: 'sawtooth', attack: 0.02, decay: 0.45, harmonics: [1, 0.2, 0.1] }
 };
 
 export function playShapeSound(shapeType) {
   if (!state.audioContext) return;
 
-  const sound = shapeSounds[shapeType] || shapeSounds.circle;
   const time = state.audioContext.currentTime;
+  const timbre = shapeTimbre[shapeType] || shapeTimbre.circle;
 
-  // Main tone
-  const osc = state.audioContext.createOscillator();
-  const gain = state.audioContext.createGain();
+  // Switch progression if it's been a while (3+ seconds) or we've gone through the whole progression
+  const timeSinceLastPress = time - lastProgressionTime;
+  if (timeSinceLastPress > 3 || currentChordIndex >= chordProgressions[currentProgressionIndex].length) {
+    // Pick a new progression that wasn't used recently
+    let newIndex;
+    let attempts = 0;
+    do {
+      newIndex = Math.floor(Math.random() * chordProgressions.length);
+      attempts++;
+    } while (recentProgressions.includes(newIndex) && attempts < 10);
 
-  osc.type = sound.type;
-  osc.frequency.setValueAtTime(sound.freq, time);
+    currentProgressionIndex = newIndex;
+    currentChordIndex = 0;
 
-  gain.gain.setValueAtTime(0, time);
-  gain.gain.linearRampToValueAtTime(0.3, time + 0.05);
-  gain.gain.exponentialRampToValueAtTime(0.01, time + sound.duration);
+    // Track recent progressions (keep last 3)
+    recentProgressions.push(newIndex);
+    if (recentProgressions.length > 3) {
+      recentProgressions.shift();
+    }
+  }
 
-  osc.connect(gain);
-  gain.connect(state.audioContext.destination);
+  lastProgressionTime = time;
 
-  osc.start(time);
-  osc.stop(time + sound.duration);
+  // Get current chord
+  const progression = chordProgressions[currentProgressionIndex];
+  const chord = progression[currentChordIndex % progression.length];
+  currentChordIndex++;
 
-  // Add a harmonic for richness
-  const osc2 = state.audioContext.createOscillator();
-  const gain2 = state.audioContext.createGain();
+  // Play chord with shape's timbre
+  chord.forEach((freq, i) => {
+    // Slightly stagger notes for arpeggio effect
+    const noteTime = time + i * 0.03;
 
-  osc2.type = 'sine';
-  osc2.frequency.setValueAtTime(sound.freq * 2, time);
+    // Play each harmonic
+    timbre.harmonics.forEach((harmonicGain, h) => {
+      if (harmonicGain === 0) return;
 
-  gain2.gain.setValueAtTime(0, time);
-  gain2.gain.linearRampToValueAtTime(0.12, time + 0.03);
-  gain2.gain.exponentialRampToValueAtTime(0.01, time + sound.duration * 0.6);
+      const osc = state.audioContext.createOscillator();
+      const gain = state.audioContext.createGain();
 
-  osc2.connect(gain2);
-  gain2.connect(state.audioContext.destination);
+      osc.type = timbre.type;
+      osc.frequency.setValueAtTime(freq * (h + 1), noteTime);
 
-  osc2.start(time);
-  osc2.stop(time + sound.duration * 0.6);
+      const volume = 0.15 * harmonicGain * (1 - i * 0.15); // Fade lower notes slightly
+      gain.gain.setValueAtTime(0, noteTime);
+      gain.gain.linearRampToValueAtTime(volume, noteTime + timbre.attack);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + timbre.decay);
+
+      osc.connect(gain);
+      gain.connect(state.audioContext.destination);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + timbre.decay);
+    });
+  });
+
+  // Add a subtle bass note for depth
+  const bassFreq = chord[0] / 2;
+  const bassOsc = state.audioContext.createOscillator();
+  const bassGain = state.audioContext.createGain();
+
+  bassOsc.type = 'sine';
+  bassOsc.frequency.setValueAtTime(bassFreq, time);
+
+  bassGain.gain.setValueAtTime(0, time);
+  bassGain.gain.linearRampToValueAtTime(0.08, time + 0.05);
+  bassGain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+
+  bassOsc.connect(bassGain);
+  bassGain.connect(state.audioContext.destination);
+
+  bassOsc.start(time);
+  bassOsc.stop(time + 0.5);
 }
