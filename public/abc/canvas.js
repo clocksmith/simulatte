@@ -253,14 +253,19 @@ export function onLetterChange(color) {
     if (Math.random() < 0.3) {
       shape.color = color;
     }
-    const dx = shape.x - window.innerWidth / 2;
-    const dy = shape.y - window.innerHeight / 2;
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-    shape.vx += (dx / dist) * 1;
-    shape.vy += (dy / dist) * 1;
+
+    // Random burst in any direction instead of pushing to corners
+    const burstAngle = Math.random() * Math.PI * 2;
+    const burstStrength = 0.8 + Math.random() * 1.2;
+    shape.vx += Math.cos(burstAngle) * burstStrength;
+    shape.vy += Math.sin(burstAngle) * burstStrength;
+
+    // Slight rotation burst
+    shape.rotationSpeed += (Math.random() - 0.5) * 0.5;
+
     shape.opacity = Math.min(0.4, shape.opacity + 0.1);
     setTimeout(() => {
-      shape.opacity = 0.1 + Math.random() * 0.15;
+      shape.opacity = 0.08 + Math.random() * 0.18;
     }, 500);
   });
 }
