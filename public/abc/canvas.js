@@ -69,19 +69,33 @@ export function initBackgroundShapes() {
 }
 
 function createShape() {
+  const now = Date.now();
+  // Random behavior phase duration between 15-30 seconds
+  const phaseDuration = (15 + Math.random() * 15) * 1000;
+
   return {
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
-    vx: (Math.random() - 0.5) * 0.5,
-    vy: (Math.random() - 0.5) * 0.5,
-    size: 15 + Math.random() * 25,
+    // Faster base velocities
+    vx: (Math.random() - 0.5) * 1.2,
+    vy: (Math.random() - 0.5) * 1.2,
+    // More diverse sizes
+    size: 12 + Math.random() * 35,
     rotation: Math.random() * 360,
-    rotationSpeed: (Math.random() - 0.5) * 0.5,
+    rotationSpeed: (Math.random() - 0.5) * 1.0,
     type: shapeTypes[Math.floor(Math.random() * shapeTypes.length)],
     color: colors[Math.floor(Math.random() * colors.length)],
-    opacity: 0.1 + Math.random() * 0.15,
-    targetX: null,
-    targetY: null
+    opacity: 0.08 + Math.random() * 0.18,
+    // Behavior oscillation
+    behaviorPhase: Math.random() > 0.5 ? 'follow' : 'disperse',
+    phaseStartTime: now - Math.random() * phaseDuration, // Stagger initial phases
+    phaseDuration: phaseDuration,
+    // Individual behavior intensity
+    followStrength: 0.02 + Math.random() * 0.04,
+    disperseStrength: 0.03 + Math.random() * 0.05,
+    // Random wander tendency
+    wanderAngle: Math.random() * Math.PI * 2,
+    wanderSpeed: 0.3 + Math.random() * 0.4
   };
 }
 
@@ -147,49 +161,86 @@ function drawShape(shape) {
 function updateBackgroundShapes() {
   const w = window.innerWidth;
   const h = window.innerHeight;
+  const now = Date.now();
 
   state.backgroundShapes.forEach(shape => {
-    if (Math.random() < 0.02) {
-      shape.vx += (Math.random() - 0.5) * 0.8;
-      shape.vy += (Math.random() - 0.5) * 0.8;
+    // Check if it's time to switch behavior phase
+    if (now - shape.phaseStartTime > shape.phaseDuration) {
+      shape.behaviorPhase = shape.behaviorPhase === 'follow' ? 'disperse' : 'follow';
+      shape.phaseStartTime = now;
+      // Randomize next phase duration (15-30 seconds)
+      shape.phaseDuration = (15 + Math.random() * 15) * 1000;
+      // Small burst when switching
+      const burstAngle = Math.random() * Math.PI * 2;
+      shape.vx += Math.cos(burstAngle) * 1.5;
+      shape.vy += Math.sin(burstAngle) * 1.5;
     }
 
+    // More frequent random direction changes
+    if (Math.random() < 0.04) {
+      shape.vx += (Math.random() - 0.5) * 1.2;
+      shape.vy += (Math.random() - 0.5) * 1.2;
+    }
+
+    // Wandering behavior - slowly rotating preferred direction
+    shape.wanderAngle += (Math.random() - 0.5) * 0.15;
+    shape.vx += Math.cos(shape.wanderAngle) * shape.wanderSpeed * 0.02;
+    shape.vy += Math.sin(shape.wanderAngle) * shape.wanderSpeed * 0.02;
+
+    // Apply velocity
     shape.x += shape.vx;
     shape.y += shape.vy;
     shape.rotation += shape.rotationSpeed;
 
-    // Mouse attraction
+    // Mouse interaction based on behavior phase
     if (state.mouseX > 0 && state.mouseY > 0) {
       const dx = state.mouseX - shape.x;
       const dy = state.mouseY - shape.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 250 && dist > 20) {
-        shape.vx += (dx / dist) * 0.015;
-        shape.vy += (dy / dist) * 0.015;
+
+      if (dist < 300 && dist > 15) {
+        if (shape.behaviorPhase === 'follow') {
+          // Aggressive following during follow phase
+          shape.vx += (dx / dist) * shape.followStrength;
+          shape.vy += (dy / dist) * shape.followStrength;
+        } else {
+          // Disperse - flee from mouse
+          shape.vx -= (dx / dist) * shape.disperseStrength;
+          shape.vy -= (dy / dist) * shape.disperseStrength;
+        }
       }
     }
 
-    shape.vx *= 0.995;
-    shape.vy *= 0.995;
+    // Slightly less friction for faster movement
+    shape.vx *= 0.992;
+    shape.vy *= 0.992;
 
     const speed = Math.sqrt(shape.vx * shape.vx + shape.vy * shape.vy);
-    if (speed < 0.3) {
+
+    // Higher minimum speed
+    if (speed < 0.5) {
       const angle = Math.random() * Math.PI * 2;
-      shape.vx = Math.cos(angle) * 0.5;
-      shape.vy = Math.sin(angle) * 0.5;
+      shape.vx = Math.cos(angle) * 0.8;
+      shape.vy = Math.sin(angle) * 0.8;
     }
 
-    if (speed > 3) {
-      shape.vx = (shape.vx / speed) * 3;
-      shape.vy = (shape.vy / speed) * 3;
+    // Higher max speed
+    if (speed > 4.5) {
+      shape.vx = (shape.vx / speed) * 4.5;
+      shape.vy = (shape.vy / speed) * 4.5;
     }
 
     // Soft bounce
-    const padding = 60;
-    if (shape.x < padding) { shape.x = padding; shape.vx = Math.abs(shape.vx) * 0.8 + 0.3; }
-    if (shape.x > w - padding) { shape.x = w - padding; shape.vx = -Math.abs(shape.vx) * 0.8 - 0.3; }
-    if (shape.y < padding) { shape.y = padding; shape.vy = Math.abs(shape.vy) * 0.8 + 0.3; }
-    if (shape.y > h - padding) { shape.y = h - padding; shape.vy = -Math.abs(shape.vy) * 0.8 - 0.3; }
+    const padding = 50;
+    if (shape.x < padding) { shape.x = padding; shape.vx = Math.abs(shape.vx) * 0.7 + 0.5; }
+    if (shape.x > w - padding) { shape.x = w - padding; shape.vx = -Math.abs(shape.vx) * 0.7 - 0.5; }
+    if (shape.y < padding) { shape.y = padding; shape.vy = Math.abs(shape.vy) * 0.7 + 0.5; }
+    if (shape.y > h - padding) { shape.y = h - padding; shape.vy = -Math.abs(shape.vy) * 0.7 - 0.5; }
+
+    // Occasional color change
+    if (Math.random() < 0.001) {
+      shape.color = colors[Math.floor(Math.random() * colors.length)];
+    }
 
     drawShape(shape);
   });
