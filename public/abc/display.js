@@ -203,9 +203,15 @@ function animateLetterToCenter(letter, color, upperSource, lowerSource) {
   const centerY = window.innerHeight / 2;
   const isNumber = /^[0-9]$/.test(letter);
 
+  // Wide letters need extra spacing
+  const wideLetters = ['m', 'w', 'q'];
+  const isWideLetter = wideLetters.includes(letter.toLowerCase());
+
   const upperTargetSize = Math.min(450, window.innerWidth * 0.38);
   const lowerTargetSize = Math.min(360, window.innerWidth * 0.30);
-  const gap = Math.min(80, window.innerWidth * 0.06);
+  // Increase gap for wide letters, and generally make it bigger
+  const baseGap = Math.min(120, window.innerWidth * 0.1);
+  const gap = isWideLetter ? baseGap * 1.3 : baseGap;
 
   // For numbers, just show one centered digit
   if (isNumber) {
@@ -306,10 +312,12 @@ function animateLetterToCenter(letter, color, upperSource, lowerSource) {
   document.body.appendChild(flyingUpper);
   document.body.appendChild(flyingLower);
 
-  // Calculate final positions
-  const totalWidth = upperTargetSize * 0.55 + lowerTargetSize * 0.45 + gap;
+  // Calculate final positions - use wider multipliers to prevent overlap
+  const upperWidthFactor = isWideLetter ? 0.7 : 0.6;
+  const lowerWidthFactor = isWideLetter ? 0.6 : 0.5;
+  const totalWidth = upperTargetSize * upperWidthFactor + lowerTargetSize * lowerWidthFactor + gap;
   const upperFinalX = centerX - totalWidth / 2;
-  const lowerFinalX = upperFinalX + upperTargetSize * 0.55 + gap;
+  const lowerFinalX = upperFinalX + upperTargetSize * upperWidthFactor + gap;
   const finalY = centerY - upperTargetSize * 0.4;
 
   const upperAnim = createLerpAnimation(flyingUpper, {
