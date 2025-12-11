@@ -1,7 +1,7 @@
 export const DEFAULT_TEMPERATURE = 0.9;
 export const DEFAULT_TOP_K = 64;
 export const DEFAULT_TOP_P = 0.95;
-export const DEFAULT_MAX_ROUNDS = 10;
+export const DEFAULT_MAX_ROUNDS = 16;
 export const DEFAULT_NUM_CHOICES = 4;
 export const MIN_WORD_TOKEN_LENGTH = 2;
 

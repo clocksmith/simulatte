@@ -1,9 +1,23 @@
 export const MathUtils = {
   softmax(logits) {
-    const maxLogit = Math.max(...logits);
-    const exps = logits.map(l => Math.exp(l - maxLogit));
-    const sumExps = exps.reduce((a, b) => a + b, 0);
-    return exps.map(e => e / sumExps);
+    // Handle large arrays without stack overflow (avoid spread operator)
+    let maxLogit = -Infinity;
+    for (let i = 0; i < logits.length; i++) {
+      if (logits[i] > maxLogit) maxLogit = logits[i];
+    }
+
+    const exps = new Float32Array(logits.length);
+    let sumExps = 0;
+    for (let i = 0; i < logits.length; i++) {
+      exps[i] = Math.exp(logits[i] - maxLogit);
+      sumExps += exps[i];
+    }
+
+    const result = new Float32Array(logits.length);
+    for (let i = 0; i < logits.length; i++) {
+      result[i] = exps[i] / sumExps;
+    }
+    return result;
   },
 
   calculateEntropy(probs) {

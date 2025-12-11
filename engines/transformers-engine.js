@@ -64,8 +64,8 @@ export class TransformersEngine extends EngineInterface {
         return false;
       }
 
-      // Log GPU info
-      const info = await adapter.requestAdapterInfo();
+      // Log GPU info (use adapter.info for newer API, fallback for older)
+      const info = adapter.info || {};
       console.log('WebGPU Adapter:', {
         vendor: info.vendor || 'unknown',
         architecture: info.architecture || 'unknown',

@@ -52,7 +52,9 @@ export class GameController {
       choices,
       playerChoice,
       correctChoice: correctIndex,
+      correctToken,
       isCorrect,
+      topTokens: prediction.topTokens,
       probabilities: prediction.probabilities
     });
 
@@ -113,7 +115,8 @@ export class GameController {
     EventBus.emit('game:end', {
       score: this.session.score,
       maxRounds: this.config.maxRounds,
-      achievements: this.session.achievements
+      achievements: this.session.achievements,
+      rounds: this.session.rounds
     });
 
     await this.session.save();
