@@ -41890,7 +41890,9 @@ class GameController {
       choices,
       playerChoice,
       correctChoice: correctIndex,
+      correctToken,
       isCorrect,
+      topTokens: prediction.topTokens,
       probabilities: prediction.probabilities
     });
 
@@ -41951,7 +41953,8 @@ class GameController {
     EventBus.emit('game:end', {
       score: this.session.score,
       maxRounds: this.config.maxRounds,
-      achievements: this.session.achievements
+      achievements: this.session.achievements,
+      rounds: this.session.rounds
     });
 
     await this.session.save();
@@ -41994,6 +41997,7 @@ class GamePanel {
     this.selectedChoiceIndex = -1;
     this.choicesEnabled = false;
     this.isRealAttention = false; // Track if attention is real or synthetic
+    this.gameRounds = []; // Store round results for end-game summary
   }
 
   setupDOM() {
@@ -42085,9 +42089,26 @@ class GamePanel {
 
         <!-- Action buttons -->
         <footer class="game-footer">
-          <button class="btn btn-primary hidden continue-btn">Continue</button>
+          <div class="footer-buttons">
+            <button class="btn btn-primary hidden continue-btn">Continue</button>
+            <button class="btn btn-secondary hidden results-btn">Show Results</button>
+          </div>
           <div class="footer-hint hidden">Press <kbd>Space</kbd> to continue</div>
         </footer>
+
+        <!-- Results Modal -->
+        <div class="results-modal hidden">
+          <div class="results-modal-content">
+            <div class="results-modal-header">
+              <h2>Game Results</h2>
+              <button class="results-close-btn">&times;</button>
+            </div>
+            <div class="results-modal-body">
+              <div class="results-summary"></div>
+              <div class="results-rounds"></div>
+            </div>
+          </div>
+        </div>
       </div>
     `;
 
@@ -42098,6 +42119,8 @@ class GamePanel {
     this.probabilityChart = this.container.querySelector('.probability-chart');
     this.attentionHeatmap = this.container.querySelector('.attention-heatmap');
     this.continueBtn = this.container.querySelector('.continue-btn');
+    this.resultsBtn = this.container.querySelector('.results-btn');
+    this.resultsModal = this.container.querySelector('.results-modal');
     this.resultDisplay = this.container.querySelector('.result-display');
     this.attentionBadge = this.container.querySelector('.attention-badge');
     this.streakIndicator = this.container.querySelector('.streak-indicator');
@@ -42112,11 +42135,23 @@ class GamePanel {
     this.continueBtn.addEventListener('click', () => {
       EventBus.emit('game:continue');
     });
+
+    // Results modal controls
+    this.resultsBtn.addEventListener('click', () => this.showResultsModal());
+    this.container.querySelector('.results-close-btn').addEventListener('click', () => {
+      this.resultsModal.classList.add('hidden');
+    });
+    this.resultsModal.addEventListener('click', (e) => {
+      if (e.target === this.resultsModal) this.resultsModal.classList.add('hidden');
+    });
   }
 
   bindEvents() {
     EventBus.on('round:start', (data) => this.showRound(data));
     EventBus.on('round:result', (data) => this.showResult(data));
+    EventBus.on('game:end', (data) => {
+      this.gameRounds = data.rounds || [];
+    });
   }
 
   bindKeyboardNavigation() {
@@ -42481,9 +42516,11 @@ class GamePanel {
       this.continueBtn.textContent = 'Play Again';
       this.continueBtn.classList.remove('hidden');
       this.continueBtn.onclick = () => window.location.reload();
+      this.resultsBtn.classList.remove('hidden');
     } else {
       this.continueBtn.textContent = 'Continue';
       this.continueBtn.classList.remove('hidden');
+      this.resultsBtn.classList.add('hidden');
       this.footerHint.classList.remove('hidden');
     }
   }
@@ -42493,6 +42530,60 @@ class GamePanel {
     if (percentage >= 60) return '\u2605 Great job! You have solid LLM intuition.';
     if (percentage >= 40) return '\u261B Good effort! Keep practicing to improve.';
     return '\u261B LLMs can be unpredictable. Try again!';
+  }
+
+  showResultsModal() {
+    const summaryEl = this.resultsModal.querySelector('.results-summary');
+    const roundsEl = this.resultsModal.querySelector('.results-rounds');
+
+    const correct = this.gameRounds.filter(r => r.isCorrect).length;
+    const total = this.gameRounds.length;
+    const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    summaryEl.innerHTML = `
+      <div class="results-score">
+        <span class="results-score-value">${correct}/${total}</span>
+        <span class="results-score-percent">(${percentage}%)</span>
+      </div>
+    `;
+
+    roundsEl.innerHTML = this.gameRounds.map((round, i) => {
+      const statusIcon = round.isCorrect ? '\u2713' : '\u2717';
+      const statusClass = round.isCorrect ? 'correct' : 'incorrect';
+      const playerChoice = round.choices[round.playerChoice];
+      const correctChoice = round.choices[round.correctChoice];
+
+      const topTokensHtml = round.topTokens?.slice(0, 5).map((t, idx) => `
+        <span class="results-top-token ${t.text === correctChoice?.text ? 'is-correct' : ''}">
+          #${idx + 1} "${this.escapeHtml(t.text)}" (${(t.prob * 100).toFixed(1)}%)
+        </span>
+      `).join('') || '';
+
+      return `
+        <div class="results-round ${statusClass}">
+          <div class="results-round-header">
+            <span class="results-round-num">Round ${i + 1}</span>
+            <span class="results-round-status ${statusClass}">${statusIcon}</span>
+          </div>
+          <div class="results-round-body">
+            <div class="results-row">
+              <span class="results-label">Your answer:</span>
+              <span class="results-value ${round.isCorrect ? 'correct' : 'incorrect'}">"${this.escapeHtml(playerChoice?.text || '?')}"</span>
+            </div>
+            <div class="results-row">
+              <span class="results-label">Correct answer:</span>
+              <span class="results-value correct">"${this.escapeHtml(correctChoice?.text || round.correctToken?.text || '?')}"</span>
+            </div>
+            <div class="results-top-tokens">
+              <span class="results-label">Top predictions:</span>
+              <div class="results-tokens-list">${topTokensHtml}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    this.resultsModal.classList.remove('hidden');
   }
 
   escapeHtml(text) {
@@ -42581,7 +42672,7 @@ function getRandomPrompt() {
 const DEFAULT_TEMPERATURE = 0.9;
 const DEFAULT_TOP_K = 64;
 const DEFAULT_TOP_P = 0.95;
-const DEFAULT_MAX_ROUNDS = 10;
+const DEFAULT_MAX_ROUNDS = 16;
 const DEFAULT_NUM_CHOICES = 4;
 
 /**
