@@ -764,12 +764,13 @@ body {
   background: var(--bg-surface);
   border: 2px solid var(--border-default);
   border-radius: 10px;
-  padding: var(--space-md) var(--space-xl) var(--space-md) var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
   color: var(--text-secondary);
   font-family: var(--font-sans);
   font-size: 14px;
   cursor: pointer;
-  min-width: 160px;
+  width: 130px;
+  flex-shrink: 0;
   transition: all var(--transition-fast);
   appearance: none;
 }
