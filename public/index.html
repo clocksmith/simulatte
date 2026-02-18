@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulatte</title>
+  <style>
+  :root {
+      --fg: #000;
+      --bg: #ffffff;
+      --space-sm: 8px;
+      --space-md: 24px;
+      --space-lg: 24px;
+      --border-sm: 0.5px;
+      --border-md: 1px;
+      --opacity-secondary: 0.62;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "SF Mono", "Menlo", "Consolas", monospace;
+      font-size: 15px;
+    }
+
+    body {
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 100% 100%, rgba(224, 224, 224, 0.98) 0%, rgba(206, 206, 206, 0.85) 30%, rgba(176, 176, 176, 0.45) 62%, rgba(160, 160, 160, 0) 82%),
+        radial-gradient(circle at 78% 84%, rgba(196, 196, 196, 0.82) 0%, rgba(196, 196, 196, 0) 58%),
+        linear-gradient(170deg, #f5f5f5 0%, #dfdfdf 52%, #bdbdbd 100%);
+      z-index: -1;
+      animation: ambient-gradient 24s ease-in-out infinite alternate;
+      will-change: background-position;
+      background-size: 170% 170%, 120% 120%, 140% 140%;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -14vh;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 96% 94%, rgba(210, 210, 210, 0.22) 0%, rgba(210, 210, 210, 0) 48%),
+        radial-gradient(circle at 74% 80%, rgba(225, 225, 225, 0.18) 0%, rgba(225, 225, 225, 0) 62%),
+        conic-gradient(from 185deg at 82% 84%, rgba(210, 210, 210, 0.18), rgba(175, 175, 175, 0.08), rgba(220, 220, 220, 0.14), rgba(190, 190, 190, 0.06), rgba(210, 210, 210, 0.18));
+      z-index: -1;
+      mix-blend-mode: screen;
+      filter: blur(24px);
+      opacity: 0.62;
+      animation: plasma-ribbons 28s ease-in-out infinite alternate;
+      will-change: transform, background-position;
+      background-size: 140% 140%, 120% 120%, 170% 170%;
+    }
+
+    @keyframes ambient-gradient {
+      0% {
+        background-position:
+          102% 102%,
+          78% 84%,
+          0% 55%;
+      }
+      50% {
+        background-position:
+          94% 94%,
+          72% 88%,
+          8% 45%;
+      }
+      100% {
+        background-position:
+          102% 98%,
+          84% 82%,
+          4% 50%;
+      }
+    }
+
+    @keyframes plasma-ribbons {
+      0% {
+        transform: translate(-1.5%, 1.8%) rotate(-0.8deg);
+        background-position:
+          103% 101%,
+          74% 84%,
+          86% 82%;
+      }
+      50% {
+        transform: translate(1.7%, -1.2%) rotate(0.5deg);
+        background-position:
+          97% 90%,
+          70% 84%,
+          94% 86%;
+      }
+      100% {
+        transform: translate(2.2%, 1.6%) rotate(-0.3deg);
+        background-position:
+          108% 96%,
+          76% 90%,
+          78% 80%;
+      }
+    }
+
+    body a {
+      text-decoration: none;
+      border-bottom: var(--border-sm) dotted var(--fg);
+      opacity: var(--opacity-secondary);
+    }
+
+    body a:hover {
+      opacity: 1;
+    }
+
+    .app {
+      width: min(100%, 600px);
+      max-width: 600px;
+      margin: 0;
+      min-height: 100vh;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      justify-items: flex-start;
+      gap: var(--space-md);
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.8);
+      border: var(--border-md) solid var(--fg);
+      width: 512px;
+      padding: var(--space-md);
+      flex: 0 0 auto;
+    }
+
+    .project-panel {
+      border-style: dotted;
+    }
+
+    .copy-panel {
+      border-style: dotted;
+    }
+
+    .copy {
+      font: 400 14px/1.6 monospace;
+      max-width: 76ch;
+    }
+
+    h1 {
+      font: 500 24px/1.2 "SF Mono", "Menlo", "Consolas", monospace;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .section-title {
+      margin-bottom: 10px;
+      font: 700 11px/1.2 monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .projects {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      column-gap: 12px;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel copy-panel">
+      <h1>Simulatte</h1>
+      <p class="copy">
+        We build browser-native software where AI can propose actions, but real side effects are deterministic, constrained, and auditable—by design.
+      </p>
+    </section>
+
+    <section class="panel project-panel" aria-label="Projects">
+      <h2 class="section-title">Projects</h2>
+      <ul class="projects">
+        <li><a href="https://256.one" target="_blank" rel="noopener noreferrer">Research</a></li>
+        <li><a href="https://256.one/labs" target="_blank" rel="noopener noreferrer">Labs</a></li>
+        <li><a href="https://replo.id" target="_blank" rel="noopener noreferrer">RSI Agent</a></li>
+        <li><a href="https://d4da.com" target="_blank" rel="noopener noreferrer">Libraries</a></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
