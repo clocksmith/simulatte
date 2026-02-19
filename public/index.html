@@ -3,213 +3,377 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Simulatte</title>
+  <title>simulatte.world</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <style>
-  :root {
+    :root {
       --fg: #000;
-      --bg: #ffffff;
-      --space-sm: 8px;
-      --space-md: 24px;
-      --space-lg: 24px;
-      --border-sm: 0.5px;
+      --bg: #fff;
       --border-md: 1px;
-      --opacity-secondary: 0.62;
+      --border-sm: 0.5px;
+      --opacity-secondary: 0.72;
     }
 
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      color: inherit;
-      background: transparent;
     }
 
-    html,
     body {
-      min-height: 100%;
+      margin: 0;
       background: var(--bg);
       color: var(--fg);
       font-family: "SF Mono", "Menlo", "Consolas", monospace;
-      font-size: 15px;
+      overflow: hidden;
+      font-size: 14px;
     }
 
-    body {
-      position: relative;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
+    #field {
       position: fixed;
       inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 100% 100%, rgba(224, 224, 224, 0.98) 0%, rgba(206, 206, 206, 0.85) 30%, rgba(176, 176, 176, 0.45) 62%, rgba(160, 160, 160, 0) 82%),
-        radial-gradient(circle at 78% 84%, rgba(196, 196, 196, 0.82) 0%, rgba(196, 196, 196, 0) 58%),
-        linear-gradient(170deg, #f5f5f5 0%, #dfdfdf 52%, #bdbdbd 100%);
-      z-index: -1;
-      animation: ambient-gradient 24s ease-in-out infinite alternate;
-      will-change: background-position;
-      background-size: 170% 170%, 120% 120%, 140% 140%;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 1;
     }
 
-    body::after {
-      content: "";
+    #field-overlay {
       position: fixed;
-      inset: -14vh;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
       pointer-events: none;
-      background:
-        radial-gradient(circle at 96% 94%, rgba(210, 210, 210, 0.22) 0%, rgba(210, 210, 210, 0) 48%),
-        radial-gradient(circle at 74% 80%, rgba(225, 225, 225, 0.18) 0%, rgba(225, 225, 225, 0) 62%),
-        conic-gradient(from 185deg at 82% 84%, rgba(210, 210, 210, 0.18), rgba(175, 175, 175, 0.08), rgba(220, 220, 220, 0.14), rgba(190, 190, 190, 0.06), rgba(210, 210, 210, 0.18));
-      z-index: -1;
-      mix-blend-mode: screen;
-      filter: blur(24px);
-      opacity: 0.62;
-      animation: plasma-ribbons 28s ease-in-out infinite alternate;
-      will-change: transform, background-position;
-      background-size: 140% 140%, 120% 120%, 170% 170%;
+      z-index: 2;
     }
 
-    @keyframes ambient-gradient {
-      0% {
-        background-position:
-          102% 102%,
-          78% 84%,
-          0% 55%;
-      }
-      50% {
-        background-position:
-          94% 94%,
-          72% 88%,
-          8% 45%;
-      }
-      100% {
-        background-position:
-          102% 98%,
-          84% 82%,
-          4% 50%;
-      }
-    }
-
-    @keyframes plasma-ribbons {
-      0% {
-        transform: translate(-1.5%, 1.8%) rotate(-0.8deg);
-        background-position:
-          103% 101%,
-          74% 84%,
-          86% 82%;
-      }
-      50% {
-        transform: translate(1.7%, -1.2%) rotate(0.5deg);
-        background-position:
-          97% 90%,
-          70% 84%,
-          94% 86%;
-      }
-      100% {
-        transform: translate(2.2%, 1.6%) rotate(-0.3deg);
-        background-position:
-          108% 96%,
-          76% 90%,
-          78% 80%;
-      }
-    }
-
-    body a {
-      text-decoration: none;
-      border-bottom: var(--border-sm) dotted var(--fg);
-      opacity: var(--opacity-secondary);
-    }
-
-    body a:hover {
-      opacity: 1;
-    }
-
-    .app {
-      width: min(100%, 600px);
-      max-width: 600px;
-      margin: 0;
-      min-height: 100vh;
-      padding: var(--space-md);
+    #hud {
+      position: fixed;
+      left: 50%;
+      top: 14px;
+      width: calc(100% - 28px);
+      transform: translateX(-50%);
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
       justify-content: flex-start;
-      justify-items: flex-start;
-      gap: var(--space-md);
+      pointer-events: none;
+      z-index: 2;
     }
 
     .panel {
-      background: rgba(255, 255, 255, 0.8);
       border: var(--border-md) solid var(--fg);
-      width: 512px;
-      padding: var(--space-md);
-      flex: 0 0 auto;
+      width: min(100%, 520px);
+      max-width: 520px;
+      padding: 12px;
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.6);
     }
 
-    .project-panel {
-      border-style: dotted;
-    }
-
-    .copy-panel {
-      border-style: dotted;
-    }
-
-    .copy {
-      font: 400 14px/1.6 monospace;
-      max-width: 76ch;
-    }
-
-    h1 {
-      font: 500 24px/1.2 "SF Mono", "Menlo", "Consolas", monospace;
-      margin-bottom: 10px;
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 20px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
 
-    .section-title {
-      margin-bottom: 10px;
-      font: 700 11px/1.2 monospace;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+    .panel p {
+      margin: 0;
+      line-height: 1.4;
     }
 
-    .projects {
-      list-style: none;
+    .mode-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .mode-group {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 4px;
+      justify-items: stretch;
+    }
+
+    .mode-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      justify-items: stretch;
+    }
+
+    .mode-control {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 0;
+      font-size: 11px;
+    }
+
+    .mode-control:disabled {
+      opacity: 0.34;
+      cursor: not-allowed;
+    }
+
+    .mode-label {
+      text-align: center;
+      border: var(--border-sm) dotted transparent;
+      padding: 4px 2px;
+      font-size: 11px;
+      opacity: 0.85;
+      text-transform: uppercase;
+      background: transparent;
+      color: inherit;
+      appearance: none;
+      width: 100%;
+      margin: 0;
+      pointer-events: none;
+      cursor: default;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .secondary-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .alpha-modes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .alpha-mode {
+      width: 100%;
+      min-width: 0;
+      padding: 7px 6px;
+      font-size: 10px;
+    }
+
+    .alpha-mode[aria-pressed="true"] {
+      opacity: 1;
+    }
+
+    .alpha-mode[aria-pressed="true"][data-alpha-mode="1.0"] {
+      background: rgba(0, 0, 0, 1);
+      color: #fff;
+    }
+
+    .alpha-mode[aria-pressed="true"][data-alpha-mode="0.7"] {
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+    }
+
+    .alpha-mode[aria-pressed="true"][data-alpha-mode="0.3"] {
+      background: rgba(0, 0, 0, 0.3);
+      color: #000;
+    }
+
+    button,
+    a {
+      font-family: inherit;
+      border: var(--border-sm) dotted var(--fg);
+      background: transparent;
+      color: inherit;
+      padding: 10px 10px;
+      cursor: pointer;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      text-align: center;
+      opacity: var(--opacity-secondary);
+    }
+
+    button {
+      appearance: none;
+      padding: 8px 8px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    button:hover,
+    a:hover {
+      opacity: 1;
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    button:active,
+    button:focus:not(:focus-visible) {
+      background: transparent;
+      color: inherit;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 1px;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 2.4em;
+      border-top: var(--border-sm) dotted var(--fg);
+      padding-top: 8px;
+    }
+
+    .copyright {
+      position: fixed;
+      left: 14px;
+      right: 14px;
+      bottom: 10px;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0.78;
+      color: rgba(0, 0, 0, 0.9);
+      -webkit-text-stroke: 0.45px rgba(235, 235, 235, 0.85);
+      text-shadow: 0 0 1px rgba(235, 235, 235, 0.85);
+      font-size: 11px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    #detail {
+      position: fixed;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+      width: min(360px, calc(100% - 44px));
+      background: rgba(255, 255, 255, 0.94);
+      border: var(--border-md) solid var(--fg);
+      padding: 10px 11px 11px;
+      z-index: 5;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 240ms ease;
+    }
+
+    #detail.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #detail[hidden] {
+      display: none;
+    }
+
+    #detail h2 {
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 18px;
+    }
+
+    #detail p {
+      margin: 0 0 12px;
+      max-width: 62ch;
+      line-height: 1.45;
+    }
+
+    .detail-url {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-bottom: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .detail-actions {
       display: flex;
+      gap: 8px;
       flex-wrap: wrap;
       align-items: center;
-      gap: 8px;
-      column-gap: 12px;
     }
 
-    @media (max-width: 760px) {
-      .app {
-        padding: 24px;
-      }
+    .detail-link {
+      flex: 1;
+      white-space: normal;
+      text-transform: none;
+      overflow-wrap: anywhere;
+      line-height: 1.15;
+      font-size: 11px;
+      opacity: 0.78;
+    }
+
+    .detail-link:hover {
+      opacity: 1;
+      background: transparent;
+      color: inherit;
+    }
+
+    #detailReset {
+      background: #fff;
     }
   </style>
 </head>
 <body>
-  <main class="app">
-    <section class="panel copy-panel">
-      <h1>Simulatte</h1>
-      <p class="copy">
-        We build browser-native software where AI can propose actions, but real side effects are deterministic, constrained, and auditable—by design.
-      </p>
-    </section>
+  <canvas id="field" aria-label="Simulatte World Field"></canvas>
+  <canvas id="field-overlay" aria-hidden="true"></canvas>
 
-    <section class="panel project-panel" aria-label="Projects">
-      <h2 class="section-title">Projects</h2>
-      <ul class="projects">
-        <li><a href="https://256.one" target="_blank" rel="noopener noreferrer">Research</a></li>
-        <li><a href="https://256.one/labs" target="_blank" rel="noopener noreferrer">Labs</a></li>
-        <li><a href="https://replo.id" target="_blank" rel="noopener noreferrer">RSI Agent</a></li>
-        <li><a href="https://d4da.com" target="_blank" rel="noopener noreferrer">Libraries</a></li>
-      </ul>
+  <div id="hud">
+    <section class="panel">
+      <h1>simulatte.world</h1>
+      <p>We build browser-native software where AI can propose actions, but real side effects are deterministic, constrained, and auditable by design.</p>
+
+      <div class="mode-controls">
+        <div class="mode-group">
+          <div class="mode-row">
+            <button id="mode-work-minus" class="mode-control" data-mode="work" data-step="-1" type="button">-</button>
+            <button id="mode-work-plus" class="mode-control" data-mode="work" data-step="1" type="button">+</button>
+          </div>
+          <span id="mode-level-work" class="mode-label">Work: 0</span>
+        </div>
+        <div class="mode-group">
+          <div class="mode-row">
+            <button id="mode-play-minus" class="mode-control" data-mode="play" data-step="-1" type="button">-</button>
+            <button id="mode-play-plus" class="mode-control" data-mode="play" data-step="1" type="button">+</button>
+          </div>
+          <span id="mode-level-play" class="mode-label">Play: 0</span>
+        </div>
+        <div class="mode-group">
+          <div class="mode-row">
+            <button id="mode-muse-minus" class="mode-control" data-mode="muse" data-step="-1" type="button">-</button>
+            <button id="mode-muse-plus" class="mode-control" data-mode="muse" data-step="1" type="button">+</button>
+          </div>
+          <span id="mode-level-muse" class="mode-label">Muse: 0</span>
+        </div>
+      </div>
+
+      <div class="alpha-modes" role="group" aria-label="Tile opacity mode">
+        <button class="alpha-mode" data-alpha-mode="1.0" type="button" aria-pressed="true">1.0 Solid</button>
+        <button class="alpha-mode" data-alpha-mode="0.7" type="button" aria-pressed="false">0.7 Translucent</button>
+        <button class="alpha-mode" data-alpha-mode="0.3" type="button" aria-pressed="false">0.3 Ghost</button>
+      </div>
+
+      <div class="secondary-controls">
+        <button id="jitter" type="button">Jitter</button>
+        <button id="reset-energy" type="button">Reset</button>
+      </div>
+
+      <p class="status" id="status">Balance Work, Play, and Muse to shape the energy field and navigate the three destinations.</p>
     </section>
-  </main>
+  </div>
+
+  <section id="detail" hidden aria-live="polite">
+    <h2 id="detailTitle"></h2>
+    <p id="detailCopy"></p>
+    <div id="detailUrl" class="detail-url" hidden></div>
+    <div class="detail-actions">
+      <a id="detailLink" class="detail-link" href="#" target="_blank" rel="noopener noreferrer">Open destination</a>
+      <button id="detailReset" type="button">Reset</button>
+    </div>
+  </section>
+
+  <div class="copyright" id="copyright">© 2026 Simulatte, LLC</div>
+
+  <script defer src="./js/simulatte-world.js"></script>
 </body>
 </html>
