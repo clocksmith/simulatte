@@ -690,33 +690,47 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-modeButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    setMode(button.dataset.mode, Number(button.dataset.step || '1'));
+let simulatteWorldStarted = false;
+
+function startSimulatteWorld() {
+  if (simulatteWorldStarted) {
+    return;
+  }
+  simulatteWorldStarted = true;
+
+  modeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      setMode(button.dataset.mode, Number(button.dataset.step || '1'));
+    });
   });
-});
 
-alphaModeButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    setTileAlphaMode(button.dataset.alphaMode || '1.0');
+  alphaModeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      setTileAlphaMode(button.dataset.alphaMode || '1.0');
+    });
   });
-});
 
-canvas.addEventListener('pointerdown', startRotation, { passive: false });
-canvas.addEventListener('pointermove', updateRotation, { passive: false });
-canvas.addEventListener('pointerup', endRotation, { passive: false });
-canvas.addEventListener('pointercancel', endRotation, { passive: false });
-canvas.addEventListener('pointerleave', endRotation, { passive: false });
-canvas.addEventListener('pointerout', endRotation, { passive: false });
+  canvas.addEventListener('pointerdown', startRotation, { passive: false });
+  canvas.addEventListener('pointermove', updateRotation, { passive: false });
+  canvas.addEventListener('pointerup', endRotation, { passive: false });
+  canvas.addEventListener('pointercancel', endRotation, { passive: false });
+  canvas.addEventListener('pointerleave', endRotation, { passive: false });
+  canvas.addEventListener('pointerout', endRotation, { passive: false });
 
-jitterBtn.addEventListener('click', jitter);
-resetBtn.addEventListener('click', reset);
-mainResetBtn.addEventListener('click', reset);
+  jitterBtn.addEventListener('click', jitter);
+  resetBtn.addEventListener('click', reset);
+  mainResetBtn.addEventListener('click', reset);
 
-window.addEventListener('resize', resize);
+  window.addEventListener('resize', resize);
 
-resize();
-initMeshRenderer();
-setTileAlphaMode(renderSettings.tileAlpha);
-reset();
-requestAnimationFrame(tick);
+  resize();
+  initMeshRenderer();
+  setTileAlphaMode(renderSettings.tileAlpha);
+  reset();
+  requestAnimationFrame(tick);
+}
+
+window.SimulatteWorldRuntime = {
+  start: startSimulatteWorld,
+  isStarted: () => simulatteWorldStarted,
+};
