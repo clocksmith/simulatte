@@ -98,8 +98,8 @@ const terrainFeatures = [{ type: 'valley', point: { x: 0, z: 0 }, spread: 0.64, 
 
 const mesh = {
   spread: 0.62,
-  settleDist: 0.09,
-  settleSpeed: 0.03,
+  settleDist: 0.12,
+  settleSpeed: 0.05,
   baseModeBoost: 1,
   modeAttract: 0.04,
   lines: 128,
@@ -916,6 +916,74 @@ function projectScreenTerms(x, z, h, rotation, pitch, cameraScale, slopeScale) {
   return { x: xTerm, y: yTerm, scale: perspective, depth };
 }
 
+function projectMarbleScreenTerms(
+  x,
+  z,
+  h,
+  rotation,
+  pitch,
+  cameraScale,
+  slopeScale,
+  radiusOverride
+) {
+  const contactTerms = projectScreenTerms(x, z, h, rotation, pitch, cameraScale, slopeScale);
+  const cameraScaleRatio = Math.max(0.12, cameraScale / baseWorldProjection.cameraScale);
+
+  let radius = 6.7 * contactTerms.scale * cameraScaleRatio * 3;
+  if (Number.isFinite(radiusOverride)) {
+    radius = radiusOverride;
+  }
+
+  const liftProbe = 0.25;
+  const liftedTerms = projectScreenTerms(
+    x,
+    z,
+    h + liftProbe,
+    rotation,
+    pitch,
+    cameraScale,
+    slopeScale
+  );
+  const liftDx = liftedTerms.x - contactTerms.x;
+  const liftDy = liftedTerms.y - contactTerms.y;
+  const liftLen = Math.hypot(liftDx, liftDy);
+  const radiusCss = radius / Math.max(dpr, 1e-6);
+  const liftScale = liftLen > 1e-6 ? radiusCss / liftLen : 0;
+
+  return {
+    xTerm: contactTerms.x + liftDx * liftScale,
+    yTerm: contactTerms.y + liftDy * liftScale,
+    radius,
+    depth: clamp(2.0 * (liftedTerms.depth - 0.0011) - 1.0, -1.0, 0.995),
+  };
+}
+
+function centeredOffsetsForMarble(
+  x,
+  z,
+  h,
+  rotation,
+  pitch,
+  cameraScale,
+  slopeScale,
+  radiusOverride
+) {
+  const marbleTerms = projectMarbleScreenTerms(
+    x,
+    z,
+    h,
+    rotation,
+    pitch,
+    cameraScale,
+    slopeScale,
+    radiusOverride
+  );
+  return {
+    xOffset: -marbleTerms.xTerm,
+    yOffset: 0.5 - marbleTerms.yTerm / height(),
+  };
+}
+
 function toScreen(x, z, h) {
   const terms = projectScreenTerms(
     x,
@@ -1018,6 +1086,24 @@ function pickArrivalAnchor() {
   return winner;
 }
 
+function getPortalFocusPoint(fallbackPoint) {
+  const candidate =
+    state.portalSettlePoint ||
+    state.portalTarget ||
+    fallbackPoint ||
+    anchors[state.arrival]?.point ||
+    { x: state.x, z: state.z };
+
+  const x = Number.isFinite(candidate.x) ? candidate.x : state.x;
+  const z = Number.isFinite(candidate.z) ? candidate.z : state.z;
+  const h =
+    state.portalTargetMetrics && Number.isFinite(state.portalTargetMetrics.h)
+      ? state.portalTargetMetrics.h
+      : fieldHeightStatic(x, z);
+
+  return { x, z, h };
+}
+
 function beginPortalTravel(key, targetPoint) {
   const marker =
     targetPoint && Number.isFinite(targetPoint.x) && Number.isFinite(targetPoint.z)
@@ -1031,22 +1117,22 @@ function beginPortalTravel(key, targetPoint) {
   const targetSlopeScale = portalFlightConfig.finalSlopeScale;
   const targetPitch = portalFlightConfig.finalPitch;
   const targetRotation = normalizeAngle(Math.atan2(marker.x, marker.z));
-  const targetHeight = fieldHeightStatic(marker.x, marker.z);
-
-  const terms = projectScreenTerms(
-    marker.x,
-    marker.z,
-    targetHeight,
+  const focus = getPortalFocusPoint(marker);
+  const finalOffsets = centeredOffsetsForMarble(
+    focus.x,
+    focus.z,
+    focus.h,
     targetRotation,
     targetPitch,
     targetScale,
-    targetSlopeScale
+    targetSlopeScale,
+    null
   );
 
   state.portalFlight = {
     targetX: marker.x,
     targetZ: marker.z,
-    targetHeight,
+    targetHeight: focus.h,
     fromRotation: state.rotation,
     fromPitch: state.pitch,
     fromCameraScale: worldProjection.cameraScale,
@@ -1054,10 +1140,29 @@ function beginPortalTravel(key, targetPoint) {
     fromXOffset: worldProjection.xOffset,
     fromYOffset: worldProjection.yOffset,
     finalRotation: targetRotation,
-    finalXOffset: -terms.x,
-    finalYOffset: clamp01(0.5 - terms.y / height()),
+    finalXOffset: finalOffsets.xOffset,
+    finalYOffset: finalOffsets.yOffset,
     elapsed: 0,
   };
+}
+
+function recenterPortalCameraToMarble() {
+  if (state.phase !== 'portal') {
+    return;
+  }
+  const focus = getPortalFocusPoint();
+  const offsets = centeredOffsetsForMarble(
+    focus.x,
+    focus.z,
+    focus.h,
+    state.rotation,
+    state.pitch,
+    worldProjection.cameraScale,
+    worldProjection.ySlopeScale,
+    null
+  );
+  worldProjection.xOffset = offsets.xOffset;
+  worldProjection.yOffset = offsets.yOffset;
 }
 
 function updatePortalFlight(dt) {
@@ -1087,10 +1192,9 @@ function updatePortalFlight(dt) {
     state.portalFlight = null;
     worldProjection.cameraScale = portalFlightConfig.finalCameraScale;
     worldProjection.ySlopeScale = portalFlightConfig.finalSlopeScale;
-    worldProjection.xOffset = flight.finalXOffset;
-    worldProjection.yOffset = flight.finalYOffset;
     state.rotation = flight.finalRotation;
     state.pitch = portalFlightConfig.finalPitch;
+    recenterPortalCameraToMarble();
 
     cancelPortalReveal();
     state.portalRevealTimeout = setTimeout(() => {
@@ -1111,11 +1215,30 @@ function updatePortalFlight(dt) {
 }
 
 function syncArrivalDetailPosition() {
-  const marker = state.portalTarget || anchors[state.arrival]?.point || { x: state.x, z: state.z };
-  const h = fieldHeightStatic(marker.x, marker.z);
-  const p = toScreen(marker.x, marker.z, h);
-  detailEl.style.left = `${p.x}px`;
-  detailEl.style.top = `${p.y + 20}px`;
+  let panelX;
+  let panelY;
+
+  if (Number.isFinite(state.marbleRenderX) && Number.isFinite(state.marbleRenderY)) {
+    panelX = state.marbleRenderX / Math.max(dpr, 1e-6);
+    panelY = state.marbleRenderY / Math.max(dpr, 1e-6);
+  } else {
+    const focus = getPortalFocusPoint();
+    const marbleTerms = projectMarbleScreenTerms(
+      focus.x,
+      focus.z,
+      focus.h,
+      state.rotation,
+      state.pitch,
+      worldProjection.cameraScale,
+      worldProjection.ySlopeScale,
+      null
+    );
+    panelX = width() * 0.5 + worldProjection.xOffset + marbleTerms.xTerm;
+    panelY = height() * worldProjection.yOffset + marbleTerms.yTerm;
+  }
+
+  detailEl.style.left = `${panelX}px`;
+  detailEl.style.top = `${panelY}px`;
 }
 
 function engageArrival(key, point) {
@@ -1128,30 +1251,6 @@ function engageArrival(key, point) {
   const clamped = { x: settled.x, z: settled.z };
   const settledHeight = fieldHeightStatic(clamped.x, clamped.z);
   const settledSlope = staticHeightGradient(clamped.x, clamped.z, dynamics.normalSampleEps);
-  const settledTerms = projectScreenTerms(
-    clamped.x,
-    clamped.z,
-    settledHeight,
-    state.rotation,
-    state.pitch,
-    worldProjection.cameraScale,
-    worldProjection.ySlopeScale
-  );
-  const settledCameraScale = Math.max(
-    0.12,
-    worldProjection.cameraScale / baseWorldProjection.cameraScale
-  );
-  const settledRadius = 6.7 * settledTerms.scale * settledCameraScale * 3;
-  const settledLiftedTerms = projectScreenTerms(
-    clamped.x,
-    clamped.z,
-    settledHeight + 0.25,
-    state.rotation,
-    state.pitch,
-    worldProjection.cameraScale,
-    worldProjection.ySlopeScale
-  );
-  const settledDepth = clamp(2.0 * (settledLiftedTerms.depth - 0.0011) - 1.0, -1.0, 0.995);
 
   state.phase = 'portal';
   state.arrival = key;
@@ -1161,8 +1260,6 @@ function engageArrival(key, point) {
     h: settledHeight,
     slopeX: settledSlope.x,
     slopeZ: settledSlope.z,
-    radius: settledRadius,
-    depth: settledDepth,
   };
 
   state.x = clamped.x;

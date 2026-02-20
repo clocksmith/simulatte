@@ -69,7 +69,7 @@
       max-width: 520px;
       padding: 12px;
       pointer-events: auto;
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.6);
     }
 
     .panel h1 {
@@ -157,9 +157,22 @@
     }
 
     .alpha-mode[aria-pressed="true"] {
-      background: var(--fg);
-      color: var(--bg);
       opacity: 1;
+    }
+
+    .alpha-mode[aria-pressed="true"][data-alpha-mode="1.0"] {
+      background: rgba(0, 0, 0, 1);
+      color: #fff;
+    }
+
+    .alpha-mode[aria-pressed="true"][data-alpha-mode="0.7"] {
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+    }
+
+    .alpha-mode[aria-pressed="true"][data-alpha-mode="0.3"] {
+      background: rgba(0, 0, 0, 0.3);
+      color: #000;
     }
 
     button,
@@ -181,6 +194,7 @@
       appearance: none;
       padding: 8px 8px;
       font-size: 12px;
+      background: #fff;
     }
 
     button:hover,
@@ -216,7 +230,10 @@
       bottom: 10px;
       z-index: 3;
       pointer-events: none;
-      opacity: 0.6;
+      opacity: 0.78;
+      color: rgba(0, 0, 0, 0.9);
+      -webkit-text-stroke: 0.45px rgba(235, 235, 235, 0.85);
+      text-shadow: 0 0 1px rgba(235, 235, 235, 0.85);
       font-size: 11px;
       text-align: center;
       text-transform: uppercase;
@@ -227,7 +244,7 @@
       position: fixed;
       left: 0;
       top: 0;
-      transform: translate(-50%, 0);
+      transform: translate(-50%, -50%);
       width: min(360px, calc(100% - 44px));
       background: rgba(255, 255, 255, 0.94);
       border: var(--border-md) solid var(--fg);

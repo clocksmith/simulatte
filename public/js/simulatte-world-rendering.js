@@ -517,50 +517,25 @@ function drawMarbleWebGL() {
         return { x: state.marbleSlopeX, z: state.marbleSlopeZ };
       })();
 
-  const contactTerms = projectScreenTerms(
+  const marbleTerms = projectMarbleScreenTerms(
     marblePoint.x,
     marblePoint.z,
     h,
     state.rotation,
     state.pitch,
     worldProjection.cameraScale,
-    worldProjection.ySlopeScale
+    worldProjection.ySlopeScale,
+    null
   );
-
-  const contactScreenX = (width() * 0.5 + worldProjection.xOffset + contactTerms.x) * dpr;
-  const contactScreenY = (height() * worldProjection.yOffset + contactTerms.y) * dpr;
-  const cameraScale = Math.max(0.12, worldProjection.cameraScale / baseWorldProjection.cameraScale);
-
-  let radius = 6.7 * contactTerms.scale * cameraScale * 3;
-  if (metrics && Number.isFinite(metrics.radius)) {
-    radius = metrics.radius;
-  }
-
+  const radius = marbleTerms.radius;
+  const contactScreenX = (width() * 0.5 + worldProjection.xOffset + marbleTerms.xTerm) * dpr;
+  const contactScreenY = (height() * worldProjection.yOffset + marbleTerms.yTerm) * dpr;
   const shadowRadius = radius * 1.4;
   const opacity = 1;
+  const targetScreenX = contactScreenX;
+  const targetScreenY = contactScreenY;
 
-  const liftProbe = 0.25;
-  const liftedTerms = projectScreenTerms(
-    marblePoint.x,
-    marblePoint.z,
-    h + liftProbe,
-    state.rotation,
-    state.pitch,
-    worldProjection.cameraScale,
-    worldProjection.ySlopeScale
-  );
-
-  const liftDx = (liftedTerms.x - contactTerms.x) * dpr;
-  const liftDy = (liftedTerms.y - contactTerms.y) * dpr;
-  const liftLen = Math.hypot(liftDx, liftDy);
-  const liftScale = liftLen > 1e-6 ? radius / liftLen : 0;
-  const targetScreenX = contactScreenX + liftDx * liftScale;
-  const targetScreenY = contactScreenY + liftDy * liftScale;
-
-  const targetDepth =
-    metrics && Number.isFinite(metrics.depth)
-      ? metrics.depth
-      : clamp(2.0 * (liftedTerms.depth - 0.0011) - 1.0, -1.0, 0.995);
+  const targetDepth = marbleTerms.depth;
 
   const renderBlend = isPortal ? 1 : clamp01(state.frameDt * dynamics.renderSmoothing);
   if (!Number.isFinite(state.marbleRenderX)) {
@@ -682,6 +657,8 @@ function tick(now) {
   } else if (state.phase === 'portal') {
     if (state.portalFlight) {
       updatePortalFlight(dt);
+    } else {
+      recenterPortalCameraToMarble();
     }
   }
 
