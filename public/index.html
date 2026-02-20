@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Simulatte World</title>
+  <title>simulatte.world</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <style>
     :root {
       --fg: #000;
@@ -33,6 +34,9 @@
       height: 100%;
       display: block;
       cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
       z-index: 1;
     }
 
@@ -49,9 +53,10 @@
 
     #hud {
       position: fixed;
-      left: 14px;
+      left: 50%;
       top: 14px;
-      right: 14px;
+      width: calc(100% - 28px);
+      transform: translateX(-50%);
       display: flex;
       justify-content: flex-start;
       pointer-events: none;
@@ -60,7 +65,7 @@
 
     .panel {
       border: var(--border-md) solid var(--fg);
-      width: min(100%, 540px);
+      width: min(100%, 520px);
       max-width: 520px;
       padding: 12px;
       pointer-events: auto;
@@ -83,6 +88,7 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
+      margin-top: 8px;
     }
 
     .mode-group {
@@ -118,6 +124,15 @@
       font-size: 11px;
       opacity: 0.85;
       text-transform: uppercase;
+      background: transparent;
+      color: inherit;
+      appearance: none;
+      width: 100%;
+      margin: 0;
+      pointer-events: none;
+      cursor: default;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .secondary-controls {
@@ -125,6 +140,26 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 8px;
+    }
+
+    .alpha-modes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .alpha-mode {
+      width: 100%;
+      min-width: 0;
+      padding: 7px 6px;
+      font-size: 10px;
+    }
+
+    .alpha-mode[aria-pressed="true"] {
+      background: var(--fg);
+      color: var(--bg);
+      opacity: 1;
     }
 
     button,
@@ -155,6 +190,12 @@
       color: var(--bg);
     }
 
+    button:active,
+    button:focus:not(:focus-visible) {
+      background: transparent;
+      color: inherit;
+    }
+
     button:focus-visible,
     a:focus-visible {
       outline: 2px solid currentColor;
@@ -166,10 +207,6 @@
       min-height: 2.4em;
       border-top: var(--border-sm) dotted var(--fg);
       padding-top: 8px;
-    }
-
-    .status.secondary {
-      margin-top: 6px;
     }
 
     .copyright {
@@ -186,63 +223,24 @@
       letter-spacing: 0.02em;
     }
 
-    .portal {
-      position: fixed;
-      width: 20px;
-      height: 20px;
-      margin: -10px 0 0 -10px;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 4;
-      opacity: 0;
-      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 18%, rgba(0, 0, 0, 0.95) 56%, #000 100%);
-      box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.18), 0 0 30px rgba(0, 0, 0, 0.75);
-      transform: translate(-50%, -50%) scale(0.05);
-      transform-origin: center;
-    }
-
-    .portal.active {
-      animation: black-hole 950ms cubic-bezier(0.17, 0.88, 0.2, 1) forwards;
-    }
-
-    .portal.hidden {
-      display: none;
-    }
-
-    @keyframes black-hole {
-      0% {
-        transform: translate(-50%, -50%) scale(0.04);
-        opacity: 0.9;
-      }
-      60% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(120);
-        opacity: 1;
-      }
-    }
-
     #detail {
       position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) scale(0.98);
-      width: min(580px, calc(100% - 40px));
+      left: 0;
+      top: 0;
+      transform: translate(-50%, 0);
+      width: min(360px, calc(100% - 44px));
       background: rgba(255, 255, 255, 0.94);
       border: var(--border-md) solid var(--fg);
-      padding: 14px;
+      padding: 10px 11px 11px;
       z-index: 5;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 240ms ease, transform 240ms ease;
+      transition: opacity 240ms ease;
     }
 
     #detail.visible {
       opacity: 1;
       pointer-events: auto;
-      transform: translate(-50%, -50%) scale(1);
     }
 
     #detail[hidden] {
@@ -262,20 +260,40 @@
       line-height: 1.45;
     }
 
+    .detail-url {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-bottom: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .detail-actions {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .detail-link {
+      flex: 1;
+      white-space: normal;
+      text-transform: none;
+      overflow-wrap: anywhere;
+      line-height: 1.15;
+      font-size: 11px;
+      opacity: 0.78;
+    }
+
+    .detail-link:hover {
+      opacity: 1;
+      background: transparent;
+      color: inherit;
     }
 
     #detailReset {
       background: #fff;
-    }
-
-    @media (max-width: 720px) {
-      #hud {
-        right: auto;
-      }
     }
   </style>
 </head>
@@ -284,1359 +302,62 @@
   <canvas id="field-overlay" aria-hidden="true"></canvas>
 
   <div id="hud">
-      <section class="panel">
-      <h1>Simulatte World</h1>
-      <p>We build browser-native software where AI can propose actions, but real side effects are deterministic, constrained, and auditable—by design.</p>
+    <section class="panel">
+      <h1>simulatte.world</h1>
+      <p>We build browser-native software where AI can propose actions, but real side effects are deterministic, constrained, and auditable by design.</p>
+
       <div class="mode-controls">
         <div class="mode-group">
           <div class="mode-row">
-            <button id="mode-work-minus" class="mode-control" data-mode="work" data-step="-1" type="button">−</button>
+            <button id="mode-work-minus" class="mode-control" data-mode="work" data-step="-1" type="button">-</button>
             <button id="mode-work-plus" class="mode-control" data-mode="work" data-step="1" type="button">+</button>
           </div>
-          <span id="mode-level-work" class="mode-label">Work: 1</span>
+          <span id="mode-level-work" class="mode-label">Work: 0</span>
         </div>
         <div class="mode-group">
           <div class="mode-row">
-            <button id="mode-play-minus" class="mode-control" data-mode="play" data-step="-1" type="button">−</button>
+            <button id="mode-play-minus" class="mode-control" data-mode="play" data-step="-1" type="button">-</button>
             <button id="mode-play-plus" class="mode-control" data-mode="play" data-step="1" type="button">+</button>
           </div>
-          <span id="mode-level-play" class="mode-label">Play: 1</span>
+          <span id="mode-level-play" class="mode-label">Play: 0</span>
         </div>
         <div class="mode-group">
           <div class="mode-row">
-            <button id="mode-learn-minus" class="mode-control" data-mode="learn" data-step="-1" type="button">−</button>
-            <button id="mode-learn-plus" class="mode-control" data-mode="learn" data-step="1" type="button">+</button>
+            <button id="mode-muse-minus" class="mode-control" data-mode="muse" data-step="-1" type="button">-</button>
+            <button id="mode-muse-plus" class="mode-control" data-mode="muse" data-step="1" type="button">+</button>
           </div>
-          <span id="mode-level-learn" class="mode-label">Learn: 1</span>
+          <span id="mode-level-muse" class="mode-label">Muse: 0</span>
         </div>
       </div>
-      <div class="secondary-controls">
-        <button id="jitter" type="button">♻ Jitter</button>
-        <button id="reset-energy" type="button">↻ Reset</button>
+
+      <div class="alpha-modes" role="group" aria-label="Tile opacity mode">
+        <button class="alpha-mode" data-alpha-mode="1.0" type="button" aria-pressed="true">1.0 Solid</button>
+        <button class="alpha-mode" data-alpha-mode="0.7" type="button" aria-pressed="false">0.7 Translucent</button>
+        <button class="alpha-mode" data-alpha-mode="0.3" type="button" aria-pressed="false">0.3 Ghost</button>
       </div>
-      <p class="status" id="status">Balance Work, Learn, and Play to shape the energy field and navigate the three destinations.</p>
+
+      <div class="secondary-controls">
+        <button id="jitter" type="button">Jitter</button>
+        <button id="reset-energy" type="button">Reset</button>
+      </div>
+
+      <p class="status" id="status">Balance Work, Play, and Muse to shape the energy field and navigate the three destinations.</p>
     </section>
   </div>
-
-  <div id="portal" class="portal hidden" aria-hidden="true"></div>
 
   <section id="detail" hidden aria-live="polite">
     <h2 id="detailTitle"></h2>
     <p id="detailCopy"></p>
+    <div id="detailUrl" class="detail-url"></div>
     <div class="detail-actions">
-      <a id="detailLink" class="link" href="#" target="_blank" rel="noopener noreferrer">Open destination</a>
-        <button id="detailReset" type="button">⟲ Reset</button>
-      </div>
+      <a id="detailLink" class="detail-link" href="#" target="_blank" rel="noopener noreferrer">Open destination</a>
+      <button id="detailReset" type="button">Reset</button>
+    </div>
   </section>
 
   <div class="copyright" id="copyright">© 2026 Simulatte, LLC</div>
 
-  <script>
-    (() => {
-      const canvas = document.getElementById('field');
-      const overlayCanvas = document.getElementById('field-overlay');
-      const gl = canvas.getContext('webgl', { alpha: false, antialias: true, depth: true });
-      const ctx = overlayCanvas.getContext('2d');
-
-      if (!gl) {
-        throw new Error('WebGL not available');
-      }
-
-      const statusEl = document.getElementById('status');
-      const modeWorkLevelEl = document.getElementById('mode-level-work');
-      const modePlayLevelEl = document.getElementById('mode-level-play');
-      const modeLearnLevelEl = document.getElementById('mode-level-learn');
-      const detailEl = document.getElementById('detail');
-      const detailTitleEl = document.getElementById('detailTitle');
-      const detailCopyEl = document.getElementById('detailCopy');
-      const detailLinkEl = document.getElementById('detailLink');
-      const portalEl = document.getElementById('portal');
-      const modeButtons = Array.from(document.querySelectorAll('[data-mode]'));
-      const jitterBtn = document.getElementById('jitter');
-      const resetBtn = document.getElementById('detailReset');
-      const mainResetBtn = document.getElementById('reset-energy');
-
-      const anchorRadius = 4.5;
-      const anchorBaseAngle = -Math.PI / 2;
-      const anchorSpan = (Math.PI * 2) / 3;
-      const anchorPoints = {
-        research: {
-          x: anchorRadius * Math.cos(anchorBaseAngle),
-          z: anchorRadius * Math.sin(anchorBaseAngle),
-        },
-        agents: {
-          x: anchorRadius * Math.cos(anchorBaseAngle + anchorSpan),
-          z: anchorRadius * Math.sin(anchorBaseAngle + anchorSpan),
-        },
-        infra: {
-          x: anchorRadius * Math.cos(anchorBaseAngle + 2 * anchorSpan),
-          z: anchorRadius * Math.sin(anchorBaseAngle + 2 * anchorSpan),
-        },
-      };
-
-      const anchors = {
-        research: {
-          id: 'research',
-          label: 'Research',
-          url: 'https://256.one',
-          copy: 'Research maps to systems design, language experiments, and core model exploration.',
-          point: anchorPoints.research,
-          color: '#111',
-          depth: 1.8,
-          spread: 0.72,
-        },
-        agents: {
-          id: 'agents',
-          label: 'Agents',
-          url: 'https://replo.id',
-          copy: 'Agents points to RSI tools, execution loops, and agent tooling where actions are modelable.',
-          point: anchorPoints.agents,
-          color: '#111',
-          depth: 1.8,
-          spread: 0.72,
-        },
-        infra: {
-          id: 'infra',
-          label: 'Infra',
-          url: 'https://d4da.com',
-          copy: 'Infra tracks the platform layer: libraries, infrastructure, and reusable primitives.',
-          point: anchorPoints.infra,
-          color: '#111',
-          depth: 1.8,
-          spread: 0.72,
-        },
-      };
-
-      const modes = {
-        work: { research: 1, infra: 1 },
-        play: { agents: 1, infra: 1 },
-        learn: { agents: 1, research: 1 },
-      };
-
-      const antiPatterns = {
-        work: {
-          label: 'VAPORWARE',
-          point: { x: -1.03, z: 0.18 },
-          spread: 0.86,
-          amp: 0.16,
-        },
-        play: {
-          label: 'SHIMDRIFT',
-          point: { x: 1.03, z: 0.18 },
-          spread: 0.86,
-          amp: 0.16,
-        },
-        learn: {
-          label: 'HALO DRIFT',
-          point: { x: 0, z: -1.34 },
-          spread: 0.86,
-          amp: 0.16,
-        },
-      };
-      const antiPatternKeys = Object.keys(antiPatterns);
-      const holeCenters = Object.fromEntries(
-        Object.keys(anchorPoints).map((name) => [name, { ...anchorPoints[name] }])
-      );
-
-      const terrainFeatures = [
-        { type: 'valley', point: { x: 0, z: 0 }, spread: 0.64, amp: 0.12 },
-      ];
-
-      const mesh = {
-        spread: 0.62,
-        settleDist: 0.09,
-        baseModeBoost: 1,
-        modeAttract: 0.04,
-        lines: 128,
-        horizonHalfRange: 12,
-        horizonFade: 2.5,
-        clipMode: true,
-        clipMargin: 260,
-        terrainScale: 0.58,
-        anchorScale: 1.5,
-        modeSpreadStep: 1.0,
-        modeSpreadMaxLevel: 3,
-        antiPatternScale: 0,
-        renderModeAware: false,
-      };
-
-      const modeBaseline = 1;
-
-      const terrain = {
-        reliefScale: 6,
-        centralAreaDepthMultiplier: 1.25,
-        centralBlendWidth: 4.5,
-        outsideNoise: {
-          amp: 0.04,
-          scale: 0.4,
-          detailScale: 1.2,
-          edgeStart: 0.22,
-          edgeFade: 0.95,
-        },
-      };
-
-      const dynamics = {
-        damping: 1.55,
-        speedScale: 1.95,
-        forceScale: 5.2,
-        modeLerp: 6.4,
-        jitterMag: 0.58,
-        jitterFade: 0.02,
-        jitterPush: 0.7,
-        maxSpeed: 2.05,
-      };
-
-      const state = {
-        x: 0,
-        z: 0,
-        vx: 0,
-        vz: 0,
-        rotation: 0.62,
-        pitch: 0,
-        isRotating: false,
-        rotationPointerId: -1,
-        rotationPointerX: 0,
-        rotationPointerY: 0,
-        mode: 'neutral',
-        modeWeights: {},
-        jitterTimer: 0,
-        jitterDir: { x: 0, z: 0 },
-        lastT: 0,
-        phase: 'field',
-        arrival: null,
-        portalX: 0,
-        portalY: 0,
-        peakLevels: Object.fromEntries(antiPatternKeys.map((name) => [name, 0])),
-        peakTargets: Object.fromEntries(antiPatternKeys.map((name) => [name, 0])),
-        anchorSpreadTargets: Object.fromEntries(Object.keys(anchors).map((name) => [name, 1])),
-        anchorSpreads: Object.fromEntries(Object.keys(anchors).map((name) => [name, 1])),
-        modeVisualLevels: Object.fromEntries(Object.keys(modes).map((name) => [name, modeBaseline])),
-        modeLevels: Object.fromEntries(Object.keys(modes).map((name) => [name, modeBaseline])),
-      };
-
-      let dpr = window.devicePixelRatio || 1;
-      const worldProjection = {
-        // World coordinates are measured in model space (x,z,h).
-        // Shared projection constants keep overlay drawing and mesh rendering aligned.
-        // Lower cameraScale moves the camera farther from the mesh (smaller visual footprint).
-        cameraScale: 0.25,
-        xScale: 210,
-        yScale: 210,
-        ySlopeScale: 82,
-        yOffset: 0.56,
-      };
-
-      function width() {
-        return canvas.width / dpr;
-      }
-
-      function height() {
-        return canvas.height / dpr;
-      }
-
-      function resize() {
-        dpr = window.devicePixelRatio || 1;
-        canvas.width = Math.round(innerWidth * dpr);
-        canvas.height = Math.round(innerHeight * dpr);
-        overlayCanvas.width = canvas.width;
-        overlayCanvas.height = canvas.height;
-        overlayCanvas.style.width = `${innerWidth}px`;
-        overlayCanvas.style.height = `${innerHeight}px`;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.lineWidth = 1;
-        gl.viewport(0, 0, canvas.width, canvas.height);
-      }
-
-      function normalizeAngle(angle) {
-        const full = Math.PI * 2;
-        const shifted = angle % full;
-        return shifted < 0 ? shifted + full : shifted;
-      }
-
-      function modeOffset(level) {
-        return (level || 0) - modeBaseline;
-      }
-
-      function applyModeButtons() {
-        const max = mesh.modeSpreadMaxLevel;
-        const min = -mesh.modeSpreadMaxLevel;
-        modeButtons.forEach((button) => {
-          const mode = button.dataset.mode;
-          const step = Number(button.dataset.step || '1');
-          const level = state.modeLevels[mode] || 0;
-          button.disabled = step > 0 ? level >= max : level <= min;
-        });
-      }
-
-      function updateModeReadouts() {
-        const levels = state.modeLevels || {};
-        modeWorkLevelEl.textContent = `Work: ${levels.work || 0}`;
-        modePlayLevelEl.textContent = `Play: ${levels.play || 0}`;
-        modeLearnLevelEl.textContent = `Learn: ${levels.learn || 0}`;
-      }
-
-      function updateAnchorSpreadTargets() {
-        Object.keys(state.anchorSpreadTargets).forEach((key) => {
-          state.anchorSpreadTargets[key] = 1;
-        });
-        const levels = state.modeVisualLevels || {};
-        for (const [mode, targets] of Object.entries(modes)) {
-          if (!targets) continue;
-          const level = modeOffset(levels[mode]);
-          if (!level) continue;
-          const boost = Math.abs(level) * mesh.modeSpreadStep;
-          for (const anchorKey of Object.keys(targets)) {
-            state.anchorSpreadTargets[anchorKey] += boost;
-          }
-        }
-      }
-
-      function updateAnchorSpreads(dt) {
-        Object.keys(state.anchorSpreads).forEach((key) => {
-          const current = state.anchorSpreads[key] || 1;
-          const target = state.anchorSpreadTargets[key] || 1;
-          const next = current + (target - current) * Math.min(1, dt * 2.4);
-          state.anchorSpreads[key] = next;
-        });
-      }
-
-      function updateModeDynamics(dt) {
-        const rate = Math.max(0, dynamics.modeLerp);
-        if (!rate) {
-          state.modeWeights = modeComboWeights(state.modeLevels);
-          updateAnchorSpreadTargets();
-          return;
-        }
-
-        const blend = Math.min(1, dt * rate);
-        Object.keys(state.modeVisualLevels).forEach((mode) => {
-          const target = state.modeLevels[mode] || 0;
-          const current = state.modeVisualLevels[mode] || 0;
-          state.modeVisualLevels[mode] = current + (target - current) * blend;
-          if (Math.abs(modeOffset(state.modeVisualLevels[mode])) < 1e-4 && Math.abs(modeOffset(target)) < 1e-4) {
-            state.modeVisualLevels[mode] = modeBaseline;
-          }
-        });
-
-        state.modeWeights = modeComboWeights(state.modeVisualLevels);
-        updateAnchorSpreadTargets();
-      }
-
-      function modeComboWeights(sequence) {
-        const combined = {};
-        for (const [mode, level] of Object.entries(sequence)) {
-          const effective = modeOffset(level);
-          if (!effective) {
-            continue;
-          }
-          const targets = modes[mode] || {};
-          for (const [anchorKey, weight] of Object.entries(targets)) {
-            if (!combined[anchorKey]) {
-              combined[anchorKey] = 0;
-            }
-            combined[anchorKey] += weight * effective;
-          }
-        }
-        return combined;
-      }
-
-      function describeActiveAnchors(weights) {
-        const active = Object.keys(weights).filter((key) => weights[key]);
-        if (!active.length) {
-          return 'no destination';
-        }
-        return active.map((key) => anchors[key].label).join(' + ');
-      }
-
-      function describeModeCombo(sequence) {
-        return Object.entries(sequence)
-          .filter(([, value]) => modeOffset(value))
-          .map(([mode, value]) => {
-            const effective = modeOffset(value);
-            return `${mode.toUpperCase()} ${effective > 0 ? `+${effective}` : effective}`;
-          })
-          .join(', ');
-      }
-
-      function describeModeState(levels) {
-        const parts = ['work', 'play', 'learn'].map((mode) => {
-          const value = modeOffset(levels[mode]);
-          if (!value) {
-            return '';
-          }
-          return `${mode}: ${value > 0 ? `+${value}` : value}`;
-        }).filter(Boolean);
-
-        if (!parts.length) {
-          return 'neutral';
-        }
-        return parts.join(' / ');
-      }
-
-      function getActiveModeKeys() {
-        return Object.keys(state.modeWeights).filter((key) => Math.abs(state.modeWeights[key] || 0) > 1e-6);
-      }
-
-      function getDestinationModeKeys() {
-        return Object.keys(state.modeWeights).filter((key) => (state.modeWeights[key] || 0) > 1e-6);
-      }
-
-      function hasActivePeaks() {
-        return Object.values(state.peakLevels).some((value) => value > 0.01);
-      }
-
-      function getModeControlForce() {
-        if (state.mode === 'neutral') {
-          return { fx: 0, fz: 0 };
-        }
-        const active = getDestinationModeKeys();
-        if (!active.length) {
-          return { fx: 0, fz: 0 };
-        }
-
-        let fx = 0;
-        let fz = 0;
-        for (const key of active) {
-          const anchor = anchors[key];
-          if (!anchor) {
-            continue;
-          }
-          const level = state.modeWeights[key] || 0;
-          if (!level) {
-            continue;
-          }
-          const sign = level < 0 ? -1 : 1;
-          const dx = anchor.point.x - state.x;
-          const dz = anchor.point.z - state.z;
-          const dist = Math.hypot(dx, dz);
-          if (dist < 1e-6) {
-            continue;
-          }
-          const weight = (Math.abs(level) / (0.35 + dist)) * sign;
-          fx += (dx / dist) * weight;
-          fz += (dz / dist) * weight;
-        }
-
-        const mag = Math.hypot(fx, fz);
-        if (mag < 1e-6) {
-          return { fx: 0, fz: 0 };
-        }
-
-        return { fx: (fx / mag) * mesh.modeAttract, fz: (fz / mag) * mesh.modeAttract };
-      }
-
-      function setActivePeakTarget(mode) {
-        antiPatternKeys.forEach((key) => {
-          state.peakTargets[key] = 0;
-        });
-        if (mode) {
-          state.peakTargets[mode] = 1;
-        }
-      }
-
-      function startRotation(event) {
-        if (state.phase === 'portal') {
-          return;
-        }
-        if (state.isRotating) {
-          return;
-        }
-
-        state.isRotating = true;
-        state.rotationPointerId = event.pointerId;
-        state.rotationPointerX = event.clientX;
-        state.rotationPointerY = event.clientY;
-        statusEl.textContent = 'Drag to rotate the mesh.';
-        canvas.style.cursor = 'grabbing';
-
-        if (canvas.setPointerCapture) {
-          canvas.setPointerCapture(event.pointerId);
-        }
-      }
-
-      function updateRotation(event) {
-        if (!state.isRotating || event.pointerId !== state.rotationPointerId) {
-          return;
-        }
-        const dx = event.clientX - state.rotationPointerX;
-        const dy = event.clientY - state.rotationPointerY;
-        state.rotationPointerX = event.clientX;
-        state.rotationPointerY = event.clientY;
-        rotateAxis(-dx * 0.004, true);
-        rotatePitch(dy * 0.004, true);
-      }
-
-      function rotatePitch(delta, silent = false) {
-        const next = state.pitch + delta;
-        const limit = Math.PI / 4;
-        state.pitch = Math.max(-limit, Math.min(limit, next));
-        if (!silent) {
-          statusEl.textContent = `Pitch adjusted to ${(state.pitch * (180 / Math.PI)).toFixed(1)}°.`;
-        }
-      }
-
-      function endRotation(event) {
-        if (!state.isRotating) {
-          return;
-        }
-        if (event && event.pointerId !== state.rotationPointerId) {
-          return;
-        }
-
-        state.isRotating = false;
-        state.rotationPointerId = -1;
-        canvas.style.cursor = 'grab';
-
-        if (canvas.hasPointerCapture && canvas.hasPointerCapture(event.pointerId)) {
-          canvas.releasePointerCapture(event.pointerId);
-        }
-      }
-
-      function rotateAxis(delta, silent = false) {
-        state.rotation = normalizeAngle(state.rotation + delta);
-        if (!silent) {
-          statusEl.textContent = `Mesh axis rotated to ${(state.rotation * (180 / Math.PI)).toFixed(1)}°.`;
-        }
-      }
-
-      function setMode(nextMode, step = 1) {
-        if (state.phase === 'portal') {
-          return;
-        }
-
-        const direction = step >= 0 ? 1 : -1;
-        const currentLevel = state.modeLevels[nextMode] || 0;
-        const nextLevel = Math.max(
-          -mesh.modeSpreadMaxLevel,
-          Math.min(mesh.modeSpreadMaxLevel, currentLevel + direction),
-        );
-        if (nextLevel === currentLevel) {
-          return;
-        }
-
-        state.modeLevels[nextMode] = nextLevel;
-
-        state.modeWeights = modeComboWeights(state.modeLevels);
-        state.arrival = null;
-        const levelLabel = nextLevel > 0 ? `+${nextLevel}` : `${nextLevel}`;
-        const nextModeName = `${nextMode.toUpperCase()} ${levelLabel}`;
-        const activeCount = Object.values(state.modeLevels).filter((value) => modeOffset(value)).length;
-
-        if (activeCount === 0) {
-          state.mode = 'neutral';
-          statusEl.textContent = 'Mode reset to neutral.';
-          applyModeButtons();
-          updateModeReadouts();
-          return;
-        }
-
-        if (activeCount === 1) {
-          state.mode = nextMode;
-          statusEl.textContent = `${nextModeName} active. Mesh channels: ${describeModeCombo(state.modeLevels)}.`;
-          applyModeButtons();
-          updateModeReadouts();
-          return;
-        }
-
-        state.mode = 'combo';
-        statusEl.textContent = `Energy mix: ${describeModeState(state.modeLevels)}.`;
-        applyModeButtons();
-        updateModeReadouts();
-      }
-
-      function reset() {
-        state.x = 0;
-        state.z = 0;
-        state.vx = 0;
-        state.vz = 0;
-        state.rotation = 0.62;
-        state.pitch = 0;
-        state.mode = 'neutral';
-        state.modeWeights = {};
-        state.jitterTimer = 0;
-        state.arrival = null;
-        state.phase = 'field';
-        state.portalX = 0;
-        state.portalY = 0;
-        state.lastT = performance.now();
-        state.peakLevels = Object.fromEntries(antiPatternKeys.map((name) => [name, 0]));
-        state.peakTargets = Object.fromEntries(antiPatternKeys.map((name) => [name, 0]));
-        state.anchorSpreadTargets = Object.fromEntries(Object.keys(anchors).map((name) => [name, 1]));
-        state.anchorSpreads = Object.fromEntries(Object.keys(anchors).map((name) => [name, 1]));
-        state.modeVisualLevels = Object.fromEntries(Object.keys(modes).map((name) => [name, modeBaseline]));
-        state.modeLevels = Object.fromEntries(Object.keys(modes).map((name) => [name, modeBaseline]));
-
-        portalEl.classList.remove('active');
-        portalEl.classList.add('hidden');
-        detailEl.hidden = true;
-        detailEl.classList.remove('visible');
-        detailTitleEl.textContent = '';
-        detailCopyEl.textContent = '';
-        detailLinkEl.href = '#';
-        applyModeButtons();
-
-        statusEl.textContent = 'Balance Work, Learn, and Play to shape the energy field and navigate the three destinations.';
-        updateModeReadouts();
-      }
-
-      function updatePeaks(dt) {
-        for (const name of Object.keys(state.peakTargets)) {
-          const target = state.peakTargets[name];
-          const current = state.peakLevels[name] || 0;
-          const next = current + (target - current) * dt * 3.5;
-          state.peakLevels[name] = Math.min(1, next);
-        }
-      }
-
-      function jitter() {
-        const angle = Math.random() * Math.PI * 2;
-        const mag = dynamics.jitterMag * (0.7 + Math.random() * 0.3);
-        state.vx += Math.cos(angle) * mag;
-        state.vz += Math.sin(angle) * mag;
-        state.jitterTimer = 1;
-        state.jitterDir = { x: Math.cos(angle), z: Math.sin(angle) };
-        statusEl.textContent = state.mode === 'neutral'
-          ? 'Jitter fired. The marble receives a random perturbation.'
-          : `Jitter fired during ${state.mode.toUpperCase()}.`;
-      }
-
-      function gaussian(cx, cz, x, z, spread = mesh.spread) {
-        const dx = x - cx;
-        const dz = z - cz;
-        const spread2 = spread * spread;
-        return Math.exp(-(dx * dx + dz * dz) / (2 * spread2));
-      }
-
-      function triSign(px, pz, ax, az, bx, bz) {
-        return (px - bx) * (az - bz) - (pz - bz) * (ax - bx);
-      }
-
-      function isInsideMainTriangle(x, z) {
-        const a = anchorPoints.research;
-        const b = anchorPoints.agents;
-        const c = anchorPoints.infra;
-        const s1 = triSign(x, z, a.x, a.z, b.x, b.z);
-        const s2 = triSign(x, z, b.x, b.z, c.x, c.z);
-        const s3 = triSign(x, z, c.x, c.z, a.x, a.z);
-        const hasNeg = s1 < 0 || s2 < 0 || s3 < 0;
-        const hasPos = s1 > 0 || s2 > 0 || s3 > 0;
-        return !(hasNeg && hasPos);
-      }
-
-      function distanceToSegment(px, pz, ax, az, bx, bz) {
-        const vx = bx - ax;
-        const vz = bz - az;
-        const wx = px - ax;
-        const wz = pz - az;
-        const denom = vx * vx + vz * vz || 1;
-        let t = (wx * vx + wz * vz) / denom;
-        t = Math.max(0, Math.min(1, t));
-        const dx = px - (ax + vx * t);
-        const dz = pz - (az + vz * t);
-        return Math.hypot(dx, dz);
-      }
-
-      function distanceToTriangleEdge(x, z) {
-        const a = anchorPoints.research;
-        const b = anchorPoints.agents;
-        const c = anchorPoints.infra;
-        const dab = distanceToSegment(x, z, a.x, a.z, b.x, b.z);
-        const dbc = distanceToSegment(x, z, b.x, b.z, c.x, c.z);
-        const dca = distanceToSegment(x, z, c.x, c.z, a.x, a.z);
-        return Math.min(dab, dbc, dca);
-      }
-
-      function outsideTriangleNoise(x, z) {
-        if (isInsideMainTriangle(x, z)) {
-          return 0;
-        }
-        const edgeDist = distanceToTriangleEdge(x, z);
-        const blend = clamp01((edgeDist - terrain.outsideNoise.edgeStart) / terrain.outsideNoise.edgeFade);
-        if (!blend) {
-          return 0;
-        }
-
-        const base = (noise2D(x * terrain.outsideNoise.scale, z * terrain.outsideNoise.scale) - 0.5) * 2;
-        const detail = (noise2D(x * terrain.outsideNoise.scale * terrain.outsideNoise.detailScale, z * terrain.outsideNoise.scale * terrain.outsideNoise.detailScale) - 0.5) * 2;
-        const profile = base * 0.9 + detail * 0.1;
-        return profile * terrain.outsideNoise.amp * blend;
-      }
-
-      function terrainBias(x, z) {
-        let total = 0;
-        for (const feature of terrainFeatures) {
-          const sample = gaussian(feature.point.x, feature.point.z, x, z, feature.spread);
-          total += (feature.type === 'peak' ? sample * feature.amp : -sample * feature.amp);
-        }
-        total += outsideTriangleNoise(x, z);
-        return total * terrain.reliefScale;
-      }
-
-      function fieldLandscapeCore(x, z, { modeAware = false, includePeaks = false } = {}) {
-        const edgeDist = distanceToTriangleEdge(x, z);
-        const centralBlend = clamp01(1 - edgeDist / terrain.centralBlendWidth);
-        const centralMultiplier = 1 + (terrain.centralAreaDepthMultiplier - 1) * centralBlend;
-        let h = terrainBias(x, z) * mesh.terrainScale * centralMultiplier;
-
-        for (const [key, value] of Object.entries(anchors)) {
-          const modeBoost = modeAware ? (state.modeWeights[key] || 0) * mesh.baseModeBoost : 0;
-          let depthScale = 1 + modeBoost * 0.5;
-          if (modeBoost < -2) {
-            const peakLerp = Math.min(1, (-modeBoost - 2) / 2);
-            depthScale = -1.15 * peakLerp;
-          } else {
-            depthScale = Math.max(0, depthScale);
-          }
-          const totalDepth = value.depth * depthScale * mesh.anchorScale * centralMultiplier;
-          const spread = value.spread * (state.anchorSpreads[key] || 1);
-          h -= totalDepth * gaussian(value.point.x, value.point.z, x, z, spread);
-        }
-
-        if (includePeaks) {
-          for (const [key, config] of Object.entries(antiPatterns)) {
-            const level = state.peakLevels[key] || 0;
-            if (!level) {
-              continue;
-            }
-            h += mesh.antiPatternScale * config.amp * level * gaussian(config.point.x, config.point.z, x, z, config.spread);
-          }
-        }
-
-        return h;
-      }
-
-      // World-space terrain functions (x,z) are sampled for both physics and rendering.
-      function fieldHeight(x, z) {
-        return fieldLandscapeCore(x, z, { modeAware: true, includePeaks: hasActivePeaks() });
-      }
-
-      function fieldHeightStatic(x, z) {
-        return fieldLandscapeCore(x, z, { modeAware: true, includePeaks: hasActivePeaks() });
-      }
-
-      function staticHeightGradient(x, z) {
-        const eps = 0.002;
-        const right = fieldHeightStatic(x + eps, z);
-        const left = fieldHeightStatic(x - eps, z);
-        const up = fieldHeightStatic(x, z + eps);
-        const down = fieldHeightStatic(x, z - eps);
-        return {
-          x: (right - left) / (2 * eps),
-          z: (up - down) / (2 * eps),
-        };
-      }
-
-      function horizonFade(x, z) {
-        const dist = Math.hypot(x, z);
-        const inner = Math.max(0, mesh.horizonHalfRange - mesh.horizonFade);
-        if (dist <= inner) {
-          return 1;
-        }
-        if (dist >= mesh.horizonHalfRange) {
-          return 0;
-        }
-        return 1 - (dist - inner) / mesh.horizonFade;
-      }
-
-      function fieldGradient(x, z) {
-        const slope = staticHeightGradient(x, z);
-        let fx = -slope.x;
-        let fz = -slope.z;
-        const modeForce = getModeControlForce();
-        fx += modeForce.fx;
-        fz += modeForce.fz;
-
-        if (state.jitterTimer > 0) {
-          const fade = state.jitterTimer;
-          fx += state.jitterDir.x * fade * dynamics.jitterPush;
-          fz += state.jitterDir.z * fade * dynamics.jitterPush;
-          state.jitterTimer = Math.max(0, state.jitterTimer - dynamics.jitterFade);
-        }
-
-        return { fx, fz };
-      }
-
-      // Shared world->screen projection used by marble and marker overlays.
-      function toScreen(x, z, h) {
-        const r = state.rotation;
-        const p = state.pitch;
-        const cx = x * Math.cos(r) - z * Math.sin(r);
-        const cy = x * Math.sin(r) + z * Math.cos(r);
-
-        const cp = Math.cos(p);
-        const sp = Math.sin(p);
-        const cyTilted = cy * cp - h * sp;
-        const hTilted = h * cp + cy * sp;
-
-        const perspective = 1 / Math.max(1 + 0.12 * cyTilted + 0.05, 0.18);
-        const sx = width() * 0.5 + cx * worldProjection.xScale * worldProjection.cameraScale * perspective;
-        const sy = height() * worldProjection.yOffset - hTilted * worldProjection.yScale * worldProjection.cameraScale + (-cyTilted * worldProjection.ySlopeScale * worldProjection.cameraScale) * perspective;
-        return { x: sx, y: sy, scale: perspective };
-      }
-
-      function clamp01(value) {
-        return Math.min(1, Math.max(0, value));
-      }
-
-      function hashNoise(x, y) {
-        const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123;
-        return n - Math.floor(n);
-      }
-
-      function noise2D(x, y) {
-        const x0 = Math.floor(x);
-        const y0 = Math.floor(y);
-        const x1 = x0 + 1;
-        const y1 = y0 + 1;
-        const sx = x - x0;
-        const sz = y - y0;
-        const sx2 = sx * sx * (3 - 2 * sx);
-        const sz2 = sz * sz * (3 - 2 * sz);
-
-        const n00 = hashNoise(x0, y0);
-        const n10 = hashNoise(x1, y0);
-        const n01 = hashNoise(x0, y1);
-        const n11 = hashNoise(x1, y1);
-
-        const nx0 = n00 + (n10 - n00) * sx2;
-        const nx1 = n01 + (n11 - n01) * sx2;
-        return nx0 + (nx1 - nx0) * sz2;
-      }
-
-      function createShader(type, source) {
-        const shader = gl.createShader(type);
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          throw new Error(gl.getShaderInfoLog(shader) || 'shader compile failed');
-        }
-        return shader;
-      }
-
-      function createProgram(vs, fs) {
-        const program = gl.createProgram();
-        gl.attachShader(program, createShader(gl.VERTEX_SHADER, vs));
-        gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, fs));
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-          throw new Error(gl.getProgramInfoLog(program) || 'program link failed');
-        }
-        return program;
-      }
-
-      const meshShader = {
-        program: null,
-        loc: {},
-      };
-
-      const meshRender = {
-        count: 0,
-        min: 0,
-        step: 0,
-        heightMin: 0,
-        heightMax: 1,
-        vertices: null,
-        heights: null,
-        vertexBuffer: null,
-        triIndexBuffer: null,
-        lineIndexBuffer: null,
-        triIndexCount: 0,
-        lineIndexCount: 0,
-      };
-
-      function initMeshRenderer() {
-        const vertexSource = `
-          attribute vec2 aPos;
-          attribute float aHeight;
-          attribute float aSlope;
-          attribute float aFade;
-
-          uniform float uWidth;
-          uniform float uHeight;
-          uniform float uRotation;
-          uniform float uPitch;
-          uniform float uScale;
-          uniform float uCameraScale;
-          uniform float uWorldXScale;
-          uniform float uWorldYScale;
-          uniform float uWorldYSlopeScale;
-          uniform float uWorldYOffset;
-
-          varying float vFade;
-          varying float vHeight;
-          varying float vSlope;
-          varying vec2 vPos;
-
-          void main() {
-            float c = cos(uRotation);
-            float s = sin(uRotation);
-            float cx = aPos.x * c - aPos.y * s;
-            float cy = aPos.x * s + aPos.y * c;
-            float cp = cos(uPitch);
-            float sp = sin(uPitch);
-            float cyTilted = cy * cp - aHeight * sp;
-            float hTilted = aHeight * cp + cy * sp;
-            float perspective = 1.0 / max(1.0 + 0.12 * cyTilted + 0.05, 0.18);
-            float sx = (uWidth * 0.5) + (cx * uWorldXScale * perspective * uScale * uCameraScale);
-            float sy = (uHeight * uWorldYOffset) - (hTilted * uWorldYScale * uScale * uCameraScale) + ((-cyTilted * uWorldYSlopeScale) * perspective * uScale * uCameraScale);
-
-            gl_Position = vec4(
-              (sx / uWidth) * 2.0 - 1.0,
-              1.0 - (sy / uHeight) * 2.0,
-              0.0,
-              1.0
-            );
-
-            vFade = aFade;
-            vHeight = aHeight;
-            vSlope = aSlope;
-            vPos = aPos;
-          }
-        `;
-
-        const fragmentSource = `
-          precision highp float;
-
-          varying float vFade;
-          varying float vHeight;
-          varying float vSlope;
-          varying vec2 vPos;
-
-          uniform float uTileAlpha;
-          uniform float uLineAlpha;
-          uniform float uShadingEnabled;
-          uniform float uClipEnabled;
-          uniform float uClipMargin;
-          uniform float uWidth;
-          uniform float uHeight;
-          uniform float uHeightMin;
-          uniform float uHeightMax;
-
-          void main() {
-            if (uClipEnabled > 0.5) {
-              if (gl_FragCoord.x < -uClipMargin
-                || gl_FragCoord.x > (uWidth + uClipMargin)
-                || gl_FragCoord.y < -uClipMargin
-                || gl_FragCoord.y > (uHeight + uClipMargin)) {
-                discard;
-              }
-            }
-
-            float fade = clamp(vFade, 0.0, 1.0);
-            if (uShadingEnabled > 0.5) {
-              float range = max(uHeightMax - uHeightMin, 0.0001);
-              float depth = clamp((vHeight - uHeightMin) / range, 0.0, 1.0);
-              float slope = clamp(vSlope, 0.0, 1.0);
-              float baseTone = depth;
-              float tone = baseTone * (1.0 - 0.75 * slope);
-              float alphaCurve = depth * depth;
-              float alpha = mix(1.0, 0.25, alphaCurve);
-              gl_FragColor = vec4(clamp(tone, 0.0, 1.0), clamp(tone, 0.0, 1.0), clamp(tone, 0.0, 1.0), uTileAlpha * alpha * fade);
-            } else {
-              gl_FragColor = vec4(0.0, 0.0, 0.0, uLineAlpha * fade);
-            }
-          }
-        `;
-
-        meshShader.program = createProgram(vertexSource, fragmentSource);
-        meshShader.loc.uWidth = gl.getUniformLocation(meshShader.program, 'uWidth');
-        meshShader.loc.uHeight = gl.getUniformLocation(meshShader.program, 'uHeight');
-        meshShader.loc.uRotation = gl.getUniformLocation(meshShader.program, 'uRotation');
-        meshShader.loc.uPitch = gl.getUniformLocation(meshShader.program, 'uPitch');
-        meshShader.loc.uScale = gl.getUniformLocation(meshShader.program, 'uScale');
-        meshShader.loc.uCameraScale = gl.getUniformLocation(meshShader.program, 'uCameraScale');
-        meshShader.loc.uWorldXScale = gl.getUniformLocation(meshShader.program, 'uWorldXScale');
-        meshShader.loc.uWorldYScale = gl.getUniformLocation(meshShader.program, 'uWorldYScale');
-        meshShader.loc.uWorldYSlopeScale = gl.getUniformLocation(meshShader.program, 'uWorldYSlopeScale');
-        meshShader.loc.uWorldYOffset = gl.getUniformLocation(meshShader.program, 'uWorldYOffset');
-        meshShader.loc.uTileAlpha = gl.getUniformLocation(meshShader.program, 'uTileAlpha');
-        meshShader.loc.uLineAlpha = gl.getUniformLocation(meshShader.program, 'uLineAlpha');
-        meshShader.loc.uShadingEnabled = gl.getUniformLocation(meshShader.program, 'uShadingEnabled');
-        meshShader.loc.uClipEnabled = gl.getUniformLocation(meshShader.program, 'uClipEnabled');
-        meshShader.loc.uClipMargin = gl.getUniformLocation(meshShader.program, 'uClipMargin');
-        meshShader.loc.uHeightMin = gl.getUniformLocation(meshShader.program, 'uHeightMin');
-        meshShader.loc.uHeightMax = gl.getUniformLocation(meshShader.program, 'uHeightMax');
-        meshShader.loc.aPos = gl.getAttribLocation(meshShader.program, 'aPos');
-        meshShader.loc.aHeight = gl.getAttribLocation(meshShader.program, 'aHeight');
-        meshShader.loc.aSlope = gl.getAttribLocation(meshShader.program, 'aSlope');
-        meshShader.loc.aFade = gl.getAttribLocation(meshShader.program, 'aFade');
-
-        meshRender.count = mesh.lines;
-        meshRender.min = -mesh.horizonHalfRange;
-        meshRender.step = (2 * mesh.horizonHalfRange) / (meshRender.count - 1);
-        meshRender.vertices = new Float32Array(meshRender.count * meshRender.count * 5);
-        meshRender.heights = new Float32Array(meshRender.count * meshRender.count);
-
-        for (let i = 0; i < meshRender.count; i++) {
-          const x = meshRender.min + i * meshRender.step;
-          for (let j = 0; j < meshRender.count; j++) {
-            const z = meshRender.min + j * meshRender.step;
-            const index = (i * meshRender.count + j) * 5;
-            meshRender.vertices[index] = x;
-            meshRender.vertices[index + 1] = z;
-          }
-        }
-
-        const triCount = (meshRender.count - 1) * (meshRender.count - 1) * 2;
-        const triIndex = new Uint16Array(triCount * 3);
-        let ti = 0;
-
-        for (let i = 0; i < meshRender.count - 1; i++) {
-          for (let j = 0; j < meshRender.count - 1; j++) {
-            const a = i * meshRender.count + j;
-            const b = (i + 1) * meshRender.count + j;
-            const c = (i + 1) * meshRender.count + (j + 1);
-            const d = i * meshRender.count + (j + 1);
-            triIndex[ti++] = a;
-            triIndex[ti++] = b;
-            triIndex[ti++] = c;
-            triIndex[ti++] = a;
-            triIndex[ti++] = c;
-            triIndex[ti++] = d;
-          }
-        }
-
-        const lineCount = meshRender.count * (meshRender.count - 1) * 2;
-        const lineIndex = new Uint16Array(lineCount * 2);
-        let li = 0;
-
-        for (let j = 0; j < meshRender.count; j++) {
-          for (let i = 0; i < meshRender.count - 1; i++) {
-            lineIndex[li++] = i * meshRender.count + j;
-            lineIndex[li++] = (i + 1) * meshRender.count + j;
-          }
-        }
-        for (let i = 0; i < meshRender.count; i++) {
-          for (let j = 0; j < meshRender.count - 1; j++) {
-            lineIndex[li++] = i * meshRender.count + j;
-            lineIndex[li++] = i * meshRender.count + (j + 1);
-          }
-        }
-
-        meshRender.triIndexCount = triIndex.length;
-        meshRender.lineIndexCount = lineIndex.length;
-
-        meshRender.vertexBuffer = gl.createBuffer();
-        meshRender.triIndexBuffer = gl.createBuffer();
-        meshRender.lineIndexBuffer = gl.createBuffer();
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, meshRender.vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, meshRender.vertices, gl.DYNAMIC_DRAW);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshRender.triIndexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triIndex, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshRender.lineIndexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, lineIndex, gl.STATIC_DRAW);
-
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        gl.clearDepth(1.0);
-        gl.clearColor(1, 1, 1, 1);
-      }
-
-      function bindMeshVertexLayout() {
-        const stride = 5 * 4;
-        gl.enableVertexAttribArray(meshShader.loc.aPos);
-        gl.enableVertexAttribArray(meshShader.loc.aHeight);
-        gl.enableVertexAttribArray(meshShader.loc.aSlope);
-        gl.enableVertexAttribArray(meshShader.loc.aFade);
-        gl.vertexAttribPointer(meshShader.loc.aPos, 2, gl.FLOAT, false, stride, 0);
-        gl.vertexAttribPointer(meshShader.loc.aHeight, 1, gl.FLOAT, false, stride, 2 * 4);
-        gl.vertexAttribPointer(meshShader.loc.aSlope, 1, gl.FLOAT, false, stride, 3 * 4);
-        gl.vertexAttribPointer(meshShader.loc.aFade, 1, gl.FLOAT, false, stride, 4 * 4);
-      }
-
-      function updateMeshSamples() {
-        const { count, step, min, vertices, heights } = meshRender;
-        const inv2s = 0.5 / step;
-        let hMin = Infinity;
-        let hMax = -Infinity;
-
-        for (let i = 0; i < count; i++) {
-          for (let j = 0; j < count; j++) {
-            const index = i * count + j;
-            const x = min + i * step;
-            const z = min + j * step;
-            const h = mesh.renderModeAware ? fieldHeight(x, z) : fieldHeightStatic(x, z);
-            const v = index * 5;
-            heights[index] = h;
-            vertices[v + 2] = h;
-            vertices[v + 3] = 0;
-            vertices[v + 4] = clamp01(horizonFade(x, z));
-            if (h < hMin) hMin = h;
-            if (h > hMax) hMax = h;
-          }
-        }
-
-          for (let i = 0; i < count; i++) {
-            for (let j = 0; j < count; j++) {
-              const index = i * count + j;
-              const v = index * 5;
-            const hL = heights[(i > 0 ? i - 1 : i) * count + j];
-            const hR = heights[(i < count - 1 ? i + 1 : i) * count + j];
-            const hD = heights[i * count + (j > 0 ? j - 1 : j)];
-            const hU = heights[i * count + (j < count - 1 ? j + 1 : j)];
-            vertices[v + 3] = Math.hypot((hR - hL) * inv2s, (hU - hD) * inv2s);
-          }
-        }
-
-        meshRender.heightMin = hMin;
-        meshRender.heightMax = hMax;
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, meshRender.vertexBuffer);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, meshRender.vertices);
-      }
-
-      function drawMeshGridWebGL() {
-        updateMeshSamples();
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.useProgram(meshShader.program);
-        bindMeshVertexLayout();
-
-        gl.uniform1f(meshShader.loc.uWidth, canvas.width);
-        gl.uniform1f(meshShader.loc.uHeight, canvas.height);
-        gl.uniform1f(meshShader.loc.uRotation, state.rotation);
-        gl.uniform1f(meshShader.loc.uPitch, state.pitch);
-        gl.uniform1f(meshShader.loc.uScale, dpr);
-        gl.uniform1f(meshShader.loc.uCameraScale, worldProjection.cameraScale);
-        gl.uniform1f(meshShader.loc.uWorldXScale, worldProjection.xScale);
-        gl.uniform1f(meshShader.loc.uWorldYScale, worldProjection.yScale);
-        gl.uniform1f(meshShader.loc.uWorldYSlopeScale, worldProjection.ySlopeScale);
-        gl.uniform1f(meshShader.loc.uWorldYOffset, worldProjection.yOffset);
-        gl.uniform1f(meshShader.loc.uTileAlpha, 0.5);
-        gl.uniform1f(meshShader.loc.uLineAlpha, 0.36);
-        gl.uniform1f(meshShader.loc.uClipEnabled, mesh.clipMode ? 1 : 0);
-        gl.uniform1f(meshShader.loc.uClipMargin, mesh.clipMargin);
-        gl.uniform1f(meshShader.loc.uHeightMin, meshRender.heightMin);
-        gl.uniform1f(meshShader.loc.uHeightMax, meshRender.heightMax);
-
-        gl.uniform1f(meshShader.loc.uShadingEnabled, 1);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshRender.triIndexBuffer);
-        gl.drawElements(gl.TRIANGLES, meshRender.triIndexCount, gl.UNSIGNED_SHORT, 0);
-
-        gl.disable(gl.DEPTH_TEST);
-        gl.uniform1f(meshShader.loc.uShadingEnabled, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshRender.lineIndexBuffer);
-        gl.drawElements(gl.LINES, meshRender.lineIndexCount, gl.UNSIGNED_SHORT, 0);
-        gl.enable(gl.DEPTH_TEST);
-      }
-
-      function maybeArrive() {
-        if (state.mode === 'neutral' || state.phase !== 'field') {
-          return;
-        }
-
-        const active = getActiveModeKeys();
-        if (!active.length) {
-          return;
-        }
-
-        let selected = active[0];
-        let closest = Math.hypot(state.x - anchors[selected].point.x, state.z - anchors[selected].point.z);
-
-        for (let i = 1; i < active.length; i++) {
-          const key = active[i];
-          const point = anchors[key].point;
-          const dist = Math.hypot(state.x - point.x, state.z - point.z);
-          if (dist < closest) {
-            closest = dist;
-            selected = key;
-          }
-        }
-
-        const speed = Math.hypot(state.vx, state.vz);
-        if (closest < mesh.settleDist && speed < 0.018) {
-          engageArrival(selected);
-        }
-      }
-
-      function engageArrival(key) {
-        state.phase = 'portal';
-        state.arrival = key;
-
-        const anchor = anchors[key];
-        const marker = anchor.point;
-        const h = fieldHeightStatic(marker.x, marker.z);
-        const screen = toScreen(marker.x, marker.z, h);
-        state.portalX = screen.x;
-        state.portalY = screen.y;
-
-        portalEl.style.left = `${screen.x}px`;
-        portalEl.style.top = `${screen.y}px`;
-        portalEl.classList.remove('hidden');
-        portalEl.classList.remove('active');
-        requestAnimationFrame(() => {
-          portalEl.classList.add('active');
-        });
-
-        statusEl.textContent = `Arrival locked. Showing ${anchor.label}.`;
-
-        setTimeout(() => {
-          detailTitleEl.textContent = anchor.label;
-          detailCopyEl.textContent = anchor.copy;
-          detailLinkEl.href = anchor.url;
-          detailEl.hidden = false;
-          requestAnimationFrame(() => {
-            detailEl.classList.add('visible');
-          });
-        }, 900);
-      }
-
-      function drawMeshGrid() {
-        drawMeshGridWebGL();
-      }
-
-      function drawAnchors() {
-        for (const anchor of Object.values(anchors)) {
-          const marker = holeCenters[anchor.id] || anchor.point;
-          const h = fieldHeightStatic(marker.x, marker.z);
-          const p = toScreen(marker.x, marker.z, h);
-          const text = anchor.label;
-          const metrics = ctx.measureText(text);
-          const paddingX = 8;
-          const paddingY = 4;
-          const rectWidth = metrics.width + paddingX * 2;
-          const rectHeight = 16;
-
-          ctx.fillStyle = '#000';
-          ctx.font = '11px "SF Mono", "Menlo", "Consolas", monospace';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-
-          ctx.fillStyle = 'rgba(255, 255, 255, 1.0)';
-          ctx.strokeStyle = '#000';
-          ctx.lineWidth = 1.4;
-          ctx.fillRect(p.x - rectWidth * 0.5, p.y - rectHeight * 0.5, rectWidth, rectHeight);
-          ctx.strokeRect(p.x - rectWidth * 0.5, p.y - rectHeight * 0.5, rectWidth, rectHeight);
-
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 0.9;
-          ctx.strokeText(text, p.x, p.y);
-
-          ctx.fillStyle = '#000';
-          ctx.fillText(text, p.x, p.y);
-        }
-      }
-
-      function drawMarble() {
-        const h = fieldHeightStatic(state.x, state.z);
-        const p = toScreen(state.x, state.z, h);
-        const opacity = state.phase === 'portal' ? 0.2 : 1;
-        const r = Math.max(5.25, 10.05 * p.scale);
-        const shadowOpacity = 0.22 * opacity;
-        const shadowY = p.y + Math.max(2, r * 0.9);
-        const shadowRX = Math.max(4, r * 1.0);
-        const shadowRY = Math.max(2, r * 0.32);
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(0, 0, 0, ${shadowOpacity})`;
-        ctx.ellipse(p.x, shadowY, shadowRX, shadowRY, 0, 0, Math.PI * 2);
-        ctx.filter = `blur(${Math.max(1, r * 0.18)}px)`;
-        ctx.fill();
-        ctx.restore();
-
-        const radial = ctx.createRadialGradient(
-          p.x - 3,
-          p.y - 4,
-          Math.max(1, r * 0.2),
-          p.x,
-          p.y,
-          r
-        );
-        radial.addColorStop(0, `rgba(228, 228, 228, ${opacity})`);
-        radial.addColorStop(0.5, `rgba(168, 168, 168, ${opacity})`);
-        radial.addColorStop(1, `rgba(86, 86, 86, ${opacity})`);
-
-        ctx.beginPath();
-        ctx.fillStyle = radial;
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = `rgba(40,40,40,${opacity})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      function stepPhysics(dt) {
-        const force = fieldGradient(state.x, state.z);
-        state.vx += force.fx * dt * dynamics.forceScale;
-        state.vz += force.fz * dt * dynamics.forceScale;
-        state.vx *= 1 - dt * dynamics.damping;
-        state.vz *= 1 - dt * dynamics.damping;
-
-        const speed = Math.hypot(state.vx, state.vz);
-        if (speed > dynamics.maxSpeed) {
-          const scale = dynamics.maxSpeed / speed;
-          state.vx *= scale;
-          state.vz *= scale;
-        }
-
-        state.x += state.vx * dt * dynamics.speedScale;
-        state.z += state.vz * dt * dynamics.speedScale;
-      }
-
-      function render() {
-        const w = width();
-        const h = height();
-
-        ctx.clearRect(0, 0, w, h);
-
-        drawMeshGrid();
-        drawAnchors();
-        drawMarble();
-
-        if (state.phase === 'portal') {
-          const marker = anchors[state.arrival]?.point || { x: state.x, z: state.z };
-          const h = fieldHeightStatic(marker.x, marker.z);
-          const p = toScreen(marker.x, marker.z, h);
-          state.portalX = p.x;
-          state.portalY = p.y;
-          portalEl.style.left = `${state.portalX}px`;
-          portalEl.style.top = `${state.portalY}px`;
-        }
-      }
-
-      function tick(now) {
-        const dt = Math.min(0.05, (now - state.lastT) / 1000 || 0.016);
-        state.lastT = now;
-        updatePeaks(dt);
-        updateModeDynamics(dt);
-        updateAnchorSpreads(dt);
-
-        if (state.phase === 'field') {
-          stepPhysics(dt);
-          maybeArrive();
-        }
-
-        render();
-        requestAnimationFrame(tick);
-      }
-
-      modeButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-          setMode(button.dataset.mode, Number(button.dataset.step || '1'));
-        });
-      });
-
-      canvas.addEventListener('pointerdown', startRotation);
-      canvas.addEventListener('pointermove', updateRotation);
-      canvas.addEventListener('pointerup', endRotation);
-      canvas.addEventListener('pointercancel', endRotation);
-      canvas.addEventListener('pointerleave', endRotation);
-      canvas.addEventListener('pointerout', endRotation);
-      jitterBtn.addEventListener('click', jitter);
-      resetBtn.addEventListener('click', reset);
-      mainResetBtn.addEventListener('click', reset);
-
-      window.addEventListener('resize', resize);
-
-      resize();
-      initMeshRenderer();
-      reset();
-      requestAnimationFrame(tick);
-    })();
-  </script>
-
+  <script defer src="./js/simulatte-world-core.js"></script>
+  <script defer src="./js/simulatte-world-rendering.js"></script>
 </body>
 </html>
