@@ -51,7 +51,7 @@ const anchors = {
   research: {
     id: 'research',
     label: 'Research',
-    url: 'https://research.d4da.com',
+    url: 'https://256.one',
     copy: 'Research maps to systems design, language experiments, and core model exploration.',
     point: anchorPoints.research,
     depth: 1.8,
@@ -683,6 +683,7 @@ function reset() {
   detailLinkEl.textContent = 'Open destination';
   detailLinkEl.title = '';
   detailUrlEl.textContent = '';
+  detailUrlEl.hidden = true;
 
   applyModeButtons();
   updateModeReadouts();
@@ -1203,9 +1204,10 @@ function updatePortalFlight(dt) {
       detailTitleEl.textContent = anchor.label;
       detailCopyEl.textContent = anchor.copy;
       detailLinkEl.href = anchor.url;
-      detailLinkEl.textContent = 'Open destination';
+      detailLinkEl.textContent = anchor.url;
       detailLinkEl.title = anchor.url;
-      detailUrlEl.textContent = anchor.url;
+      detailUrlEl.textContent = '';
+      detailUrlEl.hidden = true;
       detailEl.hidden = false;
       requestAnimationFrame(() => {
         detailEl.classList.add('visible');
