@@ -10,12 +10,20 @@
       --fg: #000;
       --bg: #fff;
       --border-md: 1px;
-      --border-sm: 0.5px;
+      --border-sm: 1px;
       --opacity-secondary: 0.72;
+      color-scheme: light;
+      accent-color: #000;
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.16);
+    }
+
+    ::selection {
+      background: rgba(0, 0, 0, 0.16);
+      color: #000;
     }
 
     body {
@@ -23,6 +31,8 @@
       background: var(--bg);
       color: var(--fg);
       font-family: "SF Mono", "Menlo", "Consolas", monospace;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       overflow: hidden;
       font-size: 14px;
     }
@@ -53,23 +63,73 @@
 
     #hud {
       position: fixed;
-      left: 50%;
+      left: 14px;
+      right: 14px;
       top: 14px;
-      width: calc(100% - 28px);
-      transform: translateX(-50%);
       display: flex;
-      justify-content: flex-start;
+      align-items: stretch;
+      gap: 12px;
       pointer-events: none;
       z-index: 2;
     }
 
     .panel {
       border: var(--border-md) solid var(--fg);
-      width: min(100%, 520px);
-      max-width: 520px;
       padding: 12px;
       pointer-events: auto;
       background: rgba(255, 255, 255, 0.6);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .intro-panel {
+      width: min(100%, 420px);
+      max-width: 420px;
+    }
+
+    .controls-panel {
+      width: min(100%, 420px);
+      max-width: 420px;
+      margin-left: auto;
+    }
+
+    .intro-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .intro-contact-label {
+      opacity: 0.86;
+    }
+
+    .intro-email-link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      text-align: left;
+      text-transform: none;
+      letter-spacing: normal;
+      opacity: 0.86;
+      text-decoration-line: underline;
+      text-decoration-style: dotted;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+    }
+
+    .intro-email-link:hover,
+    .intro-email-link:focus-visible {
+      background: transparent;
+      color: #111;
+      text-decoration-style: solid;
+      opacity: 1;
+    }
+
+    #copy-email {
+      margin-left: 14px;
     }
 
     .panel h1 {
@@ -190,8 +250,17 @@
       opacity: var(--opacity-secondary);
     }
 
+    a:link,
+    a:visited,
+    a:hover,
+    a:active {
+      color: inherit;
+    }
+
     button {
       appearance: none;
+      -webkit-appearance: none;
+      border-radius: 0;
       padding: 8px 8px;
       font-size: 12px;
       background: #fff;
@@ -217,10 +286,10 @@
     }
 
     .status {
-      margin-top: 10px;
+      margin: 0 0 10px;
       min-height: 2.4em;
-      border-top: var(--border-sm) dotted var(--fg);
-      padding-top: 8px;
+      border-bottom: var(--border-sm) dotted var(--fg);
+      padding-bottom: 8px;
     }
 
     .copyright {
@@ -232,8 +301,6 @@
       pointer-events: none;
       opacity: 0.78;
       color: rgba(0, 0, 0, 0.9);
-      -webkit-text-stroke: 0.45px rgba(235, 235, 235, 0.85);
-      text-shadow: 0 0 1px rgba(235, 235, 235, 0.85);
       font-size: 11px;
       text-align: center;
       text-transform: uppercase;
@@ -312,6 +379,26 @@
     #detailReset {
       background: #fff;
     }
+
+    @media (max-width: 900px) {
+      #hud {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .intro-panel,
+      .controls-panel {
+        width: 100%;
+        max-width: none;
+      }
+
+      .controls-panel {
+        margin-left: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -319,9 +406,18 @@
   <canvas id="field-overlay" aria-hidden="true"></canvas>
 
   <div id="hud">
-    <section class="panel">
+    <section class="panel intro-panel">
       <h1>simulatte.world</h1>
-      <p>We build browser-native software where AI can propose actions, but real side effects are deterministic, constrained, and auditable by design.</p>
+      <p>We build and advise on browser-native software where AI proposes actions within deterministic, auditable boundaries.<br><br><b>Stop shipping shimware. Start building wrapper-free agentic systems.</b></p>
+      <div class="intro-actions">
+        <span class="intro-contact-label">Contact us:</span>
+        <a class="intro-email-link" href="mailto:x@simululatte.world">x@simululatte.world</a>
+        <button id="copy-email" type="button">Copy email</button>
+      </div>
+    </section>
+
+    <section class="panel controls-panel">
+      <p class="status" id="status">Balance Work, Play, and Muse to shape the energy field and navigate the three destinations.</p>
 
       <div class="mode-controls">
         <div class="mode-group">
@@ -357,8 +453,6 @@
         <button id="jitter" type="button">Jitter</button>
         <button id="reset-energy" type="button">Reset</button>
       </div>
-
-      <p class="status" id="status">Balance Work, Play, and Muse to shape the energy field and navigate the three destinations.</p>
     </section>
   </div>
 
@@ -374,6 +468,66 @@
 
   <div class="copyright" id="copyright">© 2026 Simulatte, LLC</div>
 
+  <script>
+    (() => {
+      const email = 'x@simululatte.world';
+      const copyBtn = document.getElementById('copy-email');
+      if (copyBtn) {
+        const resetLabel = () => {
+          copyBtn.textContent = 'Copy email';
+        };
+
+        copyBtn.addEventListener('click', async () => {
+          try {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+              await navigator.clipboard.writeText(email);
+            } else {
+              throw new Error('Clipboard API unavailable');
+            }
+            copyBtn.textContent = 'Copied';
+          } catch (_err) {
+            window.prompt('Copy email address:', email);
+            copyBtn.textContent = 'Use prompt';
+          }
+
+          window.setTimeout(resetLabel, 1400);
+        });
+      }
+
+      const introPanel = document.querySelector('.intro-panel');
+      const controlsPanel = document.querySelector('.controls-panel');
+      if (!introPanel || !controlsPanel) return;
+
+      let lastHeight = 0;
+      const syncCardHeights = () => {
+        introPanel.style.minHeight = '';
+        controlsPanel.style.minHeight = '';
+        const nextHeight = Math.max(introPanel.offsetHeight, controlsPanel.offsetHeight);
+        if (!Number.isFinite(nextHeight) || nextHeight <= 0 || nextHeight === lastHeight) return;
+        lastHeight = nextHeight;
+        const heightPx = `${nextHeight}px`;
+        introPanel.style.minHeight = heightPx;
+        controlsPanel.style.minHeight = heightPx;
+      };
+
+      let rafId = 0;
+      const scheduleSync = () => {
+        if (rafId) return;
+        rafId = window.requestAnimationFrame(() => {
+          rafId = 0;
+          syncCardHeights();
+        });
+      };
+
+      scheduleSync();
+      window.addEventListener('resize', scheduleSync);
+      if (typeof ResizeObserver === 'function') {
+        const observer = new ResizeObserver(scheduleSync);
+        observer.observe(introPanel);
+        observer.observe(controlsPanel);
+      }
+    })();
+  </script>
   <script defer src="./js/simulatte-world.js"></script>
 </body>
 </html>
