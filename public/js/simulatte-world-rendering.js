@@ -209,6 +209,8 @@ function initMeshRenderer() {
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
+  // Prevent driver dithering from tinting neutral grayscale tones on some Linux/Chrome stacks.
+  gl.disable(gl.DITHER);
   gl.clearDepth(1.0);
   gl.clearColor(1, 1, 1, 1);
 
