@@ -16,7 +16,7 @@ export const WORLD_CONFIG = {
       elevation: 52,
       unlockRequires: [],
       summary:
-        'Simulatte lets AI propose software, but real actions only run after strict, auditable checks.',
+        'Simulatte lets AI propose software, but execution only happens after verifiable checks.',
       bullets: [
         'Output can vary, but enforcement must be consistent every time.',
         'No receipt means no side effect.',
@@ -24,9 +24,9 @@ export const WORLD_CONFIG = {
       ],
       dossier: {
         mission:
-          'Build local-first browser-native systems where execution is policy-gated and auditable.',
+          'Build local-first AI systems where execution is policy-gated and verifiable.',
         vision:
-          'On-demand software in the browser with deterministic trust boundaries.',
+          'On-demand software built on verifiable execution boundaries and a formally verified runtime core.',
         relation:
           'Parent company frame connecting all Simulatte projects into one operating stack.',
         why:
@@ -49,7 +49,7 @@ export const WORLD_CONFIG = {
         type: 'fact',
         title: 'Mission Core',
         text:
-          'Simulatte builds local-first browser-native systems where policy enforcement is deterministic and auditable.'
+          'Simulatte builds local-first AI systems where policy enforcement is verifiable and execution can be proved.'
       },
       musicUnlocks: [{ stem: 'drums', level: 2 }],
       portal: null

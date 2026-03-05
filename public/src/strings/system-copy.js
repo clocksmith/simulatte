@@ -61,8 +61,8 @@ export const SYSTEM_COPY = {
     chainText:
       'ideas/research -> model intuition -> agent/policy -> runtime core -> boundary contract -> compute -> applied data network',
     dossiersLabel: 'Project Dossiers:',
-    missionFallback: 'Local-first browser-native systems with deterministic and auditable enforcement.',
-    visionFallback: 'On-demand software in the browser, constrained by explicit policy boundaries.',
+    missionFallback: 'Local-first AI systems with policy-gated, verifiable execution.',
+    visionFallback: 'On-demand software built on verifiable boundaries and a formally verified runtime core.',
     regionMissionLabel: 'Mission',
     regionVisionLabel: 'Vision',
     regionRoleLabel: 'Role',
