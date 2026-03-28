@@ -54,7 +54,7 @@ const anchors = {
     url: 'https://256.one',
     copy: 'Research maps to systems design, language experiments, and core model exploration.',
     point: anchorPoints.research,
-    depth: 1.8,
+    depth: 2.6,
     spread: 1.62,
   },
   agents: {
@@ -63,7 +63,7 @@ const anchors = {
     url: 'https://replo.id',
     copy: 'Automation points to RSI tools, execution loops, and automation tooling where actions are modelable.',
     point: anchorPoints.agents,
-    depth: 1.8,
+    depth: 2.6,
     spread: 1.62,
   },
   infra: {
@@ -72,7 +72,7 @@ const anchors = {
     url: 'https://d4da.com',
     copy: 'Structure tracks the platform layer: libraries, infrastructure, and reusable primitives.',
     point: anchorPoints.infra,
-    depth: 1.8,
+    depth: 2.6,
     spread: 1.62,
   },
 };
@@ -160,13 +160,13 @@ const terrainPerturbationConfig = {
 
 const dynamics = {
   damping: 1.55,
-  speedScale: 1.95,
-  forceScale: 5.2,
+  speedScale: 3.1,
+  forceScale: 8.5,
   modeLerp: 6.4,
   jitterMag: 0.58,
   jitterFade: 0.02,
   jitterPush: 0.7,
-  maxSpeed: 2.05,
+  maxSpeed: 3.4,
   normalSampleEps: 0.02,
   normalSmoothing: 12,
   renderSmoothing: 18,
@@ -689,7 +689,7 @@ function reset() {
   updateModeReadouts();
 
   statusEl.textContent =
-    'Balance Work, Play, and Muse to shape the energy field and navigate the three destinations.';
+    'Tune Work, Play, and Muse to explore the stack map.';
   markUserInteraction(state.lastT);
 }
 
