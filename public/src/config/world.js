@@ -262,7 +262,7 @@ export const WORLD_CONFIG = {
       elevation: 12,
       unlockRequires: ['runtime-basin'],
       summary:
-        'Applied time-series data layer (renamed from d4da framing) focused on verifiable historical memory and alignment.',
+        'Applied time-series data layer focused on verifiable historical memory and alignment.',
       bullets: [
         'Compare anything, trust everything framing.',
         'Historical archive model over real-time oracle race.',
@@ -298,7 +298,7 @@ export const WORLD_CONFIG = {
           'Chronicle Commons is the applied data network/use-case layer proving the stack on real data workflows.'
       },
       musicUnlocks: [{ stem: 'bass', level: 3 }],
-      portal: 'https://d4da.com'
+      portal: null
     },
     {
       id: 'contract-ridge',

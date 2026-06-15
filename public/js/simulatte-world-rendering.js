@@ -105,11 +105,18 @@ function initMeshRenderer() {
         float peakLift = 0.10 * smoothstep(0.82, 1.0, depth);
         float slopeAtten = 0.08 * slope * (1.0 - smoothstep(0.90, 1.0, depth));
         float tone = clamp(baseTone + peakLift - slopeAtten, 0.10, 1.0);
+        vec3 lowTone = vec3(0.02, 0.09, 0.08);
+        vec3 midTone = vec3(0.10, 0.20, 0.17);
+        vec3 highTone = vec3(0.72, 0.95, 0.32);
+        vec3 slopeTone = vec3(0.55, 0.30, 0.78);
+        vec3 terrainColor = mix(lowTone, midTone, tone);
+        terrainColor = mix(terrainColor, highTone, smoothstep(0.68, 1.0, depth));
+        terrainColor = mix(terrainColor, slopeTone, slope * 0.16);
         float alphaCurve = depth * depth;
-        float alpha = mix(1.44, 0.48, alphaCurve);
-        gl_FragColor = vec4(tone, tone, tone, uTileAlpha * alpha * fade);
+        float alpha = mix(1.12, 0.74, alphaCurve);
+        gl_FragColor = vec4(terrainColor, uTileAlpha * alpha * fade);
       } else {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, uLineAlpha * fade);
+        gl_FragColor = vec4(0.68, 1.00, 0.42, uLineAlpha * fade);
       }
     }
   `;
@@ -209,10 +216,9 @@ function initMeshRenderer() {
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
-  // Prevent driver dithering from tinting neutral grayscale tones on some Linux/Chrome stacks.
   gl.disable(gl.DITHER);
   gl.clearDepth(1.0);
-  gl.clearColor(1, 1, 1, 1);
+  gl.clearColor(0.02, 0.023, 0.021, 1);
 
   initMarbleRenderer();
   initMarbleShadowRenderer();
@@ -276,7 +282,9 @@ function initMarbleRenderer() {
       float rim = pow(1.0 - clamp(dot(sphereN, view), 0.0, 1.0), 4.0);
 
       float ambient = mix(0.42, 1.0, z);
-      vec3 tone = vec3(0.16) * (ambient + 0.45 * diff) + vec3(gloss * 0.38) + vec3(rim * 0.06);
+      vec3 baseTint = vec3(0.14, 0.32, 0.28);
+      vec3 highlightTint = vec3(0.86, 1.00, 0.46);
+      vec3 tone = baseTint * (ambient + 0.55 * diff) + highlightTint * (gloss * 0.42) + vec3(rim * 0.08);
       tone = clamp(tone, 0.0, 1.0);
 
       gl_FragColor = vec4(tone, uOpacity);
@@ -597,6 +605,562 @@ function drawMarbleWebGL() {
   gl.drawArrays(gl.POINTS, 0, 1);
 }
 
+function clearWorldCanvas() {
+  if (!gl) return;
+  gl.clearColor(0.015, 0.017, 0.016, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
+
+function shortCanvasLabel(value, max = 22) {
+  const text = String(value || '').trim();
+  return text.length > max ? `${text.slice(0, Math.max(0, max - 1))}.` : text;
+}
+
+function roundRectPath(x, y, w, h, r) {
+  const radius = Math.min(r, w * 0.5, h * 0.5);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  ctx.lineTo(x + radius, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+}
+
+function sceneObjectColors(object) {
+  if (object.kind === 'shock') {
+    return object.active
+      ? { edge: '#ff806f', fill: 'rgba(70, 14, 12, 0.78)', text: '#ffd0c7', bar: '#ff806f' }
+      : { edge: '#f6c85f', fill: 'rgba(54, 42, 12, 0.68)', text: '#ffe29d', bar: '#f6c85f' };
+  }
+  if (object.kind === 'resource') {
+    return object.state === 'low'
+      ? { edge: '#f6c85f', fill: 'rgba(36, 30, 10, 0.78)', text: '#fff0b5', bar: '#f6c85f' }
+      : { edge: '#6be0c3', fill: 'rgba(6, 37, 32, 0.78)', text: '#d7fff4', bar: '#6be0c3' };
+  }
+  return object.state === 'strained'
+    ? { edge: '#ff806f', fill: 'rgba(58, 15, 13, 0.78)', text: '#ffd0c7', bar: '#ff806f' }
+    : { edge: '#d7ff6f', fill: 'rgba(23, 32, 10, 0.78)', text: '#f3f3ec', bar: '#d7ff6f' };
+}
+
+function objectIsHighlighted(object) {
+  return Boolean(
+    object &&
+      object.id &&
+      Array.isArray(scenarioApp.highlightObjectIds) &&
+      scenarioApp.highlightObjectIds.includes(String(object.id))
+  );
+}
+
+function sceneObjectPoint(object, index, total) {
+  const base = simulationPoints[object.axis] || simulationPoints.setup;
+  const safeTotal = Math.max(1, total);
+  const phaseByKind = object.kind === 'resource' ? 0.58 : object.kind === 'shock' ? 1.05 : 0.12;
+  const radiusByKind = object.kind === 'shock' ? 0.42 : object.kind === 'resource' ? 0.86 : 0.78;
+  const angle = phaseByKind + (index / safeTotal) * Math.PI * 2 + (scenarioApp.run ? scenarioApp.run.tick * 0.02 : 0);
+  return {
+    x: base.x + Math.cos(angle) * radiusByKind,
+    z: base.z + Math.sin(angle) * radiusByKind,
+  };
+}
+
+function sceneObjectScreenSlot(object, index, total) {
+  const isWide = width() >= 900;
+  const leftReserve = isWide ? 462 : 12;
+  const rightReserve = isWide ? 18 : 12;
+  const available = Math.max(320, width() - leftReserve - rightReserve);
+  const rowGap = isWide ? 62 : 56;
+  const top = isWide ? Math.max(175, height() * 0.22) : Math.max(330, height() * 0.62);
+  const kind = object.kind || 'actor';
+
+  if (kind === 'shock') {
+    const spread = Math.min(0.34, 0.12 * Math.max(1, total - 1));
+    const start = 0.26 - spread * 0.5;
+    return {
+      x: leftReserve + available * (start + index * 0.16),
+      y: top + 36,
+    };
+  }
+
+  if (kind === 'resource') {
+    return {
+      x: leftReserve + available * 0.57,
+      y: top + 128 + index * rowGap,
+    };
+  }
+
+  return {
+    x: leftReserve + available * 0.28,
+    y: top + 128 + index * rowGap,
+  };
+}
+
+function clampSceneScreen(point) {
+  const cardHalfW = 76;
+  const cardHalfH = 27;
+  const leftReserve = width() >= 900 ? 462 : 12;
+  let x = clamp(point.x, leftReserve + cardHalfW, width() - cardHalfW - 14);
+  let y = clamp(point.y, 28 + cardHalfH, height() - cardHalfH - 18);
+  if (width() >= 900 && x > width() - 460 && y > height() - 250) {
+    y = Math.min(y, height() - 280);
+  }
+  return { x, y };
+}
+
+function layoutSceneObjects(sceneObjects) {
+  const groups = sceneObjects.reduce((acc, object) => {
+    if (!acc[object.kind]) acc[object.kind] = [];
+    acc[object.kind].push(object);
+    return acc;
+  }, {});
+  const seen = {};
+  return sceneObjects.map((object) => {
+    const group = groups[object.kind] || sceneObjects;
+    const index = seen[object.kind] || 0;
+    seen[object.kind] = index + 1;
+    const worldPoint = sceneObjectPoint(object, index, group.length);
+    const h = fieldHeightStatic(worldPoint.x, worldPoint.z);
+    const projected = toScreen(worldPoint.x, worldPoint.z, h);
+    const slot = sceneObjectScreenSlot(object, index, group.length);
+    return {
+      object,
+      worldPoint,
+      screen: clampSceneScreen(slot),
+      rawScreen: projected,
+    };
+  });
+}
+
+function drawLineBetween(a, b, color, alpha, widthPx = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = widthPx;
+  ctx.beginPath();
+  ctx.moveTo(a.screen.x, a.screen.y);
+  ctx.lineTo(b.screen.x, b.screen.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSceneObjectLinks(items) {
+  const actors = items.filter((item) => item.object.kind === 'actor');
+  const resources = items.filter((item) => item.object.kind === 'resource');
+  const shocks = items.filter((item) => item.object.kind === 'shock' && item.object.active);
+  const pulse = 0.55 + 0.45 * Math.sin(performance.now() * 0.006);
+
+  actors.forEach((actor, index) => {
+    if (!resources.length) return;
+    const resource = resources[index % resources.length];
+    const color = actor.object.state === 'strained' ? '#ff806f' : '#6be0c3';
+    drawLineBetween(resource, actor, color, 0.2, 1);
+  });
+
+  shocks.forEach((shock) => {
+    actors.slice(0, 3).forEach((actor) => drawLineBetween(shock, actor, '#ff806f', 0.16 + pulse * 0.12, 1.4));
+    resources.slice(0, 2).forEach((resource) => drawLineBetween(shock, resource, '#f6c85f', 0.13 + pulse * 0.1, 1.2));
+  });
+}
+
+function drawEffectWave(x, y, radius, color, alpha) {
+  const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+  gradient.addColorStop(0, color.replace('ALPHA', String(alpha)));
+  gradient.addColorStop(1, color.replace('ALPHA', '0'));
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawScenarioEffects(run, items) {
+  const effects = run && run.map && run.map.effects ? run.map.effects : null;
+  if (!effects) return;
+
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.005);
+  const actors = items.filter((item) => item.object.kind === 'actor');
+  const resources = items.filter((item) => item.object.kind === 'resource');
+  const shocks = items.filter((item) => item.object.kind === 'shock');
+  const activeShocks = shocks.filter((item) => item.object.active);
+  const allTargets = activeShocks.length ? activeShocks : shocks;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (effects.kind === 'transit-heat') {
+    allTargets.forEach((item, index) => {
+      const radius = 74 + effects.load * 70 + pulse * 20 + index * 9;
+      drawEffectWave(item.screen.x, item.screen.y, radius, 'rgba(255, 111, 72, ALPHA)', 0.18);
+    });
+
+    ctx.strokeStyle = `rgba(107, 224, 195, ${0.24 + (1 - effects.coverageGap) * 0.34})`;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    [...resources, ...actors].slice(0, 6).forEach((item, index) => {
+      if (index === 0) ctx.moveTo(item.screen.x, item.screen.y);
+      else ctx.lineTo(item.screen.x, item.screen.y);
+    });
+    ctx.stroke();
+
+    ctx.setLineDash([10, 9]);
+    ctx.strokeStyle = `rgba(255, 128, 111, ${0.16 + effects.coverageGap * 0.32})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (effects.kind === 'housing') {
+    actors.slice(0, 4).forEach((item, index) => {
+      const stress = clamp01(Number(item.object.value || 0));
+      const x = item.screen.x - 38 + index * 4;
+      const y = item.screen.y + 38;
+      ctx.fillStyle = `rgba(246, 200, 95, ${0.12 + stress * 0.22})`;
+      ctx.fillRect(x, y, 24, 38);
+      ctx.strokeStyle = `rgba(246, 200, 95, ${0.24 + stress * 0.34})`;
+      ctx.strokeRect(x, y, 24, 38);
+    });
+    allTargets.forEach((item) => {
+      drawEffectWave(item.screen.x, item.screen.y, 70 + effects.load * 60, 'rgba(255, 128, 111, ALPHA)', 0.13);
+    });
+  } else if (effects.kind === 'power') {
+    const nodes = [...resources, ...actors].slice(0, 7);
+    nodes.forEach((item, index) => {
+      const next = nodes[(index + 1) % nodes.length];
+      if (!next) return;
+      const unstable = effects.coverageGap + effects.load * 0.45;
+      ctx.strokeStyle = `rgba(246, 200, 95, ${0.18 + unstable * 0.34})`;
+      ctx.lineWidth = 2 + pulse * unstable * 2;
+      ctx.beginPath();
+      ctx.moveTo(item.screen.x, item.screen.y);
+      ctx.lineTo(next.screen.x, next.screen.y);
+      ctx.stroke();
+    });
+    allTargets.forEach((item) => {
+      drawGlyph('power', item.screen.x - 13, item.screen.y - 44, '#f6c85f');
+    });
+  } else if (effects.kind === 'supply') {
+    const path = [...resources, ...actors].slice(0, 7);
+    ctx.strokeStyle = `rgba(107, 224, 195, ${0.16 + (1 - effects.coverageGap) * 0.3})`;
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    path.forEach((item, index) => {
+      if (index === 0) ctx.moveTo(item.screen.x, item.screen.y);
+      else ctx.lineTo(item.screen.x, item.screen.y);
+    });
+    ctx.stroke();
+    path.forEach((item, index) => {
+      const offset = ((performance.now() * 0.018 + index * 21) % 36) - 18;
+      ctx.strokeStyle = '#f6c85f';
+      ctx.strokeRect(item.screen.x - 7 + offset * 0.12, item.screen.y - 47, 14, 11);
+    });
+  } else if (effects.kind === 'agents') {
+    const nodes = [...actors, ...resources].slice(0, 8);
+    nodes.forEach((item, index) => {
+      nodes.slice(index + 1).forEach((next) => {
+        const trust = 1 - effects.trustGap;
+        ctx.strokeStyle = `rgba(215, 255, 111, ${0.08 + trust * 0.16})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(item.screen.x, item.screen.y);
+        ctx.lineTo(next.screen.x, next.screen.y);
+        ctx.stroke();
+      });
+    });
+    allTargets.forEach((item) => {
+      drawEffectWave(item.screen.x, item.screen.y, 58 + effects.load * 52, 'rgba(255, 128, 111, ALPHA)', 0.12);
+    });
+  } else {
+    allTargets.forEach((item) => {
+      drawEffectWave(item.screen.x, item.screen.y, 62 + effects.load * 60, 'rgba(255, 128, 111, ALPHA)', 0.11);
+    });
+  }
+
+  ctx.restore();
+}
+
+function glyphTypeForObject(object) {
+  const text = `${object.label || ''} ${object.sublabel || ''}`.toLowerCase();
+  if (object.kind === 'shock') return text.includes('heat') ? 'heat' : 'shock';
+  if (/bus|transit|rider|driver|commute|shuttle/.test(text)) return 'bus';
+  if (/cooling|heat/.test(text)) return 'heat';
+  if (/hospital|health|emergency/.test(text)) return 'hospital';
+  if (/battery|power|grid|energy|utility|generation/.test(text)) return 'power';
+  if (/house|housing|unit|rent|shelter|resident/.test(text)) return 'house';
+  if (/warehouse|inventory|supply|port|transport|factory|retail/.test(text)) return 'box';
+  if (/agent|auditor|policy|planner|seller|buyer/.test(text)) return 'agent';
+  return object.kind === 'resource' ? 'box' : 'building';
+}
+
+function drawGlyph(type, x, y, color) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 1.4;
+
+  if (type === 'bus') {
+    roundRectPath(x, y + 5, 25, 14, 3);
+    ctx.stroke();
+    ctx.fillRect(x + 5, y + 8, 5, 4);
+    ctx.fillRect(x + 13, y + 8, 5, 4);
+    ctx.beginPath();
+    ctx.arc(x + 7, y + 21, 2, 0, Math.PI * 2);
+    ctx.arc(x + 19, y + 21, 2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (type === 'heat') {
+    ctx.beginPath();
+    ctx.arc(x + 13, y + 13, 6, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 8; i += 1) {
+      const a = (i / 8) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 13 + Math.cos(a) * 9, y + 13 + Math.sin(a) * 9);
+      ctx.lineTo(x + 13 + Math.cos(a) * 12, y + 13 + Math.sin(a) * 12);
+      ctx.stroke();
+    }
+  } else if (type === 'hospital') {
+    ctx.strokeRect(x + 4, y + 4, 18, 20);
+    ctx.beginPath();
+    ctx.moveTo(x + 13, y + 8);
+    ctx.lineTo(x + 13, y + 20);
+    ctx.moveTo(x + 7, y + 14);
+    ctx.lineTo(x + 19, y + 14);
+    ctx.stroke();
+  } else if (type === 'power') {
+    ctx.beginPath();
+    ctx.moveTo(x + 15, y + 2);
+    ctx.lineTo(x + 7, y + 15);
+    ctx.lineTo(x + 15, y + 15);
+    ctx.lineTo(x + 10, y + 26);
+    ctx.lineTo(x + 22, y + 10);
+    ctx.lineTo(x + 14, y + 10);
+    ctx.closePath();
+    ctx.stroke();
+  } else if (type === 'house') {
+    ctx.beginPath();
+    ctx.moveTo(x + 3, y + 13);
+    ctx.lineTo(x + 13, y + 4);
+    ctx.lineTo(x + 23, y + 13);
+    ctx.stroke();
+    ctx.strokeRect(x + 6, y + 13, 14, 12);
+  } else if (type === 'agent') {
+    const nodes = [
+      [x + 7, y + 8],
+      [x + 19, y + 10],
+      [x + 12, y + 22],
+    ];
+    ctx.beginPath();
+    ctx.moveTo(nodes[0][0], nodes[0][1]);
+    ctx.lineTo(nodes[1][0], nodes[1][1]);
+    ctx.lineTo(nodes[2][0], nodes[2][1]);
+    ctx.closePath();
+    ctx.stroke();
+    nodes.forEach(([nx, ny]) => {
+      ctx.beginPath();
+      ctx.arc(nx, ny, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (type === 'shock') {
+    ctx.beginPath();
+    ctx.moveTo(x + 13, y + 3);
+    ctx.lineTo(x + 24, y + 24);
+    ctx.lineTo(x + 2, y + 24);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + 13, y + 9);
+    ctx.lineTo(x + 13, y + 17);
+    ctx.moveTo(x + 13, y + 21);
+    ctx.lineTo(x + 13, y + 22);
+    ctx.stroke();
+  } else {
+    ctx.strokeRect(x + 4, y + 8, 18, 16);
+    ctx.beginPath();
+    ctx.moveTo(x + 4, y + 8);
+    ctx.lineTo(x + 10, y + 3);
+    ctx.lineTo(x + 22, y + 8);
+    ctx.moveTo(x + 9, y + 13);
+    ctx.lineTo(x + 17, y + 13);
+    ctx.moveTo(x + 9, y + 18);
+    ctx.lineTo(x + 17, y + 18);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawSceneObjectCard(item) {
+  const { object, screen } = item;
+  const colors = sceneObjectColors(object);
+  const value = clamp01(Number(object.value || 0));
+  const kind = String(object.kind || 'item').toUpperCase();
+  const title = shortCanvasLabel(object.label, 22);
+  const sub = shortCanvasLabel(object.valueLabel || object.sublabel || '', 22);
+  const x = Math.round(screen.x - 70);
+  const y = Math.round(screen.y - 16);
+
+  if (object.kind === 'shock' && object.active) {
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.007);
+    ctx.beginPath();
+    ctx.arc(screen.x, screen.y, 35 + pulse * 18, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255, 128, 111, ${0.18 + pulse * 0.18})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  if (objectIsHighlighted(object)) {
+    const pulse = 0.45 + 0.55 * Math.sin(performance.now() * 0.01);
+    ctx.save();
+    ctx.strokeStyle = `rgba(215, 255, 111, ${0.48 + pulse * 0.3})`;
+    ctx.lineWidth = 2.4;
+    roundRectPath(x - 8, y - 8, 156, 60, 8);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawGlyph(glyphTypeForObject(object), x, y + 2, colors.edge);
+
+  ctx.font = '9px "SF Mono", "Menlo", "Consolas", monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = colors.edge;
+  ctx.fillText(kind, x + 34, y + 1);
+
+  ctx.font = '11px "SF Mono", "Menlo", "Consolas", monospace';
+  ctx.fillStyle = colors.text;
+  ctx.fillText(title, x + 34, y + 13);
+
+  ctx.font = '9px "SF Mono", "Menlo", "Consolas", monospace';
+  ctx.fillStyle = 'rgba(243, 243, 236, 0.62)';
+  ctx.fillText(sub, x + 34, y + 27);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.fillRect(x + 34, y + 41, 104, 2);
+  ctx.fillStyle = colors.bar;
+  ctx.fillRect(x + 34, y + 41, 104 * value, 2);
+}
+
+function boardMetricsArea() {
+  const isWide = width() >= 900;
+  const leftReserve = isWide ? 462 : 12;
+  const rightReserve = isWide ? 18 : 12;
+  const available = Math.max(320, width() - leftReserve - rightReserve);
+  const top = isWide ? Math.max(175, height() * 0.22) : Math.max(330, height() * 0.62);
+  return {
+    x: leftReserve + available * (isWide ? 0.77 : 0.74),
+    y: top + 102,
+    w: Math.min(isWide ? 190 : 82, available * 0.22),
+  };
+}
+
+function drawBoardBackdrop(run) {
+  const isWide = width() >= 900;
+  const leftReserve = isWide ? 462 : 12;
+  const rightReserve = isWide ? 18 : 12;
+  const available = Math.max(320, width() - leftReserve - rightReserve);
+  const top = isWide ? Math.max(155, height() * 0.19) : Math.max(322, height() * 0.6);
+  const lanes = [
+    ['shocks', 0.08, 0.26, '#ff806f'],
+    ['actors', 0.27, 0.50, '#d7ff6f'],
+    ['resources', 0.51, 0.73, '#6be0c3'],
+    ['signals', 0.74, 0.96, '#f6c85f'],
+  ];
+
+  ctx.save();
+  ctx.fillStyle = '#07100e';
+  ctx.fillRect(0, 0, width(), height());
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.055)';
+  ctx.lineWidth = 1;
+  for (let x = leftReserve; x < width(); x += 36) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height());
+    ctx.stroke();
+  }
+  for (let y = 0; y < height(); y += 36) {
+    ctx.beginPath();
+    ctx.moveTo(leftReserve, y);
+    ctx.lineTo(width(), y);
+    ctx.stroke();
+  }
+
+  lanes.forEach(([label, start, end, color]) => {
+    const x = leftReserve + available * start;
+    const laneW = Math.max(isWide ? 80 : 58, available * (end - start));
+    const bottom = Math.min(height() - 20, top + 430);
+    ctx.fillStyle = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.035)`;
+    ctx.fillRect(x, top + 26, laneW, bottom - top - 28);
+    ctx.strokeStyle = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.18)`;
+    ctx.strokeRect(x, top + 26, laneW, bottom - top - 28);
+    ctx.font = '10px "SF Mono", "Menlo", "Consolas", monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = color;
+    ctx.fillText(label.toUpperCase(), x + 10, top + 10);
+  });
+
+  if (isWide && run && run.scenario) {
+    ctx.font = '12px "SF Mono", "Menlo", "Consolas", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(243, 243, 236, 0.78)';
+    ctx.fillText(shortCanvasLabel(run.scenario.title, 46), leftReserve + 22, top - 30);
+  }
+
+  ctx.restore();
+}
+
+function drawSignalBars(hotspots) {
+  const area = boardMetricsArea();
+  ctx.save();
+  ctx.font = '10px "SF Mono", "Menlo", "Consolas", monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+
+  hotspots.slice(0, 4).forEach((hotspot, index) => {
+    const y = area.y + index * 42;
+    const intensity = clamp01(Number(hotspot.intensity || 0));
+    const isSupport = hotspot.polarity === 'support';
+    const color = isSupport ? '#6be0c3' : '#ff806f';
+    const label = shortCanvasLabel(hotspot.label || ScenarioEngine.AXIS_LABELS[hotspot.axis] || hotspot.axis, 20);
+
+    ctx.fillStyle = color;
+    ctx.fillText(label.toUpperCase(), area.x, y);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.fillRect(area.x, y + 17, area.w, 2);
+    ctx.fillStyle = color;
+    ctx.fillRect(area.x, y + 17, area.w * intensity, 2);
+  });
+
+  ctx.restore();
+}
+
+function drawSimulationLayer() {
+  const run = scenarioApp.run;
+  if (!run || !run.map) return;
+
+  const hotspots = Array.isArray(run.map.hotspots) ? run.map.hotspots : [];
+  const sceneObjects = Array.isArray(run.map.sceneObjects)
+    ? run.map.sceneObjects
+    : (Array.isArray(run.map.markers) ? run.map.markers.map((marker) => ({
+        id: marker.id,
+        kind: 'actor',
+        label: marker.label,
+        axis: marker.axis,
+        value: marker.pressure,
+        valueLabel: `pressure ${Math.round((marker.pressure || 0) * 100)}`,
+        state: marker.pressure > 0.62 ? 'strained' : 'active',
+      })) : []);
+
+  ctx.save();
+  const items = layoutSceneObjects(sceneObjects);
+  drawScenarioEffects(run, items);
+  drawSceneObjectLinks(items);
+  items.forEach(drawSceneObjectCard);
+  drawSignalBars(hotspots);
+  ctx.restore();
+}
+
 function drawAnchors() {
   ctx.font = '11px "SF Mono", "Menlo", "Consolas", monospace';
   ctx.textAlign = 'center';
@@ -612,29 +1176,26 @@ function drawAnchors() {
     const rectWidth = metrics.width + paddingX * 2;
     const rectHeight = 16;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 1.0)';
-    ctx.strokeStyle = '#000';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.62)';
+    ctx.strokeStyle = '#d7ff6f';
     ctx.lineWidth = 1.4;
     ctx.fillRect(p.x - rectWidth * 0.5, p.y - rectHeight * 0.5, rectWidth, rectHeight);
     ctx.strokeRect(p.x - rectWidth * 0.5, p.y - rectHeight * 0.5, rectWidth, rectHeight);
 
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.72)';
     ctx.lineWidth = 0.9;
     ctx.strokeText(text, p.x, p.y);
 
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = '#f3f3ec';
     ctx.fillText(text, p.x, p.y);
   }
 }
 
 function render() {
   ctx.clearRect(0, 0, width(), height());
-  drawMeshGridWebGL();
-  drawAnchors();
-
-  if (state.phase === 'portal' || !detailEl.hidden) {
-    syncArrivalDetailPosition();
-  }
+  clearWorldCanvas();
+  drawBoardBackdrop(scenarioApp.run);
+  drawSimulationLayer();
 }
 
 function tick(now) {
@@ -644,27 +1205,15 @@ function tick(now) {
   const nowSec = now * 0.001;
   terrainPerturbationTimeSec = nowSec;
 
-  const hasPortalTravel = Boolean(state.portalFlight);
-  const isPortalPhase = state.phase === 'portal';
-
-  if (!isPortalPhase || hasPortalTravel) {
-    updatePeaks(dt);
-    updateModeDynamics(dt);
-    updateAnchorSpreads(dt);
-  }
-
-  if (state.phase === 'field') {
-    stepPhysics(dt);
-    maybeArrive();
-  } else if (state.phase === 'portal') {
-    if (state.portalFlight) {
-      updatePortalFlight(dt);
-    } else {
-      recenterPortalCameraToMarble();
+  if (scenarioApp.running && scenarioApp.run) {
+    scenarioApp.stepCarry += dt * scenarioApp.runRate;
+    if (scenarioApp.stepCarry >= 1) {
+      scenarioApp.stepCarry = 0;
+      advanceScenarioStep();
     }
   }
 
-  updateIdleCinematic(nowSec, dt);
+  clearExpiredHighlight();
   render();
   requestAnimationFrame(tick);
 }
@@ -677,35 +1226,19 @@ function startSimulatteWorld() {
   }
   simulatteWorldStarted = true;
 
-  modeButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      setMode(button.dataset.mode, Number(button.dataset.step || '1'));
-    });
-  });
+  bindScenarioControls();
 
-  alphaModeButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      setTileAlphaMode(button.dataset.alphaMode || '1.0');
-    });
-  });
-
-  canvas.addEventListener('pointerdown', startRotation, { passive: false });
-  canvas.addEventListener('pointermove', updateRotation, { passive: false });
-  canvas.addEventListener('pointerup', endRotation, { passive: false });
-  canvas.addEventListener('pointercancel', endRotation, { passive: false });
-  canvas.addEventListener('pointerleave', endRotation, { passive: false });
-  canvas.addEventListener('pointerout', endRotation, { passive: false });
-
-  jitterBtn.addEventListener('click', jitter);
-  resetBtn.addEventListener('click', reset);
-  mainResetBtn.addEventListener('click', reset);
+  if (jitterBtn) jitterBtn.addEventListener('click', jitter);
+  if (resetBtn) resetBtn.addEventListener('click', reset);
+  if (mainResetBtn) mainResetBtn.addEventListener('click', reset);
 
   window.addEventListener('resize', resize);
 
   resize();
-  initMeshRenderer();
-  setTileAlphaMode(renderSettings.tileAlpha);
   reset();
+  if (!loadSavedScenario()) {
+    createScenarioFromPrompt(scenarioPromptEl ? scenarioPromptEl.value : '');
+  }
   requestAnimationFrame(tick);
 }
 

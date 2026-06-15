@@ -3,10 +3,6 @@ const overlayCanvas = document.getElementById('field-overlay');
 const gl = canvas.getContext('webgl', { alpha: false, antialias: true, depth: true });
 const ctx = overlayCanvas.getContext('2d');
 
-if (!gl) {
-  throw new Error('WebGL not available');
-}
-
 const statusEl = document.getElementById('status');
 const modeWorkLevelEl = document.getElementById('mode-level-work');
 const modePlayLevelEl = document.getElementById('mode-level-play');
@@ -16,6 +12,39 @@ const detailTitleEl = document.getElementById('detailTitle');
 const detailCopyEl = document.getElementById('detailCopy');
 const detailUrlEl = document.getElementById('detailUrl');
 const detailLinkEl = document.getElementById('detailLink');
+const scenarioFormEl = document.getElementById('scenario-form');
+const scenarioPromptEl = document.getElementById('scenario-prompt');
+const scenarioTitleEl = document.getElementById('scenario-title');
+const scenarioActorsEl = document.getElementById('scenario-actors');
+const scenarioResourcesEl = document.getElementById('scenario-resources');
+const scenarioRulesEl = document.getElementById('scenario-rules');
+const scenarioShocksEl = document.getElementById('scenario-shocks');
+const scenarioGoalsEl = document.getElementById('scenario-goals');
+const scenarioExampleButtons = Array.from(document.querySelectorAll('[data-example]'));
+const applySetupBtn = document.getElementById('apply-setup');
+const runSimulationBtn = document.getElementById('run-simulation');
+const stepSimulationBtn = document.getElementById('step-simulation');
+const pauseSimulationBtn = document.getElementById('pause-simulation');
+const resetRunBtn = document.getElementById('reset-run');
+const saveScenarioBtn = document.getElementById('save-scenario');
+const exportScenarioBtn = document.getElementById('export-scenario');
+const importScenarioBtn = document.getElementById('import-scenario');
+const metricStepEl = document.getElementById('metric-step');
+const metricLoadEl = document.getElementById('metric-load');
+const metricCoverageEl = document.getElementById('metric-coverage');
+const metricTrustEl = document.getElementById('metric-trust');
+const replaySummaryEl = document.getElementById('replaySummary');
+const roomStateEl = document.getElementById('roomState');
+const replayListEl = document.getElementById('replayList');
+const boardObjectsEl = document.getElementById('boardObjects');
+const modelSummaryEl = document.getElementById('modelSummary');
+const modelChipsEl = document.getElementById('modelChips');
+const specPreviewEl = document.getElementById('specPreview');
+
+const ScenarioEngine = window.SimulatteScenarioEngine;
+if (!ScenarioEngine) {
+  throw new Error('Simulatte scenario engine not available');
+}
 
 const alphaModeButtons = Array.from(document.querySelectorAll('[data-alpha-mode]'));
 const modeButtons = Array.from(document.querySelectorAll('[data-mode]'));
@@ -50,31 +79,40 @@ const anchorPoints = {
 const anchors = {
   research: {
     id: 'research',
-    label: 'Research',
-    url: 'https://256.one',
-    copy: 'Research maps to systems design, language experiments, and core model exploration.',
+    label: 'Setup',
+    url: '',
+    copy: 'Setup is where the prompt becomes actors, resources, rules, shocks, and goals.',
     point: anchorPoints.research,
     depth: 2.6,
     spread: 1.62,
   },
   agents: {
     id: 'agents',
-    label: 'Automation',
-    url: 'https://replo.id',
-    copy: 'Automation points to RSI tools, execution loops, and automation tooling where actions are modelable.',
+    label: 'Actors',
+    url: '',
+    copy: 'Actors are the people, agents, institutions, or systems that carry pressure through the run.',
     point: anchorPoints.agents,
     depth: 2.6,
     spread: 1.62,
   },
   infra: {
     id: 'infra',
-    label: 'Structure',
-    url: 'https://d4da.com',
-    copy: 'Structure tracks the platform layer: libraries, infrastructure, and reusable primitives.',
+    label: 'Resources',
+    url: '',
+    copy: 'Resources are the capacities and constraints the world spends, preserves, or exhausts.',
     point: anchorPoints.infra,
     depth: 2.6,
     spread: 1.62,
   },
+};
+
+const simulationPoints = {
+  setup: { x: 0, z: -4.9 },
+  actors: { x: -4.9, z: 2.45 },
+  resources: { x: 4.9, z: 2.45 },
+  stress: { x: 0, z: 0.1 },
+  access: { x: -2.9, z: -2.65 },
+  trust: { x: 2.9, z: -2.65 },
 };
 
 const modes = {
@@ -207,6 +245,21 @@ const state = {
   anchorSpreads: Object.fromEntries(Object.keys(anchors).map((name) => [name, 1])),
   modeVisualLevels: Object.fromEntries(Object.keys(modes).map((name) => [name, modeBaseline])),
   modeLevels: Object.fromEntries(Object.keys(modes).map((name) => [name, modeBaseline])),
+};
+
+const scenarioApp = {
+  storageKey: 'simulatte-world-model-lab',
+  scenario: null,
+  run: null,
+  running: false,
+  stepCarry: 0,
+  runRate: 0.72,
+  lastExportText: '',
+  roomStatus: 'draft',
+  roomCompletedAt: '',
+  highlightObjectIds: [],
+  highlightStep: null,
+  highlightExpiresMs: 0,
 };
 
 const idleCinematic = {
@@ -356,7 +409,9 @@ function resize() {
   overlayCanvas.style.height = `${innerHeight}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.lineWidth = 1;
-  gl.viewport(0, 0, canvas.width, canvas.height);
+  if (gl) {
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
 }
 
 function markUserInteraction(nowMs = performance.now()) {
@@ -443,9 +498,9 @@ function updateModeReadouts() {
   const w = modeOffset(levels.work);
   const p = modeOffset(levels.play);
   const m = modeOffset(levels.muse);
-  modeWorkLevelEl.textContent = `Work: ${w > 0 ? '+' : ''}${w}`;
-  modePlayLevelEl.textContent = `Play: ${p > 0 ? '+' : ''}${p}`;
-  modeMuseLevelEl.textContent = `Muse: ${m > 0 ? '+' : ''}${m}`;
+  if (modeWorkLevelEl) modeWorkLevelEl.textContent = `Work: ${w > 0 ? '+' : ''}${w}`;
+  if (modePlayLevelEl) modePlayLevelEl.textContent = `Play: ${p > 0 ? '+' : ''}${p}`;
+  if (modeMuseLevelEl) modeMuseLevelEl.textContent = `Muse: ${m > 0 ? '+' : ''}${m}`;
 }
 
 function refreshPeakTargets() {
@@ -602,15 +657,13 @@ function setMode(nextMode, step = 1) {
 
   if (activeCount === 0) {
     state.mode = 'neutral';
-    statusEl.textContent = 'Mode reset to neutral.';
+    statusEl.textContent = 'View reset.';
   } else if (activeCount === 1) {
     state.mode = nextMode;
-    statusEl.textContent = `${nextModeName} active. Mesh channels: ${describeModeCombo(
-      state.modeLevels
-    )}.`;
+    statusEl.textContent = `${nextModeName}.`;
   } else {
     state.mode = 'combo';
-    statusEl.textContent = `Energy mix: ${describeModeState(state.modeLevels)}.`;
+    statusEl.textContent = describeModeState(state.modeLevels);
   }
 
   applyModeButtons();
@@ -638,6 +691,485 @@ function setTileAlphaMode(next) {
   const parsed = Number(next);
   renderSettings.tileAlpha = Number.isFinite(parsed) ? clamp(parsed, 0, 1) : 1;
   updateAlphaModeButtons();
+}
+
+function setFieldValue(el, value) {
+  if (el) el.value = value || '';
+}
+
+function readScenarioEdits() {
+  return {
+    title: scenarioTitleEl ? scenarioTitleEl.value : '',
+    prompt: scenarioPromptEl ? scenarioPromptEl.value : '',
+    actorsText: scenarioActorsEl ? scenarioActorsEl.value : '',
+    resourcesText: scenarioResourcesEl ? scenarioResourcesEl.value : '',
+    rulesText: scenarioRulesEl ? scenarioRulesEl.value : '',
+    shocksText: scenarioShocksEl ? scenarioShocksEl.value : '',
+    goalsText: scenarioGoalsEl ? scenarioGoalsEl.value : '',
+  };
+}
+
+function loadScenarioIntoForm(scenario) {
+  const editable = ScenarioEngine.scenarioToEditable(scenario);
+  setFieldValue(scenarioTitleEl, editable.title);
+  setFieldValue(scenarioPromptEl, editable.prompt);
+  setFieldValue(scenarioActorsEl, editable.actorsText);
+  setFieldValue(scenarioResourcesEl, editable.resourcesText);
+  setFieldValue(scenarioRulesEl, editable.rulesText);
+  setFieldValue(scenarioShocksEl, editable.shocksText);
+  setFieldValue(scenarioGoalsEl, editable.goalsText);
+}
+
+function createScenarioFromPrompt(prompt) {
+  const scenario = ScenarioEngine.buildScenarioFromPrompt(prompt, {});
+  scenarioApp.scenario = scenario;
+  scenarioApp.run = ScenarioEngine.createRunState(scenario);
+  scenarioApp.running = false;
+  scenarioApp.stepCarry = 0;
+  scenarioApp.roomStatus = 'draft';
+  scenarioApp.roomCompletedAt = '';
+  loadScenarioIntoForm(scenario);
+  refreshScenarioUi('Board ready.');
+}
+
+function applySetupEdits() {
+  const base =
+    scenarioApp.scenario ||
+    ScenarioEngine.buildScenarioFromPrompt(scenarioPromptEl ? scenarioPromptEl.value : '', {});
+  const scenario = ScenarioEngine.normalizeScenario(
+    ScenarioEngine.applyScenarioEdits(base, readScenarioEdits())
+  );
+  scenarioApp.scenario = scenario;
+  scenarioApp.run = ScenarioEngine.createRunState(scenario);
+  scenarioApp.running = false;
+  scenarioApp.stepCarry = 0;
+  scenarioApp.roomStatus = 'draft';
+  scenarioApp.roomCompletedAt = '';
+  loadScenarioIntoForm(scenario);
+  refreshScenarioUi('Board updated.');
+}
+
+function runScenarioFromPrompt() {
+  createScenarioFromPrompt(scenarioPromptEl ? scenarioPromptEl.value : '');
+  runScenario();
+}
+
+function resetScenarioRun() {
+  if (!scenarioApp.scenario) {
+    createScenarioFromPrompt(scenarioPromptEl ? scenarioPromptEl.value : '');
+    return;
+  }
+  scenarioApp.run = ScenarioEngine.createRunState(scenarioApp.scenario);
+  scenarioApp.running = false;
+  scenarioApp.stepCarry = 0;
+  scenarioApp.roomStatus = 'draft';
+  scenarioApp.roomCompletedAt = '';
+  refreshScenarioUi('Run reset.');
+}
+
+function advanceScenarioStep() {
+  if (!scenarioApp.run) {
+    applySetupEdits();
+  }
+  scenarioApp.run = ScenarioEngine.stepRun(scenarioApp.run);
+  if (scenarioApp.run.complete) {
+    scenarioApp.running = false;
+    scenarioApp.roomStatus = 'complete';
+    scenarioApp.roomCompletedAt = scenarioApp.roomCompletedAt || new Date().toISOString();
+  }
+  const summary = ScenarioEngine.summarizeRun(scenarioApp.run);
+  refreshScenarioUi(
+    scenarioApp.run.complete
+      ? `Finished: ${summary.outcome}.`
+      : `Step ${scenarioApp.run.tick}.`
+  );
+}
+
+function runScenario() {
+  if (!scenarioApp.run) {
+    applySetupEdits();
+  }
+  scenarioApp.running = true;
+  scenarioApp.roomStatus = 'running';
+  scenarioApp.roomCompletedAt = '';
+  refreshScenarioUi('Running.');
+}
+
+function pauseScenario() {
+  scenarioApp.running = false;
+  if (scenarioApp.roomStatus === 'running') {
+    scenarioApp.roomStatus = 'draft';
+  }
+  statusEl.textContent = scenarioApp.run
+    ? `Paused: ${scenarioApp.run.tick}.`
+    : 'No run active.';
+  renderRoomState();
+}
+
+function getRoomSnapshot() {
+  return {
+    id: scenarioApp.scenario ? `room-${scenarioApp.scenario.id}` : 'room-draft',
+    status: scenarioApp.roomStatus,
+    completedAt: scenarioApp.roomCompletedAt,
+    objectModel: ['scenario', 'worldModel', 'run', 'replay'],
+  };
+}
+
+function hydrateRunForScenario(scenario, candidateRun) {
+  if (!candidateRun || !candidateRun.scenario) {
+    return ScenarioEngine.createRunState(scenario);
+  }
+  if (candidateRun.map && candidateRun.map.effects) {
+    return { ...candidateRun, scenario };
+  }
+  return ScenarioEngine.runSteps(
+    ScenarioEngine.createRunState(scenario),
+    Math.max(0, Math.floor(Number(candidateRun.tick || 0)))
+  );
+}
+
+function normalizeRoomStatus(savedStatus, run) {
+  if (run && run.complete) return 'complete';
+  return savedStatus === 'running' ? 'running' : 'draft';
+}
+
+function saveScenario() {
+  if (!scenarioApp.scenario || !scenarioApp.run) {
+    applySetupEdits();
+  }
+  const payload = {
+    room: getRoomSnapshot(),
+    scenario: scenarioApp.scenario,
+    run: scenarioApp.run,
+  };
+  try {
+    localStorage.setItem(scenarioApp.storageKey, JSON.stringify(payload));
+    refreshScenarioUi('Saved.');
+  } catch (_err) {
+    refreshScenarioUi('Save failed.');
+  }
+}
+
+function loadSavedScenario() {
+  try {
+    const raw = localStorage.getItem(scenarioApp.storageKey);
+    if (!raw) return false;
+    const payload = JSON.parse(raw);
+    const scenario = ScenarioEngine.normalizeScenario(payload.scenario);
+    scenarioApp.scenario = scenario;
+    scenarioApp.run = hydrateRunForScenario(scenario, payload.run);
+    scenarioApp.running = false;
+    scenarioApp.stepCarry = 0;
+    scenarioApp.roomStatus = normalizeRoomStatus(payload.room && payload.room.status, scenarioApp.run);
+    scenarioApp.roomCompletedAt = payload.room && payload.room.completedAt ? payload.room.completedAt : '';
+    loadScenarioIntoForm(scenario);
+    refreshScenarioUi('Saved room loaded.');
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function completeRoom() {
+  if (!scenarioApp.scenario || !scenarioApp.run) {
+    applySetupEdits();
+  }
+  const remaining = Math.max(0, scenarioApp.run.scenario.stepsPlanned - scenarioApp.run.tick);
+  scenarioApp.run = ScenarioEngine.runSteps(scenarioApp.run, remaining);
+  scenarioApp.running = false;
+  scenarioApp.stepCarry = 0;
+  scenarioApp.roomStatus = 'complete';
+  scenarioApp.roomCompletedAt = new Date().toISOString();
+  const summary = ScenarioEngine.summarizeRun(scenarioApp.run);
+  refreshScenarioUi(`Finished: ${summary.outcome}.`);
+}
+
+async function exportScenario() {
+  if (!scenarioApp.scenario || !scenarioApp.run) {
+    applySetupEdits();
+  }
+  const payload = JSON.stringify(
+    {
+      room: getRoomSnapshot(),
+      scenario: scenarioApp.scenario,
+      run: scenarioApp.run,
+      summary: ScenarioEngine.summarizeRun(scenarioApp.run),
+    },
+    null,
+    2
+  );
+  scenarioApp.lastExportText = payload;
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(payload);
+      refreshScenarioUi('JSON copied.');
+      return;
+    }
+  } catch (_err) {
+    // Continue to prompt fallback.
+  }
+  window.prompt('Completion room JSON:', payload);
+  refreshScenarioUi('JSON ready.');
+}
+
+function importScenario() {
+  const raw = window.prompt('Paste Simulatte completion room JSON:');
+  if (!raw) return;
+  try {
+    const payload = JSON.parse(raw);
+    const scenario = ScenarioEngine.normalizeScenario(payload.scenario || payload);
+    scenarioApp.scenario = scenario;
+    scenarioApp.run = hydrateRunForScenario(scenario, payload.run);
+    scenarioApp.running = false;
+    scenarioApp.stepCarry = 0;
+    scenarioApp.roomStatus = normalizeRoomStatus(payload.room && payload.room.status, scenarioApp.run);
+    scenarioApp.roomCompletedAt = payload.room && payload.room.completedAt ? payload.room.completedAt : '';
+    loadScenarioIntoForm(scenario);
+    refreshScenarioUi('Imported.');
+  } catch (_err) {
+    refreshScenarioUi('Import failed.');
+  }
+}
+
+function setHighlightedObjects(ids, step, message) {
+  scenarioApp.highlightObjectIds = Array.from(new Set((ids || []).filter(Boolean).map(String)));
+  scenarioApp.highlightStep = Number.isFinite(Number(step)) ? Number(step) : null;
+  scenarioApp.highlightExpiresMs = performance.now() + 2200;
+  if (message) statusEl.textContent = message;
+  renderBoardObjects();
+}
+
+function clearExpiredHighlight() {
+  if (!scenarioApp.highlightObjectIds.length) return;
+  if (performance.now() <= scenarioApp.highlightExpiresMs) return;
+  scenarioApp.highlightObjectIds = [];
+  scenarioApp.highlightStep = null;
+  renderBoardObjects();
+}
+
+function collectBoardObjects() {
+  const scenario = scenarioApp.scenario;
+  if (!scenario) return [];
+  return [
+    ...scenario.actors.slice(0, 4).map((actor) => ({
+      id: actor.id,
+      kind: 'actor',
+      label: actor.name,
+      meta: actor.role,
+    })),
+    ...scenario.resources.slice(0, 4).map((resource) => ({
+      id: resource.id,
+      kind: 'resource',
+      label: resource.name,
+      meta: resource.role,
+    })),
+    ...scenario.shocks.slice(0, 3).map((shock) => ({
+      id: shock.id,
+      kind: 'shock',
+      label: shock.name,
+      meta: `step ${shock.step}`,
+    })),
+    ...scenario.goals.slice(0, 2).map((goal) => ({
+      id: goal.id,
+      kind: 'goal',
+      label: goal.text,
+      meta: 'goal',
+    })),
+  ];
+}
+
+function renderBoardObjects() {
+  if (!boardObjectsEl) return;
+  const objects = collectBoardObjects();
+  boardObjectsEl.innerHTML = '';
+  if (!objects.length) return;
+
+  for (const object of objects) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'object-chip';
+    if (scenarioApp.highlightObjectIds.includes(object.id)) {
+      button.classList.add('is-active');
+    }
+    button.dataset.kind = object.kind;
+    button.dataset.objectId = object.id;
+    const title = document.createElement('strong');
+    title.textContent = object.label;
+    const meta = document.createElement('span');
+    meta.textContent = object.kind === 'goal' ? object.meta : `${object.kind} / ${object.meta}`;
+    button.append(title, meta);
+    button.addEventListener('click', () => {
+      setHighlightedObjects([object.id], null, `${object.kind}: ${object.label}`);
+    });
+    boardObjectsEl.appendChild(button);
+  }
+}
+
+function updateScenarioMetrics() {
+  const run = scenarioApp.run;
+  const metrics = run ? run.metrics : { load: 0, coverage: 0, trust: 0 };
+  if (metricStepEl) metricStepEl.textContent = run ? `${run.tick}/${run.scenario.stepsPlanned}` : '0';
+  if (metricLoadEl) metricLoadEl.textContent = String(Math.round(metrics.load || 0));
+  if (metricCoverageEl) metricCoverageEl.textContent = String(Math.round(metrics.coverage || 0));
+  if (metricTrustEl) metricTrustEl.textContent = String(Math.round(metrics.trust || 0));
+}
+
+function compactReplayText(item) {
+  const changeText = item.changes && item.changes.length ? item.changes.join(' / ') : '';
+  const source = changeText || item.text || '';
+  return source.length > 96 ? `${source.slice(0, 93)}...` : source;
+}
+
+function renderReplay() {
+  const run = scenarioApp.run;
+  if (!replaySummaryEl || !replayListEl) return;
+  if (!run) {
+    replaySummaryEl.textContent = 'Run the board.';
+    replayListEl.innerHTML = '';
+    return;
+  }
+  const summary = ScenarioEngine.summarizeRun(run);
+  replaySummaryEl.textContent = `${summary.outcome} / load ${Math.round(
+    summary.metrics.load || 0
+  )} / cover ${Math.round(summary.metrics.coverage || 0)} / trust ${Math.round(
+    summary.metrics.trust || 0
+  )}`;
+  replayListEl.innerHTML = '';
+  for (const item of run.replay.slice(0, 12)) {
+    const node = document.createElement('article');
+    node.className = 'replay-item';
+    node.tabIndex = 0;
+    node.setAttribute('role', 'button');
+    node.dataset.step = String(item.step);
+    const title = document.createElement('strong');
+    title.textContent = `Step ${item.step}: ${item.title}`;
+    const text = document.createElement('span');
+    text.textContent = compactReplayText(item);
+    node.append(title, text);
+    const highlight = () => {
+      const ids = Array.isArray(item.affects) ? item.affects : [];
+      setHighlightedObjects(ids, item.step, `Trace step ${item.step}.`);
+    };
+    node.addEventListener('click', highlight);
+    node.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        highlight();
+      }
+    });
+    replayListEl.appendChild(node);
+  }
+}
+
+function shortNames(items, key) {
+  return (items || [])
+    .slice(0, 4)
+    .map((item) => String(item[key] || item.name || item.text || '').trim())
+    .filter(Boolean);
+}
+
+function appendModelChip(label, value) {
+  if (!modelChipsEl) return;
+  const chip = document.createElement('span');
+  chip.className = 'chip';
+  const strong = document.createElement('strong');
+  strong.textContent = label;
+  const text = document.createElement('span');
+  text.textContent = String(value);
+  chip.append(strong, text);
+  modelChipsEl.appendChild(chip);
+}
+
+function renderModelSpec() {
+  const scenario = scenarioApp.scenario;
+  const run = scenarioApp.run;
+
+  if (!scenario) {
+    if (modelSummaryEl) modelSummaryEl.textContent = 'No board yet.';
+    if (modelChipsEl) modelChipsEl.innerHTML = '';
+    if (specPreviewEl) specPreviewEl.textContent = '-';
+    return;
+  }
+
+  if (modelSummaryEl) {
+    modelSummaryEl.textContent = `${scenario.title} / ${scenario.domain}`;
+  }
+
+  if (modelChipsEl) {
+    modelChipsEl.innerHTML = '';
+    appendModelChip('actors', scenario.actors.length);
+    appendModelChip('resources', scenario.resources.length);
+    appendModelChip('rules', scenario.rules.length);
+    appendModelChip('shocks', scenario.shocks.length);
+    appendModelChip('goals', scenario.goals.length);
+  }
+
+  if (specPreviewEl) {
+    const spec = {
+      scenario: scenario.title,
+      actors: shortNames(scenario.actors, 'name'),
+      resources: shortNames(scenario.resources, 'name'),
+      shocks: shortNames(scenario.shocks, 'name'),
+      goals: shortNames(scenario.goals, 'text').slice(0, 3),
+      run: run
+        ? {
+            step: `${run.tick}/${scenario.stepsPlanned}`,
+            state: run.map ? run.map.status : 'draft',
+            load: Math.round(run.metrics.load || 0),
+            coverage: Math.round(run.metrics.coverage || 0),
+            trust: Math.round(run.metrics.trust || 0),
+          }
+        : null,
+    };
+    specPreviewEl.textContent = JSON.stringify(spec, null, 2);
+  }
+}
+
+function renderRoomState() {
+  if (!roomStateEl) return;
+  const status = scenarioApp.roomStatus === 'complete'
+    ? 'Finished'
+    : scenarioApp.roomStatus === 'running'
+      ? 'Running'
+      : 'Draft';
+  const tick = scenarioApp.run ? `${scenarioApp.run.tick}/${scenarioApp.run.scenario.stepsPlanned}` : '0';
+  roomStateEl.textContent = `${status} / ${tick}`;
+}
+
+function refreshScenarioUi(message) {
+  if (message) {
+    statusEl.textContent = message;
+  }
+  updateScenarioMetrics();
+  renderBoardObjects();
+  renderModelSpec();
+  renderReplay();
+  renderRoomState();
+}
+
+function bindScenarioControls() {
+  if (scenarioFormEl) {
+    scenarioFormEl.addEventListener('submit', (event) => {
+      event.preventDefault();
+      runScenarioFromPrompt();
+    });
+  }
+
+  scenarioExampleButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const example = button.dataset.example || '';
+      setFieldValue(scenarioPromptEl, example);
+      createScenarioFromPrompt(example);
+    });
+  });
+
+  if (applySetupBtn) applySetupBtn.addEventListener('click', applySetupEdits);
+  if (stepSimulationBtn) stepSimulationBtn.addEventListener('click', advanceScenarioStep);
+  if (pauseSimulationBtn) pauseSimulationBtn.addEventListener('click', pauseScenario);
+  if (resetRunBtn) resetRunBtn.addEventListener('click', resetScenarioRun);
+  if (saveScenarioBtn) saveScenarioBtn.addEventListener('click', saveScenario);
+  if (exportScenarioBtn) exportScenarioBtn.addEventListener('click', exportScenario);
+  if (importScenarioBtn) importScenarioBtn.addEventListener('click', importScenario);
 }
 
 function reset() {
@@ -675,21 +1207,23 @@ function reset() {
   worldProjection.xOffset = baseWorldProjection.xOffset;
   worldProjection.yOffset = baseWorldProjection.yOffset;
 
-  detailEl.hidden = true;
-  detailEl.classList.remove('visible');
-  detailTitleEl.textContent = '';
-  detailCopyEl.textContent = '';
-  detailLinkEl.href = '#';
-  detailLinkEl.textContent = 'Open destination';
-  detailLinkEl.title = '';
-  detailUrlEl.textContent = '';
-  detailUrlEl.hidden = true;
+  if (detailEl) {
+    detailEl.hidden = true;
+    detailEl.classList.remove('visible');
+  }
+  if (detailTitleEl) detailTitleEl.textContent = '';
+  if (detailCopyEl) detailCopyEl.textContent = '';
+  if (detailLinkEl) {
+    detailLinkEl.href = '#';
+    detailLinkEl.textContent = '';
+    detailLinkEl.title = '';
+  }
+  if (detailUrlEl) {
+    detailUrlEl.textContent = '';
+    detailUrlEl.hidden = true;
+  }
 
-  applyModeButtons();
-  updateModeReadouts();
-
-  statusEl.textContent =
-    'Tune Work, Play, and Muse to explore the stack map.';
+  statusEl.textContent = 'Board reset.';
   markUserInteraction(state.lastT);
 }
 
@@ -712,8 +1246,8 @@ function jitter() {
   state.jitterDir = { x: Math.cos(angle), z: Math.sin(angle) };
   statusEl.textContent =
     state.mode === 'neutral'
-      ? 'Jitter fired. The marble receives a random perturbation.'
-      : `Jitter fired during ${state.mode.toUpperCase()}.`;
+      ? 'Jitter.'
+      : `Jitter: ${state.mode.toUpperCase()}.`;
 }
 
 function triSign(px, pz, ax, az, bx, bz) {
@@ -759,6 +1293,21 @@ function gaussian(cx, cz, x, z, spread = mesh.spread) {
   const dz = z - cz;
   const spread2 = spread * spread;
   return Math.exp(-(dx * dx + dz * dz) / Math.max(2 * spread2, 1e-6));
+}
+
+function simulationTerrainDelta(x, z) {
+  const runMap = scenarioApp.run && scenarioApp.run.map;
+  if (!runMap || !Array.isArray(runMap.hotspots)) return 0;
+  let total = 0;
+  for (const hotspot of runMap.hotspots) {
+    const point = simulationPoints[hotspot.axis];
+    if (!point) continue;
+    const intensity = clamp01(Number(hotspot.intensity || 0));
+    const polarity = hotspot.polarity === 'support' ? -1 : 1;
+    const amp = polarity * (0.18 + intensity * 0.62);
+    total += amp * gaussian(point.x, point.z, x, z, 1.55 + intensity * 0.75);
+  }
+  return total * terrain.reliefScale;
 }
 
 function terrainPerturbationDelta(x, z) {
@@ -829,6 +1378,7 @@ function fieldLandscapeCore(x, z, { modeAware = false, includePeaks = false } = 
   const centralMultiplier = 1 + (terrain.centralAreaDepthMultiplier - 1) * centralBlend;
   let h = terrainBias(x, z) * mesh.terrainScale * centralMultiplier;
   h += terrainPerturbationDelta(x, z);
+  h += simulationTerrainDelta(x, z);
 
   for (const [key, value] of Object.entries(anchors)) {
     const modeBoost = modeAware ? (state.modeWeights[key] || 0) * mesh.baseModeBoost : 0;
@@ -1009,7 +1559,7 @@ function startRotation(event) {
   state.rotationPointerId = event.pointerId;
   state.rotationPointerX = event.clientX;
   state.rotationPointerY = event.clientY;
-  statusEl.textContent = 'Drag to rotate the mesh.';
+  statusEl.textContent = 'Rotate.';
   canvas.style.cursor = 'grabbing';
 
   if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
@@ -1203,9 +1753,17 @@ function updatePortalFlight(dt) {
       const anchor = anchors[state.arrival];
       detailTitleEl.textContent = anchor.label;
       detailCopyEl.textContent = anchor.copy;
-      detailLinkEl.href = anchor.url;
-      detailLinkEl.textContent = anchor.url;
-      detailLinkEl.title = anchor.url;
+      if (anchor.url) {
+        detailLinkEl.hidden = false;
+        detailLinkEl.href = anchor.url;
+        detailLinkEl.textContent = anchor.url;
+        detailLinkEl.title = anchor.url;
+      } else {
+        detailLinkEl.hidden = true;
+        detailLinkEl.href = '#';
+        detailLinkEl.textContent = '';
+        detailLinkEl.title = '';
+      }
       detailUrlEl.textContent = '';
       detailUrlEl.hidden = true;
       detailEl.hidden = false;

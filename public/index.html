@@ -3,531 +3,634 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>simulatte.world</title>
+  <title>Simulatte</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <style>
     :root {
-      --fg: #000;
-      --bg: #fff;
-      --border-md: 1px;
-      --border-sm: 1px;
-      --opacity-secondary: 0.72;
-      color-scheme: light;
-      accent-color: #000;
+      --bg: #050606;
+      --panel: rgba(10, 12, 12, 0.86);
+      --panel-strong: rgba(0, 0, 0, 0.54);
+      --border: rgba(255, 255, 255, 0.14);
+      --border-strong: rgba(255, 255, 255, 0.28);
+      --text: #f3f3ec;
+      --dim: rgba(243, 243, 236, 0.64);
+      --muted: rgba(243, 243, 236, 0.42);
+      --accent: #d7ff6f;
+      --accent-ink: #101307;
+      --teal: #6be0c3;
+      --gold: #f6c85f;
+      --risk: #ff806f;
+      --ok: #93eb98;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.44);
+      color-scheme: dark;
+      accent-color: var(--accent);
     }
 
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.16);
+      -webkit-tap-highlight-color: rgba(215, 255, 111, 0.16);
     }
 
-    ::selection {
-      background: rgba(0, 0, 0, 0.16);
-      color: #000;
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font: 12px/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: "SF Mono", "Menlo", "Consolas", monospace;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow: hidden;
-      font-size: 14px;
+      background:
+        linear-gradient(90deg, rgba(215, 255, 111, 0.035) 1px, transparent 1px),
+        linear-gradient(rgba(107, 224, 195, 0.035) 1px, transparent 1px),
+        #050606;
+      background-size: 28px 28px, 28px 28px, auto;
     }
 
-    #field {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      cursor: grab;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-      z-index: 1;
+    ::selection {
+      background: rgba(215, 255, 111, 0.22);
+      color: var(--text);
     }
 
+    #field,
     #field-overlay {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       display: block;
-      background: transparent;
-      pointer-events: none;
-      z-index: 2;
     }
 
-    #hud {
-      position: fixed;
-      left: 14px;
-      right: 14px;
-      top: 14px;
-      display: flex;
-      align-items: stretch;
-      gap: 12px;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .panel {
-      border: var(--border-md) solid var(--fg);
-      padding: 12px;
-      pointer-events: auto;
-      background: rgba(255, 255, 255, 0.6);
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .intro-panel {
-      width: min(100%, 420px);
-      max-width: 420px;
-    }
-
-    .controls-panel {
-      width: min(100%, 420px);
-      max-width: 420px;
-      margin-left: auto;
-    }
-
-    .intro-actions {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .intro-contact-label {
-      opacity: 0.86;
-    }
-
-    .intro-email-link {
-      border: 0;
-      padding: 0;
-      background: transparent;
-      text-align: left;
-      text-transform: none;
-      letter-spacing: normal;
-      opacity: 0.86;
-      text-decoration-line: underline;
-      text-decoration-style: dotted;
-      text-decoration-thickness: 1px;
-      text-underline-offset: 2px;
-    }
-
-    .intro-email-link:hover,
-    .intro-email-link:focus-visible {
-      background: transparent;
-      color: #111;
-      text-decoration-style: solid;
-      opacity: 1;
-    }
-
-    #copy-email {
-      margin-left: 14px;
-    }
-
-    .panel h1 {
-      margin: 0 0 8px;
-      font-size: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .panel p {
-      margin: 0;
-      line-height: 1.4;
-    }
-
-    .mode-controls {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .mode-group {
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 4px;
-      justify-items: stretch;
-    }
-
-    .mode-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3px;
-      justify-items: stretch;
-    }
-
-    .mode-control {
-      width: 100%;
-      min-width: 0;
-      padding: 6px 0;
-      font-size: 11px;
-    }
-
-    .mode-control:disabled {
-      opacity: 0.34;
-      cursor: not-allowed;
-    }
-
-    .mode-label {
-      text-align: center;
-      border: var(--border-sm) dotted transparent;
-      padding: 4px 2px;
-      font-size: 11px;
-      opacity: 0.85;
-      text-transform: uppercase;
-      background: transparent;
-      color: inherit;
-      appearance: none;
-      width: 100%;
-      margin: 0;
-      pointer-events: none;
+    #field {
+      z-index: 1;
       cursor: default;
+      touch-action: none;
       user-select: none;
       -webkit-user-select: none;
     }
 
-    .secondary-controls {
+    #field-overlay {
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .panel {
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(18, 20, 19, 0.94), var(--panel));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    #hud {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      width: min(432px, calc(100vw - 28px));
+      max-height: calc(100vh - 28px);
+      overflow: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10;
+      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    }
+
+    #hud.panel {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .control-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .brand {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .promise {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .status {
+      max-width: 190px;
+      min-height: 1.25em;
+      color: var(--dim);
+      font-size: 11px;
+      line-height: 1.25;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .status[data-kind="ok"] {
+      color: var(--ok);
+    }
+
+    label,
+    .label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .scenario-form {
+      display: grid;
+      gap: 8px;
+    }
+
+    .prompt-shell {
+      position: relative;
+    }
+
+    textarea,
+    input,
+    select,
+    button,
+    a {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel-strong);
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      min-width: 0;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 88px;
+      max-height: 210px;
+      resize: vertical;
+      padding: 10px;
+    }
+
+    input,
+    select {
+      height: 32px;
+      padding: 0 9px;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(215, 255, 111, 0.18);
+    }
+
+    button,
+    a {
+      min-height: 32px;
+      padding: 0 11px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
+    }
+
+    button:hover:not(:disabled),
+    a:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+    }
+
+    .primary-action {
+      background: rgba(215, 255, 111, 0.15);
+      border-color: rgba(215, 255, 111, 0.56);
+      color: var(--accent);
+    }
+
+    .primary-action:hover:not(:disabled) {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .scenario-examples,
+    .action-row,
+    .utility-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      width: 100%;
+    }
+
+    .scenario-example {
+      min-height: 28px;
+      padding: 0 9px;
+      color: var(--dim);
+      font-size: 11px;
+    }
+
+    .action-row button {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .board-objects {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 1px 0 3px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    }
+
+    .object-chip {
+      flex: 0 0 auto;
+      min-width: 112px;
+      max-width: 168px;
+      min-height: 42px;
+      padding: 6px 8px;
+      text-align: left;
+      border-color: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .object-chip[data-kind="actor"] {
+      border-color: rgba(215, 255, 111, 0.32);
+    }
+
+    .object-chip[data-kind="resource"] {
+      border-color: rgba(107, 224, 195, 0.34);
+    }
+
+    .object-chip[data-kind="shock"] {
+      border-color: rgba(255, 128, 111, 0.38);
+    }
+
+    .object-chip[data-kind="goal"] {
+      border-color: rgba(246, 200, 95, 0.36);
+    }
+
+    .object-chip.is-active {
+      background: rgba(215, 255, 111, 0.16);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .object-chip strong,
+    .object-chip span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .object-chip strong {
+      color: var(--text);
+      font-size: 10px;
+      line-height: 1.18;
+    }
+
+    .object-chip span {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .metric {
+      min-height: 38px;
+      padding: 5px 0;
+      border-top: 1px solid var(--border);
+      background: transparent;
+    }
+
+    .metric strong,
+    .metric span {
+      display: block;
+    }
+
+    .metric strong {
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+    }
+
+    .metric span {
+      color: var(--accent);
+      font-size: 16px;
+      line-height: 1.18;
+    }
+
+    details {
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--dim);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .setup-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 8px;
     }
 
-    .alpha-modes {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
+    .setup-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    .setup-grid textarea {
+      min-height: 54px;
+      font-size: 11px;
+    }
+
+    .utility-row {
       margin-top: 8px;
     }
 
-    .alpha-mode {
-      width: 100%;
-      min-width: 0;
-      padding: 7px 6px;
-      font-size: 10px;
+    .utility-row button {
+      flex: 1 1 78px;
+      min-height: 30px;
+      padding: 0 8px;
+      font-size: 11px;
     }
 
-    .alpha-mode[aria-pressed="true"] {
-      opacity: 1;
+    .trace-inline {
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      display: grid;
+      gap: 5px;
     }
 
-    .alpha-mode[aria-pressed="true"][data-alpha-mode="1.0"] {
-      background: rgba(0, 0, 0, 1);
-      color: #fff;
+    .trace-inline-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
     }
 
-    .alpha-mode[aria-pressed="true"][data-alpha-mode="0.7"] {
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
+    .trace-title,
+    .room-state,
+    .replay-summary {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
     }
 
-    .alpha-mode[aria-pressed="true"][data-alpha-mode="0.3"] {
-      background: rgba(0, 0, 0, 0.3);
-      color: #000;
+    .replay-summary {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    button,
-    a {
-      font-family: inherit;
-      border: var(--border-sm) dotted var(--fg);
-      background: transparent;
-      color: inherit;
-      padding: 10px 10px;
-      cursor: pointer;
-      text-decoration: none;
+    .trace-title {
+      color: var(--dim);
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      letter-spacing: 0.02em;
-      text-align: center;
-      opacity: var(--opacity-secondary);
     }
 
-    a:link,
-    a:visited,
-    a:hover,
-    a:active {
-      color: inherit;
+    .room-state {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
-    button {
-      appearance: none;
-      -webkit-appearance: none;
-      border-radius: 0;
-      padding: 8px 8px;
-      font-size: 12px;
-      background: #fff;
+    .replay-list {
+      display: grid;
+      gap: 4px;
+      max-height: 88px;
+      overflow: auto;
+      padding-right: 2px;
     }
 
-    button:hover,
-    a:hover {
-      opacity: 1;
-      background: var(--fg);
-      color: var(--bg);
+    .replay-item {
+      border-left: 1px solid rgba(215, 255, 111, 0.42);
+      padding-left: 7px;
+      cursor: pointer;
     }
 
-    button:active,
-    button:focus:not(:focus-visible) {
-      background: transparent;
-      color: inherit;
+    .replay-item:hover,
+    .replay-item:focus-visible {
+      border-left-color: var(--accent);
+      outline: none;
     }
 
-    button:focus-visible,
-    a:focus-visible {
-      outline: 2px solid currentColor;
-      outline-offset: 1px;
+    .replay-item strong,
+    .replay-item span {
+      display: block;
     }
 
-    .status {
-      margin: 0 0 10px;
-      min-height: 2.4em;
-      border-bottom: var(--border-sm) dotted var(--fg);
-      padding-bottom: 8px;
+    .replay-item strong {
+      color: var(--text);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .replay-item span {
+      color: var(--dim);
+      font-size: 11px;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .copyright {
       position: fixed;
       left: 14px;
-      right: 14px;
       bottom: 10px;
       z-index: 3;
+      color: rgba(243, 243, 236, 0.42);
+      font-size: 10px;
+      letter-spacing: 0.08em;
       pointer-events: none;
-      opacity: 0.78;
-      color: rgba(0, 0, 0, 0.9);
-      font-size: 11px;
-      text-align: center;
       text-transform: uppercase;
-      letter-spacing: 0.02em;
     }
 
-    #detail {
-      position: fixed;
-      left: 0;
-      top: 0;
-      transform: translate(-50%, -50%);
-      width: min(360px, calc(100% - 44px));
-      background: rgba(255, 255, 255, 0.94);
-      border: var(--border-md) solid var(--fg);
-      padding: 10px 11px 11px;
-      z-index: 5;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 240ms ease;
+    .room-tools {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
     }
 
-    #detail.visible {
-      opacity: 1;
-      pointer-events: auto;
+    .room-tools button {
+      min-width: 0;
     }
 
-    #detail[hidden] {
-      display: none;
-    }
-
-    #detail h2 {
-      margin: 0 0 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-size: 18px;
-    }
-
-    #detail p {
-      margin: 0 0 12px;
-      max-width: 62ch;
-      line-height: 1.45;
-    }
-
-    .detail-url {
-      font-size: 11px;
-      opacity: 0.6;
-      margin-bottom: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .detail-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .detail-link {
-      flex: 1;
-      white-space: normal;
-      text-transform: none;
-      overflow-wrap: anywhere;
-      line-height: 1.15;
-      font-size: 11px;
-      opacity: 0.78;
-    }
-
-    .detail-link:hover {
-      opacity: 1;
-      background: transparent;
-      color: inherit;
-    }
-
-    #detailReset {
-      background: #fff;
-    }
-
-    @media (max-width: 900px) {
+    @media (max-width: 760px) {
       #hud {
-        left: 10px;
-        right: 10px;
         top: 10px;
-        flex-direction: column;
-        gap: 10px;
+        left: 10px;
+        width: calc(100vw - 20px);
+        max-height: 59vh;
       }
 
-      .intro-panel,
-      .controls-panel {
-        width: 100%;
-        max-width: none;
+      .replay-list {
+        max-height: 72px;
       }
 
-      .controls-panel {
-        margin-left: 0;
+      .setup-grid,
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .room-tools {
+        grid-template-columns: 1fr;
+      }
+
+      .action-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .action-row button {
+        padding: 0 6px;
+      }
+
+      .status {
+        max-width: 128px;
       }
     }
   </style>
 </head>
 <body>
-  <canvas id="field" aria-label="Simulatte World Field"></canvas>
+  <canvas id="field" aria-label="Simulatte world canvas"></canvas>
   <canvas id="field-overlay" aria-hidden="true"></canvas>
 
-  <div id="hud">
-    <section class="panel intro-panel">
-      <h1>simulatte.world</h1>
-      <p>We build local AI systems where models can propose, but execution only happens inside verifiable boundaries.<br><br><b>Stop shipping shimware. Build AI with verifiable execution.</b></p>
-      <div class="intro-actions">
-        <span class="intro-contact-label">Contact us:</span>
-        <a class="intro-email-link" href="mailto:x@simulatte.world">x@simulatte.world</a>
-        <button id="copy-email" type="button">Copy email</button>
+  <section id="hud" class="panel" aria-label="Simulatte controls">
+    <div class="control-head">
+      <div>
+        <h1 class="brand">Simulatte</h1>
+        <div class="promise">Type a scenario. Run the board.</div>
       </div>
-    </section>
-
-    <section class="panel controls-panel">
-      <p class="status" id="status">Tune Work, Play, and Muse to explore the stack map.</p>
-
-      <div class="mode-controls">
-        <div class="mode-group">
-          <div class="mode-row">
-            <button id="mode-work-minus" class="mode-control" data-mode="work" data-step="-1" type="button">-</button>
-            <button id="mode-work-plus" class="mode-control" data-mode="work" data-step="1" type="button">+</button>
-          </div>
-          <span id="mode-level-work" class="mode-label">Work: 0</span>
-        </div>
-        <div class="mode-group">
-          <div class="mode-row">
-            <button id="mode-play-minus" class="mode-control" data-mode="play" data-step="-1" type="button">-</button>
-            <button id="mode-play-plus" class="mode-control" data-mode="play" data-step="1" type="button">+</button>
-          </div>
-          <span id="mode-level-play" class="mode-label">Play: 0</span>
-        </div>
-        <div class="mode-group">
-          <div class="mode-row">
-            <button id="mode-muse-minus" class="mode-control" data-mode="muse" data-step="-1" type="button">-</button>
-            <button id="mode-muse-plus" class="mode-control" data-mode="muse" data-step="1" type="button">+</button>
-          </div>
-          <span id="mode-level-muse" class="mode-label">Muse: 0</span>
-        </div>
-      </div>
-
-      <div class="alpha-modes" role="group" aria-label="Tile opacity mode">
-        <button class="alpha-mode" data-alpha-mode="1.0" type="button" aria-pressed="true">1.0 Solid</button>
-        <button class="alpha-mode" data-alpha-mode="0.7" type="button" aria-pressed="false">0.7 Translucent</button>
-        <button class="alpha-mode" data-alpha-mode="0.3" type="button" aria-pressed="false">0.3 Ghost</button>
-      </div>
-
-      <div class="secondary-controls">
-        <button id="jitter" type="button">Jitter</button>
-        <button id="reset-energy" type="button">Reset</button>
-      </div>
-    </section>
-  </div>
-
-  <section id="detail" hidden aria-live="polite">
-    <h2 id="detailTitle"></h2>
-    <p id="detailCopy"></p>
-    <div id="detailUrl" class="detail-url" hidden></div>
-    <div class="detail-actions">
-      <a id="detailLink" class="detail-link" href="#" target="_blank" rel="noopener noreferrer">Open destination</a>
-      <button id="detailReset" type="button">Reset</button>
+      <div id="status" class="status" data-kind="ok">Ready</div>
     </div>
+
+    <form id="scenario-form" class="scenario-form">
+      <label for="scenario-prompt">
+        Prompt
+        <textarea id="scenario-prompt" spellcheck="true">simulate a transit strike during a heatwave</textarea>
+      </label>
+      <div class="scenario-examples" aria-label="Scenario examples">
+        <button class="scenario-example" data-example="simulate a transit strike during a heatwave" type="button">Transit</button>
+        <button class="scenario-example" data-example="simulate a housing shortage after a rent spike" type="button">Housing</button>
+        <button class="scenario-example" data-example="simulate a power outage after a storm" type="button">Power</button>
+        <button class="scenario-example" data-example="simulate agents trading during a resource shortage" type="button">Agents</button>
+      </div>
+      <div class="action-row" aria-label="Run controls">
+        <button id="run-simulation" class="primary-action" type="submit">Run</button>
+        <button id="step-simulation" type="button">Step</button>
+        <button id="pause-simulation" type="button">Pause</button>
+        <button id="reset-run" type="button">Reset</button>
+      </div>
+    </form>
+
+    <div id="boardObjects" class="board-objects" aria-label="Board objects"></div>
+
+    <div class="metric-grid" aria-label="Run metrics">
+      <div class="metric"><strong>Step</strong><span id="metric-step">0</span></div>
+      <div class="metric"><strong>Load</strong><span id="metric-load">0</span></div>
+      <div class="metric"><strong>Cover</strong><span id="metric-coverage">0</span></div>
+      <div class="metric"><strong>Trust</strong><span id="metric-trust">0</span></div>
+    </div>
+
+    <section class="trace-inline" aria-live="polite">
+      <div class="trace-inline-head">
+        <h2 class="trace-title">Trace</h2>
+        <p id="roomState" class="room-state">Draft</p>
+      </div>
+      <p id="replaySummary" class="replay-summary">Run the board.</p>
+      <div id="replayList" class="replay-list"></div>
+    </section>
+
+    <details>
+      <summary>Setup and room</summary>
+      <div class="setup-grid" aria-label="Board fields">
+        <label class="wide" for="scenario-title">
+          Title
+          <input id="scenario-title" type="text" value="Transit Strike During Heatwave">
+        </label>
+        <label for="scenario-actors">
+          Actors
+          <textarea id="scenario-actors"></textarea>
+        </label>
+        <label for="scenario-resources">
+          Resources
+          <textarea id="scenario-resources"></textarea>
+        </label>
+        <label for="scenario-rules">
+          Rules
+          <textarea id="scenario-rules"></textarea>
+        </label>
+        <label for="scenario-shocks">
+          Shocks
+          <textarea id="scenario-shocks"></textarea>
+        </label>
+        <label class="wide" for="scenario-goals">
+          Goals
+          <textarea id="scenario-goals"></textarea>
+        </label>
+      </div>
+      <div class="utility-row room-tools" aria-label="Room tools">
+        <button id="apply-setup" type="button">Apply</button>
+        <button id="save-scenario" type="button">Save Room</button>
+        <button id="export-scenario" type="button">Export</button>
+        <button id="import-scenario" type="button">Import</button>
+      </div>
+    </details>
+
   </section>
 
-  <div class="copyright" id="copyright">© 2026 Simulatte, LLC</div>
+  <div class="copyright">Simulatte</div>
 
-  <script>
-    (() => {
-      const email = 'x@simulatte.world';
-      const copyBtn = document.getElementById('copy-email');
-      if (copyBtn) {
-        const resetLabel = () => {
-          copyBtn.textContent = 'Copy email';
-        };
-
-        copyBtn.addEventListener('click', async () => {
-          try {
-            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-              await navigator.clipboard.writeText(email);
-            } else {
-              throw new Error('Clipboard API unavailable');
-            }
-            copyBtn.textContent = 'Copied';
-          } catch (_err) {
-            window.prompt('Copy email address:', email);
-            copyBtn.textContent = 'Use prompt';
-          }
-
-          window.setTimeout(resetLabel, 1400);
-        });
-      }
-
-      const introPanel = document.querySelector('.intro-panel');
-      const controlsPanel = document.querySelector('.controls-panel');
-      if (!introPanel || !controlsPanel) return;
-
-      let lastHeight = 0;
-      const syncCardHeights = () => {
-        introPanel.style.minHeight = '';
-        controlsPanel.style.minHeight = '';
-        const nextHeight = Math.max(introPanel.offsetHeight, controlsPanel.offsetHeight);
-        if (!Number.isFinite(nextHeight) || nextHeight <= 0 || nextHeight === lastHeight) return;
-        lastHeight = nextHeight;
-        const heightPx = `${nextHeight}px`;
-        introPanel.style.minHeight = heightPx;
-        controlsPanel.style.minHeight = heightPx;
-      };
-
-      let rafId = 0;
-      const scheduleSync = () => {
-        if (rafId) return;
-        rafId = window.requestAnimationFrame(() => {
-          rafId = 0;
-          syncCardHeights();
-        });
-      };
-
-      scheduleSync();
-      window.addEventListener('resize', scheduleSync);
-      if (typeof ResizeObserver === 'function') {
-        const observer = new ResizeObserver(scheduleSync);
-        observer.observe(introPanel);
-        observer.observe(controlsPanel);
-      }
-    })();
-  </script>
   <script defer src="./js/simulatte-world.js"></script>
 </body>
 </html>
