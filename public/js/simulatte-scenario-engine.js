@@ -84,8 +84,8 @@
     },
     {
       id: 'energy-outage',
-      match: ['energy', 'power', 'grid', 'outage', 'battery', 'storm'],
-      title: 'Power Outage Recovery',
+      match: ['energy', 'power', 'grid', 'outage', 'battery', 'storm', 'coastal'],
+      title: 'Grid Outage Recovery',
       domain: 'energy',
       visual: 'power',
       actors: [
@@ -186,6 +186,10 @@
 
   function clamp01(value) {
     return clamp(value, 0, 1);
+  }
+
+  function lerp(from, to, amount) {
+    return from + (to - from) * amount;
   }
 
   function slugify(value) {
@@ -393,6 +397,174 @@
     };
   }
 
+  function nodeFromActor(actor) {
+    return {
+      id: actor.id,
+      kind: 'actor',
+      label: actor.name,
+      role: actor.role,
+      pressure: actor.pressure,
+    };
+  }
+
+  function nodeFromResource(resource) {
+    return {
+      id: resource.id,
+      kind: 'resource',
+      label: resource.name,
+      role: resource.role,
+      level: resource.level,
+    };
+  }
+
+  function nodeFromShock(shock) {
+    return {
+      id: shock.id,
+      kind: 'shock',
+      label: shock.name,
+      intensity: shock.intensity,
+      startsAt: shock.step,
+    };
+  }
+
+  function stockFromResource(resource, index) {
+    return {
+      id: `stock-${resource.id}`,
+      label: resource.name,
+      kind: 'capacity',
+      ownerId: resource.id,
+      value: clamp(Number(resource.level ?? 50), 0, 100),
+      baseline: clamp(Number(resource.level ?? 50), 0, 100),
+      floor: 0,
+      ceiling: 100,
+      unit: 'index',
+      order: index,
+    };
+  }
+
+  function compileWorldSpec(inputScenario) {
+    const scenario = normalizeScenario(inputScenario);
+    const actorNodes = scenario.actors.map(nodeFromActor);
+    const resourceNodes = scenario.resources.map(nodeFromResource);
+    const shockNodes = scenario.shocks.map(nodeFromShock);
+    const goalNodes = scenario.goals.map((goal) => ({
+      id: goal.id,
+      kind: 'goal',
+      label: goal.text,
+      target: goal.target,
+    }));
+    const stocks = [
+      { id: 'stock-system-load', label: 'System load', kind: 'metric', value: 0, baseline: 0, floor: 0, ceiling: 100, unit: 'index', order: 100 },
+      { id: 'stock-service-coverage', label: 'Service coverage', kind: 'metric', value: 0, baseline: 0, floor: 0, ceiling: 100, unit: 'index', order: 101 },
+      { id: 'stock-public-trust', label: 'Public trust', kind: 'metric', value: 0, baseline: 0, floor: 0, ceiling: 100, unit: 'index', order: 102 },
+      ...scenario.resources.map(stockFromResource),
+    ];
+    const causalRules = scenario.rules.map((rule, index) => {
+      const actor = scenario.actors[index % Math.max(1, scenario.actors.length)];
+      const resource = scenario.resources[index % Math.max(1, scenario.resources.length)];
+      const shock = scenario.shocks[index % Math.max(1, scenario.shocks.length)];
+      return {
+        id: rule.id,
+        label: `Rule ${index + 1}`,
+        text: rule.text,
+        weight: rule.weight,
+        when: shock ? `${shock.name} is active or pressure exceeds baseline` : 'pressure exceeds baseline',
+        affects: [
+          actor && actor.id,
+          resource && resource.id,
+          'stock-system-load',
+          'stock-service-coverage',
+        ].filter(Boolean),
+      };
+    });
+    const flows = causalRules.map((rule, index) => {
+      const shock = scenario.shocks[index % Math.max(1, scenario.shocks.length)];
+      const resource = scenario.resources[index % Math.max(1, scenario.resources.length)];
+      const actor = scenario.actors[index % Math.max(1, scenario.actors.length)];
+      return {
+        id: `flow-${rule.id}`,
+        ruleId: rule.id,
+        from: shock ? shock.id : resource && resource.id,
+        through: resource && resource.id,
+        to: actor && actor.id,
+        sign: index % 2 === 0 ? 'stress' : 'mitigation',
+        strength: clamp01(0.42 + index * 0.08),
+      };
+    });
+
+    return {
+      schema: 'simulatte.worldSpec.v1',
+      title: scenario.title,
+      prompt: scenario.prompt,
+      domain: scenario.domain,
+      visual: scenario.visual,
+      seed: scenario.seed,
+      stepsPlanned: scenario.stepsPlanned,
+      nodes: [...actorNodes, ...resourceNodes, ...shockNodes, ...goalNodes],
+      stocks,
+      flows,
+      causalRules,
+      metrics: ['load', 'coverage', 'trust', 'stability'],
+      renderer: {
+        scene: 'magnetic-board',
+        particles: 'webgpu-if-available',
+        fallback: 'canvas-2d',
+      },
+      assumptions: scenario.assumptions.slice(),
+    };
+  }
+
+  function stocksForState(resources, metrics, worldSpec) {
+    const byResourceId = Object.fromEntries((resources || []).map((resource) => [resource.id, resource]));
+    return (worldSpec.stocks || []).map((stock) => {
+      let value = stock.value;
+      if (stock.id === 'stock-system-load') value = metrics.load;
+      else if (stock.id === 'stock-service-coverage') value = metrics.coverage;
+      else if (stock.id === 'stock-public-trust') value = metrics.trust;
+      else if (stock.ownerId && byResourceId[stock.ownerId]) value = byResourceId[stock.ownerId].level;
+      return {
+        ...stock,
+        value: clamp(Number(value ?? 0), stock.floor ?? 0, stock.ceiling ?? 100),
+      };
+    });
+  }
+
+  function stockDeltas(previousStocks, nextStocks) {
+    const previousById = Object.fromEntries((previousStocks || []).map((stock) => [stock.id, stock]));
+    return (nextStocks || [])
+      .map((stock) => {
+        const prev = previousById[stock.id];
+        const delta = stock.value - (prev ? prev.value : stock.baseline || 0);
+        return {
+          id: stock.id,
+          label: stock.label,
+          from: prev ? prev.value : stock.baseline || 0,
+          to: stock.value,
+          delta,
+        };
+      })
+      .filter((change) => Math.abs(change.delta) >= 0.1);
+  }
+
+  function activeRulesForStep(scenario, tick, shockLoad) {
+    return scenario.rules
+      .map((rule, index) => {
+        const shock = scenario.shocks[index % Math.max(1, scenario.shocks.length)];
+        const fires =
+          shockLoad > 0.08 ||
+          (shock && tick >= shock.step) ||
+          (tick + index) % Math.max(2, scenario.rules.length) === 0;
+        if (!fires) return null;
+        return {
+          id: rule.id,
+          text: rule.text,
+          weight: rule.weight,
+          shockId: shock && tick >= shock.step ? shock.id : '',
+        };
+      })
+      .filter(Boolean);
+  }
+
   function applyScenarioEdits(scenario, edits) {
     if (!edits) return scenario;
     const next = { ...scenario };
@@ -439,21 +611,26 @@
 
   function createRunState(inputScenario) {
     const scenario = normalizeScenario(inputScenario);
+    const worldSpec = compileWorldSpec(scenario);
     const resourceLevel = average(scenario.resources, (resource) => resource.level, 50);
     const actorPressure = average(scenario.actors, (actor) => actor.pressure, 30);
     const initialLoad = clamp(26 + actorPressure * 0.28 - resourceLevel * 0.1, 0, 100);
     const initialCoverage = clamp(64 + resourceLevel * 0.2 - actorPressure * 0.18, 0, 100);
     const initialTrust = clamp(68 - actorPressure * 0.12 + scenario.rules.length * 1.5, 0, 100);
+    const metrics = {
+      load: initialLoad,
+      coverage: initialCoverage,
+      trust: initialTrust,
+      stability: clamp((100 - initialLoad + initialCoverage + initialTrust) / 3, 0, 100),
+    };
+    const stocks = stocksForState(scenario.resources, metrics, worldSpec);
     return {
       scenario,
+      worldSpec,
       tick: 0,
       complete: false,
-      metrics: {
-        load: initialLoad,
-        coverage: initialCoverage,
-        trust: initialTrust,
-        stability: clamp((100 - initialLoad + initialCoverage + initialTrust) / 3, 0, 100),
-      },
+      metrics,
+      stocks,
       actors: scenario.actors.map((actor) => ({ ...actor })),
       resources: scenario.resources.map((resource) => ({ ...resource })),
       activeShocks: [],
@@ -463,6 +640,16 @@
           title: 'Board setup committed',
           text: `${scenario.title} is ready with ${scenario.actors.length} actors, ${scenario.resources.length} resources, ${scenario.rules.length} rules, and ${scenario.shocks.length} shocks.`,
           changes: ['Initial state placed on the Simulatte board.'],
+          cause: {
+            firedRules: [],
+            stockDeltas: stocks.map((stock) => ({
+              id: stock.id,
+              label: stock.label,
+              from: stock.baseline || 0,
+              to: stock.value,
+              delta: stock.value - (stock.baseline || 0),
+            })),
+          },
           affects: [
             ...scenario.actors.slice(0, 4).map((actor) => actor.id),
             ...scenario.resources.slice(0, 4).map((resource) => resource.id),
@@ -471,12 +658,7 @@
           assumptions: scenario.assumptions.slice(0, 2),
         },
       ],
-      map: buildMapSignals({
-        load: initialLoad,
-        coverage: initialCoverage,
-        trust: initialTrust,
-        stability: clamp((100 - initialLoad + initialCoverage + initialTrust) / 3, 0, 100),
-      }, scenario, 0),
+      map: buildMapSignals(metrics, scenario, 0, worldSpec, stocks, []),
     };
   }
 
@@ -490,7 +672,7 @@
       }, 0);
   }
 
-  function buildMapSignals(metrics, scenario, tick) {
+  function buildMapSignals(metrics, scenario, tick, worldSpec, stocks, firedRules) {
     const risk = clamp01(metrics.load / 100);
     const accessRisk = clamp01((100 - metrics.coverage) / 100);
     const trustRisk = clamp01((100 - metrics.trust) / 100);
@@ -538,6 +720,15 @@
 
     return {
       tick,
+      worldSpec: worldSpec
+        ? {
+            schema: worldSpec.schema,
+            nodes: worldSpec.nodes.length,
+            stocks: worldSpec.stocks.length,
+            flows: worldSpec.flows.length,
+            rules: worldSpec.causalRules.length,
+          }
+        : null,
       visual: scenario.visual || visualKindForScenario(scenario.prompt, scenario.domain),
       status: metrics.stability >= 62 ? 'stable' : metrics.stability >= 42 ? 'strained' : 'critical',
       hotspots: [
@@ -547,6 +738,18 @@
           { axis: 'resources', label: 'Working capacity', intensity: stability, polarity: 'support' },
       ],
       sceneObjects,
+      causalLinks: (worldSpec && worldSpec.flows ? worldSpec.flows : []).slice(0, 8),
+      stocks: (stocks || []).map((stock) => ({
+        id: stock.id,
+        label: stock.label,
+        value: stock.value,
+        kind: stock.kind,
+      })),
+      firedRules: (firedRules || []).map((rule) => ({
+        id: rule.id,
+        text: rule.text,
+        shockId: rule.shockId,
+      })),
       effects: buildVisualEffects(metrics, scenario, tick),
       markers: actors.map((actor, index) => ({
         id: actor.id,
@@ -578,9 +781,11 @@
     const prev = inputRunState || createRunState();
     if (prev.complete) return prev;
     const scenario = prev.scenario;
+    const worldSpec = prev.worldSpec || compileWorldSpec(scenario);
     const tick = prev.tick + 1;
     const shockLoad = activeShockLoad(scenario, tick);
     const newShocks = scenario.shocks.filter((shock) => shock.step === tick);
+    const firedRules = activeRulesForStep(scenario, tick, shockLoad);
     const mitigation =
       average(prev.resources, (resource) => resource.level, 50) / 100 * 0.46 +
       scenario.rules.length * 0.035 +
@@ -603,6 +808,8 @@
     });
 
     const metrics = { load, coverage, trust, stability };
+    const stocks = stocksForState(resources, metrics, worldSpec);
+    const deltas = stockDeltas(prev.stocks, stocks);
     const changes = [
       `Load ${formatDelta(load - prev.metrics.load)} to ${Math.round(load)}.`,
       `Coverage ${formatDelta(coverage - prev.metrics.coverage)} to ${Math.round(coverage)}.`,
@@ -611,6 +818,9 @@
 
     if (newShocks.length) {
       changes.unshift(`New shock: ${newShocks.map((shock) => shock.name).join(', ')}.`);
+    }
+    if (firedRules.length) {
+      changes.push(`${firedRules.length} causal rule${firedRules.length === 1 ? '' : 's'} fired.`);
     }
 
     const pressureActor = actors.reduce((winner, actor) => (actor.pressure > winner.pressure ? actor : winner), actors[0]);
@@ -632,6 +842,10 @@
       title,
       text,
       changes,
+      cause: {
+        firedRules,
+        stockDeltas: deltas.slice(0, 8),
+      },
       affects: [
         ...newShocks.map((shock) => shock.id),
         pressureActor && pressureActor.id,
@@ -642,13 +856,15 @@
 
     const replay = [replayItem, ...prev.replay].slice(0, MAX_REPLAY);
     const complete = tick >= scenario.stepsPlanned;
-    const map = buildMapSignals(metrics, { ...scenario, actors, resources }, tick);
+    const map = buildMapSignals(metrics, { ...scenario, actors, resources }, tick, worldSpec, stocks, firedRules);
 
     return {
       ...prev,
       tick,
       complete,
       metrics,
+      stocks,
+      worldSpec,
       actors,
       resources,
       activeShocks: scenario.shocks.filter((shock) => tick >= shock.step),
@@ -686,6 +902,116 @@
       title: run.scenario.title,
       text: `${run.scenario.title} ends ${outcome}: load ${Math.round(run.metrics.load)}, coverage ${Math.round(run.metrics.coverage)}, trust ${Math.round(run.metrics.trust)}.`,
       metrics: { ...run.metrics },
+      worldSpec: run.worldSpec
+        ? {
+            nodes: run.worldSpec.nodes.length,
+            stocks: run.worldSpec.stocks.length,
+            flows: run.worldSpec.flows.length,
+            rules: run.worldSpec.causalRules.length,
+          }
+        : null,
+    };
+  }
+
+  function indexById(items) {
+    return Object.fromEntries((items || []).map((item) => [item.id, item]));
+  }
+
+  function interpolateMetrics(fromMetrics, toMetrics, amount) {
+    const from = fromMetrics || {};
+    const to = toMetrics || {};
+    const keys = Array.from(new Set([...Object.keys(from), ...Object.keys(to)]));
+    return Object.fromEntries(keys.map((key) => [
+      key,
+      lerp(Number(from[key] || 0), Number(to[key] || 0), amount),
+    ]));
+  }
+
+  function interpolateActors(fromActors, toActors, amount) {
+    const fromById = indexById(fromActors);
+    return (toActors || []).map((actor) => {
+      const from = fromById[actor.id] || actor;
+      return {
+        ...actor,
+        pressure: lerp(Number(from.pressure || 0), Number(actor.pressure || 0), amount),
+      };
+    });
+  }
+
+  function interpolateResources(fromResources, toResources, amount) {
+    const fromById = indexById(fromResources);
+    return (toResources || []).map((resource) => {
+      const from = fromById[resource.id] || resource;
+      return {
+        ...resource,
+        level: lerp(Number(from.level || 0), Number(resource.level || 0), amount),
+      };
+    });
+  }
+
+  function interpolateStocks(fromStocks, toStocks, amount) {
+    const fromById = indexById(fromStocks);
+    return (toStocks || []).map((stock) => {
+      const from = fromById[stock.id] || stock;
+      return {
+        ...stock,
+        value: lerp(Number(from.value || 0), Number(stock.value || 0), amount),
+      };
+    });
+  }
+
+  function interpolateRunStates(fromRunState, toRunState, amount) {
+    if (!fromRunState || !toRunState) return toRunState || fromRunState || null;
+    const t = clamp01(Number(amount || 0));
+    if (t <= 0) return fromRunState;
+    if (t >= 1) return toRunState;
+
+    const scenario = toRunState.scenario || fromRunState.scenario;
+    const worldSpec = toRunState.worldSpec || fromRunState.worldSpec || compileWorldSpec(scenario);
+    const metrics = interpolateMetrics(fromRunState.metrics, toRunState.metrics, t);
+    const actors = interpolateActors(fromRunState.actors, toRunState.actors, t);
+    const resources = interpolateResources(fromRunState.resources, toRunState.resources, t);
+    const stocks = interpolateStocks(fromRunState.stocks, toRunState.stocks, t);
+    const tick = lerp(Number(fromRunState.tick || 0), Number(toRunState.tick || 0), t);
+    const firedRules = t > 0.42 && toRunState.map ? toRunState.map.firedRules || [] : [];
+    const map = buildMapSignals(metrics, { ...scenario, actors, resources }, tick, worldSpec, stocks, firedRules);
+
+    return {
+      ...toRunState,
+      scenario,
+      worldSpec,
+      tick,
+      complete: false,
+      metrics,
+      actors,
+      resources,
+      stocks,
+      activeShocks: scenario.shocks.filter((shock) => tick >= shock.step),
+      map,
+      transition: {
+        fromTick: fromRunState.tick,
+        toTick: toRunState.tick,
+        amount: t,
+      },
+    };
+  }
+
+  function createCompletionRoom(runState, status, completedAt) {
+    const run = runState || createRunState();
+    const summary = summarizeRun(run);
+    return {
+      schema: 'simulatte.completionRoom.v1',
+      room: {
+        id: `room-${run.scenario.id}`,
+        status: status || (run.complete ? 'complete' : 'draft'),
+        completedAt: completedAt || '',
+        objectModel: ['scenario', 'worldSpec', 'run', 'replay', 'summary'],
+      },
+      scenario: run.scenario,
+      worldSpec: run.worldSpec || compileWorldSpec(run.scenario),
+      run,
+      replay: run.replay,
+      summary,
     };
   }
 
@@ -716,7 +1042,10 @@
     })),
     applyScenarioEdits,
     buildScenarioFromPrompt,
+    compileWorldSpec,
+    createCompletionRoom,
     createRunState,
+    interpolateRunStates,
     normalizeScenario,
     runSteps,
     scenarioToEditable,
