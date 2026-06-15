@@ -1,0 +1,18 @@
+{
+  "name": "simulatte-world",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "serve": "python3 -m http.server 4173 --bind 127.0.0.1 --directory public",
+    "firebase:whoami": "firebase login:list && firebase use",
+    "firebase:check": "firebase login:list && firebase use && firebase hosting:sites:list --project simulatte-world",
+    "firebase:check:d4da": "firebase --account anthony@d4da.com hosting:sites:list --project simulatte-world",
+    "firebase:check:personal": "firebase --account anthonyrobledo@gmail.com hosting:sites:list --project simulatte-world",
+    "deploy:preview": "firebase hosting:channel:deploy preview --project simulatte-world",
+    "deploy:preview:d4da": "firebase --account anthony@d4da.com hosting:channel:deploy preview --project simulatte-world",
+    "deploy:preview:personal": "firebase --account anthonyrobledo@gmail.com hosting:channel:deploy preview --project simulatte-world",
+    "deploy:hosting": "firebase deploy --only hosting --project simulatte-world",
+    "deploy:hosting:d4da": "firebase --account anthony@d4da.com deploy --only hosting --project simulatte-world",
+    "deploy:hosting:personal": "firebase --account anthonyrobledo@gmail.com deploy --only hosting --project simulatte-world"
+  }
+}
