@@ -660,7 +660,8 @@ function sceneObjectPoint(object, index, total) {
   const safeTotal = Math.max(1, total);
   const phaseByKind = object.kind === 'resource' ? 0.58 : object.kind === 'shock' ? 1.05 : 0.12;
   const radiusByKind = object.kind === 'shock' ? 0.42 : object.kind === 'resource' ? 0.86 : 0.78;
-  const angle = phaseByKind + (index / safeTotal) * Math.PI * 2 + (scenarioApp.run ? scenarioApp.run.tick * 0.02 : 0);
+  const displayRun = typeof getDisplayRun === 'function' ? getDisplayRun() : scenarioApp.run;
+  const angle = phaseByKind + (index / safeTotal) * Math.PI * 2 + (displayRun ? displayRun.tick * 0.02 : 0);
   return {
     x: base.x + Math.cos(angle) * radiusByKind,
     z: base.z + Math.sin(angle) * radiusByKind,
@@ -1067,7 +1068,7 @@ function drawBoardBackdrop(run) {
   ];
 
   ctx.save();
-  ctx.fillStyle = '#07100e';
+  ctx.fillStyle = 'rgba(7, 16, 14, 0.58)';
   ctx.fillRect(0, 0, width(), height());
 
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.055)';
@@ -1136,7 +1137,7 @@ function drawSignalBars(hotspots) {
 }
 
 function drawSimulationLayer() {
-  const run = scenarioApp.run;
+  const run = typeof getDisplayRun === 'function' ? getDisplayRun() : scenarioApp.run;
   if (!run || !run.map) return;
 
   const hotspots = Array.isArray(run.map.hotspots) ? run.map.hotspots : [];
@@ -1154,6 +1155,9 @@ function drawSimulationLayer() {
 
   ctx.save();
   const items = layoutSceneObjects(sceneObjects);
+  if (typeof syncParticleField === 'function') {
+    syncParticleField(run, items);
+  }
   drawScenarioEffects(run, items);
   drawSceneObjectLinks(items);
   items.forEach(drawSceneObjectCard);
@@ -1192,9 +1196,10 @@ function drawAnchors() {
 }
 
 function render() {
+  const displayRun = typeof getDisplayRun === 'function' ? getDisplayRun() : scenarioApp.run;
   ctx.clearRect(0, 0, width(), height());
   clearWorldCanvas();
-  drawBoardBackdrop(scenarioApp.run);
+  drawBoardBackdrop(displayRun);
   drawSimulationLayer();
 }
 
@@ -1204,6 +1209,7 @@ function tick(now) {
   state.frameDt = dt;
   const nowSec = now * 0.001;
   terrainPerturbationTimeSec = nowSec;
+  const transitioning = typeof updateRunTransition === 'function' && updateRunTransition(now);
 
   if (scenarioApp.running && scenarioApp.run) {
     scenarioApp.stepCarry += dt * scenarioApp.runRate;
@@ -1213,8 +1219,17 @@ function tick(now) {
     }
   }
 
+  if (transitioning) {
+    updateScenarioMetrics();
+    renderModelSpec();
+    renderReplay();
+    renderRoomState();
+  }
   clearExpiredHighlight();
   render();
+  if (typeof renderParticleField === 'function') {
+    renderParticleField(dt);
+  }
   requestAnimationFrame(tick);
 }
 
@@ -1227,6 +1242,13 @@ function startSimulatteWorld() {
   simulatteWorldStarted = true;
 
   bindScenarioControls();
+
+  if (window.SimulatteParticleField && particleCanvas) {
+    scenarioApp.particleField = window.SimulatteParticleField.create(particleCanvas, { count: 620 });
+    if (particleStateEl) {
+      particleStateEl.textContent = scenarioApp.particleField.status;
+    }
+  }
 
   if (jitterBtn) jitterBtn.addEventListener('click', jitter);
   if (resetBtn) resetBtn.addEventListener('click', reset);

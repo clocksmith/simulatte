@@ -1,9 +1,11 @@
 const canvas = document.getElementById('field');
+const particleCanvas = document.getElementById('particle-field');
 const overlayCanvas = document.getElementById('field-overlay');
 const gl = canvas.getContext('webgl', { alpha: false, antialias: true, depth: true });
 const ctx = overlayCanvas.getContext('2d');
 
 const statusEl = document.getElementById('status');
+const particleStateEl = document.getElementById('particleState');
 const modeWorkLevelEl = document.getElementById('mode-level-work');
 const modePlayLevelEl = document.getElementById('mode-level-play');
 const modeMuseLevelEl = document.getElementById('mode-level-muse');
@@ -26,6 +28,7 @@ const runSimulationBtn = document.getElementById('run-simulation');
 const stepSimulationBtn = document.getElementById('step-simulation');
 const pauseSimulationBtn = document.getElementById('pause-simulation');
 const resetRunBtn = document.getElementById('reset-run');
+const completeRoomBtn = document.getElementById('complete-room');
 const saveScenarioBtn = document.getElementById('save-scenario');
 const exportScenarioBtn = document.getElementById('export-scenario');
 const importScenarioBtn = document.getElementById('import-scenario');
@@ -251,15 +254,19 @@ const scenarioApp = {
   storageKey: 'simulatte-world-model-lab',
   scenario: null,
   run: null,
+  displayRun: null,
+  runTransition: null,
   running: false,
   stepCarry: 0,
   runRate: 0.72,
+  transitionDurationMs: 860,
   lastExportText: '',
   roomStatus: 'draft',
   roomCompletedAt: '',
   highlightObjectIds: [],
   highlightStep: null,
   highlightExpiresMs: 0,
+  particleField: null,
 };
 
 const idleCinematic = {
@@ -409,6 +416,9 @@ function resize() {
   overlayCanvas.style.height = `${innerHeight}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.lineWidth = 1;
+  if (scenarioApp.particleField) {
+    scenarioApp.particleField.resize(innerWidth, innerHeight, dpr);
+  }
   if (gl) {
     gl.viewport(0, 0, canvas.width, canvas.height);
   }
@@ -697,6 +707,52 @@ function setFieldValue(el, value) {
   if (el) el.value = value || '';
 }
 
+function easeInOutCubic(t) {
+  const x = clamp01(Number(t || 0));
+  return x < 0.5
+    ? 4 * x * x * x
+    : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+
+function getDisplayRun() {
+  return scenarioApp.displayRun || scenarioApp.run;
+}
+
+function setRunInstant(run) {
+  scenarioApp.run = run;
+  scenarioApp.displayRun = run;
+  scenarioApp.runTransition = null;
+}
+
+function startRunTransition(fromRun, toRun, durationMs) {
+  scenarioApp.run = toRun;
+  if (!fromRun || !toRun || fromRun === toRun) {
+    setRunInstant(toRun);
+    return;
+  }
+  scenarioApp.runTransition = {
+    from: fromRun,
+    to: toRun,
+    startedAt: performance.now(),
+    durationMs: Math.max(120, Number(durationMs || scenarioApp.transitionDurationMs)),
+  };
+  scenarioApp.displayRun = fromRun;
+}
+
+function updateRunTransition(nowMs) {
+  const transition = scenarioApp.runTransition;
+  if (!transition) return false;
+  const raw = (nowMs - transition.startedAt) / transition.durationMs;
+  const amount = clamp01(raw);
+  const eased = easeInOutCubic(amount);
+  scenarioApp.displayRun = ScenarioEngine.interpolateRunStates(transition.from, transition.to, eased);
+  if (amount >= 1) {
+    scenarioApp.displayRun = transition.to;
+    scenarioApp.runTransition = null;
+  }
+  return true;
+}
+
 function readScenarioEdits() {
   return {
     title: scenarioTitleEl ? scenarioTitleEl.value : '',
@@ -723,7 +779,7 @@ function loadScenarioIntoForm(scenario) {
 function createScenarioFromPrompt(prompt) {
   const scenario = ScenarioEngine.buildScenarioFromPrompt(prompt, {});
   scenarioApp.scenario = scenario;
-  scenarioApp.run = ScenarioEngine.createRunState(scenario);
+  setRunInstant(ScenarioEngine.createRunState(scenario));
   scenarioApp.running = false;
   scenarioApp.stepCarry = 0;
   scenarioApp.roomStatus = 'draft';
@@ -740,7 +796,7 @@ function applySetupEdits() {
     ScenarioEngine.applyScenarioEdits(base, readScenarioEdits())
   );
   scenarioApp.scenario = scenario;
-  scenarioApp.run = ScenarioEngine.createRunState(scenario);
+  setRunInstant(ScenarioEngine.createRunState(scenario));
   scenarioApp.running = false;
   scenarioApp.stepCarry = 0;
   scenarioApp.roomStatus = 'draft';
@@ -759,7 +815,7 @@ function resetScenarioRun() {
     createScenarioFromPrompt(scenarioPromptEl ? scenarioPromptEl.value : '');
     return;
   }
-  scenarioApp.run = ScenarioEngine.createRunState(scenarioApp.scenario);
+  setRunInstant(ScenarioEngine.createRunState(scenarioApp.scenario));
   scenarioApp.running = false;
   scenarioApp.stepCarry = 0;
   scenarioApp.roomStatus = 'draft';
@@ -771,17 +827,19 @@ function advanceScenarioStep() {
   if (!scenarioApp.run) {
     applySetupEdits();
   }
-  scenarioApp.run = ScenarioEngine.stepRun(scenarioApp.run);
-  if (scenarioApp.run.complete) {
+  const fromRun = getDisplayRun() || scenarioApp.run;
+  const nextRun = ScenarioEngine.stepRun(scenarioApp.run);
+  startRunTransition(fromRun, nextRun);
+  if (nextRun.complete) {
     scenarioApp.running = false;
     scenarioApp.roomStatus = 'complete';
     scenarioApp.roomCompletedAt = scenarioApp.roomCompletedAt || new Date().toISOString();
   }
-  const summary = ScenarioEngine.summarizeRun(scenarioApp.run);
+  const summary = ScenarioEngine.summarizeRun(nextRun);
   refreshScenarioUi(
-    scenarioApp.run.complete
+    nextRun.complete
       ? `Finished: ${summary.outcome}.`
-      : `Step ${scenarioApp.run.tick}.`
+      : `Step ${nextRun.tick}.`
   );
 }
 
@@ -811,19 +869,25 @@ function getRoomSnapshot() {
     id: scenarioApp.scenario ? `room-${scenarioApp.scenario.id}` : 'room-draft',
     status: scenarioApp.roomStatus,
     completedAt: scenarioApp.roomCompletedAt,
-    objectModel: ['scenario', 'worldModel', 'run', 'replay'],
+    objectModel: ['scenario', 'worldSpec', 'run', 'replay', 'summary'],
   };
 }
 
 function hydrateRunForScenario(scenario, candidateRun) {
+  const fresh = ScenarioEngine.createRunState(scenario);
   if (!candidateRun || !candidateRun.scenario) {
-    return ScenarioEngine.createRunState(scenario);
+    return fresh;
   }
   if (candidateRun.map && candidateRun.map.effects) {
-    return { ...candidateRun, scenario };
+    return {
+      ...candidateRun,
+      scenario,
+      worldSpec: candidateRun.worldSpec || fresh.worldSpec,
+      stocks: candidateRun.stocks || ScenarioEngine.runSteps(fresh, candidateRun.tick || 0).stocks,
+    };
   }
   return ScenarioEngine.runSteps(
-    ScenarioEngine.createRunState(scenario),
+    fresh,
     Math.max(0, Math.floor(Number(candidateRun.tick || 0)))
   );
 }
@@ -838,9 +902,12 @@ function saveScenario() {
     applySetupEdits();
   }
   const payload = {
+    ...ScenarioEngine.createCompletionRoom(
+      scenarioApp.run,
+      scenarioApp.roomStatus,
+      scenarioApp.roomCompletedAt
+    ),
     room: getRoomSnapshot(),
-    scenario: scenarioApp.scenario,
-    run: scenarioApp.run,
   };
   try {
     localStorage.setItem(scenarioApp.storageKey, JSON.stringify(payload));
@@ -857,7 +924,7 @@ function loadSavedScenario() {
     const payload = JSON.parse(raw);
     const scenario = ScenarioEngine.normalizeScenario(payload.scenario);
     scenarioApp.scenario = scenario;
-    scenarioApp.run = hydrateRunForScenario(scenario, payload.run);
+    setRunInstant(hydrateRunForScenario(scenario, payload.run));
     scenarioApp.running = false;
     scenarioApp.stepCarry = 0;
     scenarioApp.roomStatus = normalizeRoomStatus(payload.room && payload.room.status, scenarioApp.run);
@@ -874,13 +941,15 @@ function completeRoom() {
   if (!scenarioApp.scenario || !scenarioApp.run) {
     applySetupEdits();
   }
+  const fromRun = getDisplayRun() || scenarioApp.run;
   const remaining = Math.max(0, scenarioApp.run.scenario.stepsPlanned - scenarioApp.run.tick);
-  scenarioApp.run = ScenarioEngine.runSteps(scenarioApp.run, remaining);
+  const nextRun = ScenarioEngine.runSteps(scenarioApp.run, remaining);
+  startRunTransition(fromRun, nextRun, scenarioApp.transitionDurationMs * 1.35);
   scenarioApp.running = false;
   scenarioApp.stepCarry = 0;
   scenarioApp.roomStatus = 'complete';
   scenarioApp.roomCompletedAt = new Date().toISOString();
-  const summary = ScenarioEngine.summarizeRun(scenarioApp.run);
+  const summary = ScenarioEngine.summarizeRun(nextRun);
   refreshScenarioUi(`Finished: ${summary.outcome}.`);
 }
 
@@ -890,10 +959,12 @@ async function exportScenario() {
   }
   const payload = JSON.stringify(
     {
+      ...ScenarioEngine.createCompletionRoom(
+        scenarioApp.run,
+        scenarioApp.roomStatus,
+        scenarioApp.roomCompletedAt
+      ),
       room: getRoomSnapshot(),
-      scenario: scenarioApp.scenario,
-      run: scenarioApp.run,
-      summary: ScenarioEngine.summarizeRun(scenarioApp.run),
     },
     null,
     2
@@ -919,7 +990,7 @@ function importScenario() {
     const payload = JSON.parse(raw);
     const scenario = ScenarioEngine.normalizeScenario(payload.scenario || payload);
     scenarioApp.scenario = scenario;
-    scenarioApp.run = hydrateRunForScenario(scenario, payload.run);
+    setRunInstant(hydrateRunForScenario(scenario, payload.run));
     scenarioApp.running = false;
     scenarioApp.stepCarry = 0;
     scenarioApp.roomStatus = normalizeRoomStatus(payload.room && payload.room.status, scenarioApp.run);
@@ -1006,29 +1077,43 @@ function renderBoardObjects() {
 }
 
 function updateScenarioMetrics() {
-  const run = scenarioApp.run;
+  const run = getDisplayRun();
   const metrics = run ? run.metrics : { load: 0, coverage: 0, trust: 0 };
-  if (metricStepEl) metricStepEl.textContent = run ? `${run.tick}/${run.scenario.stepsPlanned}` : '0';
+  if (metricStepEl) metricStepEl.textContent = run ? `${formatRunTick(run)}/${run.scenario.stepsPlanned}` : '0';
   if (metricLoadEl) metricLoadEl.textContent = String(Math.round(metrics.load || 0));
   if (metricCoverageEl) metricCoverageEl.textContent = String(Math.round(metrics.coverage || 0));
   if (metricTrustEl) metricTrustEl.textContent = String(Math.round(metrics.trust || 0));
 }
 
+function formatRunTick(run) {
+  const tick = Number(run && run.tick);
+  if (!Number.isFinite(tick)) return '0';
+  if (Math.abs(tick - Math.round(tick)) < 0.02) return String(Math.round(tick));
+  return tick.toFixed(1);
+}
+
 function compactReplayText(item) {
-  const changeText = item.changes && item.changes.length ? item.changes.join(' / ') : '';
+  const fired =
+    item.cause && Array.isArray(item.cause.firedRules) && item.cause.firedRules.length
+      ? ` / rule: ${item.cause.firedRules[0].text}`
+      : '';
+  const changeText = item.changes && item.changes.length
+    ? `${item.changes.join(' / ')}${fired}`
+    : fired;
   const source = changeText || item.text || '';
   return source.length > 96 ? `${source.slice(0, 93)}...` : source;
 }
 
 function renderReplay() {
   const run = scenarioApp.run;
+  const displayRun = getDisplayRun();
   if (!replaySummaryEl || !replayListEl) return;
   if (!run) {
     replaySummaryEl.textContent = 'Run the board.';
     replayListEl.innerHTML = '';
     return;
   }
-  const summary = ScenarioEngine.summarizeRun(run);
+  const summary = ScenarioEngine.summarizeRun(displayRun || run);
   replaySummaryEl.textContent = `${summary.outcome} / load ${Math.round(
     summary.metrics.load || 0
   )} / cover ${Math.round(summary.metrics.coverage || 0)} / trust ${Math.round(
@@ -1082,7 +1167,12 @@ function appendModelChip(label, value) {
 
 function renderModelSpec() {
   const scenario = scenarioApp.scenario;
-  const run = scenarioApp.run;
+  const run = getDisplayRun();
+  const worldSpec = run && run.worldSpec
+    ? run.worldSpec
+    : scenario
+      ? ScenarioEngine.compileWorldSpec(scenario)
+      : null;
 
   if (!scenario) {
     if (modelSummaryEl) modelSummaryEl.textContent = 'No board yet.';
@@ -1097,23 +1187,26 @@ function renderModelSpec() {
 
   if (modelChipsEl) {
     modelChipsEl.innerHTML = '';
-    appendModelChip('actors', scenario.actors.length);
-    appendModelChip('resources', scenario.resources.length);
-    appendModelChip('rules', scenario.rules.length);
-    appendModelChip('shocks', scenario.shocks.length);
-    appendModelChip('goals', scenario.goals.length);
+    appendModelChip('nodes', worldSpec ? worldSpec.nodes.length : 0);
+    appendModelChip('stocks', worldSpec ? worldSpec.stocks.length : 0);
+    appendModelChip('flows', worldSpec ? worldSpec.flows.length : 0);
+    appendModelChip('rules', worldSpec ? worldSpec.causalRules.length : scenario.rules.length);
+    appendModelChip('field', scenarioApp.particleField ? scenarioApp.particleField.mode : 'canvas');
   }
 
   if (specPreviewEl) {
     const spec = {
+      schema: worldSpec ? worldSpec.schema : 'simulatte.worldSpec.v1',
       scenario: scenario.title,
-      actors: shortNames(scenario.actors, 'name'),
-      resources: shortNames(scenario.resources, 'name'),
-      shocks: shortNames(scenario.shocks, 'name'),
-      goals: shortNames(scenario.goals, 'text').slice(0, 3),
+      nodes: worldSpec ? worldSpec.nodes.slice(0, 6).map((node) => `${node.kind}:${node.label}`) : [],
+      stocks: run && run.stocks
+        ? run.stocks.slice(0, 7).map((stock) => `${stock.label}=${Math.round(stock.value)}`)
+        : [],
+      flows: worldSpec ? worldSpec.flows.slice(0, 5).map((flow) => `${flow.from}->${flow.to}`) : [],
+      rules: worldSpec ? worldSpec.causalRules.slice(0, 3).map((rule) => rule.text) : [],
       run: run
         ? {
-            step: `${run.tick}/${scenario.stepsPlanned}`,
+            step: `${formatRunTick(run)}/${scenario.stepsPlanned}`,
             state: run.map ? run.map.status : 'draft',
             load: Math.round(run.metrics.load || 0),
             coverage: Math.round(run.metrics.coverage || 0),
@@ -1132,7 +1225,8 @@ function renderRoomState() {
     : scenarioApp.roomStatus === 'running'
       ? 'Running'
       : 'Draft';
-  const tick = scenarioApp.run ? `${scenarioApp.run.tick}/${scenarioApp.run.scenario.stepsPlanned}` : '0';
+  const run = getDisplayRun();
+  const tick = run ? `${formatRunTick(run)}/${run.scenario.stepsPlanned}` : '0';
   roomStateEl.textContent = `${status} / ${tick}`;
 }
 
@@ -1145,6 +1239,20 @@ function refreshScenarioUi(message) {
   renderModelSpec();
   renderReplay();
   renderRoomState();
+}
+
+function syncParticleField(run, items) {
+  if (!scenarioApp.particleField) return;
+  scenarioApp.particleField.sync(run, items);
+  if (particleStateEl) {
+    particleStateEl.textContent = scenarioApp.particleField.status;
+  }
+}
+
+function renderParticleField(dt) {
+  if (!scenarioApp.particleField) return;
+  scenarioApp.particleField.step(dt);
+  scenarioApp.particleField.render();
 }
 
 function bindScenarioControls() {
@@ -1167,6 +1275,7 @@ function bindScenarioControls() {
   if (stepSimulationBtn) stepSimulationBtn.addEventListener('click', advanceScenarioStep);
   if (pauseSimulationBtn) pauseSimulationBtn.addEventListener('click', pauseScenario);
   if (resetRunBtn) resetRunBtn.addEventListener('click', resetScenarioRun);
+  if (completeRoomBtn) completeRoomBtn.addEventListener('click', completeRoom);
   if (saveScenarioBtn) saveScenarioBtn.addEventListener('click', saveScenario);
   if (exportScenarioBtn) exportScenarioBtn.addEventListener('click', exportScenario);
   if (importScenarioBtn) importScenarioBtn.addEventListener('click', importScenario);
@@ -1296,7 +1405,8 @@ function gaussian(cx, cz, x, z, spread = mesh.spread) {
 }
 
 function simulationTerrainDelta(x, z) {
-  const runMap = scenarioApp.run && scenarioApp.run.map;
+  const run = getDisplayRun();
+  const runMap = run && run.map;
   if (!runMap || !Array.isArray(runMap.hotspots)) return 0;
   let total = 0;
   for (const hotspot of runMap.hotspots) {

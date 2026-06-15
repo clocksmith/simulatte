@@ -1,5 +1,6 @@
 (() => {
   const ENGINE_SRC = './js/simulatte-scenario-engine.js';
+  const PARTICLE_SRC = './js/simulatte-particle-field.js';
   const CORE_SRC = './js/simulatte-world-core.js';
   const RENDER_SRC = './js/simulatte-world-rendering.js';
 
@@ -35,6 +36,7 @@
     }
 
     await loadScript(ENGINE_SRC);
+    await loadScript(PARTICLE_SRC);
     await loadScript(CORE_SRC);
     await loadScript(RENDER_SRC);
 

@@ -1,23 +1,52 @@
 # Simulatte
 
-Simulatte is a world-model product.
+Simulatte is a browser creator for remixable physics simulations.
 
 Front-door promise:
 
-> Type a scenario. Run the board.
+> Build plausible worlds. Remix them. Watch the physics account for itself.
 
-Simulatte repurposes the existing canvas experience into a browser simulation
-board. The front door should not feel like d4da.com or a map portal: one prompt
-becomes a board of shocks, actors, resources, signals, and run trace.
+Simulatte uses browser-native simulation surfaces for physical systems: forces,
+fields, motion, energy accounting, losses, and visible state evolution. The
+front door is a builder that turns prompts into editable composed simulation
+specs, then runs those specs continuously on canvas.
 
 ## Product Objects
 
-- Scenario: the prompt and editable setup.
-- Board: actors, resources, rules, shocks, goals, and signals.
-- Run: deterministic steps that change metrics and board pressure.
-- Replay: the explanation of what changed at each step.
-- Completion room: a saved or exported workspace containing the scenario, world
-  model, run, and replay.
+- Physical system: bodies, fields, constraints, inputs, loads, and losses.
+- Integrator: deterministic state updates over small time steps.
+- Ledger: tracked input energy, actuator work, useful output, stored motion, and
+  losses.
+- Canvas surface: continuous rendering of forces, geometry, motion, and readouts.
+- Experiment controls: sliders that change physical parameters while the model
+  keeps accounting.
+- Simulation spec: exportable JSON that can be imported, remixed, and run again.
+- Prompt builder: creates a simulation spec from terms like solar magnetic wheel,
+  fluid vortex tank, or reaction diffusion chemistry.
+- Modules: mechanics, electromagnetism, solar, fluid, turbulence, chemistry,
+  diffusion, thermal, gravity, control, and energy-ledger pieces that can be
+  composed into one world.
+- Objects: bodies, fields, materials, sources, sinks, actuators, and constraints
+  generated from the prompt.
+
+## Current Seeds
+
+- Solar magnetic wheel with powered stator slider, magnetic torque, motor load,
+  bearing friction, and energy balance.
+- Fluid vortex tank with inlet flow, obstacle wake, viscosity, turbulence, and
+  pressure.
+- Reaction diffusion chemistry with feed, kill, diffusion, catalyst, cooling,
+  fronts, and heat.
+- Blank construction plane with no modules or objects until the builder prompt
+  creates them.
+
+These are seeds, not product boundaries. Prompt-built worlds use the
+`custom-world` spec and can combine modules from multiple seeds.
+
+The builder can recreate the solar magnetic perpetual-motion-machine idea as a
+solar-powered magnetic wheel with explicit accounting. It can spin when slider
+work times the magnetic field correctly, but it cannot create net energy; the
+ledger exposes input, useful output, stored motion, and losses.
 
 ## Boundary
 
@@ -27,7 +56,7 @@ can later integrate only as packaged dependencies. The first product loop is
 owned here:
 
 ```text
-scenario -> board -> run -> replay -> completion room
+prompt or template -> simulation spec -> editable controls -> continuous render -> ledger/export/remix
 ```
 
 ## Local Check

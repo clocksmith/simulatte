@@ -7,28 +7,28 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <style>
     :root {
-      --bg: #050606;
-      --panel: rgba(10, 12, 12, 0.86);
-      --panel-strong: rgba(0, 0, 0, 0.54);
-      --border: rgba(255, 255, 255, 0.14);
-      --border-strong: rgba(255, 255, 255, 0.28);
-      --text: #f3f3ec;
-      --dim: rgba(243, 243, 236, 0.64);
-      --muted: rgba(243, 243, 236, 0.42);
-      --accent: #d7ff6f;
-      --accent-ink: #101307;
-      --teal: #6be0c3;
-      --gold: #f6c85f;
-      --risk: #ff806f;
-      --ok: #93eb98;
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.44);
-      color-scheme: dark;
+      --bg: #f7faf5;
+      --panel: rgba(255, 255, 255, 0.74);
+      --panel-strong: rgba(255, 255, 255, 0.92);
+      --border: rgba(26, 49, 47, 0.12);
+      --border-strong: rgba(26, 49, 47, 0.24);
+      --text: #17201d;
+      --dim: rgba(23, 32, 29, 0.66);
+      --muted: rgba(23, 32, 29, 0.46);
+      --accent: #7ac943;
+      --accent-ink: #10210b;
+      --teal: #2bb8a6;
+      --gold: #d9a431;
+      --risk: #e7725f;
+      --ok: #58b368;
+      --shadow: 0 24px 80px rgba(45, 67, 60, 0.14);
+      color-scheme: light;
       accent-color: var(--accent);
     }
 
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: rgba(215, 255, 111, 0.16);
+      -webkit-tap-highlight-color: rgba(122, 201, 67, 0.16);
     }
 
     html,
@@ -39,25 +39,26 @@
       overflow: hidden;
       background: var(--bg);
       color: var(--text);
-      font: 12px/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font: 13px/1.46 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
     body {
       background:
-        linear-gradient(90deg, rgba(215, 255, 111, 0.035) 1px, transparent 1px),
-        linear-gradient(rgba(107, 224, 195, 0.035) 1px, transparent 1px),
-        #050606;
-      background-size: 28px 28px, 28px 28px, auto;
+        linear-gradient(90deg, rgba(39, 93, 79, 0.045) 1px, transparent 1px),
+        linear-gradient(rgba(39, 93, 79, 0.04) 1px, transparent 1px),
+        linear-gradient(135deg, #fbfcf8 0%, #eef8f4 54%, #f8fbf4 100%);
+      background-size: 32px 32px, 32px 32px, auto;
     }
 
     ::selection {
-      background: rgba(215, 255, 111, 0.22);
+      background: rgba(122, 201, 67, 0.22);
       color: var(--text);
     }
 
     #field,
+    #particle-field,
     #field-overlay {
       position: fixed;
       inset: 0;
@@ -74,18 +75,25 @@
       -webkit-user-select: none;
     }
 
-    #field-overlay {
+    #particle-field {
       z-index: 2;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.88;
+    }
+
+    #field-overlay {
+      z-index: 3;
       pointer-events: none;
     }
 
     .panel {
       color: var(--text);
-      background: linear-gradient(180deg, rgba(18, 20, 19, 0.94), var(--panel));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), var(--panel));
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
     }
 
     #hud {
@@ -131,6 +139,14 @@
       color: var(--muted);
       font-size: 11px;
       line-height: 1.25;
+    }
+
+    .runtime-badge {
+      margin-top: 7px;
+      color: var(--teal);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .status {
@@ -202,11 +218,53 @@
       padding: 0 9px;
     }
 
+    input[type="range"] {
+      height: 26px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(26, 49, 47, 0.12);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 18px;
+      height: 18px;
+      margin-top: -6px;
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 6px 18px rgba(122, 201, 67, 0.25);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(26, 49, 47, 0.12);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 6px 18px rgba(122, 201, 67, 0.25);
+    }
+
     textarea:focus,
     input:focus,
     select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(215, 255, 111, 0.18);
+      box-shadow: 0 0 0 3px rgba(122, 201, 67, 0.16);
     }
 
     button,
@@ -216,7 +274,8 @@
       cursor: pointer;
       text-decoration: none;
       text-align: center;
-      transition: background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
+      font-weight: 650;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     }
 
     button:hover:not(:disabled),
@@ -224,6 +283,8 @@
       background: var(--accent);
       border-color: var(--accent);
       color: var(--accent-ink);
+      box-shadow: 0 10px 24px rgba(122, 201, 67, 0.18);
+      transform: translateY(-1px);
     }
 
     button:disabled {
@@ -232,9 +293,9 @@
     }
 
     .primary-action {
-      background: rgba(215, 255, 111, 0.15);
-      border-color: rgba(215, 255, 111, 0.56);
-      color: var(--accent);
+      background: rgba(122, 201, 67, 0.16);
+      border-color: rgba(122, 201, 67, 0.4);
+      color: #356b20;
     }
 
     .primary-action:hover:not(:disabled) {
@@ -287,26 +348,27 @@
       text-align: left;
       border-color: rgba(255, 255, 255, 0.16);
       background: rgba(255, 255, 255, 0.045);
+      transition: background 0.24s, border-color 0.24s, color 0.24s, opacity 0.24s;
     }
 
     .object-chip[data-kind="actor"] {
-      border-color: rgba(215, 255, 111, 0.32);
+      border-color: rgba(122, 201, 67, 0.32);
     }
 
     .object-chip[data-kind="resource"] {
-      border-color: rgba(107, 224, 195, 0.34);
+      border-color: rgba(43, 184, 166, 0.34);
     }
 
     .object-chip[data-kind="shock"] {
-      border-color: rgba(255, 128, 111, 0.38);
+      border-color: rgba(231, 114, 95, 0.38);
     }
 
     .object-chip[data-kind="goal"] {
-      border-color: rgba(246, 200, 95, 0.36);
+      border-color: rgba(217, 164, 49, 0.36);
     }
 
     .object-chip.is-active {
-      background: rgba(215, 255, 111, 0.16);
+      background: rgba(122, 201, 67, 0.16);
       border-color: var(--accent);
       color: var(--text);
     }
@@ -361,6 +423,79 @@
       color: var(--accent);
       font-size: 16px;
       line-height: 1.18;
+      transition: color 0.22s;
+    }
+
+    .worldspec-panel {
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      display: grid;
+      gap: 7px;
+    }
+
+    .worldspec-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+    }
+
+    .worldspec-title,
+    .worldspec-summary {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .worldspec-title {
+      color: var(--dim);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .worldspec-summary {
+      color: var(--text);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .model-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 5px;
+      min-height: 24px;
+      padding: 3px 7px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      transition: background 0.24s, border-color 0.24s, color 0.24s;
+    }
+
+    .chip strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .spec-preview {
+      max-height: 128px;
+      margin: 0;
+      overflow: auto;
+      padding: 8px;
+      border: 1px solid rgba(26, 49, 47, 0.1);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.52);
+      color: rgba(23, 32, 29, 0.68);
+      font: 10px/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
     }
 
     details {
@@ -430,6 +565,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      transition: color 0.24s;
     }
 
     .trace-title {
@@ -453,7 +589,7 @@
     }
 
     .replay-item {
-      border-left: 1px solid rgba(215, 255, 111, 0.42);
+      border-left: 1px solid rgba(122, 201, 67, 0.42);
       padding-left: 7px;
       cursor: pointer;
     }
@@ -498,7 +634,7 @@
 
     .room-tools {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 6px;
     }
 
@@ -539,98 +675,397 @@
         max-width: 128px;
       }
     }
+
+    .physics-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fbfcf8 0%, #eef8f4 50%, #f8fbf4 100%);
+    }
+
+    .physics-panel {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: auto;
+      padding: 22px;
+      border-right: 1px solid rgba(26, 49, 47, 0.1);
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: 18px 0 70px rgba(43, 66, 57, 0.11);
+      backdrop-filter: blur(22px) saturate(1.08);
+      -webkit-backdrop-filter: blur(22px) saturate(1.08);
+      animation: surface-in 0.42s ease both;
+    }
+
+    @keyframes surface-in {
+      from {
+        opacity: 0;
+        transform: translateX(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .physics-brand {
+      display: grid;
+      gap: 6px;
+    }
+
+    .physics-brand h1,
+    .physics-brand p {
+      margin: 0;
+    }
+
+    .physics-brand h1 {
+      font-size: 18px;
+      font-weight: 720;
+      letter-spacing: 0;
+    }
+
+    .physics-brand p {
+      color: var(--dim);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .physics-status {
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .template-chip {
+      min-height: 68px;
+      padding: 8px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.7);
+      border-color: rgba(26, 49, 47, 0.12);
+      box-shadow: 0 10px 26px rgba(45, 67, 60, 0.06);
+    }
+
+    .template-chip strong,
+    .template-chip span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .template-chip strong {
+      color: var(--text);
+      font-size: 11px;
+      line-height: 1.2;
+      font-weight: 720;
+    }
+
+    .template-chip span {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .template-chip.is-active {
+      background: rgba(122, 201, 67, 0.14);
+      border-color: rgba(122, 201, 67, 0.46);
+    }
+
+    .template-chip[data-template-id="magnetic-wheel"] {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(122, 201, 67, 0.08));
+    }
+
+    .template-chip[data-template-id="fluid-vortex"] {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(43, 184, 166, 0.11));
+      border-color: rgba(43, 184, 166, 0.18);
+    }
+
+    .template-chip[data-template-id="reaction-diffusion"] {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(217, 164, 49, 0.1));
+      border-color: rgba(217, 164, 49, 0.18);
+    }
+
+    .template-chip[data-template-id="blank-world"] {
+      background:
+        linear-gradient(90deg, rgba(43, 137, 118, 0.06) 1px, transparent 1px),
+        linear-gradient(rgba(43, 137, 118, 0.05) 1px, transparent 1px),
+        rgba(255, 255, 255, 0.78);
+      background-size: 14px 14px, 14px 14px, auto;
+      border-style: dashed;
+      border-color: rgba(43, 137, 118, 0.28);
+    }
+
+    .template-chip[data-template-id="fluid-vortex"].is-active {
+      background: linear-gradient(135deg, rgba(43, 184, 166, 0.16), rgba(255, 255, 255, 0.78));
+      border-color: rgba(43, 184, 166, 0.46);
+    }
+
+    .template-chip[data-template-id="reaction-diffusion"].is-active {
+      background: linear-gradient(135deg, rgba(217, 164, 49, 0.16), rgba(255, 255, 255, 0.78));
+      border-color: rgba(217, 164, 49, 0.42);
+    }
+
+    .template-chip[data-template-id="blank-world"].is-active {
+      background:
+        linear-gradient(90deg, rgba(43, 137, 118, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(43, 137, 118, 0.07) 1px, transparent 1px),
+        rgba(255, 255, 255, 0.86);
+      background-size: 12px 12px, 12px 12px, auto;
+      border-color: rgba(43, 137, 118, 0.46);
+    }
+
+    .physics-name {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .builder-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: end;
+    }
+
+    .builder-row textarea {
+      min-height: 68px;
+      resize: vertical;
+    }
+
+    .builder-row button {
+      min-width: 74px;
+      height: 100%;
+    }
+
+    .control-stack,
+    .readout-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .physics-control {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .physics-control input {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .readout-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .readout {
+      min-height: 54px;
+      padding: 8px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .readout strong,
+    .readout span {
+      display: block;
+    }
+
+    .readout strong {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .readout span {
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 720;
+      line-height: 1.2;
+    }
+
+    .physics-actions {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .physics-actions button {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .physics-canvas-wrap {
+      position: relative;
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    #physics-canvas {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      display: block;
+    }
+
+    #field-canvas {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      display: block;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: 0.2;
+    }
+
+    .physics-note {
+      margin: 0;
+      color: rgba(243, 243, 236, 0.56);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .physics-spec-preview {
+      max-height: 172px;
+    }
+
+    @media (max-width: 820px) {
+      html,
+      body {
+        overflow: auto;
+      }
+
+      .physics-stage {
+        position: static;
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 58vh) minmax(320px, 42vh);
+        min-height: 100vh;
+      }
+
+      .physics-panel {
+        border-right: 0;
+        border-bottom: 1px solid rgba(26, 49, 47, 0.1);
+        max-height: 58vh;
+        overflow: auto;
+        padding: 18px;
+      }
+
+      .physics-canvas-wrap,
+      #physics-canvas {
+        min-height: 42vh;
+      }
+
+      .physics-actions,
+      .builder-row {
+        grid-template-columns: 1fr;
+      }
+
+      .template-chip {
+        min-height: 58px;
+        padding: 7px;
+      }
+
+      .builder-row button {
+        height: 34px;
+      }
+    }
   </style>
 </head>
 <body>
-  <canvas id="field" aria-label="Simulatte world canvas"></canvas>
-  <canvas id="field-overlay" aria-hidden="true"></canvas>
-
-  <section id="hud" class="panel" aria-label="Simulatte controls">
-    <div class="control-head">
-      <div>
-        <h1 class="brand">Simulatte</h1>
-        <div class="promise">Type a scenario. Run the board.</div>
+  <main class="physics-stage" aria-label="Simulatte physics lab">
+    <section class="physics-panel" aria-label="Simulation creator controls">
+      <div class="physics-brand">
+        <h1>Simulatte</h1>
+        <p>Describe a physical world, generate its modules and objects, edit the forces, run it live, and export the exact simulation spec.</p>
+        <span id="lab-state" class="physics-status">loading creator</span>
       </div>
-      <div id="status" class="status" data-kind="ok">Ready</div>
-    </div>
 
-    <form id="scenario-form" class="scenario-form">
-      <label for="scenario-prompt">
-        Prompt
-        <textarea id="scenario-prompt" spellcheck="true">simulate a transit strike during a heatwave</textarea>
+      <div class="template-grid" aria-label="Simulation seeds">
+        <button class="template-chip" type="button" data-template-id="magnetic-wheel">
+          <strong>Machine Seed</strong>
+          <span>Solar slider, rotor magnets, load, and energy ledger.</span>
+        </button>
+        <button class="template-chip" type="button" data-template-id="fluid-vortex">
+          <strong>Flow Seed</strong>
+          <span>Inlet flow, viscosity, wake, turbulence, and pressure.</span>
+        </button>
+        <button class="template-chip" type="button" data-template-id="reaction-diffusion">
+          <strong>Reaction Seed</strong>
+          <span>Feed, kill, catalyst, diffusion, heat, and fronts.</span>
+        </button>
+        <button class="template-chip" type="button" data-template-id="blank-world">
+          <strong>Blank World</strong>
+          <span>Empty plane with no modules or objects yet.</span>
+        </button>
+      </div>
+
+      <div class="builder-row">
+        <label class="physics-name" for="build-prompt">Build a simulation
+          <textarea id="build-prompt">Build a solar magnetic perpetual motion machine with a wheel, moving magnetic slider, sun-powered actuator, motor load, and energy ledger.</textarea>
+        </label>
+        <button id="build-lab" class="primary-action" type="button">Build</button>
+      </div>
+
+      <label class="physics-name" for="simulation-name">Simulation name
+        <input id="simulation-name" type="text" value="Solar Magnetic Wheel">
       </label>
-      <div class="scenario-examples" aria-label="Scenario examples">
-        <button class="scenario-example" data-example="simulate a transit strike during a heatwave" type="button">Transit</button>
-        <button class="scenario-example" data-example="simulate a housing shortage after a rent spike" type="button">Housing</button>
-        <button class="scenario-example" data-example="simulate a power outage after a storm" type="button">Power</button>
-        <button class="scenario-example" data-example="simulate agents trading during a resource shortage" type="button">Agents</button>
-      </div>
-      <div class="action-row" aria-label="Run controls">
-        <button id="run-simulation" class="primary-action" type="submit">Run</button>
-        <button id="step-simulation" type="button">Step</button>
-        <button id="pause-simulation" type="button">Pause</button>
-        <button id="reset-run" type="button">Reset</button>
-      </div>
-    </form>
 
-    <div id="boardObjects" class="board-objects" aria-label="Board objects"></div>
+      <div id="control-stack" class="control-stack" aria-label="Editable simulation parameters"></div>
 
-    <div class="metric-grid" aria-label="Run metrics">
-      <div class="metric"><strong>Step</strong><span id="metric-step">0</span></div>
-      <div class="metric"><strong>Load</strong><span id="metric-load">0</span></div>
-      <div class="metric"><strong>Cover</strong><span id="metric-coverage">0</span></div>
-      <div class="metric"><strong>Trust</strong><span id="metric-trust">0</span></div>
-    </div>
-
-    <section class="trace-inline" aria-live="polite">
-      <div class="trace-inline-head">
-        <h2 class="trace-title">Trace</h2>
-        <p id="roomState" class="room-state">Draft</p>
+      <div class="physics-actions">
+        <button id="pause-lab" class="primary-action" type="button">Pause</button>
+        <button id="reset-lab" type="button">Reset</button>
+        <button id="remix-lab" type="button">Remix</button>
+        <button id="export-lab" type="button">Export</button>
+        <button id="import-lab" type="button">Import</button>
       </div>
-      <p id="replaySummary" class="replay-summary">Run the board.</p>
-      <div id="replayList" class="replay-list"></div>
+
+      <div class="readout-grid" aria-label="Physics readouts">
+        <div class="readout"><strong id="readout-1-label">RPM</strong><span id="readout-1">0</span></div>
+        <div class="readout"><strong id="readout-2-label">Torque</strong><span id="readout-2">0</span></div>
+        <div class="readout"><strong id="readout-3-label">Solar</strong><span id="readout-3">0</span></div>
+        <div class="readout"><strong id="readout-4-label">Load</strong><span id="readout-4">0</span></div>
+        <div class="readout"><strong id="readout-5-label">Actuator</strong><span id="readout-5">0</span></div>
+        <div class="readout"><strong id="readout-6-label">Balance</strong><span id="readout-6">0</span></div>
+      </div>
+
+      <pre id="spec-preview" class="spec-preview physics-spec-preview" aria-label="Current simulation spec">loading spec</pre>
+
+      <p class="physics-note">Seed buttons are starting points. The builder creates composed worlds from modules, objects, forces, materials, sources, and sinks.</p>
     </section>
 
-    <details>
-      <summary>Setup and room</summary>
-      <div class="setup-grid" aria-label="Board fields">
-        <label class="wide" for="scenario-title">
-          Title
-          <input id="scenario-title" type="text" value="Transit Strike During Heatwave">
-        </label>
-        <label for="scenario-actors">
-          Actors
-          <textarea id="scenario-actors"></textarea>
-        </label>
-        <label for="scenario-resources">
-          Resources
-          <textarea id="scenario-resources"></textarea>
-        </label>
-        <label for="scenario-rules">
-          Rules
-          <textarea id="scenario-rules"></textarea>
-        </label>
-        <label for="scenario-shocks">
-          Shocks
-          <textarea id="scenario-shocks"></textarea>
-        </label>
-        <label class="wide" for="scenario-goals">
-          Goals
-          <textarea id="scenario-goals"></textarea>
-        </label>
-      </div>
-      <div class="utility-row room-tools" aria-label="Room tools">
-        <button id="apply-setup" type="button">Apply</button>
-        <button id="save-scenario" type="button">Save Room</button>
-        <button id="export-scenario" type="button">Export</button>
-        <button id="import-scenario" type="button">Import</button>
-      </div>
-    </details>
+    <section class="physics-canvas-wrap" aria-label="Live simulation canvas">
+      <canvas id="field-canvas" aria-hidden="true"></canvas>
+      <canvas id="physics-canvas" aria-label="Simulatte physics canvas"></canvas>
+    </section>
+  </main>
 
-  </section>
-
-  <div class="copyright">Simulatte</div>
-
-  <script defer src="./js/simulatte-world.js"></script>
+  <script defer src="./js/simulatte-particle-field.js"></script>
+  <script defer src="./js/simulatte-physics-lab.js"></script>
 </body>
 </html>
