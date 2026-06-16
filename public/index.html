@@ -7,7 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <style>
     :root {
-      --bg: #f7faf5;
+      --bg: #ffffff;
       --panel: rgba(255, 255, 255, 0.74);
       --panel-strong: rgba(255, 255, 255, 0.92);
       --border: rgba(26, 49, 47, 0.12);
@@ -46,9 +46,9 @@
 
     body {
       background:
-        linear-gradient(90deg, rgba(39, 93, 79, 0.045) 1px, transparent 1px),
-        linear-gradient(rgba(39, 93, 79, 0.04) 1px, transparent 1px),
-        linear-gradient(135deg, #fbfcf8 0%, #eef8f4 54%, #f8fbf4 100%);
+        linear-gradient(90deg, rgba(39, 93, 79, 0.035) 1px, transparent 1px),
+        linear-gradient(rgba(39, 93, 79, 0.03) 1px, transparent 1px),
+        #ffffff;
       background-size: 32px 32px, 32px 32px, auto;
     }
 
@@ -681,9 +681,13 @@
       inset: 0;
       z-index: 1;
       display: grid;
-      grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
       min-height: 100vh;
-      background: linear-gradient(135deg, #fbfcf8 0%, #eef8f4 50%, #f8fbf4 100%);
+      background:
+        linear-gradient(90deg, rgba(39, 93, 79, 0.035) 1px, transparent 1px),
+        linear-gradient(rgba(39, 93, 79, 0.03) 1px, transparent 1px),
+        #ffffff;
+      background-size: 32px 32px, 32px 32px, auto;
     }
 
     .physics-panel {
@@ -691,9 +695,9 @@
       z-index: 2;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       overflow: auto;
-      padding: 22px;
+      padding: 16px;
       border-right: 1px solid rgba(26, 49, 47, 0.1);
       background: rgba(255, 255, 255, 0.76);
       box-shadow: 18px 0 70px rgba(43, 66, 57, 0.11);
@@ -714,40 +718,125 @@
       }
     }
 
-    .physics-brand {
-      display: grid;
-      gap: 6px;
-    }
-
-    .physics-brand h1,
-    .physics-brand p {
+    .physics-brand h1 {
       margin: 0;
     }
 
     .physics-brand h1 {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 720;
       letter-spacing: 0;
     }
 
-    .physics-brand p {
-      color: var(--dim);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
     .physics-status {
-      color: var(--teal);
-      font-size: 11px;
-      font-weight: 650;
-      letter-spacing: 0;
-      text-transform: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
 
     .template-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 7px;
+    }
+
+    .example-row {
+      display: grid;
+      grid-template-columns: repeat(6, 34px);
+      gap: 7px;
+    }
+
+    .component-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .example-chip,
+    .component-chip {
+      min-height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(26, 49, 47, 0.12);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 680;
+      box-shadow: 0 8px 24px rgba(45, 67, 60, 0.055);
+    }
+
+    .example-chip {
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+
+    .example-chip.is-active {
+      background: rgba(122, 201, 67, 0.18);
+      border-color: rgba(122, 201, 67, 0.42);
+    }
+
+    .component-stack {
+      min-height: 40px;
+      align-items: center;
+    }
+
+    .component-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      color: rgba(23, 32, 29, 0.68);
+      font-size: 11px;
+      box-shadow: none;
+    }
+
+    .component-chip.is-domain {
+      color: rgba(28, 109, 94, 0.86);
+      background: rgba(43, 184, 166, 0.1);
+      border-color: rgba(43, 184, 166, 0.18);
+    }
+
+    .component-chip.is-source {
+      background: rgba(122, 201, 67, 0.12);
+      border-color: rgba(122, 201, 67, 0.2);
+    }
+
+    .component-chip.is-controller,
+    .component-chip.is-sensor,
+    .component-chip.is-process {
+      background: rgba(108, 143, 236, 0.11);
+      border-color: rgba(108, 143, 236, 0.2);
+      color: rgba(45, 71, 145, 0.72);
+    }
+
+    .component-chip.is-field,
+    .component-chip.is-material {
+      background: rgba(174, 122, 238, 0.1);
+      border-color: rgba(174, 122, 238, 0.18);
+      color: rgba(91, 58, 139, 0.7);
+    }
+
+    .component-chip.is-actor {
+      background: rgba(246, 176, 82, 0.13);
+      border-color: rgba(246, 176, 82, 0.22);
+      color: rgba(118, 77, 20, 0.72);
+    }
+
+    .component-chip.is-sink,
+    .component-chip.is-loss {
+      background: rgba(231, 114, 95, 0.1);
+      border-color: rgba(231, 114, 95, 0.18);
+    }
+
+    .component-chip.is-empty {
+      border-style: dashed;
+      color: rgba(23, 32, 29, 0.46);
     }
 
     .template-chip {
@@ -840,19 +929,32 @@
 
     .builder-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 7px;
+      grid-template-columns: 1fr;
+      gap: 8px;
       align-items: end;
     }
 
     .builder-row textarea {
-      min-height: 68px;
+      min-height: 136px;
       resize: vertical;
+      border-radius: 16px;
+      font-size: 16px;
+      line-height: 1.36;
     }
 
     .builder-row button {
       min-width: 74px;
-      height: 100%;
+      height: 42px;
+      border-radius: 999px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
 
     .control-stack,
@@ -906,13 +1008,40 @@
 
     .physics-actions {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
     }
 
     .physics-actions button {
       min-width: 0;
       width: 100%;
+    }
+
+    .physics-footer {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid rgba(26, 49, 47, 0.08);
+      color: rgba(23, 32, 29, 0.42);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .physics-footer a {
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font-size: inherit;
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    .physics-footer a:hover {
+      background: transparent;
+      box-shadow: none;
+      color: rgba(28, 109, 94, 0.88);
+      transform: none;
     }
 
     .physics-canvas-wrap {
@@ -939,8 +1068,8 @@
       min-height: 100vh;
       display: block;
       pointer-events: none;
-      mix-blend-mode: multiply;
-      opacity: 0.2;
+      mix-blend-mode: screen;
+      opacity: 0.88;
     }
 
     .physics-note {
@@ -954,6 +1083,23 @@
       max-height: 172px;
     }
 
+    .intent-details {
+      border-top: 1px solid var(--border);
+      padding-top: 9px;
+    }
+
+    .intent-details > * + * {
+      margin-top: 11px;
+    }
+
+    .intent-details summary {
+      color: rgba(23, 32, 29, 0.54);
+      font-size: 12px;
+      font-weight: 680;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
     @media (max-width: 820px) {
       html,
       body {
@@ -963,26 +1109,34 @@
       .physics-stage {
         position: static;
         grid-template-columns: 1fr;
-        grid-template-rows: minmax(0, 58vh) minmax(320px, 42vh);
+        grid-template-rows: auto minmax(420px, 1fr);
         min-height: 100vh;
       }
 
       .physics-panel {
         border-right: 0;
         border-bottom: 1px solid rgba(26, 49, 47, 0.1);
-        max-height: 58vh;
+        max-height: none;
         overflow: auto;
         padding: 18px;
       }
 
       .physics-canvas-wrap,
       #physics-canvas {
-        min-height: 42vh;
+        min-height: 420px;
       }
 
-      .physics-actions,
       .builder-row {
         grid-template-columns: 1fr;
+      }
+
+      .physics-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .component-chip:nth-child(n+10) {
+        display: none;
       }
 
       .template-chip {
@@ -1001,62 +1155,52 @@
     <section class="physics-panel" aria-label="Simulation creator controls">
       <div class="physics-brand">
         <h1>Simulatte</h1>
-        <p>Describe a physical world, generate its modules and objects, edit the forces, run it live, and export the exact simulation spec.</p>
-        <span id="lab-state" class="physics-status">loading creator</span>
+        <span id="lab-state" class="physics-status" aria-live="polite">loading creator</span>
       </div>
 
-      <div class="template-grid" aria-label="Simulation seeds">
-        <button class="template-chip" type="button" data-template-id="magnetic-wheel">
-          <strong>Machine Seed</strong>
-          <span>Solar slider, rotor magnets, load, and energy ledger.</span>
-        </button>
-        <button class="template-chip" type="button" data-template-id="fluid-vortex">
-          <strong>Flow Seed</strong>
-          <span>Inlet flow, viscosity, wake, turbulence, and pressure.</span>
-        </button>
-        <button class="template-chip" type="button" data-template-id="reaction-diffusion">
-          <strong>Reaction Seed</strong>
-          <span>Feed, kill, catalyst, diffusion, heat, and fronts.</span>
-        </button>
-        <button class="template-chip" type="button" data-template-id="blank-world">
-          <strong>Blank World</strong>
-          <span>Empty plane with no modules or objects yet.</span>
-        </button>
+      <div class="example-row" aria-label="Example prompts">
+        <button class="example-chip" type="button" aria-label="Seed W" data-example-prompt="sunlit rotor with alternating magnets, moving slider, solar input, load torque, bearing drag, and conservation meter" data-example-params='{"irradiance":1040,"magneticStrength":0.9,"sliderAmplitude":0.68,"sliderPhase":0.12,"loadTorque":0.28,"friction":0.055,"driveTiming":0.64}'>W</button>
+        <button class="example-chip" type="button" aria-label="Seed X" data-example-prompt="dry pine litter combustion with a wind band, smoke lift, water line, rock break, damp pockets, and thermal spread" data-example-params='{"combustibility":0.88,"moisture":0.18,"windSpeed":0.52,"flowRate":0.38,"heatTransfer":0.74,"opacity":0.62,"damping":0.07}'>X</button>
+        <button class="example-chip" type="button" aria-label="Seed Y" data-example-prompt="collimated white beam through glass lens, prism, mirror rail, sensor plane, refractive split, and prismatic rays" data-example-params='{"lightIntensity":0.92,"refractiveIndex":1.68,"opacity":0.08,"fieldStrength":0.62,"heatTransfer":0.14,"signalNoise":0.04}'>Y</button>
+        <button class="example-chip" type="button" aria-label="Seed Z" data-example-prompt="rush-hour service loop with signal delay, power feeder, demand queue, load zone, noisy packets, and throughput meter" data-example-params='{"queueBacklog":0.78,"serviceRate":0.42,"marketDemand":0.74,"networkLatency":0.44,"signalDelay":0.32,"signalNoise":0.18}'>Z</button>
+        <button class="example-chip" type="button" aria-label="Seed P" data-example-prompt="steep rain channel cutting sand and soil around rock ridges with water flow, erosion, sediment fan, and gravity slope" data-example-params='{"flowRate":0.82,"erosionRate":0.62,"terrainSlope":0.54,"gravity":0.18,"granularFriction":0.32,"moisture":0.76}'>P</button>
+        <button class="example-chip" type="button" aria-label="Seed Q" data-example-prompt="water air rock wood metal glass magnetized metal gravity heat diffusion sample tray" data-example-params='{"density":0.74,"hardness":0.76,"conductivity":0.72,"magnetization":0.68,"refractiveIndex":1.58,"moisture":0.66,"heatTransfer":0.45}'>Q</button>
       </div>
 
       <div class="builder-row">
-        <label class="physics-name" for="build-prompt">Build a simulation
-          <textarea id="build-prompt">Build a solar magnetic perpetual motion machine with a wheel, moving magnetic slider, sun-powered actuator, motor load, and energy ledger.</textarea>
+        <label class="physics-name" for="build-prompt">
+          <span class="sr-only">Prompt</span>
+          <textarea id="build-prompt" data-example-params='{"irradiance":1040,"magneticStrength":0.9,"sliderAmplitude":0.68,"sliderPhase":0.12,"loadTorque":0.28,"friction":0.055,"driveTiming":0.64}'>sunlit rotor with alternating magnets, moving slider, solar input, load torque, bearing drag, and conservation meter</textarea>
         </label>
-        <button id="build-lab" class="primary-action" type="button">Build</button>
+        <button id="build-lab" class="primary-action" type="button">Run</button>
       </div>
 
-      <label class="physics-name" for="simulation-name">Simulation name
-        <input id="simulation-name" type="text" value="Solar Magnetic Wheel">
-      </label>
+      <input id="simulation-name" type="hidden" value="">
 
-      <div id="control-stack" class="control-stack" aria-label="Editable simulation parameters"></div>
+      <details class="intent-details">
+        <summary>more</summary>
+        <div id="component-stack" class="component-stack" aria-label="Resolved components"></div>
+        <div class="readout-grid" aria-label="Physics readouts">
+          <div class="readout"><strong id="readout-1-label">RPM</strong><span id="readout-1">0</span></div>
+          <div class="readout"><strong id="readout-2-label">Torque</strong><span id="readout-2">0</span></div>
+          <div class="readout"><strong id="readout-3-label">Solar</strong><span id="readout-3">0</span></div>
+          <div class="readout"><strong id="readout-4-label">Load</strong><span id="readout-4">0</span></div>
+          <div class="readout"><strong id="readout-5-label">Actuator</strong><span id="readout-5">0</span></div>
+          <div class="readout"><strong id="readout-6-label">Balance</strong><span id="readout-6">0</span></div>
+        </div>
+        <div class="physics-actions">
+          <button id="pause-lab" class="primary-action" type="button">Pause</button>
+          <button id="remix-lab" type="button">Remix</button>
+          <button id="export-lab" type="button">Export</button>
+          <button id="import-lab" type="button">Import</button>
+        </div>
+        <div id="control-stack" class="control-stack" aria-label="Intent component parameters"></div>
+        <pre id="spec-preview" class="spec-preview physics-spec-preview" aria-label="Current simulation spec">loading spec</pre>
+      </details>
 
-      <div class="physics-actions">
-        <button id="pause-lab" class="primary-action" type="button">Pause</button>
-        <button id="reset-lab" type="button">Reset</button>
-        <button id="remix-lab" type="button">Remix</button>
-        <button id="export-lab" type="button">Export</button>
-        <button id="import-lab" type="button">Import</button>
-      </div>
-
-      <div class="readout-grid" aria-label="Physics readouts">
-        <div class="readout"><strong id="readout-1-label">RPM</strong><span id="readout-1">0</span></div>
-        <div class="readout"><strong id="readout-2-label">Torque</strong><span id="readout-2">0</span></div>
-        <div class="readout"><strong id="readout-3-label">Solar</strong><span id="readout-3">0</span></div>
-        <div class="readout"><strong id="readout-4-label">Load</strong><span id="readout-4">0</span></div>
-        <div class="readout"><strong id="readout-5-label">Actuator</strong><span id="readout-5">0</span></div>
-        <div class="readout"><strong id="readout-6-label">Balance</strong><span id="readout-6">0</span></div>
-      </div>
-
-      <pre id="spec-preview" class="spec-preview physics-spec-preview" aria-label="Current simulation spec">loading spec</pre>
-
-      <p class="physics-note">Seed buttons are starting points. The builder creates composed worlds from modules, objects, forces, materials, sources, and sinks.</p>
+      <footer class="physics-footer">
+        <a href="https://d4da.com/" rel="noopener">d4da.com</a>
+      </footer>
     </section>
 
     <section class="physics-canvas-wrap" aria-label="Live simulation canvas">
@@ -1066,6 +1210,12 @@
   </main>
 
   <script defer src="./js/simulatte-particle-field.js"></script>
+  <script defer src="./js/simulatte-physics-catalog.js"></script>
+  <script defer src="./js/simulatte-intent-classifier.js"></script>
+  <script defer src="./js/simulatte-composition-graph.js"></script>
+  <script defer src="./js/simulatte-world-plan.js"></script>
+  <script defer src="./js/simulatte-physics-model.js"></script>
+  <script defer src="./js/simulatte-physics-renderer.js"></script>
   <script defer src="./js/simulatte-physics-lab.js"></script>
 </body>
 </html>

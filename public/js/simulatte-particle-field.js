@@ -3,7 +3,8 @@
   root.SimulatteParticleField = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createParticleFieldApi() {
   const PARTICLE_STRIDE = 6;
-  const DEFAULT_COUNT = 520;
+  const INSTANCE_STRIDE = 8;
+  const DEFAULT_COUNT = 420;
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -19,10 +20,27 @@
   }
 
   function colorForKind(kind, alpha) {
-    if (kind === 1) return `rgba(255, 128, 111, ${alpha})`;
-    if (kind === 2) return `rgba(107, 224, 195, ${alpha})`;
-    if (kind === 3) return `rgba(246, 200, 95, ${alpha})`;
-    return `rgba(215, 255, 111, ${alpha})`;
+    if (kind === 1) return `hsla(24, 94%, 48%, ${alpha})`;
+    if (kind === 2) return `hsla(194, 92%, 44%, ${alpha})`;
+    if (kind === 3) return `hsla(244, 84%, 58%, ${alpha})`;
+    return `hsla(78, 46%, 36%, ${alpha})`;
+  }
+
+  function materialVisualClass(object, fallbackKind) {
+    const text = [
+      object && object.id,
+      object && object.kind,
+      object && object.material,
+      object && object.role,
+      object && object.shape,
+    ].filter(Boolean).join(' ').toLowerCase();
+    if (/fire|flame|plasma|combust|heat|thermal|smoke|shock/.test(text)) return 1;
+    if (/water|river|fluid|flow|glass|light|lens|prism|ray|air|wind|pool/.test(text)) return 2;
+    if (/magnet|metal|electro|motor|wheel|ledger|sensor|goal|field/.test(text)) return 3;
+    if (/rock|wood|soil|sand|terrain|grain|biomass|fuel/.test(text)) return 0;
+    if (fallbackKind === 'shock') return 1;
+    if (fallbackKind === 'goal') return 3;
+    return 2;
   }
 
   class MagneticParticleField {
@@ -31,7 +49,7 @@
       this.ctx = null;
       this.count = Math.max(160, Math.floor(options.count || DEFAULT_COUNT));
       this.particles = new Float32Array(this.count * PARTICLE_STRIDE);
-      this.instances = new Float32Array(this.count * PARTICLE_STRIDE);
+      this.instances = new Float32Array(this.count * INSTANCE_STRIDE);
       this.attractors = [];
       this.seed = 1;
       this.mode = 'canvas';
@@ -63,9 +81,10 @@
       }
 
       try {
-        const adapter = await navigator.gpu.requestAdapter();
+        const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
         if (!adapter) {
           this.gpuPending = false;
+          this.status = 'Canvas magnetic field: WebGPU adapter unavailable';
           this.ctx = this.canvas.getContext('2d');
           return;
         }
@@ -92,6 +111,7 @@
               @location(1) kind: f32,
               @location(2) alpha: f32,
               @location(3) force: f32,
+              @location(4) axis: vec2f,
             };
 
             @vertex
@@ -101,6 +121,8 @@
               @location(2) kind: f32,
               @location(3) alpha: f32,
               @location(4) force: f32,
+              @location(5) angle: f32,
+              @location(6) stretch: f32,
               @builtin(vertex_index) vertexIndex: u32
             ) -> VsOut {
               var quad = array<vec2f, 6>(
@@ -112,7 +134,9 @@
                 vec2f( 1.0,  1.0)
               );
               let local = quad[vertexIndex];
-              let screen = particlePos + local * radius;
+              let axis = vec2f(cos(angle), sin(angle));
+              let normal = vec2f(-axis.y, axis.x);
+              let screen = particlePos + axis * local.x * radius * stretch + normal * local.y * radius;
               let clip = vec2f(
                 screen.x / max(viewport.size.x, 1.0) * 2.0 - 1.0,
                 1.0 - screen.y / max(viewport.size.y, 1.0) * 2.0
@@ -123,26 +147,43 @@
               out.kind = kind;
               out.alpha = alpha;
               out.force = force;
+              out.axis = axis;
               return out;
+            }
+
+            fn palette(kind: f32, phase: f32) -> vec3f {
+              if (kind > 0.5 && kind < 1.5) {
+                return mix(vec3f(1.0, 0.28, 0.08), vec3f(0.68, 0.04, 0.18), phase);
+              }
+              if (kind > 1.5 && kind < 2.5) {
+                return mix(vec3f(0.03, 0.68, 0.86), vec3f(0.52, 0.88, 1.0), phase);
+              }
+              if (kind > 2.5) {
+                return mix(vec3f(0.28, 0.22, 0.92), vec3f(0.92, 0.22, 0.64), phase);
+              }
+              return mix(vec3f(0.34, 0.42, 0.22), vec3f(0.78, 0.66, 0.38), phase);
             }
 
             @fragment
             fn fs(in: VsOut) -> @location(0) vec4f {
-              let dist = length(in.local);
-              if (dist > 1.0) {
+              let p = in.local;
+              let radial = dot(p, p);
+              if (radial > 1.22) {
                 discard;
               }
-              let core = smoothstep(1.0, 0.0, dist);
-              let glow = smoothstep(1.0, 0.18, dist);
-              var color = vec3f(0.84, 1.0, 0.44);
-              if (in.kind > 0.5 && in.kind < 1.5) {
-                color = vec3f(1.0, 0.50, 0.44);
-              } else if (in.kind > 1.5 && in.kind < 2.5) {
-                color = vec3f(0.42, 0.88, 0.76);
-              } else if (in.kind > 2.5) {
-                color = vec3f(0.96, 0.78, 0.37);
-              }
-              let alpha = in.alpha * (0.18 * glow + 0.82 * core) * (0.72 + in.force * 0.28);
+              let warp = 0.12 * sin(p.x * 7.0 + in.force * 6.28318 + in.axis.x * 2.4);
+              let lane = exp(-abs(p.y + warp) * (5.8 + in.force * 6.4)) * smoothstep(1.04, 0.0, abs(p.x));
+              let core = exp(-radial * (1.6 + in.force * 1.8));
+              let shell = smoothstep(1.18, 0.48, radial) * smoothstep(0.08, 0.82, radial);
+              let wave = 0.5 + 0.5 * sin(p.x * 12.0 + p.y * 5.0 + in.force * 9.0);
+              let spectral = vec3f(
+                0.54 + 0.46 * sin(wave * 6.28318 + in.kind),
+                0.54 + 0.46 * sin(wave * 6.28318 + 2.1 + in.force),
+                0.54 + 0.46 * sin(wave * 6.28318 + 4.2)
+              );
+              let base = palette(in.kind, wave);
+              let color = mix(base, spectral, 0.12 + lane * 0.16 + shell * 0.08);
+              let alpha = in.alpha * (core * 0.22 + lane * 0.58 + shell * 0.14) * (0.62 + in.force * 0.5);
               return vec4f(color, alpha);
             }
           `,
@@ -166,7 +207,7 @@
             entryPoint: 'vs',
             buffers: [
               {
-                arrayStride: PARTICLE_STRIDE * 4,
+                arrayStride: INSTANCE_STRIDE * 4,
                 stepMode: 'instance',
                 attributes: [
                   { shaderLocation: 0, offset: 0, format: 'float32x2' },
@@ -174,6 +215,8 @@
                   { shaderLocation: 2, offset: 12, format: 'float32' },
                   { shaderLocation: 3, offset: 16, format: 'float32' },
                   { shaderLocation: 4, offset: 20, format: 'float32' },
+                  { shaderLocation: 5, offset: 24, format: 'float32' },
+                  { shaderLocation: 6, offset: 28, format: 'float32' },
                 ],
               },
             ],
@@ -209,9 +252,9 @@
         this.mode = 'webgpu';
         this.status = 'WebGPU magnetic field';
         this.gpuPending = false;
-      } catch (_err) {
+      } catch (err) {
         this.mode = 'canvas';
-        this.status = 'Canvas magnetic field';
+        this.status = `Canvas magnetic field: ${err && err.message ? err.message : 'WebGPU init failed'}`;
         this.gpuPending = false;
         this.ctx = this.canvas.getContext('2d');
       }
@@ -264,16 +307,14 @@
       this.attractors = (items || []).map((item) => {
         const object = item.object || {};
         const screen = item.screen || {};
-        let kind = 0;
+        const attractorKind = object.kind;
+        const kind = materialVisualClass(object, attractorKind);
         let charge = 0.42 + load * 0.4;
-        if (object.kind === 'shock') {
-          kind = 1;
+        if (attractorKind === 'shock') {
           charge = object.active ? -1.24 - load * 1.2 : -0.36;
-        } else if (object.kind === 'resource') {
-          kind = 2;
+        } else if (attractorKind === 'resource') {
           charge = 0.72 + stability * 0.9;
-        } else if (object.kind === 'goal') {
-          kind = 3;
+        } else if (attractorKind === 'goal') {
           charge = 0.54 + (1 - coverageGap) * 0.52;
         }
         return {
@@ -281,7 +322,7 @@
           y: Number(screen.y || this.height * 0.5),
           kind,
           charge,
-          radius: object.kind === 'shock' ? 240 : 190,
+          radius: attractorKind === 'shock' ? 240 : 190,
         };
       });
     }
@@ -343,14 +384,16 @@
     fillInstanceBuffer() {
       for (let i = 0; i < this.count; i += 1) {
         const source = i * PARTICLE_STRIDE;
-        const target = i * PARTICLE_STRIDE;
+        const target = i * INSTANCE_STRIDE;
         const force = clamp01(this.particles[source + 5]);
         this.instances[target] = this.particles[source] * this.dpr;
         this.instances[target + 1] = this.particles[source + 1] * this.dpr;
-        this.instances[target + 2] = (1.35 + force * 5.2) * this.dpr;
+        this.instances[target + 2] = (1.9 + force * 7.6) * this.dpr;
         this.instances[target + 3] = this.particles[source + 4];
-        this.instances[target + 4] = 0.18 + force * 0.66;
+        this.instances[target + 4] = 0.08 + force * 0.42;
         this.instances[target + 5] = force;
+        this.instances[target + 6] = Math.atan2(this.particles[source + 3] || 0.01, this.particles[source + 2] || 0.01);
+        this.instances[target + 7] = 2.2 + force * 4.8;
       }
     }
 
@@ -395,13 +438,31 @@
         const index = i * PARTICLE_STRIDE;
         const x = this.particles[index];
         const y = this.particles[index + 1];
+        const vx = this.particles[index + 2];
+        const vy = this.particles[index + 3];
         const kind = this.particles[index + 4];
         const force = clamp01(this.particles[index + 5]);
-        const radius = 0.8 + force * 3.8;
-        this.ctx.fillStyle = colorForKind(kind, 0.08 + force * 0.36);
+        const radius = 1.4 + force * 4.8;
+        const length = radius * (4 + force * 4);
+        const tilt = Math.atan2(vy || 0.01, vx || 0.01);
+        this.ctx.save();
+        this.ctx.translate(x, y);
+        this.ctx.rotate(tilt);
+        const gradient = this.ctx.createLinearGradient(-length, 0, length, 0);
+        gradient.addColorStop(0, colorForKind(kind, 0));
+        gradient.addColorStop(0.5, colorForKind(kind, 0.09 + force * 0.22));
+        gradient.addColorStop(1, colorForKind(kind, 0));
+        this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
-        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.ellipse(0, 0, length, radius, 0, 0, Math.PI * 2);
         this.ctx.fill();
+        this.ctx.strokeStyle = colorForKind(kind, 0.08 + force * 0.2);
+        this.ctx.lineWidth = 0.8 + force * 1.2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(-length * 0.82, Math.sin(i) * radius * 0.2);
+        this.ctx.bezierCurveTo(-length * 0.24, -radius * 0.72, length * 0.24, radius * 0.72, length * 0.82, Math.sin(i + 2) * radius * 0.2);
+        this.ctx.stroke();
+        this.ctx.restore();
       }
       this.ctx.restore();
     }
