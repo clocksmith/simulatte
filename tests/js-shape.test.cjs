@@ -62,6 +62,10 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(renderer, /function drawFluidContinuum/);
   assert.match(renderer, /function drawOpticalContinuum/);
   assert.doesNotMatch(renderer, /drawPrismaticParticleField/);
+  assert.doesNotMatch(renderer, /function draw[A-Z][A-Za-z]+Shape/);
+  assert.doesNotMatch(renderer, /drawFieldSplat/);
+  assert.doesNotMatch(renderer, /\.fillText\(/);
+  assert.doesNotMatch(renderer, /setLineDash/);
   assert.match(field, /const INSTANCE_STRIDE = 8/);
   assert.match(field, /function materialVisualClass/);
   assert.match(field, /@location\(6\) stretch/);
