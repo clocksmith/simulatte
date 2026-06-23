@@ -107,6 +107,33 @@ test('model-backed intent embedder ranks primitives with EmbeddingGemma provenan
   });
 });
 
+test('Doppler model handles normalize URL provenance to the manifest model id', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
+      dopplerModelHandle: {
+        modelId: manifest.embedModel.defaultModelBaseUrl,
+        manifest: {
+          manifestHash: manifest.embedModel.manifestHash,
+        },
+        async embed() {
+          return { embedding: query };
+        },
+      },
+    });
+    const result = await embedder.rankPrompt(
+      'glass lens prism optics bench with a bright beam',
+      lab.PHYSICAL_PRIMITIVES,
+      { max: 8 }
+    );
+
+    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+    assert.equal(result.backend, 'injected-doppler-model');
+    assert.equal(result.priors[0].primitiveId, 'optics-bench');
+  });
+});
+
 test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async () => {
   await withIntentArtifactFetch(async ({ index, surfaceIndex }) => {
     const query = indexedCardVector(surfaceIndex, 'hamster_wheel');
@@ -582,6 +609,11 @@ test('prompt worlds choose distinct regime renderer identities', () => {
       'biological colony with mycelium membrane bacteria growth diffusion and protein gel',
       'biology',
       'biological',
+    ],
+    [
+      'acoustic pressure waves through brass tubes and water',
+      'acoustic',
+      'acoustic',
     ],
   ];
 

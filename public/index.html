@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <script>
+    globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
+      './vendor/doppler/src/gpu/kernels',
+      document.baseURI
+    ).toString().replace(/\/+$/, '');
+  </script>
   <style>
     :root {
       --bg: #ffffff;
@@ -1248,20 +1254,25 @@
     }
 
     .physics-brand h1::before {
-      content: "";
+      content: "\221e";
+      display: grid;
+      place-items: center;
       width: 18px;
       height: 18px;
-      border: 1px solid rgba(74, 58, 92, 0.18);
-      border-radius: 5px;
+      border: 1px solid rgba(74, 58, 92, 0.16);
+      border-radius: 999px;
       background:
-        conic-gradient(
-          from 90deg,
-          rgba(255, 141, 178, 0.9) 0 25%,
-          rgba(255, 205, 133, 0.9) 0 50%,
-          rgba(105, 216, 187, 0.9) 0 75%,
-          rgba(178, 151, 255, 0.9) 0
-        );
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6);
+        radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.58) 62%, rgba(255, 255, 255, 0.18)),
+        linear-gradient(135deg, rgba(255, 141, 178, 0.68), rgba(105, 216, 187, 0.62) 48%, rgba(178, 151, 255, 0.66));
+      box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.58),
+        0 7px 18px rgba(83, 72, 107, 0.14);
+      color: rgba(53, 42, 69, 0.86);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
     }
 
     .example-row {
@@ -1408,8 +1419,7 @@
       transform: translateY(-1px);
     }
 
-    .primary-action.is-loading::after,
-    .intent-runtime[data-state="active"] .intent-runtime-track::after {
+    .primary-action.is-loading::after {
       content: "";
       position: absolute;
       inset: 0;
@@ -1435,32 +1445,15 @@
       border-radius: 8px;
       background-color: rgba(255, 255, 255, 0.68);
       background-image:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.56)),
-        conic-gradient(
-          from 90deg,
-          rgba(255, 141, 178, 0.14) 0 25%,
-          rgba(255, 205, 133, 0.12) 0 50%,
-          rgba(105, 216, 187, 0.13) 0 75%,
-          rgba(178, 151, 255, 0.12) 0
-        );
-      background-size: auto, 22px 22px;
+        linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.58));
       box-shadow: 0 12px 30px rgba(83, 72, 107, 0.08);
     }
 
     .intent-runtime::before {
-      content: "";
+      content: none;
       position: absolute;
       inset: 0 0 auto;
       height: 4px;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          rgba(255, 141, 178, 0.78) 0 12px,
-          rgba(255, 205, 133, 0.76) 12px 24px,
-          rgba(105, 216, 187, 0.74) 24px 36px,
-          rgba(117, 190, 255, 0.74) 36px 48px,
-          rgba(178, 151, 255, 0.76) 48px 60px
-        );
     }
 
     .intent-runtime[data-state="idle"] {
@@ -1500,14 +1493,7 @@
       border: 1px solid rgba(74, 58, 92, 0.12);
       border-radius: 6px;
       background:
-        repeating-linear-gradient(
-          90deg,
-          rgba(255, 141, 178, 0.16) 0 12px,
-          rgba(255, 205, 133, 0.13) 12px 24px,
-          rgba(105, 216, 187, 0.14) 24px 36px,
-          rgba(117, 190, 255, 0.13) 36px 48px,
-          rgba(178, 151, 255, 0.14) 48px 60px
-        );
+        rgba(255, 255, 255, 0.46);
     }
 
     .intent-runtime-fill {
@@ -1516,13 +1502,13 @@
       height: 100%;
       border-radius: 5px;
       background:
-        repeating-linear-gradient(
+        linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.9) 0 14px,
-          rgba(255, 205, 133, 0.88) 14px 28px,
-          rgba(105, 216, 187, 0.88) 28px 42px,
-          rgba(117, 190, 255, 0.86) 42px 56px,
-          rgba(178, 151, 255, 0.88) 56px 70px
+          rgba(255, 141, 178, 0.82),
+          rgba(255, 205, 133, 0.76),
+          rgba(105, 216, 187, 0.78),
+          rgba(117, 190, 255, 0.76),
+          rgba(178, 151, 255, 0.78)
         );
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
@@ -1815,46 +1801,15 @@
         linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.58));
     }
 
-    .intent-runtime > :not(.intent-runtime-mosaic) {
-      position: relative;
-      z-index: 1;
-    }
-
-    .intent-runtime-mosaic {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: inherit;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.42s ease;
-    }
-
-    .intent-runtime[data-state="active"] .intent-runtime-mosaic {
-      opacity: 0.82;
-    }
-
     .intent-runtime::before {
       z-index: 1;
       height: 3px;
-      opacity: 0.42;
-    }
-
-    .intent-runtime[data-state="active"]::before {
-      opacity: 0.7;
+      opacity: 0;
     }
 
     .intent-runtime-track {
       height: 14px;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          rgba(34, 31, 45, 0.035) 0 11px,
-          rgba(34, 31, 45, 0.055) 11px 22px
-        ),
-        rgba(255, 255, 255, 0.46);
+      background: rgba(255, 255, 255, 0.46);
     }
 
     .intent-runtime-fill {
@@ -1993,7 +1948,6 @@
       </div>
 
       <div id="intent-runtime" class="intent-runtime" data-state="idle" aria-live="polite">
-        <canvas id="intent-runtime-mosaic" class="intent-runtime-mosaic" aria-hidden="true"></canvas>
         <div class="intent-runtime-head">
           <strong id="intent-runtime-title">Intent model</strong>
           <span id="intent-runtime-percent" class="intent-runtime-percent">0%</span>

@@ -70,6 +70,7 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(renderer, /function paintMagneticMachineWorld/);
   assert.match(renderer, /function paintMaterialTrayWorld/);
   assert.match(renderer, /function paintBiologyWorld/);
+  assert.match(renderer, /function paintAcousticWorld/);
   assert.doesNotMatch(renderer, /drawPrismaticParticleField/);
   assert.doesNotMatch(renderer, /function draw[A-Z][A-Za-z]+Shape/);
   assert.doesNotMatch(renderer, /drawFieldSplat/);
@@ -92,26 +93,35 @@ test('Doppler residual intent has a strict static contract and no network depend
   assert.match(runtime, /importDopplerModule/);
   assert.match(runtime, /chatText/);
   assert.match(runtime, /DEFAULT_MODULE_URL = '\.\/vendor\/doppler\/src\/index-browser\.js'/);
+  assert.match(runtime, /DEFAULT_KERNEL_BASE_PATH = '\.\/vendor\/doppler\/src\/gpu\/kernels'/);
+  assert.match(runtime, /ensureDopplerKernelBasePath/);
   assert.doesNotMatch(runtime, /DEFAULT_MODULE_URL = '\/doppler\/src\/index-browser\.js'/);
   assert.doesNotMatch(runtime, /http:|https:/);
   assert.match(oldRuntime, /\.\.\/\.\.\/vendor\/doppler\/src\/index-browser\.js/);
   assert.match(html, /simulatte-doppler-intent\.js/);
+  assert.match(html, /__DOPPLER_KERNEL_BASE_PATH__/);
 });
 
-test('physics controls use a soft mosaic loading skin', () => {
+test('physics loading uses a canvas snake board instead of a card mosaic', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
 
   assert.match(html, /--mosaic-pink/);
   assert.match(html, /--mosaic-lilac/);
-  assert.match(html, /intent-runtime-mosaic/);
-  assert.match(html, /conic-gradient/);
+  assert.doesNotMatch(html, /intent-runtime-mosaic/);
+  assert.match(html, /id="physics-canvas"/);
   assert.match(html, /repeating-linear-gradient/);
   assert.match(html, /@keyframes mosaic-drift/);
   assert.match(html, /@keyframes mosaic-sweep/);
-  assert.match(html, /\.intent-runtime\[data-state="active"\] \.intent-runtime-track::after/);
+  assert.doesNotMatch(html, /\.intent-runtime\[data-state="active"\] \.intent-runtime-track::after/);
   assert.match(html, /\.primary-action\.is-loading::after/);
-  assert.match(renderer, /createRuntimeMosaicController/);
+  assert.match(renderer, /createCanvasSnakeLoader/);
+  assert.match(renderer, /drawCanvasLoadingSnakes/);
+  assert.match(renderer, /splitCanvasSnake/);
+  assert.match(renderer, /joinNearbyCanvasSnakes/);
+  assert.match(renderer, /targetTail/);
+  assert.match(renderer, /bitePulse/);
+  assert.match(renderer, /canvasLoader\.setLoading\(loading, percent, stage\)/);
   assert.match(renderer, /runButton\.classList\.toggle\('is-loading', loading\)/);
   assert.match(renderer, /runButton\.setAttribute\('aria-busy'/);
 });
@@ -182,6 +192,9 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(runtime, /navigator\.gpu/);
   assert.match(runtime, /runtimeConfig/);
   assert.match(runtime, /manifestUrl/);
+  assert.match(runtime, /DEFAULT_DOPPLER_KERNEL_BASE_PATH = '\.\/vendor\/doppler\/src\/gpu\/kernels'/);
+  assert.match(runtime, /dopplerKernelBasePath/);
+  assert.match(runtime, /ensureDopplerKernelBasePath/);
   assert.match(runtime, /model-backed intent requires Doppler load/);
   assert.match(runtime, /primitive embedding index/);
   assert.match(runtime, /surface card embedding index/);

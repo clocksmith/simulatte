@@ -7,6 +7,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createIntentEmbedderApi() {
   const DEFAULT_MANIFEST_URL = './models/simulatte-embedder/manifest.json';
   const DEFAULT_DOPPLER_MODULE_URL = './vendor/doppler/src/index-browser.js';
+  const DEFAULT_DOPPLER_KERNEL_BASE_PATH = './vendor/doppler/src/gpu/kernels';
   const DEFAULT_EMBED_MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
 
   function create(options = {}) {
@@ -19,6 +20,7 @@
       this.catalog = options.catalog || null;
       this.modelBaseUrl = options.modelBaseUrl || urlValue('embeddingModelBase') || urlValue('dopplerModelBase') || '';
       this.dopplerModuleUrl = options.dopplerModuleUrl || urlValue('dopplerModule') || '';
+      this.dopplerKernelBasePath = options.dopplerKernelBasePath || urlValue('dopplerKernelBase') || '';
       this.onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
       this.embedProvider = options.embedProvider || null;
       this.dopplerModelHandle = options.dopplerModelHandle || null;
@@ -165,6 +167,7 @@
       const api = await resolveDopplerApi({
         dopplerModule: options.dopplerModule || this.dopplerModule,
         moduleUrl,
+        kernelBasePath: options.dopplerKernelBasePath || this.dopplerKernelBasePath,
       });
       const load = api && (api.load || api.doppler && api.doppler.load);
       if (typeof load !== 'function') {
@@ -645,11 +648,13 @@
           __skipStateSnapshot: true,
         });
       }
+      const provenance = modelHandleProvenance(handle, runtime, backend, modelBaseUrl);
       return withEmbeddingProvenance({
         embedding: result && result.embedding,
-        embedModelId: handle.modelId || handle.manifest && handle.manifest.modelId,
-        embedModelHash: handle.manifest && (handle.manifest.modelHash || handle.manifest.manifestHash),
+        embedModelId: provenance.embedModelId,
+        embedModelHash: provenance.embedModelHash,
         modelSource: {
+          ...provenance.modelSource,
           sourceKind: backend,
           modelBaseUrl,
         },
@@ -663,6 +668,42 @@
         return next;
       },
     };
+  }
+
+  function modelHandleProvenance(handle, runtime, _backend, modelBaseUrl = '') {
+    const expectedModel = runtime.manifest.embedModel;
+    const expectedHash = expectedModel.manifestHash;
+    const handleManifest = handle && handle.manifest || {};
+    const rawModelId = handle && (handle.modelId || handleManifest.modelId) || '';
+    const rawHash = handleManifest.modelHash || handleManifest.manifestHash || handleManifest.hash || null;
+    const normalizedSource = normalizeModelSource(modelBaseUrl || rawModelId);
+    const expectedSource = normalizeModelSource(expectedModel.defaultModelBaseUrl);
+    const rawSourceMatches = normalizedSource && expectedSource && normalizedSource === expectedSource;
+    const rawIdMatches = String(rawModelId || '') === expectedModel.id;
+    const rawHashMatches = !rawHash || hashHex(rawHash) === hashHex(expectedHash);
+    if (!rawHashMatches) {
+      return {
+        embedModelId: rawModelId,
+        embedModelHash: rawHash,
+        modelSource: { rawModelId, rawEmbedModelHash: rawHash },
+      };
+    }
+    if (rawSourceMatches || rawIdMatches || (rawHash && rawHashMatches)) {
+      return {
+        embedModelId: expectedModel.id,
+        embedModelHash: expectedHash,
+        modelSource: { rawModelId, rawEmbedModelHash: rawHash },
+      };
+    }
+    return {
+      embedModelId: rawModelId,
+      embedModelHash: rawHash,
+      modelSource: { rawModelId, rawEmbedModelHash: rawHash },
+    };
+  }
+
+  function normalizeModelSource(value) {
+    return String(value || '').trim().replace(/\/+$/, '');
   }
 
   function withEmbeddingProvenance(result, runtime) {
@@ -687,12 +728,24 @@
     const moduleUrl = typeof location === 'undefined'
       ? rawModuleUrl
       : resolveUrl(rawModuleUrl, location.href);
+    ensureDopplerKernelBasePath(options.kernelBasePath);
     try {
       const mod = await import(moduleUrl);
       return mod.doppler || mod.default || mod;
     } catch (err) {
       throw new Error(`Doppler module import failed from ${moduleUrl}: ${err && err.message ? err.message : String(err)}`);
     }
+  }
+
+  function ensureDopplerKernelBasePath(rawKernelBasePath = '') {
+    if (typeof globalThis === 'undefined') return;
+    const existing = globalThis.__DOPPLER_KERNEL_BASE_PATH__;
+    if (typeof existing === 'string' && existing.trim()) return;
+    const rawPath = rawKernelBasePath || DEFAULT_DOPPLER_KERNEL_BASE_PATH;
+    const resolvedPath = typeof location === 'undefined'
+      ? rawPath
+      : resolveUrl(rawPath, location.href);
+    globalThis.__DOPPLER_KERNEL_BASE_PATH__ = resolvedPath.replace(/\/+$/, '');
   }
 
   function globalDopplerApi() {

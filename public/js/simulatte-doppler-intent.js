@@ -7,6 +7,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDopplerIntentApi() {
   const DOPPLER_INTENT_SCHEMA = 'simulatte.dopplerIntentHints.v1';
   const DEFAULT_MODULE_URL = './vendor/doppler/src/index-browser.js';
+  const DEFAULT_KERNEL_BASE_PATH = './vendor/doppler/src/gpu/kernels';
 
   function normalizeDopplerIntent(input, primitives = []) {
     if (!input || typeof input !== 'object') return null;
@@ -114,11 +115,23 @@
   async function importDopplerModule(options = {}) {
     const moduleUrl = options.dopplerModuleUrl || urlValue('dopplerModule') || DEFAULT_MODULE_URL;
     try {
+      ensureDopplerKernelBasePath(options.dopplerKernelBasePath || urlValue('dopplerKernelBase'));
       const mod = await import(moduleUrl);
       return mod.doppler || mod.default || mod;
     } catch (_err) {
       return null;
     }
+  }
+
+  function ensureDopplerKernelBasePath(rawKernelBasePath = '') {
+    if (typeof globalThis === 'undefined') return;
+    const existing = globalThis.__DOPPLER_KERNEL_BASE_PATH__;
+    if (typeof existing === 'string' && existing.trim()) return;
+    const rawPath = rawKernelBasePath || DEFAULT_KERNEL_BASE_PATH;
+    const resolvedPath = typeof location === 'undefined'
+      ? rawPath
+      : new URL(rawPath, location.href).toString();
+    globalThis.__DOPPLER_KERNEL_BASE_PATH__ = resolvedPath.replace(/\/+$/, '');
   }
 
   async function runDopplerText(doppler, prompt, options = {}) {
