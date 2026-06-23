@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "source": "models/catalog.json",
+  "models": [
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "aliases": [
+        "gemma3-270m",
+        "google/gemma-3-270m-it",
+        "gemma-3-270m-it-wq4k-ef16",
+        "gemma-3-270m-it-wq4k-ef16-hf16",
+        "gemma-3-270m-it-wq4k-ef16-hf16-f32"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+        "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+      }
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/embeddinggemma-300m",
+      "weightPackId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "aliases": [
+        "embeddinggemma-300m",
+        "google/embeddinggemma-300m",
+        "google-embeddinggemma-300m-wq4k-ef16"
+      ],
+      "modes": [
+        "embedding"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
+        "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
+      }
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/gemma-3-1b-it",
+      "weightPackId": "gemma-3-1b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-1b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "aliases": [
+        "gemma3-1b",
+        "google/gemma-3-1b-it",
+        "gemma-3-1b-it-wq4k-ef16-hf16"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "7c3d30e300bcb02cbd68fb0db3eee64fbf738f99",
+        "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
+      }
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "aliases": [
+        "gemma4-e2b",
+        "google/gemma-4-e2b-it"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "2070777c77047d54e6eae105f6dcb1891cf6f21a",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
+      }
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "aliases": [
+        "gemma4-e2b-int4ple",
+        "gemma-4-e2b-int4ple"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "dbb354acb00108965c5324ca7b6fecc198d12501",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+      }
+    }
+  ]
+}

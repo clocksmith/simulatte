@@ -19,6 +19,6 @@
 
 if (typeof window !== 'undefined') {
   window.addEventListener('DOMContentLoaded', () => {
-    window.SimulattePhysicsLab.start();
+    window.SimulattePhysicsLab._browserLab = window.SimulattePhysicsLab.start();
   });
 }

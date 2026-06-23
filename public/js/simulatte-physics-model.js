@@ -2,25 +2,33 @@
   const catalog = typeof module === 'object' && module.exports
     ? require('./simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
-  const planner = typeof module === 'object' && module.exports
-    ? require('./simulatte-world-plan.js')
-    : root.SimulatteWorldPlan;
   const composer = typeof module === 'object' && module.exports
     ? require('./simulatte-composition-graph.js')
     : root.SimulatteCompositionGraph;
   const classifier = typeof module === 'object' && module.exports
     ? require('./simulatte-intent-classifier.js')
     : root.SimulatteIntentClassifier;
-  const api = factory(catalog, planner, composer, classifier);
+  const semantic = typeof module === 'object' && module.exports
+    ? require('./simulatte-semantic-rag.js')
+    : root.SimulatteSemanticRag;
+  const doppler = typeof module === 'object' && module.exports
+    ? require('./simulatte-doppler-intent.js')
+    : root.SimulatteDopplerIntent;
+  const graphSynthesis = typeof module === 'object' && module.exports
+    ? require('./simulatte-graph-synthesis.js')
+    : root.SimulatteGraphSynthesis;
+  const api = factory(catalog, composer, classifier, semantic, doppler, graphSynthesis);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulattePhysicsModel = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPhysicsModel(
   catalog,
-  planner = {},
   composer = {},
-  classifier = {}
+  classifier = {},
+  semantic = {},
+  doppler = {},
+  graphSynthesis = {}
 ) {
   const {
     CONTROL_LIBRARY,
@@ -57,7 +65,6 @@
     withPrimitiveDependencies,
     wrapAngle,
   } = catalog;
-  const { PLAN_SCHEMA, buildWorldPlan } = planner || {};
   const {
     COMPOSITION_SCHEMA,
     RENDER_PROGRAM_SCHEMA,
@@ -71,6 +78,20 @@
     classifyIntentPrompt,
     rankPrimitivesForClassification,
   } = classifier || {};
+  const {
+    SEMANTIC_RAG_SCHEMA,
+    buildPrimitiveProgram,
+    createSemanticRag,
+  } = semantic || {};
+  const {
+    DOPPLER_INTENT_SCHEMA,
+    normalizeDopplerIntent,
+  } = doppler || {};
+  const {
+    SYNTHESIS_SCHEMA,
+    groundedPrimitiveRows,
+    synthesizeWorldIntent,
+  } = graphSynthesis || {};
 
   function createSpec(templateId = 'magnetic-wheel', overrides = {}) {
     const template = templateById(templateId);
@@ -106,7 +127,9 @@
         ? compileCompositionToRenderProgram(spec.compositionGraph, spec)
         : null
     );
-    spec.worldPlan = overrides.worldPlan || null;
+    spec.physicalSpec = overrides.physicalSpec || (
+      spec.contract && spec.contract.graph ? compilePhysicalSpec(spec) : null
+    );
     return spec;
   }
 
@@ -129,10 +152,117 @@
       ),
       compositionGraph: raw.compositionGraph || null,
       renderProgram: raw.renderProgram || null,
-      worldPlan: raw.worldPlan || null,
+      physicalSpec: raw.physicalSpec || null,
       createdAt: raw.createdAt || new Date(0).toISOString(),
       remixOf: raw.remixOf || '',
     });
+  }
+
+  function compilePhysicalSpec(spec) {
+    const graph = spec.contract && spec.contract.graph || {};
+    const renderProgram = spec.renderProgram || {};
+    const solverPlan = renderProgram.solverPlan || solverPlanForGraph(graph);
+    const nodes = graph.nodes || [];
+    const nodeIdsByType = (type) => nodes.filter((node) => node.nodeType === type).map((node) => node.id);
+    return {
+      schema: 'simulatte.physicalSpec.v1',
+      sourceGraph: graph.schema || '',
+      prompt: spec.intent && spec.intent.prompt || spec.name,
+      materials: graphMaterialMap(nodes),
+      operators: graph.operators || [],
+      stateTextures: uniqueList([
+        ...(solverPlan.state || []),
+        ...nodes.flatMap((node) => node.solverRequirements || []),
+      ]),
+      sources: nodeIdsByType('source'),
+      sinks: nodeIdsByType('sink'),
+      boundaries: nodeIdsByType('boundary'),
+      sensors: nodeIdsByType('sensor'),
+      controllers: nodeIdsByType('controller'),
+      particles: particlePlansForNodes(nodes),
+      fields: renderProgram.fields || [],
+      readouts: spec.contract && spec.contract.readouts || [],
+      renderPasses: renderPassesForSolverPlan(solverPlan),
+      debugViews: debugViewsForGraph(graph),
+      quality: graph.quality || { score: 1, residualTerms: [] },
+      receipt: {
+        classifier: spec.intent && spec.intent.classification ? spec.intent.classification.model.id : '',
+        rerank: spec.intent && spec.intent.rerank ? spec.intent.rerank : null,
+        rag: spec.intent && spec.intent.semanticRag ? spec.intent.semanticRag.model.id : '',
+        doppler: dopplerReceipt(spec.intent && spec.intent.dopplerIntent),
+        synthesis: synthesisReceipt(spec.intent && spec.intent.synthesis),
+        renderer: renderProgram.rendererPlan ? renderProgram.rendererPlan.renderer : '',
+        visualIdentity: renderProgram.provenance ? renderProgram.provenance.visualIdentity || null : null,
+        graphValidation: graph.validation ? graph.validation.status : 'unknown',
+      },
+    };
+  }
+
+  function graphMaterialMap(nodes) {
+    return Object.fromEntries((nodes || [])
+      .filter((node) => node.material)
+      .map((node) => [node.id, node.material]));
+  }
+
+  function solverPlanForGraph(graph) {
+    const regimes = new Set((graph.nodes || []).map((node) => node.visualRegime).filter(Boolean));
+    const families = [];
+    if (regimes.has('fluid')) families.push('particle-advection');
+    if (regimes.has('thermal')) families.push('heat-diffusion');
+    if (regimes.has('optical')) families.push('ray-optics');
+    if (regimes.has('magnetic')) families.push('magnetic-vector-field');
+    if (regimes.has('electrical')) families.push('electric-potential-field');
+    if (regimes.has('granular')) families.push('granular-settling');
+    if (regimes.has('biological')) families.push('growth-diffusion');
+    if (regimes.has('soft')) families.push('membrane-relaxation');
+    if (regimes.has('acoustic')) families.push('wave-equation');
+    if (regimes.has('phase')) families.push('phase-boundary');
+    if (!families.length) families.push('scalar-coupled-state');
+    return { families, state: uniqueList((graph.nodes || []).flatMap((node) => node.solverRequirements || [])) };
+  }
+
+  function particlePlansForNodes(nodes) {
+    return (nodes || [])
+      .filter((node) => node.primitiveProgram)
+      .map((node) => ({
+        nodeId: node.id,
+        visualRegime: node.visualRegime,
+        material: node.primitiveProgram.material,
+        parts: node.primitiveProgram.parts,
+      }));
+  }
+
+  function renderPassesForSolverPlan(plan) {
+    const families = plan.families || [];
+    return uniqueList([
+      'state-upload',
+      ...families.map((family) => `${family}-solve`),
+      'material-field-render',
+      'particle-render',
+      'composite',
+      'debug-readback',
+    ]);
+  }
+
+  function debugViewsForGraph(graph) {
+    return uniqueList([
+      'coverage',
+      'physical-graph',
+      ...(graph.quality && graph.quality.residualTerms && graph.quality.residualTerms.length ? ['residual-terms'] : []),
+      ...(graph.validation && graph.validation.status === 'repaired' ? ['repairs'] : []),
+    ]);
+  }
+
+  function dopplerReceipt(dopplerIntent) {
+    if (!dopplerIntent) return null;
+    return {
+      schema: DOPPLER_INTENT_SCHEMA || 'simulatte.dopplerIntentHints.v1',
+      source: dopplerIntent.source || 'doppler-residual-intent',
+      model: dopplerIntent.model ? dopplerIntent.model.id : '',
+      primitiveCount: (dopplerIntent.primitives || []).length,
+      regimes: dopplerIntent.regimes || [],
+      operators: dopplerIntent.operators || [],
+    };
   }
 
   function contractForComponent(contract, id) {
@@ -287,12 +417,38 @@
     return nodes.find((node) => node.id === id) || null;
   }
 
-  function createIntentFromPrompt(promptText = '') {
+  function createIntentFromPrompt(promptText = '', options = {}) {
     const prompt = String(promptText || '').toLowerCase();
     const words = prompt.split(/[^a-z0-9]+/).filter(Boolean);
     const title = titleFromPrompt(words);
-    const classification = classifyIntentPrompt
-      ? classifyIntentPrompt(promptText, { max: 36 })
+    const semanticRag = options.semanticRag || (
+      createSemanticRag && prompt.trim()
+        ? createSemanticRag(promptText, PHYSICAL_PRIMITIVES, { maxDocuments: 72, maxOpenComponents: 12 })
+        : null
+    );
+    const dopplerIntent = normalizeDopplerIntent
+      ? normalizeDopplerIntent(options.dopplerIntent || options.dopplerHints, PHYSICAL_PRIMITIVES)
+      : null;
+    const hasModelBackedSelection = Array.isArray(options.embeddingPriors)
+      && options.embeddingPriors.length
+      && options.embeddingModel
+      && options.embeddingModel.id;
+    const allowPrototypeFallback = options.allowPrototypeFallback === true;
+    const shouldClassify = classifyIntentPrompt && (
+      hasModelBackedSelection ||
+      allowPrototypeFallback ||
+      !prompt ||
+      /\b(blank|empty|scratch)\b/.test(prompt)
+    );
+    const classification = shouldClassify
+      ? classifyIntentPrompt(promptText, {
+        max: 36,
+        embeddingPriors: options.embeddingPriors || [],
+        embeddingModel: options.embeddingModel || null,
+        embeddingBackend: options.embeddingBackend || '',
+        allowPrototypeFallback,
+        semanticRag,
+      })
       : null;
     const intent = {
       schema: 'simulatte.intent.v1',
@@ -302,12 +458,18 @@
       components: [],
       conceptGraph: [],
       classification,
+      rerank: options.intentRerank || options.rerank || null,
+      semanticRag,
+      dopplerIntent,
       resolution: {
         mode: '2d',
         integrator: 'semi-implicit-euler',
         renderer: 'webgpu-field-with-canvas-fallback',
         ranker: classification ? classification.model.id : 'simulatte-physical-primitives-v1',
         classifier: classification ? classification.model.id : 'simulatte-physical-primitives-v1',
+        embedding: classification && classification.model.runtime ? classification.model.runtime : null,
+        rerank: options.intentRerank || options.rerank || null,
+        doppler: dopplerIntent ? dopplerReceipt(dopplerIntent) : null,
       },
     };
     const addDomain = (...domains) => {
@@ -336,9 +498,32 @@
       return intent;
     }
 
-    const ranked = classification && rankPrimitivesForClassification
+    const synthesis = synthesizeWorldIntent
+      ? synthesizeWorldIntent(promptText, {
+        cardMatches: options.cardMatches || options.surfaceCardMatches || [],
+        primitivePriors: options.embeddingPriors || [],
+        semanticRag,
+        dopplerIntent,
+      }, catalog)
+      : null;
+    if (synthesis) {
+      intent.synthesis = synthesis;
+      intent.resolution.synthesis = synthesisReceipt(synthesis);
+    }
+
+    const baseCatalogRanked = classification && rankPrimitivesForClassification
       ? rankPrimitivesForClassification(classification, { max: 40 })
       : withPrimitiveDependencies(rankPhysicalPrimitives(promptText), promptText);
+    const synthRows = synthesisPrimitiveRows(synthesis);
+    const preferSynthGraph = shouldPreferSynthGraph(promptText, synthesis);
+    const catalogRanked = preferSynthGraph ? [] : baseCatalogRanked;
+    const semanticRows = preferSynthGraph ? [] : semanticOpenPrimitives(semanticRag);
+    const ranked = mergeRankedPrimitives(
+      catalogRanked,
+      synthRows,
+      semanticRows,
+      dopplerHintPrimitives(dopplerIntent, promptText)
+    );
     const contract = contractSummaryForPrimitives(ranked, promptText);
     if (classification) {
       contract.layerFocus = classification.layerFocus;
@@ -349,6 +534,27 @@
           confidence: classification.confidence,
           layerFocus: classification.layerFocus,
         };
+    }
+    if (dopplerIntent) {
+      contract.doppler = {
+        schema: dopplerIntent.schema,
+        source: dopplerIntent.source,
+        model: dopplerIntent.model,
+        primitives: dopplerIntent.primitives.map((hint) => hint.primitiveId),
+        regimes: dopplerIntent.regimes,
+        operators: dopplerIntent.operators,
+      };
+    }
+    if (synthesis) {
+      contract.synthesis = {
+        schema: synthesis.schema || SYNTHESIS_SCHEMA || '',
+        model: synthesis.model,
+        valid: synthesis.validation ? synthesis.validation.valid : false,
+        nodes: synthesis.synthGraph ? synthesis.synthGraph.nodes.length : 0,
+        relations: synthesis.synthGraph ? synthesis.synthGraph.relations.length : 0,
+        events: synthesis.synthGraph ? synthesis.synthGraph.events.length : 0,
+        groundedPrimitives: synthesis.groundedGraph ? synthesis.groundedGraph.primitiveIds.length : 0,
+      };
     }
     intent.resolution.layerFocus = contract.layerFocus;
     intent.resolution.topLevel = contract.topLevel;
@@ -379,6 +585,13 @@
         primitive.score,
         {
           layer: primitive.layer || '',
+          domains: primitive.domains || [],
+          material: primitive.material || '',
+          visualRegime: primitive.visualRegime || '',
+          assembly: primitive.assembly || '',
+          phrase: primitive.phrase || '',
+          source: primitive.source || 'catalog',
+          primitiveProgram: primitive.primitiveProgram || null,
           geometry: primitiveContract.geometry,
           ports: primitiveContract.ports,
           slots: primitiveContract.slots,
@@ -391,10 +604,249 @@
         prior: classification && classification.priors
           ? classification.priors.find((prior) => prior.primitiveId === primitive.id) || null
           : null,
+        phrase: primitive.phrase || '',
+        source: primitive.source || 'catalog',
       });
     }
+    addSynthesisComponents(synthesis, addDomain, addComponent, intent);
 
     return intent;
+  }
+
+  function addSynthesisComponents(synthesis, addDomain, addComponent, intent = null) {
+    if (!synthesis || !synthesis.synthGraph) return;
+    for (const node of synthesis.synthGraph.nodes || []) {
+      const componentId = slugify(node.id);
+      const domains = uniqueList([
+        'synth',
+        node.nodeType,
+        node.class,
+        ...(node.materials || []),
+        ...(node.behaviors || []),
+        ...(node.constraints || []),
+      ].filter(Boolean));
+      addDomain(...domains);
+      addComponent(
+        componentId,
+        node.nodeType,
+        node.label,
+        {},
+        [],
+        node.match ? node.match.score : 0.72,
+        {
+          layer: 'component',
+          domains,
+          material: materialForSynthesisNode(node),
+          visualRegime: visualRegimeForSynthesisNode(node),
+          assembly: node.class || node.cardId,
+          phrase: node.match ? node.match.span : node.label,
+          source: 'embedding-guided-synth-node',
+          primitiveProgram: null,
+          geometry: {
+            kind: node.nodeType,
+            shapes: node.morphology ? node.morphology.shapes || [] : [],
+            parts: node.morphology ? node.morphology.parts || [] : [],
+            scale: node.morphology ? node.morphology.scale || 'nominal' : 'nominal',
+          },
+          ports: node.ports || [],
+          slots: node.morphology ? node.morphology.parts || [] : [],
+          synthesis: {
+            cardId: node.cardId,
+            nodeType: node.nodeType,
+            match: node.match || null,
+          },
+        }
+      );
+      if (intent && Array.isArray(intent.conceptGraph)) {
+        intent.conceptGraph.push({
+          id: componentId,
+          score: node.match ? node.match.score : 0.72,
+          domains,
+          prior: null,
+          phrase: node.match ? node.match.span : node.label,
+          source: 'embedding-guided-synth-node',
+        });
+      }
+    }
+    for (const event of synthesis.synthGraph.events || []) {
+      const componentId = slugify(event.id);
+      const domains = uniqueList(['synth', 'event', event.type, ...(event.physics || [])]);
+      addDomain(...domains);
+      addComponent(
+        componentId,
+        'event',
+        event.type,
+        {},
+        [],
+        0.82,
+        {
+          layer: 'composition',
+          domains,
+          material: '',
+          visualRegime: event.type === 'collision' ? 'mechanical' : 'generic',
+          assembly: 'event',
+          phrase: event.type,
+          source: 'embedding-guided-synth-event',
+          primitiveProgram: null,
+          geometry: { kind: 'event', participants: event.participants || [] },
+          ports: event.participants || [],
+          slots: event.physics || [],
+          synthesis: {
+            cardId: event.cardId,
+            eventType: event.type,
+            participants: event.participants || [],
+          },
+        }
+      );
+      if (intent && Array.isArray(intent.conceptGraph)) {
+        intent.conceptGraph.push({
+          id: componentId,
+          score: 0.82,
+          domains,
+          prior: null,
+          phrase: event.type,
+          source: 'embedding-guided-synth-event',
+        });
+      }
+    }
+  }
+
+  function materialForSynthesisNode(node) {
+    const materials = node.materials || [];
+    if (materials.includes('soft_tissue')) return 'membrane';
+    if (materials.includes('fur')) return 'protein';
+    if (materials.includes('steel')) return 'metal';
+    if (materials.includes('rubber_material')) return 'rubber';
+    if (materials.includes('glass_material')) return 'glass';
+    if (materials.includes('water_material')) return 'water';
+    if (materials.includes('air_material')) return 'air';
+    return materials.find((material) => primitiveById(material)) || '';
+  }
+
+  function visualRegimeForSynthesisNode(node) {
+    const values = [
+      node.class,
+      ...(node.materials || []),
+      ...(node.behaviors || []),
+      ...(node.constraints || []),
+      node.cardId,
+    ].join(' ');
+    if (/\bmammal|rodent|tissue|gait|soft/i.test(values)) return 'biological';
+    if (/\bwheel|rotating|axle|apparatus|rigid/i.test(values)) return 'mechanical';
+    if (/\bwater|flow|pipe|pump/i.test(values)) return 'fluid';
+    if (/\bheat|fire|thermal/i.test(values)) return 'thermal';
+    if (/\blens|glass|optics/i.test(values)) return 'optical';
+    if (/\bmagnet|rotor/i.test(values)) return 'magnetic';
+    return 'generic';
+  }
+
+  function synthesisPrimitiveRows(synthesis) {
+    if (!synthesis || typeof groundedPrimitiveRows !== 'function') return [];
+    return groundedPrimitiveRows(synthesis, catalog);
+  }
+
+  function shouldPreferSynthGraph(promptText, synthesis) {
+    if (!synthesis || !synthesis.validation || synthesis.validation.valid !== true) return false;
+    if (hasCatalogCriticalDomain(promptText)) return false;
+    const graph = synthesis.synthGraph || {};
+    const relations = graph.relations || [];
+    const events = graph.events || [];
+    const hasCompositionalRelation = relations.some((relation) => (
+      relation.type === 'inside' ||
+      relation.type === 'attached_to' ||
+      relation.type === 'drives'
+    ));
+    const hasWorldEvent = events.some((event) => ['collision', 'falling', 'break'].includes(event.type));
+    if ((!hasWorldEvent && !hasCompositionalRelation) || (graph.nodes || []).length < 2) return false;
+    return !/\b(perpetual|solar magnetic|magnetic wheel|generator)\b/i.test(String(promptText || ''));
+  }
+
+  function hasCatalogCriticalDomain(promptText) {
+    return /\b(logistics|warehouse|inventory|supply chain|market|demand|queue|backlog|sensor|feedback|control|controller|data recorder|audit trace|telemetry|traffic|network)\b/i
+      .test(String(promptText || ''));
+  }
+
+  function synthesisReceipt(synthesis) {
+    if (!synthesis) return null;
+    return {
+      schema: synthesis.schema || SYNTHESIS_SCHEMA || '',
+      model: synthesis.model ? synthesis.model.id : '',
+      retriever: synthesis.model ? synthesis.model.retriever : '',
+      planner: synthesis.model ? synthesis.model.planner : '',
+      valid: synthesis.validation ? synthesis.validation.valid : false,
+      warnings: synthesis.validation ? synthesis.validation.warnings || [] : [],
+      repairs: synthesis.validation ? synthesis.validation.repairs || [] : [],
+      nodes: synthesis.synthGraph ? synthesis.synthGraph.nodes.length : 0,
+      relations: synthesis.synthGraph ? synthesis.synthGraph.relations.length : 0,
+      events: synthesis.synthGraph ? synthesis.synthGraph.events.length : 0,
+      groundedPrimitives: synthesis.groundedGraph ? synthesis.groundedGraph.primitiveIds.length : 0,
+    };
+  }
+
+  function semanticOpenPrimitives(semanticRag) {
+    return (semanticRag && semanticRag.openComponents || []).map((component) => ({
+      id: component.id,
+      type: component.type || 'component',
+      role: component.role || component.phrase || component.id,
+      layer: component.layer || 'component',
+      domains: component.domains || [],
+      params: component.params || {},
+      controls: component.controls || [],
+      score: Number(component.score || 0.42),
+      material: component.material || '',
+      visualRegime: component.visualRegime || '',
+      assembly: component.assembly || '',
+      phrase: component.phrase || '',
+      source: component.source || 'open-semantic-rag',
+      primitiveProgram: component.primitiveProgram || (
+        buildPrimitiveProgram ? buildPrimitiveProgram(component) : null
+      ),
+      recipe: [],
+      text: component.phrase || component.role || '',
+    }));
+  }
+
+  function dopplerHintPrimitives(dopplerIntent, promptText) {
+    const hints = dopplerIntent && Array.isArray(dopplerIntent.primitives)
+      ? dopplerIntent.primitives
+      : [];
+    if (!hints.length) return [];
+    const rows = hints
+      .map((hint) => {
+        const primitive = primitiveById(hint.primitiveId);
+        if (!primitive) return null;
+        return {
+          ...primitive,
+          score: Number(Math.max(0.62, Number(hint.score || 0)).toFixed(4)),
+          source: 'doppler-residual',
+          phrase: hint.reason || primitive.text || primitive.role || '',
+        };
+      })
+      .filter(Boolean);
+    return withPrimitiveDependencies(rows, promptText)
+      .map((primitive) => {
+        const hint = hints.find((item) => item.primitiveId === primitive.id);
+        return {
+          ...primitive,
+          score: Number(Math.max(primitive.score || 0, hint ? hint.score : 0).toFixed(4)),
+          source: hint ? 'doppler-residual' : primitive.source || 'doppler-dependency',
+          phrase: hint && hint.reason ? hint.reason : primitive.phrase || primitive.text || '',
+        };
+      });
+  }
+
+  function mergeRankedPrimitives(...rowSets) {
+    const byId = new Map();
+    for (const primitive of rowSets.flat()) {
+      if (!primitive || !primitive.id) continue;
+      const existing = byId.get(primitive.id);
+      if (!existing || Number(primitive.score || 0) > Number(existing.score || 0)) {
+        byId.set(primitive.id, primitive);
+      }
+    }
+    return Array.from(byId.values())
+      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || a.id.localeCompare(b.id))
+      .slice(0, 56);
   }
 
   function resolveIntentToSpec(intentInput, overrides = {}) {
@@ -434,9 +886,17 @@
         type: component.type,
         role: component.role,
         layer: component.layer || '',
+        domains: component.domains || [],
+        material: component.material || '',
+        visualRegime: component.visualRegime || '',
+        assembly: component.assembly || '',
+        phrase: component.phrase || '',
+        source: component.source || '',
+        primitiveProgram: component.primitiveProgram || null,
         geometry: component.geometry || null,
         ports: component.ports || null,
         slots: component.slots || [],
+        synthesis: component.synthesis || null,
         state: graphNode ? graphNode.state : null,
       });
       for (const key of component.controls || []) addControl(key);
@@ -477,112 +937,7 @@
   }
 
   function createSpecFromPrompt(promptText = '', overrides = {}) {
-    return resolveIntentToSpec(createIntentFromPrompt(promptText), overrides);
-  }
-
-  function createLegacySpecFromPrompt(promptText = '') {
-    const prompt = String(promptText || '').toLowerCase();
-    const words = prompt.split(/[^a-z0-9]+/).filter(Boolean);
-    const hasAny = (...terms) => terms.some((term) => prompt.includes(term));
-    const title = titleFromPrompt(words);
-    const modules = ['mechanics', 'field', 'energy-ledger'];
-    const objects = [
-      { id: 'body-a', type: 'body', role: 'movable body generated from prompt' },
-      { id: 'field-a', type: 'field', role: 'force field generated from prompt' },
-    ];
-    const controls = ['energyInput', 'fieldStrength', 'damping', 'complexity'];
-    const params = { ...templateById('custom-world').params };
-
-    const addControls = (...keys) => {
-      for (const key of keys) {
-        if (!controls.includes(key)) controls.push(key);
-      }
-    };
-    const addObjects = (...items) => {
-      for (const item of items) objects.push(item);
-    };
-    const addModules = (...items) => {
-      for (const item of items) {
-        if (!modules.includes(item)) modules.push(item);
-      }
-    };
-
-    if (hasAny('magnet', 'magnetic', 'perpetual', 'wheel', 'motor', 'rotor', 'slider', 'solar', 'sun')) {
-      addModules('electromagnetism', 'solar', 'control', 'rotational-mechanics');
-      addControls('irradiance', 'magneticStrength', 'sliderPhase', 'sliderAmplitude', 'loadTorque', 'friction', 'driveTiming');
-      addObjects(
-        { id: 'rotor-wheel', type: 'body', role: 'rotating wheel with alternating magnetic poles' },
-        { id: 'stator-slider', type: 'actuator', role: 'sun-powered moving magnetic slider' },
-        { id: 'solar-panel', type: 'source', role: 'bounded solar input' },
-        { id: 'motor-load', type: 'sink', role: 'output load that prevents free energy accounting' }
-      );
-      Object.assign(params, {
-        irradiance: hasAny('sun', 'solar') ? 780 : 520,
-        magneticStrength: hasAny('strong', 'powerful') ? 0.9 : 0.62,
-        sliderPhase: 0.18,
-        sliderAmplitude: hasAny('moving', 'slider') ? 0.42 : 0.28,
-        loadTorque: hasAny('perpetual', 'motor', 'load', 'generator') ? 0.16 : 0.08,
-        friction: hasAny('low friction') ? 0.02 : 0.045,
-        driveTiming: 0.48,
-      });
-    }
-    if (hasAny('fluid', 'water', 'vortex', 'flow', 'turbulence', 'wake', 'pressure', 'smoke', 'air')) {
-      addModules('fluid', 'turbulence', 'advection');
-      addControls('flowRate', 'inletFlow', 'viscosity', 'vortexStrength', 'obstacleRadius', 'turbulence', 'gravity');
-      addObjects(
-        { id: 'flow-inlet', type: 'source', role: 'fluid or gas inlet' },
-        { id: 'moving-fluid', type: 'material', role: 'advected particles' },
-        { id: 'wake-obstacle', type: 'constraint', role: 'wake and pressure generator' }
-      );
-      Object.assign(params, {
-        flowRate: hasAny('fast', 'high pressure') ? 0.9 : 0.45,
-        inletFlow: hasAny('fast', 'high pressure') ? 0.9 : 0.62,
-        viscosity: hasAny('thick', 'viscous') ? 0.36 : 0.18,
-        vortexStrength: hasAny('vortex', 'swirl') ? 0.9 : 0.54,
-        obstacleRadius: hasAny('large obstacle') ? 0.22 : 0.16,
-        turbulence: hasAny('chaos', 'turbulence', 'storm') ? 0.42 : 0.22,
-        gravity: hasAny('fall', 'gravity') ? 0.12 : 0.05,
-      });
-    }
-    if (hasAny('chemistry', 'chemical', 'reaction', 'diffusion', 'catalyst', 'front', 'molecule', 'crystal')) {
-      addModules('chemistry', 'diffusion', 'thermal');
-      addControls('reactionRate', 'feedRate', 'killRate', 'diffusionA', 'diffusionB', 'catalyst', 'cooling', 'heatTransfer');
-      addObjects(
-        { id: 'reactant-a', type: 'material', role: 'feedstock field' },
-        { id: 'reactant-b', type: 'material', role: 'reaction product field' },
-        { id: 'catalyst-front', type: 'field', role: 'reaction and heat front' }
-      );
-      Object.assign(params, {
-        reactionRate: hasAny('violent', 'fast') ? 0.72 : 0.34,
-        feedRate: hasAny('feed', 'growth') ? 0.043 : 0.037,
-        killRate: hasAny('decay', 'kill') ? 0.067 : 0.061,
-        diffusionA: hasAny('fast') ? 1.08 : 0.92,
-        diffusionB: hasAny('slow') ? 0.36 : 0.48,
-        catalyst: hasAny('catalyst') ? 0.82 : 0.64,
-        cooling: hasAny('hot', 'heat') ? 0.14 : 0.22,
-        heatTransfer: hasAny('hot', 'heat') ? 0.58 : 0.24,
-      });
-    }
-    if (hasAny('orbit', 'gravity', 'fall', 'pendulum', 'spring', 'collision', 'bounce')) {
-      addModules('gravity', 'collision');
-      addControls('gravity', 'damping', 'energyInput');
-      addObjects(
-        { id: 'gravity-source', type: 'field', role: 'gravity well or acceleration field' },
-        { id: 'moving-mass', type: 'body', role: 'mass affected by gravity and collisions' }
-      );
-      params.gravity = hasAny('orbit') ? 0.18 : 0.24;
-      params.damping = hasAny('bounce') ? 0.035 : 0.08;
-    }
-
-    const exactMachine = hasAny('perpetual') && hasAny('magnet', 'magnetic');
-    return createSpec('custom-world', {
-      name: exactMachine ? 'Solar Magnetic Perpetual Motion Machine' : title || 'Custom Physics World',
-      description: `Generated from prompt: ${String(promptText || '').trim() || 'physical simulation'}`,
-      modules,
-      objects,
-      controls,
-      params,
-    });
+    return resolveIntentToSpec(createIntentFromPrompt(promptText, overrides), overrides);
   }
 
   function titleFromPrompt(words) {
@@ -1445,9 +1800,10 @@
     COMPOSITION_SCHEMA,
     INTENT_CLASSIFICATION_SCHEMA,
     INTENT_MODEL_ID,
-    PLAN_SCHEMA,
     RENDER_PROGRAM_SCHEMA,
-    buildWorldPlan,
+    SEMANTIC_RAG_SCHEMA,
+    SYNTHESIS_SCHEMA,
+    buildPrimitiveProgram,
     buildCompositionGraph,
     classificationSummary,
     classifyIntentPrompt,
@@ -1457,7 +1813,9 @@
     createCustomState,
     createFluidState,
     createIntentFromPrompt,
-    createLegacySpecFromPrompt,
+    createSemanticRag,
+    synthesizeWorldIntent,
+    groundedPrimitiveRows,
     createReactionState,
     createSimulationState,
     createSpec,

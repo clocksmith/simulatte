@@ -948,6 +948,73 @@
       border-radius: 999px;
     }
 
+    .intent-runtime {
+      display: grid;
+      gap: 6px;
+      padding: 9px;
+      border: 1px solid rgba(26, 49, 47, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .intent-runtime[data-state="idle"] {
+      opacity: 0.72;
+    }
+
+    .intent-runtime[data-state="error"] {
+      border-color: rgba(231, 114, 95, 0.32);
+      background: rgba(231, 114, 95, 0.08);
+    }
+
+    .intent-runtime-head,
+    .intent-runtime-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+      color: rgba(23, 32, 29, 0.58);
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .intent-runtime-head strong {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .intent-runtime-percent {
+      flex: 0 0 auto;
+      color: rgba(28, 109, 94, 0.84);
+      font-weight: 760;
+    }
+
+    .intent-runtime-track {
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(26, 49, 47, 0.09);
+    }
+
+    .intent-runtime-fill {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal), var(--accent));
+      transition: width 0.22s ease;
+    }
+
+    .intent-runtime-meta span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -1100,6 +1167,755 @@
       text-transform: none;
     }
 
+    .physics-stage {
+      --mosaic-pink: rgba(255, 141, 178, 0.2);
+      --mosaic-apricot: rgba(255, 205, 133, 0.18);
+      --mosaic-mint: rgba(105, 216, 187, 0.18);
+      --mosaic-sky: rgba(117, 190, 255, 0.16);
+      --mosaic-lilac: rgba(178, 151, 255, 0.18);
+      --mosaic-ink: #221f2d;
+      --mosaic-muted: rgba(34, 31, 45, 0.58);
+      --mosaic-line: rgba(74, 58, 92, 0.12);
+      --mosaic-cell: 20px;
+      --mosaic-surface: rgba(255, 255, 255, 0.82);
+      --mosaic-tile-soft: rgba(178, 151, 255, 0.08);
+      --mosaic-tile-warm: rgba(255, 205, 133, 0.08);
+      background-color: #fffdfc;
+      background-image:
+        linear-gradient(90deg, rgba(74, 58, 92, 0.035) 1px, transparent 1px),
+        linear-gradient(rgba(74, 58, 92, 0.032) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(255, 141, 178, 0.08), transparent 35%),
+        linear-gradient(225deg, rgba(105, 216, 187, 0.07), transparent 38%),
+        linear-gradient(180deg, #fffdfc 0%, #f7fdff 54%, #fffaf5 100%);
+      background-size:
+        24px 24px,
+        24px 24px,
+        auto,
+        auto,
+        auto;
+    }
+
+    .physics-panel {
+      border-right: 1px solid var(--mosaic-line);
+      border-radius: 0 8px 8px 0;
+      background-color: rgba(255, 255, 255, 0.88);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.84)),
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.07) 0 25%,
+          rgba(255, 205, 133, 0.055) 0 50%,
+          rgba(105, 216, 187, 0.06) 0 75%,
+          rgba(178, 151, 255, 0.06) 0
+        );
+      background-size: auto, 28px 28px;
+      box-shadow:
+        14px 0 48px rgba(83, 72, 107, 0.12),
+        inset -1px 0 0 rgba(255, 255, 255, 0.72);
+      color: var(--mosaic-ink);
+      scrollbar-color: rgba(178, 151, 255, 0.45) transparent;
+    }
+
+    .physics-brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 42px;
+      padding: 10px;
+      border: 1px solid rgba(74, 58, 92, 0.14);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.48)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.16) 0 10px,
+          rgba(255, 205, 133, 0.13) 10px 20px,
+          rgba(105, 216, 187, 0.14) 20px 30px,
+          rgba(117, 190, 255, 0.12) 30px 40px,
+          rgba(178, 151, 255, 0.13) 40px 50px
+        );
+      box-shadow: 0 12px 32px rgba(83, 72, 107, 0.08);
+    }
+
+    .physics-brand h1 {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--mosaic-ink);
+      font-size: 16px;
+      letter-spacing: 0.01em;
+    }
+
+    .physics-brand h1::before {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(74, 58, 92, 0.18);
+      border-radius: 5px;
+      background:
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.9) 0 25%,
+          rgba(255, 205, 133, 0.9) 0 50%,
+          rgba(105, 216, 187, 0.9) 0 75%,
+          rgba(178, 151, 255, 0.9) 0
+        );
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6);
+    }
+
+    .example-row {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      padding: 2px;
+      border: 1px solid rgba(74, 58, 92, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.46);
+    }
+
+    .example-chip,
+    .component-chip,
+    .physics-actions button,
+    .primary-action {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-radius: 8px;
+      border-color: rgba(74, 58, 92, 0.16);
+      color: var(--mosaic-ink);
+      background-color: rgba(255, 255, 255, 0.68);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.4)),
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.3) 0 25%,
+          rgba(255, 205, 133, 0.24) 0 50%,
+          rgba(105, 216, 187, 0.23) 0 75%,
+          rgba(178, 151, 255, 0.24) 0
+        );
+      background-size: auto, 18px 18px;
+      box-shadow: 0 10px 24px rgba(83, 72, 107, 0.075);
+    }
+
+    .example-chip::before,
+    .component-chip::before,
+    .physics-actions button::before,
+    .primary-action::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.62;
+      background-image:
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.42) 0 25%,
+          rgba(255, 205, 133, 0.34) 0 50%,
+          rgba(105, 216, 187, 0.32) 0 75%,
+          rgba(178, 151, 255, 0.34) 0
+        );
+      background-size: 18px 18px;
+    }
+
+    .example-chip {
+      width: auto;
+      font-size: 12px;
+    }
+
+    .example-chip:nth-child(2)::before {
+      filter: hue-rotate(32deg);
+    }
+
+    .example-chip:nth-child(3)::before {
+      filter: hue-rotate(72deg);
+    }
+
+    .example-chip:nth-child(4)::before {
+      filter: hue-rotate(132deg);
+    }
+
+    .example-chip:nth-child(5)::before {
+      filter: hue-rotate(196deg);
+    }
+
+    .example-chip:nth-child(6)::before {
+      filter: hue-rotate(248deg);
+    }
+
+    .example-chip.is-active,
+    .example-chip:hover:not(:disabled) {
+      border-color: rgba(117, 190, 255, 0.52);
+      color: #1d2845;
+      background-color: rgba(255, 255, 255, 0.86);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5)),
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.44) 0 25%,
+          rgba(255, 205, 133, 0.34) 0 50%,
+          rgba(105, 216, 187, 0.34) 0 75%,
+          rgba(117, 190, 255, 0.34) 0
+        );
+      background-size: auto, 18px 18px;
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.78),
+        0 14px 28px rgba(83, 72, 107, 0.11);
+    }
+
+    .builder-row {
+      gap: 9px;
+    }
+
+    .builder-row textarea {
+      min-height: 132px;
+      border-radius: 8px;
+      border-color: rgba(74, 58, 92, 0.18);
+      background-color: rgba(255, 255, 255, 0.82);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.82)),
+        linear-gradient(90deg, rgba(178, 151, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(rgba(105, 216, 187, 0.04) 1px, transparent 1px);
+      background-size: auto, 18px 18px, 18px 18px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        0 12px 30px rgba(83, 72, 107, 0.07);
+      color: var(--mosaic-ink);
+      font-weight: 660;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: rgba(117, 190, 255, 0.62);
+      box-shadow:
+        0 0 0 3px rgba(117, 190, 255, 0.15),
+        0 12px 30px rgba(83, 72, 107, 0.08);
+    }
+
+    .primary-action {
+      min-height: 40px;
+      border-color: rgba(74, 58, 92, 0.2);
+      background-color: rgba(255, 255, 255, 0.72);
+      color: #252038;
+      font-weight: 760;
+    }
+
+    button:hover:not(:disabled),
+    a:hover {
+      border-color: rgba(117, 190, 255, 0.5);
+      background: rgba(255, 255, 255, 0.88);
+      color: #1d2845;
+      box-shadow: 0 14px 28px rgba(83, 72, 107, 0.11);
+      transform: translateY(-1px);
+    }
+
+    .primary-action.is-loading::after,
+    .intent-runtime[data-state="active"] .intent-runtime-track::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.04) 30%,
+          rgba(255, 255, 255, 0.72) 50%,
+          rgba(255, 255, 255, 0.04) 70%,
+          transparent 100%
+        );
+      animation: mosaic-sweep 1.6s cubic-bezier(0.2, 0, 0, 1) infinite;
+    }
+
+    .intent-runtime {
+      position: relative;
+      overflow: hidden;
+      gap: 8px;
+      padding: 11px;
+      border: 1px solid rgba(74, 58, 92, 0.14);
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.68);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.56)),
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.14) 0 25%,
+          rgba(255, 205, 133, 0.12) 0 50%,
+          rgba(105, 216, 187, 0.13) 0 75%,
+          rgba(178, 151, 255, 0.12) 0
+        );
+      background-size: auto, 22px 22px;
+      box-shadow: 0 12px 30px rgba(83, 72, 107, 0.08);
+    }
+
+    .intent-runtime::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.78) 0 12px,
+          rgba(255, 205, 133, 0.76) 12px 24px,
+          rgba(105, 216, 187, 0.74) 24px 36px,
+          rgba(117, 190, 255, 0.74) 36px 48px,
+          rgba(178, 151, 255, 0.76) 48px 60px
+        );
+    }
+
+    .intent-runtime[data-state="idle"] {
+      opacity: 0.82;
+    }
+
+    .intent-runtime[data-state="error"] {
+      border-color: rgba(238, 115, 136, 0.42);
+      background-image:
+        linear-gradient(180deg, rgba(255, 250, 252, 0.9), rgba(255, 236, 242, 0.62)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(238, 115, 136, 0.16) 0 12px,
+          rgba(255, 205, 133, 0.1) 12px 24px
+        );
+    }
+
+    .intent-runtime-head,
+    .intent-runtime-meta {
+      color: rgba(34, 31, 45, 0.56);
+    }
+
+    .intent-runtime-head strong {
+      color: var(--mosaic-ink);
+      font-weight: 760;
+    }
+
+    .intent-runtime-percent {
+      color: rgba(105, 89, 174, 0.86);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .intent-runtime-track {
+      position: relative;
+      height: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(74, 58, 92, 0.12);
+      border-radius: 6px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.16) 0 12px,
+          rgba(255, 205, 133, 0.13) 12px 24px,
+          rgba(105, 216, 187, 0.14) 24px 36px,
+          rgba(117, 190, 255, 0.13) 36px 48px,
+          rgba(178, 151, 255, 0.14) 48px 60px
+        );
+    }
+
+    .intent-runtime-fill {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      border-radius: 5px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.9) 0 14px,
+          rgba(255, 205, 133, 0.88) 14px 28px,
+          rgba(105, 216, 187, 0.88) 28px 42px,
+          rgba(117, 190, 255, 0.86) 42px 56px,
+          rgba(178, 151, 255, 0.88) 56px 70px
+        );
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        0 0 18px rgba(178, 151, 255, 0.18);
+    }
+
+    .intent-runtime[data-state="active"] .intent-runtime-fill {
+      min-width: 18px;
+    }
+
+    .component-stack {
+      padding: 2px 0;
+    }
+
+    .component-chip {
+      min-height: 28px;
+      border-radius: 7px;
+      background-color: rgba(255, 255, 255, 0.64);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.42)),
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.18) 0 25%,
+          rgba(255, 205, 133, 0.15) 0 50%,
+          rgba(105, 216, 187, 0.16) 0 75%,
+          rgba(178, 151, 255, 0.15) 0
+        );
+      background-size: auto, 16px 16px;
+      color: rgba(34, 31, 45, 0.66);
+    }
+
+    .component-chip::before {
+      opacity: 0.28;
+    }
+
+    .component-chip.is-domain,
+    .component-chip.is-source,
+    .component-chip.is-controller,
+    .component-chip.is-sensor,
+    .component-chip.is-process,
+    .component-chip.is-field,
+    .component-chip.is-material,
+    .component-chip.is-actor,
+    .component-chip.is-sink,
+    .component-chip.is-loss {
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.34)),
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.2) 0 25%,
+          rgba(255, 205, 133, 0.18) 0 50%,
+          rgba(105, 216, 187, 0.18) 0 75%,
+          rgba(178, 151, 255, 0.18) 0
+        );
+      background-size: auto, 16px 16px;
+    }
+
+    .component-chip.is-domain::before,
+    .component-chip.is-source::before {
+      filter: hue-rotate(80deg);
+      opacity: 0.38;
+    }
+
+    .component-chip.is-controller::before,
+    .component-chip.is-sensor::before,
+    .component-chip.is-process::before {
+      filter: hue-rotate(154deg);
+      opacity: 0.36;
+    }
+
+    .component-chip.is-field::before,
+    .component-chip.is-material::before {
+      filter: hue-rotate(232deg);
+      opacity: 0.34;
+    }
+
+    .component-chip.is-actor::before {
+      filter: hue-rotate(24deg);
+      opacity: 0.36;
+    }
+
+    .readout-grid {
+      gap: 7px;
+    }
+
+    .readout {
+      min-height: 58px;
+      padding: 9px;
+      border: 1px solid rgba(74, 58, 92, 0.12);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5)),
+        conic-gradient(
+          from 90deg,
+          rgba(255, 141, 178, 0.08) 0 25%,
+          rgba(255, 205, 133, 0.07) 0 50%,
+          rgba(105, 216, 187, 0.08) 0 75%,
+          rgba(117, 190, 255, 0.07) 0
+        );
+      background-size: auto, 18px 18px;
+    }
+
+    .readout strong {
+      color: rgba(34, 31, 45, 0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .readout span {
+      color: rgba(105, 89, 174, 0.92);
+    }
+
+    .physics-control {
+      gap: 7px;
+      padding: 8px;
+      border: 1px solid rgba(74, 58, 92, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.5);
+      color: rgba(34, 31, 45, 0.58);
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 10px;
+      border: 1px solid rgba(74, 58, 92, 0.12);
+      border-radius: 5px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.52) 0 16px,
+          rgba(255, 205, 133, 0.46) 16px 32px,
+          rgba(105, 216, 187, 0.46) 32px 48px,
+          rgba(117, 190, 255, 0.44) 48px 64px,
+          rgba(178, 151, 255, 0.46) 64px 80px
+        );
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+      margin-top: -6px;
+      border: 2px solid rgba(255, 255, 255, 0.96);
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow:
+        0 0 0 1px rgba(74, 58, 92, 0.18),
+        0 8px 18px rgba(83, 72, 107, 0.18);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 10px;
+      border: 1px solid rgba(74, 58, 92, 0.12);
+      border-radius: 5px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.52) 0 16px,
+          rgba(255, 205, 133, 0.46) 16px 32px,
+          rgba(105, 216, 187, 0.46) 32px 48px,
+          rgba(117, 190, 255, 0.44) 48px 64px,
+          rgba(178, 151, 255, 0.46) 64px 80px
+        );
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.96);
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow:
+        0 0 0 1px rgba(74, 58, 92, 0.18),
+        0 8px 18px rgba(83, 72, 107, 0.18);
+    }
+
+    .intent-details {
+      border-top: 1px solid rgba(74, 58, 92, 0.12);
+      padding-top: 10px;
+    }
+
+    .intent-details summary {
+      width: max-content;
+      padding: 5px 9px;
+      border: 1px solid rgba(74, 58, 92, 0.12);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.56);
+      color: rgba(34, 31, 45, 0.62);
+    }
+
+    .spec-preview {
+      border-color: rgba(74, 58, 92, 0.12);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.52)),
+        linear-gradient(90deg, rgba(178, 151, 255, 0.08) 1px, transparent 1px);
+      background-size: auto, 14px 14px;
+      color: rgba(34, 31, 45, 0.68);
+    }
+
+    .physics-footer {
+      border-top-color: rgba(74, 58, 92, 0.12);
+      color: rgba(34, 31, 45, 0.46);
+    }
+
+    .physics-panel {
+      background-color: rgba(255, 255, 255, 0.9);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.86));
+    }
+
+    .physics-brand {
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.58)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.07) 0 10px,
+          rgba(255, 205, 133, 0.06) 10px 20px,
+          rgba(105, 216, 187, 0.065) 20px 30px,
+          rgba(117, 190, 255, 0.055) 30px 40px,
+          rgba(178, 151, 255, 0.06) 40px 50px
+        );
+    }
+
+    .example-chip,
+    .component-chip,
+    .physics-actions button,
+    .primary-action {
+      background-color: rgba(255, 255, 255, 0.76);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.48));
+    }
+
+    .example-chip::before,
+    .component-chip::before,
+    .physics-actions button::before,
+    .primary-action::before {
+      opacity: 0;
+      transition: opacity 0.36s ease, background-position 0.8s ease;
+    }
+
+    .example-chip:hover:not(:disabled)::before,
+    .example-chip.is-active::before,
+    .physics-actions button:hover:not(:disabled)::before,
+    .primary-action:hover:not(:disabled)::before,
+    .primary-action.is-loading::before {
+      opacity: 0.18;
+      animation: mosaic-drift 7s linear infinite;
+    }
+
+    .component-chip {
+      background-color: rgba(255, 255, 255, 0.64);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.38));
+    }
+
+    .component-chip::before {
+      opacity: 0.07;
+    }
+
+    .component-chip.is-domain,
+    .component-chip.is-source,
+    .component-chip.is-controller,
+    .component-chip.is-sensor,
+    .component-chip.is-process,
+    .component-chip.is-field,
+    .component-chip.is-material,
+    .component-chip.is-actor,
+    .component-chip.is-sink,
+    .component-chip.is-loss {
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.36));
+    }
+
+    .component-chip.is-domain::before,
+    .component-chip.is-source::before,
+    .component-chip.is-controller::before,
+    .component-chip.is-sensor::before,
+    .component-chip.is-process::before,
+    .component-chip.is-field::before,
+    .component-chip.is-material::before,
+    .component-chip.is-actor::before,
+    .component-chip.is-sink::before,
+    .component-chip.is-loss::before {
+      filter: none;
+      opacity: 0.08;
+    }
+
+    .intent-runtime {
+      background-color: rgba(255, 255, 255, 0.76);
+      background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.58));
+    }
+
+    .intent-runtime > :not(.intent-runtime-mosaic) {
+      position: relative;
+      z-index: 1;
+    }
+
+    .intent-runtime-mosaic {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.42s ease;
+    }
+
+    .intent-runtime[data-state="active"] .intent-runtime-mosaic {
+      opacity: 0.82;
+    }
+
+    .intent-runtime::before {
+      z-index: 1;
+      height: 3px;
+      opacity: 0.42;
+    }
+
+    .intent-runtime[data-state="active"]::before {
+      opacity: 0.7;
+    }
+
+    .intent-runtime-track {
+      height: 14px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(34, 31, 45, 0.035) 0 11px,
+          rgba(34, 31, 45, 0.055) 11px 22px
+        ),
+        rgba(255, 255, 255, 0.46);
+    }
+
+    .intent-runtime-fill {
+      background:
+        linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.42),
+          rgba(105, 216, 187, 0.48),
+          rgba(178, 151, 255, 0.42)
+        );
+    }
+
+    .readout {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.2) 0 16px,
+          rgba(255, 205, 133, 0.16) 16px 32px,
+          rgba(105, 216, 187, 0.18) 32px 48px,
+          rgba(117, 190, 255, 0.16) 48px 64px,
+          rgba(178, 151, 255, 0.17) 64px 80px
+        );
+    }
+
+    input[type="range"]::-moz-range-track {
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 141, 178, 0.2) 0 16px,
+          rgba(255, 205, 133, 0.16) 16px 32px,
+          rgba(105, 216, 187, 0.18) 32px 48px,
+          rgba(117, 190, 255, 0.16) 48px 64px,
+          rgba(178, 151, 255, 0.17) 64px 80px
+        );
+    }
+
+    @keyframes mosaic-drift {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 72px 0;
+      }
+    }
+
+    @keyframes mosaic-sweep {
+      from {
+        transform: translateX(-115%);
+      }
+
+      to {
+        transform: translateX(115%);
+      }
+    }
+
     @media (max-width: 820px) {
       html,
       body {
@@ -1115,7 +1931,8 @@
 
       .physics-panel {
         border-right: 0;
-        border-bottom: 1px solid rgba(26, 49, 47, 0.1);
+        border-bottom: 1px solid var(--mosaic-line);
+        border-radius: 0 0 8px 8px;
         max-height: none;
         overflow: auto;
         padding: 18px;
@@ -1159,20 +1976,35 @@
       </div>
 
       <div class="example-row" aria-label="Example prompts">
-        <button class="example-chip" type="button" aria-label="Seed W" data-example-prompt="sunlit rotor with alternating magnets, moving slider, solar input, load torque, bearing drag, and conservation meter" data-example-params='{"irradiance":1040,"magneticStrength":0.9,"sliderAmplitude":0.68,"sliderPhase":0.12,"loadTorque":0.28,"friction":0.055,"driveTiming":0.64}'>W</button>
-        <button class="example-chip" type="button" aria-label="Seed X" data-example-prompt="dry pine litter combustion with a wind band, smoke lift, water line, rock break, damp pockets, and thermal spread" data-example-params='{"combustibility":0.88,"moisture":0.18,"windSpeed":0.52,"flowRate":0.38,"heatTransfer":0.74,"opacity":0.62,"damping":0.07}'>X</button>
-        <button class="example-chip" type="button" aria-label="Seed Y" data-example-prompt="collimated white beam through glass lens, prism, mirror rail, sensor plane, refractive split, and prismatic rays" data-example-params='{"lightIntensity":0.92,"refractiveIndex":1.68,"opacity":0.08,"fieldStrength":0.62,"heatTransfer":0.14,"signalNoise":0.04}'>Y</button>
-        <button class="example-chip" type="button" aria-label="Seed Z" data-example-prompt="rush-hour service loop with signal delay, power feeder, demand queue, load zone, noisy packets, and throughput meter" data-example-params='{"queueBacklog":0.78,"serviceRate":0.42,"marketDemand":0.74,"networkLatency":0.44,"signalDelay":0.32,"signalNoise":0.18}'>Z</button>
-        <button class="example-chip" type="button" aria-label="Seed P" data-example-prompt="steep rain channel cutting sand and soil around rock ridges with water flow, erosion, sediment fan, and gravity slope" data-example-params='{"flowRate":0.82,"erosionRate":0.62,"terrainSlope":0.54,"gravity":0.18,"granularFriction":0.32,"moisture":0.76}'>P</button>
-        <button class="example-chip" type="button" aria-label="Seed Q" data-example-prompt="water air rock wood metal glass magnetized metal gravity heat diffusion sample tray" data-example-params='{"density":0.74,"hardness":0.76,"conductivity":0.72,"magnetization":0.68,"refractiveIndex":1.58,"moisture":0.66,"heatTransfer":0.45}'>Q</button>
+        <button class="example-chip" type="button" aria-label="Seed W" data-example-prompt="solar magnetic wheel with sliding magnet" data-example-params='{"irradiance":1040,"magneticStrength":0.9,"sliderAmplitude":0.68,"sliderPhase":0.12,"loadTorque":0.28,"friction":0.055,"driveTiming":0.64}'>W</button>
+        <button class="example-chip" type="button" aria-label="Seed X" data-example-prompt="wind pushes a dry pine fire" data-example-params='{"combustibility":0.88,"moisture":0.18,"windSpeed":0.52,"flowRate":0.38,"heatTransfer":0.74,"opacity":0.62,"damping":0.07}'>X</button>
+        <button class="example-chip" type="button" aria-label="Seed Y" data-example-prompt="white beam through lens prism mirror" data-example-params='{"lightIntensity":0.92,"refractiveIndex":1.68,"opacity":0.08,"fieldStrength":0.62,"heatTransfer":0.14,"signalNoise":0.04}'>Y</button>
+        <button class="example-chip" type="button" aria-label="Seed Z" data-example-prompt="city traffic queue with delayed signals" data-example-params='{"queueBacklog":0.78,"serviceRate":0.42,"marketDemand":0.74,"networkLatency":0.44,"signalDelay":0.32,"signalNoise":0.18}'>Z</button>
+        <button class="example-chip" type="button" aria-label="Seed P" data-example-prompt="rain cuts a channel through sand and rock" data-example-params='{"flowRate":0.82,"erosionRate":0.62,"terrainSlope":0.54,"gravity":0.18,"granularFriction":0.32,"moisture":0.76}'>P</button>
+        <button class="example-chip" type="button" aria-label="Seed Q" data-example-prompt="sample tray of water glass metal and stone" data-example-params='{"density":0.74,"hardness":0.76,"conductivity":0.72,"magnetization":0.68,"refractiveIndex":1.58,"moisture":0.66,"heatTransfer":0.45}'>Q</button>
       </div>
 
       <div class="builder-row">
         <label class="physics-name" for="build-prompt">
           <span class="sr-only">Prompt</span>
-          <textarea id="build-prompt" data-example-params='{"irradiance":1040,"magneticStrength":0.9,"sliderAmplitude":0.68,"sliderPhase":0.12,"loadTorque":0.28,"friction":0.055,"driveTiming":0.64}'>sunlit rotor with alternating magnets, moving slider, solar input, load torque, bearing drag, and conservation meter</textarea>
+          <textarea id="build-prompt" data-example-params='{"irradiance":1040,"magneticStrength":0.9,"sliderAmplitude":0.68,"sliderPhase":0.12,"loadTorque":0.28,"friction":0.055,"driveTiming":0.64}'>solar magnetic wheel with sliding magnet</textarea>
         </label>
         <button id="build-lab" class="primary-action" type="button">Run</button>
+      </div>
+
+      <div id="intent-runtime" class="intent-runtime" data-state="idle" aria-live="polite">
+        <canvas id="intent-runtime-mosaic" class="intent-runtime-mosaic" aria-hidden="true"></canvas>
+        <div class="intent-runtime-head">
+          <strong id="intent-runtime-title">Intent model</strong>
+          <span id="intent-runtime-percent" class="intent-runtime-percent">0%</span>
+        </div>
+        <div class="intent-runtime-track" aria-hidden="true">
+          <span id="intent-runtime-fill" class="intent-runtime-fill"></span>
+        </div>
+        <div class="intent-runtime-meta">
+          <span id="intent-runtime-message">idle</span>
+          <span id="intent-runtime-stage">standby</span>
+        </div>
       </div>
 
       <input id="simulation-name" type="hidden" value="">
@@ -1211,9 +2043,12 @@
 
   <script defer src="./js/simulatte-particle-field.js"></script>
   <script defer src="./js/simulatte-physics-catalog.js"></script>
+  <script defer src="./js/simulatte-semantic-rag.js"></script>
+  <script defer src="./js/simulatte-doppler-intent.js"></script>
+  <script defer src="./js/simulatte-graph-synthesis.js"></script>
+  <script defer src="./js/simulatte-intent-embedder.js"></script>
   <script defer src="./js/simulatte-intent-classifier.js"></script>
   <script defer src="./js/simulatte-composition-graph.js"></script>
-  <script defer src="./js/simulatte-world-plan.js"></script>
   <script defer src="./js/simulatte-physics-model.js"></script>
   <script defer src="./js/simulatte-physics-renderer.js"></script>
   <script defer src="./js/simulatte-physics-lab.js"></script>
