@@ -81,6 +81,7 @@
       syncExampleButtons(exampleButtons, spec);
       syncReadoutLabels(readouts, spec);
       syncSpecPreview(specPreview, spec);
+      logGraphDebug(spec);
       lastPreviewSync = performance.now();
       last = performance.now();
     };
@@ -99,7 +100,7 @@
         setSpec(createSpecFromPrompt(prompt, { params }));
         return;
       }
-      resolveWithEmbedding(prompt, params, serial);
+      resolveWithEmbedding(prompt, params, serial, false);
     };
 
     exampleButtons.forEach((button) => {
@@ -142,16 +143,10 @@
       }
     });
 
-    async function resolveWithEmbedding(prompt, params, serial) {
+    async function resolveWithEmbedding(prompt, params, serial, showCanvasLoader = false) {
       if (!String(prompt || '').trim()) return;
       if (!embedder) {
-        if (stateReadout) stateReadout.textContent = 'intent model error: model-backed intent runtime unavailable';
-        syncIntentRuntime(runtimeStatus, {
-          state: 'error',
-          stage: 'unavailable',
-          percent: 0,
-          message: 'Intent runtime unavailable',
-        });
+        resolveWithoutEmbedding(prompt, params, serial, 'Intent model unavailable');
         return;
       }
       if (stateReadout) stateReadout.textContent = 'loading model-backed intent retrieval';
@@ -160,11 +155,17 @@
         stage: 'start',
         percent: 1,
         message: 'Starting intent model',
+        canvasLoading: showCanvasLoader,
       });
       try {
+        await waitForLoadingPaint();
+        if (serial !== buildSerial) return;
         const result = await embedder.rankPrompt(prompt, model.PHYSICAL_PRIMITIVES, {
           max: 36,
-          onProgress: (event) => syncIntentRuntime(runtimeStatus, event),
+          onProgress: (event) => syncIntentRuntime(runtimeStatus, {
+            ...event,
+            canvasLoading: showCanvasLoader,
+          }),
         });
         if (serial !== buildSerial) return;
         setSpec(createSpecFromPrompt(prompt, {
@@ -185,20 +186,31 @@
           backend: result.backend,
         });
       } catch (err) {
-        if (serial === buildSerial && stateReadout) {
+        if (serial === buildSerial) {
           const diagnostic = err && err.message ? err.message : String(err || 'intent model failed');
-          const message = compactIntentRuntimeMessage(diagnostic);
           console.error('[simulatte.intent] model-backed intent failed', err);
-          stateReadout.textContent = `intent model error: ${message}`;
-          syncIntentRuntime(runtimeStatus, {
-            state: 'error',
-            stage: 'error',
-            percent: 0,
-            message,
-            detail: diagnostic,
-          });
+          resolveWithoutEmbedding(prompt, params, serial, diagnostic);
         }
       }
+    }
+
+    function resolveWithoutEmbedding(prompt, params, serial, diagnostic = '') {
+      if (serial !== buildSerial) return;
+      setSpec(createSpecFromPrompt(prompt, {
+        params,
+        allowPrototypeFallback: true,
+      }));
+      if (diagnostic && typeof console !== 'undefined' && console.info) {
+        console.info('[simulatte.intent] using local graph fallback', diagnostic);
+      }
+      syncIntentRuntime(runtimeStatus, {
+        state: 'ready',
+        stage: 'local-graph',
+        percent: 100,
+        message: 'Local graph ready',
+        detail: diagnostic,
+      });
+      if (stateReadout) stateReadout.textContent = stateLabel(state, spec);
     }
 
     function tick(now) {
@@ -240,7 +252,7 @@
 
     setSpec(spec);
     buildSerial += 1;
-    resolveWithEmbedding(initialPrompt, initialParams, buildSerial);
+    resolveWithEmbedding(initialPrompt, initialParams, buildSerial, true);
     requestAnimationFrame(tick);
     return { getSpec: () => spec, getState: () => state, setSpec };
   }
@@ -262,17 +274,21 @@
     const stage = String(event.stage || event.phase || 'intent');
     const state = event.state || (stage === 'error' ? 'error' : percent >= 100 ? 'ready' : 'active');
     const loading = state === 'active';
+    const canvasLoading = loading && event.canvasLoading === true;
     const runButton = elements.node.closest('.physics-panel')?.querySelector('#build-lab');
     const rawMessage = event.detail || event.message || stage;
     const message = compactIntentRuntimeMessage(event.message || stage);
     elements.node.dataset.state = state;
-    elements.node.dataset.detail = String(rawMessage || '');
-    elements.node.title = String(rawMessage || message || '');
+    elements.node.dataset.loadingVisual = canvasLoading ? 'snake' : loading ? 'simple' : 'idle';
+    elements.node.dataset.detail = String(message || '');
+    elements.node.title = String(message || '');
     if (elements.canvasLoader) {
-      elements.canvasLoader.setLoading(loading, percent, stage);
+      elements.canvasLoader.setLoading(canvasLoading, percent, stage);
     }
     if (runButton) {
       runButton.classList.toggle('is-loading', loading);
+      runButton.disabled = loading;
+      runButton.setAttribute('aria-disabled', loading ? 'true' : 'false');
       runButton.setAttribute('aria-busy', loading ? 'true' : 'false');
     }
     if (elements.title) elements.title.textContent = event.title || 'Intent model';
@@ -292,10 +308,23 @@
     if (/CacheStorage|Service Worker/i.test(text)) return 'Model cache unavailable';
     if (/model fetch failed|fetch failed|failed to fetch/i.test(text)) return 'Model download failed';
     if (/Doppler module import|no loader found/i.test(text)) return 'Doppler runtime unavailable';
+    if (/embedModel(Id|Hash) mismatch|embedding dim mismatch|non-finite value/i.test(text)) {
+      return 'Intent model unavailable';
+    }
+    if (/https?:\/\/|huggingface\.co|Clocksmith\/rdrr/i.test(text)) return 'Intent model unavailable';
     if (/^Caching shard_/i.test(text)) return 'Caching model weights';
     if (/^Cached shard_/i.test(text)) return 'Model weights cached';
     if (text.length <= 72) return text;
     return `${text.slice(0, 69).trim()}...`;
+  }
+
+  function waitForLoadingPaint() {
+    if (typeof requestAnimationFrame !== 'function') return Promise.resolve();
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        setTimeout(resolve, 0);
+      });
+    });
   }
 
   function createCanvasSnakeLoader() {
@@ -313,11 +342,16 @@
       nextSnakeId: 1,
       snakes: [],
       setLoading(active, percent, stage) {
+        const wasActive = this.active;
         this.active = Boolean(active);
         this.progress = clamp(Number(percent || 0) / 100, 0, 1);
         this.stage = String(stage || this.stage || 'intent');
         if (this.active && !this.snakes.length) {
           this.layoutKey = '';
+          this.lastStep = 0;
+        }
+        if (this.active && !wasActive) {
+          this.opacity = Math.max(this.opacity, 0.82);
           this.lastStep = 0;
         }
       },
@@ -338,7 +372,7 @@
     if (width <= 0 || height <= 0) return;
     ensureSnakeLoaderLayout(loader, width, height);
     if (loader.active) {
-      const stepMs = 92 - loader.progress * 30;
+      const stepMs = 58 - loader.progress * 22;
       if (!loader.lastStep) loader.lastStep = now;
       let steps = 0;
       while (now - loader.lastStep >= stepMs && steps < 5) {
@@ -373,12 +407,28 @@
       202,
       262,
       292,
+      84,
+      22,
+      186,
+      316,
+      118,
+      244,
+      12,
+      222,
     ];
     const starts = [
       { x: 2, y: Math.floor(loader.rows * 0.22), dir: { x: 1, y: 0 } },
       { x: loader.cols - 3, y: Math.floor(loader.rows * 0.38), dir: { x: -1, y: 0 } },
       { x: Math.floor(loader.cols * 0.28), y: 2, dir: { x: 0, y: 1 } },
       { x: Math.floor(loader.cols * 0.72), y: loader.rows - 3, dir: { x: 0, y: -1 } },
+      { x: 2, y: Math.floor(loader.rows * 0.7), dir: { x: 1, y: 0 } },
+      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.82), dir: { x: -1, y: 0 } },
+      { x: Math.floor(loader.cols * 0.12), y: loader.rows - 3, dir: { x: 0, y: -1 } },
+      { x: Math.floor(loader.cols * 0.88), y: 2, dir: { x: 0, y: 1 } },
+      { x: Math.floor(loader.cols * 0.5), y: 2, dir: { x: 0, y: 1 } },
+      { x: Math.floor(loader.cols * 0.5), y: loader.rows - 3, dir: { x: 0, y: -1 } },
+      { x: 2, y: Math.floor(loader.rows * 0.5), dir: { x: 1, y: 0 } },
+      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.58), dir: { x: -1, y: 0 } },
     ];
     return starts.map((start, index) => createCanvasSnake(
       loader,
@@ -386,7 +436,7 @@
       start.y,
       start.dir,
       palette[index % palette.length],
-      14 + index * 2
+      12 + index
     ));
   }
 
@@ -401,7 +451,10 @@
       joinPulse: 0,
       splitPulse: 0,
       retired: false,
+      deathFade: 1,
+      deathReason: '',
       targetTail: null,
+      targetSnakeId: null,
     };
     loader.nextSnakeId += 1;
     for (let i = 0; i < length; i += 1) {
@@ -417,27 +470,44 @@
     loader.stepCount += 1;
     const liveSnakes = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 2);
     for (const snake of liveSnakes) {
-      if (!snake.targetTail && snake.cells.length > 12 && (loader.stepCount + snake.id * 5) % 24 === 0) {
+      if (!snake.targetTail && snake.cells.length > 10 && (loader.stepCount + snake.id * 5) % 13 === 0) {
         snake.targetTail = snake.cells[Math.max(6, Math.floor(snake.cells.length * 0.68))];
       }
+      if (!snake.targetSnakeId && (loader.stepCount + snake.id * 3) % 9 === 0) {
+        const target = nearestSnakeHead(loader, snake);
+        snake.targetSnakeId = target ? target.id : null;
+      }
       advanceCanvasSnake(loader, snake, buildSnakeOccupancy(loader.snakes));
-      snake.bitePulse = Math.max(0, snake.bitePulse - 0.16);
-      snake.joinPulse = Math.max(0, snake.joinPulse - 0.12);
-      snake.splitPulse = Math.max(0, snake.splitPulse - 0.1);
+      snake.bitePulse = Math.max(0, snake.bitePulse - 0.12);
+      snake.joinPulse = Math.max(0, snake.joinPulse - 0.1);
+      snake.splitPulse = Math.max(0, snake.splitPulse - 0.09);
     }
-    if (loader.stepCount % 18 === 0 && loader.snakes.length < 8) {
+    const liveCount = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3).length;
+    if (loader.stepCount % 7 === 0 && liveCount < 20) {
       splitCanvasSnake(loader);
     }
-    if (loader.stepCount % 29 === 0) {
+    if (loader.stepCount % 11 === 0) {
       joinNearbyCanvasSnakes(loader);
     }
-    loader.snakes = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3);
-    while (loader.snakes.length < 4) {
+    for (const snake of loader.snakes) {
+      if (snake.retired) {
+        snake.deathFade = Math.max(0, snake.deathFade - 0.075);
+        snake.bitePulse = Math.max(0, snake.bitePulse - 0.08);
+        snake.joinPulse = Math.max(0, snake.joinPulse - 0.08);
+        snake.splitPulse = Math.max(0, snake.splitPulse - 0.08);
+      } else if (snake.cells.length <= 3) {
+        retireCanvasSnake(snake, 'empty');
+      }
+    }
+    loader.snakes = loader.snakes.filter((snake) => snake.cells.length > 3 && (!snake.retired || snake.deathFade > 0.02));
+    let activeCount = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3).length;
+    while (activeCount < 10) {
       const x = Math.floor(loader.cols * (0.18 + hashNoise(loader.nextSnakeId, 11) * 0.64));
       const y = Math.floor(loader.rows * (0.18 + hashNoise(loader.nextSnakeId, 17) * 0.64));
       const dir = SNAKE_DIRS[loader.nextSnakeId % SNAKE_DIRS.length];
       const hue = 320 + hashNoise(loader.nextSnakeId, 23) * 270;
-      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 12));
+      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 10 + (loader.nextSnakeId % 4)));
+      activeCount += 1;
     }
   }
 
@@ -472,7 +542,8 @@
         snake.hue = (snake.hue + other.hue) / 2;
         snake.joinPulse = 1;
         snake.targetTail = null;
-        other.retired = true;
+        snake.targetSnakeId = null;
+        retireCanvasSnake(other, 'join');
       }
     } else {
       snake.cells.unshift(next);
@@ -497,12 +568,22 @@
       if (snake.targetTail) {
         const currentDistance = snakeCellDistance(head, snake.targetTail, loader);
         const nextDistance = snakeCellDistance(next, snake.targetTail, loader);
-        score += (currentDistance - nextDistance) * 1.7;
+        score += (currentDistance - nextDistance) * 2.1;
+      }
+      if (snake.targetSnakeId) {
+        const target = loader.snakes.find((candidate) => candidate.id === snake.targetSnakeId && !candidate.retired);
+        if (target) {
+          const currentDistance = snakeCellDistance(head, target.cells[0], loader);
+          const nextDistance = snakeCellDistance(next, target.cells[0], loader);
+          score += (currentDistance - nextDistance) * 1.8;
+        } else {
+          snake.targetSnakeId = null;
+        }
       }
       if (hit && hit.snakeId === snake.id) {
-        score += hit.index > 4 ? 2.2 : -5.5;
+        score += hit.index > 4 ? 2.8 : -5.5;
       } else if (hit && hit.snakeId !== snake.id) {
-        score += 0.95;
+        score += 2.4;
       }
       if (next.x < 1 || next.x > loader.cols - 2 || next.y < 1 || next.y > loader.rows - 2) {
         score -= 0.35;
@@ -517,36 +598,48 @@
 
   function splitCanvasSnake(loader) {
     const source = loader.snakes
-      .filter((snake) => snake.cells.length > 14)
+      .filter((snake) => !snake.retired && snake.cells.length > 12)
       .sort((a, b) => b.cells.length - a.cells.length)[0];
     if (!source) return;
-    const splitIndex = Math.floor(source.cells.length * (0.45 + hashNoise(loader.stepCount, source.id) * 0.25));
-    const origin = source.cells[splitIndex];
-    const branchDir = SNAKE_DIRS[(SNAKE_DIRS.indexOf(source.dir) + 1 + source.id) % SNAKE_DIRS.length] || { x: 0, y: 1 };
+    const splitIndex = Math.max(5, Math.min(
+      source.cells.length - 6,
+      Math.floor(source.cells.length * (0.42 + hashNoise(loader.stepCount, source.id) * 0.24))
+    ));
+    const sourceCells = source.cells.slice(0, splitIndex).map((cell) => ({ ...cell }));
+    const branchCells = source.cells.slice(splitIndex).map((cell) => ({ ...cell }));
+    if (sourceCells.length < 5 || branchCells.length < 5) return;
+    const origin = branchCells[0];
+    const branchDir = snakeDirFromCells(branchCells[0], branchCells[1], loader) || source.dir;
     const branch = createCanvasSnake(
       loader,
       origin.x,
       origin.y,
       branchDir,
       source.hue + 42 + hashNoise(source.id, loader.stepCount) * 70,
-      Math.max(8, Math.floor(source.maxLength * 0.58))
+      branchCells.length
     );
-    branch.cells = source.cells.slice(splitIndex, splitIndex + branch.maxLength);
+    source.cells = sourceCells;
+    source.maxLength = Math.max(source.cells.length, Math.floor(source.maxLength * 0.62));
+    source.targetTail = null;
+    source.targetSnakeId = null;
+    source.splitPulse = 1;
+    branch.cells = branchCells;
+    branch.maxLength = Math.max(branch.cells.length, Math.floor(source.maxLength * 0.72));
     branch.dir = branchDir;
     branch.splitPulse = 1;
-    source.maxLength = Math.max(10, Math.floor(source.maxLength * 0.82));
-    source.splitPulse = 1;
+    branch.targetSnakeId = source.id;
     loader.snakes.push(branch);
   }
 
   function joinNearbyCanvasSnakes(loader) {
-    if (loader.snakes.length < 5) return;
+    const candidates = loader.snakes.filter((snake) => !snake.retired && snake.cells.length);
+    if (candidates.length < 3) return;
     let bestPair = null;
     let bestDistance = Infinity;
-    for (let i = 0; i < loader.snakes.length; i += 1) {
-      for (let j = i + 1; j < loader.snakes.length; j += 1) {
-        const a = loader.snakes[i];
-        const b = loader.snakes[j];
+    for (let i = 0; i < candidates.length; i += 1) {
+      for (let j = i + 1; j < candidates.length; j += 1) {
+        const a = candidates[i];
+        const b = candidates[j];
         const distance = snakeCellDistance(a.cells[0], b.cells[0], loader);
         if (distance < bestDistance) {
           bestDistance = distance;
@@ -554,13 +647,48 @@
         }
       }
     }
-    if (!bestPair || bestDistance > Math.max(4, Math.floor(Math.min(loader.cols, loader.rows) * 0.18))) return;
+    if (!bestPair || bestDistance > Math.max(7, Math.floor(Math.min(loader.cols, loader.rows) * 0.28))) return;
     const [a, b] = bestPair;
-    a.cells = [...a.cells, ...b.cells.slice(0, 12)];
-    a.maxLength = Math.min(42, a.maxLength + Math.ceil(b.maxLength * 0.55));
+    const hitCell = b.cells[0];
+    a.cells = [hitCell, ...a.cells, ...b.cells.slice(0, 16)];
+    a.maxLength = Math.min(54, a.maxLength + Math.ceil(b.maxLength * 0.65));
     a.hue = (a.hue * 0.6 + b.hue * 0.4);
     a.joinPulse = 1;
-    b.retired = true;
+    a.targetSnakeId = null;
+    retireCanvasSnake(b, 'join');
+  }
+
+  function nearestSnakeHead(loader, snake) {
+    let best = null;
+    let bestDistance = Infinity;
+    for (const candidate of loader.snakes) {
+      if (candidate === snake || candidate.retired || !candidate.cells.length) continue;
+      const distance = snakeCellDistance(snake.cells[0], candidate.cells[0], loader);
+      if (distance < bestDistance) {
+        best = candidate;
+        bestDistance = distance;
+      }
+    }
+    return best;
+  }
+
+  function snakeDirFromCells(head, next, loader) {
+    if (!head || !next) return null;
+    return SNAKE_DIRS.find((dir) => {
+      const expected = wrapSnakeCell(loader, { x: next.x + dir.x, y: next.y + dir.y });
+      return expected.x === head.x && expected.y === head.y;
+    }) || null;
+  }
+
+  function retireCanvasSnake(snake, reason = 'join') {
+    if (!snake || snake.retired) return;
+    snake.retired = true;
+    snake.deathFade = 1;
+    snake.deathReason = reason;
+    snake.targetTail = null;
+    snake.targetSnakeId = null;
+    snake.joinPulse = Math.max(snake.joinPulse || 0, reason === 'join' ? 0.65 : 0);
+    snake.bitePulse = Math.max(snake.bitePulse || 0, reason === 'empty' ? 0.55 : 0);
   }
 
   function buildSnakeOccupancy(snakes) {
@@ -580,9 +708,9 @@
     const tile = loader.tile;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = 'rgba(255, 253, 252, 0.62)';
+    ctx.fillStyle = 'rgba(250, 249, 255, 0.9)';
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = 'rgba(74, 58, 92, 0.055)';
+    ctx.strokeStyle = 'rgba(74, 58, 92, 0.11)';
     ctx.lineWidth = 1;
     for (let x = 0; x <= width + tile; x += tile) {
       ctx.beginPath();
@@ -596,42 +724,32 @@
       ctx.lineTo(width, y + 0.5);
       ctx.stroke();
     }
-    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalCompositeOperation = 'source-over';
     for (const snake of loader.snakes) {
       drawCanvasSnake(ctx, loader, snake);
-    }
-    ctx.globalCompositeOperation = 'screen';
-    for (const snake of loader.snakes) {
-      drawCanvasSnakeHeadGlow(ctx, loader, snake);
     }
     ctx.restore();
   }
 
   function drawCanvasSnake(ctx, loader, snake) {
+    if (!snake.cells.length) return;
     const tile = loader.tile;
     const inset = Math.max(1, Math.floor(tile * 0.1));
+    const deathAlpha = snake.retired ? clamp(snake.deathFade, 0, 1) : 1;
+    if (deathAlpha <= 0) return;
     for (let index = snake.cells.length - 1; index >= 0; index -= 1) {
       const cell = snake.cells[index];
+      const isHead = index === 0;
       const age = index / Math.max(1, snake.cells.length - 1);
       const tailFade = Math.pow(1 - age, 1.45);
       const hue = (snake.hue + index * 4 + loader.stepCount * 1.8) % 360;
       const pulse = Math.max(snake.bitePulse, snake.joinPulse, snake.splitPulse);
-      const light = 72 + tailFade * 7 + pulse * 6;
-      const alpha = 0.08 + tailFade * 0.42 + pulse * 0.1;
+      const light = 56 + tailFade * 14 + pulse * 7 + (isHead ? 8 : 0);
+      const alpha = (0.18 + tailFade * 0.62 + pulse * 0.12 + (isHead ? 0.12 : 0)) * deathAlpha;
+      const cellInset = isHead ? Math.max(1, Math.floor(tile * 0.06)) : inset;
       ctx.fillStyle = `hsla(${hue}, 82%, ${light}%, ${alpha})`;
-      ctx.fillRect(cell.x * tile + inset, cell.y * tile + inset, tile - inset * 2, tile - inset * 2);
+      ctx.fillRect(cell.x * tile + cellInset, cell.y * tile + cellInset, tile - cellInset * 2, tile - cellInset * 2);
     }
-  }
-
-  function drawCanvasSnakeHeadGlow(ctx, loader, snake) {
-    const head = snake.cells[0];
-    if (!head) return;
-    const tile = loader.tile;
-    const pulse = 0.45 + Math.max(snake.bitePulse, snake.joinPulse, snake.splitPulse) * 0.35;
-    ctx.fillStyle = `hsla(${snake.hue % 360}, 88%, 78%, ${0.12 + pulse * 0.12})`;
-    ctx.fillRect(head.x * tile - tile * 0.12, head.y * tile - tile * 0.12, tile * 1.24, tile * 1.24);
-    ctx.fillStyle = `hsla(${(snake.hue + 34) % 360}, 92%, 86%, ${0.22 + pulse * 0.18})`;
-    ctx.fillRect(head.x * tile + tile * 0.18, head.y * tile + tile * 0.18, tile * 0.64, tile * 0.64);
   }
 
   function wrapSnakeCell(loader, cell) {
@@ -887,6 +1005,53 @@
       params: Object.fromEntries(Object.entries(spec.params).slice(0, 8)),
       remixOf: spec.remixOf || null,
     }, null, 2);
+  }
+
+  function logGraphDebug(spec) {
+    if (typeof console === 'undefined' || !spec || typeof spec !== 'object') return;
+    if (!spec.intent && !spec.compositionGraph && !spec.renderProgram && !spec.physicalSpec) return;
+    const graph = spec.compositionGraph || null;
+    const renderProgram = spec.renderProgram || null;
+    const receipt = spec.physicalSpec && spec.physicalSpec.receipt || null;
+    const rendererPlan = renderProgram && renderProgram.rendererPlan || null;
+    const prompt = spec.intent && spec.intent.prompt || spec.name || 'simulation';
+    const scene = rendererPlan && rendererPlan.sceneKind || 'unplanned';
+    const label = `[simulatte.graph] ${scene}: ${prompt}`;
+    const group = typeof console.groupCollapsed === 'function' ? console.groupCollapsed.bind(console) : console.log.bind(console);
+    const groupEnd = typeof console.groupEnd === 'function' ? console.groupEnd.bind(console) : () => {};
+    group(label);
+    console.log('intent', spec.intent || null);
+    console.log('compositionGraph', graph);
+    console.log('renderProgram', renderProgram);
+    console.log('physicalSpec', spec.physicalSpec || null);
+    console.log('receipt', receipt);
+    if (graph && typeof console.table === 'function') {
+      console.table((graph.nodes || []).map((node) => ({
+        id: node.id,
+        primitive: node.primitiveId,
+        type: node.type,
+        layer: node.layer,
+        regime: node.visualRegime,
+        material: node.material,
+        source: node.source,
+      })));
+      console.table((graph.relations || []).map((relation) => ({
+        from: relation.from,
+        to: relation.to,
+        type: relation.type || relation.relation || '',
+        operator: relation.operator || '',
+      })));
+      console.table((graph.operators || []).map((operator) => ({
+        id: operator.id,
+        kind: operator.kind || operator.type || '',
+        inputs: Array.isArray(operator.inputs) ? operator.inputs.join(', ') : '',
+        outputs: Array.isArray(operator.outputs) ? operator.outputs.join(', ') : '',
+      })));
+    }
+    if (rendererPlan) {
+      console.log('rendererPlan', rendererPlan);
+    }
+    groupEnd();
   }
 
   function syncOpenSpecPreview(node, spec, frameNow, lastSync, assignLastSync) {
@@ -1327,6 +1492,10 @@
     if (sceneKind === 'city') return paintCityWorld(ctx, width, height, state, plan);
     if (sceneKind === 'watershed') return paintWatershedWorld(ctx, width, height, state, plan);
     if (sceneKind === 'magnetic-machine') return paintMagneticMachineWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'ferrofluid') return paintFerrofluidWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'thin-film') return paintThinFilmWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'granular') return paintGranularWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'thermal-plume') return paintThermalPlumeWorld(ctx, width, height, state, plan);
     if (sceneKind === 'material-tray') return paintMaterialTrayWorld(ctx, width, height, state, plan);
     if (sceneKind === 'biology') return paintBiologyWorld(ctx, width, height, state, plan);
     if (sceneKind === 'acoustic') return paintAcousticWorld(ctx, width, height, state, plan);
@@ -1344,6 +1513,10 @@
     if (/lens|prism/.test(signature)) return 'optics';
     if (/queue|network/.test(signature)) return 'city';
     if (/heightfield|flow-path|grain-bed/.test(signature)) return 'watershed';
+    if (/ferrofluid|coil|current/.test(signature)) return 'ferrofluid';
+    if (/soap|film|bubble|wire/.test(signature)) return 'thin-film';
+    if (/granular|sieve|avalanche|powder/.test(signature)) return 'granular';
+    if (/cooling|thermal-plume|heat plume/.test(signature)) return 'thermal-plume';
     if (/wheel|magnet|slider/.test(signature)) return 'magnetic-machine';
     if (/sample|bar|pool|grain-bed/.test(signature)) return 'material-tray';
     if (/colony|membrane/.test(signature)) return 'biology';
@@ -1361,7 +1534,7 @@
   }
 
   function paintFireWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fff8f2', '#f9fbf7');
+    paintSceneBackground(ctx, width, height, '#2f211d', '#fff7ee', 24);
     drawHeatHaze(ctx, width, height, state, 0.54);
     drawFuelTerrain(ctx, width, height, state, plan);
     drawFireMoistureChannels(ctx, width, height, state, plan);
@@ -1372,16 +1545,16 @@
   }
 
   function paintOpticsWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fbfdff', '#f6fbff');
+    paintSceneBackground(ctx, width, height, '#17263a', '#f7fbff', 208);
     drawOpticalBenchRail(ctx, width, height, state);
     drawSpectralBeamTrace(ctx, width, height, state, plan);
     drawOpticalSurfaces(ctx, width, height, state, plan);
     drawOpticalCaustics(ctx, width, height, state, plan);
-    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.28);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.44);
   }
 
   function paintCityWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fbfdfb', '#f7fbfc');
+    paintSceneBackground(ctx, width, height, '#162826', '#f7fbfc', 172);
     drawCityRouteGrid(ctx, width, height, state);
     drawNetworkField(ctx, width, height, state, plan);
     drawCityNodes(ctx, width, height, state, plan);
@@ -1390,15 +1563,15 @@
   }
 
   function paintWatershedWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fbfbf6', '#f4fbff');
+    paintSceneBackground(ctx, width, height, '#27311f', '#f4fbff', 194);
     drawWatershedTerrain(ctx, width, height, state);
     drawWatershedRiver(ctx, width, height, state, plan);
     drawSedimentFan(ctx, width, height, state, plan);
-    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.32);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.46);
   }
 
   function paintMagneticMachineWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fbfdff', '#f8fbfa');
+    paintSceneBackground(ctx, width, height, '#171d32', '#f8fbfa', 278);
     drawMachineRotorField(ctx, width, height, state, plan);
     drawMachineSolarInput(ctx, width, height, state, plan);
     drawMachineBodies(ctx, width, height, state, plan);
@@ -1407,7 +1580,7 @@
   }
 
   function paintMaterialTrayWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fffaf5', '#fbfcfa');
+    paintSceneBackground(ctx, width, height, '#2e271d', '#fbfcfa', 42);
     drawMaterialTrayBase(ctx, width, height, state);
     drawMaterialSpecimens(ctx, width, height, state, plan);
     drawMaterialInteractionField(ctx, width, height, state, plan);
@@ -1415,40 +1588,394 @@
   }
 
   function paintBiologyWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fbfff8', '#fbf9ff');
+    paintSceneBackground(ctx, width, height, '#173021', '#fbf9ff', 116);
     drawNutrientField(ctx, width, height, state);
     drawBiologicalBranches(ctx, width, height, state, plan);
     drawMembranePools(ctx, width, height, state, plan);
-    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.3);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.46);
   }
 
   function paintAcousticWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#fbfcff', '#f7fbfb');
+    paintSceneBackground(ctx, width, height, '#172333', '#f7fbfb', 196);
     drawAcousticWaveguides(ctx, width, height, state);
     drawAcousticPressureFronts(ctx, width, height, state, plan);
     drawAcousticResonatorNodes(ctx, width, height, state, plan);
     drawMaterialContinuumField(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.42);
+  }
+
+  function paintFerrofluidWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#151b26', '#fbfaf7', 238);
+    drawFerrofluidCoils(ctx, width, height, state, plan);
+    drawFerrofluidSpikes(ctx, width, height, state, plan);
+    drawFerrofluidDipoleDust(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.18);
+  }
+
+  function paintThinFilmWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#1b2133', '#fff9fb', 302);
+    drawThinFilmFrame(ctx, width, height, state, plan);
+    drawInterferenceFilm(ctx, width, height, state, plan);
+    drawBubbleLenses(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.18);
+  }
+
+  function paintGranularWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#2f2419', '#f8fbf7', 38);
+    drawGranularSieve(ctx, width, height, state, plan);
+    drawGranularStreams(ctx, width, height, state, plan);
+    drawGranularPile(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.24);
+  }
+
+  function paintThermalPlumeWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#30231e', '#f7fbff', 18);
+    drawCoolingFins(ctx, width, height, state, plan);
+    drawThermalPlumeColumn(ctx, width, height, state, plan);
+    drawSmokeShearLines(ctx, width, height, state, plan);
     drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.22);
   }
 
-  function paintSceneBackground(ctx, width, height, top, bottom) {
+  function drawFerrofluidCoils(ctx, width, height, state, plan) {
+    const coils = objectsMatching(plan, /coil|current|copper|conductor|magnet|field/).slice(0, 5);
+    const anchors = coils.length
+      ? coils.map((object) => objectCenter(object, width, height))
+      : [
+        { x: width * 0.28, y: height * 0.5 },
+        { x: width * 0.5, y: height * 0.45 },
+        { x: width * 0.72, y: height * 0.52 },
+      ];
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    anchors.forEach((center, index) => {
+      const radius = Math.min(width, height) * (0.045 + index * 0.007);
+      for (let loop = 0; loop < 9; loop += 1) {
+        ctx.strokeStyle = `hsla(${22 + loop * 3}, 82%, ${34 + loop * 2}%, ${0.22 - loop * 0.012})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(
+          center.x,
+          center.y,
+          radius * (1.2 + loop * 0.08),
+          radius * (0.48 + loop * 0.045),
+          state.t * 0.06 + index * 0.5,
+          0,
+          TAU
+        );
+        ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(78, 54, 38, 0.34)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(center.x - radius * 1.5, center.y + radius * 1.05);
+      ctx.lineTo(center.x + radius * 1.5, center.y + radius * 1.05);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawFerrofluidSpikes(ctx, width, height, state, plan) {
+    const fluid = firstObjectMatching(plan, /ferrofluid|magnet|fluid|field/) || (plan.objects || [])[0];
+    const center = fluid ? objectCenter(fluid, width, height) : { x: width * 0.5, y: height * 0.5 };
+    const radius = Math.min(width, height) * 0.13;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const pool = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, radius * 1.35);
+    pool.addColorStop(0, 'rgba(38, 48, 58, 0.28)');
+    pool.addColorStop(0.65, 'rgba(38, 42, 54, 0.16)');
+    pool.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = pool;
+    ctx.beginPath();
+    ctx.ellipse(center.x, center.y + radius * 0.24, radius * 1.35, radius * 0.58, 0, 0, TAU);
+    ctx.fill();
+    for (let spike = 0; spike < 42; spike += 1) {
+      const angle = spike * TAU / 42 + Math.sin(state.t * 0.28 + spike) * 0.03;
+      const base = radius * (0.32 + hashNoise(301, spike) * 0.72);
+      const length = radius * (0.32 + hashNoise(307, spike) * 0.64);
+      const x = center.x + Math.cos(angle) * base;
+      const y = center.y + Math.sin(angle) * base * 0.48;
+      ctx.strokeStyle = `hsla(${218 + spike * 2}, 42%, ${22 + hashNoise(311, spike) * 12}%, 0.42)`;
+      ctx.lineWidth = 1.2 + hashNoise(313, spike) * 2.2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(angle) * length * 0.32, y - length * (0.58 + Math.sin(angle) * 0.18));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawFerrofluidDipoleDust(ctx, width, height, state, plan) {
+    const center = firstObjectMatching(plan, /ferrofluid|magnet|field/)
+      ? objectCenter(firstObjectMatching(plan, /ferrofluid|magnet|field/), width, height)
+      : { x: width * 0.5, y: height * 0.48 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 54; i += 1) {
+      const orbit = i % 9;
+      const phase = state.t * (0.05 + orbit * 0.006) + i * 0.71;
+      const rx = width * (0.08 + orbit * 0.027);
+      const ry = height * (0.04 + orbit * 0.016);
+      const x = center.x + Math.cos(phase) * rx;
+      const y = center.y + Math.sin(phase * 1.7) * ry;
+      drawPrismaticParticle(ctx, x, y, 0.9 + orbit * 0.08, 258 + orbit * 9, 0.07, phase);
+    }
+    ctx.restore();
+  }
+
+  function drawThinFilmFrame(ctx, width, height, state, plan) {
+    const film = firstObjectMatching(plan, /film|bubble|wire|loop|membrane/) || (plan.objects || [])[0];
+    const center = film ? objectCenter(film, width, height) : { x: width * 0.5, y: height * 0.48 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.translate(center.x, center.y);
+    ctx.rotate(Math.sin(state.t * 0.08) * 0.04);
+    const w = width * 0.48;
+    const h = height * 0.42;
+    ctx.strokeStyle = 'rgba(72, 84, 98, 0.28)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w * 0.5, h * 0.5, 0, 0, TAU);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.52)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawInterferenceFilm(ctx, width, height, state, plan) {
+    const film = firstObjectMatching(plan, /film|bubble|wire|loop|membrane/) || (plan.objects || [])[0];
+    const center = film ? objectCenter(film, width, height) : { x: width * 0.5, y: height * 0.48 };
+    const w = width * 0.48;
+    const h = height * 0.42;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.translate(center.x, center.y);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w * 0.48, h * 0.48, 0, 0, TAU);
+    ctx.clip();
+    for (let band = 0; band < 22; band += 1) {
+      const y = -h * 0.5 + band * h / 21;
+      const hue = (206 + band * 19 + Math.sin(state.t * 0.12 + band) * 18) % 360;
+      ctx.strokeStyle = `hsla(${hue}, 94%, 62%, ${0.13 + (band % 4) * 0.012})`;
+      ctx.lineWidth = 3 + (band % 3);
+      ctx.beginPath();
+      for (let step = 0; step <= 28; step += 1) {
+        const x = -w * 0.55 + step * w * 1.1 / 28;
+        const yy = y + Math.sin(step * 0.72 + state.t * 0.55 + band) * h * 0.035;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawBubbleLenses(ctx, width, height, state, plan) {
+    const bubbles = objectsMatching(plan, /bubble|air|foam|film|membrane/).slice(0, 9);
+    const source = bubbles.length ? bubbles : (plan.objects || []).slice(0, 5);
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    source.forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      const r = Math.min(width, height) * (0.025 + hashNoise(337, index) * 0.052);
+      const hue = 188 + index * 23;
+      ctx.strokeStyle = `hsla(${hue}, 92%, 62%, 0.42)`;
+      ctx.fillStyle = `hsla(${hue + 48}, 96%, 76%, 0.08)`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(center.x + Math.sin(state.t * 0.1 + index) * 5, center.y, r, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawGranularSieve(ctx, width, height, state, plan) {
+    const sieve = firstObjectMatching(plan, /sieve|grid|screen|constraint/);
+    const center = sieve ? objectCenter(sieve, width, height) : { x: width * 0.5, y: height * 0.38 };
+    ctx.save();
+    ctx.translate(center.x, center.y);
+    ctx.rotate(-0.12 + Math.sin(state.t * 0.18) * 0.03);
+    ctx.strokeStyle = 'rgba(104, 82, 48, 0.3)';
+    ctx.lineWidth = 1.4;
+    const w = width * 0.52;
+    const h = height * 0.09;
+    ctx.strokeRect(-w * 0.5, -h * 0.5, w, h);
+    for (let i = 1; i < 18; i += 1) {
+      const x = -w * 0.5 + i * w / 18;
+      ctx.beginPath();
+      ctx.moveTo(x, -h * 0.5);
+      ctx.lineTo(x + Math.sin(state.t * 0.8 + i) * 1.4, h * 0.5);
+      ctx.stroke();
+    }
+    for (let row = 1; row < 4; row += 1) {
+      const y = -h * 0.5 + row * h / 4;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.5, y);
+      ctx.lineTo(w * 0.5, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGranularStreams(ctx, width, height, state, plan) {
+    const grains = objectsMatching(plan, /grain|bead|sand|powder|granular/);
+    const count = grains.length ? 96 : 64;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < count; i += 1) {
+      const lane = i % 9;
+      const fall = (state.t * 0.055 + hashNoise(353, i)) % 1;
+      const x = width * (0.28 + lane * 0.055) + Math.sin(state.t * 0.42 + i) * 6;
+      const y = height * (0.25 + fall * 0.56);
+      const hue = 34 + hashNoise(359, i) * 28;
+      ctx.fillStyle = `hsla(${hue}, 58%, 38%, ${0.18 + hashNoise(367, i) * 0.16})`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1 + hashNoise(373, i) * 2.1, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawGranularPile(ctx, width, height, state, plan) {
+    const pile = firstObjectMatching(plan, /pile|sand|grain|bead|powder|avalanche/);
+    const center = pile ? objectCenter(pile, width, height) : { x: width * 0.53, y: height * 0.76 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let layer = 0; layer < 12; layer += 1) {
+      const w = width * (0.09 + layer * 0.028);
+      const y = center.y + layer * 5;
+      ctx.strokeStyle = `hsla(${38 + layer * 2}, 48%, ${34 + layer * 1.4}%, ${0.2 - layer * 0.009})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(center.x - w, y);
+      ctx.quadraticCurveTo(center.x, y - height * (0.08 + layer * 0.005), center.x + w, y);
+      ctx.stroke();
+    }
+    drawSedimentFan(ctx, width, height, state, plan);
+    ctx.restore();
+  }
+
+  function drawCoolingFins(ctx, width, height, state, plan) {
+    const finObject = firstObjectMatching(plan, /cooling|fin|metal|conductor|sensor/);
+    const center = finObject ? objectCenter(finObject, width, height) : { x: width * 0.5, y: height * 0.68 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const finCount = 13;
+    for (let i = 0; i < finCount; i += 1) {
+      const x = center.x - width * 0.24 + i * width * 0.04;
+      const h = height * (0.16 + hashNoise(383, i) * 0.08);
+      const gradient = ctx.createLinearGradient(x, center.y - h, x, center.y + h * 0.2);
+      gradient.addColorStop(0, 'rgba(188, 208, 218, 0.08)');
+      gradient.addColorStop(1, 'rgba(78, 98, 110, 0.26)');
+      ctx.fillStyle = gradient;
+      ctx.strokeStyle = 'rgba(74, 92, 102, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.rect(x - width * 0.011, center.y - h + Math.sin(state.t * 0.2 + i) * 1.2, width * 0.022, h);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawThermalPlumeColumn(ctx, width, height, state, plan) {
+    const source = firstObjectMatching(plan, /thermal|plume|smoke|heat|cooling|fin/);
+    const center = source ? objectCenter(source, width, height) : { x: width * 0.5, y: height * 0.62 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let column = 0; column < 24; column += 1) {
+      const lane = (column - 12) / 12;
+      const hue = 22 + hashNoise(397, column) * 34;
+      ctx.strokeStyle = `hsla(${hue}, 88%, 56%, ${0.12 + hashNoise(401, column) * 0.08})`;
+      ctx.lineWidth = 1.1 + hashNoise(409, column) * 2.2;
+      ctx.beginPath();
+      ctx.moveTo(center.x + lane * width * 0.11, center.y);
+      ctx.bezierCurveTo(
+        center.x + lane * width * 0.06 + Math.sin(state.t * 0.6 + column) * 18,
+        center.y - height * 0.12,
+        center.x - lane * width * 0.08 + Math.cos(state.t * 0.44 + column) * 24,
+        center.y - height * 0.28,
+        center.x + lane * width * 0.14,
+        center.y - height * 0.5
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawSmokeShearLines(ctx, width, height, state, plan) {
+    const center = firstObjectMatching(plan, /smoke|plume|thermal/)
+      ? objectCenter(firstObjectMatching(plan, /smoke|plume|thermal/), width, height)
+      : { x: width * 0.5, y: height * 0.36 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let band = 0; band < 13; band += 1) {
+      const y = center.y - height * 0.18 + band * height * 0.033;
+      ctx.strokeStyle = `hsla(${202 + band * 3}, 32%, 48%, ${0.1 - band * 0.004})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let step = 0; step <= 26; step += 1) {
+        const x = width * (0.16 + step * 0.028);
+        const yy = y + Math.sin(step * 0.8 + state.t * 0.35 + band) * 7;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function paintSceneBackground(ctx, width, height, top, bottom, accentHue = 178) {
     ctx.save();
     const gradient = ctx.createLinearGradient(0, 0, 0, height);
     gradient.addColorStop(0, top);
+    gradient.addColorStop(0.42, `hsla(${accentHue}, 58%, 86%, 0.72)`);
     gradient.addColorStop(1, bottom);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
+    drawCanvasTexture(ctx, width, height, accentHue);
+    ctx.restore();
+  }
+
+  function drawCanvasTexture(ctx, width, height, accentHue = 178) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const diagonal = ctx.createLinearGradient(0, 0, width, height);
+    diagonal.addColorStop(0, 'rgba(255,255,255,0)');
+    diagonal.addColorStop(0.34, `hsla(${accentHue}, 72%, 58%, 0.035)`);
+    diagonal.addColorStop(0.68, `hsla(${(accentHue + 54) % 360}, 76%, 56%, 0.025)`);
+    diagonal.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = diagonal;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = `hsla(${accentHue}, 42%, 24%, 0.045)`;
+    ctx.lineWidth = 1;
+    const spacing = Math.max(24, Math.min(width, height) / 15);
+    for (let x = -height; x < width + height; x += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + height * 0.45, height);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `hsla(${(accentHue + 126) % 360}, 38%, 34%, 0.025)`;
+    for (let y = spacing * 0.5; y < height; y += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y + Math.sin(y * 0.01) * 3);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
   function drawAcousticWaveguides(ctx, width, height, state) {
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.lineWidth = 1.2;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.lineWidth = 2;
     for (let guide = 0; guide < 7; guide += 1) {
       const y = height * (0.22 + guide * 0.088);
       const hue = 188 + guide * 9;
-      ctx.strokeStyle = `hsla(${hue}, 72%, 48%, ${0.055 + guide * 0.004})`;
+      ctx.strokeStyle = `hsla(${hue}, 78%, 46%, ${0.13 + guide * 0.008})`;
       ctx.beginPath();
       for (let x = width * 0.08; x <= width * 0.92; x += 30) {
         const yy = y + Math.sin(x * 0.014 + state.t * 2.4 + guide) * height * 0.018;
@@ -1463,16 +1990,16 @@
   function drawAcousticPressureFronts(ctx, width, height, state, plan) {
     const centers = acousticPlanCenters(plan, width, height);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let c = 0; c < centers.length; c += 1) {
       const center = centers[c];
       for (let ring = 0; ring < 11; ring += 1) {
         const travel = (state.t * 0.08 + ring * 0.075 + c * 0.11) % 1;
         const rx = width * (0.035 + travel * 0.22);
         const ry = height * (0.025 + travel * 0.14);
-        const alpha = Math.max(0.018, 0.16 * (1 - travel));
+        const alpha = Math.max(0.05, 0.34 * (1 - travel));
         ctx.strokeStyle = `hsla(${202 + c * 18 + ring * 4}, 82%, 54%, ${alpha})`;
-        ctx.lineWidth = 0.8 + (1 - travel) * 1.1;
+        ctx.lineWidth = 1.4 + (1 - travel) * 1.8;
         ctx.beginPath();
         ctx.ellipse(center.x, center.y, rx, ry, Math.sin(c + ring) * 0.18, 0, TAU);
         ctx.stroke();
@@ -1484,20 +2011,20 @@
   function drawAcousticResonatorNodes(ctx, width, height, state, plan) {
     const centers = acousticPlanCenters(plan, width, height).slice(0, 8);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let i = 0; i < centers.length; i += 1) {
       const center = centers[i];
       const pulse = 0.5 + 0.5 * Math.sin(state.t * 3.2 + i * 0.9);
       const r = Math.min(width, height) * (0.018 + pulse * 0.018);
       const glow = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, r * 4.8);
-      glow.addColorStop(0, `hsla(${186 + i * 17}, 92%, 68%, 0.2)`);
-      glow.addColorStop(0.42, `hsla(${228 + i * 11}, 78%, 58%, 0.08)`);
+      glow.addColorStop(0, `hsla(${186 + i * 17}, 92%, 62%, 0.42)`);
+      glow.addColorStop(0.42, `hsla(${228 + i * 11}, 78%, 54%, 0.18)`);
       glow.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = glow;
       ctx.beginPath();
       ctx.arc(center.x, center.y, r * 4.8, 0, TAU);
       ctx.fill();
-      ctx.strokeStyle = `hsla(${196 + i * 13}, 76%, 44%, 0.18)`;
+      ctx.strokeStyle = `hsla(${196 + i * 13}, 76%, 40%, 0.36)`;
       ctx.beginPath();
       ctx.arc(center.x, center.y, r, 0, TAU);
       ctx.stroke();
@@ -1522,7 +2049,7 @@
 
   function drawPlanObjectsWithAlpha(ctx, width, height, state, plan, alpha) {
     ctx.save();
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = Math.min(1, Math.max(0.42, alpha));
     drawPlanObjects(ctx, width, height, state, plan);
     ctx.restore();
   }
@@ -1678,9 +2205,9 @@
     ctx.save();
     const y = height * 0.58;
     const rail = ctx.createLinearGradient(width * 0.12, y, width * 0.9, y);
-    rail.addColorStop(0, 'rgba(40, 74, 94, 0.03)');
-    rail.addColorStop(0.5, 'rgba(40, 74, 94, 0.14)');
-    rail.addColorStop(1, 'rgba(40, 74, 94, 0.03)');
+    rail.addColorStop(0, 'rgba(40, 74, 94, 0.08)');
+    rail.addColorStop(0.5, 'rgba(40, 74, 94, 0.26)');
+    rail.addColorStop(1, 'rgba(40, 74, 94, 0.08)');
     ctx.strokeStyle = rail;
     ctx.lineWidth = 8;
     ctx.beginPath();
@@ -1689,7 +2216,7 @@
     ctx.stroke();
     for (let i = 0; i < 12; i += 1) {
       const x = width * (0.14 + i * 0.065);
-      ctx.strokeStyle = 'rgba(25, 62, 88, 0.09)';
+      ctx.strokeStyle = 'rgba(25, 62, 88, 0.16)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(x, y - 18);
@@ -1709,12 +2236,12 @@
     const c = prism ? objectCenter(prism, width, height) : { x: width * 0.58, y: height * 0.5 };
     const d = sensor ? objectCenter(sensor, width, height) : { x: width * 0.84, y: height * 0.56 };
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let i = 0; i < 9; i += 1) {
       const split = (i - 4) * 0.018;
       const hue = 206 + i * 18;
-      ctx.strokeStyle = `hsla(${hue}, 96%, 58%, 0.28)`;
-      ctx.lineWidth = 1.2 + (i % 3) * 0.3;
+      ctx.strokeStyle = `hsla(${hue}, 96%, 52%, 0.46)`;
+      ctx.lineWidth = 2 + (i % 3) * 0.4;
       ctx.beginPath();
       ctx.moveTo(a.x, a.y + split * height * 0.18);
       ctx.bezierCurveTo(
@@ -1734,7 +2261,7 @@
   function drawOpticalSurfaces(ctx, width, height, state, plan) {
     const optical = objectsMatching(plan, /lens|prism|mirror|glass|sensor/).slice(0, 8);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     optical.forEach((object, index) => {
       const center = objectCenter(object, width, height);
       const isPrism = /prism/.test(`${object.id} ${object.shape}`);
@@ -1745,12 +2272,12 @@
       ctx.translate(center.x, center.y);
       ctx.rotate((object.pose && object.pose.rotation || 0) + Math.sin(state.t * 0.12 + index) * 0.02);
       const gradient = ctx.createLinearGradient(-w, -h, w, h);
-      gradient.addColorStop(0, 'rgba(255,255,255,0.02)');
-      gradient.addColorStop(0.5, isMirror ? 'rgba(130,160,170,0.22)' : 'rgba(88,190,240,0.16)');
-      gradient.addColorStop(1, 'rgba(255,255,255,0.01)');
+      gradient.addColorStop(0, 'rgba(255,255,255,0.08)');
+      gradient.addColorStop(0.5, isMirror ? 'rgba(108,140,154,0.38)' : 'rgba(64,178,232,0.3)');
+      gradient.addColorStop(1, 'rgba(255,255,255,0.04)');
       ctx.fillStyle = gradient;
-      ctx.strokeStyle = isMirror ? 'rgba(80, 110, 120, 0.24)' : 'rgba(70, 168, 226, 0.24)';
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = isMirror ? 'rgba(80, 110, 120, 0.42)' : 'rgba(48, 146, 214, 0.42)';
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
       if (isPrism) {
         ctx.moveTo(0, -h * 0.7);
@@ -1771,10 +2298,10 @@
     const target = firstObjectMatching(plan, /sensor|meter|wall|screen/);
     const center = target ? objectCenter(target, width, height) : { x: width * 0.78, y: height * 0.63 };
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let ring = 0; ring < 12; ring += 1) {
-      ctx.strokeStyle = `hsla(${198 + ring * 12}, 92%, 62%, ${0.09 - ring * 0.005})`;
-      ctx.lineWidth = 0.9;
+      ctx.strokeStyle = `hsla(${198 + ring * 12}, 92%, 56%, ${0.17 - ring * 0.008})`;
+      ctx.lineWidth = 1.3;
       ctx.beginPath();
       ctx.ellipse(
         center.x + Math.sin(state.t * 0.3 + ring) * 6,
@@ -1852,8 +2379,8 @@
     for (let band = 0; band < 18; band += 1) {
       const y = height * (0.18 + band * 0.041);
       const hue = 74 - band * 1.4;
-      ctx.strokeStyle = `hsla(${hue}, 36%, ${44 + band * 0.8}%, ${0.1 + band * 0.004})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `hsla(${hue}, 42%, ${38 + band * 0.65}%, ${0.16 + band * 0.006})`;
+      ctx.lineWidth = 1.35;
       ctx.beginPath();
       for (let i = 0; i <= 28; i += 1) {
         const x = width * (0.08 + i * 0.031);
@@ -1877,10 +2404,10 @@
         { x: width * 0.78, y: height * 0.82 },
       ];
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let band = 0; band < 8; band += 1) {
-      ctx.strokeStyle = `hsla(${190 + band * 6}, 82%, 52%, ${0.13 - band * 0.008})`;
-      ctx.lineWidth = 4 + band * 2.2;
+      ctx.strokeStyle = `hsla(${190 + band * 6}, 82%, 48%, ${0.24 - band * 0.014})`;
+      ctx.lineWidth = 5 + band * 2.6;
       ctx.beginPath();
       base.forEach((point, index) => {
         const x = point.x + Math.sin(state.t * 0.3 + band + index) * (band + 1);
@@ -1902,7 +2429,7 @@
       for (let grain = 0; grain < 8; grain += 1) {
         const x = center.x + (hashNoise(index * 23, grain) - 0.5) * spread;
         const y = center.y + (hashNoise(index * 29, grain) - 0.5) * spread * 0.6 + Math.sin(state.t * 0.16 + grain) * 0.8;
-        ctx.fillStyle = `rgba(126, 95, 48, ${0.08 + hashNoise(index * 31, grain) * 0.06})`;
+        ctx.fillStyle = `rgba(116, 82, 40, ${0.14 + hashNoise(index * 31, grain) * 0.1})`;
         ctx.beginPath();
         ctx.arc(x, y, 0.8 + hashNoise(index * 37, grain) * 1.6, 0, TAU);
         ctx.fill();
@@ -2155,13 +2682,13 @@
 
   function drawNutrientField(ctx, width, height, state) {
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let i = 0; i < 18; i += 1) {
       const x = width * (0.18 + hashNoise(151, i) * 0.64);
       const y = height * (0.18 + hashNoise(157, i) * 0.62);
       const r = Math.min(width, height) * (0.08 + hashNoise(163, i) * 0.12);
       const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
-      gradient.addColorStop(0, `hsla(${104 + i * 5}, 68%, 58%, 0.055)`);
+      gradient.addColorStop(0, `hsla(${104 + i * 5}, 68%, 50%, 0.13)`);
       gradient.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -2175,14 +2702,14 @@
     const roots = objectsMatching(plan, /mycelium|bacteria|colony|growth|infection|protein|leaf/);
     const anchors = roots.length ? roots : (plan.objects || []).slice(0, 4);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     anchors.slice(0, 8).forEach((object, index) => {
       const center = objectCenter(object, width, height);
       for (let branch = 0; branch < 11; branch += 1) {
         const angle = branch * TAU / 11 + Math.sin(state.t * 0.1 + index) * 0.18;
         const length = Math.min(width, height) * (0.08 + hashNoise(index * 41, branch) * 0.16);
-        ctx.strokeStyle = `hsla(${96 + branch * 9}, 58%, 44%, ${0.12 - branch * 0.004})`;
-        ctx.lineWidth = 1 + hashNoise(index * 43, branch);
+        ctx.strokeStyle = `hsla(${96 + branch * 9}, 64%, 38%, ${0.23 - branch * 0.008})`;
+        ctx.lineWidth = 1.4 + hashNoise(index * 43, branch) * 1.2;
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
         ctx.bezierCurveTo(
@@ -2202,14 +2729,14 @@
   function drawMembranePools(ctx, width, height, state, plan) {
     const membranes = objectsMatching(plan, /membrane|gel|foam|soft|cell|bacteria/).slice(0, 10);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     membranes.forEach((object, index) => {
       const center = objectCenter(object, width, height);
       const r = Math.min(width, height) * (0.035 + hashNoise(173, index) * 0.055);
       const hue = 150 + index * 13;
-      ctx.strokeStyle = `hsla(${hue}, 64%, 58%, 0.2)`;
-      ctx.fillStyle = `hsla(${hue + 18}, 74%, 68%, 0.045)`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `hsla(${hue}, 64%, 45%, 0.34)`;
+      ctx.fillStyle = `hsla(${hue + 18}, 74%, 60%, 0.11)`;
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
       ctx.ellipse(center.x, center.y, r * 1.4, r * 0.84, Math.sin(state.t * 0.12 + index) * 0.3, 0, TAU);
       ctx.fill();
@@ -2243,14 +2770,11 @@
     const thermal = /flame|fuel|plume/.test(signature);
     const optical = /prism|lens/.test(signature);
     const network = /queue|network/.test(signature);
-    const top = thermal ? '#fff9f4' : optical ? '#fbfdff' : '#ffffff';
+    const top = thermal ? '#2f211d' : optical ? '#17263a' : network ? '#162826' : '#182723';
     const bottom = network ? '#f8fbfb' : '#f9fcfb';
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, top);
-    gradient.addColorStop(1, bottom);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = 'rgba(31, 93, 82, 0.04)';
+    const accentHue = thermal ? 24 : optical ? 208 : network ? 172 : 156;
+    paintSceneBackground(ctx, width, height, top, bottom, accentHue);
+    ctx.strokeStyle = `hsla(${accentHue}, 58%, 22%, 0.16)`;
     ctx.lineWidth = 1;
     const spacing = Math.max(28, Math.min(width, height) / 12);
     for (let x = 0; x <= width; x += spacing) {
@@ -2291,7 +2815,9 @@
   }
 
   function drawMaterialContinuumField(ctx, width, height, state, plan) {
-    const objects = (plan.objects || []).slice(0, 24);
+    const objects = visiblePlanObjects(plan).filter((object) => (
+      object.shape !== 'body' && object.shape !== 'field-envelope'
+    )).slice(0, 12);
     if (!objects.length) return;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -2346,7 +2872,7 @@
     if (/fire|flame|plasma|combust|heat|thermal|smoke|plume/.test(text)) return 'thermal';
     if (/water|river|fluid|flow|pool|air|wind|brine|mercury/.test(text)) return 'fluid';
     if (/glass|light|lens|prism|ray|mirror|sensor|panel/.test(text)) return 'optical';
-    if (/magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';
+    if (/gold|magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';
     if (/rock|wood|soil|sand|terrain|grain|fuel|biomass|wall|ridge/.test(text)) return 'granular';
     return 'generic';
   }
@@ -2634,8 +3160,8 @@
     ctx.translate(extent.x, extent.y);
     for (let ring = 0; ring < 9; ring += 1) {
       const radius = extent.w * (0.1 + ring * 0.055 + (state.t * 0.04) % 0.05);
-      ctx.strokeStyle = `hsla(${hue + ring * 7}, 74%, 52%, ${0.12 - ring * 0.008})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `hsla(${hue + ring * 7}, 78%, 46%, ${0.24 - ring * 0.014})`;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.ellipse(0, 0, radius, radius * 0.62, Math.sin(index + ring) * 0.1, 0, TAU);
       ctx.stroke();
@@ -2703,6 +3229,7 @@
       foam: 176,
       gel: 164,
       glass: 205,
+      gold: 46,
       leaf: 112,
       light: 52,
       magnet: 288,
@@ -2859,7 +3386,6 @@
 
   function drawPlanRelations(ctx, width, height, state, plan) {
     ctx.save();
-    ctx.lineWidth = 1.3;
     for (const relation of plan.relations || []) {
       const from = planObjectCenter(plan, relation.from, width, height);
       const to = planObjectCenter(plan, relation.to, width, height);
@@ -2867,20 +3393,58 @@
       const hue = relation.channel.includes('heat') || relation.channel.includes('fuel') ? 22 :
         relation.channel.includes('light') || relation.channel.includes('spectrum') ? 222 :
           relation.channel.includes('energy') ? 45 : relation.channel.includes('flow') ? 196 : 152;
-      ctx.strokeStyle = `hsla(${hue}, 70%, 42%, ${0.12 + relation.strength * 0.08})`;
+      const strength = Number.isFinite(Number(relation.strength)) ? Number(relation.strength) : 0.48;
       ctx.beginPath();
       const midY = (from.y + to.y) / 2 + Math.sin(state.t + from.x * 0.01) * 5;
       ctx.moveTo(from.x, from.y);
       ctx.quadraticCurveTo((from.x + to.x) / 2, midY, to.x, to.y);
+      ctx.strokeStyle = `hsla(${hue}, 54%, 18%, ${0.16 + strength * 0.12})`;
+      ctx.lineWidth = 4.8;
       ctx.stroke();
+      ctx.strokeStyle = `hsla(${hue + 18}, 86%, 56%, ${0.28 + strength * 0.22})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      for (let pulse = 0; pulse < 2; pulse += 1) {
+        const t = (state.t * 0.08 + pulse * 0.5 + hashNoise(relation.from.length, relation.to.length)) % 1;
+        const x = from.x + (to.x - from.x) * t;
+        const y = from.y + (to.y - from.y) * t + Math.sin(t * TAU + state.t) * 6;
+        drawPrismaticParticle(ctx, x, y, 1.5 + strength * 1.4, hue + pulse * 38, 0.11 + strength * 0.08, t * TAU);
+      }
     }
     ctx.restore();
   }
 
   function drawPlanObjects(ctx, width, height, state, plan) {
-    for (let index = 0; index < (plan.objects || []).length; index += 1) {
-      drawPlanObject(ctx, width, height, state, plan, plan.objects[index], index);
+    const objects = visiblePlanObjects(plan);
+    for (let index = 0; index < objects.length; index += 1) {
+      drawPlanObject(ctx, width, height, state, plan, objects[index], index);
     }
+  }
+
+  function visiblePlanObjects(plan) {
+    const objects = plan.objects || [];
+    const primary = objects.filter((object) => isPrimaryVisualObject(object));
+    if (primary.length >= 3) return primary.slice(0, 16);
+    return objects.filter((object) => isSceneVisualObject(object)).slice(0, 16);
+  }
+
+  function isPrimaryVisualObject(object) {
+    const source = String(object && object.source || '');
+    return /^embedding-guided-synth|open-semantic-rag|doppler-residual/.test(source) ||
+      isConcreteShape(object && object.shape);
+  }
+
+  function isSceneVisualObject(object) {
+    if (!object) return false;
+    const shape = String(object.shape || '');
+    const source = String(object.source || '');
+    if ((object.kind === 'field' || shape === 'field-envelope') && source === 'catalog') return false;
+    if (shape === 'body' && source === 'catalog') return false;
+    return isConcreteShape(shape);
+  }
+
+  function isConcreteShape(shape = '') {
+    return /animal-body|wheel|coil|wire-loop|film|bubble|cooling-fins|sieve|singularity|wetland|bridge|hammer|bar|slab|slider|prism|lens|magnet|queue-node|network-node|fuel-bed|flame-front|plume|flow-path|heightfield|grain-bed|pool|panel|meter|wall/.test(String(shape));
   }
 
   function drawPlanObject(ctx, width, height, state, plan, object, index) {
@@ -2889,11 +3453,703 @@
     const alpha = material.alpha ?? 0.72;
     const extent = objectExtent(object, width, height);
     if (!extent) return;
+    const hue = materialHueFor(object.material, index);
+    const isField = object.kind === 'field' || object.shape === 'field-envelope';
     ctx.save();
-    ctx.globalAlpha = Math.min(0.74, alpha);
+    ctx.globalAlpha = Math.min(1, Math.max(isField ? 0.34 : 0.66, alpha));
     ctx.strokeStyle = stroke;
+    if (drawLiteralPlanObject(ctx, extent, state, object, index, hue)) {
+      ctx.restore();
+      return;
+    }
+    drawObjectSilhouette(ctx, extent, object, index, hue);
     drawObjectMaterialKernel(ctx, extent, state, object, index);
+    drawObjectAccentDetails(ctx, extent, state, object, index, hue);
     ctx.restore();
+  }
+
+  function drawLiteralPlanObject(ctx, extent, state, object, index, hue) {
+    const shape = String(object && object.shape || '').toLowerCase();
+    const text = literalObjectText(object);
+    if (shape === 'animal-body') return drawLiteralAnimal(ctx, extent, state, text, hue);
+    if (shape === 'wheel') return drawLiteralWheel(ctx, extent, state, hue);
+    if (shape === 'coil') return drawLiteralCoil(ctx, extent, state, hue);
+    if (shape === 'wire-loop') return drawLiteralLoop(ctx, extent, state, hue);
+    if (shape === 'film') return drawLiteralFilm(ctx, extent, state, hue);
+    if (shape === 'bubble') return drawLiteralBubble(ctx, extent, state, hue);
+    if (shape === 'cooling-fins') return drawLiteralFins(ctx, extent, state, hue);
+    if (shape === 'sieve') return drawLiteralSieve(ctx, extent, state, hue);
+    if (shape === 'singularity') return drawLiteralSingularity(ctx, extent, state);
+    if (shape === 'wetland') return drawLiteralWetland(ctx, extent, state, hue);
+    if (shape === 'bridge') return drawLiteralBridge(ctx, extent, hue);
+    if (shape === 'hammer') return drawLiteralHammer(ctx, extent, hue);
+    if (shape === 'bar' || shape === 'slab' || shape === 'slider') return drawLiteralBar(ctx, extent, state, hue, shape);
+    if (shape === 'prism') return drawLiteralPrism(ctx, extent);
+    if (shape === 'lens') return drawLiteralLens(ctx, extent, state);
+    if (shape === 'magnet') return drawLiteralMagnet(ctx, extent, state);
+    if (shape === 'queue-node' || shape === 'network-node') return drawLiteralNetworkNode(ctx, extent, state, text, hue);
+    if (/laser|lamp|light-source|sun/.test(text)) return drawLiteralLightSource(ctx, extent);
+    return false;
+  }
+
+  function literalObjectText(object) {
+    return [
+      object && object.id,
+      object && object.kind,
+      object && object.shape,
+      object && object.material,
+      object && object.role,
+      object && object.visualRegime,
+      object && object.phrase,
+      object && object.assembly,
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function drawLiteralAnimal(ctx, extent, state, text, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.12) * 0.04);
+    const fur = /gerbil|hamster/.test(text) ? 34 : 208;
+    ctx.fillStyle = `hsla(${fur}, 34%, ${/mouse/.test(text) ? 62 : 50}%, 0.82)`;
+    ctx.strokeStyle = `hsla(${fur}, 38%, 24%, 0.62)`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(-extent.w * 0.06, 0, extent.w * 0.46, extent.h * 0.32, 0, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(extent.w * 0.36, -extent.h * 0.05, extent.w * 0.18, extent.h * 0.17, 0, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = `hsla(${fur + 16}, 48%, 72%, 0.9)`;
+    for (const y of [-0.18, 0.07]) {
+      ctx.beginPath();
+      ctx.arc(extent.w * 0.36, y * extent.h, extent.h * 0.1, 0, TAU);
+      ctx.fill();
+    }
+    ctx.strokeStyle = `hsla(${fur}, 46%, 24%, 0.58)`;
+    ctx.beginPath();
+    ctx.moveTo(-extent.w * 0.5, extent.h * 0.02);
+    ctx.bezierCurveTo(-extent.w * 0.82, -extent.h * 0.1, -extent.w * 0.78, extent.h * 0.26, -extent.w * 0.94, 0);
+    ctx.stroke();
+    ctx.fillStyle = '#17201d';
+    ctx.beginPath();
+    ctx.arc(extent.w * 0.43, -extent.h * 0.08, 2.2, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${hue}, 64%, 32%, 0.36)`;
+    for (let foot = -1; foot <= 1; foot += 2) {
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.16, extent.h * 0.24 * foot);
+      ctx.lineTo(extent.w * 0.22, extent.h * 0.34 * foot);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralWheel(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + state.t * 0.18);
+    const r = Math.min(extent.w, extent.h) * 0.46;
+    ctx.strokeStyle = `hsla(${hue}, 48%, 22%, 0.78)`;
+    ctx.lineWidth = Math.max(2, r * 0.08);
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, TAU);
+    ctx.stroke();
+    ctx.lineWidth = 1.35;
+    for (let spoke = 0; spoke < 12; spoke += 1) {
+      const a = spoke * TAU / 12;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r * 0.18, Math.sin(a) * r * 0.18);
+      ctx.lineTo(Math.cos(a) * r * 0.92, Math.sin(a) * r * 0.92);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `hsla(${hue + 62}, 86%, 58%, 0.32)`;
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.72, 0, TAU);
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralCoil(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    ctx.strokeStyle = `hsla(${hue || 24}, 76%, 42%, 0.82)`;
+    ctx.lineWidth = 2;
+    for (let loop = 0; loop < 8; loop += 1) {
+      const x = -extent.w * 0.34 + loop * extent.w * 0.1;
+      ctx.beginPath();
+      ctx.ellipse(x, 0, extent.w * 0.09, extent.h * 0.34, Math.sin(state.t * 0.14) * 0.08, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `hsla(${hue + 158}, 76%, 54%, 0.34)`;
+    ctx.beginPath();
+    ctx.moveTo(-extent.w * 0.54, extent.h * 0.28);
+    ctx.lineTo(extent.w * 0.54, -extent.h * 0.28);
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralLoop(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.12) * 0.04);
+    ctx.strokeStyle = `hsla(${hue || 24}, 52%, 28%, 0.78)`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, extent.w * 0.48, extent.h * 0.42, 0, 0, TAU);
+    ctx.stroke();
+    ctx.strokeStyle = `hsla(${hue + 78}, 86%, 66%, 0.34)`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralFilm(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.09) * 0.03);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, extent.w * 0.48, extent.h * 0.42, 0, 0, TAU);
+    ctx.clip();
+    for (let band = 0; band < 12; band += 1) {
+      const y = -extent.h * 0.46 + band * extent.h / 11;
+      ctx.strokeStyle = `hsla(${(hue + band * 28 + state.t * 8) % 360}, 96%, 62%, 0.3)`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.54, y);
+      ctx.quadraticCurveTo(0, y + Math.sin(state.t + band) * 7, extent.w * 0.54, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralBubble(ctx, extent, state, hue) {
+    ctx.save();
+    const r = Math.min(extent.w, extent.h) * 0.44;
+    const x = extent.x;
+    const y = extent.y + Math.sin(state.t * 0.3) * 2;
+    const gradient = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 0, x, y, r);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.58)');
+    gradient.addColorStop(0.45, `hsla(${hue + 42}, 94%, 72%, 0.18)`);
+    gradient.addColorStop(1, `hsla(${hue}, 82%, 50%, 0.08)`);
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = `hsla(${hue + 24}, 86%, 62%, 0.5)`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralFins(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    for (let fin = 0; fin < 11; fin += 1) {
+      const x = -extent.w * 0.45 + fin * extent.w * 0.09;
+      const h = extent.h * (0.52 + hashNoise(613, fin) * 0.22);
+      ctx.fillStyle = `hsla(${hue || 210}, 28%, ${48 + fin}%, 0.46)`;
+      ctx.strokeStyle = `hsla(${hue}, 36%, 22%, 0.36)`;
+      ctx.beginPath();
+      ctx.rect(x, -h * 0.5 + Math.sin(state.t * 0.2 + fin), extent.w * 0.045, h);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralSieve(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation - 0.12 + Math.sin(state.t * 0.16) * 0.02);
+    ctx.strokeStyle = `hsla(${hue || 34}, 42%, 28%, 0.58)`;
+    ctx.lineWidth = 1.4;
+    ctx.strokeRect(-extent.w * 0.5, -extent.h * 0.35, extent.w, extent.h * 0.7);
+    for (let i = 1; i < 9; i += 1) {
+      const x = -extent.w * 0.5 + i * extent.w / 9;
+      ctx.beginPath();
+      ctx.moveTo(x, -extent.h * 0.35);
+      ctx.lineTo(x, extent.h * 0.35);
+      ctx.stroke();
+    }
+    for (let i = 1; i < 4; i += 1) {
+      const y = -extent.h * 0.35 + i * extent.h * 0.7 / 4;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.5, y);
+      ctx.lineTo(extent.w * 0.5, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralSingularity(ctx, extent, state) {
+    ctx.save();
+    const r = Math.min(extent.w, extent.h) * 0.44;
+    const gradient = ctx.createRadialGradient(extent.x, extent.y, r * 0.12, extent.x, extent.y, r * 1.7);
+    gradient.addColorStop(0, 'rgba(0,0,0,0.94)');
+    gradient.addColorStop(0.34, 'rgba(8,10,20,0.92)');
+    gradient.addColorStop(0.66, 'rgba(106,74,190,0.28)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(extent.x, extent.y, r * 1.7, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 206, 94, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(extent.x, extent.y, r * 1.24, r * 0.38, state.t * 0.08, 0, TAU);
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralWetland(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.fillStyle = `hsla(${hue || 146}, 46%, 34%, 0.24)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, extent.w * 0.5, extent.h * 0.34, 0, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${hue + 58}, 64%, 42%, 0.4)`;
+    for (let reed = 0; reed < 14; reed += 1) {
+      const x = -extent.w * 0.42 + reed * extent.w * 0.064;
+      ctx.beginPath();
+      ctx.moveTo(x, extent.h * 0.2);
+      ctx.lineTo(x + Math.sin(state.t * 0.2 + reed) * 4, -extent.h * 0.28);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralBridge(ctx, extent, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    ctx.strokeStyle = `hsla(${hue || 32}, 42%, 28%, 0.76)`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-extent.w * 0.5, extent.h * 0.25);
+    ctx.lineTo(extent.w * 0.5, extent.h * 0.25);
+    ctx.moveTo(-extent.w * 0.42, extent.h * 0.25);
+    ctx.lineTo(-extent.w * 0.18, -extent.h * 0.28);
+    ctx.lineTo(extent.w * 0.08, extent.h * 0.25);
+    ctx.lineTo(extent.w * 0.34, -extent.h * 0.28);
+    ctx.lineTo(extent.w * 0.48, extent.h * 0.25);
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralHammer(ctx, extent, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation - 0.45);
+    ctx.fillStyle = `hsla(${hue || 34}, 38%, 36%, 0.76)`;
+    ctx.fillRect(-extent.w * 0.08, -extent.h * 0.48, extent.w * 0.16, extent.h * 0.9);
+    ctx.fillStyle = 'rgba(92, 96, 100, 0.82)';
+    ctx.fillRect(-extent.w * 0.38, -extent.h * 0.54, extent.w * 0.76, extent.h * 0.22);
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralBar(ctx, extent, state, hue, shape) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + (shape === 'slider' ? Math.sin(state.t * 0.18) * 0.08 : 0));
+    const gradient = ctx.createLinearGradient(-extent.w * 0.5, 0, extent.w * 0.5, 0);
+    gradient.addColorStop(0, `hsla(${hue}, 42%, 30%, 0.62)`);
+    gradient.addColorStop(0.5, `hsla(${hue + 16}, 58%, 62%, 0.5)`);
+    gradient.addColorStop(1, `hsla(${hue}, 42%, 28%, 0.62)`);
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = `hsla(${hue}, 44%, 18%, 0.54)`;
+    ctx.lineWidth = 1.3;
+    ctx.fillRect(-extent.w * 0.46, -extent.h * 0.24, extent.w * 0.92, extent.h * 0.48);
+    ctx.strokeRect(-extent.w * 0.46, -extent.h * 0.24, extent.w * 0.92, extent.h * 0.48);
+    if (shape === 'slab') {
+      ctx.strokeStyle = `hsla(${hue + 12}, 44%, 70%, 0.24)`;
+      for (let line = 0; line < 4; line += 1) {
+        const y = -extent.h * 0.16 + line * extent.h * 0.1;
+        ctx.beginPath();
+        ctx.moveTo(-extent.w * 0.38, y);
+        ctx.lineTo(extent.w * 0.38, y + Math.sin(line) * 1.5);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralPrism(ctx, extent) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    const gradient = ctx.createLinearGradient(-extent.w * 0.4, -extent.h * 0.4, extent.w * 0.4, extent.h * 0.4);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.42)');
+    gradient.addColorStop(0.5, 'rgba(72,180,226,0.36)');
+    gradient.addColorStop(1, 'rgba(188,92,228,0.28)');
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = 'rgba(42, 132, 188, 0.66)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(0, -extent.h * 0.46);
+    ctx.lineTo(extent.w * 0.46, extent.h * 0.38);
+    ctx.lineTo(-extent.w * 0.46, extent.h * 0.38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralLens(ctx, extent, state) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.12) * 0.02);
+    const gradient = ctx.createLinearGradient(-extent.w * 0.4, 0, extent.w * 0.4, 0);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.1)');
+    gradient.addColorStop(0.48, 'rgba(84,196,238,0.38)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0.1)');
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = 'rgba(34, 140, 210, 0.58)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, extent.w * 0.28, extent.h * 0.48, 0, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralMagnet(ctx, extent, state) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.1) * 0.03);
+    ctx.fillStyle = 'rgba(212, 56, 86, 0.8)';
+    ctx.fillRect(-extent.w * 0.44, -extent.h * 0.24, extent.w * 0.44, extent.h * 0.48);
+    ctx.fillStyle = 'rgba(44, 94, 206, 0.8)';
+    ctx.fillRect(0, -extent.h * 0.24, extent.w * 0.44, extent.h * 0.48);
+    ctx.strokeStyle = 'rgba(30, 38, 60, 0.6)';
+    ctx.lineWidth = 1.4;
+    ctx.strokeRect(-extent.w * 0.44, -extent.h * 0.24, extent.w * 0.88, extent.h * 0.48);
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralNetworkNode(ctx, extent, state, text, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    const isQueue = /queue|market|traffic/.test(text);
+    ctx.fillStyle = `hsla(${isQueue ? 34 : hue}, 62%, ${isQueue ? 48 : 40}%, 0.58)`;
+    ctx.strokeStyle = `hsla(${isQueue ? 28 : hue + 30}, 62%, 24%, 0.52)`;
+    ctx.lineWidth = 1.2;
+    ctx.fillRect(-extent.w * 0.38, -extent.h * 0.28, extent.w * 0.76, extent.h * 0.56);
+    ctx.strokeRect(-extent.w * 0.38, -extent.h * 0.28, extent.w * 0.76, extent.h * 0.56);
+    if (isQueue) {
+      ctx.fillStyle = 'rgba(255,255,255,0.46)';
+      for (let dot = 0; dot < 4; dot += 1) {
+        ctx.beginPath();
+        ctx.arc(-extent.w * 0.24 + dot * extent.w * 0.16, 0, 2.2, 0, TAU);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralLightSource(ctx, extent) {
+    ctx.save();
+    const r = Math.min(extent.w, extent.h) * 0.32;
+    const gradient = ctx.createRadialGradient(extent.x, extent.y, 0, extent.x, extent.y, r * 2.4);
+    gradient.addColorStop(0, 'rgba(255, 238, 118, 0.86)');
+    gradient.addColorStop(0.32, 'rgba(255, 192, 58, 0.36)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(extent.x, extent.y, r * 2.4, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+    return true;
+  }
+
+  function drawObjectSilhouette(ctx, extent, object, index, hue) {
+    const shape = String(object && object.shape || '').toLowerCase();
+    const isField = object && (object.kind === 'field' || shape === 'field-envelope');
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowColor = `hsla(${hue}, 44%, 10%, ${isField ? 0.12 : 0.4})`;
+    ctx.shadowBlur = isField ? 8 : 18;
+    ctx.shadowOffsetY = isField ? 2 : 8;
+    ctx.fillStyle = `hsla(${hue}, ${isField ? 38 : 48}%, ${isField ? 42 : 20}%, ${isField ? 0.055 : 0.34})`;
+    ctx.strokeStyle = `hsla(${(hue + 22) % 360}, 78%, ${isField ? 34 : 32}%, ${isField ? 0.34 : 0.72})`;
+    ctx.lineWidth = isField ? 1.1 : 2;
+    beginObjectSilhouettePath(ctx, extent, shape, index);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.stroke();
+    ctx.strokeStyle = `hsla(${(hue + 68) % 360}, 90%, 74%, ${isField ? 0.16 : 0.34})`;
+    ctx.lineWidth = isField ? 0.75 : 1;
+    ctx.beginPath();
+    ctx.ellipse(0, -extent.h * 0.08, extent.w * 0.36, extent.h * 0.22, 0, 0, TAU);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function beginObjectSilhouettePath(ctx, extent, shape, index) {
+    ctx.beginPath();
+    if (shape === 'prism') {
+      ctx.moveTo(0, -extent.h * 0.48);
+      ctx.lineTo(extent.w * 0.52, extent.h * 0.4);
+      ctx.lineTo(-extent.w * 0.52, extent.h * 0.4);
+      ctx.closePath();
+      return;
+    }
+    if (shape === 'field-envelope') {
+      ctx.ellipse(0, 0, extent.w * 0.46, extent.h * 0.3, Math.sin(index) * 0.08, 0, TAU);
+      return;
+    }
+    if (shape === 'wheel' || shape === 'lens' || shape === 'colony-field' || shape === 'pool') {
+      ctx.ellipse(0, 0, extent.w * 0.5, extent.h * 0.5, Math.sin(index) * 0.08, 0, TAU);
+      return;
+    }
+    if (shape === 'wall' || shape === 'bar' || shape === 'panel' || shape === 'meter' || shape === 'slider') {
+      ctx.rect(-extent.w * 0.52, -extent.h * 0.36, extent.w * 1.04, extent.h * 0.72);
+      return;
+    }
+    if (shape === 'flame-front' || shape === 'plume') {
+      ctx.moveTo(-extent.w * 0.45, extent.h * 0.42);
+      ctx.bezierCurveTo(-extent.w * 0.22, -extent.h * 0.2, -extent.w * 0.04, -extent.h * 0.46, 0, -extent.h * 0.56);
+      ctx.bezierCurveTo(extent.w * 0.2, -extent.h * 0.18, extent.w * 0.46, extent.h * 0.12, extent.w * 0.4, extent.h * 0.42);
+      ctx.closePath();
+      return;
+    }
+    if (shape === 'fuel-bed' || shape === 'grain-bed' || shape === 'slab' || shape === 'sample') {
+      ctx.moveTo(-extent.w * 0.5, extent.h * 0.18);
+      ctx.lineTo(-extent.w * 0.3, -extent.h * 0.34);
+      ctx.lineTo(extent.w * 0.35, -extent.h * 0.28);
+      ctx.lineTo(extent.w * 0.52, extent.h * 0.2);
+      ctx.lineTo(extent.w * 0.12, extent.h * 0.42);
+      ctx.lineTo(-extent.w * 0.42, extent.h * 0.34);
+      ctx.closePath();
+      return;
+    }
+    ctx.ellipse(0, 0, extent.w * 0.52, extent.h * 0.38, Math.sin(index * 0.7) * 0.12, 0, TAU);
+  }
+
+  function drawObjectAccentDetails(ctx, extent, state, object, index, hue) {
+    const text = [
+      object.id,
+      object.kind,
+      object.shape,
+      object.material,
+      object.role,
+      object.visualRegime,
+    ].join(' ').toLowerCase();
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (/smoke|plume|vapor/.test(text)) {
+      drawSmokeObjectMarks(ctx, extent, state, index, hue);
+    } else if (/flame|fire|combust|plasma|thermal/.test(text)) {
+      drawThermalObjectMarks(ctx, extent, state, index, hue);
+    } else if (/wind|air|water|fluid|flow|river|field-envelope/.test(text)) {
+      drawFluidObjectMarks(ctx, extent, state, index, hue);
+    } else if (/wood|fuel|sand|rock|grain|granular|soil|wall|slab/.test(text)) {
+      drawGranularObjectMarks(ctx, extent, state, index, hue);
+    } else if (/lens|prism|glass|light|spectrum|mirror/.test(text)) {
+      drawOpticalObjectMarks(ctx, extent, state, index, hue);
+    } else if (/magnet|coil|wheel|rotor|slider|current/.test(text)) {
+      drawMagneticObjectMarks(ctx, extent, state, index, hue);
+    } else if (/cell|colony|membrane|biology|nutrient/.test(text)) {
+      drawBiologyObjectMarks(ctx, extent, state, index, hue);
+    } else if (/sound|acoustic|wave|pressure|resonance/.test(text)) {
+      drawAcousticObjectMarks(ctx, extent, state, index, hue);
+    } else {
+      drawFacetObjectMarks(ctx, extent, state, index, hue);
+    }
+    ctx.restore();
+  }
+
+  function drawThermalObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    for (let tongue = 0; tongue < 7; tongue += 1) {
+      const x = -extent.w * 0.34 + tongue * extent.w * 0.11;
+      const lift = 0.36 + hashNoise(881, index * 17 + tongue) * 0.34;
+      ctx.strokeStyle = `hsla(${18 + tongue * 7}, 96%, ${46 + tongue * 3}%, 0.7)`;
+      ctx.lineWidth = 2.2 + hashNoise(883, tongue) * 2.6;
+      ctx.beginPath();
+      ctx.moveTo(x, extent.h * 0.34);
+      ctx.bezierCurveTo(
+        x + Math.sin(state.t * 1.4 + tongue) * extent.w * 0.08,
+        extent.h * 0.04,
+        x + extent.w * 0.1,
+        -extent.h * lift,
+        x + Math.sin(index + tongue) * extent.w * 0.04,
+        -extent.h * (0.48 + lift * 0.22)
+      );
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    const core = ctx.createRadialGradient(0, extent.h * 0.08, 0, 0, extent.h * 0.08, extent.w * 0.52);
+    core.addColorStop(0, 'rgba(255, 220, 92, 0.45)');
+    core.addColorStop(0.45, `hsla(${hue + 16}, 96%, 54%, 0.2)`);
+    core.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.ellipse(0, extent.h * 0.05, extent.w * 0.48, extent.h * 0.52, 0, 0, TAU);
+    ctx.fill();
+  }
+
+  function drawFluidObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    const streams = 7;
+    for (let stream = 0; stream < streams; stream += 1) {
+      const y = -extent.h * 0.3 + stream * extent.h * 0.1;
+      ctx.strokeStyle = `hsla(${190 + stream * 9 + hue * 0.04}, 84%, 42%, ${0.28 + stream * 0.015})`;
+      ctx.lineWidth = 1.2 + stream * 0.12;
+      ctx.beginPath();
+      for (let step = 0; step <= 18; step += 1) {
+        const x = -extent.w * 0.5 + step * extent.w / 18;
+        const yy = y + Math.sin(step * 0.72 + state.t * 1.1 + index + stream) * extent.h * 0.035;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    for (let droplet = 0; droplet < 9; droplet += 1) {
+      const x = -extent.w * 0.4 + hashNoise(887, index * 19 + droplet) * extent.w * 0.8;
+      const y = -extent.h * 0.26 + hashNoise(889, index * 23 + droplet) * extent.h * 0.52;
+      ctx.fillStyle = `hsla(${196 + droplet * 6}, 80%, 48%, 0.24)`;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 2.4, 4.2, Math.sin(droplet) * 0.6, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  function drawGranularObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = `hsla(${hue + 18}, 58%, 25%, 0.48)`;
+    for (let layer = 0; layer < 5; layer += 1) {
+      const y = -extent.h * 0.25 + layer * extent.h * 0.12;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.42, y);
+      ctx.bezierCurveTo(-extent.w * 0.16, y + Math.sin(state.t * 0.2 + layer) * 4, extent.w * 0.16, y - 4, extent.w * 0.42, y + 1);
+      ctx.stroke();
+    }
+    for (let grain = 0; grain < 26; grain += 1) {
+      const x = -extent.w * 0.42 + hashNoise(891, index * 29 + grain) * extent.w * 0.84;
+      const y = -extent.h * 0.28 + hashNoise(893, index * 31 + grain) * extent.h * 0.62;
+      ctx.fillStyle = `hsla(${hue + grain * 3}, 54%, ${30 + hashNoise(895, grain) * 20}%, 0.36)`;
+      ctx.fillRect(x, y, 2 + hashNoise(897, grain) * 4, 1.5 + hashNoise(899, grain) * 3);
+    }
+  }
+
+  function drawSmokeObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    for (let puff = 0; puff < 8; puff += 1) {
+      const rise = puff / 8;
+      const x = Math.sin(state.t * 0.25 + index + puff) * extent.w * 0.2;
+      const y = extent.h * 0.18 - rise * extent.h * 0.74;
+      ctx.fillStyle = `hsla(${hue + 30}, 12%, ${34 + puff * 3}%, ${0.18 - rise * 0.08})`;
+      ctx.beginPath();
+      ctx.ellipse(x, y, extent.w * (0.13 + rise * 0.07), extent.h * (0.09 + rise * 0.05), 0, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  function drawOpticalObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'screen';
+    for (let ray = 0; ray < 8; ray += 1) {
+      const split = (ray - 3.5) / 8;
+      ctx.strokeStyle = `hsla(${206 + ray * 18}, 96%, 56%, 0.42)`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.55, split * extent.h * 0.22);
+      ctx.bezierCurveTo(
+        -extent.w * 0.12,
+        split * extent.h * 0.12 + Math.sin(state.t + ray) * 2,
+        extent.w * 0.18,
+        -split * extent.h * 0.2,
+        extent.w * 0.58,
+        -split * extent.h * 0.3
+      );
+      ctx.stroke();
+    }
+  }
+
+  function drawMagneticObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    for (let spoke = 0; spoke < 10; spoke += 1) {
+      const angle = spoke * TAU / 10 + state.t * 0.1;
+      ctx.strokeStyle = `hsla(${hue + spoke * 11}, 72%, 38%, 0.36)`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(angle) * extent.w * 0.12, Math.sin(angle) * extent.h * 0.12);
+      ctx.lineTo(Math.cos(angle) * extent.w * 0.44, Math.sin(angle) * extent.h * 0.38);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `hsla(${hue + 80}, 82%, 42%, 0.5)`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, extent.w * 0.36, extent.h * 0.28, 0, 0, TAU);
+    ctx.stroke();
+  }
+
+  function drawBiologyObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    for (let cell = 0; cell < 11; cell += 1) {
+      const angle = cell * TAU / 11 + index * 0.3;
+      const r = 0.12 + hashNoise(901, cell) * 0.3;
+      const x = Math.cos(angle) * extent.w * r;
+      const y = Math.sin(angle) * extent.h * r;
+      ctx.strokeStyle = `hsla(${hue + cell * 13}, 64%, 36%, 0.38)`;
+      ctx.fillStyle = `hsla(${hue + cell * 11}, 70%, 56%, 0.16)`;
+      ctx.beginPath();
+      ctx.ellipse(x, y, extent.w * 0.055, extent.h * 0.045, Math.sin(state.t + cell) * 0.2, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  function drawAcousticObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    for (let ring = 0; ring < 7; ring += 1) {
+      const grow = 0.16 + ring * 0.06 + (Math.sin(state.t * 0.8 + index) + 1) * 0.01;
+      ctx.strokeStyle = `hsla(${hue + ring * 12}, 76%, 42%, ${0.28 - ring * 0.022})`;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, extent.w * grow, extent.h * grow * 0.72, 0, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawFacetObjectMarks(ctx, extent, state, index, hue) {
+    ctx.globalCompositeOperation = 'source-over';
+    for (let facet = 0; facet < 5; facet += 1) {
+      const x = -extent.w * 0.34 + facet * extent.w * 0.17;
+      ctx.strokeStyle = `hsla(${hue + facet * 18}, 62%, 38%, 0.26)`;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(x, -extent.h * 0.28);
+      ctx.lineTo(x + Math.sin(state.t * 0.2 + facet) * extent.w * 0.04, extent.h * 0.28);
+      ctx.stroke();
+    }
   }
 
   function drawObjectMaterialKernel(ctx, extent, state, object, index) {
@@ -2920,7 +4176,7 @@
     ctx.globalCompositeOperation = 'screen';
     const scale = Math.max(extent.w, extent.h, extent.r * 2);
     const core = ctx.createRadialGradient(0, 0, 0, 0, 0, scale * 0.68);
-    const alpha = family === 'granular' ? 0.09 : family === 'thermal' ? 0.16 : 0.12;
+    const alpha = family === 'granular' ? 0.18 : family === 'thermal' ? 0.3 : 0.24;
     core.addColorStop(0, `hsla(${hue}, 76%, 64%, ${alpha})`);
     core.addColorStop(0.48, `hsla(${hue + 32}, 76%, 52%, ${alpha * 0.48})`);
     core.addColorStop(1, 'rgba(255,255,255,0)');
@@ -2935,8 +4191,8 @@
       const rx = extent.w * (0.22 + band * 0.052);
       const ry = extent.h * (0.13 + band * 0.035);
       const tilt = Math.sin(phase) * 0.16;
-      ctx.strokeStyle = `hsla(${hue + band * 9}, 72%, ${family === 'granular' ? 38 : 54}%, ${0.12 - band * 0.008})`;
-      ctx.lineWidth = 0.8 + band * 0.12;
+      ctx.strokeStyle = `hsla(${hue + band * 9}, 82%, ${family === 'granular' ? 34 : 50}%, ${0.24 - band * 0.012})`;
+      ctx.lineWidth = 1.2 + band * 0.18;
       ctx.beginPath();
       ctx.ellipse(0, Math.sin(phase) * extent.h * 0.018, rx, ry, tilt, 0, TAU);
       ctx.stroke();
@@ -3307,14 +4563,19 @@
 
   function clearScene(ctx, width, height) {
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#ffffff';
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#172822');
+    gradient.addColorStop(0.44, '#eef8f4');
+    gradient.addColorStop(1, '#fffdf8');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
+    drawCanvasTexture(ctx, width, height, 156);
     drawGrid(ctx, width, height);
   }
 
   function drawGrid(ctx, width, height) {
     ctx.save();
-    ctx.strokeStyle = 'rgba(24, 74, 67, 0.045)';
+    ctx.strokeStyle = 'rgba(24, 74, 67, 0.12)';
     ctx.lineWidth = 1;
     for (let x = 0; x < width; x += 34) {
       ctx.beginPath();

@@ -709,6 +709,47 @@
         });
       }
     }
+    for (const environment of synthesis.synthGraph.environment || []) {
+      const label = environment.label || environment.id || 'environment';
+      const componentId = `environment-${slugify(environment.id || label)}`;
+      const domains = uniqueList(['synth', 'environment', slugify(label)].filter(Boolean));
+      addDomain(...domains);
+      addComponent(
+        componentId,
+        'environment',
+        label,
+        {},
+        [],
+        0.68,
+        {
+          layer: 'scene',
+          domains,
+          material: /swamp|marsh|wetland|water/i.test(label) ? 'water' : '',
+          visualRegime: /swamp|marsh|wetland|water/i.test(label) ? 'fluid' : 'generic',
+          assembly: 'environment',
+          phrase: label,
+          source: 'embedding-guided-synth-environment',
+          primitiveProgram: null,
+          geometry: { kind: 'environment', label },
+          ports: [],
+          slots: [],
+          synthesis: {
+            environmentId: environment.id || label,
+            source: environment.source || '',
+          },
+        }
+      );
+      if (intent && Array.isArray(intent.conceptGraph)) {
+        intent.conceptGraph.push({
+          id: componentId,
+          score: 0.68,
+          domains,
+          prior: null,
+          phrase: label,
+          source: 'embedding-guided-synth-environment',
+        });
+      }
+    }
   }
 
   function materialForSynthesisNode(node) {
@@ -716,6 +757,7 @@
     if (materials.includes('soft_tissue')) return 'membrane';
     if (materials.includes('fur')) return 'protein';
     if (materials.includes('steel')) return 'metal';
+    if (materials.includes('gold')) return 'gold';
     if (materials.includes('rubber_material')) return 'rubber';
     if (materials.includes('glass_material')) return 'glass';
     if (materials.includes('water_material')) return 'water';
@@ -1762,6 +1804,20 @@
       return 'blank construction plane';
     }
     if (spec.templateId === 'custom-world') {
+      const sceneKind = spec.renderProgram && spec.renderProgram.rendererPlan
+        ? spec.renderProgram.rendererPlan.sceneKind
+        : '';
+      if (sceneKind === 'magnetic-machine') return 'composed magnetic machine';
+      if (sceneKind === 'fire') return 'elemental reaction world';
+      if (sceneKind === 'optics' || sceneKind === 'thin-film') return 'composed optics world';
+      if (sceneKind === 'city') return 'composed operations network';
+      if (sceneKind === 'watershed') return 'terrain flow world';
+      if (sceneKind === 'biology') return 'composed control biology';
+      if (sceneKind === 'acoustic') return 'composed wave world';
+      if (sceneKind === 'granular') return 'granular physics world';
+      if (sceneKind === 'ferrofluid') return 'magnetic fluid world';
+      if (sceneKind === 'thermal-plume') return 'thermal plume world';
+      if (sceneKind === 'mechanical') return 'mechanical constraint world';
       if (hasModule(spec, 'terrain') && hasModule(spec, 'logistics')) return 'composed terrain market';
       if (hasModule(spec, 'phase-change') && hasModule(spec, 'network')) return 'composed phase network';
       if (hasModule(spec, 'biology') && hasModule(spec, 'control')) return 'composed control biology';

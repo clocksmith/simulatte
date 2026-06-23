@@ -71,6 +71,15 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(renderer, /function paintMaterialTrayWorld/);
   assert.match(renderer, /function paintBiologyWorld/);
   assert.match(renderer, /function paintAcousticWorld/);
+  assert.match(renderer, /function drawCanvasTexture/);
+  assert.match(renderer, /function drawObjectSilhouette/);
+  assert.match(renderer, /function beginObjectSilhouettePath/);
+  assert.match(renderer, /function drawObjectAccentDetails/);
+  assert.match(renderer, /function drawThermalObjectMarks/);
+  assert.match(renderer, /function drawFluidObjectMarks/);
+  assert.match(renderer, /function drawGranularObjectMarks/);
+  assert.match(renderer, /function drawMagneticObjectMarks/);
+  assert.match(renderer, /Math\.max\(0\.42, alpha\)/);
   assert.doesNotMatch(renderer, /drawPrismaticParticleField/);
   assert.doesNotMatch(renderer, /function draw[A-Z][A-Za-z]+Shape/);
   assert.doesNotMatch(renderer, /drawFieldSplat/);
@@ -79,6 +88,17 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(field, /const INSTANCE_STRIDE = 8/);
   assert.match(field, /function materialVisualClass/);
   assert.match(field, /@location\(6\) stretch/);
+});
+
+test('seed W and X prompts are swapped consistently between HTML and catalog', () => {
+  const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+  const catalog = fs.readFileSync(path.join(jsDir, 'simulatte-physics-catalog.js'), 'utf8');
+
+  assert.match(html, /aria-label="Seed W" data-example-prompt="wind pushes a dry pine fire"/);
+  assert.match(html, /aria-label="Seed X" data-example-prompt="solar magnetic wheel with sliding magnet"/);
+  assert.match(html, /<textarea id="build-prompt"[^>]+>wind pushes a dry pine fire<\/textarea>/);
+  assert.match(catalog, /id: 'dry-combustion',\n\s+label: 'W'/);
+  assert.match(catalog, /id: 'magnetic-machine',\n\s+label: 'X'/);
 });
 
 test('Doppler residual intent has a strict static contract and no network dependency', () => {
@@ -119,21 +139,109 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(renderer, /drawCanvasLoadingSnakes/);
   assert.match(renderer, /splitCanvasSnake/);
   assert.match(renderer, /joinNearbyCanvasSnakes/);
+  assert.match(renderer, /nearestSnakeHead/);
+  assert.match(renderer, /retireCanvasSnake/);
+  assert.match(renderer, /deathFade/);
+  assert.match(renderer, /deathReason/);
+  assert.match(renderer, /snakeDirFromCells/);
+  assert.match(renderer, /branchCells = source\.cells\.slice\(splitIndex\)/);
+  assert.doesNotMatch(renderer, /drawSnakeCollisionBursts/);
+  assert.doesNotMatch(renderer, /drawCanvasSnakeHeadGlow/);
+  assert.doesNotMatch(renderer, /collisionBursts/);
+  assert.doesNotMatch(renderer, /particles: kind === 'join'/);
+  assert.doesNotMatch(renderer, /secondaryHue/);
   assert.match(renderer, /targetTail/);
+  assert.match(renderer, /targetSnakeId/);
   assert.match(renderer, /bitePulse/);
-  assert.match(renderer, /canvasLoader\.setLoading\(loading, percent, stage\)/);
+  assert.match(renderer, /joinPulse/);
+  assert.match(renderer, /splitPulse/);
+  assert.match(renderer, /waitForLoadingPaint/);
+  assert.match(renderer, /canvasLoading = loading && event\.canvasLoading === true/);
+  assert.match(renderer, /dataset\.loadingVisual = canvasLoading \? 'snake' : loading \? 'simple' : 'idle'/);
+  assert.match(renderer, /canvasLoader\.setLoading\(canvasLoading, percent, stage\)/);
+  assert.match(renderer, /resolveWithEmbedding\(prompt, params, serial, false\)/);
+  assert.match(renderer, /resolveWithEmbedding\(initialPrompt, initialParams, buildSerial, true\)/);
   assert.match(renderer, /runButton\.classList\.toggle\('is-loading', loading\)/);
+  assert.match(renderer, /runButton\.disabled = loading/);
+  assert.match(renderer, /runButton\.setAttribute\('aria-disabled'/);
   assert.match(renderer, /runButton\.setAttribute\('aria-busy'/);
 });
 
-test('intent runtime keeps visible errors short and logs diagnostics', () => {
+test('composition renderer has specific painters for diverse scene regimes', () => {
+  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+  const graph = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
+
+  for (const token of [
+    'paintFerrofluidWorld',
+    'drawFerrofluidSpikes',
+    'paintThinFilmWorld',
+    'drawInterferenceFilm',
+    'paintGranularWorld',
+    'drawGranularSieve',
+    'paintThermalPlumeWorld',
+    'drawThermalPlumeColumn',
+  ]) {
+    assert.match(renderer, new RegExp(token));
+  }
+  for (const sceneKind of ['ferrofluid', 'thin-film', 'granular', 'thermal-plume']) {
+    assert.match(graph, new RegExp(`sceneKind === '${sceneKind}'`));
+  }
+  for (const pass of ['coil-field', 'film-frame', 'bead-stream', 'cooling-fins']) {
+    assert.match(graph, new RegExp(pass));
+  }
+});
+
+test('physics graph updates log intent and composition debug data by default', () => {
+  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+
+  assert.match(renderer, /logGraphDebug\(spec\)/);
+  assert.match(renderer, /function logGraphDebug/);
+  assert.match(renderer, /console\.groupCollapsed/);
+  assert.match(renderer, /\[simulatte\.graph\]/);
+  assert.match(renderer, /console\.log\('intent'/);
+  assert.match(renderer, /console\.log\('compositionGraph'/);
+  assert.match(renderer, /console\.log\('renderProgram'/);
+  assert.match(renderer, /console\.log\('receipt'/);
+  assert.match(renderer, /console\.table/);
+});
+
+test('intent runtime keeps visible errors short, logs diagnostics, and falls back locally', () => {
   const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
 
   assert.match(renderer, /compactIntentRuntimeMessage/);
   assert.match(renderer, /Runtime dtype mismatch/);
+  assert.match(renderer, /embedModel\(Id\|Hash\) mismatch/);
+  assert.match(renderer, /Intent model unavailable/);
   assert.match(renderer, /console\.error\('\[simulatte\.intent\] model-backed intent failed'/);
-  assert.match(renderer, /elements\.node\.dataset\.detail/);
-  assert.match(renderer, /elements\.node\.title/);
+  assert.match(renderer, /function resolveWithoutEmbedding/);
+  assert.match(renderer, /Local graph ready/);
+  assert.match(renderer, /using local graph fallback/);
+  assert.match(renderer, /allowPrototypeFallback: true/);
+  assert.match(renderer, /elements\.node\.dataset\.detail = String\(message/);
+  assert.match(renderer, /elements\.node\.title = String\(message/);
+  assert.doesNotMatch(renderer, /elements\.node\.title = String\(rawMessage/);
+});
+
+test('composition shape inference does not classify catalog provenance as cats', () => {
+  const graph = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
+
+  assert.ok(graph.includes('/\\b(mouse|gerbil|hamster|dog|cat|animal|organism)\\b/'));
+  assert.doesNotMatch(graph, /\/mouse\|gerbil\|hamster\|dog\|cat\|animal\|organism\//);
+});
+
+test('Firebase hosting revalidates app shell and app JavaScript', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(root, 'firebase.json'), 'utf8'));
+  const headers = config.hosting.headers;
+  const noCacheSources = new Set(headers
+    .filter((entry) => entry.headers.some((header) => (
+      header.key === 'Cache-Control' && header.value === 'no-cache'
+    )))
+    .map((entry) => entry.source));
+
+  assert.ok(noCacheSources.has('/'));
+  assert.ok(noCacheSources.has('/index.html'));
+  assert.ok(noCacheSources.has('/js/**'));
+  assert.ok(noCacheSources.has('/simulatte-model-cache-sw.js'));
 });
 
 test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
