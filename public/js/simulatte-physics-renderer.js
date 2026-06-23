@@ -51,7 +51,7 @@
     }));
     const stateReadout = root.getElementById('lab-state');
     const runtimeStatus = intentRuntimeElements(root);
-    attachIntentRuntimeMosaic(runtimeStatus);
+    runtimeStatus.canvasLoader = createCanvasSnakeLoader();
     const embedder = root.defaultView && root.defaultView.SimulatteIntentEmbedder
       ? root.defaultView.SimulatteIntentEmbedder.create({
         catalog: model,
@@ -217,6 +217,7 @@
         }
       }
       drawSimulation(ctx, canvas, state, spec);
+      drawCanvasLoadingSnakes(ctx, canvas, runtimeStatus.canvasLoader, now);
       syncField(field, canvas, state, spec);
       syncReadouts(readouts, stateReadout, state, spec);
       syncOpenSpecPreview(specPreview, spec, now, lastPreviewSync, (value) => {
@@ -252,7 +253,6 @@
       fill: root.getElementById('intent-runtime-fill'),
       message: root.getElementById('intent-runtime-message'),
       stage: root.getElementById('intent-runtime-stage'),
-      mosaic: root.getElementById('intent-runtime-mosaic'),
     };
   }
 
@@ -268,9 +268,8 @@
     elements.node.dataset.state = state;
     elements.node.dataset.detail = String(rawMessage || '');
     elements.node.title = String(rawMessage || message || '');
-    if (elements.mosaicController) {
-      if (loading) elements.mosaicController.start();
-      else elements.mosaicController.stop();
+    if (elements.canvasLoader) {
+      elements.canvasLoader.setLoading(loading, percent, stage);
     }
     if (runButton) {
       runButton.classList.toggle('is-loading', loading);
@@ -299,91 +298,358 @@
     return `${text.slice(0, 69).trim()}...`;
   }
 
-  function attachIntentRuntimeMosaic(elements) {
-    if (!elements || !elements.mosaic) return;
-    elements.mosaicController = createRuntimeMosaicController(elements.mosaic);
+  function createCanvasSnakeLoader() {
+    return {
+      active: false,
+      opacity: 0,
+      progress: 0,
+      stage: 'idle',
+      tile: 24,
+      cols: 0,
+      rows: 0,
+      layoutKey: '',
+      stepCount: 0,
+      lastStep: 0,
+      nextSnakeId: 1,
+      snakes: [],
+      setLoading(active, percent, stage) {
+        this.active = Boolean(active);
+        this.progress = clamp(Number(percent || 0) / 100, 0, 1);
+        this.stage = String(stage || this.stage || 'intent');
+        if (this.active && !this.snakes.length) {
+          this.layoutKey = '';
+          this.lastStep = 0;
+        }
+      },
+    };
   }
 
-  function createRuntimeMosaicController(canvas) {
-    const palette = [
-      [255, 141, 178],
-      [255, 205, 133],
-      [105, 216, 187],
-      [117, 190, 255],
-      [178, 151, 255],
-    ];
-    let raf = 0;
-    let running = false;
-    let tiles = [];
-    let cols = 0;
-    let rows = 0;
-    let width = 0;
-    let height = 0;
-    let tile = 12;
-    let ctx = null;
-
-    const setup = () => {
-      const rect = canvas.getBoundingClientRect();
-      width = Math.max(1, rect.width);
-      height = Math.max(1, rect.height);
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx = canvas.getContext('2d');
-      if (!ctx) return false;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      tile = Math.max(10, Math.min(16, Math.round(height / 4)));
-      cols = Math.ceil(width / tile) + 1;
-      rows = Math.ceil(height / tile) + 1;
-      tiles = Array.from({ length: cols * rows }, (_, index) => ({
-        phase: hashNoise(index + 19, 3) * TAU,
-        speed: 0.55 + hashNoise(index + 23, 5) * 0.9,
-        peak: 0.08 + hashNoise(index + 29, 7) * 0.22,
-        color: palette[index % palette.length],
-      }));
-      return true;
-    };
-
-    const draw = (ts) => {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, width, height);
-      const time = ts * 0.001;
-      for (let index = 0; index < tiles.length; index += 1) {
-        const item = tiles[index];
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        const pulse = Math.max(0, Math.sin(time * item.speed + item.phase));
-        const alpha = 0.018 + item.peak * pulse * pulse;
-        const [r, g, b] = item.color;
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        ctx.fillRect(col * tile, row * tile, tile, tile);
+  function drawCanvasLoadingSnakes(ctx, canvas, loader, now) {
+    if (!loader) return;
+    const targetOpacity = loader.active ? 1 : 0;
+    loader.opacity += (targetOpacity - loader.opacity) * (loader.active ? 0.18 : 0.08);
+    if (!loader.active && loader.opacity < 0.015) {
+      loader.opacity = 0;
+      return;
+    }
+    const dpr = window.devicePixelRatio || 1;
+    const width = canvas.width / dpr;
+    const height = canvas.height / dpr;
+    if (width <= 0 || height <= 0) return;
+    ensureSnakeLoaderLayout(loader, width, height);
+    if (loader.active) {
+      const stepMs = 92 - loader.progress * 30;
+      if (!loader.lastStep) loader.lastStep = now;
+      let steps = 0;
+      while (now - loader.lastStep >= stepMs && steps < 5) {
+        stepCanvasSnakes(loader);
+        loader.lastStep += stepMs;
+        steps += 1;
       }
-    };
+    }
+    renderCanvasSnakes(ctx, loader, width, height);
+  }
 
-    const frame = (ts) => {
-      if (!running) return;
-      draw(ts);
-      raf = requestAnimationFrame(frame);
-    };
+  function ensureSnakeLoaderLayout(loader, width, height) {
+    const tile = Math.max(18, Math.min(32, Math.round(Math.min(width, height) / 18)));
+    const cols = Math.max(10, Math.ceil(width / tile));
+    const rows = Math.max(10, Math.ceil(height / tile));
+    const layoutKey = `${cols}x${rows}x${tile}`;
+    if (loader.layoutKey === layoutKey && loader.snakes.length) return;
+    loader.tile = tile;
+    loader.cols = cols;
+    loader.rows = rows;
+    loader.layoutKey = layoutKey;
+    loader.stepCount = 0;
+    loader.nextSnakeId = 1;
+    loader.snakes = createInitialCanvasSnakes(loader);
+  }
 
+  function createInitialCanvasSnakes(loader) {
+    const palette = [
+      338,
+      34,
+      152,
+      202,
+      262,
+      292,
+    ];
+    const starts = [
+      { x: 2, y: Math.floor(loader.rows * 0.22), dir: { x: 1, y: 0 } },
+      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.38), dir: { x: -1, y: 0 } },
+      { x: Math.floor(loader.cols * 0.28), y: 2, dir: { x: 0, y: 1 } },
+      { x: Math.floor(loader.cols * 0.72), y: loader.rows - 3, dir: { x: 0, y: -1 } },
+    ];
+    return starts.map((start, index) => createCanvasSnake(
+      loader,
+      start.x,
+      start.y,
+      start.dir,
+      palette[index % palette.length],
+      14 + index * 2
+    ));
+  }
+
+  function createCanvasSnake(loader, x, y, dir, hue, length = 14) {
+    const snake = {
+      id: loader.nextSnakeId,
+      dir: { ...dir },
+      hue,
+      maxLength: length,
+      cells: [],
+      bitePulse: 0,
+      joinPulse: 0,
+      splitPulse: 0,
+      retired: false,
+      targetTail: null,
+    };
+    loader.nextSnakeId += 1;
+    for (let i = 0; i < length; i += 1) {
+      snake.cells.push(wrapSnakeCell(loader, {
+        x: x - dir.x * i,
+        y: y - dir.y * i,
+      }));
+    }
+    return snake;
+  }
+
+  function stepCanvasSnakes(loader) {
+    loader.stepCount += 1;
+    const liveSnakes = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 2);
+    for (const snake of liveSnakes) {
+      if (!snake.targetTail && snake.cells.length > 12 && (loader.stepCount + snake.id * 5) % 24 === 0) {
+        snake.targetTail = snake.cells[Math.max(6, Math.floor(snake.cells.length * 0.68))];
+      }
+      advanceCanvasSnake(loader, snake, buildSnakeOccupancy(loader.snakes));
+      snake.bitePulse = Math.max(0, snake.bitePulse - 0.16);
+      snake.joinPulse = Math.max(0, snake.joinPulse - 0.12);
+      snake.splitPulse = Math.max(0, snake.splitPulse - 0.1);
+    }
+    if (loader.stepCount % 18 === 0 && loader.snakes.length < 8) {
+      splitCanvasSnake(loader);
+    }
+    if (loader.stepCount % 29 === 0) {
+      joinNearbyCanvasSnakes(loader);
+    }
+    loader.snakes = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3);
+    while (loader.snakes.length < 4) {
+      const x = Math.floor(loader.cols * (0.18 + hashNoise(loader.nextSnakeId, 11) * 0.64));
+      const y = Math.floor(loader.rows * (0.18 + hashNoise(loader.nextSnakeId, 17) * 0.64));
+      const dir = SNAKE_DIRS[loader.nextSnakeId % SNAKE_DIRS.length];
+      const hue = 320 + hashNoise(loader.nextSnakeId, 23) * 270;
+      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 12));
+    }
+  }
+
+  const SNAKE_DIRS = [
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 },
+    { x: 0, y: -1 },
+  ];
+
+  function advanceCanvasSnake(loader, snake, occupancy) {
+    const head = snake.cells[0];
+    const nextDir = chooseCanvasSnakeDir(loader, snake, occupancy);
+    const next = wrapSnakeCell(loader, {
+      x: head.x + nextDir.x,
+      y: head.y + nextDir.y,
+    });
+    const hit = occupancy.get(snakeCellKey(next));
+    snake.dir = nextDir;
+    if (hit && hit.snakeId === snake.id && hit.index > 4) {
+      snake.cells = [next, ...snake.cells.slice(0, hit.index)];
+      snake.maxLength = Math.max(8, Math.min(snake.maxLength, snake.cells.length));
+      snake.bitePulse = 1;
+      snake.targetTail = null;
+      return;
+    }
+    if (hit && hit.snakeId !== snake.id) {
+      const other = loader.snakes.find((candidate) => candidate.id === hit.snakeId);
+      if (other && !other.retired) {
+        snake.cells = [next, ...snake.cells, ...other.cells.slice(hit.index, hit.index + 10)];
+        snake.maxLength = Math.min(38, snake.maxLength + Math.ceil(other.maxLength * 0.45));
+        snake.hue = (snake.hue + other.hue) / 2;
+        snake.joinPulse = 1;
+        snake.targetTail = null;
+        other.retired = true;
+      }
+    } else {
+      snake.cells.unshift(next);
+    }
+    if (snake.targetTail && snakeCellDistance(next, snake.targetTail, loader) < 2) {
+      snake.targetTail = null;
+    }
+    while (snake.cells.length > snake.maxLength) snake.cells.pop();
+  }
+
+  function chooseCanvasSnakeDir(loader, snake, occupancy) {
+    const head = snake.cells[0];
+    const reverse = { x: -snake.dir.x, y: -snake.dir.y };
+    let best = snake.dir;
+    let bestScore = -Infinity;
+    for (const dir of SNAKE_DIRS) {
+      if (dir.x === reverse.x && dir.y === reverse.y) continue;
+      const next = wrapSnakeCell(loader, { x: head.x + dir.x, y: head.y + dir.y });
+      const hit = occupancy.get(snakeCellKey(next));
+      let score = dir.x === snake.dir.x && dir.y === snake.dir.y ? 1.4 : 0.4;
+      score += hashNoise(loader.stepCount + snake.id * 17 + dir.x * 7, dir.y * 13 + snake.id) * 1.2;
+      if (snake.targetTail) {
+        const currentDistance = snakeCellDistance(head, snake.targetTail, loader);
+        const nextDistance = snakeCellDistance(next, snake.targetTail, loader);
+        score += (currentDistance - nextDistance) * 1.7;
+      }
+      if (hit && hit.snakeId === snake.id) {
+        score += hit.index > 4 ? 2.2 : -5.5;
+      } else if (hit && hit.snakeId !== snake.id) {
+        score += 0.95;
+      }
+      if (next.x < 1 || next.x > loader.cols - 2 || next.y < 1 || next.y > loader.rows - 2) {
+        score -= 0.35;
+      }
+      if (score > bestScore) {
+        best = dir;
+        bestScore = score;
+      }
+    }
+    return best;
+  }
+
+  function splitCanvasSnake(loader) {
+    const source = loader.snakes
+      .filter((snake) => snake.cells.length > 14)
+      .sort((a, b) => b.cells.length - a.cells.length)[0];
+    if (!source) return;
+    const splitIndex = Math.floor(source.cells.length * (0.45 + hashNoise(loader.stepCount, source.id) * 0.25));
+    const origin = source.cells[splitIndex];
+    const branchDir = SNAKE_DIRS[(SNAKE_DIRS.indexOf(source.dir) + 1 + source.id) % SNAKE_DIRS.length] || { x: 0, y: 1 };
+    const branch = createCanvasSnake(
+      loader,
+      origin.x,
+      origin.y,
+      branchDir,
+      source.hue + 42 + hashNoise(source.id, loader.stepCount) * 70,
+      Math.max(8, Math.floor(source.maxLength * 0.58))
+    );
+    branch.cells = source.cells.slice(splitIndex, splitIndex + branch.maxLength);
+    branch.dir = branchDir;
+    branch.splitPulse = 1;
+    source.maxLength = Math.max(10, Math.floor(source.maxLength * 0.82));
+    source.splitPulse = 1;
+    loader.snakes.push(branch);
+  }
+
+  function joinNearbyCanvasSnakes(loader) {
+    if (loader.snakes.length < 5) return;
+    let bestPair = null;
+    let bestDistance = Infinity;
+    for (let i = 0; i < loader.snakes.length; i += 1) {
+      for (let j = i + 1; j < loader.snakes.length; j += 1) {
+        const a = loader.snakes[i];
+        const b = loader.snakes[j];
+        const distance = snakeCellDistance(a.cells[0], b.cells[0], loader);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestPair = [a, b];
+        }
+      }
+    }
+    if (!bestPair || bestDistance > Math.max(4, Math.floor(Math.min(loader.cols, loader.rows) * 0.18))) return;
+    const [a, b] = bestPair;
+    a.cells = [...a.cells, ...b.cells.slice(0, 12)];
+    a.maxLength = Math.min(42, a.maxLength + Math.ceil(b.maxLength * 0.55));
+    a.hue = (a.hue * 0.6 + b.hue * 0.4);
+    a.joinPulse = 1;
+    b.retired = true;
+  }
+
+  function buildSnakeOccupancy(snakes) {
+    const occupancy = new Map();
+    for (const snake of snakes) {
+      if (snake.retired) continue;
+      snake.cells.forEach((cell, index) => {
+        const key = snakeCellKey(cell);
+        if (!occupancy.has(key)) occupancy.set(key, { snakeId: snake.id, index });
+      });
+    }
+    return occupancy;
+  }
+
+  function renderCanvasSnakes(ctx, loader, width, height) {
+    const alpha = loader.opacity;
+    const tile = loader.tile;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(255, 253, 252, 0.62)';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = 'rgba(74, 58, 92, 0.055)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= width + tile; x += tile) {
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, 0);
+      ctx.lineTo(x + 0.5, height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= height + tile; y += tile) {
+      ctx.beginPath();
+      ctx.moveTo(0, y + 0.5);
+      ctx.lineTo(width, y + 0.5);
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'multiply';
+    for (const snake of loader.snakes) {
+      drawCanvasSnake(ctx, loader, snake);
+    }
+    ctx.globalCompositeOperation = 'screen';
+    for (const snake of loader.snakes) {
+      drawCanvasSnakeHeadGlow(ctx, loader, snake);
+    }
+    ctx.restore();
+  }
+
+  function drawCanvasSnake(ctx, loader, snake) {
+    const tile = loader.tile;
+    const inset = Math.max(1, Math.floor(tile * 0.1));
+    for (let index = snake.cells.length - 1; index >= 0; index -= 1) {
+      const cell = snake.cells[index];
+      const age = index / Math.max(1, snake.cells.length - 1);
+      const tailFade = Math.pow(1 - age, 1.45);
+      const hue = (snake.hue + index * 4 + loader.stepCount * 1.8) % 360;
+      const pulse = Math.max(snake.bitePulse, snake.joinPulse, snake.splitPulse);
+      const light = 72 + tailFade * 7 + pulse * 6;
+      const alpha = 0.08 + tailFade * 0.42 + pulse * 0.1;
+      ctx.fillStyle = `hsla(${hue}, 82%, ${light}%, ${alpha})`;
+      ctx.fillRect(cell.x * tile + inset, cell.y * tile + inset, tile - inset * 2, tile - inset * 2);
+    }
+  }
+
+  function drawCanvasSnakeHeadGlow(ctx, loader, snake) {
+    const head = snake.cells[0];
+    if (!head) return;
+    const tile = loader.tile;
+    const pulse = 0.45 + Math.max(snake.bitePulse, snake.joinPulse, snake.splitPulse) * 0.35;
+    ctx.fillStyle = `hsla(${snake.hue % 360}, 88%, 78%, ${0.12 + pulse * 0.12})`;
+    ctx.fillRect(head.x * tile - tile * 0.12, head.y * tile - tile * 0.12, tile * 1.24, tile * 1.24);
+    ctx.fillStyle = `hsla(${(snake.hue + 34) % 360}, 92%, 86%, ${0.22 + pulse * 0.18})`;
+    ctx.fillRect(head.x * tile + tile * 0.18, head.y * tile + tile * 0.18, tile * 0.64, tile * 0.64);
+  }
+
+  function wrapSnakeCell(loader, cell) {
     return {
-      start() {
-        if (running) return;
-        if (!setup()) return;
-        running = true;
-        raf = requestAnimationFrame(frame);
-      },
-      stop() {
-        running = false;
-        if (raf) cancelAnimationFrame(raf);
-        raf = 0;
-        window.setTimeout(() => {
-          if (!running && ctx) ctx.clearRect(0, 0, width, height);
-        }, 360);
-      },
+      x: (cell.x + loader.cols) % loader.cols,
+      y: (cell.y + loader.rows) % loader.rows,
     };
+  }
+
+  function snakeCellKey(cell) {
+    return `${cell.x},${cell.y}`;
+  }
+
+  function snakeCellDistance(a, b, loader) {
+    if (!a || !b) return Infinity;
+    const dx = Math.min(Math.abs(a.x - b.x), loader.cols - Math.abs(a.x - b.x));
+    const dy = Math.min(Math.abs(a.y - b.y), loader.rows - Math.abs(a.y - b.y));
+    return dx + dy;
   }
 
   function renderControls(controlStack, spec) {
