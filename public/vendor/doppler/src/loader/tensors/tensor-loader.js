@@ -1,0 +1,1218 @@
+
+
+import { getDevice, getKernelCapabilities, getPlatformConfig } from '../../gpu/device.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
+import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32, runBF16ToF16 } from '../../gpu/kernel-selector.js';
+import { createTensor } from '../../gpu/tensor.js';
+import { createWeightBuffer } from '../../gpu/weight-buffer.js';
+import { f16ToF32, convertBF16ToF32GPU, shouldDequantizeToF16, applyBufferLayout } from '../dtype-utils.js';
+import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../quantization-constants.js';
+import { log, trace as debugTrace } from '../../debug/index.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
+import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../converter/quantizer.js';
+import { hasSourceTransform } from './source-transform.js';
+
+// ============================================================================
+// Q4K Detection
+// ============================================================================
+
+let loggedF32UpcastNonMatmul = false;
+let loggedQ4KLimitFallback = false;
+
+function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
+function isReleasableBuffer(value) {
+  return typeof value === 'object' && value !== null && 'size' in value;
+}
+
+function releaseOwnedGpuBuffer(buffer, owned) {
+  if (!owned || !isReleasableBuffer(buffer)) {
+    return;
+  }
+  releaseBuffer(buffer);
+}
+
+function normalizeLoaderDebugConfig(config) {
+  const debug = config?.loaderDebug;
+  if (!debug || typeof debug !== 'object') {
+    return null;
+  }
+
+  return {
+    enabled: debug.enabled === true,
+    forceGpuDequant: debug.forceGpuDequant === true,
+    preferCpuDequant: debug.preferCpuDequant === true,
+    failOnCpuDequantPath: debug.failOnCpuDequantPath === true,
+    runQ4KDequantParity: debug.runQ4KDequantParity === true,
+    q4kDequantParitySamples: Number.isFinite(debug.q4kDequantParitySamples)
+      ? Math.min(4096, Math.max(1, Math.trunc(debug.q4kDequantParitySamples)))
+      : 256,
+  };
+}
+
+function logF32UpcastNonMatmul(name, numElements, bufferSize) {
+  if (loggedF32UpcastNonMatmul) {
+    return;
+  }
+  loggedF32UpcastNonMatmul = true;
+  log.warn(
+    'Loader',
+    `F16->F32 upcast for non-matmul weights enabled ` +
+    `(runtime.loading.allowF32UpcastNonMatmul=true). ` +
+    `Example: ${name} (${numElements} elements, bufSize=${bufferSize}).`
+  );
+}
+
+function alignTo4(size) {
+  return Math.ceil(size / 4) * 4;
+}
+
+function toUint8View(data) {
+  if (data instanceof Uint8Array) return data;
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  }
+  return new Uint8Array(data);
+}
+
+function toUint16View(data, label) {
+  const bytes = toUint8View(data);
+  if (bytes.byteLength % 2 !== 0) {
+    throw new Error(`${label}: byte length must be divisible by 2.`);
+  }
+  if (bytes.byteOffset % 2 === 0) {
+    return new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
+  }
+  return new Uint16Array(bytes.slice().buffer);
+}
+
+function toFloat32View(data, label) {
+  const bytes = toUint8View(data);
+  if (bytes.byteLength % 4 !== 0) {
+    throw new Error(`${label}: byte length must be divisible by 4.`);
+  }
+  if (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength) {
+    return new Float32Array(bytes.buffer);
+  }
+  return new Float32Array(bytes.slice().buffer);
+}
+
+function resolveInputByteLength(data, fallbackSize) {
+  if (data instanceof Uint8Array) return data.byteLength;
+  if (ArrayBuffer.isView(data)) return data.byteLength;
+  if (data instanceof ArrayBuffer) return data.byteLength;
+  if (isGpuBufferInstance(data)) return data.size;
+  return fallbackSize;
+}
+
+function writeBufferAligned(device, buffer, data) {
+  const bytes = toUint8View(data);
+  const alignedSize = alignTo4(bytes.byteLength);
+  if (alignedSize === bytes.byteLength) {
+    device.queue.writeBuffer(buffer, 0, bytes);
+    return;
+  }
+  const padded = new Uint8Array(alignedSize);
+  padded.set(bytes);
+  device.queue.writeBuffer(buffer, 0, padded);
+}
+
+function acquireAlignedBuffer(size, label) {
+  return acquireBuffer(alignTo4(size), undefined, label);
+}
+
+function getShapeElementCount(shape) {
+  if (!Array.isArray(shape)) {
+    throw new Error('Tensor shape must be an array.');
+  }
+  return shape.reduce((product, value) => product * value, 1);
+}
+
+function getStorageCompanion(shardData, location, name, role) {
+  const companion = shardData?.storageCompanions?.[role];
+  if (!companion || !(companion.bytes instanceof Uint8Array)) {
+    throw new Error(
+      `W4A16 tensor "${name}" is missing required storage companion "${role}".`
+    );
+  }
+  const declared = Array.isArray(location?.storage?.companions)
+    ? location.storage.companions.find((entry) => entry.role === role)
+    : null;
+  if (declared && companion.tensorId !== declared.tensorId) {
+    throw new Error(
+      `W4A16 tensor "${name}" companion "${role}" resolved to "${companion.tensorId}", expected "${declared.tensorId}".`
+    );
+  }
+  return companion;
+}
+
+function readW4A16LogicalShape(companion, fallbackShape, name) {
+  const location = companion.location ?? null;
+  const bytes = companion.bytes;
+  const dtype = String(location?.dtype || '').toUpperCase();
+  if (!Array.isArray(location?.shape) || location.shape.length !== 1 || location.shape[0] !== 2) {
+    throw new Error(`W4A16 tensor "${name}" shape companion must have shape [2].`);
+  }
+  if (dtype === 'I64') {
+    if (bytes.byteLength !== 16) {
+      throw new Error(`W4A16 tensor "${name}" I64 shape companion must be 16 bytes.`);
+    }
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return [Number(view.getBigInt64(0, true)), Number(view.getBigInt64(8, true))];
+  }
+  if (dtype === 'I32' || dtype === 'U32') {
+    if (bytes.byteLength !== 8) {
+      throw new Error(`W4A16 tensor "${name}" ${dtype} shape companion must be 8 bytes.`);
+    }
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const read = dtype === 'I32'
+      ? (offset) => view.getInt32(offset, true)
+      : (offset) => view.getUint32(offset, true);
+    return [read(0), read(4)];
+  }
+  if (Array.isArray(fallbackShape) && fallbackShape.length === 2) {
+    return fallbackShape;
+  }
+  throw new Error(`W4A16 tensor "${name}" has unsupported shape companion dtype "${location?.dtype}".`);
+}
+
+function assertW4A16Shape(shape, fallbackShape, name) {
+  if (!Array.isArray(shape) || shape.length !== 2) {
+    throw new Error(`W4A16 tensor "${name}" logical shape must be 2D.`);
+  }
+  const rows = Number(shape[0]);
+  const cols = Number(shape[1]);
+  if (!Number.isInteger(rows) || rows <= 0 || !Number.isInteger(cols) || cols <= 0) {
+    throw new Error(`W4A16 tensor "${name}" has invalid logical shape ${JSON.stringify(shape)}.`);
+  }
+  if (Array.isArray(fallbackShape) && fallbackShape.length === 2) {
+    if (rows !== fallbackShape[0] || cols !== fallbackShape[1]) {
+      throw new Error(
+        `W4A16 tensor "${name}" shape companion [${rows},${cols}] does not match manifest shape [${fallbackShape.join(',')}].`
+      );
+    }
+  }
+  return [rows, cols];
+}
+
+function bf16ToF32(bits) {
+  const floats = new Float32Array(1);
+  const uints = new Uint32Array(floats.buffer);
+  uints[0] = (bits & 0xffff) << 16;
+  return floats[0];
+}
+
+function readOffsetBinaryInt4(byte, highNibble) {
+  const value = highNibble ? ((byte >> 4) & 0x0f) : (byte & 0x0f);
+  return value - 8;
+}
+
+function readW4A16Scales(companion, expectedScales, name) {
+  const dtype = String(companion.location?.dtype || '').toUpperCase();
+  if (dtype === 'F16') {
+    const packed = toUint16View(companion.bytes, `W4A16 scales for ${name}`);
+    if (packed.length !== expectedScales) {
+      throw new Error(
+        `W4A16 tensor "${name}" scale count ${packed.length} does not match expected ${expectedScales}.`
+      );
+    }
+    const scales = new Float32Array(packed.length);
+    for (let i = 0; i < packed.length; i += 1) {
+      scales[i] = f16ToF32(packed[i]);
+    }
+    return scales;
+  }
+  if (dtype === 'BF16') {
+    const packed = toUint16View(companion.bytes, `W4A16 scales for ${name}`);
+    if (packed.length !== expectedScales) {
+      throw new Error(
+        `W4A16 tensor "${name}" scale count ${packed.length} does not match expected ${expectedScales}.`
+      );
+    }
+    const scales = new Float32Array(packed.length);
+    for (let i = 0; i < packed.length; i += 1) {
+      scales[i] = bf16ToF32(packed[i]);
+    }
+    return scales;
+  }
+  if (dtype === 'F32') {
+    const scales = toFloat32View(companion.bytes, `W4A16 scales for ${name}`);
+    if (scales.length !== expectedScales) {
+      throw new Error(
+        `W4A16 tensor "${name}" scale count ${scales.length} does not match expected ${expectedScales}.`
+      );
+    }
+    return scales;
+  }
+  throw new Error(`W4A16 tensor "${name}" has unsupported scale companion dtype "${companion.location?.dtype}".`);
+}
+
+function validateW4A16PackedStorage(shardData, location, name) {
+  const scaleCompanion = getStorageCompanion(shardData, location, name, 'scales');
+  const shapeCompanion = getStorageCompanion(shardData, location, name, 'shape');
+  const [rows, cols] = assertW4A16Shape(
+    readW4A16LogicalShape(shapeCompanion, location.shape, name),
+    location.shape,
+    name
+  );
+  const groupsPerRow = Math.ceil(cols / 32);
+  const expectedPackedBytes = rows * groupsPerRow * 16;
+  if (shardData.byteLength !== expectedPackedBytes) {
+    throw new Error(
+      `W4A16 tensor "${name}" packed byte length ${shardData.byteLength} does not match expected ${expectedPackedBytes}.`
+    );
+  }
+  const scaleDtype = String(scaleCompanion.location?.dtype || '').toUpperCase();
+  const scaleBytesPerElement = scaleDtype === 'F32'
+    ? 4
+    : (scaleDtype === 'F16' || scaleDtype === 'BF16' ? 2 : null);
+  if (scaleBytesPerElement == null) {
+    throw new Error(`W4A16 tensor "${name}" has unsupported scale companion dtype "${scaleCompanion.location?.dtype}".`);
+  }
+  const expectedScaleBytes = rows * groupsPerRow * scaleBytesPerElement;
+  if (scaleCompanion.bytes.byteLength !== expectedScaleBytes) {
+    throw new Error(
+      `W4A16 tensor "${name}" scale byte length ${scaleCompanion.bytes.byteLength} does not match expected ${expectedScaleBytes}.`
+    );
+  }
+  return {
+    rows,
+    cols,
+    groupsPerRow,
+    scaleDtype: scaleDtype.toLowerCase(),
+    scaleBytes: scaleCompanion.bytes,
+  };
+}
+
+function dequantizeW4A16ToF16(shardData, location, name) {
+  const scaleCompanion = getStorageCompanion(shardData, location, name, 'scales');
+  const shapeCompanion = getStorageCompanion(shardData, location, name, 'shape');
+  const [rows, cols] = assertW4A16Shape(
+    readW4A16LogicalShape(shapeCompanion, location.shape, name),
+    location.shape,
+    name
+  );
+  const groupsPerRow = Math.ceil(cols / 32);
+  const expectedPackedBytes = rows * groupsPerRow * 16;
+  if (shardData.byteLength !== expectedPackedBytes) {
+    throw new Error(
+      `W4A16 tensor "${name}" packed byte length ${shardData.byteLength} does not match expected ${expectedPackedBytes}.`
+    );
+  }
+  const expectedScales = rows * groupsPerRow;
+  const scales = readW4A16Scales(scaleCompanion, expectedScales, name);
+  const out = new Uint16Array(rows * cols);
+  for (let row = 0; row < rows; row += 1) {
+    for (let group = 0; group < groupsPerRow; group += 1) {
+      const scale = scales[(row * groupsPerRow) + group];
+      const packedOffset = ((row * groupsPerRow) + group) * 16;
+      for (let lane = 0; lane < 32; lane += 1) {
+        const col = (group * 32) + lane;
+        if (col >= cols) break;
+        const byte = shardData[packedOffset + Math.floor(lane / 2)];
+        const quant = readOffsetBinaryInt4(byte, (lane % 2) === 1);
+        out[(row * cols) + col] = float32ToFloat16(quant * scale);
+      }
+    }
+  }
+  return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+}
+
+
+export function isPackedQ4K(location) {
+  if (!Array.isArray(location.shape) || location.shape.length < 2) {
+    return false;
+  }
+  const cols = location.shape[location.shape.length - 1];
+  const rows = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
+  const expectedRowwise = rows * Math.ceil(cols / QK_K) * Q4K_BLOCK_BYTES;
+  return location.size < expectedRowwise;
+}
+
+
+function isEmbeddingRole(location) {
+  if (!location?.role) {
+    throw new Error('Tensor role is required to determine embedding layout.');
+  }
+  return location.role === 'embedding';
+}
+
+
+export function shouldUseFusedQ4K(location, config) {
+  if (!config.useFusedQ4K) return false;
+  return canUseFusedQ4KStorage(location, config);
+}
+
+function canUseFusedQ4KStorage(location, config) {
+  const caps = config.gpuCapabilities || getKernelCapabilities();
+  if (!caps?.hasSubgroups) return false;
+
+  const isMatmulWeight = shouldDequantizeToF16(location);
+  if (!isMatmulWeight) return false;
+
+  if (isEmbeddingRole(location)) return false;
+  if (isPackedQ4K(location)) return false;
+
+  return true;
+}
+
+export function isLiteRTAffineInt4FusedEligible(location, config) {
+  const caps = config?.gpuCapabilities || getKernelCapabilities();
+  if (caps?.hasF16 !== true) return false;
+
+  if (!Array.isArray(location?.shape) || location.shape.length !== 2) return false;
+  if (!location?.role) return false;
+  if (isEmbeddingRole(location)) return false;
+  if (location.role !== 'matmul' && location.role !== 'lm_head') return false;
+  if (!shouldDequantizeToF16(location)) return false;
+
+  const transform = location.sourceTransform;
+  if (!transform || typeof transform !== 'object') return false;
+  const sourceDtype = String(transform.sourceDtype || '').toUpperCase();
+  const targetDtype = String(transform.targetDtype || '').toUpperCase();
+  const locationDtype = String(location.dtype || '').toUpperCase();
+  const storageEncoding = String(transform.storageEncoding || '').toLowerCase();
+  const scale = Number(transform.scale);
+  const zeroPoint = Number(transform.zeroPoint);
+  const storageEncodingSupported = storageEncoding === 'signed' || storageEncoding === 'offset_binary';
+
+  return transform.kind === 'affine_dequant'
+    && transform.scheme === 'per_tensor_affine'
+    && sourceDtype === 'INT4'
+    && targetDtype === 'F16'
+    && locationDtype === 'F16'
+    && storageEncodingSupported
+    && Number.isFinite(scale)
+    && Math.abs(scale - 0.0625) <= Number.EPSILON
+    && Number.isSafeInteger(zeroPoint)
+    && zeroPoint === 0;
+}
+
+export function isW4A16FusedEligible(location, config) {
+  const caps = config?.gpuCapabilities || getKernelCapabilities();
+  if (caps?.hasF16 !== true) return false;
+
+  if (!Array.isArray(location?.shape) || location.shape.length !== 2) return false;
+  if (String(location?.dtype || '').toUpperCase() !== 'W4A16') return false;
+  if (!location?.role) return false;
+  if (isEmbeddingRole(location)) return false;
+  if (location.role !== 'matmul' && location.role !== 'lm_head') return false;
+  if (!shouldDequantizeToF16(location)) return false;
+  if (location?.storage?.packing !== 'w4a16') return false;
+  if (!Array.isArray(location?.storage?.companions)) return false;
+
+  const hasScales = location.storage.companions.some((entry) => entry.role === 'scales');
+  const hasShape = location.storage.companions.some((entry) => entry.role === 'shape');
+  return hasScales && hasShape;
+}
+
+function getQ4KDenseMaterializedSizeBytes(location, config) {
+  if (!Array.isArray(location.shape) || location.shape.length === 0) {
+    return null;
+  }
+  const elementCount = getShapeElementCount(location.shape);
+  if (!Number.isFinite(elementCount) || elementCount <= 0) {
+    return null;
+  }
+  const outputDtype = getQ4KOutputDtype(location, config);
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  return elementCount * bytesPerElement;
+}
+
+function getMaxStorageBufferBindingSize() {
+  const device = getDevice();
+  const maxStorage = device?.limits?.maxStorageBufferBindingSize;
+  return Number.isFinite(maxStorage) && maxStorage > 0 ? maxStorage : null;
+}
+
+function resolveQ4KLimitFallback(location, config) {
+  if (location?.dtype !== 'Q4_K_M' && location?.dtype !== 'Q4_K') {
+    return {
+      denseExceedsBindingLimit: false,
+      limitFallbackEligible: false,
+      denseSizeBytes: null,
+      maxBindingSizeBytes: null,
+    };
+  }
+
+  const denseSizeBytes = getQ4KDenseMaterializedSizeBytes(location, config);
+  const maxBindingSizeBytes = getMaxStorageBufferBindingSize();
+  const denseExceedsBindingLimit = (
+    denseSizeBytes != null
+    && maxBindingSizeBytes != null
+    && denseSizeBytes > maxBindingSizeBytes
+  );
+  const packedSizeBytes = Number.isFinite(location.size) ? location.size : null;
+  const packedFitsBindingLimit = (
+    packedSizeBytes != null
+    && maxBindingSizeBytes != null
+    && packedSizeBytes <= maxBindingSizeBytes
+  );
+  const limitFallbackEligible = (
+    denseExceedsBindingLimit
+    && config.keepF32Weights !== true
+    && packedFitsBindingLimit
+    && canUseFusedQ4KStorage(location, config)
+  );
+
+  return {
+    denseExceedsBindingLimit,
+    limitFallbackEligible,
+    denseSizeBytes,
+    maxBindingSizeBytes,
+  };
+}
+
+function logQ4KLimitFallbackOnce(name, fallback) {
+  if (loggedQ4KLimitFallback) {
+    return;
+  }
+  loggedQ4KLimitFallback = true;
+  log.warn(
+    'Loader',
+    `Q4K dense materialization for "${name}" would require ${fallback.denseSizeBytes} bytes, ` +
+    `exceeding maxStorageBufferBindingSize=${fallback.maxBindingSizeBytes}; retaining packed Q4K for fused matmul.`
+  );
+}
+
+// ============================================================================
+// Dtype Output Selection
+// ============================================================================
+
+
+export function getQ4KOutputDtype(location, config) {
+  const isMatmulWeight = shouldDequantizeToF16(location);
+  const caps = config.gpuCapabilities || getKernelCapabilities();
+  return selectRuleValue('loader', 'weights', 'q4kOutputDtype', {
+    isMatmulWeight,
+    keepF32Weights: Boolean(config.keepF32Weights),
+    hasF16: Boolean(caps?.hasF16),
+  });
+}
+
+
+export function getWeightLayout(location, config) {
+  const isMatmulWeight = shouldDequantizeToF16(location);
+  // Layout: 'col' = column-wise, 'row' = row-wise (default)
+  const useColumnWise = config.q4kLayout === 'col' && isMatmulWeight;
+  return selectRuleValue('loader', 'weights', 'weightLayout', {
+    layout: location.layout ?? null,
+    useColumnWise,
+  });
+}
+
+// ============================================================================
+// CPU Path Helpers
+// ============================================================================
+
+
+export function convertBF16ToF32CPU(bf16Data) {
+  const f32 = new Float32Array(bf16Data.length);
+  const tmp = new ArrayBuffer(4);
+  const u32View = new Uint32Array(tmp);
+  const f32View = new Float32Array(tmp);
+
+  for (let i = 0; i < bf16Data.length; i++) {
+    u32View[0] = bf16Data[i] << 16;
+    f32[i] = f32View[0];
+  }
+
+  return f32;
+}
+
+
+export function convertF16ToF32CPU(f16Data) {
+  const f32 = new Float32Array(f16Data.length);
+  for (let i = 0; i < f16Data.length; i++) {
+    f32[i] = f16ToF32(f16Data[i]);
+  }
+  return f32;
+}
+
+// ============================================================================
+// GPU Tensor Loading
+// ============================================================================
+
+
+export async function loadQ4KFused(shardData, location, name) {
+  const device = getDevice();
+  const ownsBuffer = !isGpuBufferInstance(shardData);
+  const buffer = isGpuBufferInstance(shardData)
+    ? shardData
+    : acquireAlignedBuffer(location.size, `q4k_${name}`);
+  try {
+    if (ownsBuffer) {
+      writeBufferAligned(device, buffer, shardData);
+    }
+    return {
+      data: createWeightBuffer(buffer, 'q4k', 'row', location.shape, name),
+      allocatedBuffers: [buffer],
+    };
+  } catch (error) {
+    releaseOwnedGpuBuffer(buffer, ownsBuffer);
+    throw error;
+  }
+}
+
+export async function loadLiteRTInt4Fused(shardData, location, name, config = null) {
+  if (isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `LiteRT INT4 tensor "${name}" requires raw packed source bytes before GPU upload.`
+    );
+  }
+  if (!isLiteRTAffineInt4FusedEligible(location, config ?? { gpuCapabilities: getKernelCapabilities() })) {
+    throw new Error(
+      `LiteRT INT4 tensor "${name}" does not match the fused fixed-affine contract ` +
+      '(INT4 -> F16, storageEncoding=signed|offset_binary, per_tensor_affine, scale=0.0625, zeroPoint=0, 2D matmul/lm_head role).'
+    );
+  }
+
+  const [rows, cols] = location.shape;
+  const expectedBytes = rows * Math.ceil(cols / 2);
+  const actualBytes = resolveInputByteLength(shardData, location.size);
+  if (actualBytes !== expectedBytes) {
+    throw new Error(
+      `LiteRT INT4 tensor "${name}" packed byte size mismatch. ` +
+      `Expected ${expectedBytes} bytes for shape [${rows},${cols}], got ${actualBytes}.`
+    );
+  }
+
+  const device = getDevice();
+  const buffer = acquireAlignedBuffer(actualBytes, `litert_int4_${name}`);
+  try {
+    writeBufferAligned(device, buffer, shardData);
+    return {
+      data: createWeightBuffer(buffer, 'litert_int4', 'row', location.shape, name, null, {
+        storageEncoding: String(location.sourceTransform.storageEncoding).toLowerCase(),
+      }),
+      allocatedBuffers: [buffer],
+    };
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
+  }
+}
+
+export async function loadW4A16Fused(shardData, location, name, config = null) {
+  if (isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `W4A16 tensor "${name}" requires raw packed source bytes before GPU upload.`
+    );
+  }
+  if (!isW4A16FusedEligible(location, config ?? { gpuCapabilities: getKernelCapabilities() })) {
+    throw new Error(
+      `W4A16 tensor "${name}" does not match the fused packed contract ` +
+      '(dtype=W4A16, storage.packing=w4a16, scales+shape companions, 2D matmul/lm_head role).'
+    );
+  }
+
+  const storage = validateW4A16PackedStorage(shardData, location, name);
+  const device = getDevice();
+  const weightBuffer = acquireAlignedBuffer(shardData.byteLength, `w4a16_${name}`);
+  const scaleBuffer = acquireAlignedBuffer(storage.scaleBytes.byteLength, `w4a16_scales_${name}`);
+  try {
+    writeBufferAligned(device, weightBuffer, shardData);
+    writeBufferAligned(device, scaleBuffer, storage.scaleBytes);
+    return {
+      data: createWeightBuffer(weightBuffer, 'w4a16', 'row', location.shape, name, null, {
+        scaleBuffer,
+        scaleDtype: storage.scaleDtype,
+        groupsPerRow: storage.groupsPerRow,
+      }),
+      allocatedBuffers: [weightBuffer, scaleBuffer],
+    };
+  } catch (error) {
+    releaseBuffer(weightBuffer);
+    releaseBuffer(scaleBuffer);
+    throw error;
+  }
+}
+
+async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config) {
+  let dequantized = null;
+  const outputDtype = getQ4KOutputDtype(location, config);
+  const loaderDebug = normalizeLoaderDebugConfig(config);
+  const debugEnabled = loaderDebug?.enabled === true;
+  const forceGpuDequant = loaderDebug?.forceGpuDequant === true;
+  const failOnCpuDequantPath = loaderDebug?.failOnCpuDequantPath === true;
+  const runQ4KDequantParity = loaderDebug?.runQ4KDequantParity === true;
+  const paritySamples = loaderDebug?.q4kDequantParitySamples ?? 256;
+
+  const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
+  const { needsRowwise, layout, K } = q4kCpuReferenceContext;
+  const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
+  const canUseCpuReference = !forceGpuDequant && preferCpuDequant && q4kCpuReferenceContext.eligible;
+
+  if (canUseCpuReference && failOnCpuDequantPath) {
+    throw new Error(
+      `[LoaderDebug] CPU dequant path taken for ${name}; this run is configured fail-closed. ` +
+      'Set runtime.shared.debug.loader.forceGpuDequant=true to isolate GPU dequant.'
+    );
+  }
+
+  if (canUseCpuReference) {
+    const quantizedBytes = toUint8View(shardData);
+    const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+    debugTrace.loader(
+      `Dequantizing ${name} with CPU reference path: ` +
+      `shape=[${location.shape.join(',')}], layout=${layout}, needsRowwise=${needsRowwise}`
+    );
+    const f32Weights = needsRowwise
+      ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+      : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape);
+    const outputBuffer = acquireAlignedBuffer(f32Weights.byteLength, `dequant_cpu_${name}`);
+    try {
+      writeBufferAligned(getDevice(), outputBuffer, new Uint8Array(f32Weights.buffer));
+      return {
+        buffer: outputBuffer,
+        outputDtype: 'f32',
+        layout,
+        allocatedBuffers: [outputBuffer],
+      };
+    } catch (error) {
+      releaseBuffer(outputBuffer);
+      throw error;
+    }
+  }
+
+  let numBlocks = null;
+  let dequantizedTensor;
+  if (needsRowwise) {
+    const rows = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
+    debugTrace.loader(
+      `Dequantizing ${name} (row-wise): [${rows},${K}], K not 256-aligned, ` +
+      `outputDtype=${outputDtype}`
+    );
+    dequantizedTensor = await dequantizeRowwise(quantBuffer, rows, K, { outputDtype });
+  } else {
+    numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+    debugTrace.loader(
+      `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
+      `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
+    );
+    dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
+  }
+  dequantized = dequantizedTensor.buffer;
+
+  debugTrace.loader(`Dequantized ${name}: resultSize=${dequantized.size}`);
+
+  if (runQ4KDequantParity && !isGpuBufferInstance(shardData) && dequantized && numBlocks !== null) {
+    const isProbeTarget = debugEnabled &&
+      (name.includes('.self_attn.q_proj.weight') || name.includes('.self_attn.k_proj.weight') ||
+        name.includes('.self_attn.v_proj.weight') || name.includes('.self_attn.qkv_proj.weight'));
+
+    if (isProbeTarget) {
+      try {
+        const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
+        const requestedOutputBytes = numBlocks * QK_K * bytesPerElem;
+        const sampleCount = paritySamples;
+        const readSize = Math.min(sampleCount * bytesPerElem, dequantized.size);
+        const gpuRaw = await readBuffer(dequantized, readSize);
+        const gpuBytes = gpuRaw instanceof ArrayBuffer
+          ? new Uint8Array(gpuRaw)
+          : new Uint8Array(gpuRaw.buffer, gpuRaw.byteOffset, gpuRaw.byteLength);
+
+        let gpuVals;
+        if (outputDtype === 'f16') {
+          const u16 = new Uint16Array(gpuBytes.buffer, gpuBytes.byteOffset,
+            Math.min(sampleCount, Math.floor(gpuBytes.byteLength / 2)));
+          gpuVals = Array.from(u16, (half) => f16ToF32(half));
+        } else {
+          const f32 = new Float32Array(gpuBytes.buffer, gpuBytes.byteOffset,
+            Math.min(sampleCount, Math.floor(gpuBytes.byteLength / 4)));
+          gpuVals = Array.from(f32);
+        }
+
+        const quantizedBytes = toUint8View(shardData);
+        const cpuRef = Array.from(
+          needsRowwise
+            ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+            : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape)
+        ).slice(0, gpuVals.length);
+
+        let maxDiff = 0;
+        let diffIdx = -1;
+        for (let i = 0; i < gpuVals.length && i < cpuRef.length; i++) {
+          const d = Math.abs(gpuVals[i] - cpuRef[i]);
+          if (d > maxDiff) {
+            maxDiff = d;
+            diffIdx = i;
+          }
+        }
+
+        log.warn('DequantProbe',
+          `tensor="${name}" shape=[${location.shape}] ` +
+          `location.size=${location.size} numBlocks=${numBlocks} outputDtype=${outputDtype} ` +
+          `bytesPerElem=${bytesPerElem} requestedOutputBytes=${requestedOutputBytes} bufSize=${dequantized.size} ` +
+          `runParity=true sampleCount=${sampleCount}`
+        );
+        log.warn('DequantProbe',
+          `parity: maxDiff=${maxDiff.toFixed(8)} at idx=${diffIdx} ` +
+          `gpu[0..3]=[${gpuVals.slice(0, 4).map((v) => v.toFixed(6))}] ` +
+          `cpu[0..3]=[${cpuRef.slice(0, 4).map((v) => v.toFixed(6))}]`
+        );
+      } catch (e) {
+        log.warn('DequantProbe', `Readback failed: ${e.message}`);
+      }
+    }
+  }
+
+  return {
+    buffer: dequantized,
+    outputDtype,
+    layout,
+    allocatedBuffers: [dequantized],
+  };
+}
+
+
+export async function loadQ4KDequant(shardData, location, name, config) {
+  const device = getDevice();
+  let ownsQuantBuffer = !isGpuBufferInstance(shardData);
+  const quantBuffer = isGpuBufferInstance(shardData)
+    ? shardData
+    : acquireAlignedBuffer(location.size, `quant_${name}`);
+  let dequantized = null;
+  try {
+    if (ownsQuantBuffer) {
+      writeBufferAligned(device, quantBuffer, shardData);
+    }
+
+    const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config);
+    dequantized = dense.buffer;
+    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
+    ownsQuantBuffer = false;
+
+    return {
+      data: createWeightBuffer(dequantized, dense.outputDtype, dense.layout, location.shape, name),
+      allocatedBuffers: [dequantized],
+    };
+  } catch (error) {
+    if (isReleasableBuffer(dequantized)) {
+      releaseBuffer(dequantized);
+    }
+    throw error;
+  } finally {
+    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
+  }
+}
+
+async function loadQ4KMixed(shardData, location, name, config) {
+  const canMaterializeMixed = shouldUseFusedQ4K(location, config)
+    && config.q4kLayout === 'row';
+  if (!canMaterializeMixed) {
+    return loadQ4KDequant(shardData, location, name, config);
+  }
+
+  const device = getDevice();
+  let ownsQuantBuffer = !isGpuBufferInstance(shardData);
+  const quantBuffer = isGpuBufferInstance(shardData)
+    ? shardData
+    : acquireAlignedBuffer(location.size, `q4k_mixed_${name}`);
+  let dequantized = null;
+  try {
+    if (ownsQuantBuffer) {
+      writeBufferAligned(device, quantBuffer, shardData);
+    }
+
+    const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config);
+    dequantized = dense.buffer;
+    ownsQuantBuffer = false;
+
+    return {
+      data: createWeightBuffer(
+        dense.buffer,
+        dense.outputDtype,
+        dense.layout,
+        location.shape,
+        name,
+        {
+          q4k: { buffer: quantBuffer, layout: 'row' },
+        }
+      ),
+      allocatedBuffers: [quantBuffer, dense.buffer],
+    };
+  } catch (error) {
+    if (isReleasableBuffer(dequantized)) {
+      releaseBuffer(dequantized);
+    }
+    throw error;
+  } finally {
+    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
+  }
+}
+
+function getQ4KCpuReferenceContext(shardData, location, config) {
+  const outputDtype = getQ4KOutputDtype(location, config);
+  const isMatrixLike = Array.isArray(location.shape) && location.shape.length >= 2;
+  const K = isMatrixLike ? location.shape[location.shape.length - 1] : 0;
+  const layout = getWeightLayout(location, config);
+  const needsRowwise = isMatrixLike && layout === 'row' && K > 0 && K % QK_K !== 0;
+  const eligible = outputDtype === 'f32'
+    && !isGpuBufferInstance(shardData)
+    && (!needsRowwise || layout === 'row');
+  return {
+    eligible,
+    outputDtype,
+    needsRowwise,
+    layout,
+    K,
+  };
+}
+
+
+export async function loadQ6K(shardData, location, name) {
+  const device = getDevice();
+
+  debugTrace.loader(`Loading Q6_K tensor "${name}", size=${location.size}`);
+  let ownsQuantBuffer = !isGpuBufferInstance(shardData);
+  const quantBuffer = isGpuBufferInstance(shardData)
+    ? shardData
+    : acquireAlignedBuffer(location.size, `quant_${name}`);
+  let dequantized = null;
+  try {
+    if (ownsQuantBuffer) {
+      writeBufferAligned(device, quantBuffer, shardData);
+    }
+
+    const numBlocks = Math.floor(location.size / Q6K_BLOCK_BYTES);
+    debugTrace.loader(
+      `Dequantizing Q6_K ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
+      `expectedOutput=${numBlocks * 256 * 2} (f16)`
+    );
+
+    const dequantizedTensor = await dequantizeQ6K(quantBuffer, numBlocks, { outputDtype: 'f16' });
+    dequantized = dequantizedTensor.buffer;
+
+    debugTrace.loader(`Dequantized Q6_K ${name}: resultSize=${dequantized.size}`);
+    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
+    ownsQuantBuffer = false;
+
+    const isMatmulWeight = shouldDequantizeToF16(location);
+    if (isMatmulWeight) {
+      return {
+        data: createWeightBuffer(dequantized, 'f16', 'row', location.shape, name),
+        allocatedBuffers: [dequantized],
+      };
+    }
+
+    return {
+      data: applyBufferLayout(dequantized, location, 'f16'),
+      allocatedBuffers: [dequantized],
+    };
+  } catch (error) {
+    if (isReleasableBuffer(dequantized)) {
+      releaseBuffer(dequantized);
+    }
+    throw error;
+  } finally {
+    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
+  }
+}
+
+
+export async function loadBF16(shardData, location, name, config) {
+  const device = getDevice();
+  let ownsSrcBuffer = !isGpuBufferInstance(shardData);
+  const srcBuffer = isGpuBufferInstance(shardData)
+    ? shardData
+    : acquireAlignedBuffer(location.size, `${name}_bf16`);
+  let resultBuffer = null;
+  try {
+    if (ownsSrcBuffer) {
+      writeBufferAligned(device, srcBuffer, shardData);
+    }
+
+    const numElements = location.size / 2;
+    const caps = config.gpuCapabilities || getKernelCapabilities();
+    const isMatmulWeight = shouldDequantizeToF16(location);
+    const keepF32Weights = config.keepF32Weights === true;
+
+    if (caps?.hasF16 && isMatmulWeight && !keepF32Weights) {
+      const f16Tensor = await runBF16ToF16(srcBuffer, [numElements], name);
+      resultBuffer = f16Tensor.buffer;
+      releaseOwnedGpuBuffer(srcBuffer, ownsSrcBuffer);
+      ownsSrcBuffer = false;
+      debugTrace.loader(`BF16->F16 for matmul weight: ${name} (${numElements} elements)`);
+
+      const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+        layout: location.layout ?? null,
+        useColumnWise: false,
+      });
+      return {
+        data: createWeightBuffer(f16Tensor.buffer, 'f16', layout, location.shape, name),
+        allocatedBuffers: [f16Tensor.buffer],
+      };
+    }
+
+    if (isMatmulWeight && keepF32Weights) {
+      debugTrace.loader(`Keeping BF16 matmul weight in f32: ${name} (keepF32Weights=true)`);
+    }
+
+    const dstBuffer = await convertBF16ToF32GPU(srcBuffer, numElements, name);
+    resultBuffer = dstBuffer;
+    releaseOwnedGpuBuffer(srcBuffer, ownsSrcBuffer);
+    ownsSrcBuffer = false;
+
+    if (isGpuBufferInstance(dstBuffer)) {
+      if (isMatmulWeight) {
+        const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+          layout: location.layout ?? null,
+          useColumnWise: false,
+        });
+        return {
+          data: createWeightBuffer(dstBuffer, 'f32', layout, location.shape, name),
+          allocatedBuffers: [dstBuffer],
+        };
+      }
+      return {
+        data: applyBufferLayout(dstBuffer, location, 'f32'),
+        allocatedBuffers: [dstBuffer],
+      };
+    }
+
+    return {
+      data: dstBuffer,
+      allocatedBuffers: [],
+    };
+  } catch (error) {
+    if (isReleasableBuffer(resultBuffer)) {
+      releaseBuffer(resultBuffer);
+    }
+    throw error;
+  } finally {
+    releaseOwnedGpuBuffer(srcBuffer, ownsSrcBuffer);
+  }
+}
+
+
+export async function loadFloat(shardData, location, name, config) {
+  if (!config) {
+    throw new Error('Tensor load config is required.');
+  }
+  if (hasSourceTransform(location) && isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `Tensor "${name}" requires CPU-side sourceTransform materialization before GPU upload. ` +
+      'Disable streaming for this tensor and load from assembled bytes.'
+    );
+  }
+  const device = getDevice();
+  const inputByteLength = resolveInputByteLength(shardData, location.size);
+  let ownsBuffer = !isGpuBufferInstance(shardData);
+  const buffer = isGpuBufferInstance(shardData)
+    ? shardData
+    : acquireAlignedBuffer(inputByteLength, name);
+  let resultBuffer = null;
+  try {
+    if (ownsBuffer) {
+      writeBufferAligned(device, buffer, shardData);
+    }
+
+    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+      locationDtype: location.dtype,
+    });
+    const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+      layout: location.layout ?? null,
+      useColumnWise: false,
+    });
+    const isMatmulWeight = shouldDequantizeToF16(location);
+
+    if (isMatmulWeight) {
+      ownsBuffer = false;
+      return {
+        data: createWeightBuffer(buffer, dtype, layout, location.shape, name),
+        allocatedBuffers: [buffer],
+      };
+    }
+
+    if (dtype === 'f16') {
+      if (config.allowF32UpcastNonMatmul === false) {
+        ownsBuffer = false;
+        return {
+          data: applyBufferLayout(buffer, location, 'f16'),
+          allocatedBuffers: [buffer],
+        };
+      }
+      const numElements = getShapeElementCount(location.shape);
+      logF32UpcastNonMatmul(name, numElements, buffer.size);
+      debugTrace.loader(`F16->F32 upcast for non-matmul: ${name} (${numElements} elements, bufSize=${buffer.size})`);
+      const inputTensor = createTensor(buffer, 'f16', [numElements], `${name}_f16`);
+      const f32Tensor = await castF16ToF32(inputTensor);
+      resultBuffer = f32Tensor.buffer;
+      debugTrace.loader(`F16->F32 complete: ${name} resultSize=${f32Tensor.buffer.size}`);
+      releaseOwnedGpuBuffer(buffer, ownsBuffer);
+      ownsBuffer = false;
+      return {
+        data: applyBufferLayout(f32Tensor.buffer, location, 'f32'),
+        allocatedBuffers: [f32Tensor.buffer],
+      };
+    }
+
+    ownsBuffer = false;
+    return {
+      data: applyBufferLayout(buffer, location, dtype),
+      allocatedBuffers: [buffer],
+    };
+  } catch (error) {
+    if (isReleasableBuffer(resultBuffer)) {
+      releaseBuffer(resultBuffer);
+    }
+    throw error;
+  } finally {
+    releaseOwnedGpuBuffer(buffer, ownsBuffer);
+  }
+}
+
+export async function loadW4A16Dequant(shardData, location, name, config) {
+  if (!config) {
+    throw new Error('Tensor load config is required.');
+  }
+  if (isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `W4A16 tensor "${name}" requires CPU-side storage companion materialization before GPU upload.`
+    );
+  }
+  const f16Bytes = dequantizeW4A16ToF16(shardData, location, name);
+  const device = getDevice();
+  const buffer = acquireAlignedBuffer(f16Bytes.byteLength, `w4a16_dequant_${name}`);
+  try {
+    writeBufferAligned(device, buffer, f16Bytes);
+    const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+      layout: location.layout ?? null,
+      useColumnWise: false,
+    });
+    if (shouldDequantizeToF16(location)) {
+      return {
+        data: createWeightBuffer(buffer, 'f16', layout, location.shape, name),
+        allocatedBuffers: [buffer],
+      };
+    }
+    return {
+      data: applyBufferLayout(buffer, location, 'f16'),
+      allocatedBuffers: [buffer],
+    };
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
+  }
+}
+
+// ============================================================================
+// Main GPU Loading Entry Point
+// ============================================================================
+
+
+const GPU_LOADER_DISPATCH = {
+  litert_int4_fused: (shardData, location, name, config) => {
+    debugTrace.loader(`Loading LiteRT INT4 weight (fused): ${name} (size=${location.size})`);
+    return loadLiteRTInt4Fused(shardData, location, name, config);
+  },
+  w4a16_fused: (shardData, location, name, config) => {
+    debugTrace.loader(`Loading W4A16 weight (fused): ${name} (size=${location.size})`);
+    return loadW4A16Fused(shardData, location, name, config);
+  },
+  q4k_mixed: (shardData, location, name, config) => loadQ4KMixed(shardData, location, name, config),
+  q4k_fused: (shardData, location, name, _config) => {
+    debugTrace.loader(`Loading Q4K weight (fused): ${name} (size=${location.size})`);
+    return loadQ4KFused(shardData, location, name);
+  },
+  q4k_dequant: (shardData, location, name, config) => {
+    if (config.useFusedQ4K && isPackedQ4K(location)) {
+      const [rows, cols] = location.shape;
+      debugTrace.loader(`Packed Q4K weight ${name} [${rows},${cols}] incompatible with fused matmul, using dequant`);
+    }
+    return loadQ4KDequant(shardData, location, name, config);
+  },
+  q4k_dequant_reference: (shardData, location, name, config) => loadQ4KDequant(
+    shardData,
+    location,
+    name,
+    {
+      ...config,
+      loaderDebug: {
+        ...(config?.loaderDebug ?? {}),
+        preferCpuDequant: true,
+      },
+    }
+  ),
+  q6k: (shardData, location, name, _config) => loadQ6K(shardData, location, name),
+  w4a16_dequant_reference: (shardData, location, name, config) => loadW4A16Dequant(shardData, location, name, config),
+  bf16: (shardData, location, name, config) => loadBF16(shardData, location, name, config),
+  float: (shardData, location, name, config) => loadFloat(shardData, location, name, config),
+  unsupported_packed_quantization: (_shardData, location, name, _config) => {
+    throw new Error(
+      `Unsupported packed quantization dtype "${location.dtype}" for tensor "${name}". ` +
+      'Add a native loader and kernel path before enabling runtime execution.'
+    );
+  },
+};
+
+export async function loadTensorToGPU(shardData, location, name, config) {
+  const dtype = location.dtype;
+  const useFusedQ4K = shouldUseFusedQ4K(location, config);
+  const requiresFusedQ4KRole = Array.isArray(config?.q4kFusedRoles)
+    && config.q4kFusedRoles.includes(location.role);
+  const caps = config?.gpuCapabilities || getKernelCapabilities();
+  const platformId = getPlatformConfig()?.platform?.id ?? null;
+  const q4kReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
+  const q4kBasicBackendClass = platformId === 'basic'
+    || (caps?.hasSubgroups !== true && caps?.hasF16 !== true);
+  const q4kLimitFallback = resolveQ4KLimitFallback(location, config);
+  const litertAffineInt4FusedEligible = isLiteRTAffineInt4FusedEligible(location, { ...config, gpuCapabilities: caps });
+  const w4a16FusedEligible = isW4A16FusedEligible(location, { ...config, gpuCapabilities: caps });
+  const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
+    dtype,
+    role: location.role ?? null,
+    litertAffineInt4FusedEligible,
+    w4a16FusedEligible,
+    useFusedQ4K,
+    requiresFusedQ4KRole,
+    q4kMaterializationMode: config.q4kMaterializationMode ?? 'dense',
+    q4kCpuReferenceEligible: q4kReferenceContext.eligible,
+    q4kBasicBackendClass,
+    q4kDenseExceedsBindingLimit: q4kLimitFallback.denseExceedsBindingLimit,
+    q4kLimitFallbackEligible: q4kLimitFallback.limitFallbackEligible,
+  });
+  const loader = GPU_LOADER_DISPATCH[loaderPath];
+  if (!loader) {
+    throw new Error(`Unknown GPU loader path: "${loaderPath}" for dtype "${dtype}"`);
+  }
+  if (loaderPath === 'q4k_fused' && q4kLimitFallback.limitFallbackEligible) {
+    logQ4KLimitFallbackOnce(name, q4kLimitFallback);
+  }
+  return loader(shardData, location, name, config);
+}
+
+
+const CPU_LOADER_DISPATCH = {
+  raw: (shardData, _location) => shardData,
+  w4a16_dequant_reference: (shardData, location) => {
+    const f16Bytes = dequantizeW4A16ToF16(shardData, location, 'cpu');
+    return convertF16ToF32CPU(toUint16View(f16Bytes, 'W4A16 CPU dequantized tensor load'));
+  },
+  unsupported_packed_quantization: (_shardData, location) => {
+    throw new Error(
+      `Unsupported packed quantization dtype "${location.dtype}" for CPU tensor load. ` +
+      'Add a native loader before enabling runtime execution.'
+    );
+  },
+  bf16_to_f32: (shardData, _location) => convertBF16ToF32CPU(
+    toUint16View(shardData, 'BF16 CPU tensor load')
+  ),
+  f16_to_f32: (shardData, _location) => convertF16ToF32CPU(
+    toUint16View(shardData, 'F16 CPU tensor load')
+  ),
+  f32: (shardData, _location) => toFloat32View(shardData, 'F32 CPU tensor load'),
+};
+
+export function loadTensorToCPU(shardData, location) {
+  const dtype = location.dtype;
+  const loaderPath = selectRuleValue('loader', 'tensorLoader', 'cpuLoaderPath', { dtype });
+  const loader = CPU_LOADER_DISPATCH[loaderPath];
+  if (!loader) {
+    throw new Error(`Unknown CPU loader path: "${loaderPath}" for dtype "${dtype}"`);
+  }
+  return loader(shardData, location);
+}

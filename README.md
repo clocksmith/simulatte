@@ -39,6 +39,8 @@ parameters before the canvas runs.
   catalog, and local semantic scoring helpers.
 - `public/js/simulatte-physics-model.js`: intent resolution, specs, simulation
   state, integrators, readouts, and energy accounting.
+- `public/js/simulatte-intent-embedder.js`: EmbeddingGemma-backed primitive
+  retrieval over the pinned local Doppler model and precomputed primitive index.
 - `public/js/simulatte-physics-renderer.js`: browser controls, canvas drawing,
   continuous animation, and WebGPU particle-field sync.
 - `public/js/simulatte-physics-lab.js`: small public API coordinator.
@@ -59,25 +61,51 @@ These are seeds, not product boundaries. Prompt-built worlds use the
 
 ## Layered Builder
 
-The prompt resolver expands worlds through six reusable layers:
+Simulatte uses a strict adjacent layer stack. Each layer can only build from
+the layer immediately below it:
 
-- Math primitives: fields, particles, bodies, constraints, queues, and ledgers.
-- Physics operators: gravity, collisions, fluids, heat, radiation, optics,
-  magnetism, reactions, erosion, and growth.
-- Materials: water, air, steam, smoke, plasma, ice, oil, sand, soil, clay,
-  rock, metal, magnetized metal, glass, wood, rubber, fabric, concrete,
-  plastic, fuel, and biomass.
-- Components: lamps, flames, rivers, clouds, pipes, pumps, fans, motors,
-  generators, lenses, mirrors, prisms, magnets, gears, sensors, and controllers.
-- Compositions: forest fires, river erosion, engines, tunnels, optics benches,
-  reactors, greenhouses, weather cells, supply chains, traffic, markets, and
-  power grids.
-- Scenes: lab benches, solar fields, watersheds, factories, cities, forests,
-  storms, reactor rooms, warehouses, transit maps, marketplaces, and colonies.
+1. Math primitives: scalars, vectors, tensors, fields, grids, meshes, particle
+  sets, graphs, curves, boundaries, distance fields, distributions, units,
+  transforms, state machines, event queues, kernels, differential operators,
+  interpolation, sampling, constraints, queues, and ledgers.
+2. Physics operators: gravity, contact, impulses, joints, fluids, turbulence,
+  surface tension, heat, radiation, optics, charge transport, ionization,
+  magnetism, bonding, fracture, crystallization, reactions, erosion, growth,
+  osmosis, acoustics, waves, and orbital dynamics.
+3. Materials: water, air, steam, smoke, plasma, ice, oil, sand, soil, clay,
+  rock, metals and alloys, glass, quartz, minerals, ceramics, wood, rubber,
+  fabrics, polymers, fuels, gases, acids, bases, salts, sugars, DNA, RNA,
+  lipids, enzymes, biomass, membranes, and cells.
+4. Components: lamps, flames, rivers, clouds, pipes, pumps, fans, motors,
+  generators, lenses, mirrors, prisms, magnets, gears, sensors, controllers,
+  atomic samples, molecular chains, crystal slabs, electrolyte cells, gases,
+  droplets, powder beds, polymer sheets, membranes, cells, soils, beams, panes,
+  tiles, and adhesive joints.
+5. Compositions: forest fires, river erosion, engines, tunnels, optics benches,
+  reactors, greenhouses, weather cells, supply chains, traffic, markets, power
+  grids, materials labs, molecular benches, electrolysis demos, crystal growth,
+  polymer lines, soil hydrology, and aerosol chambers.
+6. Scenes: lab benches, solar fields, watersheds, factories, cities, forests,
+  storms, reactor rooms, warehouses, transit maps, marketplaces, colonies,
+  materials studios, molecular studios, wet labs, geology tables, and atmosphere
+  chambers.
 
-Higher layers are recipes over lower layers. A prompt for a forest fire,
-optics bench, or city grid materializes the scene, composition, components,
-materials, physics operators, and math primitives into one 2D simulation spec.
+Layer 1 stays neutral: it describes numeric containers and operators, not
+physical meanings. Temperature is a physics-layer scalar field; velocity is a
+physics-layer vector field; pressure is a physics-layer scalar field; erosion
+uses a height field plus flow; queues use graph and buffer primitives.
+
+Higher layers are recipes over only the adjacent lower layer: scenes reference
+compositions, compositions reference components, components reference
+materials, materials reference physics, and physics references math. A prompt
+for a forest fire, optics bench, or city grid materializes that ladder into one
+simulation spec by recursive expansion.
+
+Natural language and ML do not live inside the stack. They are a compiler
+input plane above it: prompt text, embeddings, semantic retrieval, and local
+model hints choose target layers, rank primitives, fill slots, and propose
+physical graph deltas. The committed world still has to compile through the
+adjacent layer rules.
 
 Layer recipes now compile into contracts, not only dependency lists:
 
@@ -166,6 +194,10 @@ prompt -> intent -> components -> 2d simulation spec -> continuous render -> exp
 npm test
 npm run serve
 ```
+
+`npm run serve` serves `public/` and mounts the sibling Doppler repo at
+same-origin `/doppler/`, matching the model path used by the intent manifest:
+`/doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32`.
 
 ## Deployment
 

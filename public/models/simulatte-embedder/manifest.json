@@ -1,0 +1,94 @@
+{
+  "schema": "simulatte.modelBackedEmbedderManifest.v2",
+  "id": "simulatte-embeddinggemma-primitive-retrieval-v1",
+  "runtimeOrder": ["doppler-browser-load", "injected-doppler-model"],
+  "retrieval": {
+    "kind": "precomputed-primitive-index",
+    "artifact": "./primitive-index-v2.json",
+    "documentSchema": "simulatte.primitiveEmbeddingIndex.v2",
+    "dimensions": 768,
+    "rerank": "mandatory",
+    "description": "EmbeddingGemma primitive index for model-backed physical intent retrieval.",
+    "cards": {
+      "kind": "precomputed-surface-card-index",
+      "artifact": "./surface-card-index-v1.json",
+      "documentSchema": "simulatte.surfaceCardEmbeddingIndex.v1",
+      "dimensions": 768,
+      "rerank": "mandatory",
+      "description": "EmbeddingGemma surface-card index for model-backed typed graph synthesis."
+    }
+  },
+  "embedModel": {
+    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "family": "embeddinggemma",
+    "modelType": "embedding",
+    "dimensions": 768,
+    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95f0b29ec73dea70394c6bcfa8407bc6796df6c9/models/google-embeddinggemma-300m-q4k-ehf16-af32",
+    "source": {
+      "kind": "huggingface-rdrr",
+      "repoId": "Clocksmith/rdrr",
+      "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
+      "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32",
+      "sizeBytes": 480563695
+    },
+    "manifestHash": {
+      "alg": "sha256",
+      "hex": "9ac0f54f10fdeddfd67ea07661342713267d60ec57361e6e9d9d72e727407cd2"
+    }
+  },
+  "runtime": {
+    "moduleUrl": "./vendor/doppler/src/index-browser.js",
+    "queryEmbeddingMode": "mean",
+    "requireModelBackedQuery": true,
+    "runtimeConfig": {
+      "inference": {
+        "session": {
+          "compute": {
+            "defaults": {
+              "activationDtype": "f32",
+              "mathDtype": "f32",
+              "accumDtype": "f32",
+              "outputDtype": "f32"
+            }
+          },
+          "kvcache": {
+            "maxSeqLen": 2048,
+            "gpuPagedFallbackMaxSeqLen": 2048,
+            "kvDtype": "f32",
+            "forceF32Softcap": false,
+            "layout": "contiguous",
+            "pageSize": 256,
+            "bdpaVocabSize": 2048,
+            "windowSize": 1024,
+            "tiering": {
+              "mode": "off",
+              "hotWindow": 1024,
+              "coldPageSize": 256,
+              "coldDtype": "f32",
+              "compression": {
+                "mode": "none",
+                "blockSize": 1
+              },
+              "gating": {
+                "mode": "auto",
+                "minAluBwRatio": 0
+              }
+            },
+            "quantization": {
+              "mode": "none",
+              "bitWidth": 4,
+              "prodMode": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "cache": {
+    "storage": ["CacheStorage", "ServiceWorker"],
+    "namespace": "simulatte-embeddinggemma-primitive-retrieval-v1",
+    "worker": "./simulatte-model-cache-sw.js",
+    "prefetch": true,
+    "requirePersistent": true
+  }
+}

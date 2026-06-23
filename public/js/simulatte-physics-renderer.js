@@ -50,11 +50,19 @@
       value: root.getElementById(`readout-${index + 1}`),
     }));
     const stateReadout = root.getElementById('lab-state');
+    const runtimeStatus = intentRuntimeElements(root);
+    attachIntentRuntimeMosaic(runtimeStatus);
+    const embedder = root.defaultView && root.defaultView.SimulatteIntentEmbedder
+      ? root.defaultView.SimulatteIntentEmbedder.create({
+        catalog: model,
+        onProgress: (event) => syncIntentRuntime(runtimeStatus, event),
+      })
+      : null;
     const initialPrompt = promptInput ? promptInput.value : EXAMPLE_INTENTS[0].prompt;
     const initialParams = promptInput
       ? readPromptParams(promptInput, EXAMPLE_INTENTS[0].params)
       : EXAMPLE_INTENTS[0].params;
-    let spec = createSpecFromPrompt(initialPrompt, { params: initialParams });
+    let spec = createSpecFromPrompt('blank world', { params: initialParams });
     let state = createSimulationState(spec);
     const field = root.defaultView && root.defaultView.SimulatteParticleField && fieldCanvas
       ? root.defaultView.SimulatteParticleField.create(fieldCanvas, { count: 420 })
@@ -62,6 +70,7 @@
     let last = performance.now();
     let paused = false;
     let lastPreviewSync = 0;
+    let buildSerial = 0;
 
     const setSpec = (nextSpec) => {
       spec = normalizeSpec(nextSpec);
@@ -79,7 +88,18 @@
     const buildFromPrompt = (paramsOverride = null) => {
       const prompt = promptInput ? promptInput.value : '';
       const params = paramsOverride || readPromptParams(promptInput, {});
-      setSpec(createSpecFromPrompt(prompt, { params }));
+      const serial = buildSerial + 1;
+      buildSerial = serial;
+      if (!String(prompt || '').trim() || /\b(blank|empty|scratch)\b/i.test(prompt)) {
+        syncIntentRuntime(runtimeStatus, {
+          stage: 'blank',
+          percent: 100,
+          message: 'Blank construction plane',
+        });
+        setSpec(createSpecFromPrompt(prompt, { params }));
+        return;
+      }
+      resolveWithEmbedding(prompt, params, serial);
     };
 
     exampleButtons.forEach((button) => {
@@ -122,6 +142,65 @@
       }
     });
 
+    async function resolveWithEmbedding(prompt, params, serial) {
+      if (!String(prompt || '').trim()) return;
+      if (!embedder) {
+        if (stateReadout) stateReadout.textContent = 'intent model error: model-backed intent runtime unavailable';
+        syncIntentRuntime(runtimeStatus, {
+          state: 'error',
+          stage: 'unavailable',
+          percent: 0,
+          message: 'Intent runtime unavailable',
+        });
+        return;
+      }
+      if (stateReadout) stateReadout.textContent = 'loading model-backed intent retrieval';
+      syncIntentRuntime(runtimeStatus, {
+        state: 'active',
+        stage: 'start',
+        percent: 1,
+        message: 'Starting intent model',
+      });
+      try {
+        const result = await embedder.rankPrompt(prompt, model.PHYSICAL_PRIMITIVES, {
+          max: 36,
+          onProgress: (event) => syncIntentRuntime(runtimeStatus, event),
+        });
+        if (serial !== buildSerial) return;
+        setSpec(createSpecFromPrompt(prompt, {
+          params,
+          embeddingPriors: result.priors,
+          embeddingModel: result.model,
+          embeddingBackend: result.backend,
+          intentRerank: result.rerank,
+          semanticRag: result.semanticRag,
+          dopplerIntent: result.dopplerIntent,
+          cardMatches: result.cardMatches,
+        }));
+        syncIntentRuntime(runtimeStatus, {
+          state: 'ready',
+          stage: 'ready',
+          percent: 100,
+          message: 'Intent graph ready',
+          backend: result.backend,
+        });
+      } catch (err) {
+        if (serial === buildSerial && stateReadout) {
+          const diagnostic = err && err.message ? err.message : String(err || 'intent model failed');
+          const message = compactIntentRuntimeMessage(diagnostic);
+          console.error('[simulatte.intent] model-backed intent failed', err);
+          stateReadout.textContent = `intent model error: ${message}`;
+          syncIntentRuntime(runtimeStatus, {
+            state: 'error',
+            stage: 'error',
+            percent: 0,
+            message,
+            detail: diagnostic,
+          });
+        }
+      }
+    }
+
     function tick(now) {
       const dt = clamp((now - last) / 1000 || 0.016, 0.001, 0.05);
       last = now;
@@ -159,8 +238,152 @@
     }
 
     setSpec(spec);
+    buildSerial += 1;
+    resolveWithEmbedding(initialPrompt, initialParams, buildSerial);
     requestAnimationFrame(tick);
     return { getSpec: () => spec, getState: () => state, setSpec };
+  }
+
+  function intentRuntimeElements(root) {
+    return {
+      node: root.getElementById('intent-runtime'),
+      title: root.getElementById('intent-runtime-title'),
+      percent: root.getElementById('intent-runtime-percent'),
+      fill: root.getElementById('intent-runtime-fill'),
+      message: root.getElementById('intent-runtime-message'),
+      stage: root.getElementById('intent-runtime-stage'),
+      mosaic: root.getElementById('intent-runtime-mosaic'),
+    };
+  }
+
+  function syncIntentRuntime(elements, event = {}) {
+    if (!elements || !elements.node) return;
+    const percent = Math.max(0, Math.min(100, Number(event.percent || 0)));
+    const stage = String(event.stage || event.phase || 'intent');
+    const state = event.state || (stage === 'error' ? 'error' : percent >= 100 ? 'ready' : 'active');
+    const loading = state === 'active';
+    const runButton = elements.node.closest('.physics-panel')?.querySelector('#build-lab');
+    const rawMessage = event.detail || event.message || stage;
+    const message = compactIntentRuntimeMessage(event.message || stage);
+    elements.node.dataset.state = state;
+    elements.node.dataset.detail = String(rawMessage || '');
+    elements.node.title = String(rawMessage || message || '');
+    if (elements.mosaicController) {
+      if (loading) elements.mosaicController.start();
+      else elements.mosaicController.stop();
+    }
+    if (runButton) {
+      runButton.classList.toggle('is-loading', loading);
+      runButton.setAttribute('aria-busy', loading ? 'true' : 'false');
+    }
+    if (elements.title) elements.title.textContent = event.title || 'Intent model';
+    if (elements.percent) elements.percent.textContent = `${Math.round(percent)}%`;
+    if (elements.fill) elements.fill.style.width = `${percent}%`;
+    if (elements.message) elements.message.textContent = message;
+    if (elements.stage) elements.stage.textContent = stage.replace(/-/g, ' ');
+  }
+
+  function compactIntentRuntimeMessage(message) {
+    const text = String(message || '').trim();
+    if (!text) return 'Intent model busy';
+    if (/attention_small\.wgsl|activationDtype|kvDtype|kvcache/i.test(text)) {
+      return 'Runtime dtype mismatch';
+    }
+    if (/cache worker.*controlling|reload and retry/i.test(text)) return 'Reload to finish model cache';
+    if (/CacheStorage|Service Worker/i.test(text)) return 'Model cache unavailable';
+    if (/model fetch failed|fetch failed|failed to fetch/i.test(text)) return 'Model download failed';
+    if (/Doppler module import|no loader found/i.test(text)) return 'Doppler runtime unavailable';
+    if (/^Caching shard_/i.test(text)) return 'Caching model weights';
+    if (/^Cached shard_/i.test(text)) return 'Model weights cached';
+    if (text.length <= 72) return text;
+    return `${text.slice(0, 69).trim()}...`;
+  }
+
+  function attachIntentRuntimeMosaic(elements) {
+    if (!elements || !elements.mosaic) return;
+    elements.mosaicController = createRuntimeMosaicController(elements.mosaic);
+  }
+
+  function createRuntimeMosaicController(canvas) {
+    const palette = [
+      [255, 141, 178],
+      [255, 205, 133],
+      [105, 216, 187],
+      [117, 190, 255],
+      [178, 151, 255],
+    ];
+    let raf = 0;
+    let running = false;
+    let tiles = [];
+    let cols = 0;
+    let rows = 0;
+    let width = 0;
+    let height = 0;
+    let tile = 12;
+    let ctx = null;
+
+    const setup = () => {
+      const rect = canvas.getBoundingClientRect();
+      width = Math.max(1, rect.width);
+      height = Math.max(1, rect.height);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx = canvas.getContext('2d');
+      if (!ctx) return false;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      tile = Math.max(10, Math.min(16, Math.round(height / 4)));
+      cols = Math.ceil(width / tile) + 1;
+      rows = Math.ceil(height / tile) + 1;
+      tiles = Array.from({ length: cols * rows }, (_, index) => ({
+        phase: hashNoise(index + 19, 3) * TAU,
+        speed: 0.55 + hashNoise(index + 23, 5) * 0.9,
+        peak: 0.08 + hashNoise(index + 29, 7) * 0.22,
+        color: palette[index % palette.length],
+      }));
+      return true;
+    };
+
+    const draw = (ts) => {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
+      const time = ts * 0.001;
+      for (let index = 0; index < tiles.length; index += 1) {
+        const item = tiles[index];
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const pulse = Math.max(0, Math.sin(time * item.speed + item.phase));
+        const alpha = 0.018 + item.peak * pulse * pulse;
+        const [r, g, b] = item.color;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        ctx.fillRect(col * tile, row * tile, tile, tile);
+      }
+    };
+
+    const frame = (ts) => {
+      if (!running) return;
+      draw(ts);
+      raf = requestAnimationFrame(frame);
+    };
+
+    return {
+      start() {
+        if (running) return;
+        if (!setup()) return;
+        running = true;
+        raf = requestAnimationFrame(frame);
+      },
+      stop() {
+        running = false;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        window.setTimeout(() => {
+          if (!running && ctx) ctx.clearRect(0, 0, width, height);
+        }, 360);
+      },
+    };
   }
 
   function renderControls(controlStack, spec) {
@@ -383,16 +606,17 @@
         objects: spec.renderProgram.objects.length,
         relations: spec.renderProgram.relations.length,
         fields: spec.renderProgram.fields.map((field) => field.kind),
+        solver: spec.renderProgram.solverPlan ? spec.renderProgram.solverPlan.families : [],
+        visualRegimes: spec.renderProgram.provenance.visualRegimes || [],
         signature: spec.renderProgram.provenance.signature,
       } : null,
-      worldPlan: spec.worldPlan ? {
-        schema: spec.worldPlan.schema,
-        kind: spec.worldPlan.kind,
-        objects: spec.worldPlan.objects.length,
-        relations: spec.worldPlan.relations.length,
-        fields: spec.worldPlan.fields.map((field) => field.kind),
-        stages: spec.worldPlan.stageTrace.map((stage) => stage.name),
-        fidelity: spec.worldPlan.fidelity,
+      physicalSpec: spec.physicalSpec ? {
+        schema: spec.physicalSpec.schema,
+        sourceGraph: spec.physicalSpec.sourceGraph,
+        stateTextures: spec.physicalSpec.stateTextures,
+        renderPasses: spec.physicalSpec.renderPasses,
+        quality: spec.physicalSpec.quality,
+        receipt: spec.physicalSpec.receipt,
       } : null,
       params: Object.fromEntries(Object.entries(spec.params).slice(0, 8)),
       remixOf: spec.remixOf || null,
@@ -644,37 +868,6 @@
         );
         return;
       }
-      if (spec.worldPlan) {
-        const planObjects = (spec.worldPlan.objects || []).slice(0, 18);
-        const markers = planObjects.map((object) => {
-          const point = planObjectCenter(spec.worldPlan, object.id, width, height);
-          return {
-            object: {
-              id: object.id,
-              kind: planParticleAttractorKind(object),
-              material: object.material,
-              role: object.role,
-              shape: object.shape,
-              active: true,
-            },
-            screen: point || { x: width * 0.5, y: height * 0.5 },
-          };
-        });
-        field.sync(
-          {
-            scenario: { id: spec.id, seed: spec.worldPlan.kind.length * 47 + planObjects.length },
-            tick: state.t,
-            metrics: {
-              load: clamp((state.field + state.heat + state.motion) * 38, 0, 100),
-              coverage: clamp(state.matter * 84 + planObjects.length * 2, 0, 100),
-              trust: clamp(spec.worldPlan.fidelity.score || 90, 0, 100),
-              stability: clamp(state.stability * 88 - state.heat * 6, 0, 100),
-            },
-          },
-          markers
-        );
-        return;
-      }
       const objects = (spec.objects || []).slice(0, 12);
       const layout = spec.contract ? spec.contract.layout : null;
       const markers = objects.map((object, index) => {
@@ -808,10 +1001,6 @@
       drawWorldPlanScene(ctx, width, height, state, spec.renderProgram);
       return;
     }
-    if (spec.worldPlan) {
-      drawWorldPlanScene(ctx, width, height, state, spec.worldPlan);
-      return;
-    }
     drawFreeformContinuumWorld(ctx, width, height, state, spec);
   }
 
@@ -866,12 +1055,830 @@
   }
 
   function drawWorldPlanScene(ctx, width, height, state, plan) {
+    const sceneKind = sceneKindForPlan(plan);
+    if (sceneKind === 'fire') return paintFireWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'optics') return paintOpticsWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'city') return paintCityWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'watershed') return paintWatershedWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'magnetic-machine') return paintMagneticMachineWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'material-tray') return paintMaterialTrayWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'biology') return paintBiologyWorld(ctx, width, height, state, plan);
+    return paintGenericWorld(ctx, width, height, state, plan);
+  }
+
+  function sceneKindForPlan(plan) {
+    const planned = plan.rendererPlan && plan.rendererPlan.sceneKind ||
+      plan.provenance && plan.provenance.sceneKind ||
+      plan.camera && plan.camera.sceneKind ||
+      '';
+    if (planned) return planned;
+    const signature = String(plan.provenance && plan.provenance.signature || '').toLowerCase();
+    if (/flame|fuel|plume/.test(signature)) return 'fire';
+    if (/lens|prism/.test(signature)) return 'optics';
+    if (/queue|network/.test(signature)) return 'city';
+    if (/heightfield|flow-path|grain-bed/.test(signature)) return 'watershed';
+    if (/wheel|magnet|slider/.test(signature)) return 'magnetic-machine';
+    if (/sample|bar|pool|grain-bed/.test(signature)) return 'material-tray';
+    if (/colony|membrane/.test(signature)) return 'biology';
+    return 'generic';
+  }
+
+  function paintGenericWorld(ctx, width, height, state, plan) {
     drawPlanBackdrop(ctx, width, height, plan);
     drawPlanFields(ctx, width, height, state, plan);
     drawMaterialContinuumField(ctx, width, height, state, plan);
     drawPlanRelations(ctx, width, height, state, plan);
     drawPlanObjects(ctx, width, height, state, plan);
     drawPlanEmitters(ctx, width, height, state, plan);
+  }
+
+  function paintFireWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fff8f2', '#f9fbf7');
+    drawHeatHaze(ctx, width, height, state, 0.54);
+    drawFuelTerrain(ctx, width, height, state, plan);
+    drawFireMoistureChannels(ctx, width, height, state, plan);
+    drawFireFront(ctx, width, height, state, plan);
+    drawSmokeColumn(ctx, width, height, state, plan);
+    drawPlanEmitters(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.36);
+  }
+
+  function paintOpticsWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fbfdff', '#f6fbff');
+    drawOpticalBenchRail(ctx, width, height, state);
+    drawSpectralBeamTrace(ctx, width, height, state, plan);
+    drawOpticalSurfaces(ctx, width, height, state, plan);
+    drawOpticalCaustics(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.28);
+  }
+
+  function paintCityWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fbfdfb', '#f7fbfc');
+    drawCityRouteGrid(ctx, width, height, state);
+    drawNetworkField(ctx, width, height, state, plan);
+    drawCityNodes(ctx, width, height, state, plan);
+    drawCityFlowPulses(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.24);
+  }
+
+  function paintWatershedWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fbfbf6', '#f4fbff');
+    drawWatershedTerrain(ctx, width, height, state);
+    drawWatershedRiver(ctx, width, height, state, plan);
+    drawSedimentFan(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.32);
+  }
+
+  function paintMagneticMachineWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fbfdff', '#f8fbfa');
+    drawMachineRotorField(ctx, width, height, state, plan);
+    drawMachineSolarInput(ctx, width, height, state, plan);
+    drawMachineBodies(ctx, width, height, state, plan);
+    drawMachineEnergyPath(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.12);
+  }
+
+  function paintMaterialTrayWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fffaf5', '#fbfcfa');
+    drawMaterialTrayBase(ctx, width, height, state);
+    drawMaterialSpecimens(ctx, width, height, state, plan);
+    drawMaterialInteractionField(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.16);
+  }
+
+  function paintBiologyWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fbfff8', '#fbf9ff');
+    drawNutrientField(ctx, width, height, state);
+    drawBiologicalBranches(ctx, width, height, state, plan);
+    drawMembranePools(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.3);
+  }
+
+  function paintSceneBackground(ctx, width, height, top, bottom) {
+    ctx.save();
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, top);
+    gradient.addColorStop(1, bottom);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  function drawPlanObjectsWithAlpha(ctx, width, height, state, plan, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    drawPlanObjects(ctx, width, height, state, plan);
+    ctx.restore();
+  }
+
+  function drawHeatHaze(ctx, width, height, state, centerY) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let band = 0; band < 18; band += 1) {
+      const y = height * (centerY - 0.26 + band * 0.024);
+      const hue = 18 + band * 3;
+      ctx.strokeStyle = `hsla(${hue}, 92%, 58%, ${0.035 + band * 0.001})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let x = width * 0.1; x <= width * 0.9; x += 24) {
+        const yy = y + Math.sin(x * 0.018 + state.t * 0.9 + band) * 7;
+        if (x === width * 0.1) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawFuelTerrain(ctx, width, height, state, plan) {
+    ctx.save();
+    const baseY = height * 0.72;
+    const gradient = ctx.createLinearGradient(0, baseY - height * 0.12, 0, height);
+    gradient.addColorStop(0, 'rgba(130, 98, 50, 0.09)');
+    gradient.addColorStop(0.55, 'rgba(86, 74, 44, 0.16)');
+    gradient.addColorStop(1, 'rgba(42, 38, 30, 0.2)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.05, baseY);
+    for (let i = 0; i <= 28; i += 1) {
+      const x = width * (0.05 + i * 0.032);
+      const y = baseY + Math.sin(i * 0.64 + state.t * 0.08) * 9 + hashNoise(23, i) * 12;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(width * 0.96, height * 0.92);
+    ctx.lineTo(width * 0.04, height * 0.92);
+    ctx.closePath();
+    ctx.fill();
+    for (let layer = 0; layer < 7; layer += 1) {
+      ctx.strokeStyle = `rgba(88, 65, 36, ${0.08 + layer * 0.012})`;
+      ctx.beginPath();
+      for (let i = 0; i <= 22; i += 1) {
+        const x = width * (0.08 + i * 0.038);
+        const y = baseY + layer * 12 + Math.sin(i * 0.7 + layer) * 4;
+        if (!i) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    const rocks = objectsMatching(plan, /rock|wall|soil|sand|wood|fuel|biomass/).slice(0, 16);
+    rocks.forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      drawGroundKernel(ctx, center.x, Math.max(center.y, baseY - 20), index, state);
+    });
+    ctx.restore();
+  }
+
+  function drawGroundKernel(ctx, x, y, index, state) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate((hashNoise(41, index) - 0.5) * 0.8);
+    ctx.fillStyle = `rgba(${95 + index * 4}, ${72 + index * 2}, 46, 0.16)`;
+    ctx.beginPath();
+    ctx.ellipse(0, Math.sin(state.t * 0.08 + index), 18 + hashNoise(43, index) * 24, 7 + hashNoise(47, index) * 12, 0, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFireMoistureChannels(ctx, width, height, state, plan) {
+    const water = objectsMatching(plan, /water|moisture|river|flow/);
+    if (!water.length) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let band = 0; band < 5; band += 1) {
+      ctx.strokeStyle = `hsla(${190 + band * 7}, 80%, 56%, ${0.12 - band * 0.012})`;
+      ctx.lineWidth = 1.6 + band * 0.8;
+      ctx.beginPath();
+      for (let i = 0; i <= 18; i += 1) {
+        const x = width * (0.16 + i * 0.038);
+        const y = height * (0.75 + Math.sin(i * 0.7 + state.t * 0.5 + band) * 0.018);
+        if (!i) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawFireFront(ctx, width, height, state, plan) {
+    const flame = firstObjectMatching(plan, /flame|fire|combust/);
+    const center = flame ? objectCenter(flame, width, height) : { x: width * 0.48, y: height * 0.62 };
+    ctx.save();
+    for (let column = 0; column < 42; column += 1) {
+      const lane = column / 41;
+      const x = width * (0.22 + lane * 0.48);
+      const base = center.y + Math.sin(column * 0.43) * height * 0.025;
+      const heightScale = 0.42 + hashNoise(53, column) * 0.58;
+      const hue = 16 + hashNoise(59, column) * 36;
+      ctx.strokeStyle = `hsla(${hue}, 96%, ${42 + heightScale * 14}%, ${0.28 + heightScale * 0.22})`;
+      ctx.lineWidth = 1.8 + heightScale * 3.4;
+      ctx.beginPath();
+      ctx.moveTo(x, base);
+      ctx.bezierCurveTo(
+        x + Math.sin(state.t * 1.2 + column) * 16,
+        base - height * 0.08,
+        x + Math.cos(state.t * 1.5 + column) * 24,
+        base - height * 0.18 * heightScale,
+        x + Math.sin(state.t * 1.8 + column) * 10,
+        base - height * 0.28 * heightScale
+      );
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    for (let glow = 0; glow < 5; glow += 1) {
+      const r = Math.min(width, height) * (0.08 + glow * 0.05);
+      const gradient = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, r);
+      gradient.addColorStop(0, `rgba(255, 116, 46, ${0.12 - glow * 0.014})`);
+      gradient.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawSmokeColumn(ctx, width, height, state, plan) {
+    const plume = firstObjectMatching(plan, /smoke|plume/);
+    const center = plume ? objectCenter(plume, width, height) : { x: width * 0.52, y: height * 0.42 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 28; i += 1) {
+      const rise = ((state.t * 0.035 + i / 28) % 1);
+      const x = center.x + Math.sin(i * 0.8 + state.t * 0.24) * width * 0.09;
+      const y = center.y - rise * height * 0.44;
+      const r = (18 + rise * 54) * (0.5 + hashNoise(67, i));
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+      gradient.addColorStop(0, `rgba(116, 126, 130, ${0.055 * (1 - rise * 0.5)})`);
+      gradient.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawOpticalBenchRail(ctx, width, height, state) {
+    ctx.save();
+    const y = height * 0.58;
+    const rail = ctx.createLinearGradient(width * 0.12, y, width * 0.9, y);
+    rail.addColorStop(0, 'rgba(40, 74, 94, 0.03)');
+    rail.addColorStop(0.5, 'rgba(40, 74, 94, 0.14)');
+    rail.addColorStop(1, 'rgba(40, 74, 94, 0.03)');
+    ctx.strokeStyle = rail;
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.12, y);
+    ctx.lineTo(width * 0.9, y + Math.sin(state.t * 0.2) * 1.5);
+    ctx.stroke();
+    for (let i = 0; i < 12; i += 1) {
+      const x = width * (0.14 + i * 0.065);
+      ctx.strokeStyle = 'rgba(25, 62, 88, 0.09)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 18);
+      ctx.lineTo(x + 8, y + 18);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawSpectralBeamTrace(ctx, width, height, state, plan) {
+    const source = firstObjectMatching(plan, /sun|lamp|light-source|panel/) || (plan.objects || [])[0];
+    const lens = firstObjectMatching(plan, /lens|glass/);
+    const prism = firstObjectMatching(plan, /prism/);
+    const sensor = firstObjectMatching(plan, /sensor|meter|load/);
+    const a = source ? objectCenter(source, width, height) : { x: width * 0.16, y: height * 0.48 };
+    const b = lens ? objectCenter(lens, width, height) : { x: width * 0.4, y: height * 0.5 };
+    const c = prism ? objectCenter(prism, width, height) : { x: width * 0.58, y: height * 0.5 };
+    const d = sensor ? objectCenter(sensor, width, height) : { x: width * 0.84, y: height * 0.56 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 9; i += 1) {
+      const split = (i - 4) * 0.018;
+      const hue = 206 + i * 18;
+      ctx.strokeStyle = `hsla(${hue}, 96%, 58%, 0.28)`;
+      ctx.lineWidth = 1.2 + (i % 3) * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y + split * height * 0.18);
+      ctx.bezierCurveTo(
+        b.x - width * 0.04,
+        b.y + Math.sin(state.t + i) * 2,
+        b.x + width * 0.04,
+        b.y - split * height * 0.08,
+        c.x,
+        c.y + split * height * 0.18
+      );
+      ctx.bezierCurveTo(c.x + width * 0.08, c.y + split * height, d.x - width * 0.04, d.y + split * height * 0.6, d.x, d.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawOpticalSurfaces(ctx, width, height, state, plan) {
+    const optical = objectsMatching(plan, /lens|prism|mirror|glass|sensor/).slice(0, 8);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    optical.forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      const isPrism = /prism/.test(`${object.id} ${object.shape}`);
+      const isMirror = /mirror/.test(`${object.id} ${object.role}`);
+      const h = Math.min(width, height) * (isPrism ? 0.12 : 0.16);
+      const w = Math.min(width, height) * (isPrism ? 0.14 : 0.08);
+      ctx.save();
+      ctx.translate(center.x, center.y);
+      ctx.rotate((object.pose && object.pose.rotation || 0) + Math.sin(state.t * 0.12 + index) * 0.02);
+      const gradient = ctx.createLinearGradient(-w, -h, w, h);
+      gradient.addColorStop(0, 'rgba(255,255,255,0.02)');
+      gradient.addColorStop(0.5, isMirror ? 'rgba(130,160,170,0.22)' : 'rgba(88,190,240,0.16)');
+      gradient.addColorStop(1, 'rgba(255,255,255,0.01)');
+      ctx.fillStyle = gradient;
+      ctx.strokeStyle = isMirror ? 'rgba(80, 110, 120, 0.24)' : 'rgba(70, 168, 226, 0.24)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      if (isPrism) {
+        ctx.moveTo(0, -h * 0.7);
+        ctx.lineTo(w * 0.9, h * 0.62);
+        ctx.lineTo(-w * 0.9, h * 0.62);
+        ctx.closePath();
+      } else {
+        ctx.ellipse(0, 0, w * 0.68, h * 0.72, 0, 0, TAU);
+      }
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+
+  function drawOpticalCaustics(ctx, width, height, state, plan) {
+    const target = firstObjectMatching(plan, /sensor|meter|wall|screen/);
+    const center = target ? objectCenter(target, width, height) : { x: width * 0.78, y: height * 0.63 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let ring = 0; ring < 12; ring += 1) {
+      ctx.strokeStyle = `hsla(${198 + ring * 12}, 92%, 62%, ${0.09 - ring * 0.005})`;
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.ellipse(
+        center.x + Math.sin(state.t * 0.3 + ring) * 6,
+        center.y + Math.cos(state.t * 0.2 + ring) * 5,
+        width * (0.02 + ring * 0.008),
+        height * (0.012 + ring * 0.004),
+        ring * 0.18,
+        0,
+        TAU
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCityRouteGrid(ctx, width, height, state) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(42, 96, 94, 0.13)';
+    ctx.lineWidth = 2.2;
+    for (let col = 0; col < 5; col += 1) {
+      const x = width * (0.18 + col * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(x, height * 0.18);
+      ctx.lineTo(x + Math.sin(state.t * 0.12 + col) * 2, height * 0.82);
+      ctx.stroke();
+    }
+    for (let row = 0; row < 4; row += 1) {
+      const y = height * (0.24 + row * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(width * 0.12, y);
+      ctx.lineTo(width * 0.88, y + Math.cos(state.t * 0.1 + row) * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCityNodes(ctx, width, height, state, plan) {
+    const nodes = objectsMatching(plan, /queue|network|grid|traffic|power|market|ledger|sensor/).slice(0, 18);
+    ctx.save();
+    nodes.forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      const size = 9 + (index % 4) * 3;
+      const hue = /queue|market/.test(`${object.id} ${object.role}`) ? 34 : /power/.test(object.id) ? 58 : 184;
+      const pulse = (Math.sin(state.t * 1.1 + index) + 1) * 0.5;
+      ctx.fillStyle = `hsla(${hue}, 72%, 54%, ${0.14 + pulse * 0.08})`;
+      ctx.strokeStyle = `hsla(${hue + 24}, 70%, 38%, 0.28)`;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.rect(center.x - size, center.y - size * 0.6, size * 2, size * 1.2);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawCityFlowPulses(ctx, width, height, state, plan) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (const relation of plan.relations || []) {
+      const from = planObjectCenter(plan, relation.from, width, height);
+      const to = planObjectCenter(plan, relation.to, width, height);
+      if (!from || !to) continue;
+      for (let i = 0; i < 3; i += 1) {
+        const t = (state.t * 0.12 + i / 3 + hashNoise(relation.from.length, relation.to.length)) % 1;
+        const x = from.x + (to.x - from.x) * t;
+        const y = from.y + (to.y - from.y) * t;
+        drawPrismaticParticle(ctx, x, y, 1.6 + i * 0.3, 170 + i * 34, 0.08, t * TAU);
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawWatershedTerrain(ctx, width, height, state) {
+    ctx.save();
+    for (let band = 0; band < 18; band += 1) {
+      const y = height * (0.18 + band * 0.041);
+      const hue = 74 - band * 1.4;
+      ctx.strokeStyle = `hsla(${hue}, 36%, ${44 + band * 0.8}%, ${0.1 + band * 0.004})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 28; i += 1) {
+        const x = width * (0.08 + i * 0.031);
+        const yy = y + Math.sin(i * 0.65 + band * 0.7 + state.t * 0.06) * (7 + band * 0.6);
+        if (!i) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawWatershedRiver(ctx, width, height, state, plan) {
+    const flow = firstObjectMatching(plan, /river|erosion|water|flow/);
+    const base = flow && flow.pose && Array.isArray(flow.pose.points)
+      ? flow.pose.points.map((point) => ({ x: point[0] * width, y: point[1] * height }))
+      : [
+        { x: width * 0.18, y: height * 0.2 },
+        { x: width * 0.36, y: height * 0.42 },
+        { x: width * 0.52, y: height * 0.58 },
+        { x: width * 0.78, y: height * 0.82 },
+      ];
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let band = 0; band < 8; band += 1) {
+      ctx.strokeStyle = `hsla(${190 + band * 6}, 82%, 52%, ${0.13 - band * 0.008})`;
+      ctx.lineWidth = 4 + band * 2.2;
+      ctx.beginPath();
+      base.forEach((point, index) => {
+        const x = point.x + Math.sin(state.t * 0.3 + band + index) * (band + 1);
+        const y = point.y + Math.cos(state.t * 0.2 + band + index) * (band + 1);
+        if (!index) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawSedimentFan(ctx, width, height, state, plan) {
+    const sediment = objectsMatching(plan, /sand|soil|sediment|rock|terrain/).slice(0, 24);
+    ctx.save();
+    sediment.forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      const spread = 18 + hashNoise(101, index) * 46;
+      for (let grain = 0; grain < 8; grain += 1) {
+        const x = center.x + (hashNoise(index * 23, grain) - 0.5) * spread;
+        const y = center.y + (hashNoise(index * 29, grain) - 0.5) * spread * 0.6 + Math.sin(state.t * 0.16 + grain) * 0.8;
+        ctx.fillStyle = `rgba(126, 95, 48, ${0.08 + hashNoise(index * 31, grain) * 0.06})`;
+        ctx.beginPath();
+        ctx.arc(x, y, 0.8 + hashNoise(index * 37, grain) * 1.6, 0, TAU);
+        ctx.fill();
+      }
+    });
+    ctx.restore();
+  }
+
+  function drawMachineRotorField(ctx, width, height, state, plan) {
+    const rotor = firstObjectMatching(plan, /rotor|wheel|motor|magnetic-motor/);
+    const center = rotor ? objectCenter(rotor, width, height) : { x: width * 0.5, y: height * 0.5 };
+    const radius = Math.min(width, height) * 0.15;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let ring = 0; ring < 18; ring += 1) {
+      const r = radius * (0.34 + ring * 0.055);
+      ctx.strokeStyle = `hsla(${218 + ring * 5}, 84%, 48%, ${0.18 - ring * 0.006})`;
+      ctx.lineWidth = 1.15;
+      ctx.beginPath();
+      ctx.ellipse(center.x, center.y, r * 1.25, r * 0.66, state.t * 0.08 + ring * 0.16, 0, TAU);
+      ctx.stroke();
+    }
+    for (let spoke = 0; spoke < 16; spoke += 1) {
+      const a = state.t * 0.22 + spoke * TAU / 16;
+      ctx.strokeStyle = `hsla(${282 + spoke * 4}, 88%, 58%, 0.09)`;
+      ctx.beginPath();
+      ctx.moveTo(center.x + Math.cos(a) * radius * 0.22, center.y + Math.sin(a) * radius * 0.22);
+      ctx.lineTo(center.x + Math.cos(a) * radius * 0.92, center.y + Math.sin(a) * radius * 0.92);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawMachineSolarInput(ctx, width, height, state, plan) {
+    const panel = firstObjectMatching(plan, /solar|panel|sun|lamp/);
+    const target = firstObjectMatching(plan, /rotor|wheel/);
+    const a = panel ? objectCenter(panel, width, height) : { x: width * 0.18, y: height * 0.18 };
+    const b = target ? objectCenter(target, width, height) : { x: width * 0.5, y: height * 0.5 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 9; i += 1) {
+      const offset = (i - 4) * 0.018;
+      ctx.strokeStyle = `hsla(${42 + i * 5}, 92%, 48%, 0.28)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y + offset * height);
+      ctx.lineTo(b.x - width * 0.08, b.y + offset * height * 0.32 + Math.sin(state.t + i) * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawMachineBodies(ctx, width, height, state, plan) {
+    const rotor = firstObjectMatching(plan, /rotor|wheel/);
+    const slider = firstObjectMatching(plan, /slider|stator|magnet/);
+    const panel = firstObjectMatching(plan, /solar|panel|sun|lamp/);
+    const load = firstObjectMatching(plan, /load|ledger|meter|generator/);
+    const center = rotor ? objectCenter(rotor, width, height) : { x: width * 0.5, y: height * 0.5 };
+    const radius = Math.min(width, height) * 0.12;
+    ctx.save();
+    const rotorGlow = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, radius * 1.8);
+    rotorGlow.addColorStop(0, 'rgba(255,255,255,0.36)');
+    rotorGlow.addColorStop(0.42, 'rgba(78, 150, 224, 0.28)');
+    rotorGlow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = rotorGlow;
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, radius * 1.8, 0, TAU);
+    ctx.fill();
+    for (let i = 0; i < 14; i += 1) {
+      const a = state.t * 0.18 + i * TAU / 14;
+      ctx.strokeStyle = `hsla(${206 + i * 7}, 82%, 40%, 0.42)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(center.x + Math.cos(a) * radius * 0.34, center.y + Math.sin(a) * radius * 0.34);
+      ctx.lineTo(center.x + Math.cos(a) * radius * 0.96, center.y + Math.sin(a) * radius * 0.96);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(62, 98, 138, 0.48)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, radius, 0, TAU);
+    ctx.stroke();
+    if (slider) drawMachineCapsule(ctx, objectCenter(slider, width, height), 66, 22, 292, state.t * 0.08);
+    if (panel) drawMachinePanel(ctx, objectCenter(panel, width, height), state);
+    if (load) drawMachineCapsule(ctx, objectCenter(load, width, height), 70, 28, 44, -0.16);
+    ctx.restore();
+  }
+
+  function drawMachineCapsule(ctx, center, width, height, hue, rotation) {
+    ctx.save();
+    ctx.translate(center.x, center.y);
+    ctx.rotate(rotation);
+    const gradient = ctx.createLinearGradient(-width * 0.5, 0, width * 0.5, 0);
+    gradient.addColorStop(0, `hsla(${hue}, 76%, 52%, 0.12)`);
+    gradient.addColorStop(0.5, `hsla(${hue + 24}, 86%, 52%, 0.34)`);
+    gradient.addColorStop(1, `hsla(${hue + 52}, 76%, 52%, 0.12)`);
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = `hsla(${hue + 18}, 68%, 34%, 0.46)`;
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, width * 0.5, height * 0.5, 0, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawMachinePanel(ctx, center, state) {
+    ctx.save();
+    ctx.translate(center.x, center.y);
+    ctx.rotate(-0.22);
+    ctx.fillStyle = 'rgba(230, 186, 72, 0.28)';
+    ctx.strokeStyle = 'rgba(126, 105, 54, 0.46)';
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.rect(-38, -22, 76, 44);
+    ctx.fill();
+    ctx.stroke();
+    for (let i = 0; i < 5; i += 1) {
+      ctx.strokeStyle = `rgba(255, 232, 132, ${0.08 + i * 0.018})`;
+      ctx.beginPath();
+      ctx.moveTo(-32 + i * 16, -20);
+      ctx.lineTo(-38 + i * 16 + Math.sin(state.t * 0.2 + i) * 2, 22);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawMachineEnergyPath(ctx, width, height, state, plan) {
+    const rotor = firstObjectMatching(plan, /rotor|wheel/);
+    const load = firstObjectMatching(plan, /load|ledger|meter|generator/);
+    if (!rotor || !load) return;
+    const a = objectCenter(rotor, width, height);
+    const b = objectCenter(load, width, height);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 7; i += 1) {
+      const t = (state.t * 0.09 + i / 7) % 1;
+      const x = a.x + (b.x - a.x) * t;
+      const y = a.y + (b.y - a.y) * t + Math.sin(t * TAU + state.t) * 8;
+      drawPrismaticParticle(ctx, x, y, 1.4 + i * 0.2, 48 + i * 14, 0.08, t * TAU);
+    }
+    ctx.restore();
+  }
+
+  function drawMaterialTrayBase(ctx, width, height, state) {
+    ctx.save();
+    const x = width * 0.09;
+    const y = height * 0.66;
+    const w = width * 0.82;
+    const h = height * 0.2;
+    const gradient = ctx.createLinearGradient(x, y, x, y + h);
+    gradient.addColorStop(0, 'rgba(188, 178, 150, 0.12)');
+    gradient.addColorStop(1, 'rgba(104, 92, 70, 0.18)');
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = 'rgba(92, 84, 68, 0.14)';
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.rect(x, y + Math.sin(state.t * 0.06) * 2, w, h);
+    ctx.fill();
+    ctx.stroke();
+    for (let i = 1; i < 6; i += 1) {
+      const xx = x + w * i / 6;
+      ctx.strokeStyle = 'rgba(90, 84, 68, 0.06)';
+      ctx.beginPath();
+      ctx.moveTo(xx, y + 8);
+      ctx.lineTo(xx, y + h - 8);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawMaterialSpecimens(ctx, width, height, state, plan) {
+    const specimens = objectsMatching(plan, /water|air|rock|wood|metal|glass|magnet|sand|soil|fire|heat|sample|bar|pool/)
+      .slice(0, 14);
+    const fallback = plan.objects || [];
+    const source = specimens.length ? specimens : fallback.slice(0, 12);
+    ctx.save();
+    source.forEach((object, index) => {
+      const col = index % 7;
+      const row = Math.floor(index / 7);
+      const center = {
+        x: width * (0.16 + col * 0.115),
+        y: height * (0.7 + row * 0.095),
+      };
+      const material = objectMaterialKey(object);
+      drawSpecimenKernel(ctx, center, material, index, state);
+    });
+    ctx.restore();
+  }
+
+  function drawSpecimenKernel(ctx, center, material, index, state) {
+    const hue = materialHueFor(material, index);
+    ctx.save();
+    ctx.translate(center.x, center.y + Math.sin(state.t * 0.12 + index) * 1.2);
+    const r = 22 + (index % 3) * 5;
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2.2);
+    glow.addColorStop(0, `hsla(${hue}, 86%, 56%, 0.3)`);
+    glow.addColorStop(0.44, `hsla(${hue + 28}, 76%, 48%, 0.14)`);
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    if (/water|brine|mercury/.test(material)) {
+      ctx.ellipse(0, 0, r * 1.2, r * 0.42, Math.sin(state.t * 0.16 + index) * 0.2, 0, TAU);
+    } else if (/glass/.test(material)) {
+      ctx.moveTo(0, -r * 0.9);
+      ctx.lineTo(r * 0.92, r * 0.62);
+      ctx.lineTo(-r * 0.92, r * 0.62);
+      ctx.closePath();
+    } else if (/metal|magnet|copper|silicon|carbon/.test(material)) {
+      ctx.rect(-r * 0.9, -r * 0.34, r * 1.8, r * 0.68);
+    } else {
+      ctx.ellipse(0, 0, r, r * 0.68, (hashNoise(211, index) - 0.5) * 0.7, 0, TAU);
+    }
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${hue + 12}, 62%, 30%, 0.42)`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    if (/magnet/.test(material)) {
+      for (let i = 0; i < 5; i += 1) {
+        ctx.strokeStyle = `hsla(${284 + i * 10}, 84%, 44%, ${0.18 - i * 0.016})`;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r * (0.8 + i * 0.22), r * (0.38 + i * 0.12), state.t * 0.05 + i, 0, TAU);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawMaterialInteractionField(ctx, width, height, state, plan) {
+    const magnet = firstObjectMatching(plan, /magnet/);
+    const glass = firstObjectMatching(plan, /glass|lens|prism/);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 12; i += 1) {
+      const y = height * (0.35 + i * 0.026);
+      const hue = magnet ? 270 + i * 6 : glass ? 196 + i * 8 : 46 + i * 3;
+      ctx.strokeStyle = `hsla(${hue}, 78%, 58%, ${0.08 - i * 0.003})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let step = 0; step <= 22; step += 1) {
+        const x = width * (0.18 + step * 0.03);
+        const yy = y + Math.sin(step * 0.72 + state.t * 0.2 + i) * 7;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawNutrientField(ctx, width, height, state) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 18; i += 1) {
+      const x = width * (0.18 + hashNoise(151, i) * 0.64);
+      const y = height * (0.18 + hashNoise(157, i) * 0.62);
+      const r = Math.min(width, height) * (0.08 + hashNoise(163, i) * 0.12);
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+      gradient.addColorStop(0, `hsla(${104 + i * 5}, 68%, 58%, 0.055)`);
+      gradient.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x + Math.sin(state.t * 0.08 + i) * 4, y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawBiologicalBranches(ctx, width, height, state, plan) {
+    const roots = objectsMatching(plan, /mycelium|bacteria|colony|growth|infection|protein|leaf/);
+    const anchors = roots.length ? roots : (plan.objects || []).slice(0, 4);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    anchors.slice(0, 8).forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      for (let branch = 0; branch < 11; branch += 1) {
+        const angle = branch * TAU / 11 + Math.sin(state.t * 0.1 + index) * 0.18;
+        const length = Math.min(width, height) * (0.08 + hashNoise(index * 41, branch) * 0.16);
+        ctx.strokeStyle = `hsla(${96 + branch * 9}, 58%, 44%, ${0.12 - branch * 0.004})`;
+        ctx.lineWidth = 1 + hashNoise(index * 43, branch);
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.bezierCurveTo(
+          center.x + Math.cos(angle) * length * 0.28,
+          center.y + Math.sin(angle) * length * 0.18,
+          center.x + Math.cos(angle + 0.42) * length * 0.64,
+          center.y + Math.sin(angle + 0.42) * length * 0.5,
+          center.x + Math.cos(angle) * length,
+          center.y + Math.sin(angle) * length * 0.72
+        );
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
+  }
+
+  function drawMembranePools(ctx, width, height, state, plan) {
+    const membranes = objectsMatching(plan, /membrane|gel|foam|soft|cell|bacteria/).slice(0, 10);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    membranes.forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      const r = Math.min(width, height) * (0.035 + hashNoise(173, index) * 0.055);
+      const hue = 150 + index * 13;
+      ctx.strokeStyle = `hsla(${hue}, 64%, 58%, 0.2)`;
+      ctx.fillStyle = `hsla(${hue + 18}, 74%, 68%, 0.045)`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(center.x, center.y, r * 1.4, r * 0.84, Math.sin(state.t * 0.12 + index) * 0.3, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function objectsMatching(plan, pattern) {
+    return (plan.objects || []).filter((object) => pattern.test([
+      object.id,
+      object.shape,
+      object.role,
+      object.material,
+      object.visualRegime,
+      object.assembly,
+    ].join(' ').toLowerCase()));
+  }
+
+  function firstObjectMatching(plan, pattern) {
+    return objectsMatching(plan, pattern)[0] || null;
+  }
+
+  function objectCenter(object, width, height) {
+    return planPoseCenter(object && object.pose || {}, width, height);
   }
 
   function drawPlanBackdrop(ctx, width, height, plan) {
@@ -942,6 +1949,12 @@
       else if (family === 'optical') drawOpticalContinuum(ctx, extent, state, object, i);
       else if (family === 'magnetic') drawMagneticContinuum(ctx, extent, state, object, i);
       else if (family === 'granular') drawGranularContinuum(ctx, extent, state, object, i);
+      else if (family === 'biological') drawBiologicalContinuum(ctx, extent, state, object, i);
+      else if (family === 'soft') drawSoftContinuum(ctx, extent, state, object, i);
+      else if (family === 'atomic') drawAtomicContinuum(ctx, extent, state, object, i);
+      else if (family === 'electrical') drawElectricalContinuum(ctx, extent, state, object, i);
+      else if (family === 'acoustic') drawAcousticContinuum(ctx, extent, state, object, i);
+      else if (family === 'phase') drawPhaseContinuum(ctx, extent, state, object, i);
       else drawGenericContinuum(ctx, extent, state, object, i);
     }
     ctx.restore();
@@ -966,9 +1979,16 @@
   }
 
   function materialFamily(object) {
+    if (object && object.visualRegime) return object.visualRegime;
     const text = `${object.material || ''} ${object.shape || ''} ${object.role || ''} ${object.kind || ''}`.toLowerCase();
+    if (/mycelium|bacteria|protein|leaf|biology|colony|infection/.test(text)) return 'biological';
+    if (/membrane|gel|foam|soft|adhesion|cohesion/.test(text)) return 'soft';
+    if (/atom|electron|ion|molecule|crystal|lattice|carbon/.test(text)) return 'atomic';
+    if (/electric|charge|current|copper|silicon|conductor/.test(text)) return 'electrical';
+    if (/sound|acoustic|wave|resonance/.test(text)) return 'acoustic';
+    if (/phase|melt|freeze|boil|ice|steam/.test(text)) return 'phase';
     if (/fire|flame|plasma|combust|heat|thermal|smoke|plume/.test(text)) return 'thermal';
-    if (/water|river|fluid|flow|pool|air|wind/.test(text)) return 'fluid';
+    if (/water|river|fluid|flow|pool|air|wind|brine|mercury/.test(text)) return 'fluid';
     if (/glass|light|lens|prism|ray|mirror|sensor|panel/.test(text)) return 'optical';
     if (/magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';
     if (/rock|wood|soil|sand|terrain|grain|fuel|biomass|wall|ridge/.test(text)) return 'granular';
@@ -977,8 +1997,11 @@
 
   function objectMaterialKey(object) {
     const text = `${object && object.id || ''} ${object && object.type || ''} ${object && object.role || ''}`.toLowerCase();
+    if (/mycelium|bacteria|protein|leaf|cell|biology|colony/.test(text)) return 'bacteria';
+    if (/membrane|gel|foam|soft/.test(text)) return 'membrane';
+    if (/copper|silicon|carbon|electron|ion|electric|atomic/.test(text)) return 'copper';
     if (/fire|flame|plasma|heat|combust|smoke/.test(text)) return 'fire';
-    if (/water|river|fluid|flow|pool|air|wind/.test(text)) return 'water';
+    if (/water|river|fluid|flow|pool|air|wind|brine|mercury/.test(text)) return 'water';
     if (/glass|lens|prism|light|ray|sensor|panel/.test(text)) return 'glass';
     if (/magnet|metal|wheel|motor|bar|rail|ledger/.test(text)) return 'metal';
     if (/wood|fuel|biomass|soil|sand|rock|terrain|wall/.test(text)) return 'soil';
@@ -1138,6 +2161,149 @@
     ctx.restore();
   }
 
+  function drawBiologicalContinuum(ctx, extent, state, object, index) {
+    const hue = materialHueFor(object.material, index);
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    for (let branch = 0; branch < 9; branch += 1) {
+      const angle = branch * TAU / 9 + Math.sin(state.t * 0.18 + branch) * 0.16;
+      const length = extent.w * (0.2 + hashNoise(index * 71, branch) * 0.34);
+      ctx.strokeStyle = `hsla(${hue + branch * 11}, 58%, 46%, ${0.1 + branch * 0.006})`;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(
+        Math.cos(angle) * length * 0.22,
+        Math.sin(angle) * length * 0.18,
+        Math.cos(angle + 0.4) * length * 0.62,
+        Math.sin(angle + 0.4) * length * 0.5,
+        Math.cos(angle) * length,
+        Math.sin(angle) * length * 0.72
+      );
+      ctx.stroke();
+    }
+    for (let i = 0; i < 16; i += 1) {
+      const a = i * TAU / 16 + state.t * 0.06;
+      const r = extent.w * (0.08 + hashNoise(index * 73, i) * 0.36);
+      ctx.fillStyle = `hsla(${hue + 42}, 64%, 54%, ${0.08 + hashNoise(index * 79, i) * 0.08})`;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * r, Math.sin(a * 1.3) * r * 0.62, 1.2 + hashNoise(index * 83, i) * 2.4, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawSoftContinuum(ctx, extent, state, object, index) {
+    const hue = materialHueFor(object.material, index);
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    for (let band = 0; band < 8; band += 1) {
+      const y = (band - 3.5) * extent.h * 0.09;
+      ctx.strokeStyle = `hsla(${hue + band * 8}, 70%, 64%, ${0.13 - band * 0.007})`;
+      ctx.lineWidth = 1.2 + band * 0.08;
+      ctx.beginPath();
+      for (let step = 0; step <= 18; step += 1) {
+        const x = -extent.w * 0.52 + step * extent.w / 18;
+        const yy = y + Math.sin(step * 0.78 + state.t * 0.8 + band + index) * extent.h * 0.045;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(extent.w, extent.h) * 0.58);
+    glow.addColorStop(0, `hsla(${hue}, 90%, 74%, 0.08)`);
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, extent.w * 0.52, extent.h * 0.38, 0, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawAtomicContinuum(ctx, extent, state, object, index) {
+    const hue = materialHueFor(object.material, index);
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    for (let shell = 0; shell < 5; shell += 1) {
+      ctx.strokeStyle = `hsla(${hue + shell * 24}, 82%, 58%, ${0.12 - shell * 0.012})`;
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, extent.w * (0.16 + shell * 0.065), extent.h * 0.2, state.t * 0.14 + shell, 0, TAU);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 10; i += 1) {
+      const orbit = i % 5;
+      const a = state.t * (0.2 + orbit * 0.03) + i * 1.73;
+      const x = Math.cos(a) * extent.w * (0.18 + orbit * 0.05);
+      const y = Math.sin(a * 1.4) * extent.h * (0.12 + orbit * 0.035);
+      drawPrismaticParticle(ctx, x, y, 1.4 + orbit * 0.2, hue + orbit * 32, 0.12, a);
+    }
+    ctx.restore();
+  }
+
+  function drawElectricalContinuum(ctx, extent, state, object, index) {
+    const hue = materialHueFor(object.material, index);
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    for (let line = -4; line <= 4; line += 1) {
+      ctx.strokeStyle = `hsla(${hue + line * 9}, 92%, 58%, 0.12)`;
+      ctx.lineWidth = 1.05;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.55, line * extent.h * 0.055);
+      ctx.bezierCurveTo(
+        -extent.w * 0.2,
+        line * extent.h * 0.02 + Math.sin(state.t + line) * extent.h * 0.08,
+        extent.w * 0.18,
+        -line * extent.h * 0.02,
+        extent.w * 0.55,
+        -line * extent.h * 0.055
+      );
+      ctx.stroke();
+    }
+    for (let i = 0; i < 12; i += 1) {
+      const x = -extent.w * 0.48 + ((state.t * 0.08 + i / 12) % 1) * extent.w * 0.96;
+      const y = (hashNoise(index * 89, i) - 0.5) * extent.h * 0.42;
+      drawPrismaticParticle(ctx, x, y, 1.2 + hashNoise(index * 91, i), hue + 68, 0.13, 0);
+    }
+    ctx.restore();
+  }
+
+  function drawAcousticContinuum(ctx, extent, state, object, index) {
+    const hue = materialHueFor(object.material, index);
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    for (let ring = 0; ring < 9; ring += 1) {
+      const radius = extent.w * (0.1 + ring * 0.055 + (state.t * 0.04) % 0.05);
+      ctx.strokeStyle = `hsla(${hue + ring * 7}, 74%, 52%, ${0.12 - ring * 0.008})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, radius, radius * 0.62, Math.sin(index + ring) * 0.1, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawPhaseContinuum(ctx, extent, state, object, index) {
+    const hue = materialHueFor(object.material, index);
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    for (let band = 0; band < 10; band += 1) {
+      const y = -extent.h * 0.42 + band * extent.h * 0.092;
+      const phase = Math.sin(state.t * 0.45 + band + index) * extent.h * 0.04;
+      ctx.strokeStyle = `hsla(${hue + band * 12}, 82%, ${44 + band}%, ${0.12 - band * 0.006})`;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.5, y + phase);
+      ctx.bezierCurveTo(-extent.w * 0.18, y - phase, extent.w * 0.18, y + phase, extent.w * 0.5, y - phase);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function drawGenericContinuum(ctx, extent, state, object, index) {
     const hue = materialHueFor(object.material, index);
     ctx.save();
@@ -1152,16 +2318,46 @@
     ctx.restore();
   }
 
+  function drawPrismaticParticle(ctx, x, y, radius, hue, alpha, phase = 0) {
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 4.5);
+    glow.addColorStop(0, `hsla(${hue}, 96%, 72%, ${alpha * 1.4})`);
+    glow.addColorStop(0.36, `hsla(${hue + 42}, 96%, 64%, ${alpha * 0.72})`);
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, radius * 4.5, 0, TAU);
+    ctx.fill();
+
+    ctx.strokeStyle = `hsla(${hue + 86}, 98%, 62%, ${alpha * 0.72})`;
+    ctx.lineWidth = 0.85;
+    ctx.beginPath();
+    ctx.moveTo(x - Math.cos(phase) * radius * 4.2, y - Math.sin(phase) * radius * 1.2);
+    ctx.lineTo(x + Math.cos(phase) * radius * 4.2, y + Math.sin(phase) * radius * 1.2);
+    ctx.stroke();
+  }
+
   function materialHueFor(material, index = 0) {
     const hues = {
       air: 190,
+      bacteria: 126,
+      brine: 184,
+      carbon: 230,
+      copper: 24,
       fire: 24,
+      foam: 176,
+      gel: 164,
       glass: 205,
+      leaf: 112,
       light: 52,
       magnet: 288,
+      membrane: 276,
       metal: 218,
+      mercury: 204,
+      mycelium: 68,
+      protein: 286,
       rock: 78,
       sand: 42,
+      silicon: 210,
       smoke: 238,
       soil: 34,
       water: 198,
@@ -1347,10 +2543,20 @@
   function drawObjectMaterialKernel(ctx, extent, state, object, index) {
     const family = materialFamily(object);
     const hue = materialHueFor(object.material, index);
+    if (object.primitiveProgram) {
+      drawPrimitiveProgram(ctx, extent, state, object, index, hue);
+      if (object.source === 'open-semantic-rag') return;
+    }
     if (extent.points && extent.points.length > 1) {
       drawFlowObjectKernel(ctx, extent, state, hue, family);
       return;
     }
+    if (family === 'biological') return drawBiologicalContinuum(ctx, extent, state, object, index);
+    if (family === 'soft') return drawSoftContinuum(ctx, extent, state, object, index);
+    if (family === 'atomic') return drawAtomicContinuum(ctx, extent, state, object, index);
+    if (family === 'electrical') return drawElectricalContinuum(ctx, extent, state, object, index);
+    if (family === 'acoustic') return drawAcousticContinuum(ctx, extent, state, object, index);
+    if (family === 'phase') return drawPhaseContinuum(ctx, extent, state, object, index);
 
     ctx.save();
     ctx.translate(extent.x, extent.y);
@@ -1383,6 +2589,267 @@
     if (family === 'granular') drawKernelTexture(ctx, extent, state, hue, index);
     if (family === 'thermal') drawHeatKernel(ctx, extent, state, hue, index);
     ctx.restore();
+  }
+
+  function drawPrimitiveProgram(ctx, extent, state, object, index, hue) {
+    const program = object.primitiveProgram || {};
+    const parts = Array.isArray(program.parts) ? program.parts : [];
+    if (!parts.length) return;
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    ctx.globalCompositeOperation = 'screen';
+    for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
+      const part = parts[partIndex];
+      const count = Math.max(1, Math.min(64, Number(part.count || 1)));
+      const alpha = Number(part.alpha || 0.08);
+      const ph = state.t * (0.28 + partIndex * 0.04) + index * 0.9 + partIndex;
+      drawPrimitiveProgramPart(ctx, extent, part.kind, count, hue + partIndex * 31, alpha, ph, index);
+    }
+    ctx.restore();
+  }
+
+  function drawPrimitiveProgramPart(ctx, extent, kind, count, hue, alpha, phase, seed) {
+    if (kind === 'stream') return programStream(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'spectral-ray') return programSpectralRay(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'flux-loop') return programFluxLoop(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'ring' || kind === 'ripple') return programRings(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'droplet' || kind === 'particle' || kind === 'spark') {
+      return programParticles(ctx, extent, count, hue, alpha, phase, seed, kind);
+    }
+    if (kind === 'grain' || kind === 'lattice') return programParticles(ctx, extent, count, hue, alpha, phase, seed, kind);
+    if (kind === 'plume') return programPlume(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'branch') return programBranches(ctx, extent, count, hue, alpha, phase, seed);
+    if (kind === 'membrane') return programMembrane(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'arc') return programArcs(ctx, extent, count, hue, alpha, phase, seed);
+    if (kind === 'pulse') return programPulses(ctx, extent, count, hue, alpha, phase, seed);
+    if (kind === 'strata' || kind === 'phase-band') return programBands(ctx, extent, count, hue, alpha, phase, kind);
+    if (kind === 'cell') return programCells(ctx, extent, count, hue, alpha, phase, seed);
+    if (kind === 'orbital') return programOrbitals(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'wavefront') return programWavefronts(ctx, extent, count, hue, alpha, phase);
+    if (kind === 'network-thread') return programNetworkThreads(ctx, extent, count, hue, alpha, phase, seed);
+    return programRings(ctx, extent, count, hue, alpha, phase);
+  }
+
+  function programStream(ctx, extent, count, hue, alpha, phase) {
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < count; i += 1) {
+      const y = -extent.h * 0.36 + i * extent.h / Math.max(1, count - 1);
+      ctx.strokeStyle = `hsla(${hue + i * 5}, 86%, 54%, ${alpha * (0.58 + i / count)})`;
+      ctx.lineWidth = 0.9 + i * 0.08;
+      ctx.beginPath();
+      for (let step = 0; step <= 20; step += 1) {
+        const x = -extent.w * 0.58 + step * extent.w * 1.16 / 20;
+        const yy = y + Math.sin(step * 0.78 + phase + i) * extent.h * 0.045;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function programSpectralRay(ctx, extent, count, hue, alpha, phase) {
+    ctx.lineCap = 'round';
+    for (let i = 0; i < count; i += 1) {
+      const split = (i - count / 2) / Math.max(1, count);
+      ctx.strokeStyle = `hsla(${hue + i * 18}, 96%, 58%, ${alpha})`;
+      ctx.lineWidth = 0.8 + (i % 3) * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.72, split * extent.h * 0.32);
+      ctx.bezierCurveTo(
+        -extent.w * 0.18,
+        split * extent.h * 0.08 + Math.sin(phase + i) * 2,
+        extent.w * 0.22,
+        -split * extent.h * 0.18,
+        extent.w * 0.78,
+        -split * extent.h * 0.34
+      );
+      ctx.stroke();
+    }
+  }
+
+  function programFluxLoop(ctx, extent, count, hue, alpha, phase) {
+    for (let i = 0; i < count; i += 1) {
+      const rx = extent.w * (0.16 + i * 0.035);
+      const ry = extent.h * (0.12 + i * 0.028);
+      ctx.strokeStyle = `hsla(${hue + i * 8}, 82%, 52%, ${Math.max(0.025, alpha - i * 0.004)})`;
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, phase * 0.2 + i * 0.19, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function programRings(ctx, extent, count, hue, alpha, phase) {
+    for (let i = 0; i < count; i += 1) {
+      const pulse = (Math.sin(phase * 1.4 + i) + 1) * 0.018;
+      const r = Math.max(extent.w, extent.h) * (0.08 + i * 0.035 + pulse);
+      ctx.strokeStyle = `hsla(${hue + i * 7}, 78%, 56%, ${Math.max(0.02, alpha - i * 0.006)})`;
+      ctx.lineWidth = 0.75 + i * 0.04;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r, r * (0.58 + (i % 3) * 0.07), Math.sin(phase + i) * 0.18, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function programParticles(ctx, extent, count, hue, alpha, phase, seed, kind) {
+    for (let i = 0; i < count; i += 1) {
+      const lane = kind === 'spark' ? -0.35 : kind === 'grain' ? 0.34 : 0;
+      const x = (hashNoise(seed * 131 + 7, i) - 0.5) * extent.w * 0.92;
+      const y = (hashNoise(seed * 131 + 11, i) - 0.5 + lane) * extent.h * 0.82;
+      const drift = Math.sin(phase * (kind === 'spark' ? 2.2 : 0.7) + i) * extent.h * 0.035;
+      const radius = 0.7 + hashNoise(seed * 131 + 17, i) * (kind === 'grain' ? 1.2 : 2.1);
+      drawPrismaticParticle(ctx, x, y + drift, radius, hue + hashNoise(seed, i) * 80, alpha, phase + i);
+    }
+  }
+
+  function programPlume(ctx, extent, count, hue, alpha, phase) {
+    ctx.lineCap = 'round';
+    for (let i = 0; i < count; i += 1) {
+      const x = -extent.w * 0.36 + i * extent.w / Math.max(1, count - 1);
+      ctx.strokeStyle = `hsla(${hue + i * 4}, 90%, 58%, ${alpha})`;
+      ctx.lineWidth = 0.8 + i * 0.06;
+      ctx.beginPath();
+      ctx.moveTo(x, extent.h * 0.36);
+      ctx.bezierCurveTo(
+        x + Math.sin(phase + i) * extent.w * 0.08,
+        extent.h * 0.04,
+        x + Math.cos(phase * 0.8 + i) * extent.w * 0.16,
+        -extent.h * 0.38,
+        x + Math.sin(phase * 1.3 + i) * extent.w * 0.06,
+        -extent.h * 0.66
+      );
+      ctx.stroke();
+    }
+  }
+
+  function programBranches(ctx, extent, count, hue, alpha, phase, seed) {
+    ctx.lineCap = 'round';
+    for (let i = 0; i < count; i += 1) {
+      const angle = i * TAU / count + Math.sin(phase + i) * 0.12;
+      const length = extent.w * (0.18 + hashNoise(seed * 43, i) * 0.34);
+      ctx.strokeStyle = `hsla(${hue + i * 11}, 62%, 46%, ${alpha})`;
+      ctx.lineWidth = 0.8 + hashNoise(seed * 47, i) * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(
+        Math.cos(angle) * length * 0.28,
+        Math.sin(angle) * length * 0.18,
+        Math.cos(angle + 0.34) * length * 0.62,
+        Math.sin(angle + 0.34) * length * 0.48,
+        Math.cos(angle) * length,
+        Math.sin(angle) * length * 0.72
+      );
+      ctx.stroke();
+    }
+  }
+
+  function programMembrane(ctx, extent, count, hue, alpha, phase) {
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(extent.w, extent.h) * 0.62);
+    glow.addColorStop(0, `hsla(${hue}, 96%, 76%, ${alpha * 0.8})`);
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, extent.w * 0.54, extent.h * 0.35, Math.sin(phase) * 0.1, 0, TAU);
+    ctx.fill();
+    programStream(ctx, extent, count, hue + 20, alpha * 0.72, phase);
+  }
+
+  function programArcs(ctx, extent, count, hue, alpha, phase, seed) {
+    ctx.lineCap = 'round';
+    for (let i = 0; i < count; i += 1) {
+      const y = (hashNoise(seed * 67, i) - 0.5) * extent.h * 0.56;
+      ctx.strokeStyle = `hsla(${hue + i * 13}, 96%, 60%, ${alpha})`;
+      ctx.lineWidth = 0.8 + hashNoise(seed * 71, i) * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.52, y);
+      ctx.bezierCurveTo(-extent.w * 0.18, y - extent.h * 0.28, extent.w * 0.2, y + extent.h * 0.28, extent.w * 0.52, -y);
+      ctx.stroke();
+    }
+  }
+
+  function programPulses(ctx, extent, count, hue, alpha, phase, seed) {
+    for (let i = 0; i < count; i += 1) {
+      const t = (i / count + phase * 0.04) % 1;
+      const angle = hashNoise(seed * 79, i) * TAU;
+      const x = Math.cos(angle) * extent.w * (t - 0.5);
+      const y = Math.sin(angle) * extent.h * (t - 0.5);
+      drawPrismaticParticle(ctx, x, y, 1 + t * 2, hue + i * 9, alpha * (1 - t * 0.35), angle);
+    }
+  }
+
+  function programBands(ctx, extent, count, hue, alpha, phase, kind) {
+    for (let i = 0; i < count; i += 1) {
+      const y = -extent.h * 0.42 + i * extent.h / Math.max(1, count - 1);
+      const amp = kind === 'phase-band' ? extent.h * 0.048 : extent.h * 0.022;
+      ctx.strokeStyle = `hsla(${hue + i * 8}, 62%, ${kind === 'strata' ? 38 + i : 56}%, ${alpha})`;
+      ctx.beginPath();
+      for (let step = 0; step <= 18; step += 1) {
+        const x = -extent.w * 0.56 + step * extent.w * 1.12 / 18;
+        const yy = y + Math.sin(step * 0.7 + phase + i) * amp;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function programCells(ctx, extent, count, hue, alpha, phase, seed) {
+    for (let i = 0; i < count; i += 1) {
+      const angle = i * TAU / count + phase * 0.06;
+      const r = Math.max(extent.w, extent.h) * (0.12 + hashNoise(seed * 83, i) * 0.36);
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle * 1.33) * r * 0.58;
+      const radius = 1.8 + hashNoise(seed * 89, i) * 3.2;
+      drawPrismaticParticle(ctx, x, y, radius, hue + i * 5, alpha, angle);
+    }
+  }
+
+  function programOrbitals(ctx, extent, count, hue, alpha, phase) {
+    for (let i = 0; i < count; i += 1) {
+      ctx.strokeStyle = `hsla(${hue + i * 19}, 90%, 58%, ${alpha})`;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, extent.w * (0.15 + i * 0.04), extent.h * 0.18, phase * 0.28 + i * 0.62, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function programWavefronts(ctx, extent, count, hue, alpha, phase) {
+    for (let i = 0; i < count; i += 1) {
+      const x = -extent.w * 0.48 + i * extent.w / Math.max(1, count - 1);
+      ctx.strokeStyle = `hsla(${hue + i * 6}, 80%, 54%, ${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(x, -extent.h * 0.4);
+      ctx.bezierCurveTo(
+        x + Math.sin(phase + i) * extent.w * 0.08,
+        -extent.h * 0.12,
+        x - Math.sin(phase + i) * extent.w * 0.08,
+        extent.h * 0.12,
+        x,
+        extent.h * 0.4
+      );
+      ctx.stroke();
+    }
+  }
+
+  function programNetworkThreads(ctx, extent, count, hue, alpha, phase, seed) {
+    ctx.lineCap = 'round';
+    for (let i = 0; i < count; i += 1) {
+      const a = hashNoise(seed * 101, i) * TAU;
+      const b = hashNoise(seed * 103, i) * TAU;
+      ctx.strokeStyle = `hsla(${hue + i * 12}, 82%, 54%, ${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * extent.w * 0.48, Math.sin(a) * extent.h * 0.38);
+      ctx.quadraticCurveTo(
+        Math.sin(phase + i) * extent.w * 0.1,
+        Math.cos(phase + i) * extent.h * 0.08,
+        Math.cos(b) * extent.w * 0.48,
+        Math.sin(b) * extent.h * 0.38
+      );
+      ctx.stroke();
+    }
   }
 
   function drawFlowObjectKernel(ctx, extent, state, hue, family) {

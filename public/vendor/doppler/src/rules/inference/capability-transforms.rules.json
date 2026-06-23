@@ -1,0 +1,165 @@
+{
+  "capabilityTransforms": [
+    {
+      "match": {
+        "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+        "platformVendor": "apple"
+      },
+      "transforms": ["failClosedLaneMismatch"],
+      "reason": "af16-int4ple lane requires retainQ4KMaterialization=true to dispatch the fused-q4k+f16 widetile pool, which produces intermittent NaN at L1.attn_core_out on Apple Metal — load the af32 manifest variant instead. Bug is INTERMITTENT (some runs succeed) and depends on buffer-pool aliasing patterns; confirmed re-emerged 2026-05-07 after e5c9a6a tightened bucket defaults."
+    },
+    {
+      "match": {
+        "modelId": { "startsWith": "gemma-4-e2b-it-q4k-" },
+        "platformVendor": "apple",
+        "retainQ4KMaterialization": true
+      },
+      "transforms": ["disableRetainQ4KMaterialization"],
+      "reason": "Fused-q4k FFN kernels under retain=mixed corrupt subsequent-layer attention compute on Apple Metal (intermittent NaN at L1.attn_core_out and beyond). Standalone-q4k projection kernels are clean; only the fused gate+up+down dispatch is the perturbation source."
+    },
+    {
+      "match": {
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "activationDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useQwenF16PrimaryMatmuls"],
+      "reason": "Runtime requested the promoted f16 primary lane for Qwen 3.5 0.8B"
+    },
+    {
+      "match": {
+        "modelId": "qwen-3-6-27b-q4k-eaf16",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useQwen36F16Activations"],
+      "reason": "Runtime requested the experimental all-f16 lane for Qwen 3.6 27B"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "activationDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useGemma4Int4PleSelectiveF16Decode"],
+      "reason": "Runtime requested the experimental selective f16 decode lane for Gemma 4 E2B INT4 PLE"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useGemma412BTextF16Activations"],
+      "reason": "af16 manifest variant on shader-f16 GPU — dispatch the Gemma 4 12B text f16-residual lane with stable f32-Q/f16-KV prefill/decode attention boundaries and stable post-layer tail"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["failClosedLaneMismatch"],
+      "reason": "af32 manifest cannot dispatch f16 activations — load the af16 manifest variant or pick an f32 runtime profile"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useGemma431BTextF16Activations"],
+      "reason": "af16 manifest variant on shader-f16 GPU — dispatch the all-f16 lane"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useGemma4Int4PleAf16Activations"],
+      "reason": "af16-int4ple manifest variant on shader-f16 GPU — dispatch the all-f16 lane (q4_widetile_f16a + decode multicol_f16a + lm_head_gemv_subgroup_f16a)"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["failClosedLaneMismatch"],
+      "reason": "af32 manifest cannot dispatch f16 activations — load the af16 manifest variant or pick an f32 runtime profile"
+    },
+    {
+      "match": {
+        "modelId": { "contains": "gemma-4-e2b" },
+        "activationDtype": "f32",
+        "headDim": 256,
+        "kvDtype": "f16",
+        "hasF16": true,
+        "maxWorkgroupStorageSize": { "gte": 16384 }
+      },
+      "transforms": ["useHead256SmallPrefillAttention"],
+      "reason": "Gemma 4 E2B promotes only small-tile prefill attention onto the head256 kernel on capable GPUs"
+    },
+    {
+      "match": {
+        "activationDtype": "f16",
+        "hasSubgroups": false,
+        "hasF16": true,
+        "requiresF16ActivationNarrowing": true
+      },
+      "transforms": ["narrowToF16Activations", "removeSubgroups"],
+      "reason": "Runtime requested f16 activations on a non-subgroup shader-f16 GPU"
+    },
+    {
+      "match": {
+        "activationDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true,
+        "requiresF16ActivationNarrowing": true
+      },
+      "transforms": ["narrowToF16Activations"],
+      "reason": "Runtime requested f16 activations on a shader-f16 GPU"
+    },
+    {
+      "match": { "hasSubgroups": false, "hasF16": false },
+      "transforms": ["removeSubgroups", "widenToF32Activations"],
+      "reason": "GPU lacks subgroups and shader-f16"
+    },
+    {
+      "match": { "hasSubgroups": false, "hasF16": true },
+      "transforms": ["removeSubgroups"],
+      "reason": "GPU lacks subgroups"
+    },
+    {
+      "match": { "hasSubgroups": true, "hasF16": false },
+      "transforms": ["widenToF32Activations"],
+      "reason": "GPU lacks shader-f16"
+    },
+    {
+      "match": {},
+      "transforms": [],
+      "reason": "GPU supports all required features"
+    }
+  ]
+}
