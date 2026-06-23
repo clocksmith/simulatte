@@ -70,6 +70,7 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(renderer, /function paintMagneticMachineWorld/);
   assert.match(renderer, /function paintMaterialTrayWorld/);
   assert.match(renderer, /function paintBiologyWorld/);
+  assert.match(renderer, /function paintAcousticWorld/);
   assert.doesNotMatch(renderer, /drawPrismaticParticleField/);
   assert.doesNotMatch(renderer, /function draw[A-Z][A-Za-z]+Shape/);
   assert.doesNotMatch(renderer, /drawFieldSplat/);

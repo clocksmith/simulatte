@@ -1329,6 +1329,7 @@
     if (sceneKind === 'magnetic-machine') return paintMagneticMachineWorld(ctx, width, height, state, plan);
     if (sceneKind === 'material-tray') return paintMaterialTrayWorld(ctx, width, height, state, plan);
     if (sceneKind === 'biology') return paintBiologyWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'acoustic') return paintAcousticWorld(ctx, width, height, state, plan);
     return paintGenericWorld(ctx, width, height, state, plan);
   }
 
@@ -1346,6 +1347,7 @@
     if (/wheel|magnet|slider/.test(signature)) return 'magnetic-machine';
     if (/sample|bar|pool|grain-bed/.test(signature)) return 'material-tray';
     if (/colony|membrane/.test(signature)) return 'biology';
+    if (/acoustic|sound|wave|pressure|resonance/.test(signature)) return 'acoustic';
     return 'generic';
   }
 
@@ -1420,6 +1422,15 @@
     drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.3);
   }
 
+  function paintAcousticWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fbfcff', '#f7fbfb');
+    drawAcousticWaveguides(ctx, width, height, state);
+    drawAcousticPressureFronts(ctx, width, height, state, plan);
+    drawAcousticResonatorNodes(ctx, width, height, state, plan);
+    drawMaterialContinuumField(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.22);
+  }
+
   function paintSceneBackground(ctx, width, height, top, bottom) {
     ctx.save();
     const gradient = ctx.createLinearGradient(0, 0, 0, height);
@@ -1428,6 +1439,85 @@
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
+  }
+
+  function drawAcousticWaveguides(ctx, width, height, state) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.lineWidth = 1.2;
+    for (let guide = 0; guide < 7; guide += 1) {
+      const y = height * (0.22 + guide * 0.088);
+      const hue = 188 + guide * 9;
+      ctx.strokeStyle = `hsla(${hue}, 72%, 48%, ${0.055 + guide * 0.004})`;
+      ctx.beginPath();
+      for (let x = width * 0.08; x <= width * 0.92; x += 30) {
+        const yy = y + Math.sin(x * 0.014 + state.t * 2.4 + guide) * height * 0.018;
+        if (x === width * 0.08) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawAcousticPressureFronts(ctx, width, height, state, plan) {
+    const centers = acousticPlanCenters(plan, width, height);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let c = 0; c < centers.length; c += 1) {
+      const center = centers[c];
+      for (let ring = 0; ring < 11; ring += 1) {
+        const travel = (state.t * 0.08 + ring * 0.075 + c * 0.11) % 1;
+        const rx = width * (0.035 + travel * 0.22);
+        const ry = height * (0.025 + travel * 0.14);
+        const alpha = Math.max(0.018, 0.16 * (1 - travel));
+        ctx.strokeStyle = `hsla(${202 + c * 18 + ring * 4}, 82%, 54%, ${alpha})`;
+        ctx.lineWidth = 0.8 + (1 - travel) * 1.1;
+        ctx.beginPath();
+        ctx.ellipse(center.x, center.y, rx, ry, Math.sin(c + ring) * 0.18, 0, TAU);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawAcousticResonatorNodes(ctx, width, height, state, plan) {
+    const centers = acousticPlanCenters(plan, width, height).slice(0, 8);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < centers.length; i += 1) {
+      const center = centers[i];
+      const pulse = 0.5 + 0.5 * Math.sin(state.t * 3.2 + i * 0.9);
+      const r = Math.min(width, height) * (0.018 + pulse * 0.018);
+      const glow = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, r * 4.8);
+      glow.addColorStop(0, `hsla(${186 + i * 17}, 92%, 68%, 0.2)`);
+      glow.addColorStop(0.42, `hsla(${228 + i * 11}, 78%, 58%, 0.08)`);
+      glow.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, r * 4.8, 0, TAU);
+      ctx.fill();
+      ctx.strokeStyle = `hsla(${196 + i * 13}, 76%, 44%, 0.18)`;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, r, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function acousticPlanCenters(plan, width, height) {
+    const acousticObjects = (plan.objects || []).filter((object) => {
+      const text = `${object.id || ''} ${object.shape || ''} ${object.role || ''} ${object.material || ''}`.toLowerCase();
+      return object.visualRegime === 'acoustic' || /acoustic|sound|wave|pressure|resonance|tube|emitter/.test(text);
+    });
+    const objects = acousticObjects.length ? acousticObjects : (plan.objects || []).slice(0, 5);
+    const centers = objects.map((object) => planObjectCenter(plan, object.id, width, height)).filter(Boolean);
+    if (centers.length) return centers;
+    return [
+      { x: width * 0.22, y: height * 0.42 },
+      { x: width * 0.48, y: height * 0.5 },
+      { x: width * 0.74, y: height * 0.36 },
+    ];
   }
 
   function drawPlanObjectsWithAlpha(ctx, width, height, state, plan, alpha) {

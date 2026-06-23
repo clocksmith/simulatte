@@ -382,6 +382,11 @@
       if (/bio|cell|bacteria|mycelium|protein|gel|membrane|growth|infection/.test(text)) return 8;
       return 2;
     }
+    if (sceneKind === 'acoustic') {
+      if (/flame-front|fuel-bed|fire|smoke|thermal/.test(text)) return -1;
+      if (/acoustic|sound|wave|pressure|resonance|emitter|tube|water|brass|membrane/.test(text)) return 8;
+      return 1;
+    }
     return 2;
   }
 
@@ -416,6 +421,9 @@
     if (/biological|mycelium|bacteria|membrane|colony|infection|protein/.test(promptText)) {
       return 'biology';
     }
+    if (/acoustic|sound|pressure wave|waveguide|resonance|brass tube/.test(promptText)) {
+      return 'acoustic';
+    }
     if (/optics|prism|lens|mirror|laser|glass/.test(promptText) || operatorIds.has('refraction')) {
       return 'optics';
     }
@@ -425,9 +433,9 @@
     if (/solar magnetic|magnetic-motor|rotor-wheel|stator-slider|dipole/.test(text) || operatorIds.has('magnetism')) {
       return 'magnetic-machine';
     }
+    if (/acoustic|sound|wavefront|resonance|pressure/.test(text)) return 'acoustic';
     if (/fluid|water|flow-path|advection|river/.test(text) || operatorIds.has('advection')) return 'fluid';
     if (/\b(atom|atomic|electron|ion|lattice|crystal)\b/.test(text)) return 'atomic';
-    if (/acoustic|sound|wavefront|resonance/.test(text)) return 'acoustic';
     return 'generic';
   }
 
@@ -465,6 +473,7 @@
     if (sceneKind === 'material-tray') return ['clear', 'tray-field', 'specimens', 'interactions', 'composite'];
     if (sceneKind === 'biology') return ['clear', 'nutrient-field', 'membranes', 'growth-front', 'cells'];
     if (sceneKind === 'mechanical') return ['clear', 'constraint-space', 'bodies', 'contacts', 'impulse-ledger'];
+    if (sceneKind === 'acoustic') return ['clear', 'waveguide', 'pressure-fronts', 'resonators', 'objects'];
     return uniqueList([...shared, ...(solverFamilies || [])]);
   }
 

@@ -648,11 +648,13 @@
           __skipStateSnapshot: true,
         });
       }
+      const provenance = modelHandleProvenance(handle, runtime, backend, modelBaseUrl);
       return withEmbeddingProvenance({
         embedding: result && result.embedding,
-        embedModelId: handle.modelId || handle.manifest && handle.manifest.modelId,
-        embedModelHash: handle.manifest && (handle.manifest.modelHash || handle.manifest.manifestHash),
+        embedModelId: provenance.embedModelId,
+        embedModelHash: provenance.embedModelHash,
         modelSource: {
+          ...provenance.modelSource,
           sourceKind: backend,
           modelBaseUrl,
         },
@@ -666,6 +668,42 @@
         return next;
       },
     };
+  }
+
+  function modelHandleProvenance(handle, runtime, _backend, modelBaseUrl = '') {
+    const expectedModel = runtime.manifest.embedModel;
+    const expectedHash = expectedModel.manifestHash;
+    const handleManifest = handle && handle.manifest || {};
+    const rawModelId = handle && (handle.modelId || handleManifest.modelId) || '';
+    const rawHash = handleManifest.modelHash || handleManifest.manifestHash || handleManifest.hash || null;
+    const normalizedSource = normalizeModelSource(modelBaseUrl || rawModelId);
+    const expectedSource = normalizeModelSource(expectedModel.defaultModelBaseUrl);
+    const rawSourceMatches = normalizedSource && expectedSource && normalizedSource === expectedSource;
+    const rawIdMatches = String(rawModelId || '') === expectedModel.id;
+    const rawHashMatches = !rawHash || hashHex(rawHash) === hashHex(expectedHash);
+    if (!rawHashMatches) {
+      return {
+        embedModelId: rawModelId,
+        embedModelHash: rawHash,
+        modelSource: { rawModelId, rawEmbedModelHash: rawHash },
+      };
+    }
+    if (rawSourceMatches || rawIdMatches || (rawHash && rawHashMatches)) {
+      return {
+        embedModelId: expectedModel.id,
+        embedModelHash: expectedHash,
+        modelSource: { rawModelId, rawEmbedModelHash: rawHash },
+      };
+    }
+    return {
+      embedModelId: rawModelId,
+      embedModelHash: rawHash,
+      modelSource: { rawModelId, rawEmbedModelHash: rawHash },
+    };
+  }
+
+  function normalizeModelSource(value) {
+    return String(value || '').trim().replace(/\/+$/, '');
   }
 
   function withEmbeddingProvenance(result, runtime) {
