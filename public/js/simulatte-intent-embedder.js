@@ -648,7 +648,7 @@
           __skipStateSnapshot: true,
         });
       }
-      const provenance = modelHandleProvenance(handle, runtime, backend, modelBaseUrl);
+      const provenance = modelHandleProvenance(handle, runtime, modelBaseUrl);
       return withEmbeddingProvenance({
         embedding: result && result.embedding,
         embedModelId: provenance.embedModelId,
@@ -670,12 +670,16 @@
     };
   }
 
-  function modelHandleProvenance(handle, runtime, _backend, modelBaseUrl = '') {
-    const expectedModel = runtime.manifest.embedModel;
-    const expectedHash = expectedModel.manifestHash;
+  function modelHandleProvenance(handle, runtime, modelBaseUrl = '') {
     const handleManifest = handle && handle.manifest || {};
     const rawModelId = handle && (handle.modelId || handleManifest.modelId) || '';
     const rawHash = handleManifest.modelHash || handleManifest.manifestHash || handleManifest.hash || null;
+    return normalizeEmbeddingModelProvenance(rawModelId, rawHash, runtime, modelBaseUrl);
+  }
+
+  function normalizeEmbeddingModelProvenance(rawModelId, rawHash, runtime, modelBaseUrl = '') {
+    const expectedModel = runtime.manifest.embedModel;
+    const expectedHash = expectedModel.manifestHash;
     const normalizedSource = normalizeModelSource(modelBaseUrl || rawModelId);
     const expectedSource = normalizeModelSource(expectedModel.defaultModelBaseUrl);
     const rawSourceMatches = normalizedSource && expectedSource && normalizedSource === expectedSource;
@@ -688,7 +692,7 @@
         modelSource: { rawModelId, rawEmbedModelHash: rawHash },
       };
     }
-    if (rawSourceMatches || rawIdMatches || (rawHash && rawHashMatches)) {
+    if (!rawModelId || rawSourceMatches || rawIdMatches || (rawHash && rawHashMatches)) {
       return {
         embedModelId: expectedModel.id,
         embedModelHash: expectedHash,
@@ -707,12 +711,18 @@
   }
 
   function withEmbeddingProvenance(result, runtime) {
-    const manifestHash = runtime.manifest.embedModel.manifestHash;
+    const rawModelId = result && result.embedModelId || '';
+    const rawHash = result && result.embedModelHash || null;
+    const provenance = normalizeEmbeddingModelProvenance(rawModelId, rawHash, runtime);
+    const modelSource = {
+      ...(result && result.modelSource || {}),
+      ...provenance.modelSource,
+    };
     return {
       embedding: result && result.embedding,
-      embedModelId: result && result.embedModelId || runtime.manifest.embedModel.id,
-      embedModelHash: result && result.embedModelHash || manifestHash,
-      modelSource: result && result.modelSource || null,
+      embedModelId: provenance.embedModelId,
+      embedModelHash: provenance.embedModelHash,
+      modelSource,
     };
   }
 

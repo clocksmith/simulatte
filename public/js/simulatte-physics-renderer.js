@@ -189,7 +189,7 @@
           const diagnostic = err && err.message ? err.message : String(err || 'intent model failed');
           const message = compactIntentRuntimeMessage(diagnostic);
           console.error('[simulatte.intent] model-backed intent failed', err);
-          stateReadout.textContent = `intent model error: ${message}`;
+          stateReadout.textContent = message;
           syncIntentRuntime(runtimeStatus, {
             state: 'error',
             stage: 'error',
@@ -266,8 +266,8 @@
     const rawMessage = event.detail || event.message || stage;
     const message = compactIntentRuntimeMessage(event.message || stage);
     elements.node.dataset.state = state;
-    elements.node.dataset.detail = String(rawMessage || '');
-    elements.node.title = String(rawMessage || message || '');
+    elements.node.dataset.detail = String(message || '');
+    elements.node.title = String(message || '');
     if (elements.canvasLoader) {
       elements.canvasLoader.setLoading(loading, percent, stage);
     }
@@ -292,6 +292,10 @@
     if (/CacheStorage|Service Worker/i.test(text)) return 'Model cache unavailable';
     if (/model fetch failed|fetch failed|failed to fetch/i.test(text)) return 'Model download failed';
     if (/Doppler module import|no loader found/i.test(text)) return 'Doppler runtime unavailable';
+    if (/embedModel(Id|Hash) mismatch|embedding dim mismatch|non-finite value/i.test(text)) {
+      return 'Intent model unavailable';
+    }
+    if (/https?:\/\/|huggingface\.co|Clocksmith\/rdrr/i.test(text)) return 'Intent model unavailable';
     if (/^Caching shard_/i.test(text)) return 'Caching model weights';
     if (/^Cached shard_/i.test(text)) return 'Model weights cached';
     if (text.length <= 72) return text;
@@ -1377,7 +1381,7 @@
     drawSpectralBeamTrace(ctx, width, height, state, plan);
     drawOpticalSurfaces(ctx, width, height, state, plan);
     drawOpticalCaustics(ctx, width, height, state, plan);
-    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.28);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.44);
   }
 
   function paintCityWorld(ctx, width, height, state, plan) {
@@ -1394,7 +1398,7 @@
     drawWatershedTerrain(ctx, width, height, state);
     drawWatershedRiver(ctx, width, height, state, plan);
     drawSedimentFan(ctx, width, height, state, plan);
-    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.32);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.46);
   }
 
   function paintMagneticMachineWorld(ctx, width, height, state, plan) {
@@ -1419,7 +1423,7 @@
     drawNutrientField(ctx, width, height, state);
     drawBiologicalBranches(ctx, width, height, state, plan);
     drawMembranePools(ctx, width, height, state, plan);
-    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.3);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.46);
   }
 
   function paintAcousticWorld(ctx, width, height, state, plan) {
@@ -1428,7 +1432,7 @@
     drawAcousticPressureFronts(ctx, width, height, state, plan);
     drawAcousticResonatorNodes(ctx, width, height, state, plan);
     drawMaterialContinuumField(ctx, width, height, state, plan);
-    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.22);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.42);
   }
 
   function paintSceneBackground(ctx, width, height, top, bottom) {
@@ -1444,11 +1448,11 @@
   function drawAcousticWaveguides(ctx, width, height, state) {
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 2;
     for (let guide = 0; guide < 7; guide += 1) {
       const y = height * (0.22 + guide * 0.088);
       const hue = 188 + guide * 9;
-      ctx.strokeStyle = `hsla(${hue}, 72%, 48%, ${0.055 + guide * 0.004})`;
+      ctx.strokeStyle = `hsla(${hue}, 78%, 46%, ${0.13 + guide * 0.008})`;
       ctx.beginPath();
       for (let x = width * 0.08; x <= width * 0.92; x += 30) {
         const yy = y + Math.sin(x * 0.014 + state.t * 2.4 + guide) * height * 0.018;
@@ -1470,9 +1474,9 @@
         const travel = (state.t * 0.08 + ring * 0.075 + c * 0.11) % 1;
         const rx = width * (0.035 + travel * 0.22);
         const ry = height * (0.025 + travel * 0.14);
-        const alpha = Math.max(0.018, 0.16 * (1 - travel));
+        const alpha = Math.max(0.05, 0.34 * (1 - travel));
         ctx.strokeStyle = `hsla(${202 + c * 18 + ring * 4}, 82%, 54%, ${alpha})`;
-        ctx.lineWidth = 0.8 + (1 - travel) * 1.1;
+        ctx.lineWidth = 1.4 + (1 - travel) * 1.8;
         ctx.beginPath();
         ctx.ellipse(center.x, center.y, rx, ry, Math.sin(c + ring) * 0.18, 0, TAU);
         ctx.stroke();
@@ -1490,14 +1494,14 @@
       const pulse = 0.5 + 0.5 * Math.sin(state.t * 3.2 + i * 0.9);
       const r = Math.min(width, height) * (0.018 + pulse * 0.018);
       const glow = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, r * 4.8);
-      glow.addColorStop(0, `hsla(${186 + i * 17}, 92%, 68%, 0.2)`);
-      glow.addColorStop(0.42, `hsla(${228 + i * 11}, 78%, 58%, 0.08)`);
+      glow.addColorStop(0, `hsla(${186 + i * 17}, 92%, 62%, 0.42)`);
+      glow.addColorStop(0.42, `hsla(${228 + i * 11}, 78%, 54%, 0.18)`);
       glow.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = glow;
       ctx.beginPath();
       ctx.arc(center.x, center.y, r * 4.8, 0, TAU);
       ctx.fill();
-      ctx.strokeStyle = `hsla(${196 + i * 13}, 76%, 44%, 0.18)`;
+      ctx.strokeStyle = `hsla(${196 + i * 13}, 76%, 40%, 0.36)`;
       ctx.beginPath();
       ctx.arc(center.x, center.y, r, 0, TAU);
       ctx.stroke();
@@ -1678,9 +1682,9 @@
     ctx.save();
     const y = height * 0.58;
     const rail = ctx.createLinearGradient(width * 0.12, y, width * 0.9, y);
-    rail.addColorStop(0, 'rgba(40, 74, 94, 0.03)');
-    rail.addColorStop(0.5, 'rgba(40, 74, 94, 0.14)');
-    rail.addColorStop(1, 'rgba(40, 74, 94, 0.03)');
+    rail.addColorStop(0, 'rgba(40, 74, 94, 0.08)');
+    rail.addColorStop(0.5, 'rgba(40, 74, 94, 0.26)');
+    rail.addColorStop(1, 'rgba(40, 74, 94, 0.08)');
     ctx.strokeStyle = rail;
     ctx.lineWidth = 8;
     ctx.beginPath();
@@ -1689,7 +1693,7 @@
     ctx.stroke();
     for (let i = 0; i < 12; i += 1) {
       const x = width * (0.14 + i * 0.065);
-      ctx.strokeStyle = 'rgba(25, 62, 88, 0.09)';
+      ctx.strokeStyle = 'rgba(25, 62, 88, 0.16)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(x, y - 18);
@@ -1713,8 +1717,8 @@
     for (let i = 0; i < 9; i += 1) {
       const split = (i - 4) * 0.018;
       const hue = 206 + i * 18;
-      ctx.strokeStyle = `hsla(${hue}, 96%, 58%, 0.28)`;
-      ctx.lineWidth = 1.2 + (i % 3) * 0.3;
+      ctx.strokeStyle = `hsla(${hue}, 96%, 52%, 0.46)`;
+      ctx.lineWidth = 2 + (i % 3) * 0.4;
       ctx.beginPath();
       ctx.moveTo(a.x, a.y + split * height * 0.18);
       ctx.bezierCurveTo(
@@ -1745,12 +1749,12 @@
       ctx.translate(center.x, center.y);
       ctx.rotate((object.pose && object.pose.rotation || 0) + Math.sin(state.t * 0.12 + index) * 0.02);
       const gradient = ctx.createLinearGradient(-w, -h, w, h);
-      gradient.addColorStop(0, 'rgba(255,255,255,0.02)');
-      gradient.addColorStop(0.5, isMirror ? 'rgba(130,160,170,0.22)' : 'rgba(88,190,240,0.16)');
-      gradient.addColorStop(1, 'rgba(255,255,255,0.01)');
+      gradient.addColorStop(0, 'rgba(255,255,255,0.08)');
+      gradient.addColorStop(0.5, isMirror ? 'rgba(108,140,154,0.38)' : 'rgba(64,178,232,0.3)');
+      gradient.addColorStop(1, 'rgba(255,255,255,0.04)');
       ctx.fillStyle = gradient;
-      ctx.strokeStyle = isMirror ? 'rgba(80, 110, 120, 0.24)' : 'rgba(70, 168, 226, 0.24)';
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = isMirror ? 'rgba(80, 110, 120, 0.42)' : 'rgba(48, 146, 214, 0.42)';
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
       if (isPrism) {
         ctx.moveTo(0, -h * 0.7);
@@ -1773,8 +1777,8 @@
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     for (let ring = 0; ring < 12; ring += 1) {
-      ctx.strokeStyle = `hsla(${198 + ring * 12}, 92%, 62%, ${0.09 - ring * 0.005})`;
-      ctx.lineWidth = 0.9;
+      ctx.strokeStyle = `hsla(${198 + ring * 12}, 92%, 56%, ${0.17 - ring * 0.008})`;
+      ctx.lineWidth = 1.3;
       ctx.beginPath();
       ctx.ellipse(
         center.x + Math.sin(state.t * 0.3 + ring) * 6,
@@ -1852,8 +1856,8 @@
     for (let band = 0; band < 18; band += 1) {
       const y = height * (0.18 + band * 0.041);
       const hue = 74 - band * 1.4;
-      ctx.strokeStyle = `hsla(${hue}, 36%, ${44 + band * 0.8}%, ${0.1 + band * 0.004})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `hsla(${hue}, 42%, ${38 + band * 0.65}%, ${0.16 + band * 0.006})`;
+      ctx.lineWidth = 1.35;
       ctx.beginPath();
       for (let i = 0; i <= 28; i += 1) {
         const x = width * (0.08 + i * 0.031);
@@ -1879,8 +1883,8 @@
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     for (let band = 0; band < 8; band += 1) {
-      ctx.strokeStyle = `hsla(${190 + band * 6}, 82%, 52%, ${0.13 - band * 0.008})`;
-      ctx.lineWidth = 4 + band * 2.2;
+      ctx.strokeStyle = `hsla(${190 + band * 6}, 82%, 48%, ${0.24 - band * 0.014})`;
+      ctx.lineWidth = 5 + band * 2.6;
       ctx.beginPath();
       base.forEach((point, index) => {
         const x = point.x + Math.sin(state.t * 0.3 + band + index) * (band + 1);
@@ -1902,7 +1906,7 @@
       for (let grain = 0; grain < 8; grain += 1) {
         const x = center.x + (hashNoise(index * 23, grain) - 0.5) * spread;
         const y = center.y + (hashNoise(index * 29, grain) - 0.5) * spread * 0.6 + Math.sin(state.t * 0.16 + grain) * 0.8;
-        ctx.fillStyle = `rgba(126, 95, 48, ${0.08 + hashNoise(index * 31, grain) * 0.06})`;
+        ctx.fillStyle = `rgba(116, 82, 40, ${0.14 + hashNoise(index * 31, grain) * 0.1})`;
         ctx.beginPath();
         ctx.arc(x, y, 0.8 + hashNoise(index * 37, grain) * 1.6, 0, TAU);
         ctx.fill();
@@ -2161,7 +2165,7 @@
       const y = height * (0.18 + hashNoise(157, i) * 0.62);
       const r = Math.min(width, height) * (0.08 + hashNoise(163, i) * 0.12);
       const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
-      gradient.addColorStop(0, `hsla(${104 + i * 5}, 68%, 58%, 0.055)`);
+      gradient.addColorStop(0, `hsla(${104 + i * 5}, 68%, 50%, 0.13)`);
       gradient.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -2181,8 +2185,8 @@
       for (let branch = 0; branch < 11; branch += 1) {
         const angle = branch * TAU / 11 + Math.sin(state.t * 0.1 + index) * 0.18;
         const length = Math.min(width, height) * (0.08 + hashNoise(index * 41, branch) * 0.16);
-        ctx.strokeStyle = `hsla(${96 + branch * 9}, 58%, 44%, ${0.12 - branch * 0.004})`;
-        ctx.lineWidth = 1 + hashNoise(index * 43, branch);
+        ctx.strokeStyle = `hsla(${96 + branch * 9}, 64%, 38%, ${0.23 - branch * 0.008})`;
+        ctx.lineWidth = 1.4 + hashNoise(index * 43, branch) * 1.2;
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
         ctx.bezierCurveTo(
@@ -2207,9 +2211,9 @@
       const center = objectCenter(object, width, height);
       const r = Math.min(width, height) * (0.035 + hashNoise(173, index) * 0.055);
       const hue = 150 + index * 13;
-      ctx.strokeStyle = `hsla(${hue}, 64%, 58%, 0.2)`;
-      ctx.fillStyle = `hsla(${hue + 18}, 74%, 68%, 0.045)`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `hsla(${hue}, 64%, 45%, 0.34)`;
+      ctx.fillStyle = `hsla(${hue + 18}, 74%, 60%, 0.11)`;
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
       ctx.ellipse(center.x, center.y, r * 1.4, r * 0.84, Math.sin(state.t * 0.12 + index) * 0.3, 0, TAU);
       ctx.fill();
@@ -2634,8 +2638,8 @@
     ctx.translate(extent.x, extent.y);
     for (let ring = 0; ring < 9; ring += 1) {
       const radius = extent.w * (0.1 + ring * 0.055 + (state.t * 0.04) % 0.05);
-      ctx.strokeStyle = `hsla(${hue + ring * 7}, 74%, 52%, ${0.12 - ring * 0.008})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `hsla(${hue + ring * 7}, 78%, 46%, ${0.24 - ring * 0.014})`;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.ellipse(0, 0, radius, radius * 0.62, Math.sin(index + ring) * 0.1, 0, TAU);
       ctx.stroke();

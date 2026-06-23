@@ -131,9 +131,27 @@ test('intent runtime keeps visible errors short and logs diagnostics', () => {
 
   assert.match(renderer, /compactIntentRuntimeMessage/);
   assert.match(renderer, /Runtime dtype mismatch/);
+  assert.match(renderer, /embedModel\(Id\|Hash\) mismatch/);
+  assert.match(renderer, /Intent model unavailable/);
   assert.match(renderer, /console\.error\('\[simulatte\.intent\] model-backed intent failed'/);
-  assert.match(renderer, /elements\.node\.dataset\.detail/);
-  assert.match(renderer, /elements\.node\.title/);
+  assert.match(renderer, /elements\.node\.dataset\.detail = String\(message/);
+  assert.match(renderer, /elements\.node\.title = String\(message/);
+  assert.doesNotMatch(renderer, /elements\.node\.title = String\(rawMessage/);
+});
+
+test('Firebase hosting revalidates app shell and app JavaScript', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(root, 'firebase.json'), 'utf8'));
+  const headers = config.hosting.headers;
+  const noCacheSources = new Set(headers
+    .filter((entry) => entry.headers.some((header) => (
+      header.key === 'Cache-Control' && header.value === 'no-cache'
+    )))
+    .map((entry) => entry.source));
+
+  assert.ok(noCacheSources.has('/'));
+  assert.ok(noCacheSources.has('/index.html'));
+  assert.ok(noCacheSources.has('/js/**'));
+  assert.ok(noCacheSources.has('/simulatte-model-cache-sw.js'));
 });
 
 test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {

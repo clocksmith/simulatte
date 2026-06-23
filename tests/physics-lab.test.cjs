@@ -134,6 +134,33 @@ test('Doppler model handles normalize URL provenance to the manifest model id', 
   });
 });
 
+test('embed providers normalize default model URL provenance to the manifest model id', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
+      embedProvider: {
+        async embed() {
+          return {
+            embedding: query,
+            embedModelId: manifest.embedModel.defaultModelBaseUrl,
+            embedModelHash: manifest.embedModel.manifestHash,
+          };
+        },
+      },
+    });
+    const result = await embedder.rankPrompt(
+      'glass lens prism optics bench with a bright beam',
+      lab.PHYSICAL_PRIMITIVES,
+      { max: 8 }
+    );
+
+    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+    assert.equal(result.backend, 'configured-provider');
+    assert.equal(result.priors[0].primitiveId, 'optics-bench');
+  });
+});
+
 test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async () => {
   await withIntentArtifactFetch(async ({ index, surfaceIndex }) => {
     const query = indexedCardVector(surfaceIndex, 'hamster_wheel');
