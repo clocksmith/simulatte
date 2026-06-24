@@ -156,7 +156,11 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(renderer, /joinPulse/);
   assert.match(renderer, /splitPulse/);
   assert.match(renderer, /waitForLoadingPaint/);
-  assert.match(renderer, /canvasLoader\.setLoading\(loading, percent, stage\)/);
+  assert.match(renderer, /canvasLoading = loading && event\.canvasLoading === true/);
+  assert.match(renderer, /dataset\.loadingVisual = canvasLoading \? 'snake' : loading \? 'simple' : 'idle'/);
+  assert.match(renderer, /canvasLoader\.setLoading\(canvasLoading, percent, stage\)/);
+  assert.match(renderer, /resolveWithEmbedding\(prompt, params, serial, false\)/);
+  assert.match(renderer, /resolveWithEmbedding\(initialPrompt, initialParams, buildSerial, true\)/);
   assert.match(renderer, /runButton\.classList\.toggle\('is-loading', loading\)/);
   assert.match(renderer, /runButton\.disabled = loading/);
   assert.match(renderer, /runButton\.setAttribute\('aria-disabled'/);

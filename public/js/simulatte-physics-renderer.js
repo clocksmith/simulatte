@@ -100,7 +100,7 @@
         setSpec(createSpecFromPrompt(prompt, { params }));
         return;
       }
-      resolveWithEmbedding(prompt, params, serial);
+      resolveWithEmbedding(prompt, params, serial, false);
     };
 
     exampleButtons.forEach((button) => {
@@ -143,7 +143,7 @@
       }
     });
 
-    async function resolveWithEmbedding(prompt, params, serial) {
+    async function resolveWithEmbedding(prompt, params, serial, showCanvasLoader = false) {
       if (!String(prompt || '').trim()) return;
       if (!embedder) {
         resolveWithoutEmbedding(prompt, params, serial, 'Intent model unavailable');
@@ -155,13 +155,17 @@
         stage: 'start',
         percent: 1,
         message: 'Starting intent model',
+        canvasLoading: showCanvasLoader,
       });
       try {
         await waitForLoadingPaint();
         if (serial !== buildSerial) return;
         const result = await embedder.rankPrompt(prompt, model.PHYSICAL_PRIMITIVES, {
           max: 36,
-          onProgress: (event) => syncIntentRuntime(runtimeStatus, event),
+          onProgress: (event) => syncIntentRuntime(runtimeStatus, {
+            ...event,
+            canvasLoading: showCanvasLoader,
+          }),
         });
         if (serial !== buildSerial) return;
         setSpec(createSpecFromPrompt(prompt, {
@@ -248,7 +252,7 @@
 
     setSpec(spec);
     buildSerial += 1;
-    resolveWithEmbedding(initialPrompt, initialParams, buildSerial);
+    resolveWithEmbedding(initialPrompt, initialParams, buildSerial, true);
     requestAnimationFrame(tick);
     return { getSpec: () => spec, getState: () => state, setSpec };
   }
@@ -270,14 +274,16 @@
     const stage = String(event.stage || event.phase || 'intent');
     const state = event.state || (stage === 'error' ? 'error' : percent >= 100 ? 'ready' : 'active');
     const loading = state === 'active';
+    const canvasLoading = loading && event.canvasLoading === true;
     const runButton = elements.node.closest('.physics-panel')?.querySelector('#build-lab');
     const rawMessage = event.detail || event.message || stage;
     const message = compactIntentRuntimeMessage(event.message || stage);
     elements.node.dataset.state = state;
+    elements.node.dataset.loadingVisual = canvasLoading ? 'snake' : loading ? 'simple' : 'idle';
     elements.node.dataset.detail = String(message || '');
     elements.node.title = String(message || '');
     if (elements.canvasLoader) {
-      elements.canvasLoader.setLoading(loading, percent, stage);
+      elements.canvasLoader.setLoading(canvasLoading, percent, stage);
     }
     if (runButton) {
       runButton.classList.toggle('is-loading', loading);
@@ -1937,13 +1943,13 @@
     ctx.globalCompositeOperation = 'source-over';
     const diagonal = ctx.createLinearGradient(0, 0, width, height);
     diagonal.addColorStop(0, 'rgba(255,255,255,0)');
-    diagonal.addColorStop(0.34, `hsla(${accentHue}, 86%, 58%, 0.11)`);
-    diagonal.addColorStop(0.68, `hsla(${(accentHue + 54) % 360}, 88%, 56%, 0.07)`);
+    diagonal.addColorStop(0.34, `hsla(${accentHue}, 72%, 58%, 0.035)`);
+    diagonal.addColorStop(0.68, `hsla(${(accentHue + 54) % 360}, 76%, 56%, 0.025)`);
     diagonal.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = diagonal;
     ctx.fillRect(0, 0, width, height);
 
-    ctx.strokeStyle = `hsla(${accentHue}, 54%, 24%, 0.13)`;
+    ctx.strokeStyle = `hsla(${accentHue}, 42%, 24%, 0.045)`;
     ctx.lineWidth = 1;
     const spacing = Math.max(24, Math.min(width, height) / 15);
     for (let x = -height; x < width + height; x += spacing) {
@@ -1952,19 +1958,12 @@
       ctx.lineTo(x + height * 0.45, height);
       ctx.stroke();
     }
-    ctx.strokeStyle = `hsla(${(accentHue + 126) % 360}, 48%, 34%, 0.08)`;
+    ctx.strokeStyle = `hsla(${(accentHue + 126) % 360}, 38%, 34%, 0.025)`;
     for (let y = spacing * 0.5; y < height; y += spacing) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(width, y + Math.sin(y * 0.01) * 3);
       ctx.stroke();
-    }
-    for (let i = 0; i < 92; i += 1) {
-      const x = hashNoise(421, i) * width;
-      const y = hashNoise(431, i) * height;
-      const w = 8 + hashNoise(439, i) * 24;
-      ctx.fillStyle = `hsla(${(accentHue + i * 7) % 360}, 60%, 44%, ${0.035 + hashNoise(443, i) * 0.035})`;
-      ctx.fillRect(x, y, w, 1);
     }
     ctx.restore();
   }
@@ -2816,7 +2815,9 @@
   }
 
   function drawMaterialContinuumField(ctx, width, height, state, plan) {
-    const objects = (plan.objects || []).slice(0, 24);
+    const objects = visiblePlanObjects(plan).filter((object) => (
+      object.shape !== 'body' && object.shape !== 'field-envelope'
+    )).slice(0, 12);
     if (!objects.length) return;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -3414,9 +3415,36 @@
   }
 
   function drawPlanObjects(ctx, width, height, state, plan) {
-    for (let index = 0; index < (plan.objects || []).length; index += 1) {
-      drawPlanObject(ctx, width, height, state, plan, plan.objects[index], index);
+    const objects = visiblePlanObjects(plan);
+    for (let index = 0; index < objects.length; index += 1) {
+      drawPlanObject(ctx, width, height, state, plan, objects[index], index);
     }
+  }
+
+  function visiblePlanObjects(plan) {
+    const objects = plan.objects || [];
+    const primary = objects.filter((object) => isPrimaryVisualObject(object));
+    if (primary.length >= 3) return primary.slice(0, 16);
+    return objects.filter((object) => isSceneVisualObject(object)).slice(0, 16);
+  }
+
+  function isPrimaryVisualObject(object) {
+    const source = String(object && object.source || '');
+    return /^embedding-guided-synth|open-semantic-rag|doppler-residual/.test(source) ||
+      isConcreteShape(object && object.shape);
+  }
+
+  function isSceneVisualObject(object) {
+    if (!object) return false;
+    const shape = String(object.shape || '');
+    const source = String(object.source || '');
+    if ((object.kind === 'field' || shape === 'field-envelope') && source === 'catalog') return false;
+    if (shape === 'body' && source === 'catalog') return false;
+    return isConcreteShape(shape);
+  }
+
+  function isConcreteShape(shape = '') {
+    return /animal-body|wheel|coil|wire-loop|film|bubble|cooling-fins|sieve|singularity|wetland|bridge|hammer|bar|slab|slider|prism|lens|magnet|queue-node|network-node|fuel-bed|flame-front|plume|flow-path|heightfield|grain-bed|pool|panel|meter|wall/.test(String(shape));
   }
 
   function drawPlanObject(ctx, width, height, state, plan, object, index) {
