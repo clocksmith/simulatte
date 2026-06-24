@@ -1635,22 +1635,8 @@
 
   const EXAMPLE_INTENTS = Object.freeze([
     {
-      id: 'magnetic-machine',
-      label: 'W',
-      prompt: 'solar magnetic wheel with sliding magnet',
-      params: {
-        irradiance: 1040,
-        magneticStrength: 0.9,
-        sliderAmplitude: 0.68,
-        sliderPhase: 0.12,
-        loadTorque: 0.28,
-        friction: 0.055,
-        driveTiming: 0.64,
-      },
-    },
-    {
       id: 'dry-combustion',
-      label: 'X',
+      label: 'W',
       prompt: 'wind pushes a dry pine fire',
       params: {
         combustibility: 0.88,
@@ -1660,6 +1646,20 @@
         heatTransfer: 0.74,
         opacity: 0.62,
         damping: 0.07,
+      },
+    },
+    {
+      id: 'magnetic-machine',
+      label: 'X',
+      prompt: 'solar magnetic wheel with sliding magnet',
+      params: {
+        irradiance: 1040,
+        magneticStrength: 0.9,
+        sliderAmplitude: 0.68,
+        sliderPhase: 0.12,
+        loadTorque: 0.28,
+        friction: 0.055,
+        driveTiming: 0.64,
       },
     },
     {

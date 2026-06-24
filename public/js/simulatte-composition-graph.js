@@ -28,6 +28,7 @@
     foam: style('#efffff', '#86cfd9', 0.26),
     gel: style('#c4f4ef', '#6bb7aa', 0.36),
     glass: style('#dff9ff', '#66b8e8', 0.34),
+    gold: style('#ffd760', '#b47a23', 0.86),
     leaf: style('#8fd878', '#3f7d3c', 0.68),
     light: style('#ffe873', '#efb425', 0.84),
     magnet: style('#d44a8f', '#2959c6', 0.88),
@@ -249,8 +250,9 @@
       ...relation,
       reason: relation.channel,
     }));
-    const fields = fieldsForComposition(graph, spec);
-    const sceneKind = sceneKindForComposition(graph, initialObjects, fields, spec);
+    const rawFields = fieldsForComposition(graph, spec);
+    const sceneKind = sceneKindForComposition(graph, initialObjects, rawFields, spec);
+    const fields = focusFieldsForScene(rawFields, sceneKind);
     const objects = prioritizeObjectsForScene(initialObjects, sceneKind);
     const visualRegimes = uniqueList(objects.map((object) => object.visualRegime));
     const emitters = emittersForComposition(graph);
@@ -349,9 +351,11 @@
       object.material,
       object.visualRegime,
       object.role,
+      object.phrase,
       object.assembly,
       object.source,
     ].join(' ').toLowerCase();
+    if (/^embedding-guided-synth/.test(object.source || '')) return 12;
     if (sceneKind === 'fire') {
       if (/optic|prism|lens|mirror|queue|traffic|network/.test(text)) return -1;
       if (/flame|fire|smoke|fuel|wood|thermal|heat|plume|pine|wind|air|ridge/.test(text)) return 8;
@@ -482,6 +486,46 @@
     return 'generic';
   }
 
+  function focusFieldsForScene(fields, sceneKind) {
+    const allowed = {
+      fire: ['thermal', 'gravity'],
+      optics: ['optical-rays'],
+      city: ['network-flow'],
+      watershed: ['gravity'],
+      'magnetic-machine': ['dipole', 'radiation'],
+      ferrofluid: ['dipole'],
+      'thin-film': ['optical-rays'],
+      granular: ['gravity'],
+      'thermal-plume': ['thermal', 'gravity'],
+      'material-tray': ['thermal', 'gravity'],
+      biology: ['force-field'],
+      mechanical: ['force-field', 'gravity'],
+      acoustic: ['force-field'],
+      fluid: ['gravity', 'force-field'],
+      atomic: ['force-field'],
+      generic: ['force-field'],
+    };
+    const wanted = new Set(allowed[sceneKind] || allowed.generic);
+    const focused = (fields || []).filter((field) => wanted.has(field.kind));
+    if (focused.length) return focused;
+    if (sceneKind === 'optics' || sceneKind === 'thin-film') {
+      return [{ id: 'scene-optical-rays', kind: 'optical-rays', from: [0.12, 0.46], to: [0.88, 0.56], strength: 0.72 }];
+    }
+    if (sceneKind === 'city') {
+      return [{ id: 'scene-network-flow', kind: 'network-flow', strength: 0.72 }];
+    }
+    if (sceneKind === 'fire' || sceneKind === 'thermal-plume') {
+      return [{ id: 'scene-thermal-field', kind: 'thermal', center: [0.5, 0.56], radius: 0.34, strength: 0.72 }];
+    }
+    if (sceneKind === 'magnetic-machine' || sceneKind === 'ferrofluid') {
+      return [{ id: 'scene-dipole-field', kind: 'dipole', center: [0.54, 0.5], radius: 0.32, strength: 0.72 }];
+    }
+    if (sceneKind === 'watershed' || sceneKind === 'granular') {
+      return [{ id: 'scene-gravity-flow', kind: 'gravity', from: [0.16, 0.16], to: [0.78, 0.84], strength: 0.68 }];
+    }
+    return [{ id: 'scene-force-field', kind: 'force-field', center: [0.52, 0.52], radius: 0.32, strength: 0.5 }];
+  }
+
   function dominantRegimeForScene(sceneKind, objects) {
     const map = {
       fire: 'thermal',
@@ -558,6 +602,15 @@
   function sizeForNode(node, spec) {
     const density = clamp(Number(spec.params && spec.params.complexity || 0.5), 0, 1);
     if (node.shape === 'wheel') return [0.24, 0.24];
+    if (node.shape === 'animal-body') return [0.16, 0.1];
+    if (node.shape === 'coil') return [0.16, 0.12];
+    if (node.shape === 'wire-loop' || node.shape === 'film') return [0.2, 0.16];
+    if (node.shape === 'bubble') return [0.12, 0.12];
+    if (node.shape === 'cooling-fins' || node.shape === 'sieve') return [0.24, 0.12];
+    if (node.shape === 'bridge') return [0.22, 0.1];
+    if (node.shape === 'singularity') return [0.18, 0.18];
+    if (node.shape === 'hammer') return [0.18, 0.12];
+    if (node.shape === 'wetland') return [0.26, 0.16];
     if (node.shape === 'heightfield') return [0.64, 0.46];
     if (node.shape === 'queue-node' || node.shape === 'network-node') return [0.08, 0.08];
     if (node.shape === 'field-envelope') return [0.24 + density * 0.16, 0.24 + density * 0.16];
@@ -651,7 +704,18 @@
   }
 
   function componentText(component) {
-    return `${component && component.id || ''} ${component && component.type || ''} ${component && component.role || ''}`.toLowerCase();
+    if (!component) return '';
+    return [
+      component.id,
+      component.type,
+      component.role,
+      component.phrase,
+      component.material,
+      component.visualRegime,
+      component.assembly,
+      component.source,
+      ...(component.domains || []),
+    ].filter(Boolean).join(' ').toLowerCase();
   }
 
   function inferLayer(component) {
@@ -670,6 +734,7 @@
     if (/copper/.test(text)) return 'copper';
     if (/silicon/.test(text)) return 'silicon';
     if (/carbon/.test(text)) return 'carbon';
+    if (/gold/.test(text)) return 'gold';
     if (/gel/.test(text)) return 'gel';
     if (/foam/.test(text)) return 'foam';
     if (/membrane/.test(text)) return 'membrane';
@@ -687,6 +752,8 @@
     if (/fire|flame|combust|plasma/.test(text)) return 'fire';
     if (/smoke/.test(text)) return 'smoke';
     if (/rock|wall/.test(text)) return 'rock';
+    if (/bubble|foam|soap/.test(text)) return 'foam';
+    if (/film|membrane/.test(text)) return 'membrane';
     if (/air|wind/.test(text)) return 'air';
     return 'light';
   }
@@ -697,8 +764,21 @@
     if (component && component.assembly === 'network') return 'network-node';
     if (component && component.assembly === 'source') return 'source-field';
     const text = componentText(component);
-    if (/forest-fire|fuel bed|biomass/.test(text)) return 'fuel-bed';
+    const identity = `${component && component.id || ''} ${component && component.role || ''} ${component && component.material || ''}`.toLowerCase();
+    if (/\bgold\b|gold-/.test(identity)) return 'bar';
     if (/wheel|rotor|gear/.test(text)) return 'wheel';
+    if (/\b(mouse|gerbil|hamster|dog|cat|animal|organism)\b/.test(text)) return 'animal-body';
+    if (/black hole|singularity|event horizon/.test(text)) return 'singularity';
+    if (/swamp|marsh|wetland/.test(text)) return 'wetland';
+    if (/bridge|truss|span/.test(text)) return 'bridge';
+    if (/hammer|mallet/.test(text)) return 'hammer';
+    if (/cooling fin|cooling fins|heat sink|heatsink/.test(text)) return 'cooling-fins';
+    if (/sieve|screen|mesh/.test(text)) return 'sieve';
+    if (/copper coil|coil|solenoid|winding/.test(text)) return 'coil';
+    if (/wire loop|wire loops|loop/.test(text)) return 'wire-loop';
+    if (/air bubble|air bubbles|bubble/.test(text)) return 'bubble';
+    if (/soap thin film|thin film|soap film|film/.test(text)) return 'film';
+    if (/forest-fire|fuel bed|biomass/.test(text)) return 'fuel-bed';
     if (/slider|actuator/.test(text)) return 'slider';
     if (/magnet/.test(text)) return 'magnet';
     if (/solar|panel/.test(text)) return 'panel';
@@ -718,11 +798,11 @@
   }
 
   function sampleShape(id) {
+    if (/gold|copper|silicon|carbon|metal|magnet/.test(id)) return 'bar';
     if (/foam|gel|membrane/.test(id)) return 'membrane-field';
     if (/bacteria|mycelium|leaf|protein/.test(id)) return 'colony-field';
     if (/brine|mercury|water|oil|steam|smoke/.test(id)) return 'pool';
     if (/glass|ice/.test(id)) return 'lens';
-    if (/copper|silicon|carbon|metal|magnet/.test(id)) return 'bar';
     if (/sand|soil|clay|rock/.test(id)) return 'grain-bed';
     if (/wood|fabric|rubber/.test(id)) return 'slab';
     if (/fire|plasma/.test(id)) return 'flame-front';

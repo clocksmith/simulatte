@@ -260,6 +260,10 @@ test('example seeds are unnamed prompt presets with distinct parameter values', 
   const matter = lab.EXAMPLE_INTENTS.find((example) => example.id === 'matter-tray');
 
   assert.deepEqual(visibleLabels, ['W', 'X', 'Y', 'Z', 'P', 'Q']);
+  assert.deepEqual(lab.EXAMPLE_INTENTS.slice(0, 2).map((example) => [example.label, example.id]), [
+    ['W', 'dry-combustion'],
+    ['X', 'magnetic-machine'],
+  ]);
   for (const label of forbiddenLabels) assert.equal(visibleLabels.includes(label), false);
   for (const example of lab.EXAMPLE_INTENTS) {
     assert.ok(example.prompt.length <= 44, `${example.id} prompt should stay compact`);
@@ -272,6 +276,20 @@ test('example seeds are unnamed prompt presets with distinct parameter values', 
   assert.equal(lab.createSpecFromPrompt(service.prompt, { params: service.params }).params.queueBacklog, 0.78);
   assert.equal(lab.createSpecFromPrompt(rain.prompt, { params: rain.params }).params.erosionRate, 0.62);
   assert.equal(lab.createSpecFromPrompt(matter.prompt, { params: matter.params }).params.magnetization, 0.68);
+});
+
+test('state labels follow compiled renderer scene identities', () => {
+  const fire = lab.createSpecFromPrompt('wind pushes a dry pine fire', {
+    allowPrototypeFallback: true,
+  });
+  const machine = lab.createSpecFromPrompt('solar magnetic wheel with sliding magnet', {
+    allowPrototypeFallback: true,
+  });
+
+  assert.equal(fire.renderProgram.rendererPlan.sceneKind, 'fire');
+  assert.equal(machine.renderProgram.rendererPlan.sceneKind, 'magnetic-machine');
+  assert.equal(lab.stateLabel({}, fire), 'elemental reaction world');
+  assert.equal(lab.stateLabel({}, machine), 'composed magnetic machine');
 });
 
 test('blank prompt resolves to empty construction plane intent', () => {
@@ -880,6 +898,36 @@ test('composition render programs do not collapse into one generic shape vocabul
   assert.ok(!signatures[1].has('queue-node'));
   assert.ok(signatures[2].has('queue-node'));
   assert.ok(!signatures[2].has('flame-front'));
+});
+
+test('render programs keep prompt nouns literal and avoid unrelated scene fields', () => {
+  const thinFilm = lab.createSpecFromPrompt('soap thin film with air bubbles in wire loops');
+  const animalRig = lab.createSpecFromPrompt('mouse in a wheel crashes into a wall');
+  const mixedScene = lab.createSpecFromPrompt(
+    'gold hammer supports glass in a swamp while fracturing near a black hole'
+  );
+  const city = lab.createSpecFromPrompt('city market queue traffic network');
+  const watershed = lab.createSpecFromPrompt('rain erodes a mountain watershed into sediment channels');
+  const ferrofluid = lab.createSpecFromPrompt('ferrofluid with copper coil and pulsing current');
+
+  const thinById = Object.fromEntries(thinFilm.renderProgram.objects.map((object) => [object.id, object]));
+  const rigById = Object.fromEntries(animalRig.renderProgram.objects.map((object) => [object.id, object]));
+  const mixedById = Object.fromEntries(mixedScene.renderProgram.objects.map((object) => [object.id, object]));
+
+  assert.equal(thinById['open-soap-thin-film-1'].shape, 'film');
+  assert.equal(thinById['open-air-bubbles-2'].shape, 'bubble');
+  assert.equal(thinById['open-wire-loops-3'].shape, 'wire-loop');
+  assert.equal(rigById['mouse-a'].shape, 'animal-body');
+  assert.equal(rigById['wheel-a'].shape, 'wheel');
+  assert.equal(mixedById['gold-a'].shape, 'bar');
+  assert.equal(mixedById['gold-a'].material, 'gold');
+  assert.equal(mixedById['hammer-a'].shape, 'hammer');
+  assert.equal(mixedById['environment-swamp'].shape, 'wetland');
+  assert.equal(mixedById['environment-black-hole'].shape, 'singularity');
+  assert.deepEqual(city.renderProgram.fields.map((field) => field.kind), ['network-flow']);
+  assert.deepEqual(watershed.renderProgram.fields.map((field) => field.kind), ['gravity']);
+  assert.deepEqual(ferrofluid.renderProgram.fields.map((field) => field.kind), ['dipole']);
+  assert.deepEqual(thinFilm.renderProgram.fields.map((field) => field.kind), ['optical-rays']);
 });
 
 test('compiled render programs keep objects positioned inside the visible world', () => {

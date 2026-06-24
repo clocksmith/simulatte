@@ -71,6 +71,15 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(renderer, /function paintMaterialTrayWorld/);
   assert.match(renderer, /function paintBiologyWorld/);
   assert.match(renderer, /function paintAcousticWorld/);
+  assert.match(renderer, /function drawCanvasTexture/);
+  assert.match(renderer, /function drawObjectSilhouette/);
+  assert.match(renderer, /function beginObjectSilhouettePath/);
+  assert.match(renderer, /function drawObjectAccentDetails/);
+  assert.match(renderer, /function drawThermalObjectMarks/);
+  assert.match(renderer, /function drawFluidObjectMarks/);
+  assert.match(renderer, /function drawGranularObjectMarks/);
+  assert.match(renderer, /function drawMagneticObjectMarks/);
+  assert.match(renderer, /Math\.max\(0\.42, alpha\)/);
   assert.doesNotMatch(renderer, /drawPrismaticParticleField/);
   assert.doesNotMatch(renderer, /function draw[A-Z][A-Za-z]+Shape/);
   assert.doesNotMatch(renderer, /drawFieldSplat/);
@@ -79,6 +88,17 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(field, /const INSTANCE_STRIDE = 8/);
   assert.match(field, /function materialVisualClass/);
   assert.match(field, /@location\(6\) stretch/);
+});
+
+test('seed W and X prompts are swapped consistently between HTML and catalog', () => {
+  const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+  const catalog = fs.readFileSync(path.join(jsDir, 'simulatte-physics-catalog.js'), 'utf8');
+
+  assert.match(html, /aria-label="Seed W" data-example-prompt="wind pushes a dry pine fire"/);
+  assert.match(html, /aria-label="Seed X" data-example-prompt="solar magnetic wheel with sliding magnet"/);
+  assert.match(html, /<textarea id="build-prompt"[^>]+>wind pushes a dry pine fire<\/textarea>/);
+  assert.match(catalog, /id: 'dry-combustion',\n\s+label: 'W'/);
+  assert.match(catalog, /id: 'magnetic-machine',\n\s+label: 'X'/);
 });
 
 test('Doppler residual intent has a strict static contract and no network dependency', () => {
@@ -120,10 +140,16 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(renderer, /splitCanvasSnake/);
   assert.match(renderer, /joinNearbyCanvasSnakes/);
   assert.match(renderer, /nearestSnakeHead/);
-  assert.match(renderer, /drawSnakeCollisionBursts/);
-  assert.match(renderer, /collisionBursts/);
-  assert.match(renderer, /particles: kind === 'join'/);
-  assert.match(renderer, /secondaryHue/);
+  assert.match(renderer, /retireCanvasSnake/);
+  assert.match(renderer, /deathFade/);
+  assert.match(renderer, /deathReason/);
+  assert.match(renderer, /snakeDirFromCells/);
+  assert.match(renderer, /branchCells = source\.cells\.slice\(splitIndex\)/);
+  assert.doesNotMatch(renderer, /drawSnakeCollisionBursts/);
+  assert.doesNotMatch(renderer, /drawCanvasSnakeHeadGlow/);
+  assert.doesNotMatch(renderer, /collisionBursts/);
+  assert.doesNotMatch(renderer, /particles: kind === 'join'/);
+  assert.doesNotMatch(renderer, /secondaryHue/);
   assert.match(renderer, /targetTail/);
   assert.match(renderer, /targetSnakeId/);
   assert.match(renderer, /bitePulse/);
@@ -175,7 +201,7 @@ test('physics graph updates log intent and composition debug data by default', (
   assert.match(renderer, /console\.table/);
 });
 
-test('intent runtime keeps visible errors short and logs diagnostics', () => {
+test('intent runtime keeps visible errors short, logs diagnostics, and falls back locally', () => {
   const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
 
   assert.match(renderer, /compactIntentRuntimeMessage/);
@@ -183,9 +209,20 @@ test('intent runtime keeps visible errors short and logs diagnostics', () => {
   assert.match(renderer, /embedModel\(Id\|Hash\) mismatch/);
   assert.match(renderer, /Intent model unavailable/);
   assert.match(renderer, /console\.error\('\[simulatte\.intent\] model-backed intent failed'/);
+  assert.match(renderer, /function resolveWithoutEmbedding/);
+  assert.match(renderer, /Local graph ready/);
+  assert.match(renderer, /using local graph fallback/);
+  assert.match(renderer, /allowPrototypeFallback: true/);
   assert.match(renderer, /elements\.node\.dataset\.detail = String\(message/);
   assert.match(renderer, /elements\.node\.title = String\(message/);
   assert.doesNotMatch(renderer, /elements\.node\.title = String\(rawMessage/);
+});
+
+test('composition shape inference does not classify catalog provenance as cats', () => {
+  const graph = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
+
+  assert.ok(graph.includes('/\\b(mouse|gerbil|hamster|dog|cat|animal|organism)\\b/'));
+  assert.doesNotMatch(graph, /\/mouse\|gerbil\|hamster\|dog\|cat\|animal\|organism\//);
 });
 
 test('Firebase hosting revalidates app shell and app JavaScript', () => {
