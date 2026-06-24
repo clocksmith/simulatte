@@ -81,6 +81,7 @@
       syncExampleButtons(exampleButtons, spec);
       syncReadoutLabels(readouts, spec);
       syncSpecPreview(specPreview, spec);
+      logGraphDebug(spec);
       lastPreviewSync = performance.now();
       last = performance.now();
     };
@@ -162,6 +163,8 @@
         message: 'Starting intent model',
       });
       try {
+        await waitForLoadingPaint();
+        if (serial !== buildSerial) return;
         const result = await embedder.rankPrompt(prompt, model.PHYSICAL_PRIMITIVES, {
           max: 36,
           onProgress: (event) => syncIntentRuntime(runtimeStatus, event),
@@ -273,6 +276,8 @@
     }
     if (runButton) {
       runButton.classList.toggle('is-loading', loading);
+      runButton.disabled = loading;
+      runButton.setAttribute('aria-disabled', loading ? 'true' : 'false');
       runButton.setAttribute('aria-busy', loading ? 'true' : 'false');
     }
     if (elements.title) elements.title.textContent = event.title || 'Intent model';
@@ -302,6 +307,15 @@
     return `${text.slice(0, 69).trim()}...`;
   }
 
+  function waitForLoadingPaint() {
+    if (typeof requestAnimationFrame !== 'function') return Promise.resolve();
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        setTimeout(resolve, 0);
+      });
+    });
+  }
+
   function createCanvasSnakeLoader() {
     return {
       active: false,
@@ -316,12 +330,18 @@
       lastStep: 0,
       nextSnakeId: 1,
       snakes: [],
+      collisionBursts: [],
       setLoading(active, percent, stage) {
+        const wasActive = this.active;
         this.active = Boolean(active);
         this.progress = clamp(Number(percent || 0) / 100, 0, 1);
         this.stage = String(stage || this.stage || 'intent');
         if (this.active && !this.snakes.length) {
           this.layoutKey = '';
+          this.lastStep = 0;
+        }
+        if (this.active && !wasActive) {
+          this.opacity = Math.max(this.opacity, 0.82);
           this.lastStep = 0;
         }
       },
@@ -342,7 +362,7 @@
     if (width <= 0 || height <= 0) return;
     ensureSnakeLoaderLayout(loader, width, height);
     if (loader.active) {
-      const stepMs = 92 - loader.progress * 30;
+      const stepMs = 58 - loader.progress * 22;
       if (!loader.lastStep) loader.lastStep = now;
       let steps = 0;
       while (now - loader.lastStep >= stepMs && steps < 5) {
@@ -366,6 +386,7 @@
     loader.layoutKey = layoutKey;
     loader.stepCount = 0;
     loader.nextSnakeId = 1;
+    loader.collisionBursts = [];
     loader.snakes = createInitialCanvasSnakes(loader);
   }
 
@@ -377,12 +398,28 @@
       202,
       262,
       292,
+      84,
+      22,
+      186,
+      316,
+      118,
+      244,
+      12,
+      222,
     ];
     const starts = [
       { x: 2, y: Math.floor(loader.rows * 0.22), dir: { x: 1, y: 0 } },
       { x: loader.cols - 3, y: Math.floor(loader.rows * 0.38), dir: { x: -1, y: 0 } },
       { x: Math.floor(loader.cols * 0.28), y: 2, dir: { x: 0, y: 1 } },
       { x: Math.floor(loader.cols * 0.72), y: loader.rows - 3, dir: { x: 0, y: -1 } },
+      { x: 2, y: Math.floor(loader.rows * 0.7), dir: { x: 1, y: 0 } },
+      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.82), dir: { x: -1, y: 0 } },
+      { x: Math.floor(loader.cols * 0.12), y: loader.rows - 3, dir: { x: 0, y: -1 } },
+      { x: Math.floor(loader.cols * 0.88), y: 2, dir: { x: 0, y: 1 } },
+      { x: Math.floor(loader.cols * 0.5), y: 2, dir: { x: 0, y: 1 } },
+      { x: Math.floor(loader.cols * 0.5), y: loader.rows - 3, dir: { x: 0, y: -1 } },
+      { x: 2, y: Math.floor(loader.rows * 0.5), dir: { x: 1, y: 0 } },
+      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.58), dir: { x: -1, y: 0 } },
     ];
     return starts.map((start, index) => createCanvasSnake(
       loader,
@@ -390,7 +427,7 @@
       start.y,
       start.dir,
       palette[index % palette.length],
-      14 + index * 2
+      12 + index
     ));
   }
 
@@ -406,6 +443,7 @@
       splitPulse: 0,
       retired: false,
       targetTail: null,
+      targetSnakeId: null,
     };
     loader.nextSnakeId += 1;
     for (let i = 0; i < length; i += 1) {
@@ -421,27 +459,34 @@
     loader.stepCount += 1;
     const liveSnakes = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 2);
     for (const snake of liveSnakes) {
-      if (!snake.targetTail && snake.cells.length > 12 && (loader.stepCount + snake.id * 5) % 24 === 0) {
+      if (!snake.targetTail && snake.cells.length > 10 && (loader.stepCount + snake.id * 5) % 13 === 0) {
         snake.targetTail = snake.cells[Math.max(6, Math.floor(snake.cells.length * 0.68))];
       }
+      if (!snake.targetSnakeId && (loader.stepCount + snake.id * 3) % 9 === 0) {
+        const target = nearestSnakeHead(loader, snake);
+        snake.targetSnakeId = target ? target.id : null;
+      }
       advanceCanvasSnake(loader, snake, buildSnakeOccupancy(loader.snakes));
-      snake.bitePulse = Math.max(0, snake.bitePulse - 0.16);
-      snake.joinPulse = Math.max(0, snake.joinPulse - 0.12);
-      snake.splitPulse = Math.max(0, snake.splitPulse - 0.1);
+      snake.bitePulse = Math.max(0, snake.bitePulse - 0.12);
+      snake.joinPulse = Math.max(0, snake.joinPulse - 0.1);
+      snake.splitPulse = Math.max(0, snake.splitPulse - 0.09);
     }
-    if (loader.stepCount % 18 === 0 && loader.snakes.length < 8) {
+    if (loader.stepCount % 7 === 0 && loader.snakes.length < 20) {
       splitCanvasSnake(loader);
     }
-    if (loader.stepCount % 29 === 0) {
+    if (loader.stepCount % 11 === 0) {
       joinNearbyCanvasSnakes(loader);
     }
     loader.snakes = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3);
-    while (loader.snakes.length < 4) {
+    loader.collisionBursts = loader.collisionBursts
+      .map((burst) => ({ ...burst, life: burst.life - 0.085 }))
+      .filter((burst) => burst.life > 0);
+    while (loader.snakes.length < 10) {
       const x = Math.floor(loader.cols * (0.18 + hashNoise(loader.nextSnakeId, 11) * 0.64));
       const y = Math.floor(loader.rows * (0.18 + hashNoise(loader.nextSnakeId, 17) * 0.64));
       const dir = SNAKE_DIRS[loader.nextSnakeId % SNAKE_DIRS.length];
       const hue = 320 + hashNoise(loader.nextSnakeId, 23) * 270;
-      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 12));
+      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 10 + (loader.nextSnakeId % 4)));
     }
   }
 
@@ -466,6 +511,7 @@
       snake.maxLength = Math.max(8, Math.min(snake.maxLength, snake.cells.length));
       snake.bitePulse = 1;
       snake.targetTail = null;
+      addSnakeCollisionBurst(loader, next, snake.hue, 'bite');
       return;
     }
     if (hit && hit.snakeId !== snake.id) {
@@ -476,6 +522,8 @@
         snake.hue = (snake.hue + other.hue) / 2;
         snake.joinPulse = 1;
         snake.targetTail = null;
+        snake.targetSnakeId = null;
+        addSnakeCollisionBurst(loader, next, snake.hue, 'join', other.hue);
         other.retired = true;
       }
     } else {
@@ -501,12 +549,22 @@
       if (snake.targetTail) {
         const currentDistance = snakeCellDistance(head, snake.targetTail, loader);
         const nextDistance = snakeCellDistance(next, snake.targetTail, loader);
-        score += (currentDistance - nextDistance) * 1.7;
+        score += (currentDistance - nextDistance) * 2.1;
+      }
+      if (snake.targetSnakeId) {
+        const target = loader.snakes.find((candidate) => candidate.id === snake.targetSnakeId && !candidate.retired);
+        if (target) {
+          const currentDistance = snakeCellDistance(head, target.cells[0], loader);
+          const nextDistance = snakeCellDistance(next, target.cells[0], loader);
+          score += (currentDistance - nextDistance) * 1.8;
+        } else {
+          snake.targetSnakeId = null;
+        }
       }
       if (hit && hit.snakeId === snake.id) {
-        score += hit.index > 4 ? 2.2 : -5.5;
+        score += hit.index > 4 ? 2.8 : -5.5;
       } else if (hit && hit.snakeId !== snake.id) {
-        score += 0.95;
+        score += 2.4;
       }
       if (next.x < 1 || next.x > loader.cols - 2 || next.y < 1 || next.y > loader.rows - 2) {
         score -= 0.35;
@@ -521,30 +579,35 @@
 
   function splitCanvasSnake(loader) {
     const source = loader.snakes
-      .filter((snake) => snake.cells.length > 14)
+      .filter((snake) => snake.cells.length > 12)
       .sort((a, b) => b.cells.length - a.cells.length)[0];
     if (!source) return;
     const splitIndex = Math.floor(source.cells.length * (0.45 + hashNoise(loader.stepCount, source.id) * 0.25));
     const origin = source.cells[splitIndex];
-    const branchDir = SNAKE_DIRS[(SNAKE_DIRS.indexOf(source.dir) + 1 + source.id) % SNAKE_DIRS.length] || { x: 0, y: 1 };
+    const branchDir = SNAKE_DIRS[(snakeDirIndex(source.dir) + 1 + source.id) % SNAKE_DIRS.length] || { x: 0, y: 1 };
     const branch = createCanvasSnake(
       loader,
       origin.x,
       origin.y,
       branchDir,
       source.hue + 42 + hashNoise(source.id, loader.stepCount) * 70,
-      Math.max(8, Math.floor(source.maxLength * 0.58))
+      Math.max(8, Math.floor(source.maxLength * 0.64))
     );
-    branch.cells = source.cells.slice(splitIndex, splitIndex + branch.maxLength);
+    branch.cells = Array.from({ length: branch.maxLength }, (_, index) => wrapSnakeCell(loader, {
+      x: origin.x - branchDir.x * index,
+      y: origin.y - branchDir.y * index,
+    }));
     branch.dir = branchDir;
     branch.splitPulse = 1;
-    source.maxLength = Math.max(10, Math.floor(source.maxLength * 0.82));
+    branch.targetSnakeId = source.id;
+    source.maxLength = Math.max(10, Math.floor(source.maxLength * 0.9));
     source.splitPulse = 1;
+    addSnakeCollisionBurst(loader, origin, branch.hue, 'split', source.hue);
     loader.snakes.push(branch);
   }
 
   function joinNearbyCanvasSnakes(loader) {
-    if (loader.snakes.length < 5) return;
+    if (loader.snakes.length < 3) return;
     let bestPair = null;
     let bestDistance = Infinity;
     for (let i = 0; i < loader.snakes.length; i += 1) {
@@ -558,13 +621,50 @@
         }
       }
     }
-    if (!bestPair || bestDistance > Math.max(4, Math.floor(Math.min(loader.cols, loader.rows) * 0.18))) return;
+    if (!bestPair || bestDistance > Math.max(7, Math.floor(Math.min(loader.cols, loader.rows) * 0.28))) return;
     const [a, b] = bestPair;
-    a.cells = [...a.cells, ...b.cells.slice(0, 12)];
-    a.maxLength = Math.min(42, a.maxLength + Math.ceil(b.maxLength * 0.55));
+    const hitCell = b.cells[0];
+    a.cells = [hitCell, ...a.cells, ...b.cells.slice(0, 16)];
+    a.maxLength = Math.min(54, a.maxLength + Math.ceil(b.maxLength * 0.65));
     a.hue = (a.hue * 0.6 + b.hue * 0.4);
     a.joinPulse = 1;
+    a.targetSnakeId = null;
+    addSnakeCollisionBurst(loader, hitCell, a.hue, 'join', b.hue);
     b.retired = true;
+  }
+
+  function nearestSnakeHead(loader, snake) {
+    let best = null;
+    let bestDistance = Infinity;
+    for (const candidate of loader.snakes) {
+      if (candidate === snake || candidate.retired || !candidate.cells.length) continue;
+      const distance = snakeCellDistance(snake.cells[0], candidate.cells[0], loader);
+      if (distance < bestDistance) {
+        best = candidate;
+        bestDistance = distance;
+      }
+    }
+    return best;
+  }
+
+  function snakeDirIndex(dir) {
+    const index = SNAKE_DIRS.findIndex((candidate) => candidate.x === dir.x && candidate.y === dir.y);
+    return index < 0 ? 0 : index;
+  }
+
+  function addSnakeCollisionBurst(loader, cell, hue, kind, secondaryHue = hue) {
+    const seed = loader.stepCount * 97 + loader.nextSnakeId * 13 + Math.round(cell.x * 5 + cell.y * 7);
+    loader.collisionBursts.push({
+      x: cell.x,
+      y: cell.y,
+      hue,
+      secondaryHue,
+      kind,
+      seed,
+      particles: kind === 'join' ? 12 : kind === 'split' ? 10 : 7,
+      life: 1,
+    });
+    if (loader.collisionBursts.length > 44) loader.collisionBursts.shift();
   }
 
   function buildSnakeOccupancy(snakes) {
@@ -584,9 +684,9 @@
     const tile = loader.tile;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = 'rgba(255, 253, 252, 0.62)';
+    ctx.fillStyle = 'rgba(250, 249, 255, 0.9)';
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = 'rgba(74, 58, 92, 0.055)';
+    ctx.strokeStyle = 'rgba(74, 58, 92, 0.11)';
     ctx.lineWidth = 1;
     for (let x = 0; x <= width + tile; x += tile) {
       ctx.beginPath();
@@ -600,15 +700,52 @@
       ctx.lineTo(width, y + 0.5);
       ctx.stroke();
     }
-    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalCompositeOperation = 'source-over';
     for (const snake of loader.snakes) {
       drawCanvasSnake(ctx, loader, snake);
     }
-    ctx.globalCompositeOperation = 'screen';
+    drawSnakeCollisionBursts(ctx, loader);
+    ctx.globalCompositeOperation = 'source-over';
     for (const snake of loader.snakes) {
       drawCanvasSnakeHeadGlow(ctx, loader, snake);
     }
     ctx.restore();
+  }
+
+  function drawSnakeCollisionBursts(ctx, loader) {
+    const tile = loader.tile;
+    for (const burst of loader.collisionBursts) {
+      const growth = 1 - burst.life;
+      const size = tile * (1.1 + growth * 2.2);
+      const alpha = Math.max(0, burst.life);
+      const x = burst.x * tile + tile / 2 - size / 2;
+      const y = burst.y * tile + tile / 2 - size / 2;
+      const lineWidth = burst.kind === 'join' ? 3 : 2;
+      ctx.strokeStyle = `hsla(${burst.hue % 360}, 90%, 58%, ${0.42 * alpha})`;
+      ctx.lineWidth = lineWidth;
+      ctx.strokeRect(x, y, size, size);
+      ctx.fillStyle = `hsla(${(burst.secondaryHue + 36) % 360}, 96%, 72%, ${0.16 * alpha})`;
+      ctx.fillRect(x + size * 0.22, y + size * 0.22, size * 0.56, size * 0.56);
+      const particleCount = Math.max(1, Math.min(18, burst.particles || 6));
+      for (let i = 0; i < particleCount; i += 1) {
+        const angle = i * TAU / particleCount + hashNoise(burst.seed, i) * 0.9;
+        const distance = tile * (0.2 + growth * (burst.kind === 'join' ? 1.35 : 1.05) + hashNoise(burst.seed + 3, i) * 0.42);
+        const px = burst.x * tile + tile / 2 + Math.cos(angle) * distance;
+        const py = burst.y * tile + tile / 2 + Math.sin(angle) * distance;
+        const side = tile * (0.12 + hashNoise(burst.seed + 7, i) * 0.16) * alpha;
+        ctx.fillStyle = `hsla(${(burst.hue + i * 21) % 360}, 94%, 66%, ${0.24 * alpha})`;
+        ctx.fillRect(px - side / 2, py - side / 2, side, side);
+      }
+      if (burst.kind === 'split') {
+        ctx.strokeStyle = `hsla(${burst.secondaryHue % 360}, 86%, 54%, ${0.3 * alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(burst.x * tile - tile * growth, burst.y * tile + tile * 0.5);
+        ctx.lineTo(burst.x * tile + tile * (1 + growth), burst.y * tile + tile * 0.5);
+        ctx.moveTo(burst.x * tile + tile * 0.5, burst.y * tile - tile * growth);
+        ctx.lineTo(burst.x * tile + tile * 0.5, burst.y * tile + tile * (1 + growth));
+        ctx.stroke();
+      }
+    }
   }
 
   function drawCanvasSnake(ctx, loader, snake) {
@@ -620,8 +757,8 @@
       const tailFade = Math.pow(1 - age, 1.45);
       const hue = (snake.hue + index * 4 + loader.stepCount * 1.8) % 360;
       const pulse = Math.max(snake.bitePulse, snake.joinPulse, snake.splitPulse);
-      const light = 72 + tailFade * 7 + pulse * 6;
-      const alpha = 0.08 + tailFade * 0.42 + pulse * 0.1;
+      const light = 56 + tailFade * 14 + pulse * 7;
+      const alpha = 0.18 + tailFade * 0.62 + pulse * 0.12;
       ctx.fillStyle = `hsla(${hue}, 82%, ${light}%, ${alpha})`;
       ctx.fillRect(cell.x * tile + inset, cell.y * tile + inset, tile - inset * 2, tile - inset * 2);
     }
@@ -632,9 +769,9 @@
     if (!head) return;
     const tile = loader.tile;
     const pulse = 0.45 + Math.max(snake.bitePulse, snake.joinPulse, snake.splitPulse) * 0.35;
-    ctx.fillStyle = `hsla(${snake.hue % 360}, 88%, 78%, ${0.12 + pulse * 0.12})`;
+    ctx.fillStyle = `hsla(${snake.hue % 360}, 88%, 58%, ${0.18 + pulse * 0.18})`;
     ctx.fillRect(head.x * tile - tile * 0.12, head.y * tile - tile * 0.12, tile * 1.24, tile * 1.24);
-    ctx.fillStyle = `hsla(${(snake.hue + 34) % 360}, 92%, 86%, ${0.22 + pulse * 0.18})`;
+    ctx.fillStyle = `hsla(${(snake.hue + 34) % 360}, 92%, 72%, ${0.34 + pulse * 0.26})`;
     ctx.fillRect(head.x * tile + tile * 0.18, head.y * tile + tile * 0.18, tile * 0.64, tile * 0.64);
   }
 
@@ -891,6 +1028,53 @@
       params: Object.fromEntries(Object.entries(spec.params).slice(0, 8)),
       remixOf: spec.remixOf || null,
     }, null, 2);
+  }
+
+  function logGraphDebug(spec) {
+    if (typeof console === 'undefined' || !spec || typeof spec !== 'object') return;
+    if (!spec.intent && !spec.compositionGraph && !spec.renderProgram && !spec.physicalSpec) return;
+    const graph = spec.compositionGraph || null;
+    const renderProgram = spec.renderProgram || null;
+    const receipt = spec.physicalSpec && spec.physicalSpec.receipt || null;
+    const rendererPlan = renderProgram && renderProgram.rendererPlan || null;
+    const prompt = spec.intent && spec.intent.prompt || spec.name || 'simulation';
+    const scene = rendererPlan && rendererPlan.sceneKind || 'unplanned';
+    const label = `[simulatte.graph] ${scene}: ${prompt}`;
+    const group = typeof console.groupCollapsed === 'function' ? console.groupCollapsed.bind(console) : console.log.bind(console);
+    const groupEnd = typeof console.groupEnd === 'function' ? console.groupEnd.bind(console) : () => {};
+    group(label);
+    console.log('intent', spec.intent || null);
+    console.log('compositionGraph', graph);
+    console.log('renderProgram', renderProgram);
+    console.log('physicalSpec', spec.physicalSpec || null);
+    console.log('receipt', receipt);
+    if (graph && typeof console.table === 'function') {
+      console.table((graph.nodes || []).map((node) => ({
+        id: node.id,
+        primitive: node.primitiveId,
+        type: node.type,
+        layer: node.layer,
+        regime: node.visualRegime,
+        material: node.material,
+        source: node.source,
+      })));
+      console.table((graph.relations || []).map((relation) => ({
+        from: relation.from,
+        to: relation.to,
+        type: relation.type || relation.relation || '',
+        operator: relation.operator || '',
+      })));
+      console.table((graph.operators || []).map((operator) => ({
+        id: operator.id,
+        kind: operator.kind || operator.type || '',
+        inputs: Array.isArray(operator.inputs) ? operator.inputs.join(', ') : '',
+        outputs: Array.isArray(operator.outputs) ? operator.outputs.join(', ') : '',
+      })));
+    }
+    if (rendererPlan) {
+      console.log('rendererPlan', rendererPlan);
+    }
+    groupEnd();
   }
 
   function syncOpenSpecPreview(node, spec, frameNow, lastSync, assignLastSync) {
@@ -1331,6 +1515,10 @@
     if (sceneKind === 'city') return paintCityWorld(ctx, width, height, state, plan);
     if (sceneKind === 'watershed') return paintWatershedWorld(ctx, width, height, state, plan);
     if (sceneKind === 'magnetic-machine') return paintMagneticMachineWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'ferrofluid') return paintFerrofluidWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'thin-film') return paintThinFilmWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'granular') return paintGranularWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'thermal-plume') return paintThermalPlumeWorld(ctx, width, height, state, plan);
     if (sceneKind === 'material-tray') return paintMaterialTrayWorld(ctx, width, height, state, plan);
     if (sceneKind === 'biology') return paintBiologyWorld(ctx, width, height, state, plan);
     if (sceneKind === 'acoustic') return paintAcousticWorld(ctx, width, height, state, plan);
@@ -1348,6 +1536,10 @@
     if (/lens|prism/.test(signature)) return 'optics';
     if (/queue|network/.test(signature)) return 'city';
     if (/heightfield|flow-path|grain-bed/.test(signature)) return 'watershed';
+    if (/ferrofluid|coil|current/.test(signature)) return 'ferrofluid';
+    if (/soap|film|bubble|wire/.test(signature)) return 'thin-film';
+    if (/granular|sieve|avalanche|powder/.test(signature)) return 'granular';
+    if (/cooling|thermal-plume|heat plume/.test(signature)) return 'thermal-plume';
     if (/wheel|magnet|slider/.test(signature)) return 'magnetic-machine';
     if (/sample|bar|pool|grain-bed/.test(signature)) return 'material-tray';
     if (/colony|membrane/.test(signature)) return 'biology';
@@ -1435,6 +1627,328 @@
     drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.42);
   }
 
+  function paintFerrofluidWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#f8fbff', '#fbfaf7');
+    drawFerrofluidCoils(ctx, width, height, state, plan);
+    drawFerrofluidSpikes(ctx, width, height, state, plan);
+    drawFerrofluidDipoleDust(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.18);
+  }
+
+  function paintThinFilmWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fbfdff', '#fff9fb');
+    drawThinFilmFrame(ctx, width, height, state, plan);
+    drawInterferenceFilm(ctx, width, height, state, plan);
+    drawBubbleLenses(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.18);
+  }
+
+  function paintGranularWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fffaf4', '#f8fbf7');
+    drawGranularSieve(ctx, width, height, state, plan);
+    drawGranularStreams(ctx, width, height, state, plan);
+    drawGranularPile(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.24);
+  }
+
+  function paintThermalPlumeWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#fff9f4', '#f7fbff');
+    drawCoolingFins(ctx, width, height, state, plan);
+    drawThermalPlumeColumn(ctx, width, height, state, plan);
+    drawSmokeShearLines(ctx, width, height, state, plan);
+    drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.22);
+  }
+
+  function drawFerrofluidCoils(ctx, width, height, state, plan) {
+    const coils = objectsMatching(plan, /coil|current|copper|conductor|magnet|field/).slice(0, 5);
+    const anchors = coils.length
+      ? coils.map((object) => objectCenter(object, width, height))
+      : [
+        { x: width * 0.28, y: height * 0.5 },
+        { x: width * 0.5, y: height * 0.45 },
+        { x: width * 0.72, y: height * 0.52 },
+      ];
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    anchors.forEach((center, index) => {
+      const radius = Math.min(width, height) * (0.045 + index * 0.007);
+      for (let loop = 0; loop < 9; loop += 1) {
+        ctx.strokeStyle = `hsla(${22 + loop * 3}, 82%, ${34 + loop * 2}%, ${0.22 - loop * 0.012})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(
+          center.x,
+          center.y,
+          radius * (1.2 + loop * 0.08),
+          radius * (0.48 + loop * 0.045),
+          state.t * 0.06 + index * 0.5,
+          0,
+          TAU
+        );
+        ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(78, 54, 38, 0.34)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(center.x - radius * 1.5, center.y + radius * 1.05);
+      ctx.lineTo(center.x + radius * 1.5, center.y + radius * 1.05);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawFerrofluidSpikes(ctx, width, height, state, plan) {
+    const fluid = firstObjectMatching(plan, /ferrofluid|magnet|fluid|field/) || (plan.objects || [])[0];
+    const center = fluid ? objectCenter(fluid, width, height) : { x: width * 0.5, y: height * 0.5 };
+    const radius = Math.min(width, height) * 0.13;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const pool = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, radius * 1.35);
+    pool.addColorStop(0, 'rgba(38, 48, 58, 0.28)');
+    pool.addColorStop(0.65, 'rgba(38, 42, 54, 0.16)');
+    pool.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = pool;
+    ctx.beginPath();
+    ctx.ellipse(center.x, center.y + radius * 0.24, radius * 1.35, radius * 0.58, 0, 0, TAU);
+    ctx.fill();
+    for (let spike = 0; spike < 42; spike += 1) {
+      const angle = spike * TAU / 42 + Math.sin(state.t * 0.28 + spike) * 0.03;
+      const base = radius * (0.32 + hashNoise(301, spike) * 0.72);
+      const length = radius * (0.32 + hashNoise(307, spike) * 0.64);
+      const x = center.x + Math.cos(angle) * base;
+      const y = center.y + Math.sin(angle) * base * 0.48;
+      ctx.strokeStyle = `hsla(${218 + spike * 2}, 42%, ${22 + hashNoise(311, spike) * 12}%, 0.42)`;
+      ctx.lineWidth = 1.2 + hashNoise(313, spike) * 2.2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(angle) * length * 0.32, y - length * (0.58 + Math.sin(angle) * 0.18));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawFerrofluidDipoleDust(ctx, width, height, state, plan) {
+    const center = firstObjectMatching(plan, /ferrofluid|magnet|field/)
+      ? objectCenter(firstObjectMatching(plan, /ferrofluid|magnet|field/), width, height)
+      : { x: width * 0.5, y: height * 0.48 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 54; i += 1) {
+      const orbit = i % 9;
+      const phase = state.t * (0.05 + orbit * 0.006) + i * 0.71;
+      const rx = width * (0.08 + orbit * 0.027);
+      const ry = height * (0.04 + orbit * 0.016);
+      const x = center.x + Math.cos(phase) * rx;
+      const y = center.y + Math.sin(phase * 1.7) * ry;
+      drawPrismaticParticle(ctx, x, y, 0.9 + orbit * 0.08, 258 + orbit * 9, 0.07, phase);
+    }
+    ctx.restore();
+  }
+
+  function drawThinFilmFrame(ctx, width, height, state, plan) {
+    const film = firstObjectMatching(plan, /film|bubble|wire|loop|membrane/) || (plan.objects || [])[0];
+    const center = film ? objectCenter(film, width, height) : { x: width * 0.5, y: height * 0.48 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.translate(center.x, center.y);
+    ctx.rotate(Math.sin(state.t * 0.08) * 0.04);
+    const w = width * 0.48;
+    const h = height * 0.42;
+    ctx.strokeStyle = 'rgba(72, 84, 98, 0.28)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w * 0.5, h * 0.5, 0, 0, TAU);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.52)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawInterferenceFilm(ctx, width, height, state, plan) {
+    const film = firstObjectMatching(plan, /film|bubble|wire|loop|membrane/) || (plan.objects || [])[0];
+    const center = film ? objectCenter(film, width, height) : { x: width * 0.5, y: height * 0.48 };
+    const w = width * 0.48;
+    const h = height * 0.42;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.translate(center.x, center.y);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w * 0.48, h * 0.48, 0, 0, TAU);
+    ctx.clip();
+    for (let band = 0; band < 22; band += 1) {
+      const y = -h * 0.5 + band * h / 21;
+      const hue = (206 + band * 19 + Math.sin(state.t * 0.12 + band) * 18) % 360;
+      ctx.strokeStyle = `hsla(${hue}, 94%, 62%, ${0.13 + (band % 4) * 0.012})`;
+      ctx.lineWidth = 3 + (band % 3);
+      ctx.beginPath();
+      for (let step = 0; step <= 28; step += 1) {
+        const x = -w * 0.55 + step * w * 1.1 / 28;
+        const yy = y + Math.sin(step * 0.72 + state.t * 0.55 + band) * h * 0.035;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawBubbleLenses(ctx, width, height, state, plan) {
+    const bubbles = objectsMatching(plan, /bubble|air|foam|film|membrane/).slice(0, 9);
+    const source = bubbles.length ? bubbles : (plan.objects || []).slice(0, 5);
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    source.forEach((object, index) => {
+      const center = objectCenter(object, width, height);
+      const r = Math.min(width, height) * (0.025 + hashNoise(337, index) * 0.052);
+      const hue = 188 + index * 23;
+      ctx.strokeStyle = `hsla(${hue}, 92%, 62%, 0.42)`;
+      ctx.fillStyle = `hsla(${hue + 48}, 96%, 76%, 0.08)`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(center.x + Math.sin(state.t * 0.1 + index) * 5, center.y, r, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawGranularSieve(ctx, width, height, state, plan) {
+    const sieve = firstObjectMatching(plan, /sieve|grid|screen|constraint/);
+    const center = sieve ? objectCenter(sieve, width, height) : { x: width * 0.5, y: height * 0.38 };
+    ctx.save();
+    ctx.translate(center.x, center.y);
+    ctx.rotate(-0.12 + Math.sin(state.t * 0.18) * 0.03);
+    ctx.strokeStyle = 'rgba(104, 82, 48, 0.3)';
+    ctx.lineWidth = 1.4;
+    const w = width * 0.52;
+    const h = height * 0.09;
+    ctx.strokeRect(-w * 0.5, -h * 0.5, w, h);
+    for (let i = 1; i < 18; i += 1) {
+      const x = -w * 0.5 + i * w / 18;
+      ctx.beginPath();
+      ctx.moveTo(x, -h * 0.5);
+      ctx.lineTo(x + Math.sin(state.t * 0.8 + i) * 1.4, h * 0.5);
+      ctx.stroke();
+    }
+    for (let row = 1; row < 4; row += 1) {
+      const y = -h * 0.5 + row * h / 4;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.5, y);
+      ctx.lineTo(w * 0.5, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGranularStreams(ctx, width, height, state, plan) {
+    const grains = objectsMatching(plan, /grain|bead|sand|powder|granular/);
+    const count = grains.length ? 96 : 64;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < count; i += 1) {
+      const lane = i % 9;
+      const fall = (state.t * 0.055 + hashNoise(353, i)) % 1;
+      const x = width * (0.28 + lane * 0.055) + Math.sin(state.t * 0.42 + i) * 6;
+      const y = height * (0.25 + fall * 0.56);
+      const hue = 34 + hashNoise(359, i) * 28;
+      ctx.fillStyle = `hsla(${hue}, 58%, 38%, ${0.18 + hashNoise(367, i) * 0.16})`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1 + hashNoise(373, i) * 2.1, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawGranularPile(ctx, width, height, state, plan) {
+    const pile = firstObjectMatching(plan, /pile|sand|grain|bead|powder|avalanche/);
+    const center = pile ? objectCenter(pile, width, height) : { x: width * 0.53, y: height * 0.76 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let layer = 0; layer < 12; layer += 1) {
+      const w = width * (0.09 + layer * 0.028);
+      const y = center.y + layer * 5;
+      ctx.strokeStyle = `hsla(${38 + layer * 2}, 48%, ${34 + layer * 1.4}%, ${0.2 - layer * 0.009})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(center.x - w, y);
+      ctx.quadraticCurveTo(center.x, y - height * (0.08 + layer * 0.005), center.x + w, y);
+      ctx.stroke();
+    }
+    drawSedimentFan(ctx, width, height, state, plan);
+    ctx.restore();
+  }
+
+  function drawCoolingFins(ctx, width, height, state, plan) {
+    const finObject = firstObjectMatching(plan, /cooling|fin|metal|conductor|sensor/);
+    const center = finObject ? objectCenter(finObject, width, height) : { x: width * 0.5, y: height * 0.68 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const finCount = 13;
+    for (let i = 0; i < finCount; i += 1) {
+      const x = center.x - width * 0.24 + i * width * 0.04;
+      const h = height * (0.16 + hashNoise(383, i) * 0.08);
+      const gradient = ctx.createLinearGradient(x, center.y - h, x, center.y + h * 0.2);
+      gradient.addColorStop(0, 'rgba(188, 208, 218, 0.08)');
+      gradient.addColorStop(1, 'rgba(78, 98, 110, 0.26)');
+      ctx.fillStyle = gradient;
+      ctx.strokeStyle = 'rgba(74, 92, 102, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.rect(x - width * 0.011, center.y - h + Math.sin(state.t * 0.2 + i) * 1.2, width * 0.022, h);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawThermalPlumeColumn(ctx, width, height, state, plan) {
+    const source = firstObjectMatching(plan, /thermal|plume|smoke|heat|cooling|fin/);
+    const center = source ? objectCenter(source, width, height) : { x: width * 0.5, y: height * 0.62 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let column = 0; column < 24; column += 1) {
+      const lane = (column - 12) / 12;
+      const hue = 22 + hashNoise(397, column) * 34;
+      ctx.strokeStyle = `hsla(${hue}, 88%, 56%, ${0.12 + hashNoise(401, column) * 0.08})`;
+      ctx.lineWidth = 1.1 + hashNoise(409, column) * 2.2;
+      ctx.beginPath();
+      ctx.moveTo(center.x + lane * width * 0.11, center.y);
+      ctx.bezierCurveTo(
+        center.x + lane * width * 0.06 + Math.sin(state.t * 0.6 + column) * 18,
+        center.y - height * 0.12,
+        center.x - lane * width * 0.08 + Math.cos(state.t * 0.44 + column) * 24,
+        center.y - height * 0.28,
+        center.x + lane * width * 0.14,
+        center.y - height * 0.5
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawSmokeShearLines(ctx, width, height, state, plan) {
+    const center = firstObjectMatching(plan, /smoke|plume|thermal/)
+      ? objectCenter(firstObjectMatching(plan, /smoke|plume|thermal/), width, height)
+      : { x: width * 0.5, y: height * 0.36 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let band = 0; band < 13; band += 1) {
+      const y = center.y - height * 0.18 + band * height * 0.033;
+      ctx.strokeStyle = `hsla(${202 + band * 3}, 32%, 48%, ${0.1 - band * 0.004})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let step = 0; step <= 26; step += 1) {
+        const x = width * (0.16 + step * 0.028);
+        const yy = y + Math.sin(step * 0.8 + state.t * 0.35 + band) * 7;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function paintSceneBackground(ctx, width, height, top, bottom) {
     ctx.save();
     const gradient = ctx.createLinearGradient(0, 0, 0, height);
@@ -1447,7 +1961,7 @@
 
   function drawAcousticWaveguides(ctx, width, height, state) {
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     ctx.lineWidth = 2;
     for (let guide = 0; guide < 7; guide += 1) {
       const y = height * (0.22 + guide * 0.088);
@@ -1467,7 +1981,7 @@
   function drawAcousticPressureFronts(ctx, width, height, state, plan) {
     const centers = acousticPlanCenters(plan, width, height);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let c = 0; c < centers.length; c += 1) {
       const center = centers[c];
       for (let ring = 0; ring < 11; ring += 1) {
@@ -1488,7 +2002,7 @@
   function drawAcousticResonatorNodes(ctx, width, height, state, plan) {
     const centers = acousticPlanCenters(plan, width, height).slice(0, 8);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let i = 0; i < centers.length; i += 1) {
       const center = centers[i];
       const pulse = 0.5 + 0.5 * Math.sin(state.t * 3.2 + i * 0.9);
@@ -1713,7 +2227,7 @@
     const c = prism ? objectCenter(prism, width, height) : { x: width * 0.58, y: height * 0.5 };
     const d = sensor ? objectCenter(sensor, width, height) : { x: width * 0.84, y: height * 0.56 };
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let i = 0; i < 9; i += 1) {
       const split = (i - 4) * 0.018;
       const hue = 206 + i * 18;
@@ -1738,7 +2252,7 @@
   function drawOpticalSurfaces(ctx, width, height, state, plan) {
     const optical = objectsMatching(plan, /lens|prism|mirror|glass|sensor/).slice(0, 8);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     optical.forEach((object, index) => {
       const center = objectCenter(object, width, height);
       const isPrism = /prism/.test(`${object.id} ${object.shape}`);
@@ -1775,7 +2289,7 @@
     const target = firstObjectMatching(plan, /sensor|meter|wall|screen/);
     const center = target ? objectCenter(target, width, height) : { x: width * 0.78, y: height * 0.63 };
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let ring = 0; ring < 12; ring += 1) {
       ctx.strokeStyle = `hsla(${198 + ring * 12}, 92%, 56%, ${0.17 - ring * 0.008})`;
       ctx.lineWidth = 1.3;
@@ -1881,7 +2395,7 @@
         { x: width * 0.78, y: height * 0.82 },
       ];
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let band = 0; band < 8; band += 1) {
       ctx.strokeStyle = `hsla(${190 + band * 6}, 82%, 48%, ${0.24 - band * 0.014})`;
       ctx.lineWidth = 5 + band * 2.6;
@@ -2159,7 +2673,7 @@
 
   function drawNutrientField(ctx, width, height, state) {
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     for (let i = 0; i < 18; i += 1) {
       const x = width * (0.18 + hashNoise(151, i) * 0.64);
       const y = height * (0.18 + hashNoise(157, i) * 0.62);
@@ -2179,7 +2693,7 @@
     const roots = objectsMatching(plan, /mycelium|bacteria|colony|growth|infection|protein|leaf/);
     const anchors = roots.length ? roots : (plan.objects || []).slice(0, 4);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     anchors.slice(0, 8).forEach((object, index) => {
       const center = objectCenter(object, width, height);
       for (let branch = 0; branch < 11; branch += 1) {
@@ -2206,7 +2720,7 @@
   function drawMembranePools(ctx, width, height, state, plan) {
     const membranes = objectsMatching(plan, /membrane|gel|foam|soft|cell|bacteria/).slice(0, 10);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalCompositeOperation = 'source-over';
     membranes.forEach((object, index) => {
       const center = objectCenter(object, width, height);
       const r = Math.min(width, height) * (0.035 + hashNoise(173, index) * 0.055);

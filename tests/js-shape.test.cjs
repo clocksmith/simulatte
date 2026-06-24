@@ -119,11 +119,60 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(renderer, /drawCanvasLoadingSnakes/);
   assert.match(renderer, /splitCanvasSnake/);
   assert.match(renderer, /joinNearbyCanvasSnakes/);
+  assert.match(renderer, /nearestSnakeHead/);
+  assert.match(renderer, /drawSnakeCollisionBursts/);
+  assert.match(renderer, /collisionBursts/);
+  assert.match(renderer, /particles: kind === 'join'/);
+  assert.match(renderer, /secondaryHue/);
   assert.match(renderer, /targetTail/);
+  assert.match(renderer, /targetSnakeId/);
   assert.match(renderer, /bitePulse/);
+  assert.match(renderer, /joinPulse/);
+  assert.match(renderer, /splitPulse/);
+  assert.match(renderer, /waitForLoadingPaint/);
   assert.match(renderer, /canvasLoader\.setLoading\(loading, percent, stage\)/);
   assert.match(renderer, /runButton\.classList\.toggle\('is-loading', loading\)/);
+  assert.match(renderer, /runButton\.disabled = loading/);
+  assert.match(renderer, /runButton\.setAttribute\('aria-disabled'/);
   assert.match(renderer, /runButton\.setAttribute\('aria-busy'/);
+});
+
+test('composition renderer has specific painters for diverse scene regimes', () => {
+  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+  const graph = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
+
+  for (const token of [
+    'paintFerrofluidWorld',
+    'drawFerrofluidSpikes',
+    'paintThinFilmWorld',
+    'drawInterferenceFilm',
+    'paintGranularWorld',
+    'drawGranularSieve',
+    'paintThermalPlumeWorld',
+    'drawThermalPlumeColumn',
+  ]) {
+    assert.match(renderer, new RegExp(token));
+  }
+  for (const sceneKind of ['ferrofluid', 'thin-film', 'granular', 'thermal-plume']) {
+    assert.match(graph, new RegExp(`sceneKind === '${sceneKind}'`));
+  }
+  for (const pass of ['coil-field', 'film-frame', 'bead-stream', 'cooling-fins']) {
+    assert.match(graph, new RegExp(pass));
+  }
+});
+
+test('physics graph updates log intent and composition debug data by default', () => {
+  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+
+  assert.match(renderer, /logGraphDebug\(spec\)/);
+  assert.match(renderer, /function logGraphDebug/);
+  assert.match(renderer, /console\.groupCollapsed/);
+  assert.match(renderer, /\[simulatte\.graph\]/);
+  assert.match(renderer, /console\.log\('intent'/);
+  assert.match(renderer, /console\.log\('compositionGraph'/);
+  assert.match(renderer, /console\.log\('renderProgram'/);
+  assert.match(renderer, /console\.log\('receipt'/);
+  assert.match(renderer, /console\.table/);
 });
 
 test('intent runtime keeps visible errors short and logs diagnostics', () => {

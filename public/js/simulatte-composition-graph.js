@@ -352,6 +352,31 @@
       object.assembly,
       object.source,
     ].join(' ').toLowerCase();
+    if (sceneKind === 'fire') {
+      if (/optic|prism|lens|mirror|queue|traffic|network/.test(text)) return -1;
+      if (/flame|fire|smoke|fuel|wood|thermal|heat|plume|pine|wind|air|ridge/.test(text)) return 8;
+      return 2;
+    }
+    if (sceneKind === 'thermal-plume') {
+      if (/optic|prism|lens|mirror|queue|traffic|network/.test(text)) return -1;
+      if (/thermal|plume|smoke|heat|cooling|fin|air|metal|conductor|sensor/.test(text)) return 8;
+      return 2;
+    }
+    if (sceneKind === 'ferrofluid') {
+      if (/flame-front|fuel-bed|fire|smoke|queue|traffic/.test(text)) return -1;
+      if (/ferrofluid|magnet|coil|current|copper|conductor|dipole|field|spike/.test(text)) return 8;
+      return 2;
+    }
+    if (sceneKind === 'thin-film') {
+      if (/flame-front|fuel-bed|fire|queue|traffic|terrain/.test(text)) return -1;
+      if (/soap|film|bubble|wire|loop|foam|membrane|light|optic|interference|air/.test(text)) return 8;
+      return 2;
+    }
+    if (sceneKind === 'granular') {
+      if (/flame-front|fuel-bed|fire|smoke|optic|lens|prism/.test(text)) return -1;
+      if (/granular|grain|bead|sieve|avalanche|powder|sand|rock|sediment|gravity/.test(text)) return 8;
+      return 2;
+    }
     if (sceneKind === 'mechanical') {
       if (/embedding-guided-synth/.test(text)) return 10;
       if (/collision|friction|rigid-body|soft-body|wheel|constraint|surface-boundary|energy-ledger|metal|rubber/.test(text)) return 6;
@@ -369,12 +394,12 @@
     }
     if (sceneKind === 'watershed') {
       if (/flame-front|fuel-bed|fire|smoke|thermal/.test(text)) return -1;
-      if (/water|river|flow|terrain|erosion|sand|soil|rock|sediment|gravity/.test(text)) return 8;
+      if (/water|river|flow|terrain|erosion|sand|soil|rock|sediment|gravity|granular|grain|bead|sieve|avalanche|powder/.test(text)) return 8;
       return 2;
     }
     if (sceneKind === 'magnetic-machine') {
       if (/flame-front|fuel-bed|fire|smoke|thermal/.test(text)) return -1;
-      if (/magnet|rotor|stator|wheel|slider|solar|panel|motor|load|flux|dipole/.test(text)) return 8;
+      if (/magnet|ferrofluid|coil|current|conductor|copper|rotor|stator|wheel|slider|solar|panel|motor|load|flux|dipole/.test(text)) return 8;
       return 2;
     }
     if (sceneKind === 'biology') {
@@ -403,7 +428,19 @@
     if (/sample tray|material tray|raw material|materials|water air rock wood metal/.test(promptText)) {
       return 'material-tray';
     }
-    if (/forest fire|forest-fire|flame|burn|burning|combust|wildfire/.test(promptText)) {
+    if (/thermal plume|cooling fin|cooling fins/.test(promptText)) {
+      return 'thermal-plume';
+    }
+    if (/ferrofluid|copper coil|pulsing current|magnetic spikes/.test(promptText)) {
+      return 'ferrofluid';
+    }
+    if (/soap film|thin film|air bubble|air bubbles|wire loop|wire loops|iridescen/.test(promptText)) {
+      return 'thin-film';
+    }
+    if (/granular|beads|avalanche|sieve|powder/.test(promptText)) {
+      return 'granular';
+    }
+    if (/\b(fire|flame|smoke|burn|burning|combust|wildfire|pine)\b|forest-fire/.test(promptText)) {
       return 'fire';
     }
     if (/solar magnetic|magnetic wheel|perpetual|magnetic motor|rotor|stator/.test(promptText)) {
@@ -430,10 +467,16 @@
     if (operatorIds.has('growthDecay')) {
       return 'biology';
     }
+    if (/thermal plume|cooling fin|heat plume/.test(text)) return 'thermal-plume';
+    if (/ferrofluid|coil|current|copper conductor|magnetic spikes/.test(text)) return 'ferrofluid';
+    if (/soap|thin-film|bubble|wire loop|interference/.test(text)) return 'thin-film';
+    if (/granular|grain-bed|bead|sieve|avalanche|powder/.test(text)) return 'granular';
+    if (/flame|fuel-bed|fire-front|smoke|combust/.test(text)) return 'fire';
     if (/solar magnetic|magnetic-motor|rotor-wheel|stator-slider|dipole/.test(text) || operatorIds.has('magnetism')) {
       return 'magnetic-machine';
     }
     if (/acoustic|sound|wavefront|resonance|pressure/.test(text)) return 'acoustic';
+    if (/sediment/.test(text)) return 'watershed';
     if (/fluid|water|flow-path|advection|river/.test(text) || operatorIds.has('advection')) return 'fluid';
     if (/\b(atom|atomic|electron|ion|lattice|crystal)\b/.test(text)) return 'atomic';
     return 'generic';
@@ -446,6 +489,10 @@
       city: 'network',
       watershed: 'fluid',
       'magnetic-machine': 'magnetic',
+      ferrofluid: 'magnetic',
+      'thin-film': 'optical',
+      granular: 'granular',
+      'thermal-plume': 'thermal',
       'material-tray': 'material',
       biology: 'biological',
       mechanical: 'mechanical',
@@ -470,6 +517,10 @@
     if (sceneKind === 'city') return ['clear', 'route-grid', 'queue-flow', 'service-pulses', 'ledger'];
     if (sceneKind === 'watershed') return ['clear', 'terrain-height', 'water-channel', 'sediment', 'erosion'];
     if (sceneKind === 'magnetic-machine') return ['clear', 'flux-field', 'rotor', 'stator', 'energy'];
+    if (sceneKind === 'ferrofluid') return ['clear', 'coil-field', 'fluid-spikes', 'dipoles', 'objects'];
+    if (sceneKind === 'thin-film') return ['clear', 'film-frame', 'interference', 'bubbles', 'wire'];
+    if (sceneKind === 'granular') return ['clear', 'sieve', 'bead-stream', 'pile', 'contacts'];
+    if (sceneKind === 'thermal-plume') return ['clear', 'cooling-fins', 'plume', 'smoke-shear', 'sensors'];
     if (sceneKind === 'material-tray') return ['clear', 'tray-field', 'specimens', 'interactions', 'composite'];
     if (sceneKind === 'biology') return ['clear', 'nutrient-field', 'membranes', 'growth-front', 'cells'];
     if (sceneKind === 'mechanical') return ['clear', 'constraint-space', 'bodies', 'contacts', 'impulse-ledger'];

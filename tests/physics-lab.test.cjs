@@ -608,6 +608,16 @@ test('prompt worlds choose distinct regime renderer identities', () => {
       'thermal',
     ],
     [
+      'wind pushes a dry pine fire over a ridge',
+      'fire',
+      'thermal',
+    ],
+    [
+      'thermal plume bends smoke over cooling fins',
+      'thermal-plume',
+      'thermal',
+    ],
+    [
       'lab bench optics bench with sun lamp, glass lens, mirror, prism, and sensor',
       'optics',
       'optical',
@@ -623,9 +633,24 @@ test('prompt worlds choose distinct regime renderer identities', () => {
       'magnetic',
     ],
     [
+      'ferrofluid spikes around copper coils under pulsing current',
+      'ferrofluid',
+      'magnetic',
+    ],
+    [
       'mountain watershed with river erosion, terrain patch, sand, soil, rock, water, and gravity',
       'watershed',
       'fluid',
+    ],
+    [
+      'granular beads avalanche through a vibrating sieve',
+      'granular',
+      'granular',
+    ],
+    [
+      'soap film colors stretch around air bubbles and wire loops',
+      'thin-film',
+      'optical',
     ],
     [
       'water air rock wood metal glass magnetized metal gravity heat diffusion sample tray',
@@ -653,6 +678,7 @@ test('prompt worlds choose distinct regime renderer identities', () => {
     assert.equal(spec.renderProgram.provenance.visualIdentity.sceneKind, sceneKind);
     assert.equal(spec.physicalSpec.receipt.visualIdentity.sceneKind, sceneKind);
     assert.match(spec.renderProgram.rendererPlan.renderer, new RegExp(`\\.${sceneKind}\\.v1$`));
+    assert.ok(spec.renderProgram.rendererPlan.passOrder.length >= 4);
   }
 });
 
@@ -863,6 +889,10 @@ test('compiled render programs keep objects positioned inside the visible world'
     'lab bench optics bench with sun lamp, glass lens, mirror, prism, and sensor',
     'city grid with traffic system, power grid, market queue, sensors, delays, and conservation ledger',
     'mountain watershed with river erosion, terrain patch, sand, soil, rock, water, and gravity',
+    'thermal plume bends smoke over cooling fins',
+    'ferrofluid spikes around copper coils under pulsing current',
+    'granular beads avalanche through a vibrating sieve',
+    'soap film colors stretch around air bubbles and wire loops',
   ];
 
   for (const prompt of prompts) {
