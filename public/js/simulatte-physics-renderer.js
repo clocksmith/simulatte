@@ -1492,6 +1492,8 @@
     if (sceneKind === 'city') return paintCityWorld(ctx, width, height, state, plan);
     if (sceneKind === 'watershed') return paintWatershedWorld(ctx, width, height, state, plan);
     if (sceneKind === 'magnetic-machine') return paintMagneticMachineWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'mechanical') return paintMechanicalWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'literal-composite') return paintLiteralCompositeWorld(ctx, width, height, state, plan);
     if (sceneKind === 'ferrofluid') return paintFerrofluidWorld(ctx, width, height, state, plan);
     if (sceneKind === 'thin-film') return paintThinFilmWorld(ctx, width, height, state, plan);
     if (sceneKind === 'granular') return paintGranularWorld(ctx, width, height, state, plan);
@@ -1514,6 +1516,8 @@
     if (/queue|network/.test(signature)) return 'city';
     if (/heightfield|flow-path|grain-bed/.test(signature)) return 'watershed';
     if (/ferrofluid|coil|current/.test(signature)) return 'ferrofluid';
+    if (/animal-body|wheel|collision/.test(signature)) return 'mechanical';
+    if (/singularity|wetland|hammer/.test(signature)) return 'literal-composite';
     if (/soap|film|bubble|wire/.test(signature)) return 'thin-film';
     if (/granular|sieve|avalanche|powder/.test(signature)) return 'granular';
     if (/cooling|thermal-plume|heat plume/.test(signature)) return 'thermal-plume';
@@ -1636,6 +1640,156 @@
     drawPlanObjectsWithAlpha(ctx, width, height, state, plan, 0.22);
   }
 
+  function paintMechanicalWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#202837', '#fbf8ef', 206);
+    drawMechanicalStage(ctx, width, height, state, plan);
+    drawMechanicalImpulseField(ctx, width, height, state, plan);
+    drawPlanObjects(ctx, width, height, state, plan);
+  }
+
+  function paintLiteralCompositeWorld(ctx, width, height, state, plan) {
+    paintSceneBackground(ctx, width, height, '#171523', '#f6fbf4', 148);
+    drawCompositeEnvironment(ctx, width, height, state, plan);
+    drawCompositeStressField(ctx, width, height, state, plan);
+    drawPlanObjects(ctx, width, height, state, plan);
+  }
+
+  function drawMechanicalStage(ctx, width, height, state, plan) {
+    const wall = firstObjectMatching(plan, /wall|surface-boundary|constraint/);
+    const wallCenter = wall ? objectCenter(wall, width, height) : { x: width * 0.78, y: height * 0.56 };
+    const floorY = height * 0.72;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const floor = ctx.createLinearGradient(0, floorY - height * 0.08, 0, height);
+    floor.addColorStop(0, 'rgba(88, 78, 58, 0.08)');
+    floor.addColorStop(1, 'rgba(58, 48, 36, 0.18)');
+    ctx.fillStyle = floor;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.08, floorY);
+    ctx.lineTo(width * 0.92, floorY + Math.sin(state.t * 0.12) * 2);
+    ctx.lineTo(width * 0.92, height * 0.88);
+    ctx.lineTo(width * 0.08, height * 0.88);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(52, 58, 66, 0.32)';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.12, floorY);
+    ctx.lineTo(width * 0.9, floorY);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(78, 84, 92, 0.3)';
+    ctx.strokeStyle = 'rgba(36, 42, 50, 0.48)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.rect(wallCenter.x - width * 0.025, wallCenter.y - height * 0.2, width * 0.05, height * 0.4);
+    ctx.fill();
+    ctx.stroke();
+    for (let crack = 0; crack < 6; crack += 1) {
+      const y = wallCenter.y - height * 0.13 + crack * height * 0.048;
+      ctx.strokeStyle = `rgba(248, 236, 180, ${0.22 - crack * 0.018})`;
+      ctx.beginPath();
+      ctx.moveTo(wallCenter.x - width * 0.022, y);
+      ctx.lineTo(wallCenter.x + Math.sin(state.t * 0.2 + crack) * 7, y + 10);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawMechanicalImpulseField(ctx, width, height, state, plan) {
+    const wheels = objectsMatching(plan, /wheel/).slice(0, 2);
+    const impact = firstObjectMatching(plan, /collision|impact|crash/) || wheels[1] || null;
+    const from = wheels[0] ? objectCenter(wheels[0], width, height) : { x: width * 0.42, y: height * 0.56 };
+    const to = impact ? objectCenter(impact, width, height) : { x: width * 0.58, y: height * 0.52 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let ray = 0; ray < 12; ray += 1) {
+      const angle = -0.6 + ray * 0.1 + Math.sin(state.t * 0.7 + ray) * 0.02;
+      const r = Math.min(width, height) * (0.05 + ray * 0.006);
+      ctx.strokeStyle = `hsla(${34 + ray * 5}, 92%, 58%, ${0.16 - ray * 0.006})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(to.x, to.y);
+      ctx.lineTo(to.x + Math.cos(angle) * r, to.y + Math.sin(angle) * r);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(70, 112, 170, 0.18)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.quadraticCurveTo((from.x + to.x) / 2, from.y - height * 0.08, to.x, to.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCompositeEnvironment(ctx, width, height, state, plan) {
+    const wetland = firstObjectMatching(plan, /swamp|wetland/);
+    const singularity = firstObjectMatching(plan, /black hole|singularity/);
+    const wetCenter = wetland ? objectCenter(wetland, width, height) : { x: width * 0.46, y: height * 0.75 };
+    const holeCenter = singularity ? objectCenter(singularity, width, height) : { x: width * 0.78, y: height * 0.32 };
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const water = ctx.createLinearGradient(0, wetCenter.y - height * 0.08, 0, height);
+    water.addColorStop(0, 'rgba(70, 128, 102, 0.08)');
+    water.addColorStop(1, 'rgba(38, 74, 62, 0.24)');
+    ctx.fillStyle = water;
+    ctx.beginPath();
+    ctx.ellipse(wetCenter.x, wetCenter.y, width * 0.32, height * 0.11, 0, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(56, 112, 82, 0.32)';
+    for (let reed = 0; reed < 28; reed += 1) {
+      const x = wetCenter.x - width * 0.28 + reed * width * 0.02;
+      const base = wetCenter.y + Math.sin(reed * 0.5) * height * 0.02;
+      ctx.beginPath();
+      ctx.moveTo(x, base);
+      ctx.lineTo(x + Math.sin(state.t * 0.18 + reed) * 5, base - height * (0.08 + (reed % 4) * 0.01));
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    for (let ring = 0; ring < 6; ring += 1) {
+      ctx.strokeStyle = `hsla(${256 + ring * 8}, 86%, 62%, ${0.18 - ring * 0.018})`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.ellipse(
+        holeCenter.x,
+        holeCenter.y,
+        width * (0.08 + ring * 0.018),
+        height * (0.028 + ring * 0.008),
+        -0.28 + state.t * 0.04,
+        0,
+        TAU
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCompositeStressField(ctx, width, height, state, plan) {
+    const hammer = firstObjectMatching(plan, /hammer/);
+    const target = firstObjectMatching(plan, /glass|gold|bar|lens|fractur/);
+    if (!hammer || !target) return;
+    const a = objectCenter(hammer, width, height);
+    const b = objectCenter(target, width, height);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = 'rgba(255, 226, 112, 0.34)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+    for (let shard = 0; shard < 12; shard += 1) {
+      const angle = shard * TAU / 12 + state.t * 0.03;
+      const r = Math.min(width, height) * (0.025 + (shard % 4) * 0.008);
+      ctx.strokeStyle = `hsla(${190 + shard * 9}, 86%, 68%, ${0.22 - shard * 0.008})`;
+      ctx.beginPath();
+      ctx.moveTo(b.x, b.y);
+      ctx.lineTo(b.x + Math.cos(angle) * r, b.y + Math.sin(angle) * r);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function drawFerrofluidCoils(ctx, width, height, state, plan) {
     const coils = objectsMatching(plan, /coil|current|copper|conductor|magnet|field/).slice(0, 5);
     const anchors = coils.length
@@ -1675,8 +1829,8 @@
   }
 
   function drawFerrofluidSpikes(ctx, width, height, state, plan) {
-    const fluid = firstObjectMatching(plan, /ferrofluid|magnet|fluid|field/) || (plan.objects || [])[0];
-    const center = fluid ? objectCenter(fluid, width, height) : { x: width * 0.5, y: height * 0.5 };
+    const fluid = firstObjectMatching(plan, /ferrofluid/) || firstObjectWithShape(plan, /^pool$/);
+    const center = fluid ? objectCenter(fluid, width, height) : { x: width * 0.5, y: height * 0.62 };
     const radius = Math.min(width, height) * 0.13;
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
@@ -1705,9 +1859,8 @@
   }
 
   function drawFerrofluidDipoleDust(ctx, width, height, state, plan) {
-    const center = firstObjectMatching(plan, /ferrofluid|magnet|field/)
-      ? objectCenter(firstObjectMatching(plan, /ferrofluid|magnet|field/), width, height)
-      : { x: width * 0.5, y: height * 0.48 };
+    const fluid = firstObjectMatching(plan, /ferrofluid/) || firstObjectWithShape(plan, /^pool$/);
+    const center = fluid ? objectCenter(fluid, width, height) : { x: width * 0.5, y: height * 0.62 };
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     for (let i = 0; i < 54; i += 1) {
@@ -1723,7 +1876,8 @@
   }
 
   function drawThinFilmFrame(ctx, width, height, state, plan) {
-    const film = firstObjectMatching(plan, /film|bubble|wire|loop|membrane/) || (plan.objects || [])[0];
+    const film = firstObjectWithShape(plan, /^film$/) || firstObjectWithShape(plan, /^wire-loop$/) ||
+      firstObjectMatching(plan, /film|wire|loop|membrane/) || (plan.objects || [])[0];
     const center = film ? objectCenter(film, width, height) : { x: width * 0.5, y: height * 0.48 };
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
@@ -1743,7 +1897,8 @@
   }
 
   function drawInterferenceFilm(ctx, width, height, state, plan) {
-    const film = firstObjectMatching(plan, /film|bubble|wire|loop|membrane/) || (plan.objects || [])[0];
+    const film = firstObjectWithShape(plan, /^film$/) || firstObjectWithShape(plan, /^wire-loop$/) ||
+      firstObjectMatching(plan, /film|wire|loop|membrane/) || (plan.objects || [])[0];
     const center = film ? objectCenter(film, width, height) : { x: width * 0.5, y: height * 0.48 };
     const w = width * 0.48;
     const h = height * 0.42;
@@ -1771,8 +1926,9 @@
   }
 
   function drawBubbleLenses(ctx, width, height, state, plan) {
-    const bubbles = objectsMatching(plan, /bubble|air|foam|film|membrane/).slice(0, 9);
-    const source = bubbles.length ? bubbles : (plan.objects || []).slice(0, 5);
+    const bubbles = (plan.objects || []).filter((object) => object.shape === 'bubble').slice(0, 9);
+    const fallback = objectsMatching(plan, /bubble|air|foam|film|membrane/).slice(0, 5);
+    const source = bubbles.length ? bubbles : fallback.length ? fallback : (plan.objects || []).slice(0, 5);
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
     source.forEach((object, index) => {
@@ -1857,7 +2013,7 @@
   }
 
   function drawCoolingFins(ctx, width, height, state, plan) {
-    const finObject = firstObjectMatching(plan, /cooling|fin|metal|conductor|sensor/);
+    const finObject = firstObjectWithShape(plan, /^cooling-fins$/) || firstObjectMatching(plan, /cooling|fin|metal|conductor|sensor/);
     const center = finObject ? objectCenter(finObject, width, height) : { x: width * 0.5, y: height * 0.68 };
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
@@ -1880,7 +2036,9 @@
   }
 
   function drawThermalPlumeColumn(ctx, width, height, state, plan) {
-    const source = firstObjectMatching(plan, /thermal|plume|smoke|heat|cooling|fin/);
+    const source = firstObjectMatching(plan, /thermal plume|open-thermal-plume|plume/) ||
+      firstObjectWithShape(plan, /^flow-path$/) ||
+      firstObjectMatching(plan, /thermal|smoke|heat|cooling|fin/);
     const center = source ? objectCenter(source, width, height) : { x: width * 0.5, y: height * 0.62 };
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -2760,6 +2918,10 @@
     return objectsMatching(plan, pattern)[0] || null;
   }
 
+  function firstObjectWithShape(plan, pattern) {
+    return (plan.objects || []).find((object) => pattern.test(String(object.shape || '').toLowerCase())) || null;
+  }
+
   function objectCenter(object, width, height) {
     return planPoseCenter(object && object.pose || {}, width, height);
   }
@@ -2872,7 +3034,7 @@
     if (/fire|flame|plasma|combust|heat|thermal|smoke|plume/.test(text)) return 'thermal';
     if (/water|river|fluid|flow|pool|air|wind|brine|mercury/.test(text)) return 'fluid';
     if (/glass|light|lens|prism|ray|mirror|sensor|panel/.test(text)) return 'optical';
-    if (/gold|magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';
+    if (/ferrofluid|gold|magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';
     if (/rock|wood|soil|sand|terrain|grain|fuel|biomass|wall|ridge/.test(text)) return 'granular';
     return 'generic';
   }
@@ -3225,6 +3387,7 @@
       brine: 184,
       carbon: 230,
       copper: 24,
+      ferrofluid: 226,
       fire: 24,
       foam: 176,
       gel: 164,
@@ -3385,8 +3548,13 @@
   }
 
   function drawPlanRelations(ctx, width, height, state, plan) {
+    const visibleIds = visiblePlanObjectIds(plan);
+    const relations = (plan.relations || [])
+      .filter((relation) => visibleIds.has(relation.from) && visibleIds.has(relation.to))
+      .slice(0, 14);
+    if (!relations.length) return;
     ctx.save();
-    for (const relation of plan.relations || []) {
+    for (const relation of relations) {
       const from = planObjectCenter(plan, relation.from, width, height);
       const to = planObjectCenter(plan, relation.to, width, height);
       if (!from || !to) continue;
@@ -3398,11 +3566,11 @@
       const midY = (from.y + to.y) / 2 + Math.sin(state.t + from.x * 0.01) * 5;
       ctx.moveTo(from.x, from.y);
       ctx.quadraticCurveTo((from.x + to.x) / 2, midY, to.x, to.y);
-      ctx.strokeStyle = `hsla(${hue}, 54%, 18%, ${0.16 + strength * 0.12})`;
-      ctx.lineWidth = 4.8;
+      ctx.strokeStyle = `hsla(${hue}, 54%, 18%, ${0.08 + strength * 0.08})`;
+      ctx.lineWidth = 3.2;
       ctx.stroke();
-      ctx.strokeStyle = `hsla(${hue + 18}, 86%, 56%, ${0.28 + strength * 0.22})`;
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = `hsla(${hue + 18}, 86%, 56%, ${0.14 + strength * 0.16})`;
+      ctx.lineWidth = 1.1;
       ctx.stroke();
       for (let pulse = 0; pulse < 2; pulse += 1) {
         const t = (state.t * 0.08 + pulse * 0.5 + hashNoise(relation.from.length, relation.to.length)) % 1;
@@ -3423,14 +3591,89 @@
 
   function visiblePlanObjects(plan) {
     const objects = plan.objects || [];
+    const sceneKind = sceneKindForPlan(plan);
+    const direct = objects.filter((object) => isPromptDerivedVisualObject(object, sceneKind));
+    if (direct.length >= 2) {
+      const directIds = new Set(direct.map((object) => object.id));
+      const contextLimit = visibleContextLimit(sceneKind, direct.length);
+      const context = objects
+        .filter((object) => !directIds.has(object.id) && isEssentialSceneContext(object, sceneKind))
+        .slice(0, contextLimit);
+      return orderVisibleObjects(uniqueObjectsById([...direct, ...context])).slice(0, 16);
+    }
     const primary = objects.filter((object) => isPrimaryVisualObject(object));
-    if (primary.length >= 3) return primary.slice(0, 16);
-    return objects.filter((object) => isSceneVisualObject(object)).slice(0, 16);
+    if (primary.length >= 3) return orderVisibleObjects(primary).slice(0, 16);
+    return orderVisibleObjects(objects.filter((object) => isSceneVisualObject(object))).slice(0, 16);
+  }
+
+  function visiblePlanObjectIds(plan) {
+    return new Set(visiblePlanObjects(plan).map((object) => object.id));
+  }
+
+  function uniqueObjectsById(objects) {
+    const seen = new Set();
+    return (objects || []).filter((object) => {
+      if (!object || seen.has(object.id)) return false;
+      seen.add(object.id);
+      return true;
+    });
+  }
+
+  function visibleContextLimit(sceneKind, directCount) {
+    const limits = {
+      mechanical: 2,
+      'thin-film': 1,
+      ferrofluid: 3,
+      'thermal-plume': 2,
+      'literal-composite': 3,
+      city: 10,
+    };
+    return Math.max(0, Math.min(limits[sceneKind] ?? 4, 12 - directCount));
+  }
+
+  function orderVisibleObjects(objects) {
+    return (objects || []).slice().sort((a, b) => visualObjectDepth(a) - visualObjectDepth(b));
+  }
+
+  function visualObjectDepth(object) {
+    const text = literalObjectText(object);
+    const shape = String(object && object.shape || '');
+    if (/wetland|swamp|heightfield|fuel-bed|grain-bed/.test(text)) return 0;
+    if (/singularity|black hole/.test(text)) return 1;
+    if (/film|wire-loop|wheel|cooling-fins|sieve|pool/.test(shape)) return 2;
+    if (/bar|slab|slider|lens|prism|magnet|network-node|queue-node/.test(shape)) return 3;
+    if (/bubble|coil|hammer/.test(shape)) return 4;
+    if (/animal-body/.test(shape)) return 5;
+    if (/collision|fractur|impact|meter/.test(text)) return 6;
+    return 3;
+  }
+
+  function isPromptDerivedVisualObject(object, sceneKind = '') {
+    const source = String(object && object.source || '');
+    const shape = String(object && object.shape || '');
+    if (!/^embedding-guided-synth|open-semantic-rag|doppler-residual/.test(source)) return false;
+    if (/embedding-guided-synth-event/.test(source)) return false;
+    if (shape === 'field-envelope') return false;
+    if (shape === 'meter' && sceneKind !== 'city') return false;
+    return true;
+  }
+
+  function isEssentialSceneContext(object, sceneKind) {
+    if (!object) return false;
+    const text = literalObjectText(object);
+    const shape = String(object.shape || '');
+    if (object.kind === 'field' || shape === 'field-envelope') return false;
+    if (sceneKind === 'mechanical') return /wall|constraint|surface-boundary|collision|energy-ledger/.test(text);
+    if (sceneKind === 'thin-film') return /film|bubble|wire|loop|air|foam|membrane/.test(text);
+    if (sceneKind === 'ferrofluid') return /ferrofluid|coil|current|copper|conductor|magnet|metal/.test(text);
+    if (sceneKind === 'thermal-plume') return /thermal|plume|heat|cooling|fin|air|smoke/.test(text);
+    if (sceneKind === 'literal-composite') return /fractur|collision|constraint|rigid-body/.test(text);
+    if (sceneKind === 'city') return /network|queue|traffic|market|sensor|ledger|controller|power/.test(text);
+    return isSceneVisualObject(object);
   }
 
   function isPrimaryVisualObject(object) {
-    const source = String(object && object.source || '');
-    return /^embedding-guided-synth|open-semantic-rag|doppler-residual/.test(source) ||
+    return isPromptDerivedVisualObject(object, '') ||
       isConcreteShape(object && object.shape);
   }
 
@@ -3455,8 +3698,9 @@
     if (!extent) return;
     const hue = materialHueFor(object.material, index);
     const isField = object.kind === 'field' || object.shape === 'field-envelope';
+    const isLiteral = isConcreteShape(object.shape) && !isField;
     ctx.save();
-    ctx.globalAlpha = Math.min(1, Math.max(isField ? 0.34 : 0.66, alpha));
+    ctx.globalAlpha = Math.min(1, Math.max(isField ? 0.34 : isLiteral ? 0.86 : 0.66, alpha));
     ctx.strokeStyle = stroke;
     if (drawLiteralPlanObject(ctx, extent, state, object, index, hue)) {
       ctx.restore();
@@ -3483,6 +3727,7 @@
     if (shape === 'wetland') return drawLiteralWetland(ctx, extent, state, hue);
     if (shape === 'bridge') return drawLiteralBridge(ctx, extent, hue);
     if (shape === 'hammer') return drawLiteralHammer(ctx, extent, hue);
+    if (shape === 'wall') return drawLiteralWall(ctx, extent, state, hue);
     if (shape === 'bar' || shape === 'slab' || shape === 'slider') return drawLiteralBar(ctx, extent, state, hue, shape);
     if (shape === 'prism') return drawLiteralPrism(ctx, extent);
     if (shape === 'lens') return drawLiteralLens(ctx, extent, state);
@@ -3510,18 +3755,22 @@
     ctx.translate(extent.x, extent.y);
     ctx.rotate(extent.rotation + Math.sin(state.t * 0.12) * 0.04);
     const fur = /gerbil|hamster/.test(text) ? 34 : 208;
-    ctx.fillStyle = `hsla(${fur}, 34%, ${/mouse/.test(text) ? 62 : 50}%, 0.82)`;
-    ctx.strokeStyle = `hsla(${fur}, 38%, 24%, 0.62)`;
-    ctx.lineWidth = 1.5;
+    ctx.shadowColor = 'rgba(20, 24, 28, 0.28)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = `hsla(${fur}, 36%, ${/mouse/.test(text) ? 48 : 42}%, 0.95)`;
+    ctx.strokeStyle = `hsla(${fur}, 42%, 18%, 0.78)`;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.ellipse(-extent.w * 0.06, 0, extent.w * 0.46, extent.h * 0.32, 0, 0, TAU);
     ctx.fill();
     ctx.stroke();
+    ctx.shadowBlur = 0;
     ctx.beginPath();
     ctx.ellipse(extent.w * 0.36, -extent.h * 0.05, extent.w * 0.18, extent.h * 0.17, 0, 0, TAU);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = `hsla(${fur + 16}, 48%, 72%, 0.9)`;
+    ctx.fillStyle = `hsla(${fur + 16}, 48%, 68%, 0.98)`;
     for (const y of [-0.18, 0.07]) {
       ctx.beginPath();
       ctx.arc(extent.w * 0.36, y * extent.h, extent.h * 0.1, 0, TAU);
@@ -3536,7 +3785,7 @@
     ctx.beginPath();
     ctx.arc(extent.w * 0.43, -extent.h * 0.08, 2.2, 0, TAU);
     ctx.fill();
-    ctx.strokeStyle = `hsla(${hue}, 64%, 32%, 0.36)`;
+    ctx.strokeStyle = `hsla(${fur}, 46%, 18%, 0.6)`;
     for (let foot = -1; foot <= 1; foot += 2) {
       ctx.beginPath();
       ctx.moveTo(-extent.w * 0.16, extent.h * 0.24 * foot);
@@ -3760,6 +4009,41 @@
     ctx.fillRect(-extent.w * 0.08, -extent.h * 0.48, extent.w * 0.16, extent.h * 0.9);
     ctx.fillStyle = 'rgba(92, 96, 100, 0.82)';
     ctx.fillRect(-extent.w * 0.38, -extent.h * 0.54, extent.w * 0.76, extent.h * 0.22);
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralWall(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    const w = Math.max(extent.w, extent.h * 0.28);
+    const h = Math.max(extent.h, extent.w * 1.8);
+    const gradient = ctx.createLinearGradient(0, -h * 0.5, 0, h * 0.5);
+    gradient.addColorStop(0, `hsla(${hue || 88}, 24%, 48%, 0.64)`);
+    gradient.addColorStop(1, `hsla(${hue || 88}, 28%, 28%, 0.78)`);
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = `hsla(${hue || 88}, 26%, 18%, 0.62)`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.rect(-w * 0.5, -h * 0.5, w, h);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = `hsla(${hue + 42}, 46%, 72%, 0.22)`;
+    for (let row = 1; row < 7; row += 1) {
+      const y = -h * 0.5 + row * h / 7;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.46, y);
+      ctx.lineTo(w * 0.46, y + Math.sin(state.t * 0.12 + row) * 1.2);
+      ctx.stroke();
+    }
+    for (let col = 1; col < 3; col += 1) {
+      const x = -w * 0.5 + col * w / 3;
+      ctx.beginPath();
+      ctx.moveTo(x, -h * 0.44);
+      ctx.lineTo(x + Math.sin(col) * 2, h * 0.44);
+      ctx.stroke();
+    }
     ctx.restore();
     return true;
   }

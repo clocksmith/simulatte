@@ -24,6 +24,7 @@
     carbon: style('#55606a', '#252b32', 0.76),
     copper: style('#d08b62', '#8a4b38', 0.82),
     bacteria: style('#9adf8f', '#458947', 0.48),
+    ferrofluid: style('#2b303b', '#111820', 0.88),
     fire: style('#ff8f4f', '#c65361', 0.68),
     foam: style('#efffff', '#86cfd9', 0.26),
     gel: style('#c4f4ef', '#6bb7aa', 0.36),
@@ -253,7 +254,7 @@
     const rawFields = fieldsForComposition(graph, spec);
     const sceneKind = sceneKindForComposition(graph, initialObjects, rawFields, spec);
     const fields = focusFieldsForScene(rawFields, sceneKind);
-    const objects = prioritizeObjectsForScene(initialObjects, sceneKind);
+    const objects = layoutObjectsForScene(prioritizeObjectsForScene(initialObjects, sceneKind), sceneKind, spec);
     const visualRegimes = uniqueList(objects.map((object) => object.visualRegime));
     const emitters = emittersForComposition(graph);
     const solverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, objects), sceneKind);
@@ -383,7 +384,12 @@
     }
     if (sceneKind === 'mechanical') {
       if (/embedding-guided-synth/.test(text)) return 10;
-      if (/collision|friction|rigid-body|soft-body|wheel|constraint|surface-boundary|energy-ledger|metal|rubber/.test(text)) return 6;
+      if (/collision|friction|rigid-body|soft-body|wheel|wall|constraint|surface-boundary|energy-ledger|metal|rubber/.test(text)) return 6;
+      return -1;
+    }
+    if (sceneKind === 'literal-composite') {
+      if (/embedding-guided-synth/.test(text)) return 10;
+      if (/black hole|singularity|swamp|wetland|hammer|gold|glass|fractur|collision|constraint|rigid-body/.test(text)) return 8;
       return -1;
     }
     if (sceneKind === 'city') {
@@ -419,6 +425,129 @@
     return 2;
   }
 
+  function layoutObjectsForScene(objects, sceneKind, spec) {
+    if (sceneKind === 'mechanical') return layoutMechanicalObjects(objects);
+    if (sceneKind === 'thin-film') return layoutThinFilmObjects(objects);
+    if (sceneKind === 'ferrofluid') return layoutFerrofluidObjects(objects);
+    if (sceneKind === 'thermal-plume') return layoutThermalPlumeObjects(objects);
+    if (sceneKind === 'literal-composite') return layoutLiteralCompositeObjects(objects);
+    return objects;
+  }
+
+  function layoutMechanicalObjects(objects) {
+    let wheelIndex = 0;
+    let animalIndex = 0;
+    const wheelCount = objects.filter((object) => object.shape === 'wheel').length;
+    const wheelSlots = wheelCount > 1 ? [[0.36, 0.56], [0.64, 0.56]] : [[0.42, 0.56]];
+    return objects.map((object) => {
+      const text = renderObjectText(object);
+      if (object.shape === 'wheel') {
+        const slot = wheelSlots[Math.min(wheelIndex, wheelSlots.length - 1)];
+        wheelIndex += 1;
+        return withPose(object, slot[0], slot[1], 0, [0.27, 0.27]);
+      }
+      if (object.shape === 'animal-body') {
+        const slot = wheelSlots[Math.min(animalIndex, wheelSlots.length - 1)];
+        animalIndex += 1;
+        return withPose(object, slot[0], slot[1] + 0.015, 0.02, [0.17, 0.105]);
+      }
+      if (/wall|constraint|surface-boundary/.test(text)) return withPose(object, 0.78, 0.56, 0.02, [0.055, 0.34]);
+      if (/collision|impact|crash|fractur/.test(text)) return withPose(object, 0.56, 0.51, 0, [0.12, 0.09]);
+      if (/energy-ledger|meter/.test(text)) return withPose(object, 0.18, 0.78, -0.04, [0.11, 0.08]);
+      return object;
+    });
+  }
+
+  function layoutThinFilmObjects(objects) {
+    let bubbleIndex = 0;
+    const bubbleSlots = [[0.42, 0.43], [0.57, 0.51], [0.48, 0.58], [0.62, 0.4]];
+    return objects.map((object) => {
+      if (object.shape === 'film') return withPose(object, 0.5, 0.47, 0.02, [0.46, 0.34]);
+      if (object.shape === 'wire-loop') return withPose(object, 0.5, 0.47, 0, [0.52, 0.38]);
+      if (object.shape === 'bubble') {
+        const slot = bubbleSlots[bubbleIndex % bubbleSlots.length];
+        bubbleIndex += 1;
+        return withPose(object, slot[0], slot[1], 0, [0.12, 0.12]);
+      }
+      return object;
+    });
+  }
+
+  function layoutFerrofluidObjects(objects) {
+    let conductorIndex = 0;
+    return objects.map((object) => {
+      const text = renderObjectText(object);
+      if (/ferrofluid/.test(text)) return withPose(object, 0.5, 0.62, 0, [0.34, 0.18]);
+      if (object.shape === 'coil') return withPose(object, 0.5, 0.34, 0.02, [0.32, 0.2]);
+      if (/current|pulsing|dipole|field-envelope/.test(text)) return withPose(object, 0.5, 0.46, 0, [0.42, 0.3]);
+      if (/copper|conductor|magnet|metal/.test(text)) {
+        const x = conductorIndex % 2 ? 0.72 : 0.28;
+        conductorIndex += 1;
+        return withPose(object, x, 0.55, conductorIndex % 2 ? 0.1 : -0.1, [0.14, 0.09]);
+      }
+      return object;
+    });
+  }
+
+  function layoutThermalPlumeObjects(objects) {
+    return objects.map((object) => {
+      const text = renderObjectText(object);
+      if (object.shape === 'cooling-fins') return withPose(object, 0.5, 0.76, 0, [0.46, 0.18]);
+      if (/thermal plume|plume|heat|thermal-source/.test(text)) {
+        if (object.shape === 'flow-path') {
+          return withPathPose(object, [[0.5, 0.76], [0.52, 0.55], [0.48, 0.28]]);
+        }
+        return withPose(object, 0.5, 0.6, 0, [0.12, 0.09]);
+      }
+      if (/air|smoke/.test(text)) return withPose(object, 0.56, 0.4, 0, [0.12, 0.1]);
+      return object;
+    });
+  }
+
+  function layoutLiteralCompositeObjects(objects) {
+    return objects.map((object) => {
+      const text = renderObjectText(object);
+      const identity = `${object.id || ''} ${object.shape || ''} ${object.material || ''} ${object.role || ''}`.toLowerCase();
+      if (/black hole|singularity/.test(identity) || /black hole|singularity/.test(text)) {
+        return withPose(object, 0.78, 0.32, 0, [0.28, 0.28]);
+      }
+      if (/swamp|wetland/.test(identity) || /swamp|wetland/.test(text)) {
+        return withPose(object, 0.46, 0.75, 0, [0.56, 0.22]);
+      }
+      if (/hammer/.test(identity)) return withPose(object, 0.48, 0.5, -0.38, [0.22, 0.14]);
+      if (/gold/.test(identity)) return withPose(object, 0.34, 0.58, 0.05, [0.24, 0.08]);
+      if (/glass|lens|prism/.test(identity)) return withPose(object, 0.58, 0.49, 0.08, [0.16, 0.14]);
+      if (/fractur|collision|impact/.test(text)) return withPose(object, 0.61, 0.45, 0, [0.12, 0.09]);
+      return object;
+    });
+  }
+
+  function renderObjectText(object) {
+    return [
+      object && object.id,
+      object && object.shape,
+      object && object.material,
+      object && object.role,
+      object && object.phrase,
+      object && object.assembly,
+      object && object.source,
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function withPose(object, x, y, rotation = 0, size = null) {
+    const pose = { ...(object.pose || {}), x, y, rotation };
+    delete pose.points;
+    if (size) {
+      pose.w = size[0];
+      pose.h = size[1];
+    }
+    return { ...object, pose };
+  }
+
+  function withPathPose(object, points) {
+    return { ...object, pose: { ...(object.pose || {}), points } };
+  }
+
   function sceneKindForComposition(graph, objects, fields, spec) {
     const operatorIds = new Set((graph.operators || []).map((operator) => operator.id));
     const promptText = `${graph.intentText || ''} ${spec && spec.name || ''}`.toLowerCase();
@@ -452,6 +581,9 @@
     }
     if (/\b(mouse|gerbil|hamster wheel|running wheel|crash|collision|impact)\b/.test(promptText)) {
       return 'mechanical';
+    }
+    if (/black hole|singularity|swamp|wetland|hammer|gold/.test(promptText) && /black hole|swamp|hammer|gold|glass/.test(promptText)) {
+      return 'literal-composite';
     }
     if (/city grid|traffic|market queue|power grid|queue|logistics/.test(promptText) || operatorIds.has('queueService')) {
       return 'city';
@@ -500,6 +632,7 @@
       'material-tray': ['thermal', 'gravity'],
       biology: ['force-field'],
       mechanical: ['force-field', 'gravity'],
+      'literal-composite': ['force-field', 'gravity'],
       acoustic: ['force-field'],
       fluid: ['gravity', 'force-field'],
       atomic: ['force-field'],
@@ -540,6 +673,7 @@
       'material-tray': 'material',
       biology: 'biological',
       mechanical: 'mechanical',
+      'literal-composite': 'composite',
       fluid: 'fluid',
       atomic: 'atomic',
       acoustic: 'acoustic',
@@ -568,6 +702,7 @@
     if (sceneKind === 'material-tray') return ['clear', 'tray-field', 'specimens', 'interactions', 'composite'];
     if (sceneKind === 'biology') return ['clear', 'nutrient-field', 'membranes', 'growth-front', 'cells'];
     if (sceneKind === 'mechanical') return ['clear', 'constraint-space', 'bodies', 'contacts', 'impulse-ledger'];
+    if (sceneKind === 'literal-composite') return ['clear', 'environment', 'literal-objects', 'contacts', 'fields'];
     if (sceneKind === 'acoustic') return ['clear', 'waveguide', 'pressure-fronts', 'resonators', 'objects'];
     return uniqueList([...shared, ...(solverFamilies || [])]);
   }
@@ -735,6 +870,7 @@
     if (/silicon/.test(text)) return 'silicon';
     if (/carbon/.test(text)) return 'carbon';
     if (/gold/.test(text)) return 'gold';
+    if (/ferrofluid/.test(text)) return 'ferrofluid';
     if (/gel/.test(text)) return 'gel';
     if (/foam/.test(text)) return 'foam';
     if (/membrane/.test(text)) return 'membrane';
@@ -766,8 +902,11 @@
     const text = componentText(component);
     const identity = `${component && component.id || ''} ${component && component.role || ''} ${component && component.material || ''}`.toLowerCase();
     if (/\bgold\b|gold-/.test(identity)) return 'bar';
+    if (/glass|lens/.test(identity)) return 'lens';
+    if (/air-material|air material/.test(identity)) return /bubble/.test(text) ? 'bubble' : 'sample';
     if (/wheel|rotor|gear/.test(text)) return 'wheel';
     if (/\b(mouse|gerbil|hamster|dog|cat|animal|organism)\b/.test(text)) return 'animal-body';
+    if (/ferrofluid/.test(text)) return 'pool';
     if (/black hole|singularity|event horizon/.test(text)) return 'singularity';
     if (/swamp|marsh|wetland/.test(text)) return 'wetland';
     if (/bridge|truss|span/.test(text)) return 'bridge';
@@ -801,7 +940,7 @@
     if (/gold|copper|silicon|carbon|metal|magnet/.test(id)) return 'bar';
     if (/foam|gel|membrane/.test(id)) return 'membrane-field';
     if (/bacteria|mycelium|leaf|protein/.test(id)) return 'colony-field';
-    if (/brine|mercury|water|oil|steam|smoke/.test(id)) return 'pool';
+    if (/brine|mercury|water|oil|steam|smoke|ferrofluid/.test(id)) return 'pool';
     if (/glass|ice/.test(id)) return 'lens';
     if (/sand|soil|clay|rock/.test(id)) return 'grain-bed';
     if (/wood|fabric|rubber/.test(id)) return 'slab';
@@ -825,9 +964,9 @@
     if (/sound|acoustic|wave|resonance/.test(text)) return 'acoustic';
     if (/phase|melt|freeze|boil|steam|ice/.test(text)) return 'phase';
     if (/fire|flame|plume|thermal|heat|combust|smoke/.test(text)) return 'thermal';
+    if (/ferrofluid|magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';
     if (/water|river|fluid|flow|pool|air|wind|brine|mercury/.test(text)) return 'fluid';
     if (/glass|light|lens|prism|ray|mirror|sensor|panel|optics/.test(text)) return 'optical';
-    if (/magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';
     if (/rock|wood|soil|sand|terrain|grain|fuel|wall|ridge/.test(text)) return 'granular';
     if (/queue|network|market|logistics|traffic/.test(text)) return 'network';
     return 'generic';

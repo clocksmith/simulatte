@@ -64,6 +64,7 @@
     }
     const enabled = options.dopplerEnabled === true || urlFlag('doppler');
     if (!enabled) return null;
+    ensureDopplerKernelBasePath(options.dopplerKernelBasePath || urlValue('dopplerKernelBase'));
     const moduleApi = options.dopplerModule || globalDopplerModule() || await importDopplerModule(options);
     if (!moduleApi) return unavailable('Doppler module is not available', options);
     const raw = await runDopplerText(moduleApi, strictPrompt(prompt, primitives, options), {

@@ -191,6 +191,13 @@
     card('glass_material', 'material', ['glass', 'transparent glass'], {
       primitiveIds: ['glass', 'optics', 'collision'],
     }, 'glass transparent refractive brittle lens'),
+    card('ferrofluid', 'material', ['ferrofluid', 'magnetic fluid'], {
+      classes: ['magnetic_fluid'],
+      shapes: ['fluid_volume'],
+      materials: ['ferrofluid', 'metal', 'oil'],
+      behaviors: ['magnetizes', 'spikes'],
+      primitiveIds: ['magnetism', 'fluid-advection', 'magnetized-metal', 'particle-set'],
+    }, 'ferrofluid magnetic liquid black spikes field responsive suspended metal particles'),
     card('water_material', 'material', ['water', 'liquid water'], {
       primitiveIds: ['water', 'fluid-advection', 'pressure'],
     }, 'water liquid flow pressure cooling'),
@@ -460,7 +467,7 @@
     const selected = retrieval.selected || [];
     const nodeCards = selected
       .map((match) => ({ match, card: cardById(match.cardId) }))
-      .filter((row) => row.card && ['entity', 'entity_class', 'assembly', 'assembly_class'].includes(row.card.type));
+      .filter((row) => row.card && ['entity', 'entity_class', 'assembly', 'assembly_class', 'material'].includes(row.card.type));
     const hasSpecificEntity = nodeCards.some((row) => row.card.type === 'entity');
     const hasSpecificAssembly = nodeCards.some((row) => row.card.type === 'assembly');
     const observedNodeTypes = new Set(nodeCards
