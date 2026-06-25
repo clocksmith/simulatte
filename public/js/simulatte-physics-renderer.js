@@ -341,6 +341,7 @@
       lastStep: 0,
       nextSnakeId: 1,
       snakes: [],
+      snakeSignals: [],
       setLoading(active, percent, stage) {
         const wasActive = this.active;
         this.active = Boolean(active);
@@ -351,8 +352,9 @@
           this.lastStep = 0;
         }
         if (this.active && !wasActive) {
-          this.opacity = Math.max(this.opacity, 0.82);
+          this.opacity = Math.max(this.opacity, 0.16);
           this.lastStep = 0;
+          this.snakeSignals = [];
         }
       },
     };
@@ -360,8 +362,8 @@
 
   function drawCanvasLoadingSnakes(ctx, canvas, loader, now) {
     if (!loader) return;
-    const targetOpacity = loader.active ? 1 : 0;
-    loader.opacity += (targetOpacity - loader.opacity) * (loader.active ? 0.18 : 0.08);
+    const targetOpacity = loader.active ? 0.72 : 0;
+    loader.opacity += (targetOpacity - loader.opacity) * (loader.active ? 0.1 : 0.16);
     if (!loader.active && loader.opacity < 0.015) {
       loader.opacity = 0;
       return;
@@ -385,7 +387,7 @@
   }
 
   function ensureSnakeLoaderLayout(loader, width, height) {
-    const tile = Math.max(18, Math.min(32, Math.round(Math.min(width, height) / 18)));
+    const tile = Math.max(24, Math.min(40, Math.round(Math.min(width, height) / 15)));
     const cols = Math.max(10, Math.ceil(width / tile));
     const rows = Math.max(10, Math.ceil(height / tile));
     const layoutKey = `${cols}x${rows}x${tile}`;
@@ -396,6 +398,7 @@
     loader.layoutKey = layoutKey;
     loader.stepCount = 0;
     loader.nextSnakeId = 1;
+    loader.snakeSignals = [];
     loader.snakes = createInitialCanvasSnakes(loader);
   }
 
@@ -407,28 +410,14 @@
       202,
       262,
       292,
-      84,
-      22,
-      186,
-      316,
-      118,
-      244,
-      12,
-      222,
     ];
     const starts = [
       { x: 2, y: Math.floor(loader.rows * 0.22), dir: { x: 1, y: 0 } },
       { x: loader.cols - 3, y: Math.floor(loader.rows * 0.38), dir: { x: -1, y: 0 } },
       { x: Math.floor(loader.cols * 0.28), y: 2, dir: { x: 0, y: 1 } },
       { x: Math.floor(loader.cols * 0.72), y: loader.rows - 3, dir: { x: 0, y: -1 } },
-      { x: 2, y: Math.floor(loader.rows * 0.7), dir: { x: 1, y: 0 } },
-      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.82), dir: { x: -1, y: 0 } },
-      { x: Math.floor(loader.cols * 0.12), y: loader.rows - 3, dir: { x: 0, y: -1 } },
-      { x: Math.floor(loader.cols * 0.88), y: 2, dir: { x: 0, y: 1 } },
-      { x: Math.floor(loader.cols * 0.5), y: 2, dir: { x: 0, y: 1 } },
-      { x: Math.floor(loader.cols * 0.5), y: loader.rows - 3, dir: { x: 0, y: -1 } },
-      { x: 2, y: Math.floor(loader.rows * 0.5), dir: { x: 1, y: 0 } },
-      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.58), dir: { x: -1, y: 0 } },
+      { x: 2, y: Math.floor(loader.rows * 0.66), dir: { x: 1, y: 0 } },
+      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.78), dir: { x: -1, y: 0 } },
     ];
     return starts.map((start, index) => createCanvasSnake(
       loader,
@@ -436,7 +425,7 @@
       start.y,
       start.dir,
       palette[index % palette.length],
-      12 + index
+      12 + index * 2
     ));
   }
 
@@ -450,6 +439,7 @@
       bitePulse: 0,
       joinPulse: 0,
       splitPulse: 0,
+      spawnFade: 0,
       retired: false,
       deathFade: 1,
       deathReason: '',
@@ -470,10 +460,11 @@
     loader.stepCount += 1;
     const liveSnakes = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 2);
     for (const snake of liveSnakes) {
-      if (!snake.targetTail && snake.cells.length > 10 && (loader.stepCount + snake.id * 5) % 13 === 0) {
-        snake.targetTail = snake.cells[Math.max(6, Math.floor(snake.cells.length * 0.68))];
+      snake.spawnFade = Math.min(1, (snake.spawnFade || 0) + 0.11);
+      if (!snake.targetTail && snake.cells.length > 9 && (loader.stepCount + snake.id * 5) % 9 === 0) {
+        snake.targetTail = snake.cells[Math.max(5, Math.floor(snake.cells.length * 0.64))];
       }
-      if (!snake.targetSnakeId && (loader.stepCount + snake.id * 3) % 9 === 0) {
+      if (!snake.targetSnakeId && (loader.stepCount + snake.id * 3) % 13 === 0) {
         const target = nearestSnakeHead(loader, snake);
         snake.targetSnakeId = target ? target.id : null;
       }
@@ -483,15 +474,15 @@
       snake.splitPulse = Math.max(0, snake.splitPulse - 0.09);
     }
     const liveCount = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3).length;
-    if (loader.stepCount % 7 === 0 && liveCount < 20) {
+    if (loader.stepCount % 12 === 0 && liveCount < 8) {
       splitCanvasSnake(loader);
     }
-    if (loader.stepCount % 11 === 0) {
+    if (loader.stepCount % 10 === 0) {
       joinNearbyCanvasSnakes(loader);
     }
     for (const snake of loader.snakes) {
       if (snake.retired) {
-        snake.deathFade = Math.max(0, snake.deathFade - 0.075);
+        snake.deathFade = Math.max(0, snake.deathFade - 0.13);
         snake.bitePulse = Math.max(0, snake.bitePulse - 0.08);
         snake.joinPulse = Math.max(0, snake.joinPulse - 0.08);
         snake.splitPulse = Math.max(0, snake.splitPulse - 0.08);
@@ -500,13 +491,16 @@
       }
     }
     loader.snakes = loader.snakes.filter((snake) => snake.cells.length > 3 && (!snake.retired || snake.deathFade > 0.02));
+    loader.snakeSignals = loader.snakeSignals
+      .map((signal) => ({ ...signal, life: signal.life - 0.075 }))
+      .filter((signal) => signal.life > 0);
     let activeCount = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3).length;
-    while (activeCount < 10) {
+    while (activeCount < 4) {
       const x = Math.floor(loader.cols * (0.18 + hashNoise(loader.nextSnakeId, 11) * 0.64));
       const y = Math.floor(loader.rows * (0.18 + hashNoise(loader.nextSnakeId, 17) * 0.64));
       const dir = SNAKE_DIRS[loader.nextSnakeId % SNAKE_DIRS.length];
       const hue = 320 + hashNoise(loader.nextSnakeId, 23) * 270;
-      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 10 + (loader.nextSnakeId % 4)));
+      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 9 + (loader.nextSnakeId % 4)));
       activeCount += 1;
     }
   }
@@ -532,6 +526,7 @@
       snake.maxLength = Math.max(8, Math.min(snake.maxLength, snake.cells.length));
       snake.bitePulse = 1;
       snake.targetTail = null;
+      addSnakeSignal(loader, next, snake.hue, 'tail');
       return;
     }
     if (hit && hit.snakeId !== snake.id) {
@@ -543,6 +538,7 @@
         snake.joinPulse = 1;
         snake.targetTail = null;
         snake.targetSnakeId = null;
+        addSnakeSignal(loader, next, (snake.hue + other.hue) / 2, 'join');
         retireCanvasSnake(other, 'join');
       }
     } else {
@@ -568,7 +564,7 @@
       if (snake.targetTail) {
         const currentDistance = snakeCellDistance(head, snake.targetTail, loader);
         const nextDistance = snakeCellDistance(next, snake.targetTail, loader);
-        score += (currentDistance - nextDistance) * 2.1;
+        score += (currentDistance - nextDistance) * 3.1;
       }
       if (snake.targetSnakeId) {
         const target = loader.snakes.find((candidate) => candidate.id === snake.targetSnakeId && !candidate.retired);
@@ -581,9 +577,9 @@
         }
       }
       if (hit && hit.snakeId === snake.id) {
-        score += hit.index > 4 ? 2.8 : -5.5;
+        score += hit.index > 4 ? 3.4 : -6.2;
       } else if (hit && hit.snakeId !== snake.id) {
-        score += 2.4;
+        score += 2.1;
       }
       if (next.x < 1 || next.x > loader.cols - 2 || next.y < 1 || next.y > loader.rows - 2) {
         score -= 0.35;
@@ -627,7 +623,9 @@
     branch.maxLength = Math.max(branch.cells.length, Math.floor(source.maxLength * 0.72));
     branch.dir = branchDir;
     branch.splitPulse = 1;
+    branch.spawnFade = 0;
     branch.targetSnakeId = source.id;
+    addSnakeSignal(loader, origin, branch.hue, 'split');
     loader.snakes.push(branch);
   }
 
@@ -655,6 +653,7 @@
     a.hue = (a.hue * 0.6 + b.hue * 0.4);
     a.joinPulse = 1;
     a.targetSnakeId = null;
+    addSnakeSignal(loader, hitCell, a.hue, 'join');
     retireCanvasSnake(b, 'join');
   }
 
@@ -691,6 +690,17 @@
     snake.bitePulse = Math.max(snake.bitePulse || 0, reason === 'empty' ? 0.55 : 0);
   }
 
+  function addSnakeSignal(loader, cell, hue, kind) {
+    loader.snakeSignals.push({
+      x: cell.x,
+      y: cell.y,
+      hue,
+      kind,
+      life: 1,
+    });
+    if (loader.snakeSignals.length > 18) loader.snakeSignals.shift();
+  }
+
   function buildSnakeOccupancy(snakes) {
     const occupancy = new Map();
     for (const snake of snakes) {
@@ -708,9 +718,9 @@
     const tile = loader.tile;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = 'rgba(250, 249, 255, 0.9)';
+    ctx.fillStyle = 'rgba(250, 249, 255, 0.84)';
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = 'rgba(74, 58, 92, 0.11)';
+    ctx.strokeStyle = 'rgba(74, 58, 92, 0.07)';
     ctx.lineWidth = 1;
     for (let x = 0; x <= width + tile; x += tile) {
       ctx.beginPath();
@@ -725,31 +735,71 @@
       ctx.stroke();
     }
     ctx.globalCompositeOperation = 'source-over';
+    drawSnakeSignals(ctx, loader);
     for (const snake of loader.snakes) {
       drawCanvasSnake(ctx, loader, snake);
     }
     ctx.restore();
   }
 
+  function drawSnakeSignals(ctx, loader) {
+    const tile = loader.tile;
+    for (const signal of loader.snakeSignals || []) {
+      const life = clamp(signal.life, 0, 1);
+      const x = (signal.x + 0.5) * tile;
+      const y = (signal.y + 0.5) * tile;
+      const radius = tile * (0.28 + (1 - life) * 1.15);
+      const alpha = life * (signal.kind === 'tail' ? 0.28 : 0.2);
+      ctx.strokeStyle = `hsla(${signal.hue}, 78%, 58%, ${alpha})`;
+      ctx.lineWidth = Math.max(1, tile * 0.045);
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, TAU);
+      ctx.stroke();
+      if (signal.kind === 'split') {
+        ctx.strokeStyle = `hsla(${(signal.hue + 52) % 360}, 78%, 62%, ${alpha * 0.8})`;
+        ctx.beginPath();
+        ctx.moveTo(x - radius * 0.8, y);
+        ctx.lineTo(x + radius * 0.8, y);
+        ctx.stroke();
+      }
+    }
+  }
+
   function drawCanvasSnake(ctx, loader, snake) {
     if (!snake.cells.length) return;
     const tile = loader.tile;
-    const inset = Math.max(1, Math.floor(tile * 0.1));
+    const inset = Math.max(2, Math.floor(tile * 0.18));
     const deathAlpha = snake.retired ? clamp(snake.deathFade, 0, 1) : 1;
-    if (deathAlpha <= 0) return;
+    const birthAlpha = clamp(snake.spawnFade === undefined ? 1 : snake.spawnFade, 0, 1);
+    if (deathAlpha <= 0 || birthAlpha <= 0) return;
     for (let index = snake.cells.length - 1; index >= 0; index -= 1) {
       const cell = snake.cells[index];
       const isHead = index === 0;
       const age = index / Math.max(1, snake.cells.length - 1);
-      const tailFade = Math.pow(1 - age, 1.45);
-      const hue = (snake.hue + index * 4 + loader.stepCount * 1.8) % 360;
+      const tailFade = Math.pow(1 - age, 2.15);
+      const hue = (snake.hue + index * 2.4 + loader.stepCount * 0.9) % 360;
       const pulse = Math.max(snake.bitePulse, snake.joinPulse, snake.splitPulse);
-      const light = 56 + tailFade * 14 + pulse * 7 + (isHead ? 8 : 0);
-      const alpha = (0.18 + tailFade * 0.62 + pulse * 0.12 + (isHead ? 0.12 : 0)) * deathAlpha;
-      const cellInset = isHead ? Math.max(1, Math.floor(tile * 0.06)) : inset;
+      const light = 58 + tailFade * 11 + pulse * 8 + (isHead ? 7 : 0);
+      const alpha = (0.06 + tailFade * 0.46 + pulse * 0.1 + (isHead ? 0.16 : 0)) * deathAlpha * birthAlpha;
+      const cellInset = isHead ? Math.max(2, Math.floor(tile * 0.12)) : inset;
       ctx.fillStyle = `hsla(${hue}, 82%, ${light}%, ${alpha})`;
-      ctx.fillRect(cell.x * tile + cellInset, cell.y * tile + cellInset, tile - cellInset * 2, tile - cellInset * 2);
+      drawRoundedSnakeCell(ctx, cell.x * tile + cellInset, cell.y * tile + cellInset, tile - cellInset * 2);
     }
+  }
+
+  function drawRoundedSnakeCell(ctx, x, y, size) {
+    const radius = Math.max(2, size * 0.22);
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + size - radius, y);
+    ctx.quadraticCurveTo(x + size, y, x + size, y + radius);
+    ctx.lineTo(x + size, y + size - radius);
+    ctx.quadraticCurveTo(x + size, y + size, x + size - radius, y + size);
+    ctx.lineTo(x + radius, y + size);
+    ctx.quadraticCurveTo(x, y + size, x, y + size - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.fill();
   }
 
   function wrapSnakeCell(loader, cell) {
@@ -3638,10 +3688,11 @@
   function visualObjectDepth(object) {
     const text = literalObjectText(object);
     const shape = String(object && object.shape || '');
-    if (/wetland|swamp|heightfield|fuel-bed|grain-bed/.test(text)) return 0;
+    if (/wetland|swamp|heightfield|fuel-bed|grain-bed|volcano|storm/.test(text)) return 0;
     if (/singularity|black hole/.test(text)) return 1;
-    if (/film|wire-loop|wheel|cooling-fins|sieve|pool/.test(shape)) return 2;
-    if (/bar|slab|slider|lens|prism|magnet|network-node|queue-node/.test(shape)) return 3;
+    if (/rocket|submarine|castle|tower|lava-flow/.test(shape)) return 1;
+    if (/film|wire-loop|wheel|cooling-fins|sieve|pool|instrument|turbine/.test(shape)) return 2;
+    if (/bar|slab|slider|lens|prism|magnet|network-node|queue-node|plant-cluster/.test(shape)) return 3;
     if (/bubble|coil|hammer/.test(shape)) return 4;
     if (/animal-body/.test(shape)) return 5;
     if (/collision|fractur|impact|meter/.test(text)) return 6;
@@ -3687,7 +3738,7 @@
   }
 
   function isConcreteShape(shape = '') {
-    return /animal-body|wheel|coil|wire-loop|film|bubble|cooling-fins|sieve|singularity|wetland|bridge|hammer|bar|slab|slider|prism|lens|magnet|queue-node|network-node|fuel-bed|flame-front|plume|flow-path|heightfield|grain-bed|pool|panel|meter|wall/.test(String(shape));
+    return /animal-body|wheel|coil|wire-loop|film|bubble|cooling-fins|sieve|singularity|wetland|rocket|submarine|volcano|lava-flow|instrument|castle|tower|turbine|storm|plant-cluster|bridge|hammer|bar|slab|slider|prism|lens|magnet|queue-node|network-node|fuel-bed|flame-front|plume|flow-path|heightfield|grain-bed|pool|panel|meter|wall/.test(String(shape));
   }
 
   function drawPlanObject(ctx, width, height, state, plan, object, index) {
@@ -3725,6 +3776,16 @@
     if (shape === 'sieve') return drawLiteralSieve(ctx, extent, state, hue);
     if (shape === 'singularity') return drawLiteralSingularity(ctx, extent, state);
     if (shape === 'wetland') return drawLiteralWetland(ctx, extent, state, hue);
+    if (shape === 'rocket') return drawLiteralRocket(ctx, extent, state, hue);
+    if (shape === 'submarine') return drawLiteralSubmarine(ctx, extent, state, hue);
+    if (shape === 'volcano') return drawLiteralVolcano(ctx, extent, state, hue);
+    if (shape === 'lava-flow') return drawLiteralLavaFlow(ctx, extent, state);
+    if (shape === 'instrument') return drawLiteralInstrument(ctx, extent, state, hue);
+    if (shape === 'castle') return drawLiteralCastle(ctx, extent, state, hue);
+    if (shape === 'tower') return drawLiteralTower(ctx, extent, state, hue);
+    if (shape === 'turbine') return drawLiteralTurbine(ctx, extent, state, hue);
+    if (shape === 'storm') return drawLiteralStorm(ctx, extent, state, hue);
+    if (shape === 'plant-cluster') return drawLiteralPlantCluster(ctx, extent, state, hue);
     if (shape === 'bridge') return drawLiteralBridge(ctx, extent, hue);
     if (shape === 'hammer') return drawLiteralHammer(ctx, extent, hue);
     if (shape === 'wall') return drawLiteralWall(ctx, extent, state, hue);
@@ -3977,6 +4038,371 @@
       ctx.moveTo(x, extent.h * 0.2);
       ctx.lineTo(x + Math.sin(state.t * 0.2 + reed) * 4, -extent.h * 0.28);
       ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralRocket(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation - 0.08 + Math.sin(state.t * 0.08) * 0.03);
+    ctx.shadowColor = 'rgba(28, 36, 60, 0.24)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 3;
+    const body = ctx.createLinearGradient(-extent.w * 0.32, 0, extent.w * 0.34, 0);
+    body.addColorStop(0, `hsla(${hue || 212}, 32%, 34%, 0.92)`);
+    body.addColorStop(0.52, 'rgba(235, 244, 252, 0.96)');
+    body.addColorStop(1, `hsla(${hue + 42}, 44%, 48%, 0.88)`);
+    ctx.fillStyle = body;
+    ctx.strokeStyle = `hsla(${hue || 212}, 42%, 22%, 0.62)`;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(extent.w * 0.48, 0);
+    ctx.bezierCurveTo(extent.w * 0.28, -extent.h * 0.32, -extent.w * 0.28, -extent.h * 0.28, -extent.w * 0.42, 0);
+    ctx.bezierCurveTo(-extent.w * 0.28, extent.h * 0.28, extent.w * 0.28, extent.h * 0.32, extent.w * 0.48, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = `hsla(${(hue + 154) % 360}, 74%, 64%, 0.58)`;
+    ctx.beginPath();
+    ctx.arc(extent.w * 0.14, -extent.h * 0.02, Math.min(extent.w, extent.h) * 0.1, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = `hsla(${hue + 16}, 82%, 42%, 0.82)`;
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.24, side * extent.h * 0.2);
+      ctx.lineTo(-extent.w * 0.46, side * extent.h * 0.5);
+      ctx.lineTo(-extent.w * 0.06, side * extent.h * 0.3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    const flame = ctx.createRadialGradient(-extent.w * 0.52, 0, 0, -extent.w * 0.52, 0, extent.w * 0.34);
+    flame.addColorStop(0, 'rgba(255, 236, 108, 0.82)');
+    flame.addColorStop(0.48, 'rgba(255, 92, 44, 0.36)');
+    flame.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = flame;
+    ctx.beginPath();
+    ctx.ellipse(-extent.w * 0.55, 0, extent.w * 0.32, extent.h * 0.2, 0, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralSubmarine(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y + Math.sin(state.t * 0.12) * 2);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.09) * 0.025);
+    const body = ctx.createLinearGradient(-extent.w * 0.5, 0, extent.w * 0.5, 0);
+    body.addColorStop(0, `hsla(${hue || 194}, 36%, 32%, 0.9)`);
+    body.addColorStop(0.5, `hsla(${hue + 20}, 52%, 52%, 0.88)`);
+    body.addColorStop(1, `hsla(${hue || 194}, 34%, 28%, 0.9)`);
+    ctx.fillStyle = body;
+    ctx.strokeStyle = `hsla(${hue || 194}, 44%, 18%, 0.58)`;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(0, extent.h * 0.08, extent.w * 0.5, extent.h * 0.24, 0, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = `hsla(${hue + 12}, 42%, 38%, 0.86)`;
+    ctx.fillRect(-extent.w * 0.1, -extent.h * 0.22, extent.w * 0.22, extent.h * 0.22);
+    ctx.strokeRect(-extent.w * 0.1, -extent.h * 0.22, extent.w * 0.22, extent.h * 0.22);
+    ctx.strokeStyle = `hsla(${hue + 150}, 70%, 62%, 0.44)`;
+    ctx.beginPath();
+    ctx.moveTo(0, -extent.h * 0.22);
+    ctx.lineTo(0, -extent.h * 0.42);
+    ctx.lineTo(extent.w * 0.16, -extent.h * 0.42);
+    ctx.stroke();
+    for (let port = 0; port < 4; port += 1) {
+      const x = -extent.w * 0.28 + port * extent.w * 0.16;
+      ctx.fillStyle = 'rgba(176, 232, 248, 0.58)';
+      ctx.beginPath();
+      ctx.arc(x, extent.h * 0.05, Math.min(extent.w, extent.h) * 0.045, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `hsla(${hue + 168}, 80%, 58%, 0.22)`;
+    ctx.lineWidth = 1.2;
+    for (let wave = 0; wave < 3; wave += 1) {
+      const y = extent.h * (0.32 + wave * 0.1);
+      ctx.beginPath();
+      for (let step = 0; step <= 9; step += 1) {
+        const x = -extent.w * 0.46 + step * extent.w * 0.12;
+        const yy = y + Math.sin(state.t * 0.8 + step + wave) * extent.h * 0.025;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralVolcano(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    const rockHue = hue || 28;
+    const rock = ctx.createLinearGradient(0, -extent.h * 0.42, 0, extent.h * 0.48);
+    rock.addColorStop(0, `hsla(${rockHue}, 26%, 38%, 0.88)`);
+    rock.addColorStop(1, `hsla(${rockHue}, 28%, 20%, 0.92)`);
+    ctx.fillStyle = rock;
+    ctx.strokeStyle = `hsla(${rockHue}, 32%, 18%, 0.58)`;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-extent.w * 0.54, extent.h * 0.46);
+    ctx.lineTo(-extent.w * 0.18, -extent.h * 0.36);
+    ctx.lineTo(extent.w * 0.06, -extent.h * 0.2);
+    ctx.lineTo(extent.w * 0.28, -extent.h * 0.38);
+    ctx.lineTo(extent.w * 0.56, extent.h * 0.46);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255, 84, 40, 0.82)';
+    ctx.beginPath();
+    ctx.ellipse(extent.w * 0.04, -extent.h * 0.26, extent.w * 0.2, extent.h * 0.07, 0, 0, TAU);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'screen';
+    for (let jet = 0; jet < 5; jet += 1) {
+      const x = extent.w * (-0.12 + jet * 0.06);
+      const lift = extent.h * (0.3 + hashNoise(221, jet) * 0.2);
+      ctx.strokeStyle = `hsla(${18 + jet * 8}, 96%, ${54 + jet * 4}%, 0.42)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, -extent.h * 0.28);
+      ctx.bezierCurveTo(
+        x + Math.sin(state.t * 0.7 + jet) * extent.w * 0.08,
+        -extent.h * 0.48,
+        x + extent.w * 0.08,
+        -lift,
+        x + Math.sin(jet) * extent.w * 0.12,
+        -extent.h * 0.58
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralLavaFlow(ctx, extent, state) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.08) * 0.035);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = 'rgba(108, 34, 24, 0.72)';
+    ctx.lineWidth = Math.max(5, extent.h * 0.12);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-extent.w * 0.48, -extent.h * 0.12);
+    ctx.bezierCurveTo(-extent.w * 0.18, -extent.h * 0.34, extent.w * 0.08, extent.h * 0.24, extent.w * 0.5, extent.h * 0.06);
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = 'rgba(255, 108, 42, 0.64)';
+    ctx.lineWidth = Math.max(3, extent.h * 0.07);
+    ctx.beginPath();
+    ctx.moveTo(-extent.w * 0.46, -extent.h * 0.12);
+    for (let step = 1; step <= 12; step += 1) {
+      const x = -extent.w * 0.46 + step * extent.w * 0.08;
+      const y = Math.sin(step * 0.9 + state.t * 0.7) * extent.h * 0.15;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255, 230, 92, 0.44)';
+    ctx.lineWidth = Math.max(1.4, extent.h * 0.025);
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralInstrument(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.1) * 0.02);
+    ctx.fillStyle = `hsla(${hue || 32}, 42%, 28%, 0.9)`;
+    ctx.strokeStyle = `hsla(${hue || 32}, 42%, 16%, 0.62)`;
+    ctx.lineWidth = 1.6;
+    ctx.fillRect(-extent.w * 0.48, -extent.h * 0.24, extent.w * 0.96, extent.h * 0.5);
+    ctx.strokeRect(-extent.w * 0.48, -extent.h * 0.24, extent.w * 0.96, extent.h * 0.5);
+    ctx.fillStyle = 'rgba(244, 238, 220, 0.9)';
+    ctx.fillRect(-extent.w * 0.42, extent.h * 0.02, extent.w * 0.84, extent.h * 0.16);
+    ctx.fillStyle = 'rgba(24, 28, 34, 0.82)';
+    for (let key = 0; key < 8; key += 1) {
+      const x = -extent.w * 0.38 + key * extent.w * 0.1;
+      ctx.fillRect(x, extent.h * 0.02, extent.w * 0.035, extent.h * 0.1);
+    }
+    ctx.strokeStyle = `hsla(${hue + 172}, 82%, 68%, 0.32)`;
+    ctx.lineWidth = 1.1;
+    for (let string = 0; string < 6; string += 1) {
+      const y = -extent.h * 0.18 + string * extent.h * 0.055;
+      ctx.beginPath();
+      ctx.moveTo(-extent.w * 0.36, y);
+      ctx.quadraticCurveTo(0, y + Math.sin(state.t * 0.5 + string) * 2.4, extent.w * 0.36, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralCastle(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.08) * 0.015);
+    const iceHue = hue || 196;
+    ctx.fillStyle = `hsla(${iceHue}, 62%, 78%, 0.72)`;
+    ctx.strokeStyle = `hsla(${iceHue}, 56%, 38%, 0.52)`;
+    ctx.lineWidth = 1.5;
+    const baseY = extent.h * 0.28;
+    ctx.fillRect(-extent.w * 0.42, -extent.h * 0.04, extent.w * 0.84, extent.h * 0.34);
+    ctx.strokeRect(-extent.w * 0.42, -extent.h * 0.04, extent.w * 0.84, extent.h * 0.34);
+    for (const x of [-0.34, 0, 0.34]) {
+      const towerH = x === 0 ? extent.h * 0.68 : extent.h * 0.5;
+      const towerW = extent.w * 0.18;
+      ctx.fillRect(extent.w * x - towerW * 0.5, baseY - towerH, towerW, towerH);
+      ctx.strokeRect(extent.w * x - towerW * 0.5, baseY - towerH, towerW, towerH);
+      ctx.beginPath();
+      ctx.moveTo(extent.w * x - towerW * 0.62, baseY - towerH);
+      ctx.lineTo(extent.w * x, baseY - towerH - extent.h * 0.16);
+      ctx.lineTo(extent.w * x + towerW * 0.62, baseY - towerH);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `hsla(${iceHue + 34}, 82%, 92%, 0.34)`;
+    for (let facet = 0; facet < 7; facet += 1) {
+      const x = -extent.w * 0.36 + facet * extent.w * 0.12;
+      ctx.beginPath();
+      ctx.moveTo(x, extent.h * 0.22);
+      ctx.lineTo(x + Math.sin(facet) * extent.w * 0.05, -extent.h * 0.3);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralTower(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.1) * 0.025);
+    const towerHue = hue || 188;
+    const gradient = ctx.createLinearGradient(0, -extent.h * 0.52, 0, extent.h * 0.5);
+    gradient.addColorStop(0, `hsla(${towerHue}, 72%, 82%, 0.72)`);
+    gradient.addColorStop(1, `hsla(${towerHue + 18}, 48%, 42%, 0.62)`);
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = `hsla(${towerHue}, 52%, 30%, 0.56)`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(0, -extent.h * 0.52);
+    ctx.lineTo(extent.w * 0.32, extent.h * 0.46);
+    ctx.lineTo(-extent.w * 0.24, extent.h * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = `hsla(${towerHue + 62}, 92%, 90%, 0.34)`;
+    for (let facet = 0; facet < 4; facet += 1) {
+      ctx.beginPath();
+      ctx.moveTo(0, -extent.h * 0.46);
+      ctx.lineTo((-0.18 + facet * 0.12) * extent.w, extent.h * 0.42);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralTurbine(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation + state.t * 0.16);
+    const bladeHue = hue || 206;
+    ctx.fillStyle = `hsla(${bladeHue}, 38%, 42%, 0.64)`;
+    ctx.strokeStyle = `hsla(${bladeHue}, 42%, 20%, 0.54)`;
+    ctx.lineWidth = 1.4;
+    for (let blade = 0; blade < 4; blade += 1) {
+      ctx.save();
+      ctx.rotate(blade * TAU / 4);
+      ctx.beginPath();
+      ctx.moveTo(extent.w * 0.04, -extent.h * 0.05);
+      ctx.bezierCurveTo(extent.w * 0.42, -extent.h * 0.18, extent.w * 0.54, extent.h * 0.04, extent.w * 0.16, extent.h * 0.12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.fillStyle = `hsla(${bladeHue + 44}, 48%, 72%, 0.88)`;
+    ctx.beginPath();
+    ctx.arc(0, 0, Math.min(extent.w, extent.h) * 0.13, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralStorm(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    const stormHue = hue || 216;
+    ctx.globalAlpha *= 0.86;
+    ctx.fillStyle = `hsla(${stormHue}, 36%, 34%, 0.34)`;
+    ctx.strokeStyle = `hsla(${stormHue + 20}, 64%, 58%, 0.26)`;
+    ctx.lineWidth = 1.6;
+    for (let cloud = 0; cloud < 5; cloud += 1) {
+      const x = -extent.w * 0.32 + cloud * extent.w * 0.16;
+      const y = -extent.h * 0.12 + Math.sin(state.t * 0.12 + cloud) * extent.h * 0.04;
+      ctx.beginPath();
+      ctx.ellipse(x, y, extent.w * 0.18, extent.h * 0.14, 0, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    }
+    for (let band = 0; band < 6; band += 1) {
+      const y = -extent.h * 0.02 + band * extent.h * 0.1;
+      ctx.strokeStyle = `hsla(${stormHue + band * 12}, 72%, 54%, ${0.16 + band * 0.025})`;
+      ctx.beginPath();
+      for (let step = 0; step <= 12; step += 1) {
+        const x = -extent.w * 0.44 + step * extent.w * 0.08;
+        const yy = y + Math.sin(state.t * 0.9 + step * 0.8 + band) * extent.h * 0.04;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(118, 196, 255, 0.24)';
+    for (let drop = 0; drop < 12; drop += 1) {
+      const x = -extent.w * 0.44 + drop * extent.w * 0.08;
+      const y = extent.h * (0.18 + hashNoise(447, drop) * 0.26);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - extent.w * 0.04, y + extent.h * 0.14);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawLiteralPlantCluster(ctx, extent, state, hue) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    const plantHue = hue || 118;
+    ctx.strokeStyle = `hsla(${plantHue}, 48%, 30%, 0.54)`;
+    ctx.lineWidth = 1.5;
+    for (let stem = 0; stem < 9; stem += 1) {
+      const x = -extent.w * 0.38 + stem * extent.w * 0.095;
+      const sway = Math.sin(state.t * 0.18 + stem) * extent.w * 0.035;
+      ctx.beginPath();
+      ctx.moveTo(x, extent.h * 0.34);
+      ctx.quadraticCurveTo(x + sway, 0, x + sway * 1.6, -extent.h * (0.18 + hashNoise(593, stem) * 0.18));
+      ctx.stroke();
+      ctx.fillStyle = `hsla(${plantHue + stem * 6}, 62%, ${38 + stem}%, 0.54)`;
+      ctx.beginPath();
+      ctx.ellipse(x + sway, -extent.h * 0.05, extent.w * 0.06, extent.h * 0.12, sway * 0.03, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = `hsla(${plantHue + 70}, 92%, 68%, 0.28)`;
+      ctx.beginPath();
+      ctx.arc(x + sway * 1.5, -extent.h * 0.2, Math.min(extent.w, extent.h) * 0.035, 0, TAU);
+      ctx.fill();
     }
     ctx.restore();
     return true;
