@@ -755,6 +755,7 @@
   function materialForSynthesisNode(node) {
     const materials = node.materials || [];
     if (materials.includes('soft_tissue')) return 'membrane';
+    if (materials.includes('ferrofluid')) return 'ferrofluid';
     if (materials.includes('fur')) return 'protein';
     if (materials.includes('steel')) return 'metal';
     if (materials.includes('gold')) return 'gold';
@@ -775,6 +776,7 @@
     ].join(' ');
     if (/\bmammal|rodent|tissue|gait|soft/i.test(values)) return 'biological';
     if (/\bwheel|rotating|axle|apparatus|rigid/i.test(values)) return 'mechanical';
+    if (/\bferrofluid|magnetic_fluid|magnetizes|spikes/i.test(values)) return 'magnetic';
     if (/\bwater|flow|pipe|pump/i.test(values)) return 'fluid';
     if (/\bheat|fire|thermal/i.test(values)) return 'thermal';
     if (/\blens|glass|optics/i.test(values)) return 'optical';

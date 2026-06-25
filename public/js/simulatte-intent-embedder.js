@@ -732,13 +732,13 @@
   }
 
   async function resolveDopplerApi(options = {}) {
+    ensureDopplerKernelBasePath(options.kernelBasePath);
     const direct = options.dopplerModule || globalDopplerApi();
     if (direct) return direct;
     const rawModuleUrl = options.moduleUrl || DEFAULT_DOPPLER_MODULE_URL;
     const moduleUrl = typeof location === 'undefined'
       ? rawModuleUrl
       : resolveUrl(rawModuleUrl, location.href);
-    ensureDopplerKernelBasePath(options.kernelBasePath);
     try {
       const mod = await import(moduleUrl);
       return mod.doppler || mod.default || mod;

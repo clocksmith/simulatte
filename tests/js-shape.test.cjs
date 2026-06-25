@@ -115,6 +115,7 @@ test('Doppler residual intent has a strict static contract and no network depend
   assert.match(runtime, /DEFAULT_MODULE_URL = '\.\/vendor\/doppler\/src\/index-browser\.js'/);
   assert.match(runtime, /DEFAULT_KERNEL_BASE_PATH = '\.\/vendor\/doppler\/src\/gpu\/kernels'/);
   assert.match(runtime, /ensureDopplerKernelBasePath/);
+  assert.match(runtime, /ensureDopplerKernelBasePath\(options\.dopplerKernelBasePath \|\| urlValue\('dopplerKernelBase'\)\);\n    const moduleApi = options\.dopplerModule \|\| globalDopplerModule\(\) \|\| await importDopplerModule\(options\);/);
   assert.doesNotMatch(runtime, /DEFAULT_MODULE_URL = '\/doppler\/src\/index-browser\.js'/);
   assert.doesNotMatch(runtime, /http:|https:/);
   assert.match(oldRuntime, /\.\.\/\.\.\/vendor\/doppler\/src\/index-browser\.js/);
@@ -180,6 +181,11 @@ test('composition renderer has specific painters for diverse scene regimes', () 
     'drawGranularSieve',
     'paintThermalPlumeWorld',
     'drawThermalPlumeColumn',
+    'paintMechanicalWorld',
+    'drawMechanicalImpulseField',
+    'paintLiteralCompositeWorld',
+    'drawCompositeStressField',
+    'visiblePlanObjectIds',
   ]) {
     assert.match(renderer, new RegExp(token));
   }
@@ -303,6 +309,7 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(runtime, /DEFAULT_DOPPLER_KERNEL_BASE_PATH = '\.\/vendor\/doppler\/src\/gpu\/kernels'/);
   assert.match(runtime, /dopplerKernelBasePath/);
   assert.match(runtime, /ensureDopplerKernelBasePath/);
+  assert.match(runtime, /ensureDopplerKernelBasePath\(options\.kernelBasePath\);\n    const direct = options\.dopplerModule \|\| globalDopplerApi\(\);/);
   assert.match(runtime, /model-backed intent requires Doppler load/);
   assert.match(runtime, /primitive embedding index/);
   assert.match(runtime, /surface card embedding index/);

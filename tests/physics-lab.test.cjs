@@ -919,11 +919,18 @@ test('render programs keep prompt nouns literal and avoid unrelated scene fields
   assert.equal(thinById['open-wire-loops-3'].shape, 'wire-loop');
   assert.equal(rigById['mouse-a'].shape, 'animal-body');
   assert.equal(rigById['wheel-a'].shape, 'wheel');
+  assert.ok(Math.abs(rigById['mouse-a'].pose.x - rigById['wheel-a'].pose.x) < 0.03);
+  assert.ok(rigById.collision.pose.x > rigById['wheel-a'].pose.x);
   assert.equal(mixedById['gold-a'].shape, 'bar');
   assert.equal(mixedById['gold-a'].material, 'gold');
   assert.equal(mixedById['hammer-a'].shape, 'hammer');
+  assert.equal(mixedById['glass-material-a'].shape, 'lens');
+  assert.equal(mixedById['glass-material-a'].material, 'glass');
   assert.equal(mixedById['environment-swamp'].shape, 'wetland');
   assert.equal(mixedById['environment-black-hole'].shape, 'singularity');
+  assert.equal(mixedScene.renderProgram.rendererPlan.sceneKind, 'literal-composite');
+  assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').shape, 'pool');
+  assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').material, 'ferrofluid');
   assert.deepEqual(city.renderProgram.fields.map((field) => field.kind), ['network-flow']);
   assert.deepEqual(watershed.renderProgram.fields.map((field) => field.kind), ['gravity']);
   assert.deepEqual(ferrofluid.renderProgram.fields.map((field) => field.kind), ['dipole']);
