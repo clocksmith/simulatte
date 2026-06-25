@@ -123,6 +123,17 @@ test('Doppler residual intent has a strict static contract and no network depend
   assert.match(html, /__DOPPLER_KERNEL_BASE_PATH__/);
 });
 
+test('vendored Doppler shader cache resolves kernels beside the loaded module', () => {
+  const shaderCache = fs.readFileSync(
+    path.join(root, 'public', 'vendor', 'doppler', 'src', 'gpu', 'kernels', 'shader-cache.js'),
+    'utf8'
+  );
+
+  assert.ok(shaderCache.includes("new URL('.', import.meta.url)"));
+  assert.equal(shaderCache.includes("return '/src/gpu/kernels'"), false);
+  assert.equal(shaderCache.includes("return '/doppler/src/gpu/kernels'"), false);
+});
+
 test('physics loading uses a canvas snake board instead of a card mosaic', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
@@ -138,14 +149,19 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(html, /\.primary-action\.is-loading::after/);
   assert.match(renderer, /createCanvasSnakeLoader/);
   assert.match(renderer, /drawCanvasLoadingSnakes/);
+  assert.match(renderer, /drawSnakeSignals/);
+  assert.match(renderer, /drawRoundedSnakeCell/);
   assert.match(renderer, /splitCanvasSnake/);
   assert.match(renderer, /joinNearbyCanvasSnakes/);
   assert.match(renderer, /nearestSnakeHead/);
   assert.match(renderer, /retireCanvasSnake/);
+  assert.match(renderer, /snakeSignals/);
   assert.match(renderer, /deathFade/);
   assert.match(renderer, /deathReason/);
   assert.match(renderer, /snakeDirFromCells/);
   assert.match(renderer, /branchCells = source\.cells\.slice\(splitIndex\)/);
+  assert.match(renderer, /while \(activeCount < 4\)/);
+  assert.doesNotMatch(renderer, /while \(activeCount < 10\)/);
   assert.doesNotMatch(renderer, /drawSnakeCollisionBursts/);
   assert.doesNotMatch(renderer, /drawCanvasSnakeHeadGlow/);
   assert.doesNotMatch(renderer, /collisionBursts/);
@@ -185,6 +201,16 @@ test('composition renderer has specific painters for diverse scene regimes', () 
     'drawMechanicalImpulseField',
     'paintLiteralCompositeWorld',
     'drawCompositeStressField',
+    'drawLiteralRocket',
+    'drawLiteralSubmarine',
+    'drawLiteralVolcano',
+    'drawLiteralLavaFlow',
+    'drawLiteralInstrument',
+    'drawLiteralCastle',
+    'drawLiteralTower',
+    'drawLiteralTurbine',
+    'drawLiteralStorm',
+    'drawLiteralPlantCluster',
     'visiblePlanObjectIds',
   ]) {
     assert.match(renderer, new RegExp(token));
@@ -248,6 +274,7 @@ test('Firebase hosting revalidates app shell and app JavaScript', () => {
   assert.ok(noCacheSources.has('/index.html'));
   assert.ok(noCacheSources.has('/js/**'));
   assert.ok(noCacheSources.has('/simulatte-model-cache-sw.js'));
+  assert.ok(noCacheSources.has('/vendor/doppler/**'));
 });
 
 test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {

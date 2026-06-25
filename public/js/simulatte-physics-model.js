@@ -759,6 +759,10 @@
     if (materials.includes('fur')) return 'protein';
     if (materials.includes('steel')) return 'metal';
     if (materials.includes('gold')) return 'gold';
+    if (materials.includes('lava')) return 'lava';
+    if (materials.includes('ice')) return 'ice';
+    if (materials.includes('quartz')) return 'quartz';
+    if (materials.includes('leaf')) return 'leaf';
     if (materials.includes('rubber_material')) return 'rubber';
     if (materials.includes('glass_material')) return 'glass';
     if (materials.includes('water_material')) return 'water';
@@ -775,6 +779,14 @@
       node.cardId,
     ].join(' ');
     if (/\bmammal|rodent|tissue|gait|soft/i.test(values)) return 'biological';
+    if (/\bspacecraft|rocket|orbit|thrust|satellite/i.test(values)) return 'mechanical';
+    if (/\bsubmarine|submersible|underwater|diving|swimming/i.test(values)) return 'fluid';
+    if (/\bturbine|propeller|rotation|pumping/i.test(values)) return 'mechanical';
+    if (/\blava|magma|molten|volcano/i.test(values)) return 'thermal';
+    if (/\bpiano|keyboard|instrument|acoustic_resonance/i.test(values)) return 'acoustic';
+    if (/\balgae|plant_cluster|glowing|photosynthesis/i.test(values)) return 'biological';
+    if (/\bstorm|hurricane|rainstorm/i.test(values)) return 'fluid';
+    if (/\bice|quartz|crystal|castle|tower/i.test(values)) return 'phase';
     if (/\bwheel|rotating|axle|apparatus|rigid/i.test(values)) return 'mechanical';
     if (/\bferrofluid|magnetic_fluid|magnetizes|spikes/i.test(values)) return 'magnetic';
     if (/\bwater|flow|pipe|pump/i.test(values)) return 'fluid';

@@ -772,6 +772,15 @@ test('semantic surface and grounding libraries cover broad natural language befo
   assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'airport'));
   assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'black_hole'));
   assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'gold'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'spacecraft'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'submarine'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'turbine'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'piano'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'castle'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'lava_material'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'algae'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'volcano_environment'));
+  assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'storm_environment'));
   assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'fracturing'));
   assert.ok(graphSynthesis.SURFACE_CARD_LIBRARY.some((card) => card.id === 'supports'));
   assert.ok(semanticRagApi.SEMANTIC_SURFACE_CARDS.every((card) => card.curation && card.curation.schema === 'simulatte.semanticCardCuration.v1'));
@@ -935,6 +944,44 @@ test('render programs keep prompt nouns literal and avoid unrelated scene fields
   assert.deepEqual(watershed.renderProgram.fields.map((field) => field.kind), ['gravity']);
   assert.deepEqual(ferrofluid.renderProgram.fields.map((field) => field.kind), ['dipole']);
   assert.deepEqual(thinFilm.renderProgram.fields.map((field) => field.kind), ['optical-rays']);
+});
+
+test('expanded universe prompts preserve specific generated simulation objects', () => {
+  const cosmic = lab.createSpecFromPrompt(
+    'spaceship orbiting a volcano while crystal towers melt lava into a river'
+  );
+  const acousticCastle = lab.createSpecFromPrompt(
+    'quantum piano bends laser light through an ice castle'
+  );
+  const undersea = lab.createSpecFromPrompt(
+    'submarine city under a storm with turbines and glowing algae'
+  );
+  const lavaBridge = lab.createSpecFromPrompt(
+    'clockwork bridge over lava with mirrors and falling sand'
+  );
+
+  const cosmicShapes = new Set(cosmic.renderProgram.objects.map((object) => object.shape));
+  const acousticShapes = new Set(acousticCastle.renderProgram.objects.map((object) => object.shape));
+  const underseaShapes = new Set(undersea.renderProgram.objects.map((object) => object.shape));
+  const bridgeById = Object.fromEntries(lavaBridge.renderProgram.objects.map((object) => [object.id, object]));
+
+  assert.equal(cosmic.renderProgram.rendererPlan.sceneKind, 'literal-composite');
+  assert.ok(cosmicShapes.has('rocket'));
+  assert.ok(cosmicShapes.has('volcano'));
+  assert.ok(cosmicShapes.has('tower'));
+  assert.ok(cosmicShapes.has('lava-flow'));
+  assert.ok(acousticShapes.has('instrument'));
+  assert.ok(acousticShapes.has('castle'));
+  assert.ok(acousticShapes.has('lens'));
+  assert.ok(underseaShapes.has('submarine'));
+  assert.ok(underseaShapes.has('storm'));
+  assert.ok(underseaShapes.has('turbine'));
+  assert.ok(underseaShapes.has('plant-cluster'));
+  assert.equal(bridgeById['gearbox-a'].shape, 'wheel');
+  assert.equal(bridgeById['bridge-a'].shape, 'bridge');
+  assert.equal(bridgeById['lava-material-a'].shape, 'lava-flow');
+  assert.ok(undersea.renderProgram.solverPlan.families.includes('growth-diffusion'));
+  assert.ok(cosmic.renderProgram.solverPlan.families.includes('phase-boundary'));
 });
 
 test('compiled render programs keep objects positioned inside the visible world', () => {

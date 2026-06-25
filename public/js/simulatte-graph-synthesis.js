@@ -99,6 +99,45 @@
       primitiveIds: ['rigid-body', 'wheel', 'friction', 'collision', 'metal', 'rubber'],
       abstract: true,
     }, 'vehicle rolling wheeled body axle road contact'),
+    card('spacecraft', 'assembly', ['spaceship', 'spacecraft', 'rocket', 'satellite'], {
+      classes: ['spacecraft'],
+      shapes: ['rocket_body'],
+      materials: ['metal', 'glass'],
+      behaviors: ['orbiting', 'thrust'],
+      ports: ['gravity_well', 'thrust_axis'],
+      primitiveIds: ['rigid-body', 'gravity', 'radiation', 'metal', 'vector-field', 'energy-ledger'],
+    }, 'spaceship spacecraft rocket satellite orbit thrust metal shell radiation gravity'),
+    card('submarine', 'assembly', ['submarine', 'submersible'], {
+      classes: ['submarine'],
+      shapes: ['submarine_body'],
+      materials: ['metal', 'glass'],
+      behaviors: ['swimming', 'diving'],
+      ports: ['pressure_hull', 'flow_axis'],
+      primitiveIds: ['rigid-body', 'pressure', 'water', 'fluid-advection', 'metal'],
+    }, 'submarine submersible underwater pressure hull flow ballast metal'),
+    card('turbine', 'assembly', ['turbine', 'turbines', 'propeller', 'propellers', 'fan turbine', 'wind turbine'], {
+      classes: ['turbine'],
+      parts: ['hub', 'blades', 'shaft'],
+      shapes: ['turbine'],
+      materials: ['metal', 'copper'],
+      behaviors: ['rotation', 'pumping'],
+      primitiveIds: ['fan', 'motor', 'generator', 'metal', 'fluid-advection', 'energy-ledger'],
+    }, 'turbine propeller fan blades rotating shaft flow generator motor'),
+    card('piano', 'assembly', ['piano', 'keyboard'], {
+      classes: ['instrument'],
+      parts: ['keys', 'strings', 'soundboard'],
+      shapes: ['instrument_body'],
+      materials: ['wood', 'metal'],
+      behaviors: ['acoustic_resonance'],
+      primitiveIds: ['wave-source', 'oscillator', 'wood', 'metal', 'energy-ledger'],
+    }, 'piano keyboard strings soundboard acoustic resonance wooden instrument'),
+    card('castle', 'assembly', ['castle', 'ice castle', 'crystal tower', 'crystal towers', 'tower'], {
+      classes: ['castle'],
+      parts: ['wall', 'tower', 'facets'],
+      shapes: ['castle', 'tower'],
+      materials: ['ice', 'glass', 'quartz'],
+      primitiveIds: ['ice', 'glass', 'crystal-lattice', 'collision', 'surface-boundary'],
+    }, 'castle ice castle crystal tower faceted walls brittle transparent mineral'),
     card('hamster_wheel', 'assembly', ['hamster wheel', 'running wheel', 'exercise wheel'], {
       parts: ['rim', 'spokes', 'axle', 'support_frame', 'contact_track'],
       constraints: ['revolute_axle', 'bearing'],
@@ -198,6 +237,20 @@
       behaviors: ['magnetizes', 'spikes'],
       primitiveIds: ['magnetism', 'fluid-advection', 'magnetized-metal', 'particle-set'],
     }, 'ferrofluid magnetic liquid black spikes field responsive suspended metal particles'),
+    card('lava_material', 'material', ['lava', 'magma'], {
+      classes: ['molten_rock'],
+      shapes: ['lava_flow'],
+      materials: ['lava', 'rock', 'fire'],
+      behaviors: ['flowing', 'heating'],
+      primitiveIds: ['rock', 'fire', 'heat-transfer', 'fluid-advection', 'phase-change'],
+    }, 'lava magma molten rock glowing hot flow thermal phase change'),
+    card('algae', 'entity', ['algae', 'glowing algae'], {
+      classes: ['plant_cluster'],
+      shapes: ['colony_field'],
+      materials: ['leaf', 'biomass'],
+      behaviors: ['growth', 'glowing'],
+      primitiveIds: ['leaf', 'biomass', 'growth-decay', 'radiation', 'diffusion'],
+    }, 'algae glowing plant cluster photosynthesis green biomass growth light'),
     card('water_material', 'material', ['water', 'liquid water'], {
       primitiveIds: ['water', 'fluid-advection', 'pressure'],
     }, 'water liquid flow pressure cooling'),
@@ -283,6 +336,12 @@
     card('watershed_environment', 'environment', ['watershed', 'river basin'], {
       primitiveIds: ['river', 'terrain-patch', 'water', 'erosion'],
     }, 'watershed river basin rain terrain erosion water'),
+    card('volcano_environment', 'environment', ['volcano', 'volcanic cone'], {
+      primitiveIds: ['rock', 'terrain-patch', 'fire', 'heat-transfer', 'pressure'],
+    }, 'volcano volcanic cone mountain magma vent lava rock heat pressure'),
+    card('storm_environment', 'environment', ['storm', 'rainstorm', 'hurricane'], {
+      primitiveIds: ['air', 'water', 'pressure', 'fluid-advection', 'vector-field'],
+    }, 'storm rain wind pressure cloud air water turbulent environment'),
     card('output_power_readout', 'readout', ['output power', 'power readout', 'watt meter'], {
       primitiveIds: ['energy-ledger', 'sensor'],
     }, 'output power readout watt meter energy ledger sensor'),

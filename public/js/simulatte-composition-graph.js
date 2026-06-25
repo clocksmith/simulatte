@@ -30,6 +30,8 @@
     gel: style('#c4f4ef', '#6bb7aa', 0.36),
     glass: style('#dff9ff', '#66b8e8', 0.34),
     gold: style('#ffd760', '#b47a23', 0.86),
+    ice: style('#dcf7ff', '#72b8da', 0.58),
+    lava: style('#ff6b2a', '#872b1a', 0.88),
     leaf: style('#8fd878', '#3f7d3c', 0.68),
     light: style('#ffe873', '#efb425', 0.84),
     magnet: style('#d44a8f', '#2959c6', 0.88),
@@ -41,6 +43,7 @@
     rock: style('#8f8b82', '#54524d', 0.86),
     sand: style('#d9bd7b', '#a8793d', 0.76),
     silicon: style('#9eb7ce', '#5d748a', 0.64),
+    quartz: style('#e6f6ff', '#8db9d4', 0.54),
     smoke: style('#aeb5ba', '#687077', 0.28),
     soil: style('#8a6845', '#4d3826', 0.78),
     water: style('#56b7e8', '#216b9c', 0.62),
@@ -582,7 +585,7 @@
     if (/\b(mouse|gerbil|hamster wheel|running wheel|crash|collision|impact)\b/.test(promptText)) {
       return 'mechanical';
     }
-    if (/black hole|singularity|swamp|wetland|hammer|gold/.test(promptText) && /black hole|swamp|hammer|gold|glass/.test(promptText)) {
+    if (/spaceship|spacecraft|rocket|submarine|volcano|lava|magma|piano|keyboard|castle|crystal tower|storm|turbine|algae|black hole|singularity|swamp|wetland|hammer|gold/.test(promptText)) {
       return 'literal-composite';
     }
     if (/city grid|traffic|market queue|power grid|queue|logistics/.test(promptText) || operatorIds.has('queueService')) {
@@ -746,6 +749,16 @@
     if (node.shape === 'singularity') return [0.18, 0.18];
     if (node.shape === 'hammer') return [0.18, 0.12];
     if (node.shape === 'wetland') return [0.26, 0.16];
+    if (node.shape === 'rocket') return [0.18, 0.11];
+    if (node.shape === 'submarine') return [0.22, 0.11];
+    if (node.shape === 'volcano') return [0.24, 0.18];
+    if (node.shape === 'lava-flow') return [0.28, 0.1];
+    if (node.shape === 'instrument') return [0.2, 0.12];
+    if (node.shape === 'castle') return [0.22, 0.19];
+    if (node.shape === 'tower') return [0.14, 0.22];
+    if (node.shape === 'turbine') return [0.16, 0.16];
+    if (node.shape === 'storm') return [0.32, 0.2];
+    if (node.shape === 'plant-cluster') return [0.18, 0.16];
     if (node.shape === 'heightfield') return [0.64, 0.46];
     if (node.shape === 'queue-node' || node.shape === 'network-node') return [0.08, 0.08];
     if (node.shape === 'field-envelope') return [0.24 + density * 0.16, 0.24 + density * 0.16];
@@ -870,6 +883,9 @@
     if (/silicon/.test(text)) return 'silicon';
     if (/carbon/.test(text)) return 'carbon';
     if (/gold/.test(text)) return 'gold';
+    if (/lava|magma|molten/.test(text)) return 'lava';
+    if (/ice|frozen/.test(text)) return 'ice';
+    if (/quartz|crystal/.test(text)) return 'quartz';
     if (/ferrofluid/.test(text)) return 'ferrofluid';
     if (/gel/.test(text)) return 'gel';
     if (/foam/.test(text)) return 'foam';
@@ -878,14 +894,14 @@
     if (/mycelium/.test(text)) return 'mycelium';
     if (/protein/.test(text)) return 'protein';
     if (/bacteria/.test(text)) return 'bacteria';
-    if (/water|river|lake/.test(text)) return 'water';
+    if (/water|river|lake|submarine/.test(text)) return 'water';
     if (/wood|biomass|fuel/.test(text)) return 'wood';
     if (/glass|lens|prism/.test(text)) return 'glass';
     if (/magnet/.test(text)) return 'magnet';
-    if (/metal|motor|generator|wheel|rotor/.test(text)) return 'metal';
+    if (/metal|motor|generator|wheel|rotor|spacecraft|spaceship|rocket|turbine|submarine/.test(text)) return 'metal';
     if (/sand/.test(text)) return 'sand';
     if (/soil|terrain/.test(text)) return 'soil';
-    if (/fire|flame|combust|plasma/.test(text)) return 'fire';
+    if (/fire|flame|combust|plasma|volcano/.test(text)) return 'fire';
     if (/smoke/.test(text)) return 'smoke';
     if (/rock|wall/.test(text)) return 'rock';
     if (/bubble|foam|soap/.test(text)) return 'foam';
@@ -899,17 +915,53 @@
     if (component && component.assembly === 'field') return 'field-envelope';
     if (component && component.assembly === 'network') return 'network-node';
     if (component && component.assembly === 'source') return 'source-field';
+    const geometryShapes = ((component && component.geometry && component.geometry.shapes) || [])
+      .join(' ')
+      .toLowerCase();
     const text = componentText(component);
+    const phrase = String(component && component.phrase || '').toLowerCase();
     const identity = `${component && component.id || ''} ${component && component.role || ''} ${component && component.material || ''}`.toLowerCase();
+    const specific = [
+      component && component.id,
+      component && component.type,
+      component && component.role,
+      component && component.material,
+      component && component.visualRegime,
+      component && component.assembly,
+      component && component.source,
+      ...((component && component.domains) || []),
+    ].filter(Boolean).join(' ').toLowerCase();
     if (/\bgold\b|gold-/.test(identity)) return 'bar';
-    if (/glass|lens/.test(identity)) return 'lens';
     if (/air-material|air material/.test(identity)) return /bubble/.test(text) ? 'bubble' : 'sample';
+    if (/rocket[_-]body|spacecraft|spaceship|rocket|satellite/.test(`${specific} ${geometryShapes}`)) return 'rocket';
+    if (/submarine[_-]body|submarine|submersible/.test(`${specific} ${geometryShapes}`)) return 'submarine';
+    if (/volcano|volcanic/.test(specific)) return 'volcano';
+    if (/gear[_-]train|gearbox|wheel|rotor|gear/.test(`${specific} ${geometryShapes}`)) return 'wheel';
+    if (/span[_-]structure|bridge|truss|span/.test(`${specific} ${geometryShapes}`)) return 'bridge';
+    if (/crystal tower|crystal towers/.test(phrase) || (/\btower\b/.test(specific) && !/castle/.test(specific))) return 'tower';
+    if (/castle/.test(`${specific} ${geometryShapes}`)) return 'castle';
+    if (/lava[_-]flow|lava|magma|molten/.test(`${specific} ${geometryShapes}`)) return 'lava-flow';
+    if (/instrument[_-]body|piano|keyboard|instrument/.test(`${specific} ${geometryShapes}`)) return 'instrument';
+    if (/turbine|propeller|fan turbine/.test(`${specific} ${geometryShapes}`)) return 'turbine';
+    if (/storm|hurricane|rainstorm/.test(specific)) return 'storm';
+    if (/colony[_-]field|algae|plant cluster|plant_cluster/.test(`${specific} ${geometryShapes}`)) return 'plant-cluster';
+    if (/glass|lens/.test(identity)) return 'lens';
+    if (/spacecraft|spaceship|rocket|satellite/.test(text)) return 'rocket';
+    if (/submarine|submersible/.test(text)) return 'submarine';
+    if (/volcano|volcanic/.test(text)) return 'volcano';
+    if (/bridge|truss|span/.test(text)) return 'bridge';
+    if (/crystal tower|crystal towers|tower/.test(text)) return 'tower';
+    if (/ice castle|castle/.test(text)) return 'castle';
+    if (/lava|magma|molten/.test(text)) return 'lava-flow';
+    if (/piano|keyboard|instrument/.test(text)) return 'instrument';
+    if (/turbine|propeller|fan turbine/.test(text)) return 'turbine';
+    if (/storm|hurricane|rainstorm/.test(text)) return 'storm';
+    if (/algae|plant cluster/.test(text)) return 'plant-cluster';
     if (/wheel|rotor|gear/.test(text)) return 'wheel';
     if (/\b(mouse|gerbil|hamster|dog|cat|animal|organism)\b/.test(text)) return 'animal-body';
     if (/ferrofluid/.test(text)) return 'pool';
     if (/black hole|singularity|event horizon/.test(text)) return 'singularity';
     if (/swamp|marsh|wetland/.test(text)) return 'wetland';
-    if (/bridge|truss|span/.test(text)) return 'bridge';
     if (/hammer|mallet/.test(text)) return 'hammer';
     if (/cooling fin|cooling fins|heat sink|heatsink/.test(text)) return 'cooling-fins';
     if (/sieve|screen|mesh/.test(text)) return 'sieve';
@@ -941,7 +993,8 @@
     if (/foam|gel|membrane/.test(id)) return 'membrane-field';
     if (/bacteria|mycelium|leaf|protein/.test(id)) return 'colony-field';
     if (/brine|mercury|water|oil|steam|smoke|ferrofluid/.test(id)) return 'pool';
-    if (/glass|ice/.test(id)) return 'lens';
+    if (/ice/.test(id)) return 'castle';
+    if (/glass|quartz|crystal/.test(id)) return 'lens';
     if (/sand|soil|clay|rock/.test(id)) return 'grain-bed';
     if (/wood|fabric|rubber/.test(id)) return 'slab';
     if (/fire|plasma/.test(id)) return 'flame-front';
@@ -958,6 +1011,10 @@
       (node.domains || []).join(' '),
     ].join(' ').toLowerCase();
     if (/mycelium|bacteria|protein|leaf|biology|population|colony|infection/.test(text)) return 'biological';
+    if (/spacecraft|spaceship|rocket|satellite|submarine|turbine/.test(text)) return 'mechanical';
+    if (/piano|keyboard|instrument|acoustic/.test(text)) return 'acoustic';
+    if (/storm|hurricane|rainstorm/.test(text)) return 'fluid';
+    if (/volcano|lava|magma|molten/.test(text)) return 'thermal';
     if (/membrane|gel|foam|fabric|soft|adhesion|cohesion/.test(text)) return 'soft';
     if (/\b(atom|electron|ion|molecule|crystal|lattice|atomic)\b/.test(text)) return 'atomic';
     if (/electric|charge|current|copper|silicon|conductor|plasma/.test(text)) return 'electrical';
