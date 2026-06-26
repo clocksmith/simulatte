@@ -262,7 +262,7 @@
     const emitters = emittersForComposition(graph);
     const solverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, objects), sceneKind);
     const rendererPlan = rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
-    return {
+    const program = {
       schema: RENDER_PROGRAM_SCHEMA,
       sourceGraphId: graph.graphId,
       intentText: graph.intentText,
@@ -286,6 +286,219 @@
         signature: uniqueList(graph.nodes.map((node) => node.shape)).join('+'),
       },
     };
+    return spec && spec.renderIR && spec.solverGraph
+      ? augmentRenderProgramWithRenderIR(program, spec)
+      : program;
+  }
+
+  function augmentRenderProgramWithRenderIR(program, spec) {
+    const renderObjects = spec.renderIR && spec.renderIR.objects || [];
+    const bindingByText = renderBindingIndex(renderObjects);
+    const objects = (program.objects || []).map((object) => {
+      const key = bestRenderBindingKey(object, bindingByText);
+      const binding = key ? bindingByText.get(key) : null;
+      if (!binding) return object;
+      return {
+        ...object,
+        stateBindings: binding.stateBindings || {},
+        physicalRef: binding.physicalRef || object.physicalRef || '',
+        semanticRef: binding.semanticRef || object.semanticRef || '',
+      };
+    });
+    const fields = program.fields || [];
+    const solverFamilies = uniqueList([
+      ...((program.solverPlan && program.solverPlan.families) || []),
+      ...((spec.solverGraph.steps || []).map((step) => step.solverId)),
+    ]);
+    return {
+      ...program,
+      objects,
+      fields,
+      renderIR: spec.renderIR,
+      solverPlan: {
+        ...(program.solverPlan || {}),
+        families: solverFamilies,
+        state: uniqueList([
+          ...((program.solverPlan && program.solverPlan.state) || []),
+          ...Object.keys(spec.solverGraph.channels || {}),
+        ]),
+        executableSteps: (spec.solverGraph.steps || []).map((step) => step.operatorType),
+      },
+      provenance: {
+        ...(program.provenance || {}),
+        renderIR: spec.renderIR.schema,
+        solverGraph: spec.solverGraph.schema,
+      },
+    };
+  }
+
+  function renderBindingIndex(renderObjects) {
+    const map = new Map();
+    for (const object of renderObjects || []) {
+      for (const key of renderBindingKeys(object)) {
+        if (key && !map.has(key)) map.set(key, object);
+      }
+    }
+    return map;
+  }
+
+  function renderBindingKeys(object) {
+    return [
+      object.physicalRef,
+      object.semanticRef,
+      object.label,
+      object.glyph,
+      object.materialId,
+    ].map((value) => String(value || '').toLowerCase()).filter(Boolean);
+  }
+
+  function bestRenderBindingKey(object, bindingByText) {
+    const text = [
+      object.id,
+      object.role,
+      object.shape,
+      object.material,
+      object.phrase,
+      object.assembly,
+      object.visualRegime,
+    ].join(' ').toLowerCase();
+    for (const key of bindingByText.keys()) {
+      if (key && (text.includes(key) || key.includes(object.id))) return key;
+    }
+    if (/lava|magma/.test(text) && bindingByText.has('lava')) return 'lava';
+    if (/turbine|rotor|wheel/.test(text) && bindingByText.has('turbine')) return 'turbine';
+    if (/castle|wall/.test(text) && bindingByText.has('castle')) return 'castle';
+    if (/ice/.test(text) && bindingByText.has('ice')) return 'ice';
+    return '';
+  }
+
+  function renderProgramFromRenderIR(graph, spec) {
+    const renderIR = spec.renderIR || {};
+    const solverGraph = spec.solverGraph || {};
+    const sceneKind = renderIR.sceneHint || 'generic';
+    const objects = layoutObjectsForScene((renderIR.objects || []).map((object, index) => ({
+      id: object.physicalRef || object.id,
+      kind: object.glyph === 'field' ? 'field' : 'body',
+      material: object.materialId || 'metal',
+      role: object.label || object.semanticRef || object.id,
+      shape: shapeForRenderGlyph(object.glyph, object),
+      visualRegime: object.visualRegime || '',
+      assembly: object.semanticRef || '',
+      phrase: object.label || '',
+      source: 'render-ir',
+      pose: poseForRenderObject(object, index, renderIR.objects.length),
+      dynamics: {},
+      stateBindings: object.stateBindings || {},
+      physicalRef: object.physicalRef || '',
+      semanticRef: object.semanticRef || '',
+      required: true,
+    })), sceneKind, spec);
+    const fields = (renderIR.fields || []).map((field) => ({
+      id: field.id,
+      kind: field.name,
+      channel: field.channel,
+      stateBinding: field.channel,
+      domainId: field.domainId,
+      strength: 0.7,
+    }));
+    const solverPlan = {
+      families: uniqueList((solverGraph.steps || []).map((step) => step.solverId)),
+      state: Object.keys(solverGraph.channels || {}),
+      steps: (solverGraph.steps || []).map((step) => step.operatorType),
+    };
+    const rendererPlan = rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
+    return {
+      schema: RENDER_PROGRAM_SCHEMA,
+      sourceGraphId: graph.graphId,
+      intentText: graph.intentText,
+      materials: { ...MATERIAL_STYLES },
+      objects,
+      relations: relationsFromPhysicsIR(spec),
+      fields,
+      emitters: emittersForComposition(graph),
+      solverPlan,
+      rendererPlan,
+      renderIR,
+      camera: { framing: 'composition-2d', padding: 0.08, sceneKind },
+      provenance: {
+        compiler: 'simulatte.render-ir-to-render-program.v1',
+        nodeCount: objects.length,
+        relationCount: spec.physicsIR ? (spec.physicsIR.couplings || []).length : 0,
+        operatorCount: solverGraph.steps ? solverGraph.steps.length : 0,
+        visualRegimes: uniqueList(objects.map((object) => object.visualRegime)),
+        dominantRegime: rendererPlan.dominantRegime,
+        sceneKind,
+        visualIdentity: rendererPlan.visualIdentity,
+        signature: uniqueList(objects.map((object) => object.shape)).join('+'),
+      },
+    };
+  }
+
+  function shapeForRenderGlyph(glyph, object) {
+    if (glyph === 'lava') return 'lava-flow';
+    if (glyph === 'turbine') return 'turbine';
+    if (glyph === 'castle') return /wall/i.test(object.label || '') ? 'wall' : 'castle';
+    if (glyph === 'ice') return 'sample';
+    if (glyph === 'fluid_path') return 'flow-path';
+    if (glyph === 'projectile') return 'bar';
+    if (glyph === 'rocket') return 'rocket';
+    if (glyph === 'submarine') return 'submarine';
+    if (glyph === 'instrument') return 'instrument';
+    if (glyph === 'network') return 'network-node';
+    if (glyph === 'field') return 'field-envelope';
+    if (glyph === 'particle_cloud') return 'flow-path';
+    if (glyph === 'organism') return 'plant-cluster';
+    return 'body';
+  }
+
+  function poseForRenderObject(object, index, total) {
+    const geometry = object.geometry || {};
+    if (Array.isArray(geometry.anchor)) {
+      const size = sizeForRenderGlyph(object.glyph);
+      return { x: geometry.anchor[0], y: geometry.anchor[1], rotation: 0, w: size[0], h: size[1] };
+    }
+    if (Array.isArray(geometry.bounds)) {
+      return {
+        x: geometry.bounds[0] + geometry.bounds[2] * 0.5,
+        y: geometry.bounds[1] + geometry.bounds[3] * 0.5,
+        rotation: 0,
+        w: geometry.bounds[2],
+        h: geometry.bounds[3],
+      };
+    }
+    if (geometry.kind === 'path') {
+      return { points: [[0.1, 0.38], [0.34, 0.46], [0.58, 0.5], [0.88, 0.62]] };
+    }
+    const angle = total <= 1 ? 0 : index / Math.max(1, total) * Math.PI * 2;
+    const size = sizeForRenderGlyph(object.glyph);
+    return {
+      x: 0.5 + Math.cos(angle) * 0.22,
+      y: 0.5 + Math.sin(angle) * 0.16,
+      rotation: 0,
+      w: size[0],
+      h: size[1],
+    };
+  }
+
+  function sizeForRenderGlyph(glyph) {
+    if (glyph === 'lava' || glyph === 'fluid_path') return [0.34, 0.12];
+    if (glyph === 'turbine') return [0.18, 0.18];
+    if (glyph === 'castle') return [0.22, 0.22];
+    if (glyph === 'field') return [0.3, 0.26];
+    if (glyph === 'network') return [0.08, 0.08];
+    return [0.16, 0.12];
+  }
+
+  function relationsFromPhysicsIR(spec) {
+    const ir = spec.physicsIR || {};
+    return (ir.couplings || []).map((coupling) => ({
+      from: String(coupling.from || '').replace(/^domain:/, ''),
+      to: String(coupling.to || '').replace(/^domain:/, ''),
+      channel: coupling.type || 'coupling',
+      reason: coupling.type || 'coupling',
+      strength: 0.72,
+      operatorId: coupling.operatorId,
+    }));
   }
 
   function renderObjectForNode(node, spec) {
