@@ -1035,6 +1035,40 @@
         operators: spec.compositionGraph.operators.map((operator) => operator.id),
         priors: spec.compositionGraph.priors.slice(0, 10).map((prior) => prior.primitiveId),
       } : null,
+      promptParse: spec.promptParse ? {
+        schema: spec.promptParse.schema,
+        spans: spec.promptParse.spans.length,
+        clauses: spec.promptParse.clauses.length,
+      } : null,
+      universeGraph: spec.universeGraph ? {
+        schema: spec.universeGraph.schema,
+        nodes: spec.universeGraph.nodes.length,
+        edges: spec.universeGraph.edges.length,
+        unresolved: spec.universeGraph.unresolved,
+      } : null,
+      physicsIR: spec.physicsIR ? {
+        schema: spec.physicsIR.schema,
+        domains: spec.physicsIR.domains.map((domain) => `${domain.kind}:${domain.entityId}`),
+        fields: spec.physicsIR.stateFields.map((field) => field.id),
+        operators: spec.physicsIR.operators.map((operator) => operator.type),
+        couplings: spec.physicsIR.couplings,
+      } : null,
+      validationReceipt: spec.validationReceipt || null,
+      solverGraph: spec.solverGraph ? {
+        schema: spec.solverGraph.schema,
+        channels: Object.keys(spec.solverGraph.channels || {}),
+        steps: spec.solverGraph.steps.map((step) => `${step.stage}:${step.operatorType}`),
+        warnings: spec.solverGraph.warnings,
+      } : null,
+      renderIR: spec.renderIR ? {
+        schema: spec.renderIR.schema,
+        sceneHint: spec.renderIR.sceneHint,
+        objects: spec.renderIR.objects.map((object) => ({
+          id: object.physicalRef,
+          glyph: object.glyph,
+          bindings: object.stateBindings,
+        })),
+      } : null,
       renderProgram: spec.renderProgram ? {
         schema: spec.renderProgram.schema,
         objects: spec.renderProgram.objects.length,
@@ -1071,6 +1105,12 @@
     const groupEnd = typeof console.groupEnd === 'function' ? console.groupEnd.bind(console) : () => {};
     group(label);
     console.log('intent', spec.intent || null);
+    console.log('promptParse', spec.promptParse || null);
+    console.log('universeGraph', spec.universeGraph || null);
+    console.log('physicsIR', spec.physicsIR || null);
+    console.log('validationReceipt', spec.validationReceipt || null);
+    console.log('solverGraph', spec.solverGraph || null);
+    console.log('renderIR', spec.renderIR || null);
     console.log('compositionGraph', graph);
     console.log('renderProgram', renderProgram);
     console.log('physicalSpec', spec.physicalSpec || null);
@@ -3742,25 +3782,75 @@
   }
 
   function drawPlanObject(ctx, width, height, state, plan, object, index) {
-    const material = plan.materials && plan.materials[object.material] || {};
+    const boundObject = applyRenderStateBindings(object, state);
+    const material = plan.materials && plan.materials[boundObject.material] || {};
     const stroke = material.stroke || '#42695d';
     const alpha = material.alpha ?? 0.72;
-    const extent = objectExtent(object, width, height);
+    const extent = objectExtent(boundObject, width, height);
     if (!extent) return;
-    const hue = materialHueFor(object.material, index);
-    const isField = object.kind === 'field' || object.shape === 'field-envelope';
-    const isLiteral = isConcreteShape(object.shape) && !isField;
+    const hue = boundObject.boundHue ?? materialHueFor(boundObject.material, index);
+    const isField = boundObject.kind === 'field' || boundObject.shape === 'field-envelope';
+    const isLiteral = isConcreteShape(boundObject.shape) && !isField;
     ctx.save();
     ctx.globalAlpha = Math.min(1, Math.max(isField ? 0.34 : isLiteral ? 0.86 : 0.66, alpha));
+    if (Number.isFinite(boundObject.boundAlpha)) {
+      ctx.globalAlpha = Math.min(1, ctx.globalAlpha * Math.max(0.22, boundObject.boundAlpha));
+    }
     ctx.strokeStyle = stroke;
-    if (drawLiteralPlanObject(ctx, extent, state, object, index, hue)) {
+    if (drawLiteralPlanObject(ctx, extent, state, boundObject, index, hue)) {
       ctx.restore();
       return;
     }
-    drawObjectSilhouette(ctx, extent, object, index, hue);
-    drawObjectMaterialKernel(ctx, extent, state, object, index);
-    drawObjectAccentDetails(ctx, extent, state, object, index, hue);
+    drawObjectSilhouette(ctx, extent, boundObject, index, hue);
+    drawObjectMaterialKernel(ctx, extent, state, boundObject, index);
+    drawObjectAccentDetails(ctx, extent, state, boundObject, index, hue);
     ctx.restore();
+  }
+
+  function applyRenderStateBindings(object, state) {
+    const bindings = object && object.stateBindings || {};
+    const channels = state && state.solverState && state.solverState.channels || state.channelValues || {};
+    if (!bindings || !Object.keys(bindings).length || !channels) return object;
+    const pose = { ...(object.pose || {}) };
+    const next = { ...object, pose };
+    const temperature = boundScalar(channels, bindings.hue || bindings.glow);
+    const damage = boundScalar(channels, bindings.crackDensity);
+    const opacity = boundScalar(channels, bindings.opacity);
+    const rotation = boundScalar(channels, bindings.rotation);
+    const rotationRate = boundScalar(channels, bindings.rotationRate);
+    const motion = boundVector(channels, bindings.motion || bindings.flow);
+    if (Number.isFinite(temperature)) {
+      next.boundHue = Math.max(0, Math.min(360, 12 + temperature * 52));
+      next.boundHeat = temperature;
+    }
+    if (Number.isFinite(opacity)) next.boundAlpha = 0.42 + opacity * 0.58;
+    if (Number.isFinite(damage)) next.boundDamage = damage;
+    if (Number.isFinite(rotation)) pose.rotation = rotation;
+    if (Number.isFinite(rotationRate)) pose.rotation = (pose.rotation || 0) + rotationRate * 0.04;
+    if (motion) {
+      pose.x = Math.max(0.06, Math.min(0.94, (pose.x || 0.5) + motion.x * 0.012));
+      pose.y = Math.max(0.08, Math.min(0.92, (pose.y || 0.5) + motion.y * 0.012));
+      next.boundMotion = Math.hypot(motion.x, motion.y);
+    }
+    return next;
+  }
+
+  function boundScalar(channels, id) {
+    if (!id || !(id in channels)) return NaN;
+    const value = channels[id];
+    if (value && typeof value === 'object') return Math.hypot(Number(value.x || 0), Number(value.y || 0));
+    const number = Number(value);
+    return Number.isFinite(number) ? number : NaN;
+  }
+
+  function boundVector(channels, id) {
+    if (!id || !(id in channels)) return null;
+    const value = channels[id];
+    if (!value || typeof value !== 'object') return null;
+    const x = Number(value.x || 0);
+    const y = Number(value.y || 0);
+    if (!Number.isFinite(x + y)) return null;
+    return { x, y };
   }
 
   function drawLiteralPlanObject(ctx, extent, state, object, index, hue) {
@@ -3779,11 +3869,11 @@
     if (shape === 'rocket') return drawLiteralRocket(ctx, extent, state, hue);
     if (shape === 'submarine') return drawLiteralSubmarine(ctx, extent, state, hue);
     if (shape === 'volcano') return drawLiteralVolcano(ctx, extent, state, hue);
-    if (shape === 'lava-flow') return drawLiteralLavaFlow(ctx, extent, state);
+    if (shape === 'lava-flow') return drawLiteralLavaFlow(ctx, extent, state, object);
     if (shape === 'instrument') return drawLiteralInstrument(ctx, extent, state, hue);
-    if (shape === 'castle') return drawLiteralCastle(ctx, extent, state, hue);
+    if (shape === 'castle') return drawLiteralCastle(ctx, extent, state, hue, object);
     if (shape === 'tower') return drawLiteralTower(ctx, extent, state, hue);
-    if (shape === 'turbine') return drawLiteralTurbine(ctx, extent, state, hue);
+    if (shape === 'turbine') return drawLiteralTurbine(ctx, extent, state, hue, object);
     if (shape === 'storm') return drawLiteralStorm(ctx, extent, state, hue);
     if (shape === 'plant-cluster') return drawLiteralPlantCluster(ctx, extent, state, hue);
     if (shape === 'bridge') return drawLiteralBridge(ctx, extent, hue);
@@ -4188,12 +4278,14 @@
     return true;
   }
 
-  function drawLiteralLavaFlow(ctx, extent, state) {
+  function drawLiteralLavaFlow(ctx, extent, state, object = {}) {
+    const heat = Number.isFinite(object.boundHeat) ? object.boundHeat : 0.9;
+    const motion = Number.isFinite(object.boundMotion) ? object.boundMotion : 0.4;
     ctx.save();
     ctx.translate(extent.x, extent.y);
-    ctx.rotate(extent.rotation + Math.sin(state.t * 0.08) * 0.035);
+    ctx.rotate(extent.rotation + Math.sin(state.t * 0.08 + motion) * 0.035);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = 'rgba(108, 34, 24, 0.72)';
+    ctx.strokeStyle = `rgba(108, ${Math.round(28 + heat * 12)}, 24, 0.72)`;
     ctx.lineWidth = Math.max(5, extent.h * 0.12);
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -4201,17 +4293,17 @@
     ctx.bezierCurveTo(-extent.w * 0.18, -extent.h * 0.34, extent.w * 0.08, extent.h * 0.24, extent.w * 0.5, extent.h * 0.06);
     ctx.stroke();
     ctx.globalCompositeOperation = 'screen';
-    ctx.strokeStyle = 'rgba(255, 108, 42, 0.64)';
+    ctx.strokeStyle = `rgba(255, ${Math.round(86 + heat * 42)}, 42, ${Math.min(0.88, 0.48 + heat * 0.22)})`;
     ctx.lineWidth = Math.max(3, extent.h * 0.07);
     ctx.beginPath();
     ctx.moveTo(-extent.w * 0.46, -extent.h * 0.12);
     for (let step = 1; step <= 12; step += 1) {
       const x = -extent.w * 0.46 + step * extent.w * 0.08;
-      const y = Math.sin(step * 0.9 + state.t * 0.7) * extent.h * 0.15;
+      const y = Math.sin(step * 0.9 + state.t * (0.45 + motion * 0.36)) * extent.h * 0.15;
       ctx.lineTo(x, y);
     }
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(255, 230, 92, 0.44)';
+    ctx.strokeStyle = `rgba(255, 230, ${Math.round(92 + heat * 52)}, ${Math.min(0.7, 0.28 + heat * 0.2)})`;
     ctx.lineWidth = Math.max(1.4, extent.h * 0.025);
     ctx.stroke();
     ctx.restore();
@@ -4247,7 +4339,8 @@
     return true;
   }
 
-  function drawLiteralCastle(ctx, extent, state, hue) {
+  function drawLiteralCastle(ctx, extent, state, hue, object = {}) {
+    const damage = Number.isFinite(object.boundDamage) ? object.boundDamage : 0;
     ctx.save();
     ctx.translate(extent.x, extent.y);
     ctx.rotate(extent.rotation + Math.sin(state.t * 0.08) * 0.015);
@@ -4277,6 +4370,15 @@
       ctx.beginPath();
       ctx.moveTo(x, extent.h * 0.22);
       ctx.lineTo(x + Math.sin(facet) * extent.w * 0.05, -extent.h * 0.3);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `hsla(${iceHue + 46}, 88%, 82%, ${Math.min(0.62, 0.12 + damage * 0.66)})`;
+    ctx.lineWidth = Math.max(1, extent.w * 0.012);
+    for (let crack = 0; crack < Math.ceil(2 + damage * 8); crack += 1) {
+      const x = -extent.w * 0.32 + crack * extent.w * 0.08;
+      ctx.beginPath();
+      ctx.moveTo(x, -extent.h * 0.2);
+      ctx.lineTo(x + Math.sin(crack * 1.7) * extent.w * 0.08, extent.h * 0.24);
       ctx.stroke();
     }
     ctx.restore();
@@ -4312,10 +4414,11 @@
     return true;
   }
 
-  function drawLiteralTurbine(ctx, extent, state, hue) {
+  function drawLiteralTurbine(ctx, extent, state, hue, object = {}) {
+    const motion = Number.isFinite(object.boundMotion) ? object.boundMotion : 0;
     ctx.save();
     ctx.translate(extent.x, extent.y);
-    ctx.rotate(extent.rotation + state.t * 0.16);
+    ctx.rotate(extent.rotation + state.t * (0.16 + motion * 0.08));
     const bladeHue = hue || 206;
     ctx.fillStyle = `hsla(${bladeHue}, 38%, 42%, 0.64)`;
     ctx.strokeStyle = `hsla(${bladeHue}, 42%, 20%, 0.54)`;

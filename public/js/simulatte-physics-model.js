@@ -17,7 +17,38 @@
   const graphSynthesis = typeof module === 'object' && module.exports
     ? require('./simulatte-graph-synthesis.js')
     : root.SimulatteGraphSynthesis;
-  const api = factory(catalog, composer, classifier, semantic, doppler, graphSynthesis);
+  const universeParser = typeof module === 'object' && module.exports
+    ? require('./simulatte-universe-parser.js')
+    : root.SimulatteUniverseParser;
+  const universeGrounder = typeof module === 'object' && module.exports
+    ? require('./simulatte-universe-grounder.js')
+    : root.SimulatteUniverseGrounder;
+  const physicsIR = typeof module === 'object' && module.exports
+    ? require('./simulatte-physics-ir.js')
+    : root.SimulattePhysicsIR;
+  const physicsIRValidator = typeof module === 'object' && module.exports
+    ? require('./simulatte-physics-ir-validator.js')
+    : root.SimulattePhysicsIRValidator;
+  const solverCompiler = typeof module === 'object' && module.exports
+    ? require('./simulatte-solver-compiler.js')
+    : root.SimulatteSolverCompiler;
+  const renderIR = typeof module === 'object' && module.exports
+    ? require('./simulatte-render-ir.js')
+    : root.SimulatteRenderIR;
+  const api = factory(
+    catalog,
+    composer,
+    classifier,
+    semantic,
+    doppler,
+    graphSynthesis,
+    universeParser,
+    universeGrounder,
+    physicsIR,
+    physicsIRValidator,
+    solverCompiler,
+    renderIR
+  );
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
@@ -28,7 +59,13 @@
   classifier = {},
   semantic = {},
   doppler = {},
-  graphSynthesis = {}
+  graphSynthesis = {},
+  universeParser = {},
+  universeGrounder = {},
+  physicsIR = {},
+  physicsIRValidator = {},
+  solverCompiler = {},
+  renderIR = {}
 ) {
   const {
     CONTROL_LIBRARY,
@@ -92,6 +129,33 @@
     groundedPrimitiveRows,
     synthesizeWorldIntent,
   } = graphSynthesis || {};
+  const {
+    PROMPT_PARSE_SCHEMA,
+    parsePrompt,
+  } = universeParser || {};
+  const {
+    UNIVERSE_GRAPH_SCHEMA,
+    groundUniverseGraph,
+  } = universeGrounder || {};
+  const {
+    PHYSICAL_IR_SCHEMA,
+    buildPhysicsIR,
+  } = physicsIR || {};
+  const {
+    VALIDATION_RECEIPT_SCHEMA,
+    validatePhysicsIR,
+  } = physicsIRValidator || {};
+  const {
+    SOLVER_GRAPH_SCHEMA,
+    compileSolverGraph,
+    createSolverState,
+    stepSolverState,
+    deriveChannelSummary,
+  } = solverCompiler || {};
+  const {
+    RENDER_IR_SCHEMA,
+    compileRenderIR,
+  } = renderIR || {};
 
   function createSpec(templateId = 'magnetic-wheel', overrides = {}) {
     const template = templateById(templateId);
@@ -116,13 +180,23 @@
           ? overrides.intent.resolution.contract || null
           : null
       ),
+      promptParse: overrides.promptParse || null,
+      universeGraph: overrides.universeGraph || null,
+      physicsIR: overrides.physicsIR || null,
+      validationReceipt: overrides.validationReceipt || null,
+      solverGraph: overrides.solverGraph || null,
+      renderIR: overrides.renderIR || null,
       createdAt: overrides.createdAt || new Date(0).toISOString(),
       remixOf: overrides.remixOf || '',
     };
+    if (spec.templateId === 'custom-world') {
+      Object.assign(spec, compileCompilerArtifacts(spec, overrides));
+    }
     spec.compositionGraph = overrides.compositionGraph || (
       buildCompositionGraph && spec.templateId === 'custom-world' ? buildCompositionGraph(spec) : null
     );
-    spec.renderProgram = overrides.renderProgram || (
+    const reuseRenderProgram = overrides.renderProgram && !(spec.templateId === 'custom-world' && spec.renderIR);
+    spec.renderProgram = reuseRenderProgram ? overrides.renderProgram : (
       spec.compositionGraph && compileCompositionToRenderProgram
         ? compileCompositionToRenderProgram(spec.compositionGraph, spec)
         : null
@@ -153,9 +227,79 @@
       compositionGraph: raw.compositionGraph || null,
       renderProgram: raw.renderProgram || null,
       physicalSpec: raw.physicalSpec || null,
+      promptParse: raw.promptParse || null,
+      universeGraph: raw.universeGraph || null,
+      physicsIR: raw.physicsIR || null,
+      validationReceipt: raw.validationReceipt || null,
+      solverGraph: raw.solverGraph || null,
+      renderIR: raw.renderIR || null,
       createdAt: raw.createdAt || new Date(0).toISOString(),
       remixOf: raw.remixOf || '',
     });
+  }
+
+  function compileCompilerArtifacts(spec, overrides = {}) {
+    const intent = spec.intent || {};
+    const prompt = intent.prompt || spec.name || '';
+    const promptParse = overrides.promptParse || spec.promptParse || intent.promptParse || (
+      parsePrompt ? parsePrompt(prompt) : null
+    );
+    const universeGraph = overrides.universeGraph || spec.universeGraph || intent.universeGraph || (
+      groundUniverseGraph && promptParse
+        ? groundUniverseGraph({
+          prompt,
+          promptParse,
+          components: spec.objects || [],
+          semanticRag: intent.semanticRag,
+          synthesis: intent.synthesis,
+          cardMatches: intent.cardMatches || [],
+        })
+        : null
+    );
+    let nextIR = overrides.physicsIR || spec.physicsIR || null;
+    if (!nextIR && buildPhysicsIR && universeGraph) {
+      nextIR = buildPhysicsIR({
+        prompt,
+        promptParse,
+        universeGraph,
+        objects: spec.objects || [],
+        params: spec.params || {},
+        intent,
+        contract: spec.contract,
+      });
+    }
+    const validationReceipt = overrides.validationReceipt || spec.validationReceipt || (
+      nextIR && validatePhysicsIR ? validatePhysicsIR(nextIR) : null
+    );
+    if (nextIR && validationReceipt) {
+      nextIR = {
+        ...nextIR,
+        receipt: {
+          exact: validationReceipt.exact || [],
+          approximate: validationReceipt.approximate || [],
+          unresolved: validationReceipt.unresolved || [],
+          unsupported: validationReceipt.unsupported || [],
+        },
+      };
+    }
+    const solverGraph = overrides.solverGraph || spec.solverGraph || (
+      nextIR && compileSolverGraph ? compileSolverGraph(nextIR, validationReceipt) : null
+    );
+    const nextRenderIR = overrides.renderIR || spec.renderIR || (
+      nextIR && solverGraph && compileRenderIR ? compileRenderIR(nextIR, solverGraph, universeGraph) : null
+    );
+    const nextIntent = intent && promptParse && universeGraph
+      ? { ...intent, promptParse, universeGraph }
+      : intent;
+    return {
+      intent: nextIntent,
+      promptParse,
+      universeGraph,
+      physicsIR: nextIR,
+      validationReceipt,
+      solverGraph,
+      renderIR: nextRenderIR,
+    };
   }
 
   function compilePhysicalSpec(spec) {
@@ -194,6 +338,10 @@
         renderer: renderProgram.rendererPlan ? renderProgram.rendererPlan.renderer : '',
         visualIdentity: renderProgram.provenance ? renderProgram.provenance.visualIdentity || null : null,
         graphValidation: graph.validation ? graph.validation.status : 'unknown',
+        validation: spec.validationReceipt || null,
+        physicsIR: spec.physicsIR ? spec.physicsIR.schema : '',
+        solverGraph: spec.solverGraph ? spec.solverGraph.schema : '',
+        renderIR: spec.renderIR ? spec.renderIR.schema : '',
       },
     };
   }
@@ -421,6 +569,7 @@
     const prompt = String(promptText || '').toLowerCase();
     const words = prompt.split(/[^a-z0-9]+/).filter(Boolean);
     const title = titleFromPrompt(words);
+    const promptParse = parsePrompt ? parsePrompt(promptText) : null;
     const semanticRag = options.semanticRag || (
       createSemanticRag && prompt.trim()
         ? createSemanticRag(promptText, PHYSICAL_PRIMITIVES, { maxDocuments: 72, maxOpenComponents: 12 })
@@ -458,6 +607,8 @@
       components: [],
       conceptGraph: [],
       classification,
+      promptParse,
+      universeGraph: null,
       rerank: options.intentRerank || options.rerank || null,
       semanticRag,
       dopplerIntent,
@@ -495,6 +646,15 @@
       addDomain('blank');
       intent.resolution.integrator = 'none';
       addComponent('canvas', 'plane', 'empty 2d construction surface', { guideDensity: 0.42, canvasScale: 0.62 });
+      if (groundUniverseGraph && promptParse) {
+        intent.universeGraph = groundUniverseGraph({
+          prompt,
+          promptParse,
+          components: intent.components,
+          semanticRag,
+          synthesis: null,
+        });
+      }
       return intent;
     }
 
@@ -609,6 +769,16 @@
       });
     }
     addSynthesisComponents(synthesis, addDomain, addComponent, intent);
+    if (groundUniverseGraph && promptParse) {
+      intent.universeGraph = groundUniverseGraph({
+        prompt,
+        promptParse,
+        components: intent.components,
+        semanticRag,
+        synthesis,
+        cardMatches: options.cardMatches || options.surfaceCardMatches || [],
+      });
+    }
 
     return intent;
   }
@@ -1444,8 +1614,147 @@
     return next;
   }
 
+  function componentStatesFromSolverState(spec, solverState) {
+    const channels = solverState && solverState.channels || {};
+    const baseStates = createComponentStates(spec);
+    const renderObjects = spec.renderIR && Array.isArray(spec.renderIR.objects) ? spec.renderIR.objects : [];
+    const byPhysicalRef = new Map(renderObjects.map((object) => [object.physicalRef, object]));
+    const entries = [];
+    for (const object of spec.objects || []) {
+      const renderObject = byPhysicalRef.get(object.id) ||
+        renderObjects.find((row) => row.semanticRef && String(row.semanticRef).includes(object.id)) ||
+        null;
+      const entityId = renderObject ? renderObject.physicalRef : object.id;
+      entries.push([object.id, {
+        ...(baseStates[object.id] || {}),
+        ...componentStateForEntity(entityId, channels),
+      }]);
+    }
+    for (const renderObject of renderObjects) {
+      if (entries.some(([id]) => id === renderObject.physicalRef)) continue;
+      entries.push([renderObject.physicalRef, componentStateForEntity(renderObject.physicalRef, channels)]);
+    }
+    return Object.fromEntries(entries);
+  }
+
+  function componentStateForEntity(entityId, channels) {
+    const state = {};
+    for (const [channel, value] of Object.entries(channels || {})) {
+      if (!channel.endsWith(`:${entityId}`)) continue;
+      const key = channel.split(':')[0];
+      state[key] = cloneChannelValue(value);
+    }
+    return state;
+  }
+
+  function particlesFromSolverState(spec, solverState) {
+    const objects = spec.renderIR && Array.isArray(spec.renderIR.objects)
+      ? spec.renderIR.objects
+      : [];
+    const channels = solverState && solverState.channels || {};
+    const rows = [];
+    const maxObjects = Math.min(objects.length, 10);
+    for (let objectIndex = 0; objectIndex < maxObjects; objectIndex += 1) {
+      const object = objects[objectIndex];
+      const position = channelVector(channels[`position:${object.physicalRef}`], {
+        x: 0.24 + objectIndex * 0.055,
+        y: 0.5,
+      });
+      const velocity = channelVector(
+        channels[`flowVelocity:${object.physicalRef}`] || channels[`velocity:${object.physicalRef}`],
+        { x: 0, y: 0 }
+      );
+      const activity = channelMagnitude(channels[`temperature:${object.physicalRef}`]) +
+        channelMagnitude(channels[`angularVelocity:${object.physicalRef}`]) +
+        channelMagnitude(channels[`damage:${object.physicalRef}`]);
+      for (let i = 0; i < 8; i += 1) {
+        const phase = hashNoise(objectIndex + 43, i + 11);
+        rows.push({
+          x: clamp(position.x + (phase - 0.5) * 0.16 + velocity.x * 0.02, 0.02, 0.98),
+          y: clamp(position.y + (hashNoise(i + 17, objectIndex + 5) - 0.5) * 0.12 + velocity.y * 0.02, 0.02, 0.98),
+          vx: velocity.x * 0.04,
+          vy: velocity.y * 0.04,
+          phase,
+          kind: objectIndex,
+          activity,
+        });
+      }
+    }
+    return rows;
+  }
+
+  function deriveSolverSummary(solverState, spec) {
+    if (deriveChannelSummary && solverState && solverState.channels) {
+      return deriveChannelSummary(
+        solverState.channels,
+        spec.solverGraph ? spec.solverGraph.channelMetadata || {} : {}
+      );
+    }
+    return {
+      energy: 0,
+      motion: 0,
+      field: 0,
+      matter: 0,
+      heat: 0,
+      stability: 1,
+    };
+  }
+
+  function channelVector(value, fallback) {
+    if (value && typeof value === 'object') {
+      const x = Number(value.x);
+      const y = Number(value.y);
+      return {
+        x: Number.isFinite(x) ? x : fallback.x,
+        y: Number.isFinite(y) ? y : fallback.y,
+      };
+    }
+    return fallback;
+  }
+
+  function channelMagnitude(value) {
+    if (value && typeof value === 'object') {
+      const x = Number(value.x || 0);
+      const y = Number(value.y || 0);
+      return Number.isFinite(x + y) ? Math.hypot(x, y) : 0;
+    }
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.abs(number) : 0;
+  }
+
+  function cloneChannelValue(value) {
+    if (value && typeof value === 'object') return { ...value };
+    return value;
+  }
+
   function createCustomState(spec) {
     const params = { ...templateById('custom-world').params, ...spec.params };
+    const solverState = spec.solverGraph && createSolverState
+      ? createSolverState(spec.solverGraph)
+      : null;
+    if (solverState) {
+      const summary = solverState.summary || deriveSolverSummary(solverState, spec);
+      return {
+        kind: 'custom-world',
+        t: solverState.t,
+        params,
+        modules: spec.modules,
+        objects: spec.objects,
+        solverState,
+        channelValues: solverState.channels,
+        componentStates: componentStatesFromSolverState(spec, solverState),
+        particles: particlesFromSolverState(spec, solverState),
+        machine: null,
+        fluid: null,
+        reaction: null,
+        energy: summary.energy,
+        motion: summary.motion,
+        field: summary.field,
+        matter: summary.matter,
+        heat: summary.heat,
+        stability: summary.stability,
+      };
+    }
     return {
       kind: 'custom-world',
       t: 0,
@@ -1472,6 +1781,35 @@
 
   function stepCustomState(inputState, spec, dtInput) {
     const params = { ...inputState.params, ...spec.params };
+    if (spec.solverGraph && stepSolverState) {
+      const sourceState = inputState.solverState || (
+        createSolverState ? createSolverState(spec.solverGraph) : null
+      );
+      if (sourceState) {
+        const solverState = stepSolverState(sourceState, spec.solverGraph, dtInput);
+        const summary = solverState.summary || deriveSolverSummary(solverState, spec);
+        return {
+          ...inputState,
+          t: solverState.t,
+          params,
+          modules: spec.modules,
+          objects: spec.objects,
+          solverState,
+          channelValues: solverState.channels,
+          componentStates: componentStatesFromSolverState(spec, solverState),
+          particles: particlesFromSolverState(spec, solverState),
+          machine: null,
+          fluid: null,
+          reaction: null,
+          energy: summary.energy,
+          motion: summary.motion,
+          field: summary.field,
+          matter: summary.matter,
+          heat: summary.heat,
+          stability: summary.stability,
+        };
+      }
+    }
     const contract = spec.contract || (
       spec.intent && spec.intent.resolution
         ? spec.intent.resolution.contract || null
@@ -1688,6 +2026,12 @@
       };
     }
     if (spec.templateId === 'custom-world') {
+      const usesContractReadouts = customSpecHasContractReadouts(spec);
+      const hasPromptIntent = Boolean(spec.intent && spec.intent.prompt);
+      const channelReadouts = hasPromptIntent && !usesContractReadouts && state.solverState
+        ? channelReadoutValues(state, spec)
+        : null;
+      if (channelReadouts) return channelReadouts;
       const generic = {
         energy: formatMetric(state.energy, 1),
         motion: formatMetric(state.motion * 100, 1),
@@ -1747,11 +2091,46 @@
           ? spec.intent.resolution.contract || null
           : null
       );
-      return contract && Array.isArray(contract.readouts) && contract.readouts.length
-        ? contract.readouts.slice(0, 6)
-        : templateById(spec.templateId).readouts;
+      if (contract && Array.isArray(contract.readouts) && contract.readouts.length) {
+        return contract.readouts.slice(0, 6);
+      }
+      if (!spec.intent || !spec.intent.prompt) return templateById(spec.templateId).readouts;
+      const renderReadouts = spec.renderIR && Array.isArray(spec.renderIR.readouts)
+        ? spec.renderIR.readouts
+        : [];
+      if (renderReadouts.length) {
+        return renderReadouts.slice(0, 6).map((readout) => (
+          String(readout.label || readout.channel || 'readout').replace(/([A-Z])/g, ' $1').trim()
+        ));
+      }
+      return templateById(spec.templateId).readouts;
     }
     return templateById(spec.templateId).readouts;
+  }
+
+  function customSpecHasContractReadouts(spec) {
+    const contract = spec.contract || (
+      spec.intent && spec.intent.resolution
+        ? spec.intent.resolution.contract || null
+        : null
+    );
+    return Boolean(contract && Array.isArray(contract.readouts) && contract.readouts.length);
+  }
+
+  function channelReadoutValues(state, spec) {
+    const bindings = spec.renderIR && Array.isArray(spec.renderIR.readouts)
+      ? spec.renderIR.readouts
+      : spec.physicsIR && Array.isArray(spec.physicsIR.readouts)
+        ? spec.physicsIR.readouts
+        : [];
+    if (!bindings.length) return null;
+    const channels = state.solverState && state.solverState.channels || {};
+    const rows = bindings.slice(0, 6).map((binding) => {
+      const label = String(binding.label || binding.channel || 'readout').replace(/([A-Z])/g, ' $1').trim();
+      return [label, formatMetric(channelMagnitude(channels[binding.channel]), 2)];
+    });
+    if (!rows.length) return null;
+    return Object.fromEntries(rows);
   }
 
   function contextualReadoutValue(label, state, spec, generic) {
@@ -1870,30 +2249,40 @@
     COMPOSITION_SCHEMA,
     INTENT_CLASSIFICATION_SCHEMA,
     INTENT_MODEL_ID,
+    PHYSICAL_IR_SCHEMA,
+    PROMPT_PARSE_SCHEMA,
     RENDER_PROGRAM_SCHEMA,
+    RENDER_IR_SCHEMA,
     SEMANTIC_RAG_SCHEMA,
+    SOLVER_GRAPH_SCHEMA,
     SYNTHESIS_SCHEMA,
+    UNIVERSE_GRAPH_SCHEMA,
+    VALIDATION_RECEIPT_SCHEMA,
     buildPrimitiveProgram,
     buildCompositionGraph,
+    buildPhysicsIR,
     classificationSummary,
     classifyIntentPrompt,
     compileCompositionToRenderProgram,
+    compileRenderIR,
+    compileSolverGraph,
     createBlankState,
     createComponentStates,
     createCustomState,
     createFluidState,
     createIntentFromPrompt,
     createSemanticRag,
-    synthesizeWorldIntent,
-    groundedPrimitiveRows,
     createReactionState,
     createSimulationState,
+    createSolverState,
     createSpec,
     createSpecFromPrompt,
     createState,
     deserializeSpec,
     energyLedger,
     formatMetric,
+    groundedPrimitiveRows,
+    groundUniverseGraph,
     hasModule,
     isMagneticMachine,
     kineticEnergy,
@@ -1902,6 +2291,7 @@
     maxField,
     normalizeSpec,
     operatorTotals,
+    parsePrompt,
     rankPrimitivesForClassification,
     readoutLabelsForSpec,
     readoutValues,
@@ -1911,6 +2301,7 @@
     sliderTargetAngle,
     solarPower,
     stateLabel,
+    stepSolverState,
     stepBlankState,
     stepComponentStates,
     stepCustomState,
@@ -1918,6 +2309,8 @@
     stepReactionState,
     stepSimulation,
     stepState,
+    synthesizeWorldIntent,
     titleFromPrompt,
+    validatePhysicsIR,
   };
 });
