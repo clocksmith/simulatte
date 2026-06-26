@@ -276,6 +276,13 @@
       const from = domainByNode.get(edge.from);
       const to = domainByNode.get(edge.to);
       if (!from || !to) continue;
+      if (edge.type === 'adjacent') {
+        receipt.approximate.push({
+          promptSpan: `${edge.from} adjacent ${edge.to}`,
+          reason: 'compiled as colocated domains without a coupling operator',
+        });
+        continue;
+      }
       const operator = couplingOperator(edge.type, from, to);
       if (!operator) {
         receipt.unsupported.push({
@@ -336,6 +343,7 @@
     ) {
       return 'rotational_torque';
     }
+    if (edgeType === 'fluidForce' && from.kind === 'fluid' && to.kind === 'fluid') return 'pressure_flow_lite';
     if (edgeType === 'heatTransfer' && hasFieldTarget(from, 'temperature') && hasFieldTarget(to, 'temperature')) {
       return 'heat_transfer';
     }
@@ -379,6 +387,13 @@
         reads: [`velocity:${fromEntity}`, `stress:${toEntity}`, `damage:${toEntity}`],
         writes: [`stress:${toEntity}`, `damage:${toEntity}`],
         params: { impulse: clamp(Number(params.impact || params.energyInput || 0.62), 0.05, 2) },
+      });
+    }
+    if (type === 'pressure_flow_lite') {
+      return addOperator(operators, type, to, {
+        reads: [`pressure:${fromEntity}`, `flowVelocity:${toEntity}`],
+        writes: [`flowVelocity:${toEntity}`],
+        params: { rate: clamp(Number(params.flowRate || params.erosionRate || 0.52), 0.05, 2) },
       });
     }
     if (type === 'fracture_threshold') {
