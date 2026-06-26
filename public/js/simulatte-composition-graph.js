@@ -792,6 +792,21 @@
     if (/\b(fire|flame|smoke|burn|burning|combust|wildfire|pine)\b|forest-fire/.test(promptText)) {
       return 'fire';
     }
+    if (/projectile|crack|fracture|impact|collision/.test(promptText) && /tower|glass|wall|bridge|body/.test(promptText)) {
+      return 'mechanical';
+    }
+    if (/storm waves|bridge cables|flex bridge|wave.*bridge|pressure wave/.test(promptText)) {
+      return 'acoustic';
+    }
+    if (
+      /rain carves|carves basalt|basalt delta|watershed|river|erosion|terrain|sediment|mountain|rain channel|sand|soil|rock ridges/.test(promptText) &&
+      !/lava|magma|volcano|bridge|castle|mirror|spaceship|spacecraft|submarine|turbine/.test(promptText)
+    ) {
+      return 'watershed';
+    }
+    if (/algae grows|quartz wetland|growth|biological|mycelium|bacteria|membrane|colony|infection|protein/.test(promptText)) {
+      return 'biology';
+    }
     if (/solar magnetic|magnetic wheel|perpetual|magnetic motor|rotor|stator/.test(promptText)) {
       return 'magnetic-machine';
     }
@@ -801,14 +816,8 @@
     if (/spaceship|spacecraft|rocket|submarine|volcano|lava|magma|piano|keyboard|castle|crystal tower|storm|turbine|algae|black hole|singularity|swamp|wetland|hammer|gold/.test(promptText)) {
       return 'literal-composite';
     }
-    if (/city grid|traffic|market queue|power grid|queue|logistics/.test(promptText) || operatorIds.has('queueService')) {
+    if (/city grid|traffic|market queue|feedback shock|power grid|queue|logistics/.test(promptText) || operatorIds.has('queueService')) {
       return 'city';
-    }
-    if (/watershed|river|erosion|terrain|sediment|mountain|rain channel|sand|soil|rock ridges/.test(promptText)) {
-      return 'watershed';
-    }
-    if (/biological|mycelium|bacteria|membrane|colony|infection|protein/.test(promptText)) {
-      return 'biology';
     }
     if (/acoustic|sound|pressure wave|waveguide|resonance|brass tube/.test(promptText)) {
       return 'acoustic';
@@ -828,8 +837,8 @@
       return 'magnetic-machine';
     }
     if (/acoustic|sound|wavefront|resonance|pressure/.test(text)) return 'acoustic';
-    if (/sediment/.test(text)) return 'watershed';
-    if (/fluid|water|flow-path|advection|river/.test(text) || operatorIds.has('advection')) return 'fluid';
+    if (/sediment|terrain|basalt|delta/.test(text)) return 'watershed';
+    if (/fluid|water|flow-path|advection|river/.test(text) || operatorIds.has('advection')) return 'watershed';
     if (/\b(atom|atomic|electron|ion|lattice|crystal)\b/.test(text)) return 'atomic';
     return 'generic';
   }

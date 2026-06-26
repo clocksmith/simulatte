@@ -252,17 +252,17 @@ test('example seeds are unnamed prompt presets with distinct parameter values', 
     const spec = lab.createSpecFromPrompt(example.prompt, { params: example.params });
     return JSON.stringify(Object.fromEntries(Object.entries(spec.params).sort().slice(0, 12)));
   }));
-  const rotor = lab.EXAMPLE_INTENTS.find((example) => example.id === 'magnetic-machine');
-  const glass = lab.EXAMPLE_INTENTS.find((example) => example.id === 'prismatic-rail');
-  const burn = lab.EXAMPLE_INTENTS.find((example) => example.id === 'dry-combustion');
-  const service = lab.EXAMPLE_INTENTS.find((example) => example.id === 'service-loop');
-  const rain = lab.EXAMPLE_INTENTS.find((example) => example.id === 'rain-cut');
-  const matter = lab.EXAMPLE_INTENTS.find((example) => example.id === 'matter-tray');
+  const lava = lab.EXAMPLE_INTENTS.find((example) => example.id === 'lava-turbine');
+  const fracture = lab.EXAMPLE_INTENTS.find((example) => example.id === 'fracture-tower');
+  const storm = lab.EXAMPLE_INTENTS.find((example) => example.id === 'storm-bridge');
+  const queue = lab.EXAMPLE_INTENTS.find((example) => example.id === 'queue-feedback');
+  const delta = lab.EXAMPLE_INTENTS.find((example) => example.id === 'basalt-delta');
+  const wetland = lab.EXAMPLE_INTENTS.find((example) => example.id === 'wetland-growth');
 
   assert.deepEqual(visibleLabels, ['W', 'X', 'Y', 'Z', 'P', 'Q']);
   assert.deepEqual(lab.EXAMPLE_INTENTS.slice(0, 2).map((example) => [example.label, example.id]), [
-    ['W', 'dry-combustion'],
-    ['X', 'magnetic-machine'],
+    ['W', 'lava-turbine'],
+    ['X', 'fracture-tower'],
   ]);
   for (const label of forbiddenLabels) assert.equal(visibleLabels.includes(label), false);
   for (const example of lab.EXAMPLE_INTENTS) {
@@ -270,12 +270,25 @@ test('example seeds are unnamed prompt presets with distinct parameter values', 
   }
   assert.ok(signatures.size >= 6);
   assert.ok(textSignatures.size >= 5);
-  assert.equal(lab.createSpecFromPrompt(rotor.prompt, { params: rotor.params }).params.irradiance, 1040);
-  assert.equal(lab.createSpecFromPrompt(burn.prompt, { params: burn.params }).params.combustibility, 0.88);
-  assert.equal(lab.createSpecFromPrompt(glass.prompt, { params: glass.params }).params.refractiveIndex, 1.68);
-  assert.equal(lab.createSpecFromPrompt(service.prompt, { params: service.params }).params.queueBacklog, 0.78);
-  assert.equal(lab.createSpecFromPrompt(rain.prompt, { params: rain.params }).params.erosionRate, 0.62);
-  assert.equal(lab.createSpecFromPrompt(matter.prompt, { params: matter.params }).params.magnetization, 0.68);
+  assert.equal(lab.createSpecFromPrompt(lava.prompt, { params: lava.params }).params.flowRate, 0.86);
+  assert.equal(lab.createSpecFromPrompt(fracture.prompt, { params: fracture.params }).params.energyInput, 0.92);
+  assert.equal(lab.createSpecFromPrompt(storm.prompt, { params: storm.params }).params.waveAmplitude, 0.78);
+  assert.equal(lab.createSpecFromPrompt(queue.prompt, { params: queue.params }).params.queueBacklog, 0.82);
+  assert.equal(lab.createSpecFromPrompt(delta.prompt, { params: delta.params }).params.erosionRate, 0.68);
+  assert.equal(lab.createSpecFromPrompt(wetland.prompt, { params: wetland.params }).params.populationGrowth, 0.82);
+  const specsById = Object.fromEntries(lab.EXAMPLE_INTENTS.map((example) => [
+    example.id,
+    lab.createSpecFromPrompt(example.prompt, { params: example.params }),
+  ]));
+  assert.equal(specsById['lava-turbine'].renderProgram.rendererPlan.sceneKind, 'literal-composite');
+  assert.equal(specsById['fracture-tower'].renderProgram.rendererPlan.sceneKind, 'mechanical');
+  assert.equal(specsById['storm-bridge'].renderProgram.rendererPlan.sceneKind, 'acoustic');
+  assert.equal(specsById['queue-feedback'].renderProgram.rendererPlan.sceneKind, 'city');
+  assert.equal(specsById['basalt-delta'].renderProgram.rendererPlan.sceneKind, 'watershed');
+  assert.equal(specsById['wetland-growth'].renderProgram.rendererPlan.sceneKind, 'biology');
+  for (const spec of Object.values(specsById)) {
+    assert.equal(spec.physicsIR.receipt.unsupported.length, 0);
+  }
 });
 
 test('state labels follow compiled renderer scene identities', () => {
