@@ -391,7 +391,9 @@
       schema: SYNTHESIS_SCHEMA,
       model: {
         id: SYNTH_MODEL_ID,
-        retriever: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+        retriever: context.embeddingModel && context.embeddingModel.id
+          ? context.embeddingModel.id
+          : 'model-backed-surface-card-retriever',
         planner: 'deterministic-typed-card-graph-search',
         grounder: 'simulatte-card-expansion-grounder.v1',
       },

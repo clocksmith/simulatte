@@ -142,14 +142,23 @@
         dimensions: provider.dimensions,
       };
     }
+    const runtimeSlug = modelSlug(runtime.id);
     return {
-      id: 'simulatte-embeddinggemma-intent-ranker.v1',
+      id: `simulatte-${runtimeSlug}-intent-ranker.v1`,
       family: 'browser-local-model-backed-embedding',
-      encoder: 'EmbeddingGemma primitive cosine + mandatory rerank',
+      encoder: `${runtime.id} primitive cosine + mandatory rerank`,
       corpusSize: PHYSICAL_PRIMITIVES.length,
       dimensions: runtime.dimensions,
       runtime,
     };
+  }
+
+  function modelSlug(value) {
+    const slug = String(value || 'intent-model')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    return slug || 'intent-model';
   }
 
   function mergeEmbeddingPriors(ranked, embeddingPriors) {

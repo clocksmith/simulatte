@@ -1931,18 +1931,18 @@
       </div>
 
       <div class="example-row" aria-label="Example prompts">
-        <button class="example-chip" type="button" aria-label="Seed W" data-example-prompt="lava spins turbine into ice wall" data-example-params='{"flowRate":0.86,"heatTransfer":0.92,"viscosity":0.58,"turbineCoupling":0.88,"latentHeat":0.62,"hardness":0.68,"damping":0.07}'>W</button>
-        <button class="example-chip" type="button" aria-label="Seed X" data-example-prompt="projectile cracks glass tower" data-example-params='{"energyInput":0.92,"hardness":0.34,"restitution":0.82,"heatTransfer":0.28,"opacity":0.16,"damping":0.05}'>X</button>
-        <button class="example-chip" type="button" aria-label="Seed Y" data-example-prompt="storm waves flex bridge cables" data-example-params='{"waveAmplitude":0.78,"soundFrequency":0.66,"pressure":0.74,"springConstant":0.7,"damping":0.06,"windSpeed":0.58}'>Y</button>
-        <button class="example-chip" type="button" aria-label="Seed Z" data-example-prompt="market queue feedback shock" data-example-params='{"queueBacklog":0.82,"serviceRate":0.36,"marketDemand":0.86,"networkLatency":0.54,"signalDelay":0.42,"signalNoise":0.22}'>Z</button>
-        <button class="example-chip" type="button" aria-label="Seed P" data-example-prompt="rain carves basalt delta" data-example-params='{"flowRate":0.9,"erosionRate":0.68,"terrainSlope":0.62,"gravity":0.22,"granularFriction":0.44,"moisture":0.82}'>P</button>
-        <button class="example-chip" type="button" aria-label="Seed Q" data-example-prompt="algae grows in quartz wetland" data-example-params='{"populationGrowth":0.82,"diffusionA":0.72,"moisture":0.74,"lightIntensity":0.58,"refractiveIndex":1.54,"heatTransfer":0.38}'>Q</button>
+        <button class="example-chip" type="button" aria-label="Lens" data-example-prompt="laser heats ferrofluid lens over copper coil" data-example-params='{"irradiance":1040,"magnetization":0.74,"refractiveIndex":1.67,"heatTransfer":0.68,"viscosity":0.36,"damping":0.05}'>Lens</button>
+        <button class="example-chip" type="button" aria-label="Grid" data-example-prompt="subway queue grid reroutes after power surge" data-example-params='{"queueBacklog":0.84,"serviceRate":0.32,"marketDemand":0.78,"networkLatency":0.62,"signalDelay":0.48,"signalNoise":0.18}'>Grid</button>
+        <button class="example-chip" type="button" aria-label="Vent" data-example-prompt="undersea vent crystallizes pressure brine" data-example-params='{"flowRate":0.88,"heatTransfer":0.76,"pressure":0.86,"erosionRate":0.34,"viscosity":0.58,"turbulence":0.72}'>Vent</button>
+        <button class="example-chip" type="button" aria-label="Wave" data-example-prompt="acoustic levitator sorts dust in brass tube" data-example-params='{"waveAmplitude":0.82,"soundFrequency":0.74,"pressure":0.7,"granularFriction":0.28,"damping":0.04,"signalNoise":0.12}'>Wave</button>
+        <button class="example-chip" type="button" aria-label="Film" data-example-prompt="thin film laser bubbles fracture on wire loop" data-example-params='{"surfaceTension":0.86,"refractiveIndex":1.58,"opacity":0.22,"energyInput":0.72,"hardness":0.18,"damping":0.03}'>Film</button>
+        <button class="example-chip" type="button" aria-label="Bio" data-example-prompt="mycelium membrane pumps nutrient gel waves" data-example-params='{"populationGrowth":0.84,"diffusionA":0.76,"moisture":0.82,"viscosity":0.64,"lightIntensity":0.32,"waveAmplitude":0.34}'>Bio</button>
       </div>
 
       <div class="builder-row">
         <label class="physics-name" for="build-prompt">
           <span class="sr-only">Prompt</span>
-          <textarea id="build-prompt" data-example-params='{"flowRate":0.86,"heatTransfer":0.92,"viscosity":0.58,"turbineCoupling":0.88,"latentHeat":0.62,"hardness":0.68,"damping":0.07}'>lava spins turbine into ice wall</textarea>
+          <textarea id="build-prompt" data-example-params='{"irradiance":1040,"magnetization":0.74,"refractiveIndex":1.67,"heatTransfer":0.68,"viscosity":0.36,"damping":0.05}'>laser heats ferrofluid lens over copper coil</textarea>
         </label>
         <button id="build-lab" class="primary-action" type="button">Run</button>
       </div>
@@ -2017,6 +2017,7 @@
   <script defer src="./js/solvers/simulatte-solver-fracture-threshold.js"></script>
   <script defer src="./js/solvers/simulatte-solver-rotational-mechanics.js"></script>
   <script defer src="./js/solvers/simulatte-solver-network-control.js"></script>
+  <script defer src="./js/solvers/simulatte-solver-growth-decay.js"></script>
   <script defer src="./js/simulatte-solver-registry.js"></script>
   <script defer src="./js/simulatte-solver-compiler.js"></script>
   <script defer src="./js/simulatte-render-registry.js"></script>

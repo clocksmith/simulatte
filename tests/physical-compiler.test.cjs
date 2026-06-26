@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const lab = require('../public/js/simulatte-physics-lab.js');
+const solverRegistry = require('../public/js/simulatte-solver-registry.js');
+const advectionSolver = require('../public/js/solvers/simulatte-solver-advection.js');
 
 test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, and render IR', () => {
   const spec = lab.createSpecFromPrompt('lava spins a turbine near an ice castle wall');
@@ -23,6 +25,10 @@ test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, an
   assert.ok(spec.solverGraph.steps.some((step) => step.operatorType === 'rotational_torque'));
   assert.ok(spec.renderIR.objects.some((object) => object.glyph === 'turbine'));
   assert.ok(spec.renderIR.objects.some((object) => object.stateBindings.rotationRate));
+  assert.equal(spec.renderProgram.provenance.compiler, 'simulatte.render-ir-to-render-program.v1');
+  assert.equal(spec.renderProgram.rendererPlan.sceneKind, spec.renderIR.sceneHint);
+  assert.equal(spec.physicalSpec.executableSolverGraph.schema, 'simulatte.solverGraph.v1');
+  assert.ok(spec.physicalSpec.stateChannels.some((channel) => channel.startsWith('angularVelocity:')));
 });
 
 test('solver graph evolves typed finite channels for coupled lava turbine ice prompt', () => {
@@ -77,7 +83,15 @@ test('legacy custom specs migrate to compiler artifacts during normalization', (
 
   assert.equal(spec.physicsIR.schema, 'simulatte.physicalIR.v1');
   assert.equal(spec.solverGraph.schema, 'simulatte.solverGraph.v1');
-  assert.equal(spec.renderProgram.provenance.compiler, 'simulatte.composition-to-render-program.v1');
+  assert.equal(spec.renderProgram.provenance.compiler, 'simulatte.render-ir-to-render-program.v1');
   assert.equal(spec.renderProgram.provenance.renderIR, 'simulatte.renderIR.v1');
   assert.equal(spec.renderProgram.provenance.solverGraph, 'simulatte.solverGraph.v1');
+});
+
+test('solver registry delegates executable operator steps to solver modules', () => {
+  const registry = solverRegistry.createSolverRegistry();
+  const operator = registry.operatorFor('advection');
+
+  assert.equal(typeof advectionSolver.step, 'function');
+  assert.equal(operator.step, advectionSolver.step);
 });

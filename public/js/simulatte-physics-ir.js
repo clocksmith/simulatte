@@ -114,6 +114,7 @@
       semanticType: node.semanticType || 'body',
       materialId: node.materialId || materialFromDomains(node.domains || []),
       domains: node.domains || [],
+      operatorHints: node.operatorHints || [],
       geometryRef: geometryForNode(node),
       confidence: node.confidence,
     };
@@ -131,6 +132,7 @@
 
   function domainForEntity(entity, node, index) {
     const domains = node.domains || entity.domains || [];
+    const operatorHints = uniqueList([...(entity.operatorHints || []), ...(node.operatorHints || [])]);
     const kind = preferredDomainKind(domains, entity.semanticType);
     return {
       id: `domain:${entity.id}`,
@@ -139,7 +141,8 @@
       kind,
       materialId: entity.materialId,
       geometryRef: entity.geometryRef,
-      tags: uniqueList([entity.semanticType, ...domains].filter(Boolean)),
+      tags: uniqueList([entity.semanticType, ...domains, ...operatorHints].filter(Boolean)),
+      operatorHints,
       order: index,
     };
   }

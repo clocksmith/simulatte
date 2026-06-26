@@ -8,9 +8,14 @@ import { bootstrapNodeWebGPU } from '../../doppler/src/tooling/node-webgpu.js';
 const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const MODEL_DIR = path.resolve(ROOT, '../doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32');
+const DEFAULT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+const MODEL_DIR = process.env.SIMULATTE_EMBED_MODEL_DIR
+  ? path.resolve(process.env.SIMULATTE_EMBED_MODEL_DIR)
+  : path.resolve(ROOT, `../doppler/models/local/${DEFAULT_MODEL_ID}`);
 const OUT_PATH = path.join(ROOT, 'public/models/simulatte-embedder/primitive-index-v2.json');
-const MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
+const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
+const INDEX_ID = process.env.SIMULATTE_PRIMITIVE_INDEX_ID
+  || 'simulatte-primitive-qwen-3-5-0-8b-index-v1';
 
 function stableStringify(value) {
   return JSON.stringify(sortStable(value), null, 2);
@@ -31,6 +36,15 @@ function sha256HexBytes(bytes) {
 
 function sha256HexText(text) {
   return sha256HexBytes(Buffer.from(String(text), 'utf8'));
+}
+
+function configuredModelHash(fallbackHash) {
+  const raw = String(process.env.SIMULATTE_EMBED_MODEL_HASH || '').trim().replace(/^sha256:/, '');
+  if (!raw) return fallbackHash;
+  if (!/^[a-f0-9]{64}$/i.test(raw)) {
+    throw new Error('SIMULATTE_EMBED_MODEL_HASH must be a sha256 hex digest');
+  }
+  return { alg: 'sha256', hex: raw.toLowerCase() };
 }
 
 function indexHash(index) {
@@ -71,6 +85,14 @@ function finiteFloat32Array(value, label) {
   return vector;
 }
 
+function expectedEmbeddingDim(manifest) {
+  return Number(
+    manifest?.inference?.output?.embeddingPostprocessor?.outputSize
+    || manifest?.architecture?.hiddenSize
+    || 0
+  );
+}
+
 async function main() {
   const catalog = require('../public/js/simulatte-physics-catalog.js');
   const primitives = catalog.PHYSICAL_PRIMITIVES || [];
@@ -80,6 +102,7 @@ async function main() {
   const manifestText = await fs.readFile(manifestPath, 'utf8');
   const manifest = JSON.parse(manifestText);
   const manifestHash = { alg: 'sha256', hex: sha256HexText(manifestText) };
+  const embedModelHash = configuredModelHash(manifestHash);
   if (manifest.modelId !== MODEL_ID) {
     throw new Error(`Unexpected modelId ${manifest.modelId}; expected ${MODEL_ID}`);
   }
@@ -133,8 +156,9 @@ async function main() {
       }
       return vector;
     });
-    if (embeddingDim !== 768) {
-      throw new Error(`Expected 768-d EmbeddingGemma vectors, got ${embeddingDim}`);
+    const expectedDim = expectedEmbeddingDim(manifest);
+    if (expectedDim && embeddingDim !== expectedDim) {
+      throw new Error(`Expected ${expectedDim}-d ${manifest.modelId} vectors, got ${embeddingDim}`);
     }
 
     const packed = new Float32Array(vectors.length * embeddingDim);
@@ -143,15 +167,15 @@ async function main() {
 
     const index = {
       schema: 'simulatte.primitiveEmbeddingIndex.v2',
-      id: 'simulatte-primitive-embeddinggemma-index-v1',
+      id: INDEX_ID,
       createdAt,
       documentCount: documents.length,
       embeddingDim,
       embedModelId: manifest.modelId,
       embedModelHash: manifest.modelHash && typeof manifest.modelHash === 'object'
         ? manifest.modelHash
-        : manifestHash,
-      embedModelManifestHash: manifestHash,
+        : embedModelHash,
+      embedModelManifestHash: embedModelHash,
       documents,
       embeddingsPackedBase64: packedBytes.toString('base64'),
     };
@@ -173,7 +197,11 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error && error.stack ? error.stack : error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error && error.stack ? error.stack : error);
+    process.exitCode = 1;
+  });

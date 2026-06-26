@@ -249,6 +249,9 @@
 
   function compileCompositionToRenderProgram(graph = null, spec = {}) {
     if (!graph || graph.schema !== COMPOSITION_SCHEMA) return null;
+    if (spec && spec.renderIR && spec.solverGraph) {
+      return renderProgramFromRenderIR(graph, spec);
+    }
     const initialObjects = graph.nodes.map((node) => renderObjectForNode(node, spec));
     const relations = graph.relations.map((relation) => ({
       ...relation,
@@ -286,9 +289,7 @@
         signature: uniqueList(graph.nodes.map((node) => node.shape)).join('+'),
       },
     };
-    return spec && spec.renderIR && spec.solverGraph
-      ? augmentRenderProgramWithRenderIR(program, spec)
-      : program;
+    return program;
   }
 
   function augmentRenderProgramWithRenderIR(program, spec) {
@@ -375,8 +376,8 @@
   function renderProgramFromRenderIR(graph, spec) {
     const renderIR = spec.renderIR || {};
     const solverGraph = spec.solverGraph || {};
-    const sceneKind = renderIR.sceneHint || 'generic';
-    const objects = layoutObjectsForScene((renderIR.objects || []).map((object, index) => ({
+    const bindingByText = renderBindingIndex(renderIR.objects || []);
+    const irObjects = (renderIR.objects || []).map((object, index) => ({
       id: object.physicalRef || object.id,
       kind: object.glyph === 'field' ? 'field' : 'body',
       material: object.materialId || 'metal',
@@ -392,19 +393,41 @@
       physicalRef: object.physicalRef || '',
       semanticRef: object.semanticRef || '',
       required: true,
-    })), sceneKind, spec);
-    const fields = (renderIR.fields || []).map((field) => ({
+    }));
+    const graphObjects = (graph.nodes || [])
+      .map((node) => renderObjectForNode(node, spec))
+      .map((object) => bindRenderIRToObject(object, bindingByText));
+    const sceneKind = sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec);
+    const irContext = unmatchedRenderIRObjects(graphObjects, irObjects, sceneKind);
+    const objects = layoutObjectsForScene(
+      prioritizeObjectsForScene(uniqueObjectsById([...graphObjects, ...irContext]), sceneKind),
+      sceneKind,
+      spec
+    );
+    const irFields = (renderIR.fields || []).map((field) => ({
       id: field.id,
-      kind: field.name,
+      kind: fieldKindForRenderIRField(field, sceneKind),
       channel: field.channel,
       stateBinding: field.channel,
       domainId: field.domainId,
       strength: 0.7,
     }));
+    const legacyFields = fieldsForComposition(graph, spec);
+    const fields = focusFieldsForScene(uniqueFieldsByKind([...irFields, ...legacyFields]), sceneKind);
+    const legacySolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, objects), sceneKind);
     const solverPlan = {
-      families: uniqueList((solverGraph.steps || []).map((step) => step.solverId)),
-      state: Object.keys(solverGraph.channels || {}),
+      schema: 'simulatte.solverPlan.v1',
+      integrator: legacySolverPlan.integrator || 'mixed-semi-implicit',
+      families: uniqueList([
+        ...((legacySolverPlan && legacySolverPlan.families) || []),
+        ...((solverGraph.steps || []).map((step) => step.solverId)),
+      ]),
+      state: uniqueList([
+        ...((legacySolverPlan && legacySolverPlan.state) || []),
+        ...Object.keys(solverGraph.channels || {}),
+      ]),
       steps: (solverGraph.steps || []).map((step) => step.operatorType),
+      executableSteps: (solverGraph.steps || []).map((step) => step.operatorType),
     };
     const rendererPlan = rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
     return {
@@ -430,15 +453,230 @@
         sceneKind,
         visualIdentity: rendererPlan.visualIdentity,
         signature: uniqueList(objects.map((object) => object.shape)).join('+'),
+        renderIR: renderIR.schema,
+        solverGraph: solverGraph.schema,
       },
     };
   }
 
+  function bindRenderIRToObject(object, bindingByText) {
+    const key = bestRenderBindingKey(object, bindingByText);
+    const binding = key ? bindingByText.get(key) : null;
+    if (!binding) return object;
+    return {
+      ...object,
+      stateBindings: binding.stateBindings || {},
+      physicalRef: binding.physicalRef || object.physicalRef || '',
+      semanticRef: binding.semanticRef || object.semanticRef || '',
+    };
+  }
+
+  function unmatchedRenderIRObjects(graphObjects, irObjects, sceneKind) {
+    const seen = new Set((graphObjects || []).flatMap((object) => [
+      object.id,
+      object.semanticRef,
+      object.physicalRef,
+      object.role,
+      object.shape,
+    ].map((value) => String(value || '').toLowerCase()).filter(Boolean)));
+    return (irObjects || [])
+      .filter((object) => {
+        const text = renderObjectText(object);
+        if ([object.id, object.role, object.shape, object.phrase]
+          .some((value) => seen.has(String(value || '').toLowerCase()))) {
+          return false;
+        }
+        return contextObjectForRenderIRScene(text, sceneKind);
+      })
+      .slice(0, 10);
+  }
+
+  function sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec) {
+    const sceneHint = normalizedSceneHint(renderIR.sceneHint);
+    if (sceneHint) return sceneHint;
+    return sceneKindFromRenderIRSignals(renderIR, solverGraph, spec) || 'generic';
+  }
+
+  function normalizedSceneHint(value) {
+    const scene = String(value || '').trim();
+    return scene && scene !== 'generic' ? scene : '';
+  }
+
+  function sceneKindFromRenderIRSignals(renderIR, solverGraph, spec) {
+    const physicsIR = spec && spec.physicsIR || {};
+    const text = [
+      (renderIR.objects || []).map((object) => [
+        object.label,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.domainKind,
+        object.semanticRef,
+        object.physicalRef,
+        ...(object.domainTags || []),
+        ...(object.operatorHints || []),
+        Object.keys(object.stateBindings || {}).join(' '),
+      ].join(' ')).join(' '),
+      (renderIR.fields || []).map((field) => `${field.name} ${field.channel} ${field.domainId}`).join(' '),
+      (solverGraph.steps || []).map((step) => `${step.operatorType} ${step.solverId}`).join(' '),
+      (physicsIR.domains || []).map((domain) => [
+        domain.kind,
+        domain.materialId,
+        ...(domain.tags || []),
+        ...(domain.operatorHints || []),
+      ].join(' ')).join(' '),
+    ].join(' ').toLowerCase();
+    if (/thin-film|thin film|soap|surface_tension|wire-loop|wire loop|bubble/.test(text)) return 'thin-film';
+    if (/tray|raw material|heat diffusion sample/.test(text) && /water|air|rock|wood|metal|glass|steel/.test(text)) {
+      return 'material-tray';
+    }
+    if (/thermal plume|cooling|cooler|smoke over cooling/.test(text) && /thermal|heat|temperature/.test(text)) {
+      return 'thermal-plume';
+    }
+    if (/process-fire|flame|combustion|fuel|burn/.test(text) && /heat_source|reaction_diffusion|burn/.test(text)) {
+      return 'fire';
+    }
+    if (/lava|magma|volcano|black-hole|singularity|swamp|wetland|hammer|gold|spaceship|spacecraft|rocket|submarine|piano/.test(text)) {
+      return 'literal-composite';
+    }
+    if (/lens|prism|mirror|optics|field_refraction|field_reflection|laser/.test(text)) return 'optics';
+    if (/network|queue|traffic|market|network_flow|backlog|throughput/.test(text)) return 'city';
+    if (/wheel|rotor|stator|slider|sliding|electromagnetism|magnetic_force|rotor-wheel/.test(text) && /magnet|magnetic/.test(text)) {
+      return 'magnetic-machine';
+    }
+    if (/ferrofluid|magnetic_fluid|magnetizes|spikes|magnetic_field/.test(text)) return 'ferrofluid';
+    if (/\b(terrain|erosion|sediment|river|rain|basalt|watershed|gravity)\b/.test(text)) return 'watershed';
+    if (/acoustic|sound|wave_field|resonance|amplitude/.test(text) &&
+      !/biology|growth|mycelium|bacteria|membrane|protein|nutrient|density/.test(text)) {
+      return 'acoustic';
+    }
+    if (/granular|grain|bead|sieve|avalanche|powder/.test(text)) return 'granular';
+    if (/rigid_collision|fracture_threshold|rotational_torque|projectile|collision/.test(text) &&
+      !/acoustic|sound|wave_field|resonance|amplitude/.test(text)) {
+      return 'mechanical';
+    }
+    if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|density/.test(text)) return 'biology';
+    if (/acoustic|sound|wave_field|resonance|amplitude/.test(text)) return 'acoustic';
+    if (/fluid|water|flowVelocity|advection/.test(text)) return 'watershed';
+    if (/turbine|castle|ice|storm|instrument/.test(text)) return 'literal-composite';
+    return '';
+  }
+
+  function renderIRObjectSceneText(renderIR, graphObjects) {
+    return [
+      (renderIR.objects || []).map((object) => [
+        object.id,
+        object.label,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.semanticRef,
+        object.physicalRef,
+      ].join(' ')).join(' '),
+      specificGraphObjects(graphObjects).map(renderObjectText).join(' '),
+    ].join(' ').toLowerCase();
+  }
+
+  function renderIRSceneText(renderIR, solverGraph, graph, graphObjects, spec) {
+    return [
+      renderIR.sceneHint,
+      (renderIR.objects || []).map((object) => [
+        object.id,
+        object.label,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.semanticRef,
+        object.physicalRef,
+        Object.keys(object.stateBindings || {}).join(' '),
+      ].join(' ')).join(' '),
+      (renderIR.fields || []).map((field) => `${field.name} ${field.channel} ${field.domainId}`).join(' '),
+      (solverGraph.steps || []).map((step) => `${step.operatorType} ${step.solverId}`).join(' '),
+      specificGraphObjects(graphObjects).map(renderObjectText).join(' '),
+    ].join(' ').toLowerCase();
+  }
+
+  function specificGraphObjects(objects) {
+    return (objects || []).filter((object) => {
+      const source = object.source || '';
+      if (!source) return false;
+      return source !== 'catalog';
+    });
+  }
+
+  function contextObjectForRenderIRScene(text, sceneKind) {
+    if (sceneKind === 'fire') return /flame|smoke|fuel|water|terrain|wall/.test(text);
+    if (sceneKind === 'optics') return /lens|prism|mirror|beam|light|sensor/.test(text);
+    if (sceneKind === 'city') return /queue|network|market|traffic|sensor|ledger/.test(text);
+    if (sceneKind === 'watershed') return /rain|river|terrain|sediment|sand|soil|rock|delta|basalt/.test(text);
+    if (sceneKind === 'magnetic-machine') return /wheel|rotor|stator|slider|magnet|panel|ledger/.test(text);
+    if (sceneKind === 'mechanical') return /collision|fractur|constraint|wall|projectile|tower|glass|rigid/.test(text);
+    if (sceneKind === 'literal-composite') return /lava|turbine|ice|castle|storm|bridge|wetland|volcano|rocket|submarine/.test(text);
+    if (sceneKind === 'biology') return /algae|wetland|swamp|nutrient|growth|membrane|plant/.test(text);
+    if (sceneKind === 'acoustic') return /wave|storm|bridge|cable|pressure|resonance|tube/.test(text);
+    return false;
+  }
+
+  function fieldKindForRenderIRField(field, sceneKind) {
+    const text = `${field.name || ''} ${field.channel || ''} ${field.domainId || ''}`.toLowerCase();
+    if (sceneKind === 'city' && /backlog|throughput|delay|network/.test(text)) return 'network-flow';
+    if (sceneKind === 'watershed' && /flow|pressure|damage|terrain|rain|delta/.test(text)) return 'gravity';
+    if (sceneKind === 'optics' && /phase|amplitude|field|light|glass|refraction/.test(text)) return 'optical-rays';
+    if (sceneKind === 'acoustic' && /phase|amplitude|pressure|wave/.test(text)) return 'pressure-wave';
+    if (sceneKind === 'biology' && /density|nutrient|growth/.test(text)) return 'force-field';
+    if ((sceneKind === 'fire' || sceneKind === 'thermal-plume') && /temperature|heat|reaction/.test(text)) return 'thermal';
+    if (sceneKind === 'mechanical' && /damage|stress|velocity|angle|torque/.test(text)) return 'force-field';
+    if (sceneKind === 'literal-composite' && /temperature|flow|damage|phase|pressure/.test(text)) return 'force-field';
+    return field.name || 'state-field';
+  }
+
+  function uniqueFieldsByKind(fields) {
+    const seen = new Set();
+    const out = [];
+    for (const field of fields || []) {
+      const key = `${field.kind}:${field.channel || field.id || ''}`;
+      const sceneKey = String(field.kind || '');
+      if (seen.has(key) || seen.has(sceneKey)) continue;
+      seen.add(key);
+      seen.add(sceneKey);
+      out.push(field);
+    }
+    return out;
+  }
+
+  function uniqueObjectsById(objects) {
+    const seen = new Set();
+    const out = [];
+    for (const object of objects || []) {
+      if (!object) continue;
+      const key = String(
+        object.id
+        || object.physicalRef
+        || object.semanticRef
+        || `${object.shape || 'object'}:${object.role || ''}:${object.phrase || ''}`
+      );
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(object);
+    }
+    return out;
+  }
+
   function shapeForRenderGlyph(glyph, object) {
     if (glyph === 'lava') return 'lava-flow';
+    if (glyph === 'volcano') return 'volcano';
     if (glyph === 'turbine') return 'turbine';
+    if (glyph === 'bridge') return 'bridge';
+    if (glyph === 'tower') return 'tower';
     if (glyph === 'castle') return /wall/i.test(object.label || '') ? 'wall' : 'castle';
     if (glyph === 'ice') return 'sample';
+    if (glyph === 'lens') return 'lens';
+    if (glyph === 'prism') return 'prism';
+    if (glyph === 'mirror') return 'mirror';
+    if (glyph === 'flame') return 'flame-front';
+    if (glyph === 'smoke') return 'plume';
+    if (glyph === 'storm') return 'storm';
+    if (glyph === 'wetland') return 'wetland';
     if (glyph === 'fluid_path') return 'flow-path';
     if (glyph === 'projectile') return 'bar';
     if (glyph === 'rocket') return 'rocket';
@@ -482,8 +720,15 @@
 
   function sizeForRenderGlyph(glyph) {
     if (glyph === 'lava' || glyph === 'fluid_path') return [0.34, 0.12];
+    if (glyph === 'volcano') return [0.24, 0.18];
     if (glyph === 'turbine') return [0.18, 0.18];
+    if (glyph === 'bridge') return [0.24, 0.1];
+    if (glyph === 'tower') return [0.14, 0.22];
     if (glyph === 'castle') return [0.22, 0.22];
+    if (glyph === 'lens' || glyph === 'prism' || glyph === 'mirror') return [0.13, 0.13];
+    if (glyph === 'flame' || glyph === 'smoke') return [0.18, 0.22];
+    if (glyph === 'storm') return [0.32, 0.2];
+    if (glyph === 'wetland') return [0.26, 0.16];
     if (glyph === 'field') return [0.3, 0.26];
     if (glyph === 'network') return [0.08, 0.08];
     return [0.16, 0.12];

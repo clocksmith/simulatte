@@ -24,6 +24,12 @@
         semanticRef: entity.canonicalId,
         physicalRef: entity.id,
         domainRef: domain.id || '',
+        domainKind: domain.kind || '',
+        domainTags: (domain.tags || []).slice(),
+        operatorHints: unique([
+          ...(entity.operatorHints || []),
+          ...(domain.operatorHints || []),
+        ]),
         label: entity.label,
         glyph,
         materialId: entity.materialId,
@@ -35,7 +41,7 @@
       };
     });
     const sceneHint = renderRegistry.sceneHintForObjects
-      ? renderRegistry.sceneHintForObjects(objects)
+      ? renderRegistry.sceneHintForObjects(objects, physicsIR, solverGraph)
       : 'generic';
     return {
       schema: RENDER_IR_SCHEMA,
@@ -89,7 +95,22 @@
 
   function fieldBindings(physicsIR, solverGraph) {
     return (physicsIR.stateFields || [])
-      .filter((field) => ['temperature', 'flowVelocity', 'pressure', 'damage', 'phase', 'amplitude'].includes(field.name))
+      .filter((field) => [
+        'temperature',
+        'flowVelocity',
+        'pressure',
+        'damage',
+        'stress',
+        'phase',
+        'amplitude',
+        'backlog',
+        'throughput',
+        'signalDelay',
+        'density',
+        'nutrient',
+        'liquidFraction',
+        'reactionProgress',
+      ].includes(field.name))
       .map((field) => ({
         id: `field:${field.id}`,
         channel: field.id,
@@ -111,6 +132,10 @@
         : '',
       source: readout.source || 'physics-ir',
     }));
+  }
+
+  function unique(values) {
+    return Array.from(new Set((values || []).filter(Boolean)));
   }
 
   return {

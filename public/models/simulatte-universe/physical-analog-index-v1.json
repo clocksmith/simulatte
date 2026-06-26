@@ -1,0 +1,12 @@
+{
+  "schema": "simulatte.universePhysicalAnalogIndex.v1",
+  "id": "simulatte-universe-analogs-v1",
+  "documents": [
+    { "id": "analog.ferrofluid-lens", "label": "laser heats ferrofluid lens over copper coil", "concepts": ["optic.ferrofluid_lens", "component.copper_coil"], "operators": ["magnetic_field", "field_refraction", "heat_transfer"] },
+    { "id": "analog.subway-surge-grid", "label": "subway queue grid reroutes after power surge", "concepts": ["system.subway_queue_grid"], "operators": ["network_flow", "controller_response"] },
+    { "id": "analog.brine-vent", "label": "undersea vent crystallizes pressure brine", "concepts": ["environment.brine_vent"], "operators": ["pressure_flow_lite", "crystallization", "heat_transfer"] },
+    { "id": "analog.acoustic-dust-levitator", "label": "acoustic levitator sorts dust in brass tube", "concepts": ["apparatus.acoustic_levitator"], "operators": ["wave_field", "particle_sorting"] },
+    { "id": "analog.thin-film-fracture", "label": "thin film laser bubbles fracture on wire loop", "concepts": ["surface.thin_film_loop"], "operators": ["surface_tension", "fracture_threshold", "field_refraction"] },
+    { "id": "analog.mycelium-gel-pump", "label": "mycelium membrane pumps nutrient gel waves", "concepts": ["biofilm.mycelium_gel"], "operators": ["growth_decay", "reaction_diffusion", "wave_field"] }
+  ]
+}

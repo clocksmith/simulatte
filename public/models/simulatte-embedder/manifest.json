@@ -1,39 +1,49 @@
 {
   "schema": "simulatte.modelBackedEmbedderManifest.v2",
-  "id": "simulatte-embeddinggemma-primitive-retrieval-v1",
+  "id": "simulatte-qwen-3-5-0-8b-primitive-retrieval-v1",
   "runtimeOrder": ["doppler-browser-load", "injected-doppler-model"],
   "retrieval": {
     "kind": "precomputed-primitive-index",
     "artifact": "./primitive-index-v2.json",
     "documentSchema": "simulatte.primitiveEmbeddingIndex.v2",
-    "dimensions": 768,
+    "dimensions": 1024,
     "rerank": "mandatory",
-    "description": "EmbeddingGemma primitive index for model-backed physical intent retrieval.",
+    "description": "Qwen 3.5 0.8B mean-pooled transformer index for model-backed physical intent retrieval; selected for the current Doppler browser runtime path, not benchmarked as a dedicated retriever.",
     "cards": {
       "kind": "precomputed-surface-card-index",
-      "artifact": "./surface-card-index-v1.json",
+      "artifact": "./surface-card-index-qwen-v1.json",
       "documentSchema": "simulatte.surfaceCardEmbeddingIndex.v1",
-      "dimensions": 768,
+      "dimensions": 1024,
       "rerank": "mandatory",
-      "description": "EmbeddingGemma surface-card index for model-backed typed graph synthesis."
+      "description": "Qwen 3.5 0.8B mean-pooled transformer surface-card index for model-backed typed graph synthesis; runtime-aligned, not a dedicated retrieval-quality claim."
+    },
+    "universe": {
+      "kind": "multi-index-universe",
+      "artifact": "../simulatte-universe/manifest.json",
+      "documentSchema": "simulatte.universeManifest.v1",
+      "dimensions": 1024,
+      "rerank": "candidate-only",
+      "description": "Multi-index semantic universe candidates for concepts, relations, processes, materials, operators, and analogs."
     }
   },
   "embedModel": {
-    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
-    "family": "embeddinggemma",
-    "modelType": "embedding",
-    "dimensions": 768,
-    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95f0b29ec73dea70394c6bcfa8407bc6796df6c9/models/google-embeddinggemma-300m-q4k-ehf16-af32",
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "family": "qwen3.5",
+    "modelType": "transformer",
+    "dimensions": 1024,
+    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16",
     "source": {
       "kind": "huggingface-rdrr",
       "repoId": "Clocksmith/rdrr",
-      "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
-      "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32",
-      "sizeBytes": 480563695
+      "revision": "a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10",
+      "path": "models/qwen-3-5-0-8b-q4k-ehaf16",
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "sizeBytes": 1155348696
     },
     "manifestHash": {
       "alg": "sha256",
-      "hex": "9ac0f54f10fdeddfd67ea07661342713267d60ec57361e6e9d9d72e727407cd2"
+      "hex": "e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6"
     }
   },
   "runtime": {
@@ -52,9 +62,9 @@
             }
           },
           "kvcache": {
-            "maxSeqLen": 2048,
-            "gpuPagedFallbackMaxSeqLen": 2048,
-            "kvDtype": "f32",
+            "maxSeqLen": 4096,
+            "gpuPagedFallbackMaxSeqLen": 4096,
+            "kvDtype": "f16",
             "forceF32Softcap": false,
             "layout": "contiguous",
             "pageSize": 256,
@@ -64,7 +74,7 @@
               "mode": "off",
               "hotWindow": 1024,
               "coldPageSize": 256,
-              "coldDtype": "f32",
+              "coldDtype": "f16",
               "compression": {
                 "mode": "none",
                 "blockSize": 1
@@ -86,9 +96,9 @@
   },
   "cache": {
     "storage": ["CacheStorage", "ServiceWorker"],
-    "namespace": "simulatte-embeddinggemma-primitive-retrieval-v1",
+    "namespace": "simulatte-qwen-3-5-0-8b-primitive-retrieval-v1",
     "worker": "./simulatte-model-cache-sw.js",
-    "prefetch": true,
-    "requirePersistent": true
+    "prefetch": false,
+    "requirePersistent": false
   }
 }

@@ -39,8 +39,12 @@ parameters before the canvas runs.
   catalog, and local semantic scoring helpers.
 - `public/js/simulatte-physics-model.js`: intent resolution, specs, simulation
   state, integrators, readouts, and energy accounting.
-- `public/js/simulatte-intent-embedder.js`: EmbeddingGemma-backed primitive
-  retrieval over the pinned local Doppler model and precomputed primitive index.
+- `public/js/simulatte-intent-embedder.js`: model-backed retrieval over
+  precomputed primitive, surface-card, and universe indexes. The current pinned
+  Qwen runtime uses mean-pooled transformer embeddings with cosine-normalized
+  query and index vectors; it is selected for the current browser/Doppler
+  loading path, not as a proven retrieval-quality replacement for a dedicated
+  embedding model.
 - `public/js/simulatte-physics-renderer.js`: browser controls, canvas drawing,
   continuous animation, and WebGPU particle-field sync.
 - `public/js/simulatte-physics-lab.js`: small public API coordinator.
@@ -106,6 +110,13 @@ input plane above it: prompt text, embeddings, semantic retrieval, and local
 model hints choose target layers, rank primitives, fill slots, and propose
 physical graph deltas. The committed world still has to compile through the
 adjacent layer rules.
+
+Retrieval and reasoning are separate model roles. A dedicated embedding model
+is the right default candidate for best retrieval quality, while Qwen is the
+current local runtime-aligned intent, rerank, and generation path. Retrieval
+model swaps should be decided by benchmarked index candidates, not by assuming a
+general transformer with mean pooling is inherently stronger than an embedding
+model.
 
 Layer recipes now compile into contracts, not only dependency lists:
 
@@ -196,8 +207,9 @@ npm run serve
 ```
 
 `npm run serve` serves `public/` and mounts the sibling Doppler repo at
-same-origin `/doppler/`, matching the model path used by the intent manifest:
-`/doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32`.
+same-origin `/doppler/`. The intent manifest defaults to the pinned Qwen
+artifact URL. For local artifact testing, pass an override such as
+`?embeddingModelBase=/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16`.
 
 ## Deployment
 
