@@ -1577,21 +1577,114 @@
 
   function drawWorldPlanScene(ctx, width, height, state, plan) {
     const sceneKind = sceneKindForPlan(plan);
-    if (sceneKind === 'fire') return paintFireWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'optics') return paintOpticsWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'city') return paintCityWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'watershed') return paintWatershedWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'magnetic-machine') return paintMagneticMachineWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'mechanical') return paintMechanicalWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'literal-composite') return paintLiteralCompositeWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'ferrofluid') return paintFerrofluidWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'thin-film') return paintThinFilmWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'granular') return paintGranularWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'thermal-plume') return paintThermalPlumeWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'material-tray') return paintMaterialTrayWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'biology') return paintBiologyWorld(ctx, width, height, state, plan);
-    if (sceneKind === 'acoustic') return paintAcousticWorld(ctx, width, height, state, plan);
-    return paintGenericWorld(ctx, width, height, state, plan);
+    if (sceneKind === 'fire') paintFireWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'optics') paintOpticsWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'city') paintCityWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'watershed') paintWatershedWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'magnetic-machine') paintMagneticMachineWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'mechanical') paintMechanicalWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'literal-composite') paintLiteralCompositeWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'ferrofluid') paintFerrofluidWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'thin-film') paintThinFilmWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'granular') paintGranularWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'thermal-plume') paintThermalPlumeWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'material-tray') paintMaterialTrayWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'biology') paintBiologyWorld(ctx, width, height, state, plan);
+    else if (sceneKind === 'acoustic') paintAcousticWorld(ctx, width, height, state, plan);
+    else paintGenericWorld(ctx, width, height, state, plan);
+    drawSolverChannelContours(ctx, width, height, state, plan, sceneKind);
+  }
+
+  function drawSolverChannelContours(ctx, width, height, state, plan, sceneKind = '') {
+    const channels = state && state.solverState && state.solverState.channels || state.channelValues || null;
+    if (!channels || !Object.keys(channels).length) return;
+    const heat = channelPeak(channels, /temperature|heat|reaction/i);
+    const motion = channelPeak(channels, /velocity|angularVelocity|flowVelocity|torque|phase|amplitude/i);
+    const damage = channelPeak(channels, /damage|stress|backlog|pressure/i);
+    const matter = channelPeak(channels, /density|nutrient|liquidFraction|throughput/i);
+    const intensity = clamp01(heat * 0.34 + motion * 0.28 + damage * 0.24 + matter * 0.18);
+    if (intensity <= 0.015) return;
+    const sceneHue = sceneHueForChannels(plan, sceneKind, heat, motion, damage, matter);
+    const cell = Math.max(16, Math.min(width, height) / 31);
+    const time = Number(state && state.t || 0);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let y = height * 0.08; y < height * 0.94; y += cell) {
+      for (let x = width * 0.06; x < width * 0.96; x += cell) {
+        const noise = Math.sin(x * 0.021 + y * 0.017 + time * (0.42 + motion * 0.18));
+        const gate = (noise + Math.cos((x - y) * 0.011 + time * 0.31)) * 0.5;
+        if (gate < -0.18) continue;
+        const hue = (sceneHue + x * 0.028 + y * 0.019 + damage * 44) % 360;
+        const alpha = clamp(0.018 + intensity * 0.09 + gate * 0.028, 0.012, 0.18);
+        const size = cell * clamp(0.48 + heat * 0.18 + motion * 0.12 + gate * 0.08, 0.38, 0.78);
+        ctx.fillStyle = `hsla(${hue}, ${58 + matter * 18}%, ${48 + heat * 12}%, ${alpha})`;
+        ctx.fillRect(x - size * 0.5, y - size * 0.5, size, size);
+      }
+    }
+    ctx.lineWidth = Math.max(1, Math.min(width, height) * 0.002);
+    for (let band = 0; band < 9; band += 1) {
+      const y = height * (0.16 + band * 0.085);
+      const hue = (sceneHue + band * 17 + motion * 38) % 360;
+      ctx.strokeStyle = `hsla(${hue}, 72%, ${56 + heat * 10}%, ${0.045 + intensity * 0.08})`;
+      ctx.beginPath();
+      for (let step = 0; step <= 56; step += 1) {
+        const x = width * (0.05 + step / 62);
+        const yy = y +
+          Math.sin(step * 0.43 + time * (0.38 + motion * 0.24) + band) * cell * (0.22 + motion * 0.26) +
+          Math.cos(step * 0.19 + damage * 4 + band) * cell * (0.08 + damage * 0.18);
+        if (step === 0) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = `hsla(${(sceneHue + 150) % 360}, 62%, 28%, ${0.035 + damage * 0.08})`;
+    ctx.lineWidth = 1;
+    for (let band = 0; band < 6; band += 1) {
+      const x = width * (0.12 + band * 0.15);
+      ctx.beginPath();
+      ctx.moveTo(x, height * 0.12);
+      ctx.bezierCurveTo(
+        x + Math.sin(time * 0.22 + band) * width * 0.05,
+        height * 0.34,
+        x - Math.cos(time * 0.18 + band) * width * 0.04,
+        height * 0.68,
+        x + Math.sin(band * 1.7) * width * 0.06,
+        height * 0.9
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function channelPeak(channels, matcher) {
+    let peak = 0;
+    for (const [id, value] of Object.entries(channels || {})) {
+      if (id === '__t' || !matcher.test(id)) continue;
+      peak = Math.max(peak, channelMagnitude(value));
+    }
+    return clamp01(peak);
+  }
+
+  function channelMagnitude(value) {
+    if (value && typeof value === 'object') {
+      const x = Number(value.x || 0);
+      const y = Number(value.y || 0);
+      return Number.isFinite(x + y) ? Math.hypot(x, y) : 0;
+    }
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.abs(number) : 0;
+  }
+
+  function sceneHueForChannels(plan, sceneKind, heat, motion, damage, matter) {
+    const signature = String(plan && plan.provenance && plan.provenance.signature || sceneKind || '').toLowerCase();
+    if (/lava|fire|thermal|heat/.test(signature)) return 18 + heat * 22;
+    if (/ice|glass|lens|prism|quartz/.test(signature)) return 192 + matter * 36;
+    if (/storm|wave|bridge|acoustic/.test(signature)) return 210 + motion * 42;
+    if (/market|queue|network|feedback/.test(signature)) return 154 + damage * 62;
+    if (/rain|delta|basalt|terrain|water/.test(signature)) return 128 + matter * 26;
+    if (/algae|wetland|growth/.test(signature)) return 112 + matter * 44;
+    return 36 + heat * 26 + motion * 34 + damage * 48;
   }
 
   function sceneKindForPlan(plan) {

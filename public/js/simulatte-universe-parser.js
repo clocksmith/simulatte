@@ -10,6 +10,8 @@
   const ENTITY_PHRASES = [
     ['castle wall', 'entity'], ['black hole', 'entity'], ['solar panel', 'entity'],
     ['blade array', 'entity'], ['dry pine', 'entity'], ['traffic queue', 'entity'],
+    ['glass tower', 'entity'], ['bridge cables', 'entity'], ['bridge cable', 'entity'],
+    ['feedback shock', 'entity'], ['basalt delta', 'environment'], ['quartz wetland', 'environment'],
     ['lava', 'material'], ['magma', 'material'], ['turbine', 'entity'],
     ['rotor', 'entity'], ['shaft', 'entity'], ['castle', 'entity'],
     ['wall', 'entity'], ['ice', 'material'], ['river', 'entity'],
@@ -21,9 +23,12 @@
     ['storm', 'environment'], ['cloud', 'environment'], ['wind', 'entity'],
     ['fire', 'entity'], ['flame', 'entity'], ['magnet', 'entity'],
     ['wheel', 'entity'], ['lens', 'entity'], ['prism', 'entity'],
-    ['mirror', 'entity'], ['city', 'environment'], ['traffic', 'entity'],
+    ['mirror', 'entity'], ['tower', 'entity'], ['bridge', 'entity'],
+    ['cable', 'entity'], ['cables', 'entity'], ['wave', 'entity'], ['waves', 'entity'],
+    ['city', 'environment'], ['traffic', 'entity'],
     ['queue', 'entity'], ['packet', 'entity'], ['market', 'entity'],
-    ['network', 'entity'], ['sand', 'material'], ['rock', 'material'],
+    ['network', 'entity'], ['feedback', 'entity'], ['shock', 'entity'],
+    ['sand', 'material'], ['rock', 'material'], ['basalt', 'material'],
     ['rain', 'entity'], ['quartz', 'material'], ['cathedral', 'entity'],
     ['jellyfish', 'entity'], ['entropy', 'observable'], ['soul', 'entity'],
   ];
@@ -34,7 +39,8 @@
     'collides', 'collide', 'fractures', 'fracture', 'cracks', 'crack',
     'pushes', 'push', 'drives', 'drive', 'heats', 'heat', 'cools', 'cool',
     'diffuses', 'diffuse', 'oscillates', 'oscillate', 'trades', 'trade',
-    'eats', 'eat', 'splits', 'split', 'joins', 'join',
+    'eats', 'eat', 'splits', 'split', 'joins', 'join', 'carves', 'carve',
+    'erodes', 'erode', 'grows', 'grow', 'flexes', 'flex', 'waves', 'wave',
   ];
 
   const MODIFIER_PHRASES = [
@@ -181,9 +187,10 @@
     if (/hit|impact|collide|crack|fracture/.test(value)) return 'impact';
     if (/burn|heat/.test(value)) return 'heat_transfer';
     if (/cool/.test(value)) return 'cooling';
-    if (/flow|fall|push/.test(value)) return 'flow';
+    if (/flow|fall|push|carve|erode/.test(value)) return 'flow';
     if (/diffuse/.test(value)) return 'diffusion';
-    if (/oscillate/.test(value)) return 'oscillation';
+    if (/oscillate|flex|wave/.test(value)) return 'oscillation';
+    if (/grow/.test(value)) return 'growth';
     if (/trade/.test(value)) return 'exchange';
     if (/split/.test(value)) return 'split';
     if (/join/.test(value)) return 'join';
