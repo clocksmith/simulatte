@@ -1,0 +1,14 @@
+{
+  "schema": "simulatte.universeOperatorIndex.v1",
+  "id": "simulatte-universe-operators-v1",
+  "documents": [
+    { "id": "operator.magnetic-field", "label": "magnetic field", "operatorType": "magnetic_field", "domains": ["magnetism", "fluid"], "stateVariables": ["magnetization", "fieldStrength"] },
+    { "id": "operator.field-refraction", "label": "field refraction", "operatorType": "field_refraction", "domains": ["optics", "field"], "stateVariables": ["refractiveIndex", "irradiance"] },
+    { "id": "operator.network-flow", "label": "network flow", "operatorType": "network_flow", "domains": ["network", "control"], "stateVariables": ["backlog", "throughput", "signalDelay"] },
+    { "id": "operator.pressure-flow", "label": "pressure flow", "operatorType": "pressure_flow_lite", "domains": ["fluid", "pressure"], "stateVariables": ["pressure", "flowVelocity"] },
+    { "id": "operator.crystallization", "label": "crystallization", "operatorType": "crystallization", "domains": ["phase", "thermal"], "stateVariables": ["temperature", "crystalDensity"] },
+    { "id": "operator.wave-field", "label": "wave field", "operatorType": "wave_field", "domains": ["wave", "acoustic"], "stateVariables": ["waveAmplitude", "frequency"] },
+    { "id": "operator.surface-tension", "label": "surface tension", "operatorType": "surface_tension", "domains": ["surface", "fluid"], "stateVariables": ["curvature", "filmThickness"] },
+    { "id": "operator.growth", "label": "growth decay", "operatorType": "growth_decay", "domains": ["biology", "growth"], "stateVariables": ["density", "nutrient"] }
+  ]
+}

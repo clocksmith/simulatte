@@ -90,15 +90,18 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(field, /@location\(6\) stretch/);
 });
 
-test('seed W and X prompts stay consistent between HTML and catalog', () => {
+test('home prompt presets stay consistent between HTML and catalog', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const catalog = fs.readFileSync(path.join(jsDir, 'simulatte-physics-catalog.js'), 'utf8');
 
-  assert.match(html, /aria-label="Seed W" data-example-prompt="lava spins turbine into ice wall"/);
-  assert.match(html, /aria-label="Seed X" data-example-prompt="projectile cracks glass tower"/);
-  assert.match(html, /<textarea id="build-prompt"[^>]+>lava spins turbine into ice wall<\/textarea>/);
-  assert.match(catalog, /id: 'lava-turbine',\n\s+label: 'W'/);
-  assert.match(catalog, /id: 'fracture-tower',\n\s+label: 'X'/);
+  assert.match(html, /aria-label="Lens" data-example-prompt="laser heats ferrofluid lens over copper coil"/);
+  assert.match(html, /aria-label="Grid" data-example-prompt="subway queue grid reroutes after power surge"/);
+  assert.match(html, /aria-label="Vent" data-example-prompt="undersea vent crystallizes pressure brine"/);
+  assert.match(html, /<textarea id="build-prompt"[^>]+>laser heats ferrofluid lens over copper coil<\/textarea>/);
+  assert.match(catalog, /id: 'ferrofluid-lens',\n\s+label: 'Lens'/);
+  assert.match(catalog, /id: 'subway-surge-grid',\n\s+label: 'Grid'/);
+  assert.doesNotMatch(html, /aria-label="Seed W"|lava spins turbine into ice wall|projectile cracks glass tower/);
+  assert.doesNotMatch(catalog, /id: 'lava-turbine'|id: 'fracture-tower'/);
 });
 
 test('Doppler residual intent has a strict static contract and no network dependency', () => {
@@ -277,57 +280,77 @@ test('Firebase hosting revalidates app shell and app JavaScript', () => {
   assert.ok(noCacheSources.has('/vendor/doppler/**'));
 });
 
-test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
+test('model-backed intent retrieval uses a 1024d Qwen index', () => {
   const manifestPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'manifest.json');
   const indexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'primitive-index-v2.json');
-  const cardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-v1.json');
+  const cardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-qwen-v1.json');
+  const retiredCardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-v1.json');
   const retiredIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'primitive-index-v1.json');
   const retiredEncoderPath = path.join(root, 'public', 'models', 'simulatte-intent-embed-v1.json');
+  const universeManifestPath = path.join(root, 'public', 'models', 'simulatte-universe', 'manifest.json');
   const runtime = fs.readFileSync(path.join(jsDir, 'simulatte-intent-embedder.js'), 'utf8');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
   const cardIndex = JSON.parse(fs.readFileSync(cardIndexPath, 'utf8'));
+  const universeManifest = JSON.parse(fs.readFileSync(universeManifestPath, 'utf8'));
   const packedBytes = Buffer.from(index.embeddingsPackedBase64, 'base64');
   const cardPackedBytes = Buffer.from(cardIndex.embeddingsPackedBase64, 'base64');
 
   assert.equal(manifest.schema, 'simulatte.modelBackedEmbedderManifest.v2');
+  assert.equal(manifest.id, 'simulatte-qwen-3-5-0-8b-primitive-retrieval-v1');
   assert.equal(manifest.retrieval.kind, 'precomputed-primitive-index');
   assert.equal(manifest.retrieval.artifact, './primitive-index-v2.json');
-  assert.equal(manifest.retrieval.dimensions, 768);
+  assert.equal(manifest.retrieval.dimensions, 1024);
   assert.equal(manifest.retrieval.rerank, 'mandatory');
   assert.equal(manifest.retrieval.cards.kind, 'precomputed-surface-card-index');
-  assert.equal(manifest.retrieval.cards.artifact, './surface-card-index-v1.json');
-  assert.equal(manifest.retrieval.cards.dimensions, 768);
+  assert.equal(manifest.retrieval.cards.artifact, './surface-card-index-qwen-v1.json');
+  assert.equal(manifest.retrieval.cards.dimensions, 1024);
   assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
-  assert.equal(manifest.embedModel.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+  assert.equal(manifest.retrieval.universe.artifact, '../simulatte-universe/manifest.json');
+  assert.equal(manifest.retrieval.universe.dimensions, 1024);
+  assert.equal(manifest.embedModel.id, 'qwen-3-5-0-8b-q4k-ehaf16');
+  assert.equal(manifest.embedModel.family, 'qwen3.5');
+  assert.equal(manifest.embedModel.modelType, 'transformer');
+  assert.equal(manifest.embedModel.dimensions, 1024);
   assert.match(manifest.embedModel.defaultModelBaseUrl, /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\//);
+  assert.match(manifest.embedModel.defaultModelBaseUrl, /a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10\/models\/qwen-3-5-0-8b-q4k-ehaf16$/);
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
+  assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /gemma/i);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
+  assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3.5-0.8B');
   assert.equal(manifest.runtime.moduleUrl, './vendor/doppler/src/index-browser.js');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.activationDtype, 'f32');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.mathDtype, 'f32');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.accumDtype, 'f32');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.outputDtype, 'f32');
-  assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.kvDtype, 'f32');
+  assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.kvDtype, 'f16');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.layout, 'contiguous');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.tiering.mode, 'off');
-  assert.equal(manifest.cache.prefetch, true);
+  assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.tiering.coldDtype, 'f16');
+  assert.equal(manifest.cache.namespace, 'simulatte-qwen-3-5-0-8b-primitive-retrieval-v1');
+  assert.equal(manifest.cache.prefetch, false);
   assert.equal(manifest.cache.worker, './simulatte-model-cache-sw.js');
-  assert.equal(manifest.cache.requirePersistent, true);
+  assert.equal(manifest.cache.requirePersistent, false);
   assert.equal(manifest.embedModel.manifestHash.hex, index.embedModelHash.hex);
   assert.equal(manifest.embedModel.manifestHash.hex, cardIndex.embedModelHash.hex);
+  assert.equal(manifest.embedModel.manifestHash.hex, 'e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6');
   assert.equal(index.schema, 'simulatte.primitiveEmbeddingIndex.v2');
-  assert.equal(index.embedModelId, 'google-embeddinggemma-300m-q4k-ehf16-af32');
-  assert.equal(index.embeddingDim, 768);
+  assert.equal(index.id, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
+  assert.equal(index.embedModelId, 'qwen-3-5-0-8b-q4k-ehaf16');
+  assert.equal(index.embeddingDim, 1024);
   assert.ok(index.documents.length >= 320);
   assert.equal(packedBytes.byteLength, index.documents.length * index.embeddingDim * 4);
   assert.equal(cardIndex.schema, 'simulatte.surfaceCardEmbeddingIndex.v1');
-  assert.equal(cardIndex.embedModelId, 'google-embeddinggemma-300m-q4k-ehf16-af32');
-  assert.equal(cardIndex.embeddingDim, 768);
+  assert.equal(cardIndex.id, 'simulatte-surface-card-qwen-3-5-0-8b-index-v1');
+  assert.equal(cardIndex.embedModelId, 'qwen-3-5-0-8b-q4k-ehaf16');
+  assert.equal(cardIndex.embeddingDim, 1024);
   assert.ok(cardIndex.documents.length >= 650);
-  assert.ok(cardIndex.documents.some((doc) => doc.cardId === 'hamster_wheel'));
   assert.equal(cardPackedBytes.byteLength, cardIndex.documents.length * cardIndex.embeddingDim * 4);
+  assert.equal(universeManifest.embedModel.id, manifest.embedModel.id);
+  assert.equal(universeManifest.embedModel.dimensions, manifest.embedModel.dimensions);
+  assert.equal(universeManifest.embedModel.manifestHash.hex, manifest.embedModel.manifestHash.hex);
   assert.equal(Object.hasOwn(manifest, 'fallback'), false);
+  assert.equal(fs.existsSync(retiredCardIndexPath), false);
   assert.equal(fs.existsSync(retiredIndexPath), false);
   assert.equal(fs.existsSync(retiredEncoderPath), false);
   assert.match(runtime, /navigator\.gpu/);
@@ -343,12 +366,16 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(runtime, /rankSurfaceCards/);
   assert.match(runtime, /cardMatches/);
   assert.match(runtime, /ensureModelArtifactCache/);
+  assert.match(runtime, /waitForCacheWorkerReady/);
+  assert.match(runtime, /Promise\.race\(\[\n\s+navigator\.serviceWorker\.ready,/);
+  assert.match(runtime, /intent model cache worker did not become ready/);
   assert.match(runtime, /model-backed intent manifest missing Doppler runtimeConfig/);
   assert.doesNotMatch(runtime, /EMBEDDINGGEMMA_RUNTIME_CONFIG/);
   assert.match(runtime, /simulatte-model-cache/);
   assert.match(runtime, /resolveUrl\(rawModuleUrl, location\.href\)/);
   assert.match(runtime, /embedModelHash mismatch/);
   assert.match(runtime, /simulatte\.intentRerank\.v1/);
+  assert.doesNotMatch(runtime, /DEFAULT_EMBED_MODEL_ID|google-embeddinggemma-300m-q4k-ehf16-af32|EmbeddingGemma/);
   assert.doesNotMatch(runtime, /axis-token-query-encoder/);
   assert.doesNotMatch(runtime, /simulatte-intent-embed-v1/);
   assert.doesNotMatch(runtime, /candidates\.map\(\(primitive\) => embedText\(model, primitiveText/);

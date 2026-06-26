@@ -1,0 +1,38 @@
+{
+  "schema": "simulatte.universeManifest.v1",
+  "id": "simulatte-universe-multi-index-v1",
+  "embedModel": {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "dimensions": 1024,
+    "manifestHash": {
+      "alg": "sha256",
+      "hex": "e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6"
+    }
+  },
+  "indexes": {
+    "concepts": {
+      "kind": "concept-index",
+      "artifact": "./concept-index-v1.json"
+    },
+    "relations": {
+      "kind": "relation-index",
+      "artifact": "./relation-index-v1.json"
+    },
+    "processes": {
+      "kind": "process-index",
+      "artifact": "./process-index-v1.json"
+    },
+    "materials": {
+      "kind": "material-index",
+      "artifact": "./material-index-v1.json"
+    },
+    "operators": {
+      "kind": "operator-index",
+      "artifact": "./operator-index-v1.json"
+    },
+    "analogs": {
+      "kind": "physical-analog-index",
+      "artifact": "./physical-analog-index-v1.json"
+    }
+  }
+}

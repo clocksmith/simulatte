@@ -19,10 +19,16 @@ function loadEmbeddingIndex() {
     'utf8'
   ));
   const surfaceIndex = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/models/simulatte-embedder/surface-card-index-v1.json'),
+    path.join(root, 'public/models/simulatte-embedder/surface-card-index-qwen-v1.json'),
     'utf8'
   ));
-  return { manifest, index, surfaceIndex };
+  const universeRoot = path.join(root, 'public/models/simulatte-universe');
+  const universeManifest = JSON.parse(fs.readFileSync(path.join(universeRoot, 'manifest.json'), 'utf8'));
+  const universeIndexes = Object.fromEntries(Object.entries(universeManifest.indexes).map(([name, config]) => [
+    name,
+    JSON.parse(fs.readFileSync(path.join(universeRoot, config.artifact.replace(/^\.\//, '')), 'utf8')),
+  ]));
+  return { manifest, index, surfaceIndex, universeManifest, universeIndexes };
 }
 
 function indexedVector(index, primitiveId) {
@@ -43,24 +49,38 @@ function indexedCardVector(index, cardId) {
   return values.slice(start, start + index.embeddingDim);
 }
 
+function packedVectorsBase64(rows) {
+  const values = new Float32Array(rows.flat());
+  return Buffer.from(values.buffer, values.byteOffset, values.byteLength).toString('base64');
+}
+
 async function withIntentArtifactFetch(run) {
   const previousFetch = globalThis.fetch;
-  const { manifest, index, surfaceIndex } = loadEmbeddingIndex();
+  const { manifest, index, surfaceIndex, universeManifest, universeIndexes } = loadEmbeddingIndex();
   globalThis.fetch = async (url) => {
     const value = String(url || '');
-    if (value.endsWith('manifest.json')) {
+    if (value.includes('/simulatte-universe/manifest.json')) {
+      return new Response(JSON.stringify(universeManifest), { status: 200 });
+    }
+    for (const [name, universeIndex] of Object.entries(universeIndexes)) {
+      const artifact = universeManifest.indexes[name].artifact.replace(/^\.\//, '');
+      if (value.endsWith(artifact)) {
+        return new Response(JSON.stringify(universeIndex), { status: 200 });
+      }
+    }
+    if (value.endsWith('/simulatte-embedder/manifest.json')) {
       return new Response(JSON.stringify(manifest), { status: 200 });
     }
     if (value.endsWith('primitive-index-v2.json')) {
       return new Response(JSON.stringify(index), { status: 200 });
     }
-    if (value.endsWith('surface-card-index-v1.json')) {
+    if (value.endsWith('surface-card-index-qwen-v1.json')) {
       return new Response(JSON.stringify(surfaceIndex), { status: 200 });
     }
     return new Response('not found', { status: 404 });
   };
   try {
-    return await run({ manifest, index, surfaceIndex });
+    return await run({ manifest, index, surfaceIndex, universeManifest, universeIndexes });
   } finally {
     globalThis.fetch = previousFetch;
   }
@@ -73,7 +93,93 @@ function createPrototypeSpec(prompt, overrides = {}) {
   });
 }
 
-test('model-backed intent embedder ranks primitives with EmbeddingGemma provenance', async () => {
+test('model-backed intent retrieval cosine-normalizes query and index vectors', async () => {
+  const hash = {
+    alg: 'sha256',
+    hex: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+  };
+  const manifest = {
+    schema: 'simulatte.modelBackedEmbedderManifest.v2',
+    id: 'simulatte-synthetic-cosine-retrieval-v1',
+    retrieval: {
+      kind: 'precomputed-primitive-index',
+      artifact: './synthetic-index.json',
+      dimensions: 2,
+      rerank: 'mandatory',
+    },
+    embedModel: {
+      id: 'synthetic-mean-pooled-transformer',
+      family: 'synthetic',
+      modelType: 'transformer',
+      dimensions: 2,
+      defaultModelBaseUrl: 'https://simulatte.test/models/synthetic',
+      manifestHash: hash,
+    },
+    runtime: {
+      runtimeConfig: { inference: {} },
+    },
+    cache: {},
+  };
+  const index = {
+    schema: 'simulatte.primitiveEmbeddingIndex.v2',
+    id: 'simulatte-synthetic-cosine-index-v1',
+    embedModelId: manifest.embedModel.id,
+    embedModelHash: hash,
+    embeddingDim: 2,
+    documents: [
+      { primitiveId: 'aligned' },
+      { primitiveId: 'large-norm-off-axis' },
+    ],
+    embeddingsPackedBase64: packedVectorsBase64([
+      [1, 0],
+      [8, 6],
+    ]),
+  };
+  const candidates = index.documents.map((doc) => ({
+    id: doc.primitiveId,
+    layer: 'physics',
+    type: 'operator',
+    domains: [],
+  }));
+  const previousFetch = globalThis.fetch;
+  const previousRag = globalThis.SimulatteSemanticRag;
+  const previousDopplerIntent = globalThis.SimulatteDopplerIntent;
+  globalThis.SimulatteSemanticRag = null;
+  globalThis.SimulatteDopplerIntent = null;
+  globalThis.fetch = async (url) => {
+    const value = String(url || '');
+    if (value.endsWith('/manifest.json')) return new Response(JSON.stringify(manifest), { status: 200 });
+    if (value.endsWith('/synthetic-index.json')) return new Response(JSON.stringify(index), { status: 200 });
+    return new Response('not found', { status: 404 });
+  };
+  try {
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
+      embedProvider: {
+        async embed() {
+          return {
+            embedding: Float32Array.from([4, 0]),
+            embedModelId: manifest.embedModel.id,
+            embedModelHash: hash,
+          };
+        },
+      },
+    });
+    const result = await embedder.rankPrompt('aligned vector', candidates, { max: 2 });
+    const aligned = result.priors.find((prior) => prior.primitiveId === 'aligned');
+    const offAxis = result.priors.find((prior) => prior.primitiveId === 'large-norm-off-axis');
+
+    assert.equal(result.priors[0].primitiveId, 'aligned');
+    assert.equal(aligned.modelScore, 1);
+    assert.equal(offAxis.modelScore, 0.8);
+  } finally {
+    globalThis.fetch = previousFetch;
+    globalThis.SimulatteSemanticRag = previousRag;
+    globalThis.SimulatteDopplerIntent = previousDopplerIntent;
+  }
+});
+
+test('model-backed intent embedder ranks primitives with Qwen provenance', async () => {
   await withIntentArtifactFetch(async ({ index }) => {
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
@@ -94,16 +200,20 @@ test('model-backed intent embedder ranks primitives with EmbeddingGemma provenan
       { max: 12 }
     );
 
-    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
-    assert.equal(result.model.dimensions, 768);
-    assert.equal(result.model.indexId, 'simulatte-primitive-embeddinggemma-index-v1');
-    assert.equal(result.model.surfaceCardIndexId, 'simulatte-surface-card-embeddinggemma-index-v1');
+    assert.equal(result.model.id, 'qwen-3-5-0-8b-q4k-ehaf16');
+    assert.equal(result.model.dimensions, 1024);
+    assert.equal(result.model.indexId, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
+    assert.equal(result.model.surfaceCardIndexId, 'simulatte-surface-card-qwen-3-5-0-8b-index-v1');
     assert.ok(result.model.surfaceCardDocuments >= 650);
+    assert.equal(result.model.universeIndexId, 'simulatte-universe-multi-index-v1');
+    assert.ok(result.model.universeDocuments >= 20);
     assert.equal(result.rerank.required, true);
     assert.equal(result.rerank.schema, 'simulatte.intentRerank.v1');
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
     assert.ok(result.priors.some((prior) => prior.primitiveId === 'prism'));
     assert.ok(Array.isArray(result.cardMatches));
+    assert.equal(result.universeMatches.schema, 'simulatte.universeMatches.v1');
+    assert.ok(result.universeMatches.candidates.some((candidate) => candidate.indexName === 'concepts'));
   });
 });
 
@@ -128,7 +238,7 @@ test('Doppler model handles normalize URL provenance to the manifest model id', 
       { max: 8 }
     );
 
-    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+    assert.equal(result.model.id, 'qwen-3-5-0-8b-q4k-ehaf16');
     assert.equal(result.backend, 'injected-doppler-model');
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
   });
@@ -155,15 +265,15 @@ test('embed providers normalize default model URL provenance to the manifest mod
       { max: 8 }
     );
 
-    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+    assert.equal(result.model.id, 'qwen-3-5-0-8b-q4k-ehaf16');
     assert.equal(result.backend, 'configured-provider');
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
   });
 });
 
-test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async () => {
+test('Qwen surface-card retrieval feeds typed graph synthesis', async () => {
   await withIntentArtifactFetch(async ({ index, surfaceIndex }) => {
-    const query = indexedCardVector(surfaceIndex, 'hamster_wheel');
+    const query = indexedCardVector(surfaceIndex, 'lens');
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
       embedProvider: {
@@ -176,7 +286,7 @@ test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async 
         },
       },
     });
-    const prompt = 'mouse in a hamster wheel crashing into another gerbil in a hamster wheel';
+    const prompt = 'laser heats ferrofluid lens over copper coil';
     const result = await embedder.rankPrompt(prompt, lab.PHYSICAL_PRIMITIVES, {
       max: 12,
       maxCards: 12,
@@ -190,28 +300,19 @@ test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async 
       semanticRag: result.semanticRag,
       dopplerIntent: result.dopplerIntent,
       cardMatches: result.cardMatches,
+      universeMatches: result.universeMatches,
     });
     const synth = spec.intent.synthesis;
 
-    assert.equal(result.cardMatches[0].cardId, 'hamster_wheel');
+    assert.equal(result.cardMatches[0].cardId, 'lens');
     assert.equal(synth.schema, 'simulatte.embeddingGuidedGraphSynthesis.v1');
     assert.equal(synth.validation.valid, true);
-    assert.deepEqual(synth.synthGraph.nodes.map((node) => node.cardId), [
-      'mouse',
-      'hamster_wheel',
-      'gerbil',
-      'hamster_wheel',
-    ]);
-    assert.deepEqual(synth.synthGraph.relations.map((relation) => relation.participants), [
-      ['mouse_a', 'hamster_wheel_a'],
-      ['gerbil_a', 'hamster_wheel_b'],
-    ]);
-    assert.deepEqual(synth.synthGraph.events[0].participants, [
-      'hamster_wheel_a',
-      'hamster_wheel_b',
-    ]);
-    assert.equal(spec.objects.some((object) => object.id === 'wheel-a'), false);
-    assert.ok(spec.objects.some((object) => object.id === 'collision-1'));
+    assert.ok(result.cardMatches.some((match) => match.cardId === 'laser'));
+    assert.ok(synth.synthGraph.nodes.some((node) => node.cardId === 'lens'));
+    assert.ok(synth.synthGraph.nodes.some((node) => node.cardId === 'laser'));
+    assert.ok(synth.synthGraph.nodes.some((node) => node.cardId === 'ferrofluid'));
+    assert.ok(spec.universeGraph.nodes.some((node) => (node.evidence || []).includes('universe-index')));
+    assert.ok(spec.objects.some((object) => /lens|laser|ferrofluid/.test(object.id)));
     assert.equal(spec.physicalSpec.receipt.synthesis.valid, true);
   });
 });
@@ -244,48 +345,48 @@ test('examples resolve through intent before simulation spec', () => {
   }
 });
 
-test('example seeds are unnamed prompt presets with distinct parameter values', () => {
+test('example prompt presets cover distinct scene families with distinct parameter values', () => {
   const visibleLabels = lab.EXAMPLE_INTENTS.map((example) => example.label);
-  const forbiddenLabels = ['Forest fire', 'Watershed', 'City grid', 'Optics', 'Mag wheel'];
+  const expectedLabels = ['Lens', 'Grid', 'Vent', 'Wave', 'Film', 'Bio'];
+  const expectedIds = [
+    'ferrofluid-lens',
+    'subway-surge-grid',
+    'brine-vent',
+    'acoustic-dust-levitator',
+    'thin-film-fracture',
+    'mycelium-gel-pump',
+  ];
+  const forbiddenLabels = ['W', 'X', 'Y', 'Z', 'P', 'Q', 'Forest fire', 'Watershed', 'City grid', 'Optics', 'Mag wheel'];
   const signatures = new Set(lab.EXAMPLE_INTENTS.map((example) => JSON.stringify(example.params || {})));
   const textSignatures = new Set(lab.EXAMPLE_INTENTS.map((example) => {
     const spec = lab.createSpecFromPrompt(example.prompt, { params: example.params });
     return JSON.stringify(Object.fromEntries(Object.entries(spec.params).sort().slice(0, 12)));
   }));
-  const lava = lab.EXAMPLE_INTENTS.find((example) => example.id === 'lava-turbine');
-  const fracture = lab.EXAMPLE_INTENTS.find((example) => example.id === 'fracture-tower');
-  const storm = lab.EXAMPLE_INTENTS.find((example) => example.id === 'storm-bridge');
-  const queue = lab.EXAMPLE_INTENTS.find((example) => example.id === 'queue-feedback');
-  const delta = lab.EXAMPLE_INTENTS.find((example) => example.id === 'basalt-delta');
-  const wetland = lab.EXAMPLE_INTENTS.find((example) => example.id === 'wetland-growth');
 
-  assert.deepEqual(visibleLabels, ['W', 'X', 'Y', 'Z', 'P', 'Q']);
-  assert.deepEqual(lab.EXAMPLE_INTENTS.slice(0, 2).map((example) => [example.label, example.id]), [
-    ['W', 'lava-turbine'],
-    ['X', 'fracture-tower'],
-  ]);
+  assert.deepEqual(visibleLabels, expectedLabels);
+  assert.deepEqual(lab.EXAMPLE_INTENTS.map((example) => example.id), expectedIds);
   for (const label of forbiddenLabels) assert.equal(visibleLabels.includes(label), false);
   for (const example of lab.EXAMPLE_INTENTS) {
-    assert.ok(example.prompt.length <= 44, `${example.id} prompt should stay compact`);
+    assert.ok(example.prompt.length <= 54, `${example.id} prompt should stay compact`);
   }
   assert.ok(signatures.size >= 6);
   assert.ok(textSignatures.size >= 5);
-  assert.equal(lab.createSpecFromPrompt(lava.prompt, { params: lava.params }).params.flowRate, 0.86);
-  assert.equal(lab.createSpecFromPrompt(fracture.prompt, { params: fracture.params }).params.energyInput, 0.92);
-  assert.equal(lab.createSpecFromPrompt(storm.prompt, { params: storm.params }).params.waveAmplitude, 0.78);
-  assert.equal(lab.createSpecFromPrompt(queue.prompt, { params: queue.params }).params.queueBacklog, 0.82);
-  assert.equal(lab.createSpecFromPrompt(delta.prompt, { params: delta.params }).params.erosionRate, 0.68);
-  assert.equal(lab.createSpecFromPrompt(wetland.prompt, { params: wetland.params }).params.populationGrowth, 0.82);
   const specsById = Object.fromEntries(lab.EXAMPLE_INTENTS.map((example) => [
     example.id,
     lab.createSpecFromPrompt(example.prompt, { params: example.params }),
   ]));
-  assert.equal(specsById['lava-turbine'].renderProgram.rendererPlan.sceneKind, 'literal-composite');
-  assert.equal(specsById['fracture-tower'].renderProgram.rendererPlan.sceneKind, 'mechanical');
-  assert.equal(specsById['storm-bridge'].renderProgram.rendererPlan.sceneKind, 'acoustic');
-  assert.equal(specsById['queue-feedback'].renderProgram.rendererPlan.sceneKind, 'city');
-  assert.equal(specsById['basalt-delta'].renderProgram.rendererPlan.sceneKind, 'watershed');
-  assert.equal(specsById['wetland-growth'].renderProgram.rendererPlan.sceneKind, 'biology');
+  assert.equal(specsById['ferrofluid-lens'].params.magnetization, 0.74);
+  assert.equal(specsById['subway-surge-grid'].params.queueBacklog, 0.84);
+  assert.equal(specsById['brine-vent'].params.pressure, 0.86);
+  assert.equal(specsById['acoustic-dust-levitator'].params.waveAmplitude, 0.82);
+  assert.equal(specsById['thin-film-fracture'].params.surfaceTension, 0.86);
+  assert.equal(specsById['mycelium-gel-pump'].params.populationGrowth, 0.84);
+  assert.equal(specsById['ferrofluid-lens'].renderProgram.rendererPlan.sceneKind, 'optics');
+  assert.equal(specsById['subway-surge-grid'].renderProgram.rendererPlan.sceneKind, 'city');
+  assert.equal(specsById['brine-vent'].renderProgram.rendererPlan.sceneKind, 'watershed');
+  assert.equal(specsById['acoustic-dust-levitator'].renderProgram.rendererPlan.sceneKind, 'acoustic');
+  assert.equal(specsById['thin-film-fracture'].renderProgram.rendererPlan.sceneKind, 'thin-film');
+  assert.equal(specsById['mycelium-gel-pump'].renderProgram.rendererPlan.sceneKind, 'biology');
   for (const spec of Object.values(specsById)) {
     assert.equal(spec.physicsIR.receipt.unsupported.length, 0);
   }
@@ -462,11 +563,11 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
         { primitiveId: 'wave-source', score: 0.82 },
       ],
       embeddingModel: {
-        id: 'google-embeddinggemma-300m-q4k-ehf16-af32',
-        family: 'embeddinggemma',
-        dimensions: 768,
-        indexId: 'simulatte-primitive-embeddinggemma-index-v1',
-        reranker: 'simulatte.embeddinggemma-reranker.v1',
+        id: 'qwen-3-5-0-8b-q4k-ehaf16',
+        family: 'qwen3.5',
+        dimensions: 1024,
+        indexId: 'simulatte-primitive-qwen-3-5-0-8b-index-v1',
+        reranker: 'simulatte.qwen-3-5-0-8b-q4k-ehaf16-reranker.v1',
       },
       embeddingBackend: 'webgpu',
       intentRerank: {
@@ -480,9 +581,9 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
   const regimes = new Set(spec.renderProgram.objects.map((object) => object.visualRegime));
   const solverFamilies = new Set(spec.renderProgram.solverPlan.families);
 
-  assert.equal(spec.intent.classification.model.id, 'simulatte-embeddinggemma-intent-ranker.v1');
+  assert.equal(spec.intent.classification.model.id, 'simulatte-qwen-3-5-0-8b-q4k-ehaf16-intent-ranker.v1');
   assert.equal(spec.intent.classification.model.runtime.backend, 'webgpu');
-  assert.equal(spec.intent.classification.model.runtime.indexId, 'simulatte-primitive-embeddinggemma-index-v1');
+  assert.equal(spec.intent.classification.model.runtime.indexId, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
   assert.equal(spec.intent.rerank.schema, 'simulatte.intentRerank.v1');
   assert.equal(spec.physicalSpec.receipt.rerank.required, true);
   assert.ok(ids.has('mycelium'));
@@ -628,7 +729,8 @@ test('prompt worlds compile into Grid-like classifier composition graphs', () =>
   assert.ok(machine.intent.classification.priors.some((prior) => prior.primitiveId === 'rotor-wheel'));
   assert.ok(machine.renderProgram.objects.some((object) => object.shape === 'wheel'));
   assert.ok(machine.renderProgram.fields.some((field) => field.kind === 'dipole'));
-  assert.ok(machine.physicalSpec.renderPasses.includes('magnetic-vector-field-solve'));
+  assert.equal(machine.physicalSpec.executionSource, 'solverGraph');
+  assert.ok(machine.physicalSpec.visualPassHints.includes('magnetic-vector-field-solve'));
 });
 
 test('prompt worlds choose distinct regime renderer identities', () => {
@@ -704,6 +806,7 @@ test('prompt worlds choose distinct regime renderer identities', () => {
     const spec = createPrototypeSpec(prompt);
 
     assert.equal(spec.renderProgram.rendererPlan.schema, 'simulatte.rendererPlan.v1');
+    assert.equal(spec.renderIR.sceneHint, sceneKind);
     assert.equal(spec.renderProgram.rendererPlan.sceneKind, sceneKind);
     assert.equal(spec.renderProgram.rendererPlan.dominantRegime, dominantRegime);
     assert.equal(spec.renderProgram.provenance.visualIdentity.sceneKind, sceneKind);
@@ -762,8 +865,9 @@ test('semantic RAG open components enter graph, solver plan, and render programs
   assert.ok(regimes.has('magnetic'));
   assert.ok(spec.modules.includes('soft') || spec.modules.includes('biological'));
   assert.ok(openObjects.some((object) => /protein|gel|membrane/.test(`${object.id} ${object.phrase} ${object.material}`)));
-  assert.ok(spec.physicalSpec.stateTextures.includes('rayBatch'));
-  assert.ok(spec.physicalSpec.stateTextures.includes('velocity'));
+  assert.equal(spec.physicalSpec.executionSource, 'solverGraph');
+  assert.ok(spec.physicalSpec.visualStateHints.includes('rayBatch'));
+  assert.ok(spec.physicalSpec.visualStateHints.includes('velocity'));
   assert.ok(spec.physicalSpec.quality.score > 0.35);
 });
 

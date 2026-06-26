@@ -1,5 +1,7 @@
 import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { doppler } from '../../doppler/src/index.js';
@@ -8,9 +10,16 @@ import { bootstrapNodeWebGPU } from '../../doppler/src/tooling/node-webgpu.js';
 const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const MODEL_DIR = path.resolve(ROOT, '../doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32');
-const OUT_PATH = path.join(ROOT, 'public/models/simulatte-embedder/surface-card-index-v1.json');
-const MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
+const DEFAULT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+const MODEL_DIR = process.env.SIMULATTE_EMBED_MODEL_DIR
+  ? path.resolve(process.env.SIMULATTE_EMBED_MODEL_DIR)
+  : path.resolve(ROOT, `../doppler/models/local/${DEFAULT_MODEL_ID}`);
+const OUT_PATH = path.join(ROOT, 'public/models/simulatte-embedder/surface-card-index-qwen-v1.json');
+const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
+const INDEX_ID = process.env.SIMULATTE_SURFACE_CARD_INDEX_ID
+  || 'simulatte-surface-card-qwen-3-5-0-8b-index-v1';
+const CHILD_MODE = process.env.SIMULATTE_SURFACE_CARD_CHILD === '1';
+const CHUNK_SIZE = Math.max(1, Number(process.env.SIMULATTE_SURFACE_CARD_CHUNK_SIZE || 240));
 
 function stableStringify(value) {
   return JSON.stringify(sortStable(value), null, 2);
@@ -31,6 +40,15 @@ function sha256HexBytes(bytes) {
 
 function sha256HexText(text) {
   return sha256HexBytes(Buffer.from(String(text), 'utf8'));
+}
+
+function configuredModelHash(fallbackHash) {
+  const raw = String(process.env.SIMULATTE_EMBED_MODEL_HASH || '').trim().replace(/^sha256:/, '');
+  if (!raw) return fallbackHash;
+  if (!/^[a-f0-9]{64}$/i.test(raw)) {
+    throw new Error('SIMULATTE_EMBED_MODEL_HASH must be a sha256 hex digest');
+  }
+  return { alg: 'sha256', hex: raw.toLowerCase() };
 }
 
 function indexHash(index) {
@@ -68,7 +86,15 @@ function finiteFloat32Array(value, label) {
   return vector;
 }
 
-async function main() {
+function expectedEmbeddingDim(manifest) {
+  return Number(
+    manifest?.inference?.output?.embeddingPostprocessor?.outputSize
+    || manifest?.architecture?.hiddenSize
+    || 0
+  );
+}
+
+async function loadInputs() {
   const graphSynthesis = require('../public/js/simulatte-graph-synthesis.js');
   const cards = graphSynthesis.createSurfaceCardDocuments();
   if (!cards.length) throw new Error('No Simulatte surface cards found');
@@ -77,9 +103,50 @@ async function main() {
   const manifestText = await fs.readFile(manifestPath, 'utf8');
   const manifest = JSON.parse(manifestText);
   const manifestHash = { alg: 'sha256', hex: sha256HexText(manifestText) };
+  const embedModelHash = configuredModelHash(manifestHash);
   if (manifest.modelId !== MODEL_ID) {
     throw new Error(`Unexpected modelId ${manifest.modelId}; expected ${MODEL_ID}`);
   }
+
+  const documents = cards.map((doc, order) => {
+    const candidateText = surfaceCardEmbeddingText(doc);
+    return {
+      cardId: doc.cardId,
+      order,
+      type: doc.type || '',
+      labels: doc.labels || [],
+      textHash: { alg: 'sha256', hex: sha256HexText(candidateText) },
+      candidateText,
+    };
+  });
+
+  return {
+    graphSynthesis,
+    manifest,
+    manifestHash,
+    embedModelHash,
+    documents,
+  };
+}
+
+async function main() {
+  const inputs = await loadInputs();
+  if (CHILD_MODE) {
+    await writeChildChunk(inputs);
+    process.exit(0);
+    return;
+  }
+
+  await buildWithChildChunks(inputs);
+}
+
+async function writeChildChunk({ manifest, documents }) {
+  const offset = Number(process.env.SIMULATTE_SURFACE_CARD_OFFSET || 0);
+  const limit = Number(process.env.SIMULATTE_SURFACE_CARD_LIMIT || CHUNK_SIZE);
+  const outPath = process.env.SIMULATTE_SURFACE_CARD_CHUNK_OUT;
+  if (!outPath) throw new Error('SIMULATTE_SURFACE_CARD_CHUNK_OUT is required in child mode');
+  const chunkDocuments = documents.slice(offset, offset + limit);
+  if (!chunkDocuments.length) throw new Error(`No surface cards in chunk offset=${offset} limit=${limit}`);
 
   const gpu = await bootstrapNodeWebGPU();
   if (!gpu.ok) {
@@ -97,20 +164,8 @@ async function main() {
   });
 
   try {
-    const createdAt = new Date().toISOString();
-    const documents = cards.map((doc, order) => {
-      const candidateText = surfaceCardEmbeddingText(doc);
-      return {
-        cardId: doc.cardId,
-        order,
-        type: doc.type || '',
-        labels: doc.labels || [],
-        textHash: { alg: 'sha256', hex: sha256HexText(candidateText) },
-        candidateText,
-      };
-    });
-    const prompts = documents.map((doc) => doc.candidateText);
-    console.log(`embedding ${prompts.length} surface cards`);
+    const prompts = chunkDocuments.map((doc) => doc.candidateText);
+    console.log(`embedding ${prompts.length} surface cards (${offset}-${offset + prompts.length - 1})`);
     const outputs = await model.embedBatch(prompts, {
       useChatTemplate: false,
       embeddingMode: 'mean',
@@ -122,33 +177,81 @@ async function main() {
 
     let embeddingDim = 0;
     const vectors = outputs.map((output, index) => {
-      const vector = finiteFloat32Array(output.embedding, documents[index].cardId);
+      const vector = finiteFloat32Array(output.embedding, chunkDocuments[index].cardId);
       if (!embeddingDim) embeddingDim = vector.length;
       if (vector.length !== embeddingDim) {
-        throw new Error(`Embedding dim changed for ${documents[index].cardId}: ${vector.length} !== ${embeddingDim}`);
+        throw new Error(`Embedding dim changed for ${chunkDocuments[index].cardId}: ${vector.length} !== ${embeddingDim}`);
       }
       return vector;
     });
-    if (embeddingDim !== 768) {
-      throw new Error(`Expected 768-d EmbeddingGemma vectors, got ${embeddingDim}`);
+    const expectedDim = expectedEmbeddingDim(manifest);
+    if (expectedDim && embeddingDim !== expectedDim) {
+      throw new Error(`Expected ${expectedDim}-d ${manifest.modelId} vectors, got ${embeddingDim}`);
     }
 
     const packed = new Float32Array(vectors.length * embeddingDim);
     vectors.forEach((vector, index) => packed.set(vector, index * embeddingDim));
     const packedBytes = Buffer.from(packed.buffer, packed.byteOffset, packed.byteLength);
+    await fs.writeFile(outPath, `${stableStringify({
+      offset,
+      documentCount: chunkDocuments.length,
+      embeddingDim,
+      documents: chunkDocuments,
+      embeddingsPackedBase64: packedBytes.toString('base64'),
+    })}\n`);
+    console.log(`wrote ${outPath}`);
+  } finally {
+    await model.unload().catch(() => {});
+  }
+}
+
+async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash }) {
+  const createdAt = new Date().toISOString();
+  const chunkDir = await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-surface-cards-'));
+  const chunks = [];
+  try {
+    for (let offset = 0; offset < documents.length; offset += CHUNK_SIZE) {
+      const limit = Math.min(CHUNK_SIZE, documents.length - offset);
+      const chunkPath = path.join(chunkDir, `surface-cards-${offset}.json`);
+      await runChildChunk(offset, limit, chunkPath);
+      chunks.push(JSON.parse(await fs.readFile(chunkPath, 'utf8')));
+    }
+    const embeddingDim = chunks[0] ? Number(chunks[0].embeddingDim) : 0;
+    if (!embeddingDim) throw new Error('No surface-card chunks were generated');
+    const packed = new Float32Array(documents.length * embeddingDim);
+    const mergedDocuments = [];
+    for (const chunk of chunks) {
+      if (Number(chunk.embeddingDim) !== embeddingDim) {
+        throw new Error(`Surface-card chunk dim mismatch (${chunk.embeddingDim} !== ${embeddingDim})`);
+      }
+      const chunkDocuments = chunk.documents || [];
+      const vectors = base64ToFloat32(chunk.embeddingsPackedBase64);
+      if (vectors.length !== chunkDocuments.length * embeddingDim) {
+        throw new Error(`Surface-card chunk byte length mismatch at offset ${chunk.offset}`);
+      }
+      mergedDocuments.push(...chunkDocuments);
+      packed.set(vectors, Number(chunk.offset) * embeddingDim);
+    }
+    if (mergedDocuments.length !== documents.length) {
+      throw new Error(`Surface-card chunk document count mismatch (${mergedDocuments.length} !== ${documents.length})`);
+    }
+    for (let i = 0; i < mergedDocuments.length; i += 1) {
+      if (mergedDocuments[i].order !== i || mergedDocuments[i].cardId !== documents[i].cardId) {
+        throw new Error(`Surface-card chunk order mismatch at ${i}`);
+      }
+    }
+    const packedBytes = Buffer.from(packed.buffer, packed.byteOffset, packed.byteLength);
 
     const index = {
       schema: graphSynthesis.CARD_INDEX_SCHEMA,
-      id: 'simulatte-surface-card-embeddinggemma-index-v1',
+      id: INDEX_ID,
       createdAt,
-      documentCount: documents.length,
+      documentCount: mergedDocuments.length,
       embeddingDim,
-      embedModelId: manifest.modelId,
-      embedModelHash: manifest.modelHash && typeof manifest.modelHash === 'object'
-        ? manifest.modelHash
-        : manifestHash,
-      embedModelManifestHash: manifestHash,
-      documents,
+      embedModelId: MODEL_ID,
+      embedModelHash,
+      embedModelManifestHash: embedModelHash,
+      documents: mergedDocuments,
       embeddingsPackedBase64: packedBytes.toString('base64'),
     };
     index.indexHash = indexHash(index);
@@ -165,11 +268,45 @@ async function main() {
       bytes: Buffer.byteLength(stableStringify(index)),
     }, null, 2));
   } finally {
-    await model.unload().catch(() => {});
+    await fs.rm(chunkDir, { recursive: true, force: true }).catch(() => {});
   }
 }
 
-main().catch((error) => {
-  console.error(error && error.stack ? error.stack : error);
-  process.exitCode = 1;
-});
+function base64ToFloat32(base64) {
+  const bytes = Buffer.from(String(base64 || ''), 'base64');
+  return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+}
+
+function runChildChunk(offset, limit, chunkPath) {
+  return new Promise((resolve, reject) => {
+    console.log(`building surface-card chunk offset=${offset} limit=${limit}`);
+    const child = spawn(process.execPath, [new URL(import.meta.url).pathname], {
+      cwd: ROOT,
+      env: {
+        ...process.env,
+        SIMULATTE_SURFACE_CARD_CHILD: '1',
+        SIMULATTE_SURFACE_CARD_OFFSET: String(offset),
+        SIMULATTE_SURFACE_CARD_LIMIT: String(limit),
+        SIMULATTE_SURFACE_CARD_CHUNK_OUT: chunkPath,
+      },
+      stdio: 'inherit',
+    });
+    child.on('error', reject);
+    child.on('exit', (code, signal) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      reject(new Error(`surface-card chunk offset=${offset} failed with ${signal || code}`));
+    });
+  });
+}
+
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error && error.stack ? error.stack : error);
+    process.exitCode = 1;
+  });

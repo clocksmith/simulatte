@@ -31,16 +31,26 @@
 
   function glyphForEntity(entity = {}, domain = {}) {
     const text = `${entity.label || ''} ${entity.canonicalId || ''} ${domain.kind || ''}`.toLowerCase();
-    if (/lava|magma|volcano/.test(text)) return 'lava';
+    if (/volcano/.test(text)) return 'volcano';
+    if (/lava|magma/.test(text)) return 'lava';
     if (/turbine|rotor|wheel/.test(text)) return 'turbine';
+    if (/bridge|cable/.test(text)) return 'bridge';
+    if (/tower/.test(text)) return 'tower';
     if (/castle|wall|cathedral/.test(text)) return 'castle';
     if (/ice/.test(text)) return 'ice';
+    if (/lens/.test(text)) return 'lens';
+    if (/prism/.test(text)) return 'prism';
+    if (/mirror/.test(text)) return 'mirror';
+    if (/glass|quartz/.test(text) && /field|optic|solid/.test(`${text} ${(domain.tags || []).join(' ')}`)) return 'lens';
+    if (/fire|flame|combust/.test(text)) return 'flame';
+    if (/smoke|plume/.test(text)) return 'smoke';
+    if (/storm|cloud|wind/.test(text)) return 'storm';
+    if (/swamp|wetland/.test(text)) return 'wetland';
     if (/river|water|rain|flow/.test(text)) return 'fluid_path';
     if (/projectile|hammer/.test(text)) return 'projectile';
     if (/rocket/.test(text)) return 'rocket';
     if (/submarine/.test(text)) return 'submarine';
     if (/piano/.test(text)) return 'instrument';
-    if (/storm|cloud|wind/.test(text)) return 'field';
     if (/network|queue|traffic|city|market/.test(text)) return 'network';
     if (/algae|jellyfish|bio/.test(text)) return 'organism';
     if (domain.kind === 'field') return 'field';
@@ -53,7 +63,15 @@
   }
 
   function visualRegimeForDomain(domain = {}) {
-    const text = `${domain.kind || ''} ${(domain.tags || []).join(' ')} ${domain.materialId || ''}`.toLowerCase();
+    const text = [
+      domain.kind,
+      domain.materialId,
+      ...(domain.tags || []),
+      ...(domain.operatorHints || []),
+    ].join(' ').toLowerCase();
+    if (/surface|thin-film|surface_tension/.test(text)) return 'optical';
+    if (/magnetism|magnetic_field|ferrofluid/.test(text)) return 'magnetic';
+    if (/optics|field_refraction|field_reflection/.test(text)) return 'optical';
     if (/lava|fire|thermal|phase/.test(text)) return 'thermal';
     if (/fluid|water|rain|wind/.test(text)) return 'fluid';
     if (/network|queue|control/.test(text)) return 'network';
@@ -64,17 +82,134 @@
     return 'material';
   }
 
-  function sceneHintForObjects(objects = []) {
-    const text = objects.map((object) => `${object.glyph} ${object.visualRegime} ${object.materialId}`).join(' ');
-    if (/lava|thermal/.test(text) && /turbine/.test(text)) return 'literal-composite';
-    if (/turbine|projectile|mechanical/.test(text)) return 'mechanical';
-    if (/fluid/.test(text) && /castle|ice/.test(text)) return 'literal-composite';
-    if (/network/.test(text)) return 'city';
-    if (/wave/.test(text)) return 'acoustic';
-    if (/biology/.test(text)) return 'biology';
-    if (/thermal/.test(text)) return 'thermal-plume';
-    if (/fluid/.test(text)) return 'watershed';
+  function sceneHintForObjects(objects = [], physicsIR = {}, solverGraph = {}) {
+    const signal = sceneSignals(objects, physicsIR, solverGraph);
+    const text = signal.text;
+    if (/thin-film|thin film|soap|bubble|wire-loop|wire loop|surface_tension/.test(text)) {
+      return 'thin-film';
+    }
+    if (isMaterialTraySignal(signal)) return 'material-tray';
+    if (/thermal plume|cooling|cooler|cooling-fin|smoke over cooling/.test(text) && hasThermal(signal)) {
+      return 'thermal-plume';
+    }
+    if ((signal.glyphs.has('flame') || /process-fire|combustion|fuel|burn/.test(text)) &&
+      (/reaction_diffusion|heat_source|burn/.test(text))) {
+      return 'fire';
+    }
+    if (isStrongLiteralCompositeSignal(signal)) return 'literal-composite';
+    if (/lens|prism|mirror|optics|field_refraction|field_reflection|light_source|laser/.test(text)) {
+      return 'optics';
+    }
+    if (/network|queue|traffic|market|network_flow|backlog|throughput/.test(text)) return 'city';
+    if (/wheel|rotor|stator|slider|sliding|electromagnetism|magnetic_force|rotor-wheel/.test(text) && /magnet|magnetic/.test(text)) {
+      return 'magnetic-machine';
+    }
+    if (/ferrofluid|magnetic_fluid|magnetizes|spikes|magnetic_field/.test(text)) return 'ferrofluid';
+    if (/\b(terrain|erosion|sediment|river|rain|basalt|watershed|gravity)\b/.test(text)) return 'watershed';
+    if (/acoustic|sound|wave_field|waveApparatus|resonance|amplitude/.test(text) &&
+      !/biology|growth|mycelium|bacteria|membrane|protein|nutrient|biofilm|density/.test(text)) {
+      return 'acoustic';
+    }
+    if (/granular|grain|bead|sieve|avalanche|powder/.test(text)) {
+      return 'granular';
+    }
+    if (/rigid_collision|fracture_threshold|rotational_torque|projectile|collision/.test(text) &&
+      !/acoustic|sound|wave_field|waveApparatus|resonance|amplitude/.test(text)) {
+      return 'mechanical';
+    }
+    if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|biofilm|density/.test(text)) {
+      return 'biology';
+    }
+    if (/acoustic|sound|wave_field|waveApparatus|resonance|amplitude/.test(text)) return 'acoustic';
+    if (signal.kinds.has('fluid') && signal.operators.has('advection')) return 'watershed';
+    if (isLiteralCompositeSignal(signal)) return 'literal-composite';
     return 'generic';
+  }
+
+  function sceneSignals(objects = [], physicsIR = {}, solverGraph = {}) {
+    const domains = physicsIR.domains || [];
+    const entities = physicsIR.entities || [];
+    const operators = unique([
+      ...((physicsIR.operators || []).map((operator) => operator.type)),
+      ...((solverGraph.steps || []).map((step) => step.operatorType)),
+    ]);
+    const fields = [
+      ...((physicsIR.stateFields || []).map((field) => `${field.name} ${field.id}`)),
+      ...Object.keys(solverGraph.channelMetadata || {}),
+    ];
+    const materials = new Set();
+    const glyphs = new Set();
+    const kinds = new Set();
+    const chunks = [];
+    for (const object of objects || []) {
+      if (object.materialId) materials.add(object.materialId);
+      if (object.glyph) glyphs.add(object.glyph);
+      if (object.domainKind) kinds.add(object.domainKind);
+      chunks.push([
+        object.label,
+        object.semanticRef,
+        object.physicalRef,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.domainKind,
+        ...(object.domainTags || []),
+        ...(object.operatorHints || []),
+        ...Object.keys(object.stateBindings || {}),
+      ].join(' '));
+    }
+    for (const domain of domains) {
+      if (domain.materialId) materials.add(domain.materialId);
+      if (domain.kind) kinds.add(domain.kind);
+      chunks.push([
+        domain.entityId,
+        domain.kind,
+        domain.materialId,
+        ...(domain.tags || []),
+        ...(domain.operatorHints || []),
+      ].join(' '));
+    }
+    for (const entity of entities) {
+      if (entity.materialId) materials.add(entity.materialId);
+      chunks.push([
+        entity.label,
+        entity.canonicalId,
+        entity.semanticType,
+        entity.materialId,
+        ...(entity.domains || []),
+        ...(entity.operatorHints || []),
+      ].join(' '));
+    }
+    return {
+      text: [...chunks, ...operators, ...fields].join(' ').toLowerCase(),
+      materials,
+      glyphs,
+      kinds,
+      operators: new Set(operators),
+    };
+  }
+
+  function hasThermal(signal) {
+    return /thermal|heat_source|heat_transfer|temperature|fire/.test(signal.text);
+  }
+
+  function isMaterialTraySignal(signal) {
+    if (signal.materials.size < 5) return false;
+    return /tray|raw material|heat diffusion sample/.test(signal.text) && hasThermal(signal);
+  }
+
+  function isLiteralCompositeSignal(signal) {
+    const literalGlyphs = ['lava', 'volcano', 'turbine', 'rocket', 'submarine', 'wetland', 'castle', 'ice', 'storm', 'instrument'];
+    const count = literalGlyphs.filter((glyph) => signal.glyphs.has(glyph) || signal.text.includes(glyph)).length;
+    return count >= 2 || /black-hole|singularity|swamp|hammer|gold|spaceship|spacecraft/.test(signal.text);
+  }
+
+  function isStrongLiteralCompositeSignal(signal) {
+    return /lava|magma|volcano|black-hole|singularity|swamp|wetland|hammer|gold|spaceship|spacecraft|rocket|submarine|piano/.test(signal.text);
+  }
+
+  function unique(values) {
+    return Array.from(new Set((values || []).filter(Boolean)));
   }
 
   return {

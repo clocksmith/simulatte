@@ -177,6 +177,7 @@
           semanticRag: result.semanticRag,
           dopplerIntent: result.dopplerIntent,
           cardMatches: result.cardMatches,
+          universeMatches: result.universeMatches,
         }));
         syncIntentRuntime(runtimeStatus, {
           state: 'ready',
@@ -1688,10 +1689,16 @@
   }
 
   function sceneKindForPlan(plan) {
+    const renderIRScene = nonGenericSceneKind(plan.renderIR && plan.renderIR.sceneHint);
+    if (renderIRScene) return renderIRScene;
     const planned = plan.rendererPlan && plan.rendererPlan.sceneKind ||
       plan.provenance && plan.provenance.sceneKind ||
       plan.camera && plan.camera.sceneKind ||
       '';
+    const plannedScene = nonGenericSceneKind(planned);
+    if (plannedScene) return plannedScene;
+    const irScene = sceneKindFromPlanSignals(plan);
+    if (irScene) return irScene;
     if (planned) return planned;
     const signature = String(plan.provenance && plan.provenance.signature || '').toLowerCase();
     if (/flame|fuel|plume/.test(signature)) return 'fire';
@@ -1709,6 +1716,63 @@
     if (/colony|membrane/.test(signature)) return 'biology';
     if (/acoustic|sound|wave|pressure|resonance/.test(signature)) return 'acoustic';
     return 'generic';
+  }
+
+  function nonGenericSceneKind(value) {
+    const scene = String(value || '').trim();
+    return scene && scene !== 'generic' ? scene : '';
+  }
+
+  function sceneKindFromPlanSignals(plan = {}) {
+    const renderIR = plan.renderIR || {};
+    const solverPlan = plan.solverPlan || {};
+    const text = [
+      (renderIR.objects || []).map((object) => [
+        object.label,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.domainKind,
+        ...(object.domainTags || []),
+        ...(object.operatorHints || []),
+        Object.keys(object.stateBindings || {}).join(' '),
+      ].join(' ')).join(' '),
+      (renderIR.fields || []).map((field) => `${field.name} ${field.channel}`).join(' '),
+      (solverPlan.executableSteps || solverPlan.steps || []).join(' '),
+      (solverPlan.families || []).join(' '),
+    ].join(' ').toLowerCase();
+    if (/thin-film|thin film|soap|surface_tension|wire-loop|bubble/.test(text)) return 'thin-film';
+    if (/tray|raw material|heat diffusion sample/.test(text)) return 'material-tray';
+    if (/thermal plume|cooling|cooler|smoke over cooling/.test(text) && /thermal|heat|temperature/.test(text)) {
+      return 'thermal-plume';
+    }
+    if (/process-fire|flame|combustion|fuel|burn/.test(text) && /heat_source|reaction_diffusion|burn/.test(text)) {
+      return 'fire';
+    }
+    if (/lava|magma|volcano|black-hole|singularity|swamp|wetland|hammer|gold|spaceship|spacecraft|rocket|submarine|piano/.test(text)) {
+      return 'literal-composite';
+    }
+    if (/lens|prism|mirror|optics|field_refraction|field_reflection|laser/.test(text)) return 'optics';
+    if (/network|queue|traffic|market|network_flow|backlog|throughput/.test(text)) return 'city';
+    if (/wheel|rotor|stator|slider|sliding|electromagnetism|magnetic_force|rotor-wheel/.test(text) && /magnet|magnetic/.test(text)) {
+      return 'magnetic-machine';
+    }
+    if (/ferrofluid|magnetic_fluid|magnetizes|spikes|magnetic_field/.test(text)) return 'ferrofluid';
+    if (/\b(terrain|erosion|sediment|river|rain|basalt|watershed|gravity)\b/.test(text)) return 'watershed';
+    if (/acoustic|sound|wave_field|resonance|amplitude/.test(text) &&
+      !/biology|growth|mycelium|bacteria|membrane|protein|nutrient|density/.test(text)) {
+      return 'acoustic';
+    }
+    if (/granular|grain|bead|sieve|avalanche|powder/.test(text)) return 'granular';
+    if (/rigid_collision|fracture_threshold|rotational_torque|projectile|collision/.test(text) &&
+      !/acoustic|sound|wave_field|resonance|amplitude/.test(text)) {
+      return 'mechanical';
+    }
+    if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|density/.test(text)) return 'biology';
+    if (/acoustic|sound|wave_field|resonance|amplitude/.test(text)) return 'acoustic';
+    if (/fluid|water|flowVelocity|advection/.test(text)) return 'watershed';
+    if (/turbine|castle|ice|storm|instrument/.test(text)) return 'literal-composite';
+    return '';
   }
 
   function paintGenericWorld(ctx, width, height, state, plan) {

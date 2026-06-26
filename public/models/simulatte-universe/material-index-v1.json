@@ -1,0 +1,12 @@
+{
+  "schema": "simulatte.universeMaterialIndex.v1",
+  "id": "simulatte-universe-materials-v1",
+  "documents": [
+    { "id": "material.ferrofluid", "label": "ferrofluid", "materialId": "ferrofluid", "properties": { "magnetization": 0.74, "viscosity": 0.36, "refractiveIndex": 1.67 } },
+    { "id": "material.copper", "label": "copper", "materialId": "copper", "properties": { "conductivity": 0.95, "heatTransfer": 0.68 } },
+    { "id": "material.brine", "label": "pressure brine", "materialId": "brine", "properties": { "pressure": 0.86, "viscosity": 0.58, "crystallization": 0.72 } },
+    { "id": "material.brass-dust", "label": "brass dust", "materialId": "brass", "properties": { "granularFriction": 0.28, "soundFrequency": 0.74 } },
+    { "id": "material.thin-film", "label": "thin film", "materialId": "thin-film", "properties": { "surfaceTension": 0.86, "opacity": 0.22, "hardness": 0.18 } },
+    { "id": "material.nutrient-gel", "label": "nutrient gel", "materialId": "nutrient-gel", "properties": { "moisture": 0.82, "viscosity": 0.64, "populationGrowth": 0.84 } }
+  ]
+}

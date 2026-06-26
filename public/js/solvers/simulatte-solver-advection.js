@@ -9,5 +9,51 @@
     stateVariables: ['flowVelocity', 'pressure'],
     supportedInteractions: ['fluidForce', 'transport'],
     stableDt: 0.05,
+    step,
   };
+
+  function step({ channels = {}, step: row = {}, dt = 0.016 }) {
+    const flowId = firstOutput(row, 'flowVelocity') || firstInput(row, 'flowVelocity');
+    if (!flowId) return;
+    const flow = vector(channels[flowId], { x: 0.4, y: 0 });
+    const rate = finite(row.params && row.params.rate, 0.5);
+    const viscosityId = firstInput(row, 'viscosity');
+    const viscosity = viscosityId ? scalar(channels[viscosityId], 0.25) : 0.25;
+    const pulse = Math.sin((channels.__t || 0) * 1.7 + rate) * 0.018;
+    flow.x = clamp(flow.x + (rate - viscosity * 0.18) * dt * 0.4 + pulse, -4, 4);
+    flow.y = clamp(flow.y + Math.cos((channels.__t || 0) * 1.3) * dt * 0.08, -4, 4);
+    channels[flowId] = flow;
+    const pressureId = firstOutput(row, 'pressure');
+    if (pressureId) channels[pressureId] = clamp(Math.hypot(flow.x, flow.y) * (1 + viscosity), 0, 2);
+  }
+
+  function firstInput(step, prefix) {
+    return firstMatching(step.inputs || step.reads || [], prefix);
+  }
+
+  function firstOutput(step, prefix) {
+    return firstMatching(step.outputs || step.writes || [], prefix);
+  }
+
+  function firstMatching(values, prefix) {
+    return (values || []).find((id) => id.startsWith(`${prefix}:`)) || '';
+  }
+
+  function vector(value, fallback) {
+    if (value && typeof value === 'object') return { x: finite(value.x, fallback.x), y: finite(value.y, fallback.y) };
+    return { ...fallback };
+  }
+
+  function scalar(value, fallback) {
+    return finite(value, fallback);
+  }
+
+  function finite(value, fallback) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
 });

@@ -8,7 +8,7 @@
   const DEFAULT_MANIFEST_URL = './models/simulatte-embedder/manifest.json';
   const DEFAULT_DOPPLER_MODULE_URL = './vendor/doppler/src/index-browser.js';
   const DEFAULT_DOPPLER_KERNEL_BASE_PATH = './vendor/doppler/src/gpu/kernels';
-  const DEFAULT_EMBED_MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
+  const CACHE_WORKER_READY_WAIT_MS = 2400;
 
   function create(options = {}) {
     return new ModelBackedIntentEmbedder(options);
@@ -41,15 +41,20 @@
             if (!indexUrl) throw new Error('intent manifest missing retrieval artifact');
             const cardRetrieval = retrieval.cards || {};
             const cardIndexUrl = cardRetrieval.artifact || '';
-            this.emitProgress('indexes', 8, 'Loading primitive and surface indexes');
-            const [index, cardIndex] = await Promise.all([
+            const universeRetrieval = retrieval.universe || {};
+            const universeManifestUrl = universeRetrieval.artifact || '';
+            this.emitProgress('indexes', 8, 'Loading primitive, surface, and universe indexes');
+            const [index, cardIndex, universe] = await Promise.all([
               fetchJson(resolveUrl(indexUrl, this.manifestUrl), 'primitive embedding index'),
               cardIndexUrl
                 ? fetchJson(resolveUrl(cardIndexUrl, this.manifestUrl), 'surface card embedding index')
                 : Promise.resolve(null),
+              universeManifestUrl
+                ? loadUniverseIndexes(resolveUrl(universeManifestUrl, this.manifestUrl))
+                : Promise.resolve(null),
             ]);
             this.emitProgress('indexes', 16, 'Embedding indexes ready');
-            return normalizeModelBackedRuntime(manifest, index, cardIndex);
+            return normalizeModelBackedRuntime(manifest, index, cardIndex, universe);
           });
       }
       return this.modelPromise;
@@ -76,19 +81,35 @@
       if (manifest.retrieval.rerank !== 'mandatory') {
         throw new Error('intent manifest must require rerank');
       }
-      if (!manifest.embedModel || manifest.embedModel.id !== DEFAULT_EMBED_MODEL_ID) {
-        throw new Error(`intent manifest embedModel.id must be ${DEFAULT_EMBED_MODEL_ID}`);
+      if (!manifest.embedModel || !manifest.embedModel.id) {
+        throw new Error('intent manifest embedModel.id is required');
       }
-      if (Number(manifest.retrieval.dimensions) !== 768 || Number(manifest.embedModel.dimensions) !== 768) {
-        throw new Error('intent manifest must declare 768-dimensional EmbeddingGemma vectors');
+      const dimensions = Number(manifest.embedModel.dimensions);
+      if (!Number.isFinite(dimensions) || dimensions <= 0) {
+        throw new Error('intent manifest embedModel.dimensions must be a positive number');
+      }
+      if (Number(manifest.retrieval.dimensions) !== dimensions) {
+        throw new Error('intent manifest retrieval dimensions must match embedModel.dimensions');
       }
       if (manifest.retrieval.cards) {
         if (manifest.retrieval.cards.kind !== 'precomputed-surface-card-index') {
           throw new Error('intent manifest card retrieval must be a precomputed surface card index');
         }
-        if (Number(manifest.retrieval.cards.dimensions) !== 768) {
-          throw new Error('intent manifest card retrieval must declare 768-dimensional vectors');
+        if (Number(manifest.retrieval.cards.dimensions) !== dimensions) {
+          throw new Error('intent manifest card retrieval dimensions must match embedModel.dimensions');
         }
+      }
+      if (manifest.retrieval.universe && Number(manifest.retrieval.universe.dimensions) !== dimensions) {
+        throw new Error('intent manifest universe retrieval dimensions must match embedModel.dimensions');
+      }
+      if (!manifest.embedModel.defaultModelBaseUrl) {
+        throw new Error('intent manifest embedModel.defaultModelBaseUrl is required');
+      }
+      if (!hashHex(manifest.embedModel.manifestHash)) {
+        throw new Error('intent manifest embedModel.manifestHash is required');
+      }
+      if (!manifest.runtime || !manifest.runtime.runtimeConfig) {
+        throw new Error('intent manifest runtime.runtimeConfig is required');
       }
       return manifest;
     }
@@ -108,7 +129,7 @@
         source: 'simulatte-intent-embedder',
         stage: 'model',
         percent: 18,
-        message: 'Preparing local EmbeddingGemma',
+        message: `Preparing local ${modelLabel(runtime.manifest)}`,
       });
       const provider = await this.resolveEmbedProvider(runtime, { ...options, onProgress: progress });
       emitProgress(progress, {
@@ -123,13 +144,14 @@
       const gpuScores = await this.tryRankWebGpu(runtime.index.embeddingDim, queryVector, candidateVectors);
       const scores = gpuScores || rankCpu(queryVector, candidateVectors);
       const cardMatches = rankSurfaceCards(runtime.cardIndex, queryVector, options);
+      const universeMatches = rankUniverseIndexes(runtime.universe, promptText, queryVector, options);
       const basePriors = candidates
         .map((primitive, index) => primitivePriorFromScore(primitive, scores[index]))
         .filter((prior) => prior.primitiveId !== 'energy-ledger')
         .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
       const semanticRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector);
       const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
-      const rerank = rerankPriors(basePriors, semanticRag, dopplerIntent);
+      const rerank = rerankPriors(basePriors, semanticRag, dopplerIntent, runtime);
       emitProgress(progress, {
         source: 'simulatte-intent-embedder',
         stage: 'classification',
@@ -142,6 +164,7 @@
         rankBackend: gpuScores ? 'webgpu' : 'cpu',
         priors: rerank.priors.slice(0, max),
         cardMatches,
+        universeMatches,
         rerank: rerank.receipt,
         semanticRag,
         dopplerIntent,
@@ -251,7 +274,7 @@
       source: 'doppler',
       stage: event.phase || event.stage || 'model-load',
       percent,
-      message: event.message || 'Loading EmbeddingGemma runtime',
+      message: event.message || 'Loading intent model runtime',
       rawEvent: event,
     };
   }
@@ -262,12 +285,12 @@
     if (typeof window === 'undefined') return;
     if (!('caches' in window) || !navigator.serviceWorker) {
       if (cacheConfig.requirePersistent === true) {
-        throw new Error('EmbeddingGemma cache requires CacheStorage and Service Worker support');
+        throw new Error(`${modelLabel(manifest)} cache requires CacheStorage and Service Worker support`);
       }
       return;
     }
     const baseUrl = String(modelBaseUrl || '').replace(/\/+$/, '');
-    if (!baseUrl) throw new Error('EmbeddingGemma cache requires model base URL');
+    if (!baseUrl) throw new Error(`${modelLabel(manifest)} cache requires model base URL`);
     emitProgress(onProgress, {
       source: 'simulatte-model-cache',
       stage: 'cache',
@@ -279,7 +302,7 @@
     const cacheName = modelCacheName(manifest);
     const cache = await caches.open(cacheName);
     const modelManifestUrl = `${baseUrl}/manifest.json`;
-    const modelManifest = await cachedJson(cache, modelManifestUrl, 'EmbeddingGemma model manifest');
+    const modelManifest = await cachedJson(cache, modelManifestUrl, `${modelLabel(manifest)} model manifest`);
     const files = modelArtifactFiles(modelManifest, baseUrl);
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
     let completedBytes = 0;
@@ -296,7 +319,7 @@
       source: 'simulatte-model-cache',
       stage: 'cache-ready',
       percent: 68,
-      message: 'EmbeddingGemma cached',
+      message: `${modelLabel(manifest)} cached`,
       totalBytes,
     });
   }
@@ -305,7 +328,7 @@
     const workerPath = cacheConfig.worker || './simulatte-model-cache-sw.js';
     const workerUrl = new URL(workerPath, window.location.href).toString();
     await navigator.serviceWorker.register(workerUrl);
-    await navigator.serviceWorker.ready;
+    await waitForCacheWorkerReady(cacheConfig);
     if (navigator.serviceWorker.controller) return;
     await new Promise((resolve) => {
       const finish = () => {
@@ -316,7 +339,25 @@
       setTimeout(finish, 2000);
     });
     if (!navigator.serviceWorker.controller && cacheConfig.requirePersistent === true) {
-      throw new Error('EmbeddingGemma cache worker is not controlling this page; reload and retry');
+      throw new Error('intent model cache worker is not controlling this page; reload and retry');
+    }
+  }
+
+  async function waitForCacheWorkerReady(cacheConfig = {}) {
+    const configured = Number(cacheConfig.readyWaitMs);
+    const waitMs = Number.isFinite(configured) && configured > 0
+      ? configured
+      : CACHE_WORKER_READY_WAIT_MS;
+    let timer = null;
+    try {
+      await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error('intent model cache worker did not become ready')), waitMs);
+        }),
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
     }
   }
 
@@ -332,7 +373,7 @@
   function modelCacheName(manifest) {
     const namespace = manifest.cache && manifest.cache.namespace
       ? String(manifest.cache.namespace)
-      : 'simulatte-embeddinggemma';
+      : 'simulatte-intent-model';
     const hash = hashHex(manifest.embedModel && manifest.embedModel.manifestHash).slice(0, 16) || 'model';
     return `simulatte-embedding-model-${namespace}-${hash}`;
   }
@@ -371,7 +412,7 @@
   async function cacheModelFile(cache, file, completedBefore, totalBytes, onProgress) {
     emitModelCacheProgress(onProgress, file, completedBefore, totalBytes, false);
     const response = await fetch(file.url, { cache: 'reload', mode: 'cors' });
-    if (!response.ok) throw new Error(`EmbeddingGemma model fetch failed for ${file.path}: ${response.status}`);
+    if (!response.ok) throw new Error(`intent model fetch failed for ${file.path}: ${response.status}`);
     const headers = new Headers(response.headers);
     const expectedBytes = Number(file.size || headers.get('Content-Length') || 0);
     let received = 0;
@@ -431,12 +472,60 @@
     return 'application/octet-stream';
   }
 
-  function normalizeModelBackedRuntime(manifest, index, cardIndex = null) {
+  async function loadUniverseIndexes(manifestUrl) {
+    const manifest = await fetchJson(manifestUrl, 'universe manifest');
+    if (!manifest || manifest.schema !== 'simulatte.universeManifest.v1') {
+      throw new Error('universe manifest schema mismatch; expected simulatte.universeManifest.v1');
+    }
+    const entries = Object.entries(manifest.indexes || {});
+    const indexes = {};
+    await Promise.all(entries.map(async ([name, config]) => {
+      if (!config || !config.artifact) throw new Error(`universe index ${name} missing artifact`);
+      indexes[name] = await fetchJson(resolveUrl(config.artifact, manifestUrl), `universe ${name} index`);
+    }));
+    return { manifest, indexes };
+  }
+
+  function normalizeModelBackedRuntime(manifest, index, cardIndex = null, universe = null) {
     const normalizedIndex = normalizePrimitiveIndex(index, manifest);
     return {
       manifest,
       index: normalizedIndex,
       cardIndex: normalizeSurfaceCardIndex(cardIndex, manifest, normalizedIndex),
+      universe: normalizeUniverseIndexes(universe, manifest),
+    };
+  }
+
+  function normalizeUniverseIndexes(universe, manifest) {
+    if (!universe) return null;
+    if (!universe.manifest || universe.manifest.schema !== 'simulatte.universeManifest.v1') {
+      throw new Error('universe index package missing manifest');
+    }
+    if (
+      universe.manifest.embedModel &&
+      universe.manifest.embedModel.id &&
+      universe.manifest.embedModel.id !== manifest.embedModel.id
+    ) {
+      throw new Error(`universe embedModel.id mismatch (${universe.manifest.embedModel.id} !== ${manifest.embedModel.id})`);
+    }
+    const indexes = {};
+    let documentCount = 0;
+    for (const [name, index] of Object.entries(universe.indexes || {})) {
+      if (!index || !Array.isArray(index.documents)) {
+        throw new Error(`universe index ${name} missing documents`);
+      }
+      indexes[name] = {
+        schema: index.schema || '',
+        id: index.id || `simulatte-universe-${name}`,
+        documents: index.documents.map((doc, order) => ({ ...doc, order, indexName: name })),
+      };
+      documentCount += indexes[name].documents.length;
+    }
+    return {
+      schema: universe.manifest.schema,
+      id: universe.manifest.id || 'simulatte-universe',
+      indexes,
+      documentCount,
     };
   }
 
@@ -445,7 +534,7 @@
       throw new Error('primitive embedding index schema mismatch; expected v2');
     }
     const embeddingDim = Number(index.embeddingDim);
-    if (embeddingDim !== 768 || Number(manifest.retrieval.dimensions) !== embeddingDim) {
+    if (!Number.isFinite(embeddingDim) || embeddingDim <= 0 || Number(manifest.retrieval.dimensions) !== embeddingDim) {
       throw new Error('primitive embedding index dimensions mismatch');
     }
     if (index.embedModelId !== manifest.embedModel.id) {
@@ -467,12 +556,12 @@
       return {
         ...doc,
         order,
-        vector: packed.slice(offset, offset + embeddingDim),
+        vector: normalizeEmbeddingVector(packed.slice(offset, offset + embeddingDim), `primitive ${primitiveId}`),
       };
     });
     return {
       schema: index.schema,
-      id: index.id || 'simulatte-primitive-embeddinggemma-index-v1',
+      id: index.id || 'simulatte-primitive-model-index-v1',
       indexHash: index.indexHash || null,
       embedModelId: index.embedModelId,
       embedModelHash: index.embedModelHash,
@@ -490,7 +579,8 @@
       throw new Error('surface card embedding index schema mismatch; expected v1');
     }
     const embeddingDim = Number(index.embeddingDim);
-    if (embeddingDim !== 768) {
+    const expectedDim = Number(manifest.retrieval.cards && manifest.retrieval.cards.dimensions || primitiveIndex.embeddingDim);
+    if (!Number.isFinite(embeddingDim) || embeddingDim <= 0 || embeddingDim !== expectedDim) {
       throw new Error('surface card embedding index dimensions mismatch');
     }
     if (index.embedModelId !== manifest.embedModel.id || index.embedModelId !== primitiveIndex.embedModelId) {
@@ -512,12 +602,12 @@
       return {
         ...doc,
         order,
-        vector: packed.slice(offset, offset + embeddingDim),
+        vector: normalizeEmbeddingVector(packed.slice(offset, offset + embeddingDim), `surface card ${cardId}`),
       };
     });
     return {
       schema: index.schema,
-      id: index.id || 'simulatte-surface-card-embeddinggemma-index-v1',
+      id: index.id || 'simulatte-surface-card-model-index-v1',
       indexHash: index.indexHash || null,
       embedModelId: index.embedModelId,
       embedModelHash: index.embedModelHash,
@@ -546,6 +636,20 @@
       }
     }
     return values;
+  }
+
+  function normalizeEmbeddingVector(vector, label) {
+    let normSq = 0;
+    for (let i = 0; i < vector.length; i += 1) {
+      const value = vector[i];
+      if (!Number.isFinite(value)) throw new Error(`${label} embedding has non-finite value at ${i}`);
+      normSq += value * value;
+    }
+    const norm = Math.sqrt(normSq);
+    if (!Number.isFinite(norm) || norm <= 0) throw new Error(`${label} embedding has zero norm`);
+    const out = new Float32Array(vector.length);
+    for (let i = 0; i < vector.length; i += 1) out[i] = vector[i] / norm;
+    return out;
   }
 
   function base64ToBytes(value) {
@@ -580,7 +684,7 @@
           score: Number(score.toFixed(4)),
           modelScore: Number(score.toFixed(4)),
           semanticScore: Number(score.toFixed(4)),
-          source: 'embeddinggemma-surface-card-index',
+          source: `${modelSlug(cardIndex.embedModelId)}-surface-card-index`,
           indexId: cardIndex.id,
           textHash: doc.textHash || null,
         };
@@ -588,6 +692,65 @@
       .filter((match) => match.score >= 0.22)
       .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId))
       .slice(0, maxCards);
+  }
+
+  function rankUniverseIndexes(universe, promptText, _queryVector, options = {}) {
+    const empty = {
+      schema: 'simulatte.universeMatches.v1',
+      manifestId: universe && universe.id || '',
+      candidates: [],
+      byIndex: {},
+    };
+    if (!universe) return empty;
+    const maxUniverse = Number.isFinite(options.maxUniverse) ? options.maxUniverse : 36;
+    const tokens = promptTokens(promptText);
+    const byIndex = {};
+    const candidates = [];
+    for (const [indexName, index] of Object.entries(universe.indexes || {})) {
+      const rows = (index.documents || [])
+        .map((doc) => universeCandidateForDocument(doc, indexName, tokens))
+        .filter((row) => row.score > 0)
+        .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+        .slice(0, Math.max(4, Math.floor(maxUniverse / 2)));
+      byIndex[indexName] = rows;
+      candidates.push(...rows);
+    }
+    candidates.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+    return {
+      ...empty,
+      candidates: candidates.slice(0, maxUniverse),
+      byIndex,
+    };
+  }
+
+  function universeCandidateForDocument(doc, indexName, tokens) {
+    const labels = [doc.label, doc.id, ...(doc.aliases || [])].filter(Boolean).map((value) => String(value).toLowerCase());
+    const haystack = labels.join(' ');
+    let hits = 0;
+    for (const token of tokens) {
+      if (token.length > 2 && haystack.includes(token)) hits += 1;
+    }
+    const phraseHit = labels.some((label) => label && tokens.join(' ').includes(label));
+    const score = clamp01(hits / Math.max(2, tokens.length) + (phraseHit ? 0.42 : 0));
+    return {
+      id: doc.id || `${indexName}:${doc.label || 'candidate'}`,
+      indexName,
+      label: doc.label || doc.id || '',
+      aliases: Array.isArray(doc.aliases) ? doc.aliases.slice(0, 6) : [],
+      canonicalId: doc.canonicalId || doc.id || '',
+      semanticType: doc.semanticType || indexName.replace(/s$/, ''),
+      domains: doc.domains || [],
+      materialId: doc.materialId || '',
+      operatorHints: doc.operatorHints || (doc.operatorType ? [doc.operatorType] : []),
+      process: doc.process || '',
+      edgeType: doc.edgeType || '',
+      score: Number(score.toFixed(4)),
+      evidence: ['universe-index', indexName],
+    };
+  }
+
+  function promptTokens(promptText) {
+    return String(promptText || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
   }
 
   function validateQueryEmbedding(result, index) {
@@ -609,7 +772,7 @@
     if (!queryHash || queryHash !== indexHash) {
       throw new Error(`query embedModelHash mismatch (${queryHash || ''} !== ${indexHash})`);
     }
-    return embedding;
+    return normalizeEmbeddingVector(embedding, 'query');
   }
 
   function normalizeEmbedProvider(provider, runtime, backend) {
@@ -710,6 +873,24 @@
     return String(value || '').trim().replace(/\/+$/, '');
   }
 
+  function modelLabel(manifest) {
+    const model = manifest && manifest.embedModel || {};
+    return String(model.family || model.id || 'intent model');
+  }
+
+  function modelSlug(value) {
+    const slug = String(value || 'intent-model')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    return slug || 'intent-model';
+  }
+
+  function rerankerId(runtime) {
+    const modelId = runtime && runtime.index && runtime.index.embedModelId || '';
+    return `simulatte.${modelSlug(modelId)}-reranker.v1`;
+  }
+
   function withEmbeddingProvenance(result, runtime) {
     const rawModelId = result && result.embedModelId || '';
     const rawHash = result && result.embedModelHash || null;
@@ -771,7 +952,7 @@
   function modelSummary(runtime, query, provider) {
     return {
       id: runtime.index.embedModelId,
-      family: runtime.manifest.embedModel.family || 'embeddinggemma',
+      family: runtime.manifest.embedModel.family || 'local-model',
       modelType: runtime.manifest.embedModel.modelType || 'embedding',
       manifestId: runtime.manifest.id,
       dimensions: runtime.index.embeddingDim,
@@ -783,7 +964,9 @@
       surfaceCardIndexId: runtime.cardIndex ? runtime.cardIndex.id : null,
       surfaceCardIndexHash: runtime.cardIndex ? runtime.cardIndex.indexHash : null,
       surfaceCardDocuments: runtime.cardIndex ? runtime.cardIndex.documentCount : 0,
-      reranker: 'simulatte.embeddinggemma-reranker.v1',
+      universeIndexId: runtime.universe ? runtime.universe.id : null,
+      universeDocuments: runtime.universe ? runtime.universe.documentCount : 0,
+      reranker: rerankerId(runtime),
       backend: provider && provider.backend || '',
     };
   }
@@ -792,18 +975,21 @@
     return {
       model: {
         id: runtime.index.embedModelId,
-        family: runtime.manifest.embedModel.family || 'embeddinggemma',
+        family: runtime.manifest.embedModel.family || 'local-model',
         dimensions: runtime.index.embeddingDim,
         indexId: runtime.index.id,
         indexDocuments: runtime.index.documentCount,
         surfaceCardIndexId: runtime.cardIndex ? runtime.cardIndex.id : null,
         surfaceCardDocuments: runtime.cardIndex ? runtime.cardIndex.documentCount : 0,
-        reranker: 'simulatte.embeddinggemma-reranker.v1',
+        universeIndexId: runtime.universe ? runtime.universe.id : null,
+        universeDocuments: runtime.universe ? runtime.universe.documentCount : 0,
+        reranker: rerankerId(runtime),
       },
       backend: 'blank',
       rankBackend: 'none',
       priors: [],
       cardMatches: [],
+      universeMatches: rankUniverseIndexes(runtime.universe, '', null, {}),
       rerank: {
         schema: 'simulatte.intentRerank.v1',
         required: true,
@@ -868,7 +1054,7 @@
     }
   }
 
-  function rerankPriors(priors, semanticRag, dopplerIntent) {
+  function rerankPriors(priors, semanticRag, dopplerIntent, runtime = null) {
     const byId = new Map((priors || []).map((prior) => [prior.primitiveId, {
       ...prior,
       modelScore: Number(prior.modelScore ?? prior.score ?? 0),
@@ -905,7 +1091,7 @@
       receipt: {
         schema: 'simulatte.intentRerank.v1',
         required: true,
-        model: 'simulatte.embeddinggemma-reranker.v1',
+        model: runtime ? rerankerId(runtime) : 'simulatte.intent-model-reranker.v1',
         modelPriorCount: priors.length,
         ragDocumentCount: semanticRag && semanticRag.retrieved ? semanticRag.retrieved.length : 0,
         dopplerPrimitiveCount: dopplerIntent && dopplerIntent.primitives ? dopplerIntent.primitives.length : 0,
@@ -1047,7 +1233,6 @@
   }
 
   return {
-    DEFAULT_EMBED_MODEL_ID,
     create,
     mergeRagScores,
   };

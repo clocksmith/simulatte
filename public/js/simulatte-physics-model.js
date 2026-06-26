@@ -251,6 +251,7 @@
           promptParse,
           components: spec.objects || [],
           semanticRag: intent.semanticRag,
+          universeMatches: intent.universeMatches,
           synthesis: intent.synthesis,
           cardMatches: intent.cardMatches || [],
         })
@@ -306,18 +307,41 @@
     const graph = spec.contract && spec.contract.graph || {};
     const renderProgram = spec.renderProgram || {};
     const solverPlan = renderProgram.solverPlan || solverPlanForGraph(graph);
+    const solverGraph = spec.solverGraph || null;
+    const solverChannels = solverGraph ? Object.keys(solverGraph.channels || {}) : [];
+    const solverSteps = solverGraph ? solverGraph.steps || [] : [];
     const nodes = graph.nodes || [];
+    const visualStateHints = uniqueList([
+      ...(solverPlan.state || []),
+      ...nodes.flatMap((node) => node.solverRequirements || []),
+    ]);
+    const visualPassHints = renderPassesForSolverPlan(solverPlan);
     const nodeIdsByType = (type) => nodes.filter((node) => node.nodeType === type).map((node) => node.id);
     return {
       schema: 'simulatte.physicalSpec.v1',
       sourceGraph: graph.schema || '',
       prompt: spec.intent && spec.intent.prompt || spec.name,
       materials: graphMaterialMap(nodes),
-      operators: graph.operators || [],
-      stateTextures: uniqueList([
-        ...(solverPlan.state || []),
-        ...nodes.flatMap((node) => node.solverRequirements || []),
-      ]),
+      operators: spec.physicsIR && spec.physicsIR.operators ? spec.physicsIR.operators : graph.operators || [],
+      executionSource: solverGraph ? 'solverGraph' : 'solverPlan',
+      executableSolverGraph: solverGraph ? {
+        schema: solverGraph.schema,
+        schedule: solverGraph.schedule || [],
+        channelCount: solverChannels.length,
+        stepCount: solverSteps.length,
+        channels: solverChannels,
+        steps: solverSteps.map((step) => ({
+          operatorId: step.operatorId,
+          operatorType: step.operatorType,
+          solverId: step.solverId,
+          stage: step.stage,
+          reads: step.reads || [],
+          writes: step.writes || [],
+        })),
+      } : null,
+      stateChannels: solverChannels,
+      stateTextures: solverGraph ? solverChannels : visualStateHints,
+      visualStateHints,
       sources: nodeIdsByType('source'),
       sinks: nodeIdsByType('sink'),
       boundaries: nodeIdsByType('boundary'),
@@ -326,7 +350,8 @@
       particles: particlePlansForNodes(nodes),
       fields: renderProgram.fields || [],
       readouts: spec.contract && spec.contract.readouts || [],
-      renderPasses: renderPassesForSolverPlan(solverPlan),
+      renderPasses: solverGraph ? renderPassesForSolverGraph(solverGraph) : visualPassHints,
+      visualPassHints: solverGraph ? visualPassHints : [],
       debugViews: debugViewsForGraph(graph),
       quality: graph.quality || { score: 1, residualTerms: [] },
       receipt: {
@@ -367,6 +392,27 @@
     if (regimes.has('phase')) families.push('phase-boundary');
     if (!families.length) families.push('scalar-coupled-state');
     return { families, state: uniqueList((graph.nodes || []).flatMap((node) => node.solverRequirements || [])) };
+  }
+
+  function renderPassesForSolverGraph(solverGraph) {
+    if (!solverGraph || !Array.isArray(solverGraph.steps)) return [];
+    const names = {
+      heat_source: 'thermal-source-solve',
+      heat_transfer: 'heat-transfer-solve',
+      advection: 'advection-solve',
+      diffusion: 'diffusion-solve',
+      phase_transition: 'phase-boundary-solve',
+      rotational_torque: 'rotational-mechanics-solve',
+      rigid_collision: 'rigid-collision-solve',
+      fracture_threshold: 'fracture-threshold-solve',
+      pressure_flow_lite: 'pressure-flow-solve',
+      wave_field: 'wave-field-solve',
+      reaction_diffusion: 'reaction-diffusion-solve',
+      network_flow: 'network-flow-solve',
+      oscillator: 'oscillator-solve',
+      growth_decay: 'growth-decay-solve',
+    };
+    return uniqueList(solverGraph.steps.map((step) => names[step.operatorType] || `${step.operatorType || 'operator'}-solve`));
   }
 
   function particlePlansForNodes(nodes) {
@@ -575,6 +621,7 @@
         ? createSemanticRag(promptText, PHYSICAL_PRIMITIVES, { maxDocuments: 72, maxOpenComponents: 12 })
         : null
     );
+    const universeMatches = options.universeMatches || null;
     const dopplerIntent = normalizeDopplerIntent
       ? normalizeDopplerIntent(options.dopplerIntent || options.dopplerHints, PHYSICAL_PRIMITIVES)
       : null;
@@ -611,6 +658,7 @@
       universeGraph: null,
       rerank: options.intentRerank || options.rerank || null,
       semanticRag,
+      universeMatches,
       dopplerIntent,
       resolution: {
         mode: '2d',
@@ -652,6 +700,7 @@
           promptParse,
           components: intent.components,
           semanticRag,
+          universeMatches,
           synthesis: null,
         });
       }
@@ -662,6 +711,7 @@
       ? synthesizeWorldIntent(promptText, {
         cardMatches: options.cardMatches || options.surfaceCardMatches || [],
         primitivePriors: options.embeddingPriors || [],
+        embeddingModel: options.embeddingModel || null,
         semanticRag,
         dopplerIntent,
       }, catalog)
@@ -775,6 +825,7 @@
         promptParse,
         components: intent.components,
         semanticRag,
+        universeMatches,
         synthesis,
         cardMatches: options.cardMatches || options.surfaceCardMatches || [],
       });

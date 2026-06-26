@@ -146,6 +146,7 @@
     }
 
     addComponentNodes(nodes, seen, input, rejected);
+    addUniverseCandidateNodes(nodes, seen, candidateRows, input);
     const edges = edgeRowsForClauses(promptParse.clauses || [], bySpan, nodes);
     const observables = spanRows
       .filter((span) => span.kind === 'observable')
@@ -196,6 +197,20 @@
         evidence: ['semantic-rag'],
       });
     }
+    for (const row of input.universeMatches && input.universeMatches.candidates || []) {
+      if (!row || !row.label) continue;
+      rows.push({
+        label: row.label,
+        aliases: row.aliases || [],
+        canonicalId: row.canonicalId || `universe.${row.id}`,
+        semanticType: row.semanticType || 'concept',
+        domains: row.domains || [],
+        materialId: row.materialId || '',
+        operatorHints: row.operatorHints || [],
+        confidence: clamp01(Number(row.score || 0.42)),
+        evidence: row.evidence || ['universe-index'],
+      });
+    }
     return rows;
   }
 
@@ -236,11 +251,12 @@
       const source = String(component.source || '');
       const fillsGroundingGap = nodes.length < 2;
       const isSynthesis = /^embedding-guided-synth/.test(source);
+      const isOpenSemantic = source === 'open-semantic-rag' || source === 'semantic-surface-grounder';
       const directlyMentioned = prompt && (
         prompt.includes(lower) || promptIncludesAny(prompt, [component.id, component.phrase, component.role])
       );
       const highConfidence = Number(component.score || 0) >= 0.78 && directlyMentioned;
-      if (!fillsGroundingGap && !isSynthesis && !highConfidence) continue;
+      if (!fillsGroundingGap && !isSynthesis && !highConfidence && !(isOpenSemantic && directlyMentioned)) continue;
       if (added >= 10) break;
       const id = slugify(`primitive-${component.id}`);
       if (seen.has(id)) continue;
@@ -264,6 +280,46 @@
       });
       added += 1;
     }
+  }
+
+  function addUniverseCandidateNodes(nodes, seen, candidateRows, input) {
+    const prompt = String(input.prompt || input.promptParse && input.promptParse.prompt || '').toLowerCase();
+    let added = 0;
+    const universeRows = (candidateRows || [])
+      .filter((row) => (row.evidence || []).includes('universe-index'))
+      .filter((row) => universeRowCanMaterialize(row))
+      .sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
+    for (const row of universeRows) {
+      if (added >= 8) break;
+      const confidence = clamp01(Number(row.confidence || 0));
+      if (confidence < 0.34) continue;
+      const labels = [row.label, row.canonicalId, ...(row.aliases || [])].filter(Boolean);
+      if (prompt && !promptIncludesAny(prompt, labels)) continue;
+      if (nodes.some((node) => node.canonicalId === row.canonicalId || node.label === row.label)) continue;
+      const baseId = slugify(row.canonicalId || row.id || row.label);
+      const index = seen.get(baseId) || 0;
+      seen.set(baseId, index + 1);
+      nodes.push({
+        id: index ? `${baseId}-${index + 1}` : baseId,
+        spanId: null,
+        semanticType: row.semanticType || 'concept',
+        canonicalId: row.canonicalId || row.id,
+        label: labelFromSpan(row.label || row.canonicalId || row.id),
+        aliases: unique(labels),
+        confidence,
+        domains: row.domains || [],
+        materialId: row.materialId || '',
+        operatorHints: row.operatorHints || [],
+        evidence: row.evidence || ['universe-index'],
+      });
+      added += 1;
+    }
+  }
+
+  function universeRowCanMaterialize(row) {
+    const indexName = String(row.indexName || '').toLowerCase();
+    if (['relations', 'operators', 'processes'].includes(indexName)) return false;
+    return Boolean(row.materialId || (row.domains || []).length || /concept|material|analog/.test(indexName));
   }
 
   function promptIncludesAny(prompt, values) {
