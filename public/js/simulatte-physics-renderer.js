@@ -3885,18 +3885,23 @@
     const isField = boundObject.kind === 'field' || boundObject.shape === 'field-envelope';
     const isLiteral = isConcreteShape(boundObject.shape) && !isField;
     ctx.save();
-    ctx.globalAlpha = Math.min(1, Math.max(isField ? 0.34 : isLiteral ? 0.86 : 0.66, alpha));
+    const inheritedAlpha = ctx.globalAlpha;
+    const hasBindings = boundObject.stateBindings && Object.keys(boundObject.stateBindings).length > 0;
+    const baseAlpha = isField ? 0.3 : isLiteral ? (hasBindings ? 0.58 : 0.68) : 0.56;
+    ctx.globalAlpha = inheritedAlpha * Math.min(0.84, Math.max(baseAlpha, alpha));
     if (Number.isFinite(boundObject.boundAlpha)) {
       ctx.globalAlpha = Math.min(1, ctx.globalAlpha * Math.max(0.22, boundObject.boundAlpha));
     }
     ctx.strokeStyle = stroke;
     if (drawLiteralPlanObject(ctx, extent, state, boundObject, index, hue)) {
+      drawBoundObjectField(ctx, extent, state, boundObject, index, hue);
       ctx.restore();
       return;
     }
     drawObjectSilhouette(ctx, extent, boundObject, index, hue);
     drawObjectMaterialKernel(ctx, extent, state, boundObject, index);
     drawObjectAccentDetails(ctx, extent, state, boundObject, index, hue);
+    drawBoundObjectField(ctx, extent, state, boundObject, index, hue);
     ctx.restore();
   }
 
@@ -3979,6 +3984,43 @@
     if (shape === 'queue-node' || shape === 'network-node') return drawLiteralNetworkNode(ctx, extent, state, text, hue);
     if (/laser|lamp|light-source|sun/.test(text)) return drawLiteralLightSource(ctx, extent);
     return false;
+  }
+
+  function drawBoundObjectField(ctx, extent, state, object, index, hue) {
+    const heat = Number.isFinite(object.boundHeat) ? clamp01(object.boundHeat) : 0;
+    const motion = Number.isFinite(object.boundMotion) ? clamp01(object.boundMotion) : 0;
+    const damage = Number.isFinite(object.boundDamage) ? clamp01(object.boundDamage) : 0;
+    const strength = clamp01(heat * 0.42 + motion * 0.32 + damage * 0.46);
+    if (strength <= 0.01) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation * 0.35);
+    const radius = Math.max(extent.w, extent.h) * (0.58 + strength * 0.32);
+    const bands = 4 + Math.round(strength * 3);
+    for (let band = 0; band < bands; band += 1) {
+      const phase = state.t * (0.18 + motion * 0.18) + index * 0.71 + band;
+      const rx = radius * (0.62 + band * 0.15 + Math.sin(phase) * 0.018);
+      const ry = radius * (0.38 + band * 0.11 + Math.cos(phase * 0.7) * 0.018);
+      ctx.strokeStyle = `hsla(${(hue + band * 18 + damage * 58) % 360}, ${62 + heat * 18}%, ${58 + heat * 12}%, ${0.035 + strength * 0.08})`;
+      ctx.lineWidth = Math.max(1, Math.min(extent.w, extent.h) * (0.006 + band * 0.001));
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, Math.sin(phase) * 0.18, 0, TAU);
+      ctx.stroke();
+    }
+    if (damage > 0.04) {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = `hsla(${(hue + 42) % 360}, 82%, 72%, ${0.08 + damage * 0.18})`;
+      ctx.lineWidth = Math.max(1, Math.min(extent.w, extent.h) * 0.012);
+      for (let crack = 0; crack < 5; crack += 1) {
+        const angle = crack * TAU / 5 + Math.sin(state.t * 0.09 + crack) * 0.12;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(angle) * extent.w * 0.08, Math.sin(angle) * extent.h * 0.06);
+        ctx.lineTo(Math.cos(angle) * extent.w * (0.32 + damage * 0.2), Math.sin(angle) * extent.h * (0.24 + damage * 0.18));
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
   }
 
   function literalObjectText(object) {
