@@ -343,6 +343,7 @@
     if (edgeType === 'collision' && (hasTag(from, 'collision') || from.kind === 'rigidBody') && to.kind !== 'fluid') {
       return 'rigid_collision';
     }
+    if (edgeType === 'growthCoupling') return 'growth_decay';
     if (edgeType === 'waveCoupling') return 'wave_field';
     if (edgeType === 'diffusion') return 'diffusion';
     if (edgeType === 'adjacent') return null;

@@ -90,15 +90,15 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(field, /@location\(6\) stretch/);
 });
 
-test('seed W and X prompts are swapped consistently between HTML and catalog', () => {
+test('seed W and X prompts stay consistent between HTML and catalog', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const catalog = fs.readFileSync(path.join(jsDir, 'simulatte-physics-catalog.js'), 'utf8');
 
-  assert.match(html, /aria-label="Seed W" data-example-prompt="wind pushes a dry pine fire"/);
-  assert.match(html, /aria-label="Seed X" data-example-prompt="solar magnetic wheel with sliding magnet"/);
-  assert.match(html, /<textarea id="build-prompt"[^>]+>wind pushes a dry pine fire<\/textarea>/);
-  assert.match(catalog, /id: 'dry-combustion',\n\s+label: 'W'/);
-  assert.match(catalog, /id: 'magnetic-machine',\n\s+label: 'X'/);
+  assert.match(html, /aria-label="Seed W" data-example-prompt="lava spins turbine into ice wall"/);
+  assert.match(html, /aria-label="Seed X" data-example-prompt="projectile cracks glass tower"/);
+  assert.match(html, /<textarea id="build-prompt"[^>]+>lava spins turbine into ice wall<\/textarea>/);
+  assert.match(catalog, /id: 'lava-turbine',\n\s+label: 'W'/);
+  assert.match(catalog, /id: 'fracture-tower',\n\s+label: 'X'/);
 });
 
 test('Doppler residual intent has a strict static contract and no network dependency', () => {
