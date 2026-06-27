@@ -1,76 +1,168 @@
 {
-  "schema": "simulatte.universeConceptIndex.v1",
-  "id": "simulatte-universe-concepts-v1",
   "documents": [
     {
-      "id": "concept.ferrofluid-lens",
-      "label": "ferrofluid lens",
-      "aliases": ["magnetic fluid lens", "liquid optic", "field-shaped lens"],
-      "canonicalId": "optic.ferrofluid_lens",
-      "semanticType": "adaptiveOptic",
-      "domains": ["fluid", "magnetism", "optics", "thermal"],
-      "materialId": "ferrofluid",
-      "operatorHints": ["magnetic_field", "field_refraction", "heat_transfer"]
-    },
-    {
-      "id": "concept.copper-coil",
-      "label": "copper coil",
-      "aliases": ["electromagnet coil", "induction coil"],
-      "canonicalId": "component.copper_coil",
-      "semanticType": "actuator",
-      "domains": ["electromagnetism", "thermal", "control"],
-      "materialId": "copper",
-      "operatorHints": ["magnetic_field", "heat_transfer"]
-    },
-    {
-      "id": "concept.subway-grid",
-      "label": "subway queue grid",
-      "aliases": ["transit queue", "rerouting grid", "power surge network"],
-      "canonicalId": "system.subway_queue_grid",
-      "semanticType": "networkSystem",
-      "domains": ["network", "control", "queue"],
-      "materialId": "silicon",
-      "operatorHints": ["network_flow", "controller_response"]
-    },
-    {
-      "id": "concept.brine-vent",
-      "label": "undersea brine vent",
-      "aliases": ["hydrothermal vent", "pressure brine", "crystal vent"],
-      "canonicalId": "environment.brine_vent",
-      "semanticType": "geophysicalFlow",
-      "domains": ["fluid", "thermal", "pressure", "phase"],
-      "materialId": "brine",
-      "operatorHints": ["pressure_flow_lite", "crystallization", "heat_transfer"]
-    },
-    {
+      "aliases": [
+        "brass tube resonator",
+        "dust levitator",
+        "standing wave sorter"
+      ],
+      "canonicalId": "apparatus.acoustic_levitator",
+      "domains": [
+        "acoustic",
+        "granular",
+        "particle",
+        "wave"
+      ],
       "id": "concept.acoustic-levitator",
       "label": "acoustic levitator",
-      "aliases": ["standing wave sorter", "dust levitator", "brass tube resonator"],
-      "canonicalId": "apparatus.acoustic_levitator",
-      "semanticType": "waveApparatus",
-      "domains": ["wave", "acoustic", "particle", "granular"],
       "materialId": "brass",
-      "operatorHints": ["wave_field", "particle_sorting"]
+      "operatorHints": [
+        "particle_sorting",
+        "wave_field"
+      ],
+      "primitiveHints": [],
+      "semanticType": "waveApparatus"
     },
     {
-      "id": "concept.thin-film-loop",
-      "label": "thin film wire loop",
-      "aliases": ["soap film loop", "laser bubble film", "fracturing membrane"],
-      "canonicalId": "surface.thin_film_loop",
-      "semanticType": "surfaceFilm",
-      "domains": ["surface", "optics", "fracture", "fluid"],
-      "materialId": "thin-film",
-      "operatorHints": ["surface_tension", "fracture_threshold", "field_refraction"]
+      "aliases": [
+        "crystal vent",
+        "hydrothermal vent",
+        "pressure brine"
+      ],
+      "canonicalId": "environment.brine_vent",
+      "domains": [
+        "fluid",
+        "phase",
+        "pressure",
+        "thermal"
+      ],
+      "id": "concept.brine-vent",
+      "label": "undersea brine vent",
+      "materialId": "brine",
+      "operatorHints": [
+        "crystallization",
+        "heat_transfer",
+        "pressure_flow_lite"
+      ],
+      "primitiveHints": [],
+      "semanticType": "geophysicalFlow"
     },
     {
+      "aliases": [
+        "electromagnet coil",
+        "induction coil"
+      ],
+      "canonicalId": "component.copper_coil",
+      "domains": [
+        "control",
+        "electromagnetism",
+        "thermal"
+      ],
+      "id": "concept.copper-coil",
+      "label": "copper coil",
+      "materialId": "copper",
+      "operatorHints": [
+        "heat_transfer",
+        "magnetic_field"
+      ],
+      "primitiveHints": [],
+      "semanticType": "actuator"
+    },
+    {
+      "aliases": [
+        "field-shaped lens",
+        "liquid optic",
+        "magnetic fluid lens"
+      ],
+      "canonicalId": "optic.ferrofluid_lens",
+      "domains": [
+        "fluid",
+        "magnetism",
+        "optics",
+        "thermal"
+      ],
+      "id": "concept.ferrofluid-lens",
+      "label": "ferrofluid lens",
+      "materialId": "ferrofluid",
+      "operatorHints": [
+        "field_refraction",
+        "heat_transfer",
+        "magnetic_field"
+      ],
+      "primitiveHints": [],
+      "semanticType": "adaptiveOptic"
+    },
+    {
+      "aliases": [
+        "fungal membrane",
+        "mycelium pump",
+        "nutrient gel wave"
+      ],
+      "canonicalId": "biofilm.mycelium_gel",
+      "domains": [
+        "biology",
+        "diffusion",
+        "fluid",
+        "wave"
+      ],
       "id": "concept.mycelium-gel",
       "label": "mycelium nutrient gel",
-      "aliases": ["fungal membrane", "nutrient gel wave", "mycelium pump"],
-      "canonicalId": "biofilm.mycelium_gel",
-      "semanticType": "biofilm",
-      "domains": ["biology", "diffusion", "fluid", "wave"],
       "materialId": "nutrient-gel",
-      "operatorHints": ["growth_decay", "reaction_diffusion", "wave_field"]
+      "operatorHints": [
+        "growth_decay",
+        "reaction_diffusion",
+        "wave_field"
+      ],
+      "primitiveHints": [],
+      "semanticType": "biofilm"
+    },
+    {
+      "aliases": [
+        "power surge network",
+        "rerouting grid",
+        "transit queue"
+      ],
+      "canonicalId": "system.subway_queue_grid",
+      "domains": [
+        "control",
+        "network",
+        "queue"
+      ],
+      "id": "concept.subway-grid",
+      "label": "subway queue grid",
+      "materialId": "silicon",
+      "operatorHints": [
+        "controller_response",
+        "network_flow"
+      ],
+      "primitiveHints": [],
+      "semanticType": "networkSystem"
+    },
+    {
+      "aliases": [
+        "fracturing membrane",
+        "laser bubble film",
+        "soap film loop"
+      ],
+      "canonicalId": "surface.thin_film_loop",
+      "domains": [
+        "fluid",
+        "fracture",
+        "optics",
+        "surface"
+      ],
+      "id": "concept.thin-film-loop",
+      "label": "thin film wire loop",
+      "materialId": "thin-film",
+      "operatorHints": [
+        "field_refraction",
+        "fracture_threshold",
+        "surface_tension"
+      ],
+      "primitiveHints": [],
+      "semanticType": "surfaceFilm"
     }
-  ]
+  ],
+  "id": "simulatte-universe-concepts-v1",
+  "schema": "simulatte.universeConceptIndex.v1"
 }

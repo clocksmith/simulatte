@@ -1,0 +1,122 @@
+{
+  "documents": [
+    {
+      "aliases": [],
+      "conceptIds": [
+        "apparatus.acoustic_levitator"
+      ],
+      "domains": [],
+      "id": "scene.acoustic-dust-sorter",
+      "label": "acoustic dust sorter",
+      "operatorHints": [],
+      "primitiveHints": [
+        "acoustic-emitter",
+        "particle-set",
+        "wave-propagation"
+      ],
+      "sceneKind": "acoustic",
+      "shapeIds": [
+        "shape.resonator-tube"
+      ]
+    },
+    {
+      "aliases": [],
+      "conceptIds": [
+        "environment.brine_vent"
+      ],
+      "domains": [],
+      "id": "scene.brine-crystal-vent",
+      "label": "brine crystal vent",
+      "operatorHints": [],
+      "primitiveHints": [
+        "brine",
+        "crystallization",
+        "pressure"
+      ],
+      "sceneKind": "watershed",
+      "shapeIds": [
+        "shape.vent-column"
+      ]
+    },
+    {
+      "aliases": [],
+      "conceptIds": [
+        "optic.ferrofluid_lens",
+        "component.copper_coil"
+      ],
+      "domains": [],
+      "id": "scene.ferrofluid-optics",
+      "label": "ferrofluid optics bench",
+      "operatorHints": [],
+      "primitiveHints": [
+        "lens",
+        "magnet",
+        "optics-bench"
+      ],
+      "sceneKind": "ferrofluid",
+      "shapeIds": [
+        "shape.lens-disc",
+        "shape.coil-ring"
+      ]
+    },
+    {
+      "aliases": [],
+      "conceptIds": [
+        "biofilm.mycelium_gel"
+      ],
+      "domains": [],
+      "id": "scene.mycelium-gel-pump",
+      "label": "mycelium gel pump",
+      "operatorHints": [],
+      "primitiveHints": [
+        "diffusion",
+        "growth-decay",
+        "mycelium"
+      ],
+      "sceneKind": "biology",
+      "shapeIds": [
+        "shape.branching-membrane"
+      ]
+    },
+    {
+      "aliases": [],
+      "conceptIds": [
+        "surface.thin_film_loop"
+      ],
+      "domains": [],
+      "id": "scene.thin-film-fracture",
+      "label": "thin film fracture rig",
+      "operatorHints": [],
+      "primitiveHints": [
+        "fracture-mechanics",
+        "membrane",
+        "surface-tension"
+      ],
+      "sceneKind": "thin-film",
+      "shapeIds": [
+        "shape.film-loop"
+      ]
+    },
+    {
+      "aliases": [],
+      "conceptIds": [
+        "system.subway_queue_grid"
+      ],
+      "domains": [],
+      "id": "scene.transit-surge",
+      "label": "transit surge grid",
+      "operatorHints": [],
+      "primitiveHints": [
+        "city-grid",
+        "queue-server",
+        "traffic-system"
+      ],
+      "sceneKind": "city",
+      "shapeIds": [
+        "shape.queue-grid"
+      ]
+    }
+  ],
+  "id": "simulatte-universe-scenes-v1",
+  "schema": "simulatte.universeSceneIndex.v1"
+}

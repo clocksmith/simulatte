@@ -1,12 +1,100 @@
 {
-  "schema": "simulatte.universeRelationIndex.v1",
-  "id": "simulatte-universe-relations-v1",
   "documents": [
-    { "id": "relation.field-coupling", "label": "field couples", "aliases": ["magnetizes", "focuses", "refracts"], "edgeType": "fieldCoupling", "operatorHints": ["magnetic_field", "field_refraction"] },
-    { "id": "relation.queue-routing", "label": "queue routes", "aliases": ["reroutes", "backs up", "surges"], "edgeType": "networkFeedback", "operatorHints": ["network_flow"] },
-    { "id": "relation.pressure-growth", "label": "pressure forms", "aliases": ["crystallizes", "vents", "pushes"], "edgeType": "phaseFlow", "operatorHints": ["pressure_flow_lite", "crystallization"] },
-    { "id": "relation.acoustic-sorting", "label": "acoustic sorts", "aliases": ["levitates", "traps", "sorts"], "edgeType": "waveParticleCoupling", "operatorHints": ["wave_field"] },
-    { "id": "relation.surface-rupture", "label": "surface ruptures", "aliases": ["fractures", "tears", "bubbles"], "edgeType": "surfaceFailure", "operatorHints": ["surface_tension", "fracture_threshold"] },
-    { "id": "relation.bio-pump", "label": "biofilm pumps", "aliases": ["grows", "diffuses", "waves"], "edgeType": "growthTransport", "operatorHints": ["growth_decay", "reaction_diffusion"] }
-  ]
+    {
+      "aliases": [
+        "levitates",
+        "sorts",
+        "traps"
+      ],
+      "domains": [],
+      "edgeType": "waveParticleCoupling",
+      "id": "relation.acoustic-sorting",
+      "label": "acoustic sorts",
+      "operatorHints": [
+        "wave_field"
+      ],
+      "primitiveHints": []
+    },
+    {
+      "aliases": [
+        "diffuses",
+        "grows",
+        "waves"
+      ],
+      "domains": [],
+      "edgeType": "growthTransport",
+      "id": "relation.bio-pump",
+      "label": "biofilm pumps",
+      "operatorHints": [
+        "growth_decay",
+        "reaction_diffusion"
+      ],
+      "primitiveHints": []
+    },
+    {
+      "aliases": [
+        "focuses",
+        "magnetizes",
+        "refracts"
+      ],
+      "domains": [],
+      "edgeType": "fieldCoupling",
+      "id": "relation.field-coupling",
+      "label": "field couples",
+      "operatorHints": [
+        "field_refraction",
+        "magnetic_field"
+      ],
+      "primitiveHints": []
+    },
+    {
+      "aliases": [
+        "crystallizes",
+        "pushes",
+        "vents"
+      ],
+      "domains": [],
+      "edgeType": "phaseFlow",
+      "id": "relation.pressure-growth",
+      "label": "pressure forms",
+      "operatorHints": [
+        "crystallization",
+        "pressure_flow_lite"
+      ],
+      "primitiveHints": []
+    },
+    {
+      "aliases": [
+        "backs up",
+        "reroutes",
+        "surges"
+      ],
+      "domains": [],
+      "edgeType": "networkFeedback",
+      "id": "relation.queue-routing",
+      "label": "queue routes",
+      "operatorHints": [
+        "network_flow"
+      ],
+      "primitiveHints": []
+    },
+    {
+      "aliases": [
+        "bubbles",
+        "fractures",
+        "tears"
+      ],
+      "domains": [],
+      "edgeType": "surfaceFailure",
+      "id": "relation.surface-rupture",
+      "label": "surface ruptures",
+      "operatorHints": [
+        "fracture_threshold",
+        "surface_tension"
+      ],
+      "primitiveHints": []
+    }
+  ],
+  "id": "simulatte-universe-relations-v1",
+  "schema": "simulatte.universeRelationIndex.v1"
 }

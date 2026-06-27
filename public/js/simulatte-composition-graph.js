@@ -115,6 +115,9 @@
         }
       }
     }
+    for (const id of pinnedComponentIdsForSpec(spec)) {
+      if (byId.has(id) && !selected.includes(byId.get(id))) selected.push(byId.get(id));
+    }
     for (const id of top) {
       if (byId.has(id) && !selected.includes(byId.get(id))) selected.push(byId.get(id));
     }
@@ -128,6 +131,14 @@
       if (!selected.includes(component)) selected.push(component);
     }
     return selected;
+  }
+
+  function pinnedComponentIdsForSpec(spec) {
+    const prompt = String(spec && spec.intent && spec.intent.prompt || spec && spec.name || '').toLowerCase();
+    if (/\b(perpetual|solar magnetic|magnetic wheel|magnetic motor|generator)\b/.test(prompt)) {
+      return ['solar-panel', 'rotor-wheel', 'stator-slider', 'motor-load'];
+    }
+    return [];
   }
 
   function compositionNode(component, index, total, spec, contract, priors) {
@@ -870,6 +881,7 @@
     }
     if (sceneKind === 'magnetic-machine') {
       if (/flame-front|fuel-bed|fire|smoke|thermal/.test(text)) return -1;
+      if (/\b(rotor-wheel|stator-slider|solar-panel|motor-load)\b/.test(text)) return 10;
       if (/magnet|ferrofluid|coil|current|conductor|copper|rotor|stator|wheel|slider|solar|panel|motor|load|flux|dipole/.test(text)) return 8;
       return 2;
     }

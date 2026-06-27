@@ -1,0 +1,330 @@
+{
+  "documents": [
+    {
+      "aliases": [
+        "acoustic levitator",
+        "brass tube resonator",
+        "dust levitator",
+        "standing wave sorter"
+      ],
+      "conceptIds": [
+        "apparatus.acoustic_levitator"
+      ],
+      "domains": [
+        "acoustic",
+        "granular",
+        "particle",
+        "wave"
+      ],
+      "id": "affordance.acoustic-levitator",
+      "label": "acoustic levitator affordances",
+      "materialIds": [
+        "brass"
+      ],
+      "operatorTypes": [
+        "particle_sorting",
+        "wave_field"
+      ],
+      "primitiveHints": [
+        "acoustic-emitter",
+        "acoustic-propagation",
+        "granular-bed",
+        "particle-set",
+        "powder-bed",
+        "wave-propagation",
+        "wave-source"
+      ],
+      "sceneHints": [
+        "scene.acoustic-dust-sorter",
+        "scene.mycelium-gel-pump"
+      ],
+      "shapeHints": [
+        "shape.resonator-tube"
+      ],
+      "unsupportedPolicy": "preserve-semantic-node"
+    },
+    {
+      "aliases": [
+        "crystal vent",
+        "hydrothermal vent",
+        "pressure brine",
+        "undersea brine vent"
+      ],
+      "conceptIds": [
+        "environment.brine_vent"
+      ],
+      "domains": [
+        "fluid",
+        "phase",
+        "pressure",
+        "thermal"
+      ],
+      "id": "affordance.brine-vent",
+      "label": "undersea brine vent affordances",
+      "materialIds": [
+        "brine"
+      ],
+      "operatorTypes": [
+        "crystallization",
+        "heat_transfer",
+        "pressure_flow_lite"
+      ],
+      "primitiveHints": [
+        "crystal-growth",
+        "crystallization",
+        "heat-transfer",
+        "heater",
+        "moving-fluid",
+        "nucleation",
+        "pipe",
+        "pressure",
+        "pump",
+        "thermal-source"
+      ],
+      "sceneHints": [
+        "scene.brine-crystal-vent",
+        "scene.ferrofluid-optics"
+      ],
+      "shapeHints": [
+        "shape.coil-ring",
+        "shape.film-loop",
+        "shape.vent-column"
+      ],
+      "unsupportedPolicy": "preserve-semantic-node"
+    },
+    {
+      "aliases": [
+        "copper coil",
+        "electromagnet coil",
+        "induction coil"
+      ],
+      "conceptIds": [
+        "component.copper_coil"
+      ],
+      "domains": [
+        "control",
+        "electromagnetism",
+        "thermal"
+      ],
+      "id": "affordance.copper-coil",
+      "label": "copper coil affordances",
+      "materialIds": [
+        "copper"
+      ],
+      "operatorTypes": [
+        "heat_transfer",
+        "magnetic_field"
+      ],
+      "primitiveHints": [
+        "heat-transfer",
+        "heater",
+        "magnet",
+        "magnetic-core",
+        "magnetism",
+        "thermal-source"
+      ],
+      "sceneHints": [
+        "scene.brine-crystal-vent",
+        "scene.ferrofluid-optics"
+      ],
+      "shapeHints": [
+        "shape.coil-ring",
+        "shape.queue-grid",
+        "shape.vent-column"
+      ],
+      "unsupportedPolicy": "preserve-semantic-node"
+    },
+    {
+      "aliases": [
+        "ferrofluid lens",
+        "field-shaped lens",
+        "liquid optic",
+        "magnetic fluid lens"
+      ],
+      "conceptIds": [
+        "optic.ferrofluid_lens"
+      ],
+      "domains": [
+        "fluid",
+        "magnetism",
+        "optics",
+        "thermal"
+      ],
+      "id": "affordance.ferrofluid-lens",
+      "label": "ferrofluid lens affordances",
+      "materialIds": [
+        "ferrofluid"
+      ],
+      "operatorTypes": [
+        "field_refraction",
+        "heat_transfer",
+        "magnetic_field"
+      ],
+      "primitiveHints": [
+        "heat-transfer",
+        "heater",
+        "lens",
+        "magnet",
+        "magnetic-core",
+        "magnetism",
+        "optical-prism",
+        "optics-bench",
+        "thermal-source"
+      ],
+      "sceneHints": [
+        "scene.brine-crystal-vent",
+        "scene.ferrofluid-optics"
+      ],
+      "shapeHints": [
+        "shape.coil-ring",
+        "shape.film-loop",
+        "shape.lens-disc",
+        "shape.vent-column"
+      ],
+      "unsupportedPolicy": "preserve-semantic-node"
+    },
+    {
+      "aliases": [
+        "fungal membrane",
+        "mycelium nutrient gel",
+        "mycelium pump",
+        "nutrient gel wave"
+      ],
+      "conceptIds": [
+        "biofilm.mycelium_gel"
+      ],
+      "domains": [
+        "biology",
+        "diffusion",
+        "fluid",
+        "wave"
+      ],
+      "id": "affordance.mycelium-gel",
+      "label": "mycelium nutrient gel affordances",
+      "materialIds": [
+        "nutrient-gel"
+      ],
+      "operatorTypes": [
+        "growth_decay",
+        "reaction_diffusion",
+        "wave_field"
+      ],
+      "primitiveHints": [
+        "acoustic-emitter",
+        "acoustic-propagation",
+        "biological-colony",
+        "chemical-reaction",
+        "diffusion",
+        "growth-decay",
+        "mycelium",
+        "population-field",
+        "wave-propagation",
+        "wave-source"
+      ],
+      "sceneHints": [
+        "scene.acoustic-dust-sorter",
+        "scene.brine-crystal-vent",
+        "scene.mycelium-gel-pump"
+      ],
+      "shapeHints": [
+        "shape.branching-membrane",
+        "shape.film-loop",
+        "shape.resonator-tube",
+        "shape.vent-column"
+      ],
+      "unsupportedPolicy": "preserve-semantic-node"
+    },
+    {
+      "aliases": [
+        "power surge network",
+        "rerouting grid",
+        "subway queue grid",
+        "transit queue"
+      ],
+      "conceptIds": [
+        "system.subway_queue_grid"
+      ],
+      "domains": [
+        "control",
+        "network",
+        "queue"
+      ],
+      "id": "affordance.subway-queue-grid",
+      "label": "subway queue grid affordances",
+      "materialIds": [
+        "silicon"
+      ],
+      "operatorTypes": [
+        "controller_response",
+        "network_flow"
+      ],
+      "primitiveHints": [
+        "city-grid",
+        "controller",
+        "feedback-controller",
+        "graph-network",
+        "queue-server",
+        "state-machine",
+        "traffic-system"
+      ],
+      "sceneHints": [
+        "scene.transit-surge"
+      ],
+      "shapeHints": [
+        "shape.queue-grid"
+      ],
+      "unsupportedPolicy": "preserve-semantic-node"
+    },
+    {
+      "aliases": [
+        "fracturing membrane",
+        "laser bubble film",
+        "soap film loop",
+        "thin film wire loop"
+      ],
+      "conceptIds": [
+        "surface.thin_film_loop"
+      ],
+      "domains": [
+        "fluid",
+        "fracture",
+        "optics",
+        "surface"
+      ],
+      "id": "affordance.thin-film-loop",
+      "label": "thin film wire loop affordances",
+      "materialIds": [
+        "thin-film"
+      ],
+      "operatorTypes": [
+        "field_refraction",
+        "fracture_threshold",
+        "surface_tension"
+      ],
+      "primitiveHints": [
+        "capillary-action",
+        "fracture-mechanics",
+        "glass-pane",
+        "lens",
+        "membrane",
+        "optical-prism",
+        "optics-bench",
+        "rock-wall",
+        "surface-tension"
+      ],
+      "sceneHints": [
+        "scene.brine-crystal-vent",
+        "scene.ferrofluid-optics",
+        "scene.thin-film-fracture"
+      ],
+      "shapeHints": [
+        "shape.film-loop",
+        "shape.lens-disc",
+        "shape.vent-column"
+      ],
+      "unsupportedPolicy": "preserve-semantic-node"
+    }
+  ],
+  "id": "simulatte-universe-affordances-v1",
+  "schema": "simulatte.universeAffordanceIndex.v1"
+}

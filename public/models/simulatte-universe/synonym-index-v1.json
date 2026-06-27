@@ -1,0 +1,92 @@
+{
+  "documents": [
+    {
+      "aliases": [
+        "mycelium membrane"
+      ],
+      "domains": [],
+      "id": "synonym.fungal-membrane",
+      "label": "fungal membrane",
+      "operatorHints": [],
+      "primitiveHints": [],
+      "targetId": "biofilm.mycelium_gel",
+      "targetKind": "concept"
+    },
+    {
+      "aliases": [
+        "pressure brine vent"
+      ],
+      "domains": [],
+      "id": "synonym.hydrothermal-vent",
+      "label": "hydrothermal vent",
+      "operatorHints": [],
+      "primitiveHints": [],
+      "targetId": "environment.brine_vent",
+      "targetKind": "concept"
+    },
+    {
+      "aliases": [
+        "electromagnet coil"
+      ],
+      "domains": [],
+      "id": "synonym.induction-coil",
+      "label": "induction coil",
+      "operatorHints": [],
+      "primitiveHints": [],
+      "targetId": "component.copper_coil",
+      "targetKind": "concept"
+    },
+    {
+      "aliases": [
+        "adaptive lens",
+        "fluid lens"
+      ],
+      "domains": [],
+      "id": "synonym.liquid-optic",
+      "label": "liquid optic",
+      "operatorHints": [],
+      "primitiveHints": [],
+      "targetId": "optic.ferrofluid_lens",
+      "targetKind": "concept"
+    },
+    {
+      "aliases": [
+        "subway queue",
+        "transit queue"
+      ],
+      "domains": [],
+      "id": "synonym.rerouting-grid",
+      "label": "rerouting grid",
+      "operatorHints": [],
+      "primitiveHints": [],
+      "targetId": "system.subway_queue_grid",
+      "targetKind": "concept"
+    },
+    {
+      "aliases": [
+        "thin film loop"
+      ],
+      "domains": [],
+      "id": "synonym.soap-film-loop",
+      "label": "soap film loop",
+      "operatorHints": [],
+      "primitiveHints": [],
+      "targetId": "surface.thin_film_loop",
+      "targetKind": "concept"
+    },
+    {
+      "aliases": [
+        "acoustic levitator"
+      ],
+      "domains": [],
+      "id": "synonym.standing-wave-sorter",
+      "label": "standing wave sorter",
+      "operatorHints": [],
+      "primitiveHints": [],
+      "targetId": "apparatus.acoustic_levitator",
+      "targetKind": "concept"
+    }
+  ],
+  "id": "simulatte-universe-synonyms-v1",
+  "schema": "simulatte.universeSynonymIndex.v1"
+}

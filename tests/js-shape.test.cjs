@@ -5,6 +5,7 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
 const jsDir = path.join(root, 'public', 'js');
+const catalog = require(path.join(jsDir, 'simulatte-physics-catalog.js'));
 
 function jsFiles(dir) {
   return fs.readdirSync(dir)
@@ -338,7 +339,9 @@ test('model-backed intent retrieval uses a 1024d Qwen index', () => {
   assert.equal(index.id, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
   assert.equal(index.embedModelId, 'qwen-3-5-0-8b-q4k-ehaf16');
   assert.equal(index.embeddingDim, 1024);
-  assert.ok(index.documents.length >= 320);
+  assert.equal(catalog.PHYSICAL_PRIMITIVES.length, 360);
+  assert.equal(index.documents.length, catalog.PHYSICAL_PRIMITIVES.length);
+  assert.equal(index.documentCount, catalog.PHYSICAL_PRIMITIVES.length);
   assert.equal(packedBytes.byteLength, index.documents.length * index.embeddingDim * 4);
   assert.equal(cardIndex.schema, 'simulatte.surfaceCardEmbeddingIndex.v1');
   assert.equal(cardIndex.id, 'simulatte-surface-card-qwen-3-5-0-8b-index-v1');

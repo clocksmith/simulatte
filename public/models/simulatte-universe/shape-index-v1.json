@@ -1,0 +1,138 @@
+{
+  "documents": [
+    {
+      "aliases": [
+        "gel channels",
+        "hyphae"
+      ],
+      "domains": [
+        "biology",
+        "diffusion"
+      ],
+      "id": "shape.branching-membrane",
+      "label": "branching membrane",
+      "operatorHints": [],
+      "primitiveHints": [
+        "growth-decay",
+        "membrane",
+        "mycelium"
+      ],
+      "shapeKind": "branching-network"
+    },
+    {
+      "aliases": [
+        "actuator",
+        "conductive",
+        "looped"
+      ],
+      "domains": [
+        "magnetism",
+        "thermal"
+      ],
+      "id": "shape.coil-ring",
+      "label": "coil ring",
+      "operatorHints": [],
+      "primitiveHints": [
+        "copper",
+        "magnetic-core"
+      ],
+      "shapeKind": "ring"
+    },
+    {
+      "aliases": [
+        "iridescent boundary",
+        "thin membrane"
+      ],
+      "domains": [
+        "fracture",
+        "surface"
+      ],
+      "id": "shape.film-loop",
+      "label": "film loop",
+      "operatorHints": [],
+      "primitiveHints": [
+        "membrane",
+        "surface-tension"
+      ],
+      "shapeKind": "loop"
+    },
+    {
+      "aliases": [
+        "convex",
+        "field-shaped",
+        "transparent"
+      ],
+      "domains": [
+        "optics",
+        "surface"
+      ],
+      "id": "shape.lens-disc",
+      "label": "lens disc",
+      "operatorHints": [],
+      "primitiveHints": [
+        "lens",
+        "optics-bench"
+      ],
+      "shapeKind": "disc"
+    },
+    {
+      "aliases": [
+        "routing lines",
+        "station nodes"
+      ],
+      "domains": [
+        "control",
+        "network"
+      ],
+      "id": "shape.queue-grid",
+      "label": "queue grid",
+      "operatorHints": [],
+      "primitiveHints": [
+        "city-grid",
+        "graph-network",
+        "transit-map"
+      ],
+      "shapeKind": "grid"
+    },
+    {
+      "aliases": [
+        "particle traps",
+        "standing waves"
+      ],
+      "domains": [
+        "acoustic",
+        "wave"
+      ],
+      "id": "shape.resonator-tube",
+      "label": "resonator tube",
+      "operatorHints": [],
+      "primitiveHints": [
+        "acoustic-emitter",
+        "wave-propagation"
+      ],
+      "shapeKind": "tube"
+    },
+    {
+      "aliases": [
+        "plume",
+        "seafloor",
+        "stratified"
+      ],
+      "domains": [
+        "fluid",
+        "pressure"
+      ],
+      "id": "shape.vent-column",
+      "label": "vent column",
+      "operatorHints": [],
+      "primitiveHints": [
+        "crystal-growth",
+        "pipe",
+        "pressure"
+      ],
+      "shapeKind": "column"
+    }
+  ],
+  "id": "simulatte-universe-shapes-v1",
+  "schema": "simulatte.universeShapeIndex.v1"
+}

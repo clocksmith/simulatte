@@ -1,14 +1,277 @@
 {
-  "schema": "simulatte.universeOperatorIndex.v1",
-  "id": "simulatte-universe-operators-v1",
   "documents": [
-    { "id": "operator.magnetic-field", "label": "magnetic field", "operatorType": "magnetic_field", "domains": ["magnetism", "fluid"], "stateVariables": ["magnetization", "fieldStrength"] },
-    { "id": "operator.field-refraction", "label": "field refraction", "operatorType": "field_refraction", "domains": ["optics", "field"], "stateVariables": ["refractiveIndex", "irradiance"] },
-    { "id": "operator.network-flow", "label": "network flow", "operatorType": "network_flow", "domains": ["network", "control"], "stateVariables": ["backlog", "throughput", "signalDelay"] },
-    { "id": "operator.pressure-flow", "label": "pressure flow", "operatorType": "pressure_flow_lite", "domains": ["fluid", "pressure"], "stateVariables": ["pressure", "flowVelocity"] },
-    { "id": "operator.crystallization", "label": "crystallization", "operatorType": "crystallization", "domains": ["phase", "thermal"], "stateVariables": ["temperature", "crystalDensity"] },
-    { "id": "operator.wave-field", "label": "wave field", "operatorType": "wave_field", "domains": ["wave", "acoustic"], "stateVariables": ["waveAmplitude", "frequency"] },
-    { "id": "operator.surface-tension", "label": "surface tension", "operatorType": "surface_tension", "domains": ["surface", "fluid"], "stateVariables": ["curvature", "filmThickness"] },
-    { "id": "operator.growth", "label": "growth decay", "operatorType": "growth_decay", "domains": ["biology", "growth"], "stateVariables": ["density", "nutrient"] }
-  ]
+    {
+      "aliases": [],
+      "domains": [
+        "control",
+        "feedback"
+      ],
+      "id": "operator.controller-response",
+      "label": "controller response",
+      "operatorHints": [],
+      "operatorType": "controller_response",
+      "primitiveHints": [
+        "controller",
+        "feedback-controller",
+        "state-machine"
+      ],
+      "stateVariables": [
+        "setpoint",
+        "error",
+        "response"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "phase",
+        "thermal"
+      ],
+      "id": "operator.crystallization",
+      "label": "crystallization",
+      "operatorHints": [],
+      "operatorType": "crystallization",
+      "primitiveHints": [],
+      "stateVariables": [
+        "temperature",
+        "crystalDensity"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "field",
+        "optics"
+      ],
+      "id": "operator.field-reflection",
+      "label": "field reflection",
+      "operatorHints": [],
+      "operatorType": "field_reflection",
+      "primitiveHints": [
+        "mirror",
+        "optics-bench"
+      ],
+      "stateVariables": [
+        "reflectance",
+        "irradiance"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "field",
+        "optics"
+      ],
+      "id": "operator.field-refraction",
+      "label": "field refraction",
+      "operatorHints": [],
+      "operatorType": "field_refraction",
+      "primitiveHints": [],
+      "stateVariables": [
+        "refractiveIndex",
+        "irradiance"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "fracture",
+        "solid"
+      ],
+      "id": "operator.fracture-threshold",
+      "label": "fracture threshold",
+      "operatorHints": [],
+      "operatorType": "fracture_threshold",
+      "primitiveHints": [
+        "fracture-mechanics",
+        "glass-pane",
+        "rock-wall"
+      ],
+      "stateVariables": [
+        "stress",
+        "damage"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "biology",
+        "growth"
+      ],
+      "id": "operator.growth",
+      "label": "growth decay",
+      "operatorHints": [],
+      "operatorType": "growth_decay",
+      "primitiveHints": [],
+      "stateVariables": [
+        "density",
+        "nutrient"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "biology",
+        "growth"
+      ],
+      "id": "operator.growth-decay",
+      "label": "growth decay",
+      "operatorHints": [],
+      "operatorType": "growth_decay",
+      "primitiveHints": [
+        "biological-colony",
+        "growth-decay",
+        "mycelium",
+        "population-field"
+      ],
+      "stateVariables": [
+        "density",
+        "nutrient"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "thermal",
+        "transport"
+      ],
+      "id": "operator.heat-transfer",
+      "label": "heat transfer",
+      "operatorHints": [],
+      "operatorType": "heat_transfer",
+      "primitiveHints": [
+        "heat-transfer",
+        "heater",
+        "thermal-source"
+      ],
+      "stateVariables": [
+        "temperature",
+        "heatFlux"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "fluid",
+        "magnetism"
+      ],
+      "id": "operator.magnetic-field",
+      "label": "magnetic field",
+      "operatorHints": [],
+      "operatorType": "magnetic_field",
+      "primitiveHints": [],
+      "stateVariables": [
+        "magnetization",
+        "fieldStrength"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "control",
+        "network"
+      ],
+      "id": "operator.network-flow",
+      "label": "network flow",
+      "operatorHints": [],
+      "operatorType": "network_flow",
+      "primitiveHints": [],
+      "stateVariables": [
+        "backlog",
+        "throughput",
+        "signalDelay"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "granular",
+        "particle"
+      ],
+      "id": "operator.particle-sorting",
+      "label": "particle sorting",
+      "operatorHints": [],
+      "operatorType": "particle_sorting",
+      "primitiveHints": [
+        "granular-bed",
+        "particle-set",
+        "powder-bed"
+      ],
+      "stateVariables": [
+        "particleDensity",
+        "sortingForce"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "fluid",
+        "pressure"
+      ],
+      "id": "operator.pressure-flow",
+      "label": "pressure flow",
+      "operatorHints": [],
+      "operatorType": "pressure_flow_lite",
+      "primitiveHints": [],
+      "stateVariables": [
+        "pressure",
+        "flowVelocity"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "biology",
+        "diffusion",
+        "reaction"
+      ],
+      "id": "operator.reaction-diffusion",
+      "label": "reaction diffusion",
+      "operatorHints": [],
+      "operatorType": "reaction_diffusion",
+      "primitiveHints": [
+        "chemical-reaction",
+        "diffusion",
+        "growth-decay"
+      ],
+      "stateVariables": [
+        "concentration",
+        "reactionRate"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "fluid",
+        "surface"
+      ],
+      "id": "operator.surface-tension",
+      "label": "surface tension",
+      "operatorHints": [],
+      "operatorType": "surface_tension",
+      "primitiveHints": [],
+      "stateVariables": [
+        "curvature",
+        "filmThickness"
+      ]
+    },
+    {
+      "aliases": [],
+      "domains": [
+        "acoustic",
+        "wave"
+      ],
+      "id": "operator.wave-field",
+      "label": "wave field",
+      "operatorHints": [],
+      "operatorType": "wave_field",
+      "primitiveHints": [],
+      "stateVariables": [
+        "waveAmplitude",
+        "frequency"
+      ]
+    }
+  ],
+  "id": "simulatte-universe-operators-v1",
+  "schema": "simulatte.universeOperatorIndex.v1"
 }

@@ -1,12 +1,101 @@
 {
-  "schema": "simulatte.universeProcessIndex.v1",
-  "id": "simulatte-universe-processes-v1",
   "documents": [
-    { "id": "process.heat", "label": "heat", "aliases": ["laser heats", "thermal drive", "warms"], "process": "heat_transfer", "operatorHints": ["heat_transfer"] },
-    { "id": "process.reroute", "label": "reroute", "aliases": ["reroutes", "queue rerouting", "network surge"], "process": "network_control", "operatorHints": ["network_flow", "controller_response"] },
-    { "id": "process.crystallize", "label": "crystallize", "aliases": ["crystallizes", "forms crystals", "phase locks"], "process": "phase", "operatorHints": ["crystallization", "heat_transfer"] },
-    { "id": "process.levitate", "label": "levitate", "aliases": ["levitates", "standing wave", "sorts dust"], "process": "wave_sorting", "operatorHints": ["wave_field", "particle_sorting"] },
-    { "id": "process.fracture-film", "label": "fracture film", "aliases": ["bubbles fracture", "film tears", "ruptures"], "process": "surface_fracture", "operatorHints": ["surface_tension", "fracture_threshold"] },
-    { "id": "process.pump-growth", "label": "pump growth", "aliases": ["pumps nutrient", "mycelium waves", "membrane grows"], "process": "growth_diffusion", "operatorHints": ["growth_decay", "reaction_diffusion"] }
-  ]
+    {
+      "aliases": [
+        "crystallizes",
+        "forms crystals",
+        "phase locks"
+      ],
+      "domains": [],
+      "id": "process.crystallize",
+      "label": "crystallize",
+      "operatorHints": [
+        "crystallization",
+        "heat_transfer"
+      ],
+      "primitiveHints": [],
+      "process": "phase"
+    },
+    {
+      "aliases": [
+        "bubbles fracture",
+        "film tears",
+        "ruptures"
+      ],
+      "domains": [],
+      "id": "process.fracture-film",
+      "label": "fracture film",
+      "operatorHints": [
+        "fracture_threshold",
+        "surface_tension"
+      ],
+      "primitiveHints": [],
+      "process": "surface_fracture"
+    },
+    {
+      "aliases": [
+        "laser heats",
+        "thermal drive",
+        "warms"
+      ],
+      "domains": [],
+      "id": "process.heat",
+      "label": "heat",
+      "operatorHints": [
+        "heat_transfer"
+      ],
+      "primitiveHints": [],
+      "process": "heat_transfer"
+    },
+    {
+      "aliases": [
+        "levitates",
+        "sorts dust",
+        "standing wave"
+      ],
+      "domains": [],
+      "id": "process.levitate",
+      "label": "levitate",
+      "operatorHints": [
+        "particle_sorting",
+        "wave_field"
+      ],
+      "primitiveHints": [],
+      "process": "wave_sorting"
+    },
+    {
+      "aliases": [
+        "membrane grows",
+        "mycelium waves",
+        "pumps nutrient"
+      ],
+      "domains": [],
+      "id": "process.pump-growth",
+      "label": "pump growth",
+      "operatorHints": [
+        "growth_decay",
+        "reaction_diffusion"
+      ],
+      "primitiveHints": [],
+      "process": "growth_diffusion"
+    },
+    {
+      "aliases": [
+        "network surge",
+        "queue rerouting",
+        "reroutes"
+      ],
+      "domains": [],
+      "id": "process.reroute",
+      "label": "reroute",
+      "operatorHints": [
+        "controller_response",
+        "network_flow"
+      ],
+      "primitiveHints": [],
+      "process": "network_control"
+    }
+  ],
+  "id": "simulatte-universe-processes-v1",
+  "schema": "simulatte.universeProcessIndex.v1"
 }
