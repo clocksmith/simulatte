@@ -7,6 +7,39 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPhysicsCatalog() {
   const TAU = Math.PI * 2;
   const FIELD_GRID = 52;
+  const PROCEDURAL_VISUAL_BASE = Object.freeze({
+    schema: 'simulatte.proceduralVisualBase.v1',
+    markFamilies: Object.freeze(['rectilinear', 'ring', 'triad', 'zigzag', 'lens', 'cross', 'spline', 'spoke', 'solid-cell']),
+    textureFamilies: Object.freeze(['strata', 'section', 'radial', 'contour', 'network', 'specimen', 'woven', 'grain', 'ribs']),
+    layoutFamilies: Object.freeze(['lane-field', 'cutaway', 'orbit', 'topographic', 'route-map', 'island-chain', 'stack', 'swarm']),
+    paletteFamilies: Object.freeze(['thermal', 'optical', 'mineral', 'biological', 'electric', 'civic', 'aqueous', 'metallic']),
+    tokenOrders: Object.freeze([1, 2, 3]),
+    addressableVariants: 4294967296,
+  });
+  const SEMANTIC_VISUAL_ATLAS = Object.freeze({
+    schema: 'simulatte.semanticVisualAtlas.v1',
+    archetypeFamilies: Object.freeze([
+      'architecture', 'hydrology', 'optics', 'electromagnetism', 'biology', 'granular',
+      'acoustics', 'mechanics', 'civic', 'thermal', 'geology', 'aerospace', 'marine',
+      'electronics', 'chemistry', 'weather', 'astronomy', 'agriculture', 'transport',
+      'manufacturing', 'medical', 'ecology', 'energy', 'instrumentation',
+    ]),
+    materialFamilies: Object.freeze([
+      'transparent', 'metal', 'mineral', 'biological', 'fluid', 'thermal', 'granular',
+      'polymer', 'ceramic', 'electric', 'organic', 'concrete', 'ice', 'plasma',
+      'textile', 'foam', 'gel', 'wood', 'soil', 'gas',
+    ]),
+    processFamilies: Object.freeze([
+      'burn', 'flow', 'growth', 'fracture', 'queue', 'focus', 'levitate', 'crystallize',
+      'leak', 'pump', 'erode', 'orbit', 'melt', 'collide', 'sort', 'resonate',
+      'charge', 'rotate', 'diffuse', 'compress', 'mix', 'cool', 'heat', 'measure',
+    ]),
+    layerFamilies: Object.freeze([
+      'environment-silhouette', 'material-shader', 'process-overlay', 'relationship-map',
+      'motion-trail', 'damage-mask', 'instrument-readout', 'field-lines',
+    ]),
+    addressableVariants: 281474976710656,
+  });
 
   const TEMPLATE_LIBRARY = Object.freeze([
     {
@@ -279,12 +312,17 @@
 
   const TOKEN_SYNONYMS = Object.freeze({
     air: ['fluid', 'gas'],
+    antenna: ['signal', 'electromagnetic'],
     audio: ['sound', 'acoustic'],
+    battery: ['electric', 'electrochemical'],
     beam: ['light', 'optics'],
     biological: ['biology', 'population'],
+    blood: ['fluid', 'biology'],
     bounce: ['collision', 'restitution'],
+    bridge: ['structure', 'load'],
     bubbles: ['buoyancy', 'fluid'],
     burn: ['fire', 'thermal'],
+    camera: ['image', 'sensor'],
     carbon: ['atomic', 'material'],
     ceramic: ['mineral', 'solid'],
     city: ['queue', 'network', 'logistics'],
@@ -296,9 +334,13 @@
     delay: ['latency', 'buffer'],
     demand: ['market', 'economics'],
     disease: ['infection', 'biology'],
+    drone: ['flight', 'aerodynamics'],
+    ecology: ['biology', 'population'],
     economy: ['market', 'economics'],
     electron: ['atomic', 'charge'],
+    electrolyte: ['battery', 'ion'],
     feedback: ['control', 'sensor'],
+    flight: ['aerodynamics', 'control'],
     fire: ['flame', 'thermal'],
     flame: ['fire', 'thermal'],
     gas: ['fluid', 'pressure'],
@@ -306,6 +348,7 @@
     generator: ['motor', 'load'],
     gold: ['metal', 'conductor'],
     granular: ['sand', 'particle'],
+    heart: ['pump', 'biology'],
     heat: ['thermal'],
     infection: ['biology', 'front'],
     internet: ['network', 'latency'],
@@ -324,6 +367,7 @@
     mineral: ['rock', 'crystal'],
     molecule: ['chemistry', 'reaction'],
     motor: ['rotor', 'load'],
+    microphone: ['sound', 'sensor'],
     network: ['graph', 'latency'],
     noise: ['signal', 'sensor'],
     optics: ['light', 'refraction'],
@@ -332,6 +376,7 @@
     pressure: ['fluid', 'gas'],
     prism: ['optics', 'refraction'],
     queue: ['backlog', 'service'],
+    rocket: ['thrust', 'combustion'],
     rock: ['stone', 'mineral'],
     sand: ['granular', 'particle'],
     sensor: ['signal', 'control'],
@@ -341,10 +386,12 @@
     smoke: ['fluid', 'gas'],
     solar: ['sun', 'energy'],
     sound: ['acoustic', 'wave'],
+    speaker: ['sound', 'actuator'],
     spring: ['elastic'],
     steel: ['metal', 'magnetic'],
     stone: ['rock', 'mineral'],
     steam: ['thermal', 'fluid'],
+    structure: ['beam', 'load'],
     sun: ['solar', 'energy', 'radiation'],
     supply: ['logistics', 'market'],
     terrain: ['heightfield', 'erosion'],
@@ -1010,6 +1057,16 @@
     { id: 'interval-bound', type: 'constraint', text: 'interval bound min max clamp domain range' },
     { id: 'distance-metric', type: 'field', text: 'distance metric norm geodesic nearest measure' },
     { id: 'potential-field', type: 'field', text: 'potential field abstract scalar basin attractor landscape' },
+    { id: 'image-raster', type: 'field', text: 'image raster pixels channels camera texture segmentation map' },
+    { id: 'signed-angle-field', type: 'field', text: 'signed angle orientation heading wrap phase bearing' },
+    { id: 'flow-map', type: 'field', text: 'flow map deformation transport trajectories forward backward advection' },
+    { id: 'contact-pair-table', type: 'constraint', text: 'contact pair table collision candidates broadphase manifolds' },
+    { id: 'relation-table', type: 'field', text: 'relation table entity attributes categorical links semantic slots' },
+    { id: 'material-property-vector', type: 'field', text: 'material property vector typed attributes coefficients profile' },
+    { id: 'time-series', type: 'field', text: 'time series sampled signal trend history temporal measurements' },
+    { id: 'multichannel-field', type: 'field', text: 'multichannel field stacked variables coupled state raster tensor' },
+    { id: 'control-graph', type: 'process', text: 'control graph feedback loops sensors actuators gains stability' },
+    { id: 'constraint-jacobian', type: 'constraint', text: 'constraint jacobian solver matrix derivatives joints contacts' },
   ].map((item) => toCatalogItem('math', item)));
 
   const PHYSICS_PRIMITIVE_LIBRARY = Object.freeze([
@@ -1058,6 +1115,26 @@
     { id: 'crystallization', type: 'process', controls: ['bondStrength'], recipe: ['grid-lattice', 'constraint-graph', 'time-step'], text: 'crystallization lattice ordered solid mineral growth' },
     { id: 'osmosis', type: 'field', controls: ['diffusionA'], recipe: ['surface-boundary', 'scalar-field', 'gradient'], text: 'osmosis membrane selective solvent concentration flow' },
     { id: 'orbital-dynamics', type: 'field', controls: ['gravity'], recipe: ['curve-path', 'vector', 'time-step'], text: 'orbital dynamics orbit ellipse gravity trajectory period' },
+    { id: 'aerodynamics', type: 'field', controls: ['windSpeed', 'pressure'], recipe: ['vector-field', 'surface-boundary', 'gradient', 'time-step'], text: 'aerodynamics lift drag wing airfoil pressure flow flight' },
+    { id: 'porous-flow', type: 'field', controls: ['flowRate', 'pressure'], recipe: ['sparse-grid', 'scalar-field', 'gradient', 'time-step'], text: 'porous flow seepage filtration permeability soil aquifer sponge' },
+    { id: 'thermoelectric-effect', type: 'process', controls: ['thermalFlux', 'conductivity'], recipe: ['scalar-field', 'graph-network', 'conservation-ledger'], text: 'thermoelectric seebeck peltier heat current gradient voltage' },
+    { id: 'photochemistry', type: 'process', controls: ['lightIntensity', 'reactionRate'], recipe: ['sampling', 'scalar-field', 'threshold', 'time-step'], text: 'photochemistry light activated reaction pigment photosynthesis ultraviolet catalyst' },
+    { id: 'electrostatic-discharge', type: 'process', controls: ['charge', 'electricField'], recipe: ['threshold', 'vector-field', 'event-queue'], text: 'electrostatic discharge spark lightning breakdown arc charge transfer' },
+    { id: 'wave-interference', type: 'field', controls: ['waveAmplitude', 'soundFrequency'], recipe: ['spectral-basis', 'oscillator', 'scalar-field', 'time-step'], text: 'wave interference standing waves diffraction phase beat cancellation' },
+    { id: 'predator-prey', type: 'process', controls: ['populationGrowth'], recipe: ['graph-network', 'markov-chain', 'time-step'], text: 'predator prey ecology population pursuit resource oscillation' },
+    { id: 'sediment-transport', type: 'process', controls: ['erosionRate', 'flowRate'], recipe: ['grid-heightfield', 'particle-set', 'vector-field', 'time-step'], text: 'sediment transport bedload suspended grains river delta deposition' },
+    { id: 'fluid-pressure-solve', type: 'field', controls: ['pressure', 'flowRate'], recipe: ['vector-field', 'scalar-field', 'constraint-jacobian', 'time-step'], text: 'fluid pressure solve incompressible projection divergence free flow' },
+    { id: 'vortex-shedding', type: 'field', controls: ['windSpeed', 'turbulence'], recipe: ['vector-field', 'curl', 'surface-boundary', 'time-series'], text: 'vortex shedding wake oscillation bluff body turbulence' },
+    { id: 'combustion-spread', type: 'process', controls: ['combustibility', 'thermalFlux'], recipe: ['scalar-field', 'threshold', 'event-queue', 'time-step'], text: 'combustion spread fire front ignition fuel heat propagation' },
+    { id: 'radiation-pressure', type: 'field', controls: ['irradiance', 'pressure'], recipe: ['vector-field', 'sampling', 'conservation-ledger'], text: 'radiation pressure photon momentum sail light force' },
+    { id: 'evaporation-condensation', type: 'process', controls: ['phaseThreshold', 'latentHeat'], recipe: ['threshold', 'scalar-field', 'conservation-ledger', 'time-step'], text: 'evaporation condensation humidity vapor droplets latent heat cycle' },
+    { id: 'electrochemical-potential', type: 'field', controls: ['electricField', 'conductivity'], recipe: ['graph-network', 'scalar-field', 'conservation-ledger'], text: 'electrochemical potential ions battery voltage electrolyte redox gradient' },
+    { id: 'elastic-wave', type: 'field', controls: ['springConstant', 'waveAmplitude'], recipe: ['scalar-field', 'oscillator', 'constraint-jacobian', 'time-step'], text: 'elastic wave stress vibration seismic solid propagation' },
+    { id: 'magnetohydrodynamics', type: 'field', controls: ['magnetization', 'conductivity'], recipe: ['vector-field', 'curl', 'conservation-ledger', 'time-step'], text: 'magnetohydrodynamics conducting fluid plasma magnetic flow' },
+    { id: 'active-matter', type: 'process', controls: ['energyInput', 'populationGrowth'], recipe: ['particle-set', 'random-walk', 'vector-field', 'time-step'], text: 'active matter self propelled cells swarms flocking motility' },
+    { id: 'resource-flow', type: 'process', controls: ['serviceRate', 'networkLatency'], recipe: ['graph-network', 'queue', 'conservation-ledger', 'time-step'], text: 'resource flow network supply demand inventory service routing' },
+    { id: 'structural-buckling', type: 'constraint', controls: ['pressure', 'hardness'], recipe: ['constraint-graph', 'threshold', 'curve-path', 'time-step'], text: 'structural buckling column beam load instability collapse' },
+    { id: 'diffusion-reaction-front', type: 'process', controls: ['reactionRate', 'diffusionA'], recipe: ['multichannel-field', 'laplacian', 'threshold', 'time-step'], text: 'diffusion reaction front pattern activator inhibitor chemical wave' },
   ].map((item) => toCatalogItem('physics', item)));
 
   const MATERIAL_PRIMITIVE_LIBRARY = Object.freeze([
@@ -1149,6 +1226,32 @@
     { id: 'stainless-steel', type: 'material', controls: ['hardness'], recipe: ['collision', 'heat-transfer', 'electromagnetism'], text: 'stainless steel corrosion resistant alloy' },
     { id: 'graphene', type: 'material', controls: ['conductivity'], recipe: ['electromagnetism', 'bonding', 'heat-transfer'], text: 'graphene carbon sheet conductor lattice' },
     { id: 'diamond', type: 'material', controls: ['hardness'], recipe: ['bonding', 'collision', 'optics'], text: 'diamond carbon crystal hard transparent' },
+    { id: 'lava', type: 'material', controls: ['thermalFlux', 'viscosity'], recipe: ['phase-change', 'viscous-flow', 'heat-transfer'], text: 'lava molten rock magma viscous hot basalt flow' },
+    { id: 'snow', type: 'material', controls: ['phaseThreshold', 'granularFriction'], recipe: ['phase-change', 'granular-contact', 'friction'], text: 'snow ice crystals powder cold melt pack avalanche' },
+    { id: 'mud', type: 'material', controls: ['viscosity', 'moisture'], recipe: ['porous-flow', 'erosion', 'viscous-flow'], text: 'mud wet soil slurry clay water sediment sticky' },
+    { id: 'algae', type: 'material', controls: ['populationGrowth', 'lightIntensity'], recipe: ['growth-decay', 'photochemistry', 'diffusion'], text: 'algae photosynthetic biomass bloom aquatic green cells' },
+    { id: 'bone', type: 'material', controls: ['hardness', 'density'], recipe: ['collision', 'fracture-mechanics', 'bonding'], text: 'bone rigid biological mineral skeleton porous calcium' },
+    { id: 'muscle', type: 'material', controls: ['membraneTension', 'energyInput'], recipe: ['soft-body', 'chemical-reaction', 'elasticity'], text: 'muscle tissue actuator fiber contraction biological motion' },
+    { id: 'coral', type: 'material', controls: ['hardness', 'populationGrowth'], recipe: ['growth-decay', 'crystallization', 'porous-flow'], text: 'coral reef calcium carbonate porous colony marine skeleton' },
+    { id: 'skin', type: 'material', controls: ['membraneTension', 'moisture'], recipe: ['soft-body', 'diffusion', 'surface-tension'], text: 'skin membrane tissue elastic boundary biological surface' },
+    { id: 'aerogel', type: 'material', controls: ['density', 'heatTransfer'], recipe: ['porous-flow', 'heat-transfer', 'diffusion'], text: 'aerogel ultralight porous insulation foam silica' },
+    { id: 'superconductor', type: 'material', controls: ['conductivity', 'magnetization'], recipe: ['electromagnetism', 'magnetism', 'heat-transfer'], text: 'superconductor zero resistance magnetic levitation cryogenic conductor' },
+    { id: 'blood', type: 'material', controls: ['viscosity', 'pressure'], recipe: ['fluid-advection', 'diffusion', 'chemical-reaction'], text: 'blood biological fluid plasma cells circulation oxygen transport' },
+    { id: 'plankton', type: 'material', controls: ['populationGrowth', 'lightIntensity'], recipe: ['growth-decay', 'photochemistry', 'active-matter'], text: 'plankton microscopic aquatic biomass drifting photosynthetic population' },
+    { id: 'fungus', type: 'material', controls: ['populationGrowth', 'moisture'], recipe: ['growth-decay', 'diffusion', 'active-matter'], text: 'fungus mycelium spores growth decomposition organic network' },
+    { id: 'seed', type: 'material', controls: ['moisture', 'populationGrowth'], recipe: ['growth-decay', 'capillary-action', 'diffusion'], text: 'seed dormancy germination shell nutrient plant origin' },
+    { id: 'root-tissue', type: 'material', controls: ['moisture', 'membraneTension'], recipe: ['capillary-action', 'osmosis', 'growth-decay'], text: 'root tissue plant uptake water capillary biological fiber' },
+    { id: 'fat', type: 'material', controls: ['phaseThreshold', 'heatTransfer'], recipe: ['phase-change', 'soft-body', 'chemical-reaction'], text: 'fat lipid soft tissue insulation energy storage' },
+    { id: 'tendon', type: 'material', controls: ['membraneTension', 'springConstant'], recipe: ['elasticity', 'soft-body', 'bonding'], text: 'tendon collagen elastic cord biological force transfer' },
+    { id: 'cartilage', type: 'material', controls: ['membraneTension', 'friction'], recipe: ['soft-body', 'friction', 'pressure'], text: 'cartilage compliant joint cushion biological low friction' },
+    { id: 'neuron', type: 'material', controls: ['electricField', 'signalDelay'], recipe: ['charge-transport', 'diffusion', 'active-matter'], text: 'neuron excitable cell axon signal ion membrane' },
+    { id: 'battery-electrolyte', type: 'material', controls: ['conductivity', 'reactionRate'], recipe: ['electrochemical-potential', 'charge-transport', 'chemical-reaction'], text: 'battery electrolyte ions redox voltage conductive liquid' },
+    { id: 'semiconductor', type: 'material', controls: ['conductivity', 'lightIntensity'], recipe: ['electromagnetism', 'radiation', 'charge-transport'], text: 'semiconductor doped crystal diode transistor photovoltaic carrier' },
+    { id: 'concrete-rebar', type: 'material', controls: ['hardness', 'density'], recipe: ['collision', 'fracture-mechanics', 'structural-buckling'], text: 'reinforced concrete rebar composite structural compression tension' },
+    { id: 'paint', type: 'material', controls: ['viscosity', 'opacity'], recipe: ['adsorption', 'viscous-flow', 'diffusion'], text: 'paint coating pigment film wet drying surface' },
+    { id: 'ink', type: 'material', controls: ['viscosity', 'opacity'], recipe: ['diffusion', 'capillary-action', 'adsorption'], text: 'ink dye pigment liquid capillary staining print' },
+    { id: 'dust', type: 'material', controls: ['density', 'turbulence'], recipe: ['granular-contact', 'fluid-advection', 'diffusion'], text: 'dust fine particles aerosol powder settled airborne' },
+    { id: 'ash', type: 'material', controls: ['granularFriction', 'opacity'], recipe: ['combustion', 'granular-contact', 'diffusion'], text: 'ash combustion residue powder soot mineral particles' },
   ].map((item) => toCatalogItem('material', item)));
 
   const PRIMITIVE_LIBRARY = uniqueCatalogItems(
@@ -1198,6 +1301,26 @@
     { id: 'glass-pane', recipe: ['glass', 'quartz', 'silicon'], text: 'glass pane transparent brittle optical surface' },
     { id: 'ceramic-tile', recipe: ['ceramic', 'porcelain', 'clay'], text: 'ceramic tile brittle hard heat surface' },
     { id: 'adhesive-joint', recipe: ['epoxy', 'resin', 'wax', 'plastic'], text: 'adhesive joint bonded polymer curing interface' },
+    { id: 'animal-body', recipe: ['bone', 'muscle', 'skin', 'water'], text: 'animal body skeleton muscle tissue motion biology' },
+    { id: 'vehicle-chassis', recipe: ['steel', 'rubber', 'glass', 'plastic'], text: 'vehicle chassis wheels body suspension traffic mass' },
+    { id: 'wing', recipe: ['aluminum', 'fabric', 'carbon', 'plastic'], text: 'wing airfoil lift drag aerodynamic surface' },
+    { id: 'propeller', recipe: ['aluminum', 'plastic', 'carbon'], text: 'propeller rotor blade thrust airflow torque' },
+    { id: 'electrode', recipe: ['copper', 'graphene', 'platinum', 'brine'], text: 'electrode conductive plate ion current electrochemistry' },
+    { id: 'solar-cell', recipe: ['silicon', 'glass', 'copper'], text: 'solar cell photovoltaic light current source' },
+    { id: 'porous-filter', recipe: ['aerogel', 'foam', 'membrane', 'carbon'], text: 'porous filter membrane permeability separation flow' },
+    { id: 'root-network', recipe: ['wood', 'leaf', 'mycelium', 'soil'], text: 'root network plant water uptake branching growth' },
+    { id: 'heart-pump', recipe: ['muscle', 'blood', 'membrane', 'cartilage'], text: 'heart pump pulsatile chamber valves blood pressure circulation' },
+    { id: 'lung-sac', recipe: ['skin', 'air', 'blood', 'membrane'], text: 'lung sac alveoli gas exchange pressure diffusion breathing' },
+    { id: 'nerve-bundle', recipe: ['neuron', 'fat', 'membrane', 'water'], text: 'nerve bundle axons electrical signal delay biological control' },
+    { id: 'heat-exchanger', recipe: ['copper', 'water', 'air', 'metal'], text: 'heat exchanger fins pipes thermal transfer cooling loop' },
+    { id: 'turbine', recipe: ['steel', 'air', 'water', 'copper'], text: 'turbine blades rotating fluid energy generator shaft' },
+    { id: 'rocket-nozzle', recipe: ['titanium', 'ceramic', 'fuel', 'fire-plasma'], text: 'rocket nozzle exhaust combustion thrust pressure expansion' },
+    { id: 'gearbox', recipe: ['steel', 'oil', 'rubber', 'copper'], text: 'gearbox gears transmission torque friction lubrication ratio' },
+    { id: 'bridge-span', recipe: ['concrete-rebar', 'steel', 'asphalt', 'rock'], text: 'bridge span structural beam load support buckling vibration' },
+    { id: 'camera', recipe: ['glass', 'silicon', 'plastic', 'copper'], text: 'camera lens image sensor raster optical capture' },
+    { id: 'microphone', recipe: ['membrane', 'copper', 'magnetized-metal', 'plastic'], text: 'microphone diaphragm sound pressure signal transducer' },
+    { id: 'speaker', recipe: ['magnetized-metal', 'copper', 'membrane', 'plastic'], text: 'speaker coil magnet diaphragm acoustic vibration output' },
+    { id: 'antenna', recipe: ['copper', 'aluminum', 'silicon', 'plastic'], text: 'antenna electromagnetic signal radiation reception network' },
   ].map((item) => toCatalogItem('component', { ...item, type: 'component' })));
 
   const COMPOSITION_LIBRARY = Object.freeze([
@@ -1222,6 +1345,19 @@
     { id: 'polymer-line', recipe: ['polymer-sheet', 'adhesive-joint', 'heater', 'sensor'], text: 'polymer line curing sheet adhesive heat' },
     { id: 'soil-hydrology', recipe: ['soil-column', 'liquid-droplet', 'pipe', 'sensor'], text: 'soil hydrology infiltration capillary erosion' },
     { id: 'aerosol-chamber', recipe: ['gas-volume', 'liquid-droplet', 'fan', 'sensor'], text: 'aerosol chamber droplets gas flow measurement' },
+    { id: 'drone-flight', recipe: ['propeller', 'wing', 'battery', 'sensor', 'controller'], text: 'drone flight propeller lift control battery sensor' },
+    { id: 'vehicle-traffic', recipe: ['vehicle-chassis', 'wheel', 'sensor', 'controller'], text: 'vehicle traffic chassis wheel signal queue motion' },
+    { id: 'reef-ecosystem', recipe: ['biological-cell', 'root-network', 'gas-volume', 'liquid-droplet'], text: 'reef ecosystem coral algae water gas growth flow' },
+    { id: 'filtration-column', recipe: ['porous-filter', 'pump', 'valve', 'sensor'], text: 'filtration column porous media pressure separation flow' },
+    { id: 'bio-limb', recipe: ['animal-body', 'sensor', 'controller', 'adhesive-joint'], text: 'biomechanical limb muscle skeleton feedback motion' },
+    { id: 'circulatory-loop', recipe: ['heart-pump', 'pipe', 'sensor', 'valve'], text: 'circulatory loop heart blood pressure vessels feedback' },
+    { id: 'ventilation-loop', recipe: ['lung-sac', 'fan', 'sensor', 'valve'], text: 'ventilation loop breathing airflow pressure gas exchange' },
+    { id: 'bridge-load-test', recipe: ['bridge-span', 'sensor', 'controller', 'metal-beam'], text: 'bridge load test structural vibration stress buckling' },
+    { id: 'rocket-ascent', recipe: ['rocket-nozzle', 'controller', 'sensor', 'battery'], text: 'rocket ascent thrust combustion guidance acceleration trajectory' },
+    { id: 'sensor-network', recipe: ['camera', 'microphone', 'antenna', 'controller'], text: 'sensor network camera microphone antenna fusion latency' },
+    { id: 'heat-exchanger-loop', recipe: ['heat-exchanger', 'pump', 'valve', 'sensor'], text: 'heat exchanger loop coolant flow thermal control' },
+    { id: 'audio-feedback-room', recipe: ['microphone', 'speaker', 'controller', 'sensor'], text: 'audio feedback room acoustic resonance signal loop' },
+    { id: 'battery-circuit', recipe: ['electrode', 'battery', 'antenna', 'sensor'], text: 'battery circuit electrochemical current signal load' },
   ].map((item) => toCatalogItem('composition', { ...item, type: 'composition' })));
 
   const SCENE_LIBRARY = Object.freeze([
@@ -1242,6 +1378,15 @@
     { id: 'wet-lab', recipe: ['electrolysis-demo', 'molecular-bench'], text: 'wet lab electrolyte cell biology reaction measurement' },
     { id: 'geology-table', recipe: ['soil-hydrology', 'crystal-growth'], text: 'geology table soil minerals water crystals' },
     { id: 'atmosphere-chamber', recipe: ['aerosol-chamber', 'weather-cell'], text: 'atmosphere chamber gas droplets wind sensors' },
+    { id: 'drone-arena', recipe: ['drone-flight', 'vehicle-traffic'], text: 'drone arena flight traffic sensors control' },
+    { id: 'reef-tank', recipe: ['reef-ecosystem', 'filtration-column'], text: 'reef tank coral algae water filtration ecosystem' },
+    { id: 'mobility-lab', recipe: ['vehicle-traffic', 'power-grid'], text: 'mobility lab vehicles charging traffic grid' },
+    { id: 'clinic-room', recipe: ['circulatory-loop', 'ventilation-loop'], text: 'clinic room physiology heart lung monitors fluids' },
+    { id: 'launch-pad', recipe: ['rocket-ascent', 'weather-cell'], text: 'launch pad rocket thrust plume weather ascent' },
+    { id: 'bridge-site', recipe: ['bridge-load-test', 'traffic-system'], text: 'bridge site structural traffic load sensors' },
+    { id: 'acoustic-room', recipe: ['audio-feedback-room', 'sensor-network'], text: 'acoustic room sound reflection microphone speaker feedback' },
+    { id: 'electronics-bench', recipe: ['battery-circuit', 'sensor-network'], text: 'electronics bench battery circuit antenna sensors signals' },
+    { id: 'ecology-pond', recipe: ['reef-ecosystem', 'soil-hydrology'], text: 'ecology pond plankton algae water soil nutrients' },
   ].map((item) => toCatalogItem('scene', { ...item, type: 'scene' })));
 
   const MATERIAL_PROPERTY_SCHEMA = Object.freeze([
@@ -1294,11 +1439,21 @@
     mycelium: { density: 0.18, hardness: 0.04, heatCapacity: 0.5, moisture: 0.68, opacity: 0.64 },
     protein: { density: 0.24, hardness: 0.08, heatCapacity: 0.48, moisture: 0.55, phasePoint: 0.58 },
     bacteria: { density: 0.12, hardness: 0.02, heatCapacity: 0.5, moisture: 0.72, opacity: 0.3 },
+    algae: { density: 0.16, hardness: 0.03, heatCapacity: 0.54, moisture: 0.86, opacity: 0.42 },
+    lava: { density: 0.78, hardness: 0.12, heatCapacity: 0.74, opacity: 1, viscosity: 0.62, phasePoint: 0.9 },
+    snow: { density: 0.22, hardness: 0.06, heatCapacity: 0.7, moisture: 0.82, opacity: 0.72, phasePoint: 0.16 },
+    mud: { density: 0.62, hardness: 0.08, heatCapacity: 0.52, moisture: 0.92, opacity: 0.95, viscosity: 0.74 },
+    aerogel: { density: 0.05, hardness: 0.04, heatCapacity: 0.2, opacity: 0.2, viscosity: 0.08 },
+    superconductor: { density: 0.74, hardness: 0.5, conductivity: 1, magnetization: 0.54, opacity: 1, phasePoint: 0.12 },
+    'battery-electrolyte': { density: 0.56, heatCapacity: 0.62, conductivity: 0.76, moisture: 0.82, viscosity: 0.28 },
+    semiconductor: { density: 0.54, hardness: 0.58, conductivity: 0.48, opacity: 0.5, refractiveIndex: 1.68 },
+    'concrete-rebar': { density: 0.84, hardness: 0.86, heatCapacity: 0.34, conductivity: 0.32, opacity: 1 },
   });
 
   const METAL_MATERIAL_IDS = new Set([
     'gold', 'silver', 'aluminum', 'iron', 'titanium', 'nickel', 'zinc',
     'lead', 'tin', 'platinum', 'brass', 'bronze', 'steel', 'stainless-steel',
+    'superconductor',
   ]);
   const GAS_MATERIAL_IDS = new Set([
     'hydrogen', 'oxygen', 'nitrogen', 'helium', 'carbon-dioxide', 'methane',
@@ -1306,20 +1461,33 @@
   ]);
   const MINERAL_MATERIAL_IDS = new Set([
     'ceramic', 'porcelain', 'quartz', 'granite', 'basalt', 'limestone',
-    'marble', 'obsidian', 'diamond',
+    'marble', 'obsidian', 'diamond', 'bone', 'coral', 'aerogel',
+    'concrete-rebar', 'dust', 'ash',
   ]);
   const ORGANIC_MATERIAL_IDS = new Set([
     'ethanol', 'gasoline', 'diesel', 'sugar', 'starch', 'wax', 'leather',
-    'cotton', 'wool', 'cellulose',
+    'cotton', 'wool', 'cellulose', 'algae', 'muscle', 'skin', 'blood',
+    'plankton', 'fungus', 'seed', 'root-tissue', 'fat', 'tendon', 'cartilage',
+    'neuron',
   ]);
   const POLYMER_MATERIAL_IDS = new Set([
     'nylon', 'polyethylene', 'resin', 'epoxy', 'paper', 'cardboard',
+    'paint', 'ink',
   ]);
   const BIO_MOLECULE_MATERIAL_IDS = new Set([
     'dna', 'rna', 'lipid', 'enzyme',
   ]);
 
   function generatedMaterialPropertiesForId(id) {
+    if (id === 'lava') return { density: 0.78, hardness: 0.12, heatCapacity: 0.74, opacity: 1, viscosity: 0.62, phasePoint: 0.9 };
+    if (id === 'snow') return { density: 0.22, hardness: 0.06, heatCapacity: 0.7, moisture: 0.82, opacity: 0.72, phasePoint: 0.16 };
+    if (id === 'mud') return { density: 0.62, hardness: 0.08, heatCapacity: 0.52, moisture: 0.92, opacity: 0.95, viscosity: 0.74 };
+    if (id === 'battery-electrolyte') return { density: 0.56, heatCapacity: 0.62, conductivity: 0.76, moisture: 0.82, viscosity: 0.28 };
+    if (id === 'semiconductor') return { density: 0.54, hardness: 0.58, conductivity: 0.48, opacity: 0.5, refractiveIndex: 1.68 };
+    if (id === 'concrete-rebar') return { density: 0.84, hardness: 0.86, heatCapacity: 0.34, conductivity: 0.32, opacity: 1 };
+    if (id === 'blood') return { density: 0.58, heatCapacity: 0.72, moisture: 0.94, opacity: 0.82, viscosity: 0.34 };
+    if (id === 'tendon') return { density: 0.4, hardness: 0.18, heatCapacity: 0.46, moisture: 0.48, viscosity: 0.18 };
+    if (id === 'cartilage') return { density: 0.36, hardness: 0.1, heatCapacity: 0.48, moisture: 0.72, viscosity: 0.34 };
     if (METAL_MATERIAL_IDS.has(id)) {
       return { density: 0.82, hardness: 0.64, heatCapacity: 0.3, conductivity: 0.82, opacity: 1 };
     }
@@ -1371,6 +1539,18 @@
     'terrain-patch': { shape: 'heightfield', dimension: '2d', spatial: 'terrain' },
     'graph-network': { shape: 'graph/network', dimension: '2d', spatial: 'nodes/edges' },
     'grid-heightfield': { shape: 'grid/heightfield', dimension: '2d', spatial: 'terrain' },
+    'heart-pump': { shape: 'oscillating chamber', dimension: '2d', spatial: 'volume' },
+    'lung-sac': { shape: 'membrane sacs', dimension: '2d', spatial: 'volume' },
+    'nerve-bundle': { shape: 'branching cables', dimension: '2d', spatial: 'network' },
+    'heat-exchanger': { shape: 'coil bundle', dimension: '2d', spatial: 'channel' },
+    turbine: { shape: 'rotor', dimension: '2d', spatial: 'rotor' },
+    'rocket-nozzle': { shape: 'nozzle cone', dimension: '2d', spatial: 'port' },
+    gearbox: { shape: 'gear train', dimension: '2d', spatial: 'rotor' },
+    'bridge-span': { shape: 'truss span', dimension: '2d', spatial: 'structure' },
+    camera: { shape: 'optic sensor', dimension: '2d', spatial: 'optic' },
+    microphone: { shape: 'diaphragm sensor', dimension: '2d', spatial: 'surface' },
+    speaker: { shape: 'diaphragm actuator', dimension: '2d', spatial: 'surface' },
+    antenna: { shape: 'radiating element', dimension: '2d', spatial: 'field' },
   });
 
   const PORT_PROFILES = Object.freeze({
@@ -1591,21 +1771,33 @@
 
   const OPERATOR_MATCHES = Object.freeze({
     'fluid-advection': 'advection',
+    aerodynamics: 'advection',
+    'fluid-pressure-solve': 'advection',
+    'porous-flow': 'advection',
+    'vortex-shedding': 'advection',
     water: 'advection',
     buoyancy: 'buoyancy',
     combustion: 'combustion',
+    'combustion-spread': 'combustion',
     flame: 'combustion',
     collision: 'collision',
     diffusion: 'diffusion',
+    'diffusion-reaction-front': 'diffusion',
     erosion: 'erosion',
+    'sediment-transport': 'erosion',
     'growth-decay': 'growthDecay',
+    'active-matter': 'growthDecay',
+    'predator-prey': 'growthDecay',
     'heat-transfer': 'heatTransfer',
     magnetism: 'magnetism',
     'magnetized-metal': 'magnetism',
+    magnetohydrodynamics: 'magnetism',
     'phase-change': 'phaseChange',
     'phase-change-material': 'phaseChange',
+    'evaporation-condensation': 'phaseChange',
     queue: 'queueService',
     'queue-server': 'queueService',
+    'resource-flow': 'queueService',
     optics: 'refraction',
     glass: 'refraction',
     lens: 'refraction',
@@ -2559,6 +2751,11 @@
       ensure('plasma-arc', 0.62);
       ensure('thermal-source', 0.5);
     }
+    if (says('plasma', 'arc', 'discharge', 'lightning')) {
+      ensure('plasma-arc', 0.76);
+      ensure('electric-field', 0.62);
+      ensure('thermal-source', 0.5);
+    }
     if (has('sun-star')) {
       ensure('light-source', 0.62);
       ensure('thermal-source', 0.56);
@@ -2617,6 +2814,11 @@
       ensure('erosion-channel', 0.58);
       ensure('flow-inlet', 0.44);
     }
+    if (says('erosion', 'erode', 'river erosion', 'terrain erosion')) {
+      ensure('erosion-channel', 0.76);
+      ensure('terrain-heightfield', 0.64);
+      ensure('flow-inlet', 0.44);
+    }
     if (has('phase-change-material')) {
       ensure('thermal-source', 0.56);
       ensure('cooling-field', 0.44);
@@ -2649,6 +2851,11 @@
       ensure('population-field', 0.62);
       ensure('infection-front', 0.56);
       ensure('reactant-a', 0.34);
+    }
+    if (says('infection front', 'infection', 'disease', 'epidemic', 'contagion')) {
+      ensure('infection-front', 0.76);
+      ensure('population-field', 0.62);
+      ensure('diffusion', 0.42);
     }
     if (has('market-demand', 'logistics-node')) {
       ensure('market-demand', 0.58);
@@ -2726,6 +2933,8 @@
     PHYSICAL_PRIMITIVES,
     PHYSICS_PRIMITIVE_LIBRARY,
     PORT_PROFILES,
+    PROCEDURAL_VISUAL_BASE,
+    SEMANTIC_VISUAL_ATLAS,
     PRIMITIVE_LIBRARY,
     RECIPE_SLOT_LIBRARY,
     SCENE_LAYOUTS,

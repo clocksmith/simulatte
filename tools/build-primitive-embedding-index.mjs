@@ -1,5 +1,7 @@
 import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { doppler } from '../../doppler/src/index.js';
@@ -16,6 +18,15 @@ const OUT_PATH = path.join(ROOT, 'public/models/simulatte-embedder/primitive-ind
 const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
 const INDEX_ID = process.env.SIMULATTE_PRIMITIVE_INDEX_ID
   || 'simulatte-primitive-qwen-3-5-0-8b-index-v1';
+const CHILD_MODE = process.env.SIMULATTE_PRIMITIVE_CHILD === '1';
+const CHUNK_SIZE = Math.max(
+  1,
+  Math.min(240, Number.parseInt(process.env.SIMULATTE_PRIMITIVE_CHUNK_SIZE || '120', 10) || 120)
+);
+const EMBED_BATCH_SIZE = Math.max(
+  1,
+  Math.min(128, Number.parseInt(process.env.SIMULATTE_PRIMITIVE_EMBED_BATCH_SIZE || '32', 10) || 32)
+);
 
 function stableStringify(value) {
   return JSON.stringify(sortStable(value), null, 2);
@@ -107,6 +118,35 @@ async function main() {
     throw new Error(`Unexpected modelId ${manifest.modelId}; expected ${MODEL_ID}`);
   }
 
+  const documents = primitives.map((primitive, order) => {
+    const candidateText = primitiveEmbeddingText(primitive);
+    return {
+      primitiveId: primitive.id,
+      order,
+      type: primitive.type || '',
+      layer: primitive.layer || '',
+      domains: primitive.domains || [],
+      textHash: { alg: 'sha256', hex: sha256HexText(candidateText) },
+      candidateText,
+    };
+  });
+
+  if (CHILD_MODE) {
+    await writeChildChunk({ manifest, documents });
+    return;
+  }
+
+  await buildWithChildChunks({ documents, embedModelHash });
+}
+
+async function writeChildChunk({ manifest, documents }) {
+  const offset = Number(process.env.SIMULATTE_PRIMITIVE_OFFSET || 0);
+  const limit = Number(process.env.SIMULATTE_PRIMITIVE_LIMIT || CHUNK_SIZE);
+  const outPath = process.env.SIMULATTE_PRIMITIVE_CHUNK_OUT;
+  if (!outPath) throw new Error('SIMULATTE_PRIMITIVE_CHUNK_OUT is required in child mode');
+  const chunkDocuments = documents.slice(offset, offset + limit);
+  if (!chunkDocuments.length) throw new Error(`No primitives in chunk offset=${offset} limit=${limit}`);
+
   const gpu = await bootstrapNodeWebGPU();
   if (!gpu.ok) {
     throw new Error(`Node WebGPU bootstrap failed for primitive index build: ${gpu.detail || gpu.provider || 'unavailable'}`);
@@ -123,60 +163,109 @@ async function main() {
   });
 
   try {
-    const createdAt = new Date().toISOString();
-    const documents = primitives.map((primitive, order) => {
-      const candidateText = primitiveEmbeddingText(primitive);
-      return {
-        primitiveId: primitive.id,
-        order,
-        type: primitive.type || '',
-        layer: primitive.layer || '',
-        domains: primitive.domains || [],
-        textHash: { alg: 'sha256', hex: sha256HexText(candidateText) },
-        candidateText,
-      };
-    });
-    const prompts = documents.map((doc) => doc.candidateText);
-    console.log(`embedding ${prompts.length} primitives`);
-    const outputs = await model.embedBatch(prompts, {
+    const { embeddingDim, vectors } = await embedDocumentsWithModel(
+      model,
+      manifest,
+      chunkDocuments,
+      `primitives (${offset}-${offset + chunkDocuments.length - 1})`
+    );
+    const packed = new Float32Array(vectors.length * embeddingDim);
+    vectors.forEach((vector, index) => packed.set(vector, index * embeddingDim));
+    const packedBytes = Buffer.from(packed.buffer, packed.byteOffset, packed.byteLength);
+    await fs.writeFile(outPath, `${stableStringify({
+      offset,
+      documentCount: chunkDocuments.length,
+      embeddingDim,
+      documents: chunkDocuments,
+      embeddingsPackedBase64: packedBytes.toString('base64'),
+    })}\n`);
+    console.log(`wrote ${outPath}`);
+  } finally {
+    await model.unload().catch(() => {});
+  }
+}
+
+async function embedDocumentsWithModel(model, manifest, documents, label) {
+  const prompts = documents.map((doc) => doc.candidateText);
+  let embeddingDim = 0;
+  const vectors = [];
+  console.log(`embedding ${prompts.length} ${label} in batches of ${EMBED_BATCH_SIZE}`);
+  for (let start = 0; start < prompts.length; start += EMBED_BATCH_SIZE) {
+    const end = Math.min(start + EMBED_BATCH_SIZE, prompts.length);
+    console.log(`embedding ${label} ${start + 1}-${end} of ${prompts.length}`);
+    const outputs = await model.embedBatch(prompts.slice(start, end), {
       useChatTemplate: false,
       embeddingMode: 'mean',
       __skipStateSnapshot: true,
     });
-    if (!Array.isArray(outputs) || outputs.length !== prompts.length) {
-      throw new Error(`embedBatch returned ${outputs && outputs.length}; expected ${prompts.length}`);
+    if (!Array.isArray(outputs) || outputs.length !== end - start) {
+      throw new Error(`embedBatch returned ${outputs && outputs.length}; expected ${end - start}`);
     }
-
-    let embeddingDim = 0;
-    const vectors = outputs.map((output, index) => {
+    outputs.forEach((output, offset) => {
+      const index = start + offset;
       const vector = finiteFloat32Array(output.embedding, documents[index].primitiveId);
       if (!embeddingDim) embeddingDim = vector.length;
       if (vector.length !== embeddingDim) {
         throw new Error(`Embedding dim changed for ${documents[index].primitiveId}: ${vector.length} !== ${embeddingDim}`);
       }
-      return vector;
+      vectors[index] = vector;
     });
-    const expectedDim = expectedEmbeddingDim(manifest);
-    if (expectedDim && embeddingDim !== expectedDim) {
-      throw new Error(`Expected ${expectedDim}-d ${manifest.modelId} vectors, got ${embeddingDim}`);
+  }
+  const expectedDim = expectedEmbeddingDim(manifest);
+  if (expectedDim && embeddingDim !== expectedDim) {
+    throw new Error(`Expected ${expectedDim}-d ${manifest.modelId} vectors, got ${embeddingDim}`);
+  }
+  return { embeddingDim, vectors };
+}
+
+async function buildWithChildChunks({ documents, embedModelHash }) {
+  const createdAt = new Date().toISOString();
+  const chunkDir = await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-primitives-'));
+  const chunks = [];
+  try {
+    for (let offset = 0; offset < documents.length; offset += CHUNK_SIZE) {
+      const limit = Math.min(CHUNK_SIZE, documents.length - offset);
+      const chunkPath = path.join(chunkDir, `primitives-${offset}.json`);
+      await runChildChunk(offset, limit, chunkPath);
+      chunks.push(JSON.parse(await fs.readFile(chunkPath, 'utf8')));
     }
 
-    const packed = new Float32Array(vectors.length * embeddingDim);
-    vectors.forEach((vector, index) => packed.set(vector, index * embeddingDim));
+    const embeddingDim = chunks[0] ? Number(chunks[0].embeddingDim) : 0;
+    if (!embeddingDim) throw new Error('No primitive chunks were generated');
+    const packed = new Float32Array(documents.length * embeddingDim);
+    const mergedDocuments = [];
+    for (const chunk of chunks) {
+      if (Number(chunk.embeddingDim) !== embeddingDim) {
+        throw new Error(`Primitive chunk dim mismatch (${chunk.embeddingDim} !== ${embeddingDim})`);
+      }
+      const chunkDocuments = chunk.documents || [];
+      const vectors = base64ToFloat32(chunk.embeddingsPackedBase64);
+      if (vectors.length !== chunkDocuments.length * embeddingDim) {
+        throw new Error(`Primitive chunk byte length mismatch at offset ${chunk.offset}`);
+      }
+      mergedDocuments.push(...chunkDocuments);
+      packed.set(vectors, Number(chunk.offset) * embeddingDim);
+    }
+    if (mergedDocuments.length !== documents.length) {
+      throw new Error(`Primitive chunk document count mismatch (${mergedDocuments.length} !== ${documents.length})`);
+    }
+    for (let i = 0; i < mergedDocuments.length; i += 1) {
+      if (mergedDocuments[i].order !== i || mergedDocuments[i].primitiveId !== documents[i].primitiveId) {
+        throw new Error(`Primitive chunk order mismatch at ${i}`);
+      }
+    }
     const packedBytes = Buffer.from(packed.buffer, packed.byteOffset, packed.byteLength);
 
     const index = {
       schema: 'simulatte.primitiveEmbeddingIndex.v2',
       id: INDEX_ID,
       createdAt,
-      documentCount: documents.length,
+      documentCount: mergedDocuments.length,
       embeddingDim,
-      embedModelId: manifest.modelId,
-      embedModelHash: manifest.modelHash && typeof manifest.modelHash === 'object'
-        ? manifest.modelHash
-        : embedModelHash,
+      embedModelId: MODEL_ID,
+      embedModelHash,
       embedModelManifestHash: embedModelHash,
-      documents,
+      documents: mergedDocuments,
       embeddingsPackedBase64: packedBytes.toString('base64'),
     };
     index.indexHash = indexHash(index);
@@ -193,8 +282,38 @@ async function main() {
       bytes: Buffer.byteLength(stableStringify(index)),
     }, null, 2));
   } finally {
-    await model.unload().catch(() => {});
+    await fs.rm(chunkDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+function base64ToFloat32(base64) {
+  const bytes = Buffer.from(String(base64 || ''), 'base64');
+  return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+}
+
+function runChildChunk(offset, limit, chunkPath) {
+  return new Promise((resolve, reject) => {
+    console.log(`building primitive chunk offset=${offset} limit=${limit}`);
+    const child = spawn(process.execPath, [new URL(import.meta.url).pathname], {
+      cwd: ROOT,
+      env: {
+        ...process.env,
+        SIMULATTE_PRIMITIVE_CHILD: '1',
+        SIMULATTE_PRIMITIVE_OFFSET: String(offset),
+        SIMULATTE_PRIMITIVE_LIMIT: String(limit),
+        SIMULATTE_PRIMITIVE_CHUNK_OUT: chunkPath,
+      },
+      stdio: 'inherit',
+    });
+    child.on('error', reject);
+    child.on('exit', (code, signal) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      reject(new Error(`primitive chunk offset=${offset} failed with ${signal || code}`));
+    });
+  });
 }
 
 main()

@@ -1106,8 +1106,12 @@
     const groupEnd = typeof console.groupEnd === 'function' ? console.groupEnd.bind(console) : () => {};
     group(label);
     console.log('intent', spec.intent || null);
+    console.log('semanticRetrieval', spec.intent && spec.intent.universeMatches || null);
     console.log('promptParse', spec.promptParse || null);
     console.log('universeGraph', spec.universeGraph || null);
+    console.log('semanticGraph', spec.universeGraph && spec.universeGraph.semanticGraph || null);
+    console.log('affordanceGraph', spec.universeGraph && spec.universeGraph.affordanceGraph || null);
+    console.log('primitiveMapping', spec.universeGraph && spec.universeGraph.primitiveMapping || null);
     console.log('physicsIR', spec.physicsIR || null);
     console.log('validationReceipt', spec.validationReceipt || null);
     console.log('solverGraph', spec.solverGraph || null);
@@ -1776,7 +1780,7 @@
   }
 
   function paintGenericWorld(ctx, width, height, state, plan) {
-    drawPlanBackdrop(ctx, width, height, plan);
+    drawPlanBackdrop(ctx, width, height, plan, state);
     drawPlanFields(ctx, width, height, state, plan);
     drawMaterialContinuumField(ctx, width, height, state, plan);
     drawPlanRelations(ctx, width, height, state, plan);
@@ -1785,7 +1789,7 @@
   }
 
   function paintFireWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#2f211d', '#fff7ee', 24);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#2f211d', '#fff7ee', 24);
     drawHeatHaze(ctx, width, height, state, 0.54);
     drawFuelTerrain(ctx, width, height, state, plan);
     drawFireMoistureChannels(ctx, width, height, state, plan);
@@ -1796,7 +1800,7 @@
   }
 
   function paintOpticsWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#17263a', '#f7fbff', 208);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#17263a', '#f7fbff', 208);
     drawOpticalBenchRail(ctx, width, height, state);
     drawSpectralBeamTrace(ctx, width, height, state, plan);
     drawOpticalSurfaces(ctx, width, height, state, plan);
@@ -1805,7 +1809,7 @@
   }
 
   function paintCityWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#162826', '#f7fbfc', 172);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#162826', '#f7fbfc', 172);
     drawCityRouteGrid(ctx, width, height, state);
     drawNetworkField(ctx, width, height, state, plan);
     drawCityNodes(ctx, width, height, state, plan);
@@ -1814,7 +1818,7 @@
   }
 
   function paintWatershedWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#27311f', '#f4fbff', 194);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#27311f', '#f4fbff', 194);
     drawWatershedTerrain(ctx, width, height, state);
     drawWatershedRiver(ctx, width, height, state, plan);
     drawSedimentFan(ctx, width, height, state, plan);
@@ -1822,7 +1826,7 @@
   }
 
   function paintMagneticMachineWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#171d32', '#f8fbfa', 278);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#171d32', '#f8fbfa', 278);
     drawMachineRotorField(ctx, width, height, state, plan);
     drawMachineSolarInput(ctx, width, height, state, plan);
     drawMachineBodies(ctx, width, height, state, plan);
@@ -1831,7 +1835,7 @@
   }
 
   function paintMaterialTrayWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#2e271d', '#fbfcfa', 42);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#2e271d', '#fbfcfa', 42);
     drawMaterialTrayBase(ctx, width, height, state);
     drawMaterialSpecimens(ctx, width, height, state, plan);
     drawMaterialInteractionField(ctx, width, height, state, plan);
@@ -1839,7 +1843,7 @@
   }
 
   function paintBiologyWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#173021', '#fbf9ff', 116);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#173021', '#fbf9ff', 116);
     drawNutrientField(ctx, width, height, state);
     drawBiologicalBranches(ctx, width, height, state, plan);
     drawMembranePools(ctx, width, height, state, plan);
@@ -1847,7 +1851,7 @@
   }
 
   function paintAcousticWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#172333', '#f7fbfb', 196);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#172333', '#f7fbfb', 196);
     drawAcousticWaveguides(ctx, width, height, state);
     drawAcousticPressureFronts(ctx, width, height, state, plan);
     drawAcousticResonatorNodes(ctx, width, height, state, plan);
@@ -1856,7 +1860,7 @@
   }
 
   function paintFerrofluidWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#151b26', '#fbfaf7', 238);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#151b26', '#fbfaf7', 238);
     drawFerrofluidCoils(ctx, width, height, state, plan);
     drawFerrofluidSpikes(ctx, width, height, state, plan);
     drawFerrofluidDipoleDust(ctx, width, height, state, plan);
@@ -1864,7 +1868,7 @@
   }
 
   function paintThinFilmWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#1b2133', '#fff9fb', 302);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#1b2133', '#fff9fb', 302);
     drawThinFilmFrame(ctx, width, height, state, plan);
     drawInterferenceFilm(ctx, width, height, state, plan);
     drawBubbleLenses(ctx, width, height, state, plan);
@@ -1872,7 +1876,7 @@
   }
 
   function paintGranularWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#2f2419', '#f8fbf7', 38);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#2f2419', '#f8fbf7', 38);
     drawGranularSieve(ctx, width, height, state, plan);
     drawGranularStreams(ctx, width, height, state, plan);
     drawGranularPile(ctx, width, height, state, plan);
@@ -1880,7 +1884,7 @@
   }
 
   function paintThermalPlumeWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#30231e', '#f7fbff', 18);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#30231e', '#f7fbff', 18);
     drawCoolingFins(ctx, width, height, state, plan);
     drawThermalPlumeColumn(ctx, width, height, state, plan);
     drawSmokeShearLines(ctx, width, height, state, plan);
@@ -1888,14 +1892,14 @@
   }
 
   function paintMechanicalWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#202837', '#fbf8ef', 206);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#202837', '#fbf8ef', 206);
     drawMechanicalStage(ctx, width, height, state, plan);
     drawMechanicalImpulseField(ctx, width, height, state, plan);
     drawPlanObjects(ctx, width, height, state, plan);
   }
 
   function paintLiteralCompositeWorld(ctx, width, height, state, plan) {
-    paintSceneBackground(ctx, width, height, '#171523', '#f6fbf4', 148);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, '#171523', '#f6fbf4', 148);
     drawCompositeEnvironment(ctx, width, height, state, plan);
     drawCompositeStressField(ctx, width, height, state, plan);
     drawPlanObjects(ctx, width, height, state, plan);
@@ -2329,6 +2333,959 @@
       ctx.stroke();
     }
     ctx.restore();
+  }
+
+  function paintGenomeSceneBackground(ctx, width, height, state, plan, top, bottom, accentHue = 178) {
+    const genome = visualGenomeForPlan(plan);
+    const palette = genome.palette || {};
+    const contrast = finiteVisualNumber(palette.contrast, 0.68);
+    const lightness = finiteVisualNumber(palette.lightness, 0.52);
+    const hue = finiteVisualNumber(palette.hue, accentHue);
+    const accent = finiteVisualNumber(palette.accentHue, accentHue);
+    const shadow = finiteVisualNumber(palette.shadowHue, accentHue + 188);
+    const topColor = visualGenomeColor(shadow, 26 + contrast * 24, 13 + lightness * 13, 1);
+    const bottomColor = visualGenomeColor(hue, 24 + contrast * 30, 86 + lightness * 8, 1);
+    paintSceneBackground(ctx, width, height, topColor || top, bottomColor || bottom, accent);
+    drawGenomeTexture(ctx, width, height, state, genome);
+  }
+
+  function visualGenomeForPlan(plan = {}) {
+    const direct = plan.visualGenome ||
+      plan.rendererPlan && plan.rendererPlan.visualGenome ||
+      plan.provenance && plan.provenance.visualGenome;
+    if (direct && direct.schema === 'simulatte.visualGenome.v1') return direct;
+    const text = [
+      plan.intentText,
+      plan.name,
+      plan.rendererPlan && plan.rendererPlan.sceneKind,
+      plan.provenance && plan.provenance.signature,
+    ].filter(Boolean).join('|');
+    const seed = visualHash(text || 'simulatte-generic-world') || 1;
+    const hue = Math.round(visualUnit(seed, 1) * 360);
+    return {
+      schema: 'simulatte.visualGenome.v1',
+      id: `fallback_${seed.toString(36)}`,
+      seed,
+      palette: {
+        hue,
+        accentHue: normalizeVisualHue(hue + 136),
+        shadowHue: normalizeVisualHue(hue + 212),
+        contrast: 0.62,
+        lightness: 0.52,
+      },
+      morphology: {
+        layoutMode: 'field-map',
+        textureKind: 'contour-hatch',
+        strokeWeight: 1,
+        grain: 0.34,
+        bandCount: 8,
+        particleDensity: 32,
+        flowCurl: 0.42,
+        objectScale: 1,
+        fieldComplexity: 5,
+        asymmetry: 0.32,
+      },
+      motifs: ['fallback-field'],
+      promptDna: fallbackPromptDna(seed),
+    };
+  }
+
+  function drawGenomeTexture(ctx, width, height, state, genome) {
+    const morphology = genome.morphology || {};
+    const mode = morphology.layoutMode || 'field-map';
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    if (mode === 'network') drawGenomeNetworkTexture(ctx, width, height, state, genome);
+    else if (mode === 'section') drawGenomeSectionTexture(ctx, width, height, state, genome);
+    else if (mode === 'radial') drawGenomeRadialTexture(ctx, width, height, state, genome);
+    else if (mode === 'strata') drawGenomeStrataTexture(ctx, width, height, state, genome);
+    else drawGenomeContourTexture(ctx, width, height, state, genome);
+    drawPromptFingerprintTexture(ctx, width, height, state, genome);
+    drawSemanticWorldLayers(ctx, width, height, state, genome);
+    drawGenomeMotifMarks(ctx, width, height, state, genome);
+    ctx.restore();
+  }
+
+  function drawSemanticWorldLayers(ctx, width, height, state, genome) {
+    const semantic = semanticVisualPlanForGenome(genome);
+    const archetypes = semanticRows(semantic, 'archetypes').slice(0, 6);
+    const materials = semanticRows(semantic, 'materials').slice(0, 5);
+    const processes = semanticRows(semantic, 'processes').slice(0, 5);
+    if (!archetypes.length && !materials.length && !processes.length) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    archetypes.forEach((row, index) => drawSemanticArchetype(ctx, width, height, state, genome, row, index));
+    materials.forEach((row, index) => drawSemanticMaterialShader(ctx, width, height, state, genome, row, index));
+    processes.forEach((row, index) => drawSemanticProcessOverlay(ctx, width, height, state, genome, row, index));
+    ctx.restore();
+  }
+
+  function semanticVisualPlanForGenome(genome) {
+    const semantic = genome && genome.semanticVisuals;
+    return semantic && semantic.schema === 'simulatte.semanticVisualPlan.v1'
+      ? semantic
+      : { archetypes: [], materials: [], processes: [], overlays: [] };
+  }
+
+  function semanticRows(semantic, key) {
+    return semantic && Array.isArray(semantic[key]) ? semantic[key] : [];
+  }
+
+  function drawSemanticArchetype(ctx, width, height, state, genome, row, index) {
+    const family = String(row.family || row.overlay || '');
+    const hue = finiteVisualNumber(row.hue, genome.palette && genome.palette.accentHue || 180);
+    const alpha = semanticAlpha(row, 0.035, 0.11);
+    if (family === 'architecture') {
+      drawSemanticArchitecture(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'hydrology') {
+      drawSemanticHydrology(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'optics') {
+      drawSemanticOptics(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'electromagnetism' || family === 'electronics') {
+      drawSemanticCircuitFlux(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'biology' || family === 'ecology') {
+      drawSemanticBiology(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'granular' || family === 'geology') {
+      drawSemanticGranularGeology(ctx, width, height, state, hue, alpha, index, family);
+    } else if (family === 'acoustics') {
+      drawSemanticAcoustics(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'civic' || family === 'transport') {
+      drawSemanticRoutes(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'astronomy' || family === 'aerospace') {
+      drawSemanticOrbitSystem(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'weather' || family === 'thermal') {
+      drawSemanticWeatherShear(ctx, width, height, state, hue, alpha, index);
+    } else {
+      drawSemanticMachineCutaway(ctx, width, height, state, hue, alpha, index);
+    }
+  }
+
+  function drawSemanticMaterialShader(ctx, width, height, state, genome, row, index) {
+    const family = String(row.family || row.shader || '');
+    const hue = finiteVisualNumber(row.hue, genome.palette && genome.palette.hue || 180);
+    const alpha = semanticAlpha(row, 0.026, 0.092);
+    if (family === 'transparent' || family === 'ice') drawMaterialCausticShader(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'metal' || family === 'electric') drawMaterialMetalShader(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'biological' || family === 'organic') drawMaterialFibrousShader(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'fluid' || family === 'gel' || family === 'foam') drawMaterialFluidShader(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'thermal' || family === 'plasma') drawMaterialThermalShader(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'concrete' || family === 'mineral' || family === 'ceramic') {
+      drawMaterialAggregateShader(ctx, width, height, state, hue, alpha, index);
+    } else {
+      drawMaterialParticleShader(ctx, width, height, state, hue, alpha, index);
+    }
+  }
+
+  function drawSemanticProcessOverlay(ctx, width, height, state, genome, row, index) {
+    const family = String(row.family || row.overlay || '');
+    const hue = finiteVisualNumber(row.hue, genome.palette && genome.palette.accentHue || 180);
+    const alpha = semanticAlpha(row, 0.038, 0.12);
+    if (family === 'burn' || family === 'melt') drawProcessBurnMelt(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'flow' || family === 'erode' || family === 'pump') {
+      drawProcessFlow(ctx, width, height, state, hue, alpha, index);
+    } else if (family === 'growth') drawProcessGrowth(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'fracture' || family === 'collide') drawProcessFracture(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'queue' || family === 'sort') drawProcessQueue(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'focus') drawProcessFocus(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'levitate' || family === 'resonate') drawProcessLevitate(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'crystallize') drawProcessCrystallize(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'orbit') drawProcessOrbit(ctx, width, height, state, hue, alpha, index);
+    else drawProcessCharge(ctx, width, height, state, hue, alpha, index);
+  }
+
+  function semanticAlpha(row, base, max) {
+    const score = finiteVisualNumber(row && row.score, 0.72);
+    return Math.min(max, base + score * max * 0.72);
+  }
+
+  function drawSemanticArchitecture(ctx, width, height, state, hue, alpha, index) {
+    const baseX = width * (0.12 + index * 0.055);
+    const baseY = height * 0.72;
+    ctx.strokeStyle = `hsla(${hue}, 28%, 18%, ${alpha})`;
+    ctx.fillStyle = `hsla(${hue}, 18%, 36%, ${alpha * 0.36})`;
+    for (let block = 0; block < 5; block += 1) {
+      const w = width * (0.052 + block * 0.004);
+      const h = height * (0.18 + ((block + index) % 3) * 0.055);
+      const x = baseX + block * width * 0.064;
+      ctx.fillRect(x, baseY - h, w, h);
+      ctx.strokeRect(x, baseY - h, w, h);
+      for (let row = 0; row < 4; row += 1) {
+        for (let col = 0; col < 2; col += 1) {
+          const glow = 0.22 + Math.sin(state.t * 0.08 + row + col + block) * 0.12;
+          ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 44)}, 72%, 66%, ${alpha * glow})`;
+          ctx.fillRect(x + w * (0.22 + col * 0.34), baseY - h + h * (0.2 + row * 0.17), w * 0.14, h * 0.06);
+        }
+      }
+      ctx.fillStyle = `hsla(${hue}, 18%, 36%, ${alpha * 0.36})`;
+    }
+  }
+
+  function drawSemanticHydrology(ctx, width, height, state, hue, alpha, index) {
+    ctx.lineWidth = 2 + index * 0.35;
+    for (let band = 0; band < 5; band += 1) {
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + band * 8)}, 70%, 45%, ${alpha * (0.7 + band * 0.08)})`;
+      ctx.beginPath();
+      for (let step = 0; step <= 38; step += 1) {
+        const x = width * (0.06 + step / 38 * 0.88);
+        const y = height * (0.34 + band * 0.052 + index * 0.018) +
+          Math.sin(step * 0.42 + state.t * 0.14 + band) * height * 0.025;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawSemanticOptics(ctx, width, height, state, hue, alpha, index) {
+    const focusX = width * (0.62 + index * 0.035);
+    const focusY = height * (0.42 + Math.sin(state.t * 0.05 + index) * 0.04);
+    ctx.lineWidth = 1.4;
+    for (let ray = 0; ray < 9; ray += 1) {
+      const y = height * (0.22 + ray * 0.055);
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + ray * 19)}, 88%, 62%, ${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.08, y);
+      ctx.quadraticCurveTo(width * 0.36, y + Math.sin(ray + state.t * 0.08) * 12, focusX, focusY);
+      ctx.lineTo(width * 0.9, focusY + (ray - 4) * height * 0.028);
+      ctx.stroke();
+    }
+  }
+
+  function drawSemanticCircuitFlux(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 70%, 38%, ${alpha})`;
+    ctx.lineWidth = 1.2;
+    for (let trace = 0; trace < 8; trace += 1) {
+      const y = height * (0.18 + trace * 0.08);
+      const x0 = width * (0.14 + index * 0.028);
+      ctx.beginPath();
+      ctx.moveTo(x0, y);
+      ctx.lineTo(width * 0.32, y);
+      ctx.lineTo(width * 0.32, y + height * 0.036);
+      ctx.lineTo(width * (0.72 + Math.sin(trace + state.t * 0.05) * 0.03), y + height * 0.036);
+      ctx.stroke();
+      ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 72)}, 84%, 58%, ${alpha * 0.72})`;
+      ctx.beginPath();
+      ctx.arc(width * 0.32, y + height * 0.036, 2.2 + trace % 3, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  function drawSemanticBiology(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 62%, 34%, ${alpha})`;
+    ctx.lineWidth = 1.4;
+    const rootX = width * (0.28 + index * 0.08);
+    const rootY = height * 0.72;
+    for (let branch = 0; branch < 11; branch += 1) {
+      const angle = -Math.PI * (0.22 + branch * 0.045) + Math.sin(state.t * 0.04 + branch) * 0.08;
+      const len = height * (0.12 + (branch % 4) * 0.025);
+      ctx.beginPath();
+      ctx.moveTo(rootX, rootY);
+      ctx.bezierCurveTo(
+        rootX + Math.cos(angle) * len * 0.45,
+        rootY + Math.sin(angle) * len * 0.45,
+        rootX + Math.cos(angle) * len * 0.74,
+        rootY + Math.sin(angle) * len * 0.86,
+        rootX + Math.cos(angle) * len,
+        rootY + Math.sin(angle) * len
+      );
+      ctx.stroke();
+    }
+  }
+
+  function drawSemanticGranularGeology(ctx, width, height, state, hue, alpha, index, family) {
+    ctx.fillStyle = `hsla(${hue}, 54%, 42%, ${alpha})`;
+    const count = family === 'geology' ? 24 : 52;
+    for (let i = 0; i < count; i += 1) {
+      const x = width * (0.12 + visualUnit(`${hue}:${index}:${i}`, 1) * 0.76);
+      const y = height * (0.42 + visualUnit(`${hue}:${index}:${i}`, 2) * 0.38);
+      const size = family === 'geology' ? 4 + (i % 5) * 2.2 : 1.8 + (i % 4);
+      ctx.beginPath();
+      if (family === 'geology') {
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x + size, y);
+        ctx.lineTo(x, y + size);
+        ctx.lineTo(x - size, y);
+        ctx.closePath();
+      } else {
+        ctx.arc(x + Math.sin(state.t * 0.08 + i) * 2, y, size, 0, TAU);
+      }
+      ctx.fill();
+    }
+  }
+
+  function drawSemanticAcoustics(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 70%, 44%, ${alpha})`;
+    ctx.lineWidth = 1.2;
+    const cx = width * (0.42 + index * 0.06);
+    const cy = height * 0.5;
+    for (let ring = 0; ring < 9; ring += 1) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, width * (0.05 + ring * 0.035), height * (0.025 + ring * 0.018), 0, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawSemanticRoutes(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 58%, 32%, ${alpha})`;
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 70)}, 74%, 48%, ${alpha})`;
+    ctx.lineWidth = 1.1;
+    for (let row = 0; row < 5; row += 1) {
+      const y = height * (0.22 + row * 0.12);
+      ctx.beginPath();
+      ctx.moveTo(width * 0.12, y);
+      ctx.lineTo(width * 0.86, y + Math.sin(state.t * 0.04 + row + index) * height * 0.012);
+      ctx.stroke();
+      for (let node = 0; node < 6; node += 1) {
+        const x = width * (0.16 + node * 0.13);
+        ctx.fillRect(x - 2.4, y - 2.4, 4.8, 4.8);
+      }
+    }
+  }
+
+  function drawSemanticOrbitSystem(ctx, width, height, state, hue, alpha, index) {
+    const cx = width * (0.58 + index * 0.035);
+    const cy = height * 0.36;
+    ctx.strokeStyle = `hsla(${hue}, 66%, 46%, ${alpha})`;
+    ctx.lineWidth = 1.2;
+    for (let ring = 0; ring < 5; ring += 1) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, width * (0.12 + ring * 0.045), height * (0.034 + ring * 0.018), ring * 0.26, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 76)}, 88%, 64%, ${alpha * 1.3})`;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(state.t * 0.12 + index) * width * 0.18, cy + Math.sin(state.t * 0.12 + index) * height * 0.05, 4, 0, TAU);
+    ctx.fill();
+  }
+
+  function drawSemanticWeatherShear(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 50%, 36%, ${alpha})`;
+    ctx.lineWidth = 1.3;
+    for (let band = 0; band < 9; band += 1) {
+      ctx.beginPath();
+      for (let step = 0; step <= 30; step += 1) {
+        const x = width * (0.08 + step / 30 * 0.84);
+        const y = height * (0.18 + band * 0.06) + Math.sin(step * 0.55 + state.t * 0.09 + band) * height * 0.018;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawSemanticMachineCutaway(ctx, width, height, state, hue, alpha, index) {
+    const cx = width * (0.44 + index * 0.05);
+    const cy = height * 0.55;
+    ctx.strokeStyle = `hsla(${hue}, 42%, 28%, ${alpha})`;
+    ctx.lineWidth = 1.5;
+    for (let gear = 0; gear < 4; gear += 1) {
+      const r = Math.min(width, height) * (0.035 + gear * 0.01);
+      const x = cx + gear * width * 0.07;
+      ctx.beginPath();
+      for (let tooth = 0; tooth < 16; tooth += 1) {
+        const a = tooth / 16 * TAU + state.t * 0.04 * (gear % 2 ? -1 : 1);
+        const rr = r * (tooth % 2 ? 1 : 1.18);
+        const px = x + Math.cos(a) * rr;
+        const py = cy + Math.sin(a) * rr;
+        if (!tooth) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+
+  function drawMaterialCausticShader(ctx, width, height, state, hue, alpha, index) {
+    ctx.globalCompositeOperation = 'screen';
+    ctx.lineWidth = 1.1;
+    for (let rib = 0; rib < 10; rib += 1) {
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + rib * 22)}, 92%, 68%, ${alpha})`;
+      ctx.beginPath();
+      const y = height * (0.18 + rib * 0.058);
+      for (let step = 0; step <= 28; step += 1) {
+        const x = width * (0.12 + step / 28 * 0.76);
+        const yy = y + Math.sin(step * 0.72 + state.t * 0.08 + rib + index) * height * 0.018;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  function drawMaterialMetalShader(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 34%, 34%, ${alpha})`;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 18; i += 1) {
+      const x = width * (0.1 + i * 0.046);
+      const y = height * (0.2 + ((i + index) % 9) * 0.07);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + width * 0.08, y - height * 0.044 + Math.sin(state.t * 0.05 + i) * 3);
+      ctx.stroke();
+    }
+  }
+
+  function drawMaterialFibrousShader(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 58%, 35%, ${alpha})`;
+    ctx.lineWidth = 0.9;
+    for (let strand = 0; strand < 36; strand += 1) {
+      const x = width * (0.12 + visualUnit(`${hue}:fiber:${index}:${strand}`, 1) * 0.76);
+      const y = height * (0.24 + visualUnit(`${hue}:fiber:${index}:${strand}`, 2) * 0.52);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.bezierCurveTo(
+        x + Math.sin(strand) * width * 0.018,
+        y - height * 0.026,
+        x + Math.cos(strand) * width * 0.03,
+        y - height * 0.06,
+        x + Math.sin(state.t * 0.04 + strand) * width * 0.032,
+        y - height * 0.096
+      );
+      ctx.stroke();
+    }
+  }
+
+  function drawMaterialFluidShader(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 72%, 42%, ${alpha})`;
+    ctx.lineWidth = 1.1;
+    for (let ring = 0; ring < 18; ring += 1) {
+      const x = width * (0.14 + visualUnit(`${hue}:fluid:${index}:${ring}`, 1) * 0.72);
+      const y = height * (0.22 + visualUnit(`${hue}:fluid:${index}:${ring}`, 2) * 0.55);
+      const r = Math.min(width, height) * (0.01 + (ring % 4) * 0.006);
+      ctx.beginPath();
+      ctx.ellipse(x, y, r * 1.7, r * (0.7 + Math.sin(state.t * 0.08 + ring) * 0.12), 0, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawMaterialThermalShader(ctx, width, height, state, hue, alpha, index) {
+    ctx.globalCompositeOperation = 'screen';
+    for (let ember = 0; ember < 38; ember += 1) {
+      const x = width * (0.12 + visualUnit(`${hue}:heat:${index}:${ember}`, 1) * 0.76);
+      const y = height * (0.28 + visualUnit(`${hue}:heat:${index}:${ember}`, 2) * 0.52) -
+        Math.sin(state.t * 0.08 + ember) * height * 0.018;
+      const r = 1.4 + ember % 5;
+      ctx.fillStyle = `hsla(${normalizeVisualHue(hue + ember * 4)}, 94%, 58%, ${alpha * 0.8})`;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  function drawMaterialAggregateShader(ctx, width, height, state, hue, alpha, index) {
+    ctx.fillStyle = `hsla(${hue}, 20%, 35%, ${alpha})`;
+    for (let chip = 0; chip < 70; chip += 1) {
+      const x = width * (0.08 + visualUnit(`${hue}:aggregate:${index}:${chip}`, 1) * 0.84);
+      const y = height * (0.18 + visualUnit(`${hue}:aggregate:${index}:${chip}`, 2) * 0.66);
+      const r = 1.5 + visualUnit(`${hue}:aggregate:${index}:${chip}`, 3) * 4.5;
+      ctx.beginPath();
+      ctx.rect(x - r * 0.5, y - r * 0.35, r, r * 0.7);
+      ctx.fill();
+    }
+  }
+
+  function drawMaterialParticleShader(ctx, width, height, state, hue, alpha, index) {
+    ctx.fillStyle = `hsla(${hue}, 58%, 42%, ${alpha})`;
+    for (let dot = 0; dot < 56; dot += 1) {
+      const x = width * (0.12 + visualUnit(`${hue}:particle:${index}:${dot}`, 1) * 0.76);
+      const y = height * (0.22 + visualUnit(`${hue}:particle:${index}:${dot}`, 2) * 0.56);
+      ctx.fillRect(x, y, 1.5 + dot % 3, 1.5 + dot % 3);
+    }
+  }
+
+  function drawProcessBurnMelt(ctx, width, height, state, hue, alpha, index) {
+    ctx.globalCompositeOperation = 'screen';
+    for (let flame = 0; flame < 8; flame += 1) {
+      const x = width * (0.2 + flame * 0.075 + index * 0.018);
+      const base = height * 0.72;
+      const h = height * (0.08 + (flame % 4) * 0.024);
+      ctx.fillStyle = `hsla(${normalizeVisualHue(hue + flame * 8)}, 96%, 58%, ${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(x - width * 0.015, base);
+      ctx.bezierCurveTo(x - width * 0.01, base - h * 0.5, x + Math.sin(state.t * 0.12 + flame) * width * 0.025, base - h, x, base - h * 1.22);
+      ctx.bezierCurveTo(x + width * 0.026, base - h * 0.52, x + width * 0.016, base - h * 0.18, x - width * 0.015, base);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  function drawProcessFlow(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 72%, 42%, ${alpha})`;
+    ctx.lineWidth = 1.5;
+    for (let stream = 0; stream < 7; stream += 1) {
+      ctx.beginPath();
+      for (let step = 0; step <= 26; step += 1) {
+        const x = width * (0.12 + step / 26 * 0.76);
+        const y = height * (0.26 + stream * 0.07) + Math.sin(step * 0.5 + state.t * 0.16 + stream + index) * height * 0.018;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawProcessGrowth(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 64%, 34%, ${alpha})`;
+    ctx.lineWidth = 1.2;
+    for (let sprout = 0; sprout < 12; sprout += 1) {
+      const x = width * (0.18 + sprout * 0.055);
+      const y = height * (0.7 - (sprout % 4) * 0.035);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + Math.sin(state.t * 0.05 + sprout) * width * 0.02, y - height * 0.055, x + width * 0.012, y - height * 0.095);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(x + width * 0.018, y - height * 0.06, width * 0.012, height * 0.007, -0.5, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawProcessFracture(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 34%, 18%, ${alpha})`;
+    ctx.lineWidth = 1.4;
+    for (let crack = 0; crack < 11; crack += 1) {
+      const x = width * (0.18 + visualUnit(`${hue}:crack:${index}:${crack}`, 1) * 0.62);
+      const y = height * (0.2 + visualUnit(`${hue}:crack:${index}:${crack}`, 2) * 0.54);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      for (let kink = 1; kink <= 4; kink += 1) {
+        ctx.lineTo(x + Math.sin(kink * crack + index) * width * 0.035, y + kink * height * 0.032);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawProcessQueue(ctx, width, height, state, hue, alpha, index) {
+    ctx.fillStyle = `hsla(${hue}, 68%, 42%, ${alpha})`;
+    for (let lane = 0; lane < 5; lane += 1) {
+      for (let node = 0; node < 9; node += 1) {
+        const phase = (state.t * 0.04 + node * 0.12 + lane * 0.05 + index) % 1;
+        const x = width * (0.16 + ((node + phase) % 9) * 0.075);
+        const y = height * (0.3 + lane * 0.08);
+        ctx.fillRect(x - 3, y - 3, 6, 6);
+      }
+    }
+  }
+
+  function drawProcessFocus(ctx, width, height, state, hue, alpha, index) {
+    const fx = width * (0.64 + index * 0.025);
+    const fy = height * 0.46;
+    ctx.strokeStyle = `hsla(${hue}, 92%, 58%, ${alpha})`;
+    ctx.lineWidth = 1.1;
+    for (let ray = 0; ray < 12; ray += 1) {
+      ctx.beginPath();
+      ctx.moveTo(width * 0.08, height * (0.18 + ray * 0.052));
+      ctx.lineTo(fx, fy);
+      ctx.stroke();
+    }
+  }
+
+  function drawProcessLevitate(ctx, width, height, state, hue, alpha, index) {
+    ctx.fillStyle = `hsla(${hue}, 76%, 50%, ${alpha})`;
+    ctx.strokeStyle = `hsla(${hue}, 58%, 32%, ${alpha * 0.7})`;
+    for (let grain = 0; grain < 34; grain += 1) {
+      const x = width * (0.2 + visualUnit(`${hue}:hover:${index}:${grain}`, 1) * 0.6);
+      const y = height * (0.28 + visualUnit(`${hue}:hover:${index}:${grain}`, 2) * 0.34) + Math.sin(state.t * 0.13 + grain) * 8;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5 + grain % 4, 0, TAU);
+      ctx.fill();
+    }
+    for (let band = 0; band < 5; band += 1) {
+      ctx.beginPath();
+      ctx.ellipse(width * 0.5, height * (0.35 + band * 0.065), width * 0.28, height * 0.018, 0, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawProcessCrystallize(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 70%, 45%, ${alpha})`;
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 46)}, 72%, 62%, ${alpha * 0.32})`;
+    for (let crystal = 0; crystal < 14; crystal += 1) {
+      const x = width * (0.18 + visualUnit(`${hue}:crystal:${index}:${crystal}`, 1) * 0.64);
+      const y = height * (0.28 + visualUnit(`${hue}:crystal:${index}:${crystal}`, 2) * 0.42);
+      const r = 5 + crystal % 6;
+      ctx.beginPath();
+      ctx.moveTo(x, y - r * 1.5);
+      ctx.lineTo(x + r, y);
+      ctx.lineTo(x, y + r * 1.5);
+      ctx.lineTo(x - r, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  function drawProcessOrbit(ctx, width, height, state, hue, alpha, index) {
+    drawSemanticOrbitSystem(ctx, width, height, state, hue, alpha, index + 1);
+  }
+
+  function drawProcessCharge(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 86%, 48%, ${alpha})`;
+    ctx.lineWidth = 1.4;
+    for (let bolt = 0; bolt < 10; bolt += 1) {
+      const x = width * (0.18 + bolt * 0.07);
+      const y = height * (0.24 + ((bolt + index) % 6) * 0.08);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + width * 0.018, y + height * 0.028);
+      ctx.lineTo(x - width * 0.004, y + height * 0.028);
+      ctx.lineTo(x + width * 0.024, y + height * 0.07);
+      ctx.stroke();
+    }
+  }
+
+  function drawPromptFingerprintTexture(ctx, width, height, state, genome) {
+    const rows = promptDnaRows(genome).slice(0, 32);
+    if (!rows.length) return;
+    const dna = genome.promptDna || {};
+    const morphology = genome.morphology || {};
+    const laneBias = Math.round(finiteVisualNumber(dna.laneBias, 0));
+    const density = finiteVisualNumber(dna.densityBias, 1);
+    const scale = Math.min(width, height);
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.lineWidth = Math.max(0.8, finiteVisualNumber(morphology.strokeWeight, 1) * 0.85);
+    for (let lane = 0; lane < 7; lane += 1) {
+      const y = height * (0.13 + lane * 0.12);
+      const hue = normalizeVisualHue((genome.palette && genome.palette.hue || 180) + lane * 37 + laneBias * 9);
+      ctx.strokeStyle = `hsla(${hue}, 38%, 28%, ${0.02 + density * 0.006})`;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.06, y);
+      ctx.lineTo(width * 0.94, y + Math.sin(lane * 0.9 + state.t * 0.025) * height * 0.01);
+      ctx.stroke();
+    }
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      const n = Math.max(1, Math.min(3, Number(row.n) || 1));
+      const lane = (Number(row.lane) + laneBias + 14) % 7;
+      const column = (Number(row.index) * 3 + n + Math.round(visualUnit(row.hash || genome.seed, 5) * 8)) % 11;
+      const x = width * (0.08 + column * 0.082) + (visualUnit(row.hash || genome.seed, 7) - 0.5) * width * 0.045;
+      const y = height * (0.13 + lane * 0.12) + (n - 2) * height * 0.025;
+      const weight = finiteVisualNumber(row.weight, 0.72);
+      const size = scale * (0.013 + n * 0.004 + weight * 0.012);
+      const hue = normalizeVisualHue(Number(row.hue) || row.hash || genome.seed);
+      const angle = visualUnit(row.hash || genome.seed, 11) * TAU + state.t * 0.012 * n;
+      const alpha = Math.min(0.18, 0.045 + n * 0.026 + density * 0.014);
+      drawPromptDnaMark(ctx, Number(row.mark) || 0, x, y, size, angle, hue, alpha);
+      if (index > 0 && index % 2 === 0) {
+        const previous = rows[index - 1];
+        const px = width * (0.08 + ((Number(previous.index) * 3 + previous.n) % 11) * 0.082);
+        const py = height * (0.13 + ((Number(previous.lane) + laneBias + 14) % 7) * 0.12);
+        ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + 48)}, 56%, 38%, ${alpha * 0.42})`;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.quadraticCurveTo((px + x) * 0.5, (py + y) * 0.5 - height * 0.035 * n, x, y);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function promptDnaRows(genome) {
+    const rows = genome && genome.promptDna && Array.isArray(genome.promptDna.ngrams)
+      ? genome.promptDna.ngrams
+      : [];
+    return rows.length ? rows : fallbackPromptDna(genome && genome.seed || 1).ngrams;
+  }
+
+  function fallbackPromptDna(seed) {
+    const rows = [];
+    for (let index = 0; index < 9; index += 1) {
+      const hash = visualHash(`${seed}:fallback:${index}`);
+      rows.push({
+        text: `fallback-${index}`,
+        n: index % 3 + 1,
+        index,
+        hash,
+        lane: hash % 7,
+        mark: hash % 9,
+        hue: normalizeVisualHue(hash),
+        weight: 0.55 + visualUnit(hash, 3) * 0.42,
+      });
+    }
+    return {
+      schema: 'simulatte.promptVisualDna.v1',
+      hash: visualHash(rows.map((row) => row.hash).join('|')),
+      tokenCount: 1,
+      ngramCount: rows.length,
+      ngrams: rows,
+      paletteShift: 0,
+      densityBias: 1,
+      laneBias: 0,
+    };
+  }
+
+  function drawPromptDnaMark(ctx, mark, x, y, size, angle, hue, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.strokeStyle = `hsla(${hue}, 72%, 42%, ${alpha})`;
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 44)}, 84%, 58%, ${alpha * 0.38})`;
+    ctx.lineWidth = Math.max(0.8, size * 0.09);
+    const kind = ((mark % 9) + 9) % 9;
+    if (kind === 0) {
+      ctx.strokeRect(-size * 0.6, -size * 0.35, size * 1.2, size * 0.7);
+    } else if (kind === 1) {
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.54, 0, TAU);
+      ctx.stroke();
+    } else if (kind === 2) {
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.65, size * 0.42);
+      ctx.lineTo(0, -size * 0.58);
+      ctx.lineTo(size * 0.65, size * 0.42);
+      ctx.closePath();
+      ctx.stroke();
+    } else if (kind === 3) {
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.7, 0);
+      ctx.lineTo(-size * 0.18, -size * 0.42);
+      ctx.lineTo(size * 0.18, size * 0.42);
+      ctx.lineTo(size * 0.7, 0);
+      ctx.stroke();
+    } else if (kind === 4) {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 0.72, size * 0.32, 0, 0, TAU);
+      ctx.stroke();
+    } else if (kind === 5) {
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.62, -size * 0.5);
+      ctx.lineTo(size * 0.62, size * 0.5);
+      ctx.moveTo(size * 0.62, -size * 0.5);
+      ctx.lineTo(-size * 0.62, size * 0.5);
+      ctx.stroke();
+    } else if (kind === 6) {
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.72, -size * 0.22);
+      ctx.bezierCurveTo(-size * 0.26, -size * 0.72, size * 0.26, size * 0.72, size * 0.72, size * 0.22);
+      ctx.stroke();
+    } else if (kind === 7) {
+      for (let spoke = 0; spoke < 5; spoke += 1) {
+        const a = spoke * TAU / 5;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * size * 0.18, Math.sin(a) * size * 0.18);
+        ctx.lineTo(Math.cos(a) * size * 0.72, Math.sin(a) * size * 0.72);
+        ctx.stroke();
+      }
+    } else {
+      ctx.fillRect(-size * 0.42, -size * 0.42, size * 0.84, size * 0.84);
+      ctx.strokeRect(-size * 0.42, -size * 0.42, size * 0.84, size * 0.84);
+    }
+    ctx.restore();
+  }
+
+  function drawGenomeStrataTexture(ctx, width, height, state, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.accentHue, 178);
+    const morphology = genome.morphology || {};
+    const bands = Math.max(5, Math.min(18, Math.round(morphology.bandCount || 8)));
+    const curl = finiteVisualNumber(morphology.flowCurl, 0.4);
+    ctx.lineWidth = Math.max(0.8, finiteVisualNumber(morphology.strokeWeight, 1));
+    for (let band = 0; band < bands; band += 1) {
+      const y = height * (0.14 + band / Math.max(1, bands - 1) * 0.74);
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + band * 9)}, 62%, 38%, ${0.035 + band * 0.002})`;
+      ctx.beginPath();
+      for (let step = 0; step <= 34; step += 1) {
+        const x = width * (step / 34);
+        const noise = visualNoise(genome, 101 + band, step) - 0.5;
+        const yy = y + Math.sin(step * 0.62 + state.t * 0.12 + band) * height * 0.008 * curl + noise * height * 0.018;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawGenomeNetworkTexture(ctx, width, height, state, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.accentHue, 178);
+    const morphology = genome.morphology || {};
+    const cols = Math.max(4, Math.min(11, Math.round(4 + finiteVisualNumber(morphology.fieldComplexity, 5))));
+    const rows = Math.max(3, Math.min(8, Math.round(cols * 0.68)));
+    ctx.lineWidth = Math.max(0.8, finiteVisualNumber(morphology.strokeWeight, 1));
+    ctx.strokeStyle = `hsla(${hue}, 62%, 34%, 0.05)`;
+    for (let col = 0; col < cols; col += 1) {
+      const x = width * (0.08 + col / Math.max(1, cols - 1) * 0.84);
+      ctx.beginPath();
+      ctx.moveTo(x, height * 0.08);
+      ctx.lineTo(x + Math.sin(col * 1.7 + state.t * 0.05) * width * 0.018, height * 0.92);
+      ctx.stroke();
+    }
+    for (let row = 0; row < rows; row += 1) {
+      const y = height * (0.12 + row / Math.max(1, rows - 1) * 0.76);
+      ctx.beginPath();
+      ctx.moveTo(width * 0.06, y);
+      ctx.lineTo(width * 0.94, y + Math.cos(row * 1.4 + state.t * 0.05) * height * 0.012);
+      ctx.stroke();
+    }
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 82)}, 64%, 54%, 0.055)`;
+    for (let i = 0; i < cols * rows; i += 3) {
+      const col = i % cols;
+      const row = Math.floor(i / cols) % rows;
+      const size = 2 + visualNoise(genome, 131, i) * 4;
+      const x = width * (0.08 + col / Math.max(1, cols - 1) * 0.84);
+      const y = height * (0.12 + row / Math.max(1, rows - 1) * 0.76);
+      ctx.fillRect(x - size * 0.5, y - size * 0.5, size, size);
+    }
+  }
+
+  function drawGenomeSectionTexture(ctx, width, height, state, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.accentHue, 178);
+    const bands = Math.max(5, Math.min(14, genome.morphology && genome.morphology.bandCount || 8));
+    ctx.lineWidth = Math.max(1, finiteVisualNumber(genome.morphology && genome.morphology.strokeWeight, 1));
+    for (let i = 0; i < bands; i += 1) {
+      const x = width * (0.1 + i / Math.max(1, bands - 1) * 0.8);
+      const top = height * (0.16 + visualNoise(genome, 151, i) * 0.18);
+      const bottom = height * (0.72 + visualNoise(genome, 157, i) * 0.16);
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + i * 13)}, 48%, 32%, 0.048)`;
+      ctx.beginPath();
+      ctx.moveTo(x, top);
+      ctx.lineTo(x + Math.sin(i + state.t * 0.04) * width * 0.012, bottom);
+      ctx.stroke();
+      if (i % 2 === 0) {
+        ctx.strokeRect(x - width * 0.018, top + height * 0.04, width * 0.036, height * 0.026);
+      }
+    }
+  }
+
+  function drawGenomeRadialTexture(ctx, width, height, state, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.accentHue, 178);
+    const count = Math.max(9, Math.min(26, finiteVisualNumber(genome.morphology && genome.morphology.particleDensity, 36) * 0.32));
+    const cx = width * (0.36 + visualNoise(genome, 167, 1) * 0.28);
+    const cy = height * (0.32 + visualNoise(genome, 173, 1) * 0.24);
+    ctx.lineWidth = Math.max(0.8, finiteVisualNumber(genome.morphology && genome.morphology.strokeWeight, 1));
+    for (let i = 0; i < count; i += 1) {
+      const angle = i / count * TAU + visualNoise(genome, 179, i) * 0.16 + state.t * 0.006;
+      const inner = Math.min(width, height) * (0.04 + visualNoise(genome, 181, i) * 0.08);
+      const outer = Math.min(width, height) * (0.32 + visualNoise(genome, 191, i) * 0.34);
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + i * 11)}, 72%, 54%, 0.035)`;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
+      ctx.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
+      ctx.stroke();
+    }
+  }
+
+  function drawGenomeContourTexture(ctx, width, height, state, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.accentHue, 178);
+    const count = Math.max(7, Math.min(18, genome.morphology && genome.morphology.bandCount || 9));
+    ctx.lineWidth = Math.max(0.8, finiteVisualNumber(genome.morphology && genome.morphology.strokeWeight, 1));
+    for (let ring = 0; ring < count; ring += 1) {
+      const y = height * (0.16 + ring * 0.052);
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + ring * 7)}, 58%, 34%, ${0.032 + ring * 0.002})`;
+      ctx.beginPath();
+      for (let step = 0; step <= 40; step += 1) {
+        const x = width * (0.04 + step / 40 * 0.92);
+        const yy = y + Math.sin(step * 0.5 + ring * 0.7 + state.t * 0.04) * height * 0.014;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawGenomeMotifMarks(ctx, width, height, state, genome) {
+    const motifs = Array.isArray(genome.motifs) ? genome.motifs : [];
+    if (motifs.includes('architectural-grid')) drawGenomeArchitectureMarks(ctx, width, height, genome);
+    if (motifs.includes('ember-shear')) drawGenomeEmberShear(ctx, width, height, state, genome);
+    if (motifs.includes('caustic-ribs') || motifs.includes('ray-stack')) drawGenomeCausticRibs(ctx, width, height, state, genome);
+    if (motifs.includes('fracture-lines')) drawGenomeFractureMarks(ctx, width, height, genome);
+  }
+
+  function drawGenomeArchitectureMarks(ctx, width, height, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.shadowHue, 218);
+    const cols = 5 + Math.round(visualNoise(genome, 211, 1) * 5);
+    const rows = 3 + Math.round(visualNoise(genome, 223, 1) * 4);
+    ctx.strokeStyle = `hsla(${hue}, 34%, 18%, 0.065)`;
+    ctx.lineWidth = 1;
+    for (let col = 0; col < cols; col += 1) {
+      for (let row = 0; row < rows; row += 1) {
+        const x = width * (0.1 + col * 0.8 / cols);
+        const y = height * (0.16 + row * 0.46 / rows);
+        ctx.strokeRect(x, y, width * 0.034, height * 0.026);
+      }
+    }
+  }
+
+  function drawGenomeEmberShear(ctx, width, height, state, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.hue, 24);
+    const count = Math.max(12, Math.min(54, finiteVisualNumber(genome.morphology && genome.morphology.particleDensity, 32)));
+    ctx.lineWidth = 1.1;
+    for (let i = 0; i < count; i += 1) {
+      const x = width * (0.12 + visualNoise(genome, 229, i) * 0.76);
+      const y = height * (0.28 + visualNoise(genome, 233, i) * 0.56);
+      const drift = Math.sin(state.t * 0.16 + i) * 5;
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + i * 5)}, 86%, 62%, ${0.035 + visualNoise(genome, 239, i) * 0.05})`;
+      ctx.beginPath();
+      ctx.moveTo(x + drift, y);
+      ctx.lineTo(x + drift + width * 0.018, y - height * 0.026);
+      ctx.stroke();
+    }
+  }
+
+  function drawGenomeCausticRibs(ctx, width, height, state, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.accentHue, 208);
+    ctx.lineWidth = 1.2;
+    for (let i = 0; i < 9; i += 1) {
+      const y = height * (0.18 + i * 0.067);
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + i * 18)}, 86%, 62%, 0.044)`;
+      ctx.beginPath();
+      for (let step = 0; step <= 20; step += 1) {
+        const x = width * (0.12 + step * 0.04);
+        const yy = y + Math.sin(step * 0.8 + state.t * 0.08 + i) * height * 0.018;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawGenomeFractureMarks(ctx, width, height, genome) {
+    const hue = finiteVisualNumber(genome.palette && genome.palette.shadowHue, 220);
+    ctx.strokeStyle = `hsla(${hue}, 46%, 20%, 0.07)`;
+    ctx.lineWidth = 1.4;
+    for (let i = 0; i < 8; i += 1) {
+      const x = width * (0.18 + visualNoise(genome, 251, i) * 0.64);
+      const y = height * (0.18 + visualNoise(genome, 257, i) * 0.58);
+      const angle = visualNoise(genome, 263, i) * TAU;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(angle) * width * 0.08, y + Math.sin(angle) * height * 0.06);
+      ctx.stroke();
+    }
+  }
+
+  function visualGenomeColor(hue, saturation, lightness, alpha = 1) {
+    if (![hue, saturation, lightness, alpha].every(Number.isFinite)) return '';
+    return `hsla(${normalizeVisualHue(hue)}, ${Math.round(saturation)}%, ${Math.round(lightness)}%, ${alpha})`;
+  }
+
+  function visualNoise(genome, salt, index) {
+    const seed = Number(genome && genome.seed) || 1;
+    return hashNoise(seed + salt * 1009, index + salt * 37);
+  }
+
+  function visualUnit(seed, salt) {
+    return visualHash(`${seed}:${salt}`) / 4294967295;
+  }
+
+  function visualHash(value) {
+    let hash = 2166136261;
+    const text = String(value || '');
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function normalizeVisualHue(value) {
+    return ((Math.round(value) % 360) + 360) % 360;
+  }
+
+  function finiteVisualNumber(value, fallback) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
   }
 
   function paintSceneBackground(ctx, width, height, top, bottom, accentHue = 178) {
@@ -3173,7 +4130,7 @@
     return planPoseCenter(object && object.pose || {}, width, height);
   }
 
-  function drawPlanBackdrop(ctx, width, height, plan) {
+  function drawPlanBackdrop(ctx, width, height, plan, state = { t: 0 }) {
     ctx.save();
     const signature = String(plan.provenance && plan.provenance.signature || '');
     const thermal = /flame|fuel|plume/.test(signature);
@@ -3182,7 +4139,7 @@
     const top = thermal ? '#2f211d' : optical ? '#17263a' : network ? '#162826' : '#182723';
     const bottom = network ? '#f8fbfb' : '#f9fcfb';
     const accentHue = thermal ? 24 : optical ? 208 : network ? 172 : 156;
-    paintSceneBackground(ctx, width, height, top, bottom, accentHue);
+    paintGenomeSceneBackground(ctx, width, height, state, plan, top, bottom, accentHue);
     ctx.strokeStyle = `hsla(${accentHue}, 58%, 22%, 0.16)`;
     ctx.lineWidth = 1;
     const spacing = Math.max(28, Math.min(width, height) / 12);
@@ -3224,15 +4181,20 @@
   }
 
   function drawMaterialContinuumField(ctx, width, height, state, plan) {
+    const genome = visualGenomeForPlan(plan);
+    const morphology = genome.morphology || {};
+    const fieldComplexity = finiteVisualNumber(morphology.fieldComplexity, 5);
+    const density = finiteVisualNumber(morphology.particleDensity, 32);
+    const objectLimit = Math.max(8, Math.min(16, Math.round(6 + fieldComplexity + density / 28)));
     const objects = visiblePlanObjects(plan).filter((object) => (
       object.shape !== 'body' && object.shape !== 'field-envelope'
-    )).slice(0, 12);
+    )).slice(0, objectLimit);
     if (!objects.length) return;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     for (let i = 0; i < objects.length; i += 1) {
       const object = objects[i];
-      const extent = objectExtent(object, width, height);
+      const extent = objectExtentWithVisualGenome(object, width, height, plan, i);
       if (!extent) continue;
       const family = materialFamily(object);
       if (family === 'thermal') drawThermalContinuum(ctx, extent, state, object, i);
@@ -3266,6 +4228,30 @@
       r: Math.max(12, r),
       rotation: pose.rotation || 0,
       points: Array.isArray(pose.points) ? pose.points.map((point) => ({ x: point[0] * width, y: point[1] * height })) : null,
+    };
+  }
+
+  function objectExtentWithVisualGenome(object, width, height, plan, index) {
+    const extent = objectExtent(object, width, height);
+    if (!extent) return null;
+    const genome = visualGenomeForPlan(plan);
+    const morphology = genome.morphology || {};
+    const asymmetry = finiteVisualNumber(morphology.asymmetry, 0.32);
+    const baseScale = finiteVisualNumber(morphology.objectScale, 1);
+    const literalBoost = isConcreteShape(object && object.shape) ? 1 : 0.74;
+    const jitterScale = 0.91 + visualNoise(genome, 271, index) * 0.2;
+    const scale = Math.max(0.72, Math.min(1.52, baseScale * jitterScale * literalBoost));
+    const nudgeX = (visualNoise(genome, 277, index) - 0.5) * width * 0.045 * asymmetry;
+    const nudgeY = (visualNoise(genome, 281, index) - 0.5) * height * 0.052 * asymmetry;
+    const rotationJitter = (visualNoise(genome, 283, index) - 0.5) * 0.42 * asymmetry;
+    return {
+      ...extent,
+      x: clamp(extent.x + nudgeX, width * 0.05, width * 0.95),
+      y: clamp(extent.y + nudgeY, height * 0.06, height * 0.95),
+      w: extent.w * scale,
+      h: extent.h * scale,
+      r: extent.r * scale,
+      rotation: extent.rotation + rotationJitter,
     };
   }
 
@@ -3887,7 +4873,7 @@
     const shape = String(object && object.shape || '');
     if (/wetland|swamp|heightfield|fuel-bed|grain-bed|volcano|storm/.test(text)) return 0;
     if (/singularity|black hole/.test(text)) return 1;
-    if (/rocket|submarine|castle|tower|lava-flow/.test(shape)) return 1;
+    if (/rocket|submarine|castle|tower|building|lava-flow/.test(shape)) return 1;
     if (/film|wire-loop|wheel|cooling-fins|sieve|pool|instrument|turbine/.test(shape)) return 2;
     if (/bar|slab|slider|lens|prism|magnet|network-node|queue-node|plant-cluster/.test(shape)) return 3;
     if (/bubble|coil|hammer/.test(shape)) return 4;
@@ -3935,7 +4921,7 @@
   }
 
   function isConcreteShape(shape = '') {
-    return /animal-body|wheel|coil|wire-loop|film|bubble|cooling-fins|sieve|singularity|wetland|rocket|submarine|volcano|lava-flow|instrument|castle|tower|turbine|storm|plant-cluster|bridge|hammer|bar|slab|slider|prism|lens|magnet|queue-node|network-node|fuel-bed|flame-front|plume|flow-path|heightfield|grain-bed|pool|panel|meter|wall/.test(String(shape));
+    return /animal-body|wheel|coil|wire-loop|film|bubble|cooling-fins|sieve|singularity|wetland|rocket|submarine|volcano|lava-flow|instrument|castle|tower|building|turbine|storm|plant-cluster|bridge|hammer|bar|slab|slider|prism|lens|magnet|queue-node|network-node|fuel-bed|flame-front|plume|flow-path|heightfield|grain-bed|pool|panel|meter|wall/.test(String(shape));
   }
 
   function drawPlanObject(ctx, width, height, state, plan, object, index) {
@@ -3943,7 +4929,7 @@
     const material = plan.materials && plan.materials[boundObject.material] || {};
     const stroke = material.stroke || '#42695d';
     const alpha = material.alpha ?? 0.72;
-    const extent = objectExtent(boundObject, width, height);
+    const extent = objectExtentWithVisualGenome(boundObject, width, height, plan, index);
     if (!extent) return;
     const hue = boundObject.boundHue ?? materialHueFor(boundObject.material, index);
     const isField = boundObject.kind === 'field' || boundObject.shape === 'field-envelope';
@@ -4035,6 +5021,7 @@
     if (shape === 'instrument') return drawLiteralInstrument(ctx, extent, state, hue);
     if (shape === 'castle') return drawLiteralCastle(ctx, extent, state, hue, object);
     if (shape === 'tower') return drawLiteralTower(ctx, extent, state, hue);
+    if (shape === 'building') return drawLiteralBuilding(ctx, extent, state, hue, object);
     if (shape === 'turbine') return drawLiteralTurbine(ctx, extent, state, hue, object);
     if (shape === 'storm') return drawLiteralStorm(ctx, extent, state, hue);
     if (shape === 'plant-cluster') return drawLiteralPlantCluster(ctx, extent, state, hue);
@@ -4776,6 +5763,74 @@
     return true;
   }
 
+  function drawLiteralBuilding(ctx, extent, state, hue, object) {
+    ctx.save();
+    ctx.translate(extent.x, extent.y);
+    ctx.rotate(extent.rotation);
+    const heat = Number.isFinite(object && object.boundHeat) ? clamp01(object.boundHeat) : 0;
+    const damage = Number.isFinite(object && object.boundDamage) ? clamp01(object.boundDamage) : 0;
+    const w = Math.max(extent.w * 1.25, extent.h * 0.72);
+    const h = Math.max(extent.h * 1.9, extent.w * 0.92);
+    const roof = h * 0.12;
+    const gradient = ctx.createLinearGradient(0, -h * 0.5, 0, h * 0.5);
+    gradient.addColorStop(0, `hsla(${hue || 92}, 18%, ${52 + heat * 18}%, 0.76)`);
+    gradient.addColorStop(1, `hsla(${hue || 92}, 22%, ${30 + heat * 10}%, 0.86)`);
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = `hsla(${hue || 92}, 24%, 18%, 0.7)`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.46, -h * 0.42 + roof);
+    ctx.lineTo(-w * 0.18, -h * 0.52);
+    ctx.lineTo(w * 0.48, -h * 0.42);
+    ctx.lineTo(w * 0.46, h * 0.5);
+    ctx.lineTo(-w * 0.46, h * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    const rows = 4;
+    const cols = 3;
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const x = -w * 0.28 + col * w * 0.23;
+        const y = -h * 0.2 + row * h * 0.16;
+        const flicker = heat * (0.28 + hashNoise(row * 13, col) * 0.34) * (0.7 + Math.sin(state.t * 0.18 + row + col) * 0.3);
+        ctx.fillStyle = flicker > 0.04
+          ? `rgba(255, ${130 + flicker * 90}, ${42 + flicker * 80}, ${0.24 + flicker * 0.52})`
+          : 'rgba(218, 235, 236, 0.22)';
+        ctx.fillRect(x, y, w * 0.12, h * 0.075);
+      }
+    }
+    if (heat > 0.05) {
+      ctx.globalCompositeOperation = 'screen';
+      for (let flame = 0; flame < 5; flame += 1) {
+        const x = -w * 0.34 + flame * w * 0.18;
+        const y = -h * (0.18 + hashNoise(37, flame) * 0.34);
+        const sway = Math.sin(state.t * 0.22 + flame) * w * 0.035;
+        ctx.fillStyle = `rgba(255, ${94 + flame * 18}, 38, ${0.18 + heat * 0.32})`;
+        ctx.beginPath();
+        ctx.moveTo(x - w * 0.04, y + h * 0.08);
+        ctx.bezierCurveTo(x + sway, y - h * 0.06, x + sway * 1.4, y - h * 0.16, x + w * 0.02, y - h * 0.24);
+        ctx.bezierCurveTo(x + w * 0.08, y - h * 0.06, x + w * 0.08, y + h * 0.06, x - w * 0.04, y + h * 0.08);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    if (damage > 0.03 || heat > 0.2) {
+      ctx.strokeStyle = `rgba(28, 32, 30, ${0.22 + Math.max(damage, heat * 0.35) * 0.38})`;
+      ctx.lineWidth = 1.2;
+      for (let crack = 0; crack < 4; crack += 1) {
+        const x = -w * 0.32 + crack * w * 0.19;
+        const y = -h * 0.22 + hashNoise(101, crack) * h * 0.48;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.sin(crack + state.t * 0.04) * w * 0.05, y + h * 0.18);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    return true;
+  }
+
   function drawLiteralBar(ctx, extent, state, hue, shape) {
     ctx.save();
     ctx.translate(extent.x, extent.y);
@@ -4937,7 +5992,7 @@
       ctx.ellipse(0, 0, extent.w * 0.5, extent.h * 0.5, Math.sin(index) * 0.08, 0, TAU);
       return;
     }
-    if (shape === 'wall' || shape === 'bar' || shape === 'panel' || shape === 'meter' || shape === 'slider') {
+    if (shape === 'wall' || shape === 'building' || shape === 'bar' || shape === 'panel' || shape === 'meter' || shape === 'slider') {
       ctx.rect(-extent.w * 0.52, -extent.h * 0.36, extent.w * 1.04, extent.h * 0.72);
       return;
     }

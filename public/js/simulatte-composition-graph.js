@@ -11,11 +11,14 @@
   const {
     clamp,
     hashNoise,
+    PROCEDURAL_VISUAL_BASE,
+    SEMANTIC_VISUAL_ATLAS,
     uniqueList,
   } = catalog;
 
   const COMPOSITION_SCHEMA = 'simulatte.compositionGraph.v1';
   const RENDER_PROGRAM_SCHEMA = 'simulatte.renderProgram.v1';
+  const VISUAL_GENOME_SCHEMA = 'simulatte.visualGenome.v1';
 
   const MATERIAL_STYLES = Object.freeze({
     air: style('#dff7ff', '#76c7e7', 0.18),
@@ -29,6 +32,7 @@
     foam: style('#efffff', '#86cfd9', 0.26),
     gel: style('#c4f4ef', '#6bb7aa', 0.36),
     glass: style('#dff9ff', '#66b8e8', 0.34),
+    concrete: style('#aeb4ad', '#5d665f', 0.78),
     gold: style('#ffd760', '#b47a23', 0.86),
     ice: style('#dcf7ff', '#72b8da', 0.58),
     lava: style('#ff6b2a', '#872b1a', 0.88),
@@ -115,6 +119,9 @@
         }
       }
     }
+    for (const id of pinnedComponentIdsForSpec(spec)) {
+      if (byId.has(id) && !selected.includes(byId.get(id))) selected.push(byId.get(id));
+    }
     for (const id of top) {
       if (byId.has(id) && !selected.includes(byId.get(id))) selected.push(byId.get(id));
     }
@@ -128,6 +135,14 @@
       if (!selected.includes(component)) selected.push(component);
     }
     return selected;
+  }
+
+  function pinnedComponentIdsForSpec(spec) {
+    const prompt = String(spec && spec.intent && spec.intent.prompt || spec && spec.name || '').toLowerCase();
+    if (/\b(perpetual|solar magnetic|magnetic wheel|magnetic motor|generator)\b/.test(prompt)) {
+      return ['solar-panel', 'rotor-wheel', 'stator-slider', 'motor-load'];
+    }
+    return [];
   }
 
   function compositionNode(component, index, total, spec, contract, priors) {
@@ -276,6 +291,7 @@
       emitters,
       solverPlan,
       rendererPlan,
+      visualGenome: rendererPlan.visualGenome,
       camera: { framing: 'composition-2d', padding: 0.08, sceneKind: rendererPlan.sceneKind },
       provenance: {
         compiler: 'simulatte.composition-to-render-program.v1',
@@ -286,6 +302,7 @@
         dominantRegime: rendererPlan.dominantRegime,
         sceneKind: rendererPlan.sceneKind,
         visualIdentity: rendererPlan.visualIdentity,
+        visualGenome: rendererPlan.visualGenome,
         signature: uniqueList(graph.nodes.map((node) => node.shape)).join('+'),
       },
     };
@@ -441,6 +458,7 @@
       emitters: emittersForComposition(graph),
       solverPlan,
       rendererPlan,
+      visualGenome: rendererPlan.visualGenome,
       renderIR,
       camera: { framing: 'composition-2d', padding: 0.08, sceneKind },
       provenance: {
@@ -452,6 +470,7 @@
         dominantRegime: rendererPlan.dominantRegime,
         sceneKind,
         visualIdentity: rendererPlan.visualIdentity,
+        visualGenome: rendererPlan.visualGenome,
         signature: uniqueList(objects.map((object) => object.shape)).join('+'),
         renderIR: renderIR.schema,
         solverGraph: solverGraph.schema,
@@ -772,6 +791,7 @@
     const solverFamilies = uniqueList((solverPlan && solverPlan.families) || []);
     const shapeSignature = uniqueList((objects || []).map((object) => object.shape)).join('+');
     const materialSignature = uniqueList((objects || []).map((object) => object.material)).join('+');
+    const visualGenome = visualGenomeForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
     const visualIdentity = {
       schema: 'simulatte.visualIdentity.v1',
       sceneKind,
@@ -781,6 +801,9 @@
       fieldKinds,
       solverFamilies,
       objectCount: (objects || []).length,
+      visualGenomeId: visualGenome.id,
+      visualGenomeSeed: visualGenome.seed,
+      motifs: visualGenome.motifs,
     };
     return {
       schema: 'simulatte.rendererPlan.v1',
@@ -789,7 +812,394 @@
       dominantRegime,
       passOrder: renderPassOrder(sceneKind, solverFamilies),
       visualIdentity,
+      visualGenome,
     };
+  }
+
+  function visualGenomeForComposition(graph, objects, fields, solverPlan, spec, sceneKind) {
+    const prompt = String(graph && graph.intentText || spec && spec.name || '');
+    const objectSignature = uniqueList((objects || []).map((object) => [
+      object.id,
+      object.shape,
+      object.material,
+      object.role,
+      object.phrase,
+      object.assembly,
+      object.visualRegime,
+    ].filter(Boolean).join(':'))).join('|');
+    const fieldSignature = uniqueList((fields || []).map((field) => field.kind || field.channel)).join('|');
+    const solverSignature = uniqueList((solverPlan && solverPlan.families) || []).join('|');
+    const seedText = [prompt, sceneKind, objectSignature, fieldSignature, solverSignature].join('|');
+    const seed = hashProgram(seedText) || 1;
+    const directObjectSignature = uniqueList((objects || [])
+      .filter(isPromptGroundedGenomeObject)
+      .map((object) => [
+        object.id,
+        object.shape,
+        object.material,
+        object.role,
+        object.phrase,
+        object.assembly,
+        object.visualRegime,
+      ].filter(Boolean).join(':'))).join('|');
+    const motifText = `${prompt} ${directObjectSignature}`.toLowerCase();
+    const tokens = promptTokensForGenome(prompt);
+    const promptDna = promptDnaForGenome(prompt, seed);
+    const motifs = genomeMotifs(motifText, sceneKind, objects, fields);
+    const semanticVisuals = semanticVisualsForGenome(prompt, objects, fields, sceneKind, seed, tokens);
+    const palette = genomePalette(sceneKind, motifs, seed);
+    const morphology = genomeMorphology(sceneKind, motifs, seed, objects, fields, promptDna, semanticVisuals);
+    return {
+      schema: VISUAL_GENOME_SCHEMA,
+      id: `vg_${seed.toString(36).padStart(6, '0')}`,
+      seed,
+      promptHash: hashProgram(prompt),
+      source: 'prompt-seeded-procedural',
+      sceneKind,
+      palette,
+      morphology,
+      motifs,
+      tokens,
+      promptDna,
+      semanticVisuals,
+      objectSignature: hashProgram(objectSignature),
+      fieldSignature: hashProgram(fieldSignature),
+      stochastic: {
+        mode: 'deterministic-prompt-seeded',
+        sampler: 'hash-noise',
+        dimensions: [
+          'semantic-atlas',
+          'semantic-archetype',
+          'material-shader',
+          'process-overlay',
+          'ngram-dna',
+          'palette',
+          'layout',
+          'texture',
+          'motif',
+          'scale',
+          'field-density',
+        ],
+      },
+    };
+  }
+
+  function promptTokensForGenome(value) {
+    return uniqueList(String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => token.replace(/^-+|-+$/g, ''))
+      .filter((token) => token.length > 2 && !/^(and|with|the|into|from|over|under|while)$/.test(token))
+      .slice(0, 18));
+  }
+
+  function promptDnaForGenome(prompt, seed) {
+    const rawTokens = String(prompt || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => token.replace(/^-+|-+$/g, ''))
+      .filter(Boolean)
+      .slice(0, 24);
+    const sourceTokens = rawTokens.length ? rawTokens : ['blank'];
+    const ngrams = [];
+    for (let n = 1; n <= 3; n += 1) {
+      for (let index = 0; index <= sourceTokens.length - n; index += 1) {
+        const text = sourceTokens.slice(index, index + n).join(' ');
+        const hash = hashProgram(`${n}:${index}:${text}:${seed}`);
+        ngrams.push({
+          text,
+          n,
+          index,
+          hash,
+          lane: hash % 7,
+          mark: hash % 9,
+          hue: normalizeHue(hash % 360),
+          weight: Number((0.42 + unitFromSeed(hash, n + index + 1) * 0.58).toFixed(3)),
+        });
+      }
+    }
+    const selected = ngrams
+      .sort((a, b) => a.index - b.index || b.n - a.n || a.text.localeCompare(b.text))
+      .slice(0, 32);
+    const hash = hashProgram(selected.map((row) => `${row.n}:${row.index}:${row.text}:${row.hash}`).join('|'));
+    return {
+      schema: 'simulatte.promptVisualDna.v1',
+      catalog: PROCEDURAL_VISUAL_BASE && PROCEDURAL_VISUAL_BASE.schema || 'simulatte.proceduralVisualBase.v1',
+      hash,
+      tokenCount: sourceTokens.length,
+      ngramCount: ngrams.length,
+      ngrams: selected,
+      paletteShift: Math.round(unitFromSeed(hash || seed, 41) * 160) - 80,
+      densityBias: Number((0.72 + unitFromSeed(hash || seed, 43) * 1.1).toFixed(3)),
+      laneBias: Math.round(unitFromSeed(hash || seed, 47) * 6),
+    };
+  }
+
+  function semanticVisualsForGenome(prompt, objects, fields, sceneKind, seed, tokens) {
+    const promptText = String(prompt || '').toLowerCase();
+    const objectText = (objects || []).filter(isPromptGroundedGenomeObject).map((object) => [
+      object.id,
+      object.shape,
+      object.material,
+      object.role,
+      object.phrase,
+      object.assembly,
+      object.visualRegime,
+    ].filter(Boolean).join(' ')).join(' ');
+    const fieldText = (fields || []).map((field) => `${field.kind || ''} ${field.channel || ''}`).join(' ');
+    const text = `${promptText} ${objectText} ${fieldText}`.toLowerCase();
+    const sourceTokens = tokens && tokens.length ? tokens : promptTokensForGenome(prompt);
+    const archetypes = semanticVisualRows(text, seed, SEMANTIC_ARCHETYPE_RULES, 'archetype', sourceTokens);
+    const materials = semanticVisualRows(text, seed, SEMANTIC_MATERIAL_RULES, 'material', sourceTokens);
+    const processes = semanticVisualRows(text, seed, SEMANTIC_PROCESS_RULES, 'process', sourceTokens);
+    const overlayIds = uniqueList([
+      ...archetypes.map((row) => row.overlay),
+      ...materials.map((row) => row.shader),
+      ...processes.map((row) => row.overlay),
+    ].filter(Boolean)).slice(0, 18);
+    const matchedTokens = uniqueList([
+      ...archetypes.flatMap((row) => row.matchedTokens || []),
+      ...materials.flatMap((row) => row.matchedTokens || []),
+      ...processes.flatMap((row) => row.matchedTokens || []),
+    ]);
+    const coverage = sourceTokens.length
+      ? Number((matchedTokens.length / sourceTokens.length).toFixed(3))
+      : 1;
+    const signatureText = [
+      sceneKind,
+      ...archetypes.map((row) => row.id),
+      ...materials.map((row) => row.id),
+      ...processes.map((row) => row.id),
+      ...overlayIds,
+    ].join('|');
+    return {
+      schema: 'simulatte.semanticVisualPlan.v1',
+      atlas: SEMANTIC_VISUAL_ATLAS && SEMANTIC_VISUAL_ATLAS.schema || 'simulatte.semanticVisualAtlas.v1',
+      signature: hashProgram(signatureText),
+      sceneKind,
+      archetypes,
+      materials,
+      processes,
+      overlays: overlayIds,
+      quality: {
+        semanticTokens: sourceTokens.length,
+        matchedTokens: matchedTokens.length,
+        coverage,
+        layerCount: archetypes.length + materials.length + processes.length,
+      },
+    };
+  }
+
+  function semanticVisualRows(text, seed, rules, kind, tokens) {
+    return rules
+      .map((rule, index) => {
+        const matchesPattern = rule.pattern.test(text);
+        const matchedTokens = (tokens || []).filter((token) => rule.terms.includes(token));
+        if (!matchesPattern && !matchedTokens.length) return null;
+        const tokenBoost = Math.min(0.28, matchedTokens.length * 0.07);
+        const score = Number((rule.weight + tokenBoost + unitFromSeed(seed, index + rule.salt) * 0.06).toFixed(3));
+        return {
+          id: `${kind}.${rule.id}`,
+          family: rule.family,
+          label: rule.label,
+          overlay: rule.overlay,
+          shader: rule.shader,
+          motion: rule.motion,
+          score,
+          hue: normalizeHue(rule.hue + Math.round((unitFromSeed(seed, index + 101) - 0.5) * 38)),
+          matchedTokens,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+      .slice(0, 9);
+  }
+
+  const SEMANTIC_ARCHETYPE_RULES = Object.freeze([
+    semanticRule('built-enclosure', 'architecture', 'Built enclosure', /\b(building|house|room|warehouse|factory|office|school|hospital|stairwell|corridor|hallway|roof|wall|city|street)\b/, ['building', 'house', 'room', 'warehouse', 'factory', 'office', 'school', 'hospital', 'stairwell', 'corridor', 'hallway', 'roof', 'wall', 'city', 'street'], 'section-grid', 34, 0.78, 11),
+    semanticRule('water-system', 'hydrology', 'Water system', /\b(water|river|rain|brine|ocean|undersea|swamp|wetland|pond|fluid|flow|channel|delta)\b/, ['water', 'river', 'rain', 'brine', 'ocean', 'undersea', 'swamp', 'wetland', 'pond', 'fluid', 'flow', 'channel', 'delta'], 'flow-map', 194, 0.76, 17),
+    semanticRule('optical-bench', 'optics', 'Optical bench', /\b(glass|lens|prism|laser|light|mirror|sunlight|caustic|film|optics)\b/, ['glass', 'lens', 'prism', 'laser', 'light', 'mirror', 'sunlight', 'caustic', 'film', 'optics'], 'ray-caustics', 208, 0.79, 23),
+    semanticRule('magnetic-field', 'electromagnetism', 'Magnetic field', /\b(magnet|coil|current|ferrofluid|electric|battery|copper|conductor|charge|field)\b/, ['magnet', 'coil', 'current', 'ferrofluid', 'electric', 'battery', 'copper', 'conductor', 'charge', 'field'], 'flux-lines', 268, 0.76, 29),
+    semanticRule('living-network', 'biology', 'Living network', /\b(moss|algae|mycelium|cell|bacteria|membrane|protein|plant|leaf|growth|nutrient)\b/, ['moss', 'algae', 'mycelium', 'cell', 'bacteria', 'membrane', 'protein', 'plant', 'leaf', 'growth', 'nutrient'], 'branch-field', 116, 0.78, 31),
+    semanticRule('granular-bed', 'granular', 'Granular bed', /\b(sand|dust|grain|bead|powder|sieve|avalanche|sediment|pile)\b/, ['sand', 'dust', 'grain', 'bead', 'powder', 'sieve', 'avalanche', 'sediment', 'pile'], 'grain-stream', 42, 0.74, 37),
+    semanticRule('waveguide', 'acoustics', 'Waveguide', /\b(sound|acoustic|wave|pressure|resonance|tube|brass|levitator)\b/, ['sound', 'acoustic', 'wave', 'pressure', 'resonance', 'tube', 'brass', 'levitator'], 'pressure-rings', 196, 0.75, 41),
+    semanticRule('machine-assembly', 'mechanics', 'Machine assembly', /\b(turbine|wheel|rotor|gear|motor|pump|robot|hammer|bridge|mechanism|machine)\b/, ['turbine', 'wheel', 'rotor', 'gear', 'motor', 'pump', 'robot', 'hammer', 'bridge', 'mechanism', 'machine'], 'mechanism-cutaway', 216, 0.74, 43),
+    semanticRule('operations-network', 'civic', 'Operations network', /\b(queue|traffic|market|subway|grid|logistics|route|sensor|warehouse|robot)\b/, ['queue', 'traffic', 'market', 'subway', 'grid', 'logistics', 'route', 'sensor', 'warehouse', 'robot'], 'route-ledger', 172, 0.74, 47),
+    semanticRule('geologic-body', 'geology', 'Geologic body', /\b(rock|stone|basalt|crystal|quartz|mountain|volcano|mineral|ceramic|porcelain)\b/, ['rock', 'stone', 'basalt', 'crystal', 'quartz', 'mountain', 'volcano', 'mineral', 'ceramic', 'porcelain'], 'faceted-strata', 52, 0.72, 53),
+    semanticRule('sky-orbit', 'astronomy', 'Sky orbit', /\b(orbit|orbital|sun|space|spaceship|rocket|mirror|solar|planet|black hole)\b/, ['orbit', 'orbital', 'sun', 'space', 'spaceship', 'rocket', 'mirror', 'solar', 'planet'], 'orbital-arcs', 246, 0.72, 59),
+    semanticRule('weather-system', 'weather', 'Weather system', /\b(storm|smoke|cloud|wind|plume|humid|air|rain|thermal)\b/, ['storm', 'smoke', 'cloud', 'wind', 'plume', 'humid', 'air', 'rain', 'thermal'], 'weather-shear', 198, 0.7, 61),
+    semanticRule('electronics-bench', 'electronics', 'Electronics bench', /\b(circuit|battery|wire|sensor|camera|microphone|antenna|server|signal|ledger)\b/, ['circuit', 'battery', 'wire', 'sensor', 'camera', 'microphone', 'antenna', 'server', 'signal', 'ledger'], 'circuit-board', 146, 0.72, 67),
+    semanticRule('chemical-vessel', 'chemistry', 'Chemical vessel', /\b(reaction|acid|base|salt|electrolyte|foam|gel|molecule|ion|crystallize)\b/, ['reaction', 'acid', 'base', 'salt', 'electrolyte', 'foam', 'gel', 'molecule', 'ion', 'crystallize'], 'reaction-vessel', 86, 0.72, 71),
+  ]);
+
+  const SEMANTIC_MATERIAL_RULES = Object.freeze([
+    semanticMaterialRule('glass', 'transparent', /\b(glass|lens|prism|mirror|transparent|crystal)\b/, ['glass', 'lens', 'prism', 'mirror', 'transparent', 'crystal'], 'transparent-caustic', 206, 0.78, 103),
+    semanticMaterialRule('metal', 'metal', /\b(metal|steel|copper|brass|gold|graphite|conductor|wire|coil)\b/, ['metal', 'steel', 'copper', 'brass', 'gold', 'graphite', 'conductor', 'wire', 'coil'], 'brushed-metal', 48, 0.74, 107),
+    semanticMaterialRule('concrete', 'concrete', /\b(concrete|building|warehouse|stairwell|wall|street|factory)\b/, ['concrete', 'building', 'warehouse', 'stairwell', 'wall', 'street', 'factory'], 'aggregate-concrete', 92, 0.72, 109),
+    semanticMaterialRule('plant', 'biological', /\b(moss|algae|mycelium|plant|leaf|wood|nutrient|biofilm)\b/, ['moss', 'algae', 'mycelium', 'plant', 'leaf', 'wood', 'nutrient', 'biofilm'], 'fibrous-biology', 116, 0.78, 113),
+    semanticMaterialRule('water', 'fluid', /\b(water|brine|rain|river|pond|ocean|fluid|wetland|swamp)\b/, ['water', 'brine', 'rain', 'river', 'pond', 'ocean', 'fluid', 'wetland', 'swamp'], 'fluid-ripples', 194, 0.74, 127),
+    semanticMaterialRule('fire', 'thermal', /\b(fire|flame|ember|smoke|heat|lava|molten|thermal)\b/, ['fire', 'flame', 'ember', 'smoke', 'heat', 'lava', 'molten', 'thermal'], 'thermal-glow', 22, 0.78, 131),
+    semanticMaterialRule('granular', 'granular', /\b(sand|dust|grain|bead|powder|sediment|porcelain|ceramic)\b/, ['sand', 'dust', 'grain', 'bead', 'powder', 'sediment', 'porcelain', 'ceramic'], 'particle-matrix', 42, 0.72, 137),
+    semanticMaterialRule('electric', 'electric', /\b(battery|electric|charge|current|signal|circuit|sensor)\b/, ['battery', 'electric', 'charge', 'current', 'signal', 'circuit', 'sensor'], 'charged-grid', 152, 0.74, 139),
+    semanticMaterialRule('ice', 'ice', /\b(ice|frozen|cold|crystal|quartz)\b/, ['ice', 'frozen', 'cold', 'crystal', 'quartz'], 'ice-facets', 196, 0.7, 149),
+  ]);
+
+  const SEMANTIC_PROCESS_RULES = Object.freeze([
+    semanticProcessRule('burn', 'burn', /\b(burn|burning|fire|flame|combust|smoke|char)\b/, ['burn', 'burning', 'fire', 'flame', 'combust', 'smoke', 'char'], 'burn-front', 'rise', 22, 0.78, 181),
+    semanticProcessRule('flow', 'flow', /\b(flow|pump|river|leak|channel|wave|current|brine|water)\b/, ['flow', 'pump', 'river', 'leak', 'channel', 'wave', 'current', 'brine', 'water'], 'flow-trails', 'advect', 194, 0.74, 191),
+    semanticProcessRule('growth', 'growth', /\b(grow|growth|sprout|mycelium|algae|cell|biofilm|nutrient)\b/, ['grow', 'growth', 'sprout', 'mycelium', 'algae', 'cell', 'biofilm', 'nutrient'], 'growth-front', 'branch', 116, 0.76, 193),
+    semanticProcessRule('fracture', 'fracture', /\b(fracture|crack|break|shatter|damage|impact|collision)\b/, ['fracture', 'crack', 'break', 'shatter', 'damage', 'impact', 'collision'], 'fracture-mask', 'snap', 214, 0.74, 197),
+    semanticProcessRule('queue', 'queue', /\b(queue|traffic|route|reroute|jam|grid|market|logistics)\b/, ['queue', 'traffic', 'route', 'reroute', 'jam', 'grid', 'market', 'logistics'], 'queue-pulses', 'pulse', 172, 0.74, 199),
+    semanticProcessRule('focus', 'focus', /\b(focus|focusing|lens|laser|mirror|sunlight|beam|caustic)\b/, ['focus', 'focusing', 'lens', 'laser', 'mirror', 'sunlight', 'beam', 'caustic'], 'focus-cone', 'converge', 208, 0.76, 211),
+    semanticProcessRule('levitate', 'levitate', /\b(levitate|levitator|suspend|sort|dust|acoustic)\b/, ['levitate', 'levitator', 'suspend', 'sort', 'dust', 'acoustic'], 'levitation-nodes', 'hover', 196, 0.72, 223),
+    semanticProcessRule('crystallize', 'crystallize', /\b(crystallize|crystal|quartz|sinter|freeze|facet)\b/, ['crystallize', 'crystal', 'quartz', 'sinter', 'freeze', 'facet'], 'crystal-growth', 'facet', 188, 0.72, 227),
+    semanticProcessRule('orbit', 'orbit', /\b(orbit|orbital|swarm|planet|mirror|space|rocket)\b/, ['orbit', 'orbital', 'swarm', 'planet', 'mirror', 'space', 'rocket'], 'orbit-trails', 'orbit', 246, 0.72, 229),
+    semanticProcessRule('melt', 'melt', /\b(melt|molten|lava|sinter|kiln|heat|thermal)\b/, ['melt', 'molten', 'lava', 'sinter', 'kiln', 'heat', 'thermal'], 'melt-drips', 'drip', 28, 0.72, 233),
+    semanticProcessRule('charge', 'charge', /\b(charge|battery|current|electric|signal|coil|magnet)\b/, ['charge', 'battery', 'current', 'electric', 'signal', 'coil', 'magnet'], 'charge-flow', 'spark', 152, 0.72, 239),
+  ]);
+
+  function semanticRule(id, family, label, pattern, terms, overlay, hue, weight, salt) {
+    return { id, family, label, pattern, terms, overlay, hue, weight, salt };
+  }
+
+  function semanticMaterialRule(id, family, pattern, terms, shader, hue, weight, salt) {
+    return { id, family, label: `${id} material`, pattern, terms, shader, hue, weight, salt };
+  }
+
+  function semanticProcessRule(id, family, pattern, terms, overlay, motion, hue, weight, salt) {
+    return { id, family, label: `${id} process`, pattern, terms, overlay, motion, hue, weight, salt };
+  }
+
+  function isPromptGroundedGenomeObject(object) {
+    const source = String(object && object.source || '');
+    return /^embedding-guided-synth|open-semantic-rag|doppler-residual|render-ir/.test(source) ||
+      Boolean(object && object.phrase);
+  }
+
+  function genomeMotifs(text, sceneKind, objects, fields) {
+    const motifs = [];
+    const add = (...values) => values.forEach((value) => {
+      if (value && !motifs.includes(value)) motifs.push(value);
+    });
+    if (/building|tower|castle|house|room|wall|structure|street|city|warehouse|factory|office|school|hospital|stairwell|corridor|hallway|basement|garage|roof|shed|cabin/.test(text)) {
+      add('architectural-grid', 'occluded-windows', 'structural-silhouette');
+    }
+    if (/fire|flame|burn|smoke|ember|ash|thermal|plume|heat/.test(text)) {
+      add('ember-shear', 'smoke-strata', 'charred-edges');
+    }
+    if (/water|river|flow|brine|rain|swamp|wetland|fluid|erosion/.test(text)) {
+      add('flow-contours', 'sediment-bands', 'wet-refraction');
+    }
+    if (/glass|lens|prism|laser|light|optics|mirror|caustic|film/.test(text)) {
+      add('caustic-ribs', 'spectral-slices', 'thin-line-optics');
+    }
+    if (/magnet|coil|current|ferrofluid|field|dipole|rotor/.test(text)) {
+      add('flux-hatching', 'dipole-dust', 'coil-shadow');
+    }
+    if (/grain|sand|bead|sieve|powder|avalanche|granular/.test(text)) {
+      add('grain-strata', 'impact-trails', 'sorting-bands');
+    }
+    if (/biology|cell|bacteria|mycelium|membrane|growth|protein|leaf|plant/.test(text)) {
+      add('branch-network', 'cellular-mesh', 'membrane-rims');
+    }
+    if (/sound|acoustic|pressure|resonance|wave|tube|instrument/.test(text)) {
+      add('pressure-rings', 'waveguide-lines', 'resonant-slits');
+    }
+    if (/crack|fracture|collision|impact|hammer|projectile|break/.test(text)) {
+      add('fracture-lines', 'stress-rulers', 'impact-ghosts');
+    }
+    if (/queue|traffic|market|network|grid|sensor|ledger|power|subway/.test(text) || sceneKind === 'city') {
+      add('route-weave', 'signal-ticks', 'node-ledger');
+    }
+    const fieldKinds = uniqueList((fields || []).map((field) => field.kind)).join(' ');
+    if (/reaction|combustion/.test(fieldKinds)) add('reaction-front');
+    if (/optical/.test(fieldKinds)) add('ray-stack');
+    if (/network/.test(fieldKinds)) add('route-weave');
+    if (!motifs.length) {
+      const regimes = uniqueList((objects || []).map((object) => object.visualRegime)).filter(Boolean);
+      add(...regimes.slice(0, 3).map((regime) => `${regime}-field`));
+    }
+    return motifs.slice(0, 9);
+  }
+
+  function genomePalette(sceneKind, motifs, seed) {
+    const sceneHue = {
+      fire: 22,
+      optics: 208,
+      city: 172,
+      watershed: 194,
+      'magnetic-machine': 278,
+      'material-tray': 42,
+      biology: 116,
+      acoustic: 196,
+      ferrofluid: 238,
+      'thin-film': 302,
+      granular: 38,
+      'thermal-plume': 18,
+      mechanical: 206,
+      'literal-composite': 148,
+    };
+    const motifShift = motifs.includes('architectural-grid') ? 34
+      : motifs.includes('caustic-ribs') ? 74
+        : motifs.includes('branch-network') ? -36
+          : motifs.includes('route-weave') ? 18
+            : 0;
+    const hue = normalizeHue((sceneHue[sceneKind] ?? 156) + motifShift + Math.round((unitFromSeed(seed, 1) - 0.5) * 58));
+    const accentHue = normalizeHue(hue + 82 + Math.round(unitFromSeed(seed, 2) * 112));
+    const shadowHue = normalizeHue(hue + 206 + Math.round(unitFromSeed(seed, 3) * 42));
+    return {
+      hue,
+      accentHue,
+      shadowHue,
+      warmth: Number(unitFromSeed(seed, 4).toFixed(3)),
+      contrast: Number((0.54 + unitFromSeed(seed, 5) * 0.36).toFixed(3)),
+      lightness: Number((0.44 + unitFromSeed(seed, 6) * 0.24).toFixed(3)),
+    };
+  }
+
+  function genomeMorphology(sceneKind, motifs, seed, objects, fields, promptDna = null, semanticVisuals = null) {
+    const layoutModes = ['strata', 'section', 'radial', 'field-map', 'network', 'specimen'];
+    const textureKinds = ['contour-hatch', 'woven-grid', 'cutaway-lines', 'spectral-ribs', 'grain-scan'];
+    const motifText = motifs.join(' ');
+    const layoutMode = /route|network|ledger/.test(motifText) || sceneKind === 'city'
+      ? 'network'
+      : /architecture|structural|fracture/.test(motifText) ? 'section'
+        : /flow|sediment|smoke|grain/.test(motifText) ? 'strata'
+          : /caustic|flux|pressure|ray/.test(motifText) ? 'radial'
+            : layoutModes[Math.floor(unitFromSeed(seed, 7) * layoutModes.length) % layoutModes.length];
+    const textureKind = /caustic|ray|spectral/.test(motifText)
+      ? 'spectral-ribs'
+      : /grain|sediment|strata/.test(motifText) ? 'grain-scan'
+        : /architecture|route|network|grid/.test(motifText) ? 'woven-grid'
+          : textureKinds[Math.floor(unitFromSeed(seed, 8) * textureKinds.length) % textureKinds.length];
+    const objectCount = Math.max(1, (objects || []).length);
+    const fieldCount = Math.max(1, (fields || []).length);
+    const dnaDensity = promptDna && Number.isFinite(promptDna.densityBias) ? promptDna.densityBias : 1;
+    const semanticLayerCount = semanticVisuals && semanticVisuals.quality
+      ? Math.min(8, Number(semanticVisuals.quality.layerCount) || 0)
+      : 0;
+    return {
+      layoutMode,
+      textureKind,
+      strokeWeight: Number((0.7 + unitFromSeed(seed, 9) * 1.7).toFixed(3)),
+      grain: Number((0.22 + unitFromSeed(seed, 10) * 0.62).toFixed(3)),
+      bandCount: 5 + Math.round(unitFromSeed(seed, 11) * 11),
+      particleDensity: Math.round((18 + unitFromSeed(seed, 12) * 70 + Math.min(42, fieldCount * 4)) * dnaDensity),
+      flowCurl: Number((0.14 + unitFromSeed(seed, 13) * 0.72).toFixed(3)),
+      objectScale: Number((0.86 + unitFromSeed(seed, 14) * 0.34 + Math.min(0.22, objectCount * 0.006)).toFixed(3)),
+      fieldComplexity: 3 + Math.round(unitFromSeed(seed, 15) * 6) + Math.min(4, fieldCount) + semanticLayerCount,
+      asymmetry: Number((0.18 + unitFromSeed(seed, 16) * 0.74).toFixed(3)),
+    };
+  }
+
+  function normalizeHue(value) {
+    return ((Math.round(value) % 360) + 360) % 360;
+  }
+
+  function unitFromSeed(seed, salt) {
+    return hashProgram(`${seed}:${salt}`) / 4294967295;
   }
 
   function prioritizeObjectsForScene(objects, sceneKind) {
@@ -870,6 +1280,7 @@
     }
     if (sceneKind === 'magnetic-machine') {
       if (/flame-front|fuel-bed|fire|smoke|thermal/.test(text)) return -1;
+      if (/\b(rotor-wheel|stator-slider|solar-panel|motor-load)\b/.test(text)) return 10;
       if (/magnet|ferrofluid|coil|current|conductor|copper|rotor|stator|wheel|slider|solar|panel|motor|load|flux|dipole/.test(text)) return 8;
       return 2;
     }
@@ -1403,6 +1814,10 @@
     if (/rocket[_-]body|spacecraft|spaceship|rocket|satellite/.test(`${specific} ${geometryShapes}`)) return 'rocket';
     if (/submarine[_-]body|submarine|submersible/.test(`${specific} ${geometryShapes}`)) return 'submarine';
     if (/volcano|volcanic/.test(specific)) return 'volcano';
+    const namedIdentity = `${component && component.id || ''} ${component && component.role || ''} ${phrase}`.toLowerCase();
+    if (/\b(building|room|warehouse|factory|house|apartment|office|school|hospital|stairwell|corridor|hallway|basement|garage|roof|shed|cabin)\b/.test(namedIdentity) || /\bbox\b.*\bshell\b/.test(geometryShapes)) {
+      return 'building';
+    }
     if (/gear[_-]train|gearbox|wheel|rotor|gear/.test(`${specific} ${geometryShapes}`)) return 'wheel';
     if (/span[_-]structure|bridge|truss|span/.test(`${specific} ${geometryShapes}`)) return 'bridge';
     if (/crystal tower|crystal towers/.test(phrase) || (/\btower\b/.test(specific) && !/castle/.test(specific))) return 'tower';

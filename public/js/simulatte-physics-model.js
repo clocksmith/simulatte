@@ -362,6 +362,7 @@
         synthesis: synthesisReceipt(spec.intent && spec.intent.synthesis),
         renderer: renderProgram.rendererPlan ? renderProgram.rendererPlan.renderer : '',
         visualIdentity: renderProgram.provenance ? renderProgram.provenance.visualIdentity || null : null,
+        visualGenome: renderProgram.provenance ? renderProgram.provenance.visualGenome || null : null,
         graphValidation: graph.validation ? graph.validation.status : 'unknown',
         validation: spec.validationReceipt || null,
         physicsIR: spec.physicsIR ? spec.physicsIR.schema : '',
@@ -728,11 +729,13 @@
     const preferSynthGraph = shouldPreferSynthGraph(promptText, synthesis);
     const catalogRanked = preferSynthGraph ? [] : baseCatalogRanked;
     const semanticRows = preferSynthGraph ? [] : semanticOpenPrimitives(semanticRag);
+    const explicitRows = preferSynthGraph ? [] : explicitPromptPrimitiveRows(classification, promptText);
     const ranked = mergeRankedPrimitives(
       catalogRanked,
       synthRows,
       semanticRows,
-      dopplerHintPrimitives(dopplerIntent, promptText)
+      dopplerHintPrimitives(dopplerIntent, promptText),
+      explicitRows
     );
     const contract = contractSummaryForPrimitives(ranked, promptText);
     if (classification) {
@@ -1112,18 +1115,78 @@
       });
   }
 
+  function explicitPromptPrimitiveRows(classification, promptText) {
+    const prompt = String(promptText || '').toLowerCase();
+    if (!classification || !Array.isArray(classification.priors) || !prompt) return [];
+    const rows = classification.priors
+      .filter((prior) => {
+        const id = String(prior.primitiveId || '');
+        const phrase = id.replace(/[-_]+/g, ' ');
+        return phrase.length > 4 && prompt.includes(phrase);
+      })
+      .map((prior) => {
+        const primitive = primitiveById(prior.primitiveId);
+        if (!primitive) return null;
+        return {
+          ...primitive,
+          score: Number(Math.max(Number(prior.score || 0), 0.58).toFixed(4)),
+          source: 'prompt-explicit',
+          phrase: prior.primitiveId.replace(/[-_]+/g, ' '),
+          pinned: true,
+        };
+      })
+      .filter(Boolean);
+    const ensure = (primitiveId, score, phrase) => {
+      if (rows.some((row) => row.id === primitiveId)) return;
+      const primitive = primitiveById(primitiveId);
+      if (!primitive) return;
+      rows.push({
+        ...primitive,
+        score,
+        source: 'prompt-family',
+        phrase,
+        pinned: true,
+      });
+    };
+    if (/\bterrain\b/.test(prompt) && /\berosion\b/.test(prompt)) {
+      ensure('terrain-heightfield', 0.64, 'terrain erosion');
+      ensure('erosion-channel', 0.6, 'terrain erosion');
+    }
+    if (/\briver\b/.test(prompt) && /\berosion\b/.test(prompt)) {
+      ensure('water', 0.58, 'river erosion');
+      ensure('fluid-advection', 0.54, 'river erosion');
+    }
+    return rows;
+  }
+
   function mergeRankedPrimitives(...rowSets) {
     const byId = new Map();
     for (const primitive of rowSets.flat()) {
       if (!primitive || !primitive.id) continue;
       const existing = byId.get(primitive.id);
-      if (!existing || Number(primitive.score || 0) > Number(existing.score || 0)) {
+      if (existing) {
+        const preferPrimitive = Number(primitive.score || 0) > Number(existing.score || 0);
+        byId.set(primitive.id, {
+          ...(preferPrimitive ? existing : primitive),
+          ...(preferPrimitive ? primitive : existing),
+          score: Math.max(Number(existing.score || 0), Number(primitive.score || 0)),
+          pinned: Boolean(existing.pinned || primitive.pinned),
+        });
+      } else {
         byId.set(primitive.id, primitive);
       }
     }
-    return Array.from(byId.values())
-      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || a.id.localeCompare(b.id))
-      .slice(0, 56);
+    const sorted = Array.from(byId.values())
+      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || a.id.localeCompare(b.id));
+    const pinned = sorted.filter((primitive) => primitive.pinned);
+    const selected = pinned.slice();
+    for (const primitive of sorted) {
+      if (selected.length >= 56) break;
+      if (primitive.pinned || selected.some((item) => item.id === primitive.id)) continue;
+      selected.push(primitive);
+    }
+    return selected
+      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || a.id.localeCompare(b.id));
   }
 
   function resolveIntentToSpec(intentInput, overrides = {}) {

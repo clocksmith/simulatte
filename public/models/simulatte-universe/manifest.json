@@ -1,38 +1,72 @@
 {
-  "schema": "simulatte.universeManifest.v1",
-  "id": "simulatte-universe-multi-index-v1",
   "embedModel": {
-    "id": "qwen-3-5-0-8b-q4k-ehaf16",
     "dimensions": 1024,
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
     "manifestHash": {
       "alg": "sha256",
       "hex": "e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6"
     }
   },
+  "generator": {
+    "schema": "simulatte.semanticUniverseGenerator.v1",
+    "sources": [
+      "simulatte-physics-catalog",
+      "simulatte-semantic-surface-cards",
+      "simulatte-grounding-basis-cards"
+    ]
+  },
+  "id": "simulatte-universe-multi-index-v1",
   "indexes": {
-    "concepts": {
-      "kind": "concept-index",
-      "artifact": "./concept-index-v1.json"
-    },
-    "relations": {
-      "kind": "relation-index",
-      "artifact": "./relation-index-v1.json"
-    },
-    "processes": {
-      "kind": "process-index",
-      "artifact": "./process-index-v1.json"
-    },
-    "materials": {
-      "kind": "material-index",
-      "artifact": "./material-index-v1.json"
-    },
-    "operators": {
-      "kind": "operator-index",
-      "artifact": "./operator-index-v1.json"
+    "affordances": {
+      "artifact": "./affordance-index-v1.json",
+      "documentSchema": "simulatte.universeAffordanceIndex.v1",
+      "kind": "affordance-index"
     },
     "analogs": {
-      "kind": "physical-analog-index",
-      "artifact": "./physical-analog-index-v1.json"
+      "artifact": "./physical-analog-index-v1.json",
+      "documentSchema": "simulatte.universePhysicalAnalogIndex.v1",
+      "kind": "physical-analog-index"
+    },
+    "concepts": {
+      "artifact": "./concept-index-v1.json",
+      "documentSchema": "simulatte.universeConceptIndex.v1",
+      "kind": "concept-index"
+    },
+    "materials": {
+      "artifact": "./material-index-v1.json",
+      "documentSchema": "simulatte.universeMaterialIndex.v1",
+      "kind": "material-index"
+    },
+    "operators": {
+      "artifact": "./operator-index-v1.json",
+      "documentSchema": "simulatte.universeOperatorIndex.v1",
+      "kind": "operator-index"
+    },
+    "processes": {
+      "artifact": "./process-index-v1.json",
+      "documentSchema": "simulatte.universeProcessIndex.v1",
+      "kind": "process-index"
+    },
+    "relations": {
+      "artifact": "./relation-index-v1.json",
+      "documentSchema": "simulatte.universeRelationIndex.v1",
+      "kind": "relation-index"
+    },
+    "scenes": {
+      "artifact": "./scene-index-v1.json",
+      "documentSchema": "simulatte.universeSceneIndex.v1",
+      "kind": "scene-index"
+    },
+    "shapes": {
+      "artifact": "./shape-index-v1.json",
+      "documentSchema": "simulatte.universeShapeIndex.v1",
+      "kind": "shape-index"
+    },
+    "synonyms": {
+      "artifact": "./synonym-index-v1.json",
+      "documentSchema": "simulatte.universeSynonymIndex.v1",
+      "kind": "synonym-index"
     }
-  }
+  },
+  "schema": "simulatte.universeManifest.v1"
 }

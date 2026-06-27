@@ -145,13 +145,22 @@
       const scores = gpuScores || rankCpu(queryVector, candidateVectors);
       const cardMatches = rankSurfaceCards(runtime.cardIndex, queryVector, options);
       const universeMatches = rankUniverseIndexes(runtime.universe, promptText, queryVector, options);
+      const promptTermSet = new Set(fallbackFeatureTokens(promptText));
       const basePriors = candidates
-        .map((primitive, index) => primitivePriorFromScore(primitive, scores[index]))
+        .map((primitive, index) => {
+          const prior = primitivePriorFromScore(primitive, scores[index]);
+          const symbolic = symbolicPromptMatch(promptText, promptTermSet, primitive);
+          return {
+            ...prior,
+            symbolicBoost: symbolic.score,
+            matchedTerms: symbolic.terms,
+          };
+        })
         .filter((prior) => prior.primitiveId !== 'energy-ledger')
         .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
       const semanticRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector);
       const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
-      const rerank = rerankPriors(basePriors, semanticRag, dopplerIntent, runtime);
+      const rerank = rerankPriors(basePriors, semanticRag, dopplerIntent, runtime, universeMatches);
       emitProgress(progress, {
         source: 'simulatte-intent-embedder',
         stage: 'classification',
@@ -514,10 +523,53 @@
       if (!index || !Array.isArray(index.documents)) {
         throw new Error(`universe index ${name} missing documents`);
       }
+      const rawDocs = index.documents;
+      const embeddingDim = Number(index.embeddingDim || 0);
+      const packedEmbeddings = index.embeddingsPackedBase64 && Number.isFinite(embeddingDim) && embeddingDim > 0
+        ? decodePackedEmbeddings(
+          index.embeddingsPackedBase64,
+          rawDocs.length,
+          embeddingDim,
+          `universe ${name} embedding index`
+        )
+        : null;
+      const featureDim = Number(index.featureDim || 0);
+      const packedFeatures = index.featurePackedBase64 && Number.isFinite(featureDim) && featureDim > 0
+        ? decodePackedEmbeddings(
+          index.featurePackedBase64,
+          rawDocs.length,
+          featureDim,
+          `universe ${name} feature index`
+        )
+        : null;
       indexes[name] = {
         schema: index.schema || '',
         id: index.id || `simulatte-universe-${name}`,
-        documents: index.documents.map((doc, order) => ({ ...doc, order, indexName: name })),
+        embedModelId: index.embedModelId || '',
+        embeddingDim: packedEmbeddings ? embeddingDim : 0,
+        featureModelId: index.featureModelId || '',
+        featureDim: packedFeatures ? featureDim : 0,
+        documents: rawDocs.map((doc, order) => {
+          const embeddingOffset = order * embeddingDim;
+          const featureOffset = order * featureDim;
+          return {
+            ...doc,
+            order,
+            indexName: name,
+            vector: packedEmbeddings
+              ? normalizeEmbeddingVector(
+                packedEmbeddings.slice(embeddingOffset, embeddingOffset + embeddingDim),
+                `universe ${name} ${doc.id || order}`
+              )
+              : null,
+            featureVector: packedFeatures
+              ? normalizeEmbeddingVector(
+                packedFeatures.slice(featureOffset, featureOffset + featureDim),
+                `universe ${name} feature ${doc.id || order}`
+              )
+              : null,
+          };
+        }),
       };
       documentCount += indexes[name].documents.length;
     }
@@ -619,20 +671,20 @@
     };
   }
 
-  function decodePackedEmbeddings(base64, count, dimensions) {
+  function decodePackedEmbeddings(base64, count, dimensions, label = 'primitive embedding index') {
     if (typeof base64 !== 'string' || !base64) {
-      throw new Error('primitive embedding index missing packed vectors');
+      throw new Error(`${label} missing packed vectors`);
     }
     const bytes = base64ToBytes(base64);
     const expectedBytes = count * dimensions * 4;
     if (bytes.byteLength !== expectedBytes) {
-      throw new Error(`primitive embedding byte length mismatch (${bytes.byteLength} !== ${expectedBytes})`);
+      throw new Error(`${label} byte length mismatch (${bytes.byteLength} !== ${expectedBytes})`);
     }
     const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
     const values = new Float32Array(buffer);
     for (let i = 0; i < values.length; i += 1) {
       if (!Number.isFinite(values[i])) {
-        throw new Error(`primitive embedding index has non-finite value at ${i}`);
+        throw new Error(`${label} has non-finite value at ${i}`);
       }
     }
     return values;
@@ -694,7 +746,7 @@
       .slice(0, maxCards);
   }
 
-  function rankUniverseIndexes(universe, promptText, _queryVector, options = {}) {
+  function rankUniverseIndexes(universe, promptText, queryVector, options = {}) {
     const empty = {
       schema: 'simulatte.universeMatches.v1',
       manifestId: universe && universe.id || '',
@@ -703,13 +755,20 @@
     };
     if (!universe) return empty;
     const maxUniverse = Number.isFinite(options.maxUniverse) ? options.maxUniverse : 36;
+    const minUniverseScore = Number.isFinite(options.minUniverseScore) ? options.minUniverseScore : 0.16;
     const tokens = promptTokens(promptText);
+    if (!tokens.length && !queryVector) return empty;
+    const featureQueries = new Map();
     const byIndex = {};
     const candidates = [];
     for (const [indexName, index] of Object.entries(universe.indexes || {})) {
+      const featureQuery = featureQueryForIndex(index, promptText, featureQueries);
       const rows = (index.documents || [])
-        .map((doc) => universeCandidateForDocument(doc, indexName, tokens))
-        .filter((row) => row.score > 0)
+        .map((doc) => universeCandidateForDocument(doc, indexName, tokens, {
+          featureQuery,
+          queryVector,
+        }))
+        .filter((row) => row.score >= minUniverseScore || row.lexicalScore > 0)
         .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
         .slice(0, Math.max(4, Math.floor(maxUniverse / 2)));
       byIndex[indexName] = rows;
@@ -723,15 +782,48 @@
     };
   }
 
-  function universeCandidateForDocument(doc, indexName, tokens) {
-    const labels = [doc.label, doc.id, ...(doc.aliases || [])].filter(Boolean).map((value) => String(value).toLowerCase());
+  function featureQueryForIndex(index, promptText, cache) {
+    if (!index || !index.featureDim) return null;
+    const dim = Number(index.featureDim);
+    if (!Number.isFinite(dim) || dim <= 0) return null;
+    if (!cache.has(dim)) cache.set(dim, buildUniverseFeatureVector(promptText, dim));
+    return cache.get(dim);
+  }
+
+  function universeCandidateForDocument(doc, indexName, tokens, ranking = {}) {
+    const labels = universeLabels(doc).map((value) => String(value).toLowerCase());
     const haystack = labels.join(' ');
-    let hits = 0;
+    const tokenHits = [];
     for (const token of tokens) {
-      if (token.length > 2 && haystack.includes(token)) hits += 1;
+      if (token.length > 2 && haystack.includes(token)) tokenHits.push(token);
     }
     const phraseHit = labels.some((label) => label && tokens.join(' ').includes(label));
-    const score = clamp01(hits / Math.max(2, tokens.length) + (phraseHit ? 0.42 : 0));
+    const lexicalScore = clamp01(tokenHits.length / Math.max(2, tokens.length) + (phraseHit ? 0.42 : 0));
+    const modelScore = ranking.queryVector && doc.vector && ranking.queryVector.length === doc.vector.length
+      ? clamp01(dot(ranking.queryVector, doc.vector))
+      : 0;
+    const featureScore = ranking.featureQuery && doc.featureVector && ranking.featureQuery.length === doc.featureVector.length
+      ? clamp01(dot(ranking.featureQuery, doc.featureVector))
+      : 0;
+    const semanticScore = Math.max(modelScore, featureScore);
+    const score = clamp01(Math.max(lexicalScore, semanticScore * 0.88 + lexicalScore * 0.18));
+    const operatorHints = uniqueStrings([
+      ...(doc.operatorHints || []),
+      ...(doc.operatorTypes || []),
+      ...(doc.operators || []),
+      doc.operatorType,
+      doc.process,
+      doc.edgeType,
+    ]);
+    const materialIds = uniqueStrings([
+      ...(doc.materialIds || []),
+      doc.materialId,
+    ]);
+    const conceptIds = uniqueStrings([
+      ...(doc.conceptIds || []),
+      ...(doc.concepts || []),
+      doc.canonicalId,
+    ]);
     return {
       id: doc.id || `${indexName}:${doc.label || 'candidate'}`,
       indexName,
@@ -741,16 +833,141 @@
       semanticType: doc.semanticType || indexName.replace(/s$/, ''),
       domains: doc.domains || [],
       materialId: doc.materialId || '',
-      operatorHints: doc.operatorHints || (doc.operatorType ? [doc.operatorType] : []),
+      materialIds,
+      operatorHints,
+      operatorTypes: operatorHints,
+      primitiveHints: uniqueStrings(doc.primitiveHints || []),
+      conceptIds,
+      shapeHints: uniqueStrings([...(doc.shapeHints || []), ...(doc.shapeIds || [])]),
+      sceneHints: uniqueStrings(doc.sceneHints || []),
       process: doc.process || '',
       edgeType: doc.edgeType || '',
+      shapeKind: doc.shapeKind || '',
+      sceneKind: doc.sceneKind || '',
+      candidateText: doc.candidateText || '',
       score: Number(score.toFixed(4)),
+      lexicalScore: Number(lexicalScore.toFixed(4)),
+      semanticScore: Number(semanticScore.toFixed(4)),
+      modelScore: Number(modelScore.toFixed(4)),
+      featureScore: Number(featureScore.toFixed(4)),
       evidence: ['universe-index', indexName],
+      rankSignals: {
+        featureScore: Number(featureScore.toFixed(4)),
+        lexicalScore: Number(lexicalScore.toFixed(4)),
+        modelScore: Number(modelScore.toFixed(4)),
+        phraseHit,
+        tokenHits,
+      },
     };
+  }
+
+  function universeLabels(doc) {
+    return [
+      doc.label,
+      doc.id,
+      doc.canonicalId,
+      doc.semanticType,
+      doc.materialId,
+      doc.operatorType,
+      doc.process,
+      doc.edgeType,
+      doc.shapeKind,
+      doc.sceneKind,
+      doc.candidateText,
+      ...(doc.aliases || []),
+      ...(doc.domains || []),
+      ...(doc.operatorHints || []),
+      ...(doc.operatorTypes || []),
+      ...(doc.operators || []),
+      ...(doc.primitiveHints || []),
+      ...(doc.conceptIds || []),
+      ...(doc.concepts || []),
+      ...(doc.materialIds || []),
+      ...(doc.shapeHints || []),
+      ...(doc.shapeIds || []),
+      ...(doc.sceneHints || []),
+    ].filter(Boolean);
+  }
+
+  function uniqueStrings(values) {
+    return Array.from(new Set((values || []).filter(Boolean).map((value) => String(value))));
   }
 
   function promptTokens(promptText) {
     return String(promptText || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  }
+
+  function buildUniverseFeatureVector(text, dim) {
+    const ragApi = typeof globalThis !== 'undefined' ? globalThis.SimulatteSemanticRag : null;
+    if (ragApi && typeof ragApi.buildSemanticFeatureVector === 'function') {
+      return ragApi.buildSemanticFeatureVector(text, dim);
+    }
+    return fallbackSemanticFeatureVector(text, dim);
+  }
+
+  function fallbackSemanticFeatureVector(text, dim) {
+    const out = new Float32Array(dim);
+    const roots = fallbackFeatureTokens(text);
+    if (!roots.length) return out;
+    for (const token of roots) {
+      addFeature(out, `w:${token}`, 1);
+      addCharNgrams(out, token);
+    }
+    for (let i = 0; i < roots.length - 1; i += 1) {
+      addFeature(out, `b:${roots[i]}_${roots[i + 1]}`, 1.35);
+    }
+    return normalizeEmbeddingVector(out, 'universe query feature');
+  }
+
+  function fallbackFeatureTokens(text) {
+    const stops = new Set([
+      'a', 'an', 'and', 'are', 'as', 'be', 'build', 'by', 'create', 'for', 'from',
+      'in', 'into', 'is', 'make', 'of', 'on', 'or', 'simulate', 'simulation',
+      'the', 'to', 'with', 'world', 'that', 'this', 'these', 'those',
+    ]);
+    const out = [];
+    const lower = String(text || '').toLowerCase();
+    let match;
+    const tokenRe = /[a-z0-9][a-z0-9'-]*/g;
+    while ((match = tokenRe.exec(lower))) {
+      const token = normalizeFeatureToken(match[0]);
+      if (token && !stops.has(token)) out.push(token);
+    }
+    return uniqueStrings(out);
+  }
+
+  function normalizeFeatureToken(token) {
+    let out = String(token || '').toLowerCase().replace(/'/g, '').replace(/[^a-z0-9-]/g, '');
+    if (out.endsWith('ies') && out.length > 4) out = `${out.slice(0, -3)}y`;
+    else if (/(ches|shes|xes|zes|sses)$/.test(out) && out.length > 5) out = out.slice(0, -2);
+    else if (out.endsWith('s') && out.length > 3 && !/(ss|us|is)$/.test(out)) out = out.slice(0, -1);
+    return out;
+  }
+
+  function addFeature(out, feature, value = 1) {
+    const hash = hashString(feature);
+    const sign = hash & 0x80000000 ? -1 : 1;
+    out[hash % out.length] += value * sign;
+  }
+
+  function addCharNgrams(out, token) {
+    const padded = `^${token}$`;
+    for (let n = 3; n <= 4; n += 1) {
+      if (padded.length < n) continue;
+      for (let i = 0; i <= padded.length - n; i += 1) {
+        addFeature(out, `c${n}:${padded.slice(i, i + n)}`, 0.42);
+      }
+    }
+  }
+
+  function hashString(str) {
+    let hash = 2166136261;
+    const value = String(str || '');
+    for (let i = 0; i < value.length; i += 1) {
+      hash ^= value.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
   }
 
   function validateQueryEmbedding(result, index) {
@@ -1054,12 +1271,14 @@
     }
   }
 
-  function rerankPriors(priors, semanticRag, dopplerIntent, runtime = null) {
+  function rerankPriors(priors, semanticRag, dopplerIntent, runtime = null, universeMatches = null) {
     const byId = new Map((priors || []).map((prior) => [prior.primitiveId, {
       ...prior,
       modelScore: Number(prior.modelScore ?? prior.score ?? 0),
       ragScore: 0,
       dopplerScore: 0,
+      universeScore: 0,
+      universeEvidence: [],
       matchedTerms: [],
     }]));
     for (const doc of semanticRag && semanticRag.retrieved || []) {
@@ -1067,7 +1286,7 @@
       if (!existing) continue;
       const ragScore = Number(doc.score || 0);
       existing.ragScore = Number(ragScore.toFixed(4));
-      existing.matchedTerms = doc.matchedTerms || [];
+      existing.matchedTerms = uniqueStrings([...(existing.matchedTerms || []), ...(doc.matchedTerms || [])]);
       byId.set(doc.primitiveId, existing);
     }
     for (const hint of dopplerIntent && dopplerIntent.primitives || []) {
@@ -1077,15 +1296,43 @@
       existing.dopplerReason = hint.reason || '';
       byId.set(hint.primitiveId, existing);
     }
+    let universePrimitiveHintCount = 0;
+    for (const candidate of universeMatches && universeMatches.candidates || []) {
+      const hints = uniqueStrings(candidate.primitiveHints || []);
+      for (const primitiveId of hints) {
+        const existing = byId.get(primitiveId);
+        if (!existing) continue;
+        const universeScore = clamp01(Number(candidate.score || 0));
+        existing.universeScore = Number(Math.max(existing.universeScore || 0, universeScore).toFixed(4));
+        existing.universeEvidence = (existing.universeEvidence || []).concat([{
+          id: candidate.id,
+          indexName: candidate.indexName,
+          label: candidate.label,
+          score: Number(universeScore.toFixed(4)),
+        }]).slice(0, 5);
+        universePrimitiveHintCount += 1;
+        byId.set(primitiveId, existing);
+      }
+    }
     const rows = Array.from(byId.values()).map((prior) => {
       const lexical = Math.min(1, (prior.matchedTerms || []).length / 5);
-      const score = prior.modelScore * 0.58 + prior.ragScore * 0.24 + lexical * 0.06 + prior.dopplerScore * 0.28;
+      const score = prior.modelScore * 0.58
+        + prior.ragScore * 0.16
+        + lexical * 0.03
+        + prior.symbolicBoost * 0.16
+        + prior.dopplerScore * 0.24
+        + prior.universeScore * 0.12;
       return {
         ...prior,
         lexicalScore: Number(lexical.toFixed(4)),
         score: Number(Math.min(1, score).toFixed(4)),
       };
-    }).sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
+    }).sort((a, b) => (
+      b.score - a.score ||
+      b.modelScore - a.modelScore ||
+      b.ragScore - a.ragScore ||
+      a.primitiveId.localeCompare(b.primitiveId)
+    ));
     return {
       priors: rows,
       receipt: {
@@ -1095,8 +1342,56 @@
         modelPriorCount: priors.length,
         ragDocumentCount: semanticRag && semanticRag.retrieved ? semanticRag.retrieved.length : 0,
         dopplerPrimitiveCount: dopplerIntent && dopplerIntent.primitives ? dopplerIntent.primitives.length : 0,
+        universeCandidateCount: universeMatches && universeMatches.candidates ? universeMatches.candidates.length : 0,
+        universePrimitiveHintCount,
         top: rows.slice(0, 12).map((row) => row.primitiveId),
       },
+    };
+  }
+
+  function symbolicPromptMatch(promptText, promptTerms, primitive) {
+    const prompt = ` ${String(promptText || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ')} `;
+    const idPhrase = String(primitive.id || '').toLowerCase().replace(/[-_]+/g, ' ').trim();
+    const idTerms = fallbackFeatureTokens(String(primitive.id || '').replace(/[-_]+/g, ' '));
+    const domainTerms = fallbackFeatureTokens((primitive.domains || []).join(' '));
+    const textTerms = fallbackFeatureTokens([
+      primitive.role || '',
+      primitive.text || '',
+      (primitive.recipe || []).join(' '),
+    ].join(' '));
+    const matched = [];
+    let score = 0;
+    if (idPhrase && idPhrase.length > 2 && prompt.includes(` ${idPhrase} `)) {
+      score += 0.44;
+      matched.push(idPhrase);
+    }
+    let idHits = 0;
+    for (const term of idTerms) {
+      if (promptTerms.has(term)) {
+        idHits += 1;
+        matched.push(term);
+      }
+    }
+    score += Math.min(0.42, idHits * 0.22);
+    let domainHits = 0;
+    for (const term of domainTerms) {
+      if (promptTerms.has(term)) {
+        domainHits += 1;
+        matched.push(term);
+      }
+    }
+    score += Math.min(0.18, domainHits * 0.08);
+    let textHits = 0;
+    for (const term of textTerms) {
+      if (promptTerms.has(term)) {
+        textHits += 1;
+        matched.push(term);
+      }
+    }
+    score += Math.min(0.18, textHits * 0.035);
+    return {
+      score: Number(Math.min(0.76, score).toFixed(4)),
+      terms: uniqueStrings(matched).slice(0, 10),
     };
   }
 
