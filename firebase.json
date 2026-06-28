@@ -2,6 +2,7 @@
   "hosting": {
     "site": "simulatte-world",
     "public": "public",
+    "predeploy": "npm run stamp:build",
     "ignore": [
       "firebase.json",
       "**/.*",
