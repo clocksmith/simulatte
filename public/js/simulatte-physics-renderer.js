@@ -2481,7 +2481,7 @@
     const hue = finiteVisualNumber(row.hue, genome.palette && genome.palette.accentHue || 180);
     const alpha = semanticAlpha(row, 0.038, 0.12);
     if (family === 'burn' || family === 'melt') drawProcessBurnMelt(ctx, width, height, state, hue, alpha, index);
-    else if (family === 'flow' || family === 'erode' || family === 'pump') {
+    else if (family === 'flow' || family === 'erode' || family === 'pump' || family === 'leak') {
       drawProcessFlow(ctx, width, height, state, hue, alpha, index);
     } else if (family === 'growth') drawProcessGrowth(ctx, width, height, state, hue, alpha, index);
     else if (family === 'fracture' || family === 'collide') drawProcessFracture(ctx, width, height, state, hue, alpha, index);
@@ -2489,7 +2489,7 @@
     else if (family === 'focus') drawProcessFocus(ctx, width, height, state, hue, alpha, index);
     else if (family === 'levitate' || family === 'resonate') drawProcessLevitate(ctx, width, height, state, hue, alpha, index);
     else if (family === 'crystallize') drawProcessCrystallize(ctx, width, height, state, hue, alpha, index);
-    else if (family === 'orbit') drawProcessOrbit(ctx, width, height, state, hue, alpha, index);
+    else if (family === 'orbit' || family === 'rotate') drawProcessOrbit(ctx, width, height, state, hue, alpha, index);
     else drawProcessCharge(ctx, width, height, state, hue, alpha, index);
   }
 

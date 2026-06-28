@@ -884,6 +884,54 @@ test('prompt visual DNA differentiates arbitrary one two and three gram prompts'
   assert.equal(dnaRows[2].catalog, 'simulatte.proceduralVisualBase.v1');
 });
 
+test('semantic visual atlas maps prompts to distinct archetype material and process layers', () => {
+  const prompts = [
+    'fire',
+    'building fire',
+    'battery leak warehouse robots',
+    'orbiting mirror algae pond',
+    'acoustic levitator dust brass tube',
+    'moss turbine glass',
+  ];
+  const specs = prompts.map((prompt) => createPrototypeSpec(prompt));
+  const visuals = specs.map((spec) => spec.renderProgram.visualGenome.semanticVisuals);
+  const signatures = new Set(visuals.map((visual) => visual.signature));
+  const families = (visual, key) => new Set((visual[key] || []).map((row) => row.family));
+  const overlays = (visual) => new Set(visual.overlays || []);
+  const fire = visuals[0];
+  const buildingFire = visuals[1];
+  const battery = visuals[2];
+  const orbitPond = visuals[3];
+  const acoustic = visuals[4];
+  const mossTurbine = visuals[5];
+
+  assert.equal(signatures.size, prompts.length);
+  for (const visual of visuals) {
+    assert.equal(visual.schema, 'simulatte.semanticVisualPlan.v1');
+    assert.equal(visual.atlas, 'simulatte.semanticVisualAtlas.v1');
+    assert.ok(visual.quality.coverage >= 0.75);
+    assert.ok(visual.quality.layerCount >= 2);
+  }
+  assert.ok(families(fire, 'materials').has('thermal'));
+  assert.ok(families(fire, 'processes').has('burn'));
+  assert.ok(!families(fire, 'archetypes').has('architecture'));
+  assert.ok(families(buildingFire, 'archetypes').has('architecture'));
+  assert.ok(families(buildingFire, 'materials').has('concrete'));
+  assert.ok(families(battery, 'archetypes').has('civic'));
+  assert.ok(families(battery, 'archetypes').has('electronics'));
+  assert.ok(families(battery, 'materials').has('electric'));
+  assert.ok(families(battery, 'processes').has('leak'));
+  assert.ok(families(orbitPond, 'archetypes').has('astronomy'));
+  assert.ok(families(orbitPond, 'archetypes').has('biology'));
+  assert.ok(families(orbitPond, 'processes').has('orbit'));
+  assert.ok(families(acoustic, 'archetypes').has('acoustics'));
+  assert.ok(families(acoustic, 'processes').has('levitate'));
+  assert.ok(families(acoustic, 'processes').has('sort'));
+  assert.ok(families(mossTurbine, 'archetypes').has('mechanics'));
+  assert.ok(families(mossTurbine, 'processes').has('rotate'));
+  assert.ok(overlays(mossTurbine).has('rotation-trails'));
+});
+
 test('Doppler residual hints can steer the selected physical graph', () => {
   const spec = lab.createSpecFromPrompt('quiet demonstration plane', {
     dopplerIntent: {
