@@ -79,6 +79,7 @@
     const modelBackedPriors = rankedFromEmbeddingPriors(options.embeddingPriors || []);
     if (modelBackedPriors.length && options.embeddingModel && options.embeddingModel.id) {
       let ranked = mergeSemanticRag(modelBackedPriors, options.semanticRag || null);
+      ranked = applyPromptPriorRules(ranked, prompt);
       const selected = selectedPriors(ranked, max);
       const layerScores = layerScoreDistributionFromPriors(selected);
       const domainScores = aggregateDomainScores(selected);
@@ -105,6 +106,7 @@
       .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
     ranked = mergeEmbeddingPriors(ranked, options.embeddingPriors || []);
     ranked = mergeSemanticRag(ranked, options.semanticRag || null);
+    ranked = applyPromptPriorRules(ranked, prompt);
     const selected = selectedPriors(ranked, max);
     const layerScores = layerScoreDistribution(intentVec, selected);
     const domainScores = aggregateDomainScores(selected);
@@ -236,6 +238,66 @@
       semanticScore: 0,
       symbolicBoost: 0,
     };
+  }
+
+  function applyPromptPriorRules(ranked, prompt) {
+    const promptText = String(prompt || '').toLowerCase();
+    const promptTerms = new Set(meaningfulTokens(promptText));
+    const byId = new Map((ranked || []).map((prior) => [prior.primitiveId, { ...prior }]));
+    const ensure = (primitiveId, score, matchedTerms = []) => {
+      const primitive = primitiveById(primitiveId);
+      if (!primitive || primitive.id === 'energy-ledger') return;
+      const existing = byId.get(primitive.id) || primitivePrior(primitive);
+      const nextScore = clamp(Math.max(Number(existing.score || 0), score), 0, 1);
+      byId.set(primitive.id, {
+        ...existing,
+        score: Number(nextScore.toFixed(4)),
+        semanticScore: Number(Math.max(existing.semanticScore || 0, nextScore).toFixed(4)),
+        symbolicBoost: Number(Math.max(existing.symbolicBoost || 0, score).toFixed(4)),
+        matchedTerms: uniqueList([...(existing.matchedTerms || []), ...matchedTerms]),
+      });
+    };
+    for (const primitive of PHYSICAL_PRIMITIVES) {
+      if (primitive.id === 'energy-ledger') continue;
+      const idPhrase = primitive.id.replace(/[-_]+/g, ' ');
+      const idTerms = primitive.id.split(/[-_]+/).filter((term) => term.length > 2);
+      if (
+        promptText.includes(idPhrase) ||
+        (idTerms.length > 1 && idTerms.every((term) => promptTerms.has(term)))
+      ) {
+        ensure(primitive.id, 0.74, idTerms);
+      }
+    }
+    if (/\b(perpetual|solar magnetic|magnetic slider|magnetic wheel|powered by the sun|generator)\b/i.test(promptText)) {
+      ensure('rotor-wheel', 0.86, ['rotor', 'wheel', 'magnetic']);
+      ensure('stator-slider', 0.84, ['stator', 'slider', 'magnetic']);
+      ensure('solar-panel', 0.8, ['solar', 'sun']);
+      ensure('motor-load', 0.72, ['motor', 'load']);
+    }
+    if (/\b(infection front|infection|disease|epidemic|contagion)\b/i.test(promptText)) {
+      ensure('infection-front', 0.78, ['infection', 'front']);
+      ensure('population-field', 0.64, ['population', 'biology']);
+    }
+    if (/\b(plasma|arc|discharge|lightning)\b/i.test(promptText)) {
+      ensure('plasma-arc', 0.78, ['plasma', 'arc']);
+      ensure('electric-field', 0.62, ['electric', 'field']);
+    }
+    if (/\b(erosion|erode|river erosion|terrain erosion)\b/i.test(promptText)) {
+      ensure('erosion-channel', 0.78, ['erosion', 'channel']);
+      ensure('terrain-heightfield', 0.66, ['terrain', 'heightfield']);
+    }
+    if (/\b(bubble|bubbles|buoyant|buoyancy|float|floating)\b/i.test(promptText)) {
+      ensure('buoyant-body', 0.76, ['buoyant', 'body']);
+    }
+    if (/\b(sound|acoustic|wave|waves)\b/i.test(promptText)) {
+      ensure('acoustic-emitter', 0.74, ['acoustic', 'sound']);
+      ensure('wave-source', 0.62, ['wave', 'source']);
+    }
+    if (/\b(sand|granular|grain|grains|sediment)\b/i.test(promptText)) {
+      ensure('granular-bed', 0.74, ['granular', 'bed']);
+    }
+    return Array.from(byId.values())
+      .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
   }
 
   function blankClassification(prompt) {

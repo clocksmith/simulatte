@@ -506,26 +506,33 @@ test('layered catalog separates math, physics, material, component, composition,
   ]);
   assert.equal(lab.COMPILER_INPUT_PLANE.id, 'compiler');
   assert.ok(lab.COMPILER_INPUT_PLANE.targetLayers.includes('scene'));
-  assert.equal(lab.MATH_PRIMITIVE_LIBRARY.length, 57);
-  assert.equal(lab.PHYSICS_PRIMITIVE_LIBRARY.length, 53);
-  assert.equal(lab.MATERIAL_PRIMITIVE_LIBRARY.length, 98);
-  assert.equal(lab.COMPONENT_LIBRARY.length, 48);
-  assert.equal(lab.COMPOSITION_LIBRARY.length, 26);
-  assert.equal(lab.SCENE_LIBRARY.length, 20);
-  assert.equal(lab.LAYERED_PRIMITIVES.length, 302);
-  assert.equal(lab.PHYSICAL_PRIMITIVES.length, 360);
+  assert.equal(lab.MATH_PRIMITIVE_LIBRARY.length, 63);
+  assert.equal(lab.PHYSICS_PRIMITIVE_LIBRARY.length, 65);
+  assert.equal(lab.MATERIAL_PRIMITIVE_LIBRARY.length, 114);
+  assert.equal(lab.COMPONENT_LIBRARY.length, 60);
+  assert.equal(lab.COMPOSITION_LIBRARY.length, 34);
+  assert.equal(lab.SCENE_LIBRARY.length, 26);
+  assert.equal(lab.LAYERED_PRIMITIVES.length, 362);
+  assert.equal(lab.PHYSICAL_PRIMITIVES.length, 420);
   assert.equal(lab.primitiveById('rigid-body').layer, 'physics');
   assert.equal(lab.primitiveById('soft-body').layer, 'physics');
   assert.equal(lab.primitiveById('bonding').layer, 'physics');
   assert.equal(lab.primitiveById('aerodynamics').layer, 'physics');
+  assert.equal(lab.primitiveById('magnetohydrodynamics').layer, 'physics');
   assert.equal(lab.primitiveById('gold').layer, 'material');
   assert.equal(lab.primitiveById('dna').layer, 'material');
   assert.equal(lab.primitiveById('lava').layer, 'material');
+  assert.equal(lab.primitiveById('blood').layer, 'material');
   assert.equal(lab.primitiveById('molecular-chain').layer, 'component');
+  assert.equal(lab.primitiveById('heart-pump').layer, 'component');
   assert.equal(lab.primitiveById('drone-flight').layer, 'composition');
+  assert.equal(lab.primitiveById('rocket-ascent').layer, 'composition');
   assert.equal(lab.primitiveById('reef-tank').layer, 'scene');
+  assert.equal(lab.primitiveById('electronics-bench').layer, 'scene');
   assert.ok(lab.materialPropertiesForId('gold').conductivity > 0.8);
   assert.ok(lab.materialPropertiesForId('dna').moisture > 0.5);
+  assert.ok(lab.materialPropertiesForId('blood').moisture > 0.9);
+  assert.ok(lab.materialPropertiesForId('superconductor').conductivity > 0.9);
 });
 
 test('canonical layer recipes only compose the immediately lower layer', () => {
@@ -820,6 +827,63 @@ test('prompt worlds choose distinct regime renderer identities', () => {
   }
 });
 
+test('prompt-seeded visual genomes diversify close and broad prompt worlds', () => {
+  const prompts = [
+    'fire',
+    'building fire',
+    'glass lens focusing sunlight through water',
+    'city market queue traffic network',
+    'ferrofluid spikes around copper coils under pulsing current',
+    'granular beads avalanche through a vibrating sieve',
+  ];
+  const specs = prompts.map((prompt) => createPrototypeSpec(prompt));
+  const genomes = specs.map((spec) => spec.renderProgram.visualGenome);
+  const genomeIds = new Set(genomes.map((genome) => genome.id));
+  const fireGenome = genomes[0];
+  const buildingFireGenome = genomes[1];
+
+  assert.equal(genomeIds.size, prompts.length);
+  assert.equal(fireGenome.schema, 'simulatte.visualGenome.v1');
+  assert.equal(specs[0].renderProgram.rendererPlan.sceneKind, specs[1].renderProgram.rendererPlan.sceneKind);
+  assert.equal(specs[0].physicalSpec.receipt.visualGenome.id, fireGenome.id);
+  assert.equal(specs[1].physicalSpec.receipt.visualGenome.id, buildingFireGenome.id);
+  assert.notEqual(fireGenome.id, buildingFireGenome.id);
+  assert.ok(fireGenome.motifs.includes('ember-shear'));
+  assert.ok(!fireGenome.motifs.includes('architectural-grid'));
+  assert.ok(!fireGenome.motifs.includes('caustic-ribs'));
+  assert.ok(!fireGenome.motifs.includes('flow-contours'));
+  assert.ok(buildingFireGenome.motifs.includes('ember-shear'));
+  assert.ok(buildingFireGenome.motifs.includes('architectural-grid'));
+  assert.notDeepEqual(fireGenome.palette, buildingFireGenome.palette);
+  assert.notDeepEqual(fireGenome.morphology, buildingFireGenome.morphology);
+});
+
+test('prompt visual DNA differentiates arbitrary one two and three gram prompts', () => {
+  const prompts = [
+    'moss',
+    'moss turbine',
+    'moss turbine glass',
+    'moss turbine stone',
+    'quartz turbine glass',
+  ];
+  const genomes = prompts.map((prompt) => createPrototypeSpec(prompt).renderProgram.visualGenome);
+  const dnaRows = genomes.map((genome) => genome.promptDna);
+  const dnaHashes = new Set(dnaRows.map((dna) => dna.hash));
+  const markSignatures = new Set(dnaRows.map((dna) => (
+    dna.ngrams.map((row) => `${row.n}:${row.index}:${row.mark}:${row.hue}`).join('|')
+  )));
+
+  assert.equal(dnaHashes.size, prompts.length);
+  assert.equal(markSignatures.size, prompts.length);
+  assert.equal(dnaRows[0].tokenCount, 1);
+  assert.equal(dnaRows[1].tokenCount, 2);
+  assert.equal(dnaRows[2].tokenCount, 3);
+  assert.ok(dnaRows[0].ngrams.some((row) => row.n === 1 && row.text === 'moss'));
+  assert.ok(dnaRows[1].ngrams.some((row) => row.n === 2 && row.text === 'moss turbine'));
+  assert.ok(dnaRows[2].ngrams.some((row) => row.n === 3 && row.text === 'moss turbine glass'));
+  assert.equal(dnaRows[2].catalog, 'simulatte.proceduralVisualBase.v1');
+});
+
 test('Doppler residual hints can steer the selected physical graph', () => {
   const spec = lab.createSpecFromPrompt('quiet demonstration plane', {
     dopplerIntent: {
@@ -1028,6 +1092,27 @@ test('composition render programs do not collapse into one generic shape vocabul
   assert.ok(!signatures[1].has('queue-node'));
   assert.ok(signatures[2].has('queue-node'));
   assert.ok(!signatures[2].has('flame-front'));
+});
+
+test('building fire keeps a structural building mixed with fire visuals', () => {
+  const fire = lab.createSpecFromPrompt('fire');
+  const buildingFire = lab.createSpecFromPrompt('building fire');
+  const warehouseFire = lab.createSpecFromPrompt('warehouse fire with smoke in concrete stairwell');
+  const buildingObjects = buildingFire.renderProgram.objects.filter((object) => object.shape === 'building');
+  const warehouseObjects = warehouseFire.renderProgram.objects.filter((object) => object.shape === 'building');
+  const fireShapes = new Set(fire.renderProgram.objects.map((object) => object.shape));
+  const buildingFireShapes = new Set(buildingFire.renderProgram.objects.map((object) => object.shape));
+
+  assert.equal(buildingFire.promptParse.spans.some((span) => span.text === 'building'), true);
+  assert.ok(buildingObjects.length >= 1);
+  assert.ok(warehouseFire.promptParse.spans.some((span) => span.text === 'warehouse'));
+  assert.ok(warehouseFire.promptParse.spans.some((span) => span.text === 'stairwell'));
+  assert.ok(warehouseObjects.length >= 1);
+  assert.ok(buildingFire.renderProgram.objects.some((object) => object.shape === 'flame-front'));
+  assert.ok(warehouseFire.renderProgram.objects.some((object) => object.shape === 'flame-front'));
+  assert.ok(!fireShapes.has('building'));
+  assert.ok(buildingFireShapes.has('building'));
+  assert.notDeepEqual([...buildingFireShapes].sort(), [...fireShapes].sort());
 });
 
 test('render programs keep prompt nouns literal and avoid unrelated scene fields', () => {

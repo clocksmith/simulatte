@@ -7,6 +7,14 @@
       "hex": "e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6"
     }
   },
+  "generator": {
+    "schema": "simulatte.semanticUniverseGenerator.v1",
+    "sources": [
+      "simulatte-physics-catalog",
+      "simulatte-semantic-surface-cards",
+      "simulatte-grounding-basis-cards"
+    ]
+  },
   "id": "simulatte-universe-multi-index-v1",
   "indexes": {
     "affordances": {

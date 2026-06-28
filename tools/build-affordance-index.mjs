@@ -1,12 +1,16 @@
 import {
   INDEX_BY_NAME,
   artifactPath,
+  loadPrimitiveIds,
   mergeDocuments,
   normalizeIndex,
   readJson,
   uniqueSorted,
   writeJson,
 } from './simulatte-universe-utils.mjs';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const OPERATOR_PRIMITIVES = Object.freeze({
   magnetic_field: ['magnet', 'magnetism', 'magnetic-core'],
@@ -65,14 +69,18 @@ const DOMAIN_SCENES = Object.freeze({
 async function main() {
   const concepts = await readIndex('concepts');
   const existing = await readIndex('affordances');
+  const refs = await loadReferenceSets(concepts);
   const derived = (concepts.documents || []).map(deriveAffordance);
-  const merged = mergeDocuments(existing.documents || [], derived);
+  const merged = mergeDocuments(derived, existing.documents || [])
+    .map((row) => sanitizeAffordance(row, refs));
+  const index = normalizeIndex('affordances', existing, merged);
+  addSemanticFeatures(index);
   await writeJson(
     artifactPath(INDEX_BY_NAME.affordances.artifact),
-    normalizeIndex('affordances', existing, merged)
+    index
   );
   console.log(JSON.stringify({
-    affordances: merged.length,
+    affordances: index.documents.length,
     artifact: INDEX_BY_NAME.affordances.artifact,
   }, null, 2));
 }
@@ -89,7 +97,10 @@ async function readIndex(name) {
 function deriveAffordance(concept) {
   const operatorTypes = uniqueSorted(concept.operatorHints || []);
   const domains = uniqueSorted(concept.domains || []);
-  const primitiveHints = uniqueSorted(operatorTypes.flatMap((operator) => OPERATOR_PRIMITIVES[operator] || []));
+  const primitiveHints = uniqueSorted([
+    ...(concept.primitiveHints || []),
+    ...operatorTypes.flatMap((operator) => OPERATOR_PRIMITIVES[operator] || []),
+  ]);
   const shapeHints = uniqueSorted(domains.flatMap((domain) => DOMAIN_SHAPES[domain] || []));
   const sceneHints = uniqueSorted(domains.flatMap((domain) => DOMAIN_SCENES[domain] || []));
   return {
@@ -103,8 +114,110 @@ function deriveAffordance(concept) {
     primitiveHints,
     shapeHints,
     sceneHints,
+    provenance: {
+      schema: 'simulatte.universeDocProvenance.v1',
+      generated: true,
+      source: 'concept-index',
+    },
     unsupportedPolicy: 'preserve-semantic-node',
   };
+}
+
+async function loadReferenceSets(concepts) {
+  const [materials, operators, shapes, scenes] = await Promise.all([
+    readIndex('materials'),
+    readIndex('operators'),
+    readIndex('shapes'),
+    readIndex('scenes'),
+  ]);
+  const materialIds = new Set((materials.documents || []).map((row) => row.materialId).filter(Boolean));
+  const operatorTypes = new Set((operators.documents || []).map((row) => row.operatorType).filter(Boolean));
+  const shapeIds = new Set((shapes.documents || []).map((row) => row.id).filter(Boolean));
+  const sceneIds = new Set((scenes.documents || []).map((row) => row.id).filter(Boolean));
+  return {
+    canonicalConcepts: new Set((concepts.documents || []).map((row) => row.canonicalId).filter(Boolean)),
+    materialIds,
+    operatorTypes,
+    primitiveIds: loadPrimitiveIds(),
+    sceneIds,
+    shapeIds,
+  };
+}
+
+function sanitizeAffordance(row, refs) {
+  return {
+    ...row,
+    aliases: uniqueSorted(row.aliases || []),
+    domains: uniqueSorted(row.domains || []),
+    conceptIds: uniqueSorted(row.conceptIds || []).filter((id) => refs.canonicalConcepts.has(id)),
+    materialIds: uniqueSorted(row.materialIds || [])
+      .map((id) => canonicalMaterialId(id, refs.materialIds))
+      .filter(Boolean),
+    operatorTypes: uniqueSorted(row.operatorTypes || [])
+      .map((id) => canonicalOperatorType(id, refs.operatorTypes))
+      .filter(Boolean),
+    primitiveHints: uniqueSorted(row.primitiveHints || []).filter((id) => refs.primitiveIds.has(id)),
+    sceneHints: uniqueSorted(row.sceneHints || []).filter((id) => refs.sceneIds.has(id)),
+    shapeHints: uniqueSorted(row.shapeHints || []).filter((id) => refs.shapeIds.has(id)),
+  };
+}
+
+function canonicalMaterialId(value, materialIds) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const candidates = [
+    raw,
+    raw.replace(/_/g, '-'),
+    raw.replace(/-/g, '_'),
+  ];
+  return candidates.find((candidate) => materialIds.has(candidate)) || '';
+}
+
+function canonicalOperatorType(value, operatorTypes) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const normalized = raw.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  const aliases = {
+    fluid_flow: 'pressure_flow_lite',
+    growth: 'growth_decay',
+    pressure_flow: 'pressure_flow_lite',
+  };
+  const candidates = [
+    raw,
+    normalized,
+    aliases[normalized],
+  ].filter(Boolean);
+  return candidates.find((candidate) => operatorTypes.has(candidate)) || '';
+}
+
+function addSemanticFeatures(index) {
+  const ragApi = require('../public/js/simulatte-semantic-rag.js');
+  const featureDim = Number(ragApi.FEATURE_DIM || 384);
+  const packed = new Float32Array(index.documents.length * featureDim);
+  index.documents = index.documents.map((doc, order) => {
+    const candidateText = affordanceCandidateText(doc);
+    const vector = ragApi.buildSemanticFeatureVector(candidateText, featureDim);
+    packed.set(vector, order * featureDim);
+    return { ...doc, candidateText };
+  });
+  index.featureModelId = 'simulatte-semantic-feature-v1';
+  index.featureDim = featureDim;
+  index.featurePackedBase64 = Buffer.from(packed.buffer, packed.byteOffset, packed.byteLength).toString('base64');
+}
+
+function affordanceCandidateText(doc) {
+  return [
+    doc.id,
+    doc.label,
+    ...(doc.aliases || []),
+    ...(doc.domains || []),
+    ...(doc.conceptIds || []),
+    ...(doc.materialIds || []),
+    ...(doc.operatorTypes || []),
+    ...(doc.primitiveHints || []),
+    ...(doc.shapeHints || []),
+    ...(doc.sceneHints || []),
+  ].filter(Boolean).join(' ');
 }
 
 main().catch((error) => {

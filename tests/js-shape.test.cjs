@@ -50,6 +50,20 @@ test('physics lab is split into catalog, model, renderer, and coordinator', () =
   assert.ok(coordinatorLines.length < 80);
 });
 
+test('procedural visual base exposes a broad prompt-addressed catalog', () => {
+  assert.equal(catalog.PROCEDURAL_VISUAL_BASE.schema, 'simulatte.proceduralVisualBase.v1');
+  assert.ok(catalog.PROCEDURAL_VISUAL_BASE.markFamilies.length >= 9);
+  assert.ok(catalog.PROCEDURAL_VISUAL_BASE.textureFamilies.length >= 9);
+  assert.ok(catalog.PROCEDURAL_VISUAL_BASE.layoutFamilies.length >= 8);
+  assert.deepEqual(catalog.PROCEDURAL_VISUAL_BASE.tokenOrders, [1, 2, 3]);
+  assert.ok(catalog.PROCEDURAL_VISUAL_BASE.addressableVariants > 1000000000);
+  assert.equal(catalog.SEMANTIC_VISUAL_ATLAS.schema, 'simulatte.semanticVisualAtlas.v1');
+  assert.ok(catalog.SEMANTIC_VISUAL_ATLAS.archetypeFamilies.length >= 24);
+  assert.ok(catalog.SEMANTIC_VISUAL_ATLAS.materialFamilies.length >= 20);
+  assert.ok(catalog.SEMANTIC_VISUAL_ATLAS.processFamilies.length >= 24);
+  assert.ok(catalog.SEMANTIC_VISUAL_ATLAS.addressableVariants > 100000000000000);
+});
+
 test('physics visuals use material continuum paths instead of generic glyph particles', () => {
   const renderer = fs.readFileSync(
     path.join(jsDir, 'simulatte-physics-renderer.js'),
@@ -72,6 +86,15 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(renderer, /function paintMaterialTrayWorld/);
   assert.match(renderer, /function paintBiologyWorld/);
   assert.match(renderer, /function paintAcousticWorld/);
+  assert.match(renderer, /function paintGenomeSceneBackground/);
+  assert.match(renderer, /function drawGenomeTexture/);
+  assert.match(renderer, /function drawPromptFingerprintTexture/);
+  assert.match(renderer, /function drawPromptDnaMark/);
+  assert.match(renderer, /function drawSemanticWorldLayers/);
+  assert.match(renderer, /function drawSemanticArchetype/);
+  assert.match(renderer, /function drawSemanticMaterialShader/);
+  assert.match(renderer, /function drawSemanticProcessOverlay/);
+  assert.match(renderer, /function objectExtentWithVisualGenome/);
   assert.match(renderer, /function drawCanvasTexture/);
   assert.match(renderer, /function drawObjectSilhouette/);
   assert.match(renderer, /function beginObjectSilhouettePath/);
@@ -225,6 +248,13 @@ test('composition renderer has specific painters for diverse scene regimes', () 
   for (const pass of ['coil-field', 'film-frame', 'bead-stream', 'cooling-fins']) {
     assert.match(graph, new RegExp(pass));
   }
+  assert.match(graph, /simulatte\.visualGenome\.v1/);
+  assert.match(graph, /simulatte\.promptVisualDna\.v1/);
+  assert.match(graph, /simulatte\.semanticVisualPlan\.v1/);
+  assert.match(graph, /function visualGenomeForComposition/);
+  assert.match(graph, /function promptDnaForGenome/);
+  assert.match(graph, /function semanticVisualsForGenome/);
+  assert.match(graph, /deterministic-prompt-seeded/);
 });
 
 test('physics graph updates log intent and composition debug data by default', () => {
@@ -339,7 +369,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index', () => {
   assert.equal(index.id, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
   assert.equal(index.embedModelId, 'qwen-3-5-0-8b-q4k-ehaf16');
   assert.equal(index.embeddingDim, 1024);
-  assert.equal(catalog.PHYSICAL_PRIMITIVES.length, 360);
+  assert.equal(catalog.PHYSICAL_PRIMITIVES.length, 420);
   assert.equal(index.documents.length, catalog.PHYSICAL_PRIMITIVES.length);
   assert.equal(index.documentCount, catalog.PHYSICAL_PRIMITIVES.length);
   assert.equal(packedBytes.byteLength, index.documents.length * index.embeddingDim * 4);

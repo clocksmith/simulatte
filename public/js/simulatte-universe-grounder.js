@@ -138,7 +138,15 @@
         confidence: row.best.confidence,
         domains: row.best.domains,
         materialId: row.best.materialId,
+        materialIds: row.best.materialIds || (row.best.materialId ? [row.best.materialId] : []),
         operatorHints: row.best.operatorHints,
+        operatorTypes: row.best.operatorTypes || row.best.operatorHints || [],
+        primitiveHints: row.best.primitiveHints || [],
+        conceptIds: row.best.conceptIds || [],
+        shapeHints: row.best.shapeHints || [],
+        sceneHints: row.best.sceneHints || [],
+        indexName: row.best.indexName || '',
+        rankSignals: row.best.rankSignals || null,
         evidence: row.best.evidence,
       };
       nodes.push(node);
@@ -151,15 +159,23 @@
     const observables = spanRows
       .filter((span) => span.kind === 'observable')
       .map((span) => ({ spanId: span.id, label: span.text, channel: observableChannel(span.text) }));
+    const semanticGraph = buildSemanticGraph(nodes, edges);
+    const affordanceGraph = buildAffordanceGraph(nodes, candidateRows);
+    const primitiveMapping = buildPrimitiveMapping(nodes, candidateRows);
+    const unsupported = buildUnsupportedRows(nodes, primitiveMapping, unresolved);
     return {
       schema: UNIVERSE_GRAPH_SCHEMA,
       prompt: promptParse.prompt || input.prompt || '',
       candidates,
       nodes,
       edges,
+      semanticGraph,
+      affordanceGraph,
+      primitiveMapping,
       environments: nodes.filter((node) => node.semanticType === 'environment'),
       observables,
       unresolved,
+      unsupported,
       rejected,
       provenance: {
         grounder: 'simulatte.universe-grounder.v1',
@@ -179,7 +195,14 @@
         semanticType: component.type || 'body',
         domains: component.domains || [],
         materialId: component.material || '',
+        materialIds: component.material ? [component.material] : [],
         operatorHints: operatorHintsForDomains(component.domains || []),
+        operatorTypes: operatorHintsForDomains(component.domains || []),
+        primitiveHints: component.id ? [component.id] : [],
+        conceptIds: [`primitive.${component.id}`],
+        shapeHints: [],
+        sceneHints: [],
+        indexName: 'components',
         confidence: clamp01(Number(component.score || 0.46)),
         evidence: ['intent-component'],
       });
@@ -192,7 +215,14 @@
         semanticType: row.type || 'component',
         domains: row.domains || [],
         materialId: row.material || '',
+        materialIds: row.material ? [row.material] : [],
         operatorHints: operatorHintsForDomains(row.domains || []),
+        operatorTypes: operatorHintsForDomains(row.domains || []),
+        primitiveHints: row.id ? [row.id] : [],
+        conceptIds: row.id ? [`semantic.${row.id}`] : [],
+        shapeHints: [],
+        sceneHints: [],
+        indexName: 'semantic-rag',
         confidence: clamp01(Number(row.score || 0.38)),
         evidence: ['semantic-rag'],
       });
@@ -206,7 +236,15 @@
         semanticType: row.semanticType || 'concept',
         domains: row.domains || [],
         materialId: row.materialId || '',
-        operatorHints: row.operatorHints || [],
+        materialIds: row.materialIds || (row.materialId ? [row.materialId] : []),
+        operatorHints: row.operatorHints || row.operatorTypes || [],
+        operatorTypes: row.operatorTypes || row.operatorHints || [],
+        primitiveHints: row.primitiveHints || [],
+        conceptIds: row.conceptIds || (row.canonicalId ? [row.canonicalId] : []),
+        shapeHints: row.shapeHints || [],
+        sceneHints: row.sceneHints || [],
+        indexName: row.indexName || '',
+        rankSignals: row.rankSignals || null,
         confidence: clamp01(Number(row.score || 0.42)),
         evidence: row.evidence || ['universe-index'],
       });
@@ -230,11 +268,14 @@
       });
     }
     for (const row of externalRows) {
-      const label = String(row.label || '').toLowerCase();
-      if (!label || (!label.includes(text) && !text.includes(label))) continue;
+      const labels = candidateLabels(row);
+      const overlap = labelOverlap(text, labels);
+      const exact = labels.includes(text);
+      const contained = labels.some((label) => label && (label.includes(text) || text.includes(label)));
+      if (!contained && overlap <= 0) continue;
       matches.push({
         ...row,
-        confidence: clamp01(Number(row.confidence || 0.36) + (label === text ? 0.12 : 0.04)),
+        confidence: clamp01(Number(row.confidence || 0.36) + (exact ? 0.12 : contained ? 0.04 : overlap * 0.08)),
       });
     }
     matches.sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
@@ -275,7 +316,14 @@
         confidence: clamp01(Number(component.score || 0.42)),
         domains: component.domains || [],
         materialId: component.material || '',
+        materialIds: component.material ? [component.material] : [],
         operatorHints: operatorHintsForDomains(component.domains || []),
+        operatorTypes: operatorHintsForDomains(component.domains || []),
+        primitiveHints: component.id ? [component.id] : [],
+        conceptIds: [`primitive.${component.id}`],
+        shapeHints: [],
+        sceneHints: [],
+        indexName: 'components',
         evidence: ['intent-component'],
       });
       added += 1;
@@ -309,11 +357,213 @@
         confidence,
         domains: row.domains || [],
         materialId: row.materialId || '',
-        operatorHints: row.operatorHints || [],
+        materialIds: row.materialIds || (row.materialId ? [row.materialId] : []),
+        operatorHints: row.operatorHints || row.operatorTypes || [],
+        operatorTypes: row.operatorTypes || row.operatorHints || [],
+        primitiveHints: row.primitiveHints || [],
+        conceptIds: row.conceptIds || (row.canonicalId ? [row.canonicalId] : []),
+        shapeHints: row.shapeHints || [],
+        sceneHints: row.sceneHints || [],
+        indexName: row.indexName || '',
+        rankSignals: row.rankSignals || null,
         evidence: row.evidence || ['universe-index'],
       });
       added += 1;
     }
+  }
+
+  function buildSemanticGraph(nodes, edges) {
+    return {
+      schema: 'simulatte.semanticGraph.v1',
+      nodes: (nodes || []).map((node) => ({
+        id: node.id,
+        label: node.label,
+        canonicalId: node.canonicalId,
+        semanticType: node.semanticType,
+        domains: node.domains || [],
+        materialId: node.materialId || '',
+        confidence: Number(node.confidence || 0),
+        evidence: node.evidence || [],
+      })),
+      edges: (edges || []).map((edge) => ({
+        id: edge.id,
+        type: edge.type,
+        from: edge.from,
+        to: edge.to,
+        processId: edge.processId || '',
+        confidence: Number(edge.confidence || 0),
+        evidence: edge.evidence || [],
+      })),
+    };
+  }
+
+  function buildAffordanceGraph(nodes, candidateRows) {
+    const graphNodes = [];
+    const graphEdges = [];
+    for (const node of nodes || []) {
+      const rows = rowsForNode(node, candidateRows);
+      const operatorTypes = unique([
+        ...(node.operatorTypes || []),
+        ...(node.operatorHints || []),
+        ...rows.flatMap((row) => row.operatorTypes || row.operatorHints || []),
+      ]);
+      const materialIds = unique([
+        ...(node.materialIds || []),
+        node.materialId,
+        ...rows.flatMap((row) => row.materialIds || (row.materialId ? [row.materialId] : [])),
+      ]);
+      const primitiveHints = unique([
+        ...(node.primitiveHints || []),
+        ...rows.flatMap((row) => row.primitiveHints || []),
+      ]);
+      const shapeHints = unique([
+        ...(node.shapeHints || []),
+        ...rows.flatMap((row) => row.shapeHints || []),
+      ]);
+      const sceneHints = unique([
+        ...(node.sceneHints || []),
+        ...rows.flatMap((row) => row.sceneHints || []),
+      ]);
+      graphNodes.push({
+        id: node.id,
+        canonicalId: node.canonicalId,
+        label: node.label,
+        operatorTypes,
+        materialIds,
+        primitiveHints,
+        shapeHints,
+        sceneHints,
+        supported: primitiveHints.length > 0,
+      });
+      for (const operatorType of operatorTypes) {
+        graphEdges.push({
+          id: `affordance-${graphEdges.length + 1}`,
+          from: node.id,
+          to: `operator.${operatorType}`,
+          type: 'hasOperator',
+        });
+      }
+      for (const primitiveId of primitiveHints) {
+        graphEdges.push({
+          id: `affordance-${graphEdges.length + 1}`,
+          from: node.id,
+          to: `primitive.${primitiveId}`,
+          type: 'mapsToPrimitive',
+        });
+      }
+    }
+    return {
+      schema: 'simulatte.affordanceGraph.v1',
+      nodes: graphNodes,
+      edges: graphEdges,
+    };
+  }
+
+  function buildPrimitiveMapping(nodes, candidateRows) {
+    const rows = (nodes || []).map((node) => {
+      const matches = rowsForNode(node, candidateRows);
+      const primitiveHints = unique([
+        ...(node.primitiveHints || []),
+        ...matches.flatMap((row) => row.primitiveHints || []),
+      ]);
+      const operatorTypes = unique([
+        ...(node.operatorTypes || []),
+        ...(node.operatorHints || []),
+        ...matches.flatMap((row) => row.operatorTypes || row.operatorHints || []),
+      ]);
+      return {
+        nodeId: node.id,
+        canonicalId: node.canonicalId,
+        label: node.label,
+        supported: primitiveHints.length > 0,
+        primitiveHints,
+        operatorTypes,
+        materialIds: unique([
+          ...(node.materialIds || []),
+          node.materialId,
+          ...matches.flatMap((row) => row.materialIds || (row.materialId ? [row.materialId] : [])),
+        ]),
+        sourceCandidateIds: matches.map((row) => row.id).filter(Boolean).slice(0, 12),
+      };
+    });
+    return {
+      schema: 'simulatte.primitiveMapping.v1',
+      supportedCount: rows.filter((row) => row.supported).length,
+      unsupportedCount: rows.filter((row) => !row.supported).length,
+      rows,
+    };
+  }
+
+  function buildUnsupportedRows(nodes, primitiveMapping, unresolved) {
+    const rows = [];
+    for (const row of unresolved || []) {
+      rows.push({
+        id: row.spanId,
+        label: row.text,
+        reason: row.reason || 'unresolved prompt span',
+      });
+    }
+    for (const row of primitiveMapping && primitiveMapping.rows || []) {
+      if (row.supported) continue;
+      rows.push({
+        id: row.nodeId,
+        label: row.label,
+        canonicalId: row.canonicalId,
+        reason: 'semantic node has no simulator primitive mapping',
+      });
+    }
+    const seen = new Set();
+    return rows.filter((row) => {
+      const key = `${row.id}:${row.label}:${row.reason}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function rowsForNode(node, candidateRows) {
+    const nodeLabels = candidateLabels(node);
+    const nodeKeys = new Set([
+      node.canonicalId,
+      ...(node.conceptIds || []),
+      ...nodeLabels,
+    ].filter(Boolean).map((value) => String(value).toLowerCase()));
+    return (candidateRows || []).filter((row) => {
+      const rowConcepts = [row.canonicalId, ...(row.conceptIds || [])]
+        .filter(Boolean)
+        .map((value) => String(value).toLowerCase());
+      if (rowConcepts.some((value) => nodeKeys.has(value))) return true;
+      const labels = candidateLabels(row);
+      return labels.some((label) => nodeKeys.has(label)) || labels.some((label) => labelOverlap(label, nodeLabels) >= 0.6);
+    });
+  }
+
+  function candidateLabels(row) {
+    return unique([
+      row.label,
+      row.canonicalId,
+      row.id,
+      ...(row.aliases || []),
+      ...(row.conceptIds || []),
+    ]).map((value) => String(value).toLowerCase()).filter(Boolean);
+  }
+
+  function labelOverlap(text, labels) {
+    const tokens = tokenSet(text);
+    if (!tokens.size) return 0;
+    let best = 0;
+    for (const label of labels || []) {
+      const other = tokenSet(label);
+      if (!other.size) continue;
+      let hits = 0;
+      for (const token of tokens) if (other.has(token)) hits += 1;
+      best = Math.max(best, hits / Math.max(1, Math.min(tokens.size, other.size)));
+    }
+    return best;
+  }
+
+  function tokenSet(text) {
+    return new Set(String(text || '').toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length > 2));
   }
 
   function universeRowCanMaterialize(row) {

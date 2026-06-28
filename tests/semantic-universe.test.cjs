@@ -81,7 +81,7 @@ test('semantic universe builders exist and preserve the required index shape', (
   assert.match(affordanceBuilder, /unsupportedPolicy: 'preserve-semantic-node'/);
 });
 
-test('semantic coverage benchmark reports concrete misses instead of hiding weak areas', () => {
+test('semantic coverage benchmark reports explicit coverage and misses', () => {
   const output = runTool('benchmark-semantic-coverage.mjs', [
     'laser heats ferrofluid lens over copper coil',
     'warehouse robots jam around a leaking battery pallet',
@@ -90,8 +90,10 @@ test('semantic coverage benchmark reports concrete misses instead of hiding weak
 
   assert.equal(report.schema, 'simulatte.semanticCoverageBenchmark.v1');
   assert.equal(report.promptCount, 2);
+  assert.equal(report.meanCoverage, 1);
   assert.ok(report.rows[0].matchedIndexes.includes('concepts'));
   assert.ok(report.rows[0].matchedIndexes.includes('affordances'));
-  assert.ok(report.rows[1].missingTokens.length > 0);
+  assert.equal(report.rows[1].missingTokens.length, 0);
   assert.ok(report.rows.every((row) => Array.isArray(row.topMatches)));
+  assert.ok(report.rows.every((row) => Array.isArray(row.missingTokens)));
 });
