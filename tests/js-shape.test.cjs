@@ -114,16 +114,19 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(field, /@location\(6\) stretch/);
 });
 
-test('home prompt presets stay consistent between HTML and catalog', () => {
+test('home prompt shuffle stays consistent between HTML and catalog', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const catalog = fs.readFileSync(path.join(jsDir, 'simulatte-physics-catalog.js'), 'utf8');
 
-  assert.match(html, /aria-label="Lens" data-example-prompt="laser heats ferrofluid lens over copper coil"/);
-  assert.match(html, /aria-label="Grid" data-example-prompt="subway queue grid reroutes after power surge"/);
-  assert.match(html, /aria-label="Vent" data-example-prompt="undersea vent crystallizes pressure brine"/);
-  assert.match(html, /<textarea id="build-prompt"[^>]+>laser heats ferrofluid lens over copper coil<\/textarea>/);
-  assert.match(catalog, /id: 'ferrofluid-lens',\n\s+label: 'Lens'/);
-  assert.match(catalog, /id: 'subway-surge-grid',\n\s+label: 'Grid'/);
+  assert.match(html, /id="shuffle-prompt"/);
+  assert.match(html, /Shuffle 256 examples/);
+  assert.doesNotMatch(html, /data-example-prompt=/);
+  assert.match(html, /<textarea id="build-prompt"[^>]*>laser heats ferrofluid lens over copper coil<\/textarea>/);
+  assert.match(catalog, /const HANDWRITTEN_EXAMPLE_PROMPTS = Object\.freeze/);
+  assert.match(catalog, /const EXAMPLE_INTENTS = Object\.freeze\(HANDWRITTEN_EXAMPLE_PROMPTS\.map/);
+  assert.match(catalog, /"supernova"/);
+  assert.match(catalog, /"browser DOM elements orbit a growing selector ball"/);
+  assert.doesNotMatch(catalog, /PROMPT_SHUFFLE_GROUPS|promptShuffleGroup|paramsForShufflePrompt/);
   assert.doesNotMatch(html, /aria-label="Seed W"|lava spins turbine into ice wall|projectile cracks glass tower/);
   assert.doesNotMatch(catalog, /id: 'lava-turbine'|id: 'fracture-tower'/);
 });

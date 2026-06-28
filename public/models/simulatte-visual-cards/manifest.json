@@ -1,0 +1,34 @@
+{
+  "schema": "simulatte.visualCardManifest.v1",
+  "id": "simulatte-visual-cards-v1",
+  "indexes": {
+    "visualCards": {
+      "kind": "visual-card-index",
+      "artifact": "./visual-card-index-v1.json",
+      "documentSchema": "simulatte.visualCardIndex.v1",
+      "documentCount": 812
+    }
+  },
+  "coverage": {
+    "scenes": 779,
+    "materials": 787,
+    "processes": 493,
+    "compositions": 106,
+    "objects": 776,
+    "variants": 146,
+    "palettes": 16,
+    "proceduralRecipeSignatures": 812,
+    "sourceExamples": 812,
+    "generatedScaffoldCards": 0
+  },
+  "generator": {
+    "schema": "simulatte.visualCardGenerator.v1",
+    "script": "tools/build-visual-card-index.mjs",
+    "strategy": "source-authored-natural-language-visual-card-index",
+    "sourcePolicy": {
+      "exportedDocuments": "literal-source-examples-only",
+      "generatedScaffoldCards": 0,
+      "maxSlotsPerType": 512
+    }
+  }
+}

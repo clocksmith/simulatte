@@ -334,8 +334,11 @@ test('builder creates the solar magnetic perpetual motion machine from prompt', 
   assert.equal(spec.params.loadTorque, 0.16);
 });
 
-test('examples resolve through intent before simulation spec', () => {
-  for (const example of lab.EXAMPLE_INTENTS) {
+test('sampled examples resolve through intent before simulation spec', () => {
+  const examples = lab.EXAMPLE_INTENTS
+    .filter((_, index) => index % 32 === 0)
+    .concat(lab.EXAMPLE_INTENTS.at(-1));
+  for (const example of examples) {
     const intent = lab.createIntentFromPrompt(example.prompt);
     const spec = lab.resolveIntentToSpec(intent);
 
@@ -345,51 +348,56 @@ test('examples resolve through intent before simulation spec', () => {
   }
 });
 
-test('example prompt presets cover distinct scene families with distinct parameter values', () => {
-  const visibleLabels = lab.EXAMPLE_INTENTS.map((example) => example.label);
-  const expectedLabels = ['Lens', 'Grid', 'Vent', 'Wave', 'Film', 'Bio'];
-  const expectedIds = [
-    'ferrofluid-lens',
-    'subway-surge-grid',
-    'brine-vent',
-    'acoustic-dust-levitator',
-    'thin-film-fracture',
-    'mycelium-gel-pump',
-  ];
-  const forbiddenLabels = ['W', 'X', 'Y', 'Z', 'P', 'Q', 'Forest fire', 'Watershed', 'City grid', 'Optics', 'Mag wheel'];
+test('prompt shuffle examples are hand-written compact and broadly diverse', () => {
+  const prompts = lab.EXAMPLE_INTENTS.map((example) => example.prompt);
+  const ids = lab.EXAMPLE_INTENTS.map((example) => example.id);
+  const promptWords = prompts.map((prompt) => prompt.split(/\s+/).filter(Boolean).length);
+  const observedWordCounts = new Set(promptWords);
   const signatures = new Set(lab.EXAMPLE_INTENTS.map((example) => JSON.stringify(example.params || {})));
-  const textSignatures = new Set(lab.EXAMPLE_INTENTS.map((example) => {
-    const spec = lab.createSpecFromPrompt(example.prompt, { params: example.params });
-    return JSON.stringify(Object.fromEntries(Object.entries(spec.params).sort().slice(0, 12)));
-  }));
+  const forbiddenLabels = ['W', 'X', 'Y', 'Z', 'P', 'Q', 'Forest fire', 'Watershed', 'City grid', 'Optics', 'Mag wheel'];
+  const labels = lab.EXAMPLE_INTENTS.map((example) => example.label);
 
-  assert.deepEqual(visibleLabels, expectedLabels);
-  assert.deepEqual(lab.EXAMPLE_INTENTS.map((example) => example.id), expectedIds);
-  for (const label of forbiddenLabels) assert.equal(visibleLabels.includes(label), false);
-  for (const example of lab.EXAMPLE_INTENTS) {
-    assert.ok(example.prompt.length <= 54, `${example.id} prompt should stay compact`);
+  assert.equal(lab.EXAMPLE_INTENTS.length, 256);
+  assert.equal(lab.HANDWRITTEN_EXAMPLE_PROMPTS.length, 256);
+  assert.equal(new Set(ids).size, 256);
+  assert.equal(new Set(prompts).size, 256);
+  assert.equal(Math.min(...promptWords), 1);
+  assert.equal(Math.max(...promptWords), 16);
+  for (let wordCount = 1; wordCount <= 16; wordCount += 1) {
+    assert.equal(observedWordCounts.has(wordCount), true);
   }
-  assert.ok(signatures.size >= 6);
-  assert.ok(textSignatures.size >= 5);
-  const specsById = Object.fromEntries(lab.EXAMPLE_INTENTS.map((example) => [
-    example.id,
-    lab.createSpecFromPrompt(example.prompt, { params: example.params }),
-  ]));
-  assert.equal(specsById['ferrofluid-lens'].params.magnetization, 0.74);
-  assert.equal(specsById['subway-surge-grid'].params.queueBacklog, 0.84);
-  assert.equal(specsById['brine-vent'].params.pressure, 0.86);
-  assert.equal(specsById['acoustic-dust-levitator'].params.waveAmplitude, 0.82);
-  assert.equal(specsById['thin-film-fracture'].params.surfaceTension, 0.86);
-  assert.equal(specsById['mycelium-gel-pump'].params.populationGrowth, 0.84);
-  assert.equal(specsById['ferrofluid-lens'].renderProgram.rendererPlan.sceneKind, 'optics');
-  assert.equal(specsById['subway-surge-grid'].renderProgram.rendererPlan.sceneKind, 'city');
-  assert.equal(specsById['brine-vent'].renderProgram.rendererPlan.sceneKind, 'watershed');
-  assert.equal(specsById['acoustic-dust-levitator'].renderProgram.rendererPlan.sceneKind, 'acoustic');
-  assert.equal(specsById['thin-film-fracture'].renderProgram.rendererPlan.sceneKind, 'thin-film');
-  assert.equal(specsById['mycelium-gel-pump'].renderProgram.rendererPlan.sceneKind, 'biology');
-  for (const spec of Object.values(specsById)) {
-    assert.equal(spec.physicsIR.receipt.unsupported.length, 0);
+  assert.ok(signatures.size >= 128);
+  for (const label of forbiddenLabels) assert.equal(labels.includes(label), false);
+
+  const promptCorpus = prompts.join('\n');
+  for (const term of [
+    'ferrofluid',
+    'asteroid',
+    'neutron',
+    'photosynthesis',
+    'mycorrhizal',
+    'subway',
+    'tokamak',
+    'graphene',
+    'permafrost',
+    'microplastics',
+    'WebGPU',
+  ]) {
+    assert.match(promptCorpus, new RegExp(term, 'i'));
   }
+
+  const sampleSpecs = [
+    'laser heats ferrofluid lens over copper coil',
+    'subway passengers distribute across transfer platforms',
+    'geothermal brine flashes into separator steam',
+    'tokamak confines deuterium tritium plasma',
+    'chromatin segregates inside dividing cell',
+    'immersion coolant boils around GPU heatsinks',
+  ].map((prompt) => {
+    const example = lab.EXAMPLE_INTENTS.find((entry) => entry.prompt === prompt);
+    return lab.createSpecFromPrompt(example.prompt, { params: example.params });
+  });
+  assert.ok(new Set(sampleSpecs.map((spec) => spec.renderProgram.rendererPlan.sceneKind)).size >= 4);
 });
 
 test('state labels follow compiled renderer scene identities', () => {

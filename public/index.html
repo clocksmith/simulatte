@@ -751,7 +751,7 @@
 
     .example-row {
       display: grid;
-      grid-template-columns: repeat(6, 34px);
+      grid-template-columns: minmax(0, 1fr);
       gap: 7px;
     }
 
@@ -775,10 +775,10 @@
     }
 
     .example-chip {
-      width: 34px;
+      width: 100%;
       height: 34px;
       min-height: 34px;
-      padding: 0;
+      padding: 0 12px;
       font-size: 12px;
       letter-spacing: 0;
     }
@@ -1931,18 +1931,13 @@
       </div>
 
       <div class="example-row" aria-label="Example prompts">
-        <button class="example-chip" type="button" aria-label="Lens" data-example-prompt="laser heats ferrofluid lens over copper coil" data-example-params='{"irradiance":1040,"magnetization":0.74,"refractiveIndex":1.67,"heatTransfer":0.68,"viscosity":0.36,"damping":0.05}'>Lens</button>
-        <button class="example-chip" type="button" aria-label="Grid" data-example-prompt="subway queue grid reroutes after power surge" data-example-params='{"queueBacklog":0.84,"serviceRate":0.32,"marketDemand":0.78,"networkLatency":0.62,"signalDelay":0.48,"signalNoise":0.18}'>Grid</button>
-        <button class="example-chip" type="button" aria-label="Vent" data-example-prompt="undersea vent crystallizes pressure brine" data-example-params='{"flowRate":0.88,"heatTransfer":0.76,"pressure":0.86,"erosionRate":0.34,"viscosity":0.58,"turbulence":0.72}'>Vent</button>
-        <button class="example-chip" type="button" aria-label="Wave" data-example-prompt="acoustic levitator sorts dust in brass tube" data-example-params='{"waveAmplitude":0.82,"soundFrequency":0.74,"pressure":0.7,"granularFriction":0.28,"damping":0.04,"signalNoise":0.12}'>Wave</button>
-        <button class="example-chip" type="button" aria-label="Film" data-example-prompt="thin film laser bubbles fracture on wire loop" data-example-params='{"surfaceTension":0.86,"refractiveIndex":1.58,"opacity":0.22,"energyInput":0.72,"hardness":0.18,"damping":0.03}'>Film</button>
-        <button class="example-chip" type="button" aria-label="Bio" data-example-prompt="mycelium membrane pumps nutrient gel waves" data-example-params='{"populationGrowth":0.84,"diffusionA":0.76,"moisture":0.82,"viscosity":0.64,"lightIntensity":0.32,"waveAmplitude":0.34}'>Bio</button>
+        <button id="shuffle-prompt" class="example-chip" type="button" aria-label="Shuffle one of 256 example prompts">Shuffle 256 examples</button>
       </div>
 
       <div class="builder-row">
         <label class="physics-name" for="build-prompt">
           <span class="sr-only">Prompt</span>
-          <textarea id="build-prompt" data-example-params='{"irradiance":1040,"magnetization":0.74,"refractiveIndex":1.67,"heatTransfer":0.68,"viscosity":0.36,"damping":0.05}'>laser heats ferrofluid lens over copper coil</textarea>
+          <textarea id="build-prompt">laser heats ferrofluid lens over copper coil</textarea>
         </label>
         <button id="build-lab" class="primary-action" type="button">Run</button>
       </div>

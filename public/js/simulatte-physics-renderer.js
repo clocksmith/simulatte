@@ -44,7 +44,7 @@
     const promptInput = root.getElementById('build-prompt');
     const specPreview = root.getElementById('spec-preview');
     const componentStack = root.getElementById('component-stack');
-    const exampleButtons = Array.from(root.querySelectorAll('[data-example-prompt]'));
+    const shuffleButton = root.getElementById('shuffle-prompt');
     const readouts = Array.from({ length: 6 }, (_, index) => ({
       label: root.getElementById(`readout-${index + 1}-label`),
       value: root.getElementById(`readout-${index + 1}`),
@@ -78,7 +78,7 @@
       if (nameInput) nameInput.value = spec.name;
       renderControls(controlStack, spec);
       syncComponentStack(componentStack, spec);
-      syncExampleButtons(exampleButtons, spec);
+      syncShuffleButton(shuffleButton, spec);
       syncReadoutLabels(readouts, spec);
       syncSpecPreview(specPreview, spec);
       logGraphDebug(spec);
@@ -103,16 +103,20 @@
       resolveWithEmbedding(prompt, params, serial, false);
     };
 
-    exampleButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const params = readExampleParams(button);
-        if (promptInput) {
-          promptInput.value = button.dataset.examplePrompt || '';
-          promptInput.dataset.exampleParams = JSON.stringify(params);
+    if (shuffleButton) {
+      shuffleButton.addEventListener('click', () => {
+        const example = pickShuffleExample(promptInput ? promptInput.value : '');
+        if (promptInput && example) {
+          promptInput.value = example.prompt;
+          promptInput.dataset.exampleParams = JSON.stringify(example.params || {});
         }
-        buildFromPrompt(params);
+        if (example) {
+          shuffleButton.dataset.exampleId = example.id;
+          shuffleButton.title = example.prompt;
+          buildFromPrompt(example.params || {});
+        }
       });
-    });
+    }
     if (promptInput) {
       promptInput.addEventListener('input', () => {
         delete promptInput.dataset.exampleParams;
@@ -865,17 +869,23 @@
     });
   }
 
-  function syncExampleButtons(buttons, spec) {
-    const prompt = spec.intent && spec.intent.prompt ? spec.intent.prompt.toLowerCase() : '';
-    buttons.forEach((button) => {
-      const active = prompt && String(button.dataset.examplePrompt || '').toLowerCase() === prompt;
-      button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      button.classList.toggle('is-active', active);
-    });
+  function syncShuffleButton(button, spec) {
+    if (!button) return;
+    const prompt = spec.intent && spec.intent.prompt ? spec.intent.prompt : '';
+    const match = EXAMPLE_INTENTS.find((example) => example.prompt === prompt);
+    button.dataset.exampleId = match ? match.id : '';
+    button.title = match ? match.prompt : `${EXAMPLE_INTENTS.length} example prompts`;
+    button.classList.toggle('is-active', Boolean(match));
+    button.setAttribute('aria-pressed', match ? 'true' : 'false');
   }
 
-  function readExampleParams(button) {
-    return parseParamJson(button && button.dataset ? button.dataset.exampleParams : '', {});
+  function pickShuffleExample(currentPrompt = '') {
+    const normalized = String(currentPrompt || '').trim().toLowerCase();
+    const pool = EXAMPLE_INTENTS.filter((example) => String(example.prompt || '').toLowerCase() !== normalized);
+    const candidates = pool.length ? pool : EXAMPLE_INTENTS;
+    if (!candidates.length) return null;
+    const index = Math.floor(Math.random() * candidates.length);
+    return candidates[index] || candidates[0];
   }
 
   function readPromptParams(input, fallback = {}) {
