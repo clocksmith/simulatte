@@ -939,17 +939,7 @@
 
   function semanticVisualsForGenome(prompt, objects, fields, sceneKind, seed, tokens) {
     const promptText = String(prompt || '').toLowerCase();
-    const objectText = (objects || []).filter(isPromptGroundedGenomeObject).map((object) => [
-      object.id,
-      object.shape,
-      object.material,
-      object.role,
-      object.phrase,
-      object.assembly,
-      object.visualRegime,
-    ].filter(Boolean).join(' ')).join(' ');
-    const fieldText = (fields || []).map((field) => `${field.kind || ''} ${field.channel || ''}`).join(' ');
-    const text = `${promptText} ${objectText} ${fieldText}`.toLowerCase();
+    const text = promptText;
     const sourceTokens = tokens && tokens.length ? tokens : promptTokensForGenome(prompt);
     const archetypes = semanticVisualRows(text, seed, SEMANTIC_ARCHETYPE_RULES, 'archetype', sourceTokens);
     const materials = semanticVisualRows(text, seed, SEMANTIC_MATERIAL_RULES, 'material', sourceTokens);
@@ -1058,6 +1048,12 @@
     semanticProcessRule('orbit', 'orbit', /\b(orbit|orbital|swarm|planet|mirror|space|rocket)\b/, ['orbit', 'orbital', 'swarm', 'planet', 'mirror', 'space', 'rocket'], 'orbit-trails', 'orbit', 246, 0.72, 229),
     semanticProcessRule('melt', 'melt', /\b(melt|molten|lava|sinter|kiln|heat|thermal)\b/, ['melt', 'molten', 'lava', 'sinter', 'kiln', 'heat', 'thermal'], 'melt-drips', 'drip', 28, 0.72, 233),
     semanticProcessRule('charge', 'charge', /\b(charge|battery|current|electric|signal|coil|magnet)\b/, ['charge', 'battery', 'current', 'electric', 'signal', 'coil', 'magnet'], 'charge-flow', 'spark', 152, 0.72, 239),
+    semanticProcessRule('leak', 'leak', /\b(leak|leaking|spill|seep|electrolyte|drip)\b/, ['leak', 'leaking', 'spill', 'seep', 'electrolyte', 'drip'], 'leak-drops', 'drip', 188, 0.73, 241),
+    semanticProcessRule('rotate', 'rotate', /\b(turbine|wheel|rotor|gear|spin|rotate|orbiting)\b/, ['turbine', 'wheel', 'rotor', 'gear', 'spin', 'rotate', 'orbiting'], 'rotation-trails', 'rotate', 218, 0.73, 251),
+    semanticProcessRule('pump', 'pump', /\b(pump|pumps|breathes|breathing|heart|peristaltic)\b/, ['pump', 'pumps', 'breathes', 'breathing', 'heart', 'peristaltic'], 'pump-waves', 'pulse', 124, 0.72, 257),
+    semanticProcessRule('erode', 'erode', /\b(erode|erosion|carve|carves|sediment|rain|channel)\b/, ['erode', 'erosion', 'carve', 'carves', 'sediment', 'rain', 'channel'], 'erosion-cuts', 'cut', 42, 0.72, 263),
+    semanticProcessRule('sort', 'sort', /\b(sort|sorts|sieve|filter|classify|dust|beads)\b/, ['sort', 'sorts', 'sieve', 'filter', 'classify', 'dust', 'beads'], 'sorting-bands', 'sort', 66, 0.72, 269),
+    semanticProcessRule('resonate', 'resonate', /\b(resonate|resonance|acoustic|sound|tube|waveguide)\b/, ['resonate', 'resonance', 'acoustic', 'sound', 'tube', 'waveguide'], 'resonance-rings', 'oscillate', 196, 0.72, 271),
   ]);
 
   function semanticRule(id, family, label, pattern, terms, overlay, hue, weight, salt) {
