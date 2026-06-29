@@ -367,7 +367,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index', () => {
   assert.equal(manifest.cache.requirePersistent, false);
   assert.equal(manifest.embedModel.manifestHash.hex, index.embedModelHash.hex);
   assert.equal(manifest.embedModel.manifestHash.hex, cardIndex.embedModelHash.hex);
-  assert.equal(manifest.embedModel.manifestHash.hex, 'e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6');
+  assert.equal(manifest.embedModel.manifestHash.hex, '595cb5f90e81d57470d86a94740c99a10f11204df8e85a8e4210bef77161a713');
   assert.equal(index.schema, 'simulatte.primitiveEmbeddingIndex.v2');
   assert.equal(index.id, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
   assert.equal(index.embedModelId, 'qwen-3-5-0-8b-q4k-ehaf16');

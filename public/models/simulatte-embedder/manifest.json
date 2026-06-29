@@ -1,14 +1,17 @@
 {
   "schema": "simulatte.modelBackedEmbedderManifest.v2",
   "id": "simulatte-qwen-3-5-0-8b-primitive-retrieval-v1",
-  "runtimeOrder": ["doppler-browser-load", "injected-doppler-model"],
+  "runtimeOrder": [
+    "doppler-browser-load",
+    "injected-doppler-model"
+  ],
   "retrieval": {
     "kind": "precomputed-primitive-index",
     "artifact": "./primitive-index-v2.json",
     "documentSchema": "simulatte.primitiveEmbeddingIndex.v2",
     "dimensions": 1024,
     "rerank": "mandatory",
-    "description": "Qwen 3.5 0.8B mean-pooled transformer index for model-backed physical intent retrieval; selected for the current Doppler browser runtime path, not benchmarked as a dedicated retriever.",
+    "description": "Qwen 3.5 0.8B mean-pooled transformer index for model-backed physical intent retrieval; selected for the current browser runtime path, not benchmarked as a dedicated retriever.",
     "cards": {
       "kind": "precomputed-surface-card-index",
       "artifact": "./surface-card-index-qwen-v1.json",
@@ -43,7 +46,7 @@
     },
     "manifestHash": {
       "alg": "sha256",
-      "hex": "e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6"
+      "hex": "595cb5f90e81d57470d86a94740c99a10f11204df8e85a8e4210bef77161a713"
     }
   },
   "runtime": {
@@ -95,7 +98,10 @@
     }
   },
   "cache": {
-    "storage": ["CacheStorage", "ServiceWorker"],
+    "storage": [
+      "CacheStorage",
+      "ServiceWorker"
+    ],
     "namespace": "simulatte-qwen-3-5-0-8b-primitive-retrieval-v1",
     "worker": "./simulatte-model-cache-sw.js",
     "prefetch": false,
