@@ -311,8 +311,11 @@
     const solverChannels = solverGraph ? Object.keys(solverGraph.channels || {}) : [];
     const solverSteps = solverGraph ? solverGraph.steps || [] : [];
     const nodes = graph.nodes || [];
+    // Prefer the executable solverGraph channels as the source of truth for state
+    // hints; fall back to the legacy solverPlan only when no solverGraph compiled.
+    // This keeps visual hints from desyncing with the authoritative execution graph.
     const visualStateHints = uniqueList([
-      ...(solverPlan.state || []),
+      ...(solverGraph ? solverChannels : (solverPlan.state || [])),
       ...nodes.flatMap((node) => node.solverRequirements || []),
     ]);
     const visualPassHints = renderPassesForSolverPlan(solverPlan);
@@ -1287,13 +1290,32 @@
     return keep.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
 
+  // Deterministic 32-bit string seed (FNV-1a) so identical inputs remix identically.
+  function seedFromString(text) {
+    let hash = 2166136261;
+    const str = String(text || '');
+    for (let i = 0; i < str.length; i += 1) {
+      hash ^= str.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0) % 100000;
+  }
+
   function remixSpec(inputSpec, overrides = {}) {
     const spec = normalizeSpec(inputSpec);
     const params = { ...spec.params };
+    // Reproducible remix: seed from an explicit override when provided, otherwise
+    // from the spec identity. No wall-clock entropy on the compute path, so the
+    // same spec (or same seed) always remixes to the same parameters.
+    const seed = Number.isFinite(Number(overrides.seed))
+      ? Number(overrides.seed)
+      : seedFromString(spec.id || spec.name || '');
+    let keyIndex = 0;
     for (const [key, , min, max] of controlsForSpec(spec)) {
       const span = Number(max) - Number(min);
-      const drift = span * (hashNoise(Date.now(), key.length + spec.id.length) - 0.5) * 0.12;
+      const drift = span * (hashNoise(seed + keyIndex, key.length + spec.id.length) - 0.5) * 0.12;
       params[key] = clamp(Number(params[key]) + drift, Number(min), Number(max));
+      keyIndex += 1;
     }
     return createSpec(spec.templateId, {
       ...spec,

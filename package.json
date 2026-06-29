@@ -9,6 +9,8 @@
     "build:visual-cards": "node tools/build-visual-card-index.mjs",
     "validate:universe": "node tools/validate-semantic-universe.mjs",
     "validate:visual-cards": "node tools/validate-visual-card-index.mjs",
+    "scan:determinism": "node tools/scan-nondeterminism.mjs",
+    "stamp:build": "node tools/stamp-build.mjs",
     "benchmark:universe": "node tools/benchmark-semantic-coverage.mjs",
     "firebase:whoami": "firebase login:list && firebase use",
     "firebase:check": "firebase login:list && firebase use && firebase hosting:sites:list --project simulatte-world",

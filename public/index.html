@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
+  <meta name="simulatte-build" content="286500c1a7d01b5e730470c6f1c15e5f1bdc4fc1">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
@@ -1871,117 +1872,247 @@
       }
     }
 
+    .physics-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: block;
+      min-height: 100vh;
+    }
+
+    .physics-canvas-wrap,
+    #physics-canvas,
+    #field-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      min-height: 100vh;
+      display: block;
+    }
+
+    #field-canvas {
+      z-index: 2;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.88;
+    }
+
+    .physics-panel {
+      position: fixed;
+      z-index: 12;
+      left: 50%;
+      bottom: 16px;
+      width: min(860px, calc(100vw - 24px));
+      max-height: min(70vh, 350px);
+      overflow: auto;
+      transform: translateX(-50%);
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(74, 58, 92, 0.16);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: grid;
+      gap: 8px;
+      animation: none;
+      box-shadow: var(--shadow);
+      user-select: none;
+    }
+
+    .prompt-dock {
+      touch-action: none;
+    }
+
+    .prompt-dock-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 32px;
+    }
+
+    .prompt-dock-head h1 {
+      margin: 0;
+      color: var(--mosaic-ink);
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .prompt-dock-handle {
+      min-height: 28px;
+      width: 34px;
+      border-radius: 8px;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1;
+      border: 1px solid rgba(74, 58, 92, 0.14);
+      color: rgba(34, 31, 45, 0.72);
+      cursor: grab;
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .prompt-dock-handle:active {
+      cursor: grabbing;
+    }
+
+    .prompt-dock.dragging {
+      cursor: grabbing;
+      box-shadow: 0 20px 42px rgba(11, 13, 17, 0.22);
+    }
+
+    .prompt-dock-core {
+      display: grid;
+      gap: 8px;
+    }
+
+    .prompt-dock .builder-row {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+
+    .prompt-dock .builder-row .physics-name {
+      margin: 0;
+      display: grid;
+      gap: 4px;
+      color: rgba(34, 31, 45, 0.58);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      grid-column: 1 / -1;
+    }
+
+    .prompt-dock textarea {
+      border-radius: 12px;
+      min-height: 88px;
+      max-height: 180px;
+      resize: vertical;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .prompt-dock .builder-row button {
+      width: 102px;
+      height: 40px;
+      justify-self: end;
+      border-radius: 999px;
+      margin: 0;
+    }
+
+    .prompt-dock .intent-runtime {
+      margin: 0;
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .prompt-dock .intent-runtime-track {
+      height: 10px;
+    }
+
+    .prompt-dock .intent-runtime-percent {
+      font-size: 12px;
+      color: rgba(105, 89, 174, 0.9);
+    }
+
+    .prompt-dock .physics-status {
+      color: rgba(74, 58, 92, 0.68);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .prompt-dock .physics-brand,
+    .prompt-dock .example-row,
+    .prompt-dock .physics-footer,
+    .prompt-dock .board-objects,
+    .prompt-dock .worldspec-panel,
+    .prompt-dock .intent-details,
+    .prompt-dock .physics-actions,
+    .prompt-dock .control-stack,
+    .prompt-dock .component-stack,
+    .prompt-dock .readout-grid,
+    .prompt-dock .template-chip,
+    .prompt-dock .room-tools,
+    .prompt-dock .metric-grid,
+    .prompt-dock .metric,
+    .prompt-dock .object-chip,
+    .prompt-dock .setup-grid,
+    .prompt-dock .trace-inline,
+    .prompt-dock .replay-list {
+      display: none;
+    }
+
     @media (max-width: 820px) {
       html,
       body {
         overflow: auto;
       }
 
-      .physics-stage {
-        position: static;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(420px, 1fr);
-        min-height: 100vh;
-      }
-
       .physics-panel {
-        border-right: 0;
-        border-bottom: 1px solid var(--mosaic-line);
-        border-radius: 0 0 8px 8px;
-        max-height: none;
-        overflow: auto;
-        padding: 18px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-height: 62vh;
+        transform: none;
       }
 
-      .physics-canvas-wrap,
-      #physics-canvas {
-        min-height: 420px;
+      .prompt-dock-core {
+        gap: 7px;
       }
 
-      .builder-row {
+      .prompt-dock textarea {
+        min-height: 68px;
+      }
+
+      .prompt-dock .builder-row {
         grid-template-columns: 1fr;
       }
 
-      .physics-actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-      }
-
-      .component-chip:nth-child(n+10) {
-        display: none;
-      }
-
-      .template-chip {
-        min-height: 58px;
-        padding: 7px;
-      }
-
-      .builder-row button {
-        height: 34px;
+      .prompt-dock .builder-row button {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
   <main class="physics-stage" aria-label="Simulatte physics lab">
-    <section class="physics-panel" aria-label="Simulation creator controls">
-      <div class="physics-brand">
+    <section class="physics-panel prompt-dock" aria-label="Simulation prompt runner">
+      <div class="prompt-dock-head">
         <h1>Simulatte</h1>
-        <span id="lab-state" class="physics-status" aria-live="polite">loading creator</span>
+        <div class="prompt-dock-head-right" style="display: flex; gap: 6px; align-items: center;">
+          <span id="lab-state" class="physics-status" aria-live="polite">loading creator</span>
+          <button id="prompt-dock-handle" class="prompt-dock-handle" type="button" aria-label="Drag prompt panel" aria-live="polite">⋮⋮</button>
+        </div>
       </div>
 
-      <div class="example-row" aria-label="Example prompts">
+      <div class="prompt-dock-core">
         <button id="shuffle-prompt" class="example-chip" type="button" aria-label="Shuffle one of 256 example prompts">Shuffle 256 examples</button>
-      </div>
 
-      <div class="builder-row">
-        <label class="physics-name" for="build-prompt">
-          <span class="sr-only">Prompt</span>
+        <div class="builder-row">
+          <label class="physics-name" for="build-prompt">Prompt</label>
           <textarea id="build-prompt">laser heats ferrofluid lens over copper coil</textarea>
-        </label>
-        <button id="build-lab" class="primary-action" type="button">Run</button>
-      </div>
+          <button id="build-lab" class="primary-action" type="button">Run</button>
+        </div>
 
-      <div id="intent-runtime" class="intent-runtime" data-state="idle" aria-live="polite">
-        <div class="intent-runtime-head">
-          <strong id="intent-runtime-title">Intent model</strong>
-          <span id="intent-runtime-percent" class="intent-runtime-percent">0%</span>
-        </div>
-        <div class="intent-runtime-track" aria-hidden="true">
-          <span id="intent-runtime-fill" class="intent-runtime-fill"></span>
-        </div>
-        <div class="intent-runtime-meta">
-          <span id="intent-runtime-message">idle</span>
-          <span id="intent-runtime-stage">standby</span>
+        <div id="intent-runtime" class="intent-runtime" data-state="idle" aria-live="polite">
+          <div class="intent-runtime-head">
+            <strong id="intent-runtime-title">Intent model</strong>
+            <span id="intent-runtime-percent" class="intent-runtime-percent">0%</span>
+          </div>
+          <div class="intent-runtime-track" aria-hidden="true">
+            <span id="intent-runtime-fill" class="intent-runtime-fill"></span>
+          </div>
+          <div class="intent-runtime-meta">
+            <span id="intent-runtime-message">idle</span>
+            <span id="intent-runtime-stage">standby</span>
+          </div>
         </div>
       </div>
 
       <input id="simulation-name" type="hidden" value="">
-
-      <details class="intent-details">
-        <summary>more</summary>
-        <div id="component-stack" class="component-stack" aria-label="Resolved components"></div>
-        <div class="readout-grid" aria-label="Physics readouts">
-          <div class="readout"><strong id="readout-1-label">RPM</strong><span id="readout-1">0</span></div>
-          <div class="readout"><strong id="readout-2-label">Torque</strong><span id="readout-2">0</span></div>
-          <div class="readout"><strong id="readout-3-label">Solar</strong><span id="readout-3">0</span></div>
-          <div class="readout"><strong id="readout-4-label">Load</strong><span id="readout-4">0</span></div>
-          <div class="readout"><strong id="readout-5-label">Actuator</strong><span id="readout-5">0</span></div>
-          <div class="readout"><strong id="readout-6-label">Balance</strong><span id="readout-6">0</span></div>
-        </div>
-        <div class="physics-actions">
-          <button id="pause-lab" class="primary-action" type="button">Pause</button>
-          <button id="remix-lab" type="button">Remix</button>
-          <button id="export-lab" type="button">Export</button>
-          <button id="import-lab" type="button">Import</button>
-        </div>
-        <div id="control-stack" class="control-stack" aria-label="Intent component parameters"></div>
-        <pre id="spec-preview" class="spec-preview physics-spec-preview" aria-label="Current simulation spec">loading spec</pre>
-      </details>
-
-      <footer class="physics-footer">
-        <a href="https://d4da.com/" rel="noopener">d4da.com</a>
-      </footer>
     </section>
 
     <section class="physics-canvas-wrap" aria-label="Live simulation canvas">
@@ -2022,5 +2153,105 @@
   <script defer src="./js/simulatte-physics-renderer.js"></script>
   <script defer src="./js/simulatte-physics-lab.js"></script>
   <script defer src="./js/simulatte-debug-panel.js"></script>
+  <script defer src="./js/simulatte-version-guard.js"></script>
+  <script>
+    (function initPromptDockDrag() {
+      const panel = document.querySelector('.prompt-dock');
+      const handle = document.getElementById('prompt-dock-handle');
+      if (!panel || !handle) return;
+
+      const storageKey = 'simulatte.promptDock.position.v1';
+      const viewportPadding = 12;
+      let isDragging = false;
+      let pointerId = null;
+      let dragOffset = { x: 0, y: 0 };
+
+      const clampValue = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      const measure = () => panel.getBoundingClientRect();
+      const persistPosition = (next) => {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(next));
+        } catch (_err) {}
+      };
+
+      const clampToViewport = (left, top) => {
+        const { width, height } = measure();
+        const maxLeft = Math.max(0, window.innerWidth - width - viewportPadding);
+        const maxTop = Math.max(0, window.innerHeight - height - viewportPadding);
+        return {
+          left: clampValue(left, viewportPadding, maxLeft),
+          top: clampValue(top, viewportPadding, maxTop),
+        };
+      };
+
+      const applyPosition = (left, top) => {
+        const clamped = clampToViewport(left, top);
+        panel.style.left = `${clamped.left}px`;
+        panel.style.top = `${clamped.top}px`;
+        panel.style.bottom = 'auto';
+        panel.style.transform = 'none';
+        return clamped;
+      };
+
+      const syncResizeBounds = () => {
+        const rect = measure();
+        const clamped = clampToViewport(rect.left, rect.top);
+        if (clamped.left !== rect.left || clamped.top !== rect.top) {
+          panel.style.left = `${clamped.left}px`;
+          panel.style.top = `${clamped.top}px`;
+        }
+      };
+
+      const restorePosition = () => {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          if (!saved || typeof saved.left !== 'number' || typeof saved.top !== 'number') return;
+          applyPosition(saved.left, saved.top);
+        } catch (_err) {}
+      };
+
+      const startDrag = (event) => {
+        if (isDragging) return;
+        isDragging = true;
+        pointerId = event.pointerId;
+        const rect = measure();
+        dragOffset = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+        panel.classList.add('dragging');
+        handle.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      };
+
+      const moveDrag = (event) => {
+        if (!isDragging || event.pointerId !== pointerId) return;
+        const next = applyPosition(event.clientX - dragOffset.x, event.clientY - dragOffset.y);
+        persistPosition(next);
+        event.preventDefault();
+      };
+
+      const endDrag = (event) => {
+        if (!isDragging) return;
+        if (pointerId != null && event && event.pointerId != null && event.pointerId !== pointerId) return;
+        isDragging = false;
+        panel.classList.remove('dragging');
+        if (pointerId != null) handle.releasePointerCapture?.(pointerId);
+        pointerId = null;
+        syncResizeBounds();
+      };
+
+      restorePosition();
+      handle.addEventListener('pointerdown', startDrag);
+      window.addEventListener('pointermove', moveDrag);
+      window.addEventListener('pointerup', endDrag);
+      window.addEventListener('pointercancel', endDrag);
+      window.addEventListener('resize', syncResizeBounds);
+      window.addEventListener('orientationchange', syncResizeBounds);
+    })();
+  </script>
 </body>
 </html>

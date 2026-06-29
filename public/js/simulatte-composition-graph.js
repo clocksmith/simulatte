@@ -273,7 +273,7 @@
       reason: relation.channel,
     }));
     const rawFields = fieldsForComposition(graph, spec);
-    const sceneKind = sceneKindForComposition(graph, initialObjects, rawFields, spec);
+    const sceneKind = resolveSceneKind(graph, initialObjects, rawFields, spec);
     const fields = focusFieldsForScene(rawFields, sceneKind);
     const objects = layoutObjectsForScene(prioritizeObjectsForScene(initialObjects, sceneKind), sceneKind, spec);
     const visualRegimes = uniqueList(objects.map((object) => object.visualRegime));
@@ -1414,6 +1414,52 @@
 
   function withPathPose(object, points) {
     return { ...object, pose: { ...(object.pose || {}), points } };
+  }
+
+  // Resolve the render registry lazily so script load order (browser) and lazy
+  // require() (node) both work without a hard module-init dependency.
+  function renderRegistryRef() {
+    try {
+      if (typeof module === 'object' && module.exports) {
+        return require('./simulatte-render-registry.js');
+      }
+    } catch (error) {
+      /* fall through to global lookup */
+    }
+    const scope = typeof globalThis !== 'undefined' ? globalThis : window;
+    return (scope && scope.SimulatteRenderRegistry) || null;
+  }
+
+  // Derive scene kind from semantic grounding outputs, using the SAME authority the
+  // fast path uses: the RenderIR scene hint, recomputed from grounded objects +
+  // PhysicsIR via sceneHintForObjects when no precomputed hint is present. The raw
+  // composition `graph.operators` set is a candidate superset (every prompt lists
+  // refraction/collision/magnetism/...), so it is deliberately NOT used for routing.
+  // Returns 'generic' when the semantic signal is inconclusive so callers fall back
+  // to prompt-keyword heuristics only as a last resort.
+  function sceneKindFromSemantics(graph, objects, fields, spec) {
+    const direct = normalizedSceneHint(spec && spec.renderIR && spec.renderIR.sceneHint);
+    if (direct) return direct;
+    const registry = renderRegistryRef();
+    if (registry && typeof registry.sceneHintForObjects === 'function') {
+      const hint = normalizedSceneHint(registry.sceneHintForObjects(
+        objects || [],
+        (spec && spec.physicsIR) || {},
+        (spec && spec.solverGraph) || {}
+      ));
+      if (hint) return hint;
+    }
+    return 'generic';
+  }
+
+  // Semantic-first scene routing: grounded semantic outputs drive execution, the
+  // prompt-keyword cascade is consulted only when the semantic signal is inconclusive.
+  // This is the fix for the old defect where brittle phrase logic could override
+  // stronger retrieval/grounding signals on the non-fast compile path.
+  function resolveSceneKind(graph, objects, fields, spec) {
+    const semantic = sceneKindFromSemantics(graph, objects, fields, spec);
+    if (semantic && semantic !== 'generic') return semantic;
+    return sceneKindForComposition(graph, objects, fields, spec);
   }
 
   function sceneKindForComposition(graph, objects, fields, spec) {
