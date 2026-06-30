@@ -25,8 +25,191 @@
     wood: style('#9b6236', '#56341d', 0.8),
   });
 
+  const EXPANDED_SCENE_RULES = Object.freeze([
+    sceneRule(
+      'weather-atmosphere',
+      /\b(supercell|thunderstorm|hail|cloud microphysics|monsoon|atmospheric river|jetstream|storm cell|rain band|convection)\b/,
+      'watershed',
+      'atmosphere',
+      ['thermal', 'gravity', 'force-field'],
+      ['clear', 'sky-volume', 'shear-bands', 'precipitation-fronts', 'pressure-readout']
+    ),
+    sceneRule(
+      'ocean-cryosphere',
+      /\b(glacier calving|fjord|sea ice|ice shelf|iceberg|internal ocean wave|internal ocean waves|kelp canopy|ocean mixing|plankton bloom|thermocline)\b/,
+      'watershed',
+      'ocean',
+      ['gravity', 'thermal', 'force-field'],
+      ['clear', 'water-column', 'ice-or-kelp-structure', 'mixing-fronts', 'salinity-ledger']
+    ),
+    sceneRule(
+      'grid-energy',
+      /\b(microgrid|battery inverter|inverter|transformer overload|substation|power flow|load shedding|frequency control|grid storage|voltage sag)\b/,
+      'city',
+      'energy-grid',
+      ['network-flow', 'thermal', 'force-field'],
+      ['clear', 'grid-topology', 'power-flow', 'thermal-hotspots', 'stability-ledger']
+    ),
+    sceneRule(
+      'robotics-control',
+      /\b(warehouse robot|robot arm|robot arms|robotic gripper|drone swarm|autopilot|servo loop|path planner|pick and place|mobile robot)\b/,
+      'mechanical',
+      'robotics',
+      ['force-field', 'network-flow'],
+      ['clear', 'workspace-map', 'manipulator-poses', 'control-signals', 'task-ledger']
+    ),
+    sceneRule(
+      'manufacturing-line',
+      /\b(injection molding|steel tooling|assembly line|conveyor belt|conveyor belts|cnc|extruder|cooling die|factory line|pick station)\b/,
+      'mechanical',
+      'manufacturing',
+      ['thermal', 'force-field', 'network-flow'],
+      ['clear', 'machine-cells', 'material-flow', 'thermal-cycle', 'quality-readout']
+    ),
+    sceneRule(
+      'quantum-instrument',
+      /\b(qubit|quantum chip|phase readout|microwave resonator|superconducting circuit|ion trap|spin lattice|photonic chip|wavefunction|electron microscope)\b/,
+      'optics',
+      'quantum',
+      ['optical-rays', 'dipole', 'force-field'],
+      ['clear', 'chip-cutaway', 'phase-field', 'readout-cones', 'coherence-ledger']
+    ),
+    sceneRule(
+      'agro-waste-loop',
+      /\b(compost|greenhouse crop|greenhouse crops|anaerobic digester|organic waste|nutrient loop|crop rotation|fish farm|soil nutrients|algae bioreactor)\b/,
+      'biology',
+      'agro-loop',
+      ['thermal', 'force-field', 'gravity'],
+      ['clear', 'resource-loop', 'biomass-beds', 'oxygen-water-flow', 'yield-ledger']
+    ),
+    sceneRule(
+      'particle-instrument',
+      /\b(neutrino|muon|particle collider|calorimeter|phototube|detector slice|water tank detector|underground water tank|cherenkov|photon cone)\b/,
+      'optics',
+      'instrument',
+      ['optical-rays', 'force-field'],
+      ['clear', 'detector-volume', 'particle-tracks', 'sensor-array', 'event-readout']
+    ),
+    sceneRule(
+      'molecular-biology',
+      /\b(protein folding|protein fold|bond constraint|energy minimization|ribosome|enzyme|molecular chain|amino acid|ligand|molecule)\b/,
+      'biology',
+      'molecular',
+      ['force-field', 'thermal'],
+      ['clear', 'molecular-chain', 'energy-surface', 'bond-constraints', 'collapse-motion']
+    ),
+    sceneRule(
+      'advanced-energy',
+      /\b(fusion|stellarator|tokamak|plasma ribbon|nuclear waste|geologic repository|hydrogen electrolyzer|electrolyzer|fuel cell|molten salt|heat decay)\b/,
+      'material-tray',
+      'energy',
+      ['thermal', 'dipole', 'force-field'],
+      ['clear', 'containment-cutaway', 'field-cage', 'energy-flow', 'diagnostics']
+    ),
+    sceneRule(
+      'digital-network',
+      /\b(cyber|blockchain|mempool|recommendation|search|query|index|server|server rack|cooling aisle|compiler|database|tensor|packet|service graph|data center|edge data)\b/,
+      'city',
+      'digital',
+      ['network-flow', 'force-field'],
+      ['clear', 'service-topology', 'packet-flow', 'latency-ledger', 'hotspots']
+    ),
+    sceneRule(
+      'civic-market',
+      /\b(housing|power market|carbon credit|supply demand|bullwhip|transit priority|dispatch|policy|audit ledger|zoning|shadow allocation)\b/,
+      'city',
+      'civic',
+      ['network-flow', 'force-field'],
+      ['clear', 'civic-grid', 'agent-flow', 'constraint-ledger', 'outcomes']
+    ),
+    sceneRule(
+      'chemistry-lab',
+      /\b(chemical clock|belousov|polymer|epoxy|crosslink|electroplat|catalyst|ammonia|crystal nucleation|reaction dish|reaction vessel|microfluidic|droplet|droplets|channel junction)\b/,
+      'material-tray',
+      'chemistry',
+      ['thermal', 'force-field'],
+      ['clear', 'vessel-cutaway', 'reaction-front', 'phase-map', 'readouts']
+    ),
+    sceneRule(
+      'cultural-material',
+      /\b(museum preservation|archive preservation|pigment film|varnish aging|ceramic glaze|artwork aging|oil paint aging|paper humidity|conservation lab)\b/,
+      'material-tray',
+      'cultural-material',
+      ['thermal', 'force-field'],
+      ['clear', 'artifact-section', 'humidity-field', 'material-aging', 'conservation-ledger']
+    ),
+    sceneRule(
+      'planetary-space',
+      /\b(radio telescope|deep space|microwave|beamforming|probe|antenna|planet|asteroid|mars|venus|europa|titan|interstellar|dark matter|galaxy cluster|comet|black hole|singularity|orbital|orbiting mirror|planetary ring|planetary rings|shepherd moon|moon resonance|orbital resonance)\b/,
+      'optics',
+      'space',
+      ['optical-rays', 'gravity', 'force-field'],
+      ['clear', 'orbital-depth', 'instrument-rays', 'gravity-contours', 'tracklets']
+    ),
+    sceneRule(
+      'venue-crowd',
+      /\b(festival|stadium|restaurant|hotel|elevator|venue|crowd agents|fan agents|order queue|platform slots)\b/,
+      'city',
+      'crowd',
+      ['network-flow', 'force-field'],
+      ['clear', 'venue-plan', 'crowd-density', 'queue-pulses', 'service-nodes']
+    ),
+    sceneRule(
+      'sport-motion',
+      /\b(skate|skateboard|ski|surf|sailing|archery|fairground|mountain bike|rider agents|gait trials|walkway trials|curved bowl|friction loss)\b/,
+      'mechanical',
+      'motion',
+      ['force-field', 'gravity'],
+      ['clear', 'track-space', 'body-motion', 'constraint-arcs', 'impulse-trails']
+    ),
+    sceneRule(
+      'structural-mechanics',
+      /\b(bridge resonance|vortex shedding|wind vortex|bridge cable|bridge cables|structural mode|modal vibration|aeroelastic|flutter)\b/,
+      'mechanical',
+      'mechanical',
+      ['force-field', 'gravity'],
+      ['clear', 'structure-span', 'vortex-street', 'modal-deflection', 'stress-readout']
+    ),
+    sceneRule(
+      'clinical-control',
+      /\b(robot surgery|prosthetic|rehab|vaccine|hospital|clinical|patient|tissue mesh|sensor skin|muscle activation|bedflow|triage|blood pump)\b/,
+      'biology',
+      'clinical',
+      ['force-field', 'network-flow'],
+      ['clear', 'body-system', 'control-loop', 'sensor-field', 'risk-ledger']
+    ),
+    sceneRule(
+      'evolution-ecology',
+      /\b(population genetics|allele|succession|predator|prey|pollinator|fish school|bird flock|animal trail|crop|greenhouse|algae bioreactor|compost|landfill|recycling|microbiome|coral reef)\b/,
+      'biology',
+      'ecology',
+      ['force-field', 'gravity'],
+      ['clear', 'habitat-layers', 'population-flow', 'resource-gradient', 'feedbacks']
+    ),
+    sceneRule(
+      'restoration-water',
+      /\b(water treatment|peatland|oyster reef|desertification|restoration|rewetting|nitrification|living breakwater|mangrove|storm surge|aquifer)\b/,
+      'watershed',
+      'restoration',
+      ['gravity', 'force-field'],
+      ['clear', 'terrain-water', 'habitat-structures', 'attenuation-field', 'ledger']
+    ),
+    sceneRule(
+      'hazard-atmosphere',
+      /\b(earthquake|tsunami|hurricane|tornado|mine ventilation|tunnel boring|urban heat|noise pollution|light pollution|air quality|hazard|evacuation|jetstream|drought)\b/,
+      'watershed',
+      'hazard',
+      ['gravity', 'thermal', 'force-field'],
+      ['clear', 'hazard-map', 'fronts', 'exposure-field', 'damage-ledger']
+    ),
+  ]);
+
   function style(fill, stroke, alpha) {
     return { fill, stroke, alpha };
+  }
+
+  function sceneRule(id, pattern, painterKind, dominantRegime, fieldKinds, passOrder) {
+    return { id, pattern, painterKind, dominantRegime, fieldKinds, passOrder };
   }
 
   function glyphForEntity(entity = {}, domain = {}) {
@@ -85,6 +268,9 @@
   function sceneHintForObjects(objects = [], physicsIR = {}, solverGraph = {}) {
     const signal = sceneSignals(objects, physicsIR, solverGraph);
     const text = signal.text;
+    if (isStrongLiteralCompositeSignal(signal)) return 'literal-composite';
+    const expanded = sceneHintForText(physicsIR.prompt || '');
+    if (expanded) return expanded;
     if (/thin-film|thin film|soap|bubble|wire-loop|wire loop|surface_tension/.test(text)) {
       return 'thin-film';
     }
@@ -96,7 +282,6 @@
       (/reaction_diffusion|heat_source|burn/.test(text))) {
       return 'fire';
     }
-    if (isStrongLiteralCompositeSignal(signal)) return 'literal-composite';
     if (/lens|prism|mirror|optics|field_refraction|field_reflection|light_source|laser/.test(text)) {
       return 'optics';
     }
@@ -124,6 +309,111 @@
     if (signal.kinds.has('fluid') && signal.operators.has('advection')) return 'watershed';
     if (isLiteralCompositeSignal(signal)) return 'literal-composite';
     return 'generic';
+  }
+
+  function sceneHintForText(value = '') {
+    const text = String(value || '').toLowerCase();
+    const row = EXPANDED_SCENE_RULES.find((rule) => rule.pattern.test(text));
+    return row ? row.id : '';
+  }
+
+  function painterKindForScene(sceneKind = '') {
+    const row = EXPANDED_SCENE_RULES.find((rule) => rule.id === sceneKind);
+    if (row) return row.painterKind;
+    if (sceneKind === 'generic' || sceneKind === 'literal-composite') return 'mechanical';
+    return String(sceneKind || 'generic');
+  }
+
+  function recipeForScene(sceneKind = '') {
+    const row = EXPANDED_SCENE_RULES.find((rule) => rule.id === sceneKind);
+    if (!row) return null;
+    return {
+      schema: 'simulatte.renderRecipe.v1',
+      source: 'handwritten-semantic-render-taxonomy.v1',
+      sceneKind: row.id,
+      painterKind: row.painterKind,
+      dominantRegime: row.dominantRegime,
+      fieldKinds: row.fieldKinds.slice(),
+      passOrder: row.passOrder.slice(),
+      camera: cameraForExpandedScene(row.id),
+      layerPlan: layerPlanForExpandedScene(row.id),
+      materialLanguage: materialLanguageForExpandedScene(row.id),
+      motionGrammar: motionGrammarForExpandedScene(row.id),
+    };
+  }
+
+  function cameraForExpandedScene(sceneKind) {
+    if (/molecular/.test(sceneKind)) return 'microscopic-cutaway-depth';
+    if (/quantum/.test(sceneKind)) return 'microscopic-cutaway-depth';
+    if (/planetary|hazard|restoration|civic|digital|venue/.test(sceneKind)) return 'aerial-map-depth';
+    if (/weather|ocean|grid/.test(sceneKind)) return 'aerial-map-depth';
+    if (/clinical|chemistry|advanced|cultural/.test(sceneKind)) return 'cutaway-section-depth';
+    if (/robotics|manufacturing/.test(sceneKind)) return 'instrumented-lab-depth';
+    if (/sport|structural/.test(sceneKind)) return 'dynamic-motion-depth';
+    return 'instrumented-lab-depth';
+  }
+
+  function layerPlanForExpandedScene(sceneKind) {
+    if (/molecular/.test(sceneKind)) return ['energy-surface', 'chain-geometry', 'bond-constraints', 'collapse-motion', 'state-readouts'];
+    if (/digital|civic|venue/.test(sceneKind)) return ['substrate-map', 'agent-nodes', 'routing-lines', 'queue-pressure', 'receipts'];
+    if (/grid/.test(sceneKind)) return ['grid-map', 'power-nodes', 'load-flow', 'thermal-hotspots', 'stability-receipts'];
+    if (/planetary/.test(sceneKind)) return ['deep-field', 'orbit-arcs', 'instrument-cones', 'gravity-rings', 'tracklets'];
+    if (/weather/.test(sceneKind)) return ['sky-volume', 'wind-shear', 'cloud-cells', 'precipitation-fronts', 'pressure-readouts'];
+    if (/ocean/.test(sceneKind)) return ['water-column', 'ice-or-kelp', 'mixing-layers', 'wave-energy', 'salt-heat-ledger'];
+    if (/clinical|evolution/.test(sceneKind)) return ['tissue-or-habitat', 'organism-agents', 'diffusion-field', 'control-signals', 'risk-readouts'];
+    if (/agro/.test(sceneKind)) return ['resource-beds', 'microbe-heat', 'oxygen-water-loop', 'crop-output', 'loss-ledger'];
+    if (/robotics/.test(sceneKind)) return ['workspace', 'manipulator-links', 'path-plan', 'sensor-feedback', 'task-ledger'];
+    if (/manufacturing/.test(sceneKind)) return ['machine-cells', 'tooling-cutaway', 'material-transfer', 'cooling-cycle', 'quality-readout'];
+    if (/quantum/.test(sceneKind)) return ['chip-cutaway', 'phase-surface', 'control-lines', 'readout-resonator', 'coherence-ledger'];
+    if (/restoration|hazard/.test(sceneKind)) return ['terrain-base', 'water-or-atmosphere', 'fronts', 'infrastructure', 'ledger'];
+    if (/structural/.test(sceneKind)) return ['structure-span', 'vortex-street', 'mode-shape', 'stress-field', 'readouts'];
+    if (/chemistry|advanced|cultural/.test(sceneKind)) return ['vessel-or-artifact', 'material-phases', 'reaction-fronts', 'sensors', 'loss-ledger'];
+    return ['world-base', 'primary-objects', 'fields', 'motion', 'readouts'];
+  }
+
+  function materialLanguageForExpandedScene(sceneKind) {
+    if (/molecular/.test(sceneKind)) return ['protein', 'bond', 'solvent', 'energy'];
+    if (/quantum/.test(sceneKind)) return ['silicon', 'superconductor', 'microwave', 'phase'];
+    if (/digital/.test(sceneKind)) return ['silicon', 'signal', 'heat', 'packet'];
+    if (/grid/.test(sceneKind)) return ['copper', 'transformer oil', 'battery', 'load'];
+    if (/civic|venue/.test(sceneKind)) return ['concrete', 'glass', 'agent', 'ledger'];
+    if (/planetary/.test(sceneKind)) return ['vacuum', 'ice', 'rock', 'radiation'];
+    if (/weather/.test(sceneKind)) return ['air', 'water vapor', 'ice', 'pressure'];
+    if (/ocean/.test(sceneKind)) return ['saltwater', 'ice', 'kelp', 'sediment'];
+    if (/robotics/.test(sceneKind)) return ['aluminum', 'sensor', 'rubber', 'signal'];
+    if (/manufacturing/.test(sceneKind)) return ['steel', 'polymer', 'coolant', 'tooling'];
+    if (/clinical/.test(sceneKind)) return ['tissue', 'sensor', 'fluid', 'polymer'];
+    if (/agro/.test(sceneKind)) return ['biomass', 'compost', 'water', 'oxygen'];
+    if (/evolution|restoration/.test(sceneKind)) return ['water', 'soil', 'biomass', 'microbe'];
+    if (/hazard/.test(sceneKind)) return ['air', 'water', 'rock', 'exposure'];
+    if (/structural/.test(sceneKind)) return ['steel', 'air', 'stress', 'vorticity'];
+    if (/advanced/.test(sceneKind)) return ['plasma', 'metal', 'coolant', 'radiation'];
+    if (/chemistry/.test(sceneKind)) return ['reagent', 'catalyst', 'solvent', 'heat'];
+    if (/cultural/.test(sceneKind)) return ['pigment', 'paper', 'ceramic', 'humidity'];
+    return ['material', 'field', 'constraint', 'motion'];
+  }
+
+  function motionGrammarForExpandedScene(sceneKind) {
+    if (/molecular/.test(sceneKind)) return ['bond relaxation', 'energy descent', 'chain collapse'];
+    if (/quantum/.test(sceneKind)) return ['phase sweep', 'readout pulse', 'coherence decay'];
+    if (/digital/.test(sceneKind)) return ['packet pulses', 'latency waves', 'thermal throttling'];
+    if (/grid/.test(sceneKind)) return ['load balancing', 'frequency correction', 'thermal overload'];
+    if (/civic|venue/.test(sceneKind)) return ['agent flow', 'queue pressure', 'service balancing'];
+    if (/planetary/.test(sceneKind)) return ['orbital arcs', 'beam sweeps', 'gravity sorting'];
+    if (/weather/.test(sceneKind)) return ['shear advection', 'cloud growth', 'rain band propagation'];
+    if (/ocean/.test(sceneKind)) return ['internal wave mixing', 'ice calving', 'salinity layering'];
+    if (/robotics/.test(sceneKind)) return ['path planning', 'servo correction', 'gripper transfer'];
+    if (/manufacturing/.test(sceneKind)) return ['material transfer', 'cooling cycle', 'quality drift'];
+    if (/clinical/.test(sceneKind)) return ['control feedback', 'pulsed flow', 'sensor correction'];
+    if (/evolution/.test(sceneKind)) return ['growth fronts', 'population drift', 'resource diffusion'];
+    if (/agro/.test(sceneKind)) return ['microbial heating', 'oxygen cycling', 'biomass conversion'];
+    if (/restoration/.test(sceneKind)) return ['water table rise', 'wave attenuation', 'sediment capture'];
+    if (/hazard/.test(sceneKind)) return ['front propagation', 'exposure plumes', 'damage accumulation'];
+    if (/structural/.test(sceneKind)) return ['vortex shedding', 'modal vibration', 'stress accumulation'];
+    if (/advanced/.test(sceneKind)) return ['field confinement', 'heat decay', 'diagnostic sweep'];
+    if (/chemistry/.test(sceneKind)) return ['reaction bands', 'phase separation', 'catalyst turnover'];
+    if (/cultural/.test(sceneKind)) return ['humidity cycling', 'surface aging', 'crack growth'];
+    return ['field motion', 'object coupling', 'readout pulses'];
   }
 
   function sceneSignals(objects = [], physicsIR = {}, solverGraph = {}) {
@@ -218,6 +508,9 @@
     glyphForEntity,
     materialStyle,
     visualRegimeForDomain,
+    sceneHintForText,
     sceneHintForObjects,
+    painterKindForScene,
+    recipeForScene,
   };
 });

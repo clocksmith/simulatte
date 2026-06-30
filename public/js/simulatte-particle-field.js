@@ -4,7 +4,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createParticleFieldApi() {
   const PARTICLE_STRIDE = 6;
   const INSTANCE_STRIDE = 8;
-  const DEFAULT_COUNT = 420;
+  const DEFAULT_COUNT = 320;
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -47,16 +47,20 @@
     constructor(canvas, options = {}) {
       this.canvas = canvas;
       this.ctx = null;
-      this.count = Math.max(160, Math.floor(options.count || DEFAULT_COUNT));
+      this.count = Math.max(160, Math.min(360, Math.floor(options.count || DEFAULT_COUNT)));
       this.particles = new Float32Array(this.count * PARTICLE_STRIDE);
       this.instances = new Float32Array(this.count * INSTANCE_STRIDE);
+      this.viewport = new Float32Array(2);
+      this.lastGpuViewportKey = '';
       this.attractors = [];
       this.seed = 1;
       this.mode = 'canvas';
       this.status = 'Canvas magnetic field';
+      this.requireWebGpu = options.requireWebGpu === true;
       this.width = 1;
       this.height = 1;
       this.dpr = 1;
+      this.maxDpr = clamp(Number(options.maxDevicePixelRatio || 1.5), 1, 2);
       this.gpu = null;
       this.gpuPending = false;
       this.lastRunKey = '';
@@ -69,6 +73,9 @@
       if (navigator.gpu) {
         this.gpuPending = true;
         this.initWebGpu();
+      } else if (this.requireWebGpu) {
+        this.mode = 'webgpu-required';
+        this.status = 'WebGPU magnetic field required';
       } else {
         this.ctx = this.canvas.getContext('2d');
       }
@@ -85,7 +92,12 @@
         if (!adapter) {
           this.gpuPending = false;
           this.status = 'Canvas magnetic field: WebGPU adapter unavailable';
-          this.ctx = this.canvas.getContext('2d');
+          if (this.requireWebGpu) {
+            this.mode = 'webgpu-required';
+            this.status = 'WebGPU magnetic field required: adapter unavailable';
+          } else {
+            this.ctx = this.canvas.getContext('2d');
+          }
           return;
         }
         const device = await adapter.requestDevice();
@@ -253,10 +265,12 @@
         this.status = 'WebGPU magnetic field';
         this.gpuPending = false;
       } catch (err) {
-        this.mode = 'canvas';
-        this.status = `Canvas magnetic field: ${err && err.message ? err.message : 'WebGPU init failed'}`;
+        this.mode = this.requireWebGpu ? 'webgpu-required' : 'canvas';
+        this.status = this.requireWebGpu
+          ? `WebGPU magnetic field required: ${err && err.message ? err.message : 'init failed'}`
+          : `Canvas magnetic field: ${err && err.message ? err.message : 'WebGPU init failed'}`;
         this.gpuPending = false;
-        this.ctx = this.canvas.getContext('2d');
+        if (!this.requireWebGpu) this.ctx = this.canvas.getContext('2d');
       }
     }
 
@@ -264,7 +278,7 @@
       if (!this.canvas) return;
       this.width = Math.max(1, width);
       this.height = Math.max(1, height);
-      this.dpr = Math.max(1, dpr || 1);
+      this.dpr = Math.max(1, Math.min(this.maxDpr, dpr || 1));
       this.canvas.width = Math.round(this.width * this.dpr);
       this.canvas.height = Math.round(this.height * this.dpr);
       this.canvas.style.width = `${this.width}px`;
@@ -401,8 +415,15 @@
       const gpu = this.gpu;
       if (!gpu) return false;
       this.fillInstanceBuffer();
-      const viewport = new Float32Array([this.width * this.dpr, this.height * this.dpr]);
-      gpu.device.queue.writeBuffer(gpu.viewportBuffer, 0, viewport);
+      const viewportWidth = this.width * this.dpr;
+      const viewportHeight = this.height * this.dpr;
+      const viewportKey = `${viewportWidth}x${viewportHeight}`;
+      if (viewportKey !== this.lastGpuViewportKey) {
+        this.viewport[0] = viewportWidth;
+        this.viewport[1] = viewportHeight;
+        gpu.device.queue.writeBuffer(gpu.viewportBuffer, 0, this.viewport);
+        this.lastGpuViewportKey = viewportKey;
+      }
       gpu.device.queue.writeBuffer(gpu.particleBuffer, 0, this.instances);
 
       const encoder = gpu.device.createCommandEncoder();
@@ -470,6 +491,7 @@
     render() {
       if (this.mode === 'webgpu' && this.renderWebGpu()) return;
       if (this.gpuPending) return;
+      if (this.mode === 'webgpu-required') return;
       this.renderCanvas();
     }
   }

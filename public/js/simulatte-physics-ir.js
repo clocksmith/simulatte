@@ -38,7 +38,8 @@
 
   function buildPhysicsIR(input = {}) {
     const universeGraph = input.universeGraph || { nodes: [], edges: [], unresolved: [] };
-    const prompt = input.prompt || universeGraph.prompt || input.intent && input.intent.prompt || '';
+    const intentBrief = universeGraph.intentBrief || null;
+    const prompt = universeGraph.prompt || '';
     const params = input.params || {};
     const entities = [];
     const domains = [];
@@ -77,6 +78,7 @@
     addCouplingsFromEdges(couplings, operators, domainByNode, universeGraph.edges || [], params, receipt);
     addImplicitCouplings(couplings, operators, domains, params, receipt);
     addFallbackIfNeeded(entities, domains, stateFields, operators, boundaryConditions, prompt, params, receipt);
+    addIntentBriefReceipt(receipt, intentBrief);
 
     const readouts = readoutsForIR(stateFields, operators, universeGraph.observables || []);
     return {
@@ -103,6 +105,38 @@
 
   function emptyReceipt() {
     return { exact: [], approximate: [], unresolved: [], unsupported: [] };
+  }
+
+  function addIntentBriefReceipt(receipt, intentBrief) {
+    if (!intentBrief) return;
+    for (const edge of intentBrief.causalGraph || []) {
+      receipt.exact.push({
+        promptSpan: edge.mechanism || edge.id || 'intent causal edge',
+        canonicalId: edge.operatorType || edge.relationType || '',
+        confidence: edge.confidence || 0,
+        evidence: edge.evidence || [],
+      });
+    }
+    for (const assumption of intentBrief.assumptions || []) {
+      receipt.approximate.push({
+        promptSpan: assumption.label || assumption.id,
+        reason: assumption.statement || 'explicit intent assumption',
+        evidence: assumption.evidence || [],
+      });
+    }
+    for (const row of intentBrief.unsupported || []) {
+      receipt.unsupported.push({
+        promptSpan: row.label || row.id,
+        reason: row.reason || 'unsupported by intent brief',
+        fallback: row.fallback || '',
+      });
+    }
+    for (const row of intentBrief.degradedTo || []) {
+      receipt.approximate.push({
+        promptSpan: row.label || row.id,
+        reason: row.reason || 'intent brief selected degraded executable approximation',
+      });
+    }
   }
 
   function entityForNode(node) {
@@ -357,6 +391,10 @@
     if (edgeType === 'growthCoupling') return 'growth_decay';
     if (edgeType === 'waveCoupling') return 'wave_field';
     if (edgeType === 'diffusion') return 'diffusion';
+    if (edgeType === 'networkFlow' || edgeType === 'controlLoop') return 'network_flow';
+    if (edgeType === 'fieldForce' || edgeType === 'refraction') return 'wave_field';
+    if (edgeType === 'orbitalGravity') return 'oscillator';
+    if (edgeType === 'erosion') return 'pressure_flow_lite';
     if (edgeType === 'adjacent') return null;
     return null;
   }

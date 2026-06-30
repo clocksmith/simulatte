@@ -36,8 +36,8 @@ test('semantic universe manifest exposes the full parallel-worker contract', () 
 
   assert.equal(manifest.schema, 'simulatte.universeManifest.v1');
   assert.equal(manifest.id, 'simulatte-universe-multi-index-v1');
-  assert.equal(manifest.embedModel.id, 'qwen-3-5-0-8b-q4k-ehaf16');
-  assert.equal(manifest.embedModel.dimensions, 1024);
+  assert.equal(manifest.embedModel.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+  assert.equal(manifest.embedModel.dimensions, 768);
 
   for (const [name, kind, artifact, schema] of REQUIRED_INDEXES) {
     assert.equal(manifest.indexes[name].kind, kind);

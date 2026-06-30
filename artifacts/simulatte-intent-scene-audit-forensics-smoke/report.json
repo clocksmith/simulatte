@@ -1,0 +1,72 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-06-29T15:54:37.986Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "url": "http://127.0.0.1:58255/index.html",
+  "promptCounts": {
+    "curated": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRSceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRCameras": [
+      "instrumented-lab-depth"
+    ],
+    "intentBriefs": {
+      "totalEvidence": 78,
+      "totalCausalEdges": 4,
+      "totalAffordances": 1
+    },
+    "templateIds": [
+      "custom-world"
+    ]
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "curated",
+      "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "screenshot": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.png",
+      "screenshotHash": "5963dd87134c8c1165adc9054aa4b5b26fadeb56c5c814bda0b77370e28d88e0",
+      "runtimeState": "ready",
+      "runtimeMessage": "Local graph ready",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "sampleCount": 7200,
+      "lumaMean": 181.64,
+      "lumaStd": 45.395,
+      "coloredRatio": 0.6317,
+      "canvasHash": "5cb23d50",
+      "specId": "particle-collider-muon-tracks-collision-plume-mqzeex23",
+      "templateId": "custom-world",
+      "rendererSceneKind": "particle-instrument",
+      "visualIRSceneKind": "particle-instrument",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 10,
+      "visualIRFieldCount": 1,
+      "visualIRProcessCount": 13,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 8,
+      "visualIRCausalAffordanceCount": 1,
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 78,
+      "intentBriefCausalEdgeCount": 4,
+      "intentBriefAssumptionCount": 7,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefAffordanceCount": 1,
+      "previewLength": 0
+    }
+  ]
+}

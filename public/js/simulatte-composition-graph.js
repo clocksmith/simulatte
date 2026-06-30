@@ -2,12 +2,15 @@
   const catalog = typeof module === 'object' && module.exports
     ? require('./simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
-  const api = factory(catalog);
+  const visualOperatorAtlas = typeof module === 'object' && module.exports
+    ? require('./simulatte-visual-operator-atlas.js')
+    : root.SimulatteVisualOperatorAtlas;
+  const api = factory(catalog, visualOperatorAtlas);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteCompositionGraph = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCompositionGraphApi(catalog) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCompositionGraphApi(catalog, visualOperatorAtlas = {}) {
   const {
     clamp,
     hashNoise,
@@ -18,6 +21,7 @@
 
   const COMPOSITION_SCHEMA = 'simulatte.compositionGraph.v1';
   const RENDER_PROGRAM_SCHEMA = 'simulatte.renderProgram.v1';
+  const VISUAL_IR_SCHEMA = 'simulatte.visualIR.v1';
   const VISUAL_GENOME_SCHEMA = 'simulatte.visualGenome.v1';
 
   const MATERIAL_STYLES = Object.freeze({
@@ -59,10 +63,10 @@
   }
 
   function buildCompositionGraph(spec = {}) {
-    const intent = spec.intent || {};
     const contract = spec.contract || {};
     const graph = contract.graph || {};
-    const priors = selectionPriors(intent);
+    const universeGraph = spec.universeGraph || {};
+    const priors = selectionPriors(spec);
     const selected = selectGraphNodes(spec, priors);
     const nodes = selected.map((component, index) => (
       compositionNode(component, index, selected.length, spec, contract, priors)
@@ -76,7 +80,7 @@
     return {
       schema: COMPOSITION_SCHEMA,
       graphId: `${spec.id || 'sim'}-cg`,
-      intentText: intent.prompt || spec.name || '',
+      intentText: compiledIntentText(universeGraph, spec),
       nodes,
       relations,
       operators,
@@ -84,17 +88,66 @@
       provenance: {
         composer: 'simulatte.grid-like-composition.v1',
         source: 'concept-graph-selection-priors',
-        conceptCount: Array.isArray(intent.conceptGraph) ? intent.conceptGraph.length : 0,
+        conceptCount: Array.isArray(universeGraph.nodes) ? universeGraph.nodes.length : 0,
         primitiveCount: nodes.length,
       },
     };
   }
 
-  function selectionPriors(intent = {}) {
-    const conceptGraph = Array.isArray(intent.conceptGraph) ? intent.conceptGraph : [];
+  function compiledIntentText(universeGraph = {}, spec = {}) {
+    const renderIR = spec.renderIR || {};
+    return [
+      ...(universeGraph.nodes || []).map((node) => [
+        node.id,
+        node.canonicalId,
+        node.primitiveId,
+        node.label,
+        node.kind,
+        node.semanticType,
+        ...(node.domains || []),
+        ...(node.tags || []),
+        ...(node.operatorHints || []),
+      ].filter(Boolean).join(' ')),
+      ...(universeGraph.visualAffordances || []).map((row) => [
+        row.id,
+        row.causalRelationId,
+        row.sceneKind,
+        row.geometry,
+        ...(row.shaderHints || []),
+        ...(row.motionHints || []),
+      ].filter(Boolean).join(' ')),
+      ...(renderIR.objects || []).map((object) => [
+        object.id,
+        object.label,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.semanticRef,
+        object.physicalRef,
+      ].filter(Boolean).join(' ')),
+      ...(renderIR.fields || []).map((field) => [
+        field.id,
+        field.name,
+        field.channel,
+        field.domainId,
+      ].filter(Boolean).join(' ')),
+      ...(renderIR.causalAffordances || []).map((row) => [
+        row.id,
+        row.causalRelationId,
+        row.sceneKind,
+        row.geometry,
+        ...(row.shaderHints || []),
+        ...(row.motionHints || []),
+      ].filter(Boolean).join(' ')),
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function selectionPriors(spec = {}) {
+    const universeGraph = spec.universeGraph || {};
+    const conceptGraph = Array.isArray(universeGraph.nodes) ? universeGraph.nodes : [];
     return conceptGraph
       .map((concept, index) => ({
-        primitiveId: concept.id,
+        primitiveId: concept.primitiveId || concept.canonicalId || concept.id,
         score: Number.isFinite(Number(concept.score)) ? Number(concept.score) : 0,
         domains: concept.domains || [],
         rank: index,
@@ -107,23 +160,16 @@
     const byId = new Map(components.map((component) => [component.id, component]));
     const top = spec.contract && Array.isArray(spec.contract.topLevel) ? spec.contract.topLevel : [];
     const selected = [];
-    const hasValidSynthesis = spec.intent
-      && spec.intent.synthesis
-      && spec.intent.synthesis.validation
-      && spec.intent.synthesis.validation.valid === true;
-    if (hasValidSynthesis) {
-      for (const component of components) {
-        if (selected.length >= 24) break;
-        if (/^embedding-guided-synth/.test(component.source || '') && !selected.includes(component)) {
-          selected.push(component);
-        }
-      }
-    }
-    for (const id of pinnedComponentIdsForSpec(spec)) {
-      if (byId.has(id) && !selected.includes(byId.get(id))) selected.push(byId.get(id));
-    }
     for (const id of top) {
       if (byId.has(id) && !selected.includes(byId.get(id))) selected.push(byId.get(id));
+    }
+    for (const component of components) {
+      if (selected.length >= 24) break;
+      if (isRequiredComponent(component) && !selected.includes(component)) selected.push(component);
+    }
+    for (const component of components) {
+      if (selected.length >= 24) break;
+      if (isPromptGroundedComponent(component) && !selected.includes(component)) selected.push(component);
     }
     for (const prior of priors) {
       if (selected.length >= 24) break;
@@ -137,11 +183,19 @@
     return selected;
   }
 
+  function isPromptGroundedComponent(component) {
+    const source = String(component && component.source || '');
+    return /^embedding-guided-synth|open-semantic-rag|doppler-residual/.test(source) ||
+      Boolean(component && component.phrase && source && source !== 'catalog');
+  }
+
+  function isRequiredComponent(component) {
+    const source = String(component && component.source || '');
+    return Boolean(component && component.pinned) || source === 'prompt-family';
+  }
+
   function pinnedComponentIdsForSpec(spec) {
-    const prompt = String(spec && spec.intent && spec.intent.prompt || spec && spec.name || '').toLowerCase();
-    if (/\b(perpetual|solar magnetic|magnetic wheel|magnetic motor|generator)\b/.test(prompt)) {
-      return ['solar-panel', 'rotor-wheel', 'stator-slider', 'motor-load'];
-    }
+    void spec;
     return [];
   }
 
@@ -199,12 +253,17 @@
   function placementFor(component, index, total, spec, contract) {
     const grammar = contract && contract.layout ? contract.layout.grammar : 'freeform';
     const phase = hashNoise((spec.id || '').length + 17, index);
+    const id = String(component && component.id || '');
     const text = componentText(component);
     const radial = radialPlacement(index, total, phase);
+    if (id === 'rotor-wheel') return anchoredPlacement(0.5, 0.5, 0, index);
+    if (id === 'stator-slider') return anchoredPlacement(0.68, 0.42, -0.18, index);
+    if (id === 'solar-panel') return anchoredPlacement(0.18, 0.18, 0.18, index);
+    if (id === 'motor-load') return anchoredPlacement(0.78, 0.74, 0.12, index);
+    if (/load|generator|motor-load/.test(text)) return anchoredPlacement(0.78, 0.74, 0.12, index);
+    if (/solar|sun|lamp|panel/.test(text)) return anchoredPlacement(0.18, 0.18, 0.18, index);
     if (/wheel|rotor/.test(text)) return anchoredPlacement(0.5, 0.5, 0, index);
     if (/slider|stator|magnet/.test(text)) return anchoredPlacement(0.68, 0.42, -0.18, index);
-    if (/solar|sun|lamp|panel/.test(text)) return anchoredPlacement(0.18, 0.18, 0.18, index);
-    if (/load|generator|motor-load/.test(text)) return anchoredPlacement(0.78, 0.74, 0.12, index);
     if (/mycelium|bacteria|protein|leaf|cell/.test(text)) return anchoredPlacement(0.46, 0.56, 0, index);
     if (grammar === 'bench') return linePlacement(index, total, 0.18, 0.46, 0.74);
     if (grammar === 'orthogonal network' || grammar === 'route graph' || grammar === 'network') {
@@ -280,6 +339,7 @@
     const emitters = emittersForComposition(graph);
     const solverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, objects), sceneKind);
     const rendererPlan = rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
+    const visualIR = visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
     const program = {
       schema: RENDER_PROGRAM_SCHEMA,
       sourceGraphId: graph.graphId,
@@ -292,6 +352,7 @@
       solverPlan,
       rendererPlan,
       visualGenome: rendererPlan.visualGenome,
+      visualIR,
       camera: { framing: 'composition-2d', padding: 0.08, sceneKind: rendererPlan.sceneKind },
       provenance: {
         compiler: 'simulatte.composition-to-render-program.v1',
@@ -447,6 +508,7 @@
       executableSteps: (solverGraph.steps || []).map((step) => step.operatorType),
     };
     const rendererPlan = rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
+    const visualIR = visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
     return {
       schema: RENDER_PROGRAM_SCHEMA,
       sourceGraphId: graph.graphId,
@@ -459,6 +521,7 @@
       solverPlan,
       rendererPlan,
       visualGenome: rendererPlan.visualGenome,
+      visualIR,
       renderIR,
       camera: { framing: 'composition-2d', padding: 0.08, sceneKind },
       provenance: {
@@ -512,8 +575,10 @@
 
   function sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec) {
     const sceneHint = normalizedSceneHint(renderIR.sceneHint);
-    if (sceneHint) return sceneHint;
-    return sceneKindFromRenderIRSignals(renderIR, solverGraph, spec) || 'generic';
+    if (sceneHint && sceneHint !== 'literal-composite') return sceneHint;
+    const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph, spec);
+    if (signalScene && signalScene !== 'literal-composite') return signalScene;
+    return signalScene || sceneHint || 'generic';
   }
 
   function normalizedSceneHint(value) {
@@ -521,8 +586,12 @@
     return scene && scene !== 'generic' ? scene : '';
   }
 
+  function nonFallbackSceneKind(value) {
+    const scene = String(value || '').trim();
+    return scene && scene !== 'generic' && scene !== 'literal-composite' ? scene : '';
+  }
+
   function sceneKindFromRenderIRSignals(renderIR, solverGraph, spec) {
-    const physicsIR = spec && spec.physicsIR || {};
     const text = [
       (renderIR.objects || []).map((object) => [
         object.label,
@@ -538,13 +607,9 @@
       ].join(' ')).join(' '),
       (renderIR.fields || []).map((field) => `${field.name} ${field.channel} ${field.domainId}`).join(' '),
       (solverGraph.steps || []).map((step) => `${step.operatorType} ${step.solverId}`).join(' '),
-      (physicsIR.domains || []).map((domain) => [
-        domain.kind,
-        domain.materialId,
-        ...(domain.tags || []),
-        ...(domain.operatorHints || []),
-      ].join(' ')).join(' '),
     ].join(' ').toLowerCase();
+    const expanded = expandedSceneKindForText(text);
+    if (expanded) return expanded;
     if (/thin-film|thin film|soap|surface_tension|wire-loop|wire loop|bubble/.test(text)) return 'thin-film';
     if (/tray|raw material|heat diffusion sample/.test(text) && /water|air|rock|wood|metal|glass|steel/.test(text)) {
       return 'material-tray';
@@ -555,9 +620,8 @@
     if (/process-fire|flame|combustion|fuel|burn/.test(text) && /heat_source|reaction_diffusion|burn/.test(text)) {
       return 'fire';
     }
-    if (/lava|magma|volcano|black-hole|singularity|swamp|wetland|hammer|gold|spaceship|spacecraft|rocket|submarine|piano/.test(text)) {
-      return 'literal-composite';
-    }
+    if (/lava|magma|molten|volcano|heat_transfer|phase_transition|steam|thermal|temperature/.test(text)) return 'thermal-plume';
+    if (/black-hole|black hole|singularity|spaceship|spacecraft|rocket|orbital|orbit|planetary/.test(text)) return 'planetary-space';
     if (/lens|prism|mirror|optics|field_refraction|field_reflection|laser/.test(text)) return 'optics';
     if (/network|queue|traffic|market|network_flow|backlog|throughput/.test(text)) return 'city';
     if (/wheel|rotor|stator|slider|sliding|electromagnetism|magnetic_force|rotor-wheel/.test(text) && /magnet|magnetic/.test(text)) {
@@ -805,20 +869,964 @@
       visualGenomeSeed: visualGenome.seed,
       motifs: visualGenome.motifs,
     };
+    const registry = renderRegistryRef();
+    const visualRecipe = registry && typeof registry.recipeForScene === 'function'
+      ? registry.recipeForScene(sceneKind)
+      : null;
     return {
       schema: 'simulatte.rendererPlan.v1',
       renderer: `simulatte.regime.${sceneKind}.v1`,
       sceneKind,
       dominantRegime,
       passOrder: renderPassOrder(sceneKind, solverFamilies),
+      visualRecipe,
       visualIdentity,
       visualGenome,
     };
   }
 
+  function visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind) {
+    const visualGenome = rendererPlan && rendererPlan.visualGenome || {};
+    const recipe = rendererPlan && rendererPlan.visualRecipe || null;
+    const semantic = visualGenome.semanticVisuals || {};
+    const causalAffordances = causalAffordancesFromSpec(spec);
+    const graphicsAtoms = visualGraphicsAtomsForIR({
+      sceneKind,
+      objects,
+      fields,
+      solverPlan,
+      spec,
+      rendererPlan,
+      causalAffordances,
+      visualGenome,
+      recipe,
+    });
+    const visualEntities = (objects || []).map((object, index) => visualEntityForObject(object, index, sceneKind));
+    const materialRows = uniqueVisualRows([
+      ...visualMaterialsForObjects(objects, visualGenome, recipe, causalAffordances),
+      ...visualMaterialsForGraphicsAtoms(graphicsAtoms.materials),
+    ]);
+    const fieldRows = uniqueVisualRows([
+      ...(fields || []).map((field, index) => visualFieldForField(field, index, sceneKind)),
+      ...visualFieldsForGraphicsAtoms(graphicsAtoms.fields, sceneKind),
+    ]);
+    const processRows = uniqueVisualRows([
+      ...visualProcessesForPlan(objects, solverPlan, semantic, sceneKind, causalAffordances),
+      ...visualProcessesForGraphicsAtoms(graphicsAtoms.processes, objects, sceneKind),
+    ]);
+    const geometryRows = [
+      ...visualEntities.map((entity) => visualGeometryForEntity(entity, sceneKind)),
+      ...visualGeometryForCausalAffordances(causalAffordances, sceneKind),
+      ...visualGeometryForGraphicsAtoms(graphicsAtoms.geometry, sceneKind),
+    ];
+    const motionRows = uniqueVisualRows([
+      ...visualMotionForProcesses(processRows, visualGenome, sceneKind, causalAffordances),
+      ...visualMotionForGraphicsAtoms(graphicsAtoms.motion, visualGenome, sceneKind),
+    ]);
+    const operators = visualOperatorsForIR(
+      visualEntities,
+      materialRows,
+      fieldRows,
+      processRows,
+      geometryRows,
+      motionRows,
+      recipe,
+      causalAffordances,
+      graphicsAtoms
+    );
+    const camera = visualCameraForScene(sceneKind, recipe, visualEntities);
+    return {
+      schema: VISUAL_IR_SCHEMA,
+      compiler: 'simulatte.visual-ir.compiler.v1',
+      intentText: graph && graph.intentText || '',
+      sceneKind,
+      painterKind: recipe && recipe.painterKind || sceneKind,
+      scale: visualScaleForScene(sceneKind, visualEntities),
+      camera: {
+        ...camera,
+        atoms: graphicsAtoms.camera,
+      },
+      lighting: visualLightingForScene(sceneKind, recipe, visualGenome),
+      entities: visualEntities,
+      materials: materialRows,
+      fields: fieldRows,
+      processes: processRows,
+      geometry: geometryRows,
+      motion: motionRows,
+      graphicsAtoms,
+      operators,
+      causalAffordances,
+      receipts: augmentVisualReceiptsWithIntentBrief(
+        visualReceiptsForIR(
+          visualEntities,
+          materialRows,
+          fieldRows,
+          processRows,
+          operators,
+          rendererPlan,
+          causalAffordances,
+          graphicsAtoms
+        ),
+        spec,
+        sceneKind
+      ),
+    };
+  }
+
+  function causalAffordancesFromSpec(spec) {
+    const affordances = spec && spec.renderIR && spec.renderIR.causalAffordances || [];
+    return Array.isArray(affordances) ? affordances.slice(0, 8) : [];
+  }
+
+  function visualGraphicsAtomsForIR(context) {
+    if (visualOperatorAtlas && typeof visualOperatorAtlas.compileVisualGraphicsAtoms === 'function') {
+      return visualOperatorAtlas.compileVisualGraphicsAtoms(context);
+    }
+    return {
+      schema: 'simulatte.graphicsAtomPlan.v1',
+      atlas: 'simulatte.visualOperatorAtlas.v1',
+      atlasId: 'missing-runtime-atlas',
+      source: 'fallback-graphics-atom-plan',
+      mappings: [],
+      geometry: [],
+      fields: [],
+      materials: [],
+      processes: [],
+      motion: [],
+      camera: [],
+      receipts: [],
+    };
+  }
+
+  function visualMaterialsForGraphicsAtoms(atoms = []) {
+    return (atoms || []).map((atom, index) => {
+      const family = materialFamilyForGraphicsAtom(atom.id);
+      const hue = hashProgram(atom.id || index) % 360;
+      return {
+        id: `atom:${atom.id}`,
+        family,
+        shader: shaderForGraphicsMaterialAtom(atom.id, family),
+        fill: `hsl(${hue}, 70%, 62%)`,
+        stroke: `hsl(${hue}, 58%, 30%)`,
+        opacity: /transparent|vapor|fluid|glass/.test(atom.id) ? 0.34 : 0.52,
+        roughness: materialRoughness(family),
+        emissive: /emissive|hot|flame|plasma|signal|spectral/.test(atom.id),
+        evidence: [`graphics-atom:${atom.id}`, ...(atom.evidence || [])],
+      };
+    });
+  }
+
+  function materialFamilyForGraphicsAtom(id) {
+    const text = String(id || '').toLowerCase();
+    if (/hot|thermal|flame|plasma|emissive|heat/.test(text)) return 'thermal';
+    if (/vapor|fluid|wet|ripple|water|pressure/.test(text)) return 'fluid';
+    if (/transparent|glass|caustic|phase|crystal/.test(text)) return 'transparent';
+    if (/metal|trace|coil|instrument|brushed/.test(text)) return 'metal';
+    if (/bio|cell|fibrous|membrane/.test(text)) return 'biological';
+    if (/granular|soil|strata/.test(text)) return 'granular';
+    if (/signal|charged|monitor|electric/.test(text)) return 'electric';
+    return 'matte';
+  }
+
+  function shaderForGraphicsMaterialAtom(id, family) {
+    const text = String(id || '').toLowerCase();
+    if (/hot|thermal|flame|emissive/.test(text)) return 'atom-emissive-gradient';
+    if (/vapor|fluid|wet|ripple/.test(text)) return 'atom-volume-ripple';
+    if (/caustic|transparent|glass|crystal/.test(text)) return 'atom-refractive-caustic';
+    if (/signal|charged|trace|monitor/.test(text)) return 'atom-signal-trace';
+    if (/fracture|deformed/.test(text)) return 'atom-stress-material';
+    return shaderForMaterialFamily(family);
+  }
+
+  function visualFieldsForGraphicsAtoms(atoms = [], sceneKind = '') {
+    return (atoms || []).map((atom, index) => {
+      const id = `atom-field:${atom.id}`;
+      const kind = fieldKindForGraphicsAtom(atom.id);
+      return {
+        id,
+        kind,
+        channel: atom.id,
+        visualEncoding: fieldEncodingForGraphicsAtom(atom.id, sceneKind),
+        strength: Number((0.56 + (hashProgram(atom.id) % 31) / 100).toFixed(2)),
+        geometry: visualFieldGeometry({ id, kind }, kind),
+        evidence: [`graphics-atom:${atom.id}`, ...(atom.evidence || [])],
+        atomId: atom.id,
+      };
+    });
+  }
+
+  function fieldKindForGraphicsAtom(id) {
+    const text = String(id || '').toLowerCase();
+    if (/heat|thermal|soot|latent/.test(text)) return 'thermal';
+    if (/velocity|pressure|flow/.test(text)) return 'flow';
+    if (/stress|impulse|force|constraint/.test(text)) return 'force-field';
+    if (/gravity|barycenter/.test(text)) return 'gravity';
+    if (/phase|caustic|ray|optical/.test(text)) return 'optical-rays';
+    if (/queue|network|setpoint|state|error|measurement|uncertainty/.test(text)) return 'network-flow';
+    if (/flux|field|charge/.test(text)) return 'dipole';
+    return 'state-field';
+  }
+
+  function fieldEncodingForGraphicsAtom(id, sceneKind) {
+    const text = `${id || ''} ${sceneKind || ''}`.toLowerCase();
+    if (/heat|thermal|latent/.test(text)) return 'heat-isobands';
+    if (/velocity|flow|slope|sediment/.test(text)) return 'topographic-streamlines';
+    if (/stress|impulse|force/.test(text)) return 'vector-flux-lines';
+    if (/gravity|barycenter|orbit/.test(text)) return 'ray-cone-caustics';
+    if (/caustic|phase|ray|optical/.test(text)) return 'ray-cone-caustics';
+    if (/queue|network|state|measurement|uncertainty/.test(text)) return 'node-link-pressure';
+    return 'scalar-contours';
+  }
+
+  function visualProcessesForGraphicsAtoms(atoms = [], objects = [], sceneKind = '') {
+    return (atoms || []).map((atom, index) => ({
+      id: `atom-process:${atom.id}`,
+      family: atom.id,
+      operator: processOperatorForGraphicsAtom(atom.id, sceneKind),
+      affects: affectedEntitiesForGraphicsAtom(atom.id, objects),
+      motion: motionGrammarForGraphicsAtom(atom.id, sceneKind),
+      evidence: [`graphics-atom:${atom.id}`, ...(atom.evidence || [])],
+      order: 200 + index,
+      atomId: atom.id,
+    }));
+  }
+
+  function processOperatorForGraphicsAtom(id, sceneKind) {
+    const text = `${id || ''} ${sceneKind || ''}`.toLowerCase();
+    if (/thermal|heat|flame|phase/.test(text)) return 'thermal-front';
+    if (/flow|transport|pressure|settling|erosion/.test(text)) return 'advected-particles';
+    if (/orbit|wave|resonant|phase/.test(text)) return 'wave-or-orbit-trails';
+    if (/feedback|routing|queue|control|measurement/.test(text)) return 'agent-routing-pulses';
+    if (/growth|diffusion-limited|cell/.test(text)) return 'growth-diffusion-front';
+    if (/fracture|contact|impulse|force/.test(text)) return 'constraint-impulse-arcs';
+    if (/field|charge|flux|spark/.test(text)) return 'field-line-advection';
+    return 'state-pulse-overlay';
+  }
+
+  function affectedEntitiesForGraphicsAtom(id, objects) {
+    const text = String(id || '').toLowerCase();
+    return (objects || []).filter((object) => {
+      const row = renderObjectText(object);
+      if (/heat|thermal|phase|flame/.test(text)) return /heat|fire|lava|air|metal|steam|ice/.test(row);
+      if (/flow|pressure|transport/.test(text)) return /flow|fluid|water|air|pipe|river|coolant/.test(row);
+      if (/network|queue|control|feedback|measurement/.test(text)) return /sensor|network|queue|server|controller|agent/.test(row);
+      if (/orbit|gravity/.test(text)) return /orbit|space|planet|rocket|body/.test(row);
+      if (/fracture|stress|contact/.test(text)) return /wall|solid|bridge|body|impact|constraint/.test(row);
+      return true;
+    }).slice(0, 8).map((object) => object.id);
+  }
+
+  function motionGrammarForGraphicsAtom(id, sceneKind) {
+    return motionForProcessFamily(id, sceneKind);
+  }
+
+  function visualGeometryForGraphicsAtoms(atoms = [], sceneKind = '') {
+    return (atoms || []).map((atom, index) => ({
+      id: `geometry:atom:${visualSafeId(atom.id)}`,
+      entityId: `graphics-atom:${visualSafeId(atom.id)}`,
+      primitive: geometryPrimitiveForGraphicsAtom(atom.id, sceneKind),
+      sceneKind,
+      label: atom.label || atom.id,
+      description: `Graphics atom ${atom.id}`,
+      evidence: [`graphics-atom:${atom.id}`, ...(atom.evidence || [])],
+      order: 200 + index,
+      atomId: atom.id,
+    }));
+  }
+
+  function geometryPrimitiveForGraphicsAtom(id, sceneKind) {
+    const text = `${id || ''} ${sceneKind || ''}`.toLowerCase();
+    if (/node|graph|parcel|agent|controller|feedback/.test(text)) return 'node-link-agent';
+    if (/plume|volume|tube|flow|cloud|flame/.test(text)) return 'volume-ribbon';
+    if (/sheet|surface|solid|strata|terrain|phase|fuel|wall/.test(text)) return 'sectioned-surface';
+    if (/instrument|probe|readout|sensor|resonator/.test(text)) return 'instrument-glyph';
+    if (/organic|cell|branch|membrane/.test(text)) return 'organic-silhouette';
+    if (/orbit|gravity|trajectory|astral/.test(text)) return 'orbital-body';
+    if (/field|ray|flux|pressure|stress|caustic/.test(text)) return 'field-sheet';
+    return 'procedural-silhouette';
+  }
+
+  function visualMotionForGraphicsAtoms(atoms = [], visualGenome = {}, sceneKind = '') {
+    return (atoms || []).map((atom, index) => ({
+      id: `motion:atom:${visualSafeId(atom.id)}`,
+      processId: `atom-process:${atom.id}`,
+      grammar: motionGrammarForGraphicsAtom(atom.id, sceneKind),
+      phase: index / Math.max(1, atoms.length),
+      speed: motionSpeedForScene(sceneKind, atom.id),
+      density: Math.max(24, visualGenome && visualGenome.morphology
+        ? visualGenome.morphology.particleDensity || 24
+        : 24),
+      atomId: atom.id,
+      evidence: [`graphics-atom:${atom.id}`, ...(atom.evidence || [])],
+    }));
+  }
+
+  function uniqueVisualRows(rows) {
+    const seen = new Set();
+    const out = [];
+    for (const row of rows || []) {
+      const key = String(row && (row.id || row.atomId || row.family || row.kind) || '');
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(row);
+    }
+    return out;
+  }
+
+  function visualGeometryForCausalAffordances(affordances, sceneKind) {
+    return (affordances || []).map((row, index) => ({
+      id: `geometry:causal:${visualSafeId(row.id || `affordance-${index + 1}`)}`,
+      entityId: `affordance:${visualSafeId(row.id || `affordance-${index + 1}`)}`,
+      primitive: geometryPrimitiveForAffordance(row, sceneKind),
+      sceneKind: row.sceneKind || sceneKind,
+      label: row.id || `causal affordance ${index + 1}`,
+      description: row.geometry || 'hand-authored causal visual affordance',
+      shaderHints: row.shaderHints || [],
+      motionHints: row.motionHints || [],
+      causalRelationId: row.causalRelationId || '',
+      evidence: [`causal-affordance:${row.id || index}`, row.causalRelationId || 'causal-relation'],
+      order: 100 + index,
+    }));
+  }
+
+  function geometryPrimitiveForAffordance(row, sceneKind) {
+    const text = `${row && row.geometry || ''} ${row && row.sceneKind || ''} ${sceneKind || ''}`.toLowerCase();
+    if (/plume|steam|smoke|funnel|aurora|curtain|volume|cloud/.test(text)) return 'volume-ribbon';
+    if (/orbit|ring|field|magnetic|pressure|wave|caustic|ray/.test(text)) return 'field-curve-set';
+    if (/heightfield|terrain|delta|slope|soil|reef|glacier|ocean/.test(text)) return 'heightfield-slice';
+    if (/network|queue|node|shard|warehouse|supply|controller/.test(text)) return 'node-link-volume';
+    if (/tube|pipe|artery|droplet|channel|flow/.test(text)) return 'transparent-flow-tube';
+    if (/robot|bridge|turbine|rotor|chip|metal|valve/.test(text)) return 'cutaway-machine';
+    if (/protein|neuron|root|coral|biomass|algae/.test(text)) return 'organic-branch-volume';
+    return 'semantic-3d-affordance';
+  }
+
+  function augmentVisualReceiptsWithIntentBrief(receipts, spec, sceneKind) {
+    const brief = spec && spec.renderIR && spec.renderIR.intentBriefReceipt ||
+      spec && spec.universeGraph && spec.universeGraph.intentBrief ||
+      null;
+    if (!brief) return receipts;
+    const row = {
+      schema: 'simulatte.visualIntentBriefReceipt.v1',
+      sceneKind,
+      evidenceCount: (brief.retrievedEvidence || []).length,
+      causalEdges: (brief.causalGraph || []).map((edge) => ({
+        id: edge.id,
+        relationType: edge.relationType,
+        operatorType: edge.operatorType,
+        sourceLabel: edge.sourceLabel,
+        targetLabel: edge.targetLabel,
+        mechanism: edge.mechanism,
+      })).slice(0, 16),
+      assumptions: (brief.assumptions || []).map((assumption) => ({
+        id: assumption.id,
+        label: assumption.label,
+        statement: assumption.statement,
+      })).slice(0, 12),
+      unsupported: (brief.unsupported || []).map((item) => ({
+        id: item.id,
+        label: item.label,
+        reason: item.reason,
+      })).slice(0, 12),
+      degradedTo: (brief.degradedTo || []).map((item) => ({
+        id: item.id,
+        label: item.label,
+        reason: item.reason,
+      })).slice(0, 12),
+      visualAffordances: brief.visualIntent && Array.isArray(brief.visualIntent.affordances)
+        ? brief.visualIntent.affordances.slice(0, 8)
+        : [],
+      visualAffordanceCount: brief.visualIntent &&
+        Array.isArray(brief.visualIntent.affordances)
+        ? brief.visualIntent.affordances.length
+        : 0,
+      causalEdgeCount: (brief.causalGraph || []).length,
+      assumptionCount: (brief.assumptions || []).length,
+      unsupportedCount: (brief.unsupported || []).length,
+      degradedCount: (brief.degradedTo || []).length,
+      evidenceIds: (brief.retrievedEvidence || []).map((item) => item.id).filter(Boolean).slice(0, 24),
+      causalEdgeIds: (brief.causalGraph || []).map((edge) => edge.id || edge.ruleId).filter(Boolean).slice(0, 16),
+      shaderHints: brief.visualIntent && brief.visualIntent.shaderHints || [],
+      motionHints: brief.visualIntent && brief.visualIntent.motionHints || [],
+    };
+    if (Array.isArray(receipts)) return [...receipts, row];
+    return { ...(receipts || {}), intentBrief: row };
+  }
+
+  function visualEntityForObject(object, index, sceneKind) {
+    const text = renderObjectText(object);
+    return {
+      id: object.id || `entity-${index + 1}`,
+      sourceObject: object.id || '',
+      label: object.phrase || object.role || object.id || `entity ${index + 1}`,
+      kind: visualEntityKind(object, text),
+      role: visualEntityRole(object, text, sceneKind),
+      material: object.material || 'light',
+      shape: object.shape || 'body',
+      visualRegime: object.visualRegime || 'generic',
+      pose: object.pose || {},
+      semanticRef: object.semanticRef || '',
+      physicalRef: object.physicalRef || '',
+      evidence: visualEvidenceForObject(object, text),
+    };
+  }
+
+  function visualEntityKind(object, text) {
+    if (/field-envelope|vector-band|thermal|gravity|dipole/.test(text) || object.kind === 'field') return 'field';
+    if (/queue|traffic|agent|patient|robot|vehicle|animal|fish|bird|crowd/.test(text)) return 'agent';
+    if (/water|air|smoke|plume|fluid|lava|foam|gel|soil|sand|biofilm|plasma/.test(text)) return 'medium';
+    if (/sensor|meter|instrument|lens|probe|antenna|detector|camera|microscope|telescope/.test(text)) return 'instrument';
+    if (/wall|boundary|bridge|building|vessel|tank|cage|reactor|repository/.test(text)) return 'surface';
+    return 'object';
+  }
+
+  function visualEntityRole(object, text, sceneKind) {
+    if (/source|sun|lamp|battery|pump|heater|injector/.test(text)) return 'source';
+    if (/sink|load|ledger|sensor|detector|readout/.test(text)) return 'measurement';
+    if (/constraint|wall|boundary|containment|repository|vessel/.test(text)) return 'constraint';
+    if (/flow|path|channel|queue|route|orbit|track/.test(text)) return 'path';
+    if (/process|front|reaction|burn|growth|fracture|collision/.test(text)) return 'process';
+    if (/city|digital|civic/.test(sceneKind) && /node|agent|queue/.test(text)) return 'agent';
+    return 'primary';
+  }
+
+  function visualEvidenceForObject(object, text) {
+    return uniqueList([
+      object.source || 'compiled-object',
+      object.shape ? `shape:${object.shape}` : '',
+      object.material ? `material:${object.material}` : '',
+      object.visualRegime ? `regime:${object.visualRegime}` : '',
+      object.phrase ? `phrase:${object.phrase}` : '',
+      text.includes('embedding-guided') ? 'embedding-grounded' : '',
+    ].filter(Boolean));
+  }
+
+  function visualMaterialsForObjects(objects, visualGenome, recipe, causalAffordances = []) {
+    const seen = new Set();
+    const rows = [];
+    for (const object of objects || []) {
+      const id = object.material || 'light';
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const style = MATERIAL_STYLES[id] || MATERIAL_STYLES.light;
+      const family = materialFamilyForVisualMaterial(id, object.visualRegime, recipe);
+      rows.push({
+        id,
+        family,
+        shader: shaderForMaterialFamily(family),
+        fill: style.fill,
+        stroke: style.stroke,
+        opacity: style.alpha,
+        roughness: materialRoughness(family),
+        emissive: /thermal|plasma|electric|signal/.test(family),
+        evidence: [`material:${id}`, `family:${family}`],
+      });
+    }
+    const semanticMaterials = semanticRowsFromGenome(visualGenome, 'materials').slice(0, 5);
+    for (const row of semanticMaterials) {
+      if (seen.has(row.family)) continue;
+      seen.add(row.family);
+      rows.push({
+        id: row.family,
+        family: row.family,
+        shader: row.shader || shaderForMaterialFamily(row.family),
+        fill: `hsl(${row.hue || 180}, 62%, 62%)`,
+        stroke: `hsl(${row.hue || 180}, 54%, 32%)`,
+        opacity: 0.42,
+        roughness: materialRoughness(row.family),
+        emissive: /thermal|electric|transparent/.test(row.family),
+        evidence: [`semantic-material:${row.id}`],
+      });
+    }
+    for (const row of causalAffordances || []) {
+      for (const hint of row.shaderHints || []) {
+        const id = `causal:${hint}`;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        const family = materialFamilyForAffordanceHint(hint);
+        rows.push({
+          id,
+          family,
+          shader: shaderForAffordanceHint(hint, family),
+          fill: `hsl(${affordanceHue(row, hint)}, 70%, 62%)`,
+          stroke: `hsl(${affordanceHue(row, hint)}, 58%, 30%)`,
+          opacity: /volume|mist|steam|veil|transparent/.test(hint) ? 0.34 : 0.58,
+          roughness: materialRoughness(family),
+          emissive: /emissive|thermal|plasma|laser|glow|heat/.test(hint),
+          evidence: [`causal-affordance:${row.id}`, `shader-hint:${hint}`],
+        });
+      }
+    }
+    return rows;
+  }
+
+  function materialFamilyForAffordanceHint(hint) {
+    const text = String(hint || '').toLowerCase();
+    if (/steam|mist|volume|veil|water|wet|caustic|vessel/.test(text)) return 'fluid';
+    if (/thermal|emissive|crust|heat|lava|runaway|hot/.test(text)) return 'thermal';
+    if (/glass|transparent|lens|crystal|frost|ice/.test(text)) return 'transparent';
+    if (/metal|circuit|trace|corrosion|battery|chip/.test(text)) return 'metal';
+    if (/bio|root|coral|protein|neuron|artery/.test(text)) return 'biological';
+    if (/grain|soil|silt|terrain|dust/.test(text)) return 'granular';
+    if (/field|signal|magnetic|electric|node/.test(text)) return 'electric';
+    return 'matte';
+  }
+
+  function shaderForAffordanceHint(hint, family) {
+    const text = String(hint || '').toLowerCase();
+    if (/phase|front|crust|frost|crystal/.test(text)) return 'phase-boundary-gradient';
+    if (/steam|mist|volume|veil|plume/.test(text)) return 'volumetric-scattering';
+    if (/vector|field|magnetic|signal/.test(text)) return 'vector-flux-overlay';
+    if (/caustic|glass|transparent/.test(text)) return 'refractive-caustic';
+    if (/stress|fracture|pressure|strain/.test(text)) return 'stress-isoband-overlay';
+    return shaderForMaterialFamily(family);
+  }
+
+  function affordanceHue(row, hint) {
+    const seed = hashProgram(`${row && row.id || ''}:${hint || ''}`);
+    return seed % 360;
+  }
+
+  function materialFamilyForVisualMaterial(id, regime, recipe) {
+    const text = `${id || ''} ${regime || ''} ${recipe && recipe.materialLanguage || ''}`.toLowerCase();
+    if (/plasma|radiation|fire|lava|thermal|heat/.test(text)) return 'thermal';
+    if (/water|fluid|brine|river|wetland|coolant/.test(text)) return 'fluid';
+    if (/glass|ice|quartz|transparent|lens/.test(text)) return 'transparent';
+    if (/metal|copper|gold|silicon|graphite|conductor/.test(text)) return 'metal';
+    if (/cell|bio|plant|tissue|microbe|moss|algae|mycelium/.test(text)) return 'biological';
+    if (/soil|sand|rock|grain|ceramic|porcelain|mineral/.test(text)) return 'granular';
+    if (/signal|packet|charge|electric|sensor/.test(text)) return 'electric';
+    if (/concrete|paper|pigment|artifact/.test(text)) return 'cultural';
+    return 'matte';
+  }
+
+  function shaderForMaterialFamily(family) {
+    const map = {
+      thermal: 'emissive-heat-bands',
+      fluid: 'advected-ripple-volume',
+      transparent: 'caustic-transmission',
+      metal: 'brushed-rim-light',
+      biological: 'fibrous-cellular-mesh',
+      granular: 'particle-strata',
+      electric: 'charged-trace-glow',
+      cultural: 'aged-surface-grain',
+      matte: 'soft-lambert-fill',
+    };
+    return map[family] || map.matte;
+  }
+
+  function materialRoughness(family) {
+    if (/transparent|fluid/.test(family)) return 0.18;
+    if (/metal|electric/.test(family)) return 0.34;
+    if (/granular|cultural/.test(family)) return 0.82;
+    return 0.56;
+  }
+
+  function visualFieldForField(field, index, sceneKind) {
+    const kind = field.kind || field.name || 'force-field';
+    return {
+      id: field.id || `field-${index + 1}`,
+      kind,
+      channel: field.channel || field.stateBinding || '',
+      visualEncoding: visualEncodingForField(kind, sceneKind),
+      strength: Number.isFinite(Number(field.strength)) ? Number(field.strength) : 0.58,
+      geometry: visualFieldGeometry(field, kind),
+      evidence: [`field:${kind}`, field.channel ? `channel:${field.channel}` : 'compiled-field'],
+    };
+  }
+
+  function visualEncodingForField(kind, sceneKind) {
+    if (/network|queue/.test(kind) || /digital|civic|venue/.test(sceneKind)) return 'node-link-pressure';
+    if (/optical|radiation/.test(kind) || /space|planetary/.test(sceneKind)) return 'ray-cone-caustics';
+    if (/thermal|heat/.test(kind) || /energy|hazard/.test(sceneKind)) return 'heat-isobands';
+    if (/gravity|flow/.test(kind) || /water|restoration/.test(sceneKind)) return 'topographic-streamlines';
+    if (/dipole|magnetic|force/.test(kind)) return 'vector-flux-lines';
+    return 'scalar-contours';
+  }
+
+  function visualFieldGeometry(field, kind) {
+    if (field.from || field.to) return { kind: 'directed-field', from: field.from || [0.12, 0.2], to: field.to || [0.84, 0.76] };
+    if (field.center) return { kind: 'radial-field', center: field.center, radius: field.radius || 0.32 };
+    if (/network/.test(kind)) return { kind: 'graph-field' };
+    return { kind: 'canvas-field' };
+  }
+
+  function visualProcessesForPlan(objects, solverPlan, semantic, sceneKind, causalAffordances = []) {
+    const families = uniqueList([
+      ...((solverPlan && solverPlan.families) || []),
+      ...semanticRowsFromPlan(semantic, 'processes').map((row) => row.family),
+    ]);
+    const source = families.length ? families : ['coupled-state'];
+    const rows = source.slice(0, 12).map((family, index) => ({
+      id: `process:${family}`,
+      family,
+      operator: visualOperatorForProcessFamily(family, sceneKind),
+      affects: affectedEntitiesForProcess(family, objects),
+      motion: motionForProcessFamily(family, sceneKind),
+      evidence: [`solver:${family}`, `scene:${sceneKind}`],
+      order: index,
+    }));
+    for (const row of causalAffordances || []) {
+      const family = causalAffordanceProcessFamily(row);
+      if (rows.some((process) => process.id === `process:${family}`)) continue;
+      rows.push({
+        id: `process:${family}`,
+        family,
+        operator: 'causal-affordance-motion',
+        affects: affectedEntitiesForAffordance(row, objects),
+        motion: (row.motionHints && row.motionHints[0]) || 'causal-state-transition',
+        motionHints: row.motionHints || [],
+        geometryHint: row.geometry || '',
+        evidence: [`causal-affordance:${row.id}`, row.causalRelationId || 'causal-relation'],
+        order: rows.length,
+      });
+    }
+    return rows.slice(0, 20);
+  }
+
+  function causalAffordanceProcessFamily(row) {
+    return String(row && row.id || 'affordance')
+      .replace(/^affordance\./, 'causal-')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-');
+  }
+
+  function affectedEntitiesForAffordance(row, objects) {
+    const triggerText = (row && row.triggers || []).join(' ').toLowerCase();
+    const relationText = `${row && row.causalRelationId || ''} ${row && row.geometry || ''}`.toLowerCase();
+    return (objects || [])
+      .filter((object) => {
+        const text = renderObjectText(object);
+        return triggerText.split(/\s+/).some((term) => term && text.includes(term)) ||
+          relationText.split(/[^a-z0-9]+/).some((term) => term && text.includes(term));
+      })
+      .slice(0, 8)
+      .map((object) => object.id);
+  }
+
+  function semanticRowsFromPlan(semantic, key) {
+    return semantic && Array.isArray(semantic[key]) ? semantic[key] : [];
+  }
+
+  function semanticRowsFromGenome(visualGenome, key) {
+    return semanticRowsFromPlan(visualGenome && visualGenome.semanticVisuals, key);
+  }
+
+  function visualOperatorForProcessFamily(family, sceneKind) {
+    const text = `${family} ${sceneKind}`.toLowerCase();
+    if (/heat|thermal|burn|reaction|energy/.test(text)) return 'thermal-front';
+    if (/flow|advection|fluid|water|restoration/.test(text)) return 'advected-particles';
+    if (/wave|acoustic|pressure|orbit|space/.test(text)) return 'wave-or-orbit-trails';
+    if (/network|queue|digital|civic|venue/.test(text)) return 'agent-routing-pulses';
+    if (/growth|bio|clinical|ecology/.test(text)) return 'growth-diffusion-front';
+    if (/collision|constraint|mechanical|sport/.test(text)) return 'constraint-impulse-arcs';
+    if (/magnetic|electric|charge|plasma/.test(text)) return 'field-line-advection';
+    if (/granular|erosion|hazard/.test(text)) return 'particle-strata-motion';
+    return 'state-pulse-overlay';
+  }
+
+  function affectedEntitiesForProcess(family, objects) {
+    const text = String(family || '').toLowerCase();
+    return (objects || [])
+      .filter((object) => {
+        const row = renderObjectText(object);
+        if (/heat|thermal|burn/.test(text)) return /fire|heat|smoke|metal|air|lava|plasma/.test(row);
+        if (/flow|fluid|advection/.test(text)) return /water|flow|river|air|pipe|pump|channel/.test(row);
+        if (/network|queue/.test(text)) return /queue|network|agent|sensor|ledger|route/.test(row);
+        if (/growth|bio/.test(text)) return /bio|cell|plant|moss|algae|mycelium|patient|tissue/.test(row);
+        if (/collision|constraint/.test(text)) return /wheel|wall|body|bridge|hammer|projectile/.test(row);
+        return true;
+      })
+      .slice(0, 8)
+      .map((object) => object.id);
+  }
+
+  function motionForProcessFamily(family, sceneKind) {
+    const operator = visualOperatorForProcessFamily(family, sceneKind);
+    const map = {
+      'thermal-front': 'rising-plume-and-isobands',
+      'advected-particles': 'streamline-advection',
+      'wave-or-orbit-trails': 'phase-propagating-arcs',
+      'agent-routing-pulses': 'packet-or-agent-pulses',
+      'growth-diffusion-front': 'branching-front-expansion',
+      'constraint-impulse-arcs': 'impulse-and-contact-ghosts',
+      'field-line-advection': 'curling-vector-flux',
+      'particle-strata-motion': 'settling-and-shear-bands',
+      'state-pulse-overlay': 'bounded-state-pulses',
+    };
+    return map[operator] || map['state-pulse-overlay'];
+  }
+
+  function visualGeometryForEntity(entity, sceneKind) {
+    return {
+      id: `geometry:${entity.id}`,
+      entityId: entity.id,
+      primitive: geometryPrimitiveForEntity(entity, sceneKind),
+      instancing: instancingForEntity(entity),
+      layout: layoutForEntity(entity, sceneKind),
+      scale: entity.pose && (entity.pose.w || entity.pose.h || entity.pose.r) ? 'specified' : 'adaptive',
+      constraints: geometryConstraintsForEntity(entity),
+    };
+  }
+
+  function geometryPrimitiveForEntity(entity, sceneKind) {
+    const text = `${entity.kind} ${entity.shape} ${entity.label} ${sceneKind}`.toLowerCase();
+    if (/network|queue|digital|civic|agent/.test(text)) return 'node-link-agent';
+    if (/field|heat|pressure|gravity|dipole/.test(text)) return 'field-sheet';
+    if (/water|fluid|air|smoke|plume|medium/.test(text)) return 'volume-ribbon';
+    if (/surface|wall|building|bridge|vessel|repository/.test(text)) return 'sectioned-surface';
+    if (/instrument|sensor|detector|lens|probe/.test(text)) return 'instrument-glyph';
+    if (/animal|cell|plant|bio/.test(text)) return 'organic-silhouette';
+    if (/orbit|space|planetary/.test(text)) return 'orbital-body';
+    return 'procedural-silhouette';
+  }
+
+  function instancingForEntity(entity) {
+    if (entity.kind === 'agent') return { mode: 'swarm', count: 12 };
+    if (entity.kind === 'medium') return { mode: 'particles', count: 48 };
+    if (entity.kind === 'field') return { mode: 'grid-samples', count: 64 };
+    return { mode: 'single', count: 1 };
+  }
+
+  function layoutForEntity(entity, sceneKind) {
+    if (/digital|civic|venue/.test(sceneKind)) return 'graph-map';
+    if (/planetary/.test(sceneKind)) return 'orbital-depth';
+    if (/clinical|chemistry|advanced|cultural/.test(sceneKind)) return 'cutaway-bench';
+    if (/restoration|hazard|watershed/.test(sceneKind)) return 'terrain-section';
+    return entity.pose && entity.pose.points ? 'path' : 'anchored';
+  }
+
+  function geometryConstraintsForEntity(entity) {
+    return uniqueList([
+      entity.role === 'constraint' ? 'boundary' : '',
+      entity.role === 'path' ? 'path-continuity' : '',
+      entity.kind === 'medium' ? 'volume-contained' : '',
+      entity.kind === 'agent' ? 'non-overlap' : '',
+    ].filter(Boolean));
+  }
+
+  function visualMotionForProcesses(processes, visualGenome, sceneKind, causalAffordances = []) {
+    const rows = (processes || []).map((process, index) => ({
+      id: `motion:${process.family}`,
+      processId: process.id,
+      grammar: process.motion,
+      phase: index / Math.max(1, processes.length),
+      speed: motionSpeedForScene(sceneKind, process.family),
+      density: visualGenome && visualGenome.morphology
+        ? visualGenome.morphology.particleDensity || 32
+        : 32,
+    }));
+    for (const row of causalAffordances || []) {
+      const family = causalAffordanceProcessFamily(row);
+      rows.push({
+        id: `motion:causal:${visualSafeId(row.id || family)}`,
+        processId: `process:${family}`,
+        grammar: (row.motionHints || []).join('+') || 'causal-state-transition',
+        phase: rows.length / Math.max(1, rows.length + 1),
+        speed: motionSpeedForScene(row.sceneKind || sceneKind, `${family} ${(row.motionHints || []).join(' ')}`),
+        density: Math.max(36, visualGenome && visualGenome.morphology
+          ? visualGenome.morphology.particleDensity || 36
+          : 36),
+        motionHints: row.motionHints || [],
+        causalRelationId: row.causalRelationId || '',
+        evidence: [`causal-affordance:${row.id || family}`, row.causalRelationId || 'causal-relation'],
+      });
+    }
+    return rows.length ? rows : [{
+      id: 'motion:state-pulse',
+      processId: 'process:coupled-state',
+      grammar: 'bounded-state-pulses',
+      phase: 0,
+      speed: 0.28,
+      density: 24,
+    }];
+  }
+
+  function motionSpeedForScene(sceneKind, family) {
+    const text = `${sceneKind} ${family}`.toLowerCase();
+    if (/explosion|hazard|packet|signal|plasma|collision/.test(text)) return 0.74;
+    if (/growth|cultural|repository|clinical/.test(text)) return 0.22;
+    if (/queue|traffic|flow|orbit|wave/.test(text)) return 0.46;
+    return 0.34;
+  }
+
+  function visualOperatorsForIR(
+    entities,
+    materials,
+    fields,
+    processes,
+    geometry,
+    motion,
+    recipe,
+    causalAffordances = [],
+    graphicsAtoms = {}
+  ) {
+    const base = [
+      visualOperator('camera-frame', 'camera', 'sets explanatory view before drawing'),
+      visualOperator('material-shaders', 'material', 'draws material-specific surface and volume cues'),
+      visualOperator('geometry-instances', 'geometry', 'places objects, agents, media, and instruments'),
+      visualOperator('field-overlays', 'field', 'renders scalar/vector fields as contours, rays, or graph pressure'),
+      visualOperator('process-motion', 'process', 'animates evolving physical processes'),
+      visualOperator('receipt-marks', 'receipt', 'adds minimal evidence ticks for why marks exist'),
+    ];
+    if ((recipe && recipe.layerPlan || []).includes('diagnostics')) {
+      base.push(visualOperator('diagnostic-sightlines', 'annotation', 'draws instrument sightlines and readout paths'));
+    }
+    if ((fields || []).some((field) => /network|node-link/.test(field.visualEncoding))) {
+      base.push(visualOperator('agent-network-routing', 'field', 'draws queue and routing pressure through graph edges'));
+    }
+    if ((materials || []).some((material) => material.emissive)) {
+      base.push(visualOperator('emissive-bloom', 'lighting', 'adds bounded glow for hot or charged materials'));
+    }
+    if ((geometry || []).some((row) => row.primitive === 'volume-ribbon')) {
+      base.push(visualOperator('volume-ribbons', 'geometry', 'renders transparent media and plumes with depth'));
+    }
+    if ((motion || []).some((row) => /orbit|wave/.test(row.grammar))) {
+      base.push(visualOperator('phase-trails', 'motion', 'renders orbit, acoustic, or wave phase trails'));
+    }
+    if ((causalAffordances || []).length) {
+      base.push(visualOperator(
+        'causal-affordance-program',
+        'process',
+        'composes hand-authored causal geometry, shader, and motion hints'
+      ));
+    }
+    if (graphicsAtomCount(graphicsAtoms)) {
+      base.push(visualOperator(
+        'visual-operator-atlas',
+        'operator-basis',
+        'composes reusable graphics atoms from grounded physical operators'
+      ));
+    }
+    return base;
+  }
+
+  function visualOperator(id, stage, reason) {
+    return { id, stage, reason };
+  }
+
+  function visualReceiptsForIR(
+    entities,
+    materials,
+    fields,
+    processes,
+    operators,
+    rendererPlan,
+    causalAffordances = [],
+    graphicsAtoms = {}
+  ) {
+    return [
+      {
+        id: 'receipt:entities',
+        reason: `${entities.length} grounded visual entities compiled from graph objects`,
+        count: entities.length,
+      },
+      {
+        id: 'receipt:materials',
+        reason: `${materials.length} material shader rows selected from object materials and semantic plan`,
+        count: materials.length,
+      },
+      {
+        id: 'receipt:fields',
+        reason: `${fields.length} visible field encodings compiled from PhysicsIR/render fields`,
+        count: fields.length,
+      },
+      {
+        id: 'receipt:processes',
+        reason: `${processes.length} process motion grammars compiled from solver families`,
+        count: processes.length,
+      },
+      {
+        id: 'receipt:operators',
+        reason: `${operators.length} low-level renderer operators scheduled`,
+        count: operators.length,
+      },
+      {
+        id: 'receipt:recipe',
+        reason: rendererPlan && rendererPlan.visualRecipe
+          ? `handwritten style recipe ${rendererPlan.visualRecipe.sceneKind} provides defaults only`
+          : 'no style recipe; VisualIR uses object and field structure',
+        count: rendererPlan && rendererPlan.visualRecipe ? 1 : 0,
+      },
+      {
+        id: 'receipt:causal-affordances',
+        reason: `${(causalAffordances || []).length} causal affordance rows compiled into visual program hints`,
+        count: (causalAffordances || []).length,
+        affordanceIds: (causalAffordances || []).map((row) => row.id).slice(0, 12),
+        causalRelationIds: uniqueList((causalAffordances || []).map((row) => row.causalRelationId).filter(Boolean)).slice(0, 12),
+        shaderHints: uniqueList((causalAffordances || []).flatMap((row) => row.shaderHints || [])).slice(0, 16),
+        motionHints: uniqueList((causalAffordances || []).flatMap((row) => row.motionHints || [])).slice(0, 16),
+      },
+      {
+        id: 'receipt:graphics-atoms',
+        reason: `${graphicsAtomCount(graphicsAtoms)} reusable graphics atoms compiled from the visual operator atlas`,
+        count: graphicsAtomCount(graphicsAtoms),
+        atlasId: graphicsAtoms && graphicsAtoms.atlasId || '',
+        mappingIds: (graphicsAtoms && graphicsAtoms.mappings || []).map((row) => row.id).slice(0, 12),
+        geometryAtoms: (graphicsAtoms && graphicsAtoms.geometry || []).map((row) => row.id).slice(0, 12),
+        fieldAtoms: (graphicsAtoms && graphicsAtoms.fields || []).map((row) => row.id).slice(0, 12),
+        materialAtoms: (graphicsAtoms && graphicsAtoms.materials || []).map((row) => row.id).slice(0, 12),
+        processAtoms: (graphicsAtoms && graphicsAtoms.processes || []).map((row) => row.id).slice(0, 12),
+        motionAtoms: (graphicsAtoms && graphicsAtoms.motion || []).map((row) => row.id).slice(0, 12),
+      },
+    ];
+  }
+
+  function graphicsAtomCount(graphicsAtoms = {}) {
+    return ['geometry', 'fields', 'materials', 'processes', 'motion', 'camera']
+      .reduce((total, key) => total + ((graphicsAtoms[key] || []).length), 0);
+  }
+
+  function visualSafeId(value) {
+    return String(value || 'row').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'row';
+  }
+
+  function visualScaleForScene(sceneKind, entities) {
+    const text = `${sceneKind} ${(entities || []).map((entity) => entity.label).join(' ')}`.toLowerCase();
+    if (/cell|protein|micro|molecule|catalyst|biofilm/.test(text)) return 'micro';
+    if (/planet|orbit|space|galaxy|comet|asteroid/.test(text)) return 'orbital';
+    if (/city|market|traffic|hospital|warehouse|railway|zoning/.test(text)) return 'system';
+    if (/terrain|watershed|hazard|atmosphere|storm|reef|peatland/.test(text)) return 'landscape';
+    return 'bench';
+  }
+
+  function visualCameraForScene(sceneKind, recipe, entities) {
+    const scale = visualScaleForScene(sceneKind, entities);
+    const mode = recipe && recipe.camera ||
+      (scale === 'micro' ? 'microscopic-cutaway-depth'
+        : scale === 'orbital' ? 'orbital-depth'
+          : scale === 'system' ? 'network-map-depth'
+            : scale === 'landscape' ? 'topographic-cutaway-depth'
+              : 'instrumented-lab-depth');
+    return {
+      mode,
+      scale,
+      framing: /network|system|map/.test(mode) ? 'wide-system' : /micro/.test(mode) ? 'macro-detail' : 'explanatory-three-quarter',
+      depth: /depth|cutaway|orbital/.test(mode) ? 'layered' : 'flat',
+    };
+  }
+
+  function visualLightingForScene(sceneKind, recipe, visualGenome) {
+    const palette = visualGenome && visualGenome.palette || {};
+    const text = `${sceneKind} ${recipe && recipe.materialLanguage || ''}`.toLowerCase();
+    const model = /space|optics|transparent|orbital/.test(text) ? 'spectral-rim'
+      : /clinical|chemistry|cultural/.test(text) ? 'instrumented-clinical'
+        : /hazard|thermal|plasma|energy/.test(text) ? 'volumetric-emissive'
+          : /water|restoration|ecology/.test(text) ? 'underwater-atmospheric'
+            : /digital|civic|venue/.test(text) ? 'monitor-and-map'
+              : 'soft-lab';
+    return {
+      model,
+      keyHue: palette.hue || 180,
+      rimHue: palette.accentHue || 220,
+      shadowHue: palette.shadowHue || 34,
+      contrast: palette.contrast || 0.68,
+    };
+  }
+
   function visualGenomeForComposition(graph, objects, fields, solverPlan, spec, sceneKind) {
-    const prompt = String(graph && graph.intentText || spec && spec.name || '');
-    const objectSignature = uniqueList((objects || []).map((object) => [
+    const genomeObjects = genomeSourceObjects(objects);
+    const compiledText = compiledVisualGenomeText(graph, genomeObjects, fields, solverPlan, spec, sceneKind);
+    const objectSignature = uniqueList((genomeObjects || []).map((object) => [
       object.id,
       object.shape,
       object.material,
@@ -828,10 +1836,13 @@
       object.visualRegime,
     ].filter(Boolean).join(':'))).join('|');
     const fieldSignature = uniqueList((fields || []).map((field) => field.kind || field.channel)).join('|');
-    const solverSignature = uniqueList((solverPlan && solverPlan.families) || []).join('|');
-    const seedText = [prompt, sceneKind, objectSignature, fieldSignature, solverSignature].join('|');
+    const solverSignature = uniqueList([
+      ...((solverPlan && solverPlan.executableSteps) || []),
+      ...((solverPlan && solverPlan.steps) || []),
+    ]).join('|');
+    const seedText = [compiledText, sceneKind, objectSignature, fieldSignature, solverSignature].join('|');
     const seed = hashProgram(seedText) || 1;
-    const directObjectSignature = uniqueList((objects || [])
+    const directObjectSignature = uniqueList((genomeObjects || [])
       .filter(isPromptGroundedGenomeObject)
       .map((object) => [
         object.id,
@@ -842,30 +1853,30 @@
         object.assembly,
         object.visualRegime,
       ].filter(Boolean).join(':'))).join('|');
-    const motifText = `${prompt} ${directObjectSignature}`.toLowerCase();
-    const tokens = promptTokensForGenome(prompt);
-    const promptDna = promptDnaForGenome(prompt, seed);
-    const motifs = genomeMotifs(motifText, sceneKind, objects, fields);
-    const semanticVisuals = semanticVisualsForGenome(prompt, objects, fields, sceneKind, seed, tokens);
+    const motifText = `${compiledText} ${directObjectSignature}`.toLowerCase();
+    const tokens = compiledTokensForGenome(compiledText);
+    const visualDna = compiledDnaForGenome(compiledText, seed);
+    const motifs = genomeMotifs(motifText, sceneKind, genomeObjects, fields);
+    const semanticVisuals = semanticVisualsForGenome(compiledText, genomeObjects, fields, sceneKind, seed, tokens);
     const palette = genomePalette(sceneKind, motifs, seed);
-    const morphology = genomeMorphology(sceneKind, motifs, seed, objects, fields, promptDna, semanticVisuals);
+    const morphology = genomeMorphology(sceneKind, motifs, seed, genomeObjects, fields, visualDna, semanticVisuals);
     return {
       schema: VISUAL_GENOME_SCHEMA,
       id: `vg_${seed.toString(36).padStart(6, '0')}`,
       seed,
-      promptHash: hashProgram(prompt),
-      source: 'prompt-seeded-procedural',
+      sourceHash: hashProgram(compiledText),
+      source: 'compiled-artifact-seeded-procedural',
       sceneKind,
       palette,
       morphology,
       motifs,
       tokens,
-      promptDna,
+      visualDna,
       semanticVisuals,
       objectSignature: hashProgram(objectSignature),
       fieldSignature: hashProgram(fieldSignature),
       stochastic: {
-        mode: 'deterministic-prompt-seeded',
+        mode: 'deterministic-compiled-artifact-seeded',
         sampler: 'hash-noise',
         dimensions: [
           'semantic-atlas',
@@ -884,24 +1895,71 @@
     };
   }
 
-  function promptTokensForGenome(value) {
+  function genomeSourceObjects(objects) {
+    return (objects || []).filter((object) => {
+      const source = String(object && object.source || '');
+      if (source && source !== 'catalog') return true;
+      if (object && (object.semanticRef || object.physicalRef)) return true;
+      return false;
+    });
+  }
+
+  function compiledVisualGenomeText(graph, objects, fields, solverPlan, spec, sceneKind) {
+    const visualAffordances = causalAffordancesFromSpec(spec);
+    return [
+      sceneKind,
+      ...(objects || []).map((object) => [
+        object.id,
+        object.shape,
+        object.material,
+        object.role,
+        object.phrase,
+        object.assembly,
+        object.visualRegime,
+        object.source,
+        object.semanticRef,
+        object.physicalRef,
+      ].filter(Boolean).join(' ')),
+      ...(fields || []).map((field) => [
+        field.id,
+        field.kind,
+        field.channel,
+        field.stateBinding,
+        field.domainId,
+      ].filter(Boolean).join(' ')),
+      ...((solverPlan && solverPlan.executableSteps) || []),
+      ...((solverPlan && solverPlan.steps) || []),
+      ...visualAffordances.map((row) => [
+        row.id,
+        row.causalRelationId,
+        row.sceneKind,
+        row.geometry,
+        ...(row.shaderHints || []),
+        ...(row.motionHints || []),
+      ].filter(Boolean).join(' ')),
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function compiledTokensForGenome(value) {
+    const stop = new Set([
+      'and', 'with', 'the', 'into', 'from', 'over', 'under', 'while',
+      'primitive', 'semantic', 'open', 'generated', 'component', 'material',
+      'process', 'physics', 'sample', 'field', 'domain', 'state', 'visual',
+      'render', 'body', 'catalog', 'prompt', 'derived', 'generic',
+    ]);
     return uniqueList(String(value || '')
       .toLowerCase()
       .replace(/[^a-z0-9\s-]+/g, ' ')
       .split(/\s+/)
       .map((token) => token.replace(/^-+|-+$/g, ''))
-      .filter((token) => token.length > 2 && !/^(and|with|the|into|from|over|under|while)$/.test(token))
-      .slice(0, 18));
+      .flatMap((token) => token.split('-'))
+      .map((token) => token.replace(/^-+|-+$/g, ''))
+      .filter((token) => token.length > 2 && !/^\d+$/.test(token) && !stop.has(token))
+      .slice(0, 32));
   }
 
-  function promptDnaForGenome(prompt, seed) {
-    const rawTokens = String(prompt || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]+/g, ' ')
-      .split(/\s+/)
-      .map((token) => token.replace(/^-+|-+$/g, ''))
-      .filter(Boolean)
-      .slice(0, 24);
+  function compiledDnaForGenome(compiledText, seed) {
+    const rawTokens = compiledTokensForGenome(compiledText).slice(0, 24);
     const sourceTokens = rawTokens.length ? rawTokens : ['blank'];
     const ngrams = [];
     for (let n = 1; n <= 3; n += 1) {
@@ -925,7 +1983,7 @@
       .slice(0, 32);
     const hash = hashProgram(selected.map((row) => `${row.n}:${row.index}:${row.text}:${row.hash}`).join('|'));
     return {
-      schema: 'simulatte.promptVisualDna.v1',
+      schema: 'simulatte.compiledVisualDna.v1',
       catalog: PROCEDURAL_VISUAL_BASE && PROCEDURAL_VISUAL_BASE.schema || 'simulatte.proceduralVisualBase.v1',
       hash,
       tokenCount: sourceTokens.length,
@@ -937,10 +1995,9 @@
     };
   }
 
-  function semanticVisualsForGenome(prompt, objects, fields, sceneKind, seed, tokens) {
-    const promptText = String(prompt || '').toLowerCase();
-    const text = promptText;
-    const sourceTokens = tokens && tokens.length ? tokens : promptTokensForGenome(prompt);
+  function semanticVisualsForGenome(compiledText, objects, fields, sceneKind, seed, tokens) {
+    const text = String(compiledText || '').toLowerCase();
+    const sourceTokens = tokens && tokens.length ? tokens : compiledTokensForGenome(compiledText);
     const archetypes = semanticVisualRows(text, seed, SEMANTIC_ARCHETYPE_RULES, 'archetype', sourceTokens);
     const materials = semanticVisualRows(text, seed, SEMANTIC_MATERIAL_RULES, 'material', sourceTokens);
     const processes = semanticVisualRows(text, seed, SEMANTIC_PROCESS_RULES, 'process', sourceTokens);
@@ -954,8 +2011,9 @@
       ...materials.flatMap((row) => row.matchedTokens || []),
       ...processes.flatMap((row) => row.matchedTokens || []),
     ]);
-    const coverage = sourceTokens.length
-      ? Number((matchedTokens.length / sourceTokens.length).toFixed(3))
+    const addressableTokens = atlasAddressableTokens(sourceTokens);
+    const coverage = addressableTokens.length
+      ? Number((matchedTokens.filter((token) => addressableTokens.includes(token)).length / addressableTokens.length).toFixed(3))
       : 1;
     const signatureText = [
       sceneKind,
@@ -975,8 +2033,10 @@
       overlays: overlayIds,
       quality: {
         semanticTokens: sourceTokens.length,
+        addressableTokens: addressableTokens.length,
         matchedTokens: matchedTokens.length,
         coverage,
+        unmatchedTokens: addressableTokens.filter((token) => !matchedTokens.includes(token)),
         layerCount: archetypes.length + materials.length + processes.length,
       },
     };
@@ -987,7 +2047,7 @@
       .map((rule, index) => {
         const matchesPattern = rule.pattern.test(text);
         const matchedTokens = (tokens || []).filter((token) => rule.terms.includes(token));
-        if (!matchesPattern && !matchedTokens.length) return null;
+        if (!matchedTokens.length) return null;
         const tokenBoost = Math.min(0.28, matchedTokens.length * 0.07);
         const score = Number((rule.weight + tokenBoost + unitFromSeed(seed, index + rule.salt) * 0.06).toFixed(3));
         return {
@@ -1007,10 +2067,19 @@
       .slice(0, 9);
   }
 
+  function atlasAddressableTokens(tokens) {
+    const terms = new Set([
+      ...SEMANTIC_ARCHETYPE_RULES.flatMap((rule) => rule.terms),
+      ...SEMANTIC_MATERIAL_RULES.flatMap((rule) => rule.terms),
+      ...SEMANTIC_PROCESS_RULES.flatMap((rule) => rule.terms),
+    ]);
+    return uniqueList((tokens || []).filter((token) => terms.has(token)));
+  }
+
   const SEMANTIC_ARCHETYPE_RULES = Object.freeze([
     semanticRule('built-enclosure', 'architecture', 'Built enclosure', /\b(building|house|room|warehouse|factory|office|school|hospital|stairwell|corridor|hallway|roof|wall|city|street)\b/, ['building', 'house', 'room', 'warehouse', 'factory', 'office', 'school', 'hospital', 'stairwell', 'corridor', 'hallway', 'roof', 'wall', 'city', 'street'], 'section-grid', 34, 0.78, 11),
     semanticRule('water-system', 'hydrology', 'Water system', /\b(water|river|rain|brine|ocean|undersea|swamp|wetland|pond|fluid|flow|channel|delta)\b/, ['water', 'river', 'rain', 'brine', 'ocean', 'undersea', 'swamp', 'wetland', 'pond', 'fluid', 'flow', 'channel', 'delta'], 'flow-map', 194, 0.76, 17),
-    semanticRule('optical-bench', 'optics', 'Optical bench', /\b(glass|lens|prism|laser|light|mirror|sunlight|caustic|film|optics)\b/, ['glass', 'lens', 'prism', 'laser', 'light', 'mirror', 'sunlight', 'caustic', 'film', 'optics'], 'ray-caustics', 208, 0.79, 23),
+    semanticRule('optical-bench', 'optics', 'Optical bench', /\b(glass|lens|prism|laser|mirror|sunlight|beam|photon|caustic|film|optics)\b/, ['glass', 'lens', 'prism', 'laser', 'mirror', 'sunlight', 'beam', 'photon', 'caustic', 'film', 'optics'], 'ray-caustics', 208, 0.79, 23),
     semanticRule('magnetic-field', 'electromagnetism', 'Magnetic field', /\b(magnet|coil|current|ferrofluid|electric|battery|copper|conductor|charge|field)\b/, ['magnet', 'coil', 'current', 'ferrofluid', 'electric', 'battery', 'copper', 'conductor', 'charge', 'field'], 'flux-lines', 268, 0.76, 29),
     semanticRule('living-network', 'biology', 'Living network', /\b(moss|algae|mycelium|cell|bacteria|membrane|protein|plant|leaf|growth|nutrient)\b/, ['moss', 'algae', 'mycelium', 'cell', 'bacteria', 'membrane', 'protein', 'plant', 'leaf', 'growth', 'nutrient'], 'branch-field', 116, 0.78, 31),
     semanticRule('granular-bed', 'granular', 'Granular bed', /\b(sand|dust|grain|bead|powder|sieve|avalanche|sediment|pile)\b/, ['sand', 'dust', 'grain', 'bead', 'powder', 'sieve', 'avalanche', 'sediment', 'pile'], 'grain-stream', 42, 0.74, 37),
@@ -1071,7 +2140,7 @@
   function isPromptGroundedGenomeObject(object) {
     const source = String(object && object.source || '');
     return /^embedding-guided-synth|open-semantic-rag|doppler-residual|render-ir/.test(source) ||
-      Boolean(object && object.phrase);
+      Boolean(source && source !== 'catalog' && object && object.phrase);
   }
 
   function genomeMotifs(text, sceneKind, objects, fields) {
@@ -1079,19 +2148,26 @@
     const add = (...values) => values.forEach((value) => {
       if (value && !motifs.includes(value)) motifs.push(value);
     });
+    if (sceneKind === 'fire' || sceneKind === 'thermal-plume') add('ember-shear', 'smoke-strata', 'charred-edges');
+    if (sceneKind === 'acoustic') add('pressure-rings', 'waveguide-lines', 'resonant-slits');
+    if (sceneKind === 'planetary-space') add('orbital-arcs', 'limb-glow', 'trajectory-dust');
+    if (sceneKind === 'city' || sceneKind === 'civic-market' || sceneKind === 'digital-network') add('route-weave', 'signal-ticks', 'node-ledger');
+    if (sceneKind === 'optics' || sceneKind === 'quantum-instrument' || sceneKind === 'particle-instrument') add('caustic-ribs', 'spectral-slices', 'thin-line-optics');
+    if (sceneKind === 'biology' || sceneKind === 'molecular-biology' || sceneKind === 'restoration-water') add('branch-network', 'cellular-mesh', 'membrane-rims');
+    if (sceneKind === 'granular') add('grain-strata', 'impact-trails', 'sorting-bands');
     if (/building|tower|castle|house|room|wall|structure|street|city|warehouse|factory|office|school|hospital|stairwell|corridor|hallway|basement|garage|roof|shed|cabin/.test(text)) {
       add('architectural-grid', 'occluded-windows', 'structural-silhouette');
     }
     if (/fire|flame|burn|smoke|ember|ash|thermal|plume|heat/.test(text)) {
       add('ember-shear', 'smoke-strata', 'charred-edges');
     }
-    if (/water|river|flow|brine|rain|swamp|wetland|fluid|erosion/.test(text)) {
+    if (/water|river|brine|rain|swamp|wetland|erosion|sediment|delta|ocean|pond/.test(text)) {
       add('flow-contours', 'sediment-bands', 'wet-refraction');
     }
-    if (/glass|lens|prism|laser|light|optics|mirror|caustic|film/.test(text)) {
+    if (/glass|lens|prism|laser|optics|mirror|sunlight|beam|photon|caustic|film/.test(text)) {
       add('caustic-ribs', 'spectral-slices', 'thin-line-optics');
     }
-    if (/magnet|coil|current|ferrofluid|field|dipole|rotor/.test(text)) {
+    if (/magnet|magnetic|coil|current|ferrofluid|dipole|rotor/.test(text)) {
       add('flux-hatching', 'dipole-dust', 'coil-shadow');
     }
     if (/grain|sand|bead|sieve|powder|avalanche|granular/.test(text)) {
@@ -1155,7 +2231,7 @@
     };
   }
 
-  function genomeMorphology(sceneKind, motifs, seed, objects, fields, promptDna = null, semanticVisuals = null) {
+  function genomeMorphology(sceneKind, motifs, seed, objects, fields, visualDna = null, semanticVisuals = null) {
     const layoutModes = ['strata', 'section', 'radial', 'field-map', 'network', 'specimen'];
     const textureKinds = ['contour-hatch', 'woven-grid', 'cutaway-lines', 'spectral-ribs', 'grain-scan'];
     const motifText = motifs.join(' ');
@@ -1172,7 +2248,7 @@
           : textureKinds[Math.floor(unitFromSeed(seed, 8) * textureKinds.length) % textureKinds.length];
     const objectCount = Math.max(1, (objects || []).length);
     const fieldCount = Math.max(1, (fields || []).length);
-    const dnaDensity = promptDna && Number.isFinite(promptDna.densityBias) ? promptDna.densityBias : 1;
+    const dnaDensity = visualDna && Number.isFinite(visualDna.densityBias) ? visualDna.densityBias : 1;
     const semanticLayerCount = semanticVisuals && semanticVisuals.quality
       ? Math.min(8, Number(semanticVisuals.quality.layerCount) || 0)
       : 0;
@@ -1439,7 +2515,7 @@
   // to prompt-keyword heuristics only as a last resort.
   function sceneKindFromSemantics(graph, objects, fields, spec) {
     const direct = normalizedSceneHint(spec && spec.renderIR && spec.renderIR.sceneHint);
-    if (direct) return direct;
+    if (direct && direct !== 'literal-composite') return direct;
     const registry = renderRegistryRef();
     if (registry && typeof registry.sceneHintForObjects === 'function') {
       const hint = normalizedSceneHint(registry.sceneHintForObjects(
@@ -1447,7 +2523,7 @@
         (spec && spec.physicsIR) || {},
         (spec && spec.solverGraph) || {}
       ));
-      if (hint) return hint;
+      if (hint && hint !== 'literal-composite') return hint;
     }
     return 'generic';
   }
@@ -1464,10 +2540,8 @@
 
   function sceneKindForComposition(graph, objects, fields, spec) {
     const operatorIds = new Set((graph.operators || []).map((operator) => operator.id));
-    const promptText = `${graph.intentText || ''} ${spec && spec.name || ''}`.toLowerCase();
+    const promptText = '';
     const text = [
-      graph.intentText || '',
-      spec && spec.name || '',
       (objects || []).map((object) => `${object.id} ${object.shape} ${object.role}`).join(' '),
       (fields || []).map((field) => field.kind).join(' '),
       Array.from(operatorIds).join(' '),
@@ -1542,6 +2616,16 @@
   }
 
   function focusFieldsForScene(fields, sceneKind) {
+    const registry = renderRegistryRef();
+    const recipe = registry && typeof registry.recipeForScene === 'function'
+      ? registry.recipeForScene(sceneKind)
+      : null;
+    if (recipe && Array.isArray(recipe.fieldKinds) && recipe.fieldKinds.length) {
+      const wanted = new Set(recipe.fieldKinds);
+      const focused = (fields || []).filter((field) => wanted.has(field.kind));
+      if (focused.length) return focused;
+      return recipe.fieldKinds.map((kind, index) => defaultFieldForKind(kind, index, sceneKind));
+    }
     const allowed = {
       fire: ['thermal', 'gravity'],
       optics: ['optical-rays'],
@@ -1582,7 +2666,29 @@
     return [{ id: 'scene-force-field', kind: 'force-field', center: [0.52, 0.52], radius: 0.32, strength: 0.5 }];
   }
 
+  function defaultFieldForKind(kind, index, sceneKind) {
+    if (kind === 'network-flow') return { id: `scene-${sceneKind}-network-${index}`, kind, strength: 0.72 };
+    if (kind === 'optical-rays') {
+      return { id: `scene-${sceneKind}-rays-${index}`, kind, from: [0.1, 0.32], to: [0.88, 0.5], strength: 0.68 };
+    }
+    if (kind === 'gravity') {
+      return { id: `scene-${sceneKind}-gravity-${index}`, kind, from: [0.18, 0.16], to: [0.78, 0.84], strength: 0.64 };
+    }
+    if (kind === 'thermal') {
+      return { id: `scene-${sceneKind}-thermal-${index}`, kind, center: [0.52, 0.56], radius: 0.36, strength: 0.68 };
+    }
+    if (kind === 'dipole') {
+      return { id: `scene-${sceneKind}-dipole-${index}`, kind, center: [0.54, 0.5], radius: 0.34, strength: 0.68 };
+    }
+    return { id: `scene-${sceneKind}-field-${index}`, kind, center: [0.52, 0.52], radius: 0.34, strength: 0.58 };
+  }
+
   function dominantRegimeForScene(sceneKind, objects) {
+    const registry = renderRegistryRef();
+    const recipe = registry && typeof registry.recipeForScene === 'function'
+      ? registry.recipeForScene(sceneKind)
+      : null;
+    if (recipe && recipe.dominantRegime) return recipe.dominantRegime;
     const map = {
       fire: 'thermal',
       optics: 'optical',
@@ -1612,6 +2718,11 @@
   }
 
   function renderPassOrder(sceneKind, solverFamilies) {
+    const registry = renderRegistryRef();
+    const recipe = registry && typeof registry.recipeForScene === 'function'
+      ? registry.recipeForScene(sceneKind)
+      : null;
+    if (recipe && Array.isArray(recipe.passOrder) && recipe.passOrder.length) return recipe.passOrder.slice();
     const shared = ['clear', 'world-field', 'solver-overlay', 'objects', 'emissions'];
     if (sceneKind === 'fire') return ['clear', 'fuel-terrain', 'heat-field', 'flame-front', 'smoke-embers'];
     if (sceneKind === 'optics') return ['clear', 'optical-rail', 'beam-trace', 'surfaces', 'caustics'];
@@ -1646,6 +2757,36 @@
         'angular-velocity',
       ]),
     };
+  }
+
+  function expandedSceneKindForText(value) {
+    const registry = renderRegistryRef();
+    if (!registry || typeof registry.sceneHintForText !== 'function') return '';
+    const scene = normalizedSceneHint(registry.sceneHintForText(value));
+    return scene && scene !== 'generic' ? scene : '';
+  }
+
+  function baseSceneKindForPromptText(value) {
+    const text = String(value || '').toLowerCase();
+    if (!text) return '';
+    if (/\b(forest fire|wildfire|dry pine fire|building fire|warehouse fire|flame|combustion|burning)\b/.test(text)) {
+      return 'fire';
+    }
+    if (/\b(lava|magma|steam|thermal plume|heat plume|cooling fin|cooling fins|smoke over cooling)\b/.test(text)) {
+      return 'thermal-plume';
+    }
+    if (/\b(hamster wheel|mouse|gerbil|wheel crashing|collision|bridge|cable|fracture|impact|robot|mechanical)\b/.test(text)) {
+      return 'mechanical';
+    }
+    if (/\b(ferrofluid|copper coil|pulsing current|magnetic spikes)\b/.test(text)) return 'ferrofluid';
+    if (/\b(soap film|thin film|air bubble|wire loop|iridescen)\b/.test(text)) return 'thin-film';
+    if (/\b(granular|beads|avalanche|sieve|powder)\b/.test(text)) return 'granular';
+    if (/\b(optics|prism|lens|mirror|laser|glass lens)\b/.test(text)) return 'optics';
+    if (/\b(city grid|traffic|market queue|power grid|queue|logistics)\b/.test(text)) return 'city';
+    if (/\b(watershed|river|erosion|terrain|sediment|rain channel|soil|rock ridges)\b/.test(text)) return 'watershed';
+    if (/\b(acoustic|sound|pressure wave|waveguide|resonance|brass tube)\b/.test(text)) return 'acoustic';
+    if (/\b(protein|mycelium|bacteria|membrane|colony|infection)\b/.test(text)) return 'biology';
+    return '';
   }
 
   function poseForNode(node, spec) {
@@ -1831,6 +2972,11 @@
   }
 
   function shapeForComponent(component) {
+    const componentId = String(component && component.id || '');
+    if (componentId === 'rotor-wheel') return 'wheel';
+    if (componentId === 'stator-slider') return 'slider';
+    if (componentId === 'solar-panel') return 'panel';
+    if (componentId === 'motor-load') return 'meter';
     if (component && component.assembly === 'flow') return 'flow-path';
     if (component && component.assembly === 'field') return 'field-envelope';
     if (component && component.assembly === 'network') return 'network-node';
@@ -1869,6 +3015,7 @@
     if (/turbine|propeller|fan turbine/.test(`${specific} ${geometryShapes}`)) return 'turbine';
     if (/storm|hurricane|rainstorm/.test(specific)) return 'storm';
     if (/colony[_-]field|algae|plant cluster|plant_cluster/.test(`${specific} ${geometryShapes}`)) return 'plant-cluster';
+    if (/prism/.test(identity)) return 'prism';
     if (/glass|lens/.test(identity)) return 'lens';
     if (/spacecraft|spaceship|rocket|satellite/.test(text)) return 'rocket';
     if (/submarine|submersible/.test(text)) return 'submarine';
@@ -1894,12 +3041,12 @@
     if (/air bubble|air bubbles|bubble/.test(text)) return 'bubble';
     if (/soap thin film|thin film|soap film|film/.test(text)) return 'film';
     if (/forest-fire|fuel bed|biomass/.test(text)) return 'fuel-bed';
+    if (/load|ledger|meter|recorder/.test(text)) return 'meter';
+    if (/solar|panel/.test(text)) return 'panel';
     if (/slider|actuator/.test(text)) return 'slider';
     if (/magnet/.test(text)) return 'magnet';
-    if (/solar|panel/.test(text)) return 'panel';
-    if (/load|ledger|meter|recorder/.test(text)) return 'meter';
-    if (/lens/.test(text)) return 'lens';
     if (/prism/.test(text)) return 'prism';
+    if (/lens/.test(text)) return 'lens';
     if (/river|flow|pipe|channel|water-line/.test(text)) return 'flow-path';
     if (/queue/.test(text)) return 'queue-node';
     if (/network|graph|grid|signal/.test(text)) return 'network-node';

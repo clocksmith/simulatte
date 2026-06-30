@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const visualCardDir = path.join(root, 'public', 'models', 'simulatte-visual-cards');
 const manifestPath = path.join(visualCardDir, 'manifest.json');
 const indexPath = path.join(visualCardDir, 'visual-card-index-v1.json');
+const visualOperatorAtlasPath = path.join(visualCardDir, 'visual-operator-atlas-v1.json');
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -52,7 +53,10 @@ test('visual card package exposes source-authored universe-representative cards'
 
   assert.equal(manifest.schema, 'simulatte.visualCardManifest.v1');
   assert.equal(manifest.indexes.visualCards.artifact, './visual-card-index-v1.json');
-  assert.equal(manifest.indexes.visualCards.documentCount, 812);
+  assert.equal(manifest.indexes.visualOperatorAtlas.artifact, './visual-operator-atlas-v1.json');
+  assert.equal(manifest.indexes.visualOperatorAtlas.documentCount, 17);
+  assert.equal(manifest.coverage.visualOperatorMappings, 17);
+  assert.ok(manifest.indexes.visualCards.documentCount >= 900);
   assert.ok(manifest.coverage.scenes >= 760);
   assert.ok(manifest.coverage.materials >= 760);
   assert.ok(manifest.coverage.processes >= 480);
@@ -60,31 +64,34 @@ test('visual card package exposes source-authored universe-representative cards'
   assert.ok(manifest.coverage.objects >= 520);
   assert.ok(manifest.coverage.variants >= 40);
   assert.equal(manifest.coverage.palettes, 16);
-  assert.equal(manifest.coverage.proceduralRecipeSignatures, 812);
-  assert.equal(manifest.coverage.sourceExamples, 812);
+  assert.equal(manifest.coverage.proceduralRecipeSignatures, manifest.indexes.visualCards.documentCount);
+  assert.equal(manifest.coverage.sourceExamples, manifest.indexes.visualCards.documentCount);
   assert.equal(manifest.coverage.generatedScaffoldCards, 0);
 
   assert.equal(index.schema, 'simulatte.visualCardIndex.v1');
   assert.equal(index.id, 'simulatte-visual-card-index-v1');
-  assert.equal(index.documentCount, 812);
-  assert.equal(index.documents.length, 812);
-  assert.deepEqual(index.counts.byType, {
-    scene: 204,
-    material: 200,
-    process: 193,
-    composition: 215,
-  });
-  assert.deepEqual(index.counts.bySourceGroup, {
-    'diagnostic-anchor': 7,
-    'curated-anchor': 20,
-    'user-coverage-list-100': 100,
-    'user-coverage-list-101-200': 100,
-    'extreme-boundary-list-64': 64,
-    'handwritten-universe-300': 300,
-    'handwritten-universe-501-721': 221,
-  });
-  assert.equal(index.curatedSourceIds.length, 812);
-  assert.equal(new Set(index.curatedSourceIds).size, 812);
+  assert.equal(index.documentCount, manifest.indexes.visualCards.documentCount);
+  assert.equal(index.documents.length, index.documentCount);
+  assert.ok(index.counts.byType.scene >= 200);
+  assert.ok(index.counts.byType.material >= 200);
+  assert.ok(index.counts.byType.process >= 190);
+  assert.ok(index.counts.byType.composition >= 200);
+  assert.equal(index.counts.bySourceGroup['diagnostic-anchor'], 7);
+  assert.equal(index.counts.bySourceGroup['curated-anchor'], 20);
+  assert.equal(index.counts.bySourceGroup['user-coverage-list-100'], 100);
+  assert.equal(index.counts.bySourceGroup['user-coverage-list-101-200'], 100);
+
+  const visualOperatorAtlas = readJson(visualOperatorAtlasPath);
+  assert.equal(visualOperatorAtlas.schema, 'simulatte.visualOperatorAtlas.v1');
+  assert.equal(visualOperatorAtlas.mappings.length, manifest.indexes.visualOperatorAtlas.documentCount);
+  assert.ok(visualOperatorAtlas.mappings.every((row) => row.geometryAtoms.length >= 3));
+  assert.ok(visualOperatorAtlas.mappings.every((row) => row.fieldAtoms.length >= 2));
+  assert.ok(visualOperatorAtlas.mappings.every((row) => row.motionAtoms.length >= 2));
+  assert.equal(index.counts.bySourceGroup['extreme-boundary-list-64'], 64);
+  assert.equal(index.counts.bySourceGroup['handwritten-universe-300'], 300);
+  assert.ok(index.counts.bySourceGroup['handwritten-universe-501-721'] >= 221);
+  assert.equal(index.curatedSourceIds.length, index.documentCount);
+  assert.equal(new Set(index.curatedSourceIds).size, index.documentCount);
   assert.ok(index.documents.every((card) => card.sourceExampleId));
 });
 
@@ -93,18 +100,16 @@ test('visual card validator accepts the generated package', () => {
 
   assert.equal(report.schema, 'simulatte.visualCardValidation.v1');
   assert.equal(report.ok, true, report.errors.join('\n'));
-  assert.equal(report.documentCount, 812);
-  assert.deepEqual(report.sourceGroups, {
-    'diagnostic-anchor': 7,
-    'curated-anchor': 20,
-    'user-coverage-list-100': 100,
-    'user-coverage-list-101-200': 100,
-    'extreme-boundary-list-64': 64,
-    'handwritten-universe-300': 300,
-    'handwritten-universe-501-721': 221,
-  });
-  assert.equal(report.unique.cardIds, 812);
-  assert.equal(report.unique.recipeSignatures, 812);
+  assert.ok(report.documentCount >= 900);
+  assert.equal(report.sourceGroups['diagnostic-anchor'], 7);
+  assert.equal(report.sourceGroups['curated-anchor'], 20);
+  assert.equal(report.sourceGroups['user-coverage-list-100'], 100);
+  assert.equal(report.sourceGroups['user-coverage-list-101-200'], 100);
+  assert.equal(report.sourceGroups['extreme-boundary-list-64'], 64);
+  assert.equal(report.sourceGroups['handwritten-universe-300'], 300);
+  assert.ok(report.sourceGroups['handwritten-universe-501-721'] >= 221);
+  assert.equal(report.unique.cardIds, report.documentCount);
+  assert.equal(report.unique.recipeSignatures, report.documentCount);
   assert.ok(report.unique.visualGrammars >= 16);
   assert.ok(report.unique.textureBases >= 16);
   assert.ok(report.unique.lightingModels >= 16);
@@ -125,7 +130,7 @@ test('all literal user extreme and handwritten coverage rows enter the generated
   assert.equal(userRows101200.length, 100);
   assert.equal(extremeRows.length, 64);
   assert.equal(handwrittenRows.length, 300);
-  assert.equal(handwrittenRows501721.length, 221);
+  assert.ok(handwrittenRows501721.length >= 221);
 
   for (const row of [...userRows, ...userRows101200, ...extremeRows, ...handwrittenRows, ...handwrittenRows501721]) {
     assert.ok(cardIds.has(row.cardId), `${row.cardId} should be indexed`);

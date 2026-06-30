@@ -111,6 +111,7 @@
     const bySpan = new Map();
     const seen = new Map();
     const candidateRows = candidateRowsForInput(input);
+    const intentBrief = input.intentBrief || null;
 
     for (const span of spanRows) {
       if (!['entity', 'material', 'environment', 'observable'].includes(span.kind)) continue;
@@ -155,14 +156,21 @@
 
     addComponentNodes(nodes, seen, input, rejected);
     addUniverseCandidateNodes(nodes, seen, candidateRows, input);
-    const edges = edgeRowsForClauses(promptParse.clauses || [], bySpan, nodes);
+    const promptEdges = edgeRowsForClauses(promptParse.clauses || [], bySpan, nodes);
+    const edges = uniqueEdgeRows([
+      ...promptEdges,
+      ...edgeRowsForIntentBrief(intentBrief, nodes),
+    ]);
     const observables = spanRows
       .filter((span) => span.kind === 'observable')
       .map((span) => ({ spanId: span.id, label: span.text, channel: observableChannel(span.text) }));
     const semanticGraph = buildSemanticGraph(nodes, edges);
     const affordanceGraph = buildAffordanceGraph(nodes, candidateRows);
     const primitiveMapping = buildPrimitiveMapping(nodes, candidateRows);
-    const unsupported = buildUnsupportedRows(nodes, primitiveMapping, unresolved);
+    const unsupported = mergeUnsupportedRows(
+      buildUnsupportedRows(nodes, primitiveMapping, unresolved),
+      unsupportedRowsFromIntentBrief(intentBrief)
+    );
     return {
       schema: UNIVERSE_GRAPH_SCHEMA,
       prompt: promptParse.prompt || input.prompt || '',
@@ -174,9 +182,32 @@
       primitiveMapping,
       environments: nodes.filter((node) => node.semanticType === 'environment'),
       observables,
+      visualAffordances: intentBrief && intentBrief.visualIntent && Array.isArray(intentBrief.visualIntent.affordances)
+        ? intentBrief.visualIntent.affordances.slice(0, 8).map((row) => ({ ...row }))
+        : [],
       unresolved,
       unsupported,
       rejected,
+      intentBrief: intentBrief ? {
+        schema: intentBrief.schema || '',
+        evidenceCount: (intentBrief.retrievedEvidence || []).length,
+        causalEdgeCount: (intentBrief.causalGraph || []).length,
+        assumptionCount: (intentBrief.assumptions || []).length,
+        unsupportedCount: (intentBrief.unsupported || []).length,
+        retrievedEvidence: (intentBrief.retrievedEvidence || []).map((row) => ({ ...row })),
+        causalGraph: (intentBrief.causalGraph || []).map((row) => ({ ...row })),
+        assumptions: (intentBrief.assumptions || []).map((row) => ({ ...row })),
+        alternatives: (intentBrief.alternatives || []).map((row) => ({ ...row })),
+        unsupported: (intentBrief.unsupported || []).map((row) => ({ ...row })),
+        degradedTo: (intentBrief.degradedTo || []).map((row) => ({ ...row })),
+        negativeKnowledge: (intentBrief.negativeKnowledge || []).map((row) => ({ ...row })),
+        visualIntent: intentBrief.visualIntent ? {
+          ...intentBrief.visualIntent,
+          affordances: Array.isArray(intentBrief.visualIntent.affordances)
+            ? intentBrief.visualIntent.affordances.map((row) => ({ ...row }))
+            : [],
+        } : null,
+      } : null,
       provenance: {
         grounder: 'simulatte.universe-grounder.v1',
         parseSchema: promptParse.schema || '',
@@ -249,7 +280,103 @@
         evidence: row.evidence || ['universe-index'],
       });
     }
+    for (const row of input.intentBrief && input.intentBrief.retrievedEvidence || []) {
+      if (!row || !row.label) continue;
+      rows.push({
+        id: row.id || row.label,
+        label: row.label,
+        aliases: row.aliases || [],
+        canonicalId: row.canonicalId || row.id || `intent.${row.label}`,
+        semanticType: row.semanticType || row.indexName || 'intentEvidence',
+        domains: row.domains || [],
+        materialId: row.materialId || '',
+        materialIds: row.materialIds || (row.materialId ? [row.materialId] : []),
+        operatorHints: row.operatorHints || row.operatorTypes || [],
+        operatorTypes: row.operatorTypes || row.operatorHints || [],
+        primitiveHints: row.primitiveHints || [],
+        conceptIds: row.conceptIds || [],
+        shapeHints: row.shapeHints || [],
+        sceneHints: row.sceneHints || [],
+        indexName: row.indexName || row.source || 'intent-brief',
+        confidence: clamp01(Number(row.score || row.confidence || 0.42)),
+        evidence: row.evidence || [row.id || row.label],
+      });
+    }
     return rows;
+  }
+
+  function edgeRowsForIntentBrief(intentBrief, nodes) {
+    const edges = [];
+    if (!intentBrief || !Array.isArray(intentBrief.causalGraph)) return edges;
+    for (const edge of intentBrief.causalGraph) {
+      const from = nodeForCausalRef(nodes, edge.sourceRef, edge.sourceLabel);
+      const to = nodeForCausalRef(nodes, edge.targetRef, edge.targetLabel);
+      if (!from || !to || from.id === to.id) continue;
+      edges.push({
+        id: `intent-${edge.id || edges.length + 1}`,
+        type: edge.relationType || edge.type || 'interaction',
+        from: from.id,
+        to: to.id,
+        processId: edge.processId || edge.operatorType || 'interact',
+        prepositions: [],
+        confidence: clamp01(Number(edge.confidence || 0.66)),
+        evidence: edge.evidence || ['intent-brief'],
+        operatorType: edge.operatorType || '',
+        mechanism: edge.mechanism || '',
+      });
+    }
+    return edges;
+  }
+
+  function nodeForCausalRef(nodes, ref, label) {
+    const refText = String(ref || '').toLowerCase();
+    const labelText = String(label || '').toLowerCase();
+    return (nodes || []).find((node) => {
+      const text = [node.id, node.canonicalId, node.label, ...(node.aliases || [])].join(' ').toLowerCase();
+      return refText && text.includes(refText) || labelText && (text.includes(labelText) || labelText.includes(String(node.label || '').toLowerCase()));
+    }) || null;
+  }
+
+  function uniqueEdgeRows(edges) {
+    const seen = new Set();
+    return (edges || []).filter((edge) => {
+      const key = `${edge.type}:${edge.from}:${edge.to}:${edge.processId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function unsupportedRowsFromIntentBrief(intentBrief) {
+    const rows = [];
+    for (const row of intentBrief && intentBrief.unsupported || []) {
+      rows.push({
+        id: row.id || row.label,
+        label: row.label || row.id,
+        reason: row.reason || 'unsupported by intent brief',
+        source: 'intent-brief',
+      });
+    }
+    for (const row of intentBrief && intentBrief.degradedTo || []) {
+      rows.push({
+        id: row.id || row.label,
+        label: row.label || row.id,
+        reason: row.reason || 'degraded approximation selected',
+        degraded: true,
+        source: 'intent-brief',
+      });
+    }
+    return rows;
+  }
+
+  function mergeUnsupportedRows(a, b) {
+    const seen = new Set();
+    return [...(a || []), ...(b || [])].filter((row) => {
+      const key = `${row.id}:${row.label}:${row.reason}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   function bestCandidateForSpan(span, externalRows) {

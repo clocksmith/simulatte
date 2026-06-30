@@ -6,20 +6,34 @@
       "kind": "visual-card-index",
       "artifact": "./visual-card-index-v1.json",
       "documentSchema": "simulatte.visualCardIndex.v1",
-      "documentCount": 812
+      "documentCount": 1177
+    },
+    "causalAffordances": {
+      "kind": "causal-visual-affordance-index",
+      "artifact": "./causal-visual-affordance-index-v1.json",
+      "documentSchema": "simulatte.causalVisualAffordanceIndex.v1",
+      "documentCount": 123
+    },
+    "visualOperatorAtlas": {
+      "kind": "visual-operator-atlas",
+      "artifact": "./visual-operator-atlas-v1.json",
+      "documentSchema": "simulatte.visualOperatorAtlas.v1",
+      "documentCount": 17
     }
   },
   "coverage": {
-    "scenes": 779,
-    "materials": 787,
-    "processes": 493,
-    "compositions": 106,
-    "objects": 776,
-    "variants": 146,
+    "scenes": 1067,
+    "materials": 1095,
+    "processes": 723,
+    "compositions": 165,
+    "objects": 1058,
+    "variants": 366,
     "palettes": 16,
-    "proceduralRecipeSignatures": 812,
-    "sourceExamples": 812,
-    "generatedScaffoldCards": 0
+    "proceduralRecipeSignatures": 1177,
+    "sourceExamples": 1177,
+    "generatedScaffoldCards": 0,
+    "causalAffordances": 123,
+    "visualOperatorMappings": 17
   },
   "generator": {
     "schema": "simulatte.visualCardGenerator.v1",
@@ -28,6 +42,8 @@
     "sourcePolicy": {
       "exportedDocuments": "literal-source-examples-only",
       "generatedScaffoldCards": 0,
+      "handwrittenCausalAffordances": 123,
+      "handwrittenVisualOperatorMappings": 17,
       "maxSlotsPerType": 512
     }
   }

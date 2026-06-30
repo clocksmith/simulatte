@@ -1,0 +1,203 @@
+{
+  "schema": "simulatte.visualOperatorAtlas.v1",
+  "id": "simulatte-visual-operator-atlas-v1",
+  "source": "handwritten-operator-graphics-basis",
+  "description": "Reusable graphics atoms and operator-to-visual mappings for compiling VisualIR without scene-template buckets.",
+  "categories": {
+    "geometry": ["surface", "volume", "path", "instrument", "network", "terrain", "orbital", "organic"],
+    "field": ["scalar", "vector", "pressure", "thermal", "gravity", "optical", "electromagnetic", "uncertainty"],
+    "material": ["emissive", "transparent", "fluid", "granular", "metal", "biological", "instrument", "phase"],
+    "process": ["transport", "front", "feedback", "fracture", "orbit", "reaction", "growth", "measurement"],
+    "motion": ["particles", "trails", "pulses", "waves", "deformation", "vortices", "branching", "scan"],
+    "camera": ["cutaway", "orbital", "microscopic", "map", "lab", "motion"]
+  },
+  "mappings": [
+    {
+      "id": "visual.operator.heat-transfer.v1",
+      "matchTerms": ["heat_transfer", "thermal_gradient", "temperature", "cooling", "heating", "heat", "thermal", "lava", "steam"],
+      "geometryAtoms": ["thermal-glow-gradient", "surface-phase-boundary", "volume-vapor-plume"],
+      "fieldAtoms": ["heatmap-isobands", "thermal-vector-fan"],
+      "materialAtoms": ["emissive-hot", "transparent-vapor"],
+      "processAtoms": ["thermal-diffusion-front", "phase-change-boundary"],
+      "motionAtoms": ["buoyant-rise", "heat-shimmer"],
+      "cameraAtoms": ["cutaway-section-depth", "instrumented-lab-depth"],
+      "receiptText": "Heat transfer becomes glow gradients, vapor volumes, phase edges, and thermal vectors."
+    },
+    {
+      "id": "visual.operator.fluid-advection.v1",
+      "matchTerms": ["flow", "water", "river", "wind", "coolant", "airflow", "velocity"],
+      "geometryAtoms": ["ribbon-streamline", "transparent-flow-tube", "particle-tracer-swarm"],
+      "fieldAtoms": ["velocity-vector-field", "pressure-band-field"],
+      "materialAtoms": ["fluid-ripple", "wet-refractive"],
+      "processAtoms": ["advective-transport", "pressure-driven-flow"],
+      "motionAtoms": ["stream-ribbons", "tracer-particles"],
+      "cameraAtoms": ["topographic-cutaway-depth", "instrumented-lab-depth"],
+      "receiptText": "Fluid transport becomes stream ribbons, pressure bands, particles, and flow tubes."
+    },
+    {
+      "id": "visual.operator.stress-fracture.v1",
+      "matchTerms": ["stress", "strain", "fracture", "crack", "collision", "impact", "load", "buckling"],
+      "geometryAtoms": ["sectioned-solid", "crack-branch-network", "constraint-contact-pad"],
+      "fieldAtoms": ["stress-contour-field", "impulse-ring-field"],
+      "materialAtoms": ["deformed-matte", "fracture-edge"],
+      "processAtoms": ["threshold-fracture", "contact-impulse"],
+      "motionAtoms": ["deformation-pulse", "crack-propagation"],
+      "cameraAtoms": ["cutaway-section-depth", "dynamic-motion-depth"],
+      "receiptText": "Mechanical stress becomes deformation, crack branches, contact pads, and strain contours."
+    },
+    {
+      "id": "visual.operator.control-feedback.v1",
+      "matchTerms": ["control", "controller", "feedback", "sensor", "throttle", "stabilize", "regulate", "loop"],
+      "geometryAtoms": ["controller-node", "feedback-arc", "sensor-probe"],
+      "fieldAtoms": ["state-error-field", "setpoint-band"],
+      "materialAtoms": ["signal-emissive", "instrument-glass"],
+      "processAtoms": ["feedback-control", "closed-loop-correction"],
+      "motionAtoms": ["state-pulses", "feedback-arcs"],
+      "cameraAtoms": ["instrumented-lab-depth", "network-map-depth"],
+      "receiptText": "Feedback control becomes sensors, setpoint bands, feedback arcs, and state pulses."
+    },
+    {
+      "id": "visual.operator.orbital-gravity.v1",
+      "matchTerms": ["gravity", "orbit", "orbital", "planet", "moon", "asteroid", "rocket", "space"],
+      "geometryAtoms": ["orbital-body", "gravity-well-sheet", "trajectory-arc"],
+      "fieldAtoms": ["gravity-contour-field", "barycenter-marker-field"],
+      "materialAtoms": ["astral-rim", "dark-vacuum"],
+      "processAtoms": ["orbital-motion", "gravitational-curvature"],
+      "motionAtoms": ["trajectory-trails", "barycenter-wobble"],
+      "cameraAtoms": ["orbital-depth", "wide-system"],
+      "receiptText": "Orbital mechanics becomes bodies, gravity wells, trails, and barycenter markers."
+    },
+    {
+      "id": "visual.operator.electromagnetic-field.v1",
+      "matchTerms": ["magnetic", "magnet", "current", "coil", "charge", "electric", "voltage", "plasma"],
+      "geometryAtoms": ["coil-loop", "dipole-field-cage", "charged-node"],
+      "fieldAtoms": ["vector-flux-lines", "field-density-shell"],
+      "materialAtoms": ["charged-trace", "plasma-emissive"],
+      "processAtoms": ["field-advection", "charge-transport"],
+      "motionAtoms": ["flux-curling", "spark-pulses"],
+      "cameraAtoms": ["instrumented-lab-depth", "cutaway-section-depth"],
+      "receiptText": "Electromagnetic systems become coils, flux lines, charged traces, and field shells."
+    },
+    {
+      "id": "visual.operator.optical-ray.v1",
+      "matchTerms": ["light", "laser", "lens", "prism", "mirror", "photon", "caustic", "refraction", "interference", "resonator"],
+      "geometryAtoms": ["lens-stack", "ray-cone", "spectral-prism-slice"],
+      "fieldAtoms": ["phase-front-field", "caustic-intensity-field"],
+      "materialAtoms": ["transparent-caustic", "spectral-emissive"],
+      "processAtoms": ["ray-refraction", "interference-focus"],
+      "motionAtoms": ["ray-sweep", "phase-fringes"],
+      "cameraAtoms": ["instrumented-lab-depth", "microscopic-cutaway-depth"],
+      "receiptText": "Optics becomes ray cones, phase fronts, caustics, prisms, and spectral fringes."
+    },
+    {
+      "id": "visual.operator.quantum-phase-readout.v1",
+      "matchTerms": ["qubit", "quantum", "microwave", "resonator", "phase", "interference", "superconducting"],
+      "geometryAtoms": ["superconducting-chip-plane", "microwave-resonator-loop", "phase-fringe-sheet"],
+      "fieldAtoms": ["probability-phase-field", "microwave-standing-field"],
+      "materialAtoms": ["cryogenic-metal", "spectral-emissive"],
+      "processAtoms": ["quantum-readout", "phase-interference"],
+      "motionAtoms": ["phase-fringes", "readout-pulse"],
+      "cameraAtoms": ["microscopic-cutaway-depth", "instrumented-lab-depth"],
+      "receiptText": "Quantum readout becomes resonator loops, phase fields, interference sheets, and pulses."
+    },
+    {
+      "id": "visual.operator.acoustic-wave.v1",
+      "matchTerms": ["acoustic", "sound", "wave", "pressure", "resonance", "standing", "frequency"],
+      "geometryAtoms": ["waveguide-tube", "resonator-cavity", "membrane-diaphragm"],
+      "fieldAtoms": ["pressure-ring-field", "standing-node-field"],
+      "materialAtoms": ["soft-pressure", "instrument-glass"],
+      "processAtoms": ["wave-propagation", "resonant-standing-wave"],
+      "motionAtoms": ["pressure-rings", "node-oscillation"],
+      "cameraAtoms": ["cutaway-section-depth", "instrumented-lab-depth"],
+      "receiptText": "Acoustics becomes pressure rings, resonator cavities, waveguides, and node motion."
+    },
+    {
+      "id": "visual.operator.biological-growth.v1",
+      "matchTerms": ["growth", "bio", "cell", "protein", "root", "coral", "algae", "mycelium", "membrane"],
+      "geometryAtoms": ["branching-organic-network", "membrane-sheet", "cell-cluster"],
+      "fieldAtoms": ["nutrient-gradient-field", "density-front-field"],
+      "materialAtoms": ["fibrous-cellular", "wet-biological"],
+      "processAtoms": ["growth-front", "diffusion-limited-aggregation"],
+      "motionAtoms": ["branch-expansion", "cell-pulses"],
+      "cameraAtoms": ["microscopic-cutaway-depth", "topographic-cutaway-depth"],
+      "receiptText": "Biological change becomes branching networks, membranes, gradients, and growth fronts."
+    },
+    {
+      "id": "visual.operator.chemical-diffusion.v1",
+      "matchTerms": ["reaction", "chemical", "acid", "crystal", "concentration", "electrolyte", "solvent", "catalyst"],
+      "geometryAtoms": ["reaction-vessel", "diffusion-cloud-volume", "crystal-facet-cluster"],
+      "fieldAtoms": ["concentration-isobands", "reaction-front-field"],
+      "materialAtoms": ["translucent-reagent", "facet-crystal"],
+      "processAtoms": ["reaction-diffusion", "crystallization-front"],
+      "motionAtoms": ["concentration-pulse", "facet-growth"],
+      "cameraAtoms": ["instrumented-lab-depth", "microscopic-cutaway-depth"],
+      "receiptText": "Chemical dynamics become vessels, concentration fields, reaction fronts, and crystals."
+    },
+    {
+      "id": "visual.operator.network-flow.v1",
+      "matchTerms": ["network", "queue", "market", "traffic", "route", "packet", "server", "parcel", "zoning"],
+      "geometryAtoms": ["node-link-graph", "parcel-grid", "agent-token"],
+      "fieldAtoms": ["queue-pressure-field", "constraint-overlay-field"],
+      "materialAtoms": ["monitor-light", "map-surface"],
+      "processAtoms": ["routing-flow", "constraint-propagation"],
+      "motionAtoms": ["packet-pulses", "agent-queue-motion"],
+      "cameraAtoms": ["network-map-depth", "aerial-map-depth"],
+      "receiptText": "Network systems become nodes, parcels, queue pressure, agents, and routing pulses."
+    },
+    {
+      "id": "visual.operator.granular-erosion.v1",
+      "matchTerms": ["erosion", "sediment", "grain", "sand", "soil", "avalanche", "terrain", "slope"],
+      "geometryAtoms": ["heightfield-strata", "grain-pile", "erosion-channel"],
+      "fieldAtoms": ["slope-gradient-field", "sediment-density-field"],
+      "materialAtoms": ["granular-strata", "wet-soil"],
+      "processAtoms": ["erosion-transport", "settling-shear"],
+      "motionAtoms": ["grain-settling", "channel-cutting"],
+      "cameraAtoms": ["topographic-cutaway-depth", "aerial-map-depth"],
+      "receiptText": "Granular landscapes become strata, channel cuts, slope fields, and sediment motion."
+    },
+    {
+      "id": "visual.operator.instrument-readout.v1",
+      "matchTerms": ["detector", "sensor", "readout", "instrument", "probe", "phototube", "resonator", "meter"],
+      "geometryAtoms": ["instrument-panel", "probe-array", "readout-strip"],
+      "fieldAtoms": ["measurement-sample-field", "uncertainty-band-field"],
+      "materialAtoms": ["clinical-glass", "signal-emissive"],
+      "processAtoms": ["measurement-sampling", "readout-integration"],
+      "motionAtoms": ["scan-lines", "measurement-pulses"],
+      "cameraAtoms": ["instrumented-lab-depth", "microscopic-cutaway-depth"],
+      "receiptText": "Instrumentation becomes probe arrays, readout strips, measurement bands, and pulses."
+    },
+    {
+      "id": "visual.operator.thermal-combustion.v1",
+      "matchTerms": ["combustion", "fire", "flame", "fuel", "smoke", "ember", "ash", "burn"],
+      "geometryAtoms": ["flame-front-volume", "fuel-bed-surface", "smoke-column"],
+      "fieldAtoms": ["reaction-heat-field", "soot-density-field"],
+      "materialAtoms": ["emissive-flame", "charred-surface"],
+      "processAtoms": ["combustion-front", "soot-transport"],
+      "motionAtoms": ["ember-shear", "smoke-rise"],
+      "cameraAtoms": ["cutaway-section-depth", "dynamic-motion-depth"],
+      "receiptText": "Combustion becomes flame fronts, fuel surfaces, soot fields, and ember motion."
+    },
+    {
+      "id": "visual.operator.phase-transition.v1",
+      "matchTerms": ["phase", "melt", "freeze", "crust", "vaporize", "condense", "boil", "solidify"],
+      "geometryAtoms": ["phase-boundary-sheet", "droplet-front", "crystal-skin"],
+      "fieldAtoms": ["latent-heat-band", "phase-fraction-field"],
+      "materialAtoms": ["transparent-phase", "emissive-boundary"],
+      "processAtoms": ["phase-front", "latent-heat-exchange"],
+      "motionAtoms": ["boundary-crawl", "droplet-release"],
+      "cameraAtoms": ["cutaway-section-depth", "instrumented-lab-depth"],
+      "receiptText": "Phase transitions become moving boundaries, latent heat bands, droplets, and skins."
+    },
+    {
+      "id": "visual.operator.robot-contact.v1",
+      "matchTerms": ["robot", "gripper", "servo", "contact", "warehouse", "sort", "pick", "place"],
+      "geometryAtoms": ["robot-armature", "contact-cone", "workcell-grid"],
+      "fieldAtoms": ["force-cone-field", "task-queue-field"],
+      "materialAtoms": ["brushed-metal", "monitor-light"],
+      "processAtoms": ["servo-control", "contact-force"],
+      "motionAtoms": ["servo-arcs", "pick-place-pulses"],
+      "cameraAtoms": ["instrumented-lab-depth", "network-map-depth"],
+      "receiptText": "Robotic work becomes armatures, force cones, workcells, queues, and servo pulses."
+    }
+  ]
+}

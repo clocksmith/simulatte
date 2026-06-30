@@ -41,10 +41,9 @@ parameters before the canvas runs.
   state, integrators, readouts, and energy accounting.
 - `public/js/simulatte-intent-embedder.js`: model-backed retrieval over
   precomputed primitive, surface-card, and universe indexes. The current pinned
-  Qwen runtime uses mean-pooled transformer embeddings with cosine-normalized
-  query and index vectors; it is selected for the current browser/Doppler
-  loading path, not as a proven retrieval-quality replacement for a dedicated
-  embedding model.
+  EmbeddingGemma runtime uses normalized 768-dimensional sentence embeddings
+  with cosine-normalized query and index vectors; it owns retrieval because that
+  is the embedding model role.
 - `public/js/simulatte-physics-renderer.js`: browser controls, canvas drawing,
   continuous animation, and WebGPU particle-field sync.
 - `public/js/simulatte-physics-lab.js`: small public API coordinator.
@@ -111,12 +110,11 @@ model hints choose target layers, rank primitives, fill slots, and propose
 physical graph deltas. The committed world still has to compile through the
 adjacent layer rules.
 
-Retrieval and reasoning are separate model roles. A dedicated embedding model
-is the right default candidate for best retrieval quality, while Qwen is the
-current local runtime-aligned intent, rerank, and generation path. Retrieval
-model swaps should be decided by benchmarked index candidates, not by assuming a
-general transformer with mean pooling is inherently stronger than an embedding
-model.
+Retrieval and reasoning are separate model roles. EmbeddingGemma owns
+retrieval: prompt embeddings, primitive matching, surface-card matching, and
+semantic-universe matching. A separate local text model may provide optional
+JSON graph hints, but it must not replace the embedding model for retrieval.
+Retrieval model swaps should be decided by benchmarked index candidates.
 
 Layer recipes now compile into contracts, not only dependency lists:
 
@@ -207,9 +205,10 @@ npm run serve
 ```
 
 `npm run serve` serves `public/` and mounts the sibling Doppler repo at
-same-origin `/doppler/`. The intent manifest defaults to the pinned Qwen
-artifact URL. For local artifact testing, pass an override such as
-`?embeddingModelBase=/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16`.
+same-origin `/doppler/`. The intent manifest defaults to the pinned
+EmbeddingGemma artifact URL. For local artifact testing, pass an override such
+as
+`?embeddingModelBase=/doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32`.
 
 ## Deployment
 
