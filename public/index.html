@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
-  <meta name="simulatte-build" content="286500c1a7d01b5e730470c6f1c15e5f1bdc4fc1">
+  <meta name="simulatte-build" content="258f9b8b88d632a27fe2dd7fa3127c8af6b47359">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
@@ -1026,9 +1026,12 @@
       position: absolute;
       width: 1px;
       height: 1px;
+      padding: 0;
+      margin: -1px;
       overflow: hidden;
       clip: rect(0 0 0 0);
       white-space: nowrap;
+      border: 0;
     }
 
     .control-stack,
@@ -1899,30 +1902,101 @@
       opacity: 0.88;
     }
 
+    html[data-canvas-loading="snake"] #field-canvas {
+      opacity: 0;
+    }
+
     .physics-panel {
       position: fixed;
       z-index: 12;
       left: 50%;
       bottom: 16px;
       width: min(860px, calc(100vw - 24px));
-      max-height: min(70vh, 350px);
+      max-height: min(62vh, 286px);
       overflow: auto;
       transform: translateX(-50%);
-      padding: 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(74, 58, 92, 0.16);
-      background: rgba(255, 255, 255, 0.86);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      padding: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08)),
+        linear-gradient(180deg, rgba(255, 141, 178, 0.06), rgba(117, 190, 255, 0.06));
+      backdrop-filter: blur(30px) saturate(1.48);
+      -webkit-backdrop-filter: blur(30px) saturate(1.48);
       display: grid;
       gap: 8px;
       animation: none;
-      box-shadow: var(--shadow);
+      box-shadow:
+        0 24px 70px rgba(11, 13, 17, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.42),
+        inset 0 -1px 0 rgba(74, 58, 92, 0.08);
       user-select: none;
     }
 
     .prompt-dock {
       touch-action: none;
+      transition:
+        max-height 0.22s ease,
+        width 0.22s ease,
+        left 0.22s ease,
+        bottom 0.22s ease,
+        transform 0.22s ease,
+        opacity 0.22s ease,
+        background-color 0.22s ease,
+        box-shadow 0.22s ease;
+    }
+
+    .prompt-dock::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.42), transparent 42%),
+        radial-gradient(circle at 88% 100%, rgba(117, 190, 255, 0.18), transparent 46%);
+      pointer-events: none;
+    }
+
+    .prompt-dock[data-collapsed="true"] {
+      left: 16px !important;
+      right: auto !important;
+      top: auto !important;
+      bottom: 16px !important;
+      width: min(324px, calc(100vw - 24px));
+      max-height: 46px;
+      overflow: hidden;
+      transform: none !important;
+      opacity: 0.88;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.16)),
+        linear-gradient(90deg, rgba(255, 141, 178, 0.08), rgba(117, 190, 255, 0.1));
+      border-color: rgba(255, 255, 255, 0.28);
+      box-shadow:
+        0 14px 42px rgba(11, 13, 17, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    }
+
+    .prompt-dock[data-collapsed="true"] .prompt-dock-core {
+      display: none;
+    }
+
+    .prompt-dock[data-collapsed="true"] .prompt-dock-head {
+      min-height: 30px;
+    }
+
+    .prompt-dock[data-collapsed="true"] .physics-status {
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      opacity: 0.78;
+    }
+
+    .prompt-dock[data-collapsed="true"] .prompt-dock-handle {
+      display: none;
     }
 
     .prompt-dock-head {
@@ -1930,7 +2004,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      min-height: 32px;
+      min-height: 28px;
     }
 
     .prompt-dock-head h1 {
@@ -1938,6 +2012,28 @@
       color: var(--mosaic-ink);
       font-size: 15px;
       letter-spacing: 0;
+    }
+
+    .prompt-dock-head-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .prompt-dock-toggle {
+      min-height: 28px;
+      min-width: 34px;
+      border-radius: 8px;
+      padding: 0 8px;
+      border: 1px solid rgba(74, 58, 92, 0.14);
+      background: rgba(255, 255, 255, 0.6);
+      color: rgba(34, 31, 45, 0.72);
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .prompt-dock[data-collapsed="true"] .prompt-dock-toggle {
+      color: rgba(28, 109, 94, 0.94);
     }
 
     .prompt-dock-handle {
@@ -1970,51 +2066,109 @@
     .prompt-dock .builder-row {
       display: grid;
       gap: 8px;
-      grid-template-columns: 1fr auto;
-      align-items: end;
-    }
-
-    .prompt-dock .builder-row .physics-name {
-      margin: 0;
-      display: grid;
-      gap: 4px;
-      color: rgba(34, 31, 45, 0.58);
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      grid-column: 1 / -1;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: stretch;
     }
 
     .prompt-dock textarea {
       border-radius: 12px;
-      min-height: 88px;
-      max-height: 180px;
+      min-height: 68px;
+      max-height: 132px;
       resize: vertical;
       font-size: 15px;
       line-height: 1.35;
     }
 
     .prompt-dock .builder-row button {
-      width: 102px;
-      height: 40px;
-      justify-self: end;
-      border-radius: 999px;
+      width: 52px;
+      min-height: 68px;
+      height: auto;
+      justify-self: stretch;
+      align-self: stretch;
+      border-radius: 14px;
       margin: 0;
+      padding: 8px 6px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      background: rgba(255, 255, 255, 0.28);
+      border-color: rgba(74, 58, 92, 0.14);
+    }
+
+    .prompt-action-icon {
+      display: block;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+      transform: translateY(-1px);
+    }
+
+    .prompt-action-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
     }
 
     .prompt-dock .intent-runtime {
       margin: 0;
       border-radius: 10px;
-      padding: 8px;
+      padding: 6px 7px;
+      gap: 4px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.18));
+      border-color: rgba(255, 255, 255, 0.34);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.42),
+        0 10px 24px rgba(74, 58, 92, 0.08);
     }
 
     .prompt-dock .intent-runtime-track {
-      height: 10px;
+      height: 5px;
+      border-radius: 999px;
     }
 
     .prompt-dock .intent-runtime-percent {
-      font-size: 12px;
-      color: rgba(105, 89, 174, 0.9);
+      color: rgba(28, 109, 94, 0.88);
+      font-size: 9px;
+    }
+
+    .prompt-dock .intent-runtime-head strong {
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .intent-runtime-detail {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      color: rgba(34, 31, 45, 0.48);
+      font-size: 9px;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .intent-runtime[data-progress="indeterminate"] .intent-runtime-fill {
+      width: 38% !important;
+      animation: compute-activity-scan 1.1s cubic-bezier(0.45, 0, 0.2, 1) infinite alternate;
+    }
+
+    @keyframes compute-activity-scan {
+      from {
+        margin-left: 0;
+        opacity: 0.52;
+      }
+
+      to {
+        margin-left: 62%;
+        opacity: 0.88;
+      }
     }
 
     .prompt-dock .physics-status {
@@ -2068,11 +2222,25 @@
       }
 
       .prompt-dock .builder-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
       }
 
       .prompt-dock .builder-row button {
         width: 100%;
+        min-height: 42px;
+      }
+
+      .prompt-dock textarea {
+        grid-column: 1 / -1;
+        order: 1;
+      }
+
+      #shuffle-prompt {
+        order: 2;
+      }
+
+      #build-lab {
+        order: 3;
       }
     }
   </style>
@@ -2082,24 +2250,30 @@
     <section class="physics-panel prompt-dock" aria-label="Simulation prompt runner">
       <div class="prompt-dock-head">
         <h1>Simulatte</h1>
-        <div class="prompt-dock-head-right" style="display: flex; gap: 6px; align-items: center;">
+        <div class="prompt-dock-head-right">
           <span id="lab-state" class="physics-status" aria-live="polite">loading creator</span>
+          <button id="prompt-dock-toggle" class="prompt-dock-toggle" type="button" aria-label="Collapse prompt panel" aria-expanded="true">−</button>
           <button id="prompt-dock-handle" class="prompt-dock-handle" type="button" aria-label="Drag prompt panel" aria-live="polite">⋮⋮</button>
         </div>
       </div>
 
       <div class="prompt-dock-core">
-        <button id="shuffle-prompt" class="example-chip" type="button" aria-label="Shuffle one of 256 example prompts">Shuffle 256 examples</button>
-
         <div class="builder-row">
-          <label class="physics-name" for="build-prompt">Prompt</label>
-          <textarea id="build-prompt">laser heats ferrofluid lens over copper coil</textarea>
-          <button id="build-lab" class="primary-action" type="button">Run</button>
+          <label class="sr-only" for="build-prompt">Simulation request</label>
+          <button id="shuffle-prompt" class="example-chip prompt-side-action" type="button" aria-label="Shuffle 256 examples" title="Shuffle 256 examples">
+            <span class="prompt-action-icon" aria-hidden="true">⇄</span>
+            <span class="prompt-action-label">Shuffle</span>
+          </button>
+          <textarea id="build-prompt" aria-label="Simulation request">laser heats ferrofluid lens over copper coil</textarea>
+          <button id="build-lab" class="primary-action prompt-side-action" type="button" aria-label="Run simulation">
+            <span class="prompt-action-icon" aria-hidden="true">↵</span>
+            <span class="prompt-action-label">Run</span>
+          </button>
         </div>
 
         <div id="intent-runtime" class="intent-runtime" data-state="idle" aria-live="polite">
           <div class="intent-runtime-head">
-            <strong id="intent-runtime-title">Intent model</strong>
+            <strong id="intent-runtime-title">Compute activity</strong>
             <span id="intent-runtime-percent" class="intent-runtime-percent">0%</span>
           </div>
           <div class="intent-runtime-track" aria-hidden="true">
@@ -2107,8 +2281,8 @@
           </div>
           <div class="intent-runtime-meta">
             <span id="intent-runtime-message">idle</span>
-            <span id="intent-runtime-stage">standby</span>
           </div>
+          <span id="intent-runtime-stage" class="intent-runtime-detail">standby</span>
         </div>
       </div>
 
@@ -2132,6 +2306,15 @@
   <script defer src="./js/simulatte-universe-grounder.js"></script>
   <script defer src="./js/simulatte-physics-ir.js"></script>
   <script defer src="./js/simulatte-physics-ir-validator.js"></script>
+  <script defer src="./js/simulatte-intent-brief-schema.js"></script>
+  <script defer src="./js/simulatte-structured-intent-model.js"></script>
+  <script defer src="./js/simulatte-causal-physics-graph.js"></script>
+  <script defer src="./js/simulatte-assumption-ledger.js"></script>
+  <script defer src="./js/simulatte-causal-visual-affordances.js"></script>
+  <script defer src="./js/simulatte-language-evidence.js"></script>
+  <script defer src="./js/simulatte-activation-cloud.js"></script>
+  <script defer src="./js/simulatte-grounded-interpretation.js"></script>
+  <script defer src="./js/simulatte-intent-forensics.js"></script>
   <script defer src="./js/solvers/simulatte-solver-rigid-body-2d.js"></script>
   <script defer src="./js/solvers/simulatte-solver-particles.js"></script>
   <script defer src="./js/solvers/simulatte-solver-constraints.js"></script>
@@ -2148,13 +2331,53 @@
   <script defer src="./js/simulatte-solver-compiler.js"></script>
   <script defer src="./js/simulatte-render-registry.js"></script>
   <script defer src="./js/simulatte-render-ir.js"></script>
+  <script defer src="./js/simulatte-visual-operator-atlas.js"></script>
   <script defer src="./js/simulatte-composition-graph.js"></script>
+  <script defer src="./js/simulatte-webgpu-renderer.js"></script>
   <script defer src="./js/simulatte-physics-model.js"></script>
   <script defer src="./js/simulatte-physics-renderer.js"></script>
   <script defer src="./js/simulatte-physics-lab.js"></script>
   <script defer src="./js/simulatte-debug-panel.js"></script>
   <script defer src="./js/simulatte-version-guard.js"></script>
   <script>
+    (function initPromptDockCollapse() {
+      const panel = document.querySelector('.prompt-dock');
+      const toggle = document.getElementById('prompt-dock-toggle');
+      if (!panel || !toggle) return;
+
+      const storageKey = 'simulatte.promptDock.collapsed.v1';
+      const resetDockInlinePlacement = () => {
+        panel.style.left = '';
+        panel.style.right = '';
+        panel.style.top = '';
+        panel.style.bottom = '';
+        panel.style.transform = '';
+      };
+
+      const setCollapsed = (collapsed) => {
+        panel.dataset.collapsed = collapsed ? 'true' : 'false';
+        toggle.textContent = collapsed ? '+' : '−';
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        toggle.setAttribute('aria-label', collapsed ? 'Expand prompt panel' : 'Collapse prompt panel');
+        if (collapsed) resetDockInlinePlacement();
+        panel.dispatchEvent(new CustomEvent('prompt-dock:collapsed', { detail: { collapsed } }));
+      };
+
+      try {
+        setCollapsed(localStorage.getItem(storageKey) === 'true');
+      } catch (_err) {
+        setCollapsed(false);
+      }
+
+      toggle.addEventListener('click', () => {
+        const collapsed = panel.dataset.collapsed !== 'true';
+        setCollapsed(collapsed);
+        try {
+          localStorage.setItem(storageKey, collapsed ? 'true' : 'false');
+        } catch (_err) {}
+      });
+    })();
+
     (function initPromptDockDrag() {
       const panel = document.querySelector('.prompt-dock');
       const handle = document.getElementById('prompt-dock-handle');
@@ -2169,6 +2392,14 @@
       const clampValue = (value, min, max) => Math.min(Math.max(value, min), max);
 
       const measure = () => panel.getBoundingClientRect();
+      const isCollapsed = () => panel.dataset.collapsed === 'true';
+      const resetDockInlinePlacement = () => {
+        panel.style.left = '';
+        panel.style.right = '';
+        panel.style.top = '';
+        panel.style.bottom = '';
+        panel.style.transform = '';
+      };
       const persistPosition = (next) => {
         try {
           localStorage.setItem(storageKey, JSON.stringify(next));
@@ -2186,6 +2417,10 @@
       };
 
       const applyPosition = (left, top) => {
+        if (isCollapsed()) {
+          resetDockInlinePlacement();
+          return { left: 16, top: window.innerHeight - measure().height - 16 };
+        }
         const clamped = clampToViewport(left, top);
         panel.style.left = `${clamped.left}px`;
         panel.style.top = `${clamped.top}px`;
@@ -2195,6 +2430,10 @@
       };
 
       const syncResizeBounds = () => {
+        if (isCollapsed()) {
+          resetDockInlinePlacement();
+          return;
+        }
         const rect = measure();
         const clamped = clampToViewport(rect.left, rect.top);
         if (clamped.left !== rect.left || clamped.top !== rect.top) {
@@ -2204,6 +2443,10 @@
       };
 
       const restorePosition = () => {
+        if (isCollapsed()) {
+          resetDockInlinePlacement();
+          return;
+        }
         try {
           const raw = localStorage.getItem(storageKey);
           if (!raw) return;
@@ -2215,6 +2458,7 @@
 
       const startDrag = (event) => {
         if (isDragging) return;
+        if (isCollapsed()) return;
         isDragging = true;
         pointerId = event.pointerId;
         const rect = measure();
@@ -2243,6 +2487,18 @@
         pointerId = null;
         syncResizeBounds();
       };
+
+      panel.addEventListener('prompt-dock:collapsed', (event) => {
+        const collapsed = Boolean(event.detail && event.detail.collapsed);
+        if (collapsed) {
+          isDragging = false;
+          pointerId = null;
+          panel.classList.remove('dragging');
+          resetDockInlinePlacement();
+        } else {
+          restorePosition();
+        }
+      });
 
       restorePosition();
       handle.addEventListener('pointerdown', startDrag);

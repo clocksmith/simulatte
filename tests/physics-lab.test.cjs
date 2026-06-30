@@ -19,7 +19,7 @@ function loadEmbeddingIndex() {
     'utf8'
   ));
   const surfaceIndex = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/models/simulatte-embedder/surface-card-index-qwen-v1.json'),
+    path.join(root, 'public/models/simulatte-embedder/surface-card-index-embeddinggemma-v1.json'),
     'utf8'
   ));
   const universeRoot = path.join(root, 'public/models/simulatte-universe');
@@ -74,7 +74,7 @@ async function withIntentArtifactFetch(run) {
     if (value.endsWith('primitive-index-v2.json')) {
       return new Response(JSON.stringify(index), { status: 200 });
     }
-    if (value.endsWith('surface-card-index-qwen-v1.json')) {
+    if (value.endsWith('surface-card-index-embeddinggemma-v1.json')) {
       return new Response(JSON.stringify(surfaceIndex), { status: 200 });
     }
     return new Response('not found', { status: 404 });
@@ -91,6 +91,46 @@ function createPrototypeSpec(prompt, overrides = {}) {
     ...overrides,
     allowPrototypeFallback: true,
   });
+}
+
+function assertVisualIRCase(prompt, expected) {
+  const spec = createPrototypeSpec(prompt);
+  const program = spec.renderProgram;
+  const plan = program.rendererPlan;
+  const ir = program.visualIR;
+
+  assert.equal(ir.schema, 'simulatte.visualIR.v1');
+  assert.equal(ir.sceneKind, expected.sceneKind);
+  assert.equal(plan.sceneKind, expected.sceneKind);
+  assert.equal(plan.visualRecipe.sceneKind, expected.sceneKind);
+  assert.equal(plan.visualRecipe.source, 'handwritten-semantic-render-taxonomy.v1');
+  assert.equal(ir.painterKind, expected.painterKind);
+  assert.equal(ir.camera.mode, expected.camera);
+  assert.equal(ir.camera.depth, 'layered');
+  assert.notEqual(ir.sceneKind, 'generic');
+  assert.notEqual(ir.sceneKind, 'literal-composite');
+  assert.ok(ir.entities.length >= 6);
+  assert.ok(ir.materials.length >= 2);
+  assert.ok(ir.fields.length >= 1);
+  assert.ok(ir.processes.length >= 4);
+  assert.ok(ir.receipts.length >= 5);
+  assert.equal(ir.graphicsAtoms.schema, 'simulatte.graphicsAtomPlan.v1');
+  assert.equal(ir.graphicsAtoms.atlasId, 'simulatte-visual-operator-atlas-v1');
+  assert.ok(ir.graphicsAtoms.mappings.length >= 1);
+  assert.ok(ir.graphicsAtoms.geometry.length >= 1);
+  assert.ok(ir.graphicsAtoms.fields.length >= 1);
+  assert.ok(ir.graphicsAtoms.materials.length >= 1);
+  assert.ok(ir.graphicsAtoms.processes.length >= 1);
+  assert.ok(ir.graphicsAtoms.motion.length >= 1);
+  assert.ok(ir.graphicsAtoms.camera.length >= 1);
+  assert.ok(ir.operators.some((operator) => operator.id === 'visual-operator-atlas'));
+  assert.ok(ir.receipts.some((receipt) => receipt.id === 'receipt:graphics-atoms'));
+  assert.ok(ir.entities.some((entity) => entity.evidence.length));
+  for (const id of ['material-shaders', 'geometry-instances', 'field-overlays', 'process-motion', 'receipt-marks']) {
+    assert.ok(ir.operators.some((operator) => operator.id === id), `${prompt} missing ${id}`);
+  }
+  assert.equal(program.provenance.visualIdentity.sceneKind, expected.sceneKind);
+  assert.equal(spec.physicalSpec.receipt.visualIdentity.sceneKind, expected.sceneKind);
 }
 
 test('model-backed intent retrieval cosine-normalizes query and index vectors', async () => {
@@ -179,7 +219,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
   }
 });
 
-test('model-backed intent embedder ranks primitives with Qwen provenance', async () => {
+test('model-backed intent embedder ranks primitives with EmbeddingGemma provenance', async () => {
   await withIntentArtifactFetch(async ({ index }) => {
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
@@ -200,10 +240,10 @@ test('model-backed intent embedder ranks primitives with Qwen provenance', async
       { max: 12 }
     );
 
-    assert.equal(result.model.id, 'qwen-3-5-0-8b-q4k-ehaf16');
-    assert.equal(result.model.dimensions, 1024);
-    assert.equal(result.model.indexId, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
-    assert.equal(result.model.surfaceCardIndexId, 'simulatte-surface-card-qwen-3-5-0-8b-index-v1');
+    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+    assert.equal(result.model.dimensions, 768);
+    assert.equal(result.model.indexId, 'simulatte-primitive-embeddinggemma-300m-index-v1');
+    assert.equal(result.model.surfaceCardIndexId, 'simulatte-surface-card-embeddinggemma-300m-index-v1');
     assert.ok(result.model.surfaceCardDocuments >= 650);
     assert.equal(result.model.universeIndexId, 'simulatte-universe-multi-index-v1');
     assert.ok(result.model.universeDocuments >= 20);
@@ -238,7 +278,7 @@ test('Doppler model handles normalize URL provenance to the manifest model id', 
       { max: 8 }
     );
 
-    assert.equal(result.model.id, 'qwen-3-5-0-8b-q4k-ehaf16');
+    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
     assert.equal(result.backend, 'injected-doppler-model');
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
   });
@@ -265,13 +305,13 @@ test('embed providers normalize default model URL provenance to the manifest mod
       { max: 8 }
     );
 
-    assert.equal(result.model.id, 'qwen-3-5-0-8b-q4k-ehaf16');
+    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
     assert.equal(result.backend, 'configured-provider');
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
   });
 });
 
-test('Qwen surface-card retrieval feeds typed graph synthesis', async () => {
+test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async () => {
   await withIntentArtifactFetch(async ({ index, surfaceIndex }) => {
     const query = indexedCardVector(surfaceIndex, 'lens');
     const embedder = intentEmbedder.create({
@@ -582,11 +622,11 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
         { primitiveId: 'wave-source', score: 0.82 },
       ],
       embeddingModel: {
-        id: 'qwen-3-5-0-8b-q4k-ehaf16',
-        family: 'qwen3.5',
-        dimensions: 1024,
-        indexId: 'simulatte-primitive-qwen-3-5-0-8b-index-v1',
-        reranker: 'simulatte.qwen-3-5-0-8b-q4k-ehaf16-reranker.v1',
+        id: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+        family: 'embeddinggemma',
+        dimensions: 768,
+        indexId: 'simulatte-primitive-embeddinggemma-300m-index-v1',
+        reranker: 'simulatte.google-embeddinggemma-300m-q4k-ehf16-af32-reranker.v1',
       },
       embeddingBackend: 'webgpu',
       intentRerank: {
@@ -600,9 +640,9 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
   const regimes = new Set(spec.renderProgram.objects.map((object) => object.visualRegime));
   const solverFamilies = new Set(spec.renderProgram.solverPlan.families);
 
-  assert.equal(spec.intent.classification.model.id, 'simulatte-qwen-3-5-0-8b-q4k-ehaf16-intent-ranker.v1');
+  assert.equal(spec.intent.classification.model.id, 'simulatte-google-embeddinggemma-300m-q4k-ehf16-af32-intent-ranker.v1');
   assert.equal(spec.intent.classification.model.runtime.backend, 'webgpu');
-  assert.equal(spec.intent.classification.model.runtime.indexId, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
+  assert.equal(spec.intent.classification.model.runtime.indexId, 'simulatte-primitive-embeddinggemma-300m-index-v1');
   assert.equal(spec.intent.rerank.schema, 'simulatte.intentRerank.v1');
   assert.equal(spec.physicalSpec.receipt.rerank.required, true);
   assert.ok(ids.has('mycelium'));
@@ -835,7 +875,76 @@ test('prompt worlds choose distinct regime renderer identities', () => {
   }
 });
 
-test('prompt-seeded visual genomes diversify close and broad prompt worlds', () => {
+test('VisualIR compiles hard natural language into structural render programs', () => {
+  const cases = [
+    [
+      'neutrino detector in underground water tank with photon cones and phototube array',
+      'particle-instrument',
+      'optics',
+      'instrumented-lab-depth',
+    ],
+    [
+      'housing market pressure across parcels with household agents and zoning constraints',
+      'civic-market',
+      'city',
+      'aerial-map-depth',
+    ],
+    [
+      'protein folding energy minimization with bond constraints and collapse motion',
+      'molecular-biology',
+      'biology',
+      'microscopic-cutaway-depth',
+    ],
+    [
+      'fusion stellarator plasma ribbon twisting inside coil cage',
+      'advanced-energy',
+      'material-tray',
+      'cutaway-section-depth',
+    ],
+    [
+      'mangrove roots buffering storm surge while sediment settles in brackish tidal channels',
+      'restoration-water',
+      'watershed',
+      'aerial-map-depth',
+    ],
+    [
+      'blockchain mempool packet routing through validator network',
+      'digital-network',
+      'city',
+      'aerial-map-depth',
+    ],
+    [
+      'ammonia synthesis catalyst bed reaction inside pressure vessel',
+      'chemistry-lab',
+      'material-tray',
+      'cutaway-section-depth',
+    ],
+    [
+      'hospital bedflow patient agents capacity balancing between ward units',
+      'clinical-control',
+      'biology',
+      'cutaway-section-depth',
+    ],
+    [
+      'planetary rings shepherd moon resonance sorting ice boulders',
+      'planetary-space',
+      'optics',
+      'aerial-map-depth',
+    ],
+    [
+      'air quality urban valley particulate dispersion through buildings',
+      'hazard-atmosphere',
+      'watershed',
+      'aerial-map-depth',
+    ],
+  ];
+
+  for (const [prompt, sceneKind, painterKind, camera] of cases) {
+    assertVisualIRCase(prompt, { sceneKind, painterKind, camera });
+  }
+});
+
+test('compiled-artifact visual genomes diversify close and broad worlds', () => {
   const prompts = [
     'fire',
     'building fire',
@@ -852,6 +961,7 @@ test('prompt-seeded visual genomes diversify close and broad prompt worlds', () 
 
   assert.equal(genomeIds.size, prompts.length);
   assert.equal(fireGenome.schema, 'simulatte.visualGenome.v1');
+  assert.equal(fireGenome.source, 'compiled-artifact-seeded-procedural');
   assert.equal(specs[0].renderProgram.rendererPlan.sceneKind, specs[1].renderProgram.rendererPlan.sceneKind);
   assert.equal(specs[0].physicalSpec.receipt.visualGenome.id, fireGenome.id);
   assert.equal(specs[1].physicalSpec.receipt.visualGenome.id, buildingFireGenome.id);
@@ -866,7 +976,127 @@ test('prompt-seeded visual genomes diversify close and broad prompt worlds', () 
   assert.notDeepEqual(fireGenome.morphology, buildingFireGenome.morphology);
 });
 
-test('prompt visual DNA differentiates arbitrary one two and three gram prompts', () => {
+test('expanded prompt regimes do not collapse into literal or broad renderer fallbacks', () => {
+  const cases = [
+    [
+      'lava heats rain into steam while wind bends ash over a basalt delta',
+      'thermal-plume',
+    ],
+    [
+      'planetary rings shear around a shepherd moon with icy particle density waves',
+      'planetary-space',
+    ],
+    [
+      'edge data center server racks recirculating heat between cooling aisles under controller limits',
+      'digital-network',
+    ],
+    [
+      'protein folding energy minimization in a crowded solvent',
+      'molecular-biology',
+    ],
+    [
+      'housing market pressure across parcels with zoning constraints',
+      'civic-market',
+    ],
+    [
+      'neutrino detector in underground water tank with photon cones',
+      'particle-instrument',
+    ],
+    [
+      'forest fire jumping a road under wind shear',
+      'fire',
+    ],
+    [
+      'microfluidic droplets split at a glass channel junction',
+      'chemistry-lab',
+    ],
+    [
+      'bridge resonance under wind vortex shedding',
+      'structural-mechanics',
+    ],
+    [
+      'coral reef bleaching under warm acidic water',
+      'evolution-ecology',
+    ],
+  ];
+  const specs = cases.map(([prompt]) => createPrototypeSpec(prompt));
+  const scenes = new Set();
+  let expandedRecipeCount = 0;
+
+  specs.forEach((spec, index) => {
+    const [, sceneKind] = cases[index];
+    const plan = spec.renderProgram.rendererPlan;
+    const visualIR = spec.renderProgram.visualIR;
+    scenes.add(plan.sceneKind);
+    if (plan.visualRecipe) expandedRecipeCount += 1;
+    assert.equal(plan.sceneKind, sceneKind);
+    assert.equal(visualIR.sceneKind, sceneKind);
+    assert.notEqual(plan.sceneKind, 'literal-composite');
+    assert.notEqual(plan.sceneKind, 'generic');
+    assert.equal(spec.physicalSpec.receipt.visualIdentity.sceneKind, sceneKind);
+  });
+
+  assert.ok(scenes.size >= 9);
+  assert.ok(expandedRecipeCount >= 7);
+});
+
+test('hand-authored coverage probes span major simulation regimes', () => {
+  const cases = [
+    ['supercell thunderstorm grows hail under wind shear', 'weather-atmosphere'],
+    ['glacier calving into fjord with sea ice waves', 'ocean-cryosphere'],
+    ['earthquake fault rupture sends waves through soft basin', 'hazard-atmosphere'],
+    ['internal ocean waves mix plankton under kelp canopy', 'ocean-cryosphere'],
+    ['microgrid battery inverter stabilizes transformer overload', 'grid-energy'],
+    ['warehouse robot arms sort parcels on conveyor belts', 'robotics-control'],
+    ['injection molding line cools plastic through steel tooling', 'manufacturing-line'],
+    ['qubit chip phase readout through microwave resonator', 'quantum-instrument'],
+    ['compost heat oxygen water loop feeds greenhouse crops', 'agro-waste-loop'],
+    ['tornado debris plume crosses highway evacuation map', 'hazard-atmosphere'],
+    ['blood pump control loop stabilizes patient flow', 'clinical-control'],
+    ['museum pigment film ages under humidity cycling', 'cultural-material'],
+    ['skateboard rider pumps a curved bowl with friction loss', 'sport-motion'],
+    ['stadium crowd agents queue through gates after rain', 'venue-crowd'],
+    ['neutrino detector in underground water tank with photon cones', 'particle-instrument'],
+    ['planetary rings shear around a shepherd moon', 'planetary-space'],
+    ['protein folding energy minimization in crowded solvent', 'molecular-biology'],
+    ['housing market pressure across parcels with zoning constraints', 'civic-market'],
+    ['edge data center server racks recirculate heat', 'digital-network'],
+    ['microfluidic droplets split at a glass channel junction', 'chemistry-lab'],
+    ['bridge resonance under wind vortex shedding', 'structural-mechanics'],
+    ['mangrove roots buffer storm surge and sediment', 'restoration-water'],
+    ['coral reef bleaching under warm acidic water', 'evolution-ecology'],
+    ['violin body resonance drives air pressure waves', 'acoustic'],
+    ['glass lens focuses laser caustics through prism', 'optics'],
+    ['granular beads avalanche through a vibrating sieve', 'granular'],
+    ['soap film colors stretch around air bubbles', 'thin-film'],
+    ['ferrofluid spikes around copper coils under pulsing current', 'ferrofluid'],
+    ['forest fire jumps a road under wind shear', 'fire'],
+    ['rain erodes a mountain watershed into sediment channels', 'watershed'],
+  ];
+  const scenes = new Set();
+  const cameras = new Set();
+  let expandedRecipeCount = 0;
+
+  for (const [prompt, sceneKind] of cases) {
+    const spec = createPrototypeSpec(prompt);
+    const plan = spec.renderProgram.rendererPlan;
+    const visualIR = spec.renderProgram.visualIR;
+    scenes.add(plan.sceneKind);
+    cameras.add(visualIR.camera.mode);
+    if (plan.visualRecipe) expandedRecipeCount += 1;
+    assert.equal(plan.sceneKind, sceneKind, prompt);
+    assert.equal(visualIR.sceneKind, sceneKind, prompt);
+    assert.equal(spec.physicalSpec.receipt.visualIdentity.sceneKind, sceneKind, prompt);
+    assert.notEqual(plan.sceneKind, 'generic', prompt);
+    assert.notEqual(plan.sceneKind, 'literal-composite', prompt);
+  }
+
+  assert.ok(scenes.size >= 27);
+  assert.ok(cameras.size >= 5);
+  assert.ok(expandedRecipeCount >= 23);
+});
+
+test('compiled visual DNA differentiates related language-grounded worlds', () => {
   const prompts = [
     'moss',
     'moss turbine',
@@ -875,7 +1105,7 @@ test('prompt visual DNA differentiates arbitrary one two and three gram prompts'
     'quartz turbine glass',
   ];
   const genomes = prompts.map((prompt) => createPrototypeSpec(prompt).renderProgram.visualGenome);
-  const dnaRows = genomes.map((genome) => genome.promptDna);
+  const dnaRows = genomes.map((genome) => genome.visualDna);
   const dnaHashes = new Set(dnaRows.map((dna) => dna.hash));
   const markSignatures = new Set(dnaRows.map((dna) => (
     dna.ngrams.map((row) => `${row.n}:${row.index}:${row.mark}:${row.hue}`).join('|')
@@ -883,12 +1113,9 @@ test('prompt visual DNA differentiates arbitrary one two and three gram prompts'
 
   assert.equal(dnaHashes.size, prompts.length);
   assert.equal(markSignatures.size, prompts.length);
-  assert.equal(dnaRows[0].tokenCount, 1);
-  assert.equal(dnaRows[1].tokenCount, 2);
-  assert.equal(dnaRows[2].tokenCount, 3);
-  assert.ok(dnaRows[0].ngrams.some((row) => row.n === 1 && row.text === 'moss'));
-  assert.ok(dnaRows[1].ngrams.some((row) => row.n === 2 && row.text === 'moss turbine'));
-  assert.ok(dnaRows[2].ngrams.some((row) => row.n === 3 && row.text === 'moss turbine glass'));
+  assert.ok(dnaRows.every((dna) => dna.schema === 'simulatte.compiledVisualDna.v1'));
+  assert.ok(dnaRows.every((dna) => dna.tokenCount >= 1));
+  assert.ok(dnaRows.every((dna) => dna.ngrams.some((row) => row.n === 1)));
   assert.equal(dnaRows[2].catalog, 'simulatte.proceduralVisualBase.v1');
 });
 
@@ -938,6 +1165,63 @@ test('semantic visual atlas maps prompts to distinct archetype material and proc
   assert.ok(families(mossTurbine, 'archetypes').has('mechanics'));
   assert.ok(families(mossTurbine, 'processes').has('rotate'));
   assert.ok(overlays(mossTurbine).has('rotation-trails'));
+});
+
+test('visual operator atlas maps grounded physics to distinct graphics atom plans', () => {
+  const cases = [
+    [
+      'data center cooling loop where hot server racks increase coolant flow and controller throttles fan speed',
+      ['visual.operator.control-feedback.v1', 'visual.operator.fluid-advection.v1', 'visual.operator.heat-transfer.v1'],
+      ['controller-node', 'ribbon-streamline', 'thermal-glow-gradient'],
+    ],
+    [
+      'housing market pressure across parcels with zoning constraints and household agents',
+      ['visual.operator.network-flow.v1'],
+      ['node-link-graph', 'parcel-grid'],
+    ],
+    [
+      'qubit chip phase readout through microwave resonator with interference fringes',
+      ['visual.operator.quantum-phase-readout.v1', 'visual.operator.instrument-readout.v1'],
+      ['superconducting-chip-plane', 'phase-fringe-sheet', 'instrument-panel'],
+    ],
+    [
+      'lava spins a turbine near an ice castle wall',
+      ['visual.operator.heat-transfer.v1', 'visual.operator.phase-transition.v1'],
+      ['thermal-glow-gradient', 'volume-vapor-plume', 'phase-boundary-sheet'],
+    ],
+    [
+      'robot sorts parcels with servo gripper contact force in warehouse queue',
+      ['visual.operator.robot-contact.v1', 'visual.operator.network-flow.v1'],
+      ['robot-armature', 'contact-cone', 'node-link-graph'],
+    ],
+  ];
+  const signatures = new Set();
+
+  for (const [prompt, expectedMappings, expectedGeometry] of cases) {
+    const spec = createPrototypeSpec(prompt);
+    const atoms = spec.renderProgram.visualIR.graphicsAtoms;
+    const mappingIds = atoms.mappings.map((row) => row.id);
+    const geometryIds = atoms.geometry.map((row) => row.id);
+    const signature = [
+      ...mappingIds,
+      ...geometryIds,
+      ...atoms.fields.map((row) => row.id),
+      ...atoms.motion.map((row) => row.id),
+    ].join('|');
+
+    assert.equal(atoms.schema, 'simulatte.graphicsAtomPlan.v1');
+    assert.equal(atoms.source, 'handwritten-operator-graphics-basis');
+    expectedMappings.forEach((id) => {
+      assert.ok(mappingIds.includes(id), `${prompt} missing mapping ${id}`);
+    });
+    expectedGeometry.forEach((id) => {
+      assert.ok(geometryIds.includes(id), `${prompt} missing geometry atom ${id}`);
+    });
+    assert.ok(spec.renderProgram.visualIR.receipts.some((row) => row.id === 'receipt:graphics-atoms'));
+    signatures.add(signature);
+  }
+
+  assert.equal(signatures.size, cases.length);
 });
 
 test('Doppler residual hints can steer the selected physical graph', () => {
@@ -1199,7 +1483,7 @@ test('render programs keep prompt nouns literal and avoid unrelated scene fields
   assert.equal(mixedById['glass-material-a'].material, 'glass');
   assert.equal(mixedById['environment-swamp'].shape, 'wetland');
   assert.equal(mixedById['environment-black-hole'].shape, 'singularity');
-  assert.equal(mixedScene.renderProgram.rendererPlan.sceneKind, 'literal-composite');
+  assert.equal(mixedScene.renderProgram.rendererPlan.sceneKind, 'planetary-space');
   assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').shape, 'pool');
   assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').material, 'ferrofluid');
   assert.deepEqual(city.renderProgram.fields.map((field) => field.kind), ['network-flow']);
@@ -1227,7 +1511,7 @@ test('expanded universe prompts preserve specific generated simulation objects',
   const underseaShapes = new Set(undersea.renderProgram.objects.map((object) => object.shape));
   const bridgeById = Object.fromEntries(lavaBridge.renderProgram.objects.map((object) => [object.id, object]));
 
-  assert.equal(cosmic.renderProgram.rendererPlan.sceneKind, 'literal-composite');
+  assert.equal(cosmic.renderProgram.rendererPlan.sceneKind, 'thermal-plume');
   assert.ok(cosmicShapes.has('rocket'));
   assert.ok(cosmicShapes.has('volcano'));
   assert.ok(cosmicShapes.has('tower'));

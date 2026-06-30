@@ -1,10 +1,10 @@
 {
   "embedModel": {
-    "dimensions": 1024,
-    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "dimensions": 768,
+    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
     "manifestHash": {
       "alg": "sha256",
-      "hex": "595cb5f90e81d57470d86a94740c99a10f11204df8e85a8e4210bef77161a713"
+      "hex": "9ac0f54f10fdeddfd67ea07661342713267d60ec57361e6e9d9d72e727407cd2"
     }
   },
   "generator": {
@@ -12,7 +12,8 @@
     "sources": [
       "simulatte-physics-catalog",
       "simulatte-semantic-surface-cards",
-      "simulatte-grounding-basis-cards"
+      "simulatte-grounding-basis-cards",
+      "handwritten-causal-relation-index-v1"
     ]
   },
   "id": "simulatte-universe-multi-index-v1",
@@ -51,6 +52,11 @@
       "artifact": "./relation-index-v1.json",
       "documentSchema": "simulatte.universeRelationIndex.v1",
       "kind": "relation-index"
+    },
+    "causalRelations": {
+      "artifact": "./causal-relation-index-v1.json",
+      "documentSchema": "simulatte.universeCausalRelationIndex.v1",
+      "kind": "causal-relation-index"
     },
     "scenes": {
       "artifact": "./scene-index-v1.json",

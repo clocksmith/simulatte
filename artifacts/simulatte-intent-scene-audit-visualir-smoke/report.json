@@ -1,0 +1,60 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-06-29T12:37:59.187Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "url": "http://127.0.0.1:55278/index.html",
+  "promptCounts": {
+    "curated": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRSceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRCameras": [
+      "instrumented-lab-depth"
+    ],
+    "templateIds": [
+      "custom-world"
+    ]
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "curated",
+      "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "screenshot": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.png",
+      "screenshotHash": "4a1c04eb9a87b204d4c942ec4b1208ffb77ae567b8bd9a6389658727b085d62a",
+      "runtimeState": "ready",
+      "runtimeMessage": "Local graph ready",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "sampleCount": 7200,
+      "lumaMean": 181.66,
+      "lumaStd": 45.397,
+      "coloredRatio": 0.631,
+      "canvasHash": "97392de7",
+      "specId": "particle-collider-muon-tracks-collision-plume-mqz7e11y",
+      "templateId": "custom-world",
+      "rendererSceneKind": "particle-instrument",
+      "visualIRSceneKind": "particle-instrument",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 8,
+      "visualIRFieldCount": 1,
+      "visualIRProcessCount": 12,
+      "visualIROperatorCount": 8,
+      "visualIRReceiptCount": 6,
+      "previewLength": 0
+    }
+  ]
+}

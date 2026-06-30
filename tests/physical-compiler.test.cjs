@@ -26,7 +26,9 @@ test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, an
   assert.ok(spec.renderIR.objects.some((object) => object.glyph === 'turbine'));
   assert.ok(spec.renderIR.objects.some((object) => object.stateBindings.rotationRate));
   assert.equal(spec.renderProgram.provenance.compiler, 'simulatte.render-ir-to-render-program.v1');
-  assert.equal(spec.renderProgram.rendererPlan.sceneKind, spec.renderIR.sceneHint);
+  assert.equal(spec.renderIR.sceneHint, 'literal-composite');
+  assert.equal(spec.renderProgram.rendererPlan.sceneKind, 'thermal-plume');
+  assert.equal(spec.renderProgram.visualIR.sceneKind, spec.renderProgram.rendererPlan.sceneKind);
   assert.equal(spec.physicalSpec.executableSolverGraph.schema, 'simulatte.solverGraph.v1');
   assert.ok(spec.physicalSpec.stateChannels.some((channel) => channel.startsWith('angularVelocity:')));
 });

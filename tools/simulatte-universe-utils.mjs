@@ -9,11 +9,11 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 export const UNIVERSE_DIR = path.join(ROOT, 'public/models/simulatte-universe');
 
 export const DEFAULT_EMBED_MODEL = Object.freeze({
-  id: 'qwen-3-5-0-8b-q4k-ehaf16',
-  dimensions: 1024,
+  id: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+  dimensions: 768,
   manifestHash: {
     alg: 'sha256',
-    hex: 'e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6',
+    hex: '9ac0f54f10fdeddfd67ea07661342713267d60ec57361e6e9d9d72e727407cd2',
   },
 });
 
@@ -172,7 +172,7 @@ export function createManifest(existing = {}) {
   return {
     schema: 'simulatte.universeManifest.v1',
     id: existing.id || 'simulatte-universe-multi-index-v1',
-    embedModel: existing.embedModel || cloneJson(DEFAULT_EMBED_MODEL),
+    embedModel: cloneJson(DEFAULT_EMBED_MODEL),
     indexes: Object.fromEntries(INDEX_DEFINITIONS.map((definition) => [
       definition.name,
       {

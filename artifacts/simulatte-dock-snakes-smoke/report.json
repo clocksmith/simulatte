@@ -1,0 +1,117 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-06-29T22:55:04.046Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "url": "http://127.0.0.1:63883/index.html",
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "thermal-plume"
+    ],
+    "visualIRSceneKinds": [
+      "thermal-plume"
+    ],
+    "visualIRCameras": [
+      "topographic-cutaway-depth"
+    ],
+    "intentBriefs": {
+      "totalEvidence": 77,
+      "totalCausalEdges": 5,
+      "totalAffordances": 4,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 77,
+      "totalCausalEdges": 5,
+      "totalCausalAffordances": 4,
+      "totalAssumptions": 11,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ]
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "storm rain cools lava lake into steam plume under wind shear",
+      "screenshot": "01-custom-storm-rain-cools-lava-lake-into-steam-plume-under-wind-shear.png",
+      "screenshotHash": "c82247e330bf6577400b4218ee502180310f9e1522a85207cfd613f20a04f8f6",
+      "runtimeState": "ready",
+      "runtimeMessage": "Local graph ready",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "thermal-plume",
+      "physicsCanvasSceneId": "0",
+      "physicsCanvasRenderCount": "57",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "primary-webgpu-owned",
+      "fieldCanvasRendererStatus": "primary renderer owns scene particles",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 124.865,
+      "lumaStd": 72.673,
+      "coloredRatio": 0.2274,
+      "canvasHash": "36b16af0",
+      "specId": "storm-rain-cools-lava-lake-into-mqztflk4",
+      "templateId": "custom-world",
+      "rendererSceneKind": "thermal-plume",
+      "visualIRSceneKind": "thermal-plume",
+      "visualIRCamera": "topographic-cutaway-depth",
+      "visualIREntityCount": 20,
+      "visualIRMaterialCount": 16,
+      "visualIRFieldCount": 2,
+      "visualIRProcessCount": 16,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 8,
+      "visualIRCausalAffordanceCount": 4,
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 77,
+      "intentBriefCausalEdgeCount": 5,
+      "intentBriefAssumptionCount": 11,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 77,
+      "physicalReceiptCausalEdgeCount": 5,
+      "physicalReceiptCausalAffordanceCount": 4,
+      "physicalReceiptAssumptionCount": 11,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 4,
+      "previewLength": 0,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-storm-rain-cools-lava-lake-into-steam-plume-under-wind-shear.canvas.png",
+      "canvasScreenshotHash": "78a8de9e6180b9e001ef1d27758aba38b18643d0d878d8f691d1e378e330ffa2",
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 72.673,
+      "canvasScreenshotColoredRatio": 0.2274,
+      "canvasScreenshotSampleCount": 7200
+    }
+  ]
+}

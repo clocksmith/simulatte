@@ -1,0 +1,119 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-06-29T20:46:11.165Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "url": "http://127.0.0.1:49263/index.html",
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "grid-energy"
+    ],
+    "visualIRSceneKinds": [
+      "grid-energy"
+    ],
+    "visualIRCameras": [
+      "aerial-map-depth"
+    ],
+    "intentBriefs": {
+      "totalEvidence": 76,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 76,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 14,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": [
+        1
+      ]
+    },
+    "templateIds": [
+      "custom-world"
+    ]
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "microgrid battery inverter stabilizes transformer overload",
+      "screenshot": "01-custom-microgrid-battery-inverter-stabilizes-transformer-overload.png",
+      "screenshotHash": "fd50b580f81ba5da339fec35650252c92cf65ecac4e87404bc214e74a99eb0dc",
+      "runtimeState": "ready",
+      "runtimeMessage": "Local graph ready",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "grid-energy",
+      "physicsCanvasSceneId": "16",
+      "physicsCanvasRenderCount": "57",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "primary-webgpu-owned",
+      "fieldCanvasRendererStatus": "primary renderer owns scene particles",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 99.819,
+      "lumaStd": 51.11,
+      "coloredRatio": 0.9683,
+      "canvasHash": "4a565255",
+      "specId": "microgrid-battery-inverter-stabilizes-transformer-ov-mqzotutj",
+      "templateId": "custom-world",
+      "rendererSceneKind": "grid-energy",
+      "visualIRSceneKind": "grid-energy",
+      "visualIRCamera": "aerial-map-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 9,
+      "visualIRFieldCount": 2,
+      "visualIRProcessCount": 9,
+      "visualIROperatorCount": 8,
+      "visualIRReceiptCount": 8,
+      "visualIRCausalAffordanceCount": 0,
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 14,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 14,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 0,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-microgrid-battery-inverter-stabilizes-transformer-overload.canvas.png",
+      "canvasScreenshotHash": "74b9b4033cb0abf6acdcbbff25a0ee4dda512b116b8161e714c7d860e1c7c14e",
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 51.11,
+      "canvasScreenshotColoredRatio": 0.9683,
+      "canvasScreenshotSampleCount": 7200
+    }
+  ]
+}

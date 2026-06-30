@@ -10,14 +10,14 @@ import { bootstrapNodeWebGPU } from '../../doppler/src/tooling/node-webgpu.js';
 const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const DEFAULT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+const DEFAULT_MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
 const MODEL_DIR = process.env.SIMULATTE_EMBED_MODEL_DIR
   ? path.resolve(process.env.SIMULATTE_EMBED_MODEL_DIR)
   : path.resolve(ROOT, `../doppler/models/local/${DEFAULT_MODEL_ID}`);
 const OUT_PATH = path.join(ROOT, 'public/models/simulatte-embedder/primitive-index-v2.json');
 const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
 const INDEX_ID = process.env.SIMULATTE_PRIMITIVE_INDEX_ID
-  || 'simulatte-primitive-qwen-3-5-0-8b-index-v1';
+  || 'simulatte-primitive-embeddinggemma-300m-index-v1';
 const CHILD_MODE = process.env.SIMULATTE_PRIMITIVE_CHILD === '1';
 const CHUNK_SIZE = Math.max(
   1,

@@ -6,6 +6,7 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '..');
 const jsDir = path.join(root, 'public', 'js');
 const catalog = require(path.join(jsDir, 'simulatte-physics-catalog.js'));
+const visualOperatorAtlas = require(path.join(jsDir, 'simulatte-visual-operator-atlas.js'));
 
 function jsFiles(dir) {
   return fs.readdirSync(dir)
@@ -33,6 +34,16 @@ test('physics lab is split into catalog, model, renderer, and coordinator', () =
     'simulatte-doppler-intent.js',
     'simulatte-intent-embedder.js',
     'simulatte-intent-classifier.js',
+    'simulatte-intent-brief-schema.js',
+    'simulatte-structured-intent-model.js',
+    'simulatte-causal-physics-graph.js',
+    'simulatte-assumption-ledger.js',
+    'simulatte-causal-visual-affordances.js',
+    'simulatte-visual-operator-atlas.js',
+    'simulatte-language-evidence.js',
+    'simulatte-activation-cloud.js',
+    'simulatte-grounded-interpretation.js',
+    'simulatte-intent-forensics.js',
     'simulatte-composition-graph.js',
     'simulatte-physics-model.js',
     'simulatte-physics-renderer.js',
@@ -48,6 +59,98 @@ test('physics lab is split into catalog, model, renderer, and coordinator', () =
     'utf8'
   ).split(/\r?\n/);
   assert.ok(coordinatorLines.length < 80);
+});
+
+test('intent forensics modules load before the physics model in the browser shell', () => {
+  const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+  const scriptNames = Array.from(html.matchAll(/<script defer src="\.\/js\/([^"]+)"><\/script>/g))
+    .map((match) => match[1]);
+  const position = (name) => scriptNames.indexOf(name);
+
+  for (const name of [
+    'simulatte-intent-brief-schema.js',
+    'simulatte-structured-intent-model.js',
+    'simulatte-causal-physics-graph.js',
+    'simulatte-assumption-ledger.js',
+    'simulatte-causal-visual-affordances.js',
+    'simulatte-intent-forensics.js',
+  ]) {
+    assert.notEqual(position(name), -1, `${name} should be loaded by index.html`);
+    assert.ok(position(name) < position('simulatte-physics-model.js'), `${name} should load before model`);
+  }
+  assert.ok(
+    position('simulatte-causal-visual-affordances.js') < position('simulatte-intent-forensics.js'),
+    'causal visual affordances should load before intent forensics'
+  );
+  assert.ok(
+    position('simulatte-language-evidence.js') < position('simulatte-intent-forensics.js'),
+    'language evidence should load before intent forensics'
+  );
+  assert.ok(
+    position('simulatte-activation-cloud.js') < position('simulatte-intent-forensics.js'),
+    'activation cloud should load before intent forensics'
+  );
+  assert.ok(
+    position('simulatte-grounded-interpretation.js') < position('simulatte-intent-forensics.js'),
+    'grounded interpretation should load before intent forensics'
+  );
+  assert.ok(
+    position('simulatte-visual-operator-atlas.js') < position('simulatte-composition-graph.js'),
+    'visual operator atlas should load before composition graph'
+  );
+});
+
+test('causal affordances compile into first-class VisualIR rows', () => {
+  const composition = fs.readFileSync(
+    path.join(jsDir, 'simulatte-composition-graph.js'),
+    'utf8'
+  );
+  const model = fs.readFileSync(
+    path.join(jsDir, 'simulatte-physics-model.js'),
+    'utf8'
+  );
+
+  assert.match(composition, /function visualGeometryForCausalAffordances/);
+  assert.match(composition, /visualMotionForProcesses\(processRows, visualGenome, sceneKind, causalAffordances\)/);
+  assert.match(composition, /function visualGraphicsAtomsForIR/);
+  assert.match(composition, /function visualGeometryForGraphicsAtoms/);
+  assert.match(composition, /visual-operator-atlas/);
+  assert.match(composition, /receipt:graphics-atoms/);
+  assert.match(composition, /causal-affordance-program/);
+  assert.match(composition, /receipt:causal-affordances/);
+  assert.match(model, /causalAffordanceCount: intentBriefLedger\.causalAffordanceCount/);
+});
+
+test('visual operator atlas exposes reusable graphics atoms for Layer 7', () => {
+  const atlasPath = path.join(root, 'public', 'models', 'simulatte-visual-cards', 'visual-operator-atlas-v1.json');
+  const atlasJson = JSON.parse(fs.readFileSync(atlasPath, 'utf8'));
+
+  assert.equal(visualOperatorAtlas.VISUAL_OPERATOR_ATLAS_SCHEMA, 'simulatte.visualOperatorAtlas.v1');
+  assert.equal(atlasJson.schema, 'simulatte.visualOperatorAtlas.v1');
+  assert.equal(atlasJson.id, 'simulatte-visual-operator-atlas-v1');
+  assert.equal(atlasJson.mappings.length, visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.length);
+  assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.length >= 17);
+  assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.heat-transfer.v1'));
+  assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.fluid-advection.v1'));
+  assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.control-feedback.v1'));
+  assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.network-flow.v1'));
+  assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.quantum-phase-readout.v1'));
+
+  const plan = visualOperatorAtlas.compileVisualGraphicsAtoms({
+    sceneKind: 'thermal-plume',
+    solverPlan: { executableSteps: ['heat_transfer', 'advection'] },
+    objects: [{ source: 'prompt-explicit', phrase: 'coolant airflow', role: 'coolant loop' }],
+    fields: [{ kind: 'thermal' }, { kind: 'flow', channel: 'coolant' }],
+    causalAffordances: [{ id: 'affordance.test', geometry: 'steam plume with coolant flow' }],
+  });
+
+  assert.equal(plan.schema, 'simulatte.graphicsAtomPlan.v1');
+  assert.ok(plan.mappings.some((row) => row.id === 'visual.operator.heat-transfer.v1'));
+  assert.ok(plan.mappings.some((row) => row.id === 'visual.operator.fluid-advection.v1'));
+  assert.ok(plan.geometry.some((row) => row.id === 'volume-vapor-plume'));
+  assert.ok(plan.fields.some((row) => row.id === 'velocity-vector-field'));
+  assert.ok(plan.materials.some((row) => row.id === 'emissive-hot'));
+  assert.ok(plan.motion.some((row) => row.id === 'stream-ribbons'));
 });
 
 test('procedural visual base exposes a broad prompt-addressed catalog', () => {
@@ -88,12 +191,22 @@ test('physics visuals use material continuum paths instead of generic glyph part
   assert.match(renderer, /function paintAcousticWorld/);
   assert.match(renderer, /function paintGenomeSceneBackground/);
   assert.match(renderer, /function drawGenomeTexture/);
-  assert.match(renderer, /function drawPromptFingerprintTexture/);
-  assert.match(renderer, /function drawPromptDnaMark/);
+  assert.match(renderer, /function drawVisualFingerprintTexture/);
+  assert.match(renderer, /function drawVisualDnaMark/);
   assert.match(renderer, /function drawSemanticWorldLayers/);
   assert.match(renderer, /function drawSemanticArchetype/);
   assert.match(renderer, /function drawSemanticMaterialShader/);
   assert.match(renderer, /function drawSemanticProcessOverlay/);
+  assert.match(renderer, /function drawVisualIRProgram/);
+  assert.match(renderer, /function drawVisualIRCameraField/);
+  assert.match(renderer, /function drawVisualIRMaterialPass/);
+  assert.match(renderer, /function drawVisualIRFieldPass/);
+  assert.match(renderer, /function drawVisualIRGeometryPass/);
+  assert.match(renderer, /function drawVisualIRProcessPass/);
+  assert.match(renderer, /function drawVisualIRReceiptMarks/);
+  assert.match(renderer, /function drawVisualIRParticleMaterial/);
+  assert.match(renderer, /function drawVisualIRNetworkField/);
+  assert.match(renderer, /function drawVisualIRInstrument/);
   assert.match(renderer, /function objectExtentWithVisualGenome/);
   assert.match(renderer, /function drawCanvasTexture/);
   assert.match(renderer, /function drawObjectSilhouette/);
@@ -172,6 +285,8 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(html, /--mosaic-lilac/);
   assert.doesNotMatch(html, /intent-runtime-mosaic/);
   assert.match(html, /id="physics-canvas"/);
+  assert.match(html, /simulatte-webgpu-renderer\.js/);
+  assert.doesNotMatch(html, /simulatte-cinematic-renderer\.js/);
   assert.match(html, /repeating-linear-gradient/);
   assert.match(html, /@keyframes mosaic-drift/);
   assert.match(html, /@keyframes mosaic-sweep/);
@@ -190,7 +305,7 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(renderer, /deathReason/);
   assert.match(renderer, /snakeDirFromCells/);
   assert.match(renderer, /branchCells = source\.cells\.slice\(splitIndex\)/);
-  assert.match(renderer, /while \(activeCount < 4\)/);
+  assert.match(renderer, /while \(activeCount < 1\)/);
   assert.doesNotMatch(renderer, /while \(activeCount < 10\)/);
   assert.doesNotMatch(renderer, /drawSnakeCollisionBursts/);
   assert.doesNotMatch(renderer, /drawCanvasSnakeHeadGlow/);
@@ -206,17 +321,64 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(renderer, /canvasLoading = loading && event\.canvasLoading === true/);
   assert.match(renderer, /dataset\.loadingVisual = canvasLoading \? 'snake' : loading \? 'simple' : 'idle'/);
   assert.match(renderer, /canvasLoader\.setLoading\(canvasLoading, percent, stage\)/);
+  assert.match(renderer, /webGpuRenderer\.setLoading\(canvasLoading, percent, stage\)/);
+  assert.match(renderer, /SimulatteWebGpuRenderer\.create\(canvas/);
+  assert.match(renderer, /const ctx = null/);
+  assert.doesNotMatch(renderer, /canvas\.getContext\('2d'\)/);
+  assert.match(renderer, /fieldCanvas\.dataset\.renderer = webGpuRenderer \? 'primary-webgpu-owned' : 'webgpu-required'/);
+  assert.doesNotMatch(renderer, /requireWebGpu: Boolean\(webGpuRenderer\)/);
+  const webgpuRenderer = fs.readFileSync(
+    path.join(jsDir, 'simulatte-webgpu-renderer.js'),
+    'utf8'
+  );
+  assert.match(webgpuRenderer, /new Float32Array\(72\)/);
+  assert.match(webgpuRenderer, /loadingWrapDistance/);
+  assert.match(webgpuRenderer, /loadingSnakeMask/);
+  assert.match(webgpuRenderer, /snakeA = loadingSnakeMask/);
+  assert.match(webgpuRenderer, /snakeB = loadingSnakeMask/);
+  assert.match(webgpuRenderer, /snakeC = loadingSnakeMask/);
+  assert.match(webgpuRenderer, /snakeD = loadingSnakeMask/);
+  assert.match(webgpuRenderer, /snakeHeads/);
+  assert.match(webgpuRenderer, /crossingGlow/);
+  assert.match(webgpuRenderer, /function visualTextFromSpec/);
+  assert.match(webgpuRenderer, /function graphicsAtomTextRows/);
+  assert.match(webgpuRenderer, /function graphicsAtomFeatureVector/);
+  assert.match(webgpuRenderer, /mergeFeatureVectors\(featureVector\(text\), graphicsAtomFeatureVector\(spec\)\)/);
+  assert.match(webgpuRenderer, /renderIR\.causalAffordances/);
+  assert.match(webgpuRenderer, /visualIR\.causalAffordances/);
+  assert.match(webgpuRenderer, /visualIR\.graphicsAtoms/);
   assert.match(renderer, /resolveWithEmbedding\(prompt, params, serial, false\)/);
   assert.match(renderer, /resolveWithEmbedding\(initialPrompt, initialParams, buildSerial, true\)/);
   assert.match(renderer, /runButton\.classList\.toggle\('is-loading', loading\)/);
   assert.match(renderer, /runButton\.disabled = loading/);
   assert.match(renderer, /runButton\.setAttribute\('aria-disabled'/);
   assert.match(renderer, /runButton\.setAttribute\('aria-busy'/);
+  assert.match(renderer, /const rawMessage = event\.detail \|\| event\.message \|\| stage/);
+  assert.match(renderer, /runtimeDetailText\(event, stage, rawMessage\)/);
+});
+
+test('collapsed prompt dock parks bottom left as translucent glass', () => {
+  const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+
+  assert.match(html, /\.prompt-dock\[data-collapsed="true"\] \{/);
+  assert.match(html, /left: 16px !important;/);
+  assert.match(html, /bottom: 16px !important;/);
+  assert.match(html, /top: auto !important;/);
+  assert.match(html, /right: auto !important;/);
+  assert.match(html, /transform: none !important;/);
+  assert.match(html, /rgba\(255, 255, 255, 0\.38\)/);
+  assert.match(html, /opacity: 0\.88;/);
+  assert.match(html, /\.prompt-dock\[data-collapsed="true"\] \.prompt-dock-handle \{\n\s+display: none;/);
+  assert.match(html, /const resetDockInlinePlacement = \(\) => \{/);
+  assert.match(html, /panel\.dispatchEvent\(new CustomEvent\('prompt-dock:collapsed'/);
+  assert.match(html, /const isCollapsed = \(\) => panel\.dataset\.collapsed === 'true'/);
+  assert.match(html, /if \(isCollapsed\(\)\) return;/);
 });
 
 test('composition renderer has specific painters for diverse scene regimes', () => {
   const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
   const graph = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
+  const registry = fs.readFileSync(path.join(jsDir, 'simulatte-render-registry.js'), 'utf8');
 
   for (const token of [
     'paintFerrofluidWorld',
@@ -230,6 +392,20 @@ test('composition renderer has specific painters for diverse scene regimes', () 
     'paintMechanicalWorld',
     'drawMechanicalImpulseField',
     'paintLiteralCompositeWorld',
+    'paintExpandedSceneWorld',
+    'drawExpandedInstrumentScene',
+    'drawExpandedOrbitalScene',
+    'drawExpandedNetworkScene',
+    'drawExpandedMolecularScene',
+    'drawExpandedTerrainScene',
+    'drawExpandedLabScene',
+    'drawExpandedWeatherScene',
+    'drawExpandedOceanCryosphereScene',
+    'drawExpandedGridEnergyScene',
+    'drawExpandedRoboticsScene',
+    'drawExpandedManufacturingScene',
+    'drawExpandedQuantumScene',
+    'drawExpandedAgroWasteScene',
     'drawCompositeStressField',
     'drawLiteralRocket',
     'drawLiteralSubmarine',
@@ -248,16 +424,51 @@ test('composition renderer has specific painters for diverse scene regimes', () 
   for (const sceneKind of ['ferrofluid', 'thin-film', 'granular', 'thermal-plume']) {
     assert.match(graph, new RegExp(`sceneKind === '${sceneKind}'`));
   }
+  assert.match(renderer, /isExpandedSceneKind\(sceneKind\)/);
+  assert.match(renderer, /structural-mechanics/);
+  assert.match(registry, /structural-mechanics/);
+  for (const sceneKind of [
+    'weather-atmosphere',
+    'ocean-cryosphere',
+    'grid-energy',
+    'robotics-control',
+    'manufacturing-line',
+    'quantum-instrument',
+    'agro-waste-loop',
+  ]) {
+    assert.match(registry, new RegExp(sceneKind));
+    assert.match(renderer, new RegExp(sceneKind));
+  }
+  const webgpuRenderer = fs.readFileSync(
+    path.join(jsDir, 'simulatte-webgpu-renderer.js'),
+    'utf8'
+  );
+  for (const sceneKind of [
+    'weather-atmosphere',
+    'ocean-cryosphere',
+    'grid-energy',
+    'robotics-control',
+    'manufacturing-line',
+    'quantum-instrument',
+    'agro-waste-loop',
+    'sport-motion',
+    'cultural-material',
+  ]) {
+    assert.match(webgpuRenderer, new RegExp(sceneKind));
+  }
+  for (const sceneGroup of ['16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0']) {
+    assert.match(webgpuRenderer, new RegExp(`sceneGroup == ${sceneGroup}`));
+  }
   for (const pass of ['coil-field', 'film-frame', 'bead-stream', 'cooling-fins']) {
     assert.match(graph, new RegExp(pass));
   }
   assert.match(graph, /simulatte\.visualGenome\.v1/);
-  assert.match(graph, /simulatte\.promptVisualDna\.v1/);
+  assert.match(graph, /simulatte\.compiledVisualDna\.v1/);
   assert.match(graph, /simulatte\.semanticVisualPlan\.v1/);
   assert.match(graph, /function visualGenomeForComposition/);
-  assert.match(graph, /function promptDnaForGenome/);
+  assert.match(graph, /function compiledDnaForGenome/);
   assert.match(graph, /function semanticVisualsForGenome/);
-  assert.match(graph, /deterministic-prompt-seeded/);
+  assert.match(graph, /deterministic-compiled-artifact-seeded/);
 });
 
 test('physics graph updates log intent and composition debug data by default', () => {
@@ -267,11 +478,42 @@ test('physics graph updates log intent and composition debug data by default', (
   assert.match(renderer, /function logGraphDebug/);
   assert.match(renderer, /console\.groupCollapsed/);
   assert.match(renderer, /\[simulatte\.graph\]/);
-  assert.match(renderer, /console\.log\('intent'/);
+  assert.match(renderer, /console\.log\('intentReceipt'/);
+  assert.match(renderer, /console\.log\('semanticRetrievalReceipt'/);
+  assert.doesNotMatch(renderer, /console\.log\('intent'/);
   assert.match(renderer, /console\.log\('compositionGraph'/);
   assert.match(renderer, /console\.log\('renderProgram'/);
   assert.match(renderer, /console\.log\('receipt'/);
   assert.match(renderer, /console\.table/);
+});
+
+test('compiler phases consume only neighboring compiled artifacts after intent grounding', () => {
+  const model = fs.readFileSync(path.join(jsDir, 'simulatte-physics-model.js'), 'utf8');
+  const physicsIR = fs.readFileSync(path.join(jsDir, 'simulatte-physics-ir.js'), 'utf8');
+  const composition = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
+  const webgpu = fs.readFileSync(path.join(jsDir, 'simulatte-webgpu-renderer.js'), 'utf8');
+  const physicsIRCall = model.match(/nextIR = buildPhysicsIR\(\{[\s\S]*?\n      \}\);/);
+
+  assert.ok(physicsIRCall, 'physics model should compile PhysicsIR through a visible call site');
+  assert.match(physicsIRCall[0], /buildPhysicsIR\(\{\s*universeGraph,/);
+  assert.doesNotMatch(physicsIRCall[0], /prompt,/);
+  assert.doesNotMatch(physicsIRCall[0], /promptParse,/);
+  assert.match(physicsIR, /const prompt = universeGraph\.prompt \|\| ''/);
+  assert.doesNotMatch(physicsIR, /input\.prompt \|\| universeGraph\.prompt/);
+
+  assert.match(composition, /const universeGraph = spec\.universeGraph \|\| \{\}/);
+  assert.match(composition, /const conceptGraph = Array\.isArray\(universeGraph\.nodes\)/);
+  assert.match(composition, /const brief = spec && spec\.renderIR && spec\.renderIR\.intentBriefReceipt/);
+  assert.doesNotMatch(composition, /const intent = spec\.intent/);
+  assert.doesNotMatch(composition, /intent\.conceptGraph/);
+  assert.doesNotMatch(composition, /spec\.intent\.synthesis/);
+  assert.doesNotMatch(composition, /spec\.intent\.prompt/);
+  assert.doesNotMatch(composition, /spec\.intent\.intentBrief/);
+
+  assert.doesNotMatch(webgpu, /spec\.intent/);
+  assert.doesNotMatch(webgpu, /intent\.semanticRag|intent\.cardMatches|intent\.surfaceCards/);
+  assert.doesNotMatch(model, /spec\.intent && spec\.intent\.resolution/);
+  assert.doesNotMatch(model, /spec\.intent && spec\.intent\.prompt/);
 });
 
 test('intent runtime keeps visible errors short, logs diagnostics, and falls back locally', () => {
@@ -314,10 +556,11 @@ test('Firebase hosting revalidates app shell and app JavaScript', () => {
   assert.ok(noCacheSources.has('/vendor/doppler/**'));
 });
 
-test('model-backed intent retrieval uses a 1024d Qwen index', () => {
+test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   const manifestPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'manifest.json');
   const indexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'primitive-index-v2.json');
-  const cardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-qwen-v1.json');
+  const cardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-embeddinggemma-v1.json');
+  const retiredQwenCardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-qwen-v1.json');
   const retiredCardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-v1.json');
   const retiredIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'primitive-index-v1.json');
   const retiredEncoderPath = path.join(root, 'public', 'models', 'simulatte-intent-embed-v1.json');
@@ -331,61 +574,60 @@ test('model-backed intent retrieval uses a 1024d Qwen index', () => {
   const cardPackedBytes = Buffer.from(cardIndex.embeddingsPackedBase64, 'base64');
 
   assert.equal(manifest.schema, 'simulatte.modelBackedEmbedderManifest.v2');
-  assert.equal(manifest.id, 'simulatte-qwen-3-5-0-8b-primitive-retrieval-v1');
+  assert.equal(manifest.id, 'simulatte-embeddinggemma-300m-primitive-retrieval-v1');
   assert.equal(manifest.retrieval.kind, 'precomputed-primitive-index');
   assert.equal(manifest.retrieval.artifact, './primitive-index-v2.json');
-  assert.equal(manifest.retrieval.dimensions, 1024);
+  assert.equal(manifest.retrieval.dimensions, 768);
   assert.equal(manifest.retrieval.rerank, 'mandatory');
   assert.equal(manifest.retrieval.cards.kind, 'precomputed-surface-card-index');
-  assert.equal(manifest.retrieval.cards.artifact, './surface-card-index-qwen-v1.json');
-  assert.equal(manifest.retrieval.cards.dimensions, 1024);
+  assert.equal(manifest.retrieval.cards.artifact, './surface-card-index-embeddinggemma-v1.json');
+  assert.equal(manifest.retrieval.cards.dimensions, 768);
   assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
   assert.equal(manifest.retrieval.universe.artifact, '../simulatte-universe/manifest.json');
-  assert.equal(manifest.retrieval.universe.dimensions, 1024);
-  assert.equal(manifest.embedModel.id, 'qwen-3-5-0-8b-q4k-ehaf16');
-  assert.equal(manifest.embedModel.family, 'qwen3.5');
-  assert.equal(manifest.embedModel.modelType, 'transformer');
-  assert.equal(manifest.embedModel.dimensions, 1024);
+  assert.equal(manifest.retrieval.universe.dimensions, 768);
+  assert.equal(manifest.embedModel.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+  assert.equal(manifest.embedModel.family, 'embeddinggemma');
+  assert.equal(manifest.embedModel.modelType, 'embedding');
+  assert.equal(manifest.embedModel.dimensions, 768);
   assert.match(manifest.embedModel.defaultModelBaseUrl, /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\//);
-  assert.match(manifest.embedModel.defaultModelBaseUrl, /a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10\/models\/qwen-3-5-0-8b-q4k-ehaf16$/);
+  assert.match(manifest.embedModel.defaultModelBaseUrl, /95f0b29ec73dea70394c6bcfa8407bc6796df6c9\/models\/google-embeddinggemma-300m-q4k-ehf16-af32$/);
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
-  assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /gemma/i);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
-  assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3.5-0.8B');
+  assert.equal(manifest.embedModel.source.sourceCheckpointId, 'google/embeddinggemma-300m');
   assert.equal(manifest.runtime.moduleUrl, './vendor/doppler/src/index-browser.js');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.activationDtype, 'f32');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.mathDtype, 'f32');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.accumDtype, 'f32');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.outputDtype, 'f32');
-  assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.kvDtype, 'f16');
+  assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.kvDtype, 'f32');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.layout, 'contiguous');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.tiering.mode, 'off');
-  assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.tiering.coldDtype, 'f16');
-  assert.equal(manifest.cache.namespace, 'simulatte-qwen-3-5-0-8b-primitive-retrieval-v1');
+  assert.equal(manifest.cache.namespace, 'simulatte-embeddinggemma-300m-primitive-retrieval-v1');
   assert.equal(manifest.cache.prefetch, false);
   assert.equal(manifest.cache.worker, './simulatte-model-cache-sw.js');
   assert.equal(manifest.cache.requirePersistent, false);
   assert.equal(manifest.embedModel.manifestHash.hex, index.embedModelHash.hex);
   assert.equal(manifest.embedModel.manifestHash.hex, cardIndex.embedModelHash.hex);
-  assert.equal(manifest.embedModel.manifestHash.hex, '595cb5f90e81d57470d86a94740c99a10f11204df8e85a8e4210bef77161a713');
+  assert.equal(manifest.embedModel.manifestHash.hex, '9ac0f54f10fdeddfd67ea07661342713267d60ec57361e6e9d9d72e727407cd2');
   assert.equal(index.schema, 'simulatte.primitiveEmbeddingIndex.v2');
-  assert.equal(index.id, 'simulatte-primitive-qwen-3-5-0-8b-index-v1');
-  assert.equal(index.embedModelId, 'qwen-3-5-0-8b-q4k-ehaf16');
-  assert.equal(index.embeddingDim, 1024);
+  assert.equal(index.id, 'simulatte-primitive-embeddinggemma-300m-index-v1');
+  assert.equal(index.embedModelId, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+  assert.equal(index.embeddingDim, 768);
   assert.equal(catalog.PHYSICAL_PRIMITIVES.length, 420);
   assert.equal(index.documents.length, catalog.PHYSICAL_PRIMITIVES.length);
   assert.equal(index.documentCount, catalog.PHYSICAL_PRIMITIVES.length);
   assert.equal(packedBytes.byteLength, index.documents.length * index.embeddingDim * 4);
   assert.equal(cardIndex.schema, 'simulatte.surfaceCardEmbeddingIndex.v1');
-  assert.equal(cardIndex.id, 'simulatte-surface-card-qwen-3-5-0-8b-index-v1');
-  assert.equal(cardIndex.embedModelId, 'qwen-3-5-0-8b-q4k-ehaf16');
-  assert.equal(cardIndex.embeddingDim, 1024);
+  assert.equal(cardIndex.id, 'simulatte-surface-card-embeddinggemma-300m-index-v1');
+  assert.equal(cardIndex.embedModelId, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+  assert.equal(cardIndex.embeddingDim, 768);
   assert.ok(cardIndex.documents.length >= 650);
   assert.equal(cardPackedBytes.byteLength, cardIndex.documents.length * cardIndex.embeddingDim * 4);
   assert.equal(universeManifest.embedModel.id, manifest.embedModel.id);
   assert.equal(universeManifest.embedModel.dimensions, manifest.embedModel.dimensions);
   assert.equal(universeManifest.embedModel.manifestHash.hex, manifest.embedModel.manifestHash.hex);
   assert.equal(Object.hasOwn(manifest, 'fallback'), false);
+  assert.equal(fs.existsSync(retiredQwenCardIndexPath), false);
   assert.equal(fs.existsSync(retiredCardIndexPath), false);
   assert.equal(fs.existsSync(retiredIndexPath), false);
   assert.equal(fs.existsSync(retiredEncoderPath), false);
@@ -406,12 +648,12 @@ test('model-backed intent retrieval uses a 1024d Qwen index', () => {
   assert.match(runtime, /Promise\.race\(\[\n\s+navigator\.serviceWorker\.ready,/);
   assert.match(runtime, /intent model cache worker did not become ready/);
   assert.match(runtime, /model-backed intent manifest missing Doppler runtimeConfig/);
-  assert.doesNotMatch(runtime, /EMBEDDINGGEMMA_RUNTIME_CONFIG/);
+  assert.doesNotMatch(runtime, /QWEN_RUNTIME_CONFIG/);
   assert.match(runtime, /simulatte-model-cache/);
   assert.match(runtime, /resolveUrl\(rawModuleUrl, location\.href\)/);
   assert.match(runtime, /embedModelHash mismatch/);
   assert.match(runtime, /simulatte\.intentRerank\.v1/);
-  assert.doesNotMatch(runtime, /DEFAULT_EMBED_MODEL_ID|google-embeddinggemma-300m-q4k-ehf16-af32|EmbeddingGemma/);
+  assert.doesNotMatch(runtime, /DEFAULT_EMBED_MODEL_ID|qwen-3-5-0-8b-q4k-ehaf16|Qwen/);
   assert.doesNotMatch(runtime, /axis-token-query-encoder/);
   assert.doesNotMatch(runtime, /simulatte-intent-embed-v1/);
   assert.doesNotMatch(runtime, /candidates\.map\(\(primitive\) => embedText\(model, primitiveText/);

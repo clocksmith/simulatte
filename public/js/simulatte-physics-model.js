@@ -35,6 +35,9 @@
   const renderIR = typeof module === 'object' && module.exports
     ? require('./simulatte-render-ir.js')
     : root.SimulatteRenderIR;
+  const intentForensics = typeof module === 'object' && module.exports
+    ? require('./simulatte-intent-forensics.js')
+    : root.SimulatteIntentForensics;
   const api = factory(
     catalog,
     composer,
@@ -47,7 +50,8 @@
     physicsIR,
     physicsIRValidator,
     solverCompiler,
-    renderIR
+    renderIR,
+    intentForensics
   );
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
@@ -65,7 +69,8 @@
   physicsIR = {},
   physicsIRValidator = {},
   solverCompiler = {},
-  renderIR = {}
+  renderIR = {},
+  intentForensics = {}
 ) {
   const {
     CONTROL_LIBRARY,
@@ -156,6 +161,10 @@
     RENDER_IR_SCHEMA,
     compileRenderIR,
   } = renderIR || {};
+  const {
+    INTENT_BRIEF_SCHEMA,
+    buildIntentForensics,
+  } = intentForensics || {};
 
   function createSpec(templateId = 'magnetic-wheel', overrides = {}) {
     const template = templateById(templateId);
@@ -201,10 +210,150 @@
         ? compileCompositionToRenderProgram(spec.compositionGraph, spec)
         : null
     );
+    if (spec.templateId === 'custom-world' && spec.renderProgram) {
+      spec.renderProgram = refineRenderProgramSceneKind(spec.renderProgram, spec);
+    }
     spec.physicalSpec = overrides.physicalSpec || (
       spec.contract && spec.contract.graph ? compilePhysicalSpec(spec) : null
     );
     return spec;
+  }
+
+  function refineRenderProgramSceneKind(renderProgram, spec) {
+    const current = renderProgram.rendererPlan && renderProgram.rendererPlan.sceneKind || '';
+    const authoritative = authoritativeVisualSceneKind(renderProgram);
+    const sceneKind = authoritative || fineSceneKindFromSpec(spec, current);
+    const visualIR = renderProgram.visualIR
+      ? {
+        ...renderProgram.visualIR,
+        sceneKind,
+        painterKind: renderProgram.visualIR.painterKind === 'generic' ||
+          renderProgram.visualIR.painterKind === 'literal-composite'
+          ? sceneKind
+          : renderProgram.visualIR.painterKind,
+      }
+      : renderProgram.visualIR;
+    return {
+      ...renderProgram,
+      rendererPlan: {
+        ...(renderProgram.rendererPlan || {}),
+        sceneKind,
+      },
+      visualIR,
+      provenance: {
+        ...(renderProgram.provenance || {}),
+        sceneKind,
+      },
+    };
+  }
+
+  function authoritativeVisualSceneKind(renderProgram) {
+    const candidates = [
+      renderProgram && renderProgram.visualIR && renderProgram.visualIR.sceneKind,
+      renderProgram && renderProgram.rendererPlan &&
+        renderProgram.rendererPlan.visualIdentity &&
+        renderProgram.rendererPlan.visualIdentity.sceneKind,
+      renderProgram && renderProgram.rendererPlan &&
+        renderProgram.rendererPlan.visualRecipe &&
+        renderProgram.rendererPlan.visualRecipe.sceneKind,
+      renderProgram && renderProgram.provenance &&
+        renderProgram.provenance.visualIdentity &&
+        renderProgram.provenance.visualIdentity.sceneKind,
+    ];
+    return candidates
+      .map((value) => String(value || '').trim())
+      .find((value) => value && value !== 'generic' && value !== 'literal-composite') || '';
+  }
+
+  function fineSceneKindFromSpec(spec, current = '') {
+    const authoritative = authoritativeVisualSceneKind(spec && spec.renderProgram);
+    if (authoritative) return authoritative;
+    const renderIR = spec && spec.renderIR || {};
+    const renderText = [
+      renderIR.sceneHint,
+      ...(renderIR.objects || []).map((object) => [
+        object.id,
+        object.label,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.semanticRef,
+        object.physicalRef,
+      ].filter(Boolean).join(' ')),
+      ...(renderIR.fields || []).map((field) => [
+        field.id,
+        field.name,
+        field.channel,
+        field.domainId,
+      ].filter(Boolean).join(' ')),
+      ...(renderIR.causalAffordances || []).map((row) => [
+        row.id,
+        row.causalRelationId,
+        row.sceneKind,
+        row.geometry,
+        ...(row.shaderHints || []),
+        ...(row.motionHints || []),
+      ].filter(Boolean).join(' ')),
+    ].join(' ');
+    const objectText = (spec.objects || []).map((object) => [
+      object.id,
+      object.type,
+      object.role,
+      object.layer,
+      object.material,
+      object.visualRegime,
+      object.assembly,
+      object.phrase,
+      ...(object.domains || []),
+      ...(object.slots || []),
+    ].filter(Boolean).join(' ')).join(' ');
+    const moduleText = (spec.modules || []).join(' ');
+    const text = `${renderText} ${objectText} ${moduleText}`.toLowerCase();
+    if (/\b(supercell|thunderstorm|hail|cloud microphysics|monsoon|atmospheric river|jetstream|storm cell|rain band|convection)\b/.test(text)) return 'weather-atmosphere';
+    if (/\b(glacier calving|fjord|sea ice|ice shelf|iceberg|internal ocean wave|internal ocean waves|kelp canopy|ocean mixing|plankton bloom|thermocline)\b/.test(text)) return 'ocean-cryosphere';
+    if (/\b(microgrid|battery inverter|inverter|transformer overload|substation|power flow|load shedding|frequency control|grid storage|voltage sag)\b/.test(text)) return 'grid-energy';
+    if (/\b(warehouse robot|robot arm|robot arms|robotic gripper|drone swarm|autopilot|servo loop|path planner|pick and place|mobile robot)\b/.test(text)) return 'robotics-control';
+    if (/\b(injection molding|steel tooling|assembly line|conveyor belt|conveyor belts|cnc|extruder|cooling die|factory line|pick station)\b/.test(text)) return 'manufacturing-line';
+    if (/\b(qubit|quantum chip|phase readout|microwave resonator|superconducting circuit|ion trap|spin lattice|photonic chip|wavefunction|electron microscope)\b/.test(text)) return 'quantum-instrument';
+    if (/\b(compost|greenhouse crop|greenhouse crops|anaerobic digester|organic waste|nutrient loop|crop rotation|fish farm|soil nutrients|algae bioreactor)\b/.test(text)) return 'agro-waste-loop';
+    if (/\b(neutrino|muon|particle collider|calorimeter|phototube|detector slice|water tank detector|underground water tank|cherenkov|photon cone)\b/.test(text)) return 'particle-instrument';
+    if (/\b(protein folding|protein fold|bond constraint|energy minimization|molecular chain|amino acid|ligand)\b/.test(text)) return 'molecular-biology';
+    if (/\b(chemical clock|belousov|polymer|epoxy|crosslink|electroplat|nickel|crystal nucleation|supersaturated|catalyst|ammonia|electrolyzer|hydrogen|reactor|reaction dish|microfluidic|droplet|droplets|channel junction)\b/.test(text)) return 'chemistry-lab';
+    if (/\b(museum preservation|archive preservation|oil paint aging|paint drying|pigment film|varnish aging|ceramic glaze|manuscript humidity|conservation lab)\b/.test(text)) return 'cultural-material';
+    if (/\b(festival|stadium|restaurant|hotel|elevator|crowd|fan agents|guests|order queue|concourse|venue)\b/.test(text)) return 'venue-crowd';
+    if (/\b(skate|skateboard|ski|surf|sailing|regatta|archery|fairground|mountain bike|rider|sports|trajectory transfer|centripetal|curved bowl|friction loss)\b/.test(text)) return 'sport-motion';
+    if (/\b(bridge resonance|vortex shedding|wind vortex|bridge cable|bridge cables|structural mode|modal vibration|aeroelastic|flutter)\b/.test(text)) return 'structural-mechanics';
+    if (/\b(radio telescope|telescope array|radio dishes|deep space network|microwave|beamforming|probe|link budget|baseline|antenna)\b/.test(text)) return 'space-instrument';
+    if (/\b(heat|thermal|cooling|battery runaway|reentry|lava|magma|molten|volcano)\b/.test(text)) return 'thermal-plume';
+    if (/\b(asteroid|mining|mars|venus|europa|titan|interstellar|comet|planetary ring|planetary rings|shepherd moon|moon resonance|orbital resonance|dark matter|galaxy cluster|exoplanet|magnetosphere|aurora|solar flare|cosmic ray|neutrino|black hole|singularity)\b/.test(text)) return 'planetary-space';
+    if (/\b(population genetics|allele|ecological succession|predator|prey|pollinator|fish school|bird flock|animal trail|bee agents|plant cohorts|flower visitation)\b/.test(text)) return 'evolution-ecology';
+    if (/\b(crop rotation|greenhouse|fish farm|algae bioreactor|compost|landfill|recycling|soil nutrients|oxygen water|organic waste|mixed materials)\b/.test(text)) return 'agro-waste-loop';
+    if (/\b(tunnel boring|mine ventilation|earthquake|tsunami|hurricane|tornado|urban heat|noise pollution|light pollution|air quality|desertification|fault|hazard)\b/.test(text)) return 'hazard-atmosphere';
+    if (/\b(housing market|power market|carbon credit|supply demand|bullwhip|transit priority|bike network|emergency response|policy|audit ledger)\b/.test(text)) return 'civic-market';
+    if (/\b(cyber|blockchain|mempool|recommendation|search engine|index shard|query routing|service graph|network packet|attack propagation|embedding space|server rack|cooling aisle)\b/.test(text)) return 'digital-network';
+    if (/\b(robot surgery|prosthetic|rehab|vaccine|hospital|patient|clinical|tissue mesh|sensor skin|muscle activation|bedflow|triage|kidney|liver|cochlea|eye aqueous|lymph|insulin|wound|dna|crispr|ribosome|mitochondria)\b/.test(text)) return 'clinical-control';
+    if (/\b(water treatment|peatland|oyster reef|living breakwater|restoration|rewetting|nitrification|biofilm media|water table|shell beds)\b/.test(text)) return 'restoration-water';
+    if (/\b(nuclear waste|stellarator|fusion|plasma ribbon|magnetic twist|canister|geologic repository|membrane stack)\b/.test(text)) return 'advanced-energy';
+    if (/\b(compiler|database|logic|neural network|tensor|activation|boolean|chip|wafer|semiconductor|server rack|data center)\b/.test(text)) return 'digital-network';
+    if (/\b(mangrove|kelp|coral|plankton|ocean|river|delta|aquifer|storm sewer|dam sediment|bridge scour|groundwater|estuary|glacier|permafrost|lake|sea ice)\b/.test(text)) return 'watershed';
+    if (/\b(qubit|quantum|electron microscope|photonic|metamaterial|laser cavity|telescope|lens|mirror|wavefront|light|optics)\b/.test(text)) return 'optics';
+    if (/\b(acoustic|sound|violin|speaker|cochlea|echolocation|granular synthesis|music)\b/.test(text)) return 'acoustic';
+    if (/\b(bio|cell|neuron|organ|microbe|plant|root|phloem|chloroplast|gut|immune|bone|protein|enzyme)\b/.test(text)) return 'biology';
+    if (/\b(fire|wildfire|flame|combustion|burn|smoke)\b/.test(text)) return 'fire';
+    if (/\b(grain|powder|sand|dune|granular|sediment core|snowpack|avalanche)\b/.test(text)) return 'granular';
+    if (/\b(magnet|ferrofluid|coil|plasma confinement|field)\b/.test(text)) return 'ferrofluid';
+    if (/\b(robot|vehicle|bridge|cable|exoskeleton|drivetrain|compressor|turbine|bearing|collision|fracture|pendulum|mechanical|wheel)\b/.test(text)) return 'mechanical';
+    if (/\b(queue|network|agent|market|traffic|subway|port|grid|water network|dispatch|scheduling)\b/.test(text)) return 'city';
+    if (current && current !== 'generic' && current !== 'literal-composite') return current;
+    if (hasModule(spec, 'network') || hasModule(spec, 'queue')) return 'city';
+    if (hasModule(spec, 'chemistry')) return 'chemistry-lab';
+    if (hasModule(spec, 'biology')) return 'biology';
+    if (hasModule(spec, 'fluid')) return 'watershed';
+    if (hasModule(spec, 'acoustics') || hasModule(spec, 'wave')) return 'acoustic';
+    if (hasModule(spec, 'optics')) return 'optics';
+    if (hasModule(spec, 'thermal')) return 'thermal-plume';
+    if (hasModule(spec, 'granular')) return 'granular';
+    return 'mechanical';
   }
 
   function normalizeSpec(raw) {
@@ -219,11 +368,7 @@
       controls: raw.controls || template.controls || [],
       params: raw.params || {},
       intent: raw.intent || null,
-      contract: raw.contract || (
-        raw.intent && raw.intent.resolution
-          ? raw.intent.resolution.contract || null
-          : null
-      ),
+      contract: raw.contract || null,
       compositionGraph: raw.compositionGraph || null,
       renderProgram: raw.renderProgram || null,
       physicalSpec: raw.physicalSpec || null,
@@ -254,18 +399,16 @@
           universeMatches: intent.universeMatches,
           synthesis: intent.synthesis,
           cardMatches: intent.cardMatches || [],
+          intentBrief: intent.intentBrief || null,
         })
         : null
     );
     let nextIR = overrides.physicsIR || spec.physicsIR || null;
     if (!nextIR && buildPhysicsIR && universeGraph) {
       nextIR = buildPhysicsIR({
-        prompt,
-        promptParse,
         universeGraph,
         objects: spec.objects || [],
         params: spec.params || {},
-        intent,
         contract: spec.contract,
       });
     }
@@ -287,7 +430,9 @@
       nextIR && compileSolverGraph ? compileSolverGraph(nextIR, validationReceipt) : null
     );
     const nextRenderIR = overrides.renderIR || spec.renderIR || (
-      nextIR && solverGraph && compileRenderIR ? compileRenderIR(nextIR, solverGraph, universeGraph) : null
+      nextIR && solverGraph && compileRenderIR
+        ? attachRenderIRPhaseInputs(compileRenderIR(nextIR, solverGraph, universeGraph), universeGraph)
+        : null
     );
     const nextIntent = intent && promptParse && universeGraph
       ? { ...intent, promptParse, universeGraph }
@@ -300,6 +445,24 @@
       validationReceipt,
       solverGraph,
       renderIR: nextRenderIR,
+    };
+  }
+
+  function attachRenderIRPhaseInputs(renderIR, universeGraph) {
+    if (!renderIR || typeof renderIR !== 'object') return renderIR;
+    return {
+      ...renderIR,
+      causalAffordances: Array.isArray(universeGraph && universeGraph.visualAffordances)
+        ? universeGraph.visualAffordances.slice(0, 8).map((row) => ({ ...row }))
+        : [],
+      intentBriefReceipt: universeGraph && universeGraph.intentBrief
+        ? { ...universeGraph.intentBrief }
+        : null,
+      phaseInputs: {
+        ...(renderIR.phaseInputs || {}),
+        source: 'universeGraph.visualAffordances',
+        neighboringIO: true,
+      },
     };
   }
 
@@ -318,12 +481,14 @@
       ...(solverGraph ? solverChannels : (solverPlan.state || [])),
       ...nodes.flatMap((node) => node.solverRequirements || []),
     ]);
+    const intentBrief = spec.universeGraph && spec.universeGraph.intentBrief || null;
+    const intentBriefLedger = intentBriefLedgerCounts(intentBrief);
     const visualPassHints = renderPassesForSolverPlan(solverPlan);
     const nodeIdsByType = (type) => nodes.filter((node) => node.nodeType === type).map((node) => node.id);
     return {
       schema: 'simulatte.physicalSpec.v1',
       sourceGraph: graph.schema || '',
-      prompt: spec.intent && spec.intent.prompt || spec.name,
+      prompt: spec.renderIR && spec.renderIR.prompt || spec.universeGraph && spec.universeGraph.prompt || spec.name,
       materials: graphMaterialMap(nodes),
       operators: spec.physicsIR && spec.physicsIR.operators ? spec.physicsIR.operators : graph.operators || [],
       executionSource: solverGraph ? 'solverGraph' : 'solverPlan',
@@ -368,10 +533,71 @@
         visualGenome: renderProgram.provenance ? renderProgram.provenance.visualGenome || null : null,
         graphValidation: graph.validation ? graph.validation.status : 'unknown',
         validation: spec.validationReceipt || null,
+        intentEvidenceCount: intentBriefLedger.evidenceCount,
+        causalEdgeCount: intentBriefLedger.causalEdgeCount,
+        causalAffordanceCount: intentBriefLedger.causalAffordanceCount,
+        assumptionCount: intentBriefLedger.assumptionCount,
+        unsupportedCount: intentBriefLedger.unsupportedCount,
+        degradedCount: intentBriefLedger.degradedCount,
+        intentBrief: intentBriefReceipt(intentBrief),
         physicsIR: spec.physicsIR ? spec.physicsIR.schema : '',
         solverGraph: spec.solverGraph ? spec.solverGraph.schema : '',
         renderIR: spec.renderIR ? spec.renderIR.schema : '',
       },
+    };
+  }
+
+  function intentBriefLedgerCounts(brief) {
+    if (!brief) {
+      return {
+        evidenceCount: 0,
+        causalEdgeCount: 0,
+        causalAffordanceCount: 0,
+        assumptionCount: 0,
+        unsupportedCount: 0,
+        degradedCount: 0,
+      };
+    }
+    return {
+      evidenceCount: (brief.retrievedEvidence || []).length,
+      causalEdgeCount: (brief.causalGraph || []).length,
+      causalAffordanceCount: brief.visualIntent &&
+        Array.isArray(brief.visualIntent.affordances)
+        ? brief.visualIntent.affordances.length
+        : 0,
+      assumptionCount: (brief.assumptions || []).length,
+      unsupportedCount: (brief.unsupported || []).length,
+      degradedCount: (brief.degradedTo || []).length,
+    };
+  }
+
+  function intentBriefReceipt(brief) {
+    if (!brief) return null;
+    const counts = intentBriefLedgerCounts(brief);
+    return {
+      schema: brief.schema || 'simulatte.intentBrief.v1',
+      modelStack: brief.modelStack || null,
+      evidenceCount: counts.evidenceCount,
+      causalEdgeCount: counts.causalEdgeCount,
+      groundedCausalEdgeCount: (brief.causalGraph || [])
+        .filter((edge) => (edge.evidence || []).length).length,
+      causalAffordanceCount: counts.causalAffordanceCount,
+      assumptionCount: counts.assumptionCount,
+      unsupportedCount: counts.unsupportedCount,
+      degradedCount: counts.degradedCount,
+      evidenceIds: (brief.retrievedEvidence || []).map((item) => item.id).filter(Boolean).slice(0, 32),
+      causalEdgeIds: (brief.causalGraph || []).map((edge) => edge.id || edge.ruleId).filter(Boolean).slice(0, 24),
+      causalAffordanceIds: brief.visualIntent && Array.isArray(brief.visualIntent.affordances)
+        ? brief.visualIntent.affordances.map((row) => row.id).filter(Boolean).slice(0, 16)
+        : [],
+      shaderHints: brief.visualIntent && brief.visualIntent.shaderHints || [],
+      motionHints: brief.visualIntent && brief.visualIntent.motionHints || [],
+      confidence: Number(brief.confidence || 0),
+      validation: brief.validation ? {
+        valid: brief.validation.valid,
+        errors: brief.validation.errors || [],
+        warnings: brief.validation.warnings || [],
+      } : null,
     };
   }
 
@@ -664,6 +890,7 @@
       semanticRag,
       universeMatches,
       dopplerIntent,
+      intentBrief: null,
       resolution: {
         mode: '2d',
         integrator: 'semi-implicit-euler',
@@ -723,6 +950,32 @@
     if (synthesis) {
       intent.synthesis = synthesis;
       intent.resolution.synthesis = synthesisReceipt(synthesis);
+    }
+
+    const intentBrief = buildIntentForensics
+      ? buildIntentForensics({
+        prompt: promptText,
+        promptParse,
+        semanticRag,
+        universeMatches,
+        dopplerIntent,
+        synthesis,
+        cardMatches: options.cardMatches || options.surfaceCardMatches || [],
+        embeddingPriors: options.embeddingPriors || [],
+        embeddingModel: options.embeddingModel || null,
+        evidenceRows: options.evidenceRows || [],
+      })
+      : null;
+    if (intentBrief) {
+      intent.intentBrief = intentBrief;
+      intent.resolution.intentBrief = {
+        schema: intentBrief.schema || INTENT_BRIEF_SCHEMA || 'simulatte.intentBrief.v1',
+        evidenceCount: (intentBrief.retrievedEvidence || []).length,
+        causalEdgeCount: (intentBrief.causalGraph || []).length,
+        assumptionCount: (intentBrief.assumptions || []).length,
+        unsupportedCount: (intentBrief.unsupported || []).length,
+        confidence: intentBrief.confidence || 0,
+      };
     }
 
     const baseCatalogRanked = classification && rankPrimitivesForClassification
@@ -807,6 +1060,7 @@
           assembly: primitive.assembly || '',
           phrase: primitive.phrase || '',
           source: primitive.source || 'catalog',
+          pinned: Boolean(primitive.pinned),
           primitiveProgram: primitive.primitiveProgram || null,
           geometry: primitiveContract.geometry,
           ports: primitiveContract.ports,
@@ -834,6 +1088,7 @@
         universeMatches,
         synthesis,
         cardMatches: options.cardMatches || options.surfaceCardMatches || [],
+        intentBrief: intent.intentBrief || null,
       });
     }
 
@@ -910,7 +1165,7 @@
           layer: 'composition',
           domains,
           material: '',
-          visualRegime: event.type === 'collision' ? 'mechanical' : 'generic',
+          visualRegime: visualRegimeForSynthesisText(`${event.type} ${(event.physics || []).join(' ')}`),
           assembly: 'event',
           phrase: event.type,
           source: 'embedding-guided-synth-event',
@@ -941,6 +1196,7 @@
       const componentId = `environment-${slugify(environment.id || label)}`;
       const domains = uniqueList(['synth', 'environment', slugify(label)].filter(Boolean));
       addDomain(...domains);
+      const environmentRegime = visualRegimeForSynthesisText(label);
       addComponent(
         componentId,
         'environment',
@@ -952,7 +1208,7 @@
           layer: 'scene',
           domains,
           material: /swamp|marsh|wetland|water/i.test(label) ? 'water' : '',
-          visualRegime: /swamp|marsh|wetland|water/i.test(label) ? 'fluid' : 'generic',
+          visualRegime: environmentRegime,
           assembly: 'environment',
           phrase: label,
           source: 'embedding-guided-synth-environment',
@@ -1005,7 +1261,17 @@
       ...(node.constraints || []),
       node.cardId,
     ].join(' ');
-    if (/\bmammal|rodent|tissue|gait|soft/i.test(values)) return 'biological';
+    return visualRegimeForSynthesisText(values);
+  }
+
+  function visualRegimeForSynthesisText(values) {
+    if (/\bchemical|reaction|polymer|epoxy|plating|catalyst|ammonia|electrolyzer|crystal|glaze|paint/i.test(values)) return 'chemistry';
+    if (/\bserver|cyber|blockchain|search|recommendation|compiler|database|logic|tensor|network_packet|packet/i.test(values)) return 'digital';
+    if (/\bmarket|policy|carbon|housing|supply|demand|power grid|auction|dispatch|queue|traffic|rail|airport|port/i.test(values)) return 'operations';
+    if (/\bspace|planet|asteroid|mars|venus|europa|titan|radio|telescope|probe|orbit|satellite|reentry|rocket|spacecraft/i.test(values)) return 'space';
+    if (/\bhurricane|tornado|earthquake|tsunami|storm|wildfire|mine|tunnel|fault|hazard|urban heat|air quality/i.test(values)) return 'hazard';
+    if (/\bmammal|rodent|tissue|gait|soft|clinical|hospital|prosthetic|surgery|rehab|organ|cell|dna|ribosome|mitochondria/i.test(values)) return 'biological';
+    if (/\becology|fish|bird|pollinator|plant|crop|greenhouse|soil|algae|compost|landfill|oyster|peatland/i.test(values)) return 'ecological';
     if (/\bspacecraft|rocket|orbit|thrust|satellite/i.test(values)) return 'mechanical';
     if (/\bsubmarine|submersible|underwater|diving|swimming/i.test(values)) return 'fluid';
     if (/\bturbine|propeller|rotation|pumping/i.test(values)) return 'mechanical';
@@ -1020,7 +1286,7 @@
     if (/\bheat|fire|thermal/i.test(values)) return 'thermal';
     if (/\blens|glass|optics/i.test(values)) return 'optical';
     if (/\bmagnet|rotor/i.test(values)) return 'magnetic';
-    return 'generic';
+    return 'mechanical';
   }
 
   function synthesisPrimitiveRows(synthesis) {
@@ -1946,11 +2212,7 @@
         };
       }
     }
-    const contract = spec.contract || (
-      spec.intent && spec.intent.resolution
-        ? spec.intent.resolution.contract || null
-        : null
-    );
+    const contract = spec.contract || null;
     const interactions = interactionTotals(contract);
     const operatorEffect = operatorTotals(contract);
     const dt = clamp(Number(dtInput || 0.016), 0.001, 0.05);
@@ -2163,8 +2425,13 @@
     }
     if (spec.templateId === 'custom-world') {
       const usesContractReadouts = customSpecHasContractReadouts(spec);
-      const hasPromptIntent = Boolean(spec.intent && spec.intent.prompt);
-      const channelReadouts = hasPromptIntent && !usesContractReadouts && state.solverState
+      const hasCompiledPrompt = Boolean(
+        hasPromptIntent(spec) && (
+          spec.renderIR && spec.renderIR.prompt ||
+          spec.universeGraph && spec.universeGraph.prompt
+        )
+      );
+      const channelReadouts = hasCompiledPrompt && !usesContractReadouts && state.solverState
         ? channelReadoutValues(state, spec)
         : null;
       if (channelReadouts) return channelReadouts;
@@ -2222,15 +2489,11 @@
 
   function readoutLabelsForSpec(spec) {
     if (spec.templateId === 'custom-world') {
-      const contract = spec.contract || (
-        spec.intent && spec.intent.resolution
-          ? spec.intent.resolution.contract || null
-          : null
-      );
+      if (!hasPromptIntent(spec)) return templateById(spec.templateId).readouts;
+      const contract = spec.contract || null;
       if (contract && Array.isArray(contract.readouts) && contract.readouts.length) {
         return contract.readouts.slice(0, 6);
       }
-      if (!spec.intent || !spec.intent.prompt) return templateById(spec.templateId).readouts;
       const renderReadouts = spec.renderIR && Array.isArray(spec.renderIR.readouts)
         ? spec.renderIR.readouts
         : [];
@@ -2245,12 +2508,13 @@
   }
 
   function customSpecHasContractReadouts(spec) {
-    const contract = spec.contract || (
-      spec.intent && spec.intent.resolution
-        ? spec.intent.resolution.contract || null
-        : null
-    );
+    const contract = spec.contract || null;
     return Boolean(contract && Array.isArray(contract.readouts) && contract.readouts.length);
+  }
+
+  function hasPromptIntent(spec) {
+    const intent = spec && spec.intent;
+    return Boolean(intent && intent.schema === 'simulatte.intent.v1' && typeof intent.prompt === 'string');
   }
 
   function channelReadoutValues(state, spec) {
@@ -2345,8 +2609,28 @@
       if (sceneKind === 'acoustic') return 'composed wave world';
       if (sceneKind === 'granular') return 'granular physics world';
       if (sceneKind === 'ferrofluid') return 'magnetic fluid world';
-      if (sceneKind === 'thermal-plume') return 'thermal plume world';
-      if (sceneKind === 'mechanical') return 'mechanical constraint world';
+	      if (sceneKind === 'thermal-plume') return 'thermal plume world';
+	      if (sceneKind === 'mechanical') return 'mechanical constraint world';
+	      if (sceneKind === 'weather-atmosphere') return 'weather atmosphere volume';
+	      if (sceneKind === 'ocean-cryosphere') return 'ocean cryosphere system';
+	      if (sceneKind === 'grid-energy') return 'energy grid stability field';
+	      if (sceneKind === 'robotics-control') return 'robotics control workspace';
+	      if (sceneKind === 'manufacturing-line') return 'manufacturing line field';
+	      if (sceneKind === 'quantum-instrument') return 'quantum instrument field';
+	      if (sceneKind === 'chemistry-lab') return 'oscillating chemistry lab';
+      if (sceneKind === 'cultural-material') return 'cultural material conservation';
+      if (sceneKind === 'venue-crowd') return 'crowd venue field';
+      if (sceneKind === 'sport-motion') return 'sport trajectory world';
+      if (sceneKind === 'space-instrument') return 'deep space instrument field';
+      if (sceneKind === 'planetary-space') return 'planetary space environment';
+      if (sceneKind === 'evolution-ecology') return 'evolution ecology landscape';
+      if (sceneKind === 'agro-waste-loop') return 'agro waste loop';
+      if (sceneKind === 'hazard-atmosphere') return 'hazard atmosphere world';
+      if (sceneKind === 'civic-market') return 'civic market network';
+      if (sceneKind === 'digital-network') return 'digital network system';
+      if (sceneKind === 'clinical-control') return 'clinical control field';
+      if (sceneKind === 'restoration-water') return 'restoration water system';
+      if (sceneKind === 'advanced-energy') return 'advanced energy chemistry';
       if (hasModule(spec, 'terrain') && hasModule(spec, 'logistics')) return 'composed terrain market';
       if (hasModule(spec, 'phase-change') && hasModule(spec, 'network')) return 'composed phase network';
       if (hasModule(spec, 'biology') && hasModule(spec, 'control')) return 'composed control biology';

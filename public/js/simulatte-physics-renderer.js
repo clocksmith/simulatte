@@ -38,7 +38,10 @@
     const canvas = root.getElementById('physics-canvas');
     if (!canvas) return null;
     const fieldCanvas = root.getElementById('field-canvas');
-    const ctx = canvas.getContext('2d');
+    const webGpuRenderer = root.defaultView && root.defaultView.SimulatteWebGpuRenderer && canvas
+      ? root.defaultView.SimulatteWebGpuRenderer.create(canvas, { maxDpr: 1.5 })
+      : null;
+    const ctx = null;
     const controlStack = root.getElementById('control-stack');
     const nameInput = root.getElementById('simulation-name');
     const promptInput = root.getElementById('build-prompt');
@@ -51,7 +54,11 @@
     }));
     const stateReadout = root.getElementById('lab-state');
     const runtimeStatus = intentRuntimeElements(root);
-    runtimeStatus.canvasLoader = createCanvasSnakeLoader();
+    runtimeStatus.canvasLoader = null;
+    runtimeStatus.webGpuRenderer = webGpuRenderer;
+    if (!webGpuRenderer && stateReadout) {
+      stateReadout.textContent = 'WebGPU required';
+    }
     const embedder = root.defaultView && root.defaultView.SimulatteIntentEmbedder
       ? root.defaultView.SimulatteIntentEmbedder.create({
         catalog: model,
@@ -64,9 +71,15 @@
       : EXAMPLE_INTENTS[0].params;
     let spec = createSpecFromPrompt('blank world', { params: initialParams });
     let state = createSimulationState(spec);
-    const field = root.defaultView && root.defaultView.SimulatteParticleField && fieldCanvas
-      ? root.defaultView.SimulatteParticleField.create(fieldCanvas, { count: 420 })
-      : null;
+    const field = null;
+    if (fieldCanvas) {
+      fieldCanvas.style.opacity = '0';
+      fieldCanvas.dataset.renderer = webGpuRenderer ? 'primary-webgpu-owned' : 'webgpu-required';
+      fieldCanvas.dataset.rendererStatus = webGpuRenderer
+        ? 'primary renderer owns scene particles'
+        : 'primary WebGPU renderer unavailable; canvas fallback disabled';
+    }
+    const cinematicRenderer = null;
     let last = performance.now();
     let paused = false;
     let lastPreviewSync = 0;
@@ -82,6 +95,8 @@
       syncReadoutLabels(readouts, spec);
       syncSpecPreview(specPreview, spec);
       logGraphDebug(spec);
+      if (webGpuRenderer) webGpuRenderer.setSpec(spec);
+      if (cinematicRenderer) cinematicRenderer.setSpec(spec);
       lastPreviewSync = performance.now();
       last = performance.now();
     };
@@ -182,6 +197,7 @@
           dopplerIntent: result.dopplerIntent,
           cardMatches: result.cardMatches,
           universeMatches: result.universeMatches,
+          evidenceRows: result.evidenceRows,
         }));
         syncIntentRuntime(runtimeStatus, {
           state: 'ready',
@@ -221,11 +237,6 @@
     function tick(now) {
       const dt = clamp((now - last) / 1000 || 0.016, 0.001, 0.05);
       last = now;
-      resizeCanvas(canvas, ctx);
-      if (field) {
-        const box = canvas.getBoundingClientRect();
-        field.resize(box.width, box.height, window.devicePixelRatio || 1);
-      }
       spec = readSpecFromUi(spec, controlStack, nameInput);
       if (!paused) {
         const substeps = spec.templateId === 'reaction-diffusion' ? 2 : 3;
@@ -233,25 +244,14 @@
           state = stepSimulation(state, spec, dt / substeps);
         }
       }
-      drawSimulation(ctx, canvas, state, spec);
-      drawCanvasLoadingSnakes(ctx, canvas, runtimeStatus.canvasLoader, now);
+      if (webGpuRenderer) {
+        webGpuRenderer.render(state, spec, now);
+      }
       syncField(field, canvas, state, spec);
       syncReadouts(readouts, stateReadout, state, spec);
       syncOpenSpecPreview(specPreview, spec, now, lastPreviewSync, (value) => {
         lastPreviewSync = value;
       });
-      if (field) {
-        const fieldVisible = spec.templateId !== 'blank-world';
-        if (fieldCanvas) {
-          fieldCanvas.style.opacity = fieldVisible ? '' : '0';
-          fieldCanvas.dataset.renderer = field.mode || 'canvas';
-          fieldCanvas.dataset.rendererStatus = field.status || '';
-        }
-        if (fieldVisible) {
-          field.step(dt);
-          field.render();
-        }
-      }
       requestAnimationFrame(tick);
     }
 
@@ -275,20 +275,30 @@
 
   function syncIntentRuntime(elements, event = {}) {
     if (!elements || !elements.node) return;
+    const hasPercent = Number.isFinite(Number(event.percent));
     const percent = Math.max(0, Math.min(100, Number(event.percent || 0)));
     const stage = String(event.stage || event.phase || 'intent');
     const state = event.state || (stage === 'error' ? 'error' : percent >= 100 ? 'ready' : 'active');
     const loading = state === 'active';
+    const indeterminate = loading && !hasPercent;
     const canvasLoading = loading && event.canvasLoading === true;
     const runButton = elements.node.closest('.physics-panel')?.querySelector('#build-lab');
     const rawMessage = event.detail || event.message || stage;
     const message = compactIntentRuntimeMessage(event.message || stage);
     elements.node.dataset.state = state;
+    elements.node.dataset.progress = indeterminate ? 'indeterminate' : 'determinate';
     elements.node.dataset.loadingVisual = canvasLoading ? 'snake' : loading ? 'simple' : 'idle';
     elements.node.dataset.detail = String(message || '');
     elements.node.title = String(message || '');
+    const doc = elements.node.ownerDocument;
+    if (doc && doc.documentElement) {
+      doc.documentElement.dataset.canvasLoading = canvasLoading ? 'snake' : 'idle';
+    }
     if (elements.canvasLoader) {
       elements.canvasLoader.setLoading(canvasLoading, percent, stage);
+    }
+    if (elements.webGpuRenderer && typeof elements.webGpuRenderer.setLoading === 'function') {
+      elements.webGpuRenderer.setLoading(canvasLoading, percent, stage);
     }
     if (runButton) {
       runButton.classList.toggle('is-loading', loading);
@@ -296,11 +306,22 @@
       runButton.setAttribute('aria-disabled', loading ? 'true' : 'false');
       runButton.setAttribute('aria-busy', loading ? 'true' : 'false');
     }
-    if (elements.title) elements.title.textContent = event.title || 'Intent model';
-    if (elements.percent) elements.percent.textContent = `${Math.round(percent)}%`;
-    if (elements.fill) elements.fill.style.width = `${percent}%`;
+    if (elements.title) elements.title.textContent = event.title || 'Compute activity';
+    if (elements.percent) elements.percent.textContent = indeterminate ? 'live' : `${Math.round(percent)}%`;
+    if (elements.fill) elements.fill.style.width = `${indeterminate ? 38 : percent}%`;
     if (elements.message) elements.message.textContent = message;
-    if (elements.stage) elements.stage.textContent = stage.replace(/-/g, ' ');
+    if (elements.stage) elements.stage.textContent = runtimeDetailText(event, stage, rawMessage);
+  }
+
+  function runtimeDetailText(event, stage, rawMessage) {
+    const parts = [
+      stage.replace(/-/g, ' '),
+      event.backend,
+      event.model,
+      event.bytes ? `${event.bytes} bytes` : '',
+      rawMessage && rawMessage !== event.message ? rawMessage : '',
+    ].filter(Boolean);
+    return parts.join(' | ') || 'standby';
   }
 
   function compactIntentRuntimeMessage(message) {
@@ -408,30 +429,19 @@
   }
 
   function createInitialCanvasSnakes(loader) {
-    const palette = [
-      338,
-      34,
-      152,
-      202,
-      262,
-      292,
-    ];
-    const starts = [
-      { x: 2, y: Math.floor(loader.rows * 0.22), dir: { x: 1, y: 0 } },
-      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.38), dir: { x: -1, y: 0 } },
-      { x: Math.floor(loader.cols * 0.28), y: 2, dir: { x: 0, y: 1 } },
-      { x: Math.floor(loader.cols * 0.72), y: loader.rows - 3, dir: { x: 0, y: -1 } },
-      { x: 2, y: Math.floor(loader.rows * 0.66), dir: { x: 1, y: 0 } },
-      { x: loader.cols - 3, y: Math.floor(loader.rows * 0.78), dir: { x: -1, y: 0 } },
-    ];
-    return starts.map((start, index) => createCanvasSnake(
+    const start = {
+      x: Math.max(2, Math.floor(loader.cols * 0.12)),
+      y: Math.max(2, Math.floor(loader.rows * 0.5)),
+      dir: { x: 1, y: 0 },
+    };
+    return [createCanvasSnake(
       loader,
       start.x,
       start.y,
       start.dir,
-      palette[index % palette.length],
-      12 + index * 2
-    ));
+      202,
+      Math.max(16, Math.min(28, Math.floor((loader.cols + loader.rows) * 0.36)))
+    )];
   }
 
   function createCanvasSnake(loader, x, y, dir, hue, length = 14) {
@@ -469,21 +479,11 @@
       if (!snake.targetTail && snake.cells.length > 9 && (loader.stepCount + snake.id * 5) % 9 === 0) {
         snake.targetTail = snake.cells[Math.max(5, Math.floor(snake.cells.length * 0.64))];
       }
-      if (!snake.targetSnakeId && (loader.stepCount + snake.id * 3) % 13 === 0) {
-        const target = nearestSnakeHead(loader, snake);
-        snake.targetSnakeId = target ? target.id : null;
-      }
-      advanceCanvasSnake(loader, snake, buildSnakeOccupancy(loader.snakes));
+      snake.targetSnakeId = null;
+      advanceCanvasSnake(loader, snake, buildSnakeOccupancy([snake]));
       snake.bitePulse = Math.max(0, snake.bitePulse - 0.12);
       snake.joinPulse = Math.max(0, snake.joinPulse - 0.1);
       snake.splitPulse = Math.max(0, snake.splitPulse - 0.09);
-    }
-    const liveCount = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3).length;
-    if (loader.stepCount % 12 === 0 && liveCount < 8) {
-      splitCanvasSnake(loader);
-    }
-    if (loader.stepCount % 10 === 0) {
-      joinNearbyCanvasSnakes(loader);
     }
     for (const snake of loader.snakes) {
       if (snake.retired) {
@@ -500,12 +500,11 @@
       .map((signal) => ({ ...signal, life: signal.life - 0.075 }))
       .filter((signal) => signal.life > 0);
     let activeCount = loader.snakes.filter((snake) => !snake.retired && snake.cells.length > 3).length;
-    while (activeCount < 4) {
+    while (activeCount < 1) {
       const x = Math.floor(loader.cols * (0.18 + hashNoise(loader.nextSnakeId, 11) * 0.64));
       const y = Math.floor(loader.rows * (0.18 + hashNoise(loader.nextSnakeId, 17) * 0.64));
       const dir = SNAKE_DIRS[loader.nextSnakeId % SNAKE_DIRS.length];
-      const hue = 320 + hashNoise(loader.nextSnakeId, 23) * 270;
-      loader.snakes.push(createCanvasSnake(loader, x, y, dir, hue, 9 + (loader.nextSnakeId % 4)));
+      loader.snakes.push(createCanvasSnake(loader, x, y, dir, 202, Math.max(16, Math.min(28, Math.floor((loader.cols + loader.rows) * 0.36)))));
       activeCount += 1;
     }
   }
@@ -854,11 +853,21 @@
         params[input.dataset.paramKey] = Number(input.value);
       });
     }
-    return normalizeSpec({
+    const name = nameInput && nameInput.value ? nameInput.value : spec.name;
+    if (name === spec.name && sameParamValues(params, spec.params)) return spec;
+    return {
       ...spec,
-      name: nameInput && nameInput.value ? nameInput.value : spec.name,
+      name,
       params,
-    });
+    };
+  }
+
+  function sameParamValues(next = {}, prev = {}) {
+    const keys = new Set([...Object.keys(next || {}), ...Object.keys(prev || {})]);
+    for (const key of keys) {
+      if (Number(next[key]) !== Number(prev[key])) return false;
+    }
+    return true;
   }
 
   function syncTemplateButtons(buttons, templateId) {
@@ -871,7 +880,9 @@
 
   function syncShuffleButton(button, spec) {
     if (!button) return;
-    const prompt = spec.intent && spec.intent.prompt ? spec.intent.prompt : '';
+    const prompt = spec.renderIR && spec.renderIR.prompt ||
+      spec.universeGraph && spec.universeGraph.prompt ||
+      '';
     const match = EXAMPLE_INTENTS.find((example) => example.prompt === prompt);
     button.dataset.exampleId = match ? match.id : '';
     button.title = match ? match.prompt : `${EXAMPLE_INTENTS.length} example prompts`;
@@ -936,18 +947,15 @@
       }
       return;
     }
-    const intent = spec.intent;
-    const components = intent && intent.components ? intent.components : spec.objects.map((object) => ({
+    const components = spec.objects.map((object) => ({
       id: object.id,
       type: object.type,
       role: object.role,
       params: {},
     }));
-    const domains = intent && intent.domains ? intent.domains : spec.modules;
-    const contract = spec.contract || (
-      intent && intent.resolution ? intent.resolution.contract : null
-    );
-    const topLevelIds = contract && contract.topLevel || intent && intent.resolution && intent.resolution.topLevel || [];
+    const domains = spec.modules;
+    const contract = spec.contract || null;
+    const topLevelIds = contract && contract.topLevel || [];
     const topLevelItems = topLevelIds
       .map((id) => components.find((component) => component.id === id))
       .filter(Boolean);
@@ -1000,28 +1008,10 @@
       schema: spec.schema,
       template: spec.templateId,
       name: spec.name,
-      intent: spec.intent ? {
-        classification: spec.intent.classification ? {
-          model: spec.intent.classification.model.id,
-          confidence: spec.intent.classification.confidence,
-          layerFocus: spec.intent.classification.layerFocus,
-          priors: spec.intent.classification.priors.slice(0, 10).map((prior) => ({
-            id: prior.primitiveId,
-            score: prior.score,
-            semantic: prior.semanticScore,
-          })),
-        } : null,
-        domains: spec.intent.domains,
-        components: spec.intent.components.map((component) => component.id),
-        resolution: {
-          mode: spec.intent.resolution.mode,
-          integrator: spec.intent.resolution.integrator,
-          renderer: spec.intent.resolution.renderer,
-          ranker: spec.intent.resolution.ranker,
-          layerFocus: spec.intent.resolution.layerFocus,
-          topLevel: spec.intent.resolution.topLevel,
-        },
-      } : null,
+      intentReceipt: spec.physicalSpec && spec.physicalSpec.receipt
+        ? spec.physicalSpec.receipt.intentBrief || null
+        : null,
+      semanticRetrievalReceipt: spec.universeGraph ? spec.universeGraph.intentBrief || null : null,
       contract: spec.contract ? {
         layerFocus: spec.contract.layerFocus,
         topLevel: spec.contract.topLevel,
@@ -1104,19 +1094,19 @@
 
   function logGraphDebug(spec) {
     if (typeof console === 'undefined' || !spec || typeof spec !== 'object') return;
-    if (!spec.intent && !spec.compositionGraph && !spec.renderProgram && !spec.physicalSpec) return;
+    if (!spec.compositionGraph && !spec.renderProgram && !spec.physicalSpec) return;
     const graph = spec.compositionGraph || null;
     const renderProgram = spec.renderProgram || null;
     const receipt = spec.physicalSpec && spec.physicalSpec.receipt || null;
     const rendererPlan = renderProgram && renderProgram.rendererPlan || null;
-    const prompt = spec.intent && spec.intent.prompt || spec.name || 'simulation';
+    const prompt = renderProgram && renderProgram.intentText || spec.renderIR && spec.renderIR.prompt || spec.name || 'simulation';
     const scene = rendererPlan && rendererPlan.sceneKind || 'unplanned';
     const label = `[simulatte.graph] ${scene}: ${prompt}`;
     const group = typeof console.groupCollapsed === 'function' ? console.groupCollapsed.bind(console) : console.log.bind(console);
     const groupEnd = typeof console.groupEnd === 'function' ? console.groupEnd.bind(console) : () => {};
     group(label);
-    console.log('intent', spec.intent || null);
-    console.log('semanticRetrieval', spec.intent && spec.intent.universeMatches || null);
+    console.log('intentReceipt', spec.physicalSpec && spec.physicalSpec.receipt && spec.physicalSpec.receipt.intentBrief || null);
+    console.log('semanticRetrievalReceipt', spec.universeGraph && spec.universeGraph.intentBrief || null);
     console.log('promptParse', spec.promptParse || null);
     console.log('universeGraph', spec.universeGraph || null);
     console.log('semanticGraph', spec.universeGraph && spec.universeGraph.semanticGraph || null);
@@ -1477,17 +1467,11 @@
   }
 
   function drawSimulation(ctx, canvas, state, spec) {
-    if (spec.templateId === 'blank-world') {
-      drawBlankWorld(ctx, canvas, state);
-    } else if (spec.templateId === 'custom-world') {
-      drawCustomWorld(ctx, canvas, state, spec);
-    } else if (spec.templateId === 'fluid-vortex') {
-      drawFluid(ctx, canvas, state);
-    } else if (spec.templateId === 'reaction-diffusion') {
-      drawReaction(ctx, canvas, state);
-    } else {
-      drawMagnetic(ctx, canvas, state);
-    }
+    void ctx;
+    void canvas;
+    void state;
+    void spec;
+    throw new Error('Canvas2D simulation renderer is disabled; Simulatte requires the primary WebGPU renderer.');
   }
 
   function drawBlankWorld(ctx, canvas, state) {
@@ -1592,22 +1576,1169 @@
 
   function drawWorldPlanScene(ctx, width, height, state, plan) {
     const sceneKind = sceneKindForPlan(plan);
-    if (sceneKind === 'fire') paintFireWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'optics') paintOpticsWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'city') paintCityWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'watershed') paintWatershedWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'magnetic-machine') paintMagneticMachineWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'mechanical') paintMechanicalWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'literal-composite') paintLiteralCompositeWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'ferrofluid') paintFerrofluidWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'thin-film') paintThinFilmWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'granular') paintGranularWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'thermal-plume') paintThermalPlumeWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'material-tray') paintMaterialTrayWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'biology') paintBiologyWorld(ctx, width, height, state, plan);
-    else if (sceneKind === 'acoustic') paintAcousticWorld(ctx, width, height, state, plan);
-    else paintGenericWorld(ctx, width, height, state, plan);
+    const painterKind = painterKindForScene(sceneKind);
+    if (isExpandedSceneKind(sceneKind)) {
+      paintExpandedSceneWorld(ctx, width, height, state, plan, sceneKind);
+      drawVisualIRProgram(ctx, width, height, state, plan);
+      drawSceneCinematicFinish(ctx, width, height, state, plan, sceneKind, painterKind);
+      drawSolverChannelContours(ctx, width, height, state, plan, sceneKind);
+      return;
+    }
+    if (painterKind === 'fire') paintFireWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'optics') paintOpticsWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'city') paintCityWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'watershed') paintWatershedWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'magnetic-machine') paintMagneticMachineWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'mechanical') paintMechanicalWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'literal-composite') paintLiteralCompositeWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'ferrofluid') paintFerrofluidWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'thin-film') paintThinFilmWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'granular') paintGranularWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'thermal-plume') paintThermalPlumeWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'material-tray') paintMaterialTrayWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'biology') paintBiologyWorld(ctx, width, height, state, plan);
+    else if (painterKind === 'acoustic') paintAcousticWorld(ctx, width, height, state, plan);
+    else paintMechanicalWorld(ctx, width, height, state, plan);
+    drawVisualIRProgram(ctx, width, height, state, plan);
+    drawSceneCinematicFinish(ctx, width, height, state, plan, sceneKind, painterKind);
     drawSolverChannelContours(ctx, width, height, state, plan, sceneKind);
+  }
+
+  function isExpandedSceneKind(sceneKind = '') {
+    return /^(weather-atmosphere|ocean-cryosphere|grid-energy|robotics-control|manufacturing-line|quantum-instrument|particle-instrument|molecular-biology|advanced-energy|digital-network|civic-market|chemistry-lab|cultural-material|planetary-space|venue-crowd|sport-motion|structural-mechanics|clinical-control|evolution-ecology|restoration-water|hazard-atmosphere|agro-waste-loop|space-instrument)$/.test(String(sceneKind || ''));
+  }
+
+  function paintExpandedSceneWorld(ctx, width, height, state, plan, sceneKind) {
+    const family = expandedSceneFamily(sceneKind);
+    const hue = fineSceneHue(sceneKind, painterKindForScene(sceneKind));
+    const seed = expandedSceneSeed(plan, sceneKind);
+    drawExpandedBackdrop(ctx, width, height, state, sceneKind, family, hue, seed);
+    if (drawExpandedSpecificScene(ctx, width, height, state, hue, seed, sceneKind)) {
+      drawExpandedEntityMarks(ctx, width, height, state, plan, hue, seed, family);
+      return;
+    }
+    if (family === 'instrument') drawExpandedInstrumentScene(ctx, width, height, state, hue, seed);
+    else if (family === 'orbit') drawExpandedOrbitalScene(ctx, width, height, state, hue, seed);
+    else if (family === 'network') drawExpandedNetworkScene(ctx, width, height, state, hue, seed, sceneKind);
+    else if (family === 'molecular') drawExpandedMolecularScene(ctx, width, height, state, hue, seed);
+    else if (family === 'terrain') drawExpandedTerrainScene(ctx, width, height, state, hue, seed, sceneKind);
+    else if (family === 'ecology') drawExpandedEcologyScene(ctx, width, height, state, hue, seed);
+    else if (family === 'motion') drawExpandedMotionScene(ctx, width, height, state, hue, seed);
+    else drawExpandedLabScene(ctx, width, height, state, hue, seed, sceneKind);
+    drawExpandedEntityMarks(ctx, width, height, state, plan, hue, seed, family);
+  }
+
+  function drawExpandedSpecificScene(ctx, width, height, state, hue, seed, sceneKind) {
+    if (sceneKind === 'weather-atmosphere') return drawExpandedWeatherScene(ctx, width, height, state, hue, seed);
+    if (sceneKind === 'ocean-cryosphere') return drawExpandedOceanCryosphereScene(ctx, width, height, state, hue, seed);
+    if (sceneKind === 'grid-energy') return drawExpandedGridEnergyScene(ctx, width, height, state, hue, seed);
+    if (sceneKind === 'robotics-control') return drawExpandedRoboticsScene(ctx, width, height, state, hue, seed);
+    if (sceneKind === 'manufacturing-line') return drawExpandedManufacturingScene(ctx, width, height, state, hue, seed);
+    if (sceneKind === 'quantum-instrument') return drawExpandedQuantumScene(ctx, width, height, state, hue, seed);
+    if (sceneKind === 'agro-waste-loop') return drawExpandedAgroWasteScene(ctx, width, height, state, hue, seed);
+    return false;
+  }
+
+  function expandedSceneFamily(sceneKind = '') {
+    const scene = String(sceneKind || '').toLowerCase();
+    if (/particle|instrument|space-instrument/.test(scene)) return 'instrument';
+    if (/quantum/.test(scene)) return 'instrument';
+    if (/planetary/.test(scene)) return 'orbit';
+    if (/digital|civic|venue|grid/.test(scene)) return 'network';
+    if (/molecular/.test(scene)) return 'molecular';
+    if (/restoration|hazard|agro|weather|ocean/.test(scene)) return 'terrain';
+    if (/evolution|clinical/.test(scene)) return 'ecology';
+    if (/sport|structural|robotics|manufacturing/.test(scene)) return 'motion';
+    return 'lab';
+  }
+
+  function expandedSceneSeed(plan, sceneKind) {
+    return localVisualSeed([
+      sceneKind,
+      plan && plan.intentText,
+      plan && plan.provenance && plan.provenance.signature,
+      plan && plan.visualGenome && plan.visualGenome.id,
+    ].filter(Boolean).join('|'));
+  }
+
+  function drawExpandedBackdrop(ctx, width, height, state, sceneKind, family, hue, seed) {
+    ctx.save();
+    const dark = family === 'orbit' || family === 'instrument';
+    const top = dark ? `hsl(${hue}, 36%, 12%)` : `hsl(${hue}, 34%, 20%)`;
+    const mid = family === 'network' ? '#ecf7f4' : dark ? `hsl(${hue + 18}, 30%, 22%)` : '#f5fbf7';
+    const bottom = family === 'terrain' || family === 'ecology' ? '#f8fff5' : '#fffdf7';
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, top);
+    gradient.addColorStop(0.5, mid);
+    gradient.addColorStop(1, bottom);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    drawCanvasTexture(ctx, width, height, hue);
+    ctx.globalCompositeOperation = dark ? 'screen' : 'multiply';
+    ctx.strokeStyle = `hsla(${hue + 42}, 52%, ${dark ? 74 : 28}%, ${dark ? 0.11 : 0.08})`;
+    ctx.lineWidth = 1;
+    const spacing = Math.max(30, Math.min(width, height) / (family === 'network' ? 10 : 14));
+    for (let i = -2; i < 18; i += 1) {
+      const offset = hashNoise(seed, i + 13) * spacing;
+      ctx.beginPath();
+      ctx.moveTo(-spacing, height * 0.14 + i * spacing * 0.52 + offset * 0.1);
+      ctx.lineTo(width + spacing, height * 0.08 + i * spacing * 0.48 - offset * 0.08);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedWeatherScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const coreX = width * (0.52 + (hashNoise(seed, 12) - 0.5) * 0.12);
+    const coreY = height * 0.36;
+    const cloud = ctx.createRadialGradient(coreX, coreY, height * 0.04, coreX, coreY, height * 0.38);
+    cloud.addColorStop(0, 'rgba(255,255,255,0.54)');
+    cloud.addColorStop(0.48, `hsla(${hue + 160}, 74%, 62%, 0.22)`);
+    cloud.addColorStop(1, 'rgba(20,28,40,0)');
+    ctx.fillStyle = cloud;
+    ctx.fillRect(0, 0, width, height * 0.72);
+    ctx.globalCompositeOperation = 'screen';
+    for (let band = 0; band < 12; band += 1) {
+      const y = height * (0.18 + band * 0.045);
+      ctx.strokeStyle = `hsla(${hue + 170 + band * 7}, 86%, 68%, ${0.14 + band * 0.006})`;
+      ctx.lineWidth = 1.2 + band * 0.1;
+      ctx.beginPath();
+      for (let step = 0; step <= 42; step += 1) {
+        const x = width * (step / 42);
+        const yy = y + Math.sin(step * 0.46 + band + state.t * 0.06) * height * 0.018;
+        if (!step) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    for (let hail = 0; hail < 36; hail += 1) {
+      const x = width * (0.16 + hashNoise(seed, hail + 41) * 0.68);
+      const y = height * (0.34 + hashNoise(seed, hail + 61) * 0.42);
+      ctx.fillStyle = `hsla(${hue + 190}, 92%, 82%, ${0.18 + hashNoise(seed, hail + 83) * 0.18})`;
+      ctx.beginPath();
+      ctx.arc(x + Math.sin(state.t * 0.12 + hail) * 8, y, 1.5 + hashNoise(seed, hail + 97) * 3.5, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawExpandedOceanCryosphereScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const water = ctx.createLinearGradient(0, height * 0.24, 0, height);
+    water.addColorStop(0, 'rgba(208,244,255,0.28)');
+    water.addColorStop(0.42, 'rgba(22,142,188,0.32)');
+    water.addColorStop(1, 'rgba(6,45,84,0.34)');
+    ctx.fillStyle = water;
+    ctx.fillRect(0, height * 0.26, width, height * 0.74);
+    for (let wave = 0; wave < 11; wave += 1) {
+      ctx.strokeStyle = `hsla(${188 + wave * 5}, 88%, ${58 + wave}%, ${0.14 + wave * 0.006})`;
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      for (let step = 0; step <= 54; step += 1) {
+        const x = width * step / 54;
+        const y = height * (0.36 + wave * 0.047) + Math.sin(step * 0.5 + state.t * 0.07 + wave) * height * 0.016;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    for (let shelf = 0; shelf < 7; shelf += 1) {
+      const x = width * (0.12 + shelf * 0.12 + hashNoise(seed, shelf) * 0.03);
+      const top = height * (0.22 + hashNoise(seed, shelf + 19) * 0.08);
+      ctx.fillStyle = `hsla(${198 + shelf * 6}, 84%, 84%, 0.5)`;
+      ctx.beginPath();
+      ctx.moveTo(x, top);
+      ctx.lineTo(x + width * 0.09, top + height * 0.02);
+      ctx.lineTo(x + width * 0.06, top + height * (0.22 + hashNoise(seed, shelf + 31) * 0.08));
+      ctx.lineTo(x - width * 0.02, top + height * 0.16);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawExpandedGridEnergyScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const grid = ctx.createLinearGradient(0, 0, width, height);
+    grid.addColorStop(0, 'rgba(255,252,220,0.22)');
+    grid.addColorStop(1, 'rgba(20,34,42,0.16)');
+    ctx.fillStyle = grid;
+    ctx.fillRect(0, 0, width, height);
+    const nodes = [
+      [0.18, 0.34, 34, 'substation'],
+      [0.42, 0.24, 24, 'inverter'],
+      [0.68, 0.44, 30, 'transformer'],
+      [0.35, 0.66, 22, 'battery'],
+      [0.76, 0.7, 20, 'load'],
+    ];
+    ctx.lineWidth = 4;
+    for (let i = 1; i < nodes.length; i += 1) {
+      const from = nodes[i - 1];
+      const to = nodes[i];
+      const pulse = Math.sin(state.t * 0.11 + i) * 0.5 + 0.5;
+      ctx.strokeStyle = `hsla(${48 + i * 12}, 96%, ${42 + pulse * 18}%, 0.38)`;
+      ctx.beginPath();
+      ctx.moveTo(from[0] * width, from[1] * height);
+      ctx.bezierCurveTo(width * 0.5, height * (0.18 + i * 0.09), width * 0.5, height * (0.4 + i * 0.04), to[0] * width, to[1] * height);
+      ctx.stroke();
+    }
+    nodes.forEach((node, index) => {
+      const x = node[0] * width;
+      const y = node[1] * height;
+      const r = node[2] + Math.sin(state.t * 0.08 + index) * 3;
+      ctx.fillStyle = `hsla(${44 + index * 28}, 92%, 56%, 0.5)`;
+      ctx.strokeStyle = `hsla(${hue + index * 24}, 82%, 20%, 0.58)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.rect(x - r, y - r * 0.64, r * 2, r * 1.28);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.globalCompositeOperation = 'screen';
+    for (let band = 0; band < 9; band += 1) {
+      ctx.strokeStyle = `hsla(${48 + band * 12}, 98%, 62%, 0.12)`;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.1, height * (0.15 + band * 0.085));
+      ctx.lineTo(width * 0.92, height * (0.2 + band * 0.07 + Math.sin(state.t * 0.06 + band) * 0.02));
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawExpandedRoboticsScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(240,247,252,0.36)';
+    ctx.fillRect(width * 0.08, height * 0.62, width * 0.84, height * 0.1);
+    ctx.strokeStyle = `hsla(${hue + 160}, 60%, 24%, 0.54)`;
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 12; i += 1) {
+      const x = width * (0.12 + i * 0.07 + (state.t * 0.002 % 0.07));
+      ctx.beginPath();
+      ctx.moveTo(x, height * 0.62);
+      ctx.lineTo(x - width * 0.03, height * 0.72);
+      ctx.stroke();
+    }
+    const base = { x: width * 0.32, y: height * 0.56 };
+    const elbow = { x: width * (0.48 + Math.sin(state.t * 0.05) * 0.05), y: height * 0.36 };
+    const hand = { x: width * (0.66 + Math.cos(state.t * 0.06) * 0.05), y: height * 0.5 };
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = `hsla(${hue + 180}, 86%, 46%, 0.72)`;
+    ctx.lineWidth = 18;
+    ctx.beginPath();
+    ctx.moveTo(base.x, base.y);
+    ctx.lineTo(elbow.x, elbow.y);
+    ctx.lineTo(hand.x, hand.y);
+    ctx.stroke();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = `hsla(${hue + 32}, 96%, 62%, 0.42)`;
+    [base, elbow, hand].forEach((point, index) => {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 20 + index * 2, 0, TAU);
+      ctx.stroke();
+    });
+    ctx.restore();
+    return true;
+  }
+
+  function drawExpandedManufacturingScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(255,248,236,0.38)';
+    ctx.fillRect(0, height * 0.6, width, height * 0.18);
+    ctx.fillStyle = `hsla(${hue + 12}, 48%, 26%, 0.28)`;
+    ctx.fillRect(width * 0.16, height * 0.28, width * 0.28, height * 0.28);
+    ctx.fillRect(width * 0.56, height * 0.34, width * 0.22, height * 0.2);
+    ctx.strokeStyle = `hsla(${hue + 176}, 82%, 52%, 0.38)`;
+    ctx.lineWidth = 2;
+    for (let pass = 0; pass < 12; pass += 1) {
+      const x = width * (0.1 + pass * 0.075);
+      ctx.beginPath();
+      ctx.moveTo(x, height * 0.62);
+      ctx.lineTo(x + Math.sin(state.t * 0.08 + pass) * 9, height * 0.75);
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    for (let jet = 0; jet < 16; jet += 1) {
+      const x = width * (0.18 + jet * 0.04);
+      ctx.strokeStyle = `hsla(${190 + jet * 4}, 84%, 64%, 0.15)`;
+      ctx.beginPath();
+      ctx.moveTo(x, height * 0.2);
+      ctx.quadraticCurveTo(x + Math.sin(state.t * 0.05 + jet) * 16, height * 0.44, x + width * 0.04, height * 0.67);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawExpandedQuantumScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(5,8,20,0.62)';
+    ctx.fillRect(width * 0.12, height * 0.16, width * 0.76, height * 0.68);
+    ctx.globalCompositeOperation = 'screen';
+    const cx = width * 0.5;
+    const cy = height * 0.5;
+    for (let ring = 0; ring < 10; ring += 1) {
+      ctx.strokeStyle = `hsla(${260 + ring * 11}, 92%, ${58 + ring}%, ${0.16 + ring * 0.012})`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, width * (0.08 + ring * 0.032), height * (0.024 + ring * 0.018), ring * 0.2 + state.t * 0.01, 0, TAU);
+      ctx.stroke();
+    }
+    for (let trace = 0; trace < 14; trace += 1) {
+      const y = height * (0.25 + trace * 0.038);
+      ctx.strokeStyle = `hsla(${hue + trace * 13}, 96%, 70%, 0.18)`;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.18, y);
+      ctx.lineTo(width * 0.34, y);
+      ctx.lineTo(width * 0.34, y + height * 0.03);
+      ctx.lineTo(width * 0.8, y + height * 0.03 + Math.sin(state.t * 0.05 + trace) * 4);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawExpandedAgroWasteScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let row = 0; row < 8; row += 1) {
+      ctx.fillStyle = `hsla(${92 + row * 8}, 54%, ${38 + row}%, 0.18)`;
+      ctx.fillRect(width * 0.08, height * (0.3 + row * 0.055), width * 0.84, height * 0.026);
+    }
+    ctx.globalCompositeOperation = 'screen';
+    const center = { x: width * 0.28, y: height * 0.62 };
+    const loop = { x: width * 0.62, y: height * 0.46 };
+    ctx.strokeStyle = `hsla(${hue + 42}, 82%, 52%, 0.34)`;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.ellipse(loop.x, loop.y, width * 0.22, height * 0.16, -0.14, 0, TAU);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(249,115,22,0.32)';
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, height * 0.085, 0, TAU);
+    ctx.fill();
+    for (let plume = 0; plume < 18; plume += 1) {
+      ctx.strokeStyle = `hsla(${34 + plume * 4}, 86%, 62%, 0.14)`;
+      ctx.beginPath();
+      ctx.moveTo(center.x, center.y - height * 0.05);
+      ctx.quadraticCurveTo(center.x + Math.sin(plume + state.t * 0.04) * width * 0.12, height * 0.4 - plume * 2, loop.x, loop.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  function drawExpandedInstrumentScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    const cx = width * 0.5;
+    const cy = height * 0.52;
+    const rx = width * 0.3;
+    const ry = height * 0.26;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = `hsla(${hue + 178}, 70%, 66%, 0.1)`;
+    ctx.strokeStyle = `hsla(${hue + 194}, 82%, 74%, 0.38)`;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    for (let i = 0; i < 28; i += 1) {
+      const a = i * TAU / 28;
+      const x = cx + Math.cos(a) * rx * 0.86;
+      const y = cy + Math.sin(a) * ry * 0.86;
+      ctx.fillStyle = `hsla(${hue + i * 9}, 92%, 72%, 0.42)`;
+      ctx.beginPath();
+      ctx.arc(x, y, 3 + hashNoise(seed, i) * 4, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    for (let ray = 0; ray < 6; ray += 1) {
+      const x = width * (0.2 + hashNoise(seed, ray + 31) * 0.6);
+      ctx.strokeStyle = `hsla(${hue + 72 + ray * 12}, 92%, 70%, 0.2)`;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(x, height * 0.16);
+      ctx.lineTo(cx + Math.sin(state.t * 0.04 + ray) * width * 0.08, cy);
+      ctx.lineTo(width * (0.24 + hashNoise(seed, ray + 47) * 0.52), height * 0.86);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedOrbitalScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    const cx = width * 0.52;
+    const cy = height * 0.46;
+    ctx.globalCompositeOperation = 'screen';
+    for (let star = 0; star < 70; star += 1) {
+      const x = width * hashNoise(seed, star + 11);
+      const y = height * hashNoise(seed, star + 107);
+      ctx.fillStyle = `hsla(${hue + star}, 88%, 82%, ${0.08 + hashNoise(seed, star + 211) * 0.16})`;
+      ctx.fillRect(x, y, 1.1, 1.1);
+    }
+    ctx.strokeStyle = `hsla(${hue + 28}, 84%, 70%, 0.3)`;
+    ctx.lineWidth = 2;
+    for (let ring = 0; ring < 8; ring += 1) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, width * (0.16 + ring * 0.035), height * (0.035 + ring * 0.01), -0.18, 0, TAU);
+      ctx.stroke();
+    }
+    const moonX = cx + Math.cos(state.t * 0.015) * width * 0.26;
+    const moonY = cy + Math.sin(state.t * 0.015) * height * 0.07;
+    ctx.fillStyle = `hsla(${hue + 96}, 64%, 62%, 0.78)`;
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, Math.min(width, height) * 0.035, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawExpandedNetworkScene(ctx, width, height, state, hue, seed, sceneKind) {
+    ctx.save();
+    const civic = /civic|venue/.test(sceneKind);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = `hsla(${hue}, 48%, 28%, 0.16)`;
+    ctx.lineWidth = 1.2;
+    for (let row = 0; row < 6; row += 1) {
+      const y = height * (0.2 + row * 0.105);
+      ctx.beginPath();
+      ctx.moveTo(width * 0.1, y);
+      ctx.lineTo(width * 0.9, y + Math.sin(row + state.t * 0.03) * height * 0.015);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 18; i += 1) {
+      const x = width * (0.14 + (i % 6) * 0.14);
+      const y = height * (0.24 + Math.floor(i / 6) * 0.18);
+      const heat = hashNoise(seed, i + 17);
+      ctx.fillStyle = civic ? `hsla(${38 + heat * 44}, 74%, 50%, 0.34)` : `hsla(${hue + heat * 80}, 74%, 42%, 0.34)`;
+      ctx.strokeStyle = `hsla(${hue + 32}, 60%, 22%, 0.36)`;
+      ctx.fillRect(x - 15, y - 10, 30, 20);
+      ctx.strokeRect(x - 15, y - 10, 30, 20);
+      if (i % 6) {
+        ctx.strokeStyle = `hsla(${hue + 108}, 80%, 48%, 0.18)`;
+        ctx.beginPath();
+        ctx.moveTo(x - width * 0.14 + 15, y);
+        ctx.lineTo(x - 15, y + Math.sin(state.t * 0.08 + i) * 5);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedMolecularScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = `hsla(${hue + 44}, 80%, 64%, 0.18)`;
+    for (let band = 0; band < 9; band += 1) {
+      ctx.beginPath();
+      for (let step = 0; step <= 42; step += 1) {
+        const x = width * (0.1 + step / 42 * 0.78);
+        const y = height * (0.22 + band * 0.06) + Math.sin(step * 0.28 + band) * height * 0.018;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = `hsla(${hue + 90}, 76%, 46%, 0.48)`;
+    ctx.beginPath();
+    for (let bead = 0; bead < 15; bead += 1) {
+      const x = width * (0.18 + bead * 0.046);
+      const y = height * (0.54 + Math.sin(bead * 0.82 + state.t * 0.03) * 0.12);
+      if (!bead) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    for (let bead = 0; bead < 15; bead += 1) {
+      const x = width * (0.18 + bead * 0.046);
+      const y = height * (0.54 + Math.sin(bead * 0.82 + state.t * 0.03) * 0.12);
+      ctx.fillStyle = `hsla(${hue + bead * 17}, 82%, 58%, 0.68)`;
+      ctx.beginPath();
+      ctx.arc(x, y, 4 + hashNoise(seed, bead) * 6, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedTerrainScene(ctx, width, height, state, hue, seed, sceneKind) {
+    ctx.save();
+    const water = /restoration|agro/.test(sceneKind);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = water ? 'rgba(74, 145, 130, 0.18)' : 'rgba(122, 112, 92, 0.16)';
+    ctx.beginPath();
+    ctx.moveTo(0, height * 0.72);
+    for (let step = 0; step <= 28; step += 1) {
+      const x = width * step / 28;
+      const y = height * (0.66 + Math.sin(step * 0.54 + seed * 0.0001) * 0.045);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalCompositeOperation = 'screen';
+    for (let front = 0; front < 7; front += 1) {
+      ctx.strokeStyle = `hsla(${hue + front * 16}, 78%, 55%, 0.14)`;
+      ctx.beginPath();
+      const base = height * (0.2 + front * 0.08);
+      for (let step = 0; step <= 38; step += 1) {
+        const x = width * (0.08 + step / 38 * 0.84);
+        const y = base + Math.sin(step * 0.42 + state.t * 0.04 + front) * height * 0.02;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedEcologyScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let layer = 0; layer < 4; layer += 1) {
+      ctx.fillStyle = `hsla(${96 + layer * 22}, 48%, ${34 + layer * 9}%, ${0.1 + layer * 0.035})`;
+      ctx.fillRect(0, height * (0.42 + layer * 0.09), width, height * 0.12);
+    }
+    ctx.globalCompositeOperation = 'screen';
+    for (let organism = 0; organism < 34; organism += 1) {
+      const x = width * (0.08 + hashNoise(seed, organism + 5) * 0.84);
+      const y = height * (0.36 + hashNoise(seed, organism + 41) * 0.44);
+      const r = 2.5 + hashNoise(seed, organism + 83) * 6;
+      ctx.fillStyle = `hsla(${hue + organism * 13}, 70%, 54%, 0.24)`;
+      ctx.beginPath();
+      ctx.ellipse(x, y, r * 1.4, r, Math.sin(state.t * 0.04 + organism), 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedMotionScene(ctx, width, height, state, hue, seed) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    const y = height * 0.56;
+    ctx.strokeStyle = `hsla(${hue + 10}, 44%, 22%, 0.48)`;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.12, y);
+    ctx.bezierCurveTo(width * 0.32, y - height * 0.08, width * 0.66, y + height * 0.08, width * 0.88, y);
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'screen';
+    for (let v = 0; v < 12; v += 1) {
+      const x = width * (0.2 + v * 0.052);
+      ctx.strokeStyle = `hsla(${hue + 68}, 82%, 58%, ${0.1 + hashNoise(seed, v) * 0.1})`;
+      ctx.beginPath();
+      ctx.arc(x, y - height * 0.08 + Math.sin(state.t * 0.08 + v) * 10, 12 + v * 1.8, -0.9, 0.9);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedLabScene(ctx, width, height, state, hue, seed, sceneKind) {
+    ctx.save();
+    const advanced = /advanced/.test(sceneKind);
+    ctx.globalCompositeOperation = 'source-over';
+    const cx = width * 0.52;
+    const cy = height * 0.5;
+    ctx.fillStyle = advanced ? 'rgba(58, 70, 88, 0.22)' : 'rgba(255, 255, 255, 0.24)';
+    ctx.strokeStyle = `hsla(${hue + 120}, 58%, 34%, 0.42)`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.rect(cx - width * 0.22, cy - height * 0.22, width * 0.44, height * 0.42);
+    ctx.fill();
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'screen';
+    for (let band = 0; band < 8; band += 1) {
+      const y = cy - height * 0.14 + band * height * 0.04;
+      ctx.strokeStyle = `hsla(${hue + band * 18}, 86%, 58%, 0.2)`;
+      ctx.beginPath();
+      ctx.moveTo(cx - width * 0.18, y);
+      ctx.bezierCurveTo(cx - width * 0.06, y + Math.sin(state.t * 0.05 + band) * 14, cx + width * 0.08, y - 10, cx + width * 0.18, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawExpandedEntityMarks(ctx, width, height, state, plan, hue, seed, family) {
+    const entities = plan && plan.visualIR && plan.visualIR.entities || [];
+    if (!entities.length) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    entities.slice(0, 10).forEach((entity, index) => {
+      const point = visualIREntityPoint(entity, width, height, index);
+      const radius = Math.min(width, height) * (0.012 + hashNoise(seed, index + 71) * 0.018);
+      ctx.fillStyle = `hsla(${hue + index * 29}, 74%, 48%, ${family === 'orbit' ? 0.72 : 0.42})`;
+      ctx.strokeStyle = `hsla(${hue + index * 29 + 40}, 72%, 24%, 0.38)`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      if (family === 'network') ctx.rect(point.x - radius, point.y - radius * 0.75, radius * 2, radius * 1.5);
+      else ctx.arc(point.x, point.y, radius, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawVisualIRProgram(ctx, width, height, state, plan) {
+    const visualIR = plan && plan.visualIR;
+    if (!visualIR || visualIR.schema !== 'simulatte.visualIR.v1') return;
+    ctx.save();
+    drawVisualIRCameraField(ctx, width, height, state, visualIR);
+    drawVisualIRMaterialPass(ctx, width, height, state, visualIR);
+    drawVisualIRFieldPass(ctx, width, height, state, visualIR);
+    drawVisualIRGeometryPass(ctx, width, height, state, visualIR);
+    drawVisualIRProcessPass(ctx, width, height, state, visualIR);
+    drawVisualIRReceiptMarks(ctx, width, height, state, visualIR);
+    ctx.restore();
+  }
+
+  function drawVisualIRCameraField(ctx, width, height, state, visualIR) {
+    const camera = visualIR.camera || {};
+    const lighting = visualIR.lighting || {};
+    const hue = finiteVisualNumber(lighting.keyHue, fineSceneHue(visualIR.sceneKind, visualIR.painterKind));
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    if (/cutaway|micro/.test(camera.mode || '')) {
+      ctx.strokeStyle = `hsla(${hue}, 42%, 28%, 0.16)`;
+      ctx.lineWidth = 1.2;
+      for (let slice = 0; slice < 7; slice += 1) {
+        const x = width * (0.14 + slice * 0.11);
+        ctx.beginPath();
+        ctx.moveTo(x, height * 0.16);
+        ctx.lineTo(x + Math.sin(state.t * 0.03 + slice) * width * 0.018, height * 0.86);
+        ctx.stroke();
+      }
+    } else if (/map|topographic/.test(camera.mode || '')) {
+      ctx.strokeStyle = `hsla(${hue}, 38%, 30%, 0.11)`;
+      ctx.lineWidth = 1;
+      for (let band = 0; band < 9; band += 1) {
+        ctx.beginPath();
+        for (let step = 0; step <= 42; step += 1) {
+          const x = width * (0.06 + step / 42 * 0.88);
+          const y = height * (0.18 + band * 0.075) + Math.sin(step * 0.48 + band) * height * 0.015;
+          if (!step) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    } else if (/orbital/.test(camera.mode || '')) {
+      ctx.globalCompositeOperation = 'screen';
+      ctx.strokeStyle = `hsla(${hue}, 70%, 62%, 0.14)`;
+      for (let ring = 0; ring < 6; ring += 1) {
+        ctx.beginPath();
+        ctx.ellipse(width * 0.58, height * 0.38, width * (0.12 + ring * 0.05), height * (0.035 + ring * 0.018), -0.24, 0, TAU);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawVisualIRMaterialPass(ctx, width, height, state, visualIR) {
+    const materials = (visualIR.materials || []).slice(0, 8);
+    if (!materials.length) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    materials.forEach((material, index) => {
+      const hue = materialHueFromColor(material.fill, index);
+      const alpha = Math.min(0.16, 0.035 + finiteVisualNumber(material.opacity, 0.5) * 0.08);
+      if (/thermal|emissive|heat/.test(material.shader || material.family || '')) {
+        drawVisualIRThermalMaterial(ctx, width, height, state, hue, alpha, index);
+      } else if (/fluid|ripple|volume/.test(material.shader || material.family || '')) {
+        drawVisualIRFluidMaterial(ctx, width, height, state, hue, alpha, index);
+      } else if (/caustic|transparent/.test(material.shader || material.family || '')) {
+        drawVisualIRCausticMaterial(ctx, width, height, state, hue, alpha, index);
+      } else if (/metal|charged|electric/.test(material.shader || material.family || '')) {
+        drawVisualIRTraceMaterial(ctx, width, height, state, hue, alpha, index);
+      } else if (/biological|cellular|fibrous/.test(material.shader || material.family || '')) {
+        drawVisualIRCellMaterial(ctx, width, height, state, hue, alpha, index);
+      } else {
+        drawVisualIRParticleMaterial(ctx, width, height, state, hue, alpha, index);
+      }
+    });
+    ctx.restore();
+  }
+
+  function drawVisualIRFieldPass(ctx, width, height, state, visualIR) {
+    const fields = (visualIR.fields || []).slice(0, 8);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    fields.forEach((field, index) => {
+      const hue = visualIRHue(visualIR, index * 31);
+      const encoding = String(field.visualEncoding || field.kind || '');
+      if (/node-link|network/.test(encoding)) drawVisualIRNetworkField(ctx, width, height, state, hue, field, index);
+      else if (/ray|caustic|optical/.test(encoding)) drawVisualIRRayField(ctx, width, height, state, hue, field, index);
+      else if (/heat|isoband|thermal/.test(encoding)) drawVisualIRHeatField(ctx, width, height, state, hue, field, index);
+      else if (/topographic|stream/.test(encoding)) drawVisualIRStreamField(ctx, width, height, state, hue, field, index);
+      else drawVisualIRFluxField(ctx, width, height, state, hue, field, index);
+    });
+    ctx.restore();
+  }
+
+  function drawVisualIRGeometryPass(ctx, width, height, state, visualIR) {
+    const entities = visualIREntityMap(visualIR);
+    const rows = (visualIR.geometry || []).slice(0, 18);
+    ctx.save();
+    rows.forEach((row, index) => {
+      const entity = entities.get(row.entityId) || {};
+      const hue = visualIRHue(visualIR, index * 19);
+      if (row.primitive === 'node-link-agent') drawVisualIRAgentNodes(ctx, width, height, state, hue, entity, index);
+      else if (row.primitive === 'volume-ribbon') drawVisualIRVolumeRibbon(ctx, width, height, state, hue, entity, index);
+      else if (row.primitive === 'sectioned-surface') drawVisualIRSectionSurface(ctx, width, height, state, hue, entity, index);
+      else if (row.primitive === 'instrument-glyph') drawVisualIRInstrument(ctx, width, height, state, hue, entity, index);
+      else if (row.primitive === 'organic-silhouette') drawVisualIROrganic(ctx, width, height, state, hue, entity, index);
+      else if (row.primitive === 'orbital-body') drawVisualIROrbitalBody(ctx, width, height, state, hue, entity, index);
+      else if (row.primitive === 'field-sheet') drawVisualIRFluxField(ctx, width, height, state, hue, row, index);
+      else drawVisualIRSectionSurface(ctx, width, height, state, hue, entity, index);
+    });
+    ctx.restore();
+  }
+
+  function drawVisualIRProcessPass(ctx, width, height, state, visualIR) {
+    const motions = visualIR.motion || [];
+    const processes = visualIR.processes || [];
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    processes.slice(0, 10).forEach((process, index) => {
+      const motion = motions[index] || {};
+      const hue = visualIRHue(visualIR, index * 43);
+      const op = String(process.operator || '');
+      if (/routing|agent/.test(op)) drawVisualIRRoutingMotion(ctx, width, height, state, hue, motion, index);
+      else if (/orbit|wave/.test(op)) drawVisualIRWaveMotion(ctx, width, height, state, hue, motion, index);
+      else if (/growth/.test(op)) drawVisualIRGrowthMotion(ctx, width, height, state, hue, motion, index);
+      else if (/constraint|impulse/.test(op)) drawVisualIRImpulseMotion(ctx, width, height, state, hue, motion, index);
+      else if (/thermal|front/.test(op)) drawVisualIRThermalMotion(ctx, width, height, state, hue, motion, index);
+      else drawVisualIRParticleMotion(ctx, width, height, state, hue, motion, index);
+    });
+    ctx.restore();
+  }
+
+  function drawVisualIRReceiptMarks(ctx, width, height, state, visualIR) {
+    const receipts = visualIR.receipts || [];
+    if (!receipts.length) return;
+    const hue = visualIRHue(visualIR, 137);
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = `hsla(${hue}, 68%, 42%, 0.2)`;
+    receipts.slice(0, 6).forEach((receipt, index) => {
+      const x = width * (0.075 + index * 0.028);
+      const y = height * 0.92;
+      const h = Math.max(5, Math.min(26, Number(receipt.count || 1) * 2.2));
+      ctx.fillRect(x, y - h, width * 0.012, h);
+    });
+    ctx.restore();
+  }
+
+  function drawSceneCinematicFinish(ctx, width, height, state, plan, sceneKind, painterKind) {
+    const hue = fineSceneHue(sceneKind, painterKind);
+    const pulse = 0.5 + 0.5 * Math.sin((state.t || 0) * 0.42 + hue * 0.013);
+    ctx.save();
+    ctx.globalCompositeOperation = 'soft-light';
+    const wash = ctx.createLinearGradient(0, 0, width, height);
+    wash.addColorStop(0, `hsla(${hue}, 88%, 72%, 0.18)`);
+    wash.addColorStop(0.46, 'rgba(255, 255, 255, 0.04)');
+    wash.addColorStop(1, `hsla(${(hue + 94) % 360}, 76%, 54%, 0.14)`);
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.globalCompositeOperation = 'screen';
+    const beam = ctx.createLinearGradient(width * 0.08, height * 0.04, width * 0.82, height * 0.86);
+    beam.addColorStop(0, `hsla(${(hue + 18) % 360}, 90%, 82%, ${0.18 + pulse * 0.05})`);
+    beam.addColorStop(0.34, 'rgba(255, 255, 255, 0.03)');
+    beam.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = beam;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.04, 0);
+    ctx.lineTo(width * 0.46, 0);
+    ctx.lineTo(width * 0.92, height);
+    ctx.lineTo(width * 0.56, height);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = `hsla(${hue}, 70%, 28%, 0.09)`;
+    ctx.lineWidth = 1;
+    const horizon = height * 0.72;
+    for (let i = 0; i < 9; i += 1) {
+      const y = horizon + i * height * 0.026;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.08 - i * width * 0.016, y);
+      ctx.quadraticCurveTo(width * 0.5, y - height * 0.035, width * 0.94 + i * width * 0.012, y);
+      ctx.stroke();
+    }
+
+    ctx.globalCompositeOperation = 'screen';
+    const signature = String(plan && plan.provenance && plan.provenance.signature || sceneKind || '');
+    for (let i = 0; i < 18; i += 1) {
+      const seed = localVisualSeed(`${signature}:cinematic:${i}`);
+      const x = width * (0.08 + 0.84 * hashNoise(seed, 17));
+      const y = height * (0.08 + 0.72 * hashNoise(seed, 31));
+      const r = 1.5 + hashNoise(seed, 47) * 5.5;
+      ctx.fillStyle = `hsla(${(hue + i * 19) % 360}, 95%, 76%, ${0.06 + hashNoise(seed, 59) * 0.1})`;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU);
+      ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = 'multiply';
+    const vignette = ctx.createRadialGradient(width * 0.5, height * 0.48, Math.min(width, height) * 0.22, width * 0.5, height * 0.5, Math.max(width, height) * 0.72);
+    vignette.addColorStop(0, 'rgba(255,255,255,0)');
+    vignette.addColorStop(1, 'rgba(18,24,28,0.18)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  function fineSceneHue(sceneKind, painterKind) {
+    const scene = String(sceneKind || painterKind || '').toLowerCase();
+    if (/chemistry|energy|material|cultural/.test(scene)) return 28;
+    if (/space|planetary|instrument|optics/.test(scene)) return 216;
+    if (/digital|civic|venue|city/.test(scene)) return 172;
+    if (/clinical|biology|ecology|agro|restoration/.test(scene)) return 118;
+    if (/hazard|thermal|fire/.test(scene)) return 12;
+    if (/sport|mechanical/.test(scene)) return 202;
+    if (/acoustic/.test(scene)) return 286;
+    if (/watershed/.test(scene)) return 184;
+    return 44;
+  }
+
+  function localVisualSeed(value) {
+    let hash = 2166136261;
+    const text = String(value || '');
+    for (let i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function visualIRHue(visualIR, salt = 0) {
+    const lighting = visualIR && visualIR.lighting || {};
+    const base = finiteVisualNumber(lighting.keyHue, fineSceneHue(visualIR.sceneKind, visualIR.painterKind));
+    return normalizeVisualHue(base + salt);
+  }
+
+  function materialHueFromColor(value, index = 0) {
+    const text = String(value || '');
+    const hex = text.match(/#([0-9a-f]{6})/i);
+    if (hex) {
+      const r = Number.parseInt(hex[1].slice(0, 2), 16) / 255;
+      const g = Number.parseInt(hex[1].slice(2, 4), 16) / 255;
+      const b = Number.parseInt(hex[1].slice(4, 6), 16) / 255;
+      return normalizeVisualHue(rgbHue(r, g, b));
+    }
+    return normalizeVisualHue(localVisualSeed(`${text}:${index}`) % 360);
+  }
+
+  function rgbHue(r, g, b) {
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    if (!delta) return 0;
+    if (max === r) return 60 * (((g - b) / delta) % 6);
+    if (max === g) return 60 * ((b - r) / delta + 2);
+    return 60 * ((r - g) / delta + 4);
+  }
+
+  function visualIREntityMap(visualIR) {
+    return new Map((visualIR.entities || []).map((entity) => [entity.id, entity]));
+  }
+
+  function visualIREntityPoint(entity, width, height, index = 0) {
+    const pose = entity && entity.pose || {};
+    if (Number.isFinite(Number(pose.x)) && Number.isFinite(Number(pose.y))) {
+      return { x: Number(pose.x) * width, y: Number(pose.y) * height };
+    }
+    if (Array.isArray(pose.points) && pose.points.length) {
+      const point = pose.points[Math.min(index, pose.points.length - 1)];
+      return { x: point[0] * width, y: point[1] * height };
+    }
+    const seed = localVisualSeed(`${entity && entity.id || 'entity'}:${index}`);
+    return {
+      x: width * (0.16 + hashNoise(seed, 11) * 0.68),
+      y: height * (0.18 + hashNoise(seed, 17) * 0.62),
+    };
+  }
+
+  function drawVisualIRThermalMaterial(ctx, width, height, state, hue, alpha, index) {
+    for (let i = 0; i < 42; i += 1) {
+      const seed = localVisualSeed(`thermal:${hue}:${index}:${i}`);
+      const x = width * (0.12 + hashNoise(seed, 3) * 0.76);
+      const y = height * (0.24 + hashNoise(seed, 5) * 0.58 - Math.sin(state.t * 0.05 + i) * 0.03);
+      ctx.fillStyle = `hsla(${normalizeVisualHue(hue + i * 5)}, 94%, 58%, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.4 + hashNoise(seed, 7) * 4.6, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  function drawVisualIRFluidMaterial(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 72%, 46%, ${alpha})`;
+    ctx.lineWidth = 1.2;
+    for (let band = 0; band < 8; band += 1) {
+      ctx.beginPath();
+      for (let step = 0; step <= 34; step += 1) {
+        const x = width * (0.08 + step / 34 * 0.84);
+        const y = height * (0.28 + band * 0.062) + Math.sin(step * 0.48 + state.t * 0.13 + band + index) * height * 0.018;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRCausticMaterial(ctx, width, height, state, hue, alpha, index) {
+    ctx.lineWidth = 1;
+    for (let ray = 0; ray < 12; ray += 1) {
+      const y = height * (0.16 + ray * 0.06);
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + ray * 21)}, 94%, 68%, ${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.08, y);
+      ctx.quadraticCurveTo(width * 0.46, y + Math.sin(state.t * 0.08 + ray + index) * 22, width * 0.9, height * 0.48);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRTraceMaterial(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 72%, 42%, ${alpha})`;
+    ctx.lineWidth = 1.1;
+    for (let trace = 0; trace < 10; trace += 1) {
+      const y = height * (0.18 + trace * 0.07);
+      ctx.beginPath();
+      ctx.moveTo(width * 0.12, y);
+      ctx.lineTo(width * 0.32, y);
+      ctx.lineTo(width * 0.32, y + height * 0.035);
+      ctx.lineTo(width * (0.78 + Math.sin(state.t * 0.04 + trace + index) * 0.04), y + height * 0.035);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRCellMaterial(ctx, width, height, state, hue, alpha, index) {
+    ctx.strokeStyle = `hsla(${hue}, 64%, 36%, ${alpha})`;
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 54)}, 78%, 62%, ${alpha * 0.38})`;
+    for (let cell = 0; cell < 34; cell += 1) {
+      const seed = localVisualSeed(`cell:${hue}:${index}:${cell}`);
+      const x = width * (0.12 + hashNoise(seed, 11) * 0.76);
+      const y = height * (0.18 + hashNoise(seed, 13) * 0.66);
+      const r = 4 + hashNoise(seed, 17) * 8;
+      ctx.beginPath();
+      ctx.ellipse(x, y, r * 1.4, r * (0.65 + Math.sin(state.t * 0.04 + cell) * 0.08), hashNoise(seed, 19) * TAU, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRParticleMaterial(ctx, width, height, state, hue, alpha, index) {
+    ctx.fillStyle = `hsla(${hue}, 56%, 42%, ${alpha})`;
+    for (let dot = 0; dot < 60; dot += 1) {
+      const seed = localVisualSeed(`particle:${hue}:${index}:${dot}`);
+      const x = width * (0.08 + hashNoise(seed, 23) * 0.84);
+      const y = height * (0.18 + hashNoise(seed, 29) * 0.66);
+      const s = 1.2 + hashNoise(seed, 31) * 3.6;
+      ctx.fillRect(x, y, s, s);
+    }
+  }
+
+  function drawVisualIRNetworkField(ctx, width, height, state, hue, field, index) {
+    ctx.strokeStyle = `hsla(${hue}, 68%, 42%, ${0.08 + field.strength * 0.09})`;
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 70)}, 82%, 58%, 0.18)`;
+    for (let row = 0; row < 6; row += 1) {
+      const y = height * (0.2 + row * 0.1);
+      ctx.beginPath();
+      ctx.moveTo(width * 0.12, y);
+      ctx.lineTo(width * 0.88, y + Math.sin(state.t * 0.07 + row + index) * height * 0.018);
+      ctx.stroke();
+      for (let node = 0; node < 7; node += 1) {
+        const phase = (state.t * 0.025 + node * 0.11 + row * 0.07) % 1;
+        const x = width * (0.15 + node * 0.115 + phase * 0.014);
+        ctx.fillRect(x - 3, y - 3, 6, 6);
+      }
+    }
+  }
+
+  function drawVisualIRRayField(ctx, width, height, state, hue, field, index) {
+    const geometry = field.geometry || {};
+    const from = geometry.from || [0.1, 0.28];
+    const to = geometry.to || [0.86, 0.54];
+    for (let ray = 0; ray < 10; ray += 1) {
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + ray * 18)}, 94%, 66%, ${0.08 + field.strength * 0.08})`;
+      ctx.beginPath();
+      ctx.moveTo(from[0] * width, (from[1] + ray * 0.026) * height);
+      ctx.quadraticCurveTo(width * 0.48, height * (0.36 + Math.sin(state.t * 0.06 + ray + index) * 0.04), to[0] * width, (to[1] + (ray - 5) * 0.022) * height);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRHeatField(ctx, width, height, state, hue, field, index) {
+    const geometry = field.geometry || {};
+    const center = geometry.center || [0.52, 0.56];
+    const radius = finiteVisualNumber(geometry.radius, 0.34);
+    for (let ring = 0; ring < 8; ring += 1) {
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + ring * 8)}, 92%, 58%, ${0.08 + field.strength * 0.05 - ring * 0.004})`;
+      ctx.beginPath();
+      ctx.ellipse(center[0] * width, center[1] * height, width * radius * (0.22 + ring * 0.1), height * radius * (0.1 + ring * 0.05), 0, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRStreamField(ctx, width, height, state, hue, field, index) {
+    ctx.strokeStyle = `hsla(${hue}, 72%, 44%, ${0.09 + field.strength * 0.08})`;
+    ctx.lineWidth = 1.4;
+    for (let stream = 0; stream < 9; stream += 1) {
+      ctx.beginPath();
+      for (let step = 0; step <= 36; step += 1) {
+        const x = width * (0.1 + step / 36 * 0.8);
+        const y = height * (0.18 + stream * 0.072 + step * 0.011) + Math.sin(step * 0.5 + state.t * 0.09 + stream + index) * height * 0.018;
+        if (!step) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRFluxField(ctx, width, height, state, hue, field, index) {
+    const geometry = field.geometry || {};
+    const center = geometry.center || [0.52, 0.5];
+    for (let line = 0; line < 14; line += 1) {
+      const angle = line / 14 * TAU + state.t * 0.02;
+      ctx.strokeStyle = `hsla(${normalizeVisualHue(hue + line * 9)}, 72%, 52%, ${0.07 + field.strength * 0.08})`;
+      ctx.beginPath();
+      ctx.ellipse(center[0] * width, center[1] * height, width * (0.08 + line * 0.012), height * (0.035 + line * 0.006), angle, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRAgentNodes(ctx, width, height, state, hue, entity, index) {
+    const point = visualIREntityPoint(entity, width, height, index);
+    ctx.fillStyle = `hsla(${hue}, 72%, 46%, 0.24)`;
+    for (let i = 0; i < 12; i += 1) {
+      const a = i / 12 * TAU;
+      const r = Math.min(width, height) * (0.025 + (i % 4) * 0.012);
+      ctx.fillRect(point.x + Math.cos(a) * r - 3, point.y + Math.sin(a) * r - 3, 6, 6);
+    }
+  }
+
+  function drawVisualIRVolumeRibbon(ctx, width, height, state, hue, entity, index) {
+    const point = visualIREntityPoint(entity, width, height, index);
+    ctx.strokeStyle = `hsla(${hue}, 76%, 54%, 0.16)`;
+    ctx.lineWidth = 3;
+    for (let band = 0; band < 5; band += 1) {
+      ctx.beginPath();
+      ctx.moveTo(point.x - width * 0.18, point.y + band * height * 0.02);
+      ctx.bezierCurveTo(point.x - width * 0.05, point.y - height * 0.08, point.x + width * 0.08, point.y + height * 0.08, point.x + width * 0.22, point.y);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRSectionSurface(ctx, width, height, state, hue, entity, index) {
+    const point = visualIREntityPoint(entity, width, height, index);
+    ctx.fillStyle = `hsla(${hue}, 24%, 34%, 0.14)`;
+    ctx.strokeStyle = `hsla(${hue}, 34%, 22%, 0.26)`;
+    const w = width * 0.12;
+    const h = height * 0.18;
+    ctx.fillRect(point.x - w * 0.5, point.y - h * 0.5, w, h);
+    ctx.strokeRect(point.x - w * 0.5, point.y - h * 0.5, w, h);
+    for (let row = 0; row < 4; row += 1) {
+      ctx.beginPath();
+      ctx.moveTo(point.x - w * 0.45, point.y - h * 0.3 + row * h * 0.2);
+      ctx.lineTo(point.x + w * 0.45, point.y - h * 0.32 + row * h * 0.2);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRInstrument(ctx, width, height, state, hue, entity, index) {
+    const point = visualIREntityPoint(entity, width, height, index);
+    ctx.strokeStyle = `hsla(${hue}, 70%, 44%, 0.32)`;
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 66)}, 82%, 70%, 0.12)`;
+    ctx.beginPath();
+    ctx.rect(point.x - width * 0.035, point.y - height * 0.025, width * 0.07, height * 0.05);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(point.x, point.y);
+    ctx.lineTo(width * (0.55 + Math.sin(index) * 0.2), height * 0.42);
+    ctx.stroke();
+  }
+
+  function drawVisualIROrganic(ctx, width, height, state, hue, entity, index) {
+    const point = visualIREntityPoint(entity, width, height, index);
+    ctx.strokeStyle = `hsla(${hue}, 62%, 34%, 0.24)`;
+    for (let branch = 0; branch < 9; branch += 1) {
+      const a = -Math.PI * 0.72 + branch * 0.18 + Math.sin(state.t * 0.05 + index) * 0.05;
+      const len = height * (0.06 + (branch % 4) * 0.018);
+      ctx.beginPath();
+      ctx.moveTo(point.x, point.y);
+      ctx.quadraticCurveTo(point.x + Math.cos(a) * len * 0.45, point.y + Math.sin(a) * len * 0.55, point.x + Math.cos(a) * len, point.y + Math.sin(a) * len);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIROrbitalBody(ctx, width, height, state, hue, entity, index) {
+    const point = visualIREntityPoint(entity, width, height, index);
+    ctx.strokeStyle = `hsla(${hue}, 74%, 64%, 0.2)`;
+    ctx.fillStyle = `hsla(${normalizeVisualHue(hue + 62)}, 82%, 68%, 0.18)`;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 5 + index % 5, 0, TAU);
+    ctx.fill();
+    for (let orbit = 0; orbit < 3; orbit += 1) {
+      ctx.beginPath();
+      ctx.ellipse(point.x, point.y, width * (0.045 + orbit * 0.026), height * (0.015 + orbit * 0.01), state.t * 0.015 + orbit, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRRoutingMotion(ctx, width, height, state, hue, motion, index) {
+    ctx.fillStyle = `hsla(${hue}, 86%, 58%, 0.22)`;
+    for (let i = 0; i < 24; i += 1) {
+      const phase = (state.t * motion.speed * 0.08 + i / 24 + index * 0.07) % 1;
+      const x = width * (0.12 + phase * 0.76);
+      const y = height * (0.22 + (i % 6) * 0.09);
+      ctx.fillRect(x - 2, y - 2, 4, 4);
+    }
+  }
+
+  function drawVisualIRWaveMotion(ctx, width, height, state, hue, motion, index) {
+    ctx.strokeStyle = `hsla(${hue}, 82%, 62%, 0.18)`;
+    for (let ring = 0; ring < 7; ring += 1) {
+      ctx.beginPath();
+      ctx.ellipse(width * 0.54, height * 0.44, width * (0.06 + ring * 0.045), height * (0.02 + ring * 0.018), state.t * 0.03 + index, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  function drawVisualIRGrowthMotion(ctx, width, height, state, hue, motion, index) {
+    drawProcessGrowth(ctx, width, height, state, hue, 0.12, index);
+  }
+
+  function drawVisualIRImpulseMotion(ctx, width, height, state, hue, motion, index) {
+    drawProcessFracture(ctx, width, height, state, hue, 0.11, index);
+  }
+
+  function drawVisualIRThermalMotion(ctx, width, height, state, hue, motion, index) {
+    drawProcessBurnMelt(ctx, width, height, state, hue, 0.1, index);
+  }
+
+  function drawVisualIRParticleMotion(ctx, width, height, state, hue, motion, index) {
+    drawVisualIRParticleMaterial(ctx, width, height, state, hue, 0.08, index);
+  }
+
+  function painterKindForScene(sceneKind = '') {
+    const scene = String(sceneKind || '').toLowerCase();
+    if (/chemistry-lab|advanced-energy|cultural-material/.test(scene)) return 'material-tray';
+    if (/planetary-space|space-instrument/.test(scene)) return 'optics';
+    if (/digital-network|civic-market|venue-crowd/.test(scene)) return 'city';
+    if (/clinical-control|evolution-ecology|agro-waste-loop|restoration-water/.test(scene)) return 'biology';
+    if (/hazard-atmosphere/.test(scene)) return 'watershed';
+    if (/sport-motion/.test(scene)) return 'mechanical';
+    if (scene === 'generic' || scene === 'literal-composite') return 'mechanical';
+    return scene;
   }
 
   function drawSolverChannelContours(ctx, width, height, state, plan, sceneKind = '') {
@@ -1721,7 +2852,9 @@
     if (/heightfield|flow-path|grain-bed/.test(signature)) return 'watershed';
     if (/ferrofluid|coil|current/.test(signature)) return 'ferrofluid';
     if (/animal-body|wheel|collision/.test(signature)) return 'mechanical';
-    if (/singularity|wetland|hammer/.test(signature)) return 'literal-composite';
+    if (/singularity|dark-matter|galaxy|lens/.test(signature)) return 'planetary-space';
+    if (/wetland|mangrove|peatland|oyster|restoration/.test(signature)) return 'restoration-water';
+    if (/hammer|prosthetic|robot|surgery|gait/.test(signature)) return 'clinical-control';
     if (/soap|film|bubble|wire/.test(signature)) return 'thin-film';
     if (/granular|sieve|avalanche|powder/.test(signature)) return 'granular';
     if (/cooling|thermal-plume|heat plume/.test(signature)) return 'thermal-plume';
@@ -1729,12 +2862,12 @@
     if (/sample|bar|pool|grain-bed/.test(signature)) return 'material-tray';
     if (/colony|membrane/.test(signature)) return 'biology';
     if (/acoustic|sound|wave|pressure|resonance/.test(signature)) return 'acoustic';
-    return 'generic';
+    return 'mechanical';
   }
 
   function nonGenericSceneKind(value) {
     const scene = String(value || '').trim();
-    return scene && scene !== 'generic' ? scene : '';
+    return scene && scene !== 'generic' && scene !== 'literal-composite' ? scene : '';
   }
 
   function sceneKindFromPlanSignals(plan = {}) {
@@ -1755,6 +2888,18 @@
       (solverPlan.executableSteps || solverPlan.steps || []).join(' '),
       (solverPlan.families || []).join(' '),
     ].join(' ').toLowerCase();
+    if (/cyber|blockchain|mempool|recommendation|search|query|index|server|compiler|database|tensor|logic|packet|service graph/.test(text)) return 'digital-network';
+    if (/housing|power market|carbon credit|supply demand|bullwhip|transit priority|dispatch|policy|audit ledger|market_network/.test(text)) return 'civic-market';
+    if (/chemical clock|belousov|polymer|epoxy|crosslink|electroplat|catalyst|ammonia|electrolyzer|crystal nucleation|reaction dish/.test(text)) return 'chemistry-lab';
+    if (/museum|archive|preservation|pigment|paint|varnish|ceramic glaze|canvas|conservation/.test(text)) return 'cultural-material';
+    if (/radio telescope|deep space|microwave|beamforming|probe|antenna|planet|asteroid|mars|venus|europa|titan|interstellar|dark matter|galaxy cluster|comet/.test(text)) return 'planetary-space';
+    if (/festival|stadium|restaurant|hotel|elevator|venue|crowd agents|fan agents|order queue/.test(text)) return 'venue-crowd';
+    if (/skate|ski|surf|sailing|archery|fairground|mountain bike|rider agents/.test(text)) return 'sport-motion';
+    if (/robot surgery|prosthetic|rehab|vaccine|hospital|clinical|patient|tissue mesh|sensor skin|muscle activation|bedflow/.test(text)) return 'clinical-control';
+    if (/population genetics|allele|succession|predator|prey|pollinator|fish school|bird flock|animal trail|crop|greenhouse|algae bioreactor|compost|landfill|recycling/.test(text)) return 'evolution-ecology';
+    if (/water treatment|peatland|oyster reef|desertification|restoration|rewetting|nitrification|living breakwater/.test(text)) return 'restoration-water';
+    if (/earthquake|tsunami|hurricane|tornado|mine ventilation|tunnel boring|urban heat|noise pollution|light pollution|air quality|hazard/.test(text)) return 'hazard-atmosphere';
+    if (/stellarator|fusion|nuclear waste|hydrogen|electrolyzer|plasma ribbon|geologic repository/.test(text)) return 'advanced-energy';
     if (/thin-film|thin film|soap|surface_tension|wire-loop|bubble/.test(text)) return 'thin-film';
     if (/tray|raw material|heat diffusion sample/.test(text)) return 'material-tray';
     if (/thermal plume|cooling|cooler|smoke over cooling/.test(text) && /thermal|heat|temperature/.test(text)) {
@@ -1763,9 +2908,11 @@
     if (/process-fire|flame|combustion|fuel|burn/.test(text) && /heat_source|reaction_diffusion|burn/.test(text)) {
       return 'fire';
     }
-    if (/lava|magma|volcano|black-hole|singularity|swamp|wetland|hammer|gold|spaceship|spacecraft|rocket|submarine|piano/.test(text)) {
-      return 'literal-composite';
-    }
+    if (/lava|magma|volcano/.test(text)) return 'thermal-plume';
+    if (/black-hole|singularity|spacecraft|rocket/.test(text)) return 'planetary-space';
+    if (/swamp|wetland|submarine/.test(text)) return 'watershed';
+    if (/hammer|gold/.test(text)) return 'mechanical';
+    if (/piano/.test(text)) return 'acoustic';
     if (/lens|prism|mirror|optics|field_refraction|field_reflection|laser/.test(text)) return 'optics';
     if (/network|queue|traffic|market|network_flow|backlog|throughput/.test(text)) return 'city';
     if (/wheel|rotor|stator|slider|sliding|electromagnetism|magnetic_force|rotor-wheel/.test(text) && /magnet|magnetic/.test(text)) {
@@ -1785,7 +2932,9 @@
     if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|density/.test(text)) return 'biology';
     if (/acoustic|sound|wave_field|resonance|amplitude/.test(text)) return 'acoustic';
     if (/fluid|water|flowVelocity|advection/.test(text)) return 'watershed';
-    if (/turbine|castle|ice|storm|instrument/.test(text)) return 'literal-composite';
+    if (/turbine/.test(text)) return 'mechanical';
+    if (/ice|storm/.test(text)) return 'watershed';
+    if (/instrument/.test(text)) return 'acoustic';
     return '';
   }
 
@@ -2396,7 +3545,7 @@
         asymmetry: 0.32,
       },
       motifs: ['fallback-field'],
-      promptDna: fallbackPromptDna(seed),
+      visualDna: fallbackVisualDna(seed),
     };
   }
 
@@ -2410,7 +3559,7 @@
     else if (mode === 'radial') drawGenomeRadialTexture(ctx, width, height, state, genome);
     else if (mode === 'strata') drawGenomeStrataTexture(ctx, width, height, state, genome);
     else drawGenomeContourTexture(ctx, width, height, state, genome);
-    drawPromptFingerprintTexture(ctx, width, height, state, genome);
+    drawVisualFingerprintTexture(ctx, width, height, state, genome);
     drawSemanticWorldLayers(ctx, width, height, state, genome);
     drawGenomeMotifMarks(ctx, width, height, state, genome);
     ctx.restore();
@@ -2946,10 +4095,10 @@
     }
   }
 
-  function drawPromptFingerprintTexture(ctx, width, height, state, genome) {
-    const rows = promptDnaRows(genome).slice(0, 32);
+  function drawVisualFingerprintTexture(ctx, width, height, state, genome) {
+    const rows = visualDnaRows(genome).slice(0, 32);
     if (!rows.length) return;
-    const dna = genome.promptDna || {};
+    const dna = genome.visualDna || {};
     const morphology = genome.morphology || {};
     const laneBias = Math.round(finiteVisualNumber(dna.laneBias, 0));
     const density = finiteVisualNumber(dna.densityBias, 1);
@@ -2978,7 +4127,7 @@
       const hue = normalizeVisualHue(Number(row.hue) || row.hash || genome.seed);
       const angle = visualUnit(row.hash || genome.seed, 11) * TAU + state.t * 0.012 * n;
       const alpha = Math.min(0.18, 0.045 + n * 0.026 + density * 0.014);
-      drawPromptDnaMark(ctx, Number(row.mark) || 0, x, y, size, angle, hue, alpha);
+      drawVisualDnaMark(ctx, Number(row.mark) || 0, x, y, size, angle, hue, alpha);
       if (index > 0 && index % 2 === 0) {
         const previous = rows[index - 1];
         const px = width * (0.08 + ((Number(previous.index) * 3 + previous.n) % 11) * 0.082);
@@ -2993,14 +4142,14 @@
     ctx.restore();
   }
 
-  function promptDnaRows(genome) {
-    const rows = genome && genome.promptDna && Array.isArray(genome.promptDna.ngrams)
-      ? genome.promptDna.ngrams
+  function visualDnaRows(genome) {
+    const rows = genome && genome.visualDna && Array.isArray(genome.visualDna.ngrams)
+      ? genome.visualDna.ngrams
       : [];
-    return rows.length ? rows : fallbackPromptDna(genome && genome.seed || 1).ngrams;
+    return rows.length ? rows : fallbackVisualDna(genome && genome.seed || 1).ngrams;
   }
 
-  function fallbackPromptDna(seed) {
+  function fallbackVisualDna(seed) {
     const rows = [];
     for (let index = 0; index < 9; index += 1) {
       const hash = visualHash(`${seed}:fallback:${index}`);
@@ -3016,7 +4165,7 @@
       });
     }
     return {
-      schema: 'simulatte.promptVisualDna.v1',
+      schema: 'simulatte.compiledVisualDna.v1',
       hash: visualHash(rows.map((row) => row.hash).join('|')),
       tokenCount: 1,
       ngramCount: rows.length,
@@ -3027,7 +4176,7 @@
     };
   }
 
-  function drawPromptDnaMark(ctx, mark, x, y, size, angle, hue, alpha) {
+  function drawVisualDnaMark(ctx, mark, x, y, size, angle, hue, alpha) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
@@ -4863,15 +6012,20 @@
   }
 
   function visibleContextLimit(sceneKind, directCount) {
+    const painterKind = painterKindForScene(sceneKind);
     const limits = {
       mechanical: 2,
       'thin-film': 1,
       ferrofluid: 3,
       'thermal-plume': 2,
-      'literal-composite': 3,
+      'material-tray': 5,
+      optics: 4,
+      watershed: 6,
+      biology: 7,
+      acoustic: 4,
       city: 10,
     };
-    return Math.max(0, Math.min(limits[sceneKind] ?? 4, 12 - directCount));
+    return Math.max(0, Math.min(limits[painterKind] ?? 4, 12 - directCount));
   }
 
   function orderVisibleObjects(objects) {
@@ -4904,15 +6058,20 @@
 
   function isEssentialSceneContext(object, sceneKind) {
     if (!object) return false;
+    const painterKind = painterKindForScene(sceneKind);
     const text = literalObjectText(object);
     const shape = String(object.shape || '');
     if (object.kind === 'field' || shape === 'field-envelope') return false;
-    if (sceneKind === 'mechanical') return /wall|constraint|surface-boundary|collision|energy-ledger/.test(text);
-    if (sceneKind === 'thin-film') return /film|bubble|wire|loop|air|foam|membrane/.test(text);
-    if (sceneKind === 'ferrofluid') return /ferrofluid|coil|current|copper|conductor|magnet|metal/.test(text);
-    if (sceneKind === 'thermal-plume') return /thermal|plume|heat|cooling|fin|air|smoke/.test(text);
-    if (sceneKind === 'literal-composite') return /fractur|collision|constraint|rigid-body/.test(text);
-    if (sceneKind === 'city') return /network|queue|traffic|market|sensor|ledger|controller|power/.test(text);
+    if (painterKind === 'mechanical') return /wall|constraint|surface-boundary|collision|energy-ledger|robot|vehicle|rider|prosthetic|force/.test(text);
+    if (painterKind === 'thin-film') return /film|bubble|wire|loop|air|foam|membrane/.test(text);
+    if (painterKind === 'ferrofluid') return /ferrofluid|coil|current|copper|conductor|magnet|metal|plasma|field/.test(text);
+    if (painterKind === 'thermal-plume') return /thermal|plume|heat|cooling|fin|air|smoke|lava|magma|reentry/.test(text);
+    if (painterKind === 'material-tray') return /reaction|chemical|material|sample|tray|catalyst|resin|crystal|paint|repository|electrolyzer/.test(text);
+    if (painterKind === 'city') return /network|queue|traffic|market|sensor|ledger|controller|power|packet|blockchain|search|housing|carbon/.test(text);
+    if (painterKind === 'watershed') return /water|terrain|storm|river|delta|hazard|earthquake|tsunami|hurricane|tornado|peat|oyster/.test(text);
+    if (painterKind === 'biology') return /biology|cell|patient|organ|ecology|plant|animal|fish|bird|crop|greenhouse|waste|microbe/.test(text);
+    if (painterKind === 'optics') return /space|orbit|planet|telescope|probe|lens|light|radiation|galaxy|asteroid|mars|venus|europa|titan/.test(text);
+    if (painterKind === 'acoustic') return /sound|acoustic|wave|instrument|cochlea|music|pressure/.test(text);
     return isSceneVisualObject(object);
   }
 

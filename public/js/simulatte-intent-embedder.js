@@ -161,6 +161,13 @@
       const semanticRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector);
       const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
       const rerank = rerankPriors(basePriors, semanticRag, dopplerIntent, runtime, universeMatches);
+      const evidenceRows = buildIntentEvidenceRows({
+        basePriors,
+        cardMatches,
+        universeMatches,
+        semanticRag,
+        dopplerIntent,
+      });
       emitProgress(progress, {
         source: 'simulatte-intent-embedder',
         stage: 'classification',
@@ -177,6 +184,7 @@
         rerank: rerank.receipt,
         semanticRag,
         dopplerIntent,
+        evidenceRows,
       };
     }
 
@@ -721,6 +729,50 @@
       if (!doc) throw new Error(`primitive embedding missing for ${primitive.id}`);
       return doc.vector;
     });
+  }
+
+  function buildIntentEvidenceRows(payload = {}) {
+    const rows = [];
+    const add = (row, source) => {
+      if (!row) return;
+      const id = row.id || row.cardId || row.primitiveId || row.canonicalId || row.label || row.phrase;
+      if (!id) return;
+      rows.push({
+        id: String(id),
+        label: row.label || row.role || row.phrase || row.cardId || row.primitiveId || row.canonicalId || String(id),
+        source: row.source || source,
+        indexName: row.indexName || source,
+        semanticType: row.semanticType || row.type || '',
+        score: Number(row.score || row.modelScore || row.semanticScore || row.confidence || 0),
+        aliases: row.aliases || row.labels || [],
+        materialId: row.materialId || row.material || '',
+        materialIds: row.materialIds || (row.materialId || row.material ? [row.materialId || row.material] : []),
+        operatorHints: row.operatorHints || row.operatorTypes || row.operators || [],
+        primitiveHints: row.primitiveHints || (row.primitiveId ? [row.primitiveId] : []),
+        conceptIds: row.conceptIds || row.concepts || [],
+        candidateText: row.candidateText || row.text || '',
+        evidence: row.evidence || [String(id)],
+      });
+    };
+    for (const row of payload.basePriors || []) add(row, 'embedding-primitive-prior');
+    for (const row of payload.cardMatches || []) add(row, 'embedding-surface-card');
+    for (const row of payload.universeMatches && payload.universeMatches.candidates || []) add(row, row.indexName || 'universe-index');
+    for (const [indexName, matches] of Object.entries(payload.universeMatches && payload.universeMatches.byIndex || {})) {
+      for (const row of matches || []) add(row, indexName);
+    }
+    for (const row of payload.semanticRag && payload.semanticRag.openComponents || []) add(row, 'semantic-rag-component');
+    for (const row of payload.semanticRag && payload.semanticRag.surfaceRetrieved || []) add(row, 'semantic-rag-surface');
+    for (const row of payload.dopplerIntent && payload.dopplerIntent.primitives || []) add(row, 'doppler-intent');
+    const seen = new Set();
+    return rows
+      .filter((row) => {
+        const key = `${row.id}:${row.source}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+      .slice(0, 160);
   }
 
   function rankSurfaceCards(cardIndex, queryVector, options = {}) {

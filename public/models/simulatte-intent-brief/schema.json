@@ -1,0 +1,46 @@
+{
+  "schema": "simulatte.intentBriefSchemaDocument.v1",
+  "id": "simulatte-intent-brief-v1",
+  "briefSchema": "simulatte.intentBrief.v1",
+  "required": [
+    "prompt",
+    "promptSignals",
+    "retrievedEvidence",
+    "entities",
+    "materials",
+    "phenomena",
+    "forces",
+    "fields",
+    "scaleRegime",
+    "causalGraph",
+    "assumptions",
+    "unsupported",
+    "degradedTo",
+    "visualIntent"
+  ],
+  "causalEdge": {
+    "required": ["id", "relationType", "operatorType", "sourceRef", "targetRef", "mechanism", "evidence"],
+    "allowedRelationTypes": [
+      "heatTransfer",
+      "phaseChange",
+      "fluidForce",
+      "erosion",
+      "fieldForce",
+      "refraction",
+      "collision",
+      "waveCoupling",
+      "growthCoupling",
+      "diffusion",
+      "networkFlow",
+      "orbitalGravity",
+      "torqueTransfer",
+      "controlLoop"
+    ]
+  },
+  "policy": {
+    "retrievalBeforeFinalBrief": true,
+    "allPhysicalClaimsNeedPromptOrCatalogEvidenceOrExplicitAssumption": true,
+    "structuredModelCannotInventExecutablePrimitive": true,
+    "compilerMustRejectUnsupportedWithoutDegradation": true
+  }
+}

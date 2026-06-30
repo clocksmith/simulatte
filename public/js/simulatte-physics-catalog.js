@@ -2239,6 +2239,8 @@
       assembly: object.assembly || '',
       phrase: object.phrase || '',
       source: object.source || '',
+      score: Number(object.score || 0),
+      pinned: Boolean(object.pinned),
       primitiveProgram: object.primitiveProgram || null,
       geometry: object.geometry || null,
       ports: object.ports || null,
@@ -2930,6 +2932,14 @@
       ensure('solar-panel', 0.78);
       ensure('motor-load', 0.7);
       ensure('bearing-friction', 0.64);
+      for (const id of ['rotor-wheel', 'stator-slider', 'solar-panel', 'motor-load']) {
+        const row = rowsById.get(id);
+        if (row) {
+          row.pinned = true;
+          row.source = row.source || 'prompt-family';
+          row.phrase = row.phrase || 'solar magnetic machine';
+        }
+      }
     }
     if (has('flow-inlet', 'moving-fluid', 'wake-obstacle', 'turbulence-field', 'wind-field', 'pressure-vessel')) {
       ensure('flow-inlet', 0.72);

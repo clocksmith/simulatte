@@ -9,12 +9,12 @@ const VISUAL_CARD_DIR = path.join(ROOT, 'public/models/simulatte-visual-cards');
 const MANIFEST_PATH = path.join(VISUAL_CARD_DIR, 'manifest.json');
 const INDEX_PATH = path.join(VISUAL_CARD_DIR, 'visual-card-index-v1.json');
 
-const EXPECTED_COUNT = 812;
-const EXPECTED_TYPE_COUNTS = {
-  scene: 204,
+const MIN_DOCUMENT_COUNT = 1000;
+const MIN_TYPE_COUNTS = {
+  scene: 300,
   material: 200,
-  process: 193,
-  composition: 215,
+  process: 200,
+  composition: 200,
 };
 
 const EXPECTED_MIN_COVERAGE = {
@@ -25,10 +25,9 @@ const EXPECTED_MIN_COVERAGE = {
   objects: 520,
   variants: 40,
   palettes: 16,
-  sourceExamples: 812,
 };
 
-const EXPECTED_SOURCE_GROUPS = {
+const MIN_SOURCE_GROUPS = {
   'diagnostic-anchor': 7,
   'curated-anchor': 20,
   'user-coverage-list-100': 100,
@@ -127,8 +126,8 @@ function validateVisualCardPackage(manifest, index) {
   addError(errors, manifest.id === 'simulatte-visual-cards-v1', 'Manifest id is incorrect');
   addError(errors, index.schema === 'simulatte.visualCardIndex.v1', 'Index schema is incorrect');
   addError(errors, index.id === 'simulatte-visual-card-index-v1', 'Index id is incorrect');
-  addError(errors, index.documentCount === EXPECTED_COUNT, `Index documentCount must be ${EXPECTED_COUNT}`);
-  addError(errors, documents.length === EXPECTED_COUNT, `Index documents array must contain ${EXPECTED_COUNT} source cards`);
+  addError(errors, index.documentCount === documents.length, 'Index documentCount must match documents length');
+  addError(errors, documents.length >= MIN_DOCUMENT_COUNT, `Index documents array must contain at least ${MIN_DOCUMENT_COUNT} source cards`);
   addError(
     errors,
     manifest.indexes
@@ -142,8 +141,13 @@ function validateVisualCardPackage(manifest, index) {
   }
   addError(
     errors,
-    manifest.coverage && manifest.coverage.proceduralRecipeSignatures === EXPECTED_COUNT,
-    `Coverage proceduralRecipeSignatures must be ${EXPECTED_COUNT}`
+    manifest.coverage && manifest.coverage.proceduralRecipeSignatures === documents.length,
+    'Coverage proceduralRecipeSignatures must match document count'
+  );
+  addError(
+    errors,
+    manifest.coverage && manifest.coverage.sourceExamples === documents.length,
+    'Coverage sourceExamples must match document count'
   );
   addError(
     errors,
@@ -153,14 +157,14 @@ function validateVisualCardPackage(manifest, index) {
 
   const typeCounts = countBy(documents, (card) => card.type);
   const sourceGroups = index.counts && index.counts.bySourceGroup || {};
-  for (const [key, value] of Object.entries(EXPECTED_TYPE_COUNTS)) {
-    addError(errors, typeCounts[key] === value, `Type ${key} must contain ${value} cards`);
+  for (const [key, value] of Object.entries(MIN_TYPE_COUNTS)) {
+    addError(errors, typeCounts[key] >= value, `Type ${key} must contain at least ${value} cards`);
   }
-  for (const [key, value] of Object.entries(EXPECTED_SOURCE_GROUPS)) {
-    addError(errors, sourceGroups[key] === value, `Source group ${key} must contain ${value} cards`);
+  for (const [key, value] of Object.entries(MIN_SOURCE_GROUPS)) {
+    addError(errors, sourceGroups[key] >= value, `Source group ${key} must contain at least ${value} cards`);
   }
   addError(errors, Array.isArray(index.curatedSourceIds), 'Index must expose curatedSourceIds');
-  addError(errors, index.curatedSourceIds && index.curatedSourceIds.length === EXPECTED_COUNT, `Index must expose ${EXPECTED_COUNT} curated source ids`);
+  addError(errors, index.curatedSourceIds && index.curatedSourceIds.length === documents.length, 'Index curated source ids must match document count');
   addError(
     errors,
     index.curatedSourceIds && new Set(index.curatedSourceIds).size === index.curatedSourceIds.length,
@@ -209,14 +213,14 @@ function validateVisualCardPackage(manifest, index) {
     ),
   };
 
-  addError(errors, unique.cardIds === EXPECTED_COUNT, `Card ids must be unique across all ${EXPECTED_COUNT} cards`);
+  addError(errors, unique.cardIds === documents.length, 'Card ids must be unique across all cards');
   addError(errors, documents.every((card) => Boolean(card.sourceExampleId)), 'Every card must be backed by a literal source example');
   addError(
     errors,
-    Object.values(sourceGroups).reduce((sum, value) => sum + value, 0) === EXPECTED_COUNT,
+    Object.values(sourceGroups).reduce((sum, value) => sum + value, 0) === documents.length,
     'Source group counts must account for every exported card'
   );
-  addError(errors, unique.recipeSignatures === EXPECTED_COUNT, 'Recipe signatures must be unique');
+  addError(errors, unique.recipeSignatures === documents.length, 'Recipe signatures must be unique');
   addError(errors, unique.visualGrammars >= 16, 'Visual grammar coverage is too narrow');
   addError(errors, unique.textureBases >= 16, 'Texture basis coverage is too narrow');
   addError(errors, unique.lightingModels >= 16, 'Lighting model coverage is too narrow');

@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.modelBackedEmbedderManifest.v2",
-  "id": "simulatte-qwen-3-5-0-8b-primitive-retrieval-v1",
+  "id": "simulatte-embeddinggemma-300m-primitive-retrieval-v1",
   "runtimeOrder": [
     "doppler-browser-load",
     "injected-doppler-model"
@@ -9,44 +9,50 @@
     "kind": "precomputed-primitive-index",
     "artifact": "./primitive-index-v2.json",
     "documentSchema": "simulatte.primitiveEmbeddingIndex.v2",
-    "dimensions": 1024,
+    "dimensions": 768,
     "rerank": "mandatory",
-    "description": "Qwen 3.5 0.8B mean-pooled transformer index for model-backed physical intent retrieval; selected for the current browser runtime path, not benchmarked as a dedicated retriever.",
+    "description": "EmbeddingGemma 300M sentence-embedding index for model-backed physical intent retrieval.",
     "cards": {
       "kind": "precomputed-surface-card-index",
-      "artifact": "./surface-card-index-qwen-v1.json",
+      "artifact": "./surface-card-index-embeddinggemma-v1.json",
       "documentSchema": "simulatte.surfaceCardEmbeddingIndex.v1",
-      "dimensions": 1024,
+      "dimensions": 768,
       "rerank": "mandatory",
-      "description": "Qwen 3.5 0.8B mean-pooled transformer surface-card index for model-backed typed graph synthesis; runtime-aligned, not a dedicated retrieval-quality claim."
+      "description": "EmbeddingGemma 300M sentence-embedding surface-card index for model-backed typed graph synthesis."
     },
     "universe": {
       "kind": "multi-index-universe",
       "artifact": "../simulatte-universe/manifest.json",
       "documentSchema": "simulatte.universeManifest.v1",
-      "dimensions": 1024,
+      "dimensions": 768,
       "rerank": "candidate-only",
       "description": "Multi-index semantic universe candidates for concepts, relations, processes, materials, operators, and analogs."
+    },
+    "intentEvidence": {
+      "kind": "intent-evidence-contract",
+      "artifact": "./intent-evidence-contract-v1.json",
+      "documentSchema": "simulatte.intentEvidenceContract.v1",
+      "description": "Hand-authored evidence row contract for retrieval-grounded semantic scene forensics."
     }
   },
   "embedModel": {
-    "id": "qwen-3-5-0-8b-q4k-ehaf16",
-    "family": "qwen3.5",
-    "modelType": "transformer",
-    "dimensions": 1024,
-    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16",
+    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "family": "embeddinggemma",
+    "modelType": "embedding",
+    "dimensions": 768,
+    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95f0b29ec73dea70394c6bcfa8407bc6796df6c9/models/google-embeddinggemma-300m-q4k-ehf16-af32",
     "source": {
       "kind": "huggingface-rdrr",
       "repoId": "Clocksmith/rdrr",
-      "revision": "a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10",
-      "path": "models/qwen-3-5-0-8b-q4k-ehaf16",
-      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
-      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
-      "sizeBytes": 1155348696
+      "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
+      "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/embeddinggemma-300m",
+      "sourceRevision": "57c266a740f537b4dc058e1b0cda161fd15afa75",
+      "sizeBytes": 480563695
     },
     "manifestHash": {
       "alg": "sha256",
-      "hex": "595cb5f90e81d57470d86a94740c99a10f11204df8e85a8e4210bef77161a713"
+      "hex": "9ac0f54f10fdeddfd67ea07661342713267d60ec57361e6e9d9d72e727407cd2"
     }
   },
   "runtime": {
@@ -65,34 +71,50 @@
             }
           },
           "kvcache": {
-            "maxSeqLen": 4096,
-            "gpuPagedFallbackMaxSeqLen": 4096,
-            "kvDtype": "f16",
-            "forceF32Softcap": false,
+            "kvDtype": "f32",
             "layout": "contiguous",
             "pageSize": 256,
-            "bdpaVocabSize": 2048,
-            "windowSize": 1024,
             "tiering": {
-              "mode": "off",
-              "hotWindow": 1024,
-              "coldPageSize": 256,
-              "coldDtype": "f16",
-              "compression": {
-                "mode": "none",
-                "blockSize": 1
-              },
-              "gating": {
-                "mode": "auto",
-                "minAluBwRatio": 0
-              }
-            },
-            "quantization": {
-              "mode": "none",
-              "bitWidth": 4,
-              "prodMode": false
+              "mode": "off"
             }
-          }
+          },
+          "decodeLoop": {
+            "batchSize": 4,
+            "stopCheckMode": "batch",
+            "readbackInterval": 1,
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1,
+            "disableCommandBatching": false
+          },
+          "perLayerInputs": {
+            "materialization": "auto",
+            "rowCache": {
+              "mode": "lru",
+              "maxRows": 256,
+              "maxBytes": 134217728,
+              "decodedDtype": "f32"
+            },
+            "prefetch": {
+              "mode": "next_token",
+              "rowsAhead": 1
+            },
+            "gpuUpload": {
+              "mode": "per_step_slices",
+              "stagingRows": 2
+            },
+            "hotCache": {
+              "mode": "prepared_tokens",
+              "maxTokens": 1024,
+              "maxBytes": 134217728,
+              "outputDtype": "f32"
+            }
+          },
+          "prefillChunkSubmitMode": "sync",
+          "useFlashPrefillAttention": false,
+          "useWideTileQ4KPrefill": false,
+          "retainQ4KMaterialization": false
         }
       }
     }
@@ -102,7 +124,7 @@
       "CacheStorage",
       "ServiceWorker"
     ],
-    "namespace": "simulatte-qwen-3-5-0-8b-primitive-retrieval-v1",
+    "namespace": "simulatte-embeddinggemma-300m-primitive-retrieval-v1",
     "worker": "./simulatte-model-cache-sw.js",
     "prefetch": false,
     "requirePersistent": false

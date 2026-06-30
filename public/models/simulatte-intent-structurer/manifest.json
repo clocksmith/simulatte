@@ -1,0 +1,26 @@
+{
+  "schema": "simulatte.structuredIntentModelManifest.v1",
+  "id": "simulatte-gemma3-270m-intent-structurer-v1",
+  "model": {
+    "id": "gemma-3-270m-it",
+    "family": "gemma3",
+    "role": "catalog-grounded structured intent extraction",
+    "inputContract": "prompt plus retrieved catalog evidence",
+    "outputContract": "simulatte.intentBrief.v1 fields: entities, materials, phenomena, forces, fields, causal candidates, assumptions, unsupported",
+    "guardrail": "The model may select, connect, or question retrieved catalog IDs. It may not invent executable physics primitives."
+  },
+  "retrievalDependency": {
+    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "role": "semantic evidence retrieval for prompt, catalog entries, primitives, materials, visual cards, examples, and causal patterns"
+  },
+  "rerank": {
+    "id": "simulatte.deterministic-catalog-score-fusion.v1",
+    "policy": "use embedding score, lexical hit, prompt citation, primitive support, and causal operator availability"
+  },
+  "compilerBoundary": {
+    "mlCanDraft": true,
+    "codeValidates": true,
+    "unsupportedMustBeExplicit": true,
+    "compilerOwnsExecutableGraph": true
+  }
+}
