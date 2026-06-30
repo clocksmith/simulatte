@@ -50,7 +50,7 @@
     ),
     mapping(
       'visual.operator.fluid-advection.v1',
-      ['flow', 'water', 'river', 'wind', 'coolant', 'airflow', 'velocity'],
+      ['flow', 'water', 'river', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet', 'release', 'meniscus'],
       ['ribbon-streamline', 'transparent-flow-tube', 'particle-tracer-swarm'],
       ['velocity-vector-field', 'pressure-band-field'],
       ['fluid-ripple', 'wet-refractive'],
@@ -149,7 +149,7 @@
     ),
     mapping(
       'visual.operator.chemical-diffusion.v1',
-      ['reaction', 'chemical', 'acid', 'crystal', 'concentration', 'electrolyte', 'solvent', 'catalyst'],
+      ['reaction', 'chemical', 'acid', 'crystal', 'concentration', 'electrolyte', 'solvent', 'catalyst', 'microfluidic', 'droplet', 'dose'],
       ['reaction-vessel', 'diffusion-cloud-volume', 'crystal-facet-cluster'],
       ['concentration-isobands', 'reaction-front-field'],
       ['translucent-reagent', 'facet-crystal'],
@@ -171,7 +171,7 @@
     ),
     mapping(
       'visual.operator.granular-erosion.v1',
-      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope'],
+      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope', 'dust', 'silo', 'explodes', 'explosion', 'powder', 'aerosol', 'granular', 'bead', 'beads', 'sieve'],
       ['heightfield-strata', 'grain-pile', 'erosion-channel'],
       ['slope-gradient-field', 'sediment-density-field'],
       ['granular-strata', 'wet-soil'],
@@ -193,7 +193,7 @@
     ),
     mapping(
       'visual.operator.thermal-combustion.v1',
-      ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'ember', 'ash', 'burn'],
+      ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'ember', 'ash', 'burn', 'explodes', 'explosion', 'dust', 'soot'],
       ['flame-front-volume', 'fuel-bed-surface', 'smoke-column'],
       ['reaction-heat-field', 'soot-density-field'],
       ['emissive-flame', 'charred-surface'],
@@ -259,7 +259,7 @@
   function requiredTermsForMapping(id, matchTerms = []) {
     const core = {
       'visual.operator.heat-transfer.v1': ['heat', 'thermal', 'temperature', 'cooling', 'lava', 'steam'],
-      'visual.operator.fluid-advection.v1': ['flow', 'fluid', 'water', 'wind', 'coolant', 'airflow', 'velocity'],
+      'visual.operator.fluid-advection.v1': ['flow', 'fluid', 'water', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet'],
       'visual.operator.stress-fracture.v1': ['stress', 'strain', 'fracture', 'crack', 'impact', 'load'],
       'visual.operator.control-feedback.v1': ['control', 'controller', 'feedback', 'sensor', 'regulate', 'loop'],
       'visual.operator.orbital-gravity.v1': ['gravity', 'orbit', 'orbital', 'planet', 'moon', 'space'],
@@ -268,11 +268,11 @@
       'visual.operator.quantum-phase-readout.v1': ['qubit', 'quantum', 'microwave', 'superconducting'],
       'visual.operator.acoustic-wave.v1': ['acoustic', 'sound', 'wave', 'pressure', 'resonance'],
       'visual.operator.biological-growth.v1': ['growth', 'cell', 'protein', 'root', 'coral', 'membrane'],
-      'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'crystal', 'concentration'],
+      'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'crystal', 'concentration', 'microfluidic', 'droplet', 'dose'],
       'visual.operator.network-flow.v1': ['network', 'queue', 'market', 'traffic', 'route', 'packet', 'parcel'],
-      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain'],
+      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain', 'dust', 'silo', 'explodes', 'powder', 'granular', 'bead', 'beads', 'avalanche', 'sieve'],
       'visual.operator.instrument-readout.v1': ['detector', 'sensor', 'readout', 'instrument', 'probe', 'meter'],
-      'visual.operator.thermal-combustion.v1': ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'burn'],
+      'visual.operator.thermal-combustion.v1': ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'burn', 'explodes', 'explosion', 'soot'],
       'visual.operator.phase-transition.v1': ['phase', 'melt', 'freeze', 'crust', 'vaporize', 'boil'],
       'visual.operator.robot-contact.v1': ['robot', 'gripper', 'servo', 'contact', 'warehouse', 'sort'],
     };

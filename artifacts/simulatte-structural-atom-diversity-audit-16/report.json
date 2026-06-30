@@ -1,0 +1,166 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-06-30T03:26:37.225Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "url": "http://127.0.0.1:56770/index.html",
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "watershed"
+    ],
+    "visualIRSceneKinds": [
+      "watershed"
+    ],
+    "visualIRCameras": [
+      "microscopic-cutaway-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 38,
+      "mappingIds": [
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.granular-erosion.v1",
+        "visual.operator.stress-fracture.v1"
+      ],
+      "uniformSlots": [
+        "constraint",
+        "density",
+        "fluid",
+        "granular",
+        "motion",
+        "stress",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomConstraintPads",
+        "atomFluidRibbons",
+        "atomGranularStrata",
+        "atomSedimentMotion",
+        "atomStressCracks",
+        "atomVectorFlow"
+      ]
+    },
+    "intentBriefs": {
+      "totalEvidence": 84,
+      "totalCausalEdges": 3,
+      "totalAffordances": 4,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 84,
+      "totalCausalEdges": 3,
+      "totalCausalAffordances": 4,
+      "totalAssumptions": 8,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ]
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "mountain watershed with river erosion, terrain patch, sand, soil, rock, water, and gravity",
+      "screenshot": "01-custom-mountain-watershed-with-river-erosion-terrain-patch-sand-soil-rock-water-and-gra.png",
+      "screenshotHash": "e25f3aadd2810b7fb51984e53c4c7b8f3b932629851eb06a4f05a33495747b74",
+      "runtimeState": "ready",
+      "runtimeMessage": "Local graph ready",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "watershed",
+      "physicsCanvasSceneId": "2",
+      "physicsCanvasRenderCount": "49",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "primary-webgpu-owned",
+      "fieldCanvasRendererStatus": "primary renderer owns scene particles",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 69.516,
+      "lumaStd": 47.326,
+      "coloredRatio": 0.2268,
+      "canvasHash": "938ecad3",
+      "specId": "mountain-watershed-river-erosion-terrain-patch-mr034tbb",
+      "templateId": "custom-world",
+      "rendererSceneKind": "watershed",
+      "visualIRSceneKind": "watershed",
+      "visualIRCamera": "microscopic-cutaway-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 22,
+      "visualIRFieldCount": 7,
+      "visualIRProcessCount": 22,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 4,
+      "visualIRGraphicsAtomCount": 38,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.granular-erosion.v1",
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.stress-fracture.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "stress",
+        "granular",
+        "motion",
+        "density",
+        "constraint",
+        "surface"
+      ],
+      "visualIRGraphicsWgslOperators": [
+        "atomGranularStrata",
+        "atomSedimentMotion",
+        "atomFluidRibbons",
+        "atomVectorFlow",
+        "atomStressCracks",
+        "atomConstraintPads"
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 84,
+      "intentBriefCausalEdgeCount": 3,
+      "intentBriefAssumptionCount": 8,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 84,
+      "physicalReceiptCausalEdgeCount": 3,
+      "physicalReceiptCausalAffordanceCount": 4,
+      "physicalReceiptAssumptionCount": 8,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 4,
+      "previewLength": 0,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-mountain-watershed-with-river-erosion-terrain-patch-sand-soil-rock-water-and-gra.canvas.png",
+      "canvasScreenshotHash": "1696073897181a2b6d5d47749d55728e0012381892e5c6b7b38cd6e89cdb2836",
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 47.326,
+      "canvasScreenshotColoredRatio": 0.2268,
+      "canvasScreenshotSampleCount": 7200
+    }
+  ]
+}

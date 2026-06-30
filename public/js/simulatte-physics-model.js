@@ -312,7 +312,7 @@
     if (/\b(supercell|thunderstorm|hail|cloud microphysics|monsoon|atmospheric river|jetstream|storm cell|rain band|convection)\b/.test(text)) return 'weather-atmosphere';
     if (/\b(glacier calving|fjord|sea ice|ice shelf|iceberg|internal ocean wave|internal ocean waves|kelp canopy|ocean mixing|plankton bloom|thermocline)\b/.test(text)) return 'ocean-cryosphere';
     if (/\b(microgrid|battery inverter|inverter|transformer overload|substation|power flow|load shedding|frequency control|grid storage|voltage sag)\b/.test(text)) return 'grid-energy';
-    if (/\b(warehouse robot|robot arm|robot arms|robotic gripper|drone swarm|autopilot|servo loop|path planner|pick and place|mobile robot)\b/.test(text)) return 'robotics-control';
+    if (/\b(warehouse robot|warehouse robots|robot arm|robot arms|robotic gripper|robot gripper|servo gripper|servo loop|drone swarm|autopilot|path planner|pick and place|pick-and-place|mobile robot|robot sorts|robot sort|sorts parcels|parcel sorting|contact force workcell|robotic workcell)\b/.test(text)) return 'robotics-control';
     if (/\b(injection molding|steel tooling|assembly line|conveyor belt|conveyor belts|cnc|extruder|cooling die|factory line|pick station)\b/.test(text)) return 'manufacturing-line';
     if (/\b(qubit|quantum chip|phase readout|microwave resonator|superconducting circuit|ion trap|spin lattice|photonic chip|wavefunction|electron microscope)\b/.test(text)) return 'quantum-instrument';
     if (/\b(compost|greenhouse crop|greenhouse crops|anaerobic digester|organic waste|nutrient loop|crop rotation|fish farm|soil nutrients|algae bioreactor)\b/.test(text)) return 'agro-waste-loop';
@@ -689,6 +689,20 @@
     };
   }
 
+  function spanRetrievalReceipt(spanRetrieval) {
+    if (!spanRetrieval) return null;
+    return {
+      schema: spanRetrieval.schema || 'simulatte.spanEmbeddingRetrieval.v1',
+      model: spanRetrieval.model || '',
+      disabledReason: spanRetrieval.disabledReason || '',
+      spanCount: Number(spanRetrieval.spanCount || 0),
+      embeddedSpanCount: Number(spanRetrieval.embeddedSpanCount || 0),
+      cachedSpanCount: Number(spanRetrieval.cachedSpanCount || 0),
+      candidateCount: Number(spanRetrieval.candidateCount || 0),
+      config: spanRetrieval.config || null,
+    };
+  }
+
   function contractForComponent(contract, id) {
     return {
       geometry: contract && contract.geometry ? contract.geometry[id] || null : null,
@@ -890,6 +904,7 @@
       semanticRag,
       universeMatches,
       dopplerIntent,
+      spanRetrieval: options.spanRetrieval || null,
       intentBrief: null,
       resolution: {
         mode: '2d',
@@ -900,6 +915,8 @@
         embedding: classification && classification.model.runtime ? classification.model.runtime : null,
         rerank: options.intentRerank || options.rerank || null,
         doppler: dopplerIntent ? dopplerReceipt(dopplerIntent) : null,
+        retrievalPhase: options.retrievalPhase || '',
+        spanRetrieval: spanRetrievalReceipt(options.spanRetrieval || null),
       },
     };
     const addDomain = (...domains) => {
@@ -963,6 +980,7 @@
         cardMatches: options.cardMatches || options.surfaceCardMatches || [],
         embeddingPriors: options.embeddingPriors || [],
         embeddingModel: options.embeddingModel || null,
+        spanRetrieval: options.spanRetrieval || null,
         evidenceRows: options.evidenceRows || [],
       })
       : null;

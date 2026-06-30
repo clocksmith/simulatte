@@ -33,6 +33,39 @@
       "artifact": "./intent-evidence-contract-v1.json",
       "documentSchema": "simulatte.intentEvidenceContract.v1",
       "description": "Hand-authored evidence row contract for retrieval-grounded semantic scene forensics."
+    },
+    "spanLevel": {
+      "schema": "simulatte.spanLevelEmbeddingConfig.v1",
+      "enabled": true,
+      "mode": "progressive-refinement",
+      "fullPromptFirst": true,
+      "batchEmbedding": true,
+      "cache": true,
+      "dedupe": true,
+      "maxSpans": 24,
+      "minChars": 3,
+      "maxChars": 180,
+      "includeKinds": [
+        "predicate-frame",
+        "clause",
+        "verb-phrase",
+        "noun-phrase",
+        "modifier",
+        "quantity",
+        "comparison",
+        "causal",
+        "temporal",
+        "result-clause"
+      ],
+      "perSpanPrimitiveMax": 8,
+      "perSpanCardMax": 6,
+      "perSpanUniverseMax": 10,
+      "perSpanCandidateMax": 22,
+      "primitiveScoreFloor": 0.18,
+      "surfaceScoreFloor": 0.22,
+      "universeScoreFloor": 0.14,
+      "primitiveRankBackend": "cpu",
+      "description": "Full prompt retrieval returns first; meaningful language spans are then embedded with caps, dedupe, cache, and optional provider batch embedding to refine the activation cloud without unbounded on-device cost."
     }
   },
   "embedModel": {

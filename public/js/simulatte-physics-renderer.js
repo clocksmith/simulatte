@@ -179,26 +179,43 @@
       try {
         await waitForLoadingPaint();
         if (serial !== buildSerial) return;
+        const applyIntentResult = (result, phase) => {
+          if (serial !== buildSerial || !result) return;
+          setSpec(createSpecFromPrompt(prompt, {
+            params,
+            embeddingPriors: result.priors,
+            embeddingModel: result.model,
+            embeddingBackend: result.backend,
+            intentRerank: result.rerank,
+            semanticRag: result.semanticRag,
+            dopplerIntent: result.dopplerIntent,
+            cardMatches: result.cardMatches,
+            universeMatches: result.universeMatches,
+            spanRetrieval: result.spanRetrieval,
+            retrievalPhase: result.retrievalPhase || phase,
+            evidenceRows: result.evidenceRows,
+          }));
+        };
         const result = await embedder.rankPrompt(prompt, model.PHYSICAL_PRIMITIVES, {
           max: 36,
           onProgress: (event) => syncIntentRuntime(runtimeStatus, {
             ...event,
             canvasLoading: showCanvasLoader,
           }),
+          onPreview: (preview) => {
+            applyIntentResult(preview, 'prompt-preview');
+            syncIntentRuntime(runtimeStatus, {
+              state: 'active',
+              stage: 'span-retrieval',
+              percent: 87,
+              message: 'Prompt graph ready; refining language spans',
+              backend: preview && preview.backend,
+              canvasLoading: showCanvasLoader,
+            });
+          },
         });
         if (serial !== buildSerial) return;
-        setSpec(createSpecFromPrompt(prompt, {
-          params,
-          embeddingPriors: result.priors,
-          embeddingModel: result.model,
-          embeddingBackend: result.backend,
-          intentRerank: result.rerank,
-          semanticRag: result.semanticRag,
-          dopplerIntent: result.dopplerIntent,
-          cardMatches: result.cardMatches,
-          universeMatches: result.universeMatches,
-          evidenceRows: result.evidenceRows,
-        }));
+        applyIntentResult(result, 'span-refined');
         syncIntentRuntime(runtimeStatus, {
           state: 'ready',
           stage: 'ready',
@@ -1101,10 +1118,12 @@
     const rendererPlan = renderProgram && renderProgram.rendererPlan || null;
     const prompt = renderProgram && renderProgram.intentText || spec.renderIR && spec.renderIR.prompt || spec.name || 'simulation';
     const scene = rendererPlan && rendererPlan.sceneKind || 'unplanned';
-    const label = `[simulatte.graph] ${scene}: ${prompt}`;
+    const graphId = spec.id || graph && graph.graphId || 'simulation';
+    const label = `[simulatte.graph] ${scene} ${graphId}`;
     const group = typeof console.groupCollapsed === 'function' ? console.groupCollapsed.bind(console) : console.log.bind(console);
     const groupEnd = typeof console.groupEnd === 'function' ? console.groupEnd.bind(console) : () => {};
     group(label);
+    console.log('compiledIntentText', String(prompt || '').slice(0, 1200));
     console.log('intentReceipt', spec.physicalSpec && spec.physicalSpec.receipt && spec.physicalSpec.receipt.intentBrief || null);
     console.log('semanticRetrievalReceipt', spec.universeGraph && spec.universeGraph.intentBrief || null);
     console.log('promptParse', spec.promptParse || null);

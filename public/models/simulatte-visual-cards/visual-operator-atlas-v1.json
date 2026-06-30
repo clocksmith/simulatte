@@ -59,8 +59,8 @@
     },
     {
       "id": "visual.operator.fluid-advection.v1",
-      "matchTerms": ["flow", "water", "river", "wind", "coolant", "airflow", "velocity"],
-      "requires": [["flow", "fluid", "water", "wind", "coolant", "airflow", "velocity"]],
+      "matchTerms": ["flow", "water", "river", "wind", "coolant", "airflow", "velocity", "microfluidic", "dose", "pump", "channel", "droplet", "release", "meniscus"],
+      "requires": [["flow", "fluid", "water", "wind", "coolant", "airflow", "velocity", "microfluidic", "dose", "pump", "channel", "droplet"]],
       "excludes": ["vacuum-only", "dry-network-only"],
       "minimumScore": 0.5,
       "priority": 1.1,
@@ -212,8 +212,8 @@
     },
     {
       "id": "visual.operator.chemical-diffusion.v1",
-      "matchTerms": ["reaction", "chemical", "acid", "crystal", "concentration", "electrolyte", "solvent", "catalyst"],
-      "requires": [["reaction", "chemical", "acid", "crystal", "concentration"]],
+      "matchTerms": ["reaction", "chemical", "acid", "crystal", "concentration", "electrolyte", "solvent", "catalyst", "microfluidic", "droplet", "dose"],
+      "requires": [["reaction", "chemical", "acid", "crystal", "concentration", "microfluidic", "droplet", "dose"]],
       "excludes": [],
       "minimumScore": 0.5,
       "priority": 1,
@@ -246,8 +246,8 @@
     },
     {
       "id": "visual.operator.granular-erosion.v1",
-      "matchTerms": ["erosion", "sediment", "grain", "sand", "soil", "avalanche", "terrain", "slope"],
-      "requires": [["erosion", "sediment", "grain", "sand", "soil", "terrain"]],
+      "matchTerms": ["erosion", "sediment", "grain", "sand", "soil", "avalanche", "terrain", "slope", "dust", "silo", "explodes", "explosion", "powder", "aerosol", "granular", "bead", "beads", "sieve"],
+      "requires": [["erosion", "sediment", "grain", "sand", "soil", "terrain", "dust", "silo", "explodes", "powder", "granular", "bead", "beads", "avalanche", "sieve"]],
       "excludes": [],
       "minimumScore": 0.5,
       "priority": 1,
@@ -280,8 +280,8 @@
     },
     {
       "id": "visual.operator.thermal-combustion.v1",
-      "matchTerms": ["combustion", "fire", "flame", "fuel", "smoke", "ember", "ash", "burn"],
-      "requires": [["combustion", "fire", "flame", "fuel", "smoke", "burn"]],
+      "matchTerms": ["combustion", "fire", "flame", "fuel", "smoke", "ember", "ash", "burn", "explodes", "explosion", "dust", "soot"],
+      "requires": [["combustion", "fire", "flame", "fuel", "smoke", "burn", "explodes", "explosion", "soot"]],
       "excludes": [],
       "minimumScore": 0.5,
       "priority": 1,

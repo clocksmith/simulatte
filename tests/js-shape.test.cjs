@@ -365,7 +365,7 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
     path.join(jsDir, 'simulatte-webgpu-renderer.js'),
     'utf8'
   );
-  assert.match(webgpuRenderer, /new Float32Array\(96\)/);
+  assert.match(webgpuRenderer, /new Float32Array\(104\)/);
   assert.match(webgpuRenderer, /this\.atomUniforms = graphicsAtomUniformVector\(spec\)/);
   assert.match(webgpuRenderer, /loadingWrapDistance/);
   assert.match(webgpuRenderer, /loadingSnakeMask/);
@@ -379,12 +379,18 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(webgpuRenderer, /function graphicsAtomTextRows/);
   assert.match(webgpuRenderer, /function graphicsAtomFeatureVector/);
   assert.match(webgpuRenderer, /function graphicsAtomUniformVector/);
+  assert.match(webgpuRenderer, /function compressAtomUniformVector/);
+  assert.match(webgpuRenderer, /dominantAtomSlot/);
   assert.match(webgpuRenderer, /mergeFeatureVectors\(featureVector\(text\), graphicsAtomFeatureVector\(spec\)\)/);
   assert.match(webgpuRenderer, /atomAt\(index: i32\)/);
+  assert.match(webgpuRenderer, /atomStructuralScene/);
+  assert.match(webgpuRenderer, /capsuleLine/);
+  assert.match(webgpuRenderer, /rectMask/);
   assert.match(webgpuRenderer, /atomOperatorOverlays/);
   assert.match(webgpuRenderer, /atomThermalPlume/);
   assert.match(webgpuRenderer, /atomFluidRibbons/);
   assert.match(webgpuRenderer, /atomQuantumFringes/);
+  assert.match(webgpuRenderer, /color = atomStructuralScene\(p, t, color\)/);
   assert.match(webgpuRenderer, /color = atomOperatorOverlays\(p, t, color\)/);
   assert.match(webgpuRenderer, /renderIR\.causalAffordances/);
   assert.match(webgpuRenderer, /visualIR\.causalAffordances/);
