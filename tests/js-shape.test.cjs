@@ -376,6 +376,12 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(webgpuRenderer, /snakeHeads/);
   assert.match(webgpuRenderer, /crossingGlow/);
   assert.match(webgpuRenderer, /function visualTextFromSpec/);
+  const visualTextBody = webgpuRenderer.match(/function visualTextFromSpec\(spec\) \{[\s\S]*?\n  \}/);
+  assert.ok(visualTextBody, 'webgpu renderer should expose visualTextFromSpec');
+  assert.doesNotMatch(visualTextBody[0], /renderProgram\.intentText/);
+  assert.doesNotMatch(visualTextBody[0], /renderProgram\.prompt/);
+  assert.doesNotMatch(visualTextBody[0], /rendererPlan\.intentText/);
+  assert.doesNotMatch(visualTextBody[0], /renderIR\.prompt/);
   assert.match(webgpuRenderer, /function isCompiledSpecificScene/);
   assert.match(webgpuRenderer, /if \(isCompiledSpecificScene\(sceneKind\)\) return sceneKind;/);
   assert.match(webgpuRenderer, /function graphicsAtomTextRows/);
@@ -542,7 +548,9 @@ test('compiler phases consume only neighboring compiled artifacts after intent g
   const physicsIR = fs.readFileSync(path.join(jsDir, 'simulatte-physics-ir.js'), 'utf8');
   const composition = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
   const webgpu = fs.readFileSync(path.join(jsDir, 'simulatte-webgpu-renderer.js'), 'utf8');
+  const visualOperatorCompiler = fs.readFileSync(path.join(jsDir, 'simulatte-visual-operator-compiler.js'), 'utf8');
   const physicsIRCall = model.match(/nextIR = buildPhysicsIR\(\{[\s\S]*?\n      \}\);/);
+  const directLanguageText = visualOperatorCompiler.match(/function directLanguageText\(context = \{\}\) \{[\s\S]*?\n  \}/);
 
   assert.ok(physicsIRCall, 'physics model should compile PhysicsIR through a visible call site');
   assert.match(physicsIRCall[0], /buildPhysicsIR\(\{\s*universeGraph,/);
@@ -562,8 +570,15 @@ test('compiler phases consume only neighboring compiled artifacts after intent g
 
   assert.doesNotMatch(webgpu, /spec\.intent/);
   assert.doesNotMatch(webgpu, /intent\.semanticRag|intent\.cardMatches|intent\.surfaceCards/);
+  assert.ok(directLanguageText, 'visual operator compiler should expose directLanguageText');
+  assert.doesNotMatch(directLanguageText[0], /physicsIR\.prompt/);
+  assert.doesNotMatch(directLanguageText[0], /renderIR\.prompt/);
+  assert.doesNotMatch(directLanguageText[0], /physicalSpec\.prompt/);
   assert.doesNotMatch(model, /spec\.intent && spec\.intent\.resolution/);
   assert.doesNotMatch(model, /spec\.intent && spec\.intent\.prompt/);
+  assert.match(model, /function parameterHintTextForIntent/);
+  assert.match(model, /applyCompiledParameterHints\(parameterHintTextForIntent\(intent, contract\), params, addControl\)/);
+  assert.doesNotMatch(model, /applyPromptParameterHints\(intent\.prompt/);
 });
 
 test('intent runtime keeps visible errors short, logs diagnostics, and falls back locally', () => {

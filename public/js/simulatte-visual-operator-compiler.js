@@ -372,12 +372,6 @@
   }
 
   function directLanguageText(context = {}) {
-    const promptText = [
-      context.spec && context.spec.physicsIR && context.spec.physicsIR.prompt,
-      context.spec && context.spec.renderIR && context.spec.renderIR.prompt,
-      context.spec && context.spec.physicalSpec && context.spec.physicalSpec.prompt,
-    ].filter(Boolean).join(' ');
-    if (promptText) return normalizeText([context.sceneKind, promptText].filter(Boolean).join(' '));
     const objects = (context.objects || []).filter(isEvidenceObject);
     return normalizeText([
       context.sceneKind,

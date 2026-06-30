@@ -786,9 +786,9 @@
     }
   }
 
-  function applyPromptParameterHints(promptText, params, addControl = () => {}) {
-    const prompt = String(promptText || '').toLowerCase();
-    const has = (...terms) => terms.some((term) => prompt.includes(term));
+  function applyCompiledParameterHints(hintText, params, addControl = () => {}) {
+    const evidenceText = String(hintText || '').toLowerCase();
+    const has = (...terms) => terms.some((term) => evidenceText.includes(term));
     const assign = (values) => {
       for (const [key, value] of Object.entries(values)) {
         params[key] = value;
@@ -848,6 +848,62 @@
         moisture: 0.76,
       });
     }
+  }
+
+  function parameterHintTextForIntent(intent = {}, contract = null) {
+    const brief = intent.intentBrief || {};
+    const contractGraph = contract && contract.graph || {};
+    return [
+      intent.title,
+      ...(intent.domains || []),
+      ...(intent.components || []).map((component) => [
+        component.id,
+        component.type,
+        component.role,
+        component.layer,
+        component.material,
+        component.visualRegime,
+        component.assembly,
+        component.phrase,
+        ...(component.domains || []),
+      ].filter(Boolean).join(' ')),
+      ...(contractGraph.nodes || []).map((node) => [
+        node.id,
+        node.label,
+        node.nodeType,
+        node.material,
+        node.role,
+        ...(node.domains || []),
+        ...(node.solverRequirements || []),
+      ].filter(Boolean).join(' ')),
+      ...(contractGraph.operators || []).map((operator) => [
+        operator.id,
+        operator.type,
+        operator.label,
+        operator.family,
+      ].filter(Boolean).join(' ')),
+      ...(brief.retrievedEvidence || []).map((row) => [
+        row.id,
+        row.label,
+        row.indexName,
+        ...(row.primitiveHints || []),
+        ...(row.operatorHints || []),
+        ...(row.visualHints || []),
+      ].filter(Boolean).join(' ')),
+      ...(brief.groundedInterpretation && brief.groundedInterpretation.acceptedActivations || []).map((row) => [
+        row.candidateId,
+        row.candidateLabel,
+        row.candidateKind,
+      ].filter(Boolean).join(' ')),
+      ...(brief.causalGraph || []).map((edge) => [
+        edge.id,
+        edge.relationType,
+        edge.operatorType,
+        edge.sourceLabel,
+        edge.targetLabel,
+        edge.mechanism,
+      ].filter(Boolean).join(' ')),
+    ].filter(Boolean).join(' ');
   }
 
   function graphNodeForSpec(contract, id) {
@@ -1533,7 +1589,7 @@
       }
     }
     applyContractDefaults(params, contract);
-    applyPromptParameterHints(intent.prompt, params, addControl);
+    applyCompiledParameterHints(parameterHintTextForIntent(intent, contract), params, addControl);
 
     const exactMachine = intent.title === 'Solar Magnetic Perpetual Motion Machine';
     if (exactMachine) {
@@ -2443,13 +2499,7 @@
     }
     if (spec.templateId === 'custom-world') {
       const usesContractReadouts = customSpecHasContractReadouts(spec);
-      const hasCompiledPrompt = Boolean(
-        hasPromptIntent(spec) && (
-          spec.renderIR && spec.renderIR.prompt ||
-          spec.universeGraph && spec.universeGraph.prompt
-        )
-      );
-      const channelReadouts = hasCompiledPrompt && !usesContractReadouts && state.solverState
+      const channelReadouts = hasCompiledSpecArtifacts(spec) && !usesContractReadouts && state.solverState
         ? channelReadoutValues(state, spec)
         : null;
       if (channelReadouts) return channelReadouts;
@@ -2507,7 +2557,7 @@
 
   function readoutLabelsForSpec(spec) {
     if (spec.templateId === 'custom-world') {
-      if (!hasPromptIntent(spec)) return templateById(spec.templateId).readouts;
+      if (!hasCompiledSpecArtifacts(spec)) return templateById(spec.templateId).readouts;
       const contract = spec.contract || null;
       if (contract && Array.isArray(contract.readouts) && contract.readouts.length) {
         return contract.readouts.slice(0, 6);
@@ -2530,9 +2580,16 @@
     return Boolean(contract && Array.isArray(contract.readouts) && contract.readouts.length);
   }
 
-  function hasPromptIntent(spec) {
-    const intent = spec && spec.intent;
-    return Boolean(intent && intent.schema === 'simulatte.intent.v1' && typeof intent.prompt === 'string');
+  function hasCompiledSpecArtifacts(spec) {
+    const intentBrief = spec && spec.intent && spec.intent.intentBrief;
+    return Boolean(
+      intentBrief && intentBrief.schema &&
+      (
+        spec && spec.renderIR && spec.renderIR.schema ||
+        spec && spec.universeGraph && spec.universeGraph.schema ||
+        spec && spec.physicsIR && spec.physicsIR.schema
+      )
+    );
   }
 
   function channelReadoutValues(state, spec) {

@@ -367,15 +367,11 @@
     const renderIR = renderProgram.renderIR || spec && spec.renderIR || {};
     return [
       sceneKindFromSpec(spec),
-      renderProgram.intentText,
-      renderProgram.prompt,
       rendererPlan.sceneKind,
       rendererPlan.painterKind,
-      rendererPlan.intentText,
       visualRecipe.sceneKind,
       visualRecipe.painterKind,
       renderIR.sceneHint,
-      renderIR.prompt,
       visualIR.sceneKind,
       visualIR.scale,
       visualIR.camera && `${visualIR.camera.mode || ''} ${visualIR.camera.lens || ''} ${visualIR.camera.angle || ''}`,
