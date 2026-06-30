@@ -1242,6 +1242,17 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
   assert.equal(signatures.size, cases.length);
 });
 
+test('molecular biology prompts do not admit robot visuals without robot evidence', () => {
+  const spec = createPrototypeSpec(
+    'protein folding energy minimization with chain geometry and bond constraints'
+  );
+  const mappingIds = spec.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+
+  assert.ok(mappingIds.includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds.includes('visual.operator.robot-contact.v1'));
+  assert.equal(spec.renderProgram.visualIR.sceneKind, 'molecular-biology');
+});
+
 test('Doppler residual hints can steer the selected physical graph', () => {
   const spec = lab.createSpecFromPrompt('quiet demonstration plane', {
     dopplerIntent: {

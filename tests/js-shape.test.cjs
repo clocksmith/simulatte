@@ -376,6 +376,8 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(webgpuRenderer, /snakeHeads/);
   assert.match(webgpuRenderer, /crossingGlow/);
   assert.match(webgpuRenderer, /function visualTextFromSpec/);
+  assert.match(webgpuRenderer, /function isCompiledSpecificScene/);
+  assert.match(webgpuRenderer, /if \(isCompiledSpecificScene\(sceneKind\)\) return sceneKind;/);
   assert.match(webgpuRenderer, /function graphicsAtomTextRows/);
   assert.match(webgpuRenderer, /function graphicsAtomFeatureVector/);
   assert.match(webgpuRenderer, /function graphicsAtomUniformVector/);

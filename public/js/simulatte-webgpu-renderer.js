@@ -7,29 +7,30 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWebGpuRendererApi() {
   const SCENE_IDS = Object.freeze({
     'thermal-plume': 0,
-    fire: 0,
+    fire: 33,
     'weather-atmosphere': 1,
     watershed: 2,
-    ocean: 2,
+    ocean: 23,
     'mechanical-fluid': 3,
     mechanical: 3,
-    'structural-mechanics': 3,
+    'structural-mechanics': 24,
     ferrofluid: 4,
     optics: 5,
     'optics-thermal': 5,
     acoustic: 6,
     biology: 7,
-    ecology: 7,
-    'restoration-water': 7,
+    ecology: 25,
+    'evolution-ecology': 25,
+    'restoration-water': 26,
     'agro-waste-loop': 20,
     'chemistry-lab': 8,
     cryosphere: 9,
-    'ocean-cryosphere': 9,
+    'ocean-cryosphere': 27,
     'planetary-space': 10,
     'digital-network': 11,
-    city: 11,
-    'civic-market': 11,
-    'venue-crowd': 11,
+    city: 28,
+    'civic-market': 29,
+    'venue-crowd': 30,
     'advanced-energy': 12,
     'grid-energy': 16,
     'molecular-biology': 13,
@@ -41,8 +42,8 @@
     granular: 22,
     'sport-motion': 21,
     'cultural-material': 22,
-    'hazard-atmosphere': 1,
-    'space-instrument': 15,
+    'hazard-atmosphere': 31,
+    'space-instrument': 32,
   });
 
   const PALETTES = Object.freeze({
@@ -117,6 +118,9 @@
     ['mold-cools-plastic', 'injection-molding', 'steel-tooling'],
     ['qubit-resonator-readout', 'microwave-resonator', 'phase-readout'],
     ['compost-feeds-greenhouse', 'nutrient-loop', 'oxygen-water-loop'],
+    ['particle-collider', 'muon-tracks', 'detector-slice'],
+    ['zoning-parcel-pressure', 'housing-market', 'civic-grid'],
+    ['hazard-restoration', 'storm-surge', 'evacuation-field'],
   ]);
 
   function create(canvas, options = {}) {
@@ -225,11 +229,12 @@
     }
 
     setSpec(spec) {
-      this.sceneKind = sceneKindFromSpec(spec);
+      const baseSceneKind = sceneKindFromSpec(spec);
+      const text = visualTextFromSpec(spec);
+      this.sceneKind = refineSceneKindFromText(baseSceneKind, text);
       this.sceneId = SCENE_IDS[this.sceneKind] ?? 3;
       this.canvas.dataset.sceneKind = this.sceneKind;
       this.canvas.dataset.sceneId = String(this.sceneId);
-      const text = visualTextFromSpec(spec);
       this.features = mergeFeatureVectors(featureVector(text), graphicsAtomFeatureVector(spec));
       this.atomUniforms = graphicsAtomUniformVector(spec);
       this.palette = paletteForScene(this.sceneKind, text, this.atomUniforms);
@@ -323,6 +328,37 @@
       'mechanical';
   }
 
+  function refineSceneKindFromText(sceneKind, text) {
+    if (isCompiledSpecificScene(sceneKind)) return sceneKind;
+    const value = String(text || '').toLowerCase();
+    if (/\b(qubit|quantum|superconducting|microwave resonator|phase readout|ion trap|spin lattice)\b/.test(value)) return 'quantum-instrument';
+    if (/\b(muon|neutrino|particle collider|calorimeter|detector slice|phototube|cherenkov|particle track)\b/.test(value)) return 'particle-instrument';
+    if (/\b(microgrid|battery inverter|transformer overload|substation|frequency control|voltage sag|power flow)\b/.test(value)) return 'grid-energy';
+    if (/\b(robot|robotic|servo|gripper|pick and place|warehouse arm|drone stabiliz)\b/.test(value)) return 'robotics-control';
+    if (/\b(injection molding|steel tooling|factory line|conveyor|cnc|extruder|cooling die)\b/.test(value)) return 'manufacturing-line';
+    if (/\b(data center|server rack|cooling aisle|query|index shard|packet|compiler|database|service graph)\b/.test(value)) return 'digital-network';
+    if (/\b(zoning|parcel|housing|market pressure|bullwhip|supply chain|dispatch|policy|carbon credit)\b/.test(value)) return 'civic-market';
+    if (/\b(crowd|venue|stadium|festival|elevator|platform|restaurant queue|order queue)\b/.test(value)) return 'venue-crowd';
+    if (/\b(glacier|ice shelf|iceberg|fjord|sea ice|thermocline|internal ocean wave|kelp canopy)\b/.test(value)) return 'ocean-cryosphere';
+    if (/\b(mangrove|oyster reef|peatland|aquifer|rewetting|living breakwater|water treatment|restoration)\b/.test(value)) return 'restoration-water';
+    if (/\b(coral|microbiome|pollinator|predator|prey|fish school|bird flock|population genetics|succession)\b/.test(value)) return 'evolution-ecology';
+    if (/\b(bridge resonance|vortex shedding|aeroelastic|modal vibration|structural mode|cable tension|truss)\b/.test(value)) return 'structural-mechanics';
+    if (/\b(hurricane|earthquake|tsunami|wildfire|evacuation|air quality|urban heat|hazard|mine ventilation)\b/.test(value)) return 'hazard-atmosphere';
+    if (/\b(fusion|tokamak|stellarator|plasma ribbon|electrolyzer|fuel cell|molten salt|nuclear waste)\b/.test(value)) return 'advanced-energy';
+    if (/\b(protein|ribosome|enzyme|ligand|amino acid|molecular chain|bond constraint)\b/.test(value)) return 'molecular-biology';
+    if (/\b(vaccine|patient|clinical|blood|neuron|synapse|hospital|prosthetic|tissue)\b/.test(value)) return 'clinical-control';
+    if (/\b(skate|skateboard|ski|surf|sailing|archery|mountain bike|rider)\b/.test(value)) return 'sport-motion';
+    if (/\b(museum|archive|pigment|varnish|ceramic glaze|conservation|artwork)\b/.test(value)) return 'cultural-material';
+    if (/\b(compost|greenhouse|anaerobic digester|organic waste|nutrient loop|algae bioreactor)\b/.test(value)) return 'agro-waste-loop';
+    if (/\b(planet|orbital|orbit|asteroid|comet|galaxy|radio telescope|deep space|black hole|shepherd moon)\b/.test(value)) return 'planetary-space';
+    return sceneKind;
+  }
+
+  function isCompiledSpecificScene(sceneKind) {
+    const value = String(sceneKind || '');
+    return Boolean(value && value !== 'mechanical' && value !== 'mechanical-fluid' && value !== 'custom-world');
+  }
+
   function visualTextFromSpec(spec) {
     const renderProgram = spec && spec.renderProgram || {};
     const visualIR = renderProgram.visualIR || {};
@@ -331,11 +367,19 @@
     const renderIR = renderProgram.renderIR || spec && spec.renderIR || {};
     return [
       sceneKindFromSpec(spec),
+      renderProgram.intentText,
+      renderProgram.prompt,
       rendererPlan.sceneKind,
       rendererPlan.painterKind,
+      rendererPlan.intentText,
       visualRecipe.sceneKind,
       visualRecipe.painterKind,
       renderIR.sceneHint,
+      renderIR.prompt,
+      visualIR.sceneKind,
+      visualIR.scale,
+      visualIR.camera && `${visualIR.camera.mode || ''} ${visualIR.camera.lens || ''} ${visualIR.camera.angle || ''}`,
+      visualIR.lighting && `${visualIR.lighting.key || ''} ${visualIR.lighting.fill || ''} ${visualIR.lighting.atmosphere || ''}`,
       ...((renderIR.objects || []).map((row) => `${row.id || ''} ${row.label || ''} ${row.glyph || ''} ${row.materialId || ''} ${row.visualRegime || ''}`)),
       ...((renderIR.fields || []).map((row) => `${row.id || ''} ${row.name || ''} ${row.channel || ''} ${row.domainId || ''}`)),
       ...((renderIR.causalAffordances || []).map((row) => [
@@ -409,6 +453,9 @@
     push([4, 29, 37], /magnetic|flux|charge|coil|plasma|electric/);
     push([12, 24], /stress|fracture|contact|impulse|deformation|crack/);
     push([38, 41], /robot|servo|gripper|workcell|pick|place/);
+    push([45], /particle|detector|muon|neutrino|calorimeter|cherenkov/);
+    push([46], /parcel|zoning|housing|market|policy|supply|dispatch|bullwhip/);
+    push([47], /hazard|storm|surge|evacuation|restoration|mangrove|aquifer|wildfire|tsunami/);
     return vector;
   }
 
@@ -526,6 +573,14 @@
     if (dominant === 'fluid') return paletteToVec4(PALETTES.water);
     if (dominant === 'stress') return paletteToVec4(PALETTES.factory);
     if (dominant === 'electromagnetic') return paletteToVec4(PALETTES.magnet);
+    if (sceneKind === 'fire') return paletteToVec4(PALETTES.thermal);
+    if (sceneKind === 'ocean' || sceneKind === 'ocean-cryosphere') return paletteToVec4(PALETTES.water);
+    if (sceneKind === 'structural-mechanics') return paletteToVec4(PALETTES.factory);
+    if (sceneKind === 'evolution-ecology' || sceneKind === 'restoration-water') return paletteToVec4(PALETTES.bio);
+    if (sceneKind === 'city' || sceneKind === 'civic-market' || sceneKind === 'venue-crowd') return paletteToVec4(PALETTES.network);
+    if (sceneKind === 'particle-instrument' || sceneKind === 'space-instrument') return paletteToVec4(PALETTES.instrument);
+    if (sceneKind === 'hazard-atmosphere') return paletteToVec4(PALETTES.weather);
+    if (sceneKind === 'advanced-energy') return paletteToVec4(PALETTES.plasma);
     if (/lava|fire|thermal|heat|plume/.test(text) || sceneKind === 'thermal-plume') return paletteToVec4(PALETTES.thermal);
     if (/storm|weather|wind|vortex|tornado/.test(text)) return paletteToVec4(PALETTES.weather);
     if (/river|ocean|water|watershed|upwelling|glacier|ice/.test(text)) return paletteToVec4(/ice|glacier|cryosphere/.test(text) ? PALETTES.ice : PALETTES.water);
@@ -944,8 +999,16 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
   let factoryFeature = featureAt(42);
   let quantumFeature = featureAt(43);
   let agroFeature = featureAt(44);
+  let particleFeature = featureAt(45);
+  let civicFeature = featureAt(46);
+  let hazardFeature = featureAt(47);
   let atomSpecific = clamp(max(max(max(robot, quantum), max(chemical, granular)), max(max(network, optical), max(bio, orbital))), 0.0, 1.0);
   let networkLocal = network * (1.0 - clamp(max(max(robot, chemical), max(granular, fluid)) * 0.82, 0.0, 0.92));
+  var literalScene = 0.0;
+  if (sceneGroup == 13.0 || sceneGroup == 15.0 || sceneGroup == 17.0 || sceneGroup == 29.0) {
+    literalScene = 1.0;
+  }
+  let commonOverlay = 1.0 - literalScene;
   color += u.palette1.rgb * floorGlow * (0.025 + flow * 0.06) * (1.0 - atomSpecific * 0.78);
 
   if (sceneGroup == 10.0 || orbital > 0.36) {
@@ -954,6 +1017,91 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     color = blendLayer(color, orb3d(p, vec2f(-0.28, -0.04), 0.36, u.palette1.rgb * 0.72, u.palette3.rgb * 0.02, 0.44));
     color = blendLayer(color, orb3d(p, vec2f(0.52, 0.2), 0.12, u.palette0.rgb * 0.8, u.palette3.rgb * 0.04, 0.32));
     color += u.palette3.rgb * ellipseRing(rot(p - vec2f(-0.28, -0.04), 0.18), vec2f(0.0), vec2f(0.75, 2.8), 0.58, 0.035) * 0.56;
+  } else if (sceneGroup == 12.0) {
+    color = mix(color, vec3f(0.015, 0.018, 0.04), 0.44);
+    color += vec3f(0.86, 0.2, 1.0) * ellipseRing(p, vec2f(0.0, 0.02), vec2f(1.2, 0.72), 0.52, 0.04) * 0.72;
+    color += vec3f(0.18, 0.92, 1.0) * stripe(atan2(p.y, p.x) * 4.0 + length(p) * 3.0 - t * 0.28, 0.032) * smoothstep(0.95, 0.08, length(p)) * 0.42;
+    color = blendLayer(color, panel3d(p, vec2f(0.0, -0.5), vec2f(0.72, 0.12), vec3f(0.06, 0.08, 0.12), u.palette1.rgb));
+  } else if (sceneGroup == 15.0 || sceneGroup == 32.0 || particleFeature > 0.18) {
+    color = mix(color, vec3f(0.006, 0.04, 0.055), 0.68);
+    let tank = diskMask(p, vec2f(0.0, -0.02), 0.62);
+    let wall = ellipseRing(p, vec2f(0.0, -0.02), vec2f(0.72, 1.12), 0.62, 0.035);
+    let track = capsuleLine(p, vec2f(-0.78, 0.28), vec2f(0.72, -0.22), 0.018);
+    let coneA = exp(-abs(rot(p - vec2f(-0.14, 0.08), 0.34).y) * 20.0) *
+      smoothstep(0.62, -0.08, length(p - vec2f(-0.14, 0.08)));
+    let coneB = exp(-abs(rot(p - vec2f(0.12, -0.02), -0.48).y) * 18.0) *
+      smoothstep(0.58, -0.06, length(p - vec2f(0.12, -0.02)));
+    let pmt = max(max(max(
+      diskMask(p, vec2f(-0.5, 0.38), 0.045),
+      diskMask(p, vec2f(-0.24, 0.51), 0.045)),
+      max(diskMask(p, vec2f(0.08, 0.54), 0.045), diskMask(p, vec2f(0.4, 0.42), 0.045))),
+      max(diskMask(p, vec2f(-0.52, -0.38), 0.045), diskMask(p, vec2f(0.52, -0.32), 0.045)));
+    color = mix(color, vec3f(0.03, 0.22, 0.26), tank * 0.34);
+    color += vec3f(0.42, 0.96, 1.0) * wall * 0.66;
+    color += vec3f(0.78, 1.0, 0.96) * max(coneA, coneB) * 0.28;
+    color += vec3f(0.92, 1.0, 0.9) * track * 0.82;
+    color += vec3f(0.18, 0.82, 1.0) * pmt * (0.54 + stripe(t + length(p) * 3.0, 0.05) * 0.28);
+  } else if (sceneGroup == 23.0 || sceneGroup == 27.0) {
+    let shelf = smoothstep(0.07, 0.0, abs(p.y + 0.18 + sin(p.x * 2.5) * 0.08));
+    let waterColumn = smoothstep(-0.98, -0.12, p.y) * (1.0 - smoothstep(0.44, 0.82, p.y));
+    color = mix(color, vec3f(0.02, 0.18, 0.32), waterColumn * 0.48);
+    color += vec3f(0.35, 0.8, 1.0) * atomFluidRibbons(p, t) * 0.34;
+    color += vec3f(0.92, 0.98, 1.0) * shelf * 0.62;
+    color += vec3f(0.2, 1.0, 0.58) * branchWeb(p + vec2f(0.18, -0.24), t) * 0.14;
+  } else if (sceneGroup == 24.0) {
+    color = blendLayer(color, panel3d(p, vec2f(0.0, -0.08), vec2f(0.86, 0.14), vec3f(0.11, 0.12, 0.13), u.palette1.rgb));
+    color += vec3f(0.8, 0.9, 1.0) * capsuleLine(p, vec2f(-0.82, 0.22), vec2f(0.82, 0.22 + sin(t * 0.4) * 0.04), 0.035) * 0.52;
+    color += vec3f(1.0, 0.54, 0.18) * atomStressCracks(p, t) * 0.42;
+    color += vec3f(0.32, 0.74, 1.0) * stripe(p.x * 10.0 + sin(p.y * 8.0 + t * 0.32), 0.025) * smoothstep(0.82, 0.12, abs(p.y)) * 0.18;
+  } else if (sceneGroup == 13.0) {
+    color = mix(color, vec3f(0.025, 0.055, 0.035), 0.58);
+    let energy = stripe(p.y * 5.2 + sin(p.x * 4.8 + t * 0.12) * 0.48, 0.026) *
+      smoothstep(1.0, 0.08, length(p * vec2f(0.85, 1.15)));
+    let bondA = capsuleLine(p, vec2f(-0.56, 0.18), vec2f(-0.24, -0.08), 0.035);
+    let bondB = capsuleLine(p, vec2f(-0.24, -0.08), vec2f(0.08, 0.14), 0.035);
+    let bondC = capsuleLine(p, vec2f(0.08, 0.14), vec2f(0.38, -0.1), 0.035);
+    let bondD = capsuleLine(p, vec2f(0.38, -0.1), vec2f(0.62, 0.18), 0.032);
+    let chain = max(max(bondA, bondB), max(bondC, bondD));
+    color += vec3f(0.2, 0.95, 0.42) * energy * 0.26;
+    color += vec3f(0.78, 0.95, 0.86) * chain * 0.72;
+    color = blendLayer(color, orb3d(p, vec2f(-0.56, 0.18), 0.09, vec3f(0.5, 0.95, 0.36), u.palette3.rgb * 0.02, 0.58));
+    color = blendLayer(color, orb3d(p, vec2f(-0.24, -0.08), 0.105, vec3f(0.75, 0.95, 0.58), u.palette3.rgb * 0.02, 0.5));
+    color = blendLayer(color, orb3d(p, vec2f(0.08, 0.14), 0.095, vec3f(0.98, 0.78, 0.42), u.palette3.rgb * 0.03, 0.42));
+    color = blendLayer(color, orb3d(p, vec2f(0.38, -0.1), 0.1, vec3f(0.62, 0.82, 1.0), u.palette3.rgb * 0.02, 0.46));
+    color = blendLayer(color, orb3d(p, vec2f(0.62, 0.18), 0.08, vec3f(0.96, 0.55, 0.74), u.palette3.rgb * 0.03, 0.5));
+    color += vec3f(1.0, 0.82, 0.26) * max(max(ellipseRing(p, vec2f(-0.24, -0.08), vec2f(1.0), 0.18, 0.02),
+      ellipseRing(p, vec2f(0.38, -0.1), vec2f(1.0), 0.16, 0.02)), chain * stress * 0.24) * 0.32;
+  } else if (sceneGroup == 25.0 || sceneGroup == 26.0) {
+    let terrain = smoothstep(0.09, 0.0, abs(p.y + 0.42 + sin(p.x * 3.0) * 0.09));
+    color = mix(color, vec3f(0.04, 0.18, 0.08), (1.0 - smoothstep(-0.74, -0.1, p.y)) * 0.38);
+    color += vec3f(0.18, 0.72, 0.32) * branchWeb(p + vec2f(0.12, 0.18), t) * 0.42;
+    color += vec3f(0.1, 0.58, 0.95) * atomFluidRibbons(p - vec2f(0.0, 0.2), t) * 0.24;
+    color += vec3f(0.78, 0.56, 0.22) * terrain * 0.46;
+  } else if (sceneGroup == 28.0 || sceneGroup == 29.0 || sceneGroup == 30.0 || civicFeature > 0.18) {
+    color = vec3f(0.035, 0.048, 0.058);
+    let roadA = capsuleLine(p, vec2f(-0.86, -0.18), vec2f(0.84, 0.24), 0.026);
+    let roadB = capsuleLine(p, vec2f(-0.5, 0.58), vec2f(0.44, -0.54), 0.023);
+    let pressure = smoothstep(0.86, 0.06, length((p - vec2f(0.18, 0.05)) * vec2f(0.9, 1.2)));
+    let parcelA = rectMask(p, vec2f(-0.54, 0.24), vec2f(0.18, 0.16));
+    let parcelB = rectMask(p, vec2f(-0.12, 0.16), vec2f(0.17, 0.14));
+    let parcelC = rectMask(p, vec2f(0.32, 0.22), vec2f(0.2, 0.15));
+    let parcelD = rectMask(p, vec2f(-0.38, -0.3), vec2f(0.2, 0.15));
+    let parcelE = rectMask(p, vec2f(0.14, -0.28), vec2f(0.18, 0.16));
+    let parcels = max(max(parcelA, parcelB), max(max(parcelC, parcelD), parcelE));
+    let agents = max(max(diskMask(p, vec2f(-0.2, -0.02), 0.035), diskMask(p, vec2f(0.46, -0.12), 0.035)),
+      max(diskMask(p, vec2f(-0.62, -0.05), 0.035), diskMask(p, vec2f(0.08, 0.42), 0.035)));
+    color += vec3f(0.08, 0.16, 0.22) * parcels * 0.74;
+    color += vec3f(0.95, 0.2, 0.16) * pressure * parcels * 0.36;
+    color += vec3f(0.2, 0.58, 1.0) * max(roadA, roadB) * 0.58;
+    color += vec3f(1.0, 0.78, 0.18) * agents * 0.86;
+    color += vec3f(0.92, 0.22, 0.18) * atomFeedbackArcs(p * vec2f(1.2, 0.9), t) * networkLocal * 0.22;
+  } else if (sceneGroup == 31.0 || hazardFeature > 0.18) {
+    let front = smoothstep(0.05, 0.0, abs(p.y - sin(p.x * 3.2 + t * 0.2) * 0.22));
+    let exposure = stripe(length(p - vec2f(-0.22, -0.1)) * 5.2 - t * 0.24, 0.035);
+    color = mix(color, vec3f(0.18, 0.05, 0.035), 0.28);
+    color += vec3f(1.0, 0.22, 0.05) * front * 0.48;
+    color += vec3f(0.2, 0.72, 1.0) * exposure * 0.3;
+    color += vec3f(0.02, 0.02, 0.025) * starParticleField(p, t, 0.18) * 0.34;
   } else if (sceneGroup == 17.0 || robot > 0.34 || robotFeature > 0.18) {
     let base = panel3d(p, vec2f(0.0, -0.04), vec2f(0.82, 0.56), vec3f(0.055, 0.065, 0.075), u.palette1.rgb);
     let conveyor = panel3d(p, vec2f(0.02, -0.52), vec2f(0.86, 0.11), vec3f(0.09, 0.1, 0.11), u.palette3.rgb);
@@ -1029,15 +1177,18 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     color = blendLayer(color, orb3d(p, vec2f(-0.42, -0.12), 0.14, u.palette0.rgb * 0.72, u.palette3.rgb * 0.02, 0.26));
   }
 
-  color += vec3f(1.0, 0.96, 0.9) * optical * exp(-abs(rot(p, 0.2 + variant * 0.4).y) * 62.0) * 0.22;
-  color += vec3f(0.45, 0.75, 1.0) * acoustic * stripe(length(p) * (7.0 + density * 3.0) - t * 0.46, 0.023) * 0.16;
-  color += vec3f(0.7, 0.85, 1.0) * em * stripe(atan2(p.y, p.x) * 3.5 + length(p) * 2.2 - t * 0.15, 0.028) * 0.18;
-  color += vec3f(0.9, 0.7, 0.42) * granular * perspectiveFloor(p + vec2f(0.0, 0.15), t) * 0.12;
-  color += vec3f(0.95, 0.76, 0.38) * gridFeature * atomFeedbackArcs(p, t) * 0.28;
-  color += vec3f(0.9, 0.94, 1.0) * max(robot, robotFeature) * capsuleLine(p, vec2f(-0.42, 0.2), vec2f(0.46, -0.08 + sin(t) * 0.05), 0.046) * 0.34;
-  color += vec3f(0.72, 0.82, 0.94) * factoryFeature * panel3d(p, vec2f(0.38, -0.38), vec2f(0.38, 0.1), vec3f(0.13, 0.14, 0.15), u.palette1.rgb).w * 0.32;
-  color += vec3f(0.42, 1.0, 0.48) * agroFeature * branchWeb(p + vec2f(0.08, 0.12), t) * 0.18;
-  color += vec3f(0.14, 0.9, 1.0) * max(instrument, signal) * panel3d(p, vec2f(0.0, 0.58), vec2f(0.82, 0.1), vec3f(0.02, 0.06, 0.09), u.palette3.rgb).w * 0.36;
+  color += vec3f(1.0, 0.96, 0.9) * optical * exp(-abs(rot(p, 0.2 + variant * 0.4).y) * 62.0) * 0.22 * commonOverlay;
+  color += vec3f(0.45, 0.75, 1.0) * acoustic * stripe(length(p) * (7.0 + density * 3.0) - t * 0.46, 0.023) * 0.16 * commonOverlay;
+  color += vec3f(0.7, 0.85, 1.0) * em * stripe(atan2(p.y, p.x) * 3.5 + length(p) * 2.2 - t * 0.15, 0.028) * 0.18 * commonOverlay;
+  color += vec3f(0.9, 0.7, 0.42) * granular * perspectiveFloor(p + vec2f(0.0, 0.15), t) * 0.12 * commonOverlay;
+  color += vec3f(0.95, 0.76, 0.38) * gridFeature * atomFeedbackArcs(p, t) * 0.28 * commonOverlay;
+  color += vec3f(0.9, 0.94, 1.0) * max(robot, robotFeature) * capsuleLine(p, vec2f(-0.42, 0.2), vec2f(0.46, -0.08 + sin(t) * 0.05), 0.046) * 0.34 * commonOverlay;
+  color += vec3f(0.72, 0.82, 0.94) * factoryFeature * panel3d(p, vec2f(0.38, -0.38), vec2f(0.38, 0.1), vec3f(0.13, 0.14, 0.15), u.palette1.rgb).w * 0.32 * commonOverlay;
+  color += vec3f(0.42, 1.0, 0.48) * agroFeature * branchWeb(p + vec2f(0.08, 0.12), t) * 0.18 * commonOverlay;
+  color += vec3f(0.22, 0.9, 1.0) * particleFeature * ellipseRing(p, vec2f(0.0), vec2f(1.0, 1.0), 0.56, 0.022) * 0.16;
+  color += vec3f(1.0, 0.68, 0.18) * civicFeature * max(stripe(p.x * 5.5, 0.022), stripe(p.y * 4.5, 0.022)) * 0.04;
+  color += vec3f(1.0, 0.22, 0.06) * hazardFeature * stripe(length(p) * 5.8 - t * 0.3, 0.03) * 0.16 * commonOverlay;
+  color += vec3f(0.14, 0.9, 1.0) * max(instrument, signal) * panel3d(p, vec2f(0.0, 0.58), vec2f(0.82, 0.1), vec3f(0.02, 0.06, 0.09), u.palette3.rgb).w * 0.36 * commonOverlay;
   color = mix(color, color * (0.86 + fog * 0.08) + u.palette0.rgb * 0.04, 0.32);
   return color;
 }
@@ -1051,6 +1202,7 @@ fn branchWeb(p: vec2f, t: f32) -> f32 {
 }
 
 fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
+  let sceneGroup = floor(u.viewport.w);
   let thermal = max(atomAt(0), atomAt(14));
   let fluid = atomAt(1);
   let stress = atomAt(2);
@@ -1071,6 +1223,10 @@ fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
   let signal = atomAt(22);
   let surface = atomAt(23);
   let specific = max(max(max(robot, quantum), max(chemical, granular)), max(max(network, optical), max(bio, orbit)));
+  var literalScene = 0.0;
+  if (sceneGroup == 13.0 || sceneGroup == 15.0 || sceneGroup == 17.0 || sceneGroup == 29.0) {
+    literalScene = 1.0;
+  }
   let thermalLocal = thermal * (1.0 - clamp(specific * 0.62, 0.0, 0.78));
   let networkLocal = network * (1.0 - clamp(max(max(robot, chemical), max(granular, fluid)) * 0.76, 0.0, 0.9));
   let microfluidic = clamp(max(chemical, instrument), 0.0, 1.0);
@@ -1169,10 +1325,12 @@ fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
   color += vec3f(0.12, 0.88, 1.0) * instrument * panel * (0.62 + stripe(p.x * 16.0 - t * 0.4, 0.04) * 0.38);
   color += vec3f(0.98, 0.22, 0.78) * max(measurement, signal) * readoutDeck * (0.32 + scan * 0.52);
   color += vec3f(0.18, 0.96, 0.72) * max(instrument, signal) * sampleBeam * 0.44;
-  return mix(base, color, clamp(0.38 + total * 0.34, 0.0, 0.76));
+  let structuralMix = (0.34 + total * 0.26) * (1.0 - literalScene);
+  return mix(base, color, clamp(structuralMix, 0.0, 0.58));
 }
 
 fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
+  let sceneGroup = floor(u.viewport.w);
   var color = base;
   let thermal = max(atomAt(0), atomAt(14));
   let fluid = atomAt(1);
@@ -1202,7 +1360,11 @@ fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   color += vec3f(0.86, 0.72, 0.42) * granular * stripe(p.y * 9.0 + sin(p.x * 4.0), 0.032) * 0.16;
   color += vec3f(0.9, 0.92, 0.96) * robot * stripe((p.x + p.y) * 7.0 - t * 0.3, 0.03) * 0.14;
   color += u.palette3.rgb * orbit * stripe(length(p) * 3.6 - t * 0.12, 0.025) * 0.18;
-  return mix(base, color, 0.48);
+  var literalScene = 0.0;
+  if (sceneGroup == 13.0 || sceneGroup == 15.0 || sceneGroup == 17.0 || sceneGroup == 29.0) {
+    literalScene = 1.0;
+  }
+  return mix(base, color, 0.34 * (1.0 - literalScene));
 }
 
 fn loadingWrapDistance(a: f32, b: f32, span: f32) -> f32 {
