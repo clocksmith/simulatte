@@ -301,6 +301,11 @@
     const direct = directLanguageText(context);
     const id = String(row.id || '');
     const directHas = (pattern) => pattern.test(direct);
+    if (/robot-contact/.test(id)) {
+      const robotScene = /robotics control|manufacturing line/.test(scene) ||
+        directHas(/\b(robot|robotic|gripper|servo|workcell|manipulator|pick and place|pick|place)\b/);
+      if (!robotScene) return { ok: false, reason: 'scene-gate:no-direct-robotics-evidence' };
+    }
     const watershedLike = /watershed|restoration water|ocean cryosphere|weather atmosphere|hazard atmosphere/.test(scene) ||
       /\b(watershed|river|rain|erosion|erodes|sediment|terrain|mountain|delta|aquifer|storm surge|glacier|ocean)\b/.test(direct);
     if (watershedLike) {
