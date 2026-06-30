@@ -21,18 +21,18 @@
     { "id": "universe-materials", "path": "public/models/simulatte-universe/material-index-v1.json", "itemKey": "documents", "expectedCount": 214, "kind": "semantic-index" },
     { "id": "universe-causal-relations", "path": "public/models/simulatte-universe/causal-relation-index-v1.json", "itemKey": "documents", "expectedCount": 190, "kind": "causal-index", "runtimeMirror": "runtime-causal-rules" },
     { "id": "visual-cards", "path": "public/models/simulatte-visual-cards/visual-card-index-v1.json", "itemKey": "documents", "expectedCount": 1177, "kind": "visual-index" },
-    { "id": "causal-visual-affordances", "path": "public/models/simulatte-visual-cards/causal-visual-affordance-index-v1.json", "itemKey": "documents", "expectedCount": 186, "kind": "visual-causal-index", "runtimeMirror": "runtime-causal-visual-affordances" },
-    { "id": "visual-operator-atlas", "path": "public/models/simulatte-visual-cards/visual-operator-atlas-v1.json", "itemKey": "documents", "expectedCount": 16, "kind": "visual-operator-index" }
+    { "id": "causal-visual-affordances", "path": "public/models/simulatte-visual-cards/causal-visual-affordance-index-v1.json", "itemKey": "documents", "expectedCount": 190, "kind": "visual-causal-index", "runtimeMirror": "runtime-causal-visual-affordances" },
+    { "id": "visual-operator-atlas", "path": "public/models/simulatte-visual-cards/visual-operator-atlas-v1.json", "itemKey": "documents", "expectedCount": 17, "kind": "visual-operator-index" }
   ],
   "runtimeCatalogs": [
     { "id": "runtime-physical-primitives", "path": "public/js/simulatte-physics-catalog.js", "exportName": "PHYSICAL_PRIMITIVES", "expectedCount": 420, "kind": "compiler-runtime" },
     { "id": "runtime-example-intents", "path": "public/js/simulatte-physics-catalog.js", "exportName": "EXAMPLE_INTENTS", "expectedCount": 256, "kind": "prompt-examples" },
     { "id": "runtime-causal-rules", "path": "public/js/simulatte-causal-physics-graph.js", "exportName": "CAUSAL_RELATION_RULES", "expectedCount": 190, "kind": "causal-runtime", "staticMirror": "universe-causal-relations" },
-    { "id": "runtime-causal-visual-affordances", "path": "public/js/simulatte-causal-visual-affordances.js", "exportName": "CAUSAL_VISUAL_AFFORDANCES", "expectedCount": 186, "kind": "visual-causal-runtime", "staticMirror": "causal-visual-affordances" }
+    { "id": "runtime-causal-visual-affordances", "path": "public/js/simulatte-causal-visual-affordances.js", "exportName": "CAUSAL_VISUAL_AFFORDANCES", "expectedCount": 190, "kind": "visual-causal-runtime", "staticMirror": "causal-visual-affordances" }
   ],
   "manifestContracts": [
-    { "id": "visual-cards-manifest-causal-document-count", "path": "public/models/simulatte-visual-cards/manifest.json", "jsonPointer": "/indexes/causalAffordances/documentCount", "expectedValue": 186 },
-    { "id": "visual-cards-manifest-causal-coverage", "path": "public/models/simulatte-visual-cards/manifest.json", "jsonPointer": "/coverage/causalAffordances", "expectedValue": 186 },
-    { "id": "visual-cards-manifest-handwritten-causal-affordances", "path": "public/models/simulatte-visual-cards/manifest.json", "jsonPointer": "/generator/sourcePolicy/handwrittenCausalAffordances", "expectedValue": 186 }
+    { "id": "visual-cards-manifest-causal-document-count", "path": "public/models/simulatte-visual-cards/manifest.json", "jsonPointer": "/indexes/causalAffordances/documentCount", "expectedValue": 190 },
+    { "id": "visual-cards-manifest-causal-coverage", "path": "public/models/simulatte-visual-cards/manifest.json", "jsonPointer": "/coverage/causalAffordances", "expectedValue": 190 },
+    { "id": "visual-cards-manifest-handwritten-causal-affordances", "path": "public/models/simulatte-visual-cards/manifest.json", "jsonPointer": "/generator/sourcePolicy/handwrittenCausalAffordances", "expectedValue": 190 }
   ]
 }

@@ -689,6 +689,20 @@
     };
   }
 
+  function spanRetrievalReceipt(spanRetrieval) {
+    if (!spanRetrieval) return null;
+    return {
+      schema: spanRetrieval.schema || 'simulatte.spanEmbeddingRetrieval.v1',
+      model: spanRetrieval.model || '',
+      disabledReason: spanRetrieval.disabledReason || '',
+      spanCount: Number(spanRetrieval.spanCount || 0),
+      embeddedSpanCount: Number(spanRetrieval.embeddedSpanCount || 0),
+      cachedSpanCount: Number(spanRetrieval.cachedSpanCount || 0),
+      candidateCount: Number(spanRetrieval.candidateCount || 0),
+      config: spanRetrieval.config || null,
+    };
+  }
+
   function contractForComponent(contract, id) {
     return {
       geometry: contract && contract.geometry ? contract.geometry[id] || null : null,
@@ -890,6 +904,7 @@
       semanticRag,
       universeMatches,
       dopplerIntent,
+      spanRetrieval: options.spanRetrieval || null,
       intentBrief: null,
       resolution: {
         mode: '2d',
@@ -900,6 +915,8 @@
         embedding: classification && classification.model.runtime ? classification.model.runtime : null,
         rerank: options.intentRerank || options.rerank || null,
         doppler: dopplerIntent ? dopplerReceipt(dopplerIntent) : null,
+        retrievalPhase: options.retrievalPhase || '',
+        spanRetrieval: spanRetrievalReceipt(options.spanRetrieval || null),
       },
     };
     const addDomain = (...domains) => {
@@ -963,6 +980,7 @@
         cardMatches: options.cardMatches || options.surfaceCardMatches || [],
         embeddingPriors: options.embeddingPriors || [],
         embeddingModel: options.embeddingModel || null,
+        spanRetrieval: options.spanRetrieval || null,
         evidenceRows: options.evidenceRows || [],
       })
       : null;

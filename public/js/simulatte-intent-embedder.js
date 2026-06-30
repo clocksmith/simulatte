@@ -26,6 +26,8 @@
       this.dopplerModelHandle = options.dopplerModelHandle || null;
       this.dopplerModule = options.dopplerModule || null;
       this.runtimeConfig = options.runtimeConfig || null;
+      this.spanLevelEmbedding = options.spanLevelEmbedding;
+      this.spanEmbeddingCache = options.spanEmbeddingCache || new Map();
       this.modelPromise = null;
       this.providerPromise = null;
       this.gpuPromise = null;
@@ -158,13 +160,53 @@
         })
         .filter((prior) => prior.primitiveId !== 'energy-ledger')
         .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
-      const semanticRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector);
-      const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
-      const rerank = rerankPriors(basePriors, semanticRag, dopplerIntent, runtime, universeMatches);
-      const evidenceRows = buildIntentEvidenceRows({
+      const languageEvidence = spanLanguageEvidence(promptText, options);
+      const previewRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector);
+      const previewRerank = rerankPriors(basePriors, previewRag, null, runtime, universeMatches);
+      const previewSpanRetrieval = emptySpanRetrieval([], spanConfigFor(runtime, options, this.spanLevelEmbedding), 'prompt-preview');
+      const previewEvidenceRows = buildIntentEvidenceRows({
         basePriors,
         cardMatches,
         universeMatches,
+        spanRetrieval: previewSpanRetrieval,
+        semanticRag: previewRag,
+        dopplerIntent: null,
+      });
+      emitIntentPreview(options, {
+        model: modelSummary(runtime, query, provider),
+        backend: provider.backend || 'doppler-embedding',
+        rankBackend: gpuScores ? 'webgpu' : 'cpu',
+        priors: previewRerank.priors.slice(0, max),
+        cardMatches,
+        universeMatches,
+        spanRetrieval: previewSpanRetrieval,
+        rerank: previewRerank.receipt,
+        semanticRag: previewRag,
+        dopplerIntent: null,
+        evidenceRows: previewEvidenceRows,
+        retrievalPhase: 'prompt-preview',
+      });
+      const spanRetrieval = await rankPromptSpans({
+        provider,
+        runtime,
+        candidates,
+        candidateVectors,
+        languageEvidence,
+        options,
+        embedCache: this.spanEmbeddingCache,
+        instanceConfig: this.spanLevelEmbedding,
+        rankGpu: (vector) => this.tryRankWebGpu(runtime.index.embeddingDim, vector, candidateVectors),
+        progress,
+      });
+      const fusedBasePriors = fuseSpanPrimitiveScores(basePriors, spanRetrieval);
+      const semanticRag = createRag(promptText, candidates, fusedBasePriors, runtime.index, queryVector);
+      const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
+      const rerank = rerankPriors(fusedBasePriors, semanticRag, dopplerIntent, runtime, universeMatches);
+      const evidenceRows = buildIntentEvidenceRows({
+        basePriors: fusedBasePriors,
+        cardMatches,
+        universeMatches,
+        spanRetrieval,
         semanticRag,
         dopplerIntent,
       });
@@ -181,10 +223,12 @@
         priors: rerank.priors.slice(0, max),
         cardMatches,
         universeMatches,
+        spanRetrieval,
         rerank: rerank.receipt,
         semanticRag,
         dopplerIntent,
         evidenceRows,
+        retrievalPhase: 'span-refined',
       };
     }
 
@@ -751,6 +795,10 @@
         primitiveHints: row.primitiveHints || (row.primitiveId ? [row.primitiveId] : []),
         conceptIds: row.conceptIds || row.concepts || [],
         candidateText: row.candidateText || row.text || '',
+        spanId: row.spanId || '',
+        spanKind: row.spanKind || '',
+        spanText: row.spanText || '',
+        retrievalKind: row.retrievalKind || '',
         evidence: row.evidence || [String(id)],
       });
     };
@@ -763,6 +811,7 @@
     for (const row of payload.semanticRag && payload.semanticRag.openComponents || []) add(row, 'semantic-rag-component');
     for (const row of payload.semanticRag && payload.semanticRag.surfaceRetrieved || []) add(row, 'semantic-rag-surface');
     for (const row of payload.dopplerIntent && payload.dopplerIntent.primitives || []) add(row, 'doppler-intent');
+    for (const row of spanEvidenceRows(payload.spanRetrieval)) add(row, row.source || 'span-embedding-retrieval');
     const seen = new Set();
     return rows
       .filter((row) => {
@@ -772,12 +821,464 @@
         return true;
       })
       .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-      .slice(0, 160);
+      .slice(0, 260);
+  }
+
+  function spanConfigFor(runtime, options = {}, instanceConfig = undefined) {
+    const manifestConfig = runtime && runtime.manifest && runtime.manifest.retrieval && runtime.manifest.retrieval.spanLevel || {};
+    const optionConfig = normalizeSpanOption(options.spanLevelEmbedding);
+    const instance = normalizeSpanOption(instanceConfig);
+    const merged = {
+      enabled: true,
+      mode: 'progressive-refinement',
+      fullPromptFirst: true,
+      batchEmbedding: true,
+      cache: true,
+      dedupe: true,
+      maxSpans: 18,
+      minChars: 3,
+      maxChars: 180,
+      includeKinds: ['predicate-frame', 'clause', 'verb-phrase', 'noun-phrase', 'modifier', 'quantity'],
+      perSpanPrimitiveMax: 8,
+      perSpanCardMax: 6,
+      perSpanUniverseMax: 10,
+      perSpanCandidateMax: 22,
+      primitiveScoreFloor: 0.18,
+      surfaceScoreFloor: 0.22,
+      universeScoreFloor: 0.14,
+      primitiveRankBackend: 'cpu',
+      ...manifestConfig,
+      ...instance,
+      ...optionConfig,
+    };
+    const urlMode = urlValue('spanLevelEmbedding') || urlValue('spanEmbedding');
+    if (/^(0|false|off|disabled|none)$/i.test(urlMode)) merged.enabled = false;
+    if (/^(1|true|on|enabled)$/i.test(urlMode)) merged.enabled = true;
+    const urlMax = Number(urlValue('spanMax') || urlValue('maxSpanEmbeddings'));
+    if (Number.isFinite(urlMax) && urlMax >= 0) merged.maxSpans = urlMax;
+    const urlPrimitiveMax = Number(urlValue('spanPrimitiveMax'));
+    if (Number.isFinite(urlPrimitiveMax) && urlPrimitiveMax >= 0) merged.perSpanPrimitiveMax = urlPrimitiveMax;
+    const urlCardMax = Number(urlValue('spanCardMax'));
+    if (Number.isFinite(urlCardMax) && urlCardMax >= 0) merged.perSpanCardMax = urlCardMax;
+    const urlUniverseMax = Number(urlValue('spanUniverseMax'));
+    if (Number.isFinite(urlUniverseMax) && urlUniverseMax >= 0) merged.perSpanUniverseMax = urlUniverseMax;
+    const rankBackend = String(urlValue('spanPrimitiveRankBackend') || merged.primitiveRankBackend || 'cpu').toLowerCase();
+    merged.primitiveRankBackend = ['cpu', 'webgpu', 'auto'].includes(rankBackend) ? rankBackend : 'cpu';
+    merged.maxSpans = boundedInteger(merged.maxSpans, 0, 80, 18);
+    merged.minChars = boundedInteger(merged.minChars, 1, 64, 3);
+    merged.maxChars = boundedInteger(merged.maxChars, merged.minChars, 512, 180);
+    merged.perSpanPrimitiveMax = boundedInteger(merged.perSpanPrimitiveMax, 0, 64, 8);
+    merged.perSpanCardMax = boundedInteger(merged.perSpanCardMax, 0, 64, 6);
+    merged.perSpanUniverseMax = boundedInteger(merged.perSpanUniverseMax, 0, 80, 10);
+    merged.perSpanCandidateMax = boundedInteger(merged.perSpanCandidateMax, 0, 160, 22);
+    merged.primitiveScoreFloor = boundedNumber(merged.primitiveScoreFloor, 0, 1, 0.18);
+    merged.surfaceScoreFloor = boundedNumber(merged.surfaceScoreFloor, 0, 1, 0.22);
+    merged.universeScoreFloor = boundedNumber(merged.universeScoreFloor, 0, 1, 0.14);
+    merged.includeKinds = normalizeStringList(merged.includeKinds);
+    merged.enabled = Boolean(merged.enabled);
+    merged.batchEmbedding = merged.batchEmbedding !== false;
+    merged.cache = merged.cache !== false;
+    merged.dedupe = merged.dedupe !== false;
+    return merged;
+  }
+
+  function normalizeSpanOption(value) {
+    if (value === true) return { enabled: true };
+    if (value === false) return { enabled: false };
+    if (value && typeof value === 'object') return value;
+    return {};
+  }
+
+  function spanReceiptConfig(config = {}) {
+    return {
+      enabled: Boolean(config.enabled),
+      mode: config.mode || '',
+      fullPromptFirst: config.fullPromptFirst !== false,
+      batchEmbedding: config.batchEmbedding !== false,
+      cache: config.cache !== false,
+      dedupe: config.dedupe !== false,
+      maxSpans: Number(config.maxSpans || 0),
+      minChars: Number(config.minChars || 0),
+      maxChars: Number(config.maxChars || 0),
+      includeKinds: normalizeStringList(config.includeKinds),
+      perSpanPrimitiveMax: Number(config.perSpanPrimitiveMax || 0),
+      perSpanCardMax: Number(config.perSpanCardMax || 0),
+      perSpanUniverseMax: Number(config.perSpanUniverseMax || 0),
+      perSpanCandidateMax: Number(config.perSpanCandidateMax || 0),
+      primitiveScoreFloor: Number(config.primitiveScoreFloor || 0),
+      surfaceScoreFloor: Number(config.surfaceScoreFloor || 0),
+      universeScoreFloor: Number(config.universeScoreFloor || 0),
+      primitiveRankBackend: config.primitiveRankBackend || 'cpu',
+    };
+  }
+
+  function normalizeStringList(value) {
+    if (!Array.isArray(value)) return [];
+    return uniqueStrings(value.map((item) => String(item || '').trim()).filter(Boolean));
+  }
+
+  function boundedInteger(value, min, max, fallback) {
+    const parsed = Math.floor(Number(value));
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(min, Math.min(max, parsed));
+  }
+
+  function boundedNumber(value, min, max, fallback) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(min, Math.min(max, parsed));
+  }
+
+  async function embedSpanQueries(payload = {}) {
+    const provider = payload.provider;
+    const spans = payload.spans || [];
+    const config = payload.config || {};
+    const cache = config.cache && payload.cache && typeof payload.cache.get === 'function' ? payload.cache : null;
+    const nowIso = payload.options && payload.options.nowIso || new Date().toISOString();
+    const cacheKeyFor = (span) => [
+      payload.runtime && payload.runtime.index && payload.runtime.index.embedModelHash || '',
+      payload.runtime && payload.runtime.index && payload.runtime.index.embeddingDim || '',
+      normalizeSpanText(span.text),
+    ].join(':');
+    const pending = [];
+    const rows = spans.map((span) => {
+      const cacheKey = cacheKeyFor(span);
+      const cached = cache && cache.get(cacheKey);
+      if (cached) return { span, query: cached, cacheHit: true };
+      const row = { span, query: null, cacheHit: false, cacheKey };
+      pending.push(row);
+      return row;
+    });
+    if (!pending.length) return rows;
+    const requestRows = pending.map((row) => ({
+      text: row.span.text,
+      nowIso,
+      spanId: row.span.id,
+      spanKind: row.span.kind,
+    }));
+    const batchResult = config.batchEmbedding ? await embedSpanBatch(provider, requestRows) : null;
+    if (batchResult && batchResult.length === pending.length) {
+      pending.forEach((row, index) => {
+        row.query = batchResult[index];
+        if (cache) cache.set(row.cacheKey, row.query);
+      });
+      return rows;
+    }
+    for (const row of pending) {
+      row.query = await provider.embed({
+        text: row.span.text,
+        nowIso,
+        spanId: row.span.id,
+        spanKind: row.span.kind,
+      });
+      if (cache) cache.set(row.cacheKey, row.query);
+    }
+    return rows;
+  }
+
+  async function embedSpanBatch(provider, requestRows) {
+    if (!provider || !requestRows.length) return null;
+    if (typeof provider.embedBatch === 'function') {
+      return provider.embedBatch(requestRows);
+    }
+    if (typeof provider.embedMany === 'function') {
+      return provider.embedMany(requestRows);
+    }
+    return null;
+  }
+
+  async function safeSpanGpuRank(rankGpu, vector) {
+    if (typeof rankGpu !== 'function') return null;
+    try {
+      return await rankGpu(vector);
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function emitIntentPreview(options, result) {
+    if (!options || typeof options.onPreview !== 'function') return;
+    try {
+      options.onPreview(result);
+    } catch (_err) {}
+  }
+
+  async function rankPromptSpans(payload = {}) {
+    const runtime = payload.runtime;
+    const provider = payload.provider;
+    const candidates = payload.candidates || [];
+    const candidateVectors = payload.candidateVectors || [];
+    const config = spanConfigFor(runtime, payload.options || {}, payload.instanceConfig);
+    const spans = usefulRetrievalSpans(payload.languageEvidence, config);
+    const bySpan = [];
+    if (!config.enabled || !spans.length || !runtime || !provider || typeof provider.embed !== 'function') {
+      return emptySpanRetrieval(spans, config, config.enabled ? 'empty' : 'disabled');
+    }
+    emitProgress(payload.progress, {
+      source: 'simulatte-intent-embedder',
+      stage: 'span-retrieval',
+      percent: 88,
+      message: `Embedding ${spans.length} language spans`,
+      spanCount: spans.length,
+    });
+    const queries = await embedSpanQueries({
+      provider,
+      runtime,
+      spans,
+      config,
+      options: payload.options || {},
+      cache: payload.embedCache,
+    });
+    for (const item of queries) {
+      if (!item || !item.span || !item.query) continue;
+      const span = item.span;
+      const vector = validateQueryEmbedding(item.query, runtime.index);
+      const gpuScores = config.primitiveRankBackend === 'webgpu' || config.primitiveRankBackend === 'auto'
+        ? await safeSpanGpuRank(payload.rankGpu, vector)
+        : null;
+      const scores = gpuScores || rankCpu(vector, candidateVectors);
+      const primitiveMatches = candidates
+        .map((primitive, index) => spanPrimitiveMatch(span, primitive, scores[index]))
+        .filter((row) => row.score >= config.primitiveScoreFloor)
+        .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId))
+        .slice(0, config.perSpanPrimitiveMax);
+      const cardMatches = rankSurfaceCards(runtime.cardIndex, vector, {
+        ...payload.options,
+        maxCards: config.perSpanCardMax,
+        minCardScore: config.surfaceScoreFloor,
+      }).slice(0, config.perSpanCardMax).map((row) => annotateSpanCandidate(row, span, 'span-surface-card'));
+      const universeMatches = rankUniverseIndexes(runtime.universe, span.text, vector, {
+        ...payload.options,
+        maxUniverse: config.perSpanUniverseMax,
+        minUniverseScore: config.universeScoreFloor,
+      });
+      bySpan.push({
+        spanId: span.id,
+        spanKind: span.kind,
+        spanText: span.text,
+        vectorHash: embeddingVectorHash(vector),
+        cacheHit: Boolean(item.cacheHit),
+        primitiveRankBackend: gpuScores ? 'webgpu' : 'cpu',
+        candidates: [
+          ...primitiveMatches,
+          ...cardMatches,
+          ...spanUniverseCandidates(universeMatches, span, config.perSpanUniverseMax),
+        ].slice(0, config.perSpanCandidateMax),
+      });
+    }
+    const evidenceRows = spanEvidenceRows({ bySpan });
+    return {
+      schema: 'simulatte.spanEmbeddingRetrieval.v1',
+      model: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
+      config: spanReceiptConfig(config),
+      spanCount: spans.length,
+      embeddedSpanCount: bySpan.length,
+      cachedSpanCount: bySpan.filter((row) => row.cacheHit).length,
+      bySpan,
+      evidenceRows,
+      candidateCount: bySpan.reduce((sum, row) => sum + row.candidates.length, 0),
+    };
+  }
+
+  function emptySpanRetrieval(spans, config = null, reason = 'empty') {
+    return {
+      schema: 'simulatte.spanEmbeddingRetrieval.v1',
+      model: '',
+      disabledReason: reason,
+      config: spanReceiptConfig(config || {}),
+      spanCount: spans.length,
+      embeddedSpanCount: 0,
+      cachedSpanCount: 0,
+      bySpan: [],
+      evidenceRows: [],
+      candidateCount: 0,
+    };
+  }
+
+  function usefulRetrievalSpans(languageEvidence, config = {}) {
+    const max = Number.isFinite(config.maxSpans) ? config.maxSpans : 18;
+    const includeKinds = new Set(config.includeKinds || []);
+    const rows = [];
+    const priority = {
+      'predicate-frame': 1,
+      clause: 2,
+      'verb-phrase': 3,
+      'noun-phrase': 4,
+      modifier: 5,
+      quantity: 6,
+      prompt: 7,
+    };
+    for (const span of languageEvidence && languageEvidence.spans || []) {
+      const text = String(span.text || '').trim();
+      const kind = span.kind || 'span';
+      if (includeKinds.size && !includeKinds.has(kind)) continue;
+      if (!text || text.length < config.minChars || text.length > config.maxChars) continue;
+      if (span.kind === 'prompt' && rows.some((row) => row.kind !== 'prompt')) continue;
+      rows.push({
+        id: span.id,
+        kind,
+        text,
+        sourceId: span.sourceId || '',
+        priority: priority[kind] || 8,
+      });
+    }
+    const prepared = config.dedupe === false ? rows : dedupeSpanRows(rows);
+    return prepared
+      .sort((a, b) => a.priority - b.priority || b.text.length - a.text.length || a.id.localeCompare(b.id))
+      .slice(0, max);
+  }
+
+  function dedupeSpanRows(rows) {
+    const seen = new Set();
+    return rows.filter((row) => {
+      const key = normalizeSpanText(row.text);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function spanPrimitiveMatch(span, primitive, rawScore) {
+    const lexical = symbolicPromptMatch(span.text, new Set(fallbackFeatureTokens(span.text)), primitive);
+    const score = clamp01(Number(rawScore || 0) * 0.82 + lexical.score * 0.22);
+    return {
+      id: `span:${span.id}:${primitive.id}`,
+      primitiveId: primitive.id,
+      label: primitive.role || primitive.id,
+      source: 'span-embedding-primitive-prior',
+      indexName: 'primitive-span',
+      retrievalKind: 'span-primitive',
+      spanId: span.id,
+      spanKind: span.kind,
+      spanText: span.text,
+      score: Number(score.toFixed(4)),
+      modelScore: Number(clamp01(rawScore).toFixed(4)),
+      lexicalScore: Number(lexical.score.toFixed(4)),
+      matchedTerms: lexical.terms,
+      primitiveHints: [primitive.id],
+      operatorHints: primitive.operatorHints || primitive.operators || [],
+      candidateText: primitive.text || primitive.role || primitive.id,
+      evidence: [`span:${span.id}`, primitive.id],
+    };
+  }
+
+  function annotateSpanCandidate(row, span, source) {
+    const baseId = row.id || row.cardId || row.primitiveId || row.canonicalId || row.label;
+    return {
+      ...row,
+      id: `span:${span.id}:${baseId || source}`,
+      source,
+      indexName: `${row.indexName || source}-span`,
+      retrievalKind: source,
+      spanId: span.id,
+      spanKind: span.kind,
+      spanText: span.text,
+      evidence: uniqueStrings([...(row.evidence || []), `span:${span.id}`]),
+    };
+  }
+
+  function spanUniverseCandidates(universeMatches, span, maxRows = 12) {
+    return (universeMatches && universeMatches.candidates || [])
+      .slice(0, Math.max(0, Number(maxRows) || 0))
+      .map((row) => annotateSpanCandidate(row, span, `span-${row.indexName || 'universe-index'}`));
+  }
+
+  function fuseSpanPrimitiveScores(priors, spanRetrieval) {
+    const best = new Map();
+    for (const span of spanRetrieval && spanRetrieval.bySpan || []) {
+      for (const candidate of span.candidates || []) {
+        const primitiveIds = uniqueStrings([
+          candidate.primitiveId,
+          ...(candidate.primitiveHints || []),
+        ]);
+        for (const primitiveId of primitiveIds) {
+          const current = best.get(primitiveId) || { score: 0, spans: [] };
+          const score = clamp01(Number(candidate.score || 0));
+          if (score > current.score) current.score = score;
+          current.spans.push({
+            spanId: span.spanId,
+            spanKind: span.spanKind,
+            spanText: span.spanText,
+            candidateId: candidate.id || candidate.primitiveId || '',
+            score: Number(score.toFixed(4)),
+          });
+          best.set(primitiveId, current);
+        }
+      }
+    }
+    return (priors || []).map((prior) => {
+      const support = best.get(prior.primitiveId);
+      if (!support) return prior;
+      const spanScore = Number(support.score.toFixed(4));
+      return {
+        ...prior,
+        spanScore,
+        spanEvidence: support.spans.slice(0, 6),
+        score: Number(clamp01(Number(prior.score || 0) + spanScore * 0.18).toFixed(4)),
+      };
+    }).sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
+  }
+
+  function spanEvidenceRows(spanRetrieval) {
+    const rows = [];
+    for (const span of spanRetrieval && spanRetrieval.bySpan || []) {
+      for (const candidate of span.candidates || []) {
+        rows.push({
+          ...candidate,
+          spanId: candidate.spanId || span.spanId,
+          spanKind: candidate.spanKind || span.spanKind,
+          spanText: candidate.spanText || span.spanText,
+        });
+      }
+    }
+    return rows;
+  }
+
+  function spanLanguageEvidence(promptText, options = {}) {
+    if (options.languageEvidence) return options.languageEvidence;
+    const api = resolveLanguageEvidenceApi();
+    if (api && typeof api.extractLanguageEvidence === 'function') {
+      return api.extractLanguageEvidence(promptText);
+    }
+    return {
+      schema: 'simulatte.languageEvidence.v1',
+      rawText: promptText,
+      normalizedText: promptText,
+      spans: [{ id: 'span.001', kind: 'prompt', text: promptText }],
+      predicateFrames: [],
+      summary: { spanCount: 1 },
+    };
+  }
+
+  function resolveLanguageEvidenceApi() {
+    if (typeof globalThis !== 'undefined' && globalThis.SimulatteLanguageEvidence) {
+      return globalThis.SimulatteLanguageEvidence;
+    }
+    if (typeof module === 'object' && module.exports && typeof require === 'function') {
+      try {
+        return require('./simulatte-language-evidence.js');
+      } catch (_err) {}
+    }
+    return null;
+  }
+
+  function embeddingVectorHash(vector) {
+    let hash = 2166136261;
+    for (let i = 0; i < vector.length; i += Math.max(1, Math.floor(vector.length / 64))) {
+      hash ^= Math.floor((Number(vector[i]) + 1) * 1000000);
+      hash = Math.imul(hash, 16777619);
+    }
+    return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+  }
+
+  function normalizeSpanText(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
   function rankSurfaceCards(cardIndex, queryVector, options = {}) {
     if (!cardIndex) return [];
     const maxCards = Number.isFinite(options.maxCards) ? options.maxCards : 48;
+    const minCardScore = Number.isFinite(options.minCardScore) ? options.minCardScore : 0.22;
     return cardIndex.documents
       .map((doc) => {
         const score = clamp01(dot(queryVector, doc.vector));
@@ -793,7 +1294,7 @@
           textHash: doc.textHash || null,
         };
       })
-      .filter((match) => match.score >= 0.22)
+      .filter((match) => match.score >= minCardScore)
       .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId))
       .slice(0, maxCards);
   }
@@ -1054,6 +1555,21 @@
         const result = await provider.embed(args);
         return withEmbeddingProvenance(result, runtime);
       },
+      embedMany: async (rows) => {
+        if (typeof provider.embedMany === 'function') {
+          const results = await provider.embedMany(rows);
+          return (results || []).map((result) => withEmbeddingProvenance(result, runtime));
+        }
+        if (typeof provider.embedBatch === 'function') {
+          const results = await provider.embedBatch(rows);
+          return (results || []).map((result) => withEmbeddingProvenance(result, runtime));
+        }
+        const results = [];
+        for (const row of rows || []) {
+          results.push(withEmbeddingProvenance(await provider.embed(row), runtime));
+        }
+        return results;
+      },
     };
   }
 
@@ -1098,6 +1614,13 @@
         const next = queue.then(() => run(args), () => run(args));
         queue = next.then(() => undefined, () => undefined);
         return next;
+      },
+      async embedMany(rows) {
+        const results = [];
+        for (const row of rows || []) {
+          results.push(await this.embed(row));
+        }
+        return results;
       },
     };
   }
@@ -1269,6 +1792,9 @@
       },
       semanticRag: null,
       dopplerIntent: null,
+      spanRetrieval: emptySpanRetrieval([], spanConfigFor(runtime, {}, null), 'blank'),
+      evidenceRows: [],
+      retrievalPhase: 'blank',
     };
   }
 

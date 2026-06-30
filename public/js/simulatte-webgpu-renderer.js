@@ -227,7 +227,7 @@
       const text = visualTextFromSpec(spec);
       this.features = mergeFeatureVectors(featureVector(text), graphicsAtomFeatureVector(spec));
       this.atomUniforms = graphicsAtomUniformVector(spec);
-      this.palette = paletteForScene(this.sceneKind, text);
+      this.palette = paletteForScene(this.sceneKind, text, this.atomUniforms);
       this.metrics = metricsForSpec(spec, text);
       this.seed = seedForSpec(spec);
     }
@@ -443,7 +443,7 @@
       for (let i = 0; i < Math.min(vector.length, values.length); i += 1) {
         vector[i] = clamp01(values[i]);
       }
-      return vector;
+      return compressAtomUniformVector(vector);
     }
     const text = graphicsAtomTextRows(atoms).join(' ').toLowerCase();
     const set = (slot, pattern, strength = 0.7) => {
@@ -460,6 +460,22 @@
     set('quantum', /quantum|qubit|superconducting|resonator/);
     set('network', /network|queue|parcel|agent|routing/);
     set('robotic', /robot|servo|gripper|workcell/);
+    return compressAtomUniformVector(vector);
+  }
+
+  function compressAtomUniformVector(input) {
+    const vector = new Float32Array(24);
+    const ranked = Array.from(input || []).map((value, index) => ({
+      index,
+      value: clamp01(value),
+    })).sort((a, b) => b.value - a.value || a.index - b.index);
+    ranked.slice(0, 6).forEach((entry, rank) => {
+      const gain = rank === 0 ? 1.26 : rank === 1 ? 1.04 : rank === 2 ? 0.84 : 0.58;
+      vector[entry.index] = clamp01(entry.value * gain);
+    });
+    ranked.slice(6).forEach((entry) => {
+      if (entry.value > 0.68) vector[entry.index] = 0.16;
+    });
     return vector;
   }
 
@@ -488,7 +504,21 @@
     };
   }
 
-  function paletteForScene(sceneKind, text) {
+  function paletteForScene(sceneKind, text, atoms) {
+    const dominant = dominantAtomSlot(atoms);
+    if (dominant === 'quantum') return paletteToVec4(PALETTES.quantum);
+    if (dominant === 'robotic') return paletteToVec4(PALETTES.robot);
+    if (dominant === 'network' || dominant === 'feedback') return paletteToVec4(PALETTES.network);
+    if (dominant === 'optical') return paletteToVec4(PALETTES.optics);
+    if (dominant === 'orbital') return paletteToVec4(PALETTES.space);
+    if (dominant === 'chemical') return paletteToVec4(PALETTES.chemistry);
+    if (dominant === 'biological') return paletteToVec4(PALETTES.bio);
+    if (dominant === 'acoustic') return paletteToVec4(PALETTES.acoustic);
+    if (dominant === 'granular') return paletteToVec4(PALETTES.cultural);
+    if (dominant === 'thermal' || dominant === 'combustion') return paletteToVec4(PALETTES.thermal);
+    if (dominant === 'fluid') return paletteToVec4(PALETTES.water);
+    if (dominant === 'stress') return paletteToVec4(PALETTES.factory);
+    if (dominant === 'electromagnetic') return paletteToVec4(PALETTES.magnet);
     if (/lava|fire|thermal|heat|plume/.test(text) || sceneKind === 'thermal-plume') return paletteToVec4(PALETTES.thermal);
     if (/storm|weather|wind|vortex|tornado/.test(text)) return paletteToVec4(PALETTES.weather);
     if (/river|ocean|water|watershed|upwelling|glacier|ice/.test(text)) return paletteToVec4(/ice|glacier|cryosphere/.test(text) ? PALETTES.ice : PALETTES.water);
@@ -510,6 +540,16 @@
     if (/clinical|blood|vessel|patient/.test(text)) return paletteToVec4(PALETTES.clinical);
     if (/instrument|detector|particle/.test(text)) return paletteToVec4(PALETTES.instrument);
     return paletteToVec4(PALETTES.machine);
+  }
+
+  function dominantAtomSlot(atoms) {
+    if (!atoms || !atoms.length) return '';
+    let best = { index: -1, value: 0 };
+    for (let i = 0; i < atoms.length; i += 1) {
+      if (atoms[i] > best.value) best = { index: i, value: atoms[i] };
+    }
+    if (best.value < 0.18) return '';
+    return ATOM_UNIFORM_SLOTS[best.index] || '';
   }
 
   function paletteToVec4(colors) {
@@ -769,6 +809,88 @@ fn atomNetworkPressure(p: vec2f, t: f32) -> f32 {
   return max(grid * 0.64, node);
 }
 
+fn diskMask(p: vec2f, c: vec2f, r: f32) -> f32 {
+  return 1.0 - smoothstep(r, r + 0.035, length(p - c));
+}
+
+fn rectMask(p: vec2f, c: vec2f, s: vec2f) -> f32 {
+  let d = abs(p - c) - s;
+  return 1.0 - smoothstep(0.0, 0.035, max(d.x, d.y));
+}
+
+fn capsuleLine(p: vec2f, a: vec2f, b: vec2f, r: f32) -> f32 {
+  let pa = p - a;
+  let ba = b - a;
+  let h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0);
+  return 1.0 - smoothstep(r, r + 0.025, length(pa - ba * h));
+}
+
+fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
+  let thermal = max(atomAt(0), atomAt(14));
+  let fluid = atomAt(1);
+  let stress = atomAt(2);
+  let feedback = atomAt(3);
+  let orbit = atomAt(4);
+  let em = atomAt(5);
+  let optical = atomAt(6);
+  let quantum = atomAt(7);
+  let acoustic = atomAt(8);
+  let bio = atomAt(9);
+  let chemical = atomAt(10);
+  let network = atomAt(11);
+  let granular = atomAt(12);
+  let instrument = max(atomAt(13), atomAt(17));
+  let phase = atomAt(15);
+  let robot = atomAt(16);
+  let measurement = atomAt(17);
+  let signal = atomAt(22);
+  let total = clamp(thermal + fluid + stress + feedback + orbit + em + optical + quantum +
+    acoustic + bio + chemical + network + granular + instrument + phase + robot, 0.0, 3.0) / 3.0;
+  var color = base * 0.34 + u.palette2.rgb * 0.18;
+  let floorBand = smoothstep(0.06, 0.0, abs(p.y + 0.58));
+  let thermalBasin = smoothstep(0.5, 0.0, abs(p.y + 0.52)) * smoothstep(0.82, 0.05, abs(p.x));
+  color += vec3f(1.0, 0.2, 0.04) * thermal * thermalBasin * (0.3 + atomThermalPlume(p, t) * 0.7);
+  color += vec3f(1.0, 0.78, 0.24) * phase * floorBand * stripe(p.x * 5.0 + t * 0.1, 0.035) * 0.62;
+  let tubeA = capsuleLine(p, vec2f(-0.9, -0.35), vec2f(0.78, 0.28), 0.055);
+  let tubeB = capsuleLine(p, vec2f(-0.72, 0.42), vec2f(0.72, -0.18), 0.04);
+  color += vec3f(0.0, 0.55, 1.0) * fluid * max(tubeA, tubeB) * (0.48 + atomFluidRibbons(p, t) * 0.36);
+  let slab = rectMask(p, vec2f(0.0, -0.08), vec2f(0.72, 0.26));
+  color = mix(color, vec3f(0.32, 0.34, 0.38), stress * slab * 0.62);
+  color += vec3f(1.0, 0.86, 0.2) * stress * atomStressCracks(p, t) * 0.72;
+  let graph = atomNetworkPressure(p, t);
+  color += vec3f(0.16, 0.48, 1.0) * network * graph * 0.78;
+  color += vec3f(0.0, 0.95, 1.0) * feedback * atomFeedbackArcs(p, t) * 0.72;
+  let well = stripe(length(p) * 4.5 - t * 0.08, 0.025);
+  color = mix(color, vec3f(0.02, 0.04, 0.12), orbit * smoothstep(1.0, 0.15, length(p)) * 0.66);
+  color += vec3f(0.85, 0.92, 1.0) * orbit * well * 0.58;
+  color += vec3f(1.0, 0.2, 0.82) * em * stripe(atan2(p.y, p.x) * 3.0 + length(p) * 2.0, 0.035) * 0.52;
+  color += vec3f(0.7, 0.9, 1.0) * optical * exp(-abs(rot(p, -0.24).y) * 56.0) * 0.82;
+  let prism = rectMask(rot(p - vec2f(0.24, -0.04), 0.55), vec2f(0.0), vec2f(0.17, 0.26));
+  color += vec3f(1.0, 0.92, 0.35) * optical * prism * 0.52;
+  let chip = rectMask(p, vec2f(0.0, 0.0), vec2f(0.58, 0.34));
+  color = mix(color, vec3f(0.18, 0.11, 0.35), quantum * chip * 0.76);
+  color += vec3f(0.6, 0.95, 1.0) * quantum * atomQuantumFringes(p, t) * 0.7;
+  color += vec3f(0.4, 0.78, 1.0) * acoustic * stripe(length(p - vec2f(-0.18, 0.04)) * 7.5 - t * 0.44, 0.028) * 0.62;
+  let branch = exp(-abs(sin(p.x * 7.0 + p.y * 4.0 + t * 0.1)) * 4.6) * smoothstep(0.88, 0.08, length(p));
+  color += vec3f(0.26, 0.9, 0.36) * bio * branch * 0.58;
+  color += vec3f(0.82, 0.4, 1.0) * chemical * diskMask(p, vec2f(0.12, 0.0), 0.48) * 0.26;
+  color += vec3f(0.95, 0.55, 0.18) * chemical * stripe(length(p) * 6.0 + t * 0.18, 0.026) * 0.44;
+  let strata = max(stripe(p.y * 9.0 + sin(p.x * 4.0) * 0.12, 0.04), stripe((p.x - p.y) * 4.0, 0.03));
+  color += vec3f(0.74, 0.52, 0.24) * granular * strata * 0.66;
+  let arm = max(capsuleLine(p, vec2f(-0.42, 0.12), vec2f(0.05, -0.06), 0.06),
+    capsuleLine(p, vec2f(0.05, -0.06), vec2f(0.5, 0.18 + sin(t) * 0.04), 0.05));
+  color += vec3f(0.78, 0.86, 0.92) * robot * arm * 0.82;
+  color += vec3f(1.0, 0.64, 0.18) * robot * diskMask(p, vec2f(0.52, 0.18 + sin(t) * 0.04), 0.09) * 0.64;
+  let panel = rectMask(p, vec2f(-0.56, 0.42), vec2f(0.22, 0.14));
+  let readoutDeck = rectMask(p, vec2f(0.0, 0.58), vec2f(0.86, 0.13));
+  let scan = max(stripe(p.x * 15.0 - t * 0.48, 0.035), stripe((p.x + p.y) * 9.0 + t * 0.2, 0.028));
+  let sampleBeam = exp(-abs(rot(p, 0.1).y - 0.08) * 34.0) * smoothstep(-0.78, 0.78, p.x);
+  color += vec3f(0.12, 0.88, 1.0) * instrument * panel * (0.62 + stripe(p.x * 16.0 - t * 0.4, 0.04) * 0.38);
+  color += vec3f(0.98, 0.22, 0.78) * max(measurement, signal) * readoutDeck * (0.32 + scan * 0.52);
+  color += vec3f(0.18, 0.96, 0.72) * max(instrument, signal) * sampleBeam * 0.44;
+  return mix(base, color, clamp(0.52 + total * 0.46, 0.0, 0.96));
+}
+
 fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   var color = base;
   let thermal = max(atomAt(0), atomAt(14));
@@ -849,6 +971,7 @@ fn fs(input: VsOut) -> @location(0) vec4f {
   let t = u.viewport.z;
   let scene = u.viewport.w;
   var color = sceneField(p, t, scene);
+  color = atomStructuralScene(p, t, color);
   color = affordanceOverlays(p, t, color);
   color = atomOperatorOverlays(p, t, color);
   let vignette = smoothstep(1.45, 0.18, length(p));

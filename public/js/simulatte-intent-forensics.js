@@ -354,6 +354,7 @@
     addRows(rows, input.semanticRag && input.semanticRag.openComponents, 'semantic-rag-component');
     addRows(rows, input.semanticRag && input.semanticRag.surfaceRetrieved, 'semantic-rag-surface');
     addRows(rows, input.dopplerIntent && input.dopplerIntent.primitives, 'doppler-intent');
+    addRows(rows, input.spanRetrieval && input.spanRetrieval.evidenceRows, 'span-retrieval');
     return uniqueEvidence(rows)
       .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || String(a.id).localeCompare(String(b.id)))
       .slice(0, 160);
