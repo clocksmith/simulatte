@@ -52,7 +52,7 @@
     ),
     sceneRule(
       'robotics-control',
-      /\b(warehouse robot|robot arm|robot arms|robotic gripper|drone swarm|autopilot|servo loop|path planner|pick and place|mobile robot)\b/,
+      /\b(warehouse robot|warehouse robots|robot arm|robot arms|robotic gripper|robot gripper|servo gripper|servo loop|drone swarm|autopilot|path planner|pick and place|pick-and-place|mobile robot|robot sorts|robot sort|sorts parcels|parcel sorting|contact force workcell|robotic workcell)\b/,
       'mechanical',
       'robotics',
       ['force-field', 'network-flow'],
@@ -271,6 +271,9 @@
     if (isStrongLiteralCompositeSignal(signal)) return 'literal-composite';
     const expanded = sceneHintForText(physicsIR.prompt || '');
     if (expanded) return expanded;
+    if (hasRoboticsSignal(text)) return 'robotics-control';
+    if (hasChemistryLabSignal(text)) return 'chemistry-lab';
+    if (hasGranularCombustionSignal(text)) return 'granular';
     if (/thin-film|thin film|soap|bubble|wire-loop|wire loop|surface_tension/.test(text)) {
       return 'thin-film';
     }
@@ -309,6 +312,25 @@
     if (signal.kinds.has('fluid') && signal.operators.has('advection')) return 'watershed';
     if (isLiteralCompositeSignal(signal)) return 'literal-composite';
     return 'generic';
+  }
+
+  function hasRoboticsSignal(text = '') {
+    return /\b(robot|robotic|gripper|servo|workcell|manipulator|pick-place|pick and place|sorts parcels|parcel sorting|contact force|warehouse queue)\b/.test(text) &&
+      /\b(robot|robotic|gripper|servo|manipulator|workcell)\b/.test(text);
+  }
+
+  function hasChemistryLabSignal(text = '') {
+    return /\b(microfluidic|droplet|droplets|channel junction|meniscus|reagent|reaction vessel|catalyst|dose|insulin pump)\b/.test(text) &&
+      !/\b(warehouse|traffic|market|orbit|planet|battery runaway|heat plume)\b/.test(text);
+  }
+
+  function hasGranularCombustionSignal(text = '') {
+    if (/\b(rain|river|water|watershed|terrain|erosion|erodes|mountain|delta|channel)\b/.test(text) &&
+      !/\b(dust|powder|silo|aerosol|explode|explodes|explosion)\b/.test(text)) {
+      return false;
+    }
+    return /\b(grain|dust|powder|silo|aerosol|bead|sand|avalanche)\b/.test(text) &&
+      /\b(explode|explodes|explosion|combust|dust|powder|silo|avalanche|sieve)\b/.test(text);
   }
 
   function sceneHintForText(value = '') {

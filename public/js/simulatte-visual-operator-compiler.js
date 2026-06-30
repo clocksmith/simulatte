@@ -90,6 +90,7 @@
     const matchedTerms = termsMatched(row.matchTerms || [], text, normalized);
     const requireResult = passesRequires(row.requires || [], text, normalized);
     const blockedTerms = termsMatched(row.excludes || [], text, normalized);
+    const sceneGate = sceneAcceptsMapping(context, row);
     let score = 0;
     for (const term of matchedTerms) {
       score += /[_-]/.test(term) ? 0.36 : 0.24;
@@ -109,6 +110,9 @@
     } else if (blockedTerms.length) {
       accepted = false;
       rejectionReason = `excluded-by:${blockedTerms.join(',')}`;
+    } else if (!sceneGate.ok) {
+      accepted = false;
+      rejectionReason = sceneGate.reason;
     } else if (weightedScore < minimum) {
       accepted = false;
       rejectionReason = `below-minimum:${minimum}`;
@@ -238,8 +242,8 @@
 
   function contextHasSolverFamily(context, row) {
     const solverText = normalizeText([
-      ...((context.solverPlan && context.solverPlan.steps) || []),
-      ...((context.solverPlan && context.solverPlan.executableSteps) || []),
+      ...((context.solverPlan && context.solverPlan.steps) || []).map(solverStepText),
+      ...((context.solverPlan && context.solverPlan.executableSteps) || []).map(solverStepText),
     ].join(' '));
     return termsMatched(row.matchTerms || [], solverText, solverText).length > 0;
   }
@@ -272,15 +276,15 @@
         object.semanticRef,
         object.physicalRef,
       ].filter(Boolean).join(' ')),
-      ...(context.fields || []).map((field) => [
+      ...(context.fields || []).filter((field) => isSemanticField(field, context)).map((field) => [
         field.id,
         field.kind,
         field.channel,
         field.stateBinding,
         field.domainId,
       ].filter(Boolean).join(' ')),
-      ...((context.solverPlan && context.solverPlan.steps) || []),
-      ...((context.solverPlan && context.solverPlan.executableSteps) || []),
+      ...((context.solverPlan && context.solverPlan.steps) || []).map(solverStepText),
+      ...((context.solverPlan && context.solverPlan.executableSteps) || []).map(solverStepText),
       ...((context.causalAffordances || []).map((row) => [
         row.id,
         row.causalRelationId,
@@ -292,10 +296,136 @@
     ].filter(Boolean).join(' ').toLowerCase();
   }
 
+  function sceneAcceptsMapping(context = {}, row = {}) {
+    const scene = normalizeText(context.sceneKind || '');
+    const direct = directLanguageText(context);
+    const id = String(row.id || '');
+    const directHas = (pattern) => pattern.test(direct);
+    const watershedLike = /watershed|restoration water|ocean cryosphere|weather atmosphere|hazard atmosphere/.test(scene) ||
+      /\b(watershed|river|rain|erosion|erodes|sediment|terrain|mountain|delta|aquifer|storm surge|glacier|ocean)\b/.test(direct);
+    if (watershedLike) {
+      if (/robot-contact/.test(id)) {
+        return directHas(/\b(robot|robotic|gripper|servo|workcell|manipulator)\b/)
+          ? { ok: true, reason: '' }
+          : { ok: false, reason: 'scene-gate:no-direct-robotics-evidence' };
+      }
+      if (/orbital-gravity/.test(id)) {
+        return directHas(/\b(orbit|orbital|planet|moon|asteroid|rocket|space|barycenter)\b/)
+          ? { ok: true, reason: '' }
+          : { ok: false, reason: 'scene-gate:no-direct-orbital-evidence' };
+      }
+      if (/electromagnetic-field/.test(id)) {
+        return directHas(/\b(magnet|magnetic|coil|current|voltage|electric|charge|plasma)\b/)
+          ? { ok: true, reason: '' }
+          : { ok: false, reason: 'scene-gate:no-direct-electromagnetic-evidence' };
+      }
+      if (/quantum-phase-readout/.test(id)) {
+        return directHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/)
+          ? { ok: true, reason: '' }
+          : { ok: false, reason: 'scene-gate:no-direct-quantum-evidence' };
+      }
+      if (/biological-growth/.test(id)) {
+        return directHas(/\b(growth|cell|protein|root|coral|algae|mycelium|membrane|mangrove|kelp|plankton)\b/)
+          ? { ok: true, reason: '' }
+          : { ok: false, reason: 'scene-gate:no-direct-biological-evidence' };
+      }
+      if (/acoustic-wave/.test(id)) {
+        return directHas(/\b(acoustic|sound|wave|resonance|standing|speaker|frequency|vibration)\b/)
+          ? { ok: true, reason: '' }
+          : { ok: false, reason: 'scene-gate:no-direct-acoustic-evidence' };
+      }
+      if (/network-flow/.test(id)) {
+        return directHas(/\b(network|queue|market|traffic|route|packet|server|parcel|zoning|agent|dispatch)\b/)
+          ? { ok: true, reason: '' }
+          : { ok: false, reason: 'scene-gate:no-direct-network-evidence' };
+      }
+    }
+    const networkLike = /civic market|digital network|venue crowd|city/.test(scene) ||
+      /\b(market|parcel|parcels|zoning|queue|traffic|server|rack|racks|data center|service graph|warehouse)\b/.test(direct);
+    if (!networkLike) return { ok: true, reason: '' };
+    if (/fluid-advection/.test(id)) {
+      return directHas(/\b(water|river|wind|airflow|coolant|microfluidic|droplet|droplets|pump|channel|meniscus|fluid)\b/)
+        ? { ok: true, reason: '' }
+        : { ok: false, reason: 'scene-gate:no-direct-fluid-evidence' };
+    }
+    if (/heat-transfer|thermal-combustion|phase-transition/.test(id)) {
+      return directHas(/\b(heat|heats|heated|thermal|cooling|coolant|temperature|fire|flame|smoke|lava|steam|phase|melt|freeze)\b/)
+        ? { ok: true, reason: '' }
+        : { ok: false, reason: 'scene-gate:no-direct-thermal-evidence' };
+    }
+    if (/electromagnetic-field/.test(id)) {
+      return directHas(/\b(magnet|magnetic|coil|current|voltage|electric|charge|plasma|inverter|transformer|grid)\b/)
+        ? { ok: true, reason: '' }
+        : { ok: false, reason: 'scene-gate:no-direct-electromagnetic-evidence' };
+    }
+    if (/acoustic-wave/.test(id)) {
+      return directHas(/\b(acoustic|sound|wave|resonance|standing|speaker|frequency|vibration)\b/)
+        ? { ok: true, reason: '' }
+        : { ok: false, reason: 'scene-gate:no-direct-acoustic-evidence' };
+    }
+    return { ok: true, reason: '' };
+  }
+
+  function directLanguageText(context = {}) {
+    const promptText = [
+      context.spec && context.spec.physicsIR && context.spec.physicsIR.prompt,
+      context.spec && context.spec.renderIR && context.spec.renderIR.prompt,
+      context.spec && context.spec.physicalSpec && context.spec.physicalSpec.prompt,
+    ].filter(Boolean).join(' ');
+    if (promptText) return normalizeText([context.sceneKind, promptText].filter(Boolean).join(' '));
+    const objects = (context.objects || []).filter(isEvidenceObject);
+    return normalizeText([
+      context.sceneKind,
+      ...objects.map((object) => [
+        object.phrase,
+      ].filter(Boolean).join(' ')),
+      ...((context.causalAffordances || []).map((row) => [
+        row.id,
+        row.causalRelationId,
+      ].filter(Boolean).join(' '))),
+    ].filter(Boolean).join(' '));
+  }
+
+  function solverStepText(step) {
+    if (!step || typeof step !== 'object') return String(step || '');
+    return [
+      step.id,
+      step.family,
+      step.operatorType,
+      step.operatorId,
+      step.solverId,
+      step.name,
+      step.kind,
+    ].filter(Boolean).join(' ');
+  }
+
   function isEvidenceObject(object) {
     const source = String(object && object.source || '');
     if (!object || source === 'catalog') return false;
     return Boolean(source || object.phrase || object.semanticRef || object.physicalRef);
+  }
+
+  function isSemanticField(field, context = {}) {
+    const text = normalizeText([
+      field && field.id,
+      field && field.kind,
+      field && field.channel,
+      field && field.stateBinding,
+    ].filter(Boolean).join(' '));
+    if (!/temperature|thermal|heat/.test(text)) return true;
+    const solverText = normalizeText([
+      ...((context.solverPlan && context.solverPlan.steps) || []).map(solverStepText),
+      ...((context.solverPlan && context.solverPlan.executableSteps) || []).map(solverStepText),
+    ].join(' '));
+    const causalText = normalizeText((context.causalAffordances || []).map((row) => [
+      row.id,
+      row.causalRelationId,
+      row.geometry,
+      ...(row.shaderHints || []),
+      ...(row.motionHints || []),
+    ].filter(Boolean).join(' ')).join(' '));
+    const sceneText = normalizeText(context.sceneKind || '');
+    return /heat|thermal|combust|fire|phase|lava|steam/.test(`${solverText} ${causalText} ${sceneText}`);
   }
 
   function stableContextHash(text) {

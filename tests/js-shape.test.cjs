@@ -365,7 +365,7 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
     path.join(jsDir, 'simulatte-webgpu-renderer.js'),
     'utf8'
   );
-  assert.match(webgpuRenderer, /new Float32Array\(96\)/);
+  assert.match(webgpuRenderer, /new Float32Array\(104\)/);
   assert.match(webgpuRenderer, /this\.atomUniforms = graphicsAtomUniformVector\(spec\)/);
   assert.match(webgpuRenderer, /loadingWrapDistance/);
   assert.match(webgpuRenderer, /loadingSnakeMask/);

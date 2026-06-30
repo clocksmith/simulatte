@@ -610,6 +610,9 @@
     ].join(' ').toLowerCase();
     const expanded = expandedSceneKindForText(text);
     if (expanded) return expanded;
+    if (hasRoboticsSignal(text)) return 'robotics-control';
+    if (hasChemistryLabSignal(text)) return 'chemistry-lab';
+    if (hasGranularCombustionSignal(text)) return 'granular';
     if (/thin-film|thin film|soap|surface_tension|wire-loop|wire loop|bubble/.test(text)) return 'thin-film';
     if (/tray|raw material|heat diffusion sample/.test(text) && /water|air|rock|wood|metal|glass|steel/.test(text)) {
       return 'material-tray';
@@ -643,6 +646,25 @@
     if (/fluid|water|flowVelocity|advection/.test(text)) return 'watershed';
     if (/turbine|castle|ice|storm|instrument/.test(text)) return 'literal-composite';
     return '';
+  }
+
+  function hasRoboticsSignal(text = '') {
+    return /\b(robot|robotic|gripper|servo|workcell|manipulator|pick-place|pick and place|sorts parcels|parcel sorting|contact force|warehouse queue)\b/.test(text) &&
+      /\b(robot|robotic|gripper|servo|manipulator|workcell)\b/.test(text);
+  }
+
+  function hasChemistryLabSignal(text = '') {
+    return /\b(microfluidic|droplet|droplets|channel junction|meniscus|reagent|reaction vessel|catalyst|dose|insulin pump)\b/.test(text) &&
+      !/\b(warehouse|traffic|market|orbit|planet|battery runaway|heat plume)\b/.test(text);
+  }
+
+  function hasGranularCombustionSignal(text = '') {
+    if (/\b(rain|river|water|watershed|terrain|erosion|erodes|mountain|delta|channel)\b/.test(text) &&
+      !/\b(dust|powder|silo|aerosol|explode|explodes|explosion)\b/.test(text)) {
+      return false;
+    }
+    return /\b(grain|dust|powder|silo|aerosol|bead|sand|avalanche)\b/.test(text) &&
+      /\b(explode|explodes|explosion|combust|dust|powder|silo|avalanche|sieve)\b/.test(text);
   }
 
   function renderIRObjectSceneText(renderIR, graphObjects) {
@@ -2613,6 +2635,9 @@
     if (operatorIds.has('growthDecay')) {
       return 'biology';
     }
+    if (hasRoboticsSignal(text)) return 'robotics-control';
+    if (hasChemistryLabSignal(text)) return 'chemistry-lab';
+    if (hasGranularCombustionSignal(text)) return 'granular';
     if (/thermal plume|cooling fin|heat plume/.test(text)) return 'thermal-plume';
     if (/ferrofluid|coil|current|copper conductor|magnetic spikes/.test(text)) return 'ferrofluid';
     if (/soap|thin-film|bubble|wire loop|interference/.test(text)) return 'thin-film';

@@ -171,7 +171,7 @@
     ),
     mapping(
       'visual.operator.granular-erosion.v1',
-      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope', 'dust', 'silo', 'explodes', 'explosion', 'powder', 'aerosol'],
+      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope', 'dust', 'silo', 'explodes', 'explosion', 'powder', 'aerosol', 'granular', 'bead', 'beads', 'sieve'],
       ['heightfield-strata', 'grain-pile', 'erosion-channel'],
       ['slope-gradient-field', 'sediment-density-field'],
       ['granular-strata', 'wet-soil'],
@@ -270,7 +270,7 @@
       'visual.operator.biological-growth.v1': ['growth', 'cell', 'protein', 'root', 'coral', 'membrane'],
       'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'crystal', 'concentration', 'microfluidic', 'droplet', 'dose'],
       'visual.operator.network-flow.v1': ['network', 'queue', 'market', 'traffic', 'route', 'packet', 'parcel'],
-      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain', 'dust', 'silo', 'explodes', 'powder'],
+      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain', 'dust', 'silo', 'explodes', 'powder', 'granular', 'bead', 'beads', 'avalanche', 'sieve'],
       'visual.operator.instrument-readout.v1': ['detector', 'sensor', 'readout', 'instrument', 'probe', 'meter'],
       'visual.operator.thermal-combustion.v1': ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'burn', 'explodes', 'explosion', 'soot'],
       'visual.operator.phase-transition.v1': ['phase', 'melt', 'freeze', 'crust', 'vaporize', 'boil'],
