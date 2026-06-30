@@ -7,6 +7,34 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createVisualOperatorAtlasApi() {
   const VISUAL_OPERATOR_ATLAS_SCHEMA = 'simulatte.visualOperatorAtlas.v1';
   const GRAPHICS_ATOM_PLAN_SCHEMA = 'simulatte.graphicsAtomPlan.v1';
+  const GRAPHICS_ATOM_UNIFORMS_SCHEMA = 'simulatte.graphicsAtomUniforms.v1';
+
+  const VISUAL_ATOM_UNIFORM_SLOTS = Object.freeze([
+    'thermal',
+    'fluid',
+    'stress',
+    'feedback',
+    'orbital',
+    'electromagnetic',
+    'optical',
+    'quantum',
+    'acoustic',
+    'biological',
+    'chemical',
+    'network',
+    'granular',
+    'instrument',
+    'combustion',
+    'phase',
+    'robotic',
+    'measurement',
+    'motion',
+    'density',
+    'emission',
+    'constraint',
+    'signal',
+    'surface',
+  ]);
 
   const VISUAL_OPERATOR_MAPPINGS = Object.freeze([
     mapping(
@@ -212,6 +240,12 @@
     return Object.freeze({
       id,
       matchTerms,
+      requires: requiredTermsForMapping(id, matchTerms),
+      excludes: excludedTermsForMapping(id),
+      minimumScore: minimumScoreForMapping(id),
+      priority: priorityForMapping(id),
+      uniformSlots: uniformSlotsForMapping(id),
+      wgslOperators: wgslOperatorsForMapping(id),
       geometryAtoms,
       fieldAtoms,
       materialAtoms,
@@ -220,6 +254,99 @@
       cameraAtoms,
       receiptText,
     });
+  }
+
+  function requiredTermsForMapping(id, matchTerms = []) {
+    const core = {
+      'visual.operator.heat-transfer.v1': ['heat', 'thermal', 'temperature', 'cooling', 'lava', 'steam'],
+      'visual.operator.fluid-advection.v1': ['flow', 'fluid', 'water', 'wind', 'coolant', 'airflow', 'velocity'],
+      'visual.operator.stress-fracture.v1': ['stress', 'strain', 'fracture', 'crack', 'impact', 'load'],
+      'visual.operator.control-feedback.v1': ['control', 'controller', 'feedback', 'sensor', 'regulate', 'loop'],
+      'visual.operator.orbital-gravity.v1': ['gravity', 'orbit', 'orbital', 'planet', 'moon', 'space'],
+      'visual.operator.electromagnetic-field.v1': ['magnetic', 'charge', 'electric', 'voltage', 'coil', 'current'],
+      'visual.operator.optical-ray.v1': ['light', 'laser', 'lens', 'photon', 'caustic', 'refraction'],
+      'visual.operator.quantum-phase-readout.v1': ['qubit', 'quantum', 'microwave', 'superconducting'],
+      'visual.operator.acoustic-wave.v1': ['acoustic', 'sound', 'wave', 'pressure', 'resonance'],
+      'visual.operator.biological-growth.v1': ['growth', 'cell', 'protein', 'root', 'coral', 'membrane'],
+      'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'crystal', 'concentration'],
+      'visual.operator.network-flow.v1': ['network', 'queue', 'market', 'traffic', 'route', 'packet', 'parcel'],
+      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain'],
+      'visual.operator.instrument-readout.v1': ['detector', 'sensor', 'readout', 'instrument', 'probe', 'meter'],
+      'visual.operator.thermal-combustion.v1': ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'burn'],
+      'visual.operator.phase-transition.v1': ['phase', 'melt', 'freeze', 'crust', 'vaporize', 'boil'],
+      'visual.operator.robot-contact.v1': ['robot', 'gripper', 'servo', 'contact', 'warehouse', 'sort'],
+    };
+    return Object.freeze([Object.freeze(core[id] || matchTerms.slice(0, 4))]);
+  }
+
+  function excludedTermsForMapping(id) {
+    const rules = {
+      'visual.operator.network-flow.v1': ['photon-only', 'molecular-only', 'pure-orbit'],
+      'visual.operator.fluid-advection.v1': ['vacuum-only', 'dry-network-only'],
+      'visual.operator.optical-ray.v1': ['opaque-market-only', 'soil-only'],
+      'visual.operator.quantum-phase-readout.v1': ['macroscopic-traffic-only'],
+      'visual.operator.robot-contact.v1': ['fluid-only', 'orbital-only'],
+    };
+    return Object.freeze(rules[id] || []);
+  }
+
+  function minimumScoreForMapping(id) {
+    if (/instrument-readout/.test(id)) return 0.42;
+    if (/quantum|robot|orbital|control-feedback/.test(id)) return 0.56;
+    return 0.5;
+  }
+
+  function priorityForMapping(id) {
+    if (/quantum|robot|control-feedback/.test(id)) return 1.18;
+    if (/heat-transfer|fluid-advection|network-flow|phase-transition/.test(id)) return 1.1;
+    if (/instrument-readout/.test(id)) return 0.92;
+    return 1;
+  }
+
+  function uniformSlotsForMapping(id) {
+    const slots = {
+      'visual.operator.heat-transfer.v1': ['thermal', 'phase', 'emission', 'motion'],
+      'visual.operator.fluid-advection.v1': ['fluid', 'motion', 'density', 'surface'],
+      'visual.operator.stress-fracture.v1': ['stress', 'constraint', 'surface', 'motion'],
+      'visual.operator.control-feedback.v1': ['feedback', 'signal', 'instrument', 'constraint'],
+      'visual.operator.orbital-gravity.v1': ['orbital', 'motion', 'density', 'surface'],
+      'visual.operator.electromagnetic-field.v1': ['electromagnetic', 'signal', 'emission', 'motion'],
+      'visual.operator.optical-ray.v1': ['optical', 'emission', 'signal', 'surface'],
+      'visual.operator.quantum-phase-readout.v1': ['quantum', 'optical', 'instrument', 'signal'],
+      'visual.operator.acoustic-wave.v1': ['acoustic', 'motion', 'density', 'instrument'],
+      'visual.operator.biological-growth.v1': ['biological', 'density', 'motion', 'surface'],
+      'visual.operator.chemical-diffusion.v1': ['chemical', 'density', 'phase', 'surface'],
+      'visual.operator.network-flow.v1': ['network', 'constraint', 'signal', 'motion'],
+      'visual.operator.granular-erosion.v1': ['granular', 'density', 'surface', 'motion'],
+      'visual.operator.instrument-readout.v1': ['instrument', 'measurement', 'signal', 'optical'],
+      'visual.operator.thermal-combustion.v1': ['combustion', 'thermal', 'emission', 'density'],
+      'visual.operator.phase-transition.v1': ['phase', 'thermal', 'surface', 'motion'],
+      'visual.operator.robot-contact.v1': ['robotic', 'constraint', 'network', 'motion'],
+    };
+    return Object.freeze(slots[id] || ['instrument', 'measurement']);
+  }
+
+  function wgslOperatorsForMapping(id) {
+    const operators = {
+      'visual.operator.heat-transfer.v1': ['atomThermalPlume', 'atomPhaseBoundary'],
+      'visual.operator.fluid-advection.v1': ['atomFluidRibbons', 'atomVectorFlow'],
+      'visual.operator.stress-fracture.v1': ['atomStressCracks', 'atomConstraintPads'],
+      'visual.operator.control-feedback.v1': ['atomFeedbackArcs', 'atomSignalPulses'],
+      'visual.operator.orbital-gravity.v1': ['atomOrbitalTrails', 'atomGravityWell'],
+      'visual.operator.electromagnetic-field.v1': ['atomFluxLines', 'atomChargeShell'],
+      'visual.operator.optical-ray.v1': ['atomOpticalCaustics', 'atomRayCones'],
+      'visual.operator.quantum-phase-readout.v1': ['atomQuantumFringes', 'atomReadoutPulse'],
+      'visual.operator.acoustic-wave.v1': ['atomAcousticRings', 'atomStandingNodes'],
+      'visual.operator.biological-growth.v1': ['atomBiologicalBranches', 'atomDensityFront'],
+      'visual.operator.chemical-diffusion.v1': ['atomChemicalClouds', 'atomReactionFront'],
+      'visual.operator.network-flow.v1': ['atomNetworkPressure', 'atomPacketPulses'],
+      'visual.operator.granular-erosion.v1': ['atomGranularStrata', 'atomSedimentMotion'],
+      'visual.operator.instrument-readout.v1': ['atomInstrumentReadout', 'atomMeasurementBands'],
+      'visual.operator.thermal-combustion.v1': ['atomCombustionFront', 'atomSootColumn'],
+      'visual.operator.phase-transition.v1': ['atomPhaseBoundary', 'atomLatentHeatBand'],
+      'visual.operator.robot-contact.v1': ['atomRobotWorkcell', 'atomContactForces'],
+    };
+    return Object.freeze(operators[id] || ['atomInstrumentReadout']);
   }
 
   function compileVisualGraphicsAtoms(context = {}) {
@@ -254,6 +381,21 @@
         score: row.score,
         matchedTerms: row.matchedTerms || [],
       })),
+      uniforms: emptyUniformPlan(),
+      wgslOperators: uniqueStrings(source.flatMap((row) => {
+        const atlasRow = VISUAL_OPERATOR_MAPPINGS.find((item) => item.id === row.id);
+        return atlasRow && atlasRow.wgslOperators || [];
+      })),
+      rejections: [],
+    };
+  }
+
+  function emptyUniformPlan() {
+    return {
+      schema: GRAPHICS_ATOM_UNIFORMS_SCHEMA,
+      order: VISUAL_ATOM_UNIFORM_SLOTS.slice(),
+      values: VISUAL_ATOM_UNIFORM_SLOTS.map(() => 0),
+      bySlot: Object.fromEntries(VISUAL_ATOM_UNIFORM_SLOTS.map((slot) => [slot, 0])),
     };
   }
 
@@ -343,8 +485,14 @@
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
+  function uniqueStrings(rows) {
+    return Array.from(new Set((rows || []).filter(Boolean)));
+  }
+
   return {
+    GRAPHICS_ATOM_UNIFORMS_SCHEMA,
     GRAPHICS_ATOM_PLAN_SCHEMA,
+    VISUAL_ATOM_UNIFORM_SLOTS,
     VISUAL_OPERATOR_ATLAS_SCHEMA,
     VISUAL_OPERATOR_MAPPINGS,
     compileVisualGraphicsAtoms,

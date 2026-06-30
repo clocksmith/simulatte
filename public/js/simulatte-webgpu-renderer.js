@@ -137,8 +137,9 @@
       this.sceneKind = 'mechanical';
       this.sceneId = 3;
       this.loading = { active: false, progress: 0, stage: 'idle' };
-      this.uniforms = new Float32Array(72);
+      this.uniforms = new Float32Array(96);
       this.features = new Float32Array(40);
+      this.atomUniforms = new Float32Array(24);
       this.palette = paletteToVec4(PALETTES.machine);
       this.metrics = { heat: 0.35, flow: 0.45, density: 0.48, bloom: 0.56, motion: 0.42 };
       this.seed = 1;
@@ -225,6 +226,7 @@
       this.canvas.dataset.sceneId = String(this.sceneId);
       const text = visualTextFromSpec(spec);
       this.features = mergeFeatureVectors(featureVector(text), graphicsAtomFeatureVector(spec));
+      this.atomUniforms = graphicsAtomUniformVector(spec);
       this.palette = paletteForScene(this.sceneKind, text);
       this.metrics = metricsForSpec(spec, text);
       this.seed = seedForSpec(spec);
@@ -297,6 +299,10 @@
       }
       for (let i = 0; i < 40; i += 1) {
         u[offset + i] = this.features[i] || 0;
+      }
+      offset += 40;
+      for (let i = 0; i < 24; i += 1) {
+        u[offset + i] = this.atomUniforms[i] || 0;
       }
     }
 
@@ -396,6 +402,64 @@
     push([14, 28], /orbit|gravity|trajectory|barycenter|astral/);
     push([4, 29, 37], /magnetic|flux|charge|coil|plasma|electric/);
     push([12, 24], /stress|fracture|contact|impulse|deformation|crack/);
+    return vector;
+  }
+
+  const ATOM_UNIFORM_SLOTS = Object.freeze([
+    'thermal',
+    'fluid',
+    'stress',
+    'feedback',
+    'orbital',
+    'electromagnetic',
+    'optical',
+    'quantum',
+    'acoustic',
+    'biological',
+    'chemical',
+    'network',
+    'granular',
+    'instrument',
+    'combustion',
+    'phase',
+    'robotic',
+    'measurement',
+    'motion',
+    'density',
+    'emission',
+    'constraint',
+    'signal',
+    'surface',
+  ]);
+
+  function graphicsAtomUniformVector(spec) {
+    const vector = new Float32Array(24);
+    const atoms = spec && spec.renderProgram && spec.renderProgram.visualIR &&
+      spec.renderProgram.visualIR.graphicsAtoms || {};
+    const values = atoms && atoms.uniforms && Array.isArray(atoms.uniforms.values)
+      ? atoms.uniforms.values
+      : [];
+    if (values.length) {
+      for (let i = 0; i < Math.min(vector.length, values.length); i += 1) {
+        vector[i] = clamp01(values[i]);
+      }
+      return vector;
+    }
+    const text = graphicsAtomTextRows(atoms).join(' ').toLowerCase();
+    const set = (slot, pattern, strength = 0.7) => {
+      const index = ATOM_UNIFORM_SLOTS.indexOf(slot);
+      if (index >= 0 && pattern.test(text)) vector[index] = Math.max(vector[index], strength);
+    };
+    set('thermal', /thermal|heat|vapor|flame|combustion/);
+    set('fluid', /fluid|flow|pressure|stream|coolant/);
+    set('stress', /stress|fracture|crack|contact|constraint/);
+    set('feedback', /feedback|controller|setpoint|control/);
+    set('orbital', /orbit|gravity|trajectory|barycenter/);
+    set('electromagnetic', /magnetic|flux|charge|coil|electric/);
+    set('optical', /optical|ray|caustic|lens|spectral/);
+    set('quantum', /quantum|qubit|superconducting|resonator/);
+    set('network', /network|queue|parcel|agent|routing/);
+    set('robotic', /robot|servo|gripper|workcell/);
     return vector;
   }
 
@@ -507,6 +571,12 @@ struct Uniforms {
   features7: vec4f,
   features8: vec4f,
   features9: vec4f,
+  atoms0: vec4f,
+  atoms1: vec4f,
+  atoms2: vec4f,
+  atoms3: vec4f,
+  atoms4: vec4f,
+  atoms5: vec4f,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -546,6 +616,15 @@ fn featureAt(index: i32) -> f32 {
   if (index < 32) { return u.features7[index - 28]; }
   if (index < 36) { return u.features8[index - 32]; }
   return u.features9[index - 36];
+}
+
+fn atomAt(index: i32) -> f32 {
+  if (index < 4) { return u.atoms0[index]; }
+  if (index < 8) { return u.atoms1[index - 4]; }
+  if (index < 12) { return u.atoms2[index - 8]; }
+  if (index < 16) { return u.atoms3[index - 12]; }
+  if (index < 20) { return u.atoms4[index - 16]; }
+  return u.atoms5[index - 20];
 }
 
 fn sceneField(p: vec2f, t: f32, scene: f32) -> vec3f {
@@ -658,6 +737,70 @@ fn affordanceOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   return mix(base, color, clamp(f + 0.24, 0.0, 1.0));
 }
 
+fn atomThermalPlume(p: vec2f, t: f32) -> f32 {
+  let plume = exp(-abs(p.x + sin(p.y * 5.5 + t * 0.65) * 0.12) * 9.0);
+  return plume * smoothstep(-0.9, 0.7, p.y);
+}
+
+fn atomFluidRibbons(p: vec2f, t: f32) -> f32 {
+  return stripe(p.x * 6.0 + sin(p.y * 5.0 + t * 0.42) * 0.55, 0.035);
+}
+
+fn atomStressCracks(p: vec2f, t: f32) -> f32 {
+  let branch = abs(sin(p.x * 11.0 + p.y * 7.0 + sin(p.y * 4.0 + t * 0.1)));
+  return (1.0 - smoothstep(0.02, 0.18, branch)) * smoothstep(0.95, 0.08, length(p));
+}
+
+fn atomFeedbackArcs(p: vec2f, t: f32) -> f32 {
+  let a = atan2(p.y, p.x) / 6.28318;
+  let ring = 1.0 - smoothstep(0.02, 0.06, abs(length(p) - 0.62));
+  return ring * stripe(a * 5.0 - t * 0.18, 0.045);
+}
+
+fn atomQuantumFringes(p: vec2f, t: f32) -> f32 {
+  let fringe = sin(p.x * 18.0 + sin(p.y * 9.0 + t * 0.35) * 1.2);
+  return (0.5 + 0.5 * fringe) * smoothstep(0.92, 0.05, length(p * vec2f(1.2, 0.8)));
+}
+
+fn atomNetworkPressure(p: vec2f, t: f32) -> f32 {
+  let grid = max(stripe(p.x * 8.0 + t * 0.18, 0.026), stripe(p.y * 6.0 - t * 0.14, 0.026));
+  let node = max(exp(-dot(p - vec2f(-0.48, -0.14), p - vec2f(-0.48, -0.14)) * 38.0),
+    exp(-dot(p - vec2f(0.44, 0.2), p - vec2f(0.44, 0.2)) * 34.0));
+  return max(grid * 0.64, node);
+}
+
+fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
+  var color = base;
+  let thermal = max(atomAt(0), atomAt(14));
+  let fluid = atomAt(1);
+  let stress = atomAt(2);
+  let feedback = atomAt(3);
+  let orbit = atomAt(4);
+  let em = atomAt(5);
+  let optical = atomAt(6);
+  let quantum = atomAt(7);
+  let acoustic = atomAt(8);
+  let bio = atomAt(9);
+  let chemical = atomAt(10);
+  let network = atomAt(11);
+  let granular = atomAt(12);
+  let robot = atomAt(16);
+  color += vec3f(1.0, 0.32, 0.08) * thermal * atomThermalPlume(p, t) * 0.34;
+  color += vec3f(0.12, 0.56, 0.92) * fluid * atomFluidRibbons(p, t) * 0.22;
+  color += vec3f(1.0, 0.86, 0.24) * stress * atomStressCracks(p, t) * 0.28;
+  color += vec3f(0.34, 0.9, 1.0) * feedback * atomFeedbackArcs(p, t) * 0.22;
+  color += vec3f(0.95, 0.82, 1.0) * quantum * atomQuantumFringes(p, t) * 0.24;
+  color += vec3f(0.92, 0.68, 0.18) * network * atomNetworkPressure(p, t) * 0.2;
+  color += vec3f(0.72, 0.8, 1.0) * max(optical, em) * exp(-abs(rot(p, -0.28).y) * 48.0) * 0.24;
+  color += vec3f(0.8, 0.9, 1.0) * acoustic * stripe(length(p) * 7.0 - t * 0.42, 0.024) * 0.18;
+  color += vec3f(0.3, 0.86, 0.42) * bio * exp(-abs(sin(p.x * 6.0 + p.y * 4.0 + t * 0.16)) * 5.5) * 0.12;
+  color += vec3f(0.76, 0.48, 1.0) * chemical * smoothstep(0.95, 0.12, length(p)) * 0.08;
+  color += vec3f(0.86, 0.72, 0.42) * granular * stripe(p.y * 9.0 + sin(p.x * 4.0), 0.032) * 0.16;
+  color += vec3f(0.9, 0.92, 0.96) * robot * stripe((p.x + p.y) * 7.0 - t * 0.3, 0.03) * 0.14;
+  color += u.palette3.rgb * orbit * stripe(length(p) * 3.6 - t * 0.12, 0.025) * 0.18;
+  return mix(base, color, 0.72);
+}
+
 fn loadingWrapDistance(a: f32, b: f32, span: f32) -> f32 {
   let d = abs(a - b);
   return min(d, span - d);
@@ -707,6 +850,7 @@ fn fs(input: VsOut) -> @location(0) vec4f {
   let scene = u.viewport.w;
   var color = sceneField(p, t, scene);
   color = affordanceOverlays(p, t, color);
+  color = atomOperatorOverlays(p, t, color);
   let vignette = smoothstep(1.45, 0.18, length(p));
   color = mix(color * 0.78, color, vignette);
   if (u.loading.x > 0.5) {

@@ -115,8 +115,12 @@ function assertVisualIRCase(prompt, expected) {
   assert.ok(ir.processes.length >= 4);
   assert.ok(ir.receipts.length >= 5);
   assert.equal(ir.graphicsAtoms.schema, 'simulatte.graphicsAtomPlan.v1');
+  assert.equal(ir.graphicsAtoms.compiler, 'simulatte.visualOperatorCompiler.v1');
   assert.equal(ir.graphicsAtoms.atlasId, 'simulatte-visual-operator-atlas-v1');
   assert.ok(ir.graphicsAtoms.mappings.length >= 1);
+  assert.equal(ir.graphicsAtoms.uniforms.schema, 'simulatte.graphicsAtomUniforms.v1');
+  assert.equal(ir.graphicsAtoms.uniforms.values.length, 24);
+  assert.ok(ir.graphicsAtoms.wgslOperators.length >= 1);
   assert.ok(ir.graphicsAtoms.geometry.length >= 1);
   assert.ok(ir.graphicsAtoms.fields.length >= 1);
   assert.ok(ir.graphicsAtoms.materials.length >= 1);
@@ -1173,49 +1177,63 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
       'data center cooling loop where hot server racks increase coolant flow and controller throttles fan speed',
       ['visual.operator.control-feedback.v1', 'visual.operator.fluid-advection.v1', 'visual.operator.heat-transfer.v1'],
       ['controller-node', 'ribbon-streamline', 'thermal-glow-gradient'],
+      ['feedback', 'fluid', 'thermal'],
     ],
     [
       'housing market pressure across parcels with zoning constraints and household agents',
       ['visual.operator.network-flow.v1'],
       ['node-link-graph', 'parcel-grid'],
+      ['network', 'constraint'],
     ],
     [
       'qubit chip phase readout through microwave resonator with interference fringes',
       ['visual.operator.quantum-phase-readout.v1', 'visual.operator.instrument-readout.v1'],
       ['superconducting-chip-plane', 'phase-fringe-sheet', 'instrument-panel'],
+      ['quantum', 'instrument'],
     ],
     [
       'lava spins a turbine near an ice castle wall',
       ['visual.operator.heat-transfer.v1', 'visual.operator.phase-transition.v1'],
       ['thermal-glow-gradient', 'volume-vapor-plume', 'phase-boundary-sheet'],
+      ['thermal', 'phase'],
     ],
     [
       'robot sorts parcels with servo gripper contact force in warehouse queue',
       ['visual.operator.robot-contact.v1', 'visual.operator.network-flow.v1'],
       ['robot-armature', 'contact-cone', 'node-link-graph'],
+      ['robotic', 'network'],
     ],
   ];
   const signatures = new Set();
 
-  for (const [prompt, expectedMappings, expectedGeometry] of cases) {
+  for (const [prompt, expectedMappings, expectedGeometry, expectedSlots] of cases) {
     const spec = createPrototypeSpec(prompt);
     const atoms = spec.renderProgram.visualIR.graphicsAtoms;
     const mappingIds = atoms.mappings.map((row) => row.id);
     const geometryIds = atoms.geometry.map((row) => row.id);
+    const bySlot = atoms.uniforms.bySlot || {};
     const signature = [
       ...mappingIds,
       ...geometryIds,
       ...atoms.fields.map((row) => row.id),
       ...atoms.motion.map((row) => row.id),
+      ...Object.entries(bySlot).filter((entry) => entry[1] > 0).map((entry) => entry[0]),
     ].join('|');
 
     assert.equal(atoms.schema, 'simulatte.graphicsAtomPlan.v1');
+    assert.equal(atoms.compiler, 'simulatte.visualOperatorCompiler.v1');
     assert.equal(atoms.source, 'handwritten-operator-graphics-basis');
+    assert.equal(atoms.uniforms.schema, 'simulatte.graphicsAtomUniforms.v1');
+    assert.equal(atoms.uniforms.values.length, 24);
+    assert.ok(atoms.wgslOperators.length >= expectedMappings.length);
     expectedMappings.forEach((id) => {
       assert.ok(mappingIds.includes(id), `${prompt} missing mapping ${id}`);
     });
     expectedGeometry.forEach((id) => {
       assert.ok(geometryIds.includes(id), `${prompt} missing geometry atom ${id}`);
+    });
+    expectedSlots.forEach((slot) => {
+      assert.ok(bySlot[slot] > 0, `${prompt} missing uniform slot ${slot}`);
     });
     assert.ok(spec.renderProgram.visualIR.receipts.some((row) => row.id === 'receipt:graphics-atoms'));
     signatures.add(signature);

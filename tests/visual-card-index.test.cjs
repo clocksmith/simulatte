@@ -83,7 +83,16 @@ test('visual card package exposes source-authored universe-representative cards'
 
   const visualOperatorAtlas = readJson(visualOperatorAtlasPath);
   assert.equal(visualOperatorAtlas.schema, 'simulatte.visualOperatorAtlas.v1');
+  assert.equal(visualOperatorAtlas.compilerSchema, 'simulatte.visualOperatorCompiler.v1');
+  assert.equal(visualOperatorAtlas.uniformSchema, 'simulatte.graphicsAtomUniforms.v1');
+  assert.equal(visualOperatorAtlas.uniformSlots.length, 24);
   assert.equal(visualOperatorAtlas.mappings.length, manifest.indexes.visualOperatorAtlas.documentCount);
+  assert.ok(visualOperatorAtlas.mappings.every((row) => Array.isArray(row.requires) && row.requires.length >= 1));
+  assert.ok(visualOperatorAtlas.mappings.every((row) => Array.isArray(row.excludes)));
+  assert.ok(visualOperatorAtlas.mappings.every((row) => Number(row.minimumScore) > 0));
+  assert.ok(visualOperatorAtlas.mappings.every((row) => Number(row.priority) > 0));
+  assert.ok(visualOperatorAtlas.mappings.every((row) => row.uniformSlots.length >= 2));
+  assert.ok(visualOperatorAtlas.mappings.every((row) => row.wgslOperators.length >= 1));
   assert.ok(visualOperatorAtlas.mappings.every((row) => row.geometryAtoms.length >= 3));
   assert.ok(visualOperatorAtlas.mappings.every((row) => row.fieldAtoms.length >= 2));
   assert.ok(visualOperatorAtlas.mappings.every((row) => row.motionAtoms.length >= 2));
