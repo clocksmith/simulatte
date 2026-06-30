@@ -7,6 +7,24 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function activationCloudFactory() {
   'use strict';
 
+  const LANGUAGE_VISUAL_SIGNAL_RULES = Object.freeze([
+    signalRule('thermal', 'thermal operator signal', /\b(heat|thermal|temperature|cooling|coolant|steam|lava|hot|cold|melt|freeze|phase|fire|flame|smoke)\b/, ['heat', 'thermal', 'phase'], ['thermal-gradient', 'phase-boundary', 'emission'], ['temperature', 'heat_transfer']),
+    signalRule('fluid', 'fluid operator signal', /\b(flow|fluid|water|river|wind|airflow|coolant|pump|channel|droplet|pressure|velocity|turbulence|vortex)\b/, ['flow', 'pressure', 'advection'], ['streamline', 'flow-ribbon', 'tracer'], ['flowVelocity', 'pressure']),
+    signalRule('stress', 'stress operator signal', /\b(stress|strain|fracture|crack|impact|collision|load|buckling|contact|deform|shear|torque)\b/, ['stress', 'contact', 'constraint'], ['crack-network', 'strain-field', 'contact-pad'], ['stress', 'damage']),
+    signalRule('feedback', 'feedback operator signal', /\b(control|controller|feedback|sensor|setpoint|regulate|stabilize|actuator|valve|loop|throttle)\b/, ['feedback', 'control', 'signal'], ['feedback-arc', 'sensor-probe', 'setpoint-band'], ['control', 'signalDelay']),
+    signalRule('orbital', 'orbital operator signal', /\b(orbit|orbital|gravity|planet|moon|asteroid|rocket|space|barycenter|trajectory)\b/, ['orbit', 'gravity', 'trajectory'], ['gravity-well', 'trajectory-arc', 'orbital-body'], ['position', 'velocity']),
+    signalRule('electromagnetic', 'electromagnetic operator signal', /\b(magnet|magnetic|electric|charge|current|voltage|coil|plasma|field|flux|inverter|transformer)\b/, ['field', 'charge', 'electromagnetic'], ['flux-line', 'charged-node', 'coil-loop'], ['fieldStrength', 'voltage']),
+    signalRule('optical', 'optical operator signal', /\b(light|laser|lens|prism|mirror|photon|caustic|refraction|interference|ray|spectral)\b/, ['optical', 'ray', 'phase'], ['ray-cone', 'caustic-field', 'spectral-prism'], ['amplitude', 'phase']),
+    signalRule('quantum', 'quantum operator signal', /\b(quantum|qubit|superconducting|microwave|resonator|spin|ion trap|readout)\b/, ['quantum', 'phase', 'measurement'], ['resonator-loop', 'phase-fringe', 'readout-strip'], ['phase', 'amplitude']),
+    signalRule('acoustic', 'acoustic operator signal', /\b(acoustic|sound|wave|resonance|standing|frequency|speaker|vibration|pressure ring)\b/, ['wave', 'pressure', 'resonance'], ['pressure-ring', 'standing-node', 'waveguide'], ['amplitude', 'pressure']),
+    signalRule('biological', 'biological operator signal', /\b(growth|cell|protein|root|coral|algae|mycelium|membrane|neuron|tissue|microbiome|enzyme)\b/, ['growth', 'diffusion', 'density'], ['branching-network', 'membrane-sheet', 'cell-cluster'], ['density', 'nutrient']),
+    signalRule('chemical', 'chemical operator signal', /\b(reaction|chemical|acid|crystal|concentration|electrolyte|solvent|catalyst|reagent|diffusion|dose)\b/, ['reaction', 'diffusion', 'concentration'], ['reaction-front', 'diffusion-cloud', 'crystal-facet'], ['reactionProgress', 'concentration']),
+    signalRule('network', 'network operator signal', /\b(network|queue|market|traffic|route|packet|server|parcel|zoning|agent|dispatch|supply|demand|crowd)\b/, ['network', 'queue', 'routing'], ['node-link-graph', 'parcel-grid', 'agent-token'], ['backlog', 'throughput']),
+    signalRule('granular', 'granular operator signal', /\b(grain|sand|soil|sediment|erosion|terrain|slope|dust|powder|silo|avalanche|bead|sieve)\b/, ['granular', 'erosion', 'settling'], ['grain-pile', 'heightfield-strata', 'erosion-channel'], ['density', 'slope']),
+    signalRule('instrument', 'instrument operator signal', /\b(detector|sensor|readout|instrument|probe|meter|scope|camera|phototube|calorimeter)\b/, ['measurement', 'readout', 'instrument'], ['probe-array', 'readout-strip', 'instrument-panel'], ['measurement', 'signal']),
+    signalRule('robotic', 'robotic operator signal', /\b(robot|robotic|gripper|servo|workcell|manipulator|warehouse|sort|pick|place|armature)\b/, ['robotic', 'contact', 'control'], ['robot-armature', 'force-cone', 'workcell-grid'], ['contactForce', 'taskQueue'])
+  ]);
+
   function buildActivationCloud(options) {
     const languageEvidence = options && options.languageEvidence ? options.languageEvidence : {};
     const evidenceRows = Array.isArray(options && options.evidenceRows) ? options.evidenceRows : [];
@@ -42,12 +60,61 @@
           source: 'span-retrieval'
         });
       });
+      spanNativeVisualActivations(span, activations.length).forEach((activation) => {
+        activations.push({
+          ...activation,
+          id: `activation.${String(activations.length + 1).padStart(4, '0')}`
+        });
+      });
     });
 
     return activations
       .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
       .slice(0, maxActivations)
       .map((row, index) => ({ ...row, rank: index + 1 }));
+  }
+
+  function spanNativeVisualActivations(span, offset = 0) {
+    const text = normalize(span.text);
+    if (!text) return [];
+    return LANGUAGE_VISUAL_SIGNAL_RULES
+      .filter((rule) => rule.pattern.test(text))
+      .slice(0, 4)
+      .map((rule, index) => {
+        const score = nativeSignalScore(span, rule, index);
+        return {
+          id: `activation.${String(offset + index + 1).padStart(4, '0')}`,
+          spanId: span.id,
+          spanKind: span.kind,
+          spanText: span.text,
+          candidateId: `language.visual.${rule.id}.${safeId(span.id)}`,
+          candidateLabel: rule.label,
+          candidateKind: 'visual-candidate',
+          candidateIndex: 'language-evidence-visual-signal',
+          score,
+          evidenceScore: score,
+          support: {
+            lexicalOverlap: 1,
+            spanContainsCandidate: true,
+            candidateContainsSpan: false,
+            compiledSpanSignal: true
+          },
+          hints: {
+            primitive: rule.primitiveHints,
+            operator: rule.operatorHints,
+            visual: rule.visualHints
+          },
+          source: 'language-evidence-visual-signal'
+        };
+      });
+  }
+
+  function nativeSignalScore(span, rule, index) {
+    const predicateBoost = span.kind === 'predicate' || span.kind === 'predicate-frame' ? 0.11 : 0;
+    const frameBoost = span.kind === 'subject' || span.kind === 'object' || span.kind === 'result' ? 0.06 : 0;
+    const termCount = termSet(span.text).size;
+    const specificityBoost = Math.min(0.12, termCount * 0.012);
+    return round(clamp(0.5 + predicateBoost + frameBoost + specificityBoost - index * 0.035, 0.42, 0.82));
   }
 
   function summarizeActivationCloud(activations) {
@@ -186,6 +253,21 @@
 
   function round(value) {
     return Math.round(value * 10000) / 10000;
+  }
+
+  function signalRule(id, label, pattern, operatorHints, visualHints, primitiveHints) {
+    return Object.freeze({
+      id,
+      label,
+      pattern,
+      operatorHints: Object.freeze(operatorHints || []),
+      visualHints: Object.freeze(visualHints || []),
+      primitiveHints: Object.freeze(primitiveHints || [])
+    });
+  }
+
+  function safeId(value) {
+    return normalize(value).replace(/\s+/g, '-') || 'span';
   }
 
   return {

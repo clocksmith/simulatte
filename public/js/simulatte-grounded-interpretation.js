@@ -108,6 +108,8 @@
         candidateKind: activation.candidateKind,
         candidateLabel: activation.candidateLabel,
         score: activation.score,
+        source: activation.source || '',
+        hints: activation.hints || {},
         decision: 'accepted-by-evidence-score'
       });
     });

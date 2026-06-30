@@ -1802,6 +1802,11 @@
         materialAtoms: (graphicsAtoms && graphicsAtoms.materials || []).map((row) => row.id).slice(0, 12),
         processAtoms: (graphicsAtoms && graphicsAtoms.processes || []).map((row) => row.id).slice(0, 12),
         motionAtoms: (graphicsAtoms && graphicsAtoms.motion || []).map((row) => row.id).slice(0, 12),
+        languageSignalCount: (graphicsAtoms && graphicsAtoms.languageSignals || []).length,
+        languageSignals: (graphicsAtoms && graphicsAtoms.languageSignals || [])
+          .map((row) => row.id || row.kind || row.text)
+          .filter(Boolean)
+          .slice(0, 12),
       },
     ];
   }

@@ -367,15 +367,11 @@
     const renderIR = renderProgram.renderIR || spec && spec.renderIR || {};
     return [
       sceneKindFromSpec(spec),
-      renderProgram.intentText,
-      renderProgram.prompt,
       rendererPlan.sceneKind,
       rendererPlan.painterKind,
-      rendererPlan.intentText,
       visualRecipe.sceneKind,
       visualRecipe.painterKind,
       renderIR.sceneHint,
-      renderIR.prompt,
       visualIR.sceneKind,
       visualIR.scale,
       visualIR.camera && `${visualIR.camera.mode || ''} ${visualIR.camera.lens || ''} ${visualIR.camera.angle || ''}`,
@@ -408,6 +404,7 @@
       ...((graphicsAtoms.processes || []).map((row) => `${row.id || ''} ${row.label || ''}`)),
       ...((graphicsAtoms.motion || []).map((row) => `${row.id || ''} ${row.label || ''}`)),
       ...((graphicsAtoms.camera || []).map((row) => `${row.id || ''} ${row.label || ''}`)),
+      ...((graphicsAtoms.languageSignals || []).map((row) => `${row.id || ''} ${row.kind || ''} ${row.text || ''} ${(row.slots || []).join(' ')}`)),
     ];
   }
 
@@ -435,6 +432,7 @@
       ...((atoms.processes || []).map((row) => row.id)),
       ...((atoms.motion || []).map((row) => row.id)),
       ...((atoms.camera || []).map((row) => row.id)),
+      ...((atoms.languageSignals || []).map((row) => `${row.id || ''} ${row.kind || ''} ${row.text || ''} ${(row.slots || []).join(' ')}`)),
     ].join(' ').toLowerCase();
     const push = (indices, pattern, strength = 0.78) => {
       if (!pattern.test(text)) return;
@@ -512,8 +510,22 @@
     set('electromagnetic', /magnetic|flux|charge|coil|electric/);
     set('optical', /optical|ray|caustic|lens|spectral/);
     set('quantum', /quantum|qubit|superconducting|resonator/);
+    set('acoustic', /acoustic|sound|wave|resonance|frequency|pressure-ring/);
+    set('biological', /biological|bio|cell|growth|organic|membrane|protein|root/);
+    set('chemical', /chemical|reaction|diffusion|acid|crystal|concentration|reagent/);
     set('network', /network|queue|parcel|agent|routing/);
+    set('granular', /granular|grain|sand|sediment|erosion|terrain|powder|bead/);
+    set('instrument', /instrument|detector|sensor|readout|probe|meter|measurement/);
+    set('combustion', /combustion|fire|flame|smoke|ember|soot|burn/);
+    set('phase', /phase|melt|freeze|vapor|boil|solidify|latent/);
     set('robotic', /robot|servo|gripper|workcell/);
+    set('measurement', /measurement|readout|sample|uncertainty|probe/);
+    set('motion', /motion|pulse|trail|wave|ribbon|trajectory|vortex/);
+    set('density', /density|crowd|particle|grain|nutrient|concentration/);
+    set('emission', /emission|glow|emissive|plasma|laser|signal/);
+    set('constraint', /constraint|setpoint|contact|force|boundary|control/);
+    set('signal', /signal|packet|pulse|current|voltage|telemetry/);
+    set('surface', /surface|membrane|terrain|map|skin|boundary|phase/);
     return compressAtomUniformVector(vector);
   }
 
@@ -523,12 +535,12 @@
       index,
       value: clamp01(value),
     })).sort((a, b) => b.value - a.value || a.index - b.index);
-    ranked.slice(0, 6).forEach((entry, rank) => {
-      const gain = rank === 0 ? 1.26 : rank === 1 ? 1.04 : rank === 2 ? 0.84 : 0.58;
+    ranked.slice(0, 10).forEach((entry, rank) => {
+      const gain = rank === 0 ? 1.2 : rank === 1 ? 1.06 : rank === 2 ? 0.94 : rank < 6 ? 0.72 : 0.5;
       vector[entry.index] = clamp01(entry.value * gain);
     });
-    ranked.slice(6).forEach((entry) => {
-      if (entry.value > 0.68) vector[entry.index] = 0.16;
+    ranked.slice(10).forEach((entry) => {
+      if (entry.value > 0.24) vector[entry.index] = clamp01(0.07 + entry.value * 0.22);
     });
     return vector;
   }
@@ -1345,7 +1357,16 @@ fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   let chemical = atomAt(10);
   let network = atomAt(11);
   let granular = atomAt(12);
+  let instrument = max(atomAt(13), atomAt(17));
+  let combustion = atomAt(14);
+  let phase = atomAt(15);
   let robot = atomAt(16);
+  let motion = atomAt(18);
+  let density = atomAt(19);
+  let emission = atomAt(20);
+  let constraint = atomAt(21);
+  let signal = atomAt(22);
+  let surface = atomAt(23);
   let networkLocal = network * (1.0 - clamp(max(max(robot, chemical), max(granular, fluid)) * 0.76, 0.0, 0.9));
   color += vec3f(1.0, 0.32, 0.08) * thermal * atomThermalPlume(p, t) * 0.34;
   color += vec3f(0.12, 0.56, 0.92) * fluid * atomFluidRibbons(p, t) * 0.22;
@@ -1358,7 +1379,16 @@ fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   color += vec3f(0.3, 0.86, 0.42) * bio * exp(-abs(sin(p.x * 6.0 + p.y * 4.0 + t * 0.16)) * 5.5) * 0.12;
   color += vec3f(0.76, 0.48, 1.0) * chemical * smoothstep(0.95, 0.12, length(p)) * 0.08;
   color += vec3f(0.86, 0.72, 0.42) * granular * stripe(p.y * 9.0 + sin(p.x * 4.0), 0.032) * 0.16;
+  color += vec3f(0.1, 0.95, 1.0) * instrument * rectMask(p - vec2f(0.0, 0.58), vec2f(0.68, 0.045)) * 0.28;
+  color += vec3f(1.0, 0.18, 0.04) * combustion * atomThermalPlume(p + vec2f(0.12, -0.1), t) * 0.3;
+  color += vec3f(0.75, 0.92, 1.0) * phase * stripe(length(p) * 5.4 + sin(p.x * 3.0) - t * 0.18, 0.03) * 0.18;
   color += vec3f(0.9, 0.92, 0.96) * robot * stripe((p.x + p.y) * 7.0 - t * 0.3, 0.03) * 0.14;
+  color += u.palette1.rgb * density * exp(-abs(sin(p.x * 8.0) + cos(p.y * 6.0 + t * 0.12)) * 2.4) * 0.08;
+  color += u.palette3.rgb * emission * exp(-abs(rot(p, 0.72).y) * 34.0) * 0.18;
+  color += vec3f(1.0, 0.92, 0.36) * constraint * capsuleLine(p, vec2f(-0.64, -0.44), vec2f(0.64, 0.44), 0.018) * 0.22;
+  color += u.palette3.rgb * signal * stripe((p.x - p.y) * 6.0 - t * 0.48, 0.022) * 0.18;
+  color += u.palette1.rgb * surface * stripe(max(abs(p.x), abs(p.y)) * 5.0 + t * 0.08, 0.028) * 0.12;
+  color += u.palette3.rgb * motion * stripe(length(p) * 4.8 - t * 0.62, 0.02) * 0.14;
   color += u.palette3.rgb * orbit * stripe(length(p) * 3.6 - t * 0.12, 0.025) * 0.18;
   var literalScene = 0.0;
   if (sceneGroup == 13.0 || sceneGroup == 15.0 || sceneGroup == 17.0 || sceneGroup == 29.0) {
