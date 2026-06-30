@@ -43,10 +43,7 @@
     const normalized = normalizeText(text);
     const entries = (atlas.VISUAL_OPERATOR_MAPPINGS || [])
       .map((row, index) => scoreMapping(row, index, text, normalized, context));
-    const accepted = entries
-      .filter((entry) => entry.accepted)
-      .sort((a, b) => b.weightedScore - a.weightedScore || a.index - b.index)
-      .slice(0, 7);
+    const accepted = selectDiverseMappings(entries, 10);
     const source = accepted.length ? accepted.map(compiledMapping) : [fallbackMapping(context)];
     const uniforms = compileAtomUniforms(source);
     return {
@@ -63,6 +60,7 @@
       processes: atomsForCategory(source, 'processAtoms', 'process'),
       motion: atomsForCategory(source, 'motionAtoms', 'motion'),
       camera: atomsForCategory(source, 'cameraAtoms', 'camera'),
+      languageSignals: compiledLanguageSignals(context),
       uniforms,
       wgslOperators: uniqueStrings(source.flatMap((row) => row.wgslOperators || [])),
       receipts: source.map((row) => ({
@@ -98,6 +96,7 @@
     if (contextHasCausalAffordance(context, row)) score += 0.24;
     if (contextHasSolverFamily(context, row)) score += 0.18;
     if (contextHasObjectEvidence(context, row)) score += 0.14;
+    if (contextHasAcceptedActivation(context, row)) score += 0.16;
     const priority = Number(row.priority || 1);
     const rawScore = score;
     const weightedScore = rawScore * priority;
@@ -139,6 +138,31 @@
       wgslOperators: entry.row.wgslOperators || [],
       receiptText: entry.row.receiptText,
     };
+  }
+
+  function selectDiverseMappings(entries, limit) {
+    const sorted = (entries || [])
+      .filter((entry) => entry.accepted)
+      .sort((a, b) => b.weightedScore - a.weightedScore || a.index - b.index);
+    const selected = [];
+    const slots = new Set();
+    for (const entry of sorted) {
+      const primary = primaryUniformSlot(entry.row);
+      if (primary && slots.has(primary)) continue;
+      selected.push(entry);
+      if (primary) slots.add(primary);
+      if (selected.length >= limit) return selected;
+    }
+    for (const entry of sorted) {
+      if (selected.includes(entry)) continue;
+      selected.push(entry);
+      if (selected.length >= limit) return selected;
+    }
+    return selected;
+  }
+
+  function primaryUniformSlot(row) {
+    return row && row.uniformSlots && row.uniformSlots[0] || '';
   }
 
   function fallbackMapping(context) {
@@ -262,10 +286,16 @@
     return termsMatched(row.matchTerms || [], objectText, objectText).length > 0;
   }
 
+  function contextHasAcceptedActivation(context, row) {
+    const text = compiledIntentBriefText(context);
+    return termsMatched(row.matchTerms || [], text, text).length > 0;
+  }
+
   function visualOperatorContextText(context = {}) {
     const objects = (context.objects || []).filter(isEvidenceObject);
     return [
       context.sceneKind,
+      compiledIntentBriefText(context),
       ...objects.map((object) => [
         object.id,
         object.shape,
@@ -375,6 +405,7 @@
     const objects = (context.objects || []).filter(isEvidenceObject);
     return normalizeText([
       context.sceneKind,
+      compiledIntentBriefText(context),
       ...objects.map((object) => [
         object.phrase,
       ].filter(Boolean).join(' ')),
@@ -383,6 +414,87 @@
         row.causalRelationId,
       ].filter(Boolean).join(' '))),
     ].filter(Boolean).join(' '));
+  }
+
+  function compiledIntentBrief(context = {}) {
+    return context && context.spec && context.spec.renderIR && context.spec.renderIR.intentBriefReceipt ||
+      context && context.spec && context.spec.universeGraph && context.spec.universeGraph.intentBrief ||
+      null;
+  }
+
+  function compiledIntentBriefText(context = {}) {
+    const brief = compiledIntentBrief(context);
+    if (!brief) return '';
+    return normalizeText([
+      brief.schema,
+      ...(brief.evidenceIds || []),
+      ...(brief.causalEdgeIds || []),
+      ...(brief.causalAffordanceIds || []),
+      ...(brief.shaderHints || []),
+      ...(brief.motionHints || []),
+      ...((brief.acceptedActivations || []).map((row) => [
+        row.candidateId,
+        row.candidateKind,
+        row.candidateLabel,
+        row.spanKind,
+        row.spanText,
+        ...(row.operatorHints || []),
+        ...(row.visualHints || []),
+        ...(row.primitiveHints || []),
+      ].filter(Boolean).join(' '))),
+      ...((brief.languageSpans || []).map((row) => [
+        row.id,
+        row.kind,
+        row.text,
+      ].filter(Boolean).join(' '))),
+      ...((brief.visualAffordances || []).map((row) => [
+        row.id,
+        row.causalRelationId,
+        row.sceneKind,
+        row.geometry,
+        ...(row.shaderHints || []),
+        ...(row.motionHints || []),
+      ].filter(Boolean).join(' '))),
+    ].filter(Boolean).join(' '));
+  }
+
+  function compiledLanguageSignals(context = {}) {
+    const brief = compiledIntentBrief(context);
+    if (!brief) return [];
+    const rows = [];
+    const push = (source, id, kind, text, score) => {
+      const normalized = normalizeText(text);
+      if (!normalized) return;
+      const slots = VISUAL_ATOM_UNIFORM_SLOTS.filter((slot) => normalized.includes(slot));
+      rows.push({
+        id,
+        source,
+        kind,
+        text: normalized,
+        score: Number(score || 0),
+        slots: uniqueStrings(slots),
+      });
+    };
+    (brief.acceptedActivations || []).forEach((row, index) => {
+      push(
+        'accepted-activation',
+        row.activationId || row.candidateId || `accepted.${index}`,
+        row.candidateKind || row.spanKind || 'activation',
+        [
+          row.candidateId,
+          row.candidateLabel,
+          row.spanText,
+          ...(row.operatorHints || []),
+          ...(row.visualHints || []),
+          ...(row.primitiveHints || []),
+        ].filter(Boolean).join(' '),
+        row.score
+      );
+    });
+    (brief.languageSpans || []).slice(0, 18).forEach((row, index) => {
+      push('language-span', row.id || `span.${index}`, row.kind || 'span', row.text || '', 0.34);
+    });
+    return rows.slice(0, 36);
   }
 
   function solverStepText(step) {

@@ -403,6 +403,8 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(webgpuRenderer, /renderIR\.causalAffordances/);
   assert.match(webgpuRenderer, /visualIR\.causalAffordances/);
   assert.match(webgpuRenderer, /visualIR\.graphicsAtoms/);
+  assert.match(webgpuRenderer, /graphicsAtoms\.languageSignals/);
+  assert.match(webgpuRenderer, /ranked\.slice\(0, 10\)/);
   assert.match(renderer, /resolveWithEmbedding\(prompt, params, serial, false\)/);
   assert.match(renderer, /resolveWithEmbedding\(initialPrompt, initialParams, buildSerial, true\)/);
   assert.match(renderer, /runButton\.classList\.toggle\('is-loading', loading\)/);
@@ -549,6 +551,7 @@ test('compiler phases consume only neighboring compiled artifacts after intent g
   const composition = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
   const webgpu = fs.readFileSync(path.join(jsDir, 'simulatte-webgpu-renderer.js'), 'utf8');
   const visualOperatorCompiler = fs.readFileSync(path.join(jsDir, 'simulatte-visual-operator-compiler.js'), 'utf8');
+  const activationCloud = fs.readFileSync(path.join(jsDir, 'simulatte-activation-cloud.js'), 'utf8');
   const physicsIRCall = model.match(/nextIR = buildPhysicsIR\(\{[\s\S]*?\n      \}\);/);
   const directLanguageText = visualOperatorCompiler.match(/function directLanguageText\(context = \{\}\) \{[\s\S]*?\n  \}/);
 
@@ -579,6 +582,10 @@ test('compiler phases consume only neighboring compiled artifacts after intent g
   assert.match(model, /function parameterHintTextForIntent/);
   assert.match(model, /applyCompiledParameterHints\(parameterHintTextForIntent\(intent, contract\), params, addControl\)/);
   assert.doesNotMatch(model, /applyPromptParameterHints\(intent\.prompt/);
+  assert.match(activationCloud, /LANGUAGE_VISUAL_SIGNAL_RULES/);
+  assert.match(activationCloud, /language-evidence-visual-signal/);
+  assert.match(visualOperatorCompiler, /function compiledIntentBriefText/);
+  assert.match(visualOperatorCompiler, /languageSignals: compiledLanguageSignals\(context\)/);
 });
 
 test('intent runtime keeps visible errors short, logs diagnostics, and falls back locally', () => {

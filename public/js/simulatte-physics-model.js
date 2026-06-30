@@ -456,7 +456,7 @@
         ? universeGraph.visualAffordances.slice(0, 8).map((row) => ({ ...row }))
         : [],
       intentBriefReceipt: universeGraph && universeGraph.intentBrief
-        ? { ...universeGraph.intentBrief }
+        ? intentBriefReceipt(universeGraph.intentBrief)
         : null,
       phaseInputs: {
         ...(renderIR.phaseInputs || {}),
@@ -590,6 +590,8 @@
       causalAffordanceIds: brief.visualIntent && Array.isArray(brief.visualIntent.affordances)
         ? brief.visualIntent.affordances.map((row) => row.id).filter(Boolean).slice(0, 16)
         : [],
+      acceptedActivations: intentBriefAcceptedActivations(brief),
+      languageSpans: intentBriefLanguageSpans(brief),
       shaderHints: brief.visualIntent && brief.visualIntent.shaderHints || [],
       motionHints: brief.visualIntent && brief.visualIntent.motionHints || [],
       confidence: Number(brief.confidence || 0),
@@ -599,6 +601,40 @@
         warnings: brief.validation.warnings || [],
       } : null,
     };
+  }
+
+  function intentBriefAcceptedActivations(brief) {
+    const rows = brief && brief.groundedInterpretation &&
+      Array.isArray(brief.groundedInterpretation.acceptedActivations)
+      ? brief.groundedInterpretation.acceptedActivations
+      : [];
+    return rows.slice(0, 48).map((row) => ({
+      activationId: row.activationId || row.id || '',
+      spanId: row.spanId || '',
+      spanKind: row.spanKind || '',
+      spanText: row.spanText || '',
+      candidateId: row.candidateId || '',
+      candidateKind: row.candidateKind || '',
+      candidateLabel: row.candidateLabel || '',
+      score: Number(row.score || 0),
+      operatorHints: row.hints && Array.isArray(row.hints.operator) ? row.hints.operator.slice(0, 8) : [],
+      visualHints: row.hints && Array.isArray(row.hints.visual) ? row.hints.visual.slice(0, 8) : [],
+      primitiveHints: row.hints && Array.isArray(row.hints.primitive) ? row.hints.primitive.slice(0, 8) : [],
+    }));
+  }
+
+  function intentBriefLanguageSpans(brief) {
+    const spans = brief && brief.languageEvidence && Array.isArray(brief.languageEvidence.spans)
+      ? brief.languageEvidence.spans
+      : [];
+    return spans
+      .filter((span) => span && span.text && ['clause', 'predicate-frame', 'verb-phrase', 'noun-phrase', 'modifier'].includes(span.kind || ''))
+      .slice(0, 48)
+      .map((span) => ({
+        id: span.id || '',
+        kind: span.kind || 'span',
+        text: span.text || '',
+      }));
   }
 
   function graphMaterialMap(nodes) {
