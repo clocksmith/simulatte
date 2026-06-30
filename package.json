@@ -7,6 +7,7 @@
     "serve:static": "python3 -m http.server 4173 --bind 127.0.0.1 --directory public",
     "build:universe": "node tools/build-universe-index.mjs && node tools/build-affordance-index.mjs",
     "build:visual-cards": "node tools/build-visual-card-index.mjs",
+    "audit:catalogs": "node tools/audit-catalog-inventory.mjs",
     "validate:universe": "node tools/validate-semantic-universe.mjs",
     "validate:visual-cards": "node tools/validate-visual-card-index.mjs",
     "scan:determinism": "node tools/scan-nondeterminism.mjs",
