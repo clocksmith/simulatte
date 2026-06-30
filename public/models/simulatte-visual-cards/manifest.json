@@ -12,7 +12,7 @@
       "kind": "causal-visual-affordance-index",
       "artifact": "./causal-visual-affordance-index-v1.json",
       "documentSchema": "simulatte.causalVisualAffordanceIndex.v1",
-      "documentCount": 153
+      "documentCount": 186
     },
     "visualOperatorAtlas": {
       "kind": "visual-operator-atlas",
@@ -32,7 +32,7 @@
     "proceduralRecipeSignatures": 1177,
     "sourceExamples": 1177,
     "generatedScaffoldCards": 0,
-    "causalAffordances": 153,
+    "causalAffordances": 186,
     "visualOperatorMappings": 17
   },
   "generator": {
@@ -42,7 +42,7 @@
     "sourcePolicy": {
       "exportedDocuments": "literal-source-examples-only",
       "generatedScaffoldCards": 0,
-      "handwrittenCausalAffordances": 153,
+      "handwrittenCausalAffordances": 186,
       "handwrittenVisualOperatorMappings": 17,
       "maxSlotsPerType": 512
     }

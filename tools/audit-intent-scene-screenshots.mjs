@@ -546,6 +546,8 @@ async function runPrompt(cdp, entry, index, outDir, timeoutMs) {
     const program = previewProgram || modelProgram || null;
     const rendererPlan = program && program.rendererPlan || null;
     const visualIR = program && program.visualIR || null;
+    const graphicsAtoms = visualIR && visualIR.graphicsAtoms || {};
+    const atomUniforms = graphicsAtoms && graphicsAtoms.uniforms || {};
     const specForIntent = modelSpec || parsed || null;
     const intentBrief = specForIntent && specForIntent.intent && specForIntent.intent.intentBrief || null;
     const physicalReceipt = specForIntent && specForIntent.physicalSpec && specForIntent.physicalSpec.receipt || {};
@@ -595,6 +597,14 @@ async function runPrompt(cdp, entry, index, outDir, timeoutMs) {
       visualIROperatorCount: visualIRArrayCount('operators'),
       visualIRReceiptCount: visualIRArrayCount('receipts'),
       visualIRCausalAffordanceCount: visualIRArrayCount('causalAffordances'),
+      visualIRGraphicsAtomCount: ['geometry', 'fields', 'materials', 'processes', 'motion', 'camera']
+        .reduce((sum, key) => sum + (Array.isArray(graphicsAtoms[key]) ? graphicsAtoms[key].length : 0), 0),
+      visualIRGraphicsMappingIds: (graphicsAtoms.mappings || []).map((row) => row.id).slice(0, 12),
+      visualIRGraphicsCompiler: graphicsAtoms.compiler || '',
+      visualIRGraphicsUniformSlots: Object.entries(atomUniforms.bySlot || {})
+        .filter((entry) => Number(entry[1]) > 0)
+        .map((entry) => entry[0]),
+      visualIRGraphicsWgslOperators: (graphicsAtoms.wgslOperators || []).slice(0, 16),
       intentBriefSchema: intentBrief && intentBrief.schema || '',
       intentBriefEvidenceCount: intentBriefArrayCount('retrievedEvidence'),
       intentBriefCausalEdgeCount: intentBriefArrayCount('causalGraph'),
@@ -685,6 +695,11 @@ function analyze(results) {
     if (result.visualIREntityCount < 2) failures.push(`${result.index}: VisualIR has too few entities`);
     if (result.visualIRProcessCount < 2) failures.push(`${result.index}: VisualIR has too few processes`);
     if (result.visualIRReceiptCount < 4) failures.push(`${result.index}: VisualIR has too few receipts`);
+    if (result.visualIRGraphicsAtomCount < 4) failures.push(`${result.index}: VisualIR has too few graphics atoms`);
+    if (!result.visualIRGraphicsCompiler) failures.push(`${result.index}: VisualIR missing graphics atom compiler`);
+    if (!(result.visualIRGraphicsUniformSlots || []).length) {
+      failures.push(`${result.index}: VisualIR missing graphics atom uniform slots`);
+    }
     if (result.kind === 'curated' && result.intentBriefSchema !== 'simulatte.intentBrief.v1') {
       failures.push(`${result.index}: curated prompt missing intent brief`);
     }
@@ -728,6 +743,12 @@ function analyze(results) {
     sceneKinds: [...new Set(results.map((result) => result.rendererSceneKind).filter(Boolean))].sort(),
     visualIRSceneKinds: [...new Set(results.map((result) => result.visualIRSceneKind).filter(Boolean))].sort(),
     visualIRCameras: [...new Set(results.map((result) => result.visualIRCamera).filter(Boolean))].sort(),
+    graphicsAtoms: {
+      totalAtoms: results.reduce((sum, result) => sum + (result.visualIRGraphicsAtomCount || 0), 0),
+      mappingIds: [...new Set(results.flatMap((result) => result.visualIRGraphicsMappingIds || []))].sort(),
+      uniformSlots: [...new Set(results.flatMap((result) => result.visualIRGraphicsUniformSlots || []))].sort(),
+      wgslOperators: [...new Set(results.flatMap((result) => result.visualIRGraphicsWgslOperators || []))].sort(),
+    },
     intentBriefs: {
       totalEvidence: results.reduce((sum, result) => sum + (result.intentBriefEvidenceCount || 0), 0),
       totalCausalEdges: results.reduce((sum, result) => sum + (result.intentBriefCausalEdgeCount || 0), 0),

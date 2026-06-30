@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const jsDir = path.join(root, 'public', 'js');
 const catalog = require(path.join(jsDir, 'simulatte-physics-catalog.js'));
 const visualOperatorAtlas = require(path.join(jsDir, 'simulatte-visual-operator-atlas.js'));
+const visualOperatorCompiler = require(path.join(jsDir, 'simulatte-visual-operator-compiler.js'));
 
 function jsFiles(dir) {
   return fs.readdirSync(dir)
@@ -40,6 +41,7 @@ test('physics lab is split into catalog, model, renderer, and coordinator', () =
     'simulatte-assumption-ledger.js',
     'simulatte-causal-visual-affordances.js',
     'simulatte-visual-operator-atlas.js',
+    'simulatte-visual-operator-compiler.js',
     'simulatte-language-evidence.js',
     'simulatte-activation-cloud.js',
     'simulatte-grounded-interpretation.js',
@@ -98,6 +100,14 @@ test('intent forensics modules load before the physics model in the browser shel
     position('simulatte-visual-operator-atlas.js') < position('simulatte-composition-graph.js'),
     'visual operator atlas should load before composition graph'
   );
+  assert.ok(
+    position('simulatte-visual-operator-atlas.js') < position('simulatte-visual-operator-compiler.js'),
+    'visual operator atlas should load before visual operator compiler'
+  );
+  assert.ok(
+    position('simulatte-visual-operator-compiler.js') < position('simulatte-composition-graph.js'),
+    'visual operator compiler should load before composition graph'
+  );
 });
 
 test('causal affordances compile into first-class VisualIR rows', () => {
@@ -114,6 +124,7 @@ test('causal affordances compile into first-class VisualIR rows', () => {
   assert.match(composition, /visualMotionForProcesses\(processRows, visualGenome, sceneKind, causalAffordances\)/);
   assert.match(composition, /function visualGraphicsAtomsForIR/);
   assert.match(composition, /function visualGeometryForGraphicsAtoms/);
+  assert.match(composition, /visualOperatorCompiler\.compileVisualGraphicsAtoms/);
   assert.match(composition, /visual-operator-atlas/);
   assert.match(composition, /receipt:graphics-atoms/);
   assert.match(composition, /causal-affordance-program/);
@@ -126,17 +137,33 @@ test('visual operator atlas exposes reusable graphics atoms for Layer 7', () => 
   const atlasJson = JSON.parse(fs.readFileSync(atlasPath, 'utf8'));
 
   assert.equal(visualOperatorAtlas.VISUAL_OPERATOR_ATLAS_SCHEMA, 'simulatte.visualOperatorAtlas.v1');
+  assert.equal(visualOperatorCompiler.VISUAL_OPERATOR_COMPILER_SCHEMA, 'simulatte.visualOperatorCompiler.v1');
   assert.equal(atlasJson.schema, 'simulatte.visualOperatorAtlas.v1');
+  assert.equal(atlasJson.compilerSchema, 'simulatte.visualOperatorCompiler.v1');
+  assert.equal(atlasJson.uniformSchema, 'simulatte.graphicsAtomUniforms.v1');
   assert.equal(atlasJson.id, 'simulatte-visual-operator-atlas-v1');
   assert.equal(atlasJson.mappings.length, visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.length);
   assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.length >= 17);
+  assert.equal(visualOperatorAtlas.VISUAL_ATOM_UNIFORM_SLOTS.length, 24);
+  assert.equal(visualOperatorCompiler.VISUAL_ATOM_UNIFORM_SLOTS.length, 24);
+  assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.every((row) => row.requires.length >= 1));
+  assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.every((row) => row.minimumScore > 0));
+  assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.every((row) => row.priority > 0));
+  assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.every((row) => row.uniformSlots.length >= 2));
+  assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.every((row) => row.wgslOperators.length >= 1));
+  assert.ok(atlasJson.mappings.every((row) => Array.isArray(row.requires) && row.requires.length >= 1));
+  assert.ok(atlasJson.mappings.every((row) => Array.isArray(row.excludes)));
+  assert.ok(atlasJson.mappings.every((row) => Number(row.minimumScore) > 0));
+  assert.ok(atlasJson.mappings.every((row) => Number(row.priority) > 0));
+  assert.ok(atlasJson.mappings.every((row) => row.uniformSlots.length >= 2));
+  assert.ok(atlasJson.mappings.every((row) => row.wgslOperators.length >= 1));
   assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.heat-transfer.v1'));
   assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.fluid-advection.v1'));
   assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.control-feedback.v1'));
   assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.network-flow.v1'));
   assert.ok(atlasJson.mappings.some((row) => row.id === 'visual.operator.quantum-phase-readout.v1'));
 
-  const plan = visualOperatorAtlas.compileVisualGraphicsAtoms({
+  const plan = visualOperatorCompiler.compileVisualGraphicsAtoms({
     sceneKind: 'thermal-plume',
     solverPlan: { executableSteps: ['heat_transfer', 'advection'] },
     objects: [{ source: 'prompt-explicit', phrase: 'coolant airflow', role: 'coolant loop' }],
@@ -145,12 +172,19 @@ test('visual operator atlas exposes reusable graphics atoms for Layer 7', () => 
   });
 
   assert.equal(plan.schema, 'simulatte.graphicsAtomPlan.v1');
+  assert.equal(plan.compiler, 'simulatte.visualOperatorCompiler.v1');
   assert.ok(plan.mappings.some((row) => row.id === 'visual.operator.heat-transfer.v1'));
   assert.ok(plan.mappings.some((row) => row.id === 'visual.operator.fluid-advection.v1'));
   assert.ok(plan.geometry.some((row) => row.id === 'volume-vapor-plume'));
   assert.ok(plan.fields.some((row) => row.id === 'velocity-vector-field'));
   assert.ok(plan.materials.some((row) => row.id === 'emissive-hot'));
   assert.ok(plan.motion.some((row) => row.id === 'stream-ribbons'));
+  assert.equal(plan.uniforms.schema, 'simulatte.graphicsAtomUniforms.v1');
+  assert.equal(plan.uniforms.values.length, 24);
+  assert.ok(plan.uniforms.bySlot.thermal > 0);
+  assert.ok(plan.uniforms.bySlot.fluid > 0);
+  assert.ok(plan.wgslOperators.includes('atomThermalPlume'));
+  assert.ok(plan.wgslOperators.includes('atomFluidRibbons'));
 });
 
 test('procedural visual base exposes a broad prompt-addressed catalog', () => {
@@ -331,7 +365,8 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
     path.join(jsDir, 'simulatte-webgpu-renderer.js'),
     'utf8'
   );
-  assert.match(webgpuRenderer, /new Float32Array\(72\)/);
+  assert.match(webgpuRenderer, /new Float32Array\(96\)/);
+  assert.match(webgpuRenderer, /this\.atomUniforms = graphicsAtomUniformVector\(spec\)/);
   assert.match(webgpuRenderer, /loadingWrapDistance/);
   assert.match(webgpuRenderer, /loadingSnakeMask/);
   assert.match(webgpuRenderer, /snakeA = loadingSnakeMask/);
@@ -343,7 +378,14 @@ test('physics loading uses a canvas snake board instead of a card mosaic', () =>
   assert.match(webgpuRenderer, /function visualTextFromSpec/);
   assert.match(webgpuRenderer, /function graphicsAtomTextRows/);
   assert.match(webgpuRenderer, /function graphicsAtomFeatureVector/);
+  assert.match(webgpuRenderer, /function graphicsAtomUniformVector/);
   assert.match(webgpuRenderer, /mergeFeatureVectors\(featureVector\(text\), graphicsAtomFeatureVector\(spec\)\)/);
+  assert.match(webgpuRenderer, /atomAt\(index: i32\)/);
+  assert.match(webgpuRenderer, /atomOperatorOverlays/);
+  assert.match(webgpuRenderer, /atomThermalPlume/);
+  assert.match(webgpuRenderer, /atomFluidRibbons/);
+  assert.match(webgpuRenderer, /atomQuantumFringes/);
+  assert.match(webgpuRenderer, /color = atomOperatorOverlays\(p, t, color\)/);
   assert.match(webgpuRenderer, /renderIR\.causalAffordances/);
   assert.match(webgpuRenderer, /visualIR\.causalAffordances/);
   assert.match(webgpuRenderer, /visualIR\.graphicsAtoms/);

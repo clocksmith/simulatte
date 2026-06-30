@@ -2,15 +2,15 @@
   const catalog = typeof module === 'object' && module.exports
     ? require('./simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
-  const visualOperatorAtlas = typeof module === 'object' && module.exports
-    ? require('./simulatte-visual-operator-atlas.js')
-    : root.SimulatteVisualOperatorAtlas;
-  const api = factory(catalog, visualOperatorAtlas);
+  const visualOperatorCompiler = typeof module === 'object' && module.exports
+    ? require('./simulatte-visual-operator-compiler.js')
+    : root.SimulatteVisualOperatorCompiler;
+  const api = factory(catalog, visualOperatorCompiler);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteCompositionGraph = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCompositionGraphApi(catalog, visualOperatorAtlas = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCompositionGraphApi(catalog, visualOperatorCompiler = {}) {
   const {
     clamp,
     hashNoise,
@@ -979,12 +979,13 @@
   }
 
   function visualGraphicsAtomsForIR(context) {
-    if (visualOperatorAtlas && typeof visualOperatorAtlas.compileVisualGraphicsAtoms === 'function') {
-      return visualOperatorAtlas.compileVisualGraphicsAtoms(context);
+    if (visualOperatorCompiler && typeof visualOperatorCompiler.compileVisualGraphicsAtoms === 'function') {
+      return visualOperatorCompiler.compileVisualGraphicsAtoms(context);
     }
     return {
       schema: 'simulatte.graphicsAtomPlan.v1',
       atlas: 'simulatte.visualOperatorAtlas.v1',
+      compiler: 'missing-visual-operator-compiler',
       atlasId: 'missing-runtime-atlas',
       source: 'fallback-graphics-atom-plan',
       mappings: [],
@@ -994,6 +995,14 @@
       processes: [],
       motion: [],
       camera: [],
+      uniforms: {
+        schema: 'simulatte.graphicsAtomUniforms.v1',
+        order: [],
+        values: [],
+        bySlot: {},
+      },
+      wgslOperators: [],
+      rejections: [],
       receipts: [],
     };
   }
@@ -1761,7 +1770,11 @@
         reason: `${graphicsAtomCount(graphicsAtoms)} reusable graphics atoms compiled from the visual operator atlas`,
         count: graphicsAtomCount(graphicsAtoms),
         atlasId: graphicsAtoms && graphicsAtoms.atlasId || '',
+        compiler: graphicsAtoms && graphicsAtoms.compiler || '',
         mappingIds: (graphicsAtoms && graphicsAtoms.mappings || []).map((row) => row.id).slice(0, 12),
+        uniformSlots: graphicsAtoms && graphicsAtoms.uniforms &&
+          Object.keys(graphicsAtoms.uniforms.bySlot || {}).filter((slot) => graphicsAtoms.uniforms.bySlot[slot] > 0),
+        wgslOperators: (graphicsAtoms && graphicsAtoms.wgslOperators || []).slice(0, 16),
         geometryAtoms: (graphicsAtoms && graphicsAtoms.geometry || []).map((row) => row.id).slice(0, 12),
         fieldAtoms: (graphicsAtoms && graphicsAtoms.fields || []).map((row) => row.id).slice(0, 12),
         materialAtoms: (graphicsAtoms && graphicsAtoms.materials || []).map((row) => row.id).slice(0, 12),

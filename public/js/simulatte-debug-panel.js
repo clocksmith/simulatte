@@ -45,6 +45,7 @@
       validationReceipt: spec.validationReceipt,
       solverGraph: compactSolver(spec.solverGraph),
       renderIR: compactRender(spec.renderIR),
+      visualIR: compactVisual(spec.renderProgram && spec.renderProgram.visualIR),
       liveChannels: state && state.solverState ? state.solverState.channels : null,
     };
   }
@@ -79,6 +80,32 @@
       objects: renderIR.objects,
       fields: renderIR.fields,
       readouts: renderIR.readouts,
+    };
+  }
+
+  function compactVisual(visualIR) {
+    if (!visualIR) return null;
+    const graphicsAtoms = visualIR.graphicsAtoms || {};
+    return {
+      schema: visualIR.schema,
+      sceneKind: visualIR.sceneKind,
+      camera: visualIR.camera,
+      operators: (visualIR.operators || []).map((operator) => operator.id),
+      graphicsAtoms: {
+        schema: graphicsAtoms.schema,
+        compiler: graphicsAtoms.compiler,
+        atlasId: graphicsAtoms.atlasId,
+        mappings: (graphicsAtoms.mappings || []).map((row) => ({
+          id: row.id,
+          score: row.score,
+          uniformSlots: row.uniformSlots,
+          wgslOperators: row.wgslOperators,
+        })),
+        uniforms: graphicsAtoms.uniforms,
+        wgslOperators: graphicsAtoms.wgslOperators,
+        rejections: graphicsAtoms.rejections,
+      },
+      receipts: (visualIR.receipts || []).filter((receipt) => /graphics|causal/.test(receipt.id || '')),
     };
   }
 
