@@ -86,7 +86,7 @@
 
   function scoreMapping(row, index, text, normalized, context) {
     const matchedTerms = termsMatched(row.matchTerms || [], text, normalized);
-    const requireResult = passesRequires(row.requires || [], text, normalized);
+    const requireResult = passesRequires(row.requires || [], directRequirementEvidence(context));
     const blockedTerms = termsMatched(row.excludes || [], text, normalized);
     const sceneGate = sceneAcceptsMapping(context, row);
     let score = 0;
@@ -236,14 +236,24 @@
     return vector;
   }
 
-  function passesRequires(groups, text, normalized) {
+  function passesRequires(groups, evidenceRows) {
     if (!groups || !groups.length) return { ok: true, matchedGroups: [] };
     const matchedGroups = [];
     for (const group of groups) {
-      const matched = termsMatched(group, text, normalized);
+      const matched = termsMatchedByEvidence(group, evidenceRows);
       if (matched.length) matchedGroups.push(matched);
     }
     return { ok: matchedGroups.length > 0, matchedGroups };
+  }
+
+  function termsMatchedByEvidence(terms, evidenceRows) {
+    const rows = Array.isArray(evidenceRows) ? evidenceRows : [];
+    return uniqueStrings((terms || []).filter((term) => rows.some((row) => {
+      const text = String(row && row.text || '').toLowerCase();
+      const normalized = normalizeText(text);
+      return termsMatched([term], text, normalized).length > 0 &&
+        !termNegatedInText(term, row && row.negationText || text);
+    })));
   }
 
   function termsMatched(terms, text, normalized) {
@@ -287,7 +297,7 @@
   }
 
   function contextHasAcceptedActivation(context, row) {
-    const text = compiledIntentBriefText(context);
+    const text = compiledDirectLanguageText(context);
     return termsMatched(row.matchTerms || [], text, text).length > 0;
   }
 
@@ -332,8 +342,7 @@
     const id = String(row.id || '');
     const directHas = (pattern) => pattern.test(direct);
     if (/robot-contact/.test(id)) {
-      const robotScene = /robotics control|manufacturing line/.test(scene) ||
-        directHas(/\b(robot|robotic|gripper|servo|workcell|manipulator|pick and place|pick|place)\b/);
+      const robotScene = directHas(/\b(robot|robotic|gripper|servo|workcell|manipulator)\b|\bpick\s+and\s+place\b/);
       if (!robotScene) return { ok: false, reason: 'scene-gate:no-direct-robotics-evidence' };
     }
     const watershedLike = /watershed|restoration water|ocean cryosphere|weather atmosphere|hazard atmosphere/.test(scene) ||
@@ -404,15 +413,10 @@
   function directLanguageText(context = {}) {
     const objects = (context.objects || []).filter(isEvidenceObject);
     return normalizeText([
-      context.sceneKind,
-      compiledIntentBriefText(context),
+      compiledDirectLanguageText(context),
       ...objects.map((object) => [
         object.phrase,
       ].filter(Boolean).join(' ')),
-      ...((context.causalAffordances || []).map((row) => [
-        row.id,
-        row.causalRelationId,
-      ].filter(Boolean).join(' '))),
     ].filter(Boolean).join(' '));
   }
 
@@ -425,27 +429,18 @@
   function compiledIntentBriefText(context = {}) {
     const brief = compiledIntentBrief(context);
     if (!brief) return '';
+    const negationContext = negationContextForBrief(brief);
     return normalizeText([
       brief.schema,
-      ...(brief.evidenceIds || []),
       ...(brief.causalEdgeIds || []),
       ...(brief.causalAffordanceIds || []),
       ...(brief.shaderHints || []),
       ...(brief.motionHints || []),
-      ...((brief.acceptedActivations || []).map((row) => [
-        row.candidateId,
-        row.candidateKind,
-        row.candidateLabel,
-        row.spanKind,
-        row.spanText,
-        ...(row.operatorHints || []),
-        ...(row.visualHints || []),
-        ...(row.primitiveHints || []),
-      ].filter(Boolean).join(' '))),
+      ...((brief.acceptedActivations || []).map(positiveActivationVisualText)),
       ...((brief.languageSpans || []).map((row) => [
         row.id,
         row.kind,
-        row.text,
+        positiveSpanText(row, negationContext),
       ].filter(Boolean).join(' '))),
       ...((brief.visualAffordances || []).map((row) => [
         row.id,
@@ -456,6 +451,145 @@
         ...(row.motionHints || []),
       ].filter(Boolean).join(' '))),
     ].filter(Boolean).join(' '));
+  }
+
+  function compiledDirectLanguageText(context = {}) {
+    const brief = compiledIntentBrief(context);
+    if (!brief) return '';
+    const negationContext = negationContextForBrief(brief);
+    return normalizeText([
+      ...((brief.acceptedActivations || []).map(positiveActivationVisualText)),
+      ...((brief.languageSpans || []).map((row) => [
+        row.kind,
+        positiveSpanText(row, negationContext),
+      ].filter(Boolean).join(' '))),
+    ].filter(Boolean).join(' '));
+  }
+
+  function directRequirementEvidence(context = {}) {
+    const brief = compiledIntentBrief(context);
+    if (!brief) return directContextRequirementEvidence(context);
+    const negationContext = negationContextForBrief(brief);
+    return [
+      ...((brief.acceptedActivations || []).map((row, index) => ({
+        id: row.activationId || row.candidateId || `accepted.${index}`,
+        text: positiveActivationVisualText(row),
+        negationText: [row.spanText, negationContext].filter(Boolean).join(' '),
+      }))),
+      ...((brief.languageSpans || []).map((row, index) => ({
+        id: row.id || `span.${index}`,
+        text: [row.kind, positiveSpanText(row, negationContext)].filter(Boolean).join(' '),
+        negationText: [row.text, negationContext].filter(Boolean).join(' '),
+      }))),
+    ].filter((row) => row.text);
+  }
+
+  function directContextRequirementEvidence(context = {}) {
+    return [
+      ...((context.objects || []).filter(isEvidenceObject).map((object, index) => ({
+        id: object.id || `object.${index}`,
+        text: positiveLanguageText([
+          object.phrase,
+          object.role,
+        ].filter(Boolean).join(' ')),
+        negationText: object.phrase || object.role || '',
+      }))),
+      ...((context.fields || []).map((field, index) => ({
+        id: field.id || `field.${index}`,
+        text: positiveLanguageText([
+          field.kind,
+          field.channel,
+          field.stateBinding,
+          field.domainId,
+        ].filter(Boolean).join(' ')),
+        negationText: '',
+      }))),
+      ...((context.causalAffordances || []).map((row, index) => ({
+        id: row.id || `affordance.${index}`,
+        text: positiveLanguageText([
+          row.geometry,
+          ...(row.shaderHints || []),
+          ...(row.motionHints || []),
+        ].filter(Boolean).join(' ')),
+        negationText: row.geometry || '',
+      }))),
+    ].filter((row) => row.text);
+  }
+
+  function negationContextForBrief(brief = {}) {
+    return (brief.languageSpans || [])
+      .map((row) => row && row.text || '')
+      .filter(containsNegation)
+      .join(' ');
+  }
+
+  function positiveSpanText(row = {}, negationContext = '') {
+    const text = String(row.text || '');
+    if (!text) return '';
+    if (phraseNegatedInText(text, negationContext)) return '';
+    return positiveLanguageText(text);
+  }
+
+  function activationVisualText(row = {}) {
+    const directSignal = row.source === 'language-evidence-visual-signal' ||
+      /^language\.visual\./.test(String(row.candidateId || '')) ||
+      /^open[-.]/.test(String(row.candidateId || '')) ||
+      /prompt-derived|generated/.test(String(row.candidateLabel || '').toLowerCase());
+    return [
+      row.spanKind,
+      row.spanText,
+      directSignal ? row.candidateId : '',
+      directSignal ? row.candidateKind : '',
+      directSignal ? row.candidateLabel : '',
+      ...(directSignal ? row.operatorHints || [] : []),
+      ...(directSignal ? row.visualHints || [] : []),
+      ...(directSignal ? row.primitiveHints || [] : []),
+    ].filter(Boolean).join(' ');
+  }
+
+  function positiveActivationVisualText(row = {}) {
+    if (containsNegation(row.spanText)) {
+      return [
+        row.spanKind,
+        positiveLanguageText(row.spanText),
+      ].filter(Boolean).join(' ');
+    }
+    return positiveLanguageText(activationVisualText(row));
+  }
+
+  function positiveLanguageText(value = '') {
+    let text = String(value || '');
+    const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
+    const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
+    const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
+    text = text.replace(negated, ' ');
+    return text.replace(/\s+/g, ' ').trim();
+  }
+
+  function containsNegation(value = '') {
+    return /\b(no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\b/i.test(String(value || ''));
+  }
+
+  function termNegatedInText(term, text) {
+    const termTokens = tokensFor(term);
+    const tokens = tokensFor(text);
+    if (!termTokens.length || !tokens.length) return false;
+    for (let index = 0; index <= tokens.length - termTokens.length; index += 1) {
+      if (!termTokens.every((token, offset) => tokens[index + offset] === token)) continue;
+      for (let cursor = index - 1, depth = 0; cursor >= 0 && depth < 6; cursor -= 1, depth += 1) {
+        if (/^(and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)$/.test(tokens[cursor])) break;
+        if (/^(no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)$/.test(tokens[cursor])) return true;
+      }
+    }
+    return false;
+  }
+
+  function phraseNegatedInText(phrase, text) {
+    return termNegatedInText(phrase, text);
+  }
+
+  function tokensFor(value = '') {
+    return normalizeText(value).match(/[a-z0-9]+(?:['-][a-z0-9]+)*/g) || [];
   }
 
   function compiledLanguageSignals(context = {}) {
@@ -476,23 +610,19 @@
       });
     };
     (brief.acceptedActivations || []).forEach((row, index) => {
+      const text = positiveActivationVisualText(row);
+      if (!text) return;
       push(
         'accepted-activation',
         row.activationId || row.candidateId || `accepted.${index}`,
         row.candidateKind || row.spanKind || 'activation',
-        [
-          row.candidateId,
-          row.candidateLabel,
-          row.spanText,
-          ...(row.operatorHints || []),
-          ...(row.visualHints || []),
-          ...(row.primitiveHints || []),
-        ].filter(Boolean).join(' '),
+        text,
         row.score
       );
     });
+    const negationContext = negationContextForBrief(brief);
     (brief.languageSpans || []).slice(0, 18).forEach((row, index) => {
-      push('language-span', row.id || `span.${index}`, row.kind || 'span', row.text || '', 0.34);
+      push('language-span', row.id || `span.${index}`, row.kind || 'span', positiveSpanText(row, negationContext), 0.34);
     });
     return rows.slice(0, 36);
   }

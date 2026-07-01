@@ -1223,6 +1223,7 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
     assert.equal(atoms.schema, 'simulatte.graphicsAtomPlan.v1');
     assert.equal(atoms.compiler, 'simulatte.visualOperatorCompiler.v1');
     assert.equal(atoms.source, 'handwritten-operator-graphics-basis');
+    assert.ok(atoms.languageSignals.length > 0, `${prompt} missing span-backed language signals`);
     assert.equal(atoms.uniforms.schema, 'simulatte.graphicsAtomUniforms.v1');
     assert.equal(atoms.uniforms.values.length, 24);
     assert.ok(atoms.wgslOperators.length >= expectedMappings.length);
@@ -1251,6 +1252,48 @@ test('molecular biology prompts do not admit robot visuals without robot evidenc
   assert.ok(mappingIds.includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds.includes('visual.operator.robot-contact.v1'));
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'molecular-biology');
+});
+
+test('warehouse language does not unlock robot visuals without robot evidence', () => {
+  const warehouseFire = createPrototypeSpec(
+    'warehouse fire with smoke in concrete stairwell and renderer layers soot'
+  );
+  const parcelSorting = createPrototypeSpec(
+    'sorts parcels in a warehouse queue with conveyor belts'
+  );
+  const robotWarehouse = createPrototypeSpec(
+    'robot arm sorts packages in a warehouse with force sensors and feedback'
+  );
+  const fireMappings = warehouseFire.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const parcelMappings = parcelSorting.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const robotMappings = robotWarehouse.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+
+  assert.ok(fireMappings.includes('visual.operator.thermal-combustion.v1'));
+  assert.ok(!fireMappings.includes('visual.operator.robot-contact.v1'));
+  assert.ok(parcelMappings.includes('visual.operator.network-flow.v1'));
+  assert.ok(!parcelMappings.includes('visual.operator.robot-contact.v1'));
+  assert.notEqual(parcelSorting.renderProgram.visualIR.sceneKind, 'robotics-control');
+  assert.ok(robotMappings.includes('visual.operator.robot-contact.v1'));
+  assert.ok(robotWarehouse.renderProgram.visualIR.graphicsAtoms.languageSignals.length > 0);
+});
+
+test('negated visual operator language does not satisfy positive graphics requirements', () => {
+  const protein = createPrototypeSpec(
+    'protein folding in water with no robot arm'
+  );
+  const phase = createPrototypeSpec(
+    'phase study in a generic lab with no qubits or quantum hardware'
+  );
+  const proteinMappings = protein.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const phaseMappings = phase.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const phaseSignals = phase.renderProgram.visualIR.graphicsAtoms.languageSignals.map((row) => row.text).join(' ');
+
+  assert.equal(protein.renderProgram.visualIR.sceneKind, 'molecular-biology');
+  assert.ok(proteinMappings.includes('visual.operator.biological-growth.v1'));
+  assert.ok(!proteinMappings.includes('visual.operator.robot-contact.v1'));
+  assert.ok(phaseMappings.includes('visual.operator.phase-transition.v1'));
+  assert.ok(!phaseMappings.includes('visual.operator.quantum-phase-readout.v1'));
+  assert.doesNotMatch(phaseSignals, /\b(qubit|quantum)\b/);
 });
 
 test('Doppler residual hints can steer the selected physical graph', () => {

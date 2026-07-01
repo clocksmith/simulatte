@@ -52,7 +52,7 @@
     ),
     sceneRule(
       'robotics-control',
-      /\b(warehouse robot|warehouse robots|robot arm|robot arms|robotic gripper|robot gripper|servo gripper|servo loop|drone swarm|autopilot|path planner|pick and place|pick-and-place|mobile robot|robot sorts|robot sort|sorts parcels|parcel sorting|contact force workcell|robotic workcell)\b/,
+      /\b(warehouse robot|warehouse robots|robot arm|robot arms|robotic gripper|robot gripper|servo gripper|servo loop|drone swarm|autopilot|path planner|pick and place|pick-and-place|mobile robot|robot sorts|robot sort|contact force workcell|robotic workcell)\b/,
       'mechanical',
       'robotics',
       ['force-field', 'network-flow'],
@@ -315,8 +315,9 @@
   }
 
   function hasRoboticsSignal(text = '') {
-    return /\b(robot|robotic|gripper|servo|workcell|manipulator|pick-place|pick and place|sorts parcels|parcel sorting|contact force|warehouse queue)\b/.test(text) &&
-      /\b(robot|robotic|gripper|servo|manipulator|workcell)\b/.test(text);
+    const positive = positiveLanguageText(text);
+    return /\b(robot|robotic|gripper|servo|workcell|manipulator|pick-place|pick and place|contact force)\b/.test(positive) &&
+      /\b(robot|robotic|gripper|servo|manipulator|workcell)\b/.test(positive);
   }
 
   function hasChemistryLabSignal(text = '') {
@@ -334,9 +335,16 @@
   }
 
   function sceneHintForText(value = '') {
-    const text = String(value || '').toLowerCase();
+    const text = positiveLanguageText(value);
     const row = EXPANDED_SCENE_RULES.find((rule) => rule.pattern.test(text));
     return row ? row.id : '';
+  }
+
+  function positiveLanguageText(value = '') {
+    const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
+    const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
+    const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
+    return String(value || '').toLowerCase().replace(negated, ' ').replace(/\s+/g, ' ').trim();
   }
 
   function painterKindForScene(sceneKind = '') {

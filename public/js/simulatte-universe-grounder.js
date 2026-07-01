@@ -194,6 +194,38 @@
         causalEdgeCount: (intentBrief.causalGraph || []).length,
         assumptionCount: (intentBrief.assumptions || []).length,
         unsupportedCount: (intentBrief.unsupported || []).length,
+        activationSummary: intentBrief.activationSummary ? { ...intentBrief.activationSummary } : null,
+        languageEvidence: intentBrief.languageEvidence ? {
+          schema: intentBrief.languageEvidence.schema || '',
+          spans: Array.isArray(intentBrief.languageEvidence.spans)
+            ? intentBrief.languageEvidence.spans.map((row) => ({ ...row }))
+            : [],
+          predicateFrames: Array.isArray(intentBrief.languageEvidence.predicateFrames)
+            ? intentBrief.languageEvidence.predicateFrames.map((row) => ({ ...row }))
+            : [],
+          summary: intentBrief.languageEvidence.summary ? { ...intentBrief.languageEvidence.summary } : null,
+        } : null,
+        groundedInterpretation: intentBrief.groundedInterpretation ? {
+          schema: intentBrief.groundedInterpretation.schema || '',
+          acceptedActivations: Array.isArray(intentBrief.groundedInterpretation.acceptedActivations)
+            ? intentBrief.groundedInterpretation.acceptedActivations.map((row) => ({
+              ...row,
+              hints: row.hints ? { ...row.hints } : {},
+            }))
+            : [],
+          evidenceBindings: Array.isArray(intentBrief.groundedInterpretation.evidenceBindings)
+            ? intentBrief.groundedInterpretation.evidenceBindings.map((row) => ({ ...row }))
+            : [],
+          unresolvedSpans: Array.isArray(intentBrief.groundedInterpretation.unresolvedSpans)
+            ? intentBrief.groundedInterpretation.unresolvedSpans.map((row) => ({ ...row }))
+            : [],
+          coverageGaps: Array.isArray(intentBrief.groundedInterpretation.coverageGaps)
+            ? intentBrief.groundedInterpretation.coverageGaps.map((row) => ({ ...row }))
+            : [],
+          summary: intentBrief.groundedInterpretation.summary
+            ? { ...intentBrief.groundedInterpretation.summary }
+            : null,
+        } : null,
         retrievedEvidence: (intentBrief.retrievedEvidence || []).map((row) => ({ ...row })),
         causalGraph: (intentBrief.causalGraph || []).map((row) => ({ ...row })),
         assumptions: (intentBrief.assumptions || []).map((row) => ({ ...row })),

@@ -22,18 +22,20 @@
     signalRule('network', 'network operator signal', /\b(network|queue|market|traffic|route|packet|server|parcel|zoning|agent|dispatch|supply|demand|crowd)\b/, ['network', 'queue', 'routing'], ['node-link-graph', 'parcel-grid', 'agent-token'], ['backlog', 'throughput']),
     signalRule('granular', 'granular operator signal', /\b(grain|sand|soil|sediment|erosion|terrain|slope|dust|powder|silo|avalanche|bead|sieve)\b/, ['granular', 'erosion', 'settling'], ['grain-pile', 'heightfield-strata', 'erosion-channel'], ['density', 'slope']),
     signalRule('instrument', 'instrument operator signal', /\b(detector|sensor|readout|instrument|probe|meter|scope|camera|phototube|calorimeter)\b/, ['measurement', 'readout', 'instrument'], ['probe-array', 'readout-strip', 'instrument-panel'], ['measurement', 'signal']),
-    signalRule('robotic', 'robotic operator signal', /\b(robot|robotic|gripper|servo|workcell|manipulator|warehouse|sort|pick|place|armature)\b/, ['robotic', 'contact', 'control'], ['robot-armature', 'force-cone', 'workcell-grid'], ['contactForce', 'taskQueue'])
+    signalRule('robotic', 'robotic operator signal', /\b(robot|robotic|gripper|servo|workcell|manipulator|armature)\b|\bpick\s+and\s+place\b/, ['robotic', 'contact', 'control'], ['robot-armature', 'force-cone', 'workcell-grid'], ['contactForce', 'taskQueue'])
   ]);
 
   function buildActivationCloud(options) {
     const languageEvidence = options && options.languageEvidence ? options.languageEvidence : {};
     const evidenceRows = Array.isArray(options && options.evidenceRows) ? options.evidenceRows : [];
+    const candidateRows = evidenceRows.filter((candidate) => !candidateIsNegated(candidate, languageEvidence));
     const maxActivations = Number.isFinite(options && options.maxActivations) ? options.maxActivations : 1500;
-    const spans = languageSpans(languageEvidence);
+    const spans = languageSpans(languageEvidence)
+      .filter((span) => !spanIsNegated(span, languageEvidence));
     const activations = [];
 
     spans.forEach((span) => {
-      evidenceRows.forEach((candidate) => {
+      candidateRows.forEach((candidate) => {
         const score = activationScore(span, candidate);
         if (score < 0.12) return;
         activations.push({
@@ -107,6 +109,74 @@
           source: 'language-evidence-visual-signal'
         };
       });
+  }
+
+  function spanIsNegated(span = {}, languageEvidence = {}) {
+    const text = normalize(span.text);
+    if (!text) return false;
+    if (containsNegation(text)) return true;
+    const prompt = normalize(languageEvidence.normalizedText || languageEvidence.rawText || '');
+    return phraseNegatedInText(text, prompt);
+  }
+
+  function candidateIsNegated(candidate = {}, languageEvidence = {}) {
+    const prompt = normalize(languageEvidence.normalizedText || languageEvidence.rawText || '');
+    if (!prompt) return false;
+    return candidatePhrases(candidate).some((phrase) => {
+      if (containsNegation(phrase)) return true;
+      return phraseNegatedInText(phrase, prompt);
+    });
+  }
+
+  function candidatePhrases(candidate = {}) {
+    return unique([
+      candidate.label,
+      candidate.id,
+      candidate.phrase,
+    ].flatMap(candidatePhraseParts))
+      .map(normalize)
+      .filter((phrase) => phrase && tokensFor(phrase).length >= 2);
+  }
+
+  function candidatePhraseParts(value = '') {
+    const raw = String(value || '').toLowerCase();
+    const rows = [raw];
+    if (raw.includes(':')) rows.push(raw.split(':').pop());
+    rows.push(raw
+      .replace(/^open[-_\s]*/, '')
+      .replace(/^surface[-_\s]*/, '')
+      .replace(/^artifact[-_\s]*/, '')
+      .replace(/^generated\s+(artifact|environment|field|operator)\s+/, '')
+      .replace(/^prompt[-\s]derived\s+\w+\s+primitive\s*:?\s*/, '')
+      .replace(/\b\d+\b/g, ' ')
+      .replace(/[-_]+/g, ' '));
+    return rows;
+  }
+
+  function phraseNegatedInText(phrase, text) {
+    const phraseTokens = tokensFor(phrase);
+    const tokens = tokensFor(text);
+    if (!phraseTokens.length || !tokens.length) return false;
+    for (let index = 0; index <= tokens.length - phraseTokens.length; index += 1) {
+      if (!phraseTokens.every((token, offset) => tokens[index + offset] === token)) continue;
+      for (let cursor = index - 1, depth = 0; cursor >= 0 && depth < 8; cursor -= 1, depth += 1) {
+        if (/^(and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)$/.test(tokens[cursor])) break;
+        if (/^(no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)$/.test(tokens[cursor])) return true;
+      }
+    }
+    return false;
+  }
+
+  function containsNegation(value = '') {
+    return /\b(no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\b/i.test(String(value || ''));
+  }
+
+  function tokensFor(value = '') {
+    return normalize(value).match(/[a-z0-9]+(?:['-][a-z0-9]+)*/g) || [];
+  }
+
+  function unique(rows = []) {
+    return Array.from(new Set((rows || []).filter(Boolean)));
   }
 
   function nativeSignalScore(span, rule, index) {

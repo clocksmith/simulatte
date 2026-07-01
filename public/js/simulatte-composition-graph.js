@@ -649,8 +649,16 @@
   }
 
   function hasRoboticsSignal(text = '') {
-    return /\b(robot|robotic|gripper|servo|workcell|manipulator|pick-place|pick and place|sorts parcels|parcel sorting|contact force|warehouse queue)\b/.test(text) &&
-      /\b(robot|robotic|gripper|servo|manipulator|workcell)\b/.test(text);
+    const positive = positiveLanguageText(text);
+    return /\b(robot|robotic|gripper|servo|workcell|manipulator|pick-place|pick and place|contact force)\b/.test(positive) &&
+      /\b(robot|robotic|gripper|servo|manipulator|workcell)\b/.test(positive);
+  }
+
+  function positiveLanguageText(value = '') {
+    const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
+    const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
+    const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
+    return String(value || '').toLowerCase().replace(negated, ' ').replace(/\s+/g, ' ').trim();
   }
 
   function hasChemistryLabSignal(text = '') {
