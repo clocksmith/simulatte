@@ -94,6 +94,7 @@
     const perSpanKind = new Map();
     activationCloud.forEach((activation) => {
       if (activation.score < 0.38 && activation.rank > 24) return;
+      if (isNegatedEvidenceText(activation.spanText)) return;
       const key = `${activation.spanId}:${activation.candidateKind}`;
       const count = perSpanKind.get(key) || 0;
       if (count >= 5) return;
@@ -114,6 +115,11 @@
       });
     });
     return rows;
+  }
+
+  function isNegatedEvidenceText(value = '') {
+    const text = String(value || '').toLowerCase();
+    return /\b(no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\b/.test(text);
   }
 
   function evidenceBindings(acceptedActivations, causalGraph, visualAffordances) {

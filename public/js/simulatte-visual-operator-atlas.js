@@ -215,7 +215,7 @@
     ),
     mapping(
       'visual.operator.robot-contact.v1',
-      ['robot', 'gripper', 'servo', 'contact', 'warehouse', 'sort', 'pick', 'place'],
+      ['robot', 'robotic', 'gripper', 'servo', 'workcell', 'manipulator', 'pick and place', 'contact force'],
       ['robot-armature', 'contact-cone', 'workcell-grid'],
       ['force-cone-field', 'task-queue-field'],
       ['brushed-metal', 'monitor-light'],
@@ -274,7 +274,7 @@
       'visual.operator.instrument-readout.v1': ['detector', 'sensor', 'readout', 'instrument', 'probe', 'meter'],
       'visual.operator.thermal-combustion.v1': ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'burn', 'explodes', 'explosion', 'soot'],
       'visual.operator.phase-transition.v1': ['phase', 'melt', 'freeze', 'crust', 'vaporize', 'boil'],
-      'visual.operator.robot-contact.v1': ['robot', 'gripper', 'servo', 'contact', 'warehouse', 'sort'],
+      'visual.operator.robot-contact.v1': ['robot', 'robotic', 'gripper', 'servo', 'workcell', 'manipulator', 'pick and place'],
     };
     return Object.freeze([Object.freeze(core[id] || matchTerms.slice(0, 4))]);
   }
