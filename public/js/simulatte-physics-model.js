@@ -1,4 +1,11 @@
 (function attachSimulattePhysicsModel(root, factory) {
+  function markMissingDependency(moduleName, dependencyName) {
+    const state = root.SimulatteBoot = root.SimulatteBoot || { failedScripts: [] };
+    state.missingDependencies = state.missingDependencies || [];
+    state.missingDependencies.push({ moduleName, dependencyName });
+    console.warn(`[simulatte.boot] ${moduleName} waiting for ${dependencyName}`);
+  }
+
   const catalog = typeof module === 'object' && module.exports
     ? require('./simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
@@ -38,6 +45,10 @@
   const intentForensics = typeof module === 'object' && module.exports
     ? require('./simulatte-intent-forensics.js')
     : root.SimulatteIntentForensics;
+  if (!catalog) {
+    markMissingDependency('SimulattePhysicsModel', 'SimulattePhysicsCatalog');
+    return;
+  }
   const api = factory(
     catalog,
     composer,
@@ -324,8 +335,8 @@
     if (/\b(qubit|quantum chip|phase readout|microwave resonator|superconducting circuit|ion trap|spin lattice|photonic chip|wavefunction|electron microscope)\b/.test(text)) return 'quantum-instrument';
     if (/\b(compost|greenhouse crop|greenhouse crops|anaerobic digester|organic waste|nutrient loop|crop rotation|fish farm|soil nutrients|algae bioreactor)\b/.test(text)) return 'agro-waste-loop';
     if (/\b(neutrino|muon|particle collider|calorimeter|phototube|detector slice|water tank detector|underground water tank|cherenkov|photon cone)\b/.test(text)) return 'particle-instrument';
-    if (/\b(protein folding|protein fold|bond constraint|energy minimization|molecular chain|amino acid|ligand)\b/.test(text)) return 'molecular-biology';
-    if (/\b(chemical clock|belousov|polymer|epoxy|crosslink|electroplat|nickel|crystal nucleation|supersaturated|catalyst|ammonia|electrolyzer|hydrogen|reactor|reaction dish|microfluidic|droplet|droplets|channel junction)\b/.test(text)) return 'chemistry-lab';
+    if (/\b(protein folding|protein fold|bond constraint|energy minimization|molecular chain|amino acid|ligand|fermentation|sourdough|gluten|dough matrix|yeast|microbial fermentation)\b/.test(text)) return 'molecular-biology';
+    if (/\b(chemical clock|belousov|polymer|epoxy|crosslink|electroplat|nickel|crystal nucleation|supersaturated|catalyst|ammonia|electrolyzer|hydrogen|reactor|reaction dish|microfluidic|droplet|droplets|channel junction|acidity gradient|acid gradient)\b/.test(text)) return 'chemistry-lab';
     if (/\b(museum preservation|archive preservation|oil paint aging|paint drying|pigment film|varnish aging|ceramic glaze|manuscript humidity|conservation lab)\b/.test(text)) return 'cultural-material';
     if (/\b(festival|stadium|restaurant|hotel|elevator|crowd|fan agents|guests|order queue|concourse|venue)\b/.test(text)) return 'venue-crowd';
     if (/\b(skate|skateboard|ski|surf|sailing|regatta|archery|fairground|mountain bike|rider|sports|trajectory transfer|centripetal|curved bowl|friction loss)\b/.test(text)) return 'sport-motion';
@@ -345,7 +356,7 @@
     if (/\b(mangrove|kelp|coral|plankton|ocean|river|delta|aquifer|storm sewer|dam sediment|bridge scour|groundwater|estuary|glacier|permafrost|lake|sea ice)\b/.test(text)) return 'watershed';
     if (/\b(qubit|quantum|electron microscope|photonic|metamaterial|laser cavity|telescope|lens|mirror|wavefront|light|optics)\b/.test(text)) return 'optics';
     if (/\b(acoustic|sound|violin|speaker|cochlea|echolocation|granular synthesis|music)\b/.test(text)) return 'acoustic';
-    if (/\b(bio|cell|neuron|organ|microbe|plant|root|phloem|chloroplast|gut|immune|bone|protein|enzyme)\b/.test(text)) return 'biology';
+    if (/\b(bio|cell|neuron|organ|microbe|plant|root|phloem|chloroplast|gut|immune|bone|protein|enzyme|fermentation|sourdough|gluten|dough|yeast)\b/.test(text)) return 'biology';
     if (/\b(fire|wildfire|flame|combustion|burn|smoke)\b/.test(text)) return 'fire';
     if (/\b(grain|powder|sand|dune|granular|sediment core|snowpack|avalanche)\b/.test(text)) return 'granular';
     if (/\b(magnet|ferrofluid|coil|plasma confinement|field)\b/.test(text)) return 'ferrofluid';

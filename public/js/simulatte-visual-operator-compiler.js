@@ -341,6 +341,10 @@
     const direct = directLanguageText(context);
     const id = String(row.id || '');
     const directHas = (pattern) => pattern.test(direct);
+    if (/control-feedback/.test(id)) {
+      const feedbackScene = directHas(/\b(control|controller|feedback|sensor|throttle|stabilize|regulate)\b/);
+      if (!feedbackScene) return { ok: false, reason: 'scene-gate:no-direct-feedback-evidence' };
+    }
     if (/robot-contact/.test(id)) {
       const robotScene = directHas(/\b(robot|robotic|gripper|servo|workcell|manipulator)\b|\bpick\s+and\s+place\b/);
       if (!robotScene) return { ok: false, reason: 'scene-gate:no-direct-robotics-evidence' };
@@ -374,7 +378,7 @@
           : { ok: false, reason: 'scene-gate:no-direct-biological-evidence' };
       }
       if (/acoustic-wave/.test(id)) {
-        return directHas(/\b(acoustic|sound|wave|resonance|standing|speaker|frequency|vibration)\b/)
+        return directHas(/\b(acoustic|sound|resonance|standing wave|standing waves|pressure wave|pressure waves|waveguide|speaker|frequency|vibration|pressure ring|levitator|brass tube)\b/)
           ? { ok: true, reason: '' }
           : { ok: false, reason: 'scene-gate:no-direct-acoustic-evidence' };
       }
@@ -403,7 +407,7 @@
         : { ok: false, reason: 'scene-gate:no-direct-electromagnetic-evidence' };
     }
     if (/acoustic-wave/.test(id)) {
-      return directHas(/\b(acoustic|sound|wave|resonance|standing|speaker|frequency|vibration)\b/)
+      return directHas(/\b(acoustic|sound|resonance|standing wave|standing waves|pressure wave|pressure waves|waveguide|speaker|frequency|vibration|pressure ring|levitator|brass tube)\b/)
         ? { ok: true, reason: '' }
         : { ok: false, reason: 'scene-gate:no-direct-acoustic-evidence' };
     }
@@ -532,9 +536,7 @@
 
   function activationVisualText(row = {}) {
     const directSignal = row.source === 'language-evidence-visual-signal' ||
-      /^language\.visual\./.test(String(row.candidateId || '')) ||
-      /^open[-.]/.test(String(row.candidateId || '')) ||
-      /prompt-derived|generated/.test(String(row.candidateLabel || '').toLowerCase());
+      /^language\.visual\./.test(String(row.candidateId || ''));
     return [
       row.spanKind,
       row.spanText,
@@ -542,8 +544,6 @@
       directSignal ? row.candidateKind : '',
       directSignal ? row.candidateLabel : '',
       ...(directSignal ? row.operatorHints || [] : []),
-      ...(directSignal ? row.visualHints || [] : []),
-      ...(directSignal ? row.primitiveHints || [] : []),
     ].filter(Boolean).join(' ');
   }
 

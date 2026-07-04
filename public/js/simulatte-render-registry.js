@@ -92,7 +92,7 @@
     ),
     sceneRule(
       'molecular-biology',
-      /\b(protein folding|protein fold|bond constraint|energy minimization|ribosome|enzyme|molecular chain|amino acid|ligand|molecule)\b/,
+      /\b(protein folding|protein fold|bond constraint|energy minimization|ribosome|enzyme|molecular chain|amino acid|ligand|molecule|fermentation|sourdough|gluten|dough matrix|yeast|microbial fermentation)\b/,
       'biology',
       'molecular',
       ['force-field', 'thermal'],
@@ -274,7 +274,7 @@
     if (hasRoboticsSignal(text)) return 'robotics-control';
     if (hasChemistryLabSignal(text)) return 'chemistry-lab';
     if (hasGranularCombustionSignal(text)) return 'granular';
-    if (/thin-film|thin film|soap|bubble|wire-loop|wire loop|surface_tension/.test(text)) {
+    if (hasThinFilmSignal(text)) {
       return 'thin-film';
     }
     if (isMaterialTraySignal(signal)) return 'material-tray';
@@ -331,7 +331,14 @@
       return false;
     }
     return /\b(grain|dust|powder|silo|aerosol|bead|sand|avalanche)\b/.test(text) &&
-      /\b(explode|explodes|explosion|combust|dust|powder|silo|avalanche|sieve)\b/.test(text);
+      /\b(explode|explodes|explosion|combust|burn|ignite|silo|avalanche|sieve|grain bed|bead stream)\b/.test(text);
+  }
+
+  function hasThinFilmSignal(text = '') {
+    const positive = positiveLanguageText(text);
+    return /\b(thin-film|thin film|soap|wire-loop|wire loop|surface_tension|iridescen)\b/.test(positive) ||
+      (/\b(air bubble|air bubbles|bubble|bubbles)\b/.test(positive) &&
+        /\b(soap|film|wire|loop|iridescen|surface tension|surface_tension)\b/.test(positive));
   }
 
   function sceneHintForText(value = '') {

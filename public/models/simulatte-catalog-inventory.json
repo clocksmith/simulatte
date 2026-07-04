@@ -22,7 +22,7 @@
     { "id": "universe-causal-relations", "path": "public/models/simulatte-universe/causal-relation-index-v1.json", "itemKey": "documents", "expectedCount": 190, "kind": "causal-index", "runtimeMirror": "runtime-causal-rules" },
     { "id": "visual-cards", "path": "public/models/simulatte-visual-cards/visual-card-index-v1.json", "itemKey": "documents", "expectedCount": 1177, "kind": "visual-index" },
     { "id": "causal-visual-affordances", "path": "public/models/simulatte-visual-cards/causal-visual-affordance-index-v1.json", "itemKey": "documents", "expectedCount": 190, "kind": "visual-causal-index", "runtimeMirror": "runtime-causal-visual-affordances" },
-    { "id": "visual-operator-atlas", "path": "public/models/simulatte-visual-cards/visual-operator-atlas-v1.json", "itemKey": "mappings", "expectedCount": 17, "kind": "visual-operator-index" }
+    { "id": "visual-operator-atlas", "path": "public/models/simulatte-visual-cards/visual-operator-atlas-v1.json", "itemKey": "mappings", "expectedCount": 20, "kind": "visual-operator-index" }
   ],
   "runtimeCatalogs": [
     { "id": "runtime-physical-primitives", "path": "public/js/simulatte-physics-catalog.js", "exportName": "PHYSICAL_PRIMITIVES", "expectedCount": 420, "kind": "compiler-runtime" },

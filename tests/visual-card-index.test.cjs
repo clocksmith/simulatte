@@ -54,8 +54,8 @@ test('visual card package exposes source-authored universe-representative cards'
   assert.equal(manifest.schema, 'simulatte.visualCardManifest.v1');
   assert.equal(manifest.indexes.visualCards.artifact, './visual-card-index-v1.json');
   assert.equal(manifest.indexes.visualOperatorAtlas.artifact, './visual-operator-atlas-v1.json');
-  assert.equal(manifest.indexes.visualOperatorAtlas.documentCount, 17);
-  assert.equal(manifest.coverage.visualOperatorMappings, 17);
+  assert.equal(manifest.indexes.visualOperatorAtlas.documentCount, 22);
+  assert.equal(manifest.coverage.visualOperatorMappings, 22);
   assert.ok(manifest.indexes.visualCards.documentCount >= 900);
   assert.ok(manifest.coverage.scenes >= 760);
   assert.ok(manifest.coverage.materials >= 760);

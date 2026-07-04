@@ -9,6 +9,7 @@
   root.SimulattePhysicsIR = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPhysicsIRApi(catalog = {}) {
   const PHYSICAL_IR_SCHEMA = 'simulatte.physicalIR.v1';
+  const TAU = Math.PI * 2;
   const {
     clamp = (value, min, max) => Math.max(min, Math.min(max, value)),
     clamp01 = (value) => Math.max(0, Math.min(1, value)),
@@ -155,12 +156,48 @@
   }
 
   function geometryForNode(node) {
-    const text = `${node.label || ''} ${node.canonicalId || ''}`.toLowerCase();
-    if (/turbine|rotor|wheel/.test(text)) return { kind: 'disk', radius: 0.12, anchor: [0.54, 0.52] };
-    if (/lava|river|water|wind|rain/.test(text)) return { kind: 'path', bounds: [0.08, 0.18, 0.84, 0.64] };
-    if (/wall|castle|cathedral/.test(text)) return { kind: 'barrier', bounds: [0.68, 0.28, 0.12, 0.46] };
-    if (/projectile|hammer/.test(text)) return { kind: 'pointBody', radius: 0.045, anchor: [0.22, 0.42] };
-    if (/network|queue|traffic|market|city/.test(text)) return { kind: 'graph', nodes: 6 };
+    const text = [
+      node.label,
+      node.canonicalId,
+      node.semanticType,
+      ...(node.domains || []),
+      ...(node.operatorHints || []),
+      ...(node.shapeHints || []),
+    ].filter(Boolean).join(' ').toLowerCase();
+    if (/\b(protein|molecular|bond|gluten|dough|strand|enzyme|ribosome)\b/.test(text)) {
+      return { kind: 'chain-network', nodes: 18, bounds: [0.18, 0.22, 0.64, 0.48] };
+    }
+    if (/\b(root|mangrove|coral|algae|mycelium|biofilm|colony|branch)\b/.test(text)) {
+      return { kind: 'branch-network', nodes: 22, bounds: [0.12, 0.2, 0.72, 0.56] };
+    }
+    if (/\b(robot|robotic|gripper|servo|workcell|manipulator|armature)\b/.test(text)) {
+      return { kind: 'articulated-arm', joints: 4, anchor: [0.62, 0.48] };
+    }
+    if (/\b(glacier|iceberg|fjord|sea ice|ice shelf|calving|ocean)\b/.test(text)) {
+      return { kind: 'ice-water-section', bounds: [0.08, 0.16, 0.84, 0.66] };
+    }
+    if (/\b(detector|calorimeter|sensor|readout|chip|resonator|instrument)\b/.test(text)) {
+      return { kind: 'instrument-plane', panels: 5, bounds: [0.14, 0.18, 0.72, 0.58] };
+    }
+    if (/\b(server|rack|data center|warehouse|queue|traffic|market|city|zoning)\b/.test(text)) {
+      return { kind: 'node-grid', nodes: 9, bounds: [0.12, 0.18, 0.76, 0.62] };
+    }
+    if (/\b(building|stairwell|concrete|wall|castle|cathedral)\b/.test(text)) {
+      return { kind: 'sectioned-structure', bounds: [0.58, 0.24, 0.24, 0.5] };
+    }
+    if (/\b(fire|flame|smoke|soot|plume|combustion)\b/.test(text)) {
+      return { kind: 'plume-volume', bounds: [0.18, 0.18, 0.58, 0.68] };
+    }
+    if (/\b(planet|moon|ring|rings|orbit|orbital|asteroid|space)\b/.test(text)) {
+      return { kind: 'orbital-system', bodies: 5, anchor: [0.5, 0.5] };
+    }
+    if (/\b(turbine|rotor|wheel)\b/.test(text)) return { kind: 'disk', radius: 0.12, anchor: [0.54, 0.52] };
+    if (/\b(lava|river|water|wind|rain|flow|fluid|channel)\b/.test(text)) {
+      return { kind: 'flow-channel', bounds: [0.08, 0.18, 0.84, 0.64] };
+    }
+    if (/\b(wall|castle|cathedral)\b/.test(text)) return { kind: 'barrier', bounds: [0.68, 0.28, 0.12, 0.46] };
+    if (/\b(projectile|hammer)\b/.test(text)) return { kind: 'point-body', radius: 0.045, anchor: [0.22, 0.42] };
+    if (/\b(network|queue|traffic|market|city)\b/.test(text)) return { kind: 'node-grid', nodes: 6 };
     return { kind: 'body', bounds: [0.32, 0.34, 0.24, 0.2] };
   }
 
@@ -214,6 +251,16 @@
       addField(fields, domain, 'damage', 'scalar', 'ratio', 0);
     }
     if (
+      hasTag(domain, 'constraint') ||
+      hasTag(domain, 'atomic') ||
+      hasTag(domain, 'protein') ||
+      hasTag(domain, 'robotic') ||
+      hasTag(domain, 'contact')
+    ) {
+      addField(fields, domain, 'stress', 'scalar', 'Pa', 0);
+      addField(fields, domain, 'damage', 'scalar', 'ratio', 0);
+    }
+    if (
       hasTag(domain, 'thermal') ||
       domain.kind === 'solid' ||
       domain.kind === 'rigidBody' ||
@@ -233,11 +280,21 @@
       addField(fields, domain, 'phase', 'scalar', 'rad', 0);
       addField(fields, domain, 'amplitude', 'scalar', 'ratio', clamp01(Number(params.waveAmplitude || 0.44)));
     }
-    if (hasTag(domain, 'growth')) {
+    if (
+      hasTag(domain, 'growth') ||
+      hasTag(domain, 'biological') ||
+      hasTag(domain, 'protein') ||
+      hasOperatorHint(domain, 'growth_decay')
+    ) {
       addField(fields, domain, 'density', 'scalar', 'ratio', 0.28);
       addField(fields, domain, 'nutrient', 'scalar', 'ratio', 0.62);
     }
-    if (hasTag(domain, 'reaction')) {
+    if (
+      hasTag(domain, 'reaction') ||
+      hasTag(domain, 'chemical') ||
+      hasTag(domain, 'fermentation') ||
+      hasOperatorHint(domain, 'reaction_diffusion')
+    ) {
       addField(fields, domain, 'reactionProgress', 'scalar', 'ratio', 0.08);
     }
     fields.forEach((field) => {
@@ -289,18 +346,47 @@
         params: { frequency: clamp(Number(params.soundFrequency || 0.7), 0.05, 4) },
       });
     }
-    if (hasTag(domain, 'growth')) {
+    if (
+      hasTag(domain, 'growth') ||
+      hasTag(domain, 'biological') ||
+      hasTag(domain, 'protein') ||
+      hasOperatorHint(domain, 'growth_decay')
+    ) {
       addOperator(operators, 'growth_decay', domain, {
         reads: [`density:${entity.id}`, `nutrient:${entity.id}`],
         writes: [`density:${entity.id}`, `nutrient:${entity.id}`],
         params: { rate: clamp01(Number(params.populationGrowth || 0.32)) },
       });
     }
-    if (hasTag(domain, 'reaction')) {
+    if (
+      hasTag(domain, 'reaction') ||
+      hasTag(domain, 'chemical') ||
+      hasTag(domain, 'fermentation') ||
+      hasOperatorHint(domain, 'reaction_diffusion')
+    ) {
       addOperator(operators, 'reaction_diffusion', domain, {
         reads: [`reactionProgress:${entity.id}`],
         writes: [`reactionProgress:${entity.id}`],
         params: { rate: clamp01(Number(params.catalyst || params.combustibility || 0.46)) },
+      });
+    }
+    if (
+      hasTag(domain, 'constraint') ||
+      hasTag(domain, 'atomic') ||
+      hasTag(domain, 'protein') ||
+      /\b(bond|constraint)\b/i.test(entity.label || entity.canonicalId || '')
+    ) {
+      addOperator(operators, 'fracture_threshold', domain, {
+        reads: [`stress:${entity.id}`, `damage:${entity.id}`],
+        writes: [`damage:${entity.id}`],
+        params: { threshold: clamp(Number(params.bondStrength || 0.58), 0.05, 1.4) },
+      });
+    }
+    if (/\b(robot|robotic|gripper|servo|workcell|manipulator|twist)\b/i.test(entity.label || entity.canonicalId || '')) {
+      addOperator(operators, 'rotational_torque', domain, {
+        reads: [`angle:${entity.id}`, `angularVelocity:${entity.id}`, `torque:${entity.id}`],
+        writes: [`angularVelocity:${entity.id}`, `angle:${entity.id}`, `torque:${entity.id}`],
+        params: { coupling: clamp(Number(params.fieldStrength || 0.62), 0.05, 2) },
       });
     }
     if (node && node.semanticType === 'observable' && !node.operatorHints.length) {
@@ -589,7 +675,7 @@
     if (/water|fluid/.test(text)) return 'water';
     if (/metal|mechanic|rigid/.test(text)) return 'metal';
     if (/rock|solid|fracture/.test(text)) return 'rock';
-    if (/bio|growth/.test(text)) return 'biomass';
+    if (/bio|biological|growth|protein/.test(text)) return 'biomass';
     return '';
   }
 
@@ -609,7 +695,7 @@
   function boundsForField(name) {
     if (name === 'temperature') return [0, 2];
     if (name === 'angularVelocity') return [-24, 24];
-    if (name === 'angle') return [-Infinity, Infinity];
+    if (name === 'angle') return [0, TAU];
     if (name === 'flowVelocity' || name === 'velocity' || name === 'force') return [-4, 4];
     if (['damage', 'liquidFraction', 'density', 'nutrient', 'reactionProgress', 'backlog', 'throughput'].includes(name)) {
       return [0, 1];
@@ -628,9 +714,13 @@
     return (domain.tags || []).includes(value) || domain.materialId === value;
   }
 
+  function hasOperatorHint(domain, value) {
+    return (domain.operatorHints || []).includes(value) || (domain.tags || []).includes(value);
+  }
+
   function isRotationalDomain(domain) {
     const text = `${domain.entityId || ''} ${domain.materialId || ''} ${(domain.tags || []).join(' ')}`.toLowerCase();
-    return hasTag(domain, 'rotationalMechanics') || /\bturbine|rotor|wheel|rotation|shaft|blade\b/.test(text);
+    return hasTag(domain, 'rotationalMechanics') || /\b(turbine|rotor|wheel|rotation|shaft|blade)\b/.test(text);
   }
 
   function hasFieldTarget(domain, name) {

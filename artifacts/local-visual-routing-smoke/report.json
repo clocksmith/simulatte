@@ -1,0 +1,1815 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-04T02:17:23.842Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:51978/index.html?auditNoInitial=1",
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 5,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 5,
+    "uniqueCanvasHashes": 5,
+    "uniqueScreenshotHashes": 5,
+    "sceneKinds": [
+      "acoustic",
+      "fire",
+      "particle-instrument",
+      "structural-mechanics",
+      "thin-film"
+    ],
+    "visualIRSceneKinds": [
+      "acoustic",
+      "fire",
+      "particle-instrument",
+      "structural-mechanics",
+      "thin-film"
+    ],
+    "visualIRCameras": [
+      "dynamic-motion-depth",
+      "instrumented-lab-depth",
+      "network-map-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 114,
+      "mappingIds": [
+        "visual.operator.acoustic-wave.v1",
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.granular-erosion.v1",
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.instrument-readout.v1",
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.thermal-combustion.v1",
+        "visual.operator.thin-film-interference.v1"
+      ],
+      "uniformSlots": [
+        "acoustic",
+        "combustion",
+        "constraint",
+        "density",
+        "emission",
+        "fluid",
+        "granular",
+        "instrument",
+        "measurement",
+        "motion",
+        "optical",
+        "phase",
+        "signal",
+        "stress",
+        "surface",
+        "thermal"
+      ],
+      "wgslOperators": [
+        "atomAcousticRings",
+        "atomCombustionFront",
+        "atomConstraintPads",
+        "atomFeedbackArcs",
+        "atomFluidRibbons",
+        "atomGranularStrata",
+        "atomInstrumentReadout",
+        "atomMeasurementBands",
+        "atomOpticalCaustics",
+        "atomPhaseBoundary",
+        "atomQuantumFringes",
+        "atomSedimentMotion",
+        "atomSootColumn",
+        "atomStandingNodes",
+        "atomStressCracks",
+        "atomThermalPlume",
+        "atomVectorFlow"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 98.4,
+      "passCount": 5,
+      "failCount": 0,
+      "expectedSignals": [
+        "acoustic",
+        "fluid",
+        "granular",
+        "instrument",
+        "optical",
+        "stress",
+        "thermal"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.974
+    },
+    "intentBriefs": {
+      "totalEvidence": 382,
+      "totalCausalEdges": 5,
+      "totalAffordances": 8,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 382,
+      "totalCausalEdges": 5,
+      "totalCausalAffordances": 8,
+      "totalAssumptions": 44,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 99,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 5,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.974,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "soap thin film with air bubbles in wire loops and iridescent interference",
+      "screenshot": "01-custom-soap-thin-film-with-air-bubbles-in-wire-loops-and-iridescent-interference.png",
+      "screenshotHash": "eedc19eb6aabe6d167eac52dc7c52b103a1ccf5ccd5c82b4bbe3bf7f59a5aae6",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "thin-film",
+      "physicsCanvasSceneId": "34",
+      "physicsCanvasRenderCount": "42",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 174.541,
+      "lumaStd": 22.768,
+      "coloredRatio": 0.9117,
+      "canvasHash": "7d8af2a9",
+      "specId": "soap-thin-film-air-bubbles-in-mr5qexqm",
+      "templateId": "custom-world",
+      "rendererSceneKind": "thin-film",
+      "visualIRSceneKind": "thin-film",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 9,
+      "visualIRFieldCount": 3,
+      "visualIRProcessCount": 10,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 14,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.thin-film-interference.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "optical",
+        "phase",
+        "motion",
+        "emission",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "optical": 0.92,
+        "phase": 1,
+        "motion": 0.68,
+        "emission": 0.76,
+        "surface": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomOpticalCaustics",
+        "atomQuantumFringes"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "noun phrase air bubbles",
+          "slots": []
+        },
+        {
+          "id": "activation.0020",
+          "kind": "catalog-candidate",
+          "text": "noun phrase soap thin film",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "catalog-candidate",
+          "text": "clause iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0032",
+          "kind": "catalog-candidate",
+          "text": "noun phrase wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0035",
+          "kind": "catalog-candidate",
+          "text": "noun phrase iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "visual-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0013",
+          "kind": "visual-candidate",
+          "text": "clause soap thin film with air bubbles in wire loops language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0007",
+          "kind": "visual-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference language.visual.optical.span 001 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0043",
+          "kind": "visual-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference language.visual.fluid.span 008 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0044",
+          "kind": "visual-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference language.visual.optical.span 008 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0018",
+          "kind": "visual-candidate",
+          "text": "clause iridescent interference language.visual.optical.span 003 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0028",
+          "kind": "visual-candidate",
+          "text": "noun phrase air bubbles language.visual.fluid.span 005 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0037",
+          "kind": "visual-candidate",
+          "text": "noun phrase iridescent interference language.visual.optical.span 007 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0038",
+          "kind": "catalog-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "catalog-candidate",
+          "text": "clause soap thin film with air bubbles in wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "clause soap thin film with air bubbles in wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase soap thin film",
+          "slots": []
+        },
+        {
+          "id": "activation.0029",
+          "kind": "catalog-candidate",
+          "text": "noun phrase wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0033",
+          "kind": "catalog-candidate",
+          "text": "noun phrase iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0040",
+          "kind": "catalog-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 402707,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-soap-thin-film-with-air-bubbles-in-wire-loops-and-iridescent-interference.canvas.png",
+      "canvasScreenshotLater": "01-custom-soap-thin-film-with-air-bubbles-in-wire-loops-and-iridescent-interference.canvas-late.png",
+      "canvasScreenshotHash": "c7f0caa8e29e82aead38edc7d8786e8297d3295ebc8358e7f7df24ea70a76923",
+      "canvasScreenshotLaterHash": "739614cf1c838faf7a7c874092f0a536a0454543ef1e1483b3e8727b1eb5ed73",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 22.768,
+      "canvasScreenshotColoredRatio": 0.9117,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.285,
+      "canvasFrameLumaStdDelta": 0.137,
+      "canvasFrameColoredRatioDelta": 0.0066,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 96,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 0.41,
+        "color": 1,
+        "expectedSignals": [
+          "optical"
+        ],
+        "matchedSignals": [
+          {
+            "id": "optical",
+            "strength": 1,
+            "slotHits": [
+              "optical",
+              "phase",
+              "emission",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.thin-film-interference.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt soap thin film with air bubbles in wire loops and iridescent interference language.visual.optical.span 001 visual candidate optical operator signal optical ray phase",
+              "optical",
+              "modifier with air bubbles in wire loops and iridescent interference language.visual.optical.span 008 visual candidate optical operator signal optical ray phase"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 2,
+      "kind": "custom",
+      "prompt": "acoustic levitator dust brass tube standing pressure waves",
+      "screenshot": "02-custom-acoustic-levitator-dust-brass-tube-standing-pressure-waves.png",
+      "screenshotHash": "154d30e5c7a47e9e1c437f4095b6b2ea96f6dfeded0d9a512fd603fd3df497bb",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "acoustic",
+      "physicsCanvasSceneId": "6",
+      "physicsCanvasRenderCount": "165",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 102.004,
+      "lumaStd": 54.257,
+      "coloredRatio": 0.7586,
+      "canvasHash": "3d5a2511",
+      "specId": "acoustic-levitator-dust-brass-tube-standing-mr5qezxr",
+      "templateId": "custom-world",
+      "rendererSceneKind": "acoustic",
+      "visualIRSceneKind": "acoustic",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 22,
+      "visualIRMaterialCount": 14,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 17,
+      "visualIROperatorCount": 10,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 1,
+      "visualIRGraphicsAtomCount": 26,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.acoustic-wave.v1",
+        "visual.operator.granular-erosion.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "acoustic",
+        "granular",
+        "instrument",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "acoustic": 1,
+        "granular": 0.729,
+        "instrument": 0.76,
+        "motion": 0.92,
+        "density": 0.84,
+        "surface": 0.612
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomAcousticRings",
+        "atomStandingNodes",
+        "atomGranularStrata",
+        "atomSedimentMotion"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0064",
+          "kind": "catalog-candidate",
+          "text": "noun phrase standing pressure waves",
+          "slots": []
+        },
+        {
+          "id": "activation.0024",
+          "kind": "catalog-candidate",
+          "text": "noun phrase acoustic levitator dust brass",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0009",
+          "kind": "visual-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0020",
+          "kind": "visual-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0055",
+          "kind": "catalog-candidate",
+          "text": "noun phrase tube standing pressure waves",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dust brass tube standing",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "noun phrase brass tube standing pressure",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "visual-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves language.visual.acoustic.span 001 visual candidate acoustic operator signal wave pressure resonance",
+          "slots": [
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0021",
+          "kind": "visual-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves language.visual.acoustic.span 002 visual candidate acoustic operator signal wave pressure resonance",
+          "slots": [
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0028",
+          "kind": "visual-candidate",
+          "text": "noun phrase acoustic levitator dust brass language.visual.acoustic.span 003 visual candidate acoustic operator signal wave pressure resonance",
+          "slots": [
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0037",
+          "kind": "visual-candidate",
+          "text": "noun phrase levitator dust brass tube language.visual.granular.span 004 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0045",
+          "kind": "visual-candidate",
+          "text": "noun phrase dust brass tube standing language.visual.granular.span 005 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0054",
+          "kind": "visual-candidate",
+          "text": "noun phrase brass tube standing pressure language.visual.fluid.span 006 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0063",
+          "kind": "visual-candidate",
+          "text": "noun phrase tube standing pressure waves language.visual.fluid.span 007 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0031",
+          "kind": "catalog-candidate",
+          "text": "noun phrase levitator dust brass tube",
+          "slots": []
+        },
+        {
+          "id": "activation.0070",
+          "kind": "visual-candidate",
+          "text": "noun phrase standing pressure waves language.visual.fluid.span 008 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0011",
+          "kind": "visual-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves language.visual.granular.span 001 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "acoustic",
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0022",
+          "kind": "visual-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves language.visual.granular.span 002 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "acoustic",
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0029",
+          "kind": "visual-candidate",
+          "text": "noun phrase acoustic levitator dust brass language.visual.granular.span 003 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "acoustic",
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0046",
+          "kind": "catalog-candidate",
+          "text": "noun phrase brass tube standing pressure",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 1,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 1,
+      "previewLength": 515469,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "02-custom-acoustic-levitator-dust-brass-tube-standing-pressure-waves.canvas.png",
+      "canvasScreenshotLater": "02-custom-acoustic-levitator-dust-brass-tube-standing-pressure-waves.canvas-late.png",
+      "canvasScreenshotHash": "777410b10e5df08ad3e342ecf3b9155d9b5bb0893fa5ca51930c5b89bf0874d1",
+      "canvasScreenshotLaterHash": "7c319a4be6a3dc87896ae9a348bfbf8093d8a6f5498fa06abb6bc13531d43188",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 54.257,
+      "canvasScreenshotColoredRatio": 0.7586,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.763,
+      "canvasFrameLumaStdDelta": 0.108,
+      "canvasFrameColoredRatioDelta": 0.014,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 3,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "acoustic",
+          "granular"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "density",
+              "motion"
+            ],
+            "mappingHits": [],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+              "fluid",
+              "clause acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection"
+            ]
+          },
+          {
+            "id": "acoustic",
+            "strength": 1,
+            "slotHits": [
+              "acoustic",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.acoustic-wave.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "noun phrase acoustic levitator dust brass",
+              "acoustic",
+              "prompt acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection"
+            ]
+          },
+          {
+            "id": "granular",
+            "strength": 1,
+            "slotHits": [
+              "granular",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.granular-erosion.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "noun phrase levitator dust brass tube language.visual.granular.span 004 visual candidate granular operator signal granular erosion settling",
+              "granular",
+              "noun phrase dust brass tube standing language.visual.granular.span 005 visual candidate granular operator signal granular erosion settling"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 3,
+      "kind": "custom",
+      "prompt": "bridge resonance under wind vortex shedding with cable tension",
+      "screenshot": "03-custom-bridge-resonance-under-wind-vortex-shedding-with-cable-tension.png",
+      "screenshotHash": "ce2c363248ed49c29520558235b64ff1c5a08bd47e81f93f0a6d0d41b48002e1",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "structural-mechanics",
+      "physicsCanvasSceneId": "24",
+      "physicsCanvasRenderCount": "271",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 70.528,
+      "lumaStd": 60.836,
+      "coloredRatio": 0.6135,
+      "canvasHash": "51587d3f",
+      "specId": "bridge-resonance-under-wind-vortex-shedding-mr5qf23d",
+      "templateId": "custom-world",
+      "rendererSceneKind": "structural-mechanics",
+      "visualIRSceneKind": "structural-mechanics",
+      "visualIRCamera": "dynamic-motion-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 17,
+      "visualIRFieldCount": 6,
+      "visualIRProcessCount": 19,
+      "visualIROperatorCount": 10,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 3,
+      "visualIRGraphicsAtomCount": 26,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "stress",
+        "motion",
+        "density",
+        "constraint",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.99,
+        "stress": 1,
+        "motion": 0.911,
+        "density": 0.832,
+        "constraint": 0.92,
+        "surface": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomStressCracks",
+        "atomConstraintPads",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0036",
+          "kind": "catalog-candidate",
+          "text": "noun phrase wind vortex shedding",
+          "slots": []
+        },
+        {
+          "id": "activation.0030",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0054",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "visual-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0026",
+          "kind": "visual-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0058",
+          "kind": "catalog-candidate",
+          "text": "modifier under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0070",
+          "kind": "visual-candidate",
+          "text": "modifier under wind vortex shedding with cable tension language.visual.fluid.span 006 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0048",
+          "kind": "visual-candidate",
+          "text": "noun phrase wind vortex shedding language.visual.fluid.span 004 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0028",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0031",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0061",
+          "kind": "catalog-candidate",
+          "text": "modifier under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0063",
+          "kind": "catalog-candidate",
+          "text": "modifier under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0015",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0005",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0018",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 77,
+      "intentBriefCausalEdgeCount": 1,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 77,
+      "physicalReceiptCausalEdgeCount": 1,
+      "physicalReceiptCausalAffordanceCount": 3,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 3,
+      "previewLength": 466571,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "03-custom-bridge-resonance-under-wind-vortex-shedding-with-cable-tension.canvas.png",
+      "canvasScreenshotLater": "03-custom-bridge-resonance-under-wind-vortex-shedding-with-cable-tension.canvas-late.png",
+      "canvasScreenshotHash": "cb7eecd4c30d5ab3fea06469fcc84c1b8722f3d8c48494ff8341b5a78a4bed3f",
+      "canvasScreenshotLaterHash": "99b171607398ef65d67e7675ff9e8070acf7244be574ac692c6a3e8bf0505768",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 60.836,
+      "canvasScreenshotColoredRatio": 0.6135,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.634,
+      "canvasFrameLumaStdDelta": 0.036,
+      "canvasFrameColoredRatioDelta": 0.0385,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "stress"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": [
+              "prompt bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+              "fluid",
+              "clause bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection"
+            ]
+          },
+          {
+            "id": "stress",
+            "strength": 1,
+            "slotHits": [
+              "stress",
+              "constraint",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.stress-fracture.v1"
+            ],
+            "wgslHits": [
+              "atomStressCracks"
+            ],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 4,
+      "kind": "custom",
+      "prompt": "fire burning through a warehouse stairwell with smoke and hot concrete",
+      "screenshot": "04-custom-fire-burning-through-a-warehouse-stairwell-with-smoke-and-hot-concrete.png",
+      "screenshotHash": "0c707a63ce84d4abd71666ef2a9c74db1436cd72bfed6c1483ac7adfe5d117fb",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "fire",
+      "physicsCanvasSceneId": "33",
+      "physicsCanvasRenderCount": "381",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 36.149,
+      "lumaStd": 36.551,
+      "coloredRatio": 0.4525,
+      "canvasHash": "eadfafb0",
+      "specId": "fire-burning-through-warehouse-stairwell-smoke-mr5qf41r",
+      "templateId": "custom-world",
+      "rendererSceneKind": "fire",
+      "visualIRSceneKind": "fire",
+      "visualIRCamera": "network-map-depth",
+      "visualIREntityCount": 16,
+      "visualIRMaterialCount": 23,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 17,
+      "visualIROperatorCount": 10,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 4,
+      "visualIRGraphicsAtomCount": 25,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.thermal-combustion.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "thermal",
+        "combustion",
+        "phase",
+        "motion",
+        "density",
+        "emission"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "thermal": 1,
+        "combustion": 1,
+        "phase": 0.92,
+        "motion": 0.76,
+        "density": 0.76,
+        "emission": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomThermalPlume",
+        "atomPhaseBoundary",
+        "atomCombustionFront",
+        "atomSootColumn"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0032",
+          "kind": "catalog-candidate",
+          "text": "noun phrase fire burning",
+          "slots": []
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "noun phrase smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0025",
+          "kind": "catalog-candidate",
+          "text": "clause hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0045",
+          "kind": "catalog-candidate",
+          "text": "noun phrase warehouse stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0061",
+          "kind": "catalog-candidate",
+          "text": "noun phrase hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "visual-candidate",
+          "text": "prompt fire burning through a warehouse stairwell with smoke and hot concrete language.visual.thermal.span 001 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "visual-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke language.visual.thermal.span 002 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0078",
+          "kind": "visual-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete language.visual.thermal.span 008 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt fire burning through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0043",
+          "kind": "catalog-candidate",
+          "text": "noun phrase warehouse stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0031",
+          "kind": "visual-candidate",
+          "text": "clause hot concrete language.visual.thermal.span 003 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0040",
+          "kind": "visual-candidate",
+          "text": "noun phrase fire burning language.visual.thermal.span 004 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0067",
+          "kind": "visual-candidate",
+          "text": "noun phrase hot concrete language.visual.thermal.span 007 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0057",
+          "kind": "visual-candidate",
+          "text": "noun phrase smoke language.visual.thermal.span 006 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0068",
+          "kind": "catalog-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0069",
+          "kind": "catalog-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt fire burning through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0070",
+          "kind": "catalog-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0022",
+          "kind": "catalog-candidate",
+          "text": "clause hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "noun phrase warehouse stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "noun phrase smoke",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 77,
+      "intentBriefCausalEdgeCount": 4,
+      "intentBriefAssumptionCount": 9,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 77,
+      "physicalReceiptCausalEdgeCount": 4,
+      "physicalReceiptCausalAffordanceCount": 4,
+      "physicalReceiptAssumptionCount": 9,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 4,
+      "previewLength": 506582,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "04-custom-fire-burning-through-a-warehouse-stairwell-with-smoke-and-hot-concrete.canvas.png",
+      "canvasScreenshotLater": "04-custom-fire-burning-through-a-warehouse-stairwell-with-smoke-and-hot-concrete.canvas-late.png",
+      "canvasScreenshotHash": "693394ee04a319537c092d4e40d6d0168898cf089b1ed2c9fb7f6dc92becc09d",
+      "canvasScreenshotLaterHash": "f0a5420cde71c5c3be163bf23513561cd61fc5bae6e55cc4ec529289e9c9fe02",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 36.551,
+      "canvasScreenshotColoredRatio": 0.4525,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.005,
+      "canvasFrameLumaStdDelta": 0.098,
+      "canvasFrameColoredRatioDelta": 0.0093,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 96,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 0.87,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.87,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 0,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 0.793,
+        "color": 1,
+        "expectedSignals": [
+          "thermal"
+        ],
+        "matchedSignals": [
+          {
+            "id": "thermal",
+            "strength": 1,
+            "slotHits": [
+              "thermal",
+              "combustion",
+              "phase",
+              "emission"
+            ],
+            "mappingHits": [
+              "visual.operator.heat-transfer.v1",
+              "visual.operator.thermal-combustion.v1"
+            ],
+            "wgslHits": [
+              "atomThermalPlume"
+            ],
+            "languageHits": [
+              "prompt fire burning through a warehouse stairwell with smoke and hot concrete language.visual.thermal.span 001 visual candidate thermal operator signal heat thermal phase",
+              "thermal",
+              "clause fire burning through a warehouse stairwell with smoke language.visual.thermal.span 002 visual candidate thermal operator signal heat thermal phase"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 5,
+      "kind": "custom",
+      "prompt": "particle collider muon tracks through detector slice with calorimeter pulses",
+      "screenshot": "05-custom-particle-collider-muon-tracks-through-detector-slice-with-calorimeter-pulses.png",
+      "screenshotHash": "299a9f8846aec8ec61bfdb07ea31dca59863a2ed4d13733fc14bc89c3f8753a7",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "particle-instrument",
+      "physicsCanvasSceneId": "15",
+      "physicsCanvasRenderCount": "486",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 79.76,
+      "lumaStd": 66.727,
+      "coloredRatio": 0.3921,
+      "canvasHash": "dcb8d53f",
+      "specId": "particle-collider-muon-tracks-through-detector-mr5qf5yo",
+      "templateId": "custom-world",
+      "rendererSceneKind": "particle-instrument",
+      "visualIRSceneKind": "particle-instrument",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 12,
+      "visualIRMaterialCount": 7,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 9,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 23,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "instrument",
+        "measurement",
+        "motion",
+        "emission",
+        "signal"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "instrument": 1,
+        "measurement": 0.92,
+        "motion": 0.68,
+        "emission": 0.76,
+        "signal": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomInstrumentReadout",
+        "atomQuantumFringes",
+        "atomFeedbackArcs",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0043",
+          "kind": "catalog-candidate",
+          "text": "noun phrase calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "visual-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 001 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0018",
+          "kind": "visual-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 002 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0020",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "catalog-candidate",
+          "text": "noun phrase collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0055",
+          "kind": "visual-candidate",
+          "text": "modifier through detector slice with calorimeter pulses language.visual.instrument.span 007 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0040",
+          "kind": "catalog-candidate",
+          "text": "noun phrase calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0039",
+          "kind": "visual-candidate",
+          "text": "noun phrase detector slice language.visual.instrument.span 005 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0046",
+          "kind": "visual-candidate",
+          "text": "noun phrase calorimeter pulses language.visual.instrument.span 006 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0034",
+          "kind": "catalog-candidate",
+          "text": "noun phrase detector slice",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "modifier through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0028",
+          "kind": "catalog-candidate",
+          "text": "noun phrase collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0047",
+          "kind": "catalog-candidate",
+          "text": "modifier through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "modifier through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 5,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 5,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 393358,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "05-custom-particle-collider-muon-tracks-through-detector-slice-with-calorimeter-pulses.canvas.png",
+      "canvasScreenshotLater": "05-custom-particle-collider-muon-tracks-through-detector-slice-with-calorimeter-pulses.canvas-late.png",
+      "canvasScreenshotHash": "5ad5d7d901d77417c2a96a53a4709239eb95721960c74ee7f5bb30e71e3eaf91",
+      "canvasScreenshotLaterHash": "ddf6bcca96d00271d972b4e1ef4ddd0a5fd0cf4f6cecdd0d6029de22e9a1a344",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 66.727,
+      "canvasScreenshotColoredRatio": 0.3921,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.477,
+      "canvasFrameLumaStdDelta": 0.554,
+      "canvasFrameColoredRatioDelta": 0.0032,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 0.923,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "instrument"
+        ],
+        "matchedSignals": [
+          {
+            "id": "instrument",
+            "strength": 1,
+            "slotHits": [
+              "instrument",
+              "measurement",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.instrument-readout.v1",
+              "visual.operator.particle-track-detector.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 001 visual candidate instrument operator signal measurement readout instrument",
+              "instrument",
+              "clause particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 002 visual candidate instrument operator signal measurement readout instrument"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

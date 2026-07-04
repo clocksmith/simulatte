@@ -1,0 +1,28 @@
+{
+  "schema": "simulatte.trainSession.v1",
+  "appUrl": "http://127.0.0.1:4174/?training=1&trainingServer=http%3A%2F%2F127.0.0.1%3A4766",
+  "reviewUrl": "http://127.0.0.1:4766",
+  "reviewDir": "/Users/xyz/deco/simulatte/artifacts/simulatte-human-reviews",
+  "reviewLog": "/Users/xyz/deco/simulatte/artifacts/simulatte-human-reviews/reviews.jsonl",
+  "web": {
+    "name": "web",
+    "port": 4174,
+    "existing": false,
+    "pid": 5759,
+    "startedInRun": true,
+    "startedByTrain": true
+  },
+  "review": {
+    "name": "review",
+    "port": 4766,
+    "existing": false,
+    "pid": 5758,
+    "startedInRun": true,
+    "startedByTrain": true
+  },
+  "logs": {
+    "web": "/Users/xyz/deco/simulatte/artifacts/simulatte-train/web.log",
+    "review": "/Users/xyz/deco/simulatte/artifacts/simulatte-train/review.log"
+  },
+  "updatedAt": "2026-07-04T00:22:45.022Z"
+}

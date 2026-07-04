@@ -1,10 +1,21 @@
 (function attachSimulatteCompositionGraph(root, factory) {
+  function markMissingDependency(moduleName, dependencyName) {
+    const state = root.SimulatteBoot = root.SimulatteBoot || { failedScripts: [] };
+    state.missingDependencies = state.missingDependencies || [];
+    state.missingDependencies.push({ moduleName, dependencyName });
+    console.warn(`[simulatte.boot] ${moduleName} waiting for ${dependencyName}`);
+  }
+
   const catalog = typeof module === 'object' && module.exports
     ? require('./simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
   const visualOperatorCompiler = typeof module === 'object' && module.exports
     ? require('./simulatte-visual-operator-compiler.js')
     : root.SimulatteVisualOperatorCompiler;
+  if (!catalog) {
+    markMissingDependency('SimulatteCompositionGraph', 'SimulattePhysicsCatalog');
+    return;
+  }
   const api = factory(catalog, visualOperatorCompiler);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
@@ -578,6 +589,13 @@
     if (sceneHint && sceneHint !== 'literal-composite') return sceneHint;
     const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph, spec);
     if (signalScene && signalScene !== 'literal-composite') return signalScene;
+    const fallbackScene = sceneKindForComposition(
+      graph,
+      graphObjects,
+      fieldsForComposition(graph, spec),
+      spec
+    );
+    if (fallbackScene && fallbackScene !== 'generic') return fallbackScene;
     return signalScene || sceneHint || 'generic';
   }
 
@@ -613,7 +631,7 @@
     if (hasRoboticsSignal(text)) return 'robotics-control';
     if (hasChemistryLabSignal(text)) return 'chemistry-lab';
     if (hasGranularCombustionSignal(text)) return 'granular';
-    if (/thin-film|thin film|soap|surface_tension|wire-loop|wire loop|bubble/.test(text)) return 'thin-film';
+    if (hasThinFilmSignal(text)) return 'thin-film';
     if (/tray|raw material|heat diffusion sample/.test(text) && /water|air|rock|wood|metal|glass|steel/.test(text)) {
       return 'material-tray';
     }
@@ -672,7 +690,14 @@
       return false;
     }
     return /\b(grain|dust|powder|silo|aerosol|bead|sand|avalanche)\b/.test(text) &&
-      /\b(explode|explodes|explosion|combust|dust|powder|silo|avalanche|sieve)\b/.test(text);
+      /\b(explode|explodes|explosion|combust|burn|ignite|silo|avalanche|sieve|grain bed|bead stream)\b/.test(text);
+  }
+
+  function hasThinFilmSignal(text = '') {
+    const positive = positiveLanguageText(text);
+    return /\b(thin-film|thin film|soap|wire-loop|wire loop|surface_tension|iridescen)\b/.test(positive) ||
+      (/\b(air bubble|air bubbles|bubble|bubbles)\b/.test(positive) &&
+        /\b(soap|film|wire|loop|iridescen|surface tension|surface_tension)\b/.test(positive));
   }
 
   function renderIRObjectSceneText(renderIR, graphObjects) {
@@ -1427,12 +1452,13 @@
   }
 
   function materialFamilyForVisualMaterial(id, regime, recipe) {
-    const text = `${id || ''} ${regime || ''} ${recipe && recipe.materialLanguage || ''}`.toLowerCase();
+    void recipe;
+    const text = `${id || ''} ${regime || ''}`.toLowerCase();
     if (/plasma|radiation|fire|lava|thermal|heat/.test(text)) return 'thermal';
     if (/water|fluid|brine|river|wetland|coolant/.test(text)) return 'fluid';
     if (/glass|ice|quartz|transparent|lens/.test(text)) return 'transparent';
     if (/metal|copper|gold|silicon|graphite|conductor/.test(text)) return 'metal';
-    if (/cell|bio|plant|tissue|microbe|moss|algae|mycelium/.test(text)) return 'biological';
+    if (/cell|bio|plant|tissue|microbe|microbiome|bacteria|protein|biomass|moss|algae|mycelium/.test(text)) return 'biological';
     if (/soil|sand|rock|grain|ceramic|porcelain|mineral/.test(text)) return 'granular';
     if (/signal|packet|charge|electric|sensor/.test(text)) return 'electric';
     if (/concrete|paper|pigment|artifact/.test(text)) return 'cultural';
@@ -1494,7 +1520,7 @@
     const families = uniqueList([
       ...((solverPlan && solverPlan.families) || []),
       ...semanticRowsFromPlan(semantic, 'processes').map((row) => row.family),
-    ]);
+    ]).filter((family) => sceneAllowsProcessFamily(sceneKind, family));
     const source = families.length ? families : ['coupled-state'];
     const rows = source.slice(0, 12).map((family, index) => ({
       id: `process:${family}`,
@@ -1521,6 +1547,44 @@
       });
     }
     return rows.slice(0, 20);
+  }
+
+  function sceneAllowsProcessFamily(sceneKind, family) {
+    const text = String(family || '').toLowerCase();
+    if (/molecular-biology/.test(sceneKind)) {
+      return /growth|membrane|fracture|constraint|bond|chemical|reaction|fermentation|advection|coupled/.test(text);
+    }
+    if (/evolution-ecology/.test(sceneKind)) {
+      return /growth|population|nutrient|diffusion|advection|membrane|coupled/.test(text);
+    }
+    if (/restoration-water/.test(sceneKind)) {
+      return /advection|flow|water|gravity|granular|settling|erosion|growth|sediment|coupled/.test(text);
+    }
+    if (/civic-market/.test(sceneKind)) {
+      return /network|queue|agent|routing|constraint|delay|ledger|coupled/.test(text);
+    }
+    if (/digital-network/.test(sceneKind)) {
+      return /network|queue|packet|thermal|heat|feedback|constraint|electric|coupled/.test(text);
+    }
+    if (/robotics-control/.test(sceneKind)) {
+      return /network|queue|robot|servo|contact|constraint|collision|friction|electric|feedback|coupled/.test(text);
+    }
+    if (/planetary-space/.test(sceneKind)) {
+      return /orbit|gravity|density|ring|granular|constraint|resonance|coupled/.test(text);
+    }
+    if (/ocean-cryosphere/.test(sceneKind)) {
+      return /advection|flow|phase|fracture|constraint|calving|meltwater|thermal-transfer|phase-transition|wave-field|coupled/.test(text);
+    }
+    if (/particle-instrument/.test(sceneKind)) {
+      return /particle|collision|thermal|heat|field|instrument|measurement|constraint|advection|coupled/.test(text);
+    }
+    if (/quantum-instrument/.test(sceneKind)) {
+      return /quantum|phase|field|measurement|instrument|electric|constraint|coupled/.test(text);
+    }
+    if (/fire/.test(sceneKind)) {
+      return /heat|thermal|combust|reaction|advection|flow|fluid|plume|soot|constraint|coupled/.test(text);
+    }
+    return true;
   }
 
   function causalAffordanceProcessFamily(row) {
@@ -2329,7 +2393,7 @@
       priority: sceneObjectPriority(object, sceneKind),
     }));
     const filtered = rows.filter((row) => row.priority >= 0);
-    const source = filtered.length >= Math.min(8, rows.length) ? filtered : rows;
+    const source = filtered.length ? filtered : rows;
     return source
       .sort((a, b) => b.priority - a.priority || a.index - b.index)
       .slice(0, 24)
@@ -2348,6 +2412,8 @@
       object.source,
     ].join(' ').toLowerCase();
     if (/^embedding-guided-synth/.test(object.source || '')) return 12;
+    const expandedPriority = expandedSceneObjectPriority(text, object, sceneKind);
+    if (Number.isFinite(expandedPriority)) return expandedPriority;
     if (sceneKind === 'fire') {
       if (/optic|prism|lens|mirror|queue|traffic|network/.test(text)) return -1;
       if (/flame|fire|smoke|fuel|wood|thermal|heat|plume|pine|wind|air|ridge/.test(text)) return 8;
@@ -2415,6 +2481,81 @@
       return 1;
     }
     return 2;
+  }
+
+  function expandedSceneObjectPriority(text, object, sceneKind) {
+    const source = String(object && object.source || '');
+    const direct = /^embedding-guided-synth|open-semantic-rag|semantic-surface-grounder|prompt-explicit|render-ir|doppler-residual/.test(source);
+    const directBoost = direct ? 3 : 0;
+    const reject = (pattern) => (pattern.test(text) ? -1 : null);
+    const keep = (pattern, score = 6) => (pattern.test(text) ? score + directBoost : null);
+    const fallback = () => (direct ? 3 : -1);
+    const choose = (...values) => values.find((value) => value !== null && value !== undefined);
+
+    if (sceneKind === 'particle-instrument') {
+      return choose(
+        keep(/\b(collider|muon|particle|track|collision|plume|detector|calorimeter|field line|instrument|sensor|heat|thermal|electromagnetic|magnetic)\b/, 7),
+        reject(/\b(queue|traffic|market|soil|bacteria|robot|warehouse)\b/),
+        fallback()
+      );
+    }
+    if (sceneKind === 'restoration-water') {
+      return choose(
+        keep(/\b(mangrove|root|storm|surge|sediment|brackish|tidal|channel|water|fluid|terrain|soil|biomass|granular|gravity|growth|ecological)\b/, 7),
+        reject(/\b(magnet|optic|lens|thermal-source|queue|traffic|robot)\b/),
+        fallback()
+      );
+    }
+    if (sceneKind === 'evolution-ecology') {
+      return choose(
+        keep(/\b(microbiome|colony|colonies|metabolite|intestinal|immune|sampling|bacteria|cell|membrane|population|nutrient|diffusion|biological|ecology|organism)\b/, 7),
+        reject(/\b(magnet|electromagnet|optics?|thermal-source|phase-change|queue|traffic|robot|warehouse)\b/),
+        fallback()
+      );
+    }
+    if (sceneKind === 'molecular-biology') {
+      return choose(
+        keep(/\b(protein|fold|bond|constraint|energy|molecular|chain|solvent|enzyme|ribosome|fermentation|sourdough|gluten|dough|yeast|bubble|acid|chemical|biological|soft-body|population)\b/, 7),
+        reject(/\b(robot|warehouse|magnet|electromagnet|optics?|queue|traffic|thermal-source|phase-change-material)\b/),
+        fallback()
+      );
+    }
+    if (sceneKind === 'digital-network') {
+      return choose(
+        keep(/\b(server|rack|data center|cooling|aisle|controller|network|packet|queue|signal|heat|thermal|sensor|silicon|coolant)\b/, 7),
+        reject(/\b(magnet|protein|bacteria|terrain|glacier|robot arm)\b/),
+        fallback()
+      );
+    }
+    if (sceneKind === 'civic-market') {
+      return choose(
+        keep(/\b(railway|dispatch|signal|block|train|agent|platform|slot|zoning|shadow|building|sunlight|pedestrian|parcel|market|queue|network|ledger|constraint)\b/, 7),
+        reject(/\b(flame|smoke|protein|glacier|bacteria)\b/),
+        fallback()
+      );
+    }
+    if (sceneKind === 'planetary-space') {
+      return choose(
+        keep(/\b(planet|planetary|ring|moon|resonance|orbit|orbital|gravity|gap|boulder|ice|space|trajectory|density wave)\b/, 7),
+        reject(/\b(queue|robot|warehouse|bacteria|thermal-source|fluid-advection|acoustic-emitter)\b/),
+        fallback()
+      );
+    }
+    if (sceneKind === 'ocean-cryosphere') {
+      return choose(
+        reject(/\b(acoustic-emitter|resonator|queue|network|robot|thermal-source|granular-bed)\b/),
+        keep(/\b(glacier|calving|fjord|sea ice|iceberg|ice|ocean|water|wave|cryosphere|shelf|fluid|phase|fracture|stress|terrain)\b/, 7),
+        fallback()
+      );
+    }
+    if (sceneKind === 'robotics-control') {
+      return choose(
+        reject(/\b(protein|bacteria|glacier|plasma|fire|thermal-source|fluid-advection)\b/),
+        keep(/\b(robot|robotic|arm|gripper|servo|workcell|manipulator|warehouse|conveyor|parcel|sort|task|sensor|feedback|force|contact|collision|friction|motor|metal)\b/, 7),
+        fallback()
+      );
+    }
+    return null;
   }
 
   function layoutObjectsForScene(objects, sceneKind, spec) {
@@ -2588,8 +2729,9 @@
 
   function sceneKindForComposition(graph, objects, fields, spec) {
     const operatorIds = new Set((graph.operators || []).map((operator) => operator.id));
-    const promptText = '';
+    const promptText = compositionPromptText(graph, spec);
     const text = [
+      promptText,
       (objects || []).map((object) => `${object.id} ${object.shape} ${object.role}`).join(' '),
       (fields || []).map((field) => field.kind).join(' '),
       Array.from(operatorIds).join(' '),
@@ -2603,8 +2745,11 @@
     if (/ferrofluid|copper coil|pulsing current|magnetic spikes/.test(promptText)) {
       return 'ferrofluid';
     }
-    if (/soap film|thin film|air bubble|air bubbles|wire loop|wire loops|iridescen/.test(promptText)) {
+    if (hasThinFilmSignal(promptText)) {
       return 'thin-film';
+    }
+    if (hasAcousticWaveSignal(promptText)) {
+      return 'acoustic';
     }
     if (/granular|beads|avalanche|sieve|powder/.test(promptText)) {
       return 'granular';
@@ -2615,16 +2760,14 @@
     if (/projectile|crack|fracture|impact|collision/.test(promptText) && /tower|glass|wall|bridge|body/.test(promptText)) {
       return 'mechanical';
     }
-    if (/storm waves|bridge cables|flex bridge|wave.*bridge|pressure wave/.test(promptText)) {
-      return 'acoustic';
-    }
+    if (/storm waves|bridge cables|flex bridge|wave.*bridge|pressure wave/.test(promptText)) return 'acoustic';
     if (
       /rain carves|carves basalt|basalt delta|watershed|river|erosion|terrain|sediment|mountain|rain channel|sand|soil|rock ridges/.test(promptText) &&
       !/lava|magma|volcano|bridge|castle|mirror|spaceship|spacecraft|submarine|turbine/.test(promptText)
     ) {
       return 'watershed';
     }
-    if (/algae grows|quartz wetland|growth|biological|mycelium|bacteria|membrane|colony|infection|protein/.test(promptText)) {
+    if (/algae grows|quartz wetland|grow|grows|growing|growth|biological|mycelium|bacteria|membrane|colony|infection|protein|fermentation|sourdough|gluten|dough|yeast/.test(promptText)) {
       return 'biology';
     }
     if (/solar magnetic|magnetic wheel|perpetual|magnetic motor|rotor|stator/.test(promptText)) {
@@ -2653,7 +2796,8 @@
     if (hasGranularCombustionSignal(text)) return 'granular';
     if (/thermal plume|cooling fin|heat plume/.test(text)) return 'thermal-plume';
     if (/ferrofluid|coil|current|copper conductor|magnetic spikes/.test(text)) return 'ferrofluid';
-    if (/soap|thin-film|bubble|wire loop|interference/.test(text)) return 'thin-film';
+    if (hasThinFilmSignal(text)) return 'thin-film';
+    if (hasAcousticWaveSignal(text)) return 'acoustic';
     if (/granular|grain-bed|bead|sieve|avalanche|powder/.test(text)) return 'granular';
     if (/flame|fuel-bed|fire-front|smoke|combust/.test(text)) return 'fire';
     if (/solar magnetic|magnetic-motor|rotor-wheel|stator-slider|dipole/.test(text) || operatorIds.has('magnetism')) {
@@ -2664,6 +2808,28 @@
     if (/fluid|water|flow-path|advection|river/.test(text) || operatorIds.has('advection')) return 'watershed';
     if (/\b(atom|atomic|electron|ion|lattice|crystal)\b/.test(text)) return 'atomic';
     return 'generic';
+  }
+
+  function compositionPromptText(graph = {}, spec = {}) {
+    const renderIR = spec.renderIR || {};
+    const universeGraph = spec.universeGraph || {};
+    const physicsIR = spec.physicsIR || {};
+    const promptParse = spec.promptParse || {};
+    return positiveLanguageText([
+      renderIR.prompt,
+      universeGraph.prompt,
+      physicsIR.prompt,
+      spec.name,
+      graph.intentText,
+      ...(promptParse.spans || []).map((span) => span.text),
+    ].filter(Boolean).join(' '));
+  }
+
+  function hasAcousticWaveSignal(text = '') {
+    const positive = positiveLanguageText(text);
+    return /\b(acoustic|sound|standing wave|standing waves|pressure wave|pressure waves|waveguide|resonance|resonator|levitator|speaker|brass tube)\b/.test(positive) ||
+      (/\b(dust|particle|particles)\b/.test(positive) &&
+        /\b(levitate|levitator|standing|pressure|acoustic|sound|wave|tube|brass)\b/.test(positive));
   }
 
   function focusFieldsForScene(fields, sceneKind) {
@@ -3134,13 +3300,14 @@
     ].join(' ').toLowerCase();
     if (/mycelium|bacteria|protein|leaf|biology|population|colony|infection/.test(text)) return 'biological';
     if (/spacecraft|spaceship|rocket|satellite|submarine|turbine/.test(text)) return 'mechanical';
+    if (/glacier|fjord|sea ice|iceberg|cryosphere|calving/.test(text)) return 'phase';
     if (/piano|keyboard|instrument|acoustic/.test(text)) return 'acoustic';
     if (/storm|hurricane|rainstorm/.test(text)) return 'fluid';
     if (/volcano|lava|magma|molten/.test(text)) return 'thermal';
     if (/membrane|gel|foam|fabric|soft|adhesion|cohesion/.test(text)) return 'soft';
     if (/\b(atom|electron|ion|molecule|crystal|lattice|atomic)\b/.test(text)) return 'atomic';
     if (/electric|charge|current|copper|silicon|conductor|plasma/.test(text)) return 'electrical';
-    if (/sound|acoustic|wave|resonance/.test(text)) return 'acoustic';
+    if (/sound|acoustic|standing wave|pressure wave|pressure waves|resonance/.test(text)) return 'acoustic';
     if (/phase|melt|freeze|boil|steam|ice/.test(text)) return 'phase';
     if (/fire|flame|plume|thermal|heat|combust|smoke/.test(text)) return 'thermal';
     if (/ferrofluid|magnet|metal|electro|wheel|motor|bar|rail|field/.test(text)) return 'magnetic';

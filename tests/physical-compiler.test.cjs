@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const lab = require('../public/js/simulatte-physics-lab.js');
+const compositionGraph = require('../public/js/simulatte-composition-graph.js');
 const solverRegistry = require('../public/js/simulatte-solver-registry.js');
 const advectionSolver = require('../public/js/solvers/simulatte-solver-advection.js');
 
@@ -88,6 +89,46 @@ test('legacy custom specs migrate to compiler artifacts during normalization', (
   assert.equal(spec.renderProgram.provenance.compiler, 'simulatte.render-ir-to-render-program.v1');
   assert.equal(spec.renderProgram.provenance.renderIR, 'simulatte.renderIR.v1');
   assert.equal(spec.renderProgram.provenance.solverGraph, 'simulatte.solverGraph.v1');
+});
+
+test('generic RenderIR scene fallback uses prompt evidence for visual routing', () => {
+  const cases = [
+    ['forest fire with flame smoke and wind through pine fuel', 'fire', 'thermal'],
+    ['lab bench optics with glass lens mirror prism and laser sensor', 'optics', 'optical-rays'],
+    ['city market queue traffic network with sensor delays', 'city', 'network-flow'],
+    ['rain erodes a mountain watershed into sediment channels', 'watershed', 'gravity'],
+  ];
+
+  for (const [prompt, sceneKind, fieldKind] of cases) {
+    const program = compositionGraph.compileCompositionToRenderProgram({
+      schema: compositionGraph.COMPOSITION_SCHEMA,
+      graphId: `generic-${sceneKind}`,
+      intentText: '',
+      nodes: [],
+      relations: [],
+      operators: [],
+    }, {
+      id: `generic-${sceneKind}`,
+      params: {},
+      renderIR: {
+        schema: 'simulatte.renderIR.v1',
+        sceneHint: 'generic',
+        prompt,
+        objects: [],
+        fields: [],
+      },
+      solverGraph: {
+        schema: 'simulatte.solverGraph.v1',
+        steps: [],
+        channels: {},
+      },
+      physicsIR: { schema: 'simulatte.physicalIR.v1', prompt },
+    });
+
+    assert.equal(program.rendererPlan.sceneKind, sceneKind);
+    assert.equal(program.visualIR.sceneKind, sceneKind);
+    assert.ok(program.fields.some((field) => field.kind === fieldKind));
+  }
 });
 
 test('solver registry delegates executable operator steps to solver modules', () => {
