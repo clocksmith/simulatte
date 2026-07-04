@@ -154,12 +154,16 @@
   },
   "cache": {
     "storage": [
+      "OPFS",
       "CacheStorage",
       "ServiceWorker"
     ],
     "namespace": "simulatte-embeddinggemma-300m-primitive-retrieval-v1",
     "worker": "./simulatte-model-cache-sw.js",
-    "prefetch": false,
+    "prefetch": true,
+    "strategy": "opfs-primary",
+    "opfsRoot": "simulatte-model-cache",
+    "cacheStorageFallback": true,
     "requirePersistent": false
   }
 }

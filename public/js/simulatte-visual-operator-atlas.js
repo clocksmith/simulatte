@@ -50,7 +50,7 @@
     ),
     mapping(
       'visual.operator.fluid-advection.v1',
-      ['flow', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet', 'release', 'meniscus'],
+      ['flow', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet', 'release', 'meniscus', 'swim', 'swims', 'swimming', 'underwater', 'pool'],
       ['ribbon-streamline', 'transparent-flow-tube', 'particle-tracer-swarm'],
       ['velocity-vector-field', 'pressure-band-field'],
       ['fluid-ripple', 'wet-refractive'],
@@ -149,7 +149,7 @@
     ),
     mapping(
       'visual.operator.biological-growth.v1',
-      ['grow', 'grows', 'growing', 'growth', 'bio', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'yeast'],
+      ['biology', 'biological', 'biofilm', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'yeast', 'compost', 'greenhouse', 'nutrient', 'biomass', 'crop', 'plant', 'plants', 'flower', 'flowers', 'tree', 'trees', 'leaf', 'leaves', 'dog', 'dogs', 'cat', 'cats', 'animal', 'animals', 'mammal', 'mammals', 'mangrove', 'kelp', 'plankton'],
       ['branching-organic-network', 'membrane-sheet', 'cell-cluster'],
       ['nutrient-gradient-field', 'density-front-field'],
       ['fibrous-cellular', 'wet-biological'],
@@ -193,7 +193,7 @@
     ),
     mapping(
       'visual.operator.granular-erosion.v1',
-      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope', 'dust', 'silo', 'explodes', 'explosion', 'powder', 'aerosol', 'granular', 'bead', 'beads', 'sieve', 'boulder', 'boulders'],
+      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope', 'mountain', 'mountains', 'mountaint', 'mountaints', 'dust', 'silo', 'explodes', 'explosion', 'powder', 'aerosol', 'granular', 'bead', 'beads', 'sieve', 'boulder', 'boulders'],
       ['heightfield-strata', 'grain-pile', 'erosion-channel'],
       ['slope-gradient-field', 'sediment-density-field'],
       ['granular-strata', 'wet-soil'],
@@ -314,7 +314,7 @@
   function requiredTermsForMapping(id, matchTerms = []) {
     const core = {
       'visual.operator.heat-transfer.v1': ['heat', 'thermal', 'temperature', 'cool', 'cools', 'cooled', 'cooling', 'lava', 'steam'],
-      'visual.operator.fluid-advection.v1': ['flow', 'fluid', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet'],
+      'visual.operator.fluid-advection.v1': ['flow', 'fluid', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet', 'swim', 'swims', 'swimming', 'underwater', 'pool'],
       'visual.operator.stress-fracture.v1': ['stress', 'strain', 'fracture', 'crack', 'impact', 'load', 'constraint', 'constraints', 'bond', 'bridge', 'cable', 'cables', 'tension', 'resonance', 'vortex shedding'],
       'visual.operator.control-feedback.v1': ['control', 'controller', 'feedback', 'sensor', 'regulate', 'loop'],
       'visual.operator.orbital-gravity.v1': ['gravity', 'orbit', 'orbital', 'planet', 'moon', 'space'],
@@ -323,11 +323,11 @@
       'visual.operator.thin-film-interference.v1': ['thin film', 'thin-film', 'soap', 'soap film', 'wire loop', 'wire-loop', 'surface tension', 'iridescent', 'interference'],
       'visual.operator.quantum-phase-readout.v1': ['qubit', 'quantum', 'microwave', 'superconducting'],
       'visual.operator.acoustic-wave.v1': ['acoustic', 'sound', 'standing wave', 'standing waves', 'pressure wave', 'pressure waves', 'frequency', 'speaker', 'vibration', 'pressure ring', 'air pressure', 'levitator', 'waveguide', 'brass tube'],
-      'visual.operator.biological-growth.v1': ['grow', 'grows', 'growing', 'growth', 'cell', 'protein', 'root', 'coral', 'membrane', 'microbe', 'yeast'],
+      'visual.operator.biological-growth.v1': ['biology', 'biological', 'biofilm', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'yeast', 'compost', 'greenhouse', 'nutrient', 'biomass', 'crop', 'plant', 'plants', 'flower', 'flowers', 'tree', 'trees', 'leaf', 'leaves', 'dog', 'dogs', 'cat', 'cats', 'animal', 'animals', 'mammal', 'mammals', 'mangrove', 'kelp', 'plankton'],
       'visual.operator.fermentation-matrix.v1': ['ferment', 'fermentation', 'sourdough', 'yeast', 'dough', 'gluten', 'gas bubble', 'gas bubbles', 'bubble', 'bubbles', 'acidity', 'acid gradient', 'acidity gradient'],
       'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'acidic', 'acidity', 'crystal', 'concentration', 'microfluidic', 'droplet', 'dose', 'fermentation'],
       'visual.operator.network-flow.v1': ['network', 'queue', 'market', 'traffic', 'route', 'packet', 'parcel'],
-      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain', 'dust', 'silo', 'explodes', 'powder', 'granular', 'bead', 'beads', 'avalanche', 'sieve', 'boulder', 'boulders'],
+      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain', 'mountain', 'mountains', 'mountaint', 'mountaints', 'dust', 'silo', 'explodes', 'powder', 'granular', 'bead', 'beads', 'avalanche', 'sieve', 'boulder', 'boulders'],
       'visual.operator.cryosphere-surface.v1': ['glacier', 'calving', 'iceberg', 'ice shelf', 'ice cliff', 'fjord', 'sea ice', 'cryosphere', 'meltwater'],
       'visual.operator.sport-trajectory.v1': ['skate', 'skateboard', 'rider', 'bowl', 'friction', 'centripetal', 'carve', 'trajectory'],
       'visual.operator.instrument-readout.v1': ['detector', 'sensor', 'readout', 'instrument', 'probe', 'meter'],

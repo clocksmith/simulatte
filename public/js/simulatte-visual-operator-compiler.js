@@ -258,9 +258,26 @@
 
   function termsMatched(terms, text, normalized) {
     return uniqueStrings((terms || []).filter((term) => {
-      const plain = normalizeText(term);
-      return text.includes(String(term || '').toLowerCase()) || normalized.includes(plain);
+      return termMatchesText(term, text, normalized);
     }));
+  }
+
+  function termMatchesText(term, text, normalized) {
+    const raw = String(term || '').toLowerCase();
+    const plain = normalizeText(raw);
+    if (!plain) return false;
+    const normalizedText = normalizeText(normalized || text || '');
+    if (phraseInText(normalizedText, plain)) return true;
+    return /[_-]/.test(raw) && phraseInText(normalizedText, normalizeText(raw.replace(/[_-]+/g, ' ')));
+  }
+
+  function phraseInText(text, phrase) {
+    if (!text || !phrase) return false;
+    const escaped = phrase
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\s+/g, '\\s+');
+    return new RegExp(`(^|[^a-z0-9])${escaped}(?=$|[^a-z0-9])`).test(text);
   }
 
   function contextHasCausalAffordance(context, row) {
@@ -373,7 +390,7 @@
           : { ok: false, reason: 'scene-gate:no-direct-quantum-evidence' };
       }
       if (/biological-growth/.test(id)) {
-        return directHas(/\b(growth|cell|protein|root|coral|algae|mycelium|membrane|mangrove|kelp|plankton)\b/)
+        return directHas(/\b(biology|biological|biofilm|cell|protein|root|coral|algae|mycelium|membrane|microbe|yeast|ferment|fermentation|sourdough|gluten|dough|compost|greenhouse|nutrient|biomass|crop|plant|plants|flower|flowers|tree|trees|leaf|leaves|dog|dogs|cat|cats|animal|animals|mammal|mammals|mangrove|kelp|plankton)\b/)
           ? { ok: true, reason: '' }
           : { ok: false, reason: 'scene-gate:no-direct-biological-evidence' };
       }
@@ -392,7 +409,7 @@
       /\b(market|parcel|parcels|zoning|queue|traffic|server|rack|racks|data center|service graph|warehouse)\b/.test(direct);
     if (!networkLike) return { ok: true, reason: '' };
     if (/fluid-advection/.test(id)) {
-      return directHas(/\b(water|river|wind|airflow|coolant|microfluidic|droplet|droplets|pump|channel|meniscus|fluid)\b/)
+      return directHas(/\b(water|river|wind|airflow|coolant|microfluidic|droplet|droplets|pump|channel|meniscus|fluid|swim|swims|swimming|underwater|pool)\b/)
         ? { ok: true, reason: '' }
         : { ok: false, reason: 'scene-gate:no-direct-fluid-evidence' };
     }

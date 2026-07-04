@@ -196,7 +196,7 @@
 
   function isPromptGroundedComponent(component) {
     const source = String(component && component.source || '');
-    return /^embedding-guided-synth|open-semantic-rag|doppler-residual/.test(source) ||
+    return /^embedding-guided-synth|open-semantic-rag|semantic-surface-grounder|prompt-family|prompt-explicit|render-ir|doppler-residual/.test(source) ||
       Boolean(component && component.phrase && source && source !== 'catalog');
   }
 
@@ -448,7 +448,6 @@
       object.role,
       object.shape,
       object.material,
-      object.phrase,
       object.assembly,
       object.visualRegime,
     ].join(' ').toLowerCase();
@@ -504,19 +503,20 @@
     const legacyFields = fieldsForComposition(graph, spec);
     const fields = focusFieldsForScene(uniqueFieldsByKind([...irFields, ...legacyFields]), sceneKind);
     const legacySolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, objects), sceneKind);
+    const solverSteps = solverGraphStepsForScene((solverGraph && solverGraph.steps) || [], sceneKind);
     const solverPlan = {
       schema: 'simulatte.solverPlan.v1',
       integrator: legacySolverPlan.integrator || 'mixed-semi-implicit',
       families: uniqueList([
         ...((legacySolverPlan && legacySolverPlan.families) || []),
-        ...((solverGraph.steps || []).map((step) => step.solverId)),
+        ...(solverSteps.map((step) => step.solverId)),
       ]),
       state: uniqueList([
         ...((legacySolverPlan && legacySolverPlan.state) || []),
         ...Object.keys(solverGraph.channels || {}),
       ]),
-      steps: (solverGraph.steps || []).map((step) => step.operatorType),
-      executableSteps: (solverGraph.steps || []).map((step) => step.operatorType),
+      steps: solverSteps.map((step) => step.operatorType),
+      executableSteps: solverSteps.map((step) => step.operatorType),
     };
     const rendererPlan = rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
     const visualIR = visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
@@ -586,6 +586,8 @@
 
   function sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec) {
     const sceneHint = normalizedSceneHint(renderIR.sceneHint);
+    const directScene = directSceneKindForRenderIR(renderIR, spec);
+    if (directScene && broadSceneHintCanYieldToDirectLanguage(sceneHint)) return directScene;
     if (sceneHint && sceneHint !== 'literal-composite') return sceneHint;
     const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph, spec);
     if (signalScene && signalScene !== 'literal-composite') return signalScene;
@@ -599,6 +601,24 @@
     return signalScene || sceneHint || 'generic';
   }
 
+  function directSceneKindForRenderIR(renderIR, spec) {
+    return directSceneKindForText(
+      directRenderIRSceneText(renderIR, spec),
+      directPromptSceneText(renderIR, spec)
+    );
+  }
+
+  function directSceneKindForText(text = '', promptText = text) {
+    if (hasDirectSwimmingSignal(promptText)) return 'watershed';
+    if (hasDirectAnimalOrPlantSignal(text) && !hasDirectMechanicalRigSignal(promptText)) return 'biology';
+    return '';
+  }
+
+  function broadSceneHintCanYieldToDirectLanguage(sceneHint) {
+    return !sceneHint || sceneHint === 'generic' || sceneHint === 'literal-composite' ||
+      sceneHint === 'mechanical' || sceneHint === 'biology';
+  }
+
   function normalizedSceneHint(value) {
     const scene = String(value || '').trim();
     return scene && scene !== 'generic' ? scene : '';
@@ -610,6 +630,9 @@
   }
 
   function sceneKindFromRenderIRSignals(renderIR, solverGraph, spec) {
+    const directText = directRenderIRSceneText(renderIR, spec);
+    if (hasDirectSwimmingSignal(directText)) return 'watershed';
+    if (hasDirectAnimalOrPlantSignal(directText) && !hasDirectMechanicalRigSignal(directText)) return 'biology';
     const text = [
       (renderIR.objects || []).map((object) => [
         object.label,
@@ -664,6 +687,51 @@
     if (/fluid|water|flowVelocity|advection/.test(text)) return 'watershed';
     if (/turbine|castle|ice|storm|instrument/.test(text)) return 'literal-composite';
     return '';
+  }
+
+  function directRenderIRSceneText(renderIR, spec) {
+    return positiveLanguageText([
+      directPromptSceneText(renderIR, spec),
+      ...((renderIR && renderIR.objects || []).map((object) => [
+        object.label,
+        object.glyph,
+        object.materialId,
+        object.visualRegime,
+        object.domainKind,
+        object.semanticRef,
+        object.physicalRef,
+        ...(object.domainTags || []),
+        ...(object.operatorHints || []),
+      ].join(' '))),
+    ].filter(Boolean).join(' '));
+  }
+
+  function directPromptSceneText(renderIR, spec) {
+    const promptParse = spec && spec.promptParse || {};
+    const universeGraph = spec && spec.universeGraph || {};
+    const physicsIR = spec && spec.physicsIR || {};
+    const intent = spec && spec.intent || {};
+    return positiveLanguageText([
+      renderIR && renderIR.prompt,
+      intent.prompt,
+      universeGraph.prompt,
+      physicsIR.prompt,
+      spec && spec.name,
+      ...((promptParse.spans || []).map((span) => span.text)),
+    ].filter(Boolean).join(' '));
+  }
+
+  function hasDirectSwimmingSignal(text = '') {
+    return /\b(swim|swims|swimming|swam|underwater|water|pool|pond|lake|river)\b/.test(text) &&
+      (hasDirectAnimalOrPlantSignal(text) || /\b(swim|swims|swimming|swam|underwater)\b/.test(text));
+  }
+
+  function hasDirectAnimalOrPlantSignal(text = '') {
+    return /\b(dog|dogs|cat|cats|mouse|mice|gerbil|gerbils|hamster|hamsters|animal|animals|mammal|mammals|bird|birds|fish|flower|flowers|tree|trees|plant|plants|leaf|leaves|root|roots|grass|forest)\b/.test(text);
+  }
+
+  function hasDirectMechanicalRigSignal(text = '') {
+    return /\b(hamster wheel|running wheel|wheel crashing|crash|crashes|crashing|collision|collide|impact|fracture|projectile|gear|rotor|motor)\b/.test(text);
   }
 
   function hasRoboticsSignal(text = '') {
@@ -2414,6 +2482,7 @@
     if (/^embedding-guided-synth/.test(object.source || '')) return 12;
     const expandedPriority = expandedSceneObjectPriority(text, object, sceneKind);
     if (Number.isFinite(expandedPriority)) return expandedPriority;
+    if (isPromptGroundedComponent(object)) return promptGroundedScenePriority(text, object, sceneKind);
     if (sceneKind === 'fire') {
       if (/optic|prism|lens|mirror|queue|traffic|network/.test(text)) return -1;
       if (/flame|fire|smoke|fuel|wood|thermal|heat|plume|pine|wind|air|ridge/.test(text)) return 8;
@@ -2461,7 +2530,11 @@
     }
     if (sceneKind === 'watershed') {
       if (/flame-front|fuel-bed|fire|smoke|thermal/.test(text)) return -1;
-      if (/water|river|flow|terrain|erosion|sand|soil|rock|sediment|gravity|granular|grain|bead|sieve|avalanche|powder/.test(text)) return 8;
+      if (/catalog/.test(text)) {
+        if (/water|river|flow|terrain|heightfield|erosion|channel|sand|soil|clay|rock|sediment|gravity|granular|grain|slope/.test(text)) return 6;
+        return -1;
+      }
+      if (/water|river|flow|swim|swimming|terrain|mountain|mountaint|tree|plant|forest|erosion|sand|soil|rock|sediment|gravity|granular|grain|bead|sieve|avalanche|powder/.test(text)) return 8;
       return 2;
     }
     if (sceneKind === 'magnetic-machine') {
@@ -2472,7 +2545,11 @@
     }
     if (sceneKind === 'biology') {
       if (/flame-front|fuel-bed|fire|smoke|thermal/.test(text)) return -1;
-      if (/bio|cell|bacteria|mycelium|protein|gel|membrane|growth|infection/.test(text)) return 8;
+      if (/catalog/.test(text)) {
+        if (/leaf|soil|wood|root|gel|membrane|soft-body|growth-decay|diffusion|nutrient|biomass|water/.test(text)) return 5;
+        return -1;
+      }
+      if (/dog|cat|mouse|gerbil|hamster|animal|mammal|flower|tree|plant|leaf|root|bio|cell|bacteria|mycelium|protein|gel|membrane|growth|infection/.test(text)) return 8;
       return 2;
     }
     if (sceneKind === 'acoustic') {
@@ -2481,6 +2558,28 @@
       return 1;
     }
     return 2;
+  }
+
+  function promptGroundedScenePriority(text, object, sceneKind) {
+    const source = String(object && object.source || '');
+    const directBoost = /^embedding-guided-synth|open-semantic-rag|semantic-surface-grounder|prompt-family|prompt-explicit|render-ir|doppler-residual/.test(source) ? 2 : 0;
+    if (sceneKind === 'biology') {
+      if (/dog|cat|mouse|gerbil|hamster|animal|mammal|flower|tree|plant|leaf|root|biomass|soft_tissue|soft-tissue|gel|membrane|growth|bio/.test(text)) {
+        return 9 + directBoost;
+      }
+      return 5 + directBoost;
+    }
+    if (sceneKind === 'watershed') {
+      if (/dog|cat|mouse|gerbil|hamster|animal|mammal|swim|swimming|water|pool|river|flow|pressure|fluid-advection|terrain|mountain|mountaint|tree|plant|forest|soil|rock|sediment/.test(text)) {
+        return 9 + directBoost;
+      }
+      return 4 + directBoost;
+    }
+    if (sceneKind === 'mechanical') {
+      if (/wheel|collision|crash|impact|constraint|animal-body|dog|cat|mouse|gerbil|hamster/.test(text)) return 7 + directBoost;
+      return 4 + directBoost;
+    }
+    return 4 + directBoost;
   }
 
   function expandedSceneObjectPriority(text, object, sceneKind) {
@@ -2723,6 +2822,10 @@
   // stronger retrieval/grounding signals on the non-fast compile path.
   function resolveSceneKind(graph, objects, fields, spec) {
     const semantic = sceneKindFromSemantics(graph, objects, fields, spec);
+    const promptText = directPromptSceneText((spec && spec.renderIR) || {}, spec || {});
+    const objectText = (objects || []).map(renderObjectText).join(' ');
+    const directScene = directSceneKindForText([promptText, objectText].join(' '), promptText);
+    if (directScene && broadSceneHintCanYieldToDirectLanguage(semantic)) return directScene;
     if (semantic && semantic !== 'generic') return semantic;
     return sceneKindForComposition(graph, objects, fields, spec);
   }
@@ -2959,7 +3062,24 @@
   }
 
   function refineSolverPlanForScene(plan, sceneKind) {
-    if (!plan || sceneKind !== 'mechanical') return plan;
+    if (!plan) return plan;
+    if (sceneKind === 'biology') {
+      return solverPlanWithSceneFamilies(plan, [
+        'growth-diffusion',
+        'membrane-relaxation',
+        'scalar-coupled-state',
+      ], ['growth-diffusion']);
+    }
+    if (sceneKind === 'watershed') {
+      return solverPlanWithSceneFamilies(plan, [
+        'particle-advection',
+        'granular-settling',
+        'growth-diffusion',
+        'phase-boundary',
+        'scalar-coupled-state',
+      ], ['particle-advection']);
+    }
+    if (sceneKind !== 'mechanical') return plan;
     const families = uniqueList([
       'constraint-dynamics',
       ...(plan.families || []).filter((family) => family === 'membrane-relaxation'),
@@ -2974,6 +3094,30 @@
         'angular-velocity',
       ]),
     };
+  }
+
+  function solverPlanWithSceneFamilies(plan, allowedFamilies, fallbackFamilies) {
+    const allowed = new Set(allowedFamilies);
+    const families = uniqueList((plan.families || []).filter((family) => allowed.has(family)));
+    const finalFamilies = families.length ? families : fallbackFamilies.slice();
+    return {
+      ...plan,
+      families: finalFamilies,
+      state: uniqueList(finalFamilies.flatMap(stateTexturesForFamily)),
+    };
+  }
+
+  function solverGraphStepsForScene(steps, sceneKind) {
+    const rows = steps || [];
+    const allow = sceneSolverStepPattern(sceneKind);
+    if (!allow) return rows;
+    return rows.filter((step) => allow.test(`${step.operatorType || ''} ${step.solverId || ''}`));
+  }
+
+  function sceneSolverStepPattern(sceneKind) {
+    if (sceneKind === 'biology') return /\b(growth|diffusion|membrane|soft|nutrient|density)\b/;
+    if (sceneKind === 'watershed') return /\b(advection|flow|fluid|erosion|gravity|growth|sediment|pressure)\b/;
+    return null;
   }
 
   function expandedSceneKindForText(value) {
@@ -3096,7 +3240,7 @@
     if (operatorIds.has('refraction') || regimes.has('optical')) families.push('ray-optics');
     if (operatorIds.has('magnetism') || regimes.has('magnetic')) families.push('magnetic-vector-field');
     if (operatorIds.has('erosion') || regimes.has('granular')) families.push('granular-settling');
-    if (operatorIds.has('growthDecay') || regimes.has('biological')) families.push('growth-diffusion');
+    if (operatorIds.has('growthDecay') || regimes.has('biological') || regimes.has('ecological')) families.push('growth-diffusion');
     if (operatorIds.has('collision') || regimes.has('mechanical')) families.push('constraint-dynamics');
     if (regimes.has('electrical')) families.push('electric-potential-field');
     if (regimes.has('acoustic')) families.push('wave-equation');
@@ -3290,15 +3434,27 @@
   }
 
   function visualRegimeForNode(node) {
-    if (node && node.visualRegime) return node.visualRegime;
-    const text = [
+    const identityText = [
       node.primitiveId,
       node.material,
       node.shape,
       node.role,
+      node.assembly,
       (node.domains || []).join(' '),
     ].join(' ').toLowerCase();
-    if (/mycelium|bacteria|protein|leaf|biology|population|colony|infection/.test(text)) return 'biological';
+    const text = [
+      identityText,
+      node.phrase,
+      node.source,
+    ].join(' ').toLowerCase();
+    if (/dog|cat|mouse|gerbil|hamster|animal|mammal|flower|tree|plant|root|mycelium|bacteria|protein|leaf|biology|population|colony|infection/.test(identityText)) return 'biological';
+    if (/swim|swimming|underwater/.test(String(node.phrase || '').toLowerCase()) &&
+      /water|fluid|flow|pressure|pool/.test(identityText)) return 'fluid';
+    if (/mountain|mountaint|terrain|heightfield|soil|rock|sediment|clay|granular|grain/.test(identityText)) return 'granular';
+    if (/lava|magma|molten|melt|phase|ice|crystal|castle/.test(identityText)) return 'phase';
+    if (/volcano|fire|flame|plume|thermal|heat|combust|smoke/.test(identityText)) return 'thermal';
+    if (/water|river|fluid|flow|pool|pond|lake|swim|swimming/.test(identityText)) return 'fluid';
+    if (node && node.visualRegime) return node.visualRegime;
     if (/spacecraft|spaceship|rocket|satellite|submarine|turbine/.test(text)) return 'mechanical';
     if (/glacier|fjord|sea ice|iceberg|cryosphere|calving/.test(text)) return 'phase';
     if (/piano|keyboard|instrument|acoustic/.test(text)) return 'acoustic';

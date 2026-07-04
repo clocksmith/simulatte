@@ -228,6 +228,7 @@
       primitiveIds: ['rubber', 'friction', 'elasticity'],
     }, 'rubber tire elastic high friction damping'),
     card('glass_material', 'material', ['glass', 'transparent glass'], {
+      materials: ['glass'],
       primitiveIds: ['glass', 'optics', 'collision'],
     }, 'glass transparent refractive brittle lens'),
     card('ferrofluid', 'material', ['ferrofluid', 'magnetic fluid'], {
@@ -833,9 +834,7 @@
     };
     for (const item of SURFACE_CARD_LIBRARY) {
       for (const label of item.labels) {
-        const pattern = new RegExp(`\\b${escapeRegExp(label)}\\b`, 'gi');
-        let match;
-        while ((match = pattern.exec(prompt))) add(match[0], match.index, item.type);
+        for (const match of labelOccurrences(prompt, label)) add(match.text, match.index, item.type);
       }
     }
     const words = prompt.split(/[^a-z0-9]+/).filter(Boolean);
@@ -855,8 +854,8 @@
     if (!span) return 0;
     const labelScore = item.labels.reduce((score, label) => {
       const text = label.toLowerCase();
-      if (span === text) return Math.max(score, 0.98);
-      if (span.includes(text) || text.includes(span)) return Math.max(score, 0.72);
+      if (normalizedPhraseEquals(span, text)) return Math.max(score, 0.98);
+      if (normalizedPhraseIncludes(span, text) || normalizedPhraseIncludes(text, span)) return Math.max(score, 0.72);
       return score;
     }, 0);
     const spanTokens = tokenSet(span);
@@ -897,15 +896,12 @@
 
   function rawOccurrencesForCard(prompt, item) {
     const occurrences = [];
-    const lower = String(prompt || '').toLowerCase();
     for (const label of item.labels || []) {
-      const pattern = new RegExp(`\\b${escapeRegExp(label)}\\b`, 'gi');
-      let match;
-      while ((match = pattern.exec(lower))) {
+      for (const match of labelOccurrences(prompt, label)) {
         occurrences.push({
           start: match.index,
-          end: match.index + String(label || '').length,
-          label: String(label || '').toLowerCase(),
+          end: match.end,
+          label: match.text,
         });
       }
     }
@@ -1083,10 +1079,72 @@
     ].join(' ').replace(/\s+/g, ' ').trim();
   }
 
+  function labelOccurrences(text, label) {
+    const source = String(text || '').toLowerCase();
+    const sourceTokens = tokenRows(source);
+    const labelTokens = tokenRows(label).map((token) => token.root);
+    if (!sourceTokens.length || !labelTokens.length) return [];
+    const out = [];
+    for (let i = 0; i <= sourceTokens.length - labelTokens.length; i += 1) {
+      let ok = true;
+      for (let j = 0; j < labelTokens.length; j += 1) {
+        if (sourceTokens[i + j].root !== labelTokens[j]) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) continue;
+      const start = sourceTokens[i].index;
+      const end = sourceTokens[i + labelTokens.length - 1].end;
+      out.push({ index: start, end, text: source.slice(start, end) });
+    }
+    return out;
+  }
+
+  function normalizedPhraseEquals(a, b) {
+    const left = normalizedTokens(a);
+    const right = normalizedTokens(b);
+    return left.length === right.length && left.every((token, index) => token === right[index]);
+  }
+
+  function normalizedPhraseIncludes(text, phrase) {
+    const haystack = normalizedTokens(text);
+    const needle = normalizedTokens(phrase);
+    if (!haystack.length || !needle.length || needle.length > haystack.length) return false;
+    for (let i = 0; i <= haystack.length - needle.length; i += 1) {
+      if (needle.every((token, index) => token === haystack[i + index])) return true;
+    }
+    return false;
+  }
+
+  function normalizedTokens(text) {
+    return tokenRows(text).map((token) => token.root);
+  }
+
+  function tokenRows(text) {
+    const out = [];
+    const value = String(text || '').toLowerCase();
+    let match;
+    const re = /[a-z0-9]+/g;
+    while ((match = re.exec(value))) {
+      const root = normalizeToken(match[0]);
+      if (!root || STOPWORDS.has(root)) continue;
+      out.push({ value: match[0], root, index: match.index, end: match.index + match[0].length });
+    }
+    return out;
+  }
+
   function tokenSet(text) {
-    return new Set(String(text || '').toLowerCase()
-      .split(/[^a-z0-9]+/)
-      .filter((token) => token && !STOPWORDS.has(token)));
+    return new Set(normalizedTokens(text));
+  }
+
+  function normalizeToken(token) {
+    let out = String(token || '').toLowerCase().replace(/'/g, '').replace(/[^a-z0-9-]/g, '');
+    if (out.endsWith('ies') && out.length > 4) out = `${out.slice(0, -3)}y`;
+    else if (/(ches|shes|xes|zes|sses)$/.test(out) && out.length > 5) out = out.slice(0, -2);
+    else if (out.endsWith('s') && out.length > 3 && !/(ss|us|is)$/.test(out)) out = out.slice(0, -1);
+    if (out === 'mountaint' || out === 'moutnain') out = 'mountain';
+    return out;
   }
 
   function scaleForCard(item) {

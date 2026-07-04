@@ -9,6 +9,13 @@
   const DEFAULT_DOPPLER_MODULE_URL = './vendor/doppler/src/index-browser.js';
   const DEFAULT_DOPPLER_KERNEL_BASE_PATH = './vendor/doppler/src/gpu/kernels';
   const CACHE_WORKER_READY_WAIT_MS = 2400;
+  const DEFAULT_MODEL_OPFS_ROOT = 'simulatte-model-cache';
+  const TRACE_URL_FLAGS = Object.freeze([
+    'embeddingTrace',
+    'embeddingTiming',
+    'intentTrace',
+    'modelTrace',
+  ]);
 
   function create(options = {}) {
     return new ModelBackedIntentEmbedder(options);
@@ -28,16 +35,36 @@
       this.runtimeConfig = options.runtimeConfig || null;
       this.spanLevelEmbedding = options.spanLevelEmbedding;
       this.spanEmbeddingCache = options.spanEmbeddingCache || new Map();
+      this.traceEnabled = traceEnabled(options);
+      this.traceId = options.traceId || `intent-${Math.random().toString(36).slice(2, 9)}`;
       this.modelPromise = null;
       this.providerPromise = null;
+      this.providerReady = false;
+      this.providerRequestCount = 0;
+      this.rankSerial = 0;
       this.gpuPromise = null;
     }
 
     async loadModel() {
       if (!this.modelPromise) {
-        this.emitProgress('manifest', 3, 'Loading intent manifest');
+        const loadStarted = nowMs();
+        this.emitProgress('manifest', 3, 'Loading intent manifest', {
+          timing: 'start',
+          traceId: this.traceId,
+          manifestUrl: this.manifestUrl,
+          firstLoad: true,
+        });
         this.modelPromise = this.loadManifest()
           .then(async (manifest) => {
+            this.emitProgress('manifest', 6, 'Intent manifest ready', {
+              timing: 'end',
+              durationMs: elapsedMsSince(loadStarted),
+              traceId: this.traceId,
+              modelId: manifest.embedModel && manifest.embedModel.id || '',
+              modelBaseUrl: manifest.embedModel && manifest.embedModel.defaultModelBaseUrl || '',
+              sourceSizeBytes: manifest.embedModel && manifest.embedModel.source && manifest.embedModel.source.sizeBytes || 0,
+              cachePrefetch: Boolean(manifest.cache && manifest.cache.prefetch === true),
+            });
             const retrieval = manifest.retrieval || {};
             const indexUrl = retrieval.artifact;
             if (!indexUrl) throw new Error('intent manifest missing retrieval artifact');
@@ -45,35 +72,81 @@
             const cardIndexUrl = cardRetrieval.artifact || '';
             const universeRetrieval = retrieval.universe || {};
             const universeManifestUrl = universeRetrieval.artifact || '';
-            this.emitProgress('indexes', 8, 'Loading primitive, surface, and universe indexes');
+            const indexesStarted = nowMs();
+            this.emitProgress('indexes', 8, 'Loading primitive, surface, and universe indexes', {
+              timing: 'start',
+              traceId: this.traceId,
+            });
+            const fetchTelemetry = {
+              progress: this.onProgress,
+              traceEnabled: this.traceEnabled,
+              traceId: this.traceId,
+            };
             const [index, cardIndex, universe] = await Promise.all([
-              fetchJson(resolveUrl(indexUrl, this.manifestUrl), 'primitive embedding index'),
+              fetchJson(resolveUrl(indexUrl, this.manifestUrl), 'primitive embedding index', {
+                ...fetchTelemetry,
+                stage: 'index-fetch',
+                percent: 10,
+                resourceKind: 'primitive-index',
+              }),
               cardIndexUrl
-                ? fetchJson(resolveUrl(cardIndexUrl, this.manifestUrl), 'surface card embedding index')
+                ? fetchJson(resolveUrl(cardIndexUrl, this.manifestUrl), 'surface card embedding index', {
+                  ...fetchTelemetry,
+                  stage: 'index-fetch',
+                  percent: 12,
+                  resourceKind: 'surface-card-index',
+                })
                 : Promise.resolve(null),
               universeManifestUrl
-                ? loadUniverseIndexes(resolveUrl(universeManifestUrl, this.manifestUrl))
+                ? loadUniverseIndexes(resolveUrl(universeManifestUrl, this.manifestUrl), fetchTelemetry)
                 : Promise.resolve(null),
             ]);
-            this.emitProgress('indexes', 16, 'Embedding indexes ready');
-            return normalizeModelBackedRuntime(manifest, index, cardIndex, universe);
+            const runtime = normalizeModelBackedRuntime(manifest, index, cardIndex, universe);
+            this.emitProgress('indexes', 16, 'Embedding indexes ready', {
+              timing: 'end',
+              durationMs: elapsedMsSince(indexesStarted),
+              traceId: this.traceId,
+              primitiveDocuments: runtime.index && runtime.index.documentCount || 0,
+              surfaceCardDocuments: runtime.cardIndex && runtime.cardIndex.documentCount || 0,
+              universeDocuments: runtime.universe && runtime.universe.documentCount || 0,
+            });
+            this.emitProgress('runtime-ready', 17, 'Embedding runtime metadata ready', {
+              durationMs: elapsedMsSince(loadStarted),
+              traceId: this.traceId,
+              firstLoad: true,
+              modelId: manifest.embedModel && manifest.embedModel.id || '',
+            });
+            return runtime;
           });
+      } else {
+        this.emitProgress('indexes-reuse', 16, 'Embedding manifest and indexes already loaded', {
+          traceId: this.traceId,
+          reuse: true,
+        });
       }
       return this.modelPromise;
     }
 
     emitProgress(stage, percent, message, extra = {}) {
-      emitProgress(this.onProgress, {
+      emitRuntimeProgress(this.onProgress, this.traceEnabled, {
         source: 'simulatte-intent-embedder',
         stage,
         percent,
         message,
+        traceId: this.traceId,
         ...extra,
       });
     }
 
     async loadManifest() {
-      const manifest = await fetchJson(this.manifestUrl, 'intent manifest');
+      const manifest = await fetchJson(this.manifestUrl, 'intent manifest', {
+        progress: this.onProgress,
+        traceEnabled: this.traceEnabled,
+        traceId: this.traceId,
+        stage: 'manifest-fetch',
+        percent: 4,
+        resourceKind: 'intent-manifest',
+      });
       if (!manifest || manifest.schema !== 'simulatte.modelBackedEmbedderManifest.v2') {
         throw new Error('intent manifest schema mismatch; expected simulatte.modelBackedEmbedderManifest.v2');
       }
@@ -118,35 +191,101 @@
 
     async rankPrompt(prompt, primitives, options = {}) {
       const promptText = String(prompt || '').trim();
+      const progress = progressHandler(options, this.onProgress);
+      const trace = this.traceEnabled || traceEnabled(options);
+      const rankId = ++this.rankSerial;
+      const rankStarted = nowMs();
       if (!promptText) {
         return blankResult(await this.loadModel());
       }
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'retrieval-start',
+        percent: 2,
+        message: 'Starting embedding retrieval',
+        traceId: this.traceId,
+        rankId,
+        promptChars: promptText.length,
+      });
       const runtime = await this.loadModel();
       const candidates = Array.isArray(primitives) && primitives.length
         ? primitives
         : this.catalog && this.catalog.PHYSICAL_PRIMITIVES || [];
       const max = Number.isFinite(options.max) ? options.max : 36;
-      const progress = progressHandler(options, this.onProgress);
-      emitProgress(progress, {
+      emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
         stage: 'model',
         percent: 18,
         message: `Preparing local ${modelLabel(runtime.manifest)}`,
+        traceId: this.traceId,
+        rankId,
+        modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
+        modelBaseUrl: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.defaultModelBaseUrl || '',
+        candidateCount: candidates.length,
       });
-      const provider = await this.resolveEmbedProvider(runtime, { ...options, onProgress: progress });
-      emitProgress(progress, {
+      const providerStarted = nowMs();
+      const providerWasReady = this.providerReady;
+      const provider = await this.resolveEmbedProvider(runtime, {
+        ...options,
+        onProgress: progress,
+        traceEmbeddings: trace,
+      });
+      emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
-        stage: 'embed',
+        stage: 'model-ready',
+        percent: 80,
+        message: 'Embedding provider ready',
+        traceId: this.traceId,
+        rankId,
+        durationMs: elapsedMsSince(providerStarted),
+        backend: provider.backend || 'doppler-embedding',
+        reuse: providerWasReady,
+      });
+      const embedStarted = nowMs();
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'prompt-embed',
         percent: 82,
         message: 'Embedding prompt',
+        timing: 'start',
+        traceId: this.traceId,
+        rankId,
+        backend: provider.backend || 'doppler-embedding',
+        promptChars: promptText.length,
       });
       const query = await provider.embed({ text: promptText, nowIso: options.nowIso || new Date().toISOString() });
       const queryVector = validateQueryEmbedding(query, runtime.index);
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'prompt-embed',
+        percent: 84,
+        message: 'Prompt embedding ready',
+        timing: 'end',
+        traceId: this.traceId,
+        rankId,
+        durationMs: elapsedMsSince(embedStarted),
+        backend: provider.backend || 'doppler-embedding',
+        embeddingDim: queryVector.length,
+      });
       const candidateVectors = vectorsFor(runtime.index, candidates);
+      const rankVectorStarted = nowMs();
       const gpuScores = await this.tryRankWebGpu(runtime.index.embeddingDim, queryVector, candidateVectors);
       const scores = gpuScores || rankCpu(queryVector, candidateVectors);
       const cardMatches = rankSurfaceCards(runtime.cardIndex, queryVector, options);
       const universeMatches = rankUniverseIndexes(runtime.universe, promptText, queryVector, options);
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'rank',
+        percent: 86,
+        message: 'Primitive, surface, and universe scores ranked',
+        traceId: this.traceId,
+        rankId,
+        durationMs: elapsedMsSince(rankVectorStarted),
+        rankBackend: gpuScores ? 'webgpu' : 'cpu',
+        candidateCount: candidates.length,
+        cardMatchCount: cardMatches.length,
+        universeCandidateCount: universeMatches && universeMatches.candidates && universeMatches.candidates.length || 0,
+      });
       const promptTermSet = new Set(fallbackFeatureTokens(promptText));
       const basePriors = candidates
         .map((primitive, index) => {
@@ -197,6 +336,9 @@
         instanceConfig: this.spanLevelEmbedding,
         rankGpu: (vector) => this.tryRankWebGpu(runtime.index.embeddingDim, vector, candidateVectors),
         progress,
+        traceEnabled: trace,
+        traceId: this.traceId,
+        rankId,
       });
       const fusedBasePriors = fuseSpanPrimitiveScores(basePriors, spanRetrieval);
       const semanticRag = createRag(promptText, candidates, fusedBasePriors, runtime.index, queryVector);
@@ -210,11 +352,14 @@
         semanticRag,
         dopplerIntent,
       });
-      emitProgress(progress, {
+      emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
         stage: 'classification',
         percent: 96,
         message: 'Intent graph ranked',
+        traceId: this.traceId,
+        rankId,
+        durationMs: elapsedMsSince(rankStarted),
       });
       return {
         model: modelSummary(runtime, query, provider),
@@ -233,25 +378,99 @@
     }
 
     async resolveEmbedProvider(runtime, options = {}) {
-      if (options.embedProvider) return normalizeEmbedProvider(options.embedProvider, runtime, 'injected-provider');
-      if (this.embedProvider) return normalizeEmbedProvider(this.embedProvider, runtime, 'configured-provider');
+      const progress = progressHandler(options, this.onProgress);
+      const trace = this.traceEnabled || traceEnabled(options);
+      if (options.embedProvider) {
+        emitRuntimeProgress(progress, trace, {
+          source: 'simulatte-intent-embedder',
+          stage: 'model-ready',
+          percent: 78,
+          message: 'Using injected embedding provider',
+          traceId: this.traceId,
+          backend: 'injected-provider',
+        });
+        return normalizeEmbedProvider(options.embedProvider, runtime, 'injected-provider');
+      }
+      if (this.embedProvider) {
+        emitRuntimeProgress(progress, trace, {
+          source: 'simulatte-intent-embedder',
+          stage: 'model-ready',
+          percent: 78,
+          message: 'Using configured embedding provider',
+          traceId: this.traceId,
+          backend: 'configured-provider',
+        });
+        return normalizeEmbedProvider(this.embedProvider, runtime, 'configured-provider');
+      }
       const handle = options.dopplerModelHandle || this.dopplerModelHandle || globalModelHandle();
-      if (handle) return providerFromModelHandle(handle, runtime, 'injected-doppler-model');
+      if (handle) {
+        emitRuntimeProgress(progress, trace, {
+          source: 'simulatte-intent-embedder',
+          stage: 'model-ready',
+          percent: 78,
+          message: 'Using injected Doppler model handle',
+          traceId: this.traceId,
+          backend: 'injected-doppler-model',
+        });
+        return providerFromModelHandle(handle, runtime, 'injected-doppler-model');
+      }
+      this.providerRequestCount += 1;
       if (!this.providerPromise) {
-        this.providerPromise = this.loadDopplerModel(runtime, options);
+        this.providerReady = false;
+        this.providerPromise = this.loadDopplerModel(runtime, options)
+          .then((provider) => {
+            this.providerReady = true;
+            return provider;
+          });
+      } else {
+        emitRuntimeProgress(progress, trace, {
+          source: 'simulatte-intent-embedder',
+          stage: 'model-reuse',
+          percent: this.providerReady ? 78 : 32,
+          message: this.providerReady
+            ? 'Reusing loaded embedding model'
+            : 'Reusing in-flight embedding model load',
+          traceId: this.traceId,
+          reuse: true,
+          providerReady: this.providerReady,
+          providerRequestCount: this.providerRequestCount,
+          backend: 'doppler-browser-load',
+        });
       }
       return this.providerPromise;
     }
 
     async loadDopplerModel(runtime, options = {}) {
+      const progress = progressHandler(options, this.onProgress);
+      const trace = this.traceEnabled || traceEnabled(options);
       const moduleUrl = options.dopplerModuleUrl
         || this.dopplerModuleUrl
         || runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl
         || DEFAULT_DOPPLER_MODULE_URL;
+      const moduleStarted = nowMs();
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'model-module',
+        percent: 19,
+        message: 'Loading Doppler browser runtime',
+        timing: 'start',
+        traceId: this.traceId,
+        moduleUrl,
+      });
       const api = await resolveDopplerApi({
         dopplerModule: options.dopplerModule || this.dopplerModule,
         moduleUrl,
         kernelBasePath: options.dopplerKernelBasePath || this.dopplerKernelBasePath,
+      });
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'model-module',
+        percent: 20,
+        message: 'Doppler browser runtime ready',
+        timing: 'end',
+        traceId: this.traceId,
+        durationMs: elapsedMsSince(moduleStarted),
+        moduleUrl,
       });
       const load = api && (api.load || api.doppler && api.doppler.load);
       if (typeof load !== 'function') {
@@ -261,7 +480,20 @@
       }
       const modelBaseUrl = options.modelBaseUrl || this.modelBaseUrl || runtime.manifest.embedModel.defaultModelBaseUrl;
       if (!modelBaseUrl) throw new Error('model-backed intent requires embed model base URL');
-      await ensureModelArtifactCache(runtime.manifest, modelBaseUrl, progressHandler(options, this.onProgress));
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'model-load',
+        percent: 21,
+        message: 'Preparing Doppler embedding model',
+        traceId: this.traceId,
+        artifactMode: 'manifest-directory',
+        modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
+        modelBaseUrl,
+        sourceSizeBytes: runtime.manifest && runtime.manifest.embedModel &&
+          runtime.manifest.embedModel.source && runtime.manifest.embedModel.source.sizeBytes || 0,
+        cachePrefetch: Boolean(runtime.manifest && runtime.manifest.cache && runtime.manifest.cache.prefetch === true),
+      });
+      await ensureModelArtifactCache(runtime.manifest, modelBaseUrl, progress, trace);
       const runtimeConfig = cloneJsonValue(
         options.runtimeConfig
         || this.runtimeConfig
@@ -270,12 +502,40 @@
       if (!runtimeConfig) {
         throw new Error('model-backed intent manifest missing Doppler runtimeConfig');
       }
+      const dopplerStarted = nowMs();
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'model-load',
+        percent: 68,
+        message: 'Doppler loading embedding model files',
+        timing: 'start',
+        traceId: this.traceId,
+        artifactMode: 'manifest-directory',
+        modelBaseUrl,
+      });
       const handle = await load({ url: modelBaseUrl }, {
         runtimeConfig,
         onProgress: (event) => {
-          emitProgress(progressHandler(options, this.onProgress), normalizeDopplerProgress(event));
+          emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
+            traceId: this.traceId,
+            modelBaseUrl,
+            modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
+            startedAtMs: dopplerStarted,
+          }));
           if (typeof options.onModelProgress === 'function') options.onModelProgress(event);
         },
+      });
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'model-ready',
+        percent: 79,
+        message: 'Doppler embedding model ready',
+        timing: 'end',
+        traceId: this.traceId,
+        durationMs: elapsedMsSince(dopplerStarted),
+        artifactMode: 'manifest-directory',
+        modelBaseUrl,
+        backend: 'doppler-browser-load',
       });
       return providerFromModelHandle(handle, runtime, 'doppler-browser-load', modelBaseUrl);
     }
@@ -302,10 +562,56 @@
     }
   }
 
-  async function fetchJson(url, label) {
+  async function fetchJson(url, label, telemetry = {}) {
+    const started = nowMs();
+    const progress = telemetry.progress || null;
+    const trace = Boolean(telemetry.traceEnabled);
+    emitRuntimeProgress(progress, trace, {
+      source: 'simulatte-intent-embedder',
+      stage: telemetry.stage || 'resource-fetch',
+      percent: telemetry.percent || 0,
+      message: `Fetching ${label}`,
+      timing: 'start',
+      traceId: telemetry.traceId || '',
+      resourceKind: telemetry.resourceKind || label,
+      resourceUrl: String(url || ''),
+      cacheMode: 'force-cache',
+    });
     const response = await fetch(url, { cache: 'force-cache' });
-    if (!response.ok) throw new Error(`${label} fetch failed: ${response.status}`);
-    return response.json();
+    const durationMs = elapsedMsSince(started);
+    if (!response.ok) {
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: telemetry.stage || 'resource-fetch',
+        percent: telemetry.percent || 0,
+        message: `${label} fetch failed`,
+        timing: 'error',
+        traceId: telemetry.traceId || '',
+        durationMs,
+        resourceKind: telemetry.resourceKind || label,
+        resourceUrl: String(url || ''),
+        status: response.status,
+        cacheMode: 'force-cache',
+      });
+      throw new Error(`${label} fetch failed: ${response.status}`);
+    }
+    const contentLength = Number(response.headers && response.headers.get('Content-Length') || 0);
+    const value = await response.json();
+    emitRuntimeProgress(progress, trace, {
+      source: 'simulatte-intent-embedder',
+      stage: telemetry.stage || 'resource-fetch',
+      percent: telemetry.percent || 0,
+      message: `${label} fetched`,
+      timing: 'end',
+      traceId: telemetry.traceId || '',
+      durationMs,
+      resourceKind: telemetry.resourceKind || label,
+      resourceUrl: String(url || ''),
+      status: response.status,
+      byteLength: Number.isFinite(contentLength) ? contentLength : 0,
+      cacheMode: 'force-cache',
+    });
+    return value;
   }
 
   function progressHandler(options = {}, fallback = null) {
@@ -320,13 +626,52 @@
     });
   }
 
+  function emitRuntimeProgress(callback, trace, event) {
+    const next = {
+      timestamp: new Date().toISOString(),
+      ...event,
+    };
+    emitProgress(callback, next);
+    logEmbeddingTrace(trace, next);
+  }
+
+  function logEmbeddingTrace(enabled, event) {
+    if (!enabled || typeof console === 'undefined' || typeof console.info !== 'function') return;
+    const payload = { ...(event || {}) };
+    delete payload.rawEvent;
+    console.info('[simulatte.embedding]', payload.stage || 'event', payload);
+  }
+
+  function nowMs() {
+    if (typeof performance !== 'undefined' && performance && typeof performance.now === 'function') {
+      return performance.now();
+    }
+    return Date.now();
+  }
+
+  function elapsedMsSince(started) {
+    const delta = nowMs() - Number(started || 0);
+    return Number(Math.max(0, delta).toFixed(1));
+  }
+
   function clampProgress(value) {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return 0;
     return Math.max(0, Math.min(100, parsed));
   }
 
-  function normalizeDopplerProgress(event = {}) {
+  function traceEnabled(options = {}) {
+    if (options.traceEmbeddings === true || options.debugTimings === true || options.logTimings === true) {
+      return true;
+    }
+    return TRACE_URL_FLAGS.some((name) => truthyValue(urlValue(name)));
+  }
+
+  function truthyValue(value) {
+    return /^(1|true|on|yes|debug|trace)$/i.test(String(value || '').trim());
+  }
+
+  function normalizeDopplerProgress(event = {}, context = {}) {
     const raw = Number(event.percent);
     const percent = Number.isFinite(raw)
       ? Math.max(68, Math.min(94, 68 + raw * 0.26))
@@ -336,56 +681,120 @@
       stage: event.phase || event.stage || 'model-load',
       percent,
       message: event.message || 'Loading intent model runtime',
+      traceId: context.traceId || '',
+      elapsedMs: Number.isFinite(context.startedAtMs) ? elapsedMsSince(context.startedAtMs) : undefined,
+      artifactMode: 'manifest-directory',
+      modelId: context.modelId || '',
+      modelBaseUrl: context.modelBaseUrl || '',
       rawEvent: event,
     };
   }
 
-  async function ensureModelArtifactCache(manifest, modelBaseUrl, onProgress) {
+  async function ensureModelArtifactCache(manifest, modelBaseUrl, onProgress, trace = false) {
     const cacheConfig = manifest && manifest.cache || {};
-    if (cacheConfig.prefetch !== true) return;
-    if (typeof window === 'undefined') return;
-    if (!('caches' in window) || !navigator.serviceWorker) {
-      if (cacheConfig.requirePersistent === true) {
-        throw new Error(`${modelLabel(manifest)} cache requires CacheStorage and Service Worker support`);
-      }
+    const baseUrl = String(modelBaseUrl || '').replace(/\/+$/, '');
+    if (cacheConfig.prefetch !== true) {
+      emitRuntimeProgress(onProgress, trace, {
+        source: 'simulatte-model-cache',
+        stage: 'cache-skip',
+        percent: 21,
+        message: 'Model cache prefetch disabled; Doppler will load model files',
+        artifactMode: 'manifest-directory',
+        modelId: manifest && manifest.embedModel && manifest.embedModel.id || '',
+        modelBaseUrl: baseUrl,
+        cachePrefetch: false,
+      });
       return;
     }
-    const baseUrl = String(modelBaseUrl || '').replace(/\/+$/, '');
     if (!baseUrl) throw new Error(`${modelLabel(manifest)} cache requires model base URL`);
-    emitProgress(onProgress, {
+    const cacheContext = await openModelCacheContext(manifest, cacheConfig);
+    if (!cacheContext.opfs && !cacheContext.cache) {
+      if (cacheConfig.requirePersistent === true) {
+        throw new Error(`${modelLabel(manifest)} cache requires OPFS or CacheStorage support`);
+      }
+      emitRuntimeProgress(onProgress, trace, {
+        source: 'simulatte-model-cache',
+        stage: 'cache-skip',
+        percent: 21,
+        message: 'Model cache prefetch unavailable in this browser context',
+        artifactMode: 'manifest-directory',
+        modelId: manifest && manifest.embedModel && manifest.embedModel.id || '',
+        modelBaseUrl: baseUrl,
+        cachePrefetch: true,
+        cacheSkipReason: 'persistent-cache-unavailable',
+      });
+      return;
+    }
+    const cacheStarted = nowMs();
+    emitRuntimeProgress(onProgress, trace, {
       source: 'simulatte-model-cache',
       stage: 'cache',
       percent: 20,
       message: 'Preparing model cache',
+      timing: 'start',
+      artifactMode: 'manifest-directory',
+      modelId: manifest && manifest.embedModel && manifest.embedModel.id || '',
+      modelBaseUrl: baseUrl,
+      cachePrefetch: true,
+      cacheBackends: cacheContext.backends,
+      cacheStrategy: cacheContext.strategy,
     });
-    await ensureCacheWorker(cacheConfig);
-    await requestPersistentStorage();
-    const cacheName = modelCacheName(manifest);
-    const cache = await caches.open(cacheName);
+    await ensureCacheWorker(cacheConfig, onProgress, trace);
+    const persistence = await requestPersistentStorage();
+    emitRuntimeProgress(onProgress, trace, {
+      source: 'simulatte-model-cache',
+      stage: 'cache-storage',
+      percent: 21,
+      message: persistence ? 'Persistent model storage requested' : 'Persistent model storage unavailable',
+      persisted: persistence,
+      cacheBackends: cacheContext.backends,
+    });
     const modelManifestUrl = `${baseUrl}/manifest.json`;
-    const modelManifest = await cachedJson(cache, modelManifestUrl, `${modelLabel(manifest)} model manifest`);
+    const modelManifestText = await cachedTextArtifact(
+      cacheContext,
+      { path: 'manifest.json', url: modelManifestUrl, kind: 'manifest', size: 0 },
+      `${modelLabel(manifest)} model manifest`,
+      onProgress,
+      trace
+    );
+    const modelManifest = JSON.parse(modelManifestText);
     const files = modelArtifactFiles(modelManifest, baseUrl);
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
     let completedBytes = 0;
     for (const file of files) {
-      const cached = await cache.match(file.url);
+      const cached = await cachedModelArtifact(cacheContext, file);
       if (cached) {
-        completedBytes += file.size;
-        emitModelCacheProgress(onProgress, file, completedBytes, totalBytes, true);
+        completedBytes += Math.max(file.size, cached.size || 0);
+        emitModelCacheProgress(onProgress, trace, file, completedBytes, totalBytes, true, cached.backend);
         continue;
       }
-      completedBytes += await cacheModelFile(cache, file, completedBytes, totalBytes, onProgress);
+      completedBytes += await cacheModelFile(cacheContext, file, completedBytes, totalBytes, onProgress, trace);
     }
-    emitProgress(onProgress, {
+    emitRuntimeProgress(onProgress, trace, {
       source: 'simulatte-model-cache',
       stage: 'cache-ready',
       percent: 68,
       message: `${modelLabel(manifest)} cached`,
       totalBytes,
+      timing: 'end',
+      durationMs: elapsedMsSince(cacheStarted),
+      fileCount: files.length,
+      artifactMode: 'manifest-directory',
+      cacheBackends: cacheContext.backends,
     });
   }
 
-  async function ensureCacheWorker(cacheConfig) {
+  async function ensureCacheWorker(cacheConfig, onProgress = null, trace = false) {
+    if (typeof window === 'undefined' || !navigator.serviceWorker) {
+      emitRuntimeProgress(onProgress, trace, {
+        source: 'simulatte-model-cache',
+        stage: 'cache-worker',
+        percent: 20,
+        message: 'Model cache worker registration unavailable in this context',
+        cacheWorker: 'unavailable',
+      });
+      return false;
+    }
     const workerPath = cacheConfig.worker || './simulatte-model-cache-sw.js';
     const workerUrl = new URL(workerPath, window.location.href).toString();
     await navigator.serviceWorker.register(workerUrl);
@@ -402,6 +811,14 @@
     if (!navigator.serviceWorker.controller && cacheConfig.requirePersistent === true) {
       throw new Error('intent model cache worker is not controlling this page; reload and retry');
     }
+    emitRuntimeProgress(onProgress, trace, {
+      source: 'simulatte-model-cache',
+      stage: 'cache-worker',
+      percent: 20,
+      message: 'Model cache worker ready',
+      cacheWorker: navigator.serviceWorker.controller ? 'controlling' : 'registered',
+    });
+    return true;
   }
 
   async function waitForCacheWorkerReady(cacheConfig = {}) {
@@ -439,17 +856,103 @@
     return `simulatte-embedding-model-${namespace}-${hash}`;
   }
 
-  async function cachedJson(cache, url, label) {
-    const cached = await cache.match(url);
-    if (cached) return cached.clone().json();
-    const response = await fetch(url, { cache: 'reload', mode: 'cors' });
+  async function openModelCacheContext(manifest, cacheConfig = {}) {
+    const stores = new Set(normalizeCacheStores(cacheConfig.storage));
+    const strategy = String(cacheConfig.strategy || '').toLowerCase() || 'cache-storage';
+    const wantsOpfs = stores.has('opfs') || strategy.includes('opfs');
+    const wantsCache = stores.has('cachestorage') || stores.has('cache-storage') ||
+      cacheConfig.cacheStorageFallback !== false;
+    const cacheName = modelCacheName(manifest);
+    const opfs = wantsOpfs ? await openOpfsCache(cacheConfig, cacheName) : null;
+    const cache = wantsCache && typeof caches !== 'undefined'
+      ? await caches.open(cacheName).catch(() => null)
+      : null;
+    return {
+      cacheName,
+      opfs,
+      cache,
+      strategy,
+      backends: [
+        opfs ? 'opfs' : '',
+        cache ? 'cache-storage' : '',
+      ].filter(Boolean),
+    };
+  }
+
+  function normalizeCacheStores(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map((item) => String(item || '').toLowerCase().replace(/\s+/g, ''));
+  }
+
+  async function openOpfsCache(cacheConfig, cacheName) {
+    if (!opfsAvailable()) return null;
+    try {
+      const root = await navigator.storage.getDirectory();
+      const cacheRoot = await root.getDirectoryHandle(
+        safeCacheSegment(cacheConfig.opfsRoot || DEFAULT_MODEL_OPFS_ROOT),
+        { create: true }
+      );
+      const modelRoot = await cacheRoot.getDirectoryHandle(safeCacheSegment(cacheName), { create: true });
+      return { dir: modelRoot, backend: 'opfs' };
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function opfsAvailable() {
+    return typeof navigator !== 'undefined' &&
+      navigator.storage &&
+      typeof navigator.storage.getDirectory === 'function';
+  }
+
+  async function cachedTextArtifact(cacheContext, file, label, onProgress, trace) {
+    const opfsHit = await readOpfsCachedFile(cacheContext.opfs, file);
+    if (opfsHit) {
+      emitModelCacheProgress(onProgress, trace, file, opfsHit.size, Math.max(file.size, opfsHit.size), true, 'opfs');
+      return opfsHit.file.text();
+    }
+    const cached = cacheContext.cache ? await cacheContext.cache.match(file.url) : null;
+    if (cached) return cached.clone().text();
+    const response = await fetch(file.url, { cache: 'reload', mode: 'cors' });
     if (!response.ok) throw new Error(`${label} fetch failed: ${response.status}`);
     const text = await response.text();
-    await cache.put(url, new Response(text, {
+    await writeTextArtifact(cacheContext, file, text);
+    return text;
+  }
+
+  async function cachedModelArtifact(cacheContext, file) {
+    const opfsHit = await readOpfsCachedFile(cacheContext.opfs, file);
+    if (opfsHit && cachedFileComplete(file, opfsHit.size)) {
+      return { backend: 'opfs', size: opfsHit.size };
+    }
+    if (!cacheContext.cache) return null;
+    const response = await cacheContext.cache.match(file.url);
+    if (!response) return null;
+    const size = Number(response.headers.get('Content-Length') || file.size || 0);
+    if (!cachedFileComplete(file, size)) return null;
+    return { backend: 'cache-storage', size };
+  }
+
+  function cachedFileComplete(file, size) {
+    const expected = Number(file && file.size || 0);
+    if (!expected) return Number(size || 0) > 0;
+    return Number(size || 0) >= expected;
+  }
+
+  async function writeTextArtifact(cacheContext, file, text) {
+    if (cacheContext.opfs) {
+      await writeOpfsBytes(cacheContext.opfs, file, new TextEncoder().encode(text));
+      return;
+    }
+    if (!cacheContext.cache) return;
+    await cacheContext.cache.put(file.url, new Response(text, {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': contentTypeForPath(file.path),
+        'Content-Length': String(text.length),
+        'X-Simulatte-Model-Cache': 'full-file',
+      },
     }));
-    return JSON.parse(text);
   }
 
   function modelArtifactFiles(modelManifest, baseUrl) {
@@ -470,15 +973,36 @@
     }));
   }
 
-  async function cacheModelFile(cache, file, completedBefore, totalBytes, onProgress) {
-    emitModelCacheProgress(onProgress, file, completedBefore, totalBytes, false);
+  async function cacheModelFile(cacheContext, file, completedBefore, totalBytes, onProgress, trace = false) {
+    const started = nowMs();
+    const plannedBackend = cacheContext.opfs ? 'opfs' : cacheContext.cache ? 'cache-storage' : 'network';
+    emitModelCacheProgress(onProgress, trace, file, completedBefore, totalBytes, false, plannedBackend);
     const response = await fetch(file.url, { cache: 'reload', mode: 'cors' });
     if (!response.ok) throw new Error(`intent model fetch failed for ${file.path}: ${response.status}`);
+    const opfsWritable = cacheContext.opfs
+      ? await openOpfsWritable(cacheContext.opfs, file).catch(() => null)
+      : null;
+    const backend = opfsWritable ? 'opfs' : cacheContext.cache ? 'cache-storage' : plannedBackend;
     const headers = new Headers(response.headers);
     const expectedBytes = Number(file.size || headers.get('Content-Length') || 0);
     let received = 0;
     let body;
-    if (response.body && typeof response.body.getReader === 'function') {
+    if (opfsWritable && response.body && typeof response.body.getReader === 'function') {
+      const reader = response.body.getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
+          received += chunk.byteLength;
+          await opfsWritable.write(chunk);
+          emitModelCacheProgress(onProgress, trace, file, completedBefore + received, totalBytes, false, backend);
+        }
+      } finally {
+        await opfsWritable.close();
+      }
+      body = null;
+    } else if (response.body && typeof response.body.getReader === 'function') {
       const reader = response.body.getReader();
       const chunks = [];
       while (true) {
@@ -487,34 +1011,97 @@
         const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
         chunks.push(chunk);
         received += chunk.byteLength;
-        emitModelCacheProgress(onProgress, file, completedBefore + received, totalBytes, false);
+        emitModelCacheProgress(onProgress, trace, file, completedBefore + received, totalBytes, false, backend);
       }
       body = concatChunks(chunks, received);
     } else {
       body = new Uint8Array(await response.arrayBuffer());
       received = body.byteLength;
     }
-    headers.set('X-Simulatte-Model-Cache', 'full-file');
-    if (!headers.has('Content-Type')) headers.set('Content-Type', contentTypeForPath(file.path));
-    if (!headers.has('Content-Length')) headers.set('Content-Length', String(body.byteLength));
-    await cache.put(file.url, new Response(body, {
-      status: 200,
-      headers,
-    }));
-    return Math.max(expectedBytes, body.byteLength);
+    if (body && opfsWritable) {
+      try {
+        await opfsWritable.write(body);
+      } finally {
+        await opfsWritable.close();
+      }
+    } else if (body && cacheContext.opfs) {
+      await writeOpfsBytes(cacheContext.opfs, file, body);
+    } else if (body && cacheContext.cache) {
+      headers.set('X-Simulatte-Model-Cache', 'full-file');
+      if (!headers.has('Content-Type')) headers.set('Content-Type', contentTypeForPath(file.path));
+      if (!headers.has('Content-Length')) headers.set('Content-Length', String(body.byteLength));
+      await cacheContext.cache.put(file.url, new Response(body, {
+        status: 200,
+        headers,
+      }));
+    } else if (!opfsWritable) {
+      throw new Error(`intent model cache unavailable for ${file.path}`);
+    }
+    const storedBytes = body ? body.byteLength : received;
+    emitRuntimeProgress(onProgress, trace, {
+      source: 'simulatte-model-cache',
+      stage: 'cache-file-ready',
+      percent: 22 + (totalBytes > 0 ? (completedBefore + storedBytes) / totalBytes : 1) * 44,
+      message: `Cached ${file.path}`,
+      file: file.path,
+      fileKind: file.kind,
+      completedBytes: completedBefore + storedBytes,
+      totalBytes,
+      durationMs: elapsedMsSince(started),
+      cacheMode: backend,
+    });
+    return Math.max(expectedBytes, storedBytes);
   }
 
-  function emitModelCacheProgress(onProgress, file, completedBytes, totalBytes, cached) {
+  function emitModelCacheProgress(onProgress, trace, file, completedBytes, totalBytes, cached, backend = '') {
     const fraction = totalBytes > 0 ? completedBytes / totalBytes : 1;
-    emitProgress(onProgress, {
+    emitRuntimeProgress(onProgress, trace, {
       source: 'simulatte-model-cache',
       stage: cached ? 'cache-hit' : 'cache-fill',
-      percent: 22 + fraction * 44,
+      percent: 22 + Math.min(1, fraction) * 44,
       message: cached ? `Cached ${file.path}` : `Caching ${file.path}`,
       file: file.path,
+      fileKind: file.kind,
       completedBytes,
       totalBytes,
+      cacheMode: backend || (cached ? 'cache-storage' : 'reload'),
     });
+  }
+
+  async function readOpfsCachedFile(opfs, file) {
+    if (!opfs) return null;
+    try {
+      const handle = await opfs.dir.getFileHandle(opfsCacheFileName(file.url, file.path));
+      const stored = await handle.getFile();
+      return { file: stored, size: stored.size };
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  async function openOpfsWritable(opfs, file) {
+    if (!opfs) return null;
+    const handle = await opfs.dir.getFileHandle(opfsCacheFileName(file.url, file.path), { create: true });
+    return handle.createWritable();
+  }
+
+  async function writeOpfsBytes(opfs, file, bytes) {
+    const writable = await openOpfsWritable(opfs, file);
+    try {
+      await writable.write(bytes);
+    } finally {
+      await writable.close();
+    }
+  }
+
+  function opfsCacheFileName(url, path) {
+    const rawName = String(path || url || 'artifact').split('/').filter(Boolean).pop() || 'artifact';
+    return `${hashString(url)}-${safeCacheSegment(rawName)}`;
+  }
+
+  function safeCacheSegment(value) {
+    const text = String(value || 'cache').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-|-$/g, '');
+    return text || 'cache';
   }
 
   function concatChunks(chunks, total) {
@@ -533,8 +1120,13 @@
     return 'application/octet-stream';
   }
 
-  async function loadUniverseIndexes(manifestUrl) {
-    const manifest = await fetchJson(manifestUrl, 'universe manifest');
+  async function loadUniverseIndexes(manifestUrl, telemetry = {}) {
+    const manifest = await fetchJson(manifestUrl, 'universe manifest', {
+      ...telemetry,
+      stage: 'index-fetch',
+      percent: 13,
+      resourceKind: 'universe-manifest',
+    });
     if (!manifest || manifest.schema !== 'simulatte.universeManifest.v1') {
       throw new Error('universe manifest schema mismatch; expected simulatte.universeManifest.v1');
     }
@@ -542,7 +1134,12 @@
     const indexes = {};
     await Promise.all(entries.map(async ([name, config]) => {
       if (!config || !config.artifact) throw new Error(`universe index ${name} missing artifact`);
-      indexes[name] = await fetchJson(resolveUrl(config.artifact, manifestUrl), `universe ${name} index`);
+      indexes[name] = await fetchJson(resolveUrl(config.artifact, manifestUrl), `universe ${name} index`, {
+        ...telemetry,
+        stage: 'index-fetch',
+        percent: 14,
+        resourceKind: `universe-${name}-index`,
+      });
     }));
     return { manifest, indexes };
   }
@@ -935,6 +1532,11 @@
     const config = payload.config || {};
     const cache = config.cache && payload.cache && typeof payload.cache.get === 'function' ? payload.cache : null;
     const nowIso = payload.options && payload.options.nowIso || new Date().toISOString();
+    const progress = payload.progress || null;
+    const trace = Boolean(payload.traceEnabled);
+    const traceId = payload.traceId || '';
+    const rankId = payload.rankId || 0;
+    const started = nowMs();
     const cacheKeyFor = (span) => [
       payload.runtime && payload.runtime.index && payload.runtime.index.embedModelHash || '',
       payload.runtime && payload.runtime.index && payload.runtime.index.embeddingDim || '',
@@ -949,6 +1551,20 @@
       pending.push(row);
       return row;
     });
+    const cacheHitCount = rows.length - pending.length;
+    emitRuntimeProgress(progress, trace, {
+      source: 'simulatte-intent-embedder',
+      stage: 'span-cache',
+      percent: 89,
+      message: `Span embedding cache ${cacheHitCount}/${rows.length}`,
+      traceId,
+      rankId,
+      spanCount: rows.length,
+      cacheHitCount,
+      cacheMissCount: pending.length,
+      cacheEnabled: Boolean(cache),
+      durationMs: elapsedMsSince(started),
+    });
     if (!pending.length) return rows;
     const requestRows = pending.map((row) => ({
       text: row.span.text,
@@ -956,11 +1572,41 @@
       spanId: row.span.id,
       spanKind: row.span.kind,
     }));
+    const embedStarted = nowMs();
+    emitRuntimeProgress(progress, trace, {
+      source: 'simulatte-intent-embedder',
+      stage: 'span-embed',
+      percent: 90,
+      message: config.batchEmbedding
+        ? `Embedding ${pending.length} uncached spans as a batch`
+        : `Embedding ${pending.length} uncached spans`,
+      timing: 'start',
+      traceId,
+      rankId,
+      spanCount: rows.length,
+      cacheMissCount: pending.length,
+      batchEmbedding: Boolean(config.batchEmbedding),
+    });
     const batchResult = config.batchEmbedding ? await embedSpanBatch(provider, requestRows) : null;
     if (batchResult && batchResult.length === pending.length) {
       pending.forEach((row, index) => {
         row.query = batchResult[index];
         if (cache) cache.set(row.cacheKey, row.query);
+      });
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'span-embed',
+        percent: 92,
+        message: 'Span batch embeddings ready',
+        timing: 'end',
+        traceId,
+        rankId,
+        spanCount: rows.length,
+        embeddedSpanCount: pending.length,
+        cacheHitCount,
+        cacheMissCount: pending.length,
+        batchEmbedding: true,
+        durationMs: elapsedMsSince(embedStarted),
       });
       return rows;
     }
@@ -973,6 +1619,21 @@
       });
       if (cache) cache.set(row.cacheKey, row.query);
     }
+    emitRuntimeProgress(progress, trace, {
+      source: 'simulatte-intent-embedder',
+      stage: 'span-embed',
+      percent: 92,
+      message: 'Span embeddings ready',
+      timing: 'end',
+      traceId,
+      rankId,
+      spanCount: rows.length,
+      embeddedSpanCount: pending.length,
+      cacheHitCount,
+      cacheMissCount: pending.length,
+      batchEmbedding: false,
+      durationMs: elapsedMsSince(embedStarted),
+    });
     return rows;
   }
 
@@ -1014,12 +1675,15 @@
     if (!config.enabled || !spans.length || !runtime || !provider || typeof provider.embed !== 'function') {
       return emptySpanRetrieval(spans, config, config.enabled ? 'empty' : 'disabled');
     }
-    emitProgress(payload.progress, {
+    const started = nowMs();
+    emitRuntimeProgress(payload.progress, payload.traceEnabled, {
       source: 'simulatte-intent-embedder',
       stage: 'span-retrieval',
       percent: 88,
       message: `Embedding ${spans.length} language spans`,
       spanCount: spans.length,
+      traceId: payload.traceId || '',
+      rankId: payload.rankId || 0,
     });
     const queries = await embedSpanQueries({
       provider,
@@ -1028,7 +1692,12 @@
       config,
       options: payload.options || {},
       cache: payload.embedCache,
+      progress: payload.progress,
+      traceEnabled: payload.traceEnabled,
+      traceId: payload.traceId || '',
+      rankId: payload.rankId || 0,
     });
+    const rankStarted = nowMs();
     for (const item of queries) {
       if (!item || !item.span || !item.query) continue;
       const span = item.span;
@@ -1066,6 +1735,18 @@
         ].slice(0, config.perSpanCandidateMax),
       });
     }
+    emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+      source: 'simulatte-intent-embedder',
+      stage: 'span-rank',
+      percent: 94,
+      message: 'Span retrieval ranked',
+      traceId: payload.traceId || '',
+      rankId: payload.rankId || 0,
+      durationMs: elapsedMsSince(rankStarted),
+      spanCount: spans.length,
+      embeddedSpanCount: bySpan.length,
+      cachedSpanCount: bySpan.filter((row) => row.cacheHit).length,
+    });
     const evidenceRows = spanEvidenceRows({ bySpan });
     return {
       schema: 'simulatte.spanEmbeddingRetrieval.v1',
@@ -1074,6 +1755,7 @@
       spanCount: spans.length,
       embeddedSpanCount: bySpan.length,
       cachedSpanCount: bySpan.filter((row) => row.cacheHit).length,
+      durationMs: elapsedMsSince(started),
       bySpan,
       evidenceRows,
       candidateCount: bySpan.reduce((sum, row) => sum + row.candidates.length, 0),

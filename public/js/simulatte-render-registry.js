@@ -343,6 +343,9 @@
 
   function sceneHintForText(value = '') {
     const text = positiveLanguageText(value);
+    if (/\b(earthquake|tsunami|hurricane|tornado|wildfire|evacuation|air quality|hazard|mine ventilation|tunnel boring|urban heat|drought)\b/.test(text)) {
+      return 'hazard-atmosphere';
+    }
     const row = EXPANDED_SCENE_RULES.find((rule) => rule.pattern.test(text));
     return row ? row.id : '';
   }

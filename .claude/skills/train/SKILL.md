@@ -32,12 +32,7 @@ Training mode keys in the app:
 
 - `T`: toggle Training
 - `1`: Looks right
-- `2`: Wrong scene
-- `3`: Missing object
-- `4`: Wrong material
-- `5`: Too generic
-- `6`: Bad motion
 
-Use the phase row to judge `Final`, `1->2`, `1->3`, `1->4`, `1->5`, `1->6`, `1->7`, or `1->8`. Each saved record includes the selected checkpoint, current pipeline phase, compact artifact summary, and canvas diagnostics.
+Use the phase row to judge `Final`, `1->2`, `1->3`, `1->4`, `1->5`, `1->6`, `1->7`, or `1->8`. Type one free-text feedback note and save it with `Save feedback`, or use `Looks right` / `1` for a pass. Each saved record includes the selected checkpoint, feedback text, current pipeline phase, compact artifact summary, and canvas diagnostics.
 
 Do not deploy for this workflow. Do not use Firebase. Keep the loop local and receipt-backed through the review server.

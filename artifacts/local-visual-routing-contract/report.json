@@ -1,0 +1,3433 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-04T14:42:31.063Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:53195/index.html?auditNoInitial=1",
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 10,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 10,
+    "uniqueCanvasHashes": 10,
+    "uniqueScreenshotHashes": 10,
+    "sceneKinds": [
+      "acoustic",
+      "agro-waste-loop",
+      "cultural-material",
+      "fire",
+      "hazard-atmosphere",
+      "material-tray",
+      "particle-instrument",
+      "structural-mechanics",
+      "thin-film",
+      "weather-atmosphere"
+    ],
+    "visualIRSceneKinds": [
+      "acoustic",
+      "agro-waste-loop",
+      "cultural-material",
+      "fire",
+      "hazard-atmosphere",
+      "material-tray",
+      "particle-instrument",
+      "structural-mechanics",
+      "thin-film",
+      "weather-atmosphere"
+    ],
+    "visualIRCameras": [
+      "aerial-map-depth",
+      "cutaway-section-depth",
+      "dynamic-motion-depth",
+      "instrumented-lab-depth",
+      "network-map-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 205,
+      "mappingIds": [
+        "visual.operator.acoustic-wave.v1",
+        "visual.operator.biological-growth.v1",
+        "visual.operator.control-feedback.v1",
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.granular-erosion.v1",
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.instrument-readout.v1",
+        "visual.operator.network-flow.v1",
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.thermal-combustion.v1",
+        "visual.operator.thin-film-interference.v1"
+      ],
+      "uniformSlots": [
+        "acoustic",
+        "biological",
+        "combustion",
+        "constraint",
+        "density",
+        "emission",
+        "feedback",
+        "fluid",
+        "granular",
+        "instrument",
+        "measurement",
+        "motion",
+        "network",
+        "optical",
+        "phase",
+        "signal",
+        "stress",
+        "surface",
+        "thermal"
+      ],
+      "wgslOperators": [
+        "atomAcousticRings",
+        "atomBiologicalBranches",
+        "atomCombustionFront",
+        "atomConstraintPads",
+        "atomDensityFront",
+        "atomFeedbackArcs",
+        "atomFluidRibbons",
+        "atomGranularStrata",
+        "atomInstrumentReadout",
+        "atomMeasurementBands",
+        "atomNetworkPressure",
+        "atomOpticalCaustics",
+        "atomPacketPulses",
+        "atomPhaseBoundary",
+        "atomQuantumFringes",
+        "atomSedimentMotion",
+        "atomSignalPulses",
+        "atomSootColumn",
+        "atomStandingNodes",
+        "atomStressCracks",
+        "atomThermalPlume",
+        "atomVectorFlow"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 98.8,
+      "passCount": 10,
+      "failCount": 0,
+      "expectedSignals": [
+        "acoustic",
+        "biological",
+        "feedback",
+        "fluid",
+        "granular",
+        "instrument",
+        "network",
+        "optical",
+        "stress",
+        "thermal"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.974
+    },
+    "intentBriefs": {
+      "totalEvidence": 760,
+      "totalCausalEdges": 6,
+      "totalAffordances": 9,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 760,
+      "totalCausalEdges": 6,
+      "totalCausalAffordances": 9,
+      "totalAssumptions": 81,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 2,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 99,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 10,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.974,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "supercell thunderstorm grows hail under wind shear",
+      "screenshot": "01-custom-supercell-thunderstorm-grows-hail-under-wind-shear.png",
+      "screenshotHash": "e6c8d7be599cc2cfc1d7c8f8357a451233ed66b5a1efe83ac784c70e0a0ab615",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "weather-atmosphere",
+      "physicsCanvasSceneId": "1",
+      "physicsCanvasRenderCount": "29",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 72.808,
+      "lumaStd": 60.477,
+      "coloredRatio": 0.6336,
+      "canvasHash": "5e2c0778",
+      "specId": "supercell-thunderstorm-grows-hail-under-wind-mr6h0vu2",
+      "templateId": "custom-world",
+      "rendererSceneKind": "weather-atmosphere",
+      "visualIRSceneKind": "weather-atmosphere",
+      "visualIRCamera": "aerial-map-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 14,
+      "visualIRFieldCount": 6,
+      "visualIRProcessCount": 16,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 1,
+      "visualIRGraphicsAtomCount": 26,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.stress-fracture.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "stress",
+        "motion",
+        "density",
+        "constraint",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.613,
+        "stress": 0.457,
+        "motion": 0.564,
+        "density": 0.515,
+        "constraint": 0.421,
+        "surface": 0.466
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomFluidRibbons",
+        "atomVectorFlow",
+        "atomStressCracks",
+        "atomConstraintPads"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0024",
+          "kind": "catalog-candidate",
+          "text": "noun phrase hail",
+          "slots": []
+        },
+        {
+          "id": "activation.0140",
+          "kind": "catalog-candidate",
+          "text": "predicate grows",
+          "slots": []
+        },
+        {
+          "id": "activation.0124",
+          "kind": "catalog-candidate",
+          "text": "subject supercell thunderstorm",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "catalog-candidate",
+          "text": "noun phrase supercell thunderstorm",
+          "slots": []
+        },
+        {
+          "id": "activation.0213",
+          "kind": "catalog-candidate",
+          "text": "object hail under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0121",
+          "kind": "visual-candidate",
+          "text": "predicate frame supercell thunderstorm grows hail under wind shear language.visual.fluid.span 009 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "noun phrase hail under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0122",
+          "kind": "visual-candidate",
+          "text": "predicate frame supercell thunderstorm grows hail under wind shear language.visual.stress.span 009 visual candidate stress operator signal stress contact constraint",
+          "slots": [
+            "stress",
+            "constraint",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0040",
+          "kind": "catalog-candidate",
+          "text": "modifier under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0047",
+          "kind": "catalog-candidate",
+          "text": "predicate frame supercell thunderstorm grows hail under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0033",
+          "kind": "catalog-candidate",
+          "text": "verb phrase grows hail under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0229",
+          "kind": "visual-candidate",
+          "text": "object hail under wind shear language.visual.fluid.frame 001 object visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0006",
+          "kind": "visual-candidate",
+          "text": "prompt supercell thunderstorm grows hail under wind shear language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0013",
+          "kind": "visual-candidate",
+          "text": "clause supercell thunderstorm grows hail under wind shear language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0026",
+          "kind": "catalog-candidate",
+          "text": "noun phrase wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0230",
+          "kind": "visual-candidate",
+          "text": "object hail under wind shear language.visual.stress.frame 001 object visual candidate stress operator signal stress contact constraint",
+          "slots": [
+            "stress",
+            "constraint",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0038",
+          "kind": "visual-candidate",
+          "text": "verb phrase grows hail under wind shear language.visual.fluid.span 007 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt supercell thunderstorm grows hail under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "catalog-candidate",
+          "text": "clause supercell thunderstorm grows hail under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0007",
+          "kind": "visual-candidate",
+          "text": "prompt supercell thunderstorm grows hail under wind shear language.visual.stress.span 001 visual candidate stress operator signal stress contact constraint",
+          "slots": [
+            "stress",
+            "constraint",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0014",
+          "kind": "visual-candidate",
+          "text": "clause supercell thunderstorm grows hail under wind shear language.visual.stress.span 002 visual candidate stress operator signal stress contact constraint",
+          "slots": [
+            "stress",
+            "constraint",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0022",
+          "kind": "visual-candidate",
+          "text": "noun phrase hail under wind shear language.visual.fluid.span 004 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0048",
+          "kind": "catalog-candidate",
+          "text": "predicate frame supercell thunderstorm grows hail under wind shear",
+          "slots": []
+        },
+        {
+          "id": "activation.0045",
+          "kind": "visual-candidate",
+          "text": "modifier under wind shear language.visual.fluid.span 008 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 74,
+      "intentBriefCausalEdgeCount": 1,
+      "intentBriefAssumptionCount": 11,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 74,
+      "physicalReceiptCausalEdgeCount": 1,
+      "physicalReceiptCausalAffordanceCount": 1,
+      "physicalReceiptAssumptionCount": 11,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 1,
+      "previewLength": 628115,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-supercell-thunderstorm-grows-hail-under-wind-shear.canvas.png",
+      "canvasScreenshotLater": "01-custom-supercell-thunderstorm-grows-hail-under-wind-shear.canvas-late.png",
+      "canvasScreenshotHash": "eb822078eb6c9b5d242d9e5b24861e9185fb10bfa449df67a0b9fdb9293af87e",
+      "canvasScreenshotLaterHash": "b68e83e6fe050fdd02fc72fe474f7ad85bba1cfa3da9a2ba5739885215c87d0b",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 60.477,
+      "canvasScreenshotColoredRatio": 0.6336,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.084,
+      "canvasFrameLumaStdDelta": 0.088,
+      "canvasFrameColoredRatioDelta": 0.0071,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 4,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "stress",
+          "biological",
+          "granular"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": [
+              "predicate frame supercell thunderstorm grows hail under wind shear language.visual.fluid.span 009 visual candidate fluid operator signal flow pressure advection",
+              "fluid",
+              "object hail under wind shear language.visual.fluid.frame 001 object visual candidate fluid operator signal flow pressure advection"
+            ]
+          },
+          {
+            "id": "stress",
+            "strength": 1,
+            "slotHits": [
+              "stress",
+              "constraint",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.stress-fracture.v1"
+            ],
+            "wgslHits": [
+              "atomStressCracks"
+            ],
+            "languageHits": [
+              "predicate frame supercell thunderstorm grows hail under wind shear language.visual.stress.span 009 visual candidate stress operator signal stress contact constraint",
+              "stress",
+              "object hail under wind shear language.visual.stress.frame 001 object visual candidate stress operator signal stress contact constraint"
+            ]
+          },
+          {
+            "id": "biological",
+            "strength": 0.9,
+            "slotHits": [
+              "density",
+              "surface"
+            ],
+            "mappingHits": [],
+            "wgslHits": [],
+            "languageHits": []
+          },
+          {
+            "id": "granular",
+            "strength": 0.9,
+            "slotHits": [
+              "density",
+              "surface"
+            ],
+            "mappingHits": [],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 2,
+      "kind": "custom",
+      "prompt": "compost feeds greenhouse nutrient loop with organic waste",
+      "screenshot": "02-custom-compost-feeds-greenhouse-nutrient-loop-with-organic-waste.png",
+      "screenshotHash": "4878dc7475b857b07c362e8390aaef41ee8dab76964916cb2f4f039a4024f2d1",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "agro-waste-loop",
+      "physicsCanvasSceneId": "20",
+      "physicsCanvasRenderCount": "104",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 109.961,
+      "lumaStd": 48.021,
+      "coloredRatio": 0.886,
+      "canvasHash": "696f8364",
+      "specId": "compost-feeds-greenhouse-nutrient-loop-organic-mr6h0y3v",
+      "templateId": "custom-world",
+      "rendererSceneKind": "agro-waste-loop",
+      "visualIRSceneKind": "agro-waste-loop",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 11,
+      "visualIRFieldCount": 6,
+      "visualIRProcessCount": 16,
+      "visualIROperatorCount": 10,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 26,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.control-feedback.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "feedback",
+        "biological",
+        "motion",
+        "density",
+        "constraint",
+        "signal",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "feedback": 0.86,
+        "biological": 0.9,
+        "motion": 0.756,
+        "density": 0.828,
+        "constraint": 0.722,
+        "signal": 0.791,
+        "surface": 0.684
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront",
+        "atomFeedbackArcs",
+        "atomSignalPulses"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0137",
+          "kind": "catalog-candidate",
+          "text": "predicate feeds",
+          "slots": []
+        },
+        {
+          "id": "activation.0131",
+          "kind": "catalog-candidate",
+          "text": "subject compost",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "catalog-candidate",
+          "text": "noun phrase compost",
+          "slots": []
+        },
+        {
+          "id": "activation.0038",
+          "kind": "catalog-candidate",
+          "text": "noun phrase organic waste",
+          "slots": []
+        },
+        {
+          "id": "activation.0128",
+          "kind": "visual-candidate",
+          "text": "predicate frame compost feeds greenhouse nutrient loop with organic waste language.visual.feedback.span 009 visual candidate feedback operator signal feedback control signal",
+          "slots": [
+            "feedback",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0129",
+          "kind": "visual-candidate",
+          "text": "predicate frame compost feeds greenhouse nutrient loop with organic waste language.visual.biological.span 009 visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "modifier with organic waste",
+          "slots": []
+        },
+        {
+          "id": "activation.0217",
+          "kind": "visual-candidate",
+          "text": "object greenhouse nutrient loop with organic waste language.visual.feedback.frame 001 object visual candidate feedback operator signal feedback control signal",
+          "slots": [
+            "feedback",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0218",
+          "kind": "visual-candidate",
+          "text": "object greenhouse nutrient loop with organic waste language.visual.biological.frame 001 object visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0006",
+          "kind": "visual-candidate",
+          "text": "prompt compost feeds greenhouse nutrient loop with organic waste language.visual.feedback.span 001 visual candidate feedback operator signal feedback control signal",
+          "slots": [
+            "feedback",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0013",
+          "kind": "visual-candidate",
+          "text": "clause compost feeds greenhouse nutrient loop with organic waste language.visual.feedback.span 002 visual candidate feedback operator signal feedback control signal",
+          "slots": [
+            "feedback",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0135",
+          "kind": "visual-candidate",
+          "text": "subject compost language.visual.biological.frame 001 subject visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0026",
+          "kind": "visual-candidate",
+          "text": "noun phrase greenhouse nutrient loop with organic waste language.visual.feedback.span 004 visual candidate feedback operator signal feedback control signal",
+          "slots": [
+            "feedback",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0007",
+          "kind": "visual-candidate",
+          "text": "prompt compost feeds greenhouse nutrient loop with organic waste language.visual.biological.span 001 visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0014",
+          "kind": "visual-candidate",
+          "text": "clause compost feeds greenhouse nutrient loop with organic waste language.visual.biological.span 002 visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0045",
+          "kind": "visual-candidate",
+          "text": "verb phrase feeds greenhouse nutrient loop with language.visual.feedback.span 007 visual candidate feedback operator signal feedback control signal",
+          "slots": [
+            "feedback",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0053",
+          "kind": "catalog-candidate",
+          "text": "predicate frame compost feeds greenhouse nutrient loop with organic waste",
+          "slots": []
+        },
+        {
+          "id": "activation.0033",
+          "kind": "visual-candidate",
+          "text": "noun phrase greenhouse nutrient loop language.visual.feedback.span 005 visual candidate feedback operator signal feedback control signal",
+          "slots": [
+            "feedback",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0027",
+          "kind": "visual-candidate",
+          "text": "noun phrase greenhouse nutrient loop with organic waste language.visual.biological.span 004 visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0046",
+          "kind": "visual-candidate",
+          "text": "verb phrase feeds greenhouse nutrient loop with language.visual.biological.span 007 visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0020",
+          "kind": "visual-candidate",
+          "text": "noun phrase compost language.visual.biological.span 003 visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0030",
+          "kind": "catalog-candidate",
+          "text": "noun phrase greenhouse nutrient loop",
+          "slots": []
+        },
+        {
+          "id": "activation.0034",
+          "kind": "visual-candidate",
+          "text": "noun phrase greenhouse nutrient loop language.visual.biological.span 005 visual candidate biological operator signal growth diffusion density",
+          "slots": [
+            "biological",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "verb phrase feeds greenhouse nutrient loop with",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 6,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 6,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 643117,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "02-custom-compost-feeds-greenhouse-nutrient-loop-with-organic-waste.canvas.png",
+      "canvasScreenshotLater": "02-custom-compost-feeds-greenhouse-nutrient-loop-with-organic-waste.canvas-late.png",
+      "canvasScreenshotHash": "6e6f3234530957cd055b1fba4fb03418876124fde9e8690871ecc51f75106a86",
+      "canvasScreenshotLaterHash": "29111b8964f2dafde492c2114ea59ed086e6b66621a5555102a29e269df94fd6",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 48.021,
+      "canvasScreenshotColoredRatio": 0.886,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.329,
+      "canvasFrameLumaStdDelta": 0.373,
+      "canvasFrameColoredRatioDelta": 0.0022,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 0.622,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "feedback"
+        ],
+        "matchedSignals": [
+          {
+            "id": "feedback",
+            "strength": 1,
+            "slotHits": [
+              "feedback",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.control-feedback.v1"
+            ],
+            "wgslHits": [
+              "atomFeedbackArcs"
+            ],
+            "languageHits": [
+              "predicate frame compost feeds greenhouse nutrient loop with organic waste language.visual.feedback.span 009 visual candidate feedback operator signal feedback control signal",
+              "feedback",
+              "object greenhouse nutrient loop with organic waste language.visual.feedback.frame 001 object visual candidate feedback operator signal feedback control signal"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 3,
+      "kind": "custom",
+      "prompt": "hurricane evacuation traffic under storm surge",
+      "screenshot": "03-custom-hurricane-evacuation-traffic-under-storm-surge.png",
+      "screenshotHash": "b3907b0ade87569d662d28e13a0d9a12d9ef7ebeaadfa80e10bc3c0a3ade7ca7",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "hazard-atmosphere",
+      "physicsCanvasSceneId": "31",
+      "physicsCanvasRenderCount": "189",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 41.714,
+      "lumaStd": 46.105,
+      "coloredRatio": 0.2731,
+      "canvasHash": "0d733add",
+      "specId": "hurricane-evacuation-traffic-under-storm-surge-mr6h109v",
+      "templateId": "custom-world",
+      "rendererSceneKind": "hazard-atmosphere",
+      "visualIRSceneKind": "hazard-atmosphere",
+      "visualIRCamera": "aerial-map-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 6,
+      "visualIRFieldCount": 4,
+      "visualIRProcessCount": 14,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 13,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.network-flow.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "network",
+        "motion",
+        "constraint",
+        "signal"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "network": 0.943,
+        "motion": 0.717,
+        "constraint": 0.867,
+        "signal": 0.792
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomNetworkPressure",
+        "atomPacketPulses"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "noun phrase hurricane evacuation traffic",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "catalog-candidate",
+          "text": "noun phrase storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0025",
+          "kind": "catalog-candidate",
+          "text": "modifier under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "visual-candidate",
+          "text": "prompt hurricane evacuation traffic under storm surge language.visual.network.span 001 visual candidate network operator signal network queue routing",
+          "slots": [
+            "network",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0012",
+          "kind": "visual-candidate",
+          "text": "clause hurricane evacuation traffic under storm surge language.visual.network.span 002 visual candidate network operator signal network queue routing",
+          "slots": [
+            "network",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0007",
+          "kind": "catalog-candidate",
+          "text": "clause hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0018",
+          "kind": "visual-candidate",
+          "text": "noun phrase hurricane evacuation traffic language.visual.network.span 003 visual candidate network operator signal network queue routing",
+          "slots": [
+            "network",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "prompt hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "clause hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "noun phrase hurricane evacuation traffic",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "catalog-candidate",
+          "text": "clause hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "modifier under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0020",
+          "kind": "catalog-candidate",
+          "text": "noun phrase storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0024",
+          "kind": "catalog-candidate",
+          "text": "modifier under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "environment-candidate",
+          "text": "noun phrase hurricane evacuation traffic",
+          "slots": []
+        },
+        {
+          "id": "activation.0015",
+          "kind": "catalog-candidate",
+          "text": "noun phrase hurricane evacuation traffic",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "environment-candidate",
+          "text": "prompt hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "environment-candidate",
+          "text": "clause hurricane evacuation traffic under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0022",
+          "kind": "environment-candidate",
+          "text": "noun phrase storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0026",
+          "kind": "environment-candidate",
+          "text": "modifier under storm surge",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "environment-candidate",
+          "text": "noun phrase hurricane evacuation traffic",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 75,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 8,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 75,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 8,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 359205,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "03-custom-hurricane-evacuation-traffic-under-storm-surge.canvas.png",
+      "canvasScreenshotLater": "03-custom-hurricane-evacuation-traffic-under-storm-surge.canvas-late.png",
+      "canvasScreenshotHash": "423b2416d7a4e1e9701e8b11cc330effc3b11aa40de091c965cc4e77e0ab2585",
+      "canvasScreenshotLaterHash": "ed6d8ffa9f2dff7b9bba774765e8bff1f5c83f8fd414b40a108e48e202886c8d",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 46.105,
+      "canvasScreenshotColoredRatio": 0.2731,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.044,
+      "canvasFrameLumaStdDelta": 0.284,
+      "canvasFrameColoredRatioDelta": 0.0029,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 0.483,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 0.992,
+        "expectedSignals": [
+          "network"
+        ],
+        "matchedSignals": [
+          {
+            "id": "network",
+            "strength": 1,
+            "slotHits": [
+              "network",
+              "signal",
+              "constraint"
+            ],
+            "mappingHits": [
+              "visual.operator.network-flow.v1"
+            ],
+            "wgslHits": [
+              "atomNetworkPressure"
+            ],
+            "languageHits": [
+              "prompt hurricane evacuation traffic under storm surge language.visual.network.span 001 visual candidate network operator signal network queue routing",
+              "network",
+              "clause hurricane evacuation traffic under storm surge language.visual.network.span 002 visual candidate network operator signal network queue routing"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 4,
+      "kind": "custom",
+      "prompt": "museum preservation pigment film humidity aging",
+      "screenshot": "04-custom-museum-preservation-pigment-film-humidity-aging.png",
+      "screenshotHash": "63115b0f6c252f53317d3750de804f002eb1a69c11adabe9b235b1342c6e02f3",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "cultural-material",
+      "physicsCanvasSceneId": "36",
+      "physicsCanvasRenderCount": "298",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 68.949,
+      "lumaStd": 39.949,
+      "coloredRatio": 0.2306,
+      "canvasHash": "ce5661dc",
+      "specId": "museum-preservation-pigment-film-humidity-aging-mr6h1220",
+      "templateId": "custom-world",
+      "rendererSceneKind": "cultural-material",
+      "visualIRSceneKind": "cultural-material",
+      "visualIRCamera": "cutaway-section-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 8,
+      "visualIRFieldCount": 3,
+      "visualIRProcessCount": 11,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 13,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "instrument",
+        "measurement",
+        "signal"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "instrument": 0.243,
+        "measurement": 0.223,
+        "signal": 0.204
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomInstrumentReadout",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0022",
+          "kind": "catalog-candidate",
+          "text": "noun phrase film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "catalog-candidate",
+          "text": "noun phrase museum preservation pigment film",
+          "slots": []
+        },
+        {
+          "id": "activation.0018",
+          "kind": "catalog-candidate",
+          "text": "noun phrase pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "prompt museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "catalog-candidate",
+          "text": "clause museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0007",
+          "kind": "catalog-candidate",
+          "text": "clause museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "noun phrase preservation pigment film humidity",
+          "slots": []
+        },
+        {
+          "id": "activation.0015",
+          "kind": "catalog-candidate",
+          "text": "noun phrase preservation pigment film humidity",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "noun phrase museum preservation pigment film",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0005",
+          "kind": "catalog-candidate",
+          "text": "clause museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "catalog-candidate",
+          "text": "noun phrase museum preservation pigment film",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "noun phrase preservation pigment film humidity",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "noun phrase pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "catalog-candidate",
+          "text": "noun phrase film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "noun phrase film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0012",
+          "kind": "environment-candidate",
+          "text": "noun phrase museum preservation pigment film",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "environment-candidate",
+          "text": "prompt museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "environment-candidate",
+          "text": "clause museum preservation pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "environment-candidate",
+          "text": "noun phrase preservation pigment film humidity",
+          "slots": []
+        },
+        {
+          "id": "activation.0020",
+          "kind": "environment-candidate",
+          "text": "noun phrase pigment film humidity aging",
+          "slots": []
+        },
+        {
+          "id": "activation.0024",
+          "kind": "environment-candidate",
+          "text": "noun phrase film humidity aging",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 75,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 7,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 75,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 7,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 350928,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "04-custom-museum-preservation-pigment-film-humidity-aging.canvas.png",
+      "canvasScreenshotLater": "04-custom-museum-preservation-pigment-film-humidity-aging.canvas-late.png",
+      "canvasScreenshotHash": "25038827d3c2a069241b8f5d0786ec232eab092d5d0cd61b78a18646b571f5f3",
+      "canvasScreenshotLaterHash": "f5453107f4c18cd690f49ccaa9b50f589a9c6a4504532231d3aaa57f9bdabd70",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 39.949,
+      "canvasScreenshotColoredRatio": 0.2306,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.017,
+      "canvasFrameLumaStdDelta": 0.008,
+      "canvasFrameColoredRatioDelta": 0.0118,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 96,
+        "pass": true,
+        "expectedCount": 0,
+        "coverage": 1,
+        "representationQuality": 0.87,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.87,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 0,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 0.887,
+        "color": 0.815,
+        "expectedSignals": [],
+        "matchedSignals": [],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 5,
+      "kind": "custom",
+      "prompt": "sample tray of water air rock wood metal under force fields",
+      "screenshot": "05-custom-sample-tray-of-water-air-rock-wood-metal-under-force-fields.png",
+      "screenshotHash": "994926da2d2f05d70775e6e00bc5bb0a6e8fc087cc83f2f4d3041ba5034792f1",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "material-tray",
+      "physicsCanvasSceneId": "35",
+      "physicsCanvasRenderCount": "401",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 69.981,
+      "lumaStd": 60.215,
+      "coloredRatio": 0.5118,
+      "canvasHash": "6f9f9612",
+      "specId": "sample-tray-water-air-rock-wood-mr6h13wp",
+      "templateId": "custom-world",
+      "rendererSceneKind": "material-tray",
+      "visualIRSceneKind": "material-tray",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 12,
+      "visualIRFieldCount": 4,
+      "visualIRProcessCount": 14,
+      "visualIROperatorCount": 8,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 13,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.fluid-advection.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.613,
+        "motion": 0.564,
+        "density": 0.515,
+        "surface": 0.466
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0216",
+          "kind": "catalog-candidate",
+          "text": "noun phrase force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0078",
+          "kind": "catalog-candidate",
+          "text": "noun phrase sample tray",
+          "slots": []
+        },
+        {
+          "id": "activation.0108",
+          "kind": "catalog-candidate",
+          "text": "noun phrase water air rock wood",
+          "slots": []
+        },
+        {
+          "id": "activation.0036",
+          "kind": "visual-candidate",
+          "text": "prompt sample tray of water air rock wood metal under force fields language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0072",
+          "kind": "visual-candidate",
+          "text": "clause sample tray of water air rock wood metal under force fields language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0180",
+          "kind": "catalog-candidate",
+          "text": "noun phrase rock wood metal",
+          "slots": []
+        },
+        {
+          "id": "activation.0144",
+          "kind": "catalog-candidate",
+          "text": "noun phrase air rock wood metal",
+          "slots": []
+        },
+        {
+          "id": "activation.0251",
+          "kind": "catalog-candidate",
+          "text": "modifier under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0143",
+          "kind": "visual-candidate",
+          "text": "noun phrase water air rock wood language.visual.fluid.span 004 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0145",
+          "kind": "catalog-candidate",
+          "text": "noun phrase air rock wood metal",
+          "slots": []
+        },
+        {
+          "id": "activation.0179",
+          "kind": "catalog-candidate",
+          "text": "noun phrase rock wood metal",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt sample tray of water air rock wood metal under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0037",
+          "kind": "catalog-candidate",
+          "text": "clause sample tray of water air rock wood metal under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0250",
+          "kind": "catalog-candidate",
+          "text": "modifier under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt sample tray of water air rock wood metal under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0038",
+          "kind": "catalog-candidate",
+          "text": "clause sample tray of water air rock wood metal under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0109",
+          "kind": "catalog-candidate",
+          "text": "noun phrase water air rock wood",
+          "slots": []
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "prompt sample tray of water air rock wood metal under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0039",
+          "kind": "catalog-candidate",
+          "text": "clause sample tray of water air rock wood metal under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0073",
+          "kind": "catalog-candidate",
+          "text": "noun phrase sample tray",
+          "slots": []
+        },
+        {
+          "id": "activation.0214",
+          "kind": "catalog-candidate",
+          "text": "noun phrase force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0249",
+          "kind": "catalog-candidate",
+          "text": "modifier under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "catalog-candidate",
+          "text": "prompt sample tray of water air rock wood metal under force fields",
+          "slots": []
+        },
+        {
+          "id": "activation.0042",
+          "kind": "catalog-candidate",
+          "text": "clause sample tray of water air rock wood metal under force fields",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 78,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 5,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 78,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 5,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 579913,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "05-custom-sample-tray-of-water-air-rock-wood-metal-under-force-fields.canvas.png",
+      "canvasScreenshotLater": "05-custom-sample-tray-of-water-air-rock-wood-metal-under-force-fields.canvas-late.png",
+      "canvasScreenshotHash": "f2dde68c00626d2659e58947dc62b7108fc9b63011dff0d32c1ea85f35e386a9",
+      "canvasScreenshotLaterHash": "776f20a14d463ceb6ef9797edfd8b35c8ea0c66cd58ef273111d9673436668b8",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 60.215,
+      "canvasScreenshotColoredRatio": 0.5118,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.356,
+      "canvasFrameLumaStdDelta": 0.13,
+      "canvasFrameColoredRatioDelta": 0.0112,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": [
+              "prompt sample tray of water air rock wood metal under force fields language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+              "fluid",
+              "clause sample tray of water air rock wood metal under force fields language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 6,
+      "kind": "custom",
+      "prompt": "soap thin film with air bubbles in wire loops and iridescent interference",
+      "screenshot": "06-custom-soap-thin-film-with-air-bubbles-in-wire-loops-and-iridescent-interference.png",
+      "screenshotHash": "3db463af230cb11713c727e10bc25c5623ed87fd637f1eecf5dcc6eb2cb96179",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "thin-film",
+      "physicsCanvasSceneId": "34",
+      "physicsCanvasRenderCount": "495",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 174.018,
+      "lumaStd": 23.098,
+      "coloredRatio": 0.9046,
+      "canvasHash": "79bbf6e9",
+      "specId": "soap-thin-film-air-bubbles-in-mr6h15vx",
+      "templateId": "custom-world",
+      "rendererSceneKind": "thin-film",
+      "visualIRSceneKind": "thin-film",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 9,
+      "visualIRFieldCount": 3,
+      "visualIRProcessCount": 10,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 14,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.thin-film-interference.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "optical",
+        "phase",
+        "motion",
+        "emission",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "optical": 0.92,
+        "phase": 1,
+        "motion": 0.68,
+        "emission": 0.76,
+        "surface": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomOpticalCaustics",
+        "atomQuantumFringes"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "noun phrase air bubbles",
+          "slots": []
+        },
+        {
+          "id": "activation.0020",
+          "kind": "catalog-candidate",
+          "text": "noun phrase soap thin film",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "catalog-candidate",
+          "text": "clause iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0032",
+          "kind": "catalog-candidate",
+          "text": "noun phrase wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0035",
+          "kind": "catalog-candidate",
+          "text": "noun phrase iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "visual-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0013",
+          "kind": "visual-candidate",
+          "text": "clause soap thin film with air bubbles in wire loops language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0007",
+          "kind": "visual-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference language.visual.optical.span 001 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0043",
+          "kind": "visual-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference language.visual.fluid.span 008 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0044",
+          "kind": "visual-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference language.visual.optical.span 008 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0018",
+          "kind": "visual-candidate",
+          "text": "clause iridescent interference language.visual.optical.span 003 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0028",
+          "kind": "visual-candidate",
+          "text": "noun phrase air bubbles language.visual.fluid.span 005 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0037",
+          "kind": "visual-candidate",
+          "text": "noun phrase iridescent interference language.visual.optical.span 007 visual candidate optical operator signal optical ray phase",
+          "slots": [
+            "optical",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0038",
+          "kind": "catalog-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "catalog-candidate",
+          "text": "clause soap thin film with air bubbles in wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "clause soap thin film with air bubbles in wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt soap thin film with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase soap thin film",
+          "slots": []
+        },
+        {
+          "id": "activation.0029",
+          "kind": "catalog-candidate",
+          "text": "noun phrase wire loops",
+          "slots": []
+        },
+        {
+          "id": "activation.0033",
+          "kind": "catalog-candidate",
+          "text": "noun phrase iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0040",
+          "kind": "catalog-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "modifier with air bubbles in wire loops and iridescent interference",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 402645,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "06-custom-soap-thin-film-with-air-bubbles-in-wire-loops-and-iridescent-interference.canvas.png",
+      "canvasScreenshotLater": "06-custom-soap-thin-film-with-air-bubbles-in-wire-loops-and-iridescent-interference.canvas-late.png",
+      "canvasScreenshotHash": "8b08914e3d44aa14a3ff1e25770832475b8916c81ed7af8a6be2ca7ad6ec35db",
+      "canvasScreenshotLaterHash": "b4769f88e1abea4fee4e113f70cefb09681438f0ddb4b0172c64f642539e500c",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 23.098,
+      "canvasScreenshotColoredRatio": 0.9046,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.116,
+      "canvasFrameLumaStdDelta": 0.304,
+      "canvasFrameColoredRatioDelta": 0.0046,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 96,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 0.767,
+        "atomRichness": 1,
+        "contrast": 0.419,
+        "color": 1,
+        "expectedSignals": [
+          "optical"
+        ],
+        "matchedSignals": [
+          {
+            "id": "optical",
+            "strength": 1,
+            "slotHits": [
+              "optical",
+              "phase",
+              "emission",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.thin-film-interference.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt soap thin film with air bubbles in wire loops and iridescent interference language.visual.optical.span 001 visual candidate optical operator signal optical ray phase",
+              "optical",
+              "modifier with air bubbles in wire loops and iridescent interference language.visual.optical.span 008 visual candidate optical operator signal optical ray phase"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 7,
+      "kind": "custom",
+      "prompt": "acoustic levitator dust brass tube standing pressure waves",
+      "screenshot": "07-custom-acoustic-levitator-dust-brass-tube-standing-pressure-waves.png",
+      "screenshotHash": "abb41d2f1b6e5e8c53580f1782b537252d5a82e464d0fd0e3a43880cd99349ed",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "acoustic",
+      "physicsCanvasSceneId": "6",
+      "physicsCanvasRenderCount": "590",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 102.74,
+      "lumaStd": 54.171,
+      "coloredRatio": 0.7639,
+      "canvasHash": "2de4e595",
+      "specId": "acoustic-levitator-dust-brass-tube-standing-mr6h1816",
+      "templateId": "custom-world",
+      "rendererSceneKind": "acoustic",
+      "visualIRSceneKind": "acoustic",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 22,
+      "visualIRMaterialCount": 14,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 17,
+      "visualIROperatorCount": 10,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 1,
+      "visualIRGraphicsAtomCount": 26,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.acoustic-wave.v1",
+        "visual.operator.granular-erosion.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "acoustic",
+        "granular",
+        "instrument",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "acoustic": 1,
+        "granular": 0.729,
+        "instrument": 0.76,
+        "motion": 0.92,
+        "density": 0.84,
+        "surface": 0.612
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomAcousticRings",
+        "atomStandingNodes",
+        "atomGranularStrata",
+        "atomSedimentMotion"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0064",
+          "kind": "catalog-candidate",
+          "text": "noun phrase standing pressure waves",
+          "slots": []
+        },
+        {
+          "id": "activation.0024",
+          "kind": "catalog-candidate",
+          "text": "noun phrase acoustic levitator dust brass",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0009",
+          "kind": "visual-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0020",
+          "kind": "visual-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0055",
+          "kind": "catalog-candidate",
+          "text": "noun phrase tube standing pressure waves",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dust brass tube standing",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "noun phrase brass tube standing pressure",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "visual-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves language.visual.acoustic.span 001 visual candidate acoustic operator signal wave pressure resonance",
+          "slots": [
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0021",
+          "kind": "visual-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves language.visual.acoustic.span 002 visual candidate acoustic operator signal wave pressure resonance",
+          "slots": [
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0028",
+          "kind": "visual-candidate",
+          "text": "noun phrase acoustic levitator dust brass language.visual.acoustic.span 003 visual candidate acoustic operator signal wave pressure resonance",
+          "slots": [
+            "acoustic",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0037",
+          "kind": "visual-candidate",
+          "text": "noun phrase levitator dust brass tube language.visual.granular.span 004 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0045",
+          "kind": "visual-candidate",
+          "text": "noun phrase dust brass tube standing language.visual.granular.span 005 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0054",
+          "kind": "visual-candidate",
+          "text": "noun phrase brass tube standing pressure language.visual.fluid.span 006 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0063",
+          "kind": "visual-candidate",
+          "text": "noun phrase tube standing pressure waves language.visual.fluid.span 007 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0031",
+          "kind": "catalog-candidate",
+          "text": "noun phrase levitator dust brass tube",
+          "slots": []
+        },
+        {
+          "id": "activation.0070",
+          "kind": "visual-candidate",
+          "text": "noun phrase standing pressure waves language.visual.fluid.span 008 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0011",
+          "kind": "visual-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves language.visual.granular.span 001 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "acoustic",
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0022",
+          "kind": "visual-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves language.visual.granular.span 002 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "acoustic",
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0029",
+          "kind": "visual-candidate",
+          "text": "noun phrase acoustic levitator dust brass language.visual.granular.span 003 visual candidate granular operator signal granular erosion settling",
+          "slots": [
+            "acoustic",
+            "granular",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause acoustic levitator dust brass tube standing pressure waves",
+          "slots": [
+            "acoustic"
+          ]
+        },
+        {
+          "id": "activation.0046",
+          "kind": "catalog-candidate",
+          "text": "noun phrase brass tube standing pressure",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 1,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 1,
+      "previewLength": 515350,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "07-custom-acoustic-levitator-dust-brass-tube-standing-pressure-waves.canvas.png",
+      "canvasScreenshotLater": "07-custom-acoustic-levitator-dust-brass-tube-standing-pressure-waves.canvas-late.png",
+      "canvasScreenshotHash": "23032909d0bee3253ae5272e87572157c349d2484fc14c425d8b0fb82a30cd63",
+      "canvasScreenshotLaterHash": "8543979d66c18001d68ffdc7e0e2910743fb2468318ac0b6db008c68123eccc3",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 54.171,
+      "canvasScreenshotColoredRatio": 0.7639,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.459,
+      "canvasFrameLumaStdDelta": 0.093,
+      "canvasFrameColoredRatioDelta": 0.0068,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 3,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "acoustic",
+          "granular"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "density",
+              "motion"
+            ],
+            "mappingHits": [],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+              "fluid",
+              "clause acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection"
+            ]
+          },
+          {
+            "id": "acoustic",
+            "strength": 1,
+            "slotHits": [
+              "acoustic",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.acoustic-wave.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "noun phrase acoustic levitator dust brass",
+              "acoustic",
+              "prompt acoustic levitator dust brass tube standing pressure waves language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection"
+            ]
+          },
+          {
+            "id": "granular",
+            "strength": 1,
+            "slotHits": [
+              "granular",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.granular-erosion.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "noun phrase levitator dust brass tube language.visual.granular.span 004 visual candidate granular operator signal granular erosion settling",
+              "granular",
+              "noun phrase dust brass tube standing language.visual.granular.span 005 visual candidate granular operator signal granular erosion settling"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 8,
+      "kind": "custom",
+      "prompt": "bridge resonance under wind vortex shedding with cable tension",
+      "screenshot": "08-custom-bridge-resonance-under-wind-vortex-shedding-with-cable-tension.png",
+      "screenshotHash": "e26cd649df5b045398354299f529c11823590048e393110654b350a18f1e24b9",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "structural-mechanics",
+      "physicsCanvasSceneId": "24",
+      "physicsCanvasRenderCount": "675",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 71.268,
+      "lumaStd": 61.356,
+      "coloredRatio": 0.5832,
+      "canvasHash": "90000503",
+      "specId": "bridge-resonance-under-wind-vortex-shedding-mr6h1a8q",
+      "templateId": "custom-world",
+      "rendererSceneKind": "structural-mechanics",
+      "visualIRSceneKind": "structural-mechanics",
+      "visualIRCamera": "dynamic-motion-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 17,
+      "visualIRFieldCount": 6,
+      "visualIRProcessCount": 19,
+      "visualIROperatorCount": 10,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 3,
+      "visualIRGraphicsAtomCount": 26,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "stress",
+        "motion",
+        "density",
+        "constraint",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.99,
+        "stress": 1,
+        "motion": 0.911,
+        "density": 0.832,
+        "constraint": 0.92,
+        "surface": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomStressCracks",
+        "atomConstraintPads",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0036",
+          "kind": "catalog-candidate",
+          "text": "noun phrase wind vortex shedding",
+          "slots": []
+        },
+        {
+          "id": "activation.0030",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0054",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "visual-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0026",
+          "kind": "visual-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0058",
+          "kind": "catalog-candidate",
+          "text": "modifier under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0070",
+          "kind": "visual-candidate",
+          "text": "modifier under wind vortex shedding with cable tension language.visual.fluid.span 006 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0048",
+          "kind": "visual-candidate",
+          "text": "noun phrase wind vortex shedding language.visual.fluid.span 004 visual candidate fluid operator signal flow pressure advection",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0028",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0031",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0061",
+          "kind": "catalog-candidate",
+          "text": "modifier under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "catalog-candidate",
+          "text": "noun phrase bridge resonance",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0063",
+          "kind": "catalog-candidate",
+          "text": "modifier under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0015",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0005",
+          "kind": "catalog-candidate",
+          "text": "prompt bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        },
+        {
+          "id": "activation.0018",
+          "kind": "catalog-candidate",
+          "text": "clause bridge resonance under wind vortex shedding with cable tension",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 77,
+      "intentBriefCausalEdgeCount": 1,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 77,
+      "physicalReceiptCausalEdgeCount": 1,
+      "physicalReceiptCausalAffordanceCount": 3,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 3,
+      "previewLength": 466375,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "08-custom-bridge-resonance-under-wind-vortex-shedding-with-cable-tension.canvas.png",
+      "canvasScreenshotLater": "08-custom-bridge-resonance-under-wind-vortex-shedding-with-cable-tension.canvas-late.png",
+      "canvasScreenshotHash": "c65de3e4ff29a861982ab4151c987c66cf7c00d9a407324d904e76877846b773",
+      "canvasScreenshotLaterHash": "561e94ca76e67fd7f114a99d796379bab1db5cda444f12a03a3da3afe618a839",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 61.356,
+      "canvasScreenshotColoredRatio": 0.5832,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.031,
+      "canvasFrameLumaStdDelta": 0.103,
+      "canvasFrameColoredRatioDelta": 0.0403,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "stress"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": [
+              "prompt bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection",
+              "fluid",
+              "clause bridge resonance under wind vortex shedding with cable tension language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection"
+            ]
+          },
+          {
+            "id": "stress",
+            "strength": 1,
+            "slotHits": [
+              "stress",
+              "constraint",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.stress-fracture.v1"
+            ],
+            "wgslHits": [
+              "atomStressCracks"
+            ],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 9,
+      "kind": "custom",
+      "prompt": "fire burning through a warehouse stairwell with smoke and hot concrete",
+      "screenshot": "09-custom-fire-burning-through-a-warehouse-stairwell-with-smoke-and-hot-concrete.png",
+      "screenshotHash": "bf70463242756313dd9c7fabc1411bf766cc303087919bf84f32d1f27dd573b3",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "fire",
+      "physicsCanvasSceneId": "33",
+      "physicsCanvasRenderCount": "767",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 35.646,
+      "lumaStd": 36.641,
+      "coloredRatio": 0.4664,
+      "canvasHash": "31b1fc7e",
+      "specId": "fire-burning-through-warehouse-stairwell-smoke-mr6h1cao",
+      "templateId": "custom-world",
+      "rendererSceneKind": "fire",
+      "visualIRSceneKind": "fire",
+      "visualIRCamera": "network-map-depth",
+      "visualIREntityCount": 16,
+      "visualIRMaterialCount": 23,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 17,
+      "visualIROperatorCount": 10,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 4,
+      "visualIRGraphicsAtomCount": 25,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.thermal-combustion.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "thermal",
+        "combustion",
+        "phase",
+        "motion",
+        "density",
+        "emission"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "thermal": 1,
+        "combustion": 1,
+        "phase": 0.92,
+        "motion": 0.76,
+        "density": 0.76,
+        "emission": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomThermalPlume",
+        "atomPhaseBoundary",
+        "atomCombustionFront",
+        "atomSootColumn"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0032",
+          "kind": "catalog-candidate",
+          "text": "noun phrase fire burning",
+          "slots": []
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "noun phrase smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0025",
+          "kind": "catalog-candidate",
+          "text": "clause hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0045",
+          "kind": "catalog-candidate",
+          "text": "noun phrase warehouse stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0061",
+          "kind": "catalog-candidate",
+          "text": "noun phrase hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "visual-candidate",
+          "text": "prompt fire burning through a warehouse stairwell with smoke and hot concrete language.visual.thermal.span 001 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "visual-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke language.visual.thermal.span 002 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0078",
+          "kind": "visual-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete language.visual.thermal.span 008 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt fire burning through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0043",
+          "kind": "catalog-candidate",
+          "text": "noun phrase warehouse stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0031",
+          "kind": "visual-candidate",
+          "text": "clause hot concrete language.visual.thermal.span 003 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0040",
+          "kind": "visual-candidate",
+          "text": "noun phrase fire burning language.visual.thermal.span 004 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0067",
+          "kind": "visual-candidate",
+          "text": "noun phrase hot concrete language.visual.thermal.span 007 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0057",
+          "kind": "visual-candidate",
+          "text": "noun phrase smoke language.visual.thermal.span 006 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0068",
+          "kind": "catalog-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0069",
+          "kind": "catalog-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt fire burning through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause fire burning through a warehouse stairwell with smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0070",
+          "kind": "catalog-candidate",
+          "text": "modifier through a warehouse stairwell with smoke and hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0022",
+          "kind": "catalog-candidate",
+          "text": "clause hot concrete",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "noun phrase warehouse stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "noun phrase smoke",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 77,
+      "intentBriefCausalEdgeCount": 4,
+      "intentBriefAssumptionCount": 9,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 77,
+      "physicalReceiptCausalEdgeCount": 4,
+      "physicalReceiptCausalAffordanceCount": 4,
+      "physicalReceiptAssumptionCount": 9,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 4,
+      "previewLength": 506524,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "09-custom-fire-burning-through-a-warehouse-stairwell-with-smoke-and-hot-concrete.canvas.png",
+      "canvasScreenshotLater": "09-custom-fire-burning-through-a-warehouse-stairwell-with-smoke-and-hot-concrete.canvas-late.png",
+      "canvasScreenshotHash": "131b01ea684ac23818396daf11fac22c66cd91d2da45c1a0405b0fc7f813aaf5",
+      "canvasScreenshotLaterHash": "7a3f68cef39f4ccbbbe08fe5670f4d967ac9de1e1e05b856c8392979910c45bd",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 36.641,
+      "canvasScreenshotColoredRatio": 0.4664,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.026,
+      "canvasFrameLumaStdDelta": 0.01,
+      "canvasFrameColoredRatioDelta": 0.0035,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 96,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 0.87,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.87,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 0,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 0.583,
+        "atomRichness": 1,
+        "contrast": 0.796,
+        "color": 1,
+        "expectedSignals": [
+          "thermal"
+        ],
+        "matchedSignals": [
+          {
+            "id": "thermal",
+            "strength": 1,
+            "slotHits": [
+              "thermal",
+              "combustion",
+              "phase",
+              "emission"
+            ],
+            "mappingHits": [
+              "visual.operator.heat-transfer.v1",
+              "visual.operator.thermal-combustion.v1"
+            ],
+            "wgslHits": [
+              "atomThermalPlume"
+            ],
+            "languageHits": [
+              "prompt fire burning through a warehouse stairwell with smoke and hot concrete language.visual.thermal.span 001 visual candidate thermal operator signal heat thermal phase",
+              "thermal",
+              "clause fire burning through a warehouse stairwell with smoke language.visual.thermal.span 002 visual candidate thermal operator signal heat thermal phase"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 10,
+      "kind": "custom",
+      "prompt": "particle collider muon tracks through detector slice with calorimeter pulses",
+      "screenshot": "10-custom-particle-collider-muon-tracks-through-detector-slice-with-calorimeter-pulses.png",
+      "screenshotHash": "6e153d42e1b43fb9352ff4e0672a567933e40c6a648665ae1fb418af405266d2",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "particle-instrument",
+      "physicsCanvasSceneId": "15",
+      "physicsCanvasRenderCount": "850",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 78.755,
+      "lumaStd": 66.008,
+      "coloredRatio": 0.3886,
+      "canvasHash": "ba41a54f",
+      "specId": "particle-collider-muon-tracks-through-detector-mr6h1e7l",
+      "templateId": "custom-world",
+      "rendererSceneKind": "particle-instrument",
+      "visualIRSceneKind": "particle-instrument",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 12,
+      "visualIRMaterialCount": 7,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 9,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 23,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "instrument",
+        "measurement",
+        "motion",
+        "emission",
+        "signal"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "instrument": 1,
+        "measurement": 0.92,
+        "motion": 0.68,
+        "emission": 0.76,
+        "signal": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomInstrumentReadout",
+        "atomQuantumFringes",
+        "atomFeedbackArcs",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0043",
+          "kind": "catalog-candidate",
+          "text": "noun phrase calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "visual-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 001 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0018",
+          "kind": "visual-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 002 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0020",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "catalog-candidate",
+          "text": "noun phrase collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0055",
+          "kind": "visual-candidate",
+          "text": "modifier through detector slice with calorimeter pulses language.visual.instrument.span 007 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0040",
+          "kind": "catalog-candidate",
+          "text": "noun phrase calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0039",
+          "kind": "visual-candidate",
+          "text": "noun phrase detector slice language.visual.instrument.span 005 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0046",
+          "kind": "visual-candidate",
+          "text": "noun phrase calorimeter pulses language.visual.instrument.span 006 visual candidate instrument operator signal measurement readout instrument",
+          "slots": [
+            "instrument",
+            "measurement",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0034",
+          "kind": "catalog-candidate",
+          "text": "noun phrase detector slice",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "modifier through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0028",
+          "kind": "catalog-candidate",
+          "text": "noun phrase collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0047",
+          "kind": "catalog-candidate",
+          "text": "modifier through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "modifier through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "prompt particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause particle collider muon tracks through detector slice with calorimeter pulses",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 5,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 76,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 5,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 393247,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "10-custom-particle-collider-muon-tracks-through-detector-slice-with-calorimeter-pulses.canvas.png",
+      "canvasScreenshotLater": "10-custom-particle-collider-muon-tracks-through-detector-slice-with-calorimeter-pulses.canvas-late.png",
+      "canvasScreenshotHash": "66a1441eca5c4ca6be82a22cb9a1eea52db695d29b6b0695735383770bd85347",
+      "canvasScreenshotLaterHash": "fe1c3a9076480fbc1d94c46dbe25188d38c31a279efe6a05fdf3cdc2e834568d",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 66.008,
+      "canvasScreenshotColoredRatio": 0.3886,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.441,
+      "canvasFrameLumaStdDelta": 0.759,
+      "canvasFrameColoredRatioDelta": 0.0029,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "instrument"
+        ],
+        "matchedSignals": [
+          {
+            "id": "instrument",
+            "strength": 1,
+            "slotHits": [
+              "instrument",
+              "measurement",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.instrument-readout.v1",
+              "visual.operator.particle-track-detector.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 001 visual candidate instrument operator signal measurement readout instrument",
+              "instrument",
+              "clause particle collider muon tracks through detector slice with calorimeter pulses language.visual.instrument.span 002 visual candidate instrument operator signal measurement readout instrument"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

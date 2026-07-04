@@ -147,28 +147,46 @@ test('training mode streams prompt-output critiques over localhost', () => {
   assert.match(bridge, /key === 't'/);
   assert.match(bridge, /TRAINING_LABELS/);
   assert.match(bridge, /Looks right/);
-  assert.match(bridge, /Wrong scene/);
-  assert.match(bridge, /Missing object/);
-  assert.match(bridge, /Wrong material/);
-  assert.match(bridge, /Too generic/);
-  assert.match(bridge, /Bad motion/);
-  assert.match(bridge, /Feedback note/);
-  assert.match(bridge, /Type feedback here/);
-  assert.match(bridge, /Save feedback as/);
+  assert.doesNotMatch(bridge, /Wrong scene/);
+  assert.doesNotMatch(bridge, /Missing object/);
+  assert.doesNotMatch(bridge, /Wrong material/);
+  assert.doesNotMatch(bridge, /Too generic/);
+  assert.doesNotMatch(bridge, /Bad motion/);
+  assert.match(bridge, /simulatte-training-layer/);
+  assert.match(bridge, /Training layer/);
+  assert.match(bridge, /data-training-phase-grid/);
+  assert.match(bridge, /data-training-artifact-json/);
+  assert.match(bridge, /data-training-diagnostics/);
+  assert.match(bridge, /Feedback/);
+  assert.match(bridge, /Save feedback/);
+  assert.doesNotMatch(bridge, /Expected output/);
+  assert.doesNotMatch(bridge, /Fix note/);
+  assert.doesNotMatch(bridge, /Save bug/);
+  assert.doesNotMatch(bridge, /BUG_TYPES/);
+  assert.doesNotMatch(bridge, /SEVERITIES/);
+  assert.doesNotMatch(bridge, /phase_artifact_wrong/);
   assert.match(bridge, /Feedback target/);
   assert.match(bridge, /Submit feedback for/);
   assert.match(bridge, /targetName\(target\)/);
-  assert.match(bridge, /document\.querySelector\('#prompt-more-menu'\)/);
-  assert.match(bridge, /if \(moreMenu\) moreMenu\.open = true/);
+  assert.match(bridge, /document\.body\.append\(node\)/);
+  assert.match(bridge, /toggleCollapsed/);
   assert.match(bridge, /await reviewStore\.put\(record, false\)/);
   assert.match(bridge, /syncQueuedRecords/);
   assert.match(bridge, /artifactSummary/);
   assert.match(bridge, /artifactHash/);
+  assert.match(bridge, /phaseCards/);
+  assert.match(bridge, /selectedArtifact/);
+  assert.match(bridge, /feedback/);
+  assert.doesNotMatch(bridge, /bugType/);
+  assert.doesNotMatch(bridge, /severity/);
+  assert.doesNotMatch(bridge, /fixHint/);
   assert.match(bridge, /phaseFrom/);
   assert.match(bridge, /phaseTo/);
   assert.match(bridge, /runId/);
   assert.match(bridge, /\/draft/);
   assert.match(bridge, /\/reviews/);
+  assert.match(bridge, /\/summary/);
+  assert.match(bridge, /EventSource/);
   assert.match(bridge, /mappingIds/);
   assert.match(bridge, /uniformSlots/);
   assert.match(bridge, /canvasHash/);
@@ -181,7 +199,14 @@ test('training mode streams prompt-output critiques over localhost', () => {
   assert.match(server, /\/summary/);
   assert.match(server, /summarizeReviews/);
   assert.match(server, /byPhase/);
+  assert.doesNotMatch(server, /byBugType/);
+  assert.doesNotMatch(server, /bySeverity/);
+  assert.doesNotMatch(server, /byPhaseBug/);
   assert.match(server, /artifactSummary: compactJson/);
+  assert.match(server, /selectedArtifact: compactJson/);
+  assert.match(server, /phaseCards: compactJson/);
+  assert.match(server, /feedback: stringValue/);
+  assert.doesNotMatch(server, /fixHint: stringValue/);
   assert.match(server, /fps: numberValue\(diagnostics\.fps, 0\)/);
   assert.match(server, /\/events/);
   assert.match(server, /Access-Control-Allow-Private-Network/);
@@ -400,6 +425,7 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(intentWorker, /simulatte:intent-worker:load/);
   assert.match(intentWorker, /simulatte:intent-worker:rank/);
   assert.match(intentWorker, /workerEmbedder\.rankPrompt/);
+  assert.match(intentWorker, /traceEmbeddings: config\.traceEmbeddings === true/);
   assert.match(renderer, /const intentWorker = createIntentWorkerClient\(root, \(event\) => syncRuntime\(event\)\)/);
   assert.match(renderer, /const embedder = intentWorker \|\| mainThreadEmbedder/);
   assert.match(renderer, /function createIntentWorkerClient\(root, onProgress = null\)/);
@@ -544,17 +570,24 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /const FADE_MS = 160/);
   assert.match(loadingCanvas, /const MIN_SNAKES = 6/);
   assert.match(loadingCanvas, /const MAX_SNAKES = 10/);
-  assert.match(loadingCanvas, /const SPLIT_LENGTH = 34/);
-  assert.match(loadingCanvas, /const TOTAL_CELL_LIMIT = 230/);
   assert.match(loadingCanvas, /const TARGET_CELL_PX = 32/);
   assert.match(loadingCanvas, /const MIN_CELL_PX = 18/);
   assert.match(loadingCanvas, /const MAX_CELL_PX = 40/);
   assert.match(loadingCanvas, /const LOOP_TURN_BONUS = 5\.2/);
   assert.match(loadingCanvas, /const TRAIL_ORBIT_BONUS = 1\.7/);
-  assert.match(loadingCanvas, /const PASTEL_RAINBOW = Object\.freeze/);
-  assert.match(loadingCanvas, /'#ff6fa3'/);
-  assert.match(loadingCanvas, /'#42cfff'/);
-  assert.match(loadingCanvas, /'#c66bff'/);
+  assert.match(loadingCanvas, /const CROSSABLE_BODY_PORTION = 0\.25/);
+  assert.match(loadingCanvas, /const HEAD_TO_HEAD_COLLISION_SHARE = 0\.5/);
+  assert.match(loadingCanvas, /const HEAD_TO_HEAD_TARGET_BONUS = 12/);
+  assert.match(loadingCanvas, /const HEAD_TO_BODY_TARGET_BONUS = 8/);
+  assert.match(loadingCanvas, /const MIN_TAIL_ALPHA = 0\.3/);
+  assert.match(loadingCanvas, /const GHOST_ALPHA = 0\.28/);
+  assert.match(loadingCanvas, /const ROYGBIV_SPECTRUM = Object\.freeze/);
+  assert.match(loadingCanvas, /'#ff3f4f'/);
+  assert.match(loadingCanvas, /'#ffd33d'/);
+  assert.match(loadingCanvas, /'#30d46f'/);
+  assert.match(loadingCanvas, /'#30c7f2'/);
+  assert.match(loadingCanvas, /'#5f78ff'/);
+  assert.match(loadingCanvas, /'#b65cff'/);
   assert.match(loadingCanvas, /function fullPageBoard/);
   assert.match(loadingCanvas, /const shortAxisCells = Math\.max\(10, Math\.floor\(shortAxis \/ TARGET_CELL_PX\)\)/);
   assert.match(loadingCanvas, /Math\.max\(MIN_CELL_PX, Math\.min\(MAX_CELL_PX/);
@@ -562,6 +595,10 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /ctx\.fillStyle = '#f8f8f9'/);
   assert.match(loadingCanvas, /ctx\.strokeStyle = 'rgba\(198, 201, 207, 0\.62\)'/);
   assert.match(loadingCanvas, /function drawSnake/);
+  assert.match(loadingCanvas, /drawSnake\(ctx, this\.board, snake, now\)/);
+  assert.match(loadingCanvas, /const motion = easeOutCubic\(progress\)/);
+  assert.match(loadingCanvas, /const fade = easeInFastOut\(progress\)/);
+  assert.match(loadingCanvas, /function drawTile/);
   assert.match(loadingCanvas, /ctx\.fillRect\(\n\s+part\.x \* cell \+ inset,/);
   assert.doesNotMatch(loadingCanvas, /function drawEyes|ctx\.arc|roundRect|const shade = \(x \+ y\) % 2/);
   assert.match(loadingCanvas, /advanceSwarm/);
@@ -574,15 +611,29 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /ownTrailAdjacency\(target, snake\) \* TRAIL_ORBIT_BONUS/);
   assert.match(loadingCanvas, /function turnDirection/);
   assert.match(loadingCanvas, /function ownTrailAdjacency/);
-  assert.match(loadingCanvas, /combineCollisionGroups/);
+  assert.match(loadingCanvas, /resolveCollisionPlans/);
+  assert.match(loadingCanvas, /this\.resolveCollisionPlans\(plans, occupiedBefore, drawFromById\)/);
   assert.match(loadingCanvas, /plan\.actualTarget = target/);
   assert.match(loadingCanvas, /cellKey\(plan\.actualTarget \|\| plan\.target\)/);
+  assert.match(loadingCanvas, /sameCell\(targetA, oldHeadB\) && sameCell\(targetB, oldHeadA\)/);
+  assert.match(loadingCanvas, /oldOwner && oldOwner\.id !== plan\.snake\.id && oldOwner\.index === 0/);
+  assert.match(loadingCanvas, /owner && headMergedIds\.has\(owner\.id\)/);
   assert.match(loadingCanvas, /function combineSnakes/);
+  assert.match(loadingCanvas, /function absorbSnake/);
+  assert.match(loadingCanvas, /function isDestructiveBodyCollision/);
+  assert.match(loadingCanvas, /function isCrossableTail/);
+  assert.match(loadingCanvas, /owner\.index >= Math\.ceil\(owner\.length \* \(1 - CROSSABLE_BODY_PORTION\)\)/);
+  assert.match(loadingCanvas, /const wantsHeadToHead = rng\(\) < HEAD_TO_HEAD_COLLISION_SHARE/);
+  assert.match(loadingCanvas, /wantsHeadToHead \? HEAD_TO_HEAD_TARGET_BONUS/);
+  assert.match(loadingCanvas, /wantsHeadToHead \? -5\.5 : HEAD_TO_BODY_TARGET_BONUS/);
   assert.match(loadingCanvas, /function swizzleColors/);
-  assert.match(loadingCanvas, /splitOversizedSnakes/);
-  assert.match(loadingCanvas, /function shedCellsForSplit/);
+  assert.doesNotMatch(loadingCanvas, /splitOversizedSnakes|function shedCellsForSplit|SPLIT_LENGTH|TOTAL_CELL_LIMIT/);
+  assert.match(loadingCanvas, /function primeSnakeAnimation/);
+  assert.match(loadingCanvas, /function lerpCell/);
+  assert.match(loadingCanvas, /function easeInFastOut/);
+  assert.match(loadingCanvas, /function easeOutCubic/);
   assert.match(loadingCanvas, /function alphaForCell/);
-  assert.match(loadingCanvas, /1 - index \/ \(length - 1\) \* 0\.9/);
+  assert.match(loadingCanvas, /1 - easeInFastOut\(age\) \* \(1 - MIN_TAIL_ALPHA\)/);
   assert.match(loadingCanvas, /function colorWithAlpha/);
   assert.match(loadingCanvas, /function directionFromCells/);
   assert.match(loadingCanvas, /return \{ x: dx, y: 0 \}/);
@@ -829,7 +880,7 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   assert.match(webgpuRenderer, /'thin-film': 34/);
   assert.match(webgpuRenderer, /fire: 33/);
   assert.match(webgpuRenderer, /'magnetic-machine': 4/);
-  for (const sceneGroup of ['4.0', '6.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '33.0', '34.0']) {
+  for (const sceneGroup of ['3.0', '4.0', '6.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '33.0', '34.0', '35.0', '36.0']) {
     assert.match(webgpuRenderer, new RegExp(`sceneGroup == ${sceneGroup}`));
   }
   for (const pass of ['coil-field', 'film-frame', 'bead-stream', 'cooling-fins']) {
@@ -845,6 +896,52 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   assert.match(graph, /renderIR\.prompt/);
   assert.doesNotMatch(graph, /const promptText = '';/);
   assert.match(graph, /deterministic-compiled-artifact-seeded/);
+});
+
+test('WebGPU scene id and operator contracts cover emitted visual artifacts', () => {
+  const webgpuRenderer = fs.readFileSync(
+    path.join(jsDir, 'simulatte-webgpu-renderer.js'),
+    'utf8'
+  );
+  const sceneBlock = webgpuRenderer.match(/const SCENE_IDS = Object\.freeze\(\{([\s\S]*?)\n  \}\);/);
+  assert.ok(sceneBlock, 'SCENE_IDS block should be parseable');
+  const sceneIds = Object.fromEntries(
+    Array.from(sceneBlock[1].matchAll(/['"]?([a-z0-9-]+)['"]?:\s*(\d+)/g))
+      .map((match) => [match[1], Number(match[2])])
+  );
+  const sceneBranches = new Set(
+    Array.from(webgpuRenderer.matchAll(/sceneGroup == ([0-9]+)\.0/g))
+      .map((match) => Number(match[1]))
+  );
+  const missingBranches = Object.entries(sceneIds)
+    .filter(([, id]) => !sceneBranches.has(id))
+    .map(([sceneKind, id]) => `${sceneKind}:${id}`);
+
+  assert.deepEqual(missingBranches, []);
+  assert.equal(sceneIds.cryosphere, sceneIds['ocean-cryosphere']);
+  assert.notEqual(sceneIds['material-tray'], sceneIds['chemistry-lab']);
+  assert.notEqual(sceneIds['cultural-material'], sceneIds.granular);
+
+  const atlasOperators = new Set(
+    visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS
+      .flatMap((row) => row.wgslOperators || [])
+  );
+  const wgslFns = new Set(
+    Array.from(webgpuRenderer.matchAll(/fn\s+(atom[A-Za-z0-9_]+)\s*\(/g))
+      .map((match) => match[1])
+  );
+  const missingFns = Array.from(atlasOperators)
+    .filter((operator) => !wgslFns.has(operator))
+    .sort();
+  const unusedFns = Array.from(atlasOperators)
+    .filter((operator) => {
+      const escaped = operator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return (webgpuRenderer.match(new RegExp(`\\b${escaped}\\s*\\(`, 'g')) || []).length < 2;
+    })
+    .sort();
+
+  assert.deepEqual(missingFns, []);
+  assert.deepEqual(unusedFns, []);
 });
 
 test('physics graph updates log intent and composition debug data by default', () => {
@@ -912,6 +1009,17 @@ test('intent runtime keeps one visible line and does not silently fallback local
 
   assert.match(renderer, /compactIntentRuntimeMessage/);
   assert.match(renderer, /runtimeLineText/);
+  assert.match(renderer, /function runtimeTimingSuffix/);
+  assert.match(renderer, /function intentTraceEnabled/);
+  assert.match(renderer, /function logIntentRuntimeEvent/);
+  assert.match(renderer, /function registerModelCacheWorker/);
+  assert.match(renderer, /traceEmbeddings: intentTraceEnabled\(root\.defaultView\)/);
+  assert.match(renderer, /registerModelCacheWorker\(root\.defaultView/);
+  assert.match(renderer, /cache-skip/);
+  assert.match(renderer, /cache-worker/);
+  assert.match(renderer, /model-reuse/);
+  assert.match(renderer, /prompt-embed/);
+  assert.match(renderer, /span-cache/);
   assert.match(renderer, /Runtime dtype mismatch/);
   assert.match(renderer, /embedModel\(Id\|Hash\) mismatch/);
   assert.match(renderer, /Intent model unavailable/);
@@ -1004,7 +1112,11 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.layout, 'contiguous');
   assert.equal(manifest.runtime.runtimeConfig.inference.session.kvcache.tiering.mode, 'off');
   assert.equal(manifest.cache.namespace, 'simulatte-embeddinggemma-300m-primitive-retrieval-v1');
-  assert.equal(manifest.cache.prefetch, false);
+  assert.equal(manifest.cache.prefetch, true);
+  assert.equal(manifest.cache.strategy, 'opfs-primary');
+  assert.equal(manifest.cache.opfsRoot, 'simulatte-model-cache');
+  assert.ok(manifest.cache.storage.includes('OPFS'));
+  assert.ok(manifest.cache.storage.includes('CacheStorage'));
   assert.equal(manifest.cache.worker, './simulatte-model-cache-sw.js');
   assert.equal(manifest.cache.requirePersistent, false);
   assert.equal(manifest.embedModel.manifestHash.hex, index.embedModelHash.hex);
@@ -1045,6 +1157,15 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(runtime, /rankSurfaceCards/);
   assert.match(runtime, /cardMatches/);
   assert.match(runtime, /ensureModelArtifactCache/);
+  assert.match(runtime, /TRACE_URL_FLAGS/);
+  assert.match(runtime, /cache-skip/);
+  assert.match(runtime, /openOpfsCache/);
+  assert.match(runtime, /opfsCacheFileName/);
+  assert.match(runtime, /cacheBackends/);
+  assert.match(runtime, /model-reuse/);
+  assert.match(runtime, /prompt-embed/);
+  assert.match(runtime, /span-cache/);
+  assert.match(runtime, /durationMs: elapsedMsSince/);
   assert.match(runtime, /waitForCacheWorkerReady/);
   assert.match(runtime, /Promise\.race\(\[\n\s+navigator\.serviceWorker\.ready,/);
   assert.match(runtime, /intent model cache worker did not become ready/);
@@ -1065,6 +1186,9 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(html, /id="intent-runtime"/);
   assert.match(html, /intent-runtime-fill/);
   assert.match(worker, /CACHE_PREFIX = 'simulatte-embedding-model-'/);
+  assert.match(worker, /OPFS_ROOT = 'simulatte-model-cache'/);
+  assert.match(worker, /opfsModelResponse/);
+  assert.match(worker, /X-Simulatte-Model-Cache': 'opfs'/);
   assert.match(worker, /Content-Range/);
 });
 
