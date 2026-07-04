@@ -8,31 +8,35 @@
   const MIN_SNAKES = 6;
   const MAX_SNAKES = 10;
   const START_LENGTH = 9;
-  const SPLIT_LENGTH = 34;
-  const MIN_SPLIT_LENGTH = 8;
   const MAX_SNAKE_LENGTH = 58;
-  const TOTAL_CELL_LIMIT = 230;
   const TARGET_CELL_PX = 32;
   const MIN_CELL_PX = 18;
   const MAX_CELL_PX = 40;
   const LOOP_TURN_BONUS = 5.2;
   const TRAIL_ORBIT_BONUS = 1.7;
+  const CROSSABLE_BODY_PORTION = 0.25;
+  const HEAD_TO_HEAD_COLLISION_SHARE = 0.5;
+  const HEAD_TO_HEAD_TARGET_BONUS = 12;
+  const HEAD_TO_BODY_TARGET_BONUS = 8;
   const STEP_MS = 82;
   const FADE_MS = 160;
+  const MIN_TAIL_ALPHA = 0.3;
+  const GHOST_ALPHA = 0.28;
   const DIRECTIONS = Object.freeze([
     { x: 1, y: 0 },
     { x: 0, y: 1 },
     { x: -1, y: 0 },
     { x: 0, y: -1 },
   ]);
-  const PASTEL_RAINBOW = Object.freeze([
-    '#ff6fa3',
-    '#ff9f45',
-    '#ffe457',
-    '#61e06f',
-    '#42cfff',
-    '#748bff',
-    '#c66bff',
+  const ROYGBIV_SPECTRUM = Object.freeze([
+    '#ff3f4f',
+    '#ff7a32',
+    '#ffd33d',
+    '#9fe04f',
+    '#30d46f',
+    '#30c7f2',
+    '#5f78ff',
+    '#b65cff',
   ]);
 
   function createController(canvas, options = {}) {
@@ -111,10 +115,10 @@
       this.resize();
       const speed = Math.max(32, STEP_MS - this.stageCode * 34);
       if (!this.lastStepAt || now - this.lastStepAt >= speed) {
-        this.advanceSwarm();
+        this.advanceSwarm(now, speed);
         this.lastStepAt = now;
       }
-      this.draw(now * 0.001);
+      this.draw(now);
       this.raf = root.requestAnimationFrame((time) => this.frame(time));
     }
 
@@ -158,25 +162,31 @@
           cells.push(cell);
         }
         if (!cells.length) continue;
-        this.snakes.push({
+        const snake = {
           id: this.nextSnakeId++,
           cells,
           direction,
-          colors: [PASTEL_RAINBOW[Math.floor(this.rng() * PASTEL_RAINBOW.length)]],
+          colors: [ROYGBIV_SPECTRUM[Math.floor(this.rng() * ROYGBIV_SPECTRUM.length)]],
           growthEvery: 4 + Math.floor(this.rng() * 5),
           phase: Math.floor(this.rng() * 17),
           turnBias: this.rng() < 0.5 ? -1 : 1,
           loopiness: 0.72 + this.rng() * 0.38,
-        });
+        };
+        primeSnakeAnimation(snake, cells, cells, 0, STEP_MS);
+        this.snakes.push(snake);
         return true;
       }
       return false;
     }
 
-    advanceSwarm() {
+    advanceSwarm(now, speed) {
       if (!this.board) return;
       this.tick += 1;
       this.enforcePopulation();
+      const drawFromById = new Map(this.snakes.map((snake) => [
+        snake.id,
+        cloneCells(snake.drawTo || snake.cells),
+      ]));
       const occupiedBefore = buildOccupancy(this.snakes);
       const plans = this.snakes.map((snake) => {
         const direction = chooseDirection(snake, this.board, occupiedBefore, this.rng);
@@ -203,9 +213,17 @@
         if (snake.cells.length > MAX_SNAKE_LENGTH) snake.cells.length = MAX_SNAKE_LENGTH;
       }
 
-      this.combineCollisionGroups(plans, occupiedBefore);
-      this.splitOversizedSnakes();
+      this.resolveCollisionPlans(plans, occupiedBefore, drawFromById);
       this.enforcePopulation();
+      for (const snake of this.snakes) {
+        primeSnakeAnimation(
+          snake,
+          drawFromById.get(snake.id) || snake.drawTo || snake.cells,
+          snake.cells,
+          now,
+          speed
+        );
+      }
     }
 
     enforcePopulation() {
@@ -218,23 +236,47 @@
       }
     }
 
-    combineCollisionGroups(plans, occupiedBefore) {
+    resolveCollisionPlans(plans, occupiedBefore, drawFromById) {
       const parent = new Map(this.snakes.map((snake) => [snake.id, snake.id]));
       const union = (a, b) => {
+        if (!parent.has(a) || !parent.has(b)) return;
         const rootA = findParent(parent, a);
         const rootB = findParent(parent, b);
         if (rootA !== rootB) parent.set(rootB, rootA);
       };
 
+      const activeBefore = new Map(this.snakes.map((snake) => [snake.id, snake]));
+      const plansById = new Map(plans.map((plan) => [plan.snake.id, plan]));
+      const oldHeadsById = headCellsBySnakeId(occupiedBefore);
       const headTargets = new Map();
       for (const plan of plans) {
-        if (!this.snakes.includes(plan.snake)) continue;
+        if (!activeBefore.has(plan.snake.id)) continue;
         const targetKey = cellKey(plan.actualTarget || plan.target);
         const oldOwner = occupiedBefore.get(targetKey);
-        if (oldOwner && oldOwner.id !== plan.snake.id) union(plan.snake.id, oldOwner.id);
+        if (oldOwner && oldOwner.id !== plan.snake.id && oldOwner.index === 0) {
+          union(plan.snake.id, oldOwner.id);
+        }
         const sameTarget = headTargets.get(targetKey);
         if (sameTarget && sameTarget !== plan.snake.id) union(plan.snake.id, sameTarget);
         headTargets.set(targetKey, plan.snake.id);
+      }
+
+      const ids = Array.from(activeBefore.keys());
+      for (let a = 0; a < ids.length; a += 1) {
+        for (let b = a + 1; b < ids.length; b += 1) {
+          const idA = ids[a];
+          const idB = ids[b];
+          const planA = plansById.get(idA);
+          const planB = plansById.get(idB);
+          const oldHeadA = oldHeadsById.get(idA);
+          const oldHeadB = oldHeadsById.get(idB);
+          if (!planA || !planB || !oldHeadA || !oldHeadB) continue;
+          const targetA = planA.actualTarget || planA.target;
+          const targetB = planB.actualTarget || planB.target;
+          if (sameCell(targetA, oldHeadB) && sameCell(targetB, oldHeadA)) {
+            union(idA, idB);
+          }
+        }
       }
 
       const groups = new Map();
@@ -245,43 +287,33 @@
       }
 
       const merged = [];
+      const headMergedIds = new Set();
       for (const group of groups.values()) {
         if (group.length === 1) {
           merged.push(group[0]);
           continue;
         }
-        merged.push(combineSnakes(group, this.board, this.nextSnakeId++));
+        group.forEach((snake) => headMergedIds.add(snake.id));
+        merged.push(combineSnakes(group, this.board, this.nextSnakeId++, drawFromById));
       }
       this.snakes = merged.slice(0, MAX_SNAKES);
-    }
 
-    splitOversizedSnakes() {
-      for (let i = 0; i < this.snakes.length && this.snakes.length < MAX_SNAKES; i += 1) {
-        const snake = this.snakes[i];
-        if (snake.cells.length < SPLIT_LENGTH) continue;
-        let cells = snake.cells.slice();
-        if (totalCellCount(this.snakes) > TOTAL_CELL_LIMIT) {
-          cells = shedCellsForSplit(cells);
-        }
-        if (cells.length < MIN_SPLIT_LENGTH * 2) continue;
-        const splitAt = Math.floor(cells.length * 0.56);
-        const headCells = cells.slice(0, splitAt);
-        const tailCells = cells.slice(splitAt).reverse();
-        if (tailCells.length < MIN_SPLIT_LENGTH) continue;
-        snake.cells = headCells;
-        snake.direction = directionFromTrail(headCells, snake.direction);
-        const childColors = rotateColors(snake.colors);
-        this.snakes.push({
-          id: this.nextSnakeId++,
-          cells: tailCells,
-          direction: directionFromTrail(tailCells, invertDirection(snake.direction)),
-          colors: childColors,
-          growthEvery: 5 + Math.floor(this.rng() * 5),
-          phase: Math.floor(this.rng() * 17),
-          turnBias: -snake.turnBias || 1,
-          loopiness: snake.loopiness || 0.85,
-        });
+      const activeAfterMerge = new Map(this.snakes.map((snake) => [snake.id, snake]));
+      const absorbedIds = new Set();
+      for (const plan of plans) {
+        if (headMergedIds.has(plan.snake.id) || absorbedIds.has(plan.snake.id)) continue;
+        const attacker = activeAfterMerge.get(plan.snake.id);
+        if (!attacker) continue;
+        const owner = occupiedBefore.get(cellKey(plan.actualTarget || plan.target));
+        if (owner && headMergedIds.has(owner.id)) continue;
+        if (!isDestructiveBodyCollision(owner, attacker.id)) continue;
+        const victim = activeAfterMerge.get(owner.id);
+        if (!victim || victim.id === attacker.id || absorbedIds.has(victim.id)) continue;
+        absorbSnake(attacker, victim, this.board, drawFromById);
+        absorbedIds.add(victim.id);
+        activeAfterMerge.delete(victim.id);
       }
+      this.snakes = this.snakes.filter((snake) => !absorbedIds.has(snake.id)).slice(0, MAX_SNAKES);
     }
 
     clear() {
@@ -289,7 +321,7 @@
       this.ctx.clearRect(0, 0, this.canvas.width || 0, this.canvas.height || 0);
     }
 
-    draw(time) {
+    draw(now) {
       const ctx = this.ctx;
       if (!ctx || !this.board) return;
       const width = this.canvas.width;
@@ -299,7 +331,7 @@
       ctx.save();
       drawGrid(ctx, this.board, width, height);
       for (const snake of this.snakes) {
-        drawSnake(ctx, this.board, snake);
+        drawSnake(ctx, this.board, snake, now);
       }
       ctx.restore();
     }
@@ -341,25 +373,45 @@
     }
   }
 
-  function drawSnake(ctx, board, snake) {
+  function drawSnake(ctx, board, snake, now) {
     const cell = board.cell;
-    for (let index = snake.cells.length - 1; index >= 0; index -= 1) {
-      const part = snake.cells[index];
-      const alpha = alphaForCell(index, snake.cells.length);
+    const fromCells = snake.drawFrom || snake.cells;
+    const toCells = snake.drawTo || snake.cells;
+    const fromLength = Number(snake.drawFromLength || fromCells.length);
+    const raw = snake.stepMs ? (now - (snake.stepStartedAt || 0)) / snake.stepMs : 1;
+    const progress = clamp(raw, 0, 1);
+    const motion = easeOutCubic(progress);
+    const fade = easeInFastOut(progress);
+    for (let index = fromLength - 1; index >= toCells.length; index -= 1) {
       const color = snake.colors[index % snake.colors.length];
-      ctx.fillStyle = colorWithAlpha(color, alpha);
-      const inset = Math.max(2, Math.round(cell * 0.12));
-      ctx.fillRect(
-        part.x * cell + inset,
-        part.y * cell + inset,
-        cell - inset * 2,
-        cell - inset * 2
-      );
+      drawTile(ctx, board, fromCells[index], color, alphaForCell(index, fromCells.length) * (1 - fade) * GHOST_ALPHA);
     }
+    for (let index = toCells.length - 1; index >= 0; index -= 1) {
+      const target = toCells[index];
+      const source = fromCells[index] || fromCells[index - 1] || fromCells[fromCells.length - 1] || target;
+      const part = lerpCell(source, target, motion);
+      const color = snake.colors[index % snake.colors.length];
+      const appears = index < fromLength ? 1 : fade;
+      drawTile(ctx, board, part, color, alphaForCell(index, toCells.length) * appears);
+    }
+  }
+
+  function drawTile(ctx, board, part, color, alpha) {
+    if (!part || alpha <= 0.01) return;
+    const cell = board.cell;
+    const inset = Math.max(2, Math.round(cell * 0.12));
+    ctx.fillStyle = colorWithAlpha(color, alpha);
+    ctx.fillRect(
+      part.x * cell + inset,
+      part.y * cell + inset,
+      cell - inset * 2,
+      cell - inset * 2
+    );
   }
 
   function chooseDirection(snake, board, occupied, rng) {
     const current = snake.direction;
+    const wantsHeadToHead = rng() < HEAD_TO_HEAD_COLLISION_SHARE;
     let best = current;
     let bestScore = -Infinity;
     for (const direction of DIRECTIONS) {
@@ -372,14 +424,23 @@
       if (sameDirection(direction, preferredTurn)) score += LOOP_TURN_BONUS * (snake.loopiness || 0.85);
       if (sameDirection(direction, oppositeTurn)) score += LOOP_TURN_BONUS * 0.22;
       if (sameDirection(direction, invertDirection(current))) score -= 7;
-      score += openNeighborCount(target, board, occupied, snake.id) * 1.4;
+      score += openNeighborCount(target, board, occupied) * 1.4;
       score += ownTrailAdjacency(target, snake) * TRAIL_ORBIT_BONUS * (snake.loopiness || 0.85);
       score += wallDistanceScore(target, board) * 0.35;
       const owner = occupied.get(cellKey(target));
-      if (owner && owner.id === snake.id) score -= 900;
-      if (owner && owner.id !== snake.id) score -= 18;
+      if (owner && owner.id === snake.id && !isCrossableTail(owner)) score -= 900;
+      if (owner && owner.id === snake.id && isCrossableTail(owner)) score += 0.8;
+      if (owner && owner.id !== snake.id) {
+        if (owner.index === 0) {
+          score += wantsHeadToHead ? HEAD_TO_HEAD_TARGET_BONUS : HEAD_TO_HEAD_TARGET_BONUS * 0.3;
+        } else if (isCrossableTail(owner)) {
+          score += 1.2;
+        } else {
+          score += wantsHeadToHead ? -5.5 : HEAD_TO_BODY_TARGET_BONUS;
+        }
+      }
       const headPressure = nearbyHeadPressure(target, snake, occupied);
-      score -= headPressure * 2.2;
+      score += wantsHeadToHead ? headPressure * 1.8 : -headPressure * 1.1;
       if (score > bestScore) {
         bestScore = score;
         best = direction;
@@ -398,13 +459,13 @@
     return pressure;
   }
 
-  function openNeighborCount(cell, board, occupied, snakeId) {
+  function openNeighborCount(cell, board, occupied) {
     let count = 0;
     for (const direction of DIRECTIONS) {
       const next = addCells(cell, direction);
       if (!insideBoard(next, board)) continue;
       const owner = occupied.get(cellKey(next));
-      if (!owner || owner.id === snakeId) count += 1;
+      if (!owner || isCrossableTail(owner)) count += 1;
     }
     return count;
   }
@@ -425,12 +486,18 @@
     return count;
   }
 
-  function combineSnakes(group, board, nextId) {
+  function combineSnakes(group, board, nextId, drawFromById) {
     const primary = group.slice().sort((a, b) => b.cells.length - a.cells.length)[0];
     const colors = swizzleColors(group.flatMap((snake) => snake.colors));
     const cells = stitchCells(group, board).slice(0, MAX_SNAKE_LENGTH);
+    const id = primary.id || nextId;
+    const fromCells = stitchCellRows(
+      group.map((snake) => drawFromById.get(snake.id) || snake.drawTo || snake.cells),
+      board
+    ).slice(0, MAX_SNAKE_LENGTH);
+    drawFromById.set(id, alignCells(fromCells, cells));
     return {
-      id: primary.id || nextId,
+      id,
       cells,
       direction: directionFromTrail(cells, primary.direction),
       colors,
@@ -441,11 +508,29 @@
     };
   }
 
+  function absorbSnake(attacker, victim, board, drawFromById) {
+    const cells = stitchCellRows([attacker.cells, victim.cells], board).slice(0, MAX_SNAKE_LENGTH);
+    const fromCells = stitchCellRows([
+      drawFromById.get(attacker.id) || attacker.drawTo || attacker.cells,
+      drawFromById.get(victim.id) || victim.drawTo || victim.cells,
+    ], board).slice(0, MAX_SNAKE_LENGTH);
+    attacker.cells = cells;
+    attacker.direction = directionFromTrail(cells, attacker.direction);
+    attacker.colors = swizzleColors(attacker.colors.concat(victim.colors));
+    attacker.growthEvery = Math.max(3, Math.min(attacker.growthEvery || 6, victim.growthEvery || 6));
+    attacker.loopiness = Math.max(attacker.loopiness || 0.85, victim.loopiness || 0.85);
+    drawFromById.set(attacker.id, alignCells(fromCells, cells));
+  }
+
   function stitchCells(group, board) {
+    return stitchCellRows(group.map((snake) => snake.cells), board);
+  }
+
+  function stitchCellRows(rows, board) {
     const cells = [];
     const seen = new Set();
-    for (const snake of group) {
-      for (const cell of snake.cells) {
+    for (const row of rows) {
+      for (const cell of row || []) {
         const key = cellKey(cell);
         if (seen.has(key) || !insideBoard(cell, board)) continue;
         seen.add(key);
@@ -460,7 +545,7 @@
     for (const color of colors) {
       if (!unique.includes(color)) unique.push(color);
     }
-    const fallback = unique.length ? unique : [PASTEL_RAINBOW[0]];
+    const fallback = unique.length ? unique : [ROYGBIV_SPECTRUM[0]];
     const swizzled = [];
     const half = Math.ceil(fallback.length / 2);
     for (let i = 0; i < half; i += 1) {
@@ -470,28 +555,33 @@
     return swizzled.slice(0, 6);
   }
 
-  function rotateColors(colors) {
-    const source = colors.length ? colors : [PASTEL_RAINBOW[0]];
-    return source.slice(1).concat(source[0]);
-  }
-
-  function shedCellsForSplit(cells) {
-    const removable = Math.max(0, cells.length - MIN_SPLIT_LENGTH * 2);
-    if (!removable) return cells;
-    const loss = Math.min(removable, Math.max(2, Math.ceil(cells.length * 0.18)));
-    const start = Math.max(MIN_SPLIT_LENGTH, Math.floor(cells.length * 0.62));
-    return cells.slice(0, start).concat(cells.slice(start + loss));
-  }
-
   function buildOccupancy(snakes) {
     const occupied = new Map();
     for (const snake of snakes) {
       const head = snake.cells[0];
+      const length = snake.cells.length;
       snake.cells.forEach((cell, index) => {
-        occupied.set(cellKey(cell), { id: snake.id, index, head });
+        occupied.set(cellKey(cell), { id: snake.id, index, length, head });
       });
     }
     return occupied;
+  }
+
+  function headCellsBySnakeId(occupied) {
+    const heads = new Map();
+    for (const owner of occupied.values()) {
+      if (owner.index === 0) heads.set(owner.id, owner.head);
+    }
+    return heads;
+  }
+
+  function isDestructiveBodyCollision(owner, snakeId) {
+    return Boolean(owner && owner.id !== snakeId && owner.index > 0 && !isCrossableTail(owner));
+  }
+
+  function isCrossableTail(owner) {
+    if (!owner || owner.index === 0 || owner.length <= 1) return false;
+    return owner.index >= Math.ceil(owner.length * (1 - CROSSABLE_BODY_PORTION));
   }
 
   function findParent(parent, id) {
@@ -502,21 +592,61 @@
     return root;
   }
 
-  function totalCellCount(snakes) {
-    return snakes.reduce((sum, snake) => sum + snake.cells.length, 0);
-  }
-
   function alphaForCell(index, length) {
     if (length <= 1) return 1;
-    return 1 - index / (length - 1) * 0.9;
+    const age = index / (length - 1);
+    return 1 - easeInFastOut(age) * (1 - MIN_TAIL_ALPHA);
   }
 
   function colorWithAlpha(hex, alpha) {
-    const value = String(hex || PASTEL_RAINBOW[0]).replace('#', '');
+    const value = String(hex || ROYGBIV_SPECTRUM[0]).replace('#', '');
     const r = parseInt(value.slice(0, 2), 16);
     const g = parseInt(value.slice(2, 4), 16);
     const b = parseInt(value.slice(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${clamp(alpha, 0.1, 1)})`;
+    return `rgba(${r}, ${g}, ${b}, ${clamp(alpha, 0, 1)})`;
+  }
+
+  function primeSnakeAnimation(snake, fromCells, toCells, now, speed) {
+    const source = cloneCells(fromCells || []);
+    snake.drawFrom = alignCells(source, toCells);
+    snake.drawFromLength = source.length;
+    snake.drawTo = cloneCells(toCells);
+    snake.stepStartedAt = Number(now || 0);
+    snake.stepMs = Math.max(16, Number(speed || STEP_MS));
+  }
+
+  function alignCells(fromCells, toCells) {
+    const source = cloneCells(fromCells || []);
+    const target = cloneCells(toCells || []);
+    if (!target.length) return source;
+    if (!source.length) return cloneCells(target);
+    while (source.length < target.length) {
+      source.push({ ...source[source.length - 1] });
+    }
+    return source;
+  }
+
+  function cloneCells(cells) {
+    return (cells || []).map((cell) => ({ x: cell.x, y: cell.y }));
+  }
+
+  function lerpCell(from, to, t) {
+    return {
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t,
+    };
+  }
+
+  function easeOutCubic(value) {
+    const t = clamp(value, 0, 1);
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function easeInFastOut(value) {
+    const t = clamp(value, 0, 1);
+    if (t < 0.22) return 0.42 * Math.pow(t / 0.22, 2);
+    const rest = (t - 0.22) / 0.78;
+    return 0.42 + 0.58 * (1 - Math.pow(1 - rest, 2.8));
   }
 
   function directionFromTrail(cells, fallback) {
@@ -536,6 +666,10 @@
   }
 
   function sameDirection(a, b) {
+    return a && b && a.x === b.x && a.y === b.y;
+  }
+
+  function sameCell(a, b) {
     return a && b && a.x === b.x && a.y === b.y;
   }
 

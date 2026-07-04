@@ -1392,6 +1392,40 @@ test('bridge resonance prompts carry structural stress graphics atoms', () => {
   assert.ok(atoms.wgslOperators.includes('atomStressCracks'));
 });
 
+test('visual routing avoids weather, hazard, and material scene false positives', () => {
+  const weather = createPrototypeSpec(
+    'supercell thunderstorm grows hail under wind shear'
+  );
+  const weatherMappings = weather.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  assert.equal(weather.renderProgram.visualIR.sceneKind, 'weather-atmosphere');
+  assert.ok(weatherMappings.includes('visual.operator.fluid-advection.v1'));
+  assert.ok(!weatherMappings.includes('visual.operator.biological-growth.v1'));
+
+  const agro = createPrototypeSpec(
+    'compost feeds greenhouse nutrient loop with organic waste'
+  );
+  const agroMappings = agro.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  assert.equal(agro.renderProgram.visualIR.sceneKind, 'agro-waste-loop');
+  assert.ok(agroMappings.includes('visual.operator.biological-growth.v1'));
+  assert.ok(agro.renderProgram.visualIR.graphicsAtoms.uniforms.bySlot.biological > 0);
+
+  const hazard = createPrototypeSpec(
+    'hurricane evacuation traffic under storm surge'
+  );
+  assert.equal(hazard.renderProgram.visualIR.sceneKind, 'hazard-atmosphere');
+  assert.notEqual(hazard.renderProgram.visualIR.sceneKind, 'restoration-water');
+
+  const materialTray = createPrototypeSpec(
+    'sample tray of water air rock wood metal under force fields'
+  );
+  assert.equal(materialTray.renderProgram.visualIR.sceneKind, 'material-tray');
+
+  const cultural = createPrototypeSpec(
+    'museum preservation pigment film humidity aging'
+  );
+  assert.equal(cultural.renderProgram.visualIR.sceneKind, 'cultural-material');
+});
+
 test('warehouse language does not unlock robot visuals without robot evidence', () => {
   const warehouseFire = createPrototypeSpec(
     'warehouse fire with smoke in concrete stairwell and renderer layers soot'
@@ -1583,6 +1617,58 @@ test('semantic curation prefers specific prompt objects over generic neighbors',
   assert.ok(greenhouseNodeIds.has('entity.crop-plant'));
   assert.ok(greenhouseNodeIds.has('artifact.pipe-network'));
   assert.ok(greenhouseNodeIds.has('artifact.fan'));
+});
+
+test('literal training review prompts survive semantic grounding into render objects', () => {
+  const animalRag = semanticRagApi.createSemanticRag(
+    'dogs and cats swimming',
+    lab.PHYSICAL_PRIMITIVES,
+    { maxSurfaceDocuments: 12, maxSynthNodes: 10 }
+  );
+  const animalCardIds = animalRag.synthGraph.nodes.map((node) => node.cardId);
+  assert.deepEqual(animalCardIds.slice(0, 2), ['entity.dog', 'entity.cat']);
+
+  const dogs = createPrototypeSpec('dogs');
+  const flowers = createPrototypeSpec('flowers');
+  const mountains = createPrototypeSpec('trees and mountaints');
+  const swimming = createPrototypeSpec('dogs and cats swimming');
+
+  const dogObjects = Object.fromEntries(dogs.renderProgram.objects.map((object) => [object.id, object]));
+  const flowerObjects = Object.fromEntries(flowers.renderProgram.objects.map((object) => [object.id, object]));
+  const mountainObjects = Object.fromEntries(mountains.renderProgram.objects.map((object) => [object.id, object]));
+  const swimmingObjects = Object.fromEntries(swimming.renderProgram.objects.map((object) => [object.id, object]));
+  const mappingIds = (spec) => spec.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const catalogCount = (spec) => spec.renderProgram.objects.filter((object) => object.source === 'catalog').length;
+
+  assert.equal(dogObjects['dog-a'].shape, 'animal-body');
+  assert.equal(dogObjects['surface-dog-1'].shape, 'animal-body');
+  assert.equal(dogs.renderProgram.rendererPlan.sceneKind, 'biology');
+  assert.ok(mappingIds(dogs).includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds(dogs).includes('visual.operator.instrument-readout.v1'));
+  assert.ok(catalogCount(dogs) <= 6);
+  assert.ok(!dogs.renderProgram.solverPlan.families.includes('fracture-threshold'));
+  assert.equal(flowerObjects['flower-a'].shape, 'fuel-bed');
+  assert.equal(flowerObjects['surface-flower-1'].shape, 'fuel-bed');
+  assert.equal(flowers.renderProgram.rendererPlan.sceneKind, 'biology');
+  assert.ok(mappingIds(flowers).includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds(flowers).includes('visual.operator.instrument-readout.v1'));
+  assert.ok(catalogCount(flowers) <= 6);
+  assert.equal(mountainObjects['tree-a'].shape, 'fuel-bed');
+  assert.equal(mountainObjects['environment-mountain'].role, 'mountain');
+  assert.equal(mountainObjects['surface-mountain-1'].phrase, 'mountaints');
+  assert.equal(mountains.renderProgram.rendererPlan.sceneKind, 'watershed');
+  assert.ok(mappingIds(mountains).includes('visual.operator.granular-erosion.v1'));
+  assert.ok(mappingIds(mountains).includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds(mountains).includes('visual.operator.instrument-readout.v1'));
+  assert.equal(swimmingObjects['dog-a'].shape, 'animal-body');
+  assert.equal(swimmingObjects['cat-a'].shape, 'animal-body');
+  assert.equal(swimmingObjects.water.shape, 'pool');
+  assert.equal(swimmingObjects['fluid-advection'].source, 'prompt-family');
+  assert.equal(swimming.renderProgram.rendererPlan.sceneKind, 'watershed');
+  assert.ok(mappingIds(swimming).includes('visual.operator.biological-growth.v1'));
+  assert.ok(mappingIds(swimming).includes('visual.operator.fluid-advection.v1'));
+  assert.ok(!mappingIds(swimming).includes('visual.operator.instrument-readout.v1'));
+  assert.equal(catalogCount(swimming), 0);
 });
 
 test('embedding-guided graph synthesis composes unseen animal wheel collision scenes', () => {

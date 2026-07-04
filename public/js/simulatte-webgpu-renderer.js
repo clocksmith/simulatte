@@ -26,8 +26,8 @@
     'restoration-water': 26,
     'agro-waste-loop': 20,
     'chemistry-lab': 8,
-    'material-tray': 8,
-    cryosphere: 9,
+    'material-tray': 35,
+    cryosphere: 27,
     'ocean-cryosphere': 27,
     'planetary-space': 10,
     'digital-network': 11,
@@ -45,7 +45,7 @@
     'manufacturing-line': 18,
     granular: 22,
     'sport-motion': 21,
-    'cultural-material': 22,
+    'cultural-material': 36,
     'hazard-atmosphere': 31,
     'space-instrument': 32,
   });
@@ -593,6 +593,7 @@
     if (sceneKind === 'fire') return paletteToVec4(PALETTES.thermal);
     if (sceneKind === 'ocean' || sceneKind === 'ocean-cryosphere') return paletteToVec4(PALETTES.water);
     if (sceneKind === 'structural-mechanics') return paletteToVec4(PALETTES.factory);
+    if (sceneKind === 'material-tray') return paletteToVec4(PALETTES.factory);
     if (sceneKind === 'evolution-ecology' || sceneKind === 'restoration-water') return paletteToVec4(PALETTES.bio);
     if (sceneKind === 'city' || sceneKind === 'civic-market' || sceneKind === 'venue-crowd') return paletteToVec4(PALETTES.network);
     if (sceneKind === 'particle-instrument' || sceneKind === 'space-instrument') return paletteToVec4(PALETTES.instrument);
@@ -777,6 +778,13 @@ fn sceneField(p: vec2f, t: f32, scene: f32) -> vec3f {
   } else if (sceneGroup == 2.0) {
     color = mix(color, u.palette1.rgb, max(waves, branch * 0.7) * 0.44);
     color += u.palette3.rgb * rings * 0.12 * commonGain;
+  } else if (sceneGroup == 3.0) {
+    let shaft = capsuleLine(p, vec2f(-0.68, -0.14), vec2f(0.62, 0.16), 0.07);
+    let rotor = ellipseRing(p, vec2f(0.2, 0.04), vec2f(1.0, 1.0), 0.28, 0.035);
+    let contact = stripe(atan2(p.y - 0.04, p.x - 0.2) * 5.0 - t * (0.2 + motion * 0.2), 0.036) * rotor;
+    color = mix(color, u.palette2.rgb, 0.18);
+    color += u.palette1.rgb * shaft * 0.46;
+    color += u.palette3.rgb * max(rotor, contact) * (0.26 + motion * 0.24);
   } else if (sceneGroup == 4.0) {
     let flux = stripe(atan2(p.y, p.x) * 4.0 + length(p) * 3.1 - t * (0.16 + motion * 0.18), 0.034);
     let coil = ellipseRing(p, vec2f(-0.32, -0.05), vec2f(1.45, 0.8), 0.34, 0.045);
@@ -896,6 +904,30 @@ fn sceneField(p: vec2f, t: f32, scene: f32) -> vec3f {
     color = mix(vec3f(0.98, 0.98, 1.0), rainbow, film * (0.36 + bloom * 0.24));
     color += vec3f(0.1, 0.12, 0.16) * max(loopA, loopB) * 0.78;
     color += u.palette3.rgb * bubbles * 0.52;
+  } else if (sceneGroup == 35.0) {
+    let tray = rectMask(p, vec2f(0.0, -0.12), vec2f(0.82, 0.48));
+    let wells = max(max(
+      ellipseRing(p, vec2f(-0.44, 0.0), vec2f(1.0, 0.8), 0.16, 0.026),
+      ellipseRing(p, vec2f(0.0, 0.02), vec2f(1.0, 0.8), 0.16, 0.026)),
+      ellipseRing(p, vec2f(0.44, -0.02), vec2f(1.0, 0.8), 0.16, 0.026));
+    let specimen = max(max(
+      diskMask(p, vec2f(-0.44, 0.0), 0.12),
+      diskMask(p, vec2f(0.0, 0.02), 0.1)),
+      diskMask(p, vec2f(0.44, -0.02), 0.11));
+    let readout = stripe(p.x * 10.0 + p.y * 3.0 - t * 0.2, 0.028) * tray;
+    color = mix(color, vec3f(0.12, 0.13, 0.14), tray * 0.46);
+    color += u.palette1.rgb * wells * 0.58;
+    color += u.palette3.rgb * specimen * (0.28 + density * 0.22);
+    color += vec3f(0.72, 0.9, 1.0) * readout * 0.16;
+  } else if (sceneGroup == 36.0) {
+    let artifact = rectMask(p, vec2f(0.0, -0.04), vec2f(0.66, 0.42));
+    let pigment = stripe(p.y * 9.0 + sin(p.x * 5.0 + t * 0.06) * 0.18, 0.034) * artifact;
+    let craquelure = atomStressCracks(p * vec2f(1.1, 0.8), t * 0.3) * artifact;
+    let humidity = atomFluidRibbons(p + vec2f(0.0, t * 0.04), t * 0.25) * smoothstep(0.88, 0.12, length(p));
+    color = mix(color, vec3f(0.22, 0.16, 0.09), artifact * 0.5);
+    color += u.palette1.rgb * pigment * 0.38;
+    color += vec3f(0.08, 0.1, 0.12) * craquelure * 0.52;
+    color += u.palette3.rgb * humidity * 0.14;
   } else {
     color = mix(color, u.palette1.rgb, max(rings * 0.12, waves * 0.1) * commonGain);
     color += u.palette3.rgb * plume * 0.06 * commonGain;
@@ -1035,6 +1067,157 @@ fn starParticleField(p: vec2f, t: f32, amount: f32) -> f32 {
   let rnd = hash21(cell);
   let sparkle = 1.0 - smoothstep(0.015, 0.09, length(local + vec2f(sin(rnd * 8.0), cos(rnd * 11.0)) * 0.13));
   return sparkle * step(1.0 - amount, rnd) * (0.55 + 0.45 * sin(t * (1.2 + rnd) + rnd * 6.28318));
+}
+
+fn atomPhaseBoundary(p: vec2f, t: f32) -> f32 {
+  let body = smoothstep(0.84, 0.06, length(p * vec2f(0.9, 1.15)));
+  return stripe(length(p) * 5.4 + sin(p.x * 3.0) - t * 0.18, 0.03) * body;
+}
+
+fn atomVectorFlow(p: vec2f, t: f32) -> f32 {
+  let q = p + vec2f(sin(p.y * 4.0 + t * 0.42) * 0.08, 0.0);
+  return max(atomFluidRibbons(q, t), stripe((q.x + q.y) * 5.0 - t * 0.38, 0.026)) * smoothstep(1.1, 0.08, length(p));
+}
+
+fn atomConstraintPads(p: vec2f, t: f32) -> f32 {
+  let padA = diskMask(p, vec2f(-0.44, -0.18 + sin(t * 0.25) * 0.03), 0.12);
+  let padB = diskMask(p, vec2f(0.42, 0.18 + cos(t * 0.22) * 0.03), 0.12);
+  let bridge = capsuleLine(p, vec2f(-0.44, -0.18), vec2f(0.42, 0.18), 0.024);
+  return max(max(padA, padB), bridge * 0.56);
+}
+
+fn atomSignalPulses(p: vec2f, t: f32) -> f32 {
+  return stripe((p.x - p.y) * 6.0 - t * 0.58, 0.024) * smoothstep(1.04, 0.08, length(p));
+}
+
+fn atomOrbitalTrails(p: vec2f, t: f32) -> f32 {
+  let angle = atan2(p.y, p.x);
+  return stripe(angle * 2.4 + length(p) * 2.2 - t * 0.18, 0.026) * smoothstep(0.98, 0.08, length(p));
+}
+
+fn atomGravityWell(p: vec2f, t: f32) -> f32 {
+  return stripe(length(p) * 4.6 - t * 0.1, 0.024) * smoothstep(1.0, 0.05, length(p));
+}
+
+fn atomFluxLines(p: vec2f, t: f32) -> f32 {
+  return stripe(atan2(p.y, p.x) * 3.2 + length(p) * 2.2 - t * 0.18, 0.028) * smoothstep(0.96, 0.08, length(p));
+}
+
+fn atomChargeShell(p: vec2f, t: f32) -> f32 {
+  return max(ellipseRing(p, vec2f(-0.22, 0.02), vec2f(1.2, 0.82), 0.28, 0.026),
+    ellipseRing(p, vec2f(0.28, -0.02), vec2f(1.0, 1.1), 0.22, 0.024)) *
+    (0.72 + 0.28 * sin(t * 0.8) * sin(t * 0.8));
+}
+
+fn atomOpticalCaustics(p: vec2f, t: f32) -> f32 {
+  let beamA = exp(-abs(rot(p, 0.24).y) * 62.0) * smoothstep(-0.82, 0.76, p.x);
+  let beamB = exp(-abs(rot(p, -0.32).y + 0.08) * 48.0) * smoothstep(-0.78, 0.72, p.x);
+  return max(beamA, beamB) * (0.78 + 0.22 * sin(t + p.x * 4.0));
+}
+
+fn atomRayCones(p: vec2f, t: f32) -> f32 {
+  let cone = exp(-abs(abs(rot(p - vec2f(-0.18, 0.02), 0.18).y) - max(0.02, (p.x + 0.25) * 0.18)) * 24.0);
+  return cone * smoothstep(-0.78, 0.72, p.x);
+}
+
+fn atomReadoutPulse(p: vec2f, t: f32) -> f32 {
+  let deck = rectMask(p, vec2f(0.0, 0.58), vec2f(0.78, 0.09));
+  return deck * max(stripe(p.x * 12.0 - t * 0.8, 0.04), stripe((p.x + p.y) * 8.0 + t * 0.24, 0.03));
+}
+
+fn atomAcousticRings(p: vec2f, t: f32) -> f32 {
+  return stripe(length((p - vec2f(-0.12, 0.02)) * vec2f(1.0, 0.72)) * 7.8 - t * 0.9, 0.026);
+}
+
+fn atomStandingNodes(p: vec2f, t: f32) -> f32 {
+  return stripe(p.x * 7.0 + sin(p.y * 4.0 + t * 0.18), 0.03) * smoothstep(0.34, 0.02, abs(p.y));
+}
+
+fn atomBiologicalBranches(p: vec2f, t: f32) -> f32 {
+  return branchWeb(p, t);
+}
+
+fn atomDensityFront(p: vec2f, t: f32) -> f32 {
+  return smoothstep(0.06, 0.0, abs(length((p - vec2f(0.08, -0.02)) * vec2f(0.9, 1.18)) - 0.42 + sin(t * 0.28) * 0.05));
+}
+
+fn atomFermentationBubbles(p: vec2f, t: f32) -> f32 {
+  let dough = smoothstep(0.72, 0.06, length((p - vec2f(0.02, -0.06)) * vec2f(0.8, 1.18)));
+  let a = diskMask(p, vec2f(-0.32 + sin(t * 0.42) * 0.05, -0.05), 0.1);
+  let b = diskMask(p, vec2f(0.2, 0.16 + cos(t * 0.41) * 0.05), 0.075);
+  let c = diskMask(p, vec2f(0.38 + sin(t * 0.31) * 0.04, -0.24), 0.085);
+  return max(max(a, b), c) * dough;
+}
+
+fn atomGlutenStrands(p: vec2f, t: f32) -> f32 {
+  let dough = smoothstep(0.72, 0.06, length((p - vec2f(0.02, -0.06)) * vec2f(0.8, 1.18)));
+  return exp(-abs(sin(p.x * 9.0 + p.y * 5.2 + sin(t * 0.22 + p.y * 4.0) * 0.7)) * 4.6) * dough;
+}
+
+fn atomAcidityGradient(p: vec2f, t: f32) -> f32 {
+  let dough = smoothstep(0.72, 0.06, length((p - vec2f(0.02, -0.06)) * vec2f(0.8, 1.18)));
+  return stripe((p.x + p.y * 0.72) * 5.4 - t * 0.22, 0.025) * dough;
+}
+
+fn atomChemicalClouds(p: vec2f, t: f32) -> f32 {
+  let pool = smoothstep(0.68, 0.04, length((p - vec2f(0.12, 0.0)) * vec2f(1.0, 0.78)));
+  return pool * (0.55 + 0.45 * filmNoise(p * 1.8, t * 0.4));
+}
+
+fn atomReactionFront(p: vec2f, t: f32) -> f32 {
+  return stripe(length(p - vec2f(0.12, 0.0)) * 6.0 + t * 0.18, 0.026) * smoothstep(0.78, 0.06, length(p));
+}
+
+fn atomPacketPulses(p: vec2f, t: f32) -> f32 {
+  let road = max(capsuleLine(p, vec2f(-0.82, -0.28), vec2f(0.78, 0.24), 0.024),
+    capsuleLine(p, vec2f(-0.62, 0.34), vec2f(0.66, -0.18), 0.022));
+  return road * stripe((p.x + p.y) * 5.0 - t * 0.86, 0.038);
+}
+
+fn atomGranularStrata(p: vec2f, t: f32) -> f32 {
+  return max(stripe(p.y * 9.0 + sin(p.x * 4.0) * 0.12, 0.04), stripe((p.x - p.y) * 4.0, 0.03));
+}
+
+fn atomSedimentMotion(p: vec2f, t: f32) -> f32 {
+  let fan = smoothstep(0.5, 0.04, length((p - vec2f(0.46, -0.36)) * vec2f(1.2, 0.7)));
+  return fan * stripe(atan2(p.y + 0.36, p.x - 0.46) * 5.0 + t * 0.18, 0.035);
+}
+
+fn atomInstrumentReadout(p: vec2f, t: f32) -> f32 {
+  let panel = rectMask(p, vec2f(-0.56, 0.42), vec2f(0.22, 0.14));
+  let deck = rectMask(p, vec2f(0.0, 0.58), vec2f(0.86, 0.13));
+  return max(panel, deck * max(stripe(p.x * 15.0 - t * 0.48, 0.035), stripe((p.x + p.y) * 9.0 + t * 0.2, 0.028)));
+}
+
+fn atomMeasurementBands(p: vec2f, t: f32) -> f32 {
+  return stripe(p.x * 11.0 + p.y * 2.0 - t * 0.36, 0.028) * smoothstep(0.88, 0.1, abs(p.y - 0.42));
+}
+
+fn atomCombustionFront(p: vec2f, t: f32) -> f32 {
+  return atomThermalPlume(p * vec2f(0.88, 1.1) + vec2f(sin(t * 0.36) * 0.08, -0.12), t);
+}
+
+fn atomSootColumn(p: vec2f, t: f32) -> f32 {
+  return stripe(p.y * 5.5 + sin(p.x * 4.2 + t * 0.18) * 0.75 - t * 0.16, 0.03) *
+    smoothstep(-0.18, 0.82, p.y);
+}
+
+fn atomLatentHeatBand(p: vec2f, t: f32) -> f32 {
+  return stripe(max(abs(p.x), abs(p.y)) * 5.2 - t * 0.12, 0.027) * smoothstep(0.92, 0.06, length(p));
+}
+
+fn atomRobotWorkcell(p: vec2f, t: f32) -> f32 {
+  let armTip = vec2f(0.5, 0.18 + sin(t * 1.8) * 0.14);
+  let arm = max(capsuleLine(p, vec2f(-0.42, 0.12), vec2f(0.05, -0.06), 0.06),
+    capsuleLine(p, vec2f(0.05, -0.06), armTip, 0.05));
+  let cell = max(rectMask(p, vec2f(-0.62, 0.08), vec2f(0.09, 0.34)),
+    rectMask(p, vec2f(0.66, 0.08), vec2f(0.08, 0.34)));
+  return max(arm, cell * 0.64);
+}
+
+fn atomContactForces(p: vec2f, t: f32) -> f32 {
+  let tip = vec2f(0.5, 0.18 + sin(t * 1.8) * 0.14);
+  return max(diskMask(p, tip, 0.09), stripe(length(p - tip) * 5.0 - t * 0.8, 0.026) * smoothstep(0.42, 0.04, length(p - tip)));
 }
 
 fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
@@ -1276,6 +1459,28 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     color += vec3f(0.08, 0.1, 0.14) * max(wireA, wireB) * 0.86;
     color += vec3f(1.0, 0.96, 0.82) * caustic * 0.22;
     color += u.palette3.rgb * max(bubbleA, bubbleB) * (0.42 + band * 0.18);
+  } else if (sceneGroup == 35.0) {
+    color = mix(color, vec3f(0.06, 0.065, 0.07), 0.38);
+    let tray = panel3d(p, vec2f(0.0, -0.1), vec2f(0.82, 0.48), vec3f(0.12, 0.13, 0.14), u.palette1.rgb);
+    let wellA = orb3d(p, vec2f(-0.44, 0.0), 0.13, u.palette1.rgb * 0.7, u.palette3.rgb * 0.03, 0.36);
+    let wellB = orb3d(p, vec2f(0.0, 0.02), 0.11, u.palette3.rgb * 0.68, u.palette1.rgb * 0.03, 0.42);
+    let wellC = orb3d(p, vec2f(0.44, -0.02), 0.12, u.palette0.rgb * 0.76, u.palette3.rgb * 0.02, 0.5);
+    color = blendLayer(color, tray);
+    color = blendLayer(color, wellA);
+    color = blendLayer(color, wellB);
+    color = blendLayer(color, wellC);
+    color += vec3f(0.82, 0.92, 1.0) * atomMeasurementBands(p, t) * 0.18;
+    color += u.palette3.rgb * atomPhaseBoundary(p, t) * phase * 0.24;
+  } else if (sceneGroup == 36.0) {
+    color = mix(color, vec3f(0.16, 0.11, 0.07), 0.42);
+    let artifact = panel3d(p, vec2f(0.0, -0.04), vec2f(0.66, 0.42), vec3f(0.26, 0.18, 0.1), u.palette1.rgb);
+    let glaze = atomOpticalCaustics(p * vec2f(0.9, 1.2), t * 0.18) * artifact.a;
+    let cracks = atomStressCracks(p * vec2f(1.15, 0.85), t * 0.22) * artifact.a;
+    let humidity = atomFluidRibbons(p + vec2f(0.0, t * 0.04), t * 0.22) * smoothstep(0.88, 0.12, length(p));
+    color = blendLayer(color, artifact);
+    color += u.palette1.rgb * glaze * 0.2;
+    color += vec3f(0.08, 0.07, 0.06) * cracks * 0.58;
+    color += u.palette3.rgb * humidity * 0.14;
   } else if (sceneGroup == 5.0 || optical > 0.34) {
     color = mix(color, vec3f(0.02, 0.035, 0.065), 0.38);
     color = blendLayer(color, orb3d(p, vec2f(0.08, -0.02), 0.28, vec3f(0.72, 0.88, 1.0), u.palette3.rgb * 0.03, 0.12));
@@ -1562,6 +1767,7 @@ fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   let network = atomAt(11);
   let granular = atomAt(12);
   let instrument = max(atomAt(13), atomAt(17));
+  let measurement = atomAt(17);
   let combustion = atomAt(14);
   let phase = atomAt(15);
   let robot = atomAt(16);
@@ -1573,31 +1779,36 @@ fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   let surface = atomAt(23);
   let networkLocal = network * (1.0 - clamp(max(max(robot, chemical), max(granular, fluid)) * 0.76, 0.0, 0.9));
   color += vec3f(1.0, 0.32, 0.08) * thermal * atomThermalPlume(p, t) * 0.34;
-  color += vec3f(0.12, 0.56, 0.92) * fluid * atomFluidRibbons(p, t) * 0.22;
-  color += vec3f(1.0, 0.86, 0.24) * stress * atomStressCracks(p, t) * 0.28;
-  color += vec3f(0.34, 0.9, 1.0) * feedback * atomFeedbackArcs(p, t) * 0.22;
+  color += vec3f(0.12, 0.56, 0.92) * fluid * max(atomFluidRibbons(p, t), atomVectorFlow(p, t)) * 0.22;
+  color += vec3f(1.0, 0.86, 0.24) * stress * max(atomStressCracks(p, t), atomConstraintPads(p, t)) * 0.28;
+  color += vec3f(0.34, 0.9, 1.0) * feedback * max(atomFeedbackArcs(p, t), atomSignalPulses(p, t)) * 0.22;
   color += vec3f(0.95, 0.82, 1.0) * quantum * atomQuantumFringes(p, t) * 0.24;
-  color += vec3f(0.92, 0.68, 0.18) * networkLocal * atomNetworkPressure(p, t) * 0.2;
-  color += vec3f(0.72, 0.8, 1.0) * max(optical, em) * exp(-abs(rot(p, -0.28).y) * 48.0) * 0.24;
-  color += vec3f(0.8, 0.9, 1.0) * acoustic * stripe(length(p) * 7.0 - t * 0.42, 0.024) * 0.18;
-  color += vec3f(0.3, 0.86, 0.42) * bio * exp(-abs(sin(p.x * 6.0 + p.y * 4.0 + t * 0.16)) * 5.5) * 0.12;
-  color += vec3f(0.76, 0.48, 1.0) * chemical * smoothstep(0.95, 0.12, length(p)) * 0.08;
-  color += vec3f(0.86, 0.72, 0.42) * granular * stripe(p.y * 9.0 + sin(p.x * 4.0), 0.032) * 0.16;
-  color += vec3f(0.1, 0.95, 1.0) * instrument * rectMask(p, vec2f(0.0, 0.58), vec2f(0.68, 0.045)) * 0.28;
+  color += vec3f(0.92, 0.68, 0.18) * networkLocal * max(atomNetworkPressure(p, t), atomPacketPulses(p, t)) * 0.2;
+  color += vec3f(0.72, 0.8, 1.0) * optical * max(atomOpticalCaustics(p, t), atomRayCones(p, t)) * 0.24;
+  color += vec3f(0.7, 0.85, 1.0) * em * max(atomFluxLines(p, t), atomChargeShell(p, t)) * 0.2;
+  color += vec3f(0.8, 0.9, 1.0) * acoustic * max(atomAcousticRings(p, t), atomStandingNodes(p, t)) * 0.18;
+  color += vec3f(0.3, 0.86, 0.42) * bio * max(atomBiologicalBranches(p, t), atomDensityFront(p, t)) * 0.12;
+  color += vec3f(0.76, 0.48, 1.0) * chemical * max(atomChemicalClouds(p, t), atomReactionFront(p, t)) * 0.08;
+  color += vec3f(0.86, 0.72, 0.42) * granular * max(atomGranularStrata(p, t), atomSedimentMotion(p, t)) * 0.16;
+  color += vec3f(0.1, 0.95, 1.0) * instrument * atomInstrumentReadout(p, t) * 0.28;
   let detectorHit = diskMask(p, vec2f(-0.72 + fract(t * 0.76) * 1.44, 0.28 + sin(t * 1.1) * 0.2), 0.085);
   let detectorTrack = capsuleLine(p, vec2f(-0.88, -0.22 + sin(t * 0.7) * 0.12), vec2f(0.88, 0.18 + cos(t * 0.64) * 0.16), 0.024);
   color += vec3f(0.26, 1.0, 0.95) * instrument * detectorHit * 0.78;
   color += vec3f(0.92, 1.0, 0.8) * instrument * detectorTrack * (0.32 + stripe(t * 2.0, 0.32) * 0.34);
-  color += vec3f(1.0, 0.18, 0.04) * combustion * atomThermalPlume(p + vec2f(0.12, -0.1), t) * 0.3;
-  color += vec3f(0.75, 0.92, 1.0) * phase * stripe(length(p) * 5.4 + sin(p.x * 3.0) - t * 0.18, 0.03) * 0.18;
-  color += vec3f(0.9, 0.92, 0.96) * robot * stripe((p.x + p.y) * 7.0 - t * 0.3, 0.03) * 0.14;
+  color += vec3f(1.0, 0.18, 0.04) * combustion * max(atomCombustionFront(p, t), atomSootColumn(p, t)) * 0.3;
+  color += vec3f(0.75, 0.92, 1.0) * phase * max(atomPhaseBoundary(p, t), atomLatentHeatBand(p, t)) * 0.18;
+  color += vec3f(0.9, 0.92, 0.96) * robot * max(atomRobotWorkcell(p, t), atomContactForces(p, t)) * 0.14;
   color += u.palette1.rgb * density * exp(-abs(sin(p.x * 8.0) + cos(p.y * 6.0 + t * 0.12)) * 2.4) * 0.08;
   color += u.palette3.rgb * emission * exp(-abs(rot(p, 0.72).y) * 34.0) * 0.18;
-  color += vec3f(1.0, 0.92, 0.36) * constraint * capsuleLine(p, vec2f(-0.64, -0.44), vec2f(0.64, 0.44), 0.018) * 0.22;
-  color += u.palette3.rgb * signal * stripe((p.x - p.y) * 6.0 - t * 0.48, 0.022) * 0.18;
+  color += vec3f(1.0, 0.92, 0.36) * constraint * atomConstraintPads(p, t) * 0.22;
+  color += u.palette3.rgb * signal * max(atomSignalPulses(p, t), atomReadoutPulse(p, t)) * 0.18;
   color += u.palette1.rgb * surface * stripe(max(abs(p.x), abs(p.y)) * 5.0 + t * 0.08, 0.028) * 0.12;
   color += u.palette3.rgb * motion * stripe(length(p) * 4.8 - t * 0.62, 0.02) * 0.14;
-  color += u.palette3.rgb * orbit * stripe(length(p) * 3.6 - t * 0.12, 0.025) * 0.18;
+  color += u.palette3.rgb * orbit * max(atomOrbitalTrails(p, t), atomGravityWell(p, t)) * 0.18;
+  color += vec3f(0.96, 0.82, 0.46) * min(bio, fluid) * atomGlutenStrands(p, t) * 0.16;
+  color += vec3f(0.7, 0.96, 0.86) * min(bio, fluid) * atomFermentationBubbles(p, t) * 0.22;
+  color += vec3f(1.0, 0.42, 0.72) * min(bio, chemical) * atomAcidityGradient(p, t) * 0.18;
+  color += vec3f(0.98, 0.22, 0.78) * max(measurement, signal) * atomMeasurementBands(p, t) * 0.2;
   let robotCarrier = rectMask(p, vec2f(-0.78 + fract(t * 0.72) * 1.56, -0.48), vec2f(0.12, 0.075));
   let robotCarrierUpper = rectMask(p, vec2f(-0.78 + fract(t * 0.58 + 0.24) * 1.56, 0.34), vec2f(0.16, 0.095));
   let robotConveyorUpper = rectMask(p, vec2f(0.0, 0.34), vec2f(0.94, 0.07)) *

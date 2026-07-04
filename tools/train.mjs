@@ -347,7 +347,7 @@ function printReady(appUrl, reviewUrl, reviewDir) {
   console.log(`[train] review server ${reviewUrl}`);
   console.log(`[train] review records ${path.join(reviewDir, 'reviews.jsonl')}`);
   console.log('[train] browser fallback: local queue plus Export reviews');
-  console.log('[train] keys: T toggle, 1 pass, 2 wrong scene, 3 missing object, 4 wrong material, 5 too generic, 6 bad motion');
+  console.log('[train] keys: T toggle, 1 looks right; use Save feedback for free-text critique');
   console.log('[train] stop with npm run train -- --stop');
 }
 

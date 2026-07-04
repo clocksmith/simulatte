@@ -1114,7 +1114,7 @@
     const preferSynthGraph = shouldPreferSynthGraph(promptText, synthesis);
     const catalogRanked = preferSynthGraph ? [] : baseCatalogRanked;
     const semanticRows = preferSynthGraph ? [] : semanticOpenPrimitives(semanticRag);
-    const explicitRows = preferSynthGraph ? [] : explicitPromptPrimitiveRows(classification, promptText);
+    const explicitRows = explicitPromptPrimitiveRows(classification, promptText);
     const ranked = mergeRankedPrimitives(
       catalogRanked,
       synthRows,
@@ -1553,6 +1553,22 @@
     if (/\briver\b/.test(prompt) && /\berosion\b/.test(prompt)) {
       ensure('water', 0.58, 'river erosion');
       ensure('fluid-advection', 0.54, 'river erosion');
+    }
+    if (/\bswim(?:s|ming)?\b|\bswam\b|\bunderwater\b/.test(prompt)) {
+      ensure('water', 0.62, 'swimming');
+      ensure('fluid-advection', 0.58, 'swimming');
+      ensure('pressure', 0.54, 'swimming');
+    }
+    if (/\bsand\b|\bgrains?\b|\bgranular\b|\bpowder\b/.test(prompt)) {
+      ensure('granular-bed', 0.62, 'granular prompt');
+      ensure('sand', 0.58, 'granular prompt');
+    }
+    if (/\bbubbles?\b|\bfloat(?:s|ing)?\b|\bbuoyan(?:t|cy)\b/.test(prompt)) {
+      ensure('buoyant-body', 0.62, 'buoyancy prompt');
+      ensure('water', 0.56, 'buoyancy prompt');
+    }
+    if (/\bprismatic\b|\bprism\b|\blaser beam\b/.test(prompt)) {
+      ensure('optical-prism', 0.62, 'prismatic optics');
     }
     return rows;
   }

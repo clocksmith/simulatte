@@ -111,15 +111,17 @@ function compactRecord(input = {}, type = 'review') {
     runId: stringValue(input.runId, 120),
     status: stringValue(input.status || (type === 'draft' ? 'draft' : 'review'), 40),
     prompt: stringValue(input.prompt, 8000),
-    note: stringValue(input.note, 12000),
+    feedback: stringValue(input.feedback || input.note, 12000),
+    note: stringValue(input.note || input.feedback, 12000),
     tags: stringArray(input.tags, 32, 80),
-    expected: stringValue(input.expected, 4000),
     phaseId: stringValue(input.phaseId, 80),
     phaseLabel: stringValue(input.phaseLabel, 120),
     phaseFrom: numberValue(input.phaseFrom, 0),
     phaseTo: numberValue(input.phaseTo, 0),
     pipelinePhase: compactJson(input.pipelinePhase, 4000),
     artifactSummary: compactJson(input.artifactSummary, 32000),
+    selectedArtifact: compactJson(input.selectedArtifact, 16000),
+    phaseCards: compactJson(input.phaseCards, 24000),
     artifactHash: stringValue(input.artifactHash, 160),
     appUrl: stringValue(input.appUrl, 2000),
     build: stringValue(input.build, 120),
@@ -148,14 +150,14 @@ function summarizeReviews(reviews) {
     byPhase: {},
     byPhaseTo: {},
     byStatus: {},
-    byTag: {},
     failingPrompts: {},
   };
   for (const review of reviews) {
-    bump(summary.byPhase, review.phaseLabel || review.phaseId || 'unknown');
-    bump(summary.byPhaseTo, review.phaseTo ? `1->${review.phaseTo}` : 'unknown');
+    const phase = review.phaseLabel || review.phaseId || 'unknown';
+    const phaseTo = review.phaseTo ? `1->${review.phaseTo}` : 'unknown';
+    bump(summary.byPhase, phase);
+    bump(summary.byPhaseTo, phaseTo);
     bump(summary.byStatus, review.status || 'unknown');
-    for (const tag of review.tags || []) bump(summary.byTag, tag);
     if (review.status !== 'pass' && review.prompt) {
       bump(summary.failingPrompts, String(review.prompt).slice(0, 160));
     }

@@ -49,6 +49,7 @@
         dopplerKernelBasePath: config.dopplerKernelBasePath || '../vendor/doppler/src/gpu/kernels',
         runtimeConfig: config.runtimeConfig || null,
         spanLevelEmbedding: config.spanLevelEmbedding,
+        traceEmbeddings: config.traceEmbeddings === true,
         onProgress: postProgress,
       });
       return embedder;

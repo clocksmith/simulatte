@@ -1476,14 +1476,12 @@
         if (!normalized) continue;
         const specificity = labelSpecificity(normalized);
         if (specificity < 0.18) continue;
-        const pattern = new RegExp(`\\b${escapeRegExp(normalized).replace(/\\s+/g, '\\s+')}\\b`, 'g');
-        let match;
-        while ((match = pattern.exec(lower))) {
+        for (const match of labelOccurrences(lower, normalized)) {
           matches.push({
             card,
-            phrase: match[0],
+            phrase: match.text,
             index: match.index,
-            end: match.index + match[0].length,
+            end: match.end,
             score: Number((0.7 + specificity * 0.26 + (card.curation ? card.curation.priority : 0) * 0.04).toFixed(4)),
             source: 'direct-surface-label',
           });
@@ -1913,10 +1911,33 @@
     for (const label of labels || []) {
       const normalized = String(label || '').toLowerCase().trim();
       if (!normalized) continue;
-      const pattern = new RegExp(`\\b${escapeRegExp(normalized).replace(/\\s+/g, '\\s+')}\\b`);
-      if (pattern.test(lower)) best = Math.max(best, Math.min(1, 0.52 + labelSpecificity(normalized) * 0.38));
+      if (labelOccurrences(lower, normalized).length) {
+        best = Math.max(best, Math.min(1, 0.52 + labelSpecificity(normalized) * 0.38));
+      }
     }
     return best;
+  }
+
+  function labelOccurrences(text, label) {
+    const source = String(text || '').toLowerCase();
+    const sourceTokens = tokensWithPositions(source);
+    const labelTokens = tokensWithPositions(label).map((token) => token.root);
+    if (!sourceTokens.length || !labelTokens.length) return [];
+    const out = [];
+    for (let i = 0; i <= sourceTokens.length - labelTokens.length; i += 1) {
+      let ok = true;
+      for (let j = 0; j < labelTokens.length; j += 1) {
+        if (sourceTokens[i + j].root !== labelTokens[j]) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) continue;
+      const start = sourceTokens[i].index;
+      const end = sourceTokens[i + labelTokens.length - 1].end;
+      out.push({ index: start, end, text: source.slice(start, end) });
+    }
+    return out;
   }
 
   function scaleValue(scale) {
@@ -2292,6 +2313,7 @@
     if (out.endsWith('ies') && out.length > 4) out = `${out.slice(0, -3)}y`;
     else if (/(ches|shes|xes|zes|sses)$/.test(out) && out.length > 5) out = out.slice(0, -2);
     else if (out.endsWith('s') && out.length > 3 && !/(ss|us|is)$/.test(out)) out = out.slice(0, -1);
+    if (out === 'mountaint' || out === 'moutnain') out = 'mountain';
     return out;
   }
 
