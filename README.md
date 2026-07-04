@@ -1,190 +1,120 @@
 # Simulatte
 
-Simulatte is a prompt-first browser creator for remixable 2D simulations.
+## Intent
+
+Simulatte compiles natural language into executable world models: grounded
+representations of anything a person describes, rendered as inspectable moving
+simulations.
+
+The prompt is the source program. What it names, relates, constrains, causes,
+changes, measures, or implies should survive into the compiled world model
+unless Simulatte explicitly marks it unsupported or assumed. The world model
+must carry receipts: language evidence, grounding, assumptions, unsupported
+claims, causal structure, simulation structure, VisualIR, and renderer bindings.
+
+The visible simulation is the product truth. It must clearly represent the
+prompt's specific intent without requiring logs or internal artifacts. Different
+meanings should produce meaningfully different worlds, behavior, and visual
+language; closely related prompts should preserve their differences; broadly
+different prompts should not collapse into the same scene.
+
+Simulatte is not a prompt-to-template toy, generic shader demo, keyword
+visualizer, fixed example gallery, or model hallucinating physics. It is a
+browser-native natural-language simulation compiler with deterministic receipts,
+grounded world models, and prompt-faithful visual execution.
 
 Front-door promise:
 
-> Prompt a world. Resolve intent into components. Run the 2D simulation.
+> Prompt a world. Resolve intent into a world model. Run the simulation.
 
-Simulatte uses browser-native simulation surfaces for physical systems: forces,
-fields, motion, materials, energy accounting, losses, and visible state
-evolution. The front door is a single prompt. Example chips fill that prompt,
-then the same intent compiler resolves primitives, components, and simulation
-parameters before the canvas runs.
+Simulatte uses browser-native simulation surfaces for entities, fields, motion,
+materials, constraints, controls, causal processes, ledgers, visible state
+evolution, and WebGPU visual execution. The front door is a single prompt.
+Example prompts are convenience inputs, not product boundaries.
 
-## Product Objects
+## Product Contract
 
-- Physical system: bodies, fields, constraints, inputs, loads, and losses.
-- Integrator: deterministic state updates over small time steps.
-- Ledger: tracked input energy, actuator work, useful output, stored motion, and
-  losses.
-- Canvas surface: continuous rendering of forces, geometry, motion, and readouts.
-- Experiment controls: sliders that change physical parameters while the model
-  keeps accounting.
-- Intent: prompt text resolved into domains, components, and a 2D simulation
-  resolution.
-- Simulation spec: exportable JSON that can be imported, remixed, and run again.
-- Prompt builder: creates intent from terms like solar magnetic wheel, fluid
-  vortex tank, blank world, or reaction diffusion chemistry.
-- Modules: mechanics, electromagnetism, solar, fluid, turbulence, chemistry,
-  diffusion, thermal, gravity, control, optics, acoustics, waves, elasticity,
-  collision, buoyancy, granular media, electricity, plasma, pressure, and
-  energy-ledger pieces that can be composed into one world.
-- Objects: bodies, fields, materials, sources, sinks, actuators, and constraints
-  generated from the prompt.
+- The prompt is compiled, not decorated. Prompt terms must be preserved as
+  language evidence before they can become physics, visual atoms, or renderer
+  behavior.
+- The compiled world model is inspectable. It carries receipts for language
+  spans, accepted activations, retrieved evidence, assumptions, unsupported
+  claims, causal edges, PhysicsIR, simulation channels, VisualIR, graphics atom
+  mappings, and renderer uniform bindings.
+- The simulation is executable. The renderer should consume compiled artifacts
+  rather than raw prompt text or broad scene buckets.
+- The visual output is the user-facing proof. Prompt-specific entities,
+  relations, materials, fields, motion, and causal processes must be visible
+  enough that different meanings produce different worlds.
+- If Simulatte cannot support part of the prompt, it must say so in receipts
+  instead of silently inventing unsupported physics.
+
+## Eight-Phase Compiler
+
+1. Runtime: load the browser runtime, model hooks, catalogs, and worker fallback.
+2. Language graph: preserve prompt spans, clauses, predicates, quantities,
+   modifiers, negation, and causal language.
+3. Retrieval: use EmbeddingGemma and deterministic catalog retrieval to find
+   candidate primitives, materials, components, examples, causal rows, and
+   visual cards.
+4. Activation cloud: bind spans to candidate meanings and visual signals.
+5. Grounded intent: accept evidence-backed meanings, expose unresolved spans,
+   and build assumptions, alternatives, causal edges, and visual affordances.
+6. Simulation compile: lower the grounded world into PhysicsIR, validation,
+   solver graph, channels, state, controls, and readouts.
+7. VisualIR compile: compose entities, geometry, materials, fields, processes,
+   motion, camera, receipts, graphics atoms, uniform slots, and WGSL operator
+   bindings.
+8. WebGPU execution: render the compiled world model as a moving scene and keep
+   the visible output tied to VisualIR and graphics atoms.
+
+## Runtime Artifacts
+
+- `spec.intent.intentBrief`: canonical intent receipt with language evidence,
+  activation cloud, grounded interpretation, causal graph, assumptions, and
+  visual intent.
+- `spec.universeGraph`: grounded world graph built from accepted evidence.
+- `spec.physicsIR`: typed simulation contract, operators, couplings, state
+  fields, readouts, assumptions, and validation.
+- `spec.solverGraph`: executable update channels and solver steps.
+- `spec.renderIR.intentBriefReceipt`: compact handoff from grounded intent into
+  render compilation.
+- `spec.renderProgram.visualIR`: visual program for entities, materials, fields,
+  processes, motion, camera, causal affordances, receipts, and graphics atoms.
+- `spec.renderProgram.visualIR.graphicsAtoms`: operator mappings, language
+  signals, uniforms, WGSL operators, and renderer-facing visual slots.
 
 ## Browser Modules
 
-- `public/js/simulatte-physics-catalog.js`: templates, controls, primitive
-  catalog, and local semantic scoring helpers.
-- `public/js/simulatte-physics-model.js`: intent resolution, specs, simulation
-  state, integrators, readouts, and energy accounting.
+- `public/js/simulatte-language-evidence.js`: language-first span and predicate
+  evidence.
 - `public/js/simulatte-intent-embedder.js`: model-backed retrieval over
-  precomputed primitive, surface-card, and universe indexes. The current pinned
-  EmbeddingGemma runtime uses normalized 768-dimensional sentence embeddings
-  with cosine-normalized query and index vectors; it owns retrieval because that
-  is the embedding model role.
-- `public/js/simulatte-physics-renderer.js`: browser controls, canvas drawing,
-  continuous animation, and WebGPU particle-field sync.
-- `public/js/simulatte-physics-lab.js`: small public API coordinator.
+  precomputed primitive, surface-card, and universe indexes.
+- `public/js/simulatte-activation-cloud.js`: span-to-candidate activations and
+  native visual signal rows.
+- `public/js/simulatte-grounded-interpretation.js`: accepted activations,
+  evidence bindings, unresolved spans, and coverage gaps.
+- `public/js/simulatte-intent-forensics.js`: canonical intent brief assembly.
+- `public/js/simulatte-universe-grounder.js`: grounded world graph and compact
+  downstream intent receipts.
+- `public/js/simulatte-physics-ir.js`: typed simulation IR.
+- `public/js/simulatte-composition-graph.js`: VisualIR and graphics atom
+  composition.
+- `public/js/simulatte-webgpu-renderer.js`: browser-native visual execution from
+  compiled VisualIR and graphics atom uniforms.
+- `public/js/simulatte-physics-renderer.js`: browser UI coordinator, prompt
+  runtime, worker fallback, receipts, and live simulation loop.
 
-## Current Seeds
+## Quality Gates
 
-- Solar magnetic wheel with powered stator slider, magnetic torque, motor load,
-  bearing friction, and energy balance.
-- Fluid vortex tank with inlet flow, obstacle wake, viscosity, turbulence, and
-  pressure.
-- Reaction diffusion chemistry with feed, kill, diffusion, catalyst, cooling,
-  fronts, and heat.
-- Blank construction plane with no modules or objects until the builder prompt
-  creates them.
-
-These are seeds, not product boundaries. Prompt-built worlds use the
-`custom-world` spec and can combine modules from multiple seeds.
-
-## Layered Builder
-
-Simulatte uses a strict adjacent layer stack. Each layer can only build from
-the layer immediately below it:
-
-1. Math primitives: scalars, vectors, tensors, fields, grids, meshes, particle
-  sets, graphs, curves, boundaries, distance fields, distributions, units,
-  transforms, state machines, event queues, kernels, differential operators,
-  interpolation, sampling, constraints, queues, and ledgers.
-2. Physics operators: gravity, contact, impulses, joints, fluids, turbulence,
-  surface tension, heat, radiation, optics, charge transport, ionization,
-  magnetism, bonding, fracture, crystallization, reactions, erosion, growth,
-  osmosis, acoustics, waves, and orbital dynamics.
-3. Materials: water, air, steam, smoke, plasma, ice, oil, sand, soil, clay,
-  rock, metals and alloys, glass, quartz, minerals, ceramics, wood, rubber,
-  fabrics, polymers, fuels, gases, acids, bases, salts, sugars, DNA, RNA,
-  lipids, enzymes, biomass, membranes, and cells.
-4. Components: lamps, flames, rivers, clouds, pipes, pumps, fans, motors,
-  generators, lenses, mirrors, prisms, magnets, gears, sensors, controllers,
-  atomic samples, molecular chains, crystal slabs, electrolyte cells, gases,
-  droplets, powder beds, polymer sheets, membranes, cells, soils, beams, panes,
-  tiles, and adhesive joints.
-5. Compositions: forest fires, river erosion, engines, tunnels, optics benches,
-  reactors, greenhouses, weather cells, supply chains, traffic, markets, power
-  grids, materials labs, molecular benches, electrolysis demos, crystal growth,
-  polymer lines, soil hydrology, and aerosol chambers.
-6. Scenes: lab benches, solar fields, watersheds, factories, cities, forests,
-  storms, reactor rooms, warehouses, transit maps, marketplaces, colonies,
-  materials studios, molecular studios, wet labs, geology tables, and atmosphere
-  chambers.
-
-Layer 1 stays neutral: it describes numeric containers and operators, not
-physical meanings. Temperature is a physics-layer scalar field; velocity is a
-physics-layer vector field; pressure is a physics-layer scalar field; erosion
-uses a height field plus flow; queues use graph and buffer primitives.
-
-Higher layers are recipes over only the adjacent lower layer: scenes reference
-compositions, compositions reference components, components reference
-materials, materials reference physics, and physics references math. A prompt
-for a forest fire, optics bench, or city grid materializes that ladder into one
-simulation spec by recursive expansion.
-
-Natural language and ML do not live inside the stack. They are a compiler
-input plane above it: prompt text, embeddings, semantic retrieval, and local
-model hints choose target layers, rank primitives, fill slots, and propose
-physical graph deltas. The committed world still has to compile through the
-adjacent layer rules.
-
-Retrieval and reasoning are separate model roles. EmbeddingGemma owns
-retrieval: prompt embeddings, primitive matching, surface-card matching, and
-semantic-universe matching. A separate local text model may provide optional
-JSON graph hints, but it must not replace the embedding model for retrieval.
-Retrieval model swaps should be decided by benchmarked index candidates.
-
-Layer recipes now compile into contracts, not only dependency lists:
-
-- Material profiles normalize density, hardness, heat capacity, conductivity,
-  combustibility, moisture, opacity, refractive index, magnetization,
-  viscosity, and phase point.
-- Interaction rules encode pair behavior such as water suppressing combustion,
-  dry wood feeding flame spread, glass refracting light, magnetized metal
-  responding to fields, and water carrying erosion.
-- Geometry profiles declare point, field, particle cloud, rigid body,
-  boundary, volume, graph, terrain, and scene-plane shapes.
-- Ports declare accepted and emitted flows: energy, matter, force, signal,
-  flow, light, heat, pressure, motion, loss, and trace.
-- Recipe slots give higher layers roles, so forest fire has fuel, ignition,
-  oxygen, moisture, and spread-front slots instead of only child ids.
-- Scene layouts set spatial grammar and readouts for bench, watershed, forest,
-  city-grid, warehouse, market, and colony worlds.
-
-## Graph IR
-
-Resolved worlds now compile into `simulatte.graphIR.v1` before rendering or
-stepping. The graph is the runtime shape for composition:
-
-- Nodes own geometry, ports, material profile, layer identity, and component
-  state such as temperature, moisture, pressure, backlog, fuel, mass, velocity,
-  health, and inventory.
-- Edges connect recipe dependencies and compatible ports for energy, matter,
-  force, signal, flow, light, heat, pressure, motion, loss, and trace.
-- Units attach dimensions to simulation parameters, including length, mass,
-  time, energy, heat, pressure, opacity, probability, rate, charge, force, and
-  inventory.
-- Operators declare physics behavior such as advection, combustion, refraction,
-  queue service, erosion, phase change, magnetism, heat transfer, buoyancy,
-  collision, diffusion, and growth/decay.
-- Conservation rules declare what a world tracks, supplies, loses, or externally
-  injects for energy, mass, momentum, charge, inventory, and population.
-- Temporal events describe triggers such as ignition, overload, rainfall, phase
-  threshold crossing, controller response, and failure/recovery.
-- Validity checks repair impossible or underspecified prompts before simulation,
-  such as adding missing fuel or warning that raw rock cannot be served by a
-  queue without logistics context.
-- Prompt explanations expose the top identity, expanded primitives,
-  interactions, operators, conservation rules, and validation status.
-
-## World Plan
-
-Prompt-built worlds also compile into `simulatte.worldPlan.v1`, a concrete 2D
-scene plan inspired by Grid's intent-to-scene pipeline:
-
-- `intentState` records the resolved layer focus, layout mode, and top-level
-  identity.
-- `stageTrace` records lexical evidence, primitive resolution, contract graph,
-  spatial solve, simulation program, and renderer plan stages.
-- `objects` are physical bodies with material, role, shape, normalized pose,
-  and dynamics. A forest fire uses a fuel bed, burn front, smoke plume, water
-  line, wind field, and rock wall. An optics bench uses lamp, lens, prism,
-  mirror, rail, and sensor. A city grid uses network nodes, queues, power, and
-  service links. A magnetic machine uses solar panel, rotor, magnets, stator,
-  motor load, and energy ledger.
-- `relations` connect objects through force, heat, fuel, flow, light, signal,
-  work, energy, and receipt channels.
-- `fields` and `emitters` drive visible radiation, magnetic field lines, heat,
-  smoke, sediment, optical rays, gravity, and network flow.
-- `fidelity` summarizes whether the prompt materialized into a distinct,
-  inspectable simulation instead of a generic component graph.
-
-The builder can recreate the solar magnetic perpetual-motion-machine idea as a
-solar-powered magnetic wheel with explicit accounting. It can spin when slider
-work times the magnetic field correctly, but it cannot create net energy; the
-ledger exposes input, useful output, stored motion, and losses.
+- `npm test` checks compiler structure, artifacts, catalog drift, VisualIR
+  mappings, false-positive gates, and browser contracts.
+- `npm run audit:pipeline` scores every compiler phase against the current floor
+  and records history, baseline, weakest phase, and regressions.
+- `npm run audit:visual` runs the browser visual rubric locally against prompt
+  diversity, signal coverage, scene diversity, screenshots, canvas motion, and
+  representation quality.
+- `npm run eval:live` runs the same visual rubric against the deployed page.
 
 ## Boundary
 
@@ -194,7 +124,7 @@ can later integrate only as packaged dependencies. The first product loop is
 owned here:
 
 ```text
-prompt -> intent -> components -> 2d simulation spec -> continuous render -> export/remix
+prompt -> intent -> world model -> simulation spec -> continuous render -> export/remix
 ```
 
 ## Local Check

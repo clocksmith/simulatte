@@ -15,8 +15,10 @@
     mechanical: 3,
     'structural-mechanics': 24,
     ferrofluid: 4,
+    'magnetic-machine': 4,
     optics: 5,
     'optics-thermal': 5,
+    'thin-film': 34,
     acoustic: 6,
     biology: 7,
     ecology: 25,
@@ -24,6 +26,7 @@
     'restoration-water': 26,
     'agro-waste-loop': 20,
     'chemistry-lab': 8,
+    'material-tray': 8,
     cryosphere: 9,
     'ocean-cryosphere': 27,
     'planetary-space': 10,
@@ -37,6 +40,7 @@
     'clinical-control': 14,
     'particle-instrument': 15,
     'quantum-instrument': 19,
+    atomic: 19,
     'robotics-control': 17,
     'manufacturing-line': 18,
     granular: 22,
@@ -81,11 +85,11 @@
     ['turbine-extracts', 'torque rings', 'rotor-ghosts'],
     ['magnet-deflects-ferrofluid', 'magnetic-spikes', 'spike-growth'],
     ['laser-heats-metal', 'laser-line-scan', 'hotspot-sweep'],
-    ['lens-refracts', 'caustic', 'ray-bundles'],
+    ['lens-refracts', 'caustic', 'ray-bundles', 'thin-film-interference', 'iridescent-fringes', 'soap-film'],
     ['impact-fractures', 'crack-propagation', 'shock-ring'],
-    ['speaker-drives', 'wavefront-expansion', 'standing-wave'],
-    ['nutrients-grow-algae', 'growth-front', 'biofilm'],
-    ['chemical-diffuses', 'concentration-front', 'reaction-cloud'],
+    ['speaker-drives', 'wavefront-expansion', 'standing-wave', 'pressure-waves', 'acoustic-levitator', 'waveguide'],
+    ['nutrients-grow-algae', 'growth-front', 'biofilm', 'fermentation-bubbles', 'gluten-strands'],
+    ['chemical-diffuses', 'concentration-front', 'reaction-cloud', 'acidity-gradient', 'gas-pocket-growth'],
     ['arrivals-create-queue', 'queue-waves', 'bottleneck'],
     ['gravity-curves-orbit', 'density-wave', 'orbit-trails'],
     ['cooling-freezes', 'ice-front', 'frost-dendrites'],
@@ -141,7 +145,6 @@
       this.status = 'initializing WebGPU renderer';
       this.sceneKind = 'mechanical';
       this.sceneId = 3;
-      this.loading = { active: false, progress: 0, stage: 'idle' };
       this.uniforms = new Float32Array(104);
       this.features = new Float32Array(48);
       this.atomUniforms = new Float32Array(24);
@@ -218,14 +221,7 @@
     }
 
     setLoading(active, percent, stage) {
-      const progress = clamp(Number(percent || 0) / 100, 0, 1);
-      const stageText = String(stage || 'loading').toLowerCase();
-      const complete = progress >= 0.995 || /\b(ready|complete|done|local-graph)\b/.test(stageText);
-      this.loading = {
-        active: Boolean(active) && !complete,
-        progress,
-        stage: stageText,
-      };
+      this.canvas.dataset.loadingIgnored = active ? `${Number(percent || 0)}:${stage || ''}` : '';
     }
 
     setSpec(spec) {
@@ -298,9 +294,9 @@
       u[9] = this.quality;
       u[10] = this.seed;
       u[11] = this.seed;
-      u[12] = this.loading.active ? 1 : 0;
-      u[13] = this.loading.progress;
-      u[14] = spec && spec.templateId === 'blank-world' ? 1 : 0;
+      u[12] = 0;
+      u[13] = 1;
+      u[14] = 0;
       u[15] = featureStrength(this.features);
       let offset = 16;
       for (const color of this.palette) {
@@ -331,8 +327,10 @@
   function refineSceneKindFromText(sceneKind, text) {
     if (isCompiledSpecificScene(sceneKind)) return sceneKind;
     const value = String(text || '').toLowerCase();
+    if (/\b(thin film|thin-film|soap film|wire loop|wire-loop|iridescent|surface tension)\b/.test(value)) return 'thin-film';
     if (/\b(qubit|quantum|superconducting|microwave resonator|phase readout|ion trap|spin lattice)\b/.test(value)) return 'quantum-instrument';
     if (/\b(muon|neutrino|particle collider|calorimeter|detector slice|phototube|cherenkov|particle track)\b/.test(value)) return 'particle-instrument';
+    if (/\b(acoustic|sound|standing wave|standing waves|pressure wave|pressure waves|waveguide|resonance|levitator|brass tube)\b/.test(value)) return 'acoustic';
     if (/\b(microgrid|battery inverter|transformer overload|substation|frequency control|voltage sag|power flow)\b/.test(value)) return 'grid-energy';
     if (/\b(robot|robotic|servo|gripper|pick and place|warehouse arm|drone stabiliz)\b/.test(value)) return 'robotics-control';
     if (/\b(injection molding|steel tooling|factory line|conveyor|cnc|extruder|cooling die)\b/.test(value)) return 'manufacturing-line';
@@ -345,7 +343,7 @@
     if (/\b(bridge resonance|vortex shedding|aeroelastic|modal vibration|structural mode|cable tension|truss)\b/.test(value)) return 'structural-mechanics';
     if (/\b(hurricane|earthquake|tsunami|wildfire|evacuation|air quality|urban heat|hazard|mine ventilation)\b/.test(value)) return 'hazard-atmosphere';
     if (/\b(fusion|tokamak|stellarator|plasma ribbon|electrolyzer|fuel cell|molten salt|nuclear waste)\b/.test(value)) return 'advanced-energy';
-    if (/\b(protein|ribosome|enzyme|ligand|amino acid|molecular chain|bond constraint)\b/.test(value)) return 'molecular-biology';
+    if (/\b(protein|ribosome|enzyme|ligand|amino acid|molecular chain|bond constraint|fermentation|sourdough|gluten|dough matrix|yeast)\b/.test(value)) return 'molecular-biology';
     if (/\b(vaccine|patient|clinical|blood|neuron|synapse|hospital|prosthetic|tissue)\b/.test(value)) return 'clinical-control';
     if (/\b(skate|skateboard|ski|surf|sailing|archery|mountain bike|rider)\b/.test(value)) return 'sport-motion';
     if (/\b(museum|archive|pigment|varnish|ceramic glaze|conservation|artwork)\b/.test(value)) return 'cultural-material';
@@ -443,14 +441,19 @@
     push([0, 16, 17], /thermal|heat|flame|phase|vapor|hot/);
     push([2, 3, 35], /fluid|flow|pressure|stream|coolant|ribbon/);
     push([7, 8], /optical|ray|caustic|phase-front|spectral|lens/);
-    push([10, 34], /acoustic|wave|pressure-ring|resonator|standing/);
-    push([11, 19, 23, 36], /bio|cell|growth|organic|membrane|protein|root/);
+    push([7, 8], /thin-film|thin film|soap|wire-loop|wire loop|iridescent|interference-bubble|surface-tension/, 0.9);
+    push([10, 34], /acoustic|wave|pressure-ring|pressure wave|pressure waves|resonator|standing|levitator|waveguide|brass-tube|brass tube/);
+    push([11, 19, 23, 36], /bio|cell|grow|growth|organic|membrane|protein|root|ferment|sourdough|dough|gluten|yeast|porous/);
+    push([11, 12, 19, 23, 36], /fermentation|ferment|sourdough|gluten|dough|gas-pocket|bubble-expansion|acidity-gradient|carbon-dioxide/, 0.9);
     push([13, 30, 31], /network|queue|parcel|agent|routing|market|graph|index|supply|crowd/);
     push([17], /feedback|control|controller|setpoint|sensor|actuator|valve/);
     push([14, 28], /orbit|gravity|trajectory|barycenter|astral/);
     push([4, 29, 37], /magnetic|flux|charge|coil|plasma|electric/);
     push([12, 24], /stress|fracture|contact|impulse|deformation|crack/);
+    push([12, 24], /bridge|cable|tension|vortex-shedding|vortex shedding|structural-resonance|modal/, 0.82);
     push([38, 41], /robot|servo|gripper|workcell|pick|place/);
+    push([9, 17], /skate|skateboard|rider|bowl|friction|centripetal|trajectory|wheel|carv/);
+    push([26, 35], /cryosphere|glacier|iceberg|fjord|calving|ice shelf|ice cliff|meltwater|internal ocean/);
     push([45], /particle|detector|muon|neutrino|calorimeter|cherenkov/);
     push([46], /parcel|zoning|housing|market|policy|supply|dispatch|bullwhip/);
     push([47], /hazard|storm|surge|evacuation|restoration|mangrove|aquifer|wildfire|tsunami/);
@@ -503,16 +506,16 @@
       if (index >= 0 && pattern.test(text)) vector[index] = Math.max(vector[index], strength);
     };
     set('thermal', /thermal|heat|vapor|flame|combustion/);
-    set('fluid', /fluid|flow|pressure|stream|coolant/);
+    set('fluid', /fluid|flow|pressure|stream|coolant|gas-pocket|bubble/);
     set('stress', /stress|fracture|crack|contact|constraint/);
     set('feedback', /feedback|controller|setpoint|control/);
     set('orbital', /orbit|gravity|trajectory|barycenter/);
     set('electromagnetic', /magnetic|flux|charge|coil|electric/);
-    set('optical', /optical|ray|caustic|lens|spectral/);
+    set('optical', /optical|ray|caustic|lens|spectral|thin-film|thin film|soap film|iridescent|interference/);
     set('quantum', /quantum|qubit|superconducting|resonator/);
-    set('acoustic', /acoustic|sound|wave|resonance|frequency|pressure-ring/);
-    set('biological', /biological|bio|cell|growth|organic|membrane|protein|root/);
-    set('chemical', /chemical|reaction|diffusion|acid|crystal|concentration|reagent/);
+    set('acoustic', /acoustic|sound|wave|resonance|frequency|pressure-ring|pressure wave|pressure waves|levitator|waveguide|brass tube/);
+    set('biological', /biological|bio|cell|grow|growth|organic|membrane|protein|root|fermentation|sourdough|gluten|dough|yeast/);
+    set('chemical', /chemical|reaction|diffusion|acid|acidity|crystal|concentration|reagent|fermentation/);
     set('network', /network|queue|parcel|agent|routing/);
     set('granular', /granular|grain|sand|sediment|erosion|terrain|powder|bead/);
     set('instrument', /instrument|detector|sensor|readout|probe|meter|measurement/);
@@ -520,12 +523,12 @@
     set('phase', /phase|melt|freeze|vapor|boil|solidify|latent/);
     set('robotic', /robot|servo|gripper|workcell/);
     set('measurement', /measurement|readout|sample|uncertainty|probe/);
-    set('motion', /motion|pulse|trail|wave|ribbon|trajectory|vortex/);
-    set('density', /density|crowd|particle|grain|nutrient|concentration/);
+    set('motion', /motion|pulse|trail|wave|ribbon|trajectory|vortex|bubble-expansion|strand-deformation/);
+    set('density', /density|crowd|particle|grain|nutrient|concentration|dough|gluten|porous/);
     set('emission', /emission|glow|emissive|plasma|laser|signal/);
     set('constraint', /constraint|setpoint|contact|force|boundary|control/);
     set('signal', /signal|packet|pulse|current|voltage|telemetry/);
-    set('surface', /surface|membrane|terrain|map|skin|boundary|phase/);
+    set('surface', /surface|membrane|terrain|map|skin|boundary|phase|gluten|dough|thin-film|thin film|soap film|wire-loop/);
     return compressAtomUniformVector(vector);
   }
 
@@ -562,11 +565,11 @@
   function metricsForSpec(spec, text) {
     const params = spec && spec.params || {};
     return {
-      heat: clamp01(Number(params.heat || 0.35) + (/heat|thermal|lava|fire|chip|plasma/.test(text) ? 0.34 : 0)),
-      flow: clamp01(Number(params.flow || params.air || 0.42) + (/flow|wind|river|water|queue|signal/.test(text) ? 0.24 : 0)),
-      density: clamp01(Number(params.density || params.mass || 0.46) + (/crowd|particle|soil|material|molecular|network/.test(text) ? 0.18 : 0)),
-      bloom: /laser|plasma|aurora|thermal|glow|signal|circuit/.test(text) ? 0.82 : 0.58,
-      motion: /wave|orbit|spin|feedback|flow|vortex|pulse/.test(text) ? 0.76 : 0.42,
+      heat: clamp01(Number(params.heat || 0.35) + (/heat|thermal|cool|cools|cooled|cooling|lava|fire|chip|plasma/.test(text) ? 0.34 : 0)),
+      flow: clamp01(Number(params.flow || params.air || 0.42) + (/flow|wind|river|water|queue|signal|gas|bubble|bubbles|pressure-pocket/.test(text) ? 0.24 : 0)),
+      density: clamp01(Number(params.density || params.mass || 0.46) + (/crowd|particle|soil|material|molecular|network|dough|gluten|porous|matrix/.test(text) ? 0.18 : 0)),
+      bloom: /laser|plasma|aurora|thermal|heat|cool|cooling|glow|signal|circuit|fermentation|acidity|iridescent|thin-film|thin film/.test(text) ? 0.82 : 0.58,
+      motion: /wave|orbit|spin|feedback|flow|vortex|pulse|skate|rider|carv|centripetal|trajectory|friction|bubble-expansion|fermentation|gas-pocket|strand-deformation|surface-tension|levitator/.test(text) ? 0.76 : 0.42,
     };
   }
 
@@ -585,6 +588,8 @@
     if (dominant === 'fluid') return paletteToVec4(PALETTES.water);
     if (dominant === 'stress') return paletteToVec4(PALETTES.factory);
     if (dominant === 'electromagnetic') return paletteToVec4(PALETTES.magnet);
+    if (sceneKind === 'thin-film') return paletteToVec4(PALETTES.optics);
+    if (sceneKind === 'magnetic-machine') return paletteToVec4(PALETTES.magnet);
     if (sceneKind === 'fire') return paletteToVec4(PALETTES.thermal);
     if (sceneKind === 'ocean' || sceneKind === 'ocean-cryosphere') return paletteToVec4(PALETTES.water);
     if (sceneKind === 'structural-mechanics') return paletteToVec4(PALETTES.factory);
@@ -772,9 +777,23 @@ fn sceneField(p: vec2f, t: f32, scene: f32) -> vec3f {
   } else if (sceneGroup == 2.0) {
     color = mix(color, u.palette1.rgb, max(waves, branch * 0.7) * 0.44);
     color += u.palette3.rgb * rings * 0.12 * commonGain;
+  } else if (sceneGroup == 4.0) {
+    let flux = stripe(atan2(p.y, p.x) * 4.0 + length(p) * 3.1 - t * (0.16 + motion * 0.18), 0.034);
+    let coil = ellipseRing(p, vec2f(-0.32, -0.05), vec2f(1.45, 0.8), 0.34, 0.045);
+    let spikes = pow(max(0.0, sin(atan2(p.y, p.x) * 12.0 + t * 0.7)), 5.0) * smoothstep(0.74, 0.1, length(p));
+    color = mix(color, u.palette2.rgb, 0.28);
+    color += u.palette1.rgb * flux * (0.24 + bloom * 0.18);
+    color += u.palette3.rgb * max(coil, spikes) * 0.5;
   } else if (sceneGroup == 5.0) {
     color = mix(color, u.palette1.rgb, beam * bloom);
     color += u.palette3.rgb * rings * 0.24 * commonGain;
+  } else if (sceneGroup == 6.0) {
+    let tube = smoothstep(0.34, 0.28, abs(p.y + sin(p.x * 3.8) * 0.04));
+    let pressure = stripe(length((p - vec2f(-0.1, 0.0)) * vec2f(1.0, 0.68)) * 7.0 - t * (0.7 + motion * 0.45), 0.028);
+    let nodes = stripe(p.x * 7.0 + sin(p.y * 4.0), 0.032) * tube;
+    color = mix(color, u.palette2.rgb, 0.22);
+    color += u.palette1.rgb * tube * 0.28;
+    color += u.palette3.rgb * max(pressure, nodes) * (0.22 + bloom * 0.18);
   } else if (sceneGroup == 7.0 || sceneGroup == 13.0 || sceneGroup == 14.0) {
     color = mix(color, u.palette1.rgb, branch * 0.46);
     color += u.palette3.rgb * rings * 0.12 * commonGain;
@@ -819,11 +838,28 @@ fn sceneField(p: vec2f, t: f32, scene: f32) -> vec3f {
     color = mix(u.palette2.rgb, u.palette1.rgb, resonator * 0.48 + fringes * 0.12);
     color += u.palette3.rgb * readout * (0.2 + bloom * 0.18);
   } else if (sceneGroup == 20.0) {
-    let rows = max(stripe(p.x * 8.0 + sin(p.y * 5.0), 0.035), stripe((p.x - p.y) * 5.0, 0.028));
-    let nutrientLoop = exp(-abs(length((p - vec2f(0.06, 0.04)) * vec2f(1.1, 0.72)) - 0.45) * 18.0);
-    let compost = exp(-dot(p - vec2f(-0.52, 0.32), p - vec2f(-0.52, 0.32)) * 18.0);
-    color = mix(color, u.palette1.rgb, rows * 0.28 + nutrientLoop * 0.32);
-    color += u.palette3.rgb * compost * (0.18 + heat * 0.28);
+    let fluidSignal = atomAt(1);
+    let feedbackSignal = atomAt(3);
+    let signalSignal = atomAt(22);
+    let loopUv = (p - vec2f(0.06, 0.04)) * vec2f(1.1, 0.72);
+    let loopRadius = length(loopUv);
+    let loopAngle = atan2(loopUv.y, loopUv.x);
+    let rows = max(
+      stripe(p.x * 8.0 + sin(p.y * 5.0 + t * 0.72) * 0.22, 0.035),
+      stripe((p.x - p.y) * 5.0 - t * 0.38, 0.028)
+    );
+    let nutrientLoop = exp(-abs(loopRadius - 0.45) * 18.0);
+    let loopPulse = stripe(loopAngle * 3.0 + t * (0.92 + motion * 0.38), 0.05) * nutrientLoop;
+    let waterLane = stripe(loopAngle * 5.0 - t * (1.28 + fluidSignal * 0.34), 0.038) * nutrientLoop;
+    let compostCenter = vec2f(-0.52 + sin(t * 0.54) * 0.025, 0.32 + cos(t * 0.46) * 0.02);
+    let compost = exp(-dot(p - compostCenter, p - compostCenter) * 18.0);
+    let heatBreath = 0.52 + 0.48 * sin(t * 1.18 + p.y * 4.0);
+    let gasBubbles = starParticleField(p + vec2f(0.0, t * 0.09), t, 0.12 + fluidSignal * 0.16) * smoothstep(0.68, 0.05, length(p - compostCenter));
+    color = mix(color, u.palette1.rgb, rows * 0.3 + nutrientLoop * 0.24 + loopPulse * 0.38);
+    color += vec3f(0.18, 0.74, 1.0) * waterLane * (0.3 + fluidSignal * 0.42);
+    color += u.palette3.rgb * compost * (0.14 + heat * (0.22 + heatBreath * 0.36));
+    color += vec3f(0.9, 1.0, 0.38) * gasBubbles * (0.18 + signalSignal * 0.34);
+    color += vec3f(0.2, 0.95, 0.42) * atomFeedbackArcs(p + vec2f(sin(t * 0.42) * 0.08, cos(t * 0.36) * 0.05), t) * max(feedbackSignal, 0.24) * 0.26;
   } else if (sceneGroup == 21.0) {
     let bowl = exp(-abs(p.y - (0.42 * p.x * p.x - 0.42)) * 22.0);
     let trajectory = exp(-abs(length((p - vec2f(sin(t * 0.4) * 0.42, -0.1 + cos(t * 0.4) * 0.16)) * vec2f(1.2, 1.8)) - 0.18) * 24.0);
@@ -835,6 +871,31 @@ fn sceneField(p: vec2f, t: f32, scene: f32) -> vec3f {
     let cracks = exp(-abs(sin(p.x * 10.0 + p.y * 6.0 + t * 0.08)) * 8.0);
     color = mix(color, u.palette1.rgb, strata * 0.035);
     color += u.palette3.rgb * cracks * 0.035;
+  } else if (sceneGroup == 33.0) {
+    let flame = atomThermalPlume(p * vec2f(0.82, 1.08) + vec2f(sin(t * 0.38) * 0.08, -0.1), t);
+    let soot = stripe(p.y * 6.0 + sin(p.x * 5.0 + t * 0.25) * 0.5 - t * 0.18, 0.036) * smoothstep(-0.85, 0.65, p.y);
+    let ember = starParticleField(p + vec2f(0.0, t * 0.1), t, 0.12 + heat * 0.2);
+    color = mix(vec3f(0.08, 0.035, 0.02), u.palette2.rgb, smoothstep(0.2, 0.95, p.y) * 0.5);
+    color += vec3f(1.0, 0.22, 0.04) * flame * (0.5 + heat * 0.44);
+    color += vec3f(0.95, 0.58, 0.12) * ember * 0.36;
+    color = mix(color, vec3f(0.025, 0.025, 0.03), soot * 0.28);
+  } else if (sceneGroup == 34.0) {
+    let loopA = ellipseRing(p, vec2f(-0.26, 0.04), vec2f(0.85, 1.36), 0.42, 0.034);
+    let loopB = ellipseRing(p, vec2f(0.36, -0.08), vec2f(1.2, 0.82), 0.33, 0.028);
+    let film = smoothstep(0.72, 0.08, length((p - vec2f(0.02, -0.02)) * vec2f(0.74, 1.05)));
+    let phaseBands = 0.5 + 0.5 * sin((p.x * 11.0 + p.y * 7.0) + sin(p.y * 6.0 + t * 0.35) * 1.4);
+    let rainbow = vec3f(
+      0.56 + 0.44 * sin(phaseBands * 6.28318 + 0.0),
+      0.56 + 0.44 * sin(phaseBands * 6.28318 + 2.09),
+      0.56 + 0.44 * sin(phaseBands * 6.28318 + 4.18)
+    );
+    let bubbles = max(
+      ellipseRing(p, vec2f(-0.34, -0.18 + sin(t * 0.5) * 0.03), vec2f(1.0), 0.12, 0.025),
+      ellipseRing(p, vec2f(0.28, 0.2 + cos(t * 0.42) * 0.035), vec2f(0.9, 1.2), 0.095, 0.022)
+    );
+    color = mix(vec3f(0.98, 0.98, 1.0), rainbow, film * (0.36 + bloom * 0.24));
+    color += vec3f(0.1, 0.12, 0.16) * max(loopA, loopB) * 0.78;
+    color += u.palette3.rgb * bubbles * 0.52;
   } else {
     color = mix(color, u.palette1.rgb, max(rings * 0.12, waves * 0.1) * commonGain);
     color += u.palette3.rgb * plume * 0.06 * commonGain;
@@ -886,10 +947,10 @@ fn atomQuantumFringes(p: vec2f, t: f32) -> f32 {
 fn atomNetworkPressure(p: vec2f, t: f32) -> f32 {
   let road = max(capsuleLine(p, vec2f(-0.84, -0.32), vec2f(0.76, 0.24), 0.026),
     capsuleLine(p, vec2f(-0.62, 0.38), vec2f(0.72, -0.2), 0.022));
-  let pulse = stripe((p.x + p.y) * 5.0 - t * 0.22, 0.028);
+  let pulse = stripe((p.x + p.y) * 5.0 - t * 0.72, 0.03);
   let node = max(exp(-dot(p - vec2f(-0.48, -0.14), p - vec2f(-0.48, -0.14)) * 38.0),
     exp(-dot(p - vec2f(0.44, 0.2), p - vec2f(0.44, 0.2)) * 34.0));
-  return max(road * (0.52 + pulse * 0.28), node);
+  return max(road * (0.45 + pulse * 0.42), node * (0.82 + pulse * 0.18));
 }
 
 fn diskMask(p: vec2f, c: vec2f, r: f32) -> f32 {
@@ -1005,6 +1066,7 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
   let instrument = max(atomAt(13), atomAt(17));
   let phase = atomAt(15);
   let robot = atomAt(16);
+  let constraint = atomAt(21);
   let signal = atomAt(22);
   let gridFeature = featureAt(40);
   let robotFeature = max(featureAt(38), featureAt(41));
@@ -1016,10 +1078,7 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
   let hazardFeature = featureAt(47);
   let atomSpecific = clamp(max(max(max(robot, quantum), max(chemical, granular)), max(max(network, optical), max(bio, orbital))), 0.0, 1.0);
   let networkLocal = network * (1.0 - clamp(max(max(robot, chemical), max(granular, fluid)) * 0.82, 0.0, 0.92));
-  var literalScene = 0.0;
-  if (sceneGroup == 13.0 || sceneGroup == 15.0 || sceneGroup == 17.0 || sceneGroup == 29.0) {
-    literalScene = 1.0;
-  }
+  let literalScene = 0.0;
   let commonOverlay = 1.0 - literalScene;
   color += u.palette1.rgb * floorGlow * (0.025 + flow * 0.06) * (1.0 - atomSpecific * 0.78);
 
@@ -1029,6 +1088,18 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     color = blendLayer(color, orb3d(p, vec2f(-0.28, -0.04), 0.36, u.palette1.rgb * 0.72, u.palette3.rgb * 0.02, 0.44));
     color = blendLayer(color, orb3d(p, vec2f(0.52, 0.2), 0.12, u.palette0.rgb * 0.8, u.palette3.rgb * 0.04, 0.32));
     color += u.palette3.rgb * ellipseRing(rot(p - vec2f(-0.28, -0.04), 0.18), vec2f(0.0), vec2f(0.75, 2.8), 0.58, 0.035) * 0.56;
+  } else if (sceneGroup == 4.0) {
+    color = mix(color, vec3f(0.012, 0.018, 0.036), 0.52);
+    let dish = smoothstep(0.7, 0.08, length((p - vec2f(0.02, -0.08)) * vec2f(0.9, 1.25)));
+    let coilA = ellipseRing(p, vec2f(-0.46, -0.08), vec2f(1.2, 0.74), 0.22, 0.035);
+    let coilB = ellipseRing(p, vec2f(0.48, -0.08), vec2f(1.2, 0.74), 0.22, 0.035);
+    let fluxA = stripe(atan2(p.y + 0.08, p.x) * 5.0 + length(p) * 3.5 - t * (0.22 + motion * 0.16), 0.028) * dish;
+    let spikes = pow(max(0.0, sin(atan2(p.y + 0.06, p.x - 0.02) * 18.0 + t * 0.85)), 7.0) *
+      smoothstep(0.62, 0.06, length((p - vec2f(0.02, -0.05)) * vec2f(1.0, 0.76)));
+    color += vec3f(0.05, 0.1, 0.16) * dish * 0.48;
+    color += vec3f(0.32, 0.62, 1.0) * fluxA * (0.32 + em * 0.44);
+    color += vec3f(0.95, 0.18, 0.82) * spikes * (0.38 + bloom * 0.24);
+    color += vec3f(0.98, 0.75, 0.36) * max(coilA, coilB) * 0.68;
   } else if (sceneGroup == 12.0) {
     color = mix(color, vec3f(0.015, 0.018, 0.04), 0.44);
     color += vec3f(0.86, 0.2, 1.0) * ellipseRing(p, vec2f(0.0, 0.02), vec2f(1.2, 0.72), 0.52, 0.04) * 0.72;
@@ -1039,6 +1110,25 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     let tank = diskMask(p, vec2f(0.0, -0.02), 0.62);
     let wall = ellipseRing(p, vec2f(0.0, -0.02), vec2f(0.72, 1.12), 0.62, 0.035);
     let track = capsuleLine(p, vec2f(-0.78, 0.28), vec2f(0.72, -0.22), 0.018);
+    let trackPhase = t * (0.7 + motion * 0.46);
+    let muonTrackA = capsuleLine(
+      p,
+      vec2f(-0.86, -0.34 + sin(trackPhase) * 0.18),
+      vec2f(0.86, 0.3 + cos(trackPhase * 0.84) * 0.18),
+      0.025
+    );
+    let muonTrackB = capsuleLine(
+      p,
+      vec2f(-0.76, 0.38 + cos(trackPhase * 0.72) * 0.14),
+      vec2f(0.68, -0.42 + sin(trackPhase * 0.9) * 0.12),
+      0.018
+    );
+    let fieldSweep = stripe(atan2(p.y, p.x) * 4.0 + length(p) * 3.2 - t * (0.92 + em * 0.36), 0.028) *
+      smoothstep(0.78, 0.12, length(p));
+    let hitCenter = vec2f(-0.7 + fract(t * (0.52 + motion * 0.32)) * 1.4, 0.24 + sin(t * 1.18) * 0.2);
+    let travellingHit = diskMask(p, hitCenter, 0.075);
+    let calorimeterPulse = stripe(p.x * 9.0 + t * (1.2 + heat * 0.44), 0.044) *
+      smoothstep(0.72, 0.28, abs(p.y + 0.52));
     let coneA = exp(-abs(rot(p - vec2f(-0.14, 0.08), 0.34).y) * 20.0) *
       smoothstep(0.62, -0.08, length(p - vec2f(-0.14, 0.08)));
     let coneB = exp(-abs(rot(p - vec2f(0.12, -0.02), -0.48).y) * 18.0) *
@@ -1052,19 +1142,46 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     color += vec3f(0.42, 0.96, 1.0) * wall * 0.66;
     color += vec3f(0.78, 1.0, 0.96) * max(coneA, coneB) * 0.28;
     color += vec3f(0.92, 1.0, 0.9) * track * 0.82;
+    color += vec3f(0.74, 1.0, 0.98) * max(muonTrackA, muonTrackB) * (0.52 + instrument * 0.36);
+    color += vec3f(0.22, 0.88, 1.0) * fieldSweep * (0.24 + em * 0.44);
+    color += vec3f(1.0, 0.32, 0.08) * calorimeterPulse * (0.16 + thermal * 0.38);
+    color += vec3f(1.0, 0.95, 0.5) * travellingHit * (0.46 + signal * 0.42);
     color += vec3f(0.18, 0.82, 1.0) * pmt * (0.54 + stripe(t + length(p) * 3.0, 0.05) * 0.28);
   } else if (sceneGroup == 23.0 || sceneGroup == 27.0) {
-    let shelf = smoothstep(0.07, 0.0, abs(p.y + 0.18 + sin(p.x * 2.5) * 0.08));
+    let shelfEdge = p.y + 0.18 + sin(p.x * 2.5 + t * 0.18) * 0.08;
+    let shelf = smoothstep(0.07, 0.0, abs(shelfEdge));
     let waterColumn = smoothstep(-0.98, -0.12, p.y) * (1.0 - smoothstep(0.44, 0.82, p.y));
+    let waveBands = stripe(p.y * 8.5 + sin(p.x * 4.2 + t * 1.25) * 0.62 - t * 1.1, 0.036) * waterColumn;
+    let foamBands = stripe((p.x - p.y) * 6.0 + sin(p.y * 5.0 - t * 1.6) - t * 0.74, 0.028) * waterColumn;
+    let icebergA = rectMask(rot(p - vec2f(-0.38 + sin(t * 0.62) * 0.08, -0.05 + cos(t * 0.41) * 0.04), -0.18), vec2f(0.0), vec2f(0.16, 0.08));
+    let icebergB = rectMask(rot(p - vec2f(0.32 - sin(t * 0.52) * 0.1, -0.28 + sin(t * 0.46) * 0.05), 0.24), vec2f(0.0), vec2f(0.13, 0.07));
+    let calvingShard = rectMask(rot(p - vec2f(0.04 + sin(t * 0.9) * 0.16, 0.05 - fract(t * 0.2) * 0.54), 0.52), vec2f(0.0), vec2f(0.075, 0.05));
     color = mix(color, vec3f(0.02, 0.18, 0.32), waterColumn * 0.48);
     color += vec3f(0.35, 0.8, 1.0) * atomFluidRibbons(p, t) * 0.34;
+    color += vec3f(0.36, 0.92, 1.0) * waveBands * (0.28 + max(acoustic, fluid) * 0.38);
+    color += vec3f(0.92, 0.98, 1.0) * foamBands * (0.18 + acoustic * 0.34);
     color += vec3f(0.92, 0.98, 1.0) * shelf * 0.62;
+    color += vec3f(0.88, 0.97, 1.0) * max(max(icebergA, icebergB), calvingShard) * 0.72;
+    color += vec3f(0.55, 0.92, 1.0) * starParticleField(p + vec2f(t * 0.08, -t * 0.05), t, 0.1 + acoustic * 0.14) * waterColumn * 0.3;
     color += vec3f(0.2, 1.0, 0.58) * branchWeb(p + vec2f(0.18, -0.24), t) * 0.14;
   } else if (sceneGroup == 24.0) {
     color = blendLayer(color, panel3d(p, vec2f(0.0, -0.08), vec2f(0.86, 0.14), vec3f(0.11, 0.12, 0.13), u.palette1.rgb));
     color += vec3f(0.8, 0.9, 1.0) * capsuleLine(p, vec2f(-0.82, 0.22), vec2f(0.82, 0.22 + sin(t * 0.4) * 0.04), 0.035) * 0.52;
     color += vec3f(1.0, 0.54, 0.18) * atomStressCracks(p, t) * 0.42;
     color += vec3f(0.32, 0.74, 1.0) * stripe(p.x * 10.0 + sin(p.y * 8.0 + t * 0.32), 0.025) * smoothstep(0.82, 0.12, abs(p.y)) * 0.18;
+  } else if (sceneGroup == 6.0) {
+    color = mix(color, vec3f(0.018, 0.045, 0.07), 0.46);
+    let tube = capsuleLine(p, vec2f(-0.82, -0.02), vec2f(0.82, -0.02 + sin(t * 0.2) * 0.03), 0.09);
+    let mouthA = ellipseRing(p, vec2f(-0.72, -0.02), vec2f(1.0, 0.68), 0.16, 0.03);
+    let mouthB = ellipseRing(p, vec2f(0.72, -0.02), vec2f(1.0, 0.68), 0.16, 0.03);
+    let ringA = stripe(length((p - vec2f(-0.36, 0.02)) * vec2f(1.0, 0.72)) * 8.5 - t * (1.1 + motion * 0.36), 0.026);
+    let ringB = stripe(length((p - vec2f(0.28, 0.0)) * vec2f(1.0, 0.72)) * 8.0 - t * (1.0 + motion * 0.3), 0.026);
+    let levitatedDust = starParticleField(p + vec2f(sin(t * 0.24) * 0.04, 0.0), t, 0.12 + acoustic * 0.2) *
+      smoothstep(0.34, 0.02, abs(p.y + sin(p.x * 5.0 + t * 0.5) * 0.04));
+    color += vec3f(0.36, 0.74, 1.0) * tube * 0.48;
+    color += vec3f(0.82, 0.92, 1.0) * max(mouthA, mouthB) * 0.58;
+    color += u.palette3.rgb * max(ringA, ringB) * (0.24 + acoustic * 0.46);
+    color += vec3f(1.0, 0.9, 0.42) * levitatedDust * 0.5;
   } else if (sceneGroup == 13.0) {
     color = mix(color, vec3f(0.025, 0.055, 0.035), 0.58);
     let energy = stripe(p.y * 5.2 + sin(p.x * 4.8 + t * 0.12) * 0.48, 0.026) *
@@ -1123,11 +1240,42 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     color += vec3f(0.9, 0.95, 1.0) * capsuleLine(p, vec2f(0.04, -0.02), vec2f(0.52, 0.18 + sin(t) * 0.04), 0.048) * 0.56;
     color += u.palette3.rgb * diskMask(p, vec2f(0.56, 0.18 + sin(t) * 0.04), 0.085) * 0.58;
     color += vec3f(1.0, 0.46, 0.16) * max(rectMask(p, vec2f(-0.42, -0.5), vec2f(0.11, 0.075)), rectMask(p, vec2f(0.34, -0.49), vec2f(0.13, 0.085))) * 0.52;
+  } else if (sceneGroup == 33.0) {
+    color = mix(color, vec3f(0.085, 0.035, 0.02), 0.54);
+    let fuelBed = panel3d(p, vec2f(0.0, -0.58), vec2f(0.84, 0.12), vec3f(0.16, 0.06, 0.025), vec3f(1.0, 0.18, 0.04));
+    let flameA = atomThermalPlume(p * vec2f(0.84, 1.1) + vec2f(-0.18 + sin(t * 0.42) * 0.08, -0.18), t);
+    let flameB = atomThermalPlume(p * vec2f(1.05, 0.96) + vec2f(0.18 + cos(t * 0.37) * 0.08, -0.1), t + 1.7);
+    let smoke = stripe(p.y * 5.5 + sin(p.x * 4.2 + t * 0.18) * 0.75 - t * 0.16, 0.03) *
+      smoothstep(-0.18, 0.82, p.y);
+    let embers = starParticleField(p + vec2f(0.0, t * 0.1), t, 0.14 + thermal * 0.2);
+    color = blendLayer(color, fuelBed);
+    color += vec3f(1.0, 0.18, 0.035) * max(flameA, flameB) * (0.52 + heat * 0.42);
+    color += vec3f(1.0, 0.68, 0.14) * embers * 0.42;
+    color = mix(color, vec3f(0.025, 0.027, 0.032), smoke * 0.3);
   } else if (sceneGroup == 19.0 || quantum > 0.3 || quantumFeature > 0.18) {
     color = blendLayer(color, panel3d(p, vec2f(0.0, -0.02), vec2f(0.72, 0.42), vec3f(0.1, 0.08, 0.22), u.palette1.rgb));
     color += u.palette3.rgb * atomQuantumFringes(p, t) * (0.4 + bloom * 0.26);
     color += u.palette1.rgb * ellipseRing(p, vec2f(-0.2, 0.02), vec2f(1.4, 0.82), 0.36, 0.025) * 0.52;
     color += vec3f(1.0, 0.65, 0.95) * exp(-abs(rot(p, -0.26).y) * 64.0) * 0.28;
+  } else if (sceneGroup == 34.0) {
+    color = mix(color, vec3f(0.96, 0.98, 1.0), 0.32);
+    let filmBody = smoothstep(0.78, 0.08, length((p - vec2f(0.02, -0.02)) * vec2f(0.68, 1.04)));
+    let wireA = ellipseRing(p, vec2f(-0.28, 0.02), vec2f(0.82, 1.28), 0.42, 0.034);
+    let wireB = ellipseRing(p, vec2f(0.38, -0.1), vec2f(1.14, 0.82), 0.34, 0.028);
+    let phaseField = p.x * 9.0 + p.y * 6.0 + sin(p.y * 8.0 + t * 0.38) * 1.2 + t * 0.12;
+    let band = 0.5 + 0.5 * sin(phaseField);
+    let spectral = vec3f(
+      0.58 + 0.42 * sin(phaseField + 0.0),
+      0.58 + 0.42 * sin(phaseField + 2.09),
+      0.58 + 0.42 * sin(phaseField + 4.18)
+    );
+    let bubbleA = ellipseRing(p, vec2f(-0.36, -0.18 + sin(t * 0.48) * 0.04), vec2f(1.0, 1.0), 0.13, 0.026);
+    let bubbleB = ellipseRing(p, vec2f(0.22, 0.2 + cos(t * 0.42) * 0.04), vec2f(0.86, 1.18), 0.1, 0.023);
+    let caustic = exp(-abs(rot(p, 0.32).y) * 46.0) * smoothstep(-0.7, 0.7, p.x);
+    color = mix(color, spectral, filmBody * (0.34 + optical * 0.38 + phase * 0.24));
+    color += vec3f(0.08, 0.1, 0.14) * max(wireA, wireB) * 0.86;
+    color += vec3f(1.0, 0.96, 0.82) * caustic * 0.22;
+    color += u.palette3.rgb * max(bubbleA, bubbleB) * (0.42 + band * 0.18);
   } else if (sceneGroup == 5.0 || optical > 0.34) {
     color = mix(color, vec3f(0.02, 0.035, 0.065), 0.38);
     color = blendLayer(color, orb3d(p, vec2f(0.08, -0.02), 0.28, vec3f(0.72, 0.88, 1.0), u.palette3.rgb * 0.03, 0.12));
@@ -1149,6 +1297,24 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     color += vec3f(0.05, 0.55, 0.95) * valley * (0.32 + flow * 0.3);
     color += vec3f(0.44, 0.32, 0.14) * ridge * max(granular, 0.28) * 0.08;
     color += vec3f(0.76, 0.52, 0.22) * sediment * max(granular, 0.18) * 0.36;
+  } else if (sceneGroup == 21.0) {
+    let bowlLip = exp(-abs(p.y - (0.48 * p.x * p.x - 0.44)) * 26.0);
+    let bowlDeck = smoothstep(0.06, 0.0, abs(p.y + 0.52 - abs(p.x) * 0.06)) * smoothstep(0.95, 0.1, abs(p.x));
+    let riderCenter = vec2f(sin(t * 0.64) * 0.48, -0.17 + cos(t * 0.64) * 0.18);
+    let path = ellipseRing((p - vec2f(0.0, -0.2)), vec2f(0.0), vec2f(1.0, 1.72), 0.46, 0.026);
+    let board = capsuleLine(rot(p - riderCenter, sin(t * 0.64) * 0.42), vec2f(-0.16, 0.0), vec2f(0.16, 0.0), 0.035);
+    let rider = diskMask(p, riderCenter + vec2f(0.0, 0.12), 0.07);
+    let wheelA = diskMask(rot(p - riderCenter, sin(t * 0.64) * 0.42), vec2f(-0.14, -0.035), 0.026);
+    let wheelB = diskMask(rot(p - riderCenter, sin(t * 0.64) * 0.42), vec2f(0.14, -0.035), 0.026);
+    let skid = stripe((p.x + p.y) * 9.0 - t * 0.72, 0.02) * smoothstep(0.34, 0.03, length(p - riderCenter));
+    color = mix(color, vec3f(0.055, 0.065, 0.075), 0.42);
+    color += vec3f(0.62, 0.68, 0.76) * max(bowlLip, bowlDeck) * 0.66;
+    color += u.palette1.rgb * path * (0.28 + motion * 0.34);
+    color += vec3f(1.0, 0.8, 0.24) * skid * (0.16 + max(stress, constraint) * 0.42);
+    color += vec3f(0.08, 0.09, 0.1) * board * 0.78;
+    color += u.palette3.rgb * max(wheelA, wheelB) * 0.76;
+    color += vec3f(0.95, 0.98, 1.0) * rider * 0.62;
+    color += vec3f(0.3, 0.72, 1.0) * atomFeedbackArcs(p - riderCenter, t) * max(motion, 0.28) * 0.18;
   } else if (sceneGroup == 22.0 || granular > 0.34) {
     color = mix(color, vec3f(0.14, 0.09, 0.045), 0.42);
     let walls = max(rectMask(p, vec2f(-0.55, 0.02), vec2f(0.04, 0.68)), rectMask(p, vec2f(0.55, 0.02), vec2f(0.04, 0.68)));
@@ -1159,13 +1325,23 @@ fn cinematic3dScene(p: vec2f, t: f32, scene: f32, base: vec3f) -> vec3f {
     let rackA = panel3d(p, vec2f(-0.45, 0.03), vec2f(0.22, 0.46), vec3f(0.05, 0.08, 0.12), u.palette1.rgb);
     let rackB = panel3d(p, vec2f(0.08, -0.02), vec2f(0.2, 0.4), vec3f(0.06, 0.075, 0.1), u.palette3.rgb);
     let rackC = panel3d(p, vec2f(0.52, 0.08), vec2f(0.18, 0.34), vec3f(0.07, 0.08, 0.1), u.palette1.rgb);
+    let rackMask = max(max(rackA.a, rackB.a), rackC.a);
     color = blendLayer(color, rackA);
     color = blendLayer(color, rackB);
     color = blendLayer(color, rackC);
     let bus = max(capsuleLine(p, vec2f(-0.72, -0.48), vec2f(0.72, 0.34), 0.035), capsuleLine(p, vec2f(-0.68, 0.44), vec2f(0.78, -0.28), 0.028));
-    let pulse = stripe((p.x + p.y) * 5.0 - t * (0.45 + motion), 0.035);
-    color += u.palette1.rgb * bus * (0.36 + pulse * 0.34);
-    color += u.palette3.rgb * atomFeedbackArcs(p, t) * max(feedback, 0.28) * 0.46;
+    let pulse = stripe((p.x + p.y) * 5.0 - t * (0.7 + motion), 0.042);
+    let aisleFlow = max(
+      stripe(p.y * 5.0 + sin(p.x * 2.5 + t * 0.9) * 0.18 - t * (0.82 + motion * 0.36), 0.044) * smoothstep(0.88, 0.08, abs(p.x)),
+      stripe(p.x * 6.0 + p.y * 2.0 - t * (1.05 + motion * 0.28), 0.034) * smoothstep(0.74, 0.02, abs(p.y + 0.08))
+    );
+    let ledScan = stripe(p.y * 10.0 - t * (1.35 + motion), 0.038) * rackMask;
+    let heatWash = atomThermalPlume(p * vec2f(0.72, 1.0) + vec2f(sin(t * 0.38) * 0.12, -0.12), t);
+    color += u.palette1.rgb * bus * (0.3 + pulse * 0.52);
+    color += vec3f(0.18, 0.78, 1.0) * aisleFlow * (0.22 + networkLocal * 0.42 + feedback * 0.24);
+    color += vec3f(1.0, 0.28, 0.06) * heatWash * thermal * 0.36;
+    color += vec3f(0.72, 1.0, 0.92) * ledScan * (0.22 + signal * 0.38);
+    color += u.palette3.rgb * atomFeedbackArcs(p, t) * max(feedback, 0.28) * 0.62;
   } else if (sceneGroup == 0.0 || sceneGroup == 1.0 || thermal > 0.35 || phase > 0.32) {
     let basin = panel3d(p, vec2f(0.0, -0.55), vec2f(0.86, 0.2), vec3f(0.18, 0.05, 0.025), vec3f(1.0, 0.28, 0.04));
     color = blendLayer(color, basin);
@@ -1232,18 +1408,18 @@ fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
   let phase = atomAt(15);
   let robot = atomAt(16);
   let measurement = atomAt(17);
+  let motion = atomAt(18);
+  let density = atomAt(19);
   let signal = atomAt(22);
   let surface = atomAt(23);
   let specific = max(max(max(robot, quantum), max(chemical, granular)), max(max(network, optical), max(bio, orbit)));
-  var literalScene = 0.0;
-  if (sceneGroup == 13.0 || sceneGroup == 15.0 || sceneGroup == 17.0 || sceneGroup == 29.0) {
-    literalScene = 1.0;
-  }
+  let literalScene = 0.0;
   let thermalLocal = thermal * (1.0 - clamp(specific * 0.62, 0.0, 0.78));
   let networkLocal = network * (1.0 - clamp(max(max(robot, chemical), max(granular, fluid)) * 0.76, 0.0, 0.9));
   let microfluidic = clamp(max(chemical, instrument), 0.0, 1.0);
   let terrainFluid = clamp(fluid * max(granular, surface), 0.0, 1.0);
   let bioFluid = clamp(fluid * max(bio, 0.32), 0.0, 1.0);
+  let fermentationCue = clamp(max(featureAt(11), featureAt(12)) * max(min(bio, chemical), 0.28) * max(max(fluid, density), 0.24), 0.0, 1.0);
   let fluidLocal = fluid * (1.0 - clamp(max(max(robot, networkLocal), terrainFluid) * 0.28, 0.0, 0.45));
   let total = clamp(thermal + fluid + stress + feedback + orbit + em + optical + quantum +
     acoustic + bio + chemical + network + granular + instrument + phase + robot, 0.0, 3.0) / 3.0;
@@ -1281,9 +1457,13 @@ fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
   color += vec3f(1.0, 0.86, 0.2) * stress * atomStressCracks(p, t) * 0.72;
   let graph = atomNetworkPressure(p, t);
   color += vec3f(0.16, 0.48, 1.0) * networkLocal * graph * 0.78;
-  let parcelA = rectMask(p, vec2f(-0.54, -0.26), vec2f(0.12, 0.09));
-  let parcelB = rectMask(p, vec2f(-0.12, 0.18), vec2f(0.11, 0.08));
-  let parcelC = rectMask(p, vec2f(0.42, -0.02), vec2f(0.14, 0.1));
+  let parcelFlow = fract(t * 0.42);
+  let movingParcelA = vec2f(-0.76 + parcelFlow * 1.52, -0.28 + sin(t * 0.7) * 0.025);
+  let movingParcelB = vec2f(-0.32 + fract(parcelFlow + 0.34) * 1.28, 0.2 + cos(t * 0.62) * 0.02);
+  let movingParcelC = vec2f(-0.64 + fract(parcelFlow + 0.68) * 1.42, -0.46);
+  let parcelA = rectMask(p, movingParcelA, vec2f(0.12, 0.09));
+  let parcelB = rectMask(p, movingParcelB, vec2f(0.11, 0.08));
+  let parcelC = rectMask(p, movingParcelC, vec2f(0.14, 0.1));
   let parcelRoad = max(capsuleLine(p, vec2f(-0.82, -0.28), vec2f(0.78, 0.24), 0.026),
     capsuleLine(p, vec2f(-0.62, 0.34), vec2f(0.66, -0.18), 0.023));
   color += vec3f(0.05, 0.38, 0.92) * networkLocal * parcelRoad * 0.62;
@@ -1299,15 +1479,36 @@ fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
   let chip = rectMask(p, vec2f(0.0, 0.0), vec2f(0.58, 0.34));
   color = mix(color, vec3f(0.18, 0.11, 0.35), quantum * chip * 0.76);
   color += vec3f(0.6, 0.95, 1.0) * quantum * atomQuantumFringes(p, t) * 0.7;
-  color += vec3f(0.4, 0.78, 1.0) * acoustic * stripe(length(p - vec2f(-0.18, 0.04)) * 7.5 - t * 0.44, 0.028) * 0.62;
-  let branch = exp(-abs(sin(p.x * 7.0 + p.y * 4.0 + t * 0.1)) * 4.6) * smoothstep(0.88, 0.08, length(p));
-  color += vec3f(0.26, 0.9, 0.36) * bio * branch * 0.58;
+  let waveCenter = vec2f(-0.18 + sin(t * 0.34) * 0.22, 0.04 + cos(t * 0.27) * 0.12);
+  let acousticBands = stripe(length(p - waveCenter) * 7.5 - t * 1.18, 0.032);
+  color += vec3f(0.4, 0.78, 1.0) * acoustic * acousticBands * 0.82;
+  let branch = exp(-abs(sin(p.x * 7.0 + p.y * 4.0 + t * 0.88)) * 4.0) * smoothstep(0.88, 0.08, length(p));
+  let bioPulse = diskMask(p, vec2f(sin(t * 0.82) * 0.42, cos(t * 0.66) * 0.28), 0.16) * (0.45 + 0.55 * sin(t * 2.2) * sin(t * 2.2));
+  let cellSwarm = max(max(
+    diskMask(p, vec2f(-0.54 + fract(t * 0.18) * 1.08, -0.16 + sin(t * 0.72) * 0.1), 0.09),
+    diskMask(p, vec2f(0.36 - fract(t * 0.15) * 0.86, 0.18 + cos(t * 0.64) * 0.12), 0.075)),
+    diskMask(p, vec2f(sin(t * 0.48) * 0.5, -0.34 + cos(t * 0.51) * 0.08), 0.08));
+  color += vec3f(0.26, 0.9, 0.36) * bio * branch * 0.64;
+  color += vec3f(0.58, 1.0, 0.36) * bio * bioPulse * 0.48;
+  color += vec3f(0.9, 1.0, 0.52) * bio * cellSwarm * 0.62;
   let vessel = diskMask(p, vec2f(0.12, 0.0), 0.48) * (1.0 - diskMask(p, vec2f(0.12, 0.0), 0.31));
   let reactionFront = stripe(length(p - vec2f(0.12, 0.0)) * 6.0 + t * 0.18, 0.026);
   let reagentPool = diskMask(p, vec2f(0.16, -0.04), 0.36);
   color = mix(color, vec3f(0.03, 0.22, 0.24), chemical * reagentPool * 0.34);
   color += vec3f(0.82, 0.4, 1.0) * chemical * vessel * 0.46;
   color += vec3f(0.95, 0.55, 0.18) * chemical * reactionFront * 0.52;
+  let doughBody = smoothstep(0.68, 0.04, length((p - vec2f(0.02, -0.06)) * vec2f(0.82, 1.22)));
+  let glutenWeb = exp(-abs(sin(p.x * 9.0 + p.y * 5.2 + sin(t * 0.22 + p.y * 4.0) * 0.7)) * 4.6) * doughBody;
+  let bubbleA = diskMask(p, vec2f(-0.32 + sin(t * 0.42) * 0.05, -0.05 + cos(t * 0.37) * 0.04), 0.1 + 0.025 * sin(t * 0.8) * sin(t * 0.8));
+  let bubbleB = diskMask(p, vec2f(0.2 + sin(t * 0.36) * 0.04, 0.16 + cos(t * 0.41) * 0.05), 0.075 + 0.02 * sin(t * 0.66) * sin(t * 0.66));
+  let bubbleC = diskMask(p, vec2f(0.38 + sin(t * 0.31) * 0.04, -0.24 + cos(t * 0.48) * 0.035), 0.085 + 0.018 * sin(t * 0.72) * sin(t * 0.72));
+  let gasPockets = max(max(bubbleA, bubbleB), bubbleC) * doughBody;
+  let acidityBands = stripe((p.x + p.y * 0.72) * 5.4 - t * (0.18 + motion * 0.36), 0.025) * doughBody;
+  color = mix(color, vec3f(0.34, 0.22, 0.13), fermentationCue * doughBody * 0.42);
+  color += vec3f(0.82, 0.54, 0.28) * fermentationCue * doughBody * 0.2;
+  color += vec3f(0.96, 0.82, 0.46) * fermentationCue * glutenWeb * 0.42;
+  color += vec3f(0.7, 0.96, 0.86) * fermentationCue * gasPockets * 0.62;
+  color += vec3f(1.0, 0.42, 0.72) * fermentationCue * acidityBands * 0.38;
   let strata = max(stripe(p.y * 9.0 + sin(p.x * 4.0) * 0.12, 0.04), stripe((p.x - p.y) * 4.0, 0.03));
   let siloWalls = max(rectMask(p, vec2f(-0.54, 0.05), vec2f(0.035, 0.66)),
     rectMask(p, vec2f(0.54, 0.05), vec2f(0.035, 0.66)));
@@ -1319,17 +1520,20 @@ fn atomStructuralScene(p: vec2f, t: f32, base: vec3f) -> vec3f {
   color += vec3f(0.52, 0.38, 0.18) * granular * max(siloWalls, grainPile) * 0.76;
   color += vec3f(1.0, 0.66, 0.22) * granular * dustBloom * 0.34;
   color += vec3f(0.9, 0.78, 0.48) * surface * (1.0 - clamp(granular * 0.72, 0.0, 0.86)) * stripe((p.x + p.y) * 8.0 - t * 0.12, 0.028) * 0.08;
+  let armTip = vec2f(0.5, 0.18 + sin(t * 1.8) * 0.14);
   let arm = max(capsuleLine(p, vec2f(-0.42, 0.12), vec2f(0.05, -0.06), 0.06),
-    capsuleLine(p, vec2f(0.05, -0.06), vec2f(0.5, 0.18 + sin(t) * 0.04), 0.05));
+    capsuleLine(p, vec2f(0.05, -0.06), armTip, 0.05));
   let conveyor = rectMask(p, vec2f(0.0, -0.46), vec2f(0.86, 0.085)) *
-    (0.42 + stripe(p.x * 11.0 - t * 0.38, 0.045) * 0.58);
+    (0.32 + stripe(p.x * 11.0 - t * 3.0, 0.056) * 0.68);
   let workcell = max(rectMask(p, vec2f(-0.62, 0.08), vec2f(0.09, 0.34)),
     rectMask(p, vec2f(0.66, 0.08), vec2f(0.08, 0.34)));
+  let sortingGate = rectMask(p, vec2f(sin(t * 0.95) * 0.42, -0.1), vec2f(0.035, 0.34));
   color += vec3f(0.78, 0.86, 0.92) * robot * arm * 0.82;
-  color += vec3f(1.0, 0.64, 0.18) * robot * diskMask(p, vec2f(0.52, 0.18 + sin(t) * 0.04), 0.09) * 0.64;
+  color += vec3f(1.0, 0.64, 0.18) * robot * diskMask(p, armTip, 0.09) * 0.64;
   color += vec3f(0.13, 0.18, 0.22) * robot * conveyor * 0.82;
   color += vec3f(0.38, 0.82, 1.0) * robot * workcell * 0.42;
   color += vec3f(1.0, 0.48, 0.14) * robot * max(parcelA, parcelC) * 0.52;
+  color += vec3f(0.9, 1.0, 0.36) * robot * sortingGate * 0.52;
   let panel = rectMask(p, vec2f(-0.56, 0.42), vec2f(0.22, 0.14));
   let readoutDeck = rectMask(p, vec2f(0.0, 0.58), vec2f(0.86, 0.13));
   let scan = max(stripe(p.x * 15.0 - t * 0.48, 0.035), stripe((p.x + p.y) * 9.0 + t * 0.2, 0.028));
@@ -1379,7 +1583,11 @@ fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   color += vec3f(0.3, 0.86, 0.42) * bio * exp(-abs(sin(p.x * 6.0 + p.y * 4.0 + t * 0.16)) * 5.5) * 0.12;
   color += vec3f(0.76, 0.48, 1.0) * chemical * smoothstep(0.95, 0.12, length(p)) * 0.08;
   color += vec3f(0.86, 0.72, 0.42) * granular * stripe(p.y * 9.0 + sin(p.x * 4.0), 0.032) * 0.16;
-  color += vec3f(0.1, 0.95, 1.0) * instrument * rectMask(p - vec2f(0.0, 0.58), vec2f(0.68, 0.045)) * 0.28;
+  color += vec3f(0.1, 0.95, 1.0) * instrument * rectMask(p, vec2f(0.0, 0.58), vec2f(0.68, 0.045)) * 0.28;
+  let detectorHit = diskMask(p, vec2f(-0.72 + fract(t * 0.76) * 1.44, 0.28 + sin(t * 1.1) * 0.2), 0.085);
+  let detectorTrack = capsuleLine(p, vec2f(-0.88, -0.22 + sin(t * 0.7) * 0.12), vec2f(0.88, 0.18 + cos(t * 0.64) * 0.16), 0.024);
+  color += vec3f(0.26, 1.0, 0.95) * instrument * detectorHit * 0.78;
+  color += vec3f(0.92, 1.0, 0.8) * instrument * detectorTrack * (0.32 + stripe(t * 2.0, 0.32) * 0.34);
   color += vec3f(1.0, 0.18, 0.04) * combustion * atomThermalPlume(p + vec2f(0.12, -0.1), t) * 0.3;
   color += vec3f(0.75, 0.92, 1.0) * phase * stripe(length(p) * 5.4 + sin(p.x * 3.0) - t * 0.18, 0.03) * 0.18;
   color += vec3f(0.9, 0.92, 0.96) * robot * stripe((p.x + p.y) * 7.0 - t * 0.3, 0.03) * 0.14;
@@ -1390,52 +1598,25 @@ fn atomOperatorOverlays(p: vec2f, t: f32, base: vec3f) -> vec3f {
   color += u.palette1.rgb * surface * stripe(max(abs(p.x), abs(p.y)) * 5.0 + t * 0.08, 0.028) * 0.12;
   color += u.palette3.rgb * motion * stripe(length(p) * 4.8 - t * 0.62, 0.02) * 0.14;
   color += u.palette3.rgb * orbit * stripe(length(p) * 3.6 - t * 0.12, 0.025) * 0.18;
-  var literalScene = 0.0;
-  if (sceneGroup == 13.0 || sceneGroup == 15.0 || sceneGroup == 17.0 || sceneGroup == 29.0) {
-    literalScene = 1.0;
-  }
-  return mix(base, color, 0.34 * (1.0 - literalScene));
-}
-
-fn loadingWrapDistance(a: f32, b: f32, span: f32) -> f32 {
-  let d = abs(a - b);
-  return min(d, span - d);
-}
-
-fn loadingSnakeMask(gridUv: vec2f, cells: vec2f, t: f32, progress: f32, rowFrac: f32, speed: f32, phase: f32) -> vec2f {
-  let headX = fract(t * speed + progress * 0.58 + phase) * cells.x;
-  let row = floor(cells.y * rowFrac + sin(t * (0.55 + speed) + phase * 6.28318) * 1.65);
-  let dx = loadingWrapDistance(gridUv.x, headX, cells.x);
-  let dy = abs(gridUv.y - row);
-  let trail = fract((headX - gridUv.x) / cells.x);
-  let tail = smoothstep(0.012, 0.045, trail) * (1.0 - smoothstep(0.08, 0.38, trail));
-  let cellMask = (1.0 - smoothstep(0.22, 0.48, abs(fract(gridUv.x) - 0.5))) *
-    (1.0 - smoothstep(0.22, 0.48, abs(fract(gridUv.y) - 0.5)));
-  let body = (1.0 - smoothstep(0.14, 0.72, dy)) * tail * cellMask;
-  let head = 1.0 - smoothstep(0.08, 0.82, length(vec2f(dx, dy)));
-  return vec2f(body, head);
-}
-
-fn loadingGrid(uv: vec2f, t: f32, progress: f32) -> vec3f {
-  let cells = vec2f(34.0, 20.0);
-  let gridUv = uv * cells;
-  let line = 0.0;
-  let snakeA = loadingSnakeMask(gridUv, cells, t, progress, 0.24, 0.18, 0.03);
-  let snakeB = loadingSnakeMask(gridUv, cells, t, progress, 0.42, 0.24, 0.31);
-  let snakeC = loadingSnakeMask(gridUv, cells, t, progress, 0.62, 0.21, 0.57);
-  let snakeD = loadingSnakeMask(gridUv, cells, t, progress, 0.78, 0.16, 0.81);
-  let snakeBody = max(max(snakeA.x, snakeB.x), max(snakeC.x, snakeD.x));
-  let snakeHeads = max(max(snakeA.y, snakeB.y), max(snakeC.y, snakeD.y));
-  let crossingGlow = max(min(snakeA.x + snakeC.x, 1.0), min(snakeB.x + snakeD.x, 1.0));
-  let progressRail = smoothstep(progress - 0.02, progress, uv.x) * (1.0 - smoothstep(progress, progress + 0.02, uv.x)) *
-    smoothstep(0.04, 0.09, uv.y) * (1.0 - smoothstep(0.1, 0.16, uv.y));
-  var color = vec3f(0.985, 0.984, 1.0);
-  color = mix(color, vec3f(0.34, 0.42, 0.58), line * 0.015);
-  color = mix(color, u.palette1.rgb, snakeBody * 0.62);
-  color += u.palette3.rgb * snakeHeads * 0.48;
-  color += u.palette2.rgb * crossingGlow * 0.18;
-  color += u.palette2.rgb * progressRail * 0.32;
-  return color;
+  let robotCarrier = rectMask(p, vec2f(-0.78 + fract(t * 0.72) * 1.56, -0.48), vec2f(0.12, 0.075));
+  let robotCarrierUpper = rectMask(p, vec2f(-0.78 + fract(t * 0.58 + 0.24) * 1.56, 0.34), vec2f(0.16, 0.095));
+  let robotConveyorUpper = rectMask(p, vec2f(0.0, 0.34), vec2f(0.94, 0.07)) *
+    (0.34 + stripe(p.x * 13.0 - t * 3.4, 0.06) * 0.66);
+  let robotSweep = capsuleLine(p, vec2f(-0.52, 0.12), vec2f(sin(t * 1.65) * 0.62, -0.1 + cos(t * 1.2) * 0.18), 0.032);
+  color += vec3f(1.0, 0.64, 0.12) * robot * robotCarrier * 0.82;
+  color += vec3f(1.0, 0.76, 0.18) * robot * robotCarrierUpper * 0.86;
+  color += vec3f(0.08, 0.38, 0.9) * robot * robotConveyorUpper * 0.52;
+  color += vec3f(0.82, 0.95, 1.0) * robot * robotSweep * 0.48;
+  let dispatchTokenA = diskMask(p, vec2f(-0.84 + fract(t * 0.62) * 1.68, 0.18), 0.07);
+  let dispatchTokenB = rectMask(p, vec2f(-0.72 + fract(t * 0.48 + 0.38) * 1.44, -0.18), vec2f(0.1, 0.075));
+  let dispatchTrack = max(
+    capsuleLine(p, vec2f(-0.86, 0.18), vec2f(0.86, 0.18), 0.024),
+    capsuleLine(p, vec2f(-0.7, -0.18), vec2f(0.72, -0.18), 0.022)
+  );
+  color += vec3f(0.2, 0.74, 1.0) * networkLocal * dispatchTrack * 0.46;
+  color += vec3f(1.0, 0.82, 0.22) * networkLocal * max(dispatchTokenA, dispatchTokenB) * 0.78;
+  let literalScene = 0.0;
+  return mix(base, color, clamp(0.34 + robot * 0.18, 0.0, 0.56) * (1.0 - literalScene));
 }
 
 @fragment
@@ -1450,17 +1631,10 @@ fn fs(input: VsOut) -> @location(0) vec4f {
   var color = sceneField(p, t, scene);
   color = atomStructuralScene(p, t, color);
   color = affordanceOverlays(p, t, color);
-  color = atomOperatorOverlays(p, t, color);
   color = cinematic3dScene(p, t, scene, color);
+  color = atomOperatorOverlays(p, t, color);
   let vignette = smoothstep(1.45, 0.18, length(p));
   color = mix(color * 0.78, color, vignette);
-  if (u.loading.x > 0.5 && u.loading.y < 0.9) {
-    let loader = loadingGrid(uv, t, u.loading.y);
-    color = mix(color, loader, 0.86);
-  }
-  if (u.loading.z > 0.5) {
-    color = mix(color, vec3f(0.985, 0.985, 1.0), 0.5);
-  }
   color = pow(max(color, vec3f(0.0)), vec3f(0.92));
   return vec4f(color, 1.0);
 }

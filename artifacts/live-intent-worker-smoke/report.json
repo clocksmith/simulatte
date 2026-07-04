@@ -1,0 +1,500 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-04T00:35:13.812Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "model",
+  "target": "live-url",
+  "url": "https://simulatte-world.web.app/index.html?auditNoInitial=1",
+  "promptCounts": {
+    "curated": 1,
+    "broad": 0,
+    "custom": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRSceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRCameras": [
+      "instrumented-lab-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 69,
+      "mappingIds": [
+        "visual.operator.electromagnetic-field.v1",
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.instrument-readout.v1",
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.phase-transition.v1",
+        "visual.operator.stress-fracture.v1"
+      ],
+      "uniformSlots": [
+        "constraint",
+        "electromagnetic",
+        "emission",
+        "instrument",
+        "measurement",
+        "motion",
+        "phase",
+        "signal",
+        "stress",
+        "surface",
+        "thermal"
+      ],
+      "wgslOperators": [
+        "atomChargeShell",
+        "atomConstraintPads",
+        "atomFeedbackArcs",
+        "atomFluxLines",
+        "atomInstrumentReadout",
+        "atomLatentHeatBand",
+        "atomMeasurementBands",
+        "atomPhaseBoundary",
+        "atomQuantumFringes",
+        "atomStressCracks",
+        "atomThermalPlume"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 100,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "electromagnetic",
+        "instrument",
+        "stress",
+        "thermal"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 1
+    },
+    "intentBriefs": {
+      "totalEvidence": 78,
+      "totalCausalEdges": 5,
+      "totalAffordances": 5,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 78,
+      "totalCausalEdges": 5,
+      "totalCausalAffordances": 5,
+      "totalAssumptions": 7,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 100,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 1,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "curated",
+      "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "screenshot": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.png",
+      "screenshotHash": "ae1fc51796aaf1f044ff2998477a4f38519eb21bc1ef9b932b33bfe69c611f09",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "particle-instrument",
+      "physicsCanvasSceneId": "15",
+      "physicsCanvasRenderCount": "25",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 80.431,
+      "lumaStd": 66.454,
+      "coloredRatio": 0.3492,
+      "canvasHash": "d37be263",
+      "specId": "particle-collider-muon-tracks-collision-plume-mr5mrrqk",
+      "templateId": "custom-world",
+      "rendererSceneKind": "particle-instrument",
+      "visualIRSceneKind": "particle-instrument",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 16,
+      "visualIRMaterialCount": 30,
+      "visualIRFieldCount": 13,
+      "visualIRProcessCount": 24,
+      "visualIROperatorCount": 11,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 5,
+      "visualIRGraphicsAtomCount": 69,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.electromagnetic-field.v1",
+        "visual.operator.phase-transition.v1",
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "thermal",
+        "stress",
+        "electromagnetic",
+        "instrument",
+        "phase",
+        "measurement",
+        "motion",
+        "emission",
+        "constraint",
+        "signal",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "thermal": 1,
+        "stress": 1,
+        "electromagnetic": 1,
+        "instrument": 1,
+        "phase": 0.92,
+        "measurement": 0.92,
+        "motion": 0.76,
+        "emission": 0.84,
+        "constraint": 0.92,
+        "signal": 0.92,
+        "surface": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomInstrumentReadout",
+        "atomQuantumFringes",
+        "atomFeedbackArcs",
+        "atomThermalPlume",
+        "atomPhaseBoundary",
+        "atomStressCracks",
+        "atomConstraintPads",
+        "atomFluxLines",
+        "atomChargeShell",
+        "atomLatentHeatBand",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0332",
+          "kind": "catalog-candidate",
+          "text": "clause calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.0977",
+          "kind": "catalog-candidate",
+          "text": "noun phrase tracks collision plume",
+          "slots": []
+        },
+        {
+          "id": "activation.1459",
+          "kind": "catalog-candidate",
+          "text": "noun phrase calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1304",
+          "kind": "catalog-candidate",
+          "text": "noun phrase field lines",
+          "slots": []
+        },
+        {
+          "id": "activation.0477",
+          "kind": "catalog-candidate",
+          "text": "clause calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.0480",
+          "kind": "catalog-candidate",
+          "text": "clause calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1604",
+          "kind": "catalog-candidate",
+          "text": "noun phrase calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1607",
+          "kind": "catalog-candidate",
+          "text": "noun phrase calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1200",
+          "kind": "catalog-candidate",
+          "text": "noun phrase detector slice",
+          "slots": []
+        },
+        {
+          "id": "activation.0026",
+          "kind": "material-candidate",
+          "text": "prompt particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "material-candidate",
+          "text": "prompt particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+          "slots": []
+        },
+        {
+          "id": "activation.0190",
+          "kind": "material-candidate",
+          "text": "clause particle collider muon tracks collision plume through a detector slice with field lines",
+          "slots": []
+        },
+        {
+          "id": "activation.0191",
+          "kind": "material-candidate",
+          "text": "clause particle collider muon tracks collision plume through a detector slice with field lines",
+          "slots": []
+        },
+        {
+          "id": "activation.0515",
+          "kind": "material-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0516",
+          "kind": "material-candidate",
+          "text": "noun phrase particle collider muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0675",
+          "kind": "material-candidate",
+          "text": "noun phrase collider muon tracks collision",
+          "slots": []
+        },
+        {
+          "id": "activation.0676",
+          "kind": "material-candidate",
+          "text": "noun phrase collider muon tracks collision",
+          "slots": []
+        },
+        {
+          "id": "activation.0836",
+          "kind": "material-candidate",
+          "text": "noun phrase muon tracks collision plume",
+          "slots": []
+        },
+        {
+          "id": "activation.0837",
+          "kind": "material-candidate",
+          "text": "noun phrase muon tracks collision plume",
+          "slots": []
+        },
+        {
+          "id": "activation.1198",
+          "kind": "catalog-candidate",
+          "text": "noun phrase detector slice",
+          "slots": []
+        },
+        {
+          "id": "activation.1199",
+          "kind": "catalog-candidate",
+          "text": "noun phrase detector slice",
+          "slots": []
+        },
+        {
+          "id": "activation.0816",
+          "kind": "catalog-candidate",
+          "text": "noun phrase muon tracks collision plume",
+          "slots": []
+        },
+        {
+          "id": "activation.0161",
+          "kind": "visual-candidate",
+          "text": "prompt particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat language.visual.thermal.span 001 visual candidate thermal operator signal heat thermal phase",
+          "slots": [
+            "thermal",
+            "phase",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0325",
+          "kind": "visual-candidate",
+          "text": "clause particle collider muon tracks collision plume through a detector slice with field lines language.visual.stress.span 002 visual candidate stress operator signal stress contact constraint",
+          "slots": [
+            "stress",
+            "constraint",
+            "signal"
+          ]
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 78,
+      "intentBriefCausalEdgeCount": 5,
+      "intentBriefAssumptionCount": 7,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 78,
+      "physicalReceiptCausalEdgeCount": 5,
+      "physicalReceiptCausalAffordanceCount": 5,
+      "physicalReceiptAssumptionCount": 7,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 5,
+      "previewLength": 3909430,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.canvas.png",
+      "canvasScreenshotLater": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.canvas-late.png",
+      "canvasScreenshotHash": "375e644ee31948b5f2e2f6766bcb5d534419f76914c220151e780dae0a57d0ff",
+      "canvasScreenshotLaterHash": "70556410e1fcdb04bc37130ea50ee13e675b856048d404443c9a0ad44b9afc94",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 66.454,
+      "canvasScreenshotColoredRatio": 0.3492,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.622,
+      "canvasFrameLumaStdDelta": 0.106,
+      "canvasFrameColoredRatioDelta": 0.0007,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 4,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "thermal",
+          "stress",
+          "electromagnetic",
+          "instrument"
+        ],
+        "matchedSignals": [
+          {
+            "id": "thermal",
+            "strength": 1,
+            "slotHits": [
+              "thermal",
+              "phase",
+              "emission"
+            ],
+            "mappingHits": [
+              "visual.operator.heat-transfer.v1",
+              "visual.operator.phase-transition.v1"
+            ],
+            "wgslHits": [
+              "atomThermalPlume"
+            ],
+            "languageHits": [
+              "prompt particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat language.visual.thermal.span 001 visual candidate thermal operator signal heat thermal phase",
+              "thermal"
+            ]
+          },
+          {
+            "id": "stress",
+            "strength": 1,
+            "slotHits": [
+              "stress",
+              "constraint",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.stress-fracture.v1"
+            ],
+            "wgslHits": [
+              "atomStressCracks"
+            ],
+            "languageHits": [
+              "clause particle collider muon tracks collision plume through a detector slice with field lines language.visual.stress.span 002 visual candidate stress operator signal stress contact constraint",
+              "stress"
+            ]
+          },
+          {
+            "id": "electromagnetic",
+            "strength": 1,
+            "slotHits": [
+              "electromagnetic",
+              "emission",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.electromagnetic-field.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          },
+          {
+            "id": "instrument",
+            "strength": 1,
+            "slotHits": [
+              "instrument",
+              "measurement",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.instrument-readout.v1",
+              "visual.operator.particle-track-detector.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

@@ -1,7 +1,18 @@
 (function attachSimulatteSemanticRag(root, factory) {
+  function markMissingDependency(moduleName, dependencyName) {
+    const state = root.SimulatteBoot = root.SimulatteBoot || { failedScripts: [] };
+    state.missingDependencies = state.missingDependencies || [];
+    state.missingDependencies.push({ moduleName, dependencyName });
+    console.warn(`[simulatte.boot] ${moduleName} waiting for ${dependencyName}`);
+  }
+
   const catalog = typeof module === 'object' && module.exports
     ? require('./simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
+  if (!catalog) {
+    markMissingDependency('SimulatteSemanticRag', 'SimulattePhysicsCatalog');
+    return;
+  }
   const api = factory(catalog);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;

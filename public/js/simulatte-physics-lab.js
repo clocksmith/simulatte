@@ -18,7 +18,20 @@
 });
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('DOMContentLoaded', () => {
-    window.SimulattePhysicsLab._browserLab = window.SimulattePhysicsLab.start();
-  });
+  window.SimulatteStartPhysicsLab = () => {
+    const lab = window.SimulattePhysicsLab;
+    if (!lab || typeof lab.start !== 'function') return false;
+    if (!lab._browserLab) lab._browserLab = lab.start();
+    return true;
+  };
+  const startWhenReady = () => {
+    if (!window.SimulatteStartPhysicsLab()) {
+      console.warn('[simulatte.physics] lab runtime not ready; boot loader may retry scripts');
+    }
+  };
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', startWhenReady, { once: true });
+  } else {
+    startWhenReady();
+  }
 }

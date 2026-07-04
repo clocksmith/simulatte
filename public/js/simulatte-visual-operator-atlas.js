@@ -39,7 +39,7 @@
   const VISUAL_OPERATOR_MAPPINGS = Object.freeze([
     mapping(
       'visual.operator.heat-transfer.v1',
-      ['heat_transfer', 'thermal_gradient', 'temperature', 'cooling', 'heating', 'heat', 'thermal', 'lava', 'steam'],
+      ['heat_transfer', 'thermal_gradient', 'temperature', 'cool', 'cools', 'cooled', 'cooling', 'heating', 'heat', 'thermal', 'lava', 'steam'],
       ['thermal-glow-gradient', 'surface-phase-boundary', 'volume-vapor-plume'],
       ['heatmap-isobands', 'thermal-vector-fan'],
       ['emissive-hot', 'transparent-vapor'],
@@ -50,7 +50,7 @@
     ),
     mapping(
       'visual.operator.fluid-advection.v1',
-      ['flow', 'water', 'river', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet', 'release', 'meniscus'],
+      ['flow', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet', 'release', 'meniscus'],
       ['ribbon-streamline', 'transparent-flow-tube', 'particle-tracer-swarm'],
       ['velocity-vector-field', 'pressure-band-field'],
       ['fluid-ripple', 'wet-refractive'],
@@ -61,7 +61,7 @@
     ),
     mapping(
       'visual.operator.stress-fracture.v1',
-      ['stress', 'strain', 'fracture', 'crack', 'collision', 'impact', 'load', 'buckling'],
+      ['stress', 'strain', 'fracture', 'crack', 'collision', 'impact', 'load', 'buckling', 'constraint', 'constraints', 'bond', 'bridge', 'cable', 'cables', 'tension', 'resonance', 'vortex shedding'],
       ['sectioned-solid', 'crack-branch-network', 'constraint-contact-pad'],
       ['stress-contour-field', 'impulse-ring-field'],
       ['deformed-matte', 'fracture-edge'],
@@ -105,7 +105,7 @@
     ),
     mapping(
       'visual.operator.optical-ray.v1',
-      ['light', 'laser', 'lens', 'prism', 'mirror', 'photon', 'caustic', 'refraction', 'interference', 'resonator'],
+      ['light', 'laser', 'lens', 'prism', 'mirror', 'photon', 'caustic', 'refraction', 'interference'],
       ['lens-stack', 'ray-cone', 'spectral-prism-slice'],
       ['phase-front-field', 'caustic-intensity-field'],
       ['transparent-caustic', 'spectral-emissive'],
@@ -113,6 +113,17 @@
       ['ray-sweep', 'phase-fringes'],
       ['instrumented-lab-depth', 'microscopic-cutaway-depth'],
       'Optics becomes ray cones, phase fronts, caustics, prisms, and spectral fringes.'
+    ),
+    mapping(
+      'visual.operator.thin-film-interference.v1',
+      ['thin film', 'thin-film', 'soap', 'soap film', 'wire loop', 'wire-loop', 'surface tension', 'iridescent', 'iridescence', 'interference', 'bubble', 'bubbles'],
+      ['thin-film-sheet', 'wire-loop-frame', 'interference-bubble-cell'],
+      ['phase-front-field', 'caustic-intensity-field'],
+      ['transparent-caustic', 'spectral-emissive', 'wet-refractive'],
+      ['thin-film-interference', 'surface-tension-relaxation'],
+      ['iridescent-fringes', 'bubble-breathing'],
+      ['microscopic-cutaway-depth', 'instrumented-lab-depth'],
+      'Thin-film interference becomes wire-loop film sheets, iridescent phase bands, and surface-tension bubble motion.'
     ),
     mapping(
       'visual.operator.quantum-phase-readout.v1',
@@ -127,7 +138,7 @@
     ),
     mapping(
       'visual.operator.acoustic-wave.v1',
-      ['acoustic', 'sound', 'wave', 'pressure', 'resonance', 'standing', 'frequency'],
+      ['acoustic', 'sound', 'standing wave', 'standing waves', 'pressure wave', 'pressure waves', 'frequency', 'speaker', 'vibration', 'pressure ring', 'air pressure', 'levitator', 'waveguide', 'brass tube'],
       ['waveguide-tube', 'resonator-cavity', 'membrane-diaphragm'],
       ['pressure-ring-field', 'standing-node-field'],
       ['soft-pressure', 'instrument-glass'],
@@ -138,7 +149,7 @@
     ),
     mapping(
       'visual.operator.biological-growth.v1',
-      ['growth', 'bio', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane'],
+      ['grow', 'grows', 'growing', 'growth', 'bio', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'yeast'],
       ['branching-organic-network', 'membrane-sheet', 'cell-cluster'],
       ['nutrient-gradient-field', 'density-front-field'],
       ['fibrous-cellular', 'wet-biological'],
@@ -148,8 +159,19 @@
       'Biological change becomes branching networks, membranes, gradients, and growth fronts.'
     ),
     mapping(
+      'visual.operator.fermentation-matrix.v1',
+      ['ferment', 'fermentation', 'sourdough', 'yeast', 'dough', 'gluten', 'gas bubble', 'gas bubbles', 'bubble', 'bubbles', 'acidity', 'acid gradient', 'acidity gradient'],
+      ['porous-dough-matrix', 'gluten-strand-network', 'fermentation-bubble-cell'],
+      ['acidity-gradient-field', 'gas-pressure-pocket-field', 'nutrient-density-field'],
+      ['viscoelastic-dough', 'wet-gluten-strands', 'carbon-dioxide-bubbles'],
+      ['microbial-fermentation', 'gas-pocket-growth', 'acid-gradient-diffusion'],
+      ['bubble-expansion', 'strand-deformation', 'slow-fermentation-pulses'],
+      ['microscopic-cutaway-depth', 'macro-material-cross-section'],
+      'Fermentation becomes porous dough, gluten strand matrices, expanding gas pockets, and acidity gradients.'
+    ),
+    mapping(
       'visual.operator.chemical-diffusion.v1',
-      ['reaction', 'chemical', 'acid', 'crystal', 'concentration', 'electrolyte', 'solvent', 'catalyst', 'microfluidic', 'droplet', 'dose'],
+      ['reaction', 'chemical', 'acid', 'acidic', 'acidity', 'crystal', 'concentration', 'electrolyte', 'solvent', 'catalyst', 'microfluidic', 'droplet', 'dose', 'fermentation'],
       ['reaction-vessel', 'diffusion-cloud-volume', 'crystal-facet-cluster'],
       ['concentration-isobands', 'reaction-front-field'],
       ['translucent-reagent', 'facet-crystal'],
@@ -171,7 +193,7 @@
     ),
     mapping(
       'visual.operator.granular-erosion.v1',
-      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope', 'dust', 'silo', 'explodes', 'explosion', 'powder', 'aerosol', 'granular', 'bead', 'beads', 'sieve'],
+      ['erosion', 'sediment', 'grain', 'sand', 'soil', 'avalanche', 'terrain', 'slope', 'dust', 'silo', 'explodes', 'explosion', 'powder', 'aerosol', 'granular', 'bead', 'beads', 'sieve', 'boulder', 'boulders'],
       ['heightfield-strata', 'grain-pile', 'erosion-channel'],
       ['slope-gradient-field', 'sediment-density-field'],
       ['granular-strata', 'wet-soil'],
@@ -179,6 +201,28 @@
       ['grain-settling', 'channel-cutting'],
       ['topographic-cutaway-depth', 'aerial-map-depth'],
       'Granular landscapes become strata, channel cuts, slope fields, and sediment motion.'
+    ),
+    mapping(
+      'visual.operator.cryosphere-surface.v1',
+      ['glacier', 'calving', 'iceberg', 'ice shelf', 'ice cliff', 'fjord', 'sea ice', 'cryosphere', 'meltwater', 'internal ocean wave', 'thermocline'],
+      ['ice-cliff-shelf', 'calving-block-field', 'fjord-water-sheet'],
+      ['cold-depth-field', 'fracture-plane-field'],
+      ['ice-scattering', 'deep-water-glass'],
+      ['calving-fracture', 'meltwater-mixing'],
+      ['iceberg-drift', 'splash-plume'],
+      ['topographic-cutaway-depth', 'wide-system'],
+      'Cryosphere scenes become ice cliffs, calving blocks, fjord water, fracture planes, and drift.'
+    ),
+    mapping(
+      'visual.operator.sport-trajectory.v1',
+      ['skate', 'skateboard', 'rider', 'bowl', 'friction', 'centripetal', 'carve', 'carves', 'arc', 'trajectory', 'wheel', 'contact'],
+      ['curved-bowl-surface', 'rider-trajectory-arc', 'wheel-contact-patch'],
+      ['centripetal-vector-field', 'friction-loss-band'],
+      ['concrete-bowl', 'rubber-contact'],
+      ['rolling-contact', 'friction-dissipation'],
+      ['carving-arc', 'wheel-skid-pulses'],
+      ['dynamic-motion-depth', 'wide-system'],
+      'Sport motion becomes curved bowls, rider trajectories, contact patches, and friction bands.'
     ),
     mapping(
       'visual.operator.instrument-readout.v1',
@@ -190,6 +234,17 @@
       ['scan-lines', 'measurement-pulses'],
       ['instrumented-lab-depth', 'microscopic-cutaway-depth'],
       'Instrumentation becomes probe arrays, readout strips, measurement bands, and pulses.'
+    ),
+    mapping(
+      'visual.operator.particle-track-detector.v1',
+      ['particle', 'collider', 'muon', 'muon track', 'muon tracks', 'detector slice', 'calorimeter', 'beamline', 'collision plume', 'track curvature'],
+      ['detector-slice-stack', 'muon-track-ribbons', 'calorimeter-tile-array'],
+      ['particle-track-field', 'collision-plume-field'],
+      ['scintillator-glass', 'signal-emissive'],
+      ['particle-collision-readout', 'track-curvature'],
+      ['track-sweep', 'calorimeter-pulse'],
+      ['microscopic-cutaway-depth', 'instrumented-lab-depth'],
+      'Particle detectors become sliced calorimeters, curved muon tracks, collision plumes, and pulsing readout bands.'
     ),
     mapping(
       'visual.operator.thermal-combustion.v1',
@@ -258,20 +313,25 @@
 
   function requiredTermsForMapping(id, matchTerms = []) {
     const core = {
-      'visual.operator.heat-transfer.v1': ['heat', 'thermal', 'temperature', 'cooling', 'lava', 'steam'],
-      'visual.operator.fluid-advection.v1': ['flow', 'fluid', 'water', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet'],
-      'visual.operator.stress-fracture.v1': ['stress', 'strain', 'fracture', 'crack', 'impact', 'load'],
+      'visual.operator.heat-transfer.v1': ['heat', 'thermal', 'temperature', 'cool', 'cools', 'cooled', 'cooling', 'lava', 'steam'],
+      'visual.operator.fluid-advection.v1': ['flow', 'fluid', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'droplet'],
+      'visual.operator.stress-fracture.v1': ['stress', 'strain', 'fracture', 'crack', 'impact', 'load', 'constraint', 'constraints', 'bond', 'bridge', 'cable', 'cables', 'tension', 'resonance', 'vortex shedding'],
       'visual.operator.control-feedback.v1': ['control', 'controller', 'feedback', 'sensor', 'regulate', 'loop'],
       'visual.operator.orbital-gravity.v1': ['gravity', 'orbit', 'orbital', 'planet', 'moon', 'space'],
       'visual.operator.electromagnetic-field.v1': ['magnetic', 'charge', 'electric', 'voltage', 'coil', 'current'],
       'visual.operator.optical-ray.v1': ['light', 'laser', 'lens', 'photon', 'caustic', 'refraction'],
+      'visual.operator.thin-film-interference.v1': ['thin film', 'thin-film', 'soap', 'soap film', 'wire loop', 'wire-loop', 'surface tension', 'iridescent', 'interference'],
       'visual.operator.quantum-phase-readout.v1': ['qubit', 'quantum', 'microwave', 'superconducting'],
-      'visual.operator.acoustic-wave.v1': ['acoustic', 'sound', 'wave', 'pressure', 'resonance'],
-      'visual.operator.biological-growth.v1': ['growth', 'cell', 'protein', 'root', 'coral', 'membrane'],
-      'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'crystal', 'concentration', 'microfluidic', 'droplet', 'dose'],
+      'visual.operator.acoustic-wave.v1': ['acoustic', 'sound', 'standing wave', 'standing waves', 'pressure wave', 'pressure waves', 'frequency', 'speaker', 'vibration', 'pressure ring', 'air pressure', 'levitator', 'waveguide', 'brass tube'],
+      'visual.operator.biological-growth.v1': ['grow', 'grows', 'growing', 'growth', 'cell', 'protein', 'root', 'coral', 'membrane', 'microbe', 'yeast'],
+      'visual.operator.fermentation-matrix.v1': ['ferment', 'fermentation', 'sourdough', 'yeast', 'dough', 'gluten', 'gas bubble', 'gas bubbles', 'bubble', 'bubbles', 'acidity', 'acid gradient', 'acidity gradient'],
+      'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'acidic', 'acidity', 'crystal', 'concentration', 'microfluidic', 'droplet', 'dose', 'fermentation'],
       'visual.operator.network-flow.v1': ['network', 'queue', 'market', 'traffic', 'route', 'packet', 'parcel'],
-      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain', 'dust', 'silo', 'explodes', 'powder', 'granular', 'bead', 'beads', 'avalanche', 'sieve'],
+      'visual.operator.granular-erosion.v1': ['erosion', 'sediment', 'grain', 'sand', 'soil', 'terrain', 'dust', 'silo', 'explodes', 'powder', 'granular', 'bead', 'beads', 'avalanche', 'sieve', 'boulder', 'boulders'],
+      'visual.operator.cryosphere-surface.v1': ['glacier', 'calving', 'iceberg', 'ice shelf', 'ice cliff', 'fjord', 'sea ice', 'cryosphere', 'meltwater'],
+      'visual.operator.sport-trajectory.v1': ['skate', 'skateboard', 'rider', 'bowl', 'friction', 'centripetal', 'carve', 'trajectory'],
       'visual.operator.instrument-readout.v1': ['detector', 'sensor', 'readout', 'instrument', 'probe', 'meter'],
+      'visual.operator.particle-track-detector.v1': ['particle', 'collider', 'muon', 'muon track', 'muon tracks', 'detector slice', 'calorimeter', 'beamline'],
       'visual.operator.thermal-combustion.v1': ['combustion', 'fire', 'flame', 'fuel', 'smoke', 'burn', 'explodes', 'explosion', 'soot'],
       'visual.operator.phase-transition.v1': ['phase', 'melt', 'freeze', 'crust', 'vaporize', 'boil'],
       'visual.operator.robot-contact.v1': ['robot', 'robotic', 'gripper', 'servo', 'workcell', 'manipulator', 'pick and place'],
@@ -283,6 +343,7 @@
     const rules = {
       'visual.operator.network-flow.v1': ['photon-only', 'molecular-only', 'pure-orbit'],
       'visual.operator.fluid-advection.v1': ['vacuum-only', 'dry-network-only'],
+      'visual.operator.fermentation-matrix.v1': ['thin film', 'thin-film', 'soap', 'soap film', 'wire loop', 'wire-loop', 'iridescent', 'iridescence'],
       'visual.operator.optical-ray.v1': ['opaque-market-only', 'soil-only'],
       'visual.operator.quantum-phase-readout.v1': ['macroscopic-traffic-only'],
       'visual.operator.robot-contact.v1': ['fluid-only', 'orbital-only'],
@@ -297,7 +358,7 @@
   }
 
   function priorityForMapping(id) {
-    if (/quantum|robot|control-feedback/.test(id)) return 1.18;
+    if (/quantum|robot|control-feedback|sport-trajectory|cryosphere-surface|fermentation-matrix|thin-film-interference|particle-track-detector/.test(id)) return 1.18;
     if (/heat-transfer|fluid-advection|network-flow|phase-transition/.test(id)) return 1.1;
     if (/instrument-readout/.test(id)) return 0.92;
     return 1;
@@ -308,20 +369,25 @@
       'visual.operator.heat-transfer.v1': ['thermal', 'phase', 'emission', 'motion'],
       'visual.operator.fluid-advection.v1': ['fluid', 'motion', 'density', 'surface'],
       'visual.operator.stress-fracture.v1': ['stress', 'constraint', 'surface', 'motion'],
-      'visual.operator.control-feedback.v1': ['feedback', 'signal', 'instrument', 'constraint'],
+      'visual.operator.control-feedback.v1': ['feedback', 'signal', 'constraint'],
       'visual.operator.orbital-gravity.v1': ['orbital', 'motion', 'density', 'surface'],
       'visual.operator.electromagnetic-field.v1': ['electromagnetic', 'signal', 'emission', 'motion'],
       'visual.operator.optical-ray.v1': ['optical', 'emission', 'signal', 'surface'],
-      'visual.operator.quantum-phase-readout.v1': ['quantum', 'optical', 'instrument', 'signal'],
+      'visual.operator.thin-film-interference.v1': ['phase', 'optical', 'surface', 'emission', 'motion'],
+      'visual.operator.quantum-phase-readout.v1': ['quantum', 'phase', 'instrument', 'signal'],
       'visual.operator.acoustic-wave.v1': ['acoustic', 'motion', 'density', 'instrument'],
       'visual.operator.biological-growth.v1': ['biological', 'density', 'motion', 'surface'],
+      'visual.operator.fermentation-matrix.v1': ['biological', 'chemical', 'fluid', 'density', 'motion', 'surface'],
       'visual.operator.chemical-diffusion.v1': ['chemical', 'density', 'phase', 'surface'],
       'visual.operator.network-flow.v1': ['network', 'constraint', 'signal', 'motion'],
       'visual.operator.granular-erosion.v1': ['granular', 'density', 'surface', 'motion'],
-      'visual.operator.instrument-readout.v1': ['instrument', 'measurement', 'signal', 'optical'],
+      'visual.operator.cryosphere-surface.v1': ['phase', 'fluid', 'stress', 'surface', 'motion'],
+      'visual.operator.sport-trajectory.v1': ['motion', 'stress', 'constraint', 'surface'],
+      'visual.operator.instrument-readout.v1': ['instrument', 'measurement', 'signal'],
+      'visual.operator.particle-track-detector.v1': ['instrument', 'measurement', 'signal', 'emission', 'motion'],
       'visual.operator.thermal-combustion.v1': ['combustion', 'thermal', 'emission', 'density'],
-      'visual.operator.phase-transition.v1': ['phase', 'thermal', 'surface', 'motion'],
-      'visual.operator.robot-contact.v1': ['robotic', 'constraint', 'network', 'motion'],
+      'visual.operator.phase-transition.v1': ['phase', 'surface', 'motion'],
+      'visual.operator.robot-contact.v1': ['robotic', 'constraint', 'motion'],
     };
     return Object.freeze(slots[id] || ['instrument', 'measurement']);
   }
@@ -335,13 +401,18 @@
       'visual.operator.orbital-gravity.v1': ['atomOrbitalTrails', 'atomGravityWell'],
       'visual.operator.electromagnetic-field.v1': ['atomFluxLines', 'atomChargeShell'],
       'visual.operator.optical-ray.v1': ['atomOpticalCaustics', 'atomRayCones'],
+      'visual.operator.thin-film-interference.v1': ['atomOpticalCaustics', 'atomQuantumFringes'],
       'visual.operator.quantum-phase-readout.v1': ['atomQuantumFringes', 'atomReadoutPulse'],
       'visual.operator.acoustic-wave.v1': ['atomAcousticRings', 'atomStandingNodes'],
       'visual.operator.biological-growth.v1': ['atomBiologicalBranches', 'atomDensityFront'],
+      'visual.operator.fermentation-matrix.v1': ['atomFermentationBubbles', 'atomGlutenStrands', 'atomAcidityGradient'],
       'visual.operator.chemical-diffusion.v1': ['atomChemicalClouds', 'atomReactionFront'],
       'visual.operator.network-flow.v1': ['atomNetworkPressure', 'atomPacketPulses'],
       'visual.operator.granular-erosion.v1': ['atomGranularStrata', 'atomSedimentMotion'],
+      'visual.operator.cryosphere-surface.v1': ['atomPhaseBoundary', 'atomFluidRibbons', 'atomStressCracks'],
+      'visual.operator.sport-trajectory.v1': ['atomConstraintPads', 'atomFeedbackArcs'],
       'visual.operator.instrument-readout.v1': ['atomInstrumentReadout', 'atomMeasurementBands'],
+      'visual.operator.particle-track-detector.v1': ['atomInstrumentReadout', 'atomQuantumFringes', 'atomFeedbackArcs'],
       'visual.operator.thermal-combustion.v1': ['atomCombustionFront', 'atomSootColumn'],
       'visual.operator.phase-transition.v1': ['atomPhaseBoundary', 'atomLatentHeatBand'],
       'visual.operator.robot-contact.v1': ['atomRobotWorkcell', 'atomContactForces'],

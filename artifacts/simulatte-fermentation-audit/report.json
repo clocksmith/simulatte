@@ -1,0 +1,500 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-02T16:21:37.496Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:50013/index.html?auditNoInitial=1",
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "molecular-biology"
+    ],
+    "visualIRSceneKinds": [
+      "molecular-biology"
+    ],
+    "visualIRCameras": [
+      "microscopic-cutaway-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 52,
+      "mappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.chemical-diffusion.v1",
+        "visual.operator.fermentation-matrix.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "uniformSlots": [
+        "biological",
+        "chemical",
+        "density",
+        "fluid",
+        "motion",
+        "phase",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomAcidityGradient",
+        "atomBiologicalBranches",
+        "atomChemicalClouds",
+        "atomDensityFront",
+        "atomFermentationBubbles",
+        "atomFluidRibbons",
+        "atomGlutenStrands",
+        "atomReactionFront",
+        "atomVectorFlow"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 100,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "biological",
+        "chemical"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 1
+    },
+    "intentBriefs": {
+      "totalEvidence": 77,
+      "totalCausalEdges": 1,
+      "totalAffordances": 1,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 77,
+      "totalCausalEdges": 1,
+      "totalCausalAffordances": 1,
+      "totalAssumptions": 10,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 100,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 1,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients",
+      "screenshot": "01-custom-sourdough-fermentation-gas-bubbles-growing-through-a-dough-matrix-with-gluten-st.png",
+      "screenshotHash": "c483c2e5ddb73a9ffe23584982123b5f82192b5d8ffa7143231cc15500d9a3af",
+      "runtimeState": "ready",
+      "runtimeMessage": "Local graph ready",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "molecular-biology",
+      "physicsCanvasSceneId": "13",
+      "physicsCanvasRenderCount": "60",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 74.157,
+      "lumaStd": 60.175,
+      "coloredRatio": 0.6312,
+      "canvasHash": "c5553545",
+      "specId": "sourdough-fermentation-gas-bubbles-growing-through-mr3pp5lk",
+      "templateId": "custom-world",
+      "rendererSceneKind": "molecular-biology",
+      "visualIRSceneKind": "molecular-biology",
+      "visualIRCamera": "microscopic-cutaway-depth",
+      "visualIREntityCount": 24,
+      "visualIRMaterialCount": 18,
+      "visualIRFieldCount": 10,
+      "visualIRProcessCount": 20,
+      "visualIROperatorCount": 9,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 1,
+      "visualIRGraphicsAtomCount": 52,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.fermentation-matrix.v1",
+        "visual.operator.chemical-diffusion.v1",
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.biological-growth.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "biological",
+        "chemical",
+        "phase",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.84,
+        "biological": 1,
+        "chemical": 1,
+        "phase": 0.84,
+        "motion": 0.84,
+        "density": 0.92,
+        "surface": 0.76
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomFermentationBubbles",
+        "atomGlutenStrands",
+        "atomAcidityGradient",
+        "atomChemicalClouds",
+        "atomReactionFront",
+        "atomFluidRibbons",
+        "atomVectorFlow",
+        "atomBiologicalBranches",
+        "atomDensityFront"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "clause acidity gradients open acidity gradients 5 catalog candidate prompt derived generic primitive: acidity gradients",
+          "slots": []
+        },
+        {
+          "id": "activation.0062",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dough matrix open dough matrix 3 catalog candidate prompt derived generic primitive: dough matrix",
+          "slots": []
+        },
+        {
+          "id": "activation.0071",
+          "kind": "catalog-candidate",
+          "text": "noun phrase gluten strands open gluten strands 4 catalog candidate prompt derived generic primitive: gluten strands",
+          "slots": []
+        },
+        {
+          "id": "activation.0077",
+          "kind": "catalog-candidate",
+          "text": "noun phrase acidity gradients open acidity gradients 5 catalog candidate prompt derived generic primitive: acidity gradients",
+          "slots": []
+        },
+        {
+          "id": "activation.0029",
+          "kind": "catalog-candidate",
+          "text": "noun phrase sourdough fermentation gas bubbles open sourdough fermentation gas 1 catalog candidate prompt derived fluid primitive: sourdough fermentation gas",
+          "slots": [
+            "fluid"
+          ]
+        },
+        {
+          "id": "activation.0008",
+          "kind": "visual-candidate",
+          "text": "prompt sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients language.visual.fluid.span 001 visual candidate fluid operator signal flow pressure advection streamline flow ribbon tracer flowvelocity pressure",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0018",
+          "kind": "visual-candidate",
+          "text": "clause sourdough fermentation gas bubbles growing through a dough matrix with gluten strands language.visual.fluid.span 002 visual candidate fluid operator signal flow pressure advection streamline flow ribbon tracer flowvelocity pressure",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "noun phrase gas bubbles growing open bubbles growing through 2 catalog candidate prompt derived fluid primitive: bubbles growing through",
+          "slots": [
+            "fluid"
+          ]
+        },
+        {
+          "id": "activation.0009",
+          "kind": "visual-candidate",
+          "text": "prompt sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients language.visual.biological.span 001 visual candidate biological operator signal growth diffusion density branching network membrane sheet cell cluster density nutrient",
+          "slots": [
+            "biological",
+            "network",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0019",
+          "kind": "visual-candidate",
+          "text": "clause sourdough fermentation gas bubbles growing through a dough matrix with gluten strands language.visual.biological.span 002 visual candidate biological operator signal growth diffusion density branching network membrane sheet cell cluster density nutrient",
+          "slots": [
+            "biological",
+            "network",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0090",
+          "kind": "visual-candidate",
+          "text": "modifier through a dough matrix with gluten strands and acidity gradients language.visual.biological.span 010 visual candidate biological operator signal growth diffusion density branching network membrane sheet cell cluster density nutrient",
+          "slots": [
+            "biological",
+            "network",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0039",
+          "kind": "catalog-candidate",
+          "text": "noun phrase fermentation gas bubbles growing open sourdough fermentation gas 1 catalog candidate prompt derived fluid primitive: sourdough fermentation gas",
+          "slots": [
+            "fluid"
+          ]
+        },
+        {
+          "id": "activation.0010",
+          "kind": "visual-candidate",
+          "text": "prompt sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients language.visual.chemical.span 001 visual candidate chemical operator signal reaction diffusion concentration reaction front diffusion cloud crystal facet reactionprogress concentration",
+          "slots": [
+            "chemical",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0020",
+          "kind": "visual-candidate",
+          "text": "clause sourdough fermentation gas bubbles growing through a dough matrix with gluten strands language.visual.chemical.span 002 visual candidate chemical operator signal reaction diffusion concentration reaction front diffusion cloud crystal facet reactionprogress concentration",
+          "slots": [
+            "chemical",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0091",
+          "kind": "visual-candidate",
+          "text": "modifier through a dough matrix with gluten strands and acidity gradients language.visual.chemical.span 010 visual candidate chemical operator signal reaction diffusion concentration reaction front diffusion cloud crystal facet reactionprogress concentration",
+          "slots": [
+            "chemical",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0036",
+          "kind": "visual-candidate",
+          "text": "noun phrase sourdough fermentation gas bubbles language.visual.fluid.span 004 visual candidate fluid operator signal flow pressure advection streamline flow ribbon tracer flowvelocity pressure",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0046",
+          "kind": "visual-candidate",
+          "text": "noun phrase fermentation gas bubbles growing language.visual.fluid.span 005 visual candidate fluid operator signal flow pressure advection streamline flow ribbon tracer flowvelocity pressure",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0040",
+          "kind": "catalog-candidate",
+          "text": "noun phrase fermentation gas bubbles growing open bubbles growing through 2 catalog candidate prompt derived fluid primitive: bubbles growing through",
+          "slots": [
+            "fluid"
+          ]
+        },
+        {
+          "id": "activation.0056",
+          "kind": "visual-candidate",
+          "text": "noun phrase gas bubbles growing language.visual.fluid.span 006 visual candidate fluid operator signal flow pressure advection streamline flow ribbon tracer flowvelocity pressure",
+          "slots": [
+            "fluid",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0028",
+          "kind": "visual-candidate",
+          "text": "clause acidity gradients language.visual.chemical.span 003 visual candidate chemical operator signal reaction diffusion concentration reaction front diffusion cloud crystal facet reactionprogress concentration",
+          "slots": [
+            "chemical",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0066",
+          "kind": "visual-candidate",
+          "text": "noun phrase dough matrix language.visual.biological.span 007 visual candidate biological operator signal growth diffusion density branching network membrane sheet cell cluster density nutrient",
+          "slots": [
+            "biological",
+            "network",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0074",
+          "kind": "visual-candidate",
+          "text": "noun phrase gluten strands language.visual.biological.span 008 visual candidate biological operator signal growth diffusion density branching network membrane sheet cell cluster density nutrient",
+          "slots": [
+            "biological",
+            "network",
+            "density",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0082",
+          "kind": "visual-candidate",
+          "text": "noun phrase acidity gradients language.visual.chemical.span 009 visual candidate chemical operator signal reaction diffusion concentration reaction front diffusion cloud crystal facet reactionprogress concentration",
+          "slots": [
+            "chemical",
+            "signal"
+          ]
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "noun phrase gas bubbles growing open sourdough fermentation gas 1 catalog candidate prompt derived fluid primitive: sourdough fermentation gas",
+          "slots": [
+            "fluid"
+          ]
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 77,
+      "intentBriefCausalEdgeCount": 1,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 77,
+      "physicalReceiptCausalEdgeCount": 1,
+      "physicalReceiptCausalAffordanceCount": 1,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 1,
+      "previewLength": 0,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-sourdough-fermentation-gas-bubbles-growing-through-a-dough-matrix-with-gluten-st.canvas.png",
+      "canvasScreenshotLater": "01-custom-sourdough-fermentation-gas-bubbles-growing-through-a-dough-matrix-with-gluten-st.canvas-late.png",
+      "canvasScreenshotHash": "a43a8f09cdfa583c475542b5f633102acbe462c0a3bc1991d012c28890b3fd0e",
+      "canvasScreenshotLaterHash": "7cf1069053d46135dac002a99809f26b10cc736d5c8f4d64f46a726575984daa",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 60.175,
+      "canvasScreenshotColoredRatio": 0.6312,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.087,
+      "canvasFrameLumaStdDelta": 0.019,
+      "canvasFrameColoredRatioDelta": 0.0019,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 0.317,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "biological",
+          "chemical"
+        ],
+        "matchedSignals": [
+          {
+            "id": "biological",
+            "strength": 1,
+            "slotHits": [
+              "biological",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.biological-growth.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients language.visual.biological.span 001 visual candidate biological operator signal growth diffusion density branching network membrane sheet cell cluster density nutrient",
+              "biological",
+              "clause sourdough fermentation gas bubbles growing through a dough matrix with gluten strands language.visual.biological.span 002 visual candidate biological operator signal growth diffusion density branching network membrane sheet cell cluster density nutrient"
+            ]
+          },
+          {
+            "id": "chemical",
+            "strength": 1,
+            "slotHits": [
+              "chemical",
+              "density",
+              "phase"
+            ],
+            "mappingHits": [
+              "visual.operator.chemical-diffusion.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "prompt sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients language.visual.chemical.span 001 visual candidate chemical operator signal reaction diffusion concentration reaction front diffusion cloud crystal facet reactionprogress concentration",
+              "chemical",
+              "clause sourdough fermentation gas bubbles growing through a dough matrix with gluten strands language.visual.chemical.span 002 visual candidate chemical operator signal reaction diffusion concentration reaction front diffusion cloud crystal facet reactionprogress concentration"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

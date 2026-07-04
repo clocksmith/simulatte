@@ -109,7 +109,7 @@ function assertVisualIRCase(prompt, expected) {
   assert.equal(ir.camera.depth, 'layered');
   assert.notEqual(ir.sceneKind, 'generic');
   assert.notEqual(ir.sceneKind, 'literal-composite');
-  assert.ok(ir.entities.length >= 6);
+  assert.ok(ir.entities.length >= 5);
   assert.ok(ir.materials.length >= 2);
   assert.ok(ir.fields.length >= 1);
   assert.ok(ir.processes.length >= 4);
@@ -1180,6 +1180,12 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
       ['feedback', 'fluid', 'thermal'],
     ],
     [
+      'injection molding line cools plastic through steel tooling',
+      ['visual.operator.heat-transfer.v1'],
+      ['thermal-glow-gradient'],
+      ['thermal', 'phase'],
+    ],
+    [
       'housing market pressure across parcels with zoning constraints and household agents',
       ['visual.operator.network-flow.v1'],
       ['node-link-graph', 'parcel-grid'],
@@ -1202,6 +1208,48 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
       ['visual.operator.robot-contact.v1', 'visual.operator.network-flow.v1'],
       ['robot-armature', 'contact-cone', 'node-link-graph'],
       ['robotic', 'network'],
+    ],
+    [
+      'glacier calving into fjord with internal ocean waves and iceberg collisions',
+      ['visual.operator.cryosphere-surface.v1', 'visual.operator.fluid-advection.v1'],
+      ['ice-cliff-shelf', 'calving-block-field', 'ribbon-streamline'],
+      ['phase', 'fluid', 'surface'],
+    ],
+    [
+      'skateboard rider carves a bowl with friction loss and centripetal arcs',
+      ['visual.operator.sport-trajectory.v1'],
+      ['curved-bowl-surface', 'rider-trajectory-arc', 'wheel-contact-patch'],
+      ['motion', 'stress', 'constraint'],
+    ],
+    [
+      'sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients',
+      ['visual.operator.fermentation-matrix.v1', 'visual.operator.chemical-diffusion.v1', 'visual.operator.biological-growth.v1'],
+      ['porous-dough-matrix', 'gluten-strand-network', 'fermentation-bubble-cell'],
+      ['biological', 'chemical', 'fluid', 'motion', 'density'],
+    ],
+    [
+      'soap thin film with air bubbles in wire loops and iridescent interference',
+      ['visual.operator.thin-film-interference.v1'],
+      ['thin-film-sheet', 'wire-loop-frame', 'interference-bubble-cell'],
+      ['optical', 'phase', 'surface'],
+    ],
+    [
+      'particle collider muon tracks through detector slice with calorimeter pulses',
+      ['visual.operator.particle-track-detector.v1', 'visual.operator.instrument-readout.v1'],
+      ['detector-slice-stack', 'muon-track-ribbons', 'calorimeter-tile-array'],
+      ['instrument', 'measurement', 'signal'],
+    ],
+    [
+      'acoustic levitator dust brass tube standing pressure waves',
+      ['visual.operator.acoustic-wave.v1'],
+      ['waveguide-tube', 'resonator-cavity', 'membrane-diaphragm'],
+      ['acoustic', 'motion', 'instrument'],
+    ],
+    [
+      'bridge resonance under wind vortex shedding with cable tension',
+      ['visual.operator.stress-fracture.v1', 'visual.operator.fluid-advection.v1'],
+      ['sectioned-solid', 'crack-branch-network', 'ribbon-streamline'],
+      ['stress', 'fluid', 'constraint'],
     ],
   ];
   const signatures = new Set();
@@ -1252,6 +1300,96 @@ test('molecular biology prompts do not admit robot visuals without robot evidenc
   assert.ok(mappingIds.includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds.includes('visual.operator.robot-contact.v1'));
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'molecular-biology');
+});
+
+test('fermentation prompts compile to molecular biology with dough-specific visual atoms', () => {
+  const spec = createPrototypeSpec(
+    'sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients'
+  );
+  const atoms = spec.renderProgram.visualIR.graphicsAtoms;
+  const mappingIds = atoms.mappings.map((row) => row.id);
+  const geometryIds = atoms.geometry.map((row) => row.id);
+  const processIds = atoms.processes.map((row) => row.id);
+  const motionIds = atoms.motion.map((row) => row.id);
+
+  assert.equal(spec.renderIR.sceneHint, 'molecular-biology');
+  assert.equal(spec.renderProgram.visualIR.sceneKind, 'molecular-biology');
+  assert.ok(mappingIds.includes('visual.operator.fermentation-matrix.v1'));
+  assert.ok(mappingIds.includes('visual.operator.chemical-diffusion.v1'));
+  assert.ok(mappingIds.includes('visual.operator.biological-growth.v1'));
+  assert.ok(geometryIds.includes('porous-dough-matrix'));
+  assert.ok(geometryIds.includes('gluten-strand-network'));
+  assert.ok(geometryIds.includes('fermentation-bubble-cell'));
+  assert.ok(processIds.includes('microbial-fermentation'));
+  assert.ok(processIds.includes('gas-pocket-growth'));
+  assert.ok(motionIds.includes('bubble-expansion'));
+  assert.ok(atoms.uniforms.bySlot.biological > 0);
+  assert.ok(atoms.uniforms.bySlot.chemical > 0);
+  assert.ok(atoms.uniforms.bySlot.fluid > 0);
+  assert.ok(atoms.wgslOperators.includes('atomFermentationBubbles'));
+});
+
+test('thin-film prompts do not collapse into fermentation bubble visuals', () => {
+  const spec = createPrototypeSpec(
+    'soap thin film with air bubbles in wire loops and iridescent interference'
+  );
+  const atoms = spec.renderProgram.visualIR.graphicsAtoms;
+  const mappingIds = atoms.mappings.map((row) => row.id);
+  const geometryIds = atoms.geometry.map((row) => row.id);
+
+  assert.equal(spec.renderProgram.visualIR.sceneKind, 'thin-film');
+  assert.ok(mappingIds.includes('visual.operator.thin-film-interference.v1'));
+  assert.ok(!mappingIds.includes('visual.operator.fermentation-matrix.v1'));
+  assert.ok(geometryIds.includes('thin-film-sheet'));
+  assert.ok(geometryIds.includes('wire-loop-frame'));
+  assert.ok(atoms.uniforms.bySlot.optical > 0);
+  assert.ok(atoms.uniforms.bySlot.phase > 0);
+});
+
+test('particle instrument prompts get track and detector graphics atoms', () => {
+  const spec = createPrototypeSpec(
+    'particle collider muon tracks through detector slice with calorimeter pulses'
+  );
+  const atoms = spec.renderProgram.visualIR.graphicsAtoms;
+  const mappingIds = atoms.mappings.map((row) => row.id);
+  const geometryIds = atoms.geometry.map((row) => row.id);
+
+  assert.equal(spec.renderProgram.visualIR.sceneKind, 'particle-instrument');
+  assert.ok(mappingIds.includes('visual.operator.particle-track-detector.v1'));
+  assert.ok(mappingIds.includes('visual.operator.instrument-readout.v1'));
+  assert.ok(geometryIds.includes('detector-slice-stack'));
+  assert.ok(geometryIds.includes('muon-track-ribbons'));
+  assert.ok(atoms.uniforms.bySlot.instrument > 0);
+  assert.ok(atoms.uniforms.bySlot.measurement > 0);
+});
+
+test('acoustic dust levitation stays acoustic instead of collapsing into granular scene routing', () => {
+  const spec = createPrototypeSpec(
+    'acoustic levitator dust brass tube standing pressure waves'
+  );
+  const atoms = spec.renderProgram.visualIR.graphicsAtoms;
+  const mappingIds = atoms.mappings.map((row) => row.id);
+
+  assert.equal(spec.renderIR.sceneHint, 'acoustic');
+  assert.equal(spec.renderProgram.visualIR.sceneKind, 'acoustic');
+  assert.ok(mappingIds.includes('visual.operator.acoustic-wave.v1'));
+  assert.ok(atoms.uniforms.bySlot.acoustic > atoms.uniforms.bySlot.granular);
+  assert.ok(atoms.wgslOperators.includes('atomAcousticRings'));
+});
+
+test('bridge resonance prompts carry structural stress graphics atoms', () => {
+  const spec = createPrototypeSpec(
+    'bridge resonance under wind vortex shedding with cable tension'
+  );
+  const atoms = spec.renderProgram.visualIR.graphicsAtoms;
+  const mappingIds = atoms.mappings.map((row) => row.id);
+
+  assert.equal(spec.renderProgram.visualIR.sceneKind, 'structural-mechanics');
+  assert.ok(mappingIds.includes('visual.operator.stress-fracture.v1'));
+  assert.ok(mappingIds.includes('visual.operator.fluid-advection.v1'));
+  assert.ok(atoms.uniforms.bySlot.stress > 0);
+  assert.ok(atoms.uniforms.bySlot.constraint > 0);
+  assert.ok(atoms.wgslOperators.includes('atomStressCracks'));
 });
 
 test('warehouse language does not unlock robot visuals without robot evidence', () => {

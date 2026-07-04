@@ -3,6 +3,8 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRotationalMechanicsSolver = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRotationalMechanicsSolverApi() {
+  const TAU = Math.PI * 2;
+
   return {
     id: 'rotational-mechanics',
     operatorTypes: ['rotational_torque'],
@@ -27,7 +29,7 @@
     const torque = speed * coupling * (1.15 - Math.min(0.95, viscosity)) - previous * 0.12;
     const angular = clamp(previous + torque * dt * 4.4, -24, 24);
     channels[angularId] = angular;
-    if (angleId) channels[angleId] = scalar(channels[angleId], 0) + angular * dt;
+    if (angleId) channels[angleId] = wrapAngle(scalar(channels[angleId], 0) + angular * dt);
     if (torqueId) channels[torqueId] = torque;
   }
 
@@ -59,5 +61,10 @@
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+  }
+
+  function wrapAngle(angle) {
+    const wrapped = angle % TAU;
+    return wrapped < 0 ? wrapped + TAU : wrapped;
   }
 });

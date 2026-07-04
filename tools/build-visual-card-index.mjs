@@ -1,13 +1,18 @@
 import fs from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
+const require = createRequire(import.meta.url);
+const visualOperatorAtlas = require(path.join(ROOT, 'public/js/simulatte-visual-operator-atlas.js'));
 const OUT_DIR = path.join(ROOT, 'public/models/simulatte-visual-cards');
 const INDEX_PATH = path.join(OUT_DIR, 'visual-card-index-v1.json');
 const MANIFEST_PATH = path.join(OUT_DIR, 'manifest.json');
+const VISUAL_OPERATOR_ATLAS_PATH = path.join(OUT_DIR, 'visual-operator-atlas-v1.json');
+const CAUSAL_VISUAL_AFFORDANCE_PATH = path.join(OUT_DIR, 'causal-visual-affordance-index-v1.json');
 
 const SCHEMA = 'simulatte.visualCardIndex.v1';
 const MANIFEST_SCHEMA = 'simulatte.visualCardManifest.v1';
@@ -17,6 +22,15 @@ const PALETTES = [
   'thermal', 'optical', 'mineral', 'biological', 'electric', 'civic', 'aqueous', 'metallic',
   'atmospheric', 'volcanic', 'cryogenic', 'clinical', 'industrial', 'astral', 'agricultural', 'synthetic',
 ];
+
+const VISUAL_OPERATOR_CATEGORIES = Object.freeze({
+  geometry: ['surface', 'volume', 'path', 'instrument', 'network', 'terrain', 'orbital', 'organic'],
+  field: ['scalar', 'vector', 'pressure', 'thermal', 'gravity', 'optical', 'electromagnetic', 'uncertainty'],
+  material: ['emissive', 'transparent', 'fluid', 'granular', 'metal', 'biological', 'instrument', 'phase'],
+  process: ['transport', 'front', 'feedback', 'fracture', 'orbit', 'reaction', 'growth', 'measurement'],
+  motion: ['particles', 'trails', 'pulses', 'waves', 'deformation', 'vortices', 'branching', 'scan'],
+  camera: ['cutaway', 'orbital', 'microscopic', 'map', 'lab', 'motion'],
+});
 
 const SCENE_DOMAINS = [
   entry('warehouse', 'civic', ['warehouse', 'fulfillment center', 'loading dock'], ['route grid', 'inventory aisles', 'pallet stacks']),
@@ -2502,6 +2516,37 @@ function coverageForCards(cards) {
   };
 }
 
+function buildVisualOperatorAtlasArtifact() {
+  const mappings = (visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS || []).map((row) => ({
+    id: row.id,
+    matchTerms: row.matchTerms || [],
+    requires: row.requires || [],
+    excludes: row.excludes || [],
+    minimumScore: row.minimumScore,
+    priority: row.priority,
+    uniformSlots: row.uniformSlots || [],
+    wgslOperators: row.wgslOperators || [],
+    geometryAtoms: row.geometryAtoms || [],
+    fieldAtoms: row.fieldAtoms || [],
+    materialAtoms: row.materialAtoms || [],
+    processAtoms: row.processAtoms || [],
+    motionAtoms: row.motionAtoms || [],
+    cameraAtoms: row.cameraAtoms || [],
+    receiptText: row.receiptText || '',
+  }));
+  return {
+    schema: visualOperatorAtlas.VISUAL_OPERATOR_ATLAS_SCHEMA || 'simulatte.visualOperatorAtlas.v1',
+    id: 'simulatte-visual-operator-atlas-v1',
+    source: 'handwritten-operator-graphics-basis',
+    description: 'Reusable graphics atoms and operator-to-visual mappings for compiling VisualIR without scene-template buckets.',
+    compilerSchema: 'simulatte.visualOperatorCompiler.v1',
+    uniformSchema: visualOperatorAtlas.GRAPHICS_ATOM_UNIFORMS_SCHEMA || 'simulatte.graphicsAtomUniforms.v1',
+    uniformSlots: visualOperatorAtlas.VISUAL_ATOM_UNIFORM_SLOTS || [],
+    categories: VISUAL_OPERATOR_CATEGORIES,
+    mappings,
+  };
+}
+
 function validateCards(cards) {
   const ids = new Set();
   const signatures = new Set();
@@ -2527,8 +2572,17 @@ function validateCards(cards) {
 async function main() {
   const cards = buildCards();
   validateCards(cards);
+  const operatorAtlas = buildVisualOperatorAtlasArtifact();
+  const causalAffordanceIndex = JSON.parse(await fs.readFile(CAUSAL_VISUAL_AFFORDANCE_PATH, 'utf8'));
+  const causalAffordanceCount = Array.isArray(causalAffordanceIndex.documents)
+    ? causalAffordanceIndex.documents.length
+    : 0;
   const sourceCards = sourceExampleCards(cards);
-  const coverage = coverageForCards(cards);
+  const coverage = {
+    ...coverageForCards(cards),
+    causalAffordances: causalAffordanceCount,
+    visualOperatorMappings: operatorAtlas.mappings.length,
+  };
   const index = {
     schema: SCHEMA,
     id: 'simulatte-visual-card-index-v1',
@@ -2541,6 +2595,8 @@ async function main() {
         exportedDocuments: 'literal-source-examples-only',
         generatedScaffoldCards: 0,
         maxSlotsPerType: SLICE_COUNT,
+        handwrittenCausalAffordances: causalAffordanceCount,
+        handwrittenVisualOperatorMappings: operatorAtlas.mappings.length,
       },
     },
     counts: {
@@ -2571,17 +2627,31 @@ async function main() {
         documentSchema: SCHEMA,
         documentCount: cards.length,
       },
+      causalAffordances: {
+        kind: 'causal-visual-affordance-index',
+        artifact: './causal-visual-affordance-index-v1.json',
+        documentSchema: causalAffordanceIndex.schema || 'simulatte.causalVisualAffordanceIndex.v1',
+        documentCount: causalAffordanceCount,
+      },
+      visualOperatorAtlas: {
+        kind: 'visual-operator-atlas',
+        artifact: './visual-operator-atlas-v1.json',
+        documentSchema: operatorAtlas.schema,
+        documentCount: operatorAtlas.mappings.length,
+      },
     },
     coverage,
     generator: index.generator,
   };
   await fs.mkdir(OUT_DIR, { recursive: true });
   await fs.writeFile(INDEX_PATH, `${JSON.stringify(index, null, 2)}\n`);
+  await fs.writeFile(VISUAL_OPERATOR_ATLAS_PATH, `${JSON.stringify(operatorAtlas, null, 2)}\n`);
   await fs.writeFile(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(JSON.stringify({
     schema: 'simulatte.visualCardBuildReport.v1',
     ok: true,
     indexPath: path.relative(ROOT, INDEX_PATH),
+    visualOperatorAtlasPath: path.relative(ROOT, VISUAL_OPERATOR_ATLAS_PATH),
     manifestPath: path.relative(ROOT, MANIFEST_PATH),
     documentCount: cards.length,
     coverage: manifest.coverage,
