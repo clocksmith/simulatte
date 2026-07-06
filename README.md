@@ -86,16 +86,15 @@ Example prompts are convenience inputs, not product boundaries.
 
 ## Browser Modules
 
-App code is intentionally split by what a browser user is touching:
+App code is split around the four product components:
 
-- `public/app/start/`: startup files.
-- `public/app/lab/`: the Simulatte lab controller that wires prompt input,
-  pipeline output, runtime status, receipts, simulation state, and render calls.
-- `public/app/session/`: app-side session state and scenario behavior, not
-  pipeline world semantics.
-- `public/app/controls/`: DOM controls, panels, status, loading, debug, and review UI.
-- `public/app/graphics/`: app drawing helpers such as iso rendering, GL helpers,
-  textures, and material assets.
+- `public/app/main.js` and `public/app/version-guard.js`: startup and version checks.
+- `public/app/loading/`: snake loading canvas and loading presentation.
+- `public/app/prompt/`: prompt input, run/shuffle behavior, status, debug, and review UI.
+- `public/app/simulation/`: simulation canvas host, app-side simulation state,
+  readouts, scenario behavior, and simulation graphics helpers.
+- `public/pipeline/`: the strict eight-phase prompt-to-render engine that powers
+  the simulation canvas.
 
 - `public/pipeline/phase-02-language/simulatte-language-evidence.js`: language-first span and predicate
   evidence.
@@ -113,7 +112,7 @@ App code is intentionally split by what a browser user is touching:
   composition.
 - `public/pipeline/phase-08-render/simulatte-webgpu-renderer.js`: browser-native visual execution from
   compiled VisualIR and graphics atom uniforms.
-- `public/app/lab/simulatte-physics-renderer.js`: browser UI coordinator, prompt
+- `public/app/prompt/prompt-controller.js`: browser UI coordinator, prompt
   runtime, worker fallback, receipts, and live simulation loop.
 
 ## Quality Gates

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.pipelineAuditRun.v1",
-  "generatedAt": "2026-07-06T01:06:30.908Z",
-  "runId": "2026-07-06T01-06-30-908Z-6e93b39547",
+  "generatedAt": "2026-07-06T00:59:14.718Z",
+  "runId": "2026-07-06T00-59-14-718Z-20744150b1",
   "gitSha": "060b903751a0",
   "version": "",
   "rubricVersion": "phase-floor-76.v1",
@@ -55,7 +55,7 @@
     "runtime": 96,
     "languageGraph": 85.9,
     "retrieval": 81.1,
-    "activationCloud": 86.5,
+    "activationCloud": 82.9,
     "groundedIntent": 95.4,
     "simulationCompile": 87.6,
     "visualIR": 84,
@@ -86,10 +86,12 @@
     "11:webgpu:live WebGPU proof required; static VisualIR proxy capped",
     "12:languageGraph:termCoverage=100%",
     "12:retrieval:signalCoverage=100%",
+    "12:activationCloud:accepted=8 signalCoverage=100%",
     "12:visualIR:atoms=2 signalCoverage=100%",
     "12:webgpu:live WebGPU proof required; static VisualIR proxy capped",
     "13:retrieval:signalCoverage=100%",
     "13:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "14:activationCloud:accepted=6 signalCoverage=100%",
     "14:webgpu:live WebGPU proof required; static VisualIR proxy capped",
     "15:retrieval:signalCoverage=100%",
     "15:visualIR:atoms=4 signalCoverage=100%",
@@ -97,8 +99,10 @@
     "16:retrieval:signalCoverage=100%",
     "16:webgpu:live WebGPU proof required; static VisualIR proxy capped",
     "17:languageGraph:termCoverage=100%",
+    "17:activationCloud:accepted=6 signalCoverage=100%",
     "17:webgpu:live WebGPU proof required; static VisualIR proxy capped",
     "18:languageGraph:termCoverage=100%",
+    "18:activationCloud:accepted=6 signalCoverage=100%",
     "18:webgpu:live WebGPU proof required; static VisualIR proxy capped",
     "19:languageGraph:termCoverage=100%",
     "19:webgpu:live WebGPU proof required; static VisualIR proxy capped",
@@ -179,7 +183,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 753,
+          "activationCount": 137,
           "acceptedActivationCount": 42,
           "directSignalCount": 19,
           "signalCoverage": {
@@ -425,7 +429,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 982,
+          "activationCount": 254,
           "acceptedActivationCount": 44,
           "directSignalCount": 9,
           "signalCoverage": {
@@ -637,7 +641,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 316,
+          "activationCount": 44,
           "acceptedActivationCount": 24,
           "directSignalCount": 4,
           "signalCoverage": {
@@ -841,7 +845,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 1121,
+          "activationCount": 305,
           "acceptedActivationCount": 52,
           "directSignalCount": 7,
           "signalCoverage": {
@@ -1038,7 +1042,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 816,
+          "activationCount": 144,
           "acceptedActivationCount": 58,
           "directSignalCount": 18,
           "signalCoverage": {
@@ -1255,7 +1259,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 703,
+          "activationCount": 87,
           "acceptedActivationCount": 31,
           "directSignalCount": 4,
           "signalCoverage": {
@@ -1468,7 +1472,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 720,
+          "activationCount": 104,
           "acceptedActivationCount": 31,
           "directSignalCount": 8,
           "signalCoverage": {
@@ -1701,7 +1705,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 650,
+          "activationCount": 90,
           "acceptedActivationCount": 43,
           "directSignalCount": 20,
           "signalCoverage": {
@@ -1920,7 +1924,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 509,
+          "activationCount": 61,
           "acceptedActivationCount": 27,
           "directSignalCount": 5,
           "signalCoverage": {
@@ -2139,7 +2143,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 394,
+          "activationCount": 58,
           "acceptedActivationCount": 24,
           "directSignalCount": 4,
           "signalCoverage": {
@@ -2337,7 +2341,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 269,
+          "activationCount": 24,
           "acceptedActivationCount": 24,
           "directSignalCount": 3,
           "signalCoverage": {
@@ -2497,17 +2501,18 @@
         "runtime": 96,
         "languageGraph": 70,
         "retrieval": 68,
-        "activationCloud": 76,
+        "activationCloud": 58,
         "groundedIntent": 96,
         "simulationCompile": 84.8,
         "visualIR": 70.2,
         "webgpu": 68
       },
-      "pipelineScore": 68,
-      "weakestPhase": "retrieval",
+      "pipelineScore": 58,
+      "weakestPhase": "activationCloud",
       "failures": [
         "languageGraph:termCoverage=100%",
         "retrieval:signalCoverage=100%",
+        "activationCloud:accepted=8 signalCoverage=100%",
         "visualIR:atoms=2 signalCoverage=100%",
         "webgpu:live WebGPU proof required; static VisualIR proxy capped"
       ],
@@ -2560,7 +2565,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 98,
+          "activationCount": 8,
           "acceptedActivationCount": 8,
           "directSignalCount": 2,
           "signalCoverage": {
@@ -2778,7 +2783,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 355,
+          "activationCount": 43,
           "acceptedActivationCount": 24,
           "directSignalCount": 10,
           "signalCoverage": {
@@ -2929,15 +2934,16 @@
         "runtime": 96,
         "languageGraph": 86,
         "retrieval": 100,
-        "activationCloud": 85,
+        "activationCloud": 67,
         "groundedIntent": 100,
         "simulationCompile": 91.6,
         "visualIR": 89.6,
         "webgpu": 68
       },
-      "pipelineScore": 68,
-      "weakestPhase": "webgpu",
+      "pipelineScore": 67,
+      "weakestPhase": "activationCloud",
       "failures": [
+        "activationCloud:accepted=6 signalCoverage=100%",
         "webgpu:live WebGPU proof required; static VisualIR proxy capped"
       ],
       "phaseDetails": {
@@ -2978,7 +2984,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 114,
+          "activationCount": 6,
           "acceptedActivationCount": 6,
           "directSignalCount": 0,
           "signalCoverage": {
@@ -3160,7 +3166,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 354,
+          "activationCount": 60,
           "acceptedActivationCount": 24,
           "directSignalCount": 6,
           "signalCoverage": {
@@ -3384,7 +3390,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 410,
+          "activationCount": 74,
           "acceptedActivationCount": 30,
           "directSignalCount": 11,
           "signalCoverage": {
@@ -3551,16 +3557,17 @@
         "runtime": 96,
         "languageGraph": 68,
         "retrieval": 88,
-        "activationCloud": 85,
+        "activationCloud": 67,
         "groundedIntent": 100,
         "simulationCompile": 87,
         "visualIR": 88,
         "webgpu": 68
       },
-      "pipelineScore": 68,
-      "weakestPhase": "languageGraph",
+      "pipelineScore": 67,
+      "weakestPhase": "activationCloud",
       "failures": [
         "languageGraph:termCoverage=100%",
+        "activationCloud:accepted=6 signalCoverage=100%",
         "webgpu:live WebGPU proof required; static VisualIR proxy capped"
       ],
       "phaseDetails": {
@@ -3605,7 +3612,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 105,
+          "activationCount": 6,
           "acceptedActivationCount": 6,
           "directSignalCount": 0,
           "signalCoverage": {
@@ -3744,16 +3751,17 @@
         "runtime": 96,
         "languageGraph": 68,
         "retrieval": 100,
-        "activationCloud": 85,
+        "activationCloud": 67,
         "groundedIntent": 100,
         "simulationCompile": 91,
         "visualIR": 100,
         "webgpu": 68
       },
-      "pipelineScore": 68,
-      "weakestPhase": "languageGraph",
+      "pipelineScore": 67,
+      "weakestPhase": "activationCloud",
       "failures": [
         "languageGraph:termCoverage=100%",
+        "activationCloud:accepted=6 signalCoverage=100%",
         "webgpu:live WebGPU proof required; static VisualIR proxy capped"
       ],
       "phaseDetails": {
@@ -3794,7 +3802,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 108,
+          "activationCount": 6,
           "acceptedActivationCount": 6,
           "directSignalCount": 0,
           "signalCoverage": {
@@ -3964,7 +3972,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 280,
+          "activationCount": 20,
           "acceptedActivationCount": 20,
           "directSignalCount": 0,
           "signalCoverage": {
@@ -4142,7 +4150,7 @@
           }
         },
         "activationCloud": {
-          "activationCount": 210,
+          "activationCount": 25,
           "acceptedActivationCount": 24,
           "directSignalCount": 0,
           "signalCoverage": {
@@ -4275,6 +4283,5 @@
         }
       }
     }
-  ],
-  "reportPath": "artifacts/simulatte-pipeline-audit/runs/2026-07-06T01-06-30-908Z-6e93b39547/report.json"
+  ]
 }

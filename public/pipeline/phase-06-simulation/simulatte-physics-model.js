@@ -45,6 +45,12 @@
   const intentForensics = typeof module === 'object' && module.exports
     ? require('../phase-05-grounded-intent/simulatte-intent-forensics.js')
     : root.SimulatteIntentForensics;
+  const activationModule = typeof module === 'object' && module.exports
+    ? require('../phase-04-activation/simulatte-activation-cloud.js')
+    : root.SimulatteActivationCloud;
+  const groundedModule = typeof module === 'object' && module.exports
+    ? require('../phase-05-grounded-intent/simulatte-grounded-interpretation.js')
+    : root.SimulatteGroundedInterpretation;
   if (!catalog) {
     markMissingDependency('SimulattePhysicsModel', 'SimulattePhysicsCatalog');
     return;
@@ -62,7 +68,9 @@
     physicsIRValidator,
     solverCompiler,
     renderIR,
-    intentForensics
+    intentForensics,
+    activationModule,
+    groundedModule
   );
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
@@ -81,7 +89,9 @@
   physicsIRValidator = {},
   solverCompiler = {},
   renderIR = {},
-  intentForensics = {}
+  intentForensics = {},
+  activationModule = {},
+  groundedModule = {}
 ) {
   const {
     CONTROL_LIBRARY,
@@ -176,6 +186,13 @@
     INTENT_BRIEF_SCHEMA,
     buildIntentForensics,
   } = intentForensics || {};
+  const {
+    buildActivationCloud,
+    summarizeActivationCloud,
+  } = activationModule || {};
+  const {
+    buildGroundedInterpretation,
+  } = groundedModule || {};
 
   const PHASE_OUTPUT_SCHEMAS = Object.freeze({
     1: 'simulatte.phase1.output.v1',
@@ -201,7 +218,13 @@
     'renderProgram',
   ]);
   const PHASE_CONTRACTS = Object.freeze({
-    1: phaseContract(1, PHASE_ZERO_INPUT_SCHEMA, ['runtimeContext', 'promptIngress'], ['phase1-runtime-context'], []),
+    1: phaseContract(1, PHASE_ZERO_INPUT_SCHEMA, ['runtimeContext', 'promptIngress'], [
+      'phase1-runtime-context',
+      'model-ready',
+      'model-probe',
+      'cache-health',
+      'runtime-ready',
+    ], []),
     2: phaseContract(2, phaseOutputSchema(1), ['languageGraph', 'promptParse'], ['phase2-language-graph'], [
       'retrievalRows',
       'activationCloud',
@@ -425,13 +448,14 @@
     const receipt = options.promptRuntimeReceipt || options.runtimeReceipt || null;
     const embeddingModel = options.embeddingModel || receipt && receipt.model || null;
     const modelId = embeddingModel && embeddingModel.id || receipt && (receipt.modelId || receipt.id) || '';
-    const backend = options.embeddingBackend || receipt && (receipt.backend || receipt.provider) || '';
+    const backend = options.embeddingBackend || receipt && (receipt.providerBackend || receipt.backend || receipt.provider) || '';
     const cacheMode = receipt && (receipt.cacheMode || receipt.cacheBackends) || options.cacheMode || '';
     const runtimeReceiptId = String(
       options.runtimeReceiptId ||
       receipt && (receipt.runtimeReceiptId || receipt.receiptId || receipt.id) ||
       `runtime:${seedFromString([modelId, backend, cacheMode].filter(Boolean).join(':') || 'local').toString(36)}`
     );
+    const retrievalEvidence = retrievalEvidenceFromOptions(options);
     return {
       schema: 'simulatte.phaseRuntimeContext.v1',
       runtimeReceiptId,
@@ -439,8 +463,15 @@
       backend: backend || '',
       cacheMode: cacheMode || '',
       providerReady: receipt && receipt.providerReady === true,
+      noFallback: receipt && receipt.noFallback === true,
       promptRuntimeReceipt: receipt,
+      retrievalEvidence,
       retrievalPhase: options.retrievalPhase || '',
+      runtimeMode: receipt && receipt.providerReady === true
+        ? 'model-backed'
+        : options.allowPrototypeFallback === true
+          ? 'prototype-fallback'
+          : 'unproven',
     };
   }
 
@@ -452,8 +483,82 @@
     };
   }
 
+  function retrievalEvidenceFromOptions(options = {}) {
+    if (options.phase3RetrievalEvidence && typeof options.phase3RetrievalEvidence === 'object') {
+      return clonePhaseValue(options.phase3RetrievalEvidence);
+    }
+    return {
+      schema: 'simulatte.phase3.retrievalEvidence.v1',
+      rankedPrimitives: arrayClone(options.rankedPrimitives || options.embeddingPriors || options.primitiveMatches),
+      rankedCards: arrayClone(options.rankedCards || options.cardMatches || options.surfaceCardMatches),
+      rankedUniverseRows: arrayClone(options.rankedUniverseRows || options.universeMatches),
+      classification: clonePhaseValue(options.classification || null),
+      semanticRag: clonePhaseValue(options.semanticRag || null),
+      rerank: clonePhaseValue(options.intentRerank || options.rerank || null),
+      synthesis: clonePhaseValue(options.synthesis || null),
+      dopplerIntent: clonePhaseValue(options.dopplerIntent || null),
+      spanRetrieval: clonePhaseValue(options.spanRetrieval || null),
+      evidenceRows: arrayClone(options.evidenceRows),
+      intentBrief: clonePhaseValue(options.intentBrief || null),
+      universeGraph: clonePhaseValue(options.universeGraph || null),
+      acceptedGraph: clonePhaseValue(options.acceptedGraph || null),
+      rejectedGraph: clonePhaseValue(options.rejectedGraph || null),
+      contract: clonePhaseValue(options.contract || null),
+      components: arrayClone(options.components),
+      assumptions: arrayClone(options.assumptions),
+      unsupported: arrayClone(options.unsupported),
+      visualSource: clonePhaseValue(options.visualSource || null),
+      params: clonePhaseValue(options.params || {}),
+      retrievalPhase: options.retrievalPhase || '',
+      model: clonePhaseValue(options.embeddingModel || null),
+      backend: options.embeddingBackend || '',
+    };
+  }
+
+  function withPhase1RetrievalEvidence(phase1Output, retrievalEvidence = {}) {
+    assertPhaseEnvelope(phase1Output, 1, 'Phase 1 retrieval carrier');
+    const carried = retrievalEvidence && typeof retrievalEvidence === 'object' ? retrievalEvidence : {};
+    const existingRuntime = runtimeContextFromPhase(phase1Output);
+    const runtimeContext = {
+      ...existingRuntime,
+      retrievalEvidence: clonePhaseValue({
+        ...(existingRuntime.retrievalEvidence || {}),
+        ...carried,
+        schema: carried.schema || 'simulatte.phase3.retrievalEvidence.v1',
+      }),
+      retrievalPhase: carried.retrievalPhase || existingRuntime.retrievalPhase || '',
+    };
+    return {
+      ...phase1Output,
+      artifact: {
+        ...phase1Output.artifact,
+        runtimeContext,
+      },
+    };
+  }
+
+  function clonePhaseValue(value) {
+    if (value == null) return value;
+    try {
+      return JSON.parse(JSON.stringify(value));
+    } catch (_error) {
+      if (Array.isArray(value)) return value.map((item) => clonePhaseValue(item));
+      if (typeof value === 'object') return { ...value };
+      return value;
+    }
+  }
+
+  function arrayClone(value) {
+    return Array.isArray(value) ? clonePhaseValue(value) : [];
+  }
+
   function runPhase1RuntimeGate(sourceText = '', options = {}) {
     const runtimeContext = runtimeContextFromOptions(options);
+    const promptText = String(sourceText || '').trim();
+    if (phase1RequiresModelProof(promptText, options, runtimeContext)) {
+      throw new Error('Phase 1 runtime gate requires promptRuntimeReceipt with providerReady=true for nonblank browser prompt');
+    }
+    const receipts = phase1RuntimeReceipts(runtimeContext, options);
     return createPhaseEnvelope({
       phase: 1,
       inputSchema: PHASE_ZERO_INPUT_SCHEMA,
@@ -462,20 +567,80 @@
         runtimeContext,
         promptIngress: {
           schema: 'simulatte.promptIngress.v1',
-          sourceText: String(sourceText || '').trim(),
+          sourceText: promptText,
         },
       },
-      receipts: [
-        {
-          id: 'phase1-runtime-context',
-          schema: 'simulatte.phaseReceipt.v1',
-          modelId: runtimeContext.modelId,
-          backend: runtimeContext.backend,
-          cacheMode: runtimeContext.cacheMode,
-          providerReady: runtimeContext.providerReady,
-        },
-      ],
+      receipts,
     });
+  }
+
+  function phase1RequiresModelProof(promptText = '', options = {}, runtimeContext = {}) {
+    if (!promptText || /\b(blank|empty|scratch)\b/i.test(promptText)) return false;
+    if (options.allowPrototypeFallback === true) return false;
+    if (!isBrowserRuntime()) return false;
+    return runtimeContext.providerReady !== true || runtimeContext.noFallback !== true;
+  }
+
+  function isBrowserRuntime() {
+    if (typeof window !== 'undefined') return true;
+    return typeof WorkerGlobalScope !== 'undefined' &&
+      typeof self !== 'undefined' &&
+      self instanceof WorkerGlobalScope;
+  }
+
+  function phase1RuntimeReceipts(runtimeContext = {}, options = {}) {
+    const receipt = runtimeContext.promptRuntimeReceipt || {};
+    const cacheReady = receipt.cachePrefetch === true || Boolean(runtimeContext.cacheMode) || options.allowPrototypeFallback === true;
+    const probeReady = receipt.embeddingProbe === true || options.allowPrototypeFallback === true;
+    const modelReady = runtimeContext.providerReady === true || options.allowPrototypeFallback === true;
+    return [
+      {
+        id: 'phase1-runtime-context',
+        schema: 'simulatte.phaseReceipt.v1',
+        modelId: runtimeContext.modelId,
+        backend: runtimeContext.backend,
+        cacheMode: runtimeContext.cacheMode,
+        providerReady: runtimeContext.providerReady,
+        runtimeMode: runtimeContext.runtimeMode,
+      },
+      {
+        id: 'model-ready',
+        schema: 'simulatte.phaseReceipt.v1',
+        ready: modelReady,
+        modelId: runtimeContext.modelId,
+        backend: runtimeContext.backend,
+        providerReady: runtimeContext.providerReady,
+        noFallback: runtimeContext.noFallback,
+      },
+      {
+        id: 'model-probe',
+        schema: 'simulatte.phaseReceipt.v1',
+        ready: probeReady,
+        embeddingProbe: receipt.embeddingProbe === true,
+        probeCount: Number(receipt.probeCount || 0),
+        embeddingDim: Number(receipt.embeddingDim || receipt.probeEmbeddingDim || 0),
+        stabilitySimilarity: Number(receipt.stabilitySimilarity || 0),
+        maxDistinctProbeSimilarity: Number(receipt.maxDistinctProbeSimilarity || 0),
+      },
+      {
+        id: 'cache-health',
+        schema: 'simulatte.phaseReceipt.v1',
+        ready: cacheReady,
+        cachePrefetch: receipt.cachePrefetch === true,
+        cacheMode: runtimeContext.cacheMode || '',
+        modelBaseUrl: receipt.modelBaseUrl || '',
+      },
+      {
+        id: 'runtime-ready',
+        schema: 'simulatte.phaseReceipt.v1',
+        ready: modelReady && (probeReady || options.allowPrototypeFallback === true),
+        providerReady: runtimeContext.providerReady,
+        rerankerRequired: receipt.rerankerRequired === true,
+        rerankerReady: receipt.rerankerReady === true,
+        rerankerStatus: receipt.rerankerStatus || '',
+        runtimeMode: runtimeContext.runtimeMode,
+      },
+    ];
   }
 
   function runPhase2LanguageGraph(phase1Output) {
@@ -585,10 +750,11 @@
     return Array.isArray(SEMANTIC_STOPWORDS) && SEMANTIC_STOPWORDS.includes(text);
   }
 
-  function runPhase3Retrieval(phase2Output, runtimeContext = {}, retrievalEvidence = {}) {
+  function runPhase3Retrieval(phase2Output, runtimeContext = {}) {
     assertPhaseEnvelope(phase2Output, 2, 'Phase 3 input');
     const languageGraph = phase2Output.artifact && phase2Output.artifact.languageGraph || {};
     const query = String(languageGraph.sourceText || '');
+    const retrievalEvidence = runtimeContext && runtimeContext.retrievalEvidence || {};
     const rankedPrimitives = retrievalEvidence.rankedPrimitives || retrievalEvidence.primitiveMatches || [];
     const rankedCards = retrievalEvidence.rankedCards || retrievalEvidence.cardMatches || [];
     const rankedUniverseRows = retrievalEvidence.rankedUniverseRows || retrievalEvidence.universeMatches || [];
@@ -609,6 +775,11 @@
           rankedUniverseRows,
           semanticRag,
           rerankReceipt,
+          spanRetrieval: retrievalEvidence.spanRetrieval || null,
+          evidenceRows: Array.isArray(retrievalEvidence.evidenceRows) ? retrievalEvidence.evidenceRows : [],
+          classification: retrievalEvidence.classification || null,
+          synthesis: retrievalEvidence.synthesis || null,
+          dopplerIntent: retrievalEvidence.dopplerIntent || null,
           scores: {
             primitiveCount: rankedPrimitives.length,
             cardCount: rankedCards.length,
@@ -648,6 +819,7 @@
       unsupported: Array.isArray(retrievalEvidence.unsupported) ? retrievalEvidence.unsupported : [],
       visualSource: phaseCarryObject(retrievalEvidence.visualSource || null),
       params: phaseCarryObject(retrievalEvidence.params || {}),
+      languageEvidence: phaseCarryObject(retrievalEvidence.languageEvidence || null),
     };
   }
 
@@ -679,9 +851,7 @@
     assertPhaseEnvelope(phase3Output, 3, 'Phase 4 input');
     const artifact = phase3Output.artifact || {};
     const retrievalRerankResult = artifact.retrievalRerankResult || {};
-    const groundingEvidence = retrievalRerankResult.groundingEvidence || {};
-    const intentBrief = groundingEvidence.intentBrief || {};
-    const activationCloud = activationCloudFromIntentBrief(intentBrief, retrievalRerankResult);
+    const activationCloud = activationCloudFromPhase3Artifact(artifact);
     return createPhaseEnvelope({
       phase: 4,
       inputSchema: phase3Output.schema,
@@ -702,73 +872,317 @@
     });
   }
 
-  function activationCloudFromIntentBrief(intentBrief = {}, retrievalRerankResult = {}) {
-    const grounded = intentBrief.groundedInterpretation || {};
-    const summary = intentBrief.activationSummary || {};
-    const retrievedEvidence = intentBrief.retrievedEvidence || [];
+  function activationCloudFromPhase3Artifact(artifact = {}) {
+    const retrievalRerankResult = artifact.retrievalRerankResult || {};
+    const groundingEvidence = retrievalRerankResult.groundingEvidence || {};
+    const intentBrief = groundingEvidence.intentBrief || {};
+    const languageEvidence = languageEvidenceFromPhase3Artifact(artifact, intentBrief, groundingEvidence);
+    const candidateEvidence = normalizedEvidenceRowsFromPhase3(retrievalRerankResult, intentBrief);
+    const builtActivations = buildActivationCloud
+      ? buildActivationCloud({ languageEvidence, evidenceRows: candidateEvidence })
+      : [];
+    const fallbackActivations = activationRowsFromIntentBrief(intentBrief);
+    const weightedActivations = builtActivations.length ? builtActivations : fallbackActivations;
+    const summary = summarizeActivationCloud
+      ? summarizeActivationCloud(weightedActivations)
+      : {
+        schema: 'simulatte.activationCloudSummary.v1',
+        activationCount: weightedActivations.length,
+      };
+    const intentBriefWithEvidence = {
+      ...(intentBrief || {}),
+      languageEvidence: intentBrief.languageEvidence || languageEvidence,
+      retrievedEvidence: Array.isArray(intentBrief.retrievedEvidence) && intentBrief.retrievedEvidence.length
+        ? intentBrief.retrievedEvidence
+        : candidateEvidence,
+      activationSummary: intentBrief.activationSummary || summary,
+    };
     return {
       schema: 'simulatte.activationCloud.v1',
-      weightedActivations: Array.isArray(intentBrief.activationRows)
-        ? intentBrief.activationRows
-        : Array.isArray(intentBrief.activationCloud)
-          ? intentBrief.activationCloud
-        : (grounded.acceptedActivations || []).map((row) => ({
-          id: row.id || row.candidateId || row.candidateLabel || '',
-          label: row.label || row.candidateLabel || '',
-          kind: row.kind || row.candidateKind || '',
-          weight: Number(row.score || row.confidence || 0),
-          source: row.source || 'intent-brief-grounding',
-        })),
-      coverage: {
-        schema: 'simulatte.activationCoverage.v1',
-        confidence: Number(intentBrief.confidence || summary.confidence || 0),
-        evidenceCount: retrievedEvidence.length,
-        spanCount: intentBrief.languageEvidence && intentBrief.languageEvidence.spans
-          ? intentBrief.languageEvidence.spans.length
-          : 0,
-      },
-      conflicts: intentBrief.coverageGaps || intentBrief.causalQuestions || [],
+      languageEvidence: phaseCarryObject(languageEvidence),
+      candidateEvidence: candidateEvidence.map((row) => phaseCarryObject(row)),
+      weightedActivations,
+      coverage: activationCoverage(intentBriefWithEvidence, summary, languageEvidence, candidateEvidence),
+      conflicts: uniqueByJson([
+        ...(intentBrief.coverageGaps || []),
+        ...(intentBrief.causalQuestions || []),
+      ]),
       rejectedMatches: intentBrief.alternatives || retrievalRerankResult.rejectedMatches || [],
-      evidenceBySpan: evidenceBySpanRows(intentBrief),
-      groundingEvidence: retrievalRerankResult.groundingEvidence || null,
+      evidenceBySpan: evidenceBySpanRows(intentBriefWithEvidence, languageEvidence, candidateEvidence),
+      summary,
+      groundingEvidence: phaseCarryObject({
+        ...groundingEvidence,
+        intentBrief: intentBriefWithEvidence,
+        languageEvidence,
+      }),
     };
   }
 
-  function evidenceBySpanRows(intentBrief = {}) {
-    const spans = intentBrief.languageEvidence && intentBrief.languageEvidence.spans || [];
-    const evidence = intentBrief.retrievedEvidence || [];
+  function activationRowsFromIntentBrief(intentBrief = {}) {
+    const grounded = intentBrief.groundedInterpretation || {};
+    if (Array.isArray(intentBrief.activationRows)) return intentBrief.activationRows;
+    if (Array.isArray(intentBrief.activationCloud)) return intentBrief.activationCloud;
+    return (grounded.acceptedActivations || []).map((row) => ({
+      id: row.id || row.candidateId || row.candidateLabel || '',
+      spanId: row.spanId || '',
+      spanKind: row.spanKind || '',
+      spanText: row.spanText || '',
+      candidateId: row.candidateId || '',
+      candidateLabel: row.candidateLabel || row.label || '',
+      candidateKind: row.candidateKind || row.kind || '',
+      score: Number(row.score || row.confidence || 0),
+      source: row.source || 'intent-brief-grounding',
+    }));
+  }
+
+  function activationCoverage(intentBrief = {}, summary = {}, languageEvidence = {}, candidateEvidence = []) {
+    const spans = languageEvidence.spans || intentBrief.languageEvidence && intentBrief.languageEvidence.spans || [];
+    const confidence = Number(intentBrief.confidence || summary.confidence || 0);
+    return {
+      schema: 'simulatte.activationCoverage.v1',
+      confidence: Number((confidence || Math.min(0.92, 0.28 + candidateEvidence.length * 0.015)).toFixed(3)),
+      evidenceCount: candidateEvidence.length || (intentBrief.retrievedEvidence || []).length,
+      spanCount: spans.length,
+      activationCount: Number(summary.activationCount || 0),
+    };
+  }
+
+  function evidenceBySpanRows(intentBrief = {}, languageEvidence = null, candidateEvidence = null) {
+    const spans = languageEvidence && languageEvidence.spans || intentBrief.languageEvidence && intentBrief.languageEvidence.spans || [];
+    const evidence = candidateEvidence || intentBrief.retrievedEvidence || [];
     return spans.map((span) => ({
       spanId: span.id || '',
       text: span.text || '',
       evidenceIds: evidence
-        .filter((row) => String(row.spanId || row.span || '').includes(span.id || span.text || '\u0000'))
+        .filter((row) => evidenceSupportsSpan(row, span))
         .map((row) => row.id || row.candidateId || row.cardId || row.primitiveId || '')
         .filter(Boolean),
     }));
+  }
+
+  function evidenceSupportsSpan(row = {}, span = {}) {
+    const spanId = String(span.id || '');
+    const spanText = normalizeForEvidence(span.text);
+    const rowSpan = String(row.spanId || row.span || '');
+    if (spanId && rowSpan.includes(spanId)) return true;
+    const rowText = normalizeForEvidence([
+      row.label,
+      row.id,
+      row.candidateId,
+      row.canonicalId,
+      row.phrase,
+      ...(row.aliases || []),
+    ].filter(Boolean).join(' '));
+    if (!spanText || !rowText) return false;
+    return rowText.includes(spanText) || spanText.includes(rowText);
+  }
+
+  function languageEvidenceFromPhase3Artifact(artifact = {}, intentBrief = {}, groundingEvidence = {}) {
+    if (groundingEvidence.languageEvidence) return phaseCarryObject(groundingEvidence.languageEvidence);
+    if (intentBrief.languageEvidence) return phaseCarryObject(intentBrief.languageEvidence);
+    return languageEvidenceFromLanguageGraph(artifact.languageGraph || {});
+  }
+
+  function languageEvidenceFromLanguageGraph(languageGraph = {}) {
+    const spans = (languageGraph.spans || []).map((span, index) => ({
+      id: span.id || `span.${index + 1}`,
+      kind: span.kind || 'term',
+      text: span.text || '',
+      start: span.start,
+      end: span.end,
+      tokenStart: span.tokenStart,
+      tokenEnd: span.tokenEnd,
+    })).filter((span) => span.text);
+    const spanById = new Map(spans.map((span) => [span.id, span]));
+    const predicateFrames = (languageGraph.clauses || []).map((clause, index) => {
+      const subject = spanById.get(clause.subjectSpanId) || {};
+      const predicate = spanById.get(clause.verbSpanId) || {};
+      const object = spanById.get(clause.objectSpanId) || {};
+      const text = [subject.text, predicate.text || clause.process, object.text].filter(Boolean).join(' ');
+      return {
+        id: clause.id || `predicate.${index + 1}`,
+        subject: subject.text || '',
+        predicate: predicate.text || clause.process || '',
+        object: object.text || '',
+        result: '',
+        text,
+      };
+    }).filter((frame) => frame.text);
+    const rawText = String(languageGraph.sourceText || '');
+    return {
+      schema: 'simulatte.languageEvidence.v1',
+      rawText,
+      normalizedText: rawText.toLowerCase(),
+      spans,
+      predicateFrames,
+      quantities: languageGraph.quantities || [],
+      negations: languageGraph.negations || [],
+      relations: languageGraph.relations || [],
+      clauses: languageGraph.clauses || [],
+      summary: {
+        spanCount: spans.length,
+        predicateFrameCount: predicateFrames.length,
+        hasCausalLanguage: /\b(cause|drives|because|feedback|controls|forces|moves|flows|heats|cools|reacts|collides)\b/i.test(rawText),
+      },
+    };
+  }
+
+  function normalizedEvidenceRowsFromPhase3(retrievalRerankResult = {}, intentBrief = {}) {
+    const rows = [];
+    addEvidenceRows(rows, retrievalRerankResult.evidenceRows, 'retrieval-evidence');
+    addEvidenceRows(rows, intentBrief.retrievedEvidence, 'intent-brief');
+    addEvidenceRows(rows, retrievalRerankResult.rankedPrimitives, 'primitive-index');
+    addEvidenceRows(rows, retrievalRerankResult.rankedCards, 'visual-card-index');
+    addEvidenceRows(rows, candidateList(retrievalRerankResult.rankedUniverseRows), 'universe-index');
+    addEvidenceRows(rows, retrievalRerankResult.semanticRag && retrievalRerankResult.semanticRag.openComponents, 'semantic-rag');
+    addEvidenceRows(rows, retrievalRerankResult.spanRetrieval && retrievalRerankResult.spanRetrieval.matches, 'span-retrieval');
+    return uniqueEvidenceRows(rows).slice(0, 320);
+  }
+
+  function addEvidenceRows(out, value, source) {
+    candidateList(value).forEach((row, index) => {
+      const normalized = normalizeCandidateEvidenceRow(row, source, index);
+      if (normalized) out.push(normalized);
+    });
+  }
+
+  function candidateList(value) {
+    if (Array.isArray(value)) return value;
+    if (!value || typeof value !== 'object') return [];
+    if (Array.isArray(value.candidates)) return value.candidates;
+    if (Array.isArray(value.matches)) return value.matches;
+    if (Array.isArray(value.rows)) return value.rows;
+    if (Array.isArray(value.openComponents)) return value.openComponents;
+    return [];
+  }
+
+  function normalizeCandidateEvidenceRow(row = {}, source = 'candidate', index = 0) {
+    if (!row || typeof row !== 'object') return null;
+    const label = String(
+      row.label ||
+      row.name ||
+      row.title ||
+      row.phrase ||
+      row.role ||
+      row.primitiveId ||
+      row.cardId ||
+      row.canonicalId ||
+      row.id ||
+      ''
+    ).trim();
+    if (!label) return null;
+    const id = String(
+      row.id ||
+      row.candidateId ||
+      row.primitiveId ||
+      row.cardId ||
+      row.canonicalId ||
+      `${source}.${slugify(label) || index + 1}`
+    );
+    const score = Number(row.score || row.confidence || row.similarity || row.finalScore || row.weight || 0.35);
+    return phaseCarryObject({
+      id,
+      label,
+      aliases: arrayClone(row.aliases),
+      canonicalId: row.canonicalId || row.conceptId || row.primitiveId || row.cardId || id,
+      semanticType: row.semanticType || row.type || row.kind || row.category || '',
+      indexName: row.indexName || row.source || source,
+      score: Number((Number.isFinite(score) ? score : 0.35).toFixed(4)),
+      domains: arrayClone(row.domains || row.modules),
+      materialId: row.materialId || row.material || '',
+      materialIds: arrayClone(row.materialIds || (row.materialId || row.material ? [row.materialId || row.material] : [])),
+      operatorHints: uniqueList([...(row.operatorHints || []), ...(row.operatorTypes || [])]).slice(0, 12),
+      operatorTypes: uniqueList([...(row.operatorTypes || []), ...(row.operatorHints || [])]).slice(0, 12),
+      primitiveHints: uniqueList([row.primitiveId, ...(row.primitiveHints || [])].filter(Boolean)).slice(0, 12),
+      visualHints: uniqueList([...(row.visualHints || []), ...(row.shapeHints || []), ...(row.sceneHints || [])]).slice(0, 12),
+      shapeHints: arrayClone(row.shapeHints),
+      sceneHints: arrayClone(row.sceneHints),
+      conceptIds: arrayClone(row.conceptIds || (row.canonicalId ? [row.canonicalId] : [])),
+      evidence: arrayClone(row.evidence || [id]),
+      source,
+    });
+  }
+
+  function uniqueEvidenceRows(rows = []) {
+    const seen = new Set();
+    return rows.filter((row) => {
+      const key = `${row.id}:${normalizeForEvidence(row.label)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function normalizeForEvidence(value = '') {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function uniqueByJson(rows = []) {
+    const seen = new Set();
+    return rows.filter((row) => {
+      const key = JSON.stringify(row);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   function runPhase5GroundedIntent(phase4Output, runtimeContext = {}) {
     assertPhaseEnvelope(phase4Output, 4, 'Phase 5 input');
     const activationCloud = phase4Output.artifact && phase4Output.artifact.activationCloud || {};
     const groundingEvidence = activationCloud.groundingEvidence || {};
-    const acceptedGraph = groundingEvidence.acceptedGraph || null;
-    const rejectedGraph = groundingEvidence.rejectedGraph || {
-      schema: 'simulatte.rejectedGroundedGraph.v1',
-      rejected: acceptedGraph && acceptedGraph.rejected || [],
-      unresolved: acceptedGraph && acceptedGraph.unresolved || [],
-    };
-    const intentBrief = groundingEvidence.intentBrief || acceptedGraph && acceptedGraph.intentBrief || {};
+    const languageEvidence = activationCloud.languageEvidence || groundingEvidence.languageEvidence || {};
+    const candidateEvidence = activationCloud.candidateEvidence || [];
+    const weightedActivations = activationCloud.weightedActivations || [];
+    const intentBrief = phase5IntentBriefFromActivationCloud(activationCloud, groundingEvidence);
+    const groundedInterpretation = buildGroundedInterpretation
+      ? buildGroundedInterpretation({
+        languageEvidence,
+        activationCloud: weightedActivations,
+        structuredIntent: intentBrief,
+        causalGraph: intentBrief.causalGraph || [],
+        visualAffordances: visualAffordancesFromIntentBrief(intentBrief),
+      })
+      : {
+        schema: 'simulatte.groundedInterpretation.v1',
+        acceptedActivations: [],
+        evidenceBindings: [],
+        unresolvedSpans: [],
+        coverageGaps: [],
+        summary: {},
+      };
+    const acceptedGraph = groundedIntentAcceptedGraph({
+      groundingEvidence,
+      activationCloud,
+      languageEvidence,
+      candidateEvidence,
+      intentBrief,
+      groundedInterpretation,
+    });
+    const rejectedGraph = rejectedGraphFromGrounding(acceptedGraph, groundingEvidence, groundedInterpretation);
     const groundedIntent = {
       schema: 'simulatte.groundedIntent.v1',
       acceptedGraph,
       rejectedGraph,
       assumptions: groundingEvidence.assumptions || intentBrief.assumptions || [],
       unsupported: groundingEvidence.unsupported || acceptedGraph && acceptedGraph.unsupported || intentBrief.unsupported || [],
-      provenanceByNode: provenanceByNodeRows(acceptedGraph, intentBrief),
+      provenanceByNode: provenanceByNodeRows(acceptedGraph, {
+        ...intentBrief,
+        evidenceBindings: uniqueById([
+          ...(intentBrief.evidenceBindings || []),
+          ...(groundedInterpretation.evidenceBindings || []),
+        ]),
+      }),
       contract: groundingEvidence.contract || null,
       components: groundingEvidence.components || [],
       params: groundingEvidence.params || {},
       visualSource: groundingEvidence.visualSource || null,
+      grounding: {
+        schema: groundedInterpretation.schema || '',
+        acceptedActivationCount: (groundedInterpretation.acceptedActivations || []).length,
+        evidenceBindingCount: (groundedInterpretation.evidenceBindings || []).length,
+        coverageGapCount: (groundedInterpretation.coverageGaps || []).length,
+      },
     };
     return createPhaseEnvelope({
       phase: 5,
@@ -790,6 +1204,94 @@
     });
   }
 
+  function phase5IntentBriefFromActivationCloud(activationCloud = {}, groundingEvidence = {}) {
+    const carried = groundingEvidence.intentBrief || {};
+    const candidateEvidence = activationCloud.candidateEvidence || [];
+    const languageEvidence = activationCloud.languageEvidence || groundingEvidence.languageEvidence || {};
+    return phaseCarryObject({
+      ...carried,
+      schema: carried.schema || INTENT_BRIEF_SCHEMA || 'simulatte.intentBrief.v1',
+      prompt: carried.prompt || languageEvidence.rawText || '',
+      languageEvidence: carried.languageEvidence || languageEvidence,
+      retrievedEvidence: Array.isArray(carried.retrievedEvidence) && carried.retrievedEvidence.length
+        ? carried.retrievedEvidence
+        : candidateEvidence,
+      activationRows: activationCloud.weightedActivations || [],
+      activationSummary: carried.activationSummary || activationCloud.summary || {},
+      coverageGaps: carried.coverageGaps || activationCloud.conflicts || [],
+      alternatives: carried.alternatives || activationCloud.rejectedMatches || [],
+    });
+  }
+
+  function groundedIntentAcceptedGraph({
+    groundingEvidence = {},
+    activationCloud = {},
+    languageEvidence = {},
+    candidateEvidence = [],
+    intentBrief = {},
+    groundedInterpretation = {},
+  } = {}) {
+    if (groundingEvidence.acceptedGraph) return groundingEvidence.acceptedGraph;
+    if (!groundUniverseGraph) return null;
+    const promptParse = promptParseFromLanguageEvidence(languageEvidence);
+    if (!promptParse) return null;
+    const graph = groundUniverseGraph({
+      prompt: languageEvidence.rawText || intentBrief.prompt || '',
+      promptParse,
+      components: groundingEvidence.components || [],
+      universeMatches: { candidates: candidateEvidence },
+      intentBrief: {
+        ...intentBrief,
+        groundedInterpretation,
+        retrievedEvidence: candidateEvidence.length
+          ? candidateEvidence
+          : intentBrief.retrievedEvidence || [],
+      },
+    });
+    return phaseCarryObject(graph);
+  }
+
+  function promptParseFromLanguageEvidence(languageEvidence = {}) {
+    const prompt = String(languageEvidence.rawText || languageEvidence.normalizedText || '');
+    const spans = (languageEvidence.spans || []).map((span, index) => ({
+      id: span.id || `span.${index + 1}`,
+      text: span.text || '',
+      kind: span.kind || 'term',
+      start: span.start,
+      end: span.end,
+      tokenStart: span.tokenStart,
+      tokenEnd: span.tokenEnd,
+    })).filter((span) => span.text);
+    if (!prompt && !spans.length) return null;
+    return {
+      schema: PROMPT_PARSE_SCHEMA || 'simulatte.promptParse.v1',
+      prompt,
+      tokens: [],
+      spans,
+      clauses: languageEvidence.clauses || [],
+      modifiers: [],
+    };
+  }
+
+  function rejectedGraphFromGrounding(acceptedGraph = null, groundingEvidence = {}, groundedInterpretation = {}) {
+    return groundingEvidence.rejectedGraph || {
+      schema: 'simulatte.rejectedGroundedGraph.v1',
+      rejected: acceptedGraph && acceptedGraph.rejected || [],
+      unresolved: uniqueById([
+        ...(acceptedGraph && acceptedGraph.unresolved || []),
+        ...(groundedInterpretation.unresolvedSpans || []),
+        ...(groundedInterpretation.coverageGaps || []),
+      ]),
+    };
+  }
+
+  function visualAffordancesFromIntentBrief(intentBrief = {}) {
+    return [
+      ...(intentBrief.causalVisualAffordances || []),
+      ...((intentBrief.visualIntent && intentBrief.visualIntent.affordances) || []),
+    ];
+  }
+
   function provenanceByNodeRows(acceptedGraph = {}, intentBrief = {}) {
     const bindings = intentBrief.evidenceBindings || [];
     return Object.fromEntries((acceptedGraph && acceptedGraph.nodes || []).map((node) => [
@@ -802,6 +1304,16 @@
           .filter(Boolean),
       },
     ]));
+  }
+
+  function uniqueById(rows = []) {
+    const seen = new Set();
+    return rows.filter((row) => {
+      const key = row && (row.id || row.targetId || row.spanId || JSON.stringify(row));
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   function runPhase6SimulationCompile(phase5Output, runtimeContext = {}) {
@@ -1371,35 +1883,44 @@
     const nextIntent = intent && promptParse && universeGraph
       ? { ...intent, promptParse, universeGraph }
       : intent;
-    const runtimeContext = phase5Output ? runtimeContextFromPhase(phase5Output) : runtimeContextFromOptions({});
-    const nextPhase5 = phase5Output || runPhase5GroundedIntent(
-      runPhase4ActivationCloud(
-        runPhase3Retrieval(
-          runPhase2LanguageGraph(runPhase1RuntimeGate(prompt)),
-          runtimeContext,
-          {
-            semanticRag: intent.semanticRag,
-            universeMatches: intent.universeMatches || [],
-            intentBrief: intent.intentBrief || null,
-            universeGraph,
-            contract: spec.contract,
-            components: spec.objects || [],
-            visualSource: {
-              specId: spec.id,
-              templateId: spec.templateId,
-              name: spec.name,
-              kind: spec.kind,
-              modules: spec.modules || [],
-              objects: spec.objects || [],
-              params: spec.params || {},
-              contract: spec.contract || null,
-            },
-          }
-        ),
-        runtimeContext
-      ),
-      runtimeContext
-    );
+    let generatedPhaseArtifacts = {};
+    let runtimeContext = phase5Output ? runtimeContextFromPhase(phase5Output) : runtimeContextFromOptions({});
+    let nextPhase5 = phase5Output || null;
+    if (!nextPhase5) {
+      const compatibilityPhase1 = withPhase1RetrievalEvidence(
+        phaseArtifacts.phase1 || runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true }),
+        {
+          semanticRag: intent.semanticRag,
+          universeMatches: intent.universeMatches || [],
+          intentBrief: intent.intentBrief || null,
+          universeGraph,
+          contract: spec.contract,
+          components: spec.objects || [],
+          visualSource: {
+            specId: spec.id,
+            templateId: spec.templateId,
+            name: spec.name,
+            kind: spec.kind,
+            modules: spec.modules || [],
+            objects: spec.objects || [],
+            params: spec.params || {},
+            contract: spec.contract || null,
+          },
+        }
+      );
+      runtimeContext = runtimeContextFromPhase(compatibilityPhase1);
+      const compatibilityPhase2 = phaseArtifacts.phase2 || runPhase2LanguageGraph(compatibilityPhase1);
+      const compatibilityPhase3 = runPhase3Retrieval(compatibilityPhase2, runtimeContext);
+      const compatibilityPhase4 = runPhase4ActivationCloud(compatibilityPhase3, runtimeContext);
+      nextPhase5 = runPhase5GroundedIntent(compatibilityPhase4, runtimeContext);
+      generatedPhaseArtifacts = phaseArtifactSet(
+        compatibilityPhase1,
+        compatibilityPhase2,
+        compatibilityPhase3,
+        compatibilityPhase4,
+        nextPhase5
+      );
+    }
     const nextPhase6 = phaseArtifacts.phase6 || runPhase6SimulationCompile(nextPhase5, runtimeContext);
     const simulationCompile = nextPhase6.artifact && nextPhase6.artifact.simulationCompile || {};
     return {
@@ -1410,7 +1931,7 @@
       validationReceipt: simulationCompile.validationReceipt || validationReceipt,
       solverGraph: simulationCompile.solverGraph || solverGraph,
       renderIR: simulationCompile.renderIR || nextRenderIR,
-      phaseArtifacts: mergePhaseArtifacts(phaseArtifacts, phaseArtifactSet(nextPhase5, nextPhase6)),
+      phaseArtifacts: mergePhaseArtifacts(phaseArtifacts, generatedPhaseArtifacts, phaseArtifactSet(nextPhase5, nextPhase6)),
     };
   }
 
@@ -2017,7 +2538,7 @@
           synthesis: null,
         });
       }
-      const phase3Output = runPhase3Retrieval(phase2Output, runtimeContext, {
+      const phase1WithRetrieval = withPhase1RetrievalEvidence(phase1Output, {
         rankedPrimitives: [],
         rankedCards: options.cardMatches || options.surfaceCardMatches || [],
         rankedUniverseRows: Array.isArray(universeMatches) ? universeMatches : [],
@@ -2038,9 +2559,11 @@
           contract: intent.resolution.contract || null,
         },
       });
-      const phase4Output = runPhase4ActivationCloud(phase3Output, runtimeContext);
-      const phase5Output = runPhase5GroundedIntent(phase4Output, runtimeContext);
-      intent.phaseArtifacts = phaseArtifactSet(phase1Output, phase2Output, phase3Output, phase4Output, phase5Output);
+      const retrievalRuntimeContext = runtimeContextFromPhase(phase1WithRetrieval);
+      const phase3Output = runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
+      const phase4Output = runPhase4ActivationCloud(phase3Output, retrievalRuntimeContext);
+      const phase5Output = runPhase5GroundedIntent(phase4Output, retrievalRuntimeContext);
+      intent.phaseArtifacts = phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output, phase5Output);
       return intent;
     }
 
@@ -2199,7 +2722,7 @@
       });
     }
 
-    const phase3Output = runPhase3Retrieval(phase2Output, runtimeContext, {
+    const phase1WithRetrieval = withPhase1RetrievalEvidence(phase1Output, {
       rankedPrimitives: ranked,
       rankedCards: options.cardMatches || options.surfaceCardMatches || [],
       rankedUniverseRows: Array.isArray(universeMatches) ? universeMatches : [],
@@ -2222,9 +2745,11 @@
         contract,
       },
     });
-    const phase4Output = runPhase4ActivationCloud(phase3Output, runtimeContext);
-    const phase5Output = runPhase5GroundedIntent(phase4Output, runtimeContext);
-    intent.phaseArtifacts = phaseArtifactSet(phase1Output, phase2Output, phase3Output, phase4Output, phase5Output);
+    const retrievalRuntimeContext = runtimeContextFromPhase(phase1WithRetrieval);
+    const phase3Output = runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
+    const phase4Output = runPhase4ActivationCloud(phase3Output, retrievalRuntimeContext);
+    const phase5Output = runPhase5GroundedIntent(phase4Output, retrievalRuntimeContext);
+    intent.phaseArtifacts = phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output, phase5Output);
     return intent;
   }
 

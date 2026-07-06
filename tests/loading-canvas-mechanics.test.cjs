@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createController } = require('../public/app/controls/simulatte-loading-canvas.js');
+const { createController } = require('../public/app/loading/loading-canvas.js');
 
 function fakeCanvas() {
   return {

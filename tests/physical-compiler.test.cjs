@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const lab = require('../public/app/lab/simulatte-physics-lab.js');
+const lab = require('../public/app/simulation/simulation-lab.js');
 const compositionGraph = require('../public/pipeline/phase-07-visual/simulatte-composition-graph.js');
 const solverRegistry = require('../public/pipeline/phase-06-simulation/simulatte-solver-registry.js');
 const advectionSolver = require('../public/pipeline/phase-06-simulation/solvers/simulatte-solver-advection.js');
@@ -38,6 +38,14 @@ test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, an
   assert.equal(spec.phaseArtifacts.phase6.artifact.simulationCompile.renderIR.schema, 'simulatte.renderIR.v1');
   assert.equal(spec.phaseArtifacts.phase7.inputSchema, 'simulatte.phase6.output.v1');
   assert.equal(spec.phaseArtifacts.phase7.artifact.visualCompile.schema, 'simulatte.visualCompile.v1');
+  assert.ok(spec.phaseArtifacts.phase7.artifact.visualCompile.renderInstances.length > 0);
+  assert.ok(spec.phaseArtifacts.phase7.artifact.visualCompile.renderInstances.every((instance) => (
+    instance.transform &&
+    instance.geometry &&
+    instance.material &&
+    instance.animation &&
+    instance.collider
+  )));
   const scenePacket = spec.renderProgram.visualIR.sceneRenderPacket;
   assert.equal(scenePacket.schema, 'simulatte.sceneRenderPacket.v1');
   assert.equal(spec.renderProgram.sceneRenderPacket, scenePacket);

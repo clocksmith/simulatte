@@ -2300,12 +2300,18 @@
       row.processId,
       row.fieldId,
     ].filter(Boolean)).slice(0, 8);
+    const layerSlot = renderInstanceLayerSlot(type, row, entity, process, sceneKind);
+    const transform = renderInstanceTransform({ type, row, entity, process, sceneKind, drawOrder });
+    const geometry = renderInstanceGeometry({ type, row, entity, layerSlot, transform });
+    const instanceMaterial = renderInstanceMaterial({ row, entity, material, layerSlot });
+    const animation = renderInstanceAnimation({ type, row, entity, process, layerSlot, sceneKind, drawOrder });
+    const collider = renderInstanceCollider({ row, entity, layerSlot, geometry, transform });
     return {
       schema: 'simulatte.renderInstance.v1',
       id: `instance:${type}:${visualSafeId(row.id || row.entityId || row.processId || sourceGraphId || 'row')}`,
       type,
       sceneKind,
-      layerSlot: renderInstanceLayerSlot(type, row, entity, process, sceneKind),
+      layerSlot,
       entityId: row.entityId || entity && entity.id || '',
       geometryId: type === 'geometry' ? row.id || '' : '',
       fieldId: type === 'field' ? row.id || row.fieldId || '' : row.fieldId || '',
@@ -2313,6 +2319,11 @@
       materialId: material && material.id || entity && entity.material || row.materialId || '',
       primitive: row.primitive || row.visualEncoding || row.grammar || row.operator || '',
       shader: material && material.shader || row.shader || '',
+      transform,
+      geometry,
+      material: instanceMaterial,
+      animation,
+      collider,
       sourceGraphId,
       sourceIds,
       status: 'accepted',
@@ -2329,6 +2340,128 @@
         ...(entity && entity.evidence || []),
         ...(material && material.evidence || []),
       ]).slice(0, 12),
+    };
+  }
+
+  function renderInstanceTransform({ type, row = {}, entity = null, process = null, sceneKind = '', drawOrder = 0 }) {
+    const pose = renderInstancePose(type, row, entity, process, sceneKind, drawOrder);
+    return scenePacketTransform(pose, renderInstanceIndex(row, entity, process, drawOrder), 29, sceneKind);
+  }
+
+  function renderInstancePose(type, row = {}, entity = null, process = null, sceneKind = '', drawOrder = 0) {
+    if (row.pose && typeof row.pose === 'object') return row.pose;
+    if (entity && entity.pose && typeof entity.pose === 'object') return entity.pose;
+    if (Array.isArray(row.points) && row.points.length) return { points: row.points, rotation: row.rotation || 0 };
+    const layerSlot = renderInstanceLayerSlot(type, row, entity, process, sceneKind);
+    const seedText = [
+      type,
+      layerSlot,
+      row.id,
+      row.entityId,
+      row.processId,
+      row.fieldId,
+      entity && entity.id,
+      process && process.id,
+      sceneKind,
+      drawOrder,
+    ].filter(Boolean).join(':');
+    const seed = hashProgram(seedText) || 1;
+    const jitterX = unitFromSeed(seed, 7) * 0.12 - 0.06;
+    const jitterY = unitFromSeed(seed, 11) * 0.1 - 0.05;
+    if (type === 'field' || /field|water-volume|organic-matrix|thermal-field|optical-field|chemical-front/.test(layerSlot)) {
+      return {
+        x: clamp(0.5 + jitterX * 0.35, 0.16, 0.84),
+        y: clamp((/water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.6 : 0.48) + jitterY * 0.35, 0.16, 0.84),
+        w: 0.72,
+        h: /thermal|plume|optical/.test(layerSlot) ? 0.62 : 0.46,
+        rotation: unitFromSeed(seed, 13) * 0.12 - 0.06,
+      };
+    }
+    if (type === 'process' || type === 'motion' || /process|network-flow|track-line|causal/.test(layerSlot)) {
+      const fromX = clamp(0.18 + unitFromSeed(seed, 17) * 0.24, 0.08, 0.44);
+      const fromY = clamp(0.28 + unitFromSeed(seed, 19) * 0.42, 0.12, 0.78);
+      const toX = clamp(0.58 + unitFromSeed(seed, 23) * 0.28, 0.48, 0.92);
+      const toY = clamp(0.22 + unitFromSeed(seed, 29) * 0.5, 0.1, 0.86);
+      return {
+        points: [
+          [fromX, fromY],
+          [clamp((fromX + toX) * 0.5 + jitterX, 0.08, 0.92), clamp((fromY + toY) * 0.5 + jitterY, 0.1, 0.86)],
+          [toX, toY],
+        ],
+        rotation: 0,
+      };
+    }
+    return {
+      x: clamp(0.16 + unitFromSeed(seed, 31) * 0.68, 0.08, 0.92),
+      y: clamp((/water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.54 : 0.26) + unitFromSeed(seed, 37) * 0.38, 0.1, 0.9),
+      w: /readout|detector|robot|orbital|node/.test(layerSlot) ? 0.16 : 0.13,
+      h: /readout|detector|robot|orbital|node/.test(layerSlot) ? 0.12 : 0.1,
+      rotation: unitFromSeed(seed, 41) * 0.24 - 0.12,
+    };
+  }
+
+  function renderInstanceIndex(row = {}, entity = null, process = null, drawOrder = 0) {
+    const seed = hashProgram([
+      row.id,
+      row.entityId,
+      row.processId,
+      row.fieldId,
+      entity && entity.id,
+      process && process.id,
+      drawOrder,
+    ].filter(Boolean).join(':'));
+    return Math.max(0, Math.floor(seed % 29));
+  }
+
+  function renderInstanceGeometry({ type, row = {}, entity = null, layerSlot = '', transform }) {
+    const bounds = scenePacketBounds(transform);
+    return {
+      id: type === 'geometry' ? row.id || `geometry:${entity && entity.id || visualSafeId(layerSlot)}` : row.geometryId || `geometry:${visualSafeId(row.id || layerSlot || type)}`,
+      kind: row.layout || row.kind || (type === 'field' ? 'field-layer' : type === 'process' || type === 'motion' ? 'path-layer' : 'anchored'),
+      primitive: row.primitive || row.visualEncoding || row.grammar || entity && entity.shape || layerSlot || 'procedural-instance',
+      bounds,
+      instancing: row.instancing || entity && instancingForEntity(entity) || null,
+      constraints: row.constraints || [],
+    };
+  }
+
+  function renderInstanceMaterial({ row = {}, entity = null, material = null, layerSlot = '' }) {
+    const packetMaterial = scenePacketMaterial(material || row, entity, layerSlot);
+    return {
+      ...packetMaterial,
+      id: packetMaterial.id || row.materialId || entity && entity.material || 'matte',
+      shader: row.shader || packetMaterial.shader || '',
+    };
+  }
+
+  function renderInstanceAnimation({ type, row = {}, entity = null, process = null, layerSlot = '', sceneKind = '', drawOrder = 0 }) {
+    return scenePacketAnimation({
+      layerSlot,
+      entity,
+      field: type === 'field' ? row : null,
+      process: type === 'process' ? row : process,
+      motion: type === 'motion' ? row : null,
+      text: [
+        row.id,
+        row.primitive,
+        row.visualEncoding,
+        row.grammar,
+        row.operator,
+        entity && entity.label,
+        entity && entity.kind,
+        process && process.family,
+        sceneKind,
+      ].filter(Boolean).join(' '),
+      index: renderInstanceIndex(row, entity, process, drawOrder),
+    });
+  }
+
+  function renderInstanceCollider({ row = {}, entity = null, layerSlot = '', geometry = {}, transform }) {
+    return {
+      kind: scenePacketColliderKind(layerSlot, entity, geometry),
+      bounds: scenePacketBounds(transform),
+      pickId: row.entityId || row.id || entity && entity.id || '',
+      selectable: Boolean(row.entityId || entity && entity.id),
     };
   }
 
@@ -4488,7 +4621,51 @@
     if (sceneKind === 'ferrofluid') return layoutFerrofluidObjects(objects);
     if (sceneKind === 'thermal-plume') return layoutThermalPlumeObjects(objects);
     if (sceneKind === 'literal-composite') return layoutLiteralCompositeObjects(objects);
-    return objects;
+    return layoutGenericSemanticObjects(objects, sceneKind);
+  }
+
+  function layoutGenericSemanticObjects(objects, sceneKind = '') {
+    const slots = [
+      [0.18, 0.34],
+      [0.38, 0.28],
+      [0.62, 0.32],
+      [0.82, 0.42],
+      [0.24, 0.66],
+      [0.5, 0.62],
+      [0.74, 0.68],
+      [0.5, 0.82],
+    ];
+    let entityIndex = 0;
+    let fieldIndex = 0;
+    let readoutIndex = 0;
+    return objects.map((object) => {
+      if (object && object.pose && (Number.isFinite(Number(object.pose.x)) || Array.isArray(object.pose.points))) return object;
+      const text = renderObjectText(object);
+      const seed = hashProgram(`${sceneKind}:${object && object.id || ''}:${text}`) || 1;
+      const jitterX = unitFromSeed(seed, 3) * 0.06 - 0.03;
+      const jitterY = unitFromSeed(seed, 5) * 0.06 - 0.03;
+      if (/field|flow|plume|matrix|volume|water|thermal|optical|chemical|gradient/.test(text)) {
+        const y = /water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.64 : 0.52;
+        fieldIndex += 1;
+        return withPose(object, clamp(0.5 + jitterX, 0.12, 0.88), clamp(y + jitterY + fieldIndex * 0.015, 0.14, 0.86), 0, [0.68, 0.42]);
+      }
+      if (/readout|meter|telemetry|panel|scope|measurement/.test(text)) {
+        const x = readoutIndex % 2 ? 0.84 : 0.16;
+        const y = 0.18 + Math.floor(readoutIndex / 2) * 0.12;
+        readoutIndex += 1;
+        return withPose(object, clamp(x + jitterX, 0.08, 0.92), clamp(y + jitterY, 0.08, 0.9), 0, [0.16, 0.1]);
+      }
+      const slot = slots[entityIndex % slots.length];
+      const row = Math.floor(entityIndex / slots.length);
+      entityIndex += 1;
+      return withPose(
+        object,
+        clamp(slot[0] + jitterX, 0.08, 0.92),
+        clamp(slot[1] + row * 0.08 + jitterY, 0.08, 0.92),
+        unitFromSeed(seed, 7) * 0.2 - 0.1,
+        [0.14 + unitFromSeed(seed, 11) * 0.08, 0.1 + unitFromSeed(seed, 13) * 0.06]
+      );
+    });
   }
 
   function layoutMechanicalObjects(objects) {
