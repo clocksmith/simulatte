@@ -1,0 +1,667 @@
+{
+  "schema": "simulatte.pipelineAuditRun.v1",
+  "generatedAt": "2026-07-05T16:13:52.245Z",
+  "runId": "2026-07-05T16-13-52-245Z-f11f04408d",
+  "gitSha": "d7df7c3adc24",
+  "version": "",
+  "rubricVersion": "phase-floor-76.v1",
+  "promptSetVersion": "core-adversarial-human-v1",
+  "floor": 76,
+  "measurementMode": "compiled-static-plus-live-visual",
+  "phaseDefinitions": [
+    {
+      "id": "runtime",
+      "step": 1,
+      "label": "Prompt Runtime"
+    },
+    {
+      "id": "languageGraph",
+      "step": 2,
+      "label": "Language Graph"
+    },
+    {
+      "id": "retrieval",
+      "step": 3,
+      "label": "Embedding Retrieval"
+    },
+    {
+      "id": "activationCloud",
+      "step": 4,
+      "label": "Activation Cloud"
+    },
+    {
+      "id": "groundedIntent",
+      "step": 5,
+      "label": "Grounded Intent"
+    },
+    {
+      "id": "simulationCompile",
+      "step": 6,
+      "label": "Simulation Compile"
+    },
+    {
+      "id": "visualIR",
+      "step": 7,
+      "label": "VisualIR Compile"
+    },
+    {
+      "id": "webgpu",
+      "step": 8,
+      "label": "WebGPU Render"
+    }
+  ],
+  "promptCount": 3,
+  "phaseScores": {
+    "runtime": 96,
+    "languageGraph": 100,
+    "retrieval": 91.3,
+    "activationCloud": 93.7,
+    "groundedIntent": 82.7,
+    "simulationCompile": 90.4,
+    "visualIR": 86,
+    "webgpu": 93.1
+  },
+  "pipelineScore": 82.7,
+  "verdict": "pass",
+  "weakestPhase": "groundedIntent",
+  "belowFloor": [],
+  "failures": [],
+  "prompts": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "dogs and cats swimming through water with wake trails and visible biological bodies",
+      "expectedSignals": [
+        "fluid",
+        "biological"
+      ],
+      "phaseScores": {
+        "runtime": 96,
+        "languageGraph": 100,
+        "retrieval": 88,
+        "activationCloud": 81,
+        "groundedIntent": 80,
+        "simulationCompile": 100,
+        "visualIR": 90.4,
+        "webgpu": 93.9
+      },
+      "pipelineScore": 80,
+      "weakestPhase": "groundedIntent",
+      "failures": [],
+      "phaseDetails": {
+        "runtime": {
+          "compileError": "",
+          "hasSpec": true,
+          "hasWorker": true,
+          "hasRenderer": true,
+          "hasWebGpuRenderer": true
+        },
+        "languageGraph": {
+          "tokenCount": 13,
+          "spanCount": 10,
+          "clauseCount": 3,
+          "predicateFrameCount": 0,
+          "termCoverage": 1
+        },
+        "retrieval": {
+          "evidenceCount": 79,
+          "semanticRag": "simulatte.semanticRag.v1",
+          "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
+          "termCoverage": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "network"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "activationCloud": {
+          "activationCount": 138,
+          "acceptedActivationCount": 24,
+          "directSignalCount": 8,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "network"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "groundedIntent": {
+          "acceptedActivationCount": 24,
+          "evidenceBindingCount": 24,
+          "causalEdgeCount": 0,
+          "visualAffordanceCount": 0,
+          "coverageGapCount": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "network"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "simulationCompile": {
+          "universeNodeCount": 8,
+          "physicsEntityCount": 8,
+          "operatorCount": 3,
+          "solverStepCount": 3,
+          "channelCount": 58,
+          "termCoverage": 1,
+          "geometrySpecificity": 1,
+          "topologySpecificity": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "visualIR": {
+          "sceneKind": "watershed",
+          "entityCount": 12,
+          "materialCount": 10,
+          "fieldCount": 5,
+          "processCount": 9,
+          "geometryCount": 18,
+          "motionCount": 13,
+          "renderInstanceCount": 45,
+          "acceptedRenderInstanceCount": 45,
+          "sourceLinkedRenderInstanceCount": 45,
+          "rejectedRowCount": 13,
+          "mappingCount": 2,
+          "languageSignalCount": 33,
+          "uniformSlots": [
+            "fluid",
+            "biological",
+            "motion",
+            "density",
+            "surface"
+          ],
+          "visualSpecificity": 0.8888888888888888,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "chemical",
+              "network"
+            ],
+            "falsePositivePenalty": 8
+          }
+        },
+        "webgpu": {
+          "sceneKind": "watershed",
+          "shaderUsesVisualIR": false,
+          "shaderUsesAtomUniforms": false,
+          "shaderUsesSceneRenderPacket": true,
+          "atomUniformCount": 5,
+          "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
+          "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+          "sceneRenderPacketEntityCount": 12,
+          "sceneRenderPacketFieldCount": 5,
+          "sceneRenderPacketEffectCount": 22,
+          "sceneRenderPacketSpatialRatio": 1,
+          "sceneRenderPacketIdentityRatio": 1,
+          "sceneRenderPacketIdentities": [
+            "dog",
+            "cat",
+            "water",
+            "swimming"
+          ],
+          "structuralCoverage": 0.9411764705882353,
+          "staticSignalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "chemical",
+              "network"
+            ],
+            "falsePositivePenalty": 8
+          },
+          "liveVisualScore": 100,
+          "liveDynamic": true,
+          "liveMissingSignals": [],
+          "livePhase8Input": "simulatte.sceneRenderPacket.v1",
+          "liveSceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:12;fields:5;effects:22;layers:biological-agent+water-volume+field-sheet+process-pulse+chemical-front;passes:background+fields+entities+effects",
+          "liveSceneRenderEntityCount": 12,
+          "liveSceneRenderSpatialHash": "c1e1f739",
+          "liveSceneObjectUniforms": "0:dog:biological-agent@0.59,0.68;1:cat:biological-agent@0.55,0.74;2:cat:biological-agent@0.75,0.69;3:cat:biological-agent@0.75,0.60;4:cat:biological-agent@0.68,0.49;5:dog:biological-agent@0.72,0.53;6:water:water-volume@0.49,0.77;7:water:water-volume@0.52,0.36",
+          "liveSceneObjectIdentities": "0:dog:animal:biological-agent:@0.59,0.68;1:cat:animal:biological-agent:@0.55,0.74;2:cat:animal:biological-agent:@0.75,0.69;3:cat:animal:biological-agent:@0.75,0.60;4:cat:animal:biological-agent:@0.68,0.49;5:dog:animal:biological-agent:@0.72,0.53;6:water:medium:water-volume:@0.49,0.77;7:water:medium:water-volume:@0.52,0.36",
+          "liveSceneRenderPacketIdentities": [
+            "dog",
+            "cat",
+            "water",
+            "swimming"
+          ],
+          "liveProofRequired": true,
+          "evidenceMode": "live-report-required"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "kind": "custom",
+      "prompt": "particle detector with muon tracks through detector geometry and readout panels",
+      "expectedSignals": [
+        "quantum",
+        "instrument"
+      ],
+      "phaseScores": {
+        "runtime": 96,
+        "languageGraph": 100,
+        "retrieval": 88,
+        "activationCloud": 100,
+        "groundedIntent": 84,
+        "simulationCompile": 94.3,
+        "visualIR": 82,
+        "webgpu": 93.9
+      },
+      "pipelineScore": 82,
+      "weakestPhase": "visualIR",
+      "failures": [],
+      "phaseDetails": {
+        "runtime": {
+          "compileError": "",
+          "hasSpec": true,
+          "hasWorker": true,
+          "hasRenderer": true,
+          "hasWebGpuRenderer": true
+        },
+        "languageGraph": {
+          "tokenCount": 11,
+          "spanCount": 8,
+          "clauseCount": 2,
+          "predicateFrameCount": 0,
+          "termCoverage": 1
+        },
+        "retrieval": {
+          "evidenceCount": 77,
+          "semanticRag": "simulatte.semanticRag.v1",
+          "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
+          "termCoverage": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "quantum",
+              "instrument"
+            ],
+            "missing": [],
+            "unexpected": [
+              "optical"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "activationCloud": {
+          "activationCount": 70,
+          "acceptedActivationCount": 33,
+          "directSignalCount": 11,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "quantum",
+              "instrument"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "groundedIntent": {
+          "acceptedActivationCount": 33,
+          "evidenceBindingCount": 33,
+          "causalEdgeCount": 0,
+          "visualAffordanceCount": 0,
+          "coverageGapCount": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "quantum",
+              "instrument"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "simulationCompile": {
+          "universeNodeCount": 4,
+          "physicsEntityCount": 4,
+          "operatorCount": 2,
+          "solverStepCount": 2,
+          "channelCount": 22,
+          "termCoverage": 0.8571428571428571,
+          "geometrySpecificity": 1,
+          "topologySpecificity": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "quantum",
+              "instrument"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "visualIR": {
+          "sceneKind": "particle-instrument",
+          "entityCount": 13,
+          "materialCount": 13,
+          "fieldCount": 9,
+          "processCount": 13,
+          "geometryCount": 25,
+          "motionCount": 21,
+          "renderInstanceCount": 48,
+          "acceptedRenderInstanceCount": 48,
+          "sourceLinkedRenderInstanceCount": 48,
+          "rejectedRowCount": 18,
+          "mappingCount": 4,
+          "languageSignalCount": 36,
+          "uniformSlots": [
+            "quantum",
+            "instrument",
+            "phase",
+            "measurement",
+            "motion",
+            "emission",
+            "signal",
+            "surface"
+          ],
+          "visualSpecificity": 0.8540000000000001,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "quantum",
+              "instrument"
+            ],
+            "missing": [],
+            "unexpected": [
+              "thermal",
+              "feedback",
+              "optical",
+              "acoustic"
+            ],
+            "falsePositivePenalty": 16
+          }
+        },
+        "webgpu": {
+          "sceneKind": "particle-instrument",
+          "shaderUsesVisualIR": false,
+          "shaderUsesAtomUniforms": false,
+          "shaderUsesSceneRenderPacket": true,
+          "atomUniformCount": 8,
+          "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
+          "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+          "sceneRenderPacketEntityCount": 13,
+          "sceneRenderPacketFieldCount": 9,
+          "sceneRenderPacketEffectCount": 24,
+          "sceneRenderPacketSpatialRatio": 1,
+          "sceneRenderPacketIdentityRatio": 1,
+          "sceneRenderPacketIdentities": [
+            "instrument",
+            "readout",
+            "muon",
+            "structure"
+          ],
+          "structuralCoverage": 0.9411764705882353,
+          "staticSignalCoverage": {
+            "coverage": 1,
+            "found": [
+              "quantum",
+              "instrument"
+            ],
+            "missing": [],
+            "unexpected": [
+              "thermal",
+              "feedback",
+              "optical",
+              "acoustic"
+            ],
+            "falsePositivePenalty": 16
+          },
+          "liveVisualScore": 100,
+          "liveDynamic": true,
+          "liveMissingSignals": [],
+          "livePhase8Input": "simulatte.sceneRenderPacket.v1",
+          "liveSceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:13;fields:9;effects:24;layers:detector-geometry+track-line+field-sheet+material-surface+optical-field+thermal-field+readout-panel+process-pulse;passes:background+fields+entities+effects",
+          "liveSceneRenderEntityCount": 13,
+          "liveSceneRenderSpatialHash": "04828626",
+          "liveSceneObjectUniforms": "0:instrument:detector-geometry@0.18,0.18;1:instrument:detector-geometry@0.77,0.67;2:instrument:detector-geometry@0.60,0.67;3:instrument:detector-geometry@0.57,0.71;4:readout:detector-geometry@0.18,0.18;5:instrument:detector-geometry@0.69,0.47;6:instrument:detector-geometry@0.75,0.58;7:instrument:detector-geometry@0.78,0.74",
+          "liveSceneObjectIdentities": "0:instrument:instrument:detector-geometry:@0.18,0.18;1:instrument:instrument:detector-geometry:@0.77,0.67;2:instrument:instrument:detector-geometry:@0.60,0.67;3:instrument:instrument:detector-geometry:@0.57,0.71;4:readout:instrument:detector-geometry:@0.18,0.18;5:instrument:instrument:detector-geometry:@0.69,0.47;6:instrument:instrument:detector-geometry:@0.75,0.58;7:instrument:instrument:detector-geometry:@0.78,0.74",
+          "liveSceneRenderPacketIdentities": [
+            "instrument",
+            "muon tracks through",
+            "readout",
+            "muon",
+            "structure"
+          ],
+          "liveProofRequired": true,
+          "evidenceMode": "live-report-required"
+        }
+      }
+    },
+    {
+      "index": 3,
+      "kind": "custom",
+      "prompt": "directed graph nodes edges and network flow pulses between labeled agents",
+      "expectedSignals": [
+        "fluid",
+        "network"
+      ],
+      "phaseScores": {
+        "runtime": 96,
+        "languageGraph": 100,
+        "retrieval": 97.8,
+        "activationCloud": 100,
+        "groundedIntent": 84,
+        "simulationCompile": 77,
+        "visualIR": 85.5,
+        "webgpu": 91.5
+      },
+      "pipelineScore": 77,
+      "weakestPhase": "simulationCompile",
+      "failures": [],
+      "phaseDetails": {
+        "runtime": {
+          "compileError": "",
+          "hasSpec": true,
+          "hasWorker": true,
+          "hasRenderer": true,
+          "hasWebGpuRenderer": true
+        },
+        "languageGraph": {
+          "tokenCount": 11,
+          "spanCount": 10,
+          "clauseCount": 2,
+          "predicateFrameCount": 0,
+          "termCoverage": 1
+        },
+        "retrieval": {
+          "evidenceCount": 75,
+          "semanticRag": "simulatte.semanticRag.v1",
+          "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
+          "termCoverage": 0.8888888888888888,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "network"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "activationCloud": {
+          "activationCount": 60,
+          "acceptedActivationCount": 30,
+          "directSignalCount": 7,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "network"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "groundedIntent": {
+          "acceptedActivationCount": 30,
+          "evidenceBindingCount": 30,
+          "causalEdgeCount": 0,
+          "visualAffordanceCount": 0,
+          "coverageGapCount": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "network"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "simulationCompile": {
+          "universeNodeCount": 3,
+          "physicsEntityCount": 3,
+          "operatorCount": 1,
+          "solverStepCount": 1,
+          "channelCount": 18,
+          "termCoverage": 0.4444444444444444,
+          "geometrySpecificity": 1,
+          "topologySpecificity": 0.8333333333333334,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "network"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "visualIR": {
+          "sceneKind": "city",
+          "entityCount": 9,
+          "materialCount": 9,
+          "fieldCount": 5,
+          "processCount": 6,
+          "geometryCount": 15,
+          "motionCount": 10,
+          "renderInstanceCount": 36,
+          "acceptedRenderInstanceCount": 36,
+          "sourceLinkedRenderInstanceCount": 36,
+          "rejectedRowCount": 14,
+          "mappingCount": 2,
+          "languageSignalCount": 36,
+          "uniformSlots": [
+            "fluid",
+            "network",
+            "motion",
+            "density",
+            "constraint",
+            "signal",
+            "surface"
+          ],
+          "visualSpecificity": 0.8233333333333334,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "network"
+            ],
+            "missing": [],
+            "unexpected": [
+              "optical",
+              "biological",
+              "instrument"
+            ],
+            "falsePositivePenalty": 12
+          }
+        },
+        "webgpu": {
+          "sceneKind": "city",
+          "shaderUsesVisualIR": false,
+          "shaderUsesAtomUniforms": false,
+          "shaderUsesSceneRenderPacket": true,
+          "atomUniformCount": 7,
+          "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
+          "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+          "sceneRenderPacketEntityCount": 9,
+          "sceneRenderPacketFieldCount": 5,
+          "sceneRenderPacketEffectCount": 16,
+          "sceneRenderPacketSpatialRatio": 1,
+          "sceneRenderPacketIdentityRatio": 1,
+          "sceneRenderPacketIdentities": [
+            "network-node",
+            "structure"
+          ],
+          "structuralCoverage": 0.9411764705882353,
+          "staticSignalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "network"
+            ],
+            "missing": [],
+            "unexpected": [
+              "optical",
+              "biological"
+            ],
+            "falsePositivePenalty": 8
+          },
+          "liveVisualScore": 98,
+          "liveDynamic": true,
+          "liveMissingSignals": [],
+          "livePhase8Input": "simulatte.sceneRenderPacket.v1",
+          "liveSceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:7;fields:5;effects:16;layers:network-flow+node-graph+material-surface+process-pulse;passes:background+fields+entities+effects",
+          "liveSceneRenderEntityCount": 7,
+          "liveSceneRenderSpatialHash": "f3963093",
+          "liveSceneObjectUniforms": "0:network-node:network-flow@0.77,0.36;1:network-node:network-flow@0.85,0.42;2:network-node:node-graph@0.52,0.36;3:network-node:node-graph@0.60,0.32;4:network-node:node-graph@0.62,0.83;5:network-node:node-graph@0.35,0.38;6:structure:material-surface@0.66,0.32;7:atom-process:routing-flow:network-flow@0.50,0.50",
+          "liveSceneObjectIdentities": "0:network-node:network:network-flow:@0.77,0.36;1:network-node:network:network-flow:@0.85,0.42;2:network-node:network:node-graph:@0.52,0.36;3:network-node:network:node-graph:@0.60,0.32;4:network-node:network:node-graph:@0.62,0.83;5:network-node:network:node-graph:@0.35,0.38;6:structure:surface:material-surface:@0.66,0.32;7:atom-process:routing-flow:process:network-flow:@0.50,0.50",
+          "liveSceneRenderPacketIdentities": [
+            "network-node",
+            "structure"
+          ],
+          "liveProofRequired": true,
+          "evidenceMode": "live-report-required"
+        }
+      }
+    }
+  ]
+}

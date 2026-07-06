@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const UNIVERSE_DIR = path.join(ROOT, 'public/models/simulatte-universe');
+export const UNIVERSE_DIR = path.join(ROOT, 'public/data/simulatte-universe');
 
 export const DEFAULT_EMBED_MODEL = Object.freeze({
   id: 'google-embeddinggemma-300m-q4k-ehf16-af32',
@@ -195,7 +195,7 @@ export async function loadUniversePackage() {
 }
 
 export function loadPrimitiveIds() {
-  const catalog = require('../public/js/simulatte-physics-catalog.js');
+  const catalog = require('../public/pipeline/phase-06-simulation/simulatte-physics-catalog.js');
   return new Set((catalog.PHYSICAL_PRIMITIVES || []).map((primitive) => primitive.id));
 }
 

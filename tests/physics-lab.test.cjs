@@ -3,26 +3,26 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const lab = require('../public/js/simulatte-physics-lab.js');
-const intentEmbedder = require('../public/js/simulatte-intent-embedder.js');
-const semanticRagApi = require('../public/js/simulatte-semantic-rag.js');
-const graphSynthesis = require('../public/js/simulatte-graph-synthesis.js');
+const lab = require('../public/app/lab/simulatte-physics-lab.js');
+const intentEmbedder = require('../public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
+const semanticRagApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
+const graphSynthesis = require('../public/pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js');
 const root = path.resolve(__dirname, '..');
 
 function loadEmbeddingIndex() {
   const manifest = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/models/simulatte-embedder/manifest.json'),
+    path.join(root, 'public/data/simulatte-embedder/manifest.json'),
     'utf8'
   ));
   const index = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/models/simulatte-embedder/primitive-index-v2.json'),
+    path.join(root, 'public/data/simulatte-embedder/primitive-index-v2.json'),
     'utf8'
   ));
   const surfaceIndex = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/models/simulatte-embedder/surface-card-index-embeddinggemma-v1.json'),
+    path.join(root, 'public/data/simulatte-embedder/surface-card-index-embeddinggemma-v1.json'),
     'utf8'
   ));
-  const universeRoot = path.join(root, 'public/models/simulatte-universe');
+  const universeRoot = path.join(root, 'public/data/simulatte-universe');
   const universeManifest = JSON.parse(fs.readFileSync(path.join(universeRoot, 'manifest.json'), 'utf8'));
   const universeIndexes = Object.fromEntries(Object.entries(universeManifest.indexes).map(([name, config]) => [
     name,
@@ -34,6 +34,10 @@ function loadEmbeddingIndex() {
 function indexedVector(index, primitiveId) {
   const order = index.documents.findIndex((doc) => doc.primitiveId === primitiveId);
   assert.notEqual(order, -1, `missing indexed primitive ${primitiveId}`);
+  return indexedVectorByOrder(index, order);
+}
+
+function indexedVectorByOrder(index, order) {
   const packed = Buffer.from(index.embeddingsPackedBase64, 'base64');
   const values = new Float32Array(packed.buffer.slice(packed.byteOffset, packed.byteOffset + packed.byteLength));
   const start = order * index.embeddingDim;
@@ -52,6 +56,39 @@ function indexedCardVector(index, cardId) {
 function packedVectorsBase64(rows) {
   const values = new Float32Array(rows.flat());
   return Buffer.from(values.buffer, values.byteOffset, values.byteLength).toString('base64');
+}
+
+function probeAwareVector(index, text, targetVector) {
+  const value = String(text || '').toLowerCase();
+  if (!/prompt runtime probe/.test(value)) return targetVector;
+  if (index.embeddingDim === 2) {
+    if (/river|water|swimming|biological/.test(value)) return Float32Array.from([0, 1]);
+    if (/queue|network|detector|readout/.test(value)) return Float32Array.from([0.6, 0.8]);
+    return targetVector;
+  }
+  const ids = /river|water|swimming|biological/.test(value)
+    ? ['river-erosion', 'water', 'fluid-advection']
+    : /queue|network|detector|readout/.test(value)
+      ? ['power-grid', 'traffic-system', 'sensor-array']
+      : ['optics-bench', 'prism', 'lens'];
+  for (const primitiveId of ids) {
+    const order = index.documents.findIndex((doc) => doc.primitiveId === primitiveId);
+    if (order >= 0) return indexedVectorByOrder(index, order);
+  }
+  return targetVector;
+}
+
+function probeAwareEmbedProvider({ index, targetVector, embedModelId, embedModelHash, onEmbed }) {
+  return {
+    async embed(args = {}) {
+      if (typeof onEmbed === 'function') onEmbed(args);
+      return {
+        embedding: probeAwareVector(index, args.text, targetVector),
+        embedModelId: embedModelId || index.embedModelId,
+        embedModelHash: embedModelHash || index.embedModelHash,
+      };
+    },
+  };
 }
 
 async function withIntentArtifactFetch(run) {
@@ -198,16 +235,13 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
   };
   try {
     const embedder = intentEmbedder.create({
-      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
-      embedProvider: {
-        async embed() {
-          return {
-            embedding: Float32Array.from([4, 0]),
-            embedModelId: manifest.embedModel.id,
-            embedModelHash: hash,
-          };
-        },
-      },
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      embedProvider: probeAwareEmbedProvider({
+        index,
+        targetVector: Float32Array.from([4, 0]),
+        embedModelId: manifest.embedModel.id,
+        embedModelHash: hash,
+      }),
     });
     const result = await embedder.rankPrompt('aligned vector', candidates, { max: 2 });
     const aligned = result.priors.find((prior) => prior.primitiveId === 'aligned');
@@ -227,16 +261,8 @@ test('model-backed intent embedder ranks primitives with EmbeddingGemma provenan
   await withIntentArtifactFetch(async ({ index }) => {
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
-      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
-      embedProvider: {
-        async embed() {
-          return {
-            embedding: query,
-            embedModelId: index.embedModelId,
-            embedModelHash: index.embedModelHash,
-          };
-        },
-      },
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
     });
     const result = await embedder.rankPrompt(
       'lab bench optics bench with sun lamp glass lens mirror prism and sensor',
@@ -251,8 +277,22 @@ test('model-backed intent embedder ranks primitives with EmbeddingGemma provenan
     assert.ok(result.model.surfaceCardDocuments >= 650);
     assert.equal(result.model.universeIndexId, 'simulatte-universe-multi-index-v1');
     assert.ok(result.model.universeDocuments >= 20);
+    assert.equal(result.model.reranker, 'simulatte.doppler-intent-reranker.v1');
+    assert.equal(result.model.rerankerKind, 'doppler-reranker');
+    assert.equal(result.model.rerankerPhase, 3);
+    assert.equal(result.model.rerankerRequired, false);
     assert.equal(result.rerank.required, true);
     assert.equal(result.rerank.schema, 'simulatte.intentRerank.v1');
+    assert.equal(result.rerank.phase, 3);
+    assert.equal(result.rerank.phaseId, 'retrieval');
+    assert.equal(result.rerank.rerankerMode, 'heuristic-fusion');
+    assert.equal(result.rerank.rerankerKind, 'doppler-reranker');
+    assert.equal(result.rerank.rerankerPhase, 3);
+    assert.equal(result.rerank.modelRequired, false);
+    assert.equal(result.rerank.modelReady, false);
+    assert.equal(result.rerank.fallbackMode, 'heuristic-fusion');
+    assert.ok(result.rerank.scoreFields.includes('modelScore'));
+    assert.ok(result.rerank.scoreFields.includes('dopplerScore'));
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
     assert.ok(result.priors.some((prior) => prior.primitiveId === 'prism'));
     assert.ok(Array.isArray(result.cardMatches));
@@ -261,18 +301,214 @@ test('model-backed intent embedder ranks primitives with EmbeddingGemma provenan
   });
 });
 
+test('Phase 1 loadModel verifies the embedding provider before runtime ready', async () => {
+  await withIntentArtifactFetch(async ({ index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const events = [];
+    let embedCalls = 0;
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      onProgress: (event) => events.push(event),
+      embedProvider: probeAwareEmbedProvider({
+        index,
+        targetVector: query,
+        onEmbed: (args = {}) => {
+          embedCalls += 1;
+          assert.ok(String(args.text || '').trim(), 'Phase 1 probe should use non-empty text');
+        },
+      }),
+    });
+
+    const runtime = await embedder.loadModel();
+    const readyIndex = events.findIndex((event) => event.stage === 'runtime-ready');
+    const modelReadyIndex = events.findIndex((event) => event.stage === 'model-ready');
+    const probeReadyIndex = events.findIndex((event) => event.stage === 'model-probe' && event.timing === 'end');
+    const ready = events[readyIndex];
+
+    assert.equal(embedCalls, 4);
+    assert.ok(modelReadyIndex >= 0, 'Phase 1 should load the provider before readiness');
+    assert.ok(probeReadyIndex > modelReadyIndex, 'Phase 1 should probe the provider after model-ready');
+    assert.ok(readyIndex > probeReadyIndex, 'Phase 1 runtime-ready must follow provider probe');
+    assert.equal(ready.providerReady, true);
+    assert.equal(ready.noFallback, true);
+    assert.equal(ready.promptRuntimeReceipt.schema, 'simulatte.promptRuntimeReceipt.v1');
+    assert.equal(ready.promptRuntimeReceipt.providerBackend, 'configured-provider');
+    assert.equal(ready.promptRuntimeReceipt.embeddingProbe, true);
+    assert.equal(ready.promptRuntimeReceipt.embeddingDim, index.embeddingDim);
+    assert.equal(ready.promptRuntimeReceipt.probeCount, 3);
+    assert.equal(ready.promptRuntimeReceipt.probeIds.length, 3);
+    assert.equal(ready.promptRuntimeReceipt.probeHashes.length, 3);
+    assert.ok(ready.promptRuntimeReceipt.stabilitySimilarity >= 0.995);
+    assert.ok(ready.promptRuntimeReceipt.maxDistinctProbeSimilarity < 0.9999);
+    assert.equal(ready.promptRuntimeReceipt.distinctProbePairs, 3);
+    assert.equal(ready.promptRuntimeReceipt.primitiveDocuments, index.documents.length);
+    assert.equal(ready.promptRuntimeReceipt.reranker, 'simulatte.doppler-intent-reranker.v1');
+    assert.equal(ready.promptRuntimeReceipt.rerankerKind, 'doppler-reranker');
+    assert.equal(ready.promptRuntimeReceipt.rerankerPhase, 3);
+    assert.equal(ready.promptRuntimeReceipt.rerankerRequired, false);
+    assert.equal(ready.promptRuntimeReceipt.rerankerReady, false);
+    assert.equal(ready.promptRuntimeReceipt.rerankerStatus, 'not-required');
+    assert.equal(ready.promptRuntimeReceipt.rerankerFallbackMode, 'heuristic-fusion');
+    assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
+    assert.equal(runtime.promptRuntimeReceipt.noFallback, true);
+  });
+});
+
+test('Phase 1 uses Doppler embedBatch when the model handle exposes batch embedding', async () => {
+  await withIntentArtifactFetch(async ({ index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    let batchCalls = 0;
+    let embedCalls = 0;
+    const handle = {
+      modelId: index.embedModelId,
+      manifest: { manifestHash: index.embedModelHash },
+      async embedBatch(prompts, options = {}) {
+        assert.equal(prompts.length, 1);
+        assert.equal(options.embeddingMode, 'mean');
+        assert.equal(options.useChatTemplate, false);
+        assert.equal(options.__skipStateSnapshot, true);
+        batchCalls += prompts.length;
+        return prompts.map((text) => ({
+          embedding: probeAwareVector(index, text, query),
+        }));
+      },
+      async embed() {
+        embedCalls += 1;
+        throw new Error('single embed should not be used when embedBatch is available');
+      },
+    };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModelHandle: handle,
+    });
+
+    const runtime = await embedder.loadModel();
+
+    assert.equal(batchCalls, 4);
+    assert.equal(embedCalls, 0);
+    assert.equal(runtime.promptRuntimeReceipt.providerBackend, 'injected-doppler-model');
+    assert.equal(runtime.promptRuntimeReceipt.embeddingProbe, true);
+    assert.ok(runtime.promptRuntimeReceipt.stabilitySimilarity >= 0.995);
+  });
+});
+
+test('Phase 1 loadModel does not report runtime ready when provider verification fails', async () => {
+  await withIntentArtifactFetch(async () => {
+    const events = [];
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      onProgress: (event) => events.push(event),
+      embedProvider: {
+        async embed() {
+          throw new Error('phase1 probe blocked');
+        },
+      },
+    });
+
+    await assert.rejects(() => embedder.loadModel(), /phase1 probe blocked/);
+    assert.ok(events.some((event) => event.stage === 'indexes'), 'Phase 1 should still fetch indexes before provider verification');
+    assert.equal(events.some((event) => event.stage === 'runtime-ready'), false);
+  });
+});
+
+test('Phase 1 loadModel rejects degenerate constant embedding providers', async () => {
+  await withIntentArtifactFetch(async ({ index }) => {
+    const events = [];
+    const query = indexedVector(index, 'optics-bench');
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      onProgress: (event) => events.push(event),
+      embedProvider: {
+        async embed() {
+          return {
+            embedding: query,
+            embedModelId: index.embedModelId,
+            embedModelHash: index.embedModelHash,
+          };
+        },
+      },
+    });
+
+    await assert.rejects(() => embedder.loadModel(), /degenerate probe embeddings/);
+    assert.equal(events.some((event) => event.stage === 'runtime-ready'), false);
+  });
+});
+
+test('Phase 1 rejects a manifest that requires a missing Doppler reranker', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    manifest.reranker = {
+      ...manifest.reranker,
+      required: true,
+    };
+    const events = [];
+    const query = indexedVector(index, 'optics-bench');
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      onProgress: (event) => events.push(event),
+      embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
+    });
+
+    await assert.rejects(() => embedder.loadModel(), /requires Doppler reranker/);
+    assert.equal(events.some((event) => event.stage === 'runtime-ready'), false);
+  });
+});
+
+test('Phase 3 uses Doppler reranker when the required capability is present', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    manifest.reranker = {
+      ...manifest.reranker,
+      required: true,
+    };
+    const query = indexedVector(index, 'optics-bench');
+    let rerankCalls = 0;
+    const provider = probeAwareEmbedProvider({ index, targetVector: query });
+    provider.rerank = async (input) => {
+      rerankCalls += 1;
+      return {
+        rows: (input.candidates || []).map((candidate, order) => ({
+          primitiveId: candidate.primitiveId,
+          score: candidate.primitiveId === 'prism' ? 1 : Math.max(0.05, 0.42 - order * 0.001),
+        })),
+      };
+    };
+    const events = [];
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      onProgress: (event) => events.push(event),
+      embedProvider: provider,
+    });
+    const result = await embedder.rankPrompt(
+      'lab bench optics bench with sun lamp glass lens mirror prism and sensor',
+      lab.PHYSICAL_PRIMITIVES,
+      { max: 8 }
+    );
+    const ready = events.find((event) => event.stage === 'runtime-ready');
+
+    assert.ok(rerankCalls >= 3);
+    assert.equal(ready.promptRuntimeReceipt.rerankerRequired, true);
+    assert.equal(ready.promptRuntimeReceipt.rerankerReady, true);
+    assert.equal(ready.promptRuntimeReceipt.rerankerStatus, 'ready');
+    assert.equal(ready.promptRuntimeReceipt.rerankerProbeCount, 1);
+    assert.equal(result.rerank.rerankerMode, 'doppler-reranker');
+    assert.equal(result.rerank.modelReady, true);
+    assert.equal(result.rerank.modelRequired, true);
+    assert.equal(result.rerank.modelBackend, 'configured-provider');
+    assert.equal(result.priors[0].primitiveId, 'prism');
+  });
+});
+
 test('Doppler model handles normalize URL provenance to the manifest model id', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
-      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       dopplerModelHandle: {
         modelId: manifest.embedModel.defaultModelBaseUrl,
         manifest: {
           manifestHash: manifest.embedModel.manifestHash,
         },
-        async embed() {
-          return { embedding: query };
+        async embed(prompt) {
+          return { embedding: probeAwareVector(index, prompt, query) };
         },
       },
     });
@@ -292,16 +528,13 @@ test('embed providers normalize default model URL provenance to the manifest mod
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
-      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
-      embedProvider: {
-        async embed() {
-          return {
-            embedding: query,
-            embedModelId: manifest.embedModel.defaultModelBaseUrl,
-            embedModelHash: manifest.embedModel.manifestHash,
-          };
-        },
-      },
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      embedProvider: probeAwareEmbedProvider({
+        index,
+        targetVector: query,
+        embedModelId: manifest.embedModel.defaultModelBaseUrl,
+        embedModelHash: manifest.embedModel.manifestHash,
+      }),
     });
     const result = await embedder.rankPrompt(
       'glass lens prism optics bench with a bright beam',
@@ -319,16 +552,8 @@ test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async 
   await withIntentArtifactFetch(async ({ index, surfaceIndex }) => {
     const query = indexedCardVector(surfaceIndex, 'lens');
     const embedder = intentEmbedder.create({
-      manifestUrl: 'https://simulatte.test/models/simulatte-embedder/manifest.json',
-      embedProvider: {
-        async embed() {
-          return {
-            embedding: query,
-            embedModelId: index.embedModelId,
-            embedModelHash: index.embedModelHash,
-          };
-        },
-      },
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
     });
     const prompt = 'laser heats ferrofluid lens over copper coil';
     const result = await embedder.rankPrompt(prompt, lab.PHYSICAL_PRIMITIVES, {
@@ -1085,11 +1310,18 @@ test('hand-authored coverage probes span major simulation regimes', () => {
     const spec = createPrototypeSpec(prompt);
     const plan = spec.renderProgram.rendererPlan;
     const visualIR = spec.renderProgram.visualIR;
+    const scenePacket = visualIR.sceneRenderPacket;
     scenes.add(plan.sceneKind);
     cameras.add(visualIR.camera.mode);
     if (plan.visualRecipe) expandedRecipeCount += 1;
     assert.equal(plan.sceneKind, sceneKind, prompt);
     assert.equal(visualIR.sceneKind, sceneKind, prompt);
+    assert.equal(scenePacket.schema, 'simulatte.sceneRenderPacket.v1', prompt);
+    assert.equal(scenePacket.sceneKind, sceneKind, prompt);
+    assert.ok(scenePacket.entities.length >= 1, prompt);
+    assert.ok(scenePacket.entities.every((entity) => Array.isArray(entity.transform.position)), prompt);
+    assert.ok(scenePacket.entities.every((entity) => entity.geometry && entity.material && entity.animation && entity.collider), prompt);
+    assert.ok(scenePacket.passes.includes('entities'), prompt);
     assert.equal(spec.physicalSpec.receipt.visualIdentity.sceneKind, sceneKind, prompt);
     assert.notEqual(plan.sceneKind, 'generic', prompt);
     assert.notEqual(plan.sceneKind, 'literal-composite', prompt);
@@ -1639,9 +1871,11 @@ test('literal training review prompts survive semantic grounding into render obj
   const swimmingObjects = Object.fromEntries(swimming.renderProgram.objects.map((object) => [object.id, object]));
   const mappingIds = (spec) => spec.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
   const catalogCount = (spec) => spec.renderProgram.objects.filter((object) => object.source === 'catalog').length;
+  const geometryKinds = (spec) => spec.physicsIR.entities.map((entity) => entity.geometryRef && entity.geometryRef.kind);
 
   assert.equal(dogObjects['dog-a'].shape, 'animal-body');
   assert.equal(dogObjects['surface-dog-1'].shape, 'animal-body');
+  assert.ok(geometryKinds(dogs).includes('animal-body'));
   assert.equal(dogs.renderProgram.rendererPlan.sceneKind, 'biology');
   assert.ok(mappingIds(dogs).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(dogs).includes('visual.operator.instrument-readout.v1'));
@@ -1649,6 +1883,7 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.ok(!dogs.renderProgram.solverPlan.families.includes('fracture-threshold'));
   assert.equal(flowerObjects['flower-a'].shape, 'fuel-bed');
   assert.equal(flowerObjects['surface-flower-1'].shape, 'fuel-bed');
+  assert.ok(geometryKinds(flowers).includes('botanical-cluster'));
   assert.equal(flowers.renderProgram.rendererPlan.sceneKind, 'biology');
   assert.ok(mappingIds(flowers).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(flowers).includes('visual.operator.instrument-readout.v1'));
@@ -1663,6 +1898,15 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.equal(swimmingObjects['dog-a'].shape, 'animal-body');
   assert.equal(swimmingObjects['cat-a'].shape, 'animal-body');
   assert.equal(swimmingObjects.water.shape, 'pool');
+  const swimmingIdentities = new Set(
+    swimming.renderProgram.visualIR.sceneRenderPacket.entities
+      .map((entity) => entity.identity && entity.identity.type)
+      .filter(Boolean)
+  );
+  assert.ok(swimmingIdentities.has('dog'));
+  assert.ok(swimmingIdentities.has('cat'));
+  assert.ok(swimmingIdentities.has('water'));
+  assert.ok(geometryKinds(swimming).every((kind) => kind && kind !== 'body'));
   assert.equal(swimmingObjects['fluid-advection'].source, 'prompt-family');
   assert.equal(swimming.renderProgram.rendererPlan.sceneKind, 'watershed');
   assert.ok(mappingIds(swimming).includes('visual.operator.biological-growth.v1'));
@@ -1783,7 +2027,7 @@ test('render programs keep prompt nouns literal and avoid unrelated scene fields
   assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').shape, 'pool');
   assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').material, 'ferrofluid');
   assert.deepEqual(city.renderProgram.fields.map((field) => field.kind), ['network-flow']);
-  assert.deepEqual(watershed.renderProgram.fields.map((field) => field.kind), ['gravity']);
+  assert.deepEqual(watershed.renderProgram.fields.map((field) => field.kind), ['flow', 'gravity']);
   assert.deepEqual(ferrofluid.renderProgram.fields.map((field) => field.kind), ['dipole']);
   assert.deepEqual(thinFilm.renderProgram.fields.map((field) => field.kind), ['optical-rays']);
 });

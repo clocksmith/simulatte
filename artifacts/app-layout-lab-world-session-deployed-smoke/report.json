@@ -1,0 +1,597 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-06T00:17:44.598Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "live-url",
+  "url": "https://simulatte-world.web.app/index.html?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-NDCBix",
+  "profilePersistent": false,
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "biology"
+    ],
+    "visualIRSceneKinds": [
+      "biology"
+    ],
+    "visualIRCameras": [
+      "instrumented-lab-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 13,
+      "mappingIds": [
+        "visual.operator.biological-growth.v1"
+      ],
+      "uniformSlots": [
+        "biological",
+        "density",
+        "motion",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 99,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "biological"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.92
+    },
+    "intentBriefs": {
+      "totalEvidence": 59,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 59,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 13,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 98,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.92,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "dogs",
+      "screenshot": "01-custom-dogs.png",
+      "screenshotHash": "0c8613bc4e2683fd154010f5bcbd985e4eb9f98b065936392d1354b12907e974",
+      "runtimeState": "ready",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "blank",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v1",
+        "timestamp": "2026-07-06T00:17:41.587Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "blank",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "line": "Ready 100%",
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "",
+        "timing": {
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "traceId": "",
+          "rankId": 0,
+          "reuse": false,
+          "providerReady": false
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-06T00:17:41.483Z",
+          "source": "simulatte-model-cache",
+          "state": "idle",
+          "blocking": false,
+          "passive": true,
+          "canvasLoading": false,
+          "stage": "cache-worker",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 18,
+          "line": "Preparing model cache 18%",
+          "message": "Registering model cache worker",
+          "detail": "Registering model cache worker",
+          "backend": "",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-06T00:17:41.587Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "line": "Ready 100%",
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "biology",
+      "physicsCanvasSceneId": "7",
+      "physicsCanvasSceneMix": "biological:1.00,chemical:0.85",
+      "physicsCanvasSceneMixSlots": "2",
+      "phase8Input": "simulatte.sceneRenderPacket.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase8Output": "simulatte.phase8.output.v1",
+      "phase8OutputInput": "simulatte.phase7.output.v1",
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v1",
+        "phase4": "simulatte.phase4.output.v1",
+        "phase5": "simulatte.phase5.output.v1",
+        "phase6": "simulatte.phase6.output.v1",
+        "phase7": "simulatte.phase7.output.v1"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:2;fields:3;effects:14;layers:biological-agent+field-sheet+chemical-front+process-pulse;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 2,
+      "sceneRenderFieldCount": 3,
+      "sceneRenderEffectCount": 14,
+      "sceneRenderSpatialHash": "ca890593",
+      "sceneObjectUniforms": "0:dog:biological-agent@0.69,0.62;1:dog:biological-agent@0.52,0.35;2:motion:atom:cell-pulses:biological-agent@0.50,0.50;3:atom-field:nutrient-gradient-field:biological-agent@0.50,0.50;4:atom-field:density-front-field:biological-agent@0.50,0.50;5:atom-process:growth-front:process-pulse@0.50,0.50;6:motion:growth-front:process-pulse@0.50,0.50;7:atom-process:diffusion-limited-aggregation:chemical-front@0.50,0.50",
+      "sceneObjectIdentities": "0:dog:animal:biological-agent:@0.69,0.62;1:dog:animal:biological-agent:@0.52,0.35;2:motion:atom:cell-pulses:process:biological-agent:@0.50,0.50;3:atom-field:nutrient-gradient-field:field:biological-agent:@0.50,0.50;4:atom-field:density-front-field:field:biological-agent:@0.50,0.50;5:atom-process:growth-front:process:process-pulse:@0.50,0.50;6:motion:growth-front:process:process-pulse:@0.50,0.50;7:atom-process:diffusion-limited-aggregation:process:chemical-front:@0.50,0.50",
+      "physicsCanvasRenderCount": "44",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 131.611,
+      "lumaStd": 59.134,
+      "coloredRatio": 0.8253,
+      "canvasHash": "208c0024",
+      "specId": "dogs-mr8h0zh9",
+      "templateId": "custom-world",
+      "rendererSceneKind": "biology",
+      "visualIRSceneKind": "biology",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 2,
+      "visualIRMaterialCount": 4,
+      "visualIRFieldCount": 3,
+      "visualIRProcessCount": 6,
+      "visualIROperatorCount": 7,
+      "visualIRRenderInstanceCount": 22,
+      "visualIRRejectedRowCount": 11,
+      "visualIRReceiptCount": 11,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIRSceneRenderPacketEntityCount": 2,
+      "visualIRSceneRenderPacketFieldCount": 3,
+      "visualIRSceneRenderPacketEffectCount": 14,
+      "visualIRSceneRenderPacketLayers": [
+        "biological-agent",
+        "field-sheet",
+        "chemical-front",
+        "process-pulse"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "dog"
+      ],
+      "visualIRAcceptedRenderInstances": 22,
+      "visualIRRenderInstanceSlots": [
+        "biological-agent",
+        "biological-agent",
+        "field-sheet",
+        "biological-agent",
+        "biological-agent",
+        "chemical-front",
+        "chemical-front",
+        "chemical-front",
+        "chemical-front",
+        "biological-agent",
+        "material-surface",
+        "biological-agent",
+        "chemical-front",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "chemical-front",
+        "process-pulse",
+        "biological-agent",
+        "chemical-front",
+        "chemical-front"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "adhesion-film",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fluid-advection.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.acoustic-wave.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 13,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.biological-growth.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "biological",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "biological": 1,
+        "motion": 0.84,
+        "density": 0.92,
+        "surface": 0.76
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0005",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "span.002",
+          "kind": "clause",
+          "text": "dogs",
+          "slots": []
+        },
+        {
+          "id": "span.003",
+          "kind": "noun-phrase",
+          "text": "dogs",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 59,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 13,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 59,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 13,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 293897,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-dogs.canvas.png",
+      "canvasScreenshotLater": "01-custom-dogs.canvas-late.png",
+      "canvasScreenshotHash": "86fe52ad1c2666d1ab6cbd5e9c311581bd96b1cf4b6650e83d44796a6afd934b",
+      "canvasScreenshotLaterHash": "c017ecc34cceef560857f73e1b93efbe03086cde43cfdfe9ca93889cbc78a0ba",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 59.134,
+      "canvasScreenshotColoredRatio": 0.8253,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 1.507,
+      "canvasFrameLumaStdDelta": 0.237,
+      "canvasFrameColoredRatioDelta": 0.014,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 99,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 0.92,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.92,
+          "entityStructure": 0.5,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "biological"
+        ],
+        "matchedSignals": [
+          {
+            "id": "biological",
+            "strength": 1,
+            "slotHits": [
+              "biological",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.biological-growth.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

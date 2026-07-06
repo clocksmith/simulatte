@@ -19,3 +19,6 @@ SSE endpoint: http://127.0.0.1:4766/events
 Simulatte review server listening on http://127.0.0.1:4766
 Reviews endpoint: http://127.0.0.1:4766/reviews
 SSE endpoint: http://127.0.0.1:4766/events
+Simulatte review server listening on http://127.0.0.1:4766
+Reviews endpoint: http://127.0.0.1:4766/reviews
+SSE endpoint: http://127.0.0.1:4766/events

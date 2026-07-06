@@ -4,19 +4,43 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
-const jsDir = path.join(root, 'public', 'js');
-const catalog = require(path.join(jsDir, 'simulatte-physics-catalog.js'));
-const visualOperatorAtlas = require(path.join(jsDir, 'simulatte-visual-operator-atlas.js'));
-const visualOperatorCompiler = require(path.join(jsDir, 'simulatte-visual-operator-compiler.js'));
+const publicDir = path.join(root, 'public');
+const moduleMapPath = path.join(root, 'tools', 'simulatte-module-map.json');
+const moduleMap = JSON.parse(fs.readFileSync(moduleMapPath, 'utf8'));
+const runtimeModuleByName = new Map(moduleMap.entries.map((entry) => [
+  path.basename(entry.oldPath),
+  entry.newPath.replace(/^public\//, ''),
+]));
+const catalog = require(runtimeFile('simulatte-physics-catalog.js'));
+const visualOperatorAtlas = require(runtimeFile('simulatte-visual-operator-atlas.js'));
+const visualOperatorCompiler = require(runtimeFile('simulatte-visual-operator-compiler.js'));
 
 function jsFiles(dir) {
-  return fs.readdirSync(dir)
-    .filter((name) => name.endsWith('.js'))
-    .map((name) => path.join(dir, name));
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...jsFiles(file));
+    else if (entry.name.endsWith('.js')) out.push(file);
+  }
+  return out;
+}
+
+function runtimeFile(name) {
+  const rel = runtimeModuleByName.get(name);
+  assert.ok(rel, `runtime module map missing ${name}`);
+  return path.join(publicDir, rel);
+}
+
+function publicRuntimeJsFiles() {
+  return [
+    path.join(publicDir, 'app'),
+    path.join(publicDir, 'compiler'),
+    path.join(publicDir, 'workers'),
+  ].flatMap((dir) => jsFiles(dir));
 }
 
 test('public javascript keeps lines below the repository ceiling', () => {
-  for (const file of jsFiles(jsDir)) {
+  for (const file of publicRuntimeJsFiles()) {
     const rel = path.relative(root, file);
     const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
     lines.forEach((line, index) => {
@@ -28,7 +52,7 @@ test('public javascript keeps lines below the repository ceiling', () => {
   }
 });
 
-test('physics lab is split into catalog, model, renderer, and coordinator', () => {
+test('runtime source is owned by app, compiler, data, and worker directories', () => {
   const expected = [
     'simulatte-physics-catalog.js',
     'simulatte-semantic-rag.js',
@@ -57,20 +81,90 @@ test('physics lab is split into catalog, model, renderer, and coordinator', () =
   ];
 
   for (const name of expected) {
-    assert.ok(fs.existsSync(path.join(jsDir, name)), `${name} should exist`);
+    assert.ok(fs.existsSync(runtimeFile(name)), `${name} should exist`);
+  }
+  for (const retired of ['js', 'models', 'src']) {
+    assert.equal(fs.existsSync(path.join(publicDir, retired)), false, `public/${retired} should be retired`);
   }
 
   const coordinatorLines = fs.readFileSync(
-    path.join(jsDir, 'simulatte-physics-lab.js'),
+    runtimeFile('simulatte-physics-lab.js'),
     'utf8'
   ).split(/\r?\n/);
   assert.ok(coordinatorLines.length < 80);
 });
 
-test('intent forensics modules load before the physics model in the browser shell', () => {
+test('app product boundaries use boot lab world-session ui and view directories', () => {
+  const retiredGameRoot = path.join(publicDir, 'app', 'game');
+  const retiredShellRoot = path.join(publicDir, 'app', 'shell');
+  const retiredExperienceRoot = path.join(publicDir, 'app', 'experience');
+  const retiredRenderRoot = path.join(publicDir, 'app', 'render');
+  const retiredUiRenderRoot = path.join(publicDir, 'app', 'ui', 'render');
+  const bootRoot = path.join(publicDir, 'app', 'boot');
+  const labRoot = path.join(publicDir, 'app', 'lab');
+  const worldSessionRoot = path.join(publicDir, 'app', 'world-session');
+  const viewRoot = path.join(publicDir, 'app', 'view');
+  const appMain = fs.readFileSync(path.join(bootRoot, 'main.js'), 'utf8');
+  const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
+
+  assert.equal(fs.existsSync(retiredGameRoot), false, 'public/app/game should be retired');
+  assert.equal(fs.existsSync(retiredShellRoot), false, 'public/app/shell should be retired');
+  assert.equal(fs.existsSync(retiredExperienceRoot), false, 'public/app/experience should be retired');
+  assert.equal(fs.existsSync(retiredRenderRoot), false, 'public/app/render should be retired');
+  assert.equal(fs.existsSync(retiredUiRenderRoot), false, 'public/app/controls/render should be retired');
+  assert.ok(fs.existsSync(path.join(bootRoot, 'simulatte-browser-boot.js')));
+  assert.ok(fs.existsSync(path.join(bootRoot, 'simulatte-version-guard.js')));
+  assert.ok(fs.existsSync(path.join(labRoot, 'simulatte-physics-renderer.js')));
+  assert.ok(fs.existsSync(path.join(labRoot, 'simulatte-physics-lab.js')));
+  assert.ok(fs.existsSync(path.join(worldSessionRoot, 'simulatte-scenario-engine.js')));
+  assert.ok(fs.existsSync(path.join(worldSessionRoot, 'simulatte-world-core.js')));
+  assert.ok(fs.existsSync(path.join(worldSessionRoot, 'simulatte-world-model.js')));
+  assert.ok(fs.existsSync(path.join(viewRoot, 'iso-world-renderer.js')));
+  assert.ok(fs.existsSync(path.join(viewRoot, 'assets', 'material-atlas.js')));
+  assert.ok(fs.existsSync(path.join(viewRoot, 'core', 'gl-program.js')));
+  assert.match(appMain, /from '\.\.\/world-session\/simulatte-world-model\.js'/);
+  assert.match(appMain, /from '\.\.\/view\/iso-world-renderer\.js'/);
+  assert.doesNotMatch(appMain, /from '\.\/render\//);
+  assert.match(html, /src="\.\/app\/lab\/simulatte-physics-renderer\.js"/);
+  assert.match(html, /src="\.\/app\/lab\/simulatte-physics-lab\.js"/);
+  assert.match(html, /src="\.\/app\/boot\/simulatte-browser-boot\.js"/);
+  assert.match(html, /src="\.\/app\/boot\/simulatte-version-guard\.js"/);
+  assert.doesNotMatch(html, /src="\.\/app\/shell\//);
+  assert.doesNotMatch(html, /src="\.\/app\/experience\//);
+});
+
+test('phase contracts declare the strict eight-phase handoff', () => {
+  const contractsPath = path.join(publicDir, 'data', 'phase-contracts.json');
+  const contracts = JSON.parse(fs.readFileSync(contractsPath, 'utf8'));
+
+  assert.equal(contracts.schema, 'simulatte.phaseContracts.v1');
+  assert.equal(contracts.envelope.schemaPattern, 'simulatte.phaseN.output.v1');
+  assert.deepEqual(contracts.envelope.required, [
+    'schema',
+    'phase',
+    'inputSchema',
+    'runtimeReceiptId',
+    'artifact',
+    'receipts',
+  ]);
+  assert.equal(contracts.phases.length, 8);
+  contracts.phases.forEach((phase, index) => {
+    assert.equal(phase.phase, index + 1);
+    assert.equal(phase.outputSchema, `simulatte.phase${index + 1}.output.v1`);
+    assert.ok(Array.isArray(phase.allowedInputs));
+    assert.ok(Array.isArray(phase.receipts));
+    assert.ok(Array.isArray(phase.forbiddenUpstreamReads));
+  });
+  assert.ok(contracts.phases[2].forbiddenUpstreamReads.includes('rawPrompt'));
+  assert.ok(contracts.phases[4].forbiddenUpstreamReads.includes('rankedPrimitives'));
+  assert.ok(contracts.phases[6].artifactKeys.includes('visualCompile'));
+  assert.ok(contracts.phases[7].forbiddenUpstreamReads.includes('renderIR'));
+});
+
+test('intent forensics modules load before the physics model in the browser lab', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const scriptNames = Array.from(html.matchAll(/<script defer src="\.\/js\/([^"]+)"><\/script>/g))
-    .map((match) => match[1]);
+  const scriptNames = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
+    .map((match) => path.basename(match[1]));
   const position = (name) => scriptNames.indexOf(name);
 
   for (const name of [
@@ -125,8 +219,8 @@ test('intent forensics modules load before the physics model in the browser shel
 test('training mode streams prompt-output critiques over localhost', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const bridge = fs.readFileSync(path.join(jsDir, 'simulatte-review-bridge.js'), 'utf8');
-  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+  const bridge = fs.readFileSync(runtimeFile('simulatte-review-bridge.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
   const server = fs.readFileSync(path.join(root, 'tools', 'simulatte-review-server.mjs'), 'utf8');
 
   assert.equal(pkg.scripts['review:server'], 'node tools/simulatte-review-server.mjs');
@@ -258,17 +352,37 @@ test('pipeline audit records phase scores, baselines, and regressions', () => {
   assert.match(scorer, /baseline\.json/);
   assert.match(scorer, /scoreLanguageGraph/);
   assert.match(scorer, /scoreWebGpu/);
+  assert.match(scorer, /const phaseArtifacts = spec && spec\.phaseArtifacts \|\| \{\}/);
+  assert.match(scorer, /const phase2Artifact = phaseArtifacts\.phase2/);
+  assert.match(scorer, /const retrievalRerankResult = phase3Artifact\.retrievalRerankResult/);
+  assert.match(scorer, /const simulationCompile = phase6Artifact\.simulationCompile/);
+  assert.match(scorer, /const visualCompile = phase7Artifact\.visualCompile/);
+  assert.match(scorer, /compiled-static-live-webgpu-required/);
+  assert.match(scorer, /liveProofRequired: true/);
+  assert.match(scorer, /live WebGPU proof required; static VisualIR proxy capped/);
+  assert.match(scorer, /renderInstanceCount/);
+  assert.match(scorer, /sourceLinkedRenderInstanceCount/);
+  assert.match(scorer, /sceneRenderPacketEntityCount/);
+  assert.match(scorer, /sceneRenderPacketSpatialRatio/);
+  assert.match(scorer, /sceneRenderPacketIdentityRatio/);
+  assert.match(scorer, /liveSceneObjectIdentities/);
+  assert.match(scorer, /shaderUsesSceneRenderPacket/);
+  assert.match(scorer, /scenePacketAtomUniformVector/);
+  assert.match(scorer, /rendererRejectsSemanticInference/);
+  assert.match(scorer, /liveSceneRenderPacket/);
+  assert.doesNotMatch(scorer, /graphicsAtomUniformVector/);
+  assert.doesNotMatch(scorer, /composedSceneVector/);
   assert.match(summary, /weakestPrompts/);
   assert.match(compare, /phaseDeltas/);
 });
 
 test('causal affordances compile into first-class VisualIR rows', () => {
   const composition = fs.readFileSync(
-    path.join(jsDir, 'simulatte-composition-graph.js'),
+    runtimeFile('simulatte-composition-graph.js'),
     'utf8'
   );
   const model = fs.readFileSync(
-    path.join(jsDir, 'simulatte-physics-model.js'),
+    runtimeFile('simulatte-physics-model.js'),
     'utf8'
   );
 
@@ -285,7 +399,7 @@ test('causal affordances compile into first-class VisualIR rows', () => {
 });
 
 test('visual operator atlas exposes reusable graphics atoms for Layer 7', () => {
-  const atlasPath = path.join(root, 'public', 'models', 'simulatte-visual-cards', 'visual-operator-atlas-v1.json');
+  const atlasPath = path.join(root, 'public', 'data', 'simulatte-visual-cards', 'visual-operator-atlas-v1.json');
   const atlasJson = JSON.parse(fs.readFileSync(atlasPath, 'utf8'));
 
   assert.equal(visualOperatorAtlas.VISUAL_OPERATOR_ATLAS_SCHEMA, 'simulatte.visualOperatorAtlas.v1');
@@ -355,11 +469,11 @@ test('procedural visual base exposes a broad prompt-addressed catalog', () => {
 
 test('physics renderer is a browser coordinator, not a legacy Canvas2D painter library', () => {
   const renderer = fs.readFileSync(
-    path.join(jsDir, 'simulatte-physics-renderer.js'),
+    runtimeFile('simulatte-physics-renderer.js'),
     'utf8'
   );
   const lab = fs.readFileSync(
-    path.join(jsDir, 'simulatte-physics-lab.js'),
+    runtimeFile('simulatte-physics-lab.js'),
     'utf8'
   );
   const auditTool = fs.readFileSync(
@@ -371,8 +485,8 @@ test('physics renderer is a browser coordinator, not a legacy Canvas2D painter l
   assert.match(renderer, /function syncIntentRuntime/);
   assert.match(renderer, /function loadingPhaseFor/);
   assert.match(renderer, /if \(simulationVisible && webGpuRenderer\)/);
-  assert.match(renderer, /webGpuRenderer\.render\(state, spec, now\)/);
-  assert.match(renderer, /webGpuRenderer\.setSpec\(spec\)/);
+  assert.match(renderer, /webGpuRenderer\.render\(createRenderExecutionInput\(spec, state, canvas\), now\)/);
+  assert.match(renderer, /webGpuRenderer\.setRenderExecutionInput\(createRenderExecutionInput\(spec, state, canvas\)\)/);
   assert.doesNotMatch(renderer, /function drawSimulation/);
   assert.doesNotMatch(renderer, /function drawMaterialContinuumField/);
   assert.doesNotMatch(renderer, /function paint[A-Z][A-Za-z]+World/);
@@ -387,15 +501,15 @@ test('physics renderer is a browser coordinator, not a legacy Canvas2D painter l
 
 test('prompt compilation has a worker boundary with main-thread fallback', () => {
   const renderer = fs.readFileSync(
-    path.join(jsDir, 'simulatte-physics-renderer.js'),
+    runtimeFile('simulatte-physics-renderer.js'),
     'utf8'
   );
   const worker = fs.readFileSync(
-    path.join(jsDir, 'simulatte-pipeline-worker.js'),
+    runtimeFile('simulatte-pipeline-worker.js'),
     'utf8'
   );
   const intentWorker = fs.readFileSync(
-    path.join(jsDir, 'simulatte-intent-worker.js'),
+    runtimeFile('simulatte-intent-worker.js'),
     'utf8'
   );
 
@@ -423,6 +537,7 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(intentWorker, /importScripts\(\.\.\.SCRIPT_ORDER\)/);
   assert.match(intentWorker, /simulatte-intent-embedder\.js/);
   assert.match(intentWorker, /simulatte:intent-worker:load/);
+  assert.match(intentWorker, /promptRuntimeReceipt: runtime && runtime\.promptRuntimeReceipt \|\| null/);
   assert.match(intentWorker, /simulatte:intent-worker:rank/);
   assert.match(intentWorker, /workerEmbedder\.rankPrompt/);
   assert.match(intentWorker, /traceEmbeddings: config\.traceEmbeddings === true/);
@@ -437,7 +552,7 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
 
 test('home prompt shuffle stays consistent between HTML and catalog', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const catalog = fs.readFileSync(path.join(jsDir, 'simulatte-physics-catalog.js'), 'utf8');
+  const catalog = fs.readFileSync(runtimeFile('simulatte-physics-catalog.js'), 'utf8');
 
   assert.match(html, /id="shuffle-prompt"/);
   assert.match(html, /Shuffle 256 examples/);
@@ -463,7 +578,7 @@ test('home prompt shuffle stays consistent between HTML and catalog', () => {
 });
 
 test('Doppler residual intent has a strict static contract and no network dependency', () => {
-  const runtime = fs.readFileSync(path.join(jsDir, 'simulatte-doppler-intent.js'), 'utf8');
+  const runtime = fs.readFileSync(runtimeFile('simulatte-doppler-intent.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const oldRuntimePath = path.join(root, 'public', 'doppler', 'src', 'index-browser.js');
   const oldRuntime = fs.readFileSync(oldRuntimePath, 'utf8');
@@ -497,7 +612,7 @@ test('vendored Doppler shader cache resolves kernels beside the loaded module', 
 
 test('physics loading uses a phase-reactive canvas Snake game instead of a card mosaic', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
 
   assert.match(html, /--mosaic-pink/);
   assert.match(html, /--mosaic-lilac/);
@@ -521,6 +636,9 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(renderer, /drawCanvasLoadingSnakes/);
   assert.match(renderer, /INTENT_PIPELINE_PHASES/);
   assert.match(renderer, /phaseRule\(1, 'prompt-runtime'/);
+  assert.match(renderer, /'model-ready',\n\s+'model-probe',\n\s+'model-reuse',\n\s+'runtime-ready'/);
+  assert.match(renderer, /promptRuntime: compactObject\(event\.promptRuntimeReceipt \|\| null, 24\)/);
+  assert.match(renderer, /node\.dataset\.promptRuntimeReceipt/);
   assert.match(renderer, /phaseRule\(8, 'webgpu-ready'/);
   assert.match(renderer, /function loadingPhaseFor/);
   assert.match(renderer, /elements\.node\.dataset\.stage = phase\.id/);
@@ -544,15 +662,38 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(renderer, /fieldCanvas/);
   assert.doesNotMatch(renderer, /requireWebGpu: Boolean\(webGpuRenderer\)/);
   const webgpuRenderer = fs.readFileSync(
-    path.join(jsDir, 'simulatte-webgpu-renderer.js'),
+    runtimeFile('simulatte-webgpu-renderer.js'),
     'utf8'
   );
   const loadingCanvas = fs.readFileSync(
-    path.join(jsDir, 'simulatte-loading-canvas.js'),
+    runtimeFile('simulatte-loading-canvas.js'),
     'utf8'
   );
-  assert.match(webgpuRenderer, /new Float32Array\(104\)/);
-  assert.match(webgpuRenderer, /this\.atomUniforms = graphicsAtomUniformVector\(spec\)/);
+  assert.match(webgpuRenderer, /const SCENE_PACKET_OBJECT_SLOTS = 8/);
+  assert.match(webgpuRenderer, /const SCENE_PACKET_FLOATS = SCENE_PACKET_OBJECT_SLOTS \* 12/);
+  assert.match(webgpuRenderer, /const UNIFORM_FLOAT_COUNT = 144 \+ SCENE_PACKET_FLOATS/);
+  assert.match(webgpuRenderer, /new Float32Array\(UNIFORM_FLOAT_COUNT\)/);
+  assert.match(webgpuRenderer, /const scenePacket = sceneRenderPacketFromExecutionInput\(renderExecutionInput\)/);
+  assert.match(webgpuRenderer, /this\.sceneRenderPacket = scenePacket \|\| emptySceneRenderPacket\(\)/);
+  assert.doesNotMatch(webgpuRenderer, /function sceneKindFromSpec/);
+  assert.match(webgpuRenderer, /this\.sceneId = scenePacketSceneId\(this\.sceneRenderPacket, this\.sceneKind\)/);
+  assert.match(webgpuRenderer, /this\.features = scenePacketFeatureVector\(this\.sceneRenderPacket\)/);
+  assert.match(webgpuRenderer, /this\.atomUniforms = scenePacketAtomUniformVector\(this\.sceneRenderPacket\)/);
+  assert.match(webgpuRenderer, /this\.sceneMix = scenePacketSceneMixVector\(this\.sceneRenderPacket, this\.sceneKind\)/);
+  assert.match(webgpuRenderer, /this\.visualIrLayers = visualIrLayerVector\(this\.sceneRenderPacket\)/);
+  assert.match(webgpuRenderer, /this\.sceneObjectUniforms = scenePacketObjectUniformVector\(this\.sceneRenderPacket, this\.sceneKind\)/);
+  assert.match(webgpuRenderer, /canvas\.dataset\.sceneMix = sceneMixSummary\(this\.sceneMix\)/);
+  assert.match(webgpuRenderer, /canvas\.dataset\.visualIrLayers = visualIrLayerSummary\(this\.visualIrLayers\)/);
+  assert.match(webgpuRenderer, /canvas\.dataset\.phase8Input = scenePacket \? this\.sceneRenderPacket\.schema : 'missing-sceneRenderPacket'/);
+  assert.match(webgpuRenderer, /canvas\.dataset\.renderExecutionInput = this\.renderExecutionInput/);
+  assert.match(webgpuRenderer, /PHASE8_OUTPUT_SCHEMA = 'simulatte\.phase8\.output\.v1'/);
+  assert.match(webgpuRenderer, /canvas\.dataset\.sceneRenderPacket = sceneRenderPacketSummary\(this\.sceneRenderPacket\)/);
+  assert.match(webgpuRenderer, /canvas\.dataset\.sceneObjectIdentities = scenePacketIdentitySummary\(this\.sceneRenderPacket, this\.sceneKind\)/);
+  assert.match(webgpuRenderer, /sceneMix0: vec4f/);
+  assert.match(webgpuRenderer, /visualIr0: vec4f/);
+  assert.match(webgpuRenderer, /sceneObj0: vec4f/);
+  assert.match(webgpuRenderer, /sceneStyle0: vec4f/);
+  assert.match(webgpuRenderer, /sceneIdentity0: vec4f/);
   assert.doesNotMatch(webgpuRenderer, /LOADING_CANVAS|resolveLoadingCanvas|SimulatteLoadingCanvas/);
   assert.doesNotMatch(webgpuRenderer, /loadingGrid\(uv, t, u\.loading\.y, u\.loading\.z\)/);
   assert.doesNotMatch(webgpuRenderer, /\$\{LOADING_CANVAS\.shader\}/);
@@ -641,40 +782,70 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /multi-snake-loading-canvas/);
   assert.doesNotMatch(loadingCanvas, /buildSnakePath|mixGreen|mixSnakeTone|#07170f|#061008|#ff3d1f|#ff321f|#e7ff40|108, 255, 126/);
   assert.doesNotMatch(html, /#7ac943|#356b20|#2bb8a6|rgba\(122, 201, 67|rgba\(105, 216, 187|rgba\(43, 184, 166/);
-  assert.match(webgpuRenderer, /function visualTextFromSpec/);
-  const visualTextBody = webgpuRenderer.match(/function visualTextFromSpec\(spec\) \{[\s\S]*?\n  \}/);
-  assert.ok(visualTextBody, 'webgpu renderer should expose visualTextFromSpec');
-  assert.doesNotMatch(visualTextBody[0], /renderProgram\.intentText/);
-  assert.doesNotMatch(visualTextBody[0], /renderProgram\.prompt/);
-  assert.doesNotMatch(visualTextBody[0], /rendererPlan\.intentText/);
-  assert.doesNotMatch(visualTextBody[0], /renderIR\.prompt/);
-  assert.match(webgpuRenderer, /function isCompiledSpecificScene/);
-  assert.match(webgpuRenderer, /if \(isCompiledSpecificScene\(sceneKind\)\) return sceneKind;/);
-  assert.match(webgpuRenderer, /function graphicsAtomTextRows/);
-  assert.match(webgpuRenderer, /function graphicsAtomFeatureVector/);
-  assert.match(webgpuRenderer, /function graphicsAtomUniformVector/);
-  assert.match(webgpuRenderer, /function compressAtomUniformVector/);
+  assert.doesNotMatch(webgpuRenderer, /function visualTextFromSpec/);
+  assert.doesNotMatch(webgpuRenderer, /function refineSceneKindFromText/);
+  assert.doesNotMatch(webgpuRenderer, /function isCompiledSpecificScene/);
+  assert.doesNotMatch(webgpuRenderer, /function graphicsAtomTextRows/);
+  assert.doesNotMatch(webgpuRenderer, /function graphicsAtomFeatureVector/);
+  assert.doesNotMatch(webgpuRenderer, /function graphicsAtomUniformVector/);
+  assert.doesNotMatch(webgpuRenderer, /function composedSceneVector/);
+  assert.doesNotMatch(webgpuRenderer, /function sceneMixEvidenceText/);
+  assert.doesNotMatch(webgpuRenderer, /function addGraphicsAtomSceneMix/);
+  assert.doesNotMatch(webgpuRenderer, /function addSceneTextMix/);
+  assert.doesNotMatch(webgpuRenderer, /promptTextForSceneMix|suppressSceneMixFalsePositives/);
+  assert.match(webgpuRenderer, /const VISUAL_IR_LAYER_SLOTS = Object\.freeze/);
+  assert.match(webgpuRenderer, /function visualIrLayerVector/);
+  assert.match(webgpuRenderer, /scenePacketUniformVector\(packet, 'visualLayers', VISUAL_IR_LAYER_SLOTS\.length\)/);
+  assert.match(webgpuRenderer, /function sceneRenderPacketFromExecutionInput/);
+  assert.match(webgpuRenderer, /function emptySceneRenderPacket/);
+  assert.match(webgpuRenderer, /function scenePacketSceneId/);
+  assert.match(webgpuRenderer, /function scenePacketAtomUniformVector/);
+  assert.match(webgpuRenderer, /function scenePacketSceneMixVector/);
+  assert.match(webgpuRenderer, /function scenePacketObjectUniformVector/);
+  assert.match(webgpuRenderer, /function scenePacketIdentitySummary/);
+  assert.match(webgpuRenderer, /function scenePacketSemanticCode/);
+  assert.match(webgpuRenderer, /function addScenePacketLayers/);
+  assert.match(webgpuRenderer, /fn sceneRenderPacketScene/);
+  assert.doesNotMatch(webgpuRenderer, /function addVisualIrLayerEvidence/);
+  assert.match(webgpuRenderer, /function compressVisualIrLayerVector/);
+  assert.match(webgpuRenderer, /function visualIrLayerSummary/);
+  assert.match(webgpuRenderer, /function sceneMixSummary/);
   assert.match(webgpuRenderer, /dominantAtomSlot/);
-  assert.match(webgpuRenderer, /mergeFeatureVectors\(featureVector\(text\), graphicsAtomFeatureVector\(spec\)\)/);
+  assert.doesNotMatch(webgpuRenderer, /mergeFeatureVectors\(featureVector\(text\), graphicsAtomFeatureVector\(spec\)\)/);
+  assert.doesNotMatch(webgpuRenderer, /renderProgram\.intentText|renderProgram\.prompt|rendererPlan\.intentText|renderIR\.prompt/);
   assert.match(webgpuRenderer, /atomAt\(index: i32\)/);
+  assert.match(webgpuRenderer, /sceneMixAt\(index: i32\)/);
+  assert.match(webgpuRenderer, /visualIrAt\(index: i32\)/);
+  assert.match(webgpuRenderer, /scenePacketObjectAt\(index: i32\)/);
+  assert.match(webgpuRenderer, /scenePacketStyleAt\(index: i32\)/);
   assert.match(webgpuRenderer, /atomStructuralScene/);
   assert.match(webgpuRenderer, /capsuleLine/);
   assert.match(webgpuRenderer, /rectMask/);
   assert.match(webgpuRenderer, /atomOperatorOverlays/);
+  assert.match(webgpuRenderer, /graphComposedVisualIrScene/);
+  assert.match(webgpuRenderer, /composedVisualIrScene/);
   assert.match(webgpuRenderer, /atomThermalPlume/);
   assert.match(webgpuRenderer, /atomFluidRibbons/);
   assert.match(webgpuRenderer, /atomQuantumFringes/);
   assert.match(webgpuRenderer, /color = atomStructuralScene\(p, t, color\)/);
+  assert.match(webgpuRenderer, /color = graphComposedVisualIrScene\(p, t, color\)/);
+  assert.match(webgpuRenderer, /color = composedVisualIrScene\(p, t, color\)/);
   assert.match(webgpuRenderer, /color = atomOperatorOverlays\(p, t, color\)/);
   assert.doesNotMatch(webgpuRenderer, /sceneGroup == 13\.0 \|\| sceneGroup == 15\.0 \|\| sceneGroup == 17\.0 \|\| sceneGroup == 29\.0/);
-  assert.match(webgpuRenderer, /renderIR\.causalAffordances/);
-  assert.match(webgpuRenderer, /visualIR\.causalAffordances/);
-  assert.match(webgpuRenderer, /visualIR\.graphicsAtoms/);
-  assert.match(webgpuRenderer, /graphicsAtoms\.languageSignals/);
-  assert.match(webgpuRenderer, /ranked\.slice\(0, 10\)/);
+  assert.match(webgpuRenderer, /scenePacketUniformVector\(packet, 'visualLayers', VISUAL_IR_LAYER_SLOTS\.length\)/);
+  assert.match(webgpuRenderer, /const codes = row\.renderCodes \|\| \{\}/);
+  assert.match(webgpuRenderer, /this\.canvas\.dataset\.phase8Output = this\.phase8Output\.schema/);
+  assert.match(webgpuRenderer, /scenePacketDrawableRows\(packet\)/);
+  assert.match(webgpuRenderer, /scenePacketSceneMixVector\(this\.sceneRenderPacket, this\.sceneKind\)/);
+  assert.doesNotMatch(webgpuRenderer, /visualIR\.fields|visualIR\.processes|visualIR\.motion|visualIR\.causalAffordances|visualIR\.graphicsAtoms/);
+  assert.doesNotMatch(webgpuRenderer, /graphicsAtoms\.languageSignals|ranked\.slice\(0, 10\)/);
+  assert.match(renderer, /sceneMix: canvas && canvas\.dataset \? canvas\.dataset\.sceneMix/);
   assert.match(renderer, /resolveWithEmbedding\(prompt, params, serial, true\)/);
   assert.match(renderer, /function warmIntentRuntime\(serial\)/);
   assert.match(renderer, /await embedder\.loadModel\(\)/);
+  assert.match(renderer, /const promptRuntimeReceipt = loadedRuntime && loadedRuntime\.promptRuntimeReceipt \|\| null/);
+  assert.match(renderer, /stage: 'runtime-ready'/);
+  assert.match(renderer, /message: 'Prompt runtime ready'/);
   assert.doesNotMatch(renderer, /initialPrompt/);
   assert.doesNotMatch(renderer, /resolveWithEmbedding\(initialPrompt/);
   assert.match(renderer, /function skipInitialBuildForAudit/);
@@ -689,6 +860,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(renderer, /fps < 24 \? 'low' : fps < 45 \? 'warn' : 'ok'/);
   assert.match(renderer, /const rawMessage = event\.detail \|\| event\.message \|\| stage/);
   assert.match(renderer, /runtimeLineText\(event, phase, stage, message, visiblePercent, indeterminate\)/);
+  assert.match(renderer, /Prompt runtime ready 100%/);
   assert.match(renderer, /estimatedRuntimePercent/);
   assert.match(renderer, /visibleRuntimePercent/);
   assert.match(html, /--runtime-progress: 0%/);
@@ -708,6 +880,8 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /VISUAL_RUBRIC_SIGNALS/);
   assert.match(tool, /simulatte\.visualPromptRubric\.v1/);
   assert.match(tool, /expectedVisualSignals/);
+  assert.match(tool, /positiveLanguageText\(prompt\)/);
+  assert.match(tool, /const negated = new RegExp/);
   assert.match(tool, /visualRubricForResult/);
   assert.match(tool, /canvasFrameHashChanged/);
   assert.match(tool, /canvasFrameSampleHashChanged/);
@@ -729,6 +903,28 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.doesNotMatch(tool, /canvasDiversity \* 0\.08/);
   assert.match(tool, /target: options\.url \? 'live-url' : 'local-public'/);
   assert.match(tool, /--intent-mode local\|model/);
+  assert.match(tool, /--profile-dir DIR/);
+  assert.match(tool, /profilePersistent/);
+  assert.match(tool, /SimulatteIntentRuntimeHealth/);
+  assert.match(tool, /__simulatteIntentRuntimeEvents/);
+  assert.match(tool, /runtimeHealth/);
+  assert.match(tool, /visualIRRenderInstanceCount/);
+  assert.match(tool, /phase8Input/);
+  assert.match(tool, /phaseArtifactSchemas/);
+  assert.match(tool, /phase8Output/);
+  assert.match(tool, /const visualIR = phase7VisualCompile && phase7VisualCompile\.visualIR \|\| null/);
+  assert.match(tool, /const sceneRenderPacket = phase7VisualCompile && phase7VisualCompile\.sceneRenderPacket \|\| null/);
+  assert.doesNotMatch(tool, /program && program\.visualIR/);
+  assert.doesNotMatch(tool, /program && program\.sceneRenderPacket/);
+  assert.match(tool, /Phase 8 input is/);
+  assert.match(tool, /Phase 7 visualCompile sceneRenderPacket missing/);
+  assert.match(tool, /simulatte\.sceneRenderPacket\.v1/);
+  assert.match(tool, /sceneRenderPacket/);
+  assert.match(tool, /sceneRenderSpatialHash/);
+  assert.match(tool, /sceneObjectUniforms/);
+  assert.match(tool, /sceneObjectIdentities/);
+  assert.match(tool, /visualIRSceneRenderPacketSchema/);
+  assert.match(tool, /visualIRSceneRenderPacketIdentities/);
   assert.match(tool, /intentMode !== 'model'/);
   assert.match(tool, /url\.searchParams\.set\('auditNoInitial', '1'\)/);
   assert.match(tool, /visualIRGraphicsUniformValues/);
@@ -784,8 +980,8 @@ test('prompt dock minimizes to corners without drag placement', () => {
 
 test('browser product exposes compiled world model receipts', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const lab = fs.readFileSync(path.join(jsDir, 'simulatte-physics-lab.js'), 'utf8');
-  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+  const lab = fs.readFileSync(runtimeFile('simulatte-physics-lab.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
   const auditTool = fs.readFileSync(path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'), 'utf8');
 
   assert.match(html, /id="world-model-panel"/);
@@ -808,15 +1004,15 @@ test('browser product exposes compiled world model receipts', () => {
 });
 
 test('composition renderer diversity lives in compiled graph and WebGPU operators', () => {
-  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
-  const graph = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
-  const registry = fs.readFileSync(path.join(jsDir, 'simulatte-render-registry.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
+  const graph = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
+  const registry = fs.readFileSync(runtimeFile('simulatte-render-registry.js'), 'utf8');
   const webgpuRenderer = fs.readFileSync(
-    path.join(jsDir, 'simulatte-webgpu-renderer.js'),
+    runtimeFile('simulatte-webgpu-renderer.js'),
     'utf8'
   );
   const loadingCanvas = fs.readFileSync(
-    path.join(jsDir, 'simulatte-loading-canvas.js'),
+    runtimeFile('simulatte-loading-canvas.js'),
     'utf8'
   );
 
@@ -830,6 +1026,18 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
     'atomFeedbackArcs',
     'atomNetworkPressure',
     'cinematic3dScene',
+    'graphComposedVisualIrScene',
+    'composedVisualIrScene',
+    'sceneRenderPacketScene',
+    'scenePacketObjectMask',
+    'scenePacketIdentityAt',
+    'sceneMixAt',
+    'visualIrAt',
+    'scenePacketObjectAt',
+    'VISUAL_IR_LAYER_SLOTS',
+    'visualIrLayerVector',
+    'SCENE_MIX_SLOTS',
+    'scenePacketUniformVector',
     'loopPulse',
     'waterLane',
     'gasBubbles',
@@ -840,8 +1048,15 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
     'thin-film',
     'sceneGroup == 33.0',
     'sceneGroup == 34.0',
-    'surface-tension',
-    'pressure wave',
+    'biologicalAgent',
+    'waterVolume',
+    'detectorGeometry',
+    'nodeGraph',
+    'readoutPanel',
+    'trackLine',
+    'organicMatrix',
+    'bubbleVolume',
+    'causalAffordance',
   ]) {
     assert.match(webgpuRenderer, new RegExp(token));
   }
@@ -889,6 +1104,8 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   assert.match(graph, /simulatte\.visualGenome\.v1/);
   assert.match(graph, /simulatte\.compiledVisualDna\.v1/);
   assert.match(graph, /simulatte\.semanticVisualPlan\.v1/);
+  assert.match(graph, /simulatte\.sceneRenderPacketUniforms\.v1/);
+  assert.match(graph, /simulatte\.sceneRenderCodes\.v1/);
   assert.match(graph, /function visualGenomeForComposition/);
   assert.match(graph, /function compiledDnaForGenome/);
   assert.match(graph, /function semanticVisualsForGenome/);
@@ -898,9 +1115,70 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   assert.match(graph, /deterministic-compiled-artifact-seeded/);
 });
 
+test('phase 8 renders compiled scene packets without semantic inference', () => {
+  const webgpuRenderer = fs.readFileSync(
+    runtimeFile('simulatte-webgpu-renderer.js'),
+    'utf8'
+  );
+  const graph = fs.readFileSync(
+    runtimeFile('simulatte-composition-graph.js'),
+    'utf8'
+  );
+
+  const vectorBody = webgpuRenderer.match(/function visualIrLayerVector\(packet\) \{[\s\S]*?return compressVisualIrLayerVector\(vector\);\n  \}/);
+  assert.ok(vectorBody, 'visualIrLayerVector should be parseable');
+  assert.match(vectorBody[0], /scenePacketUniformVector\(packet, 'visualLayers', VISUAL_IR_LAYER_SLOTS\.length\)/);
+  assert.match(vectorBody[0], /addScenePacketLayers\(vector, packet\)/);
+  assert.doesNotMatch(vectorBody[0], /visualIR\.|renderIR\.|graphicsAtoms|renderProgram|visualTextFromSpec|Evidence/);
+  assert.match(graph, /function scenePacketRenderCodes/);
+  assert.match(graph, /schema: 'simulatte\.sceneRenderCodes\.v1'/);
+  assert.match(graph, /schema: 'simulatte\.sceneRenderPacketUniforms\.v1'/);
+  assert.match(graph, /source: 'sceneRenderPacket\.renderCodes'/);
+  assert.match(webgpuRenderer, /row\.renderCodes \|\| \{\}/);
+  assert.match(webgpuRenderer, /codes\.semanticCode/);
+  assert.doesNotMatch(webgpuRenderer, /function visualTextFromSpec|function refineSceneKindFromText|function sceneKindFromSpec|function graphicsAtomFeatureVector|function composedSceneVector/);
+  assert.match(webgpuRenderer, /sceneRenderPacketScene\(p, t, color\)/);
+  assert.match(webgpuRenderer, /scenePacketStrength\(\)/);
+  assert.match(webgpuRenderer, /scenePacketLayerColor\(style\.x\)/);
+  assert.match(webgpuRenderer, /scenePacketIdentityAt\(i\)/);
+
+  const shaderBody = webgpuRenderer.match(/fn graphComposedVisualIrScene\(p: vec2f, t: f32, base: vec3f\) -> vec3f \{[\s\S]*?return mix\(base, color, clamp\(0\.16 \+ layerTotal \* 0\.055, 0\.0, 0\.78\)\);\n\}/);
+  assert.ok(shaderBody, 'graphComposedVisualIrScene should be parseable');
+  for (const layerToken of [
+    'biologicalAgent',
+    'waterVolume',
+    'detectorGeometry',
+    'nodeGraph',
+    'readoutPanel',
+    'trackLine',
+    'fieldSheet',
+    'flowField',
+    'networkFlow',
+    'organicMatrix',
+    'bubbleVolume',
+    'constraintSurface',
+    'causalAffordance',
+    'processPulse',
+  ]) {
+    assert.match(shaderBody[0], new RegExp(layerToken));
+  }
+  for (const primitive of [
+    'animalBodyA',
+    'waterBody',
+    'detectorShell',
+    'detectorPanel',
+    'graphNodes',
+    'graphPulse',
+    'dough',
+    'causalArrowA',
+  ]) {
+    assert.match(shaderBody[0], new RegExp(primitive));
+  }
+});
+
 test('WebGPU scene id and operator contracts cover emitted visual artifacts', () => {
   const webgpuRenderer = fs.readFileSync(
-    path.join(jsDir, 'simulatte-webgpu-renderer.js'),
+    runtimeFile('simulatte-webgpu-renderer.js'),
     'utf8'
   );
   const sceneBlock = webgpuRenderer.match(/const SCENE_IDS = Object\.freeze\(\{([\s\S]*?)\n  \}\);/);
@@ -945,7 +1223,7 @@ test('WebGPU scene id and operator contracts cover emitted visual artifacts', ()
 });
 
 test('physics graph updates log intent and composition debug data by default', () => {
-  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
 
   assert.match(renderer, /logGraphDebug\(spec\)/);
   assert.match(renderer, /function logGraphDebug/);
@@ -961,12 +1239,12 @@ test('physics graph updates log intent and composition debug data by default', (
 });
 
 test('compiler phases consume only neighboring compiled artifacts after intent grounding', () => {
-  const model = fs.readFileSync(path.join(jsDir, 'simulatte-physics-model.js'), 'utf8');
-  const physicsIR = fs.readFileSync(path.join(jsDir, 'simulatte-physics-ir.js'), 'utf8');
-  const composition = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
-  const webgpu = fs.readFileSync(path.join(jsDir, 'simulatte-webgpu-renderer.js'), 'utf8');
-  const visualOperatorCompiler = fs.readFileSync(path.join(jsDir, 'simulatte-visual-operator-compiler.js'), 'utf8');
-  const activationCloud = fs.readFileSync(path.join(jsDir, 'simulatte-activation-cloud.js'), 'utf8');
+  const model = fs.readFileSync(runtimeFile('simulatte-physics-model.js'), 'utf8');
+  const physicsIR = fs.readFileSync(runtimeFile('simulatte-physics-ir.js'), 'utf8');
+  const composition = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
+  const webgpu = fs.readFileSync(runtimeFile('simulatte-webgpu-renderer.js'), 'utf8');
+  const visualOperatorCompiler = fs.readFileSync(runtimeFile('simulatte-visual-operator-compiler.js'), 'utf8');
+  const activationCloud = fs.readFileSync(runtimeFile('simulatte-activation-cloud.js'), 'utf8');
   const physicsIRCall = model.match(/nextIR = buildPhysicsIR\(\{[\s\S]*?\n      \}\);/);
   const directLanguageText = visualOperatorCompiler.match(/function directLanguageText\(context = \{\}\) \{[\s\S]*?\n  \}/);
 
@@ -977,16 +1255,56 @@ test('compiler phases consume only neighboring compiled artifacts after intent g
   assert.match(physicsIR, /const prompt = universeGraph\.prompt \|\| ''/);
   assert.doesNotMatch(physicsIR, /input\.prompt \|\| universeGraph\.prompt/);
 
-  assert.match(composition, /const universeGraph = spec\.universeGraph \|\| \{\}/);
+  assert.match(model, /function createPhaseEnvelope/);
+  assert.match(model, /schema: phaseOutputSchema\(phaseNumber\)/);
+  assert.match(model, /const PHASE_CONTRACTS = Object\.freeze/);
+  assert.match(model, /missing artifact\.\$?\{?key/);
+  assert.match(model, /unexpected artifact\.\$?\{?key/);
+  assert.match(model, /contains forbidden upstream field/);
+  assert.match(model, /function runPhase3Retrieval\(phase2Output, runtimeContext = \{\}, retrievalEvidence = \{\}\)/);
+  assert.match(model, /const query = String\(languageGraph\.sourceText \|\| ''\)/);
+  assert.match(model, /function retrievalGroundingEvidence\(retrievalEvidence = \{\}\)/);
+  assert.match(model, /function runPhase4ActivationCloud\(phase3Output, runtimeContext = \{\}\)/);
+  assert.match(model, /const groundingEvidence = retrievalRerankResult\.groundingEvidence \|\| \{\}/);
+  assert.match(model, /function runPhase5GroundedIntent\(phase4Output, runtimeContext = \{\}\)/);
+  assert.match(model, /const groundingEvidence = activationCloud\.groundingEvidence \|\| \{\}/);
+  assert.match(model, /function runPhase6SimulationCompile\(phase5Output, runtimeContext = \{\}\)/);
+  assert.doesNotMatch(model, /function runPhase4ActivationCloud\(phase3Output, runtimeContext = \{\}, activationEvidence/);
+  assert.doesNotMatch(model, /function runPhase5GroundedIntent\(phase4Output, runtimeContext = \{\}, groundedEvidence/);
+  assert.doesNotMatch(model, /function runPhase6SimulationCompile\(phase5Output, runtimeContext = \{\}, compiled/);
+  assert.match(model, /function phase7InputFromSimulationCompile\(phase6Output\)/);
+  assert.match(model, /function compilePhase7VisualProgram\(phase6Output, compositionGraph = null\)/);
+  assert.doesNotMatch(model, /function createVisualCompileEnvelope\(phase6Output, compositionGraph = null, renderProgram/);
+  assert.match(model, /renderExecutionInput source expected/);
+  assert.doesNotMatch(model, /source && source\.visualCompile/);
+  assert.match(model, /Phase 8 input expected sceneRenderPacket simulatte\.sceneRenderPacket\.v1/);
+  assert.match(model, /buildCompositionGraph\(phase7Input\)/);
+  assert.match(model, /compileCompositionToRenderProgram\(nextCompositionGraph, phase7Input\)/);
   assert.match(composition, /const conceptGraph = Array\.isArray\(universeGraph\.nodes\)/);
   assert.match(composition, /const brief = spec && spec\.renderIR && spec\.renderIR\.intentBriefReceipt/);
+  assert.match(composition, /function visualObjectAcceptanceLedger/);
+  assert.match(composition, /simulatte\.visualObjectAcceptanceLedger\.v1/);
+  assert.match(composition, /simulatte\.renderInstance\.v1/);
+  assert.match(composition, /supportObjects: objectLedger\.rejected/);
   assert.doesNotMatch(composition, /const intent = spec\.intent/);
   assert.doesNotMatch(composition, /intent\.conceptGraph/);
   assert.doesNotMatch(composition, /spec\.intent\.synthesis/);
   assert.doesNotMatch(composition, /spec\.intent\.prompt/);
   assert.doesNotMatch(composition, /spec\.intent\.intentBrief/);
+  assert.doesNotMatch(composition, /spec\.prompt(?!Parse)/);
+  assert.doesNotMatch(composition, /spec\.renderProgram/);
 
+  assert.doesNotMatch(webgpu, /sceneRenderPacketFromSpec/);
+  assert.match(webgpu, /function sceneRenderPacketFromExecutionInput/);
+  assert.match(webgpu, /setRenderExecutionInput\(renderExecutionInput\)/);
+  assert.match(webgpu, /simulatte\.renderExecutionInput\.v1/);
+  assert.match(webgpu, /received bare simulatte\.sceneRenderPacket\.v1/);
+  assert.match(webgpu, /Phase 8 expected inputSchema/);
+  assert.doesNotMatch(webgpu, /return renderExecutionInput;/);
   assert.doesNotMatch(webgpu, /spec\.intent/);
+  assert.doesNotMatch(webgpu, /renderProgram/);
+  assert.doesNotMatch(webgpu, /renderIR/);
+  assert.doesNotMatch(webgpu, /retrieval/);
   assert.doesNotMatch(webgpu, /intent\.semanticRag|intent\.cardMatches|intent\.surfaceCards/);
   assert.ok(directLanguageText, 'visual operator compiler should expose directLanguageText');
   assert.doesNotMatch(directLanguageText[0], /physicsIR\.prompt/);
@@ -1004,7 +1322,7 @@ test('compiler phases consume only neighboring compiled artifacts after intent g
 });
 
 test('intent runtime keeps one visible line and does not silently fallback locally', () => {
-  const renderer = fs.readFileSync(path.join(jsDir, 'simulatte-physics-renderer.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
 
   assert.match(renderer, /compactIntentRuntimeMessage/);
@@ -1013,6 +1331,12 @@ test('intent runtime keeps one visible line and does not silently fallback local
   assert.match(renderer, /function intentTraceEnabled/);
   assert.match(renderer, /function logIntentRuntimeEvent/);
   assert.match(renderer, /function registerModelCacheWorker/);
+  assert.match(renderer, /function passiveRuntimeEvent/);
+  assert.match(renderer, /function publishIntentRuntimeHealth/);
+  assert.match(renderer, /SimulatteIntentRuntimeHealth/);
+  assert.match(renderer, /__simulatteIntentRuntimeEvents/);
+  assert.match(renderer, /node\.dataset\.health/);
+  assert.match(renderer, /elements\.node\.dataset\.blocking/);
   assert.match(renderer, /traceEmbeddings: intentTraceEnabled\(root\.defaultView\)/);
   assert.match(renderer, /registerModelCacheWorker\(root\.defaultView/);
   assert.match(renderer, /cache-skip/);
@@ -1043,13 +1367,13 @@ test('intent runtime keeps one visible line and does not silently fallback local
 });
 
 test('composition shape inference does not classify catalog provenance as cats', () => {
-  const graph = fs.readFileSync(path.join(jsDir, 'simulatte-composition-graph.js'), 'utf8');
+  const graph = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
 
   assert.ok(graph.includes('/\\b(mouse|gerbil|hamster|dog|cat|animal|organism)\\b/'));
   assert.doesNotMatch(graph, /\/mouse\|gerbil\|hamster\|dog\|cat\|animal\|organism\//);
 });
 
-test('Firebase hosting revalidates app shell and app JavaScript', () => {
+test('Firebase hosting revalidates app lab and app JavaScript', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'firebase.json'), 'utf8'));
   const headers = config.hosting.headers;
   const noCacheSources = new Set(headers
@@ -1060,21 +1384,23 @@ test('Firebase hosting revalidates app shell and app JavaScript', () => {
 
   assert.ok(noCacheSources.has('/'));
   assert.ok(noCacheSources.has('/index.html'));
-  assert.ok(noCacheSources.has('/js/**'));
+  assert.ok(noCacheSources.has('/app/**'));
+  assert.ok(noCacheSources.has('/pipeline/**'));
+  assert.ok(noCacheSources.has('/workers/**'));
   assert.ok(noCacheSources.has('/simulatte-model-cache-sw.js'));
   assert.ok(noCacheSources.has('/vendor/doppler/**'));
 });
 
 test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
-  const manifestPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'manifest.json');
-  const indexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'primitive-index-v2.json');
-  const cardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-embeddinggemma-v1.json');
-  const retiredQwenCardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-qwen-v1.json');
-  const retiredCardIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'surface-card-index-v1.json');
-  const retiredIndexPath = path.join(root, 'public', 'models', 'simulatte-embedder', 'primitive-index-v1.json');
-  const retiredEncoderPath = path.join(root, 'public', 'models', 'simulatte-intent-embed-v1.json');
-  const universeManifestPath = path.join(root, 'public', 'models', 'simulatte-universe', 'manifest.json');
-  const runtime = fs.readFileSync(path.join(jsDir, 'simulatte-intent-embedder.js'), 'utf8');
+  const manifestPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'manifest.json');
+  const indexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'primitive-index-v2.json');
+  const cardIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'surface-card-index-embeddinggemma-v1.json');
+  const retiredQwenCardIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'surface-card-index-qwen-v1.json');
+  const retiredCardIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'surface-card-index-v1.json');
+  const retiredIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'primitive-index-v1.json');
+  const retiredEncoderPath = path.join(root, 'public', 'data', 'simulatte-intent-embed-v1.json');
+  const universeManifestPath = path.join(root, 'public', 'data', 'simulatte-universe', 'manifest.json');
+  const runtime = fs.readFileSync(runtimeFile('simulatte-intent-embedder.js'), 'utf8');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
   const cardIndex = JSON.parse(fs.readFileSync(cardIndexPath, 'utf8'));
@@ -1094,6 +1420,19 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
   assert.equal(manifest.retrieval.universe.artifact, '../simulatte-universe/manifest.json');
   assert.equal(manifest.retrieval.universe.dimensions, 768);
+  assert.equal(manifest.reranker.schema, 'simulatte.intentRerankerConfig.v1');
+  assert.equal(manifest.reranker.id, 'simulatte.doppler-intent-reranker.v1');
+  assert.equal(manifest.reranker.kind, 'doppler-reranker');
+  assert.equal(manifest.reranker.phase, 3);
+  assert.equal(manifest.reranker.executeInPhase, 3);
+  assert.equal(manifest.reranker.enabled, true);
+  assert.equal(manifest.reranker.required, false);
+  assert.equal(manifest.reranker.loadInPhase1WhenRequired, true);
+  assert.equal(manifest.reranker.inputSchema, 'simulatte.intentRerankInput.v1');
+  assert.equal(manifest.reranker.outputSchema, 'simulatte.intentRerank.v1');
+  assert.equal(manifest.reranker.fallbackMode, 'heuristic-fusion');
+  assert.ok(manifest.reranker.candidateScope.includes('primitive'));
+  assert.ok(manifest.reranker.candidateScope.includes('span'));
   assert.equal(manifest.embedModel.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
   assert.equal(manifest.embedModel.family, 'embeddinggemma');
   assert.equal(manifest.embedModel.modelType, 'embedding');
@@ -1157,6 +1496,35 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(runtime, /rankSurfaceCards/);
   assert.match(runtime, /cardMatches/);
   assert.match(runtime, /ensureModelArtifactCache/);
+  assert.match(runtime, /async loadModel\(options = \{\}\)/);
+  assert.match(runtime, /PROMPT_RUNTIME_PROBES = Object\.freeze/);
+  assert.match(runtime, /PROMPT_RUNTIME_STABILITY_THRESHOLD = 0\.995/);
+  assert.match(runtime, /PROMPT_RUNTIME_DIVERSITY_THRESHOLD = 0\.9999/);
+  assert.match(runtime, /verifyPromptRuntimeProvider/);
+  assert.match(runtime, /verifyPromptRuntimeReranker/);
+  assert.match(runtime, /rerankerConfig/);
+  assert.match(runtime, /resolveRerankerCapability/);
+  assert.match(runtime, /simulatte\.intentRerankerConfig\.v1/);
+  assert.match(runtime, /simulatte\.intentRerankInput\.v1/);
+  assert.match(runtime, /stage: 'model-rerank-probe'/);
+  assert.match(runtime, /rerankerMode: 'heuristic-fusion'/);
+  assert.match(runtime, /rerankerMode: 'doppler-reranker'/);
+  assert.match(runtime, /promptRuntimeProbeDiversity/);
+  assert.match(runtime, /embeddingVectorHash/);
+  assert.match(runtime, /promptRuntimeReceipt/);
+  assert.match(runtime, /simulatte\.promptRuntimeReceipt\.v1/);
+  assert.match(runtime, /stage: 'model-probe'/);
+  assert.match(runtime, /runtime\.promptRuntimeReceipt = receipt/);
+  assert.match(runtime, /providerReady: true/);
+  assert.match(runtime, /noFallback: true/);
+  assert.match(runtime, /rerankerRequired: rerankerProbe\.required === true/);
+  assert.match(runtime, /rerankerReady: rerankerProbe\.ready === true/);
+  assert.match(runtime, /rerankerPhase: 3/);
+  assert.match(runtime, /probeCount: probe\.probeCount \|\| 0/);
+  assert.match(runtime, /stabilitySimilarity: probe\.stabilitySimilarity \|\| 0/);
+  assert.match(runtime, /maxDistinctProbeSimilarity: probe\.maxDistinctProbeSimilarity \|\| 0/);
+  assert.match(runtime, /degenerate probe embeddings/);
+  assert.doesNotMatch(runtime, /Embedding runtime metadata ready/);
   assert.match(runtime, /TRACE_URL_FLAGS/);
   assert.match(runtime, /cache-skip/);
   assert.match(runtime, /openOpfsCache/);
@@ -1182,9 +1550,11 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(runtime, /GPUBufferUsage\.STORAGE/);
 
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const worker = fs.readFileSync(path.join(root, 'public', 'simulatte-model-cache-sw.js'), 'utf8');
+  const workerShim = fs.readFileSync(path.join(root, 'public', 'simulatte-model-cache-sw.js'), 'utf8');
+  const worker = fs.readFileSync(path.join(root, 'public', 'workers', 'simulatte-model-cache-sw.js'), 'utf8');
   assert.match(html, /id="intent-runtime"/);
   assert.match(html, /intent-runtime-fill/);
+  assert.match(workerShim, /importScripts\('\.\/workers\/simulatte-model-cache-sw\.js'\)/);
   assert.match(worker, /CACHE_PREFIX = 'simulatte-embedding-model-'/);
   assert.match(worker, /OPFS_ROOT = 'simulatte-model-cache'/);
   assert.match(worker, /opfsModelResponse/);
@@ -1194,7 +1564,7 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
 
 test('product path removed the parallel world planner and legacy compiler export', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const model = require('../public/js/simulatte-physics-model.js');
+  const model = require('../public/pipeline/phase-06-simulation/simulatte-physics-model.js');
 
   assert.doesNotMatch(html, /simulatte-world-plan\.js/);
   assert.equal(Object.hasOwn(model, 'createLegacySpecFromPrompt'), false);

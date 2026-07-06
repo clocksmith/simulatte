@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte Phase Contracts",
+  "schema": "simulatte.phaseContracts.v1",
+  "version": "strict-8-phase-v1",
+  "envelope": {
+    "schemaPattern": "simulatte.phaseN.output.v1",
+    "required": [
+      "schema",
+      "phase",
+      "inputSchema",
+      "runtimeReceiptId",
+      "artifact",
+      "receipts"
+    ],
+    "receiptsSchema": "simulatte.phaseReceipt.v1"
+  },
+  "phases": [
+    {
+      "id": "phase1RuntimeReady",
+      "phase": 1,
+      "allowedInputs": [
+        "simulatte.phase0.input.v1",
+        "appConfig",
+        "modelManifest",
+        "indexManifest",
+        "cacheState",
+        "providerCapabilities",
+        "rawPromptIngress"
+      ],
+      "outputSchema": "simulatte.phase1.output.v1",
+      "artifactSchema": "simulatte.phase1.runtimeReady.v1",
+      "artifactKeys": [
+        "runtimeContext",
+        "promptIngress"
+      ],
+      "receipts": [
+        "phase1-runtime-context",
+        "model-ready",
+        "model-probe",
+        "cache-health",
+        "runtime-ready"
+      ],
+      "forbiddenUpstreamReads": []
+    },
+    {
+      "id": "phase2LanguageGraph",
+      "phase": 2,
+      "allowedInputs": [
+        "simulatte.phase1.output.v1",
+        "phase1.runtimeContext",
+        "phase1.promptIngress.sourceText"
+      ],
+      "outputSchema": "simulatte.phase2.output.v1",
+      "artifactSchema": "simulatte.phase2.languageGraph.v1",
+      "artifactKeys": [
+        "languageGraph",
+        "promptParse"
+      ],
+      "receipts": [
+        "phase2-language-graph"
+      ],
+      "forbiddenUpstreamReads": [
+        "retrievalRows",
+        "activationCloud",
+        "groundedIntent",
+        "renderIR",
+        "visualIR",
+        "renderProgram"
+      ]
+    },
+    {
+      "id": "phase3RetrievalRerank",
+      "phase": 3,
+      "allowedInputs": [
+        "simulatte.phase2.output.v1",
+        "phase1.runtimeContext"
+      ],
+      "outputSchema": "simulatte.phase3.output.v1",
+      "artifactSchema": "simulatte.phase3.retrievalRerank.v1",
+      "artifactKeys": [
+        "languageGraph",
+        "retrievalRerankResult"
+      ],
+      "receipts": [
+        "phase3-retrieval-rerank"
+      ],
+      "forbiddenUpstreamReads": [
+        "rawPrompt",
+        "spec.intent",
+        "activationCloud",
+        "groundedIntent",
+        "renderIR",
+        "visualIR",
+        "renderProgram"
+      ]
+    },
+    {
+      "id": "phase4ActivationCloud",
+      "phase": 4,
+      "allowedInputs": [
+        "simulatte.phase3.output.v1",
+        "phase1.runtimeContext"
+      ],
+      "outputSchema": "simulatte.phase4.output.v1",
+      "artifactSchema": "simulatte.phase4.activationCloud.v1",
+      "artifactKeys": [
+        "languageGraph",
+        "retrievalRerankResult",
+        "activationCloud"
+      ],
+      "receipts": [
+        "phase4-activation-cloud"
+      ],
+      "forbiddenUpstreamReads": [
+        "rawPrompt",
+        "spec.intent",
+        "groundedIntent",
+        "physicsIR",
+        "renderIR",
+        "visualIR",
+        "renderProgram"
+      ]
+    },
+    {
+      "id": "phase5GroundedIntent",
+      "phase": 5,
+      "allowedInputs": [
+        "simulatte.phase4.output.v1",
+        "phase1.runtimeContext"
+      ],
+      "outputSchema": "simulatte.phase5.output.v1",
+      "artifactSchema": "simulatte.phase5.groundedIntent.v1",
+      "artifactKeys": [
+        "activationCloud",
+        "groundedIntent"
+      ],
+      "receipts": [
+        "phase5-grounded-intent"
+      ],
+      "forbiddenUpstreamReads": [
+        "rawPrompt",
+        "rankedPrimitives",
+        "rankedCards",
+        "rankedUniverseRows",
+        "semanticRag",
+        "physicsIR",
+        "renderIR",
+        "visualIR",
+        "renderProgram"
+      ]
+    },
+    {
+      "id": "phase6SimulationCompile",
+      "phase": 6,
+      "allowedInputs": [
+        "simulatte.phase5.output.v1",
+        "phase1.runtimeContext"
+      ],
+      "outputSchema": "simulatte.phase6.output.v1",
+      "artifactSchema": "simulatte.phase6.simulationCompile.v1",
+      "artifactKeys": [
+        "simulationCompile"
+      ],
+      "receipts": [
+        "phase6-simulation-compile"
+      ],
+      "forbiddenUpstreamReads": [
+        "rawPrompt",
+        "retrievalRows",
+        "activationCloudWithoutPhase5",
+        "renderProgram",
+        "visualIR"
+      ]
+    },
+    {
+      "id": "phase7VisualCompile",
+      "phase": 7,
+      "allowedInputs": [
+        "simulatte.phase6.output.v1",
+        "phase1.runtimeContext"
+      ],
+      "outputSchema": "simulatte.phase7.output.v1",
+      "artifactSchema": "simulatte.phase7.visualCompile.v1",
+      "artifactKeys": [
+        "visualCompile"
+      ],
+      "receipts": [
+        "phase7-visual-compile"
+      ],
+      "forbiddenUpstreamReads": [
+        "rawPrompt",
+        "spec.intent",
+        "retrievalRows",
+        "activationCloud",
+        "groundedIntentDirect",
+        "renderProgram.visualIR"
+      ]
+    },
+    {
+      "id": "phase8RenderExecution",
+      "phase": 8,
+      "allowedInputs": [
+        "simulatte.phase7.output.v1",
+        "phase1.runtimeContext",
+        "simulationState",
+        "canvas"
+      ],
+      "outputSchema": "simulatte.phase8.output.v1",
+      "artifactSchema": "simulatte.phase8.renderExecution.v1",
+      "artifactKeys": [
+        "renderExecution"
+      ],
+      "receipts": [
+        "phase8-webgpu-render"
+      ],
+      "forbiddenUpstreamReads": [
+        "rawPrompt",
+        "promptParse",
+        "spec.intent",
+        "retrievalRows",
+        "activationCloud",
+        "groundedIntent",
+        "renderIR",
+        "visualIR",
+        "renderProgram"
+      ]
+    }
+  ]
+}

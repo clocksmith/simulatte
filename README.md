@@ -86,23 +86,34 @@ Example prompts are convenience inputs, not product boundaries.
 
 ## Browser Modules
 
-- `public/js/simulatte-language-evidence.js`: language-first span and predicate
+App code is intentionally split by what a browser user is touching:
+
+- `public/app/start/`: startup files.
+- `public/app/lab/`: the Simulatte lab controller that wires prompt input,
+  compiler output, runtime status, receipts, simulation state, and render calls.
+- `public/app/session/`: app-side session state and scenario/world-session
+  behavior, not compiler world semantics.
+- `public/app/controls/`: DOM controls, panels, status, loading, debug, and review UI.
+- `public/app/graphics/`: app drawing helpers such as iso rendering, GL helpers,
+  textures, and material assets.
+
+- `public/pipeline/phase-02-language/simulatte-language-evidence.js`: language-first span and predicate
   evidence.
-- `public/js/simulatte-intent-embedder.js`: model-backed retrieval over
+- `public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js`: model-backed retrieval over
   precomputed primitive, surface-card, and universe indexes.
-- `public/js/simulatte-activation-cloud.js`: span-to-candidate activations and
+- `public/pipeline/phase-04-activation/simulatte-activation-cloud.js`: span-to-candidate activations and
   native visual signal rows.
-- `public/js/simulatte-grounded-interpretation.js`: accepted activations,
+- `public/pipeline/phase-05-grounded-intent/simulatte-grounded-interpretation.js`: accepted activations,
   evidence bindings, unresolved spans, and coverage gaps.
-- `public/js/simulatte-intent-forensics.js`: canonical intent brief assembly.
-- `public/js/simulatte-universe-grounder.js`: grounded world graph and compact
+- `public/pipeline/phase-05-grounded-intent/simulatte-intent-forensics.js`: canonical intent brief assembly.
+- `public/pipeline/phase-05-grounded-intent/simulatte-universe-grounder.js`: grounded world graph and compact
   downstream intent receipts.
-- `public/js/simulatte-physics-ir.js`: typed simulation IR.
-- `public/js/simulatte-composition-graph.js`: VisualIR and graphics atom
+- `public/pipeline/phase-06-simulation/simulatte-physics-ir.js`: typed simulation IR.
+- `public/pipeline/phase-07-visual/simulatte-composition-graph.js`: VisualIR and graphics atom
   composition.
-- `public/js/simulatte-webgpu-renderer.js`: browser-native visual execution from
+- `public/pipeline/phase-08-render/simulatte-webgpu-renderer.js`: browser-native visual execution from
   compiled VisualIR and graphics atom uniforms.
-- `public/js/simulatte-physics-renderer.js`: browser UI coordinator, prompt
+- `public/app/lab/simulatte-physics-renderer.js`: browser UI coordinator, prompt
   runtime, worker fallback, receipts, and live simulation loop.
 
 ## Quality Gates

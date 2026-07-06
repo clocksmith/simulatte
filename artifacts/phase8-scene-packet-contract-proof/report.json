@@ -1,0 +1,3735 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-05T16:12:15.788Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "model",
+  "target": "local-public",
+  "url": "http://127.0.0.1:49767/index.html?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-Ts5tu4",
+  "profilePersistent": false,
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 3,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 3,
+    "uniqueCanvasHashes": 3,
+    "uniqueScreenshotHashes": 3,
+    "sceneKinds": [
+      "city",
+      "particle-instrument",
+      "watershed"
+    ],
+    "visualIRSceneKinds": [
+      "city",
+      "particle-instrument",
+      "watershed"
+    ],
+    "visualIRCameras": [
+      "instrumented-lab-depth",
+      "network-map-depth",
+      "topographic-cutaway-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 97,
+      "mappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.instrument-readout.v1",
+        "visual.operator.network-flow.v1",
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.phase-transition.v1",
+        "visual.operator.quantum-phase-readout.v1"
+      ],
+      "uniformSlots": [
+        "biological",
+        "constraint",
+        "density",
+        "emission",
+        "fluid",
+        "instrument",
+        "measurement",
+        "motion",
+        "network",
+        "phase",
+        "quantum",
+        "signal",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront",
+        "atomFeedbackArcs",
+        "atomFluidRibbons",
+        "atomInstrumentReadout",
+        "atomLatentHeatBand",
+        "atomMeasurementBands",
+        "atomNetworkPressure",
+        "atomPacketPulses",
+        "atomPhaseBoundary",
+        "atomQuantumFringes",
+        "atomReadoutPulse",
+        "atomVectorFlow"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 99.33,
+      "passCount": 3,
+      "failCount": 0,
+      "expectedSignals": [
+        "biological",
+        "fluid",
+        "instrument",
+        "network",
+        "quantum"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.957
+    },
+    "intentBriefs": {
+      "totalEvidence": 231,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 231,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 25,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": [
+        3
+      ]
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 87,
+      "grade": "B",
+      "verdict": "pass",
+      "promptCount": 3,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 0,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.957,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "dogs and cats swimming through water with wake trails and visible biological bodies",
+      "screenshot": "01-custom-dogs-and-cats-swimming-through-water-with-wake-trails-and-visible-biological-bod.png",
+      "screenshotHash": "c0c1630c1b2a79440c58cc4ba36bc8c1a615b5ada218575c11db342a894c96d2",
+      "runtimeState": "ready",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "ready",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v1",
+        "timestamp": "2026-07-05T16:12:04.577Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "ready",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "line": "Ready 100%",
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "doppler-browser-load",
+        "timing": {
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "traceId": "",
+          "rankId": 0,
+          "reuse": false,
+          "providerReady": false
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.546Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime-ready",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embeddings 96%",
+          "message": "Prompt runtime ready",
+          "detail": "Prompt runtime ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 16499.4,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": true
+          },
+          "model": {
+            "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95f0b29ec73dea70394c6bcfa8407bc6796df6c9/models/google-embeddinggemma-300m-q4k-ehf16-af32",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 768,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": {
+            "schema": "simulatte.promptRuntimeReceipt.v1",
+            "phase": 1,
+            "phaseId": "prompt-runtime",
+            "ready": true,
+            "noFallback": true,
+            "providerReady": true,
+            "providerBackend": "doppler-browser-load",
+            "manifestId": "simulatte-embeddinggemma-300m-primitive-retrieval-v1"
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.546Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 42,
+          "line": "Retrieving embeddings 42%",
+          "message": "Preparing local embeddinggemma",
+          "detail": "Preparing local embeddinggemma",
+          "backend": "",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95f0b29ec73dea70394c6bcfa8407bc6796df6c9/models/google-embeddinggemma-300m-q4k-ehf16-af32",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 420,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.546Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model-reuse",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 78,
+          "line": "Reusing embedding model 78%",
+          "message": "Reusing loaded embedding model",
+          "detail": "Reusing loaded embedding model",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 0,
+            "reuse": true,
+            "providerReady": true
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.546Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model-ready",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 80,
+          "line": "Embedding model ready 80%",
+          "message": "Embedding provider ready",
+          "detail": "Embedding provider ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 1,
+            "reuse": true,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.546Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "prompt-embed",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 82,
+          "line": "Embedding prompt 82%",
+          "message": "Embedding prompt",
+          "detail": "Embedding prompt",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 83,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.632Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "prompt-embed",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 84,
+          "line": "Embedding prompt 84% 87ms",
+          "message": "Prompt embedding ready",
+          "detail": "Prompt embedding ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 86.8,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 768,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.736Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "rank",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 86,
+          "line": "Ranking embeddings 86% 103ms",
+          "message": "Primitive, surface, and universe scores ranked",
+          "detail": "Primitive, surface, and universe scores ranked",
+          "backend": "",
+          "timing": {
+            "durationMs": 102.9,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 420,
+            "rankBackend": "webgpu",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.805Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "span-retrieval",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 87,
+          "line": "Retrieving embeddings 87%",
+          "message": "Compiling intent",
+          "detail": "Compiling intent",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.861Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "classification",
+          "phaseId": "grounded-intent",
+          "phaseLabel": "Grounded intent",
+          "pipelineStep": 5,
+          "progress": 96,
+          "line": "Grounding intent 96%",
+          "message": "Intent graph ranked",
+          "detail": "Intent graph ranked",
+          "backend": "",
+          "timing": {
+            "durationMs": 16814.8,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:03.863Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "compile",
+          "phaseId": "simulation-compile",
+          "phaseLabel": "Simulation compile",
+          "pipelineStep": 6,
+          "progress": 94,
+          "line": "Compiling simulation 94%",
+          "message": "Building VisualIR",
+          "detail": "pipeline worker",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:04.577Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "visual",
+          "phaseId": "visual-ir",
+          "phaseLabel": "VisualIR compile",
+          "pipelineStep": 7,
+          "progress": 98,
+          "line": "Building VisualIR 98%",
+          "message": "Rendering scene",
+          "detail": "Rendering scene",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:04.577Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "ready",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "line": "Ready 100%",
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "watershed",
+      "physicsCanvasSceneId": "2",
+      "physicsCanvasSceneMix": "water:1.00,biological:0.85,chemical:0.85",
+      "physicsCanvasSceneMixSlots": "3",
+      "phase8Input": "simulatte.sceneRenderPacket.v1",
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:12;fields:5;effects:22;layers:biological-agent+water-volume+field-sheet+process-pulse+chemical-front;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 12,
+      "sceneRenderFieldCount": 5,
+      "sceneRenderEffectCount": 22,
+      "sceneRenderSpatialHash": "c1e1f739",
+      "sceneObjectUniforms": "0:dog:biological-agent@0.59,0.68;1:cat:biological-agent@0.55,0.74;2:cat:biological-agent@0.75,0.69;3:cat:biological-agent@0.75,0.60;4:cat:biological-agent@0.68,0.49;5:dog:biological-agent@0.72,0.53;6:water:water-volume@0.49,0.77;7:water:water-volume@0.52,0.36",
+      "sceneObjectIdentities": "0:dog:animal:biological-agent:@0.59,0.68;1:cat:animal:biological-agent:@0.55,0.74;2:cat:animal:biological-agent:@0.75,0.69;3:cat:animal:biological-agent:@0.75,0.60;4:cat:animal:biological-agent:@0.68,0.49;5:dog:animal:biological-agent:@0.72,0.53;6:water:medium:water-volume:@0.49,0.77;7:water:medium:water-volume:@0.52,0.36",
+      "physicsCanvasRenderCount": "21",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 83.183,
+      "lumaStd": 44.217,
+      "coloredRatio": 0.8422,
+      "canvasHash": "106de79f",
+      "specId": "dogs-cats-swimming-through-water-wake-mr7zogsa",
+      "templateId": "custom-world",
+      "rendererSceneKind": "watershed",
+      "visualIRSceneKind": "watershed",
+      "visualIRCamera": "topographic-cutaway-depth",
+      "visualIREntityCount": 12,
+      "visualIRMaterialCount": 10,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 9,
+      "visualIROperatorCount": 7,
+      "visualIRRenderInstanceCount": 45,
+      "visualIRRejectedRowCount": 13,
+      "visualIRReceiptCount": 11,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIRSceneRenderPacketEntityCount": 12,
+      "visualIRSceneRenderPacketFieldCount": 5,
+      "visualIRSceneRenderPacketEffectCount": 22,
+      "visualIRSceneRenderPacketLayers": [
+        "biological-agent",
+        "water-volume",
+        "field-sheet",
+        "process-pulse",
+        "chemical-front"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "dog",
+        "cat",
+        "water",
+        "swimming"
+      ],
+      "visualIRAcceptedRenderInstances": 45,
+      "visualIRRenderInstanceSlots": [
+        "biological-agent",
+        "biological-agent",
+        "water-volume",
+        "biological-agent",
+        "biological-agent",
+        "water-volume",
+        "water-volume",
+        "field-sheet",
+        "biological-agent",
+        "biological-agent",
+        "water-volume",
+        "water-volume",
+        "water-volume",
+        "biological-agent",
+        "biological-agent",
+        "water-volume",
+        "water-volume",
+        "process-pulse",
+        "chemical-front",
+        "process-pulse",
+        "process-pulse",
+        "water-volume",
+        "biological-agent",
+        "material-surface"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "flow-inlet",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "turbulence-field",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "flow-outlet",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.acoustic-wave.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fermentation-matrix.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 25,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "biological",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.99,
+        "biological": 1,
+        "motion": 0.911,
+        "density": 0.92,
+        "surface": 0.76
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0965",
+          "kind": "catalog-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.0487",
+          "kind": "catalog-candidate",
+          "text": "clause visible biological bodies",
+          "slots": [
+            "biological"
+          ]
+        },
+        {
+          "id": "activation.1289",
+          "kind": "catalog-candidate",
+          "text": "noun phrase visible biological bodies",
+          "slots": [
+            "biological"
+          ]
+        },
+        {
+          "id": "activation.0969",
+          "kind": "visual-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.0970",
+          "kind": "visual-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.0971",
+          "kind": "visual-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.0972",
+          "kind": "visual-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.0973",
+          "kind": "visual-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1005",
+          "kind": "causal-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1006",
+          "kind": "causal-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1007",
+          "kind": "causal-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1008",
+          "kind": "causal-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1009",
+          "kind": "causal-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1017",
+          "kind": "operator-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1018",
+          "kind": "operator-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1019",
+          "kind": "operator-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1020",
+          "kind": "operator-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1021",
+          "kind": "operator-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1023",
+          "kind": "catalog-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1024",
+          "kind": "catalog-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1025",
+          "kind": "catalog-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.1026",
+          "kind": "catalog-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        },
+        {
+          "id": "activation.0871",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.1052",
+          "kind": "concept-candidate",
+          "text": "noun phrase water",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 79,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 6,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 79,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 6,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 3161717,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-dogs-and-cats-swimming-through-water-with-wake-trails-and-visible-biological-bod.canvas.png",
+      "canvasScreenshotLater": "01-custom-dogs-and-cats-swimming-through-water-with-wake-trails-and-visible-biological-bod.canvas-late.png",
+      "canvasScreenshotHash": "fb9089b1d21fdca772459ba6065c29370c145e137394c2216050122a6b1aa9bd",
+      "canvasScreenshotLaterHash": "1d87a79f3f5e6f0757953b9b3737509a0890c1d99ab5c0cf8e5d72618b92aa74",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 44.217,
+      "canvasScreenshotColoredRatio": 0.8422,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.026,
+      "canvasFrameLumaStdDelta": 0.262,
+      "canvasFrameColoredRatioDelta": 0.0132,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "biological"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": []
+          },
+          {
+            "id": "biological",
+            "strength": 1,
+            "slotHits": [
+              "biological",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.biological-growth.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": [
+              "clause visible biological bodies",
+              "biological",
+              "noun phrase visible biological bodies"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 2,
+      "kind": "custom",
+      "prompt": "particle detector with muon tracks through detector geometry and readout panels",
+      "screenshot": "02-custom-particle-detector-with-muon-tracks-through-detector-geometry-and-readout-panels.png",
+      "screenshotHash": "0d21a7e6ed2f5024266d41b2c5ea70f7574c6d76c9ff8dd945f631294d5f713c",
+      "runtimeState": "ready",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "ready",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v1",
+        "timestamp": "2026-07-05T16:12:08.458Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "ready",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "line": "Ready 100%",
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "doppler-browser-load",
+        "timing": {
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "traceId": "",
+          "rankId": 0,
+          "reuse": false,
+          "providerReady": false
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.621Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime-reuse",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embeddings 96%",
+          "message": "Prompt runtime already loaded",
+          "detail": "Prompt runtime already loaded",
+          "backend": "",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 0,
+            "reuse": true,
+            "providerReady": true
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.621Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 42,
+          "line": "Retrieving embeddings 42%",
+          "message": "Preparing local embeddinggemma",
+          "detail": "Preparing local embeddinggemma",
+          "backend": "",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 2,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95f0b29ec73dea70394c6bcfa8407bc6796df6c9/models/google-embeddinggemma-300m-q4k-ehf16-af32",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 420,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.621Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model-reuse",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 78,
+          "line": "Reusing embedding model 78%",
+          "message": "Reusing loaded embedding model",
+          "detail": "Reusing loaded embedding model",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 0,
+            "reuse": true,
+            "providerReady": true
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.621Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model-ready",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 80,
+          "line": "Embedding model ready 80%",
+          "message": "Embedding provider ready",
+          "detail": "Embedding provider ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 2,
+            "reuse": true,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.621Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "prompt-embed",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 82,
+          "line": "Embedding prompt 82%",
+          "message": "Embedding prompt",
+          "detail": "Embedding prompt",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 2,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 79,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.708Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "prompt-embed",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 84,
+          "line": "Embedding prompt 84% 86ms",
+          "message": "Prompt embedding ready",
+          "detail": "Prompt embedding ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 86.4,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 2,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 768,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.812Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "rank",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 86,
+          "line": "Ranking embeddings 86% 104ms",
+          "message": "Primitive, surface, and universe scores ranked",
+          "detail": "Primitive, surface, and universe scores ranked",
+          "backend": "",
+          "timing": {
+            "durationMs": 104,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 2,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 420,
+            "rankBackend": "webgpu",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.876Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "span-retrieval",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 87,
+          "line": "Retrieving embeddings 87%",
+          "message": "Compiling intent",
+          "detail": "Compiling intent",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.934Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "classification",
+          "phaseId": "grounded-intent",
+          "phaseLabel": "Grounded intent",
+          "pipelineStep": 5,
+          "progress": 96,
+          "line": "Grounding intent 96%",
+          "message": "Intent graph ranked",
+          "detail": "Intent graph ranked",
+          "backend": "",
+          "timing": {
+            "durationMs": 313.2,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 2,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:07.936Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "compile",
+          "phaseId": "simulation-compile",
+          "phaseLabel": "Simulation compile",
+          "pipelineStep": 6,
+          "progress": 94,
+          "line": "Compiling simulation 94%",
+          "message": "Building VisualIR",
+          "detail": "pipeline worker",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:08.458Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "visual",
+          "phaseId": "visual-ir",
+          "phaseLabel": "VisualIR compile",
+          "pipelineStep": 7,
+          "progress": 98,
+          "line": "Building VisualIR 98%",
+          "message": "Rendering scene",
+          "detail": "Rendering scene",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:08.458Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "ready",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "line": "Ready 100%",
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "particle-instrument",
+      "physicsCanvasSceneId": "15",
+      "physicsCanvasSceneMix": "thermal:1.00,instrument:0.85,optical:0.85,phase:0.85",
+      "physicsCanvasSceneMixSlots": "4",
+      "phase8Input": "simulatte.sceneRenderPacket.v1",
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:13;fields:9;effects:24;layers:detector-geometry+track-line+field-sheet+material-surface+optical-field+thermal-field+readout-panel+process-pulse;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 13,
+      "sceneRenderFieldCount": 9,
+      "sceneRenderEffectCount": 24,
+      "sceneRenderSpatialHash": "04828626",
+      "sceneObjectUniforms": "0:instrument:detector-geometry@0.18,0.18;1:instrument:detector-geometry@0.77,0.67;2:instrument:detector-geometry@0.60,0.67;3:instrument:detector-geometry@0.57,0.71;4:readout:detector-geometry@0.18,0.18;5:instrument:detector-geometry@0.69,0.47;6:instrument:detector-geometry@0.75,0.58;7:instrument:detector-geometry@0.78,0.74",
+      "sceneObjectIdentities": "0:instrument:instrument:detector-geometry:@0.18,0.18;1:instrument:instrument:detector-geometry:@0.77,0.67;2:instrument:instrument:detector-geometry:@0.60,0.67;3:instrument:instrument:detector-geometry:@0.57,0.71;4:readout:instrument:detector-geometry:@0.18,0.18;5:instrument:instrument:detector-geometry:@0.69,0.47;6:instrument:instrument:detector-geometry:@0.75,0.58;7:instrument:instrument:detector-geometry:@0.78,0.74",
+      "physicsCanvasRenderCount": "92",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 118.117,
+      "lumaStd": 67.89,
+      "coloredRatio": 0.7261,
+      "canvasHash": "e872bb17",
+      "specId": "particle-detector-muon-tracks-through-detector-mr7zojta",
+      "templateId": "custom-world",
+      "rendererSceneKind": "particle-instrument",
+      "visualIRSceneKind": "particle-instrument",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 13,
+      "visualIRMaterialCount": 13,
+      "visualIRFieldCount": 9,
+      "visualIRProcessCount": 12,
+      "visualIROperatorCount": 8,
+      "visualIRRenderInstanceCount": 48,
+      "visualIRRejectedRowCount": 18,
+      "visualIRReceiptCount": 11,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIRSceneRenderPacketEntityCount": 13,
+      "visualIRSceneRenderPacketFieldCount": 9,
+      "visualIRSceneRenderPacketEffectCount": 24,
+      "visualIRSceneRenderPacketLayers": [
+        "detector-geometry",
+        "track-line",
+        "field-sheet",
+        "material-surface",
+        "optical-field",
+        "thermal-field",
+        "readout-panel",
+        "process-pulse",
+        "phase-boundary"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "instrument",
+        "muon tracks through",
+        "readout",
+        "muon",
+        "structure"
+      ],
+      "visualIRAcceptedRenderInstances": 48,
+      "visualIRRenderInstanceSlots": [
+        "detector-geometry",
+        "detector-geometry",
+        "detector-geometry",
+        "track-line",
+        "detector-geometry",
+        "detector-geometry",
+        "detector-geometry",
+        "field-sheet",
+        "material-surface",
+        "detector-geometry",
+        "material-surface",
+        "material-surface",
+        "detector-geometry",
+        "optical-field",
+        "track-line",
+        "field-sheet",
+        "optical-field",
+        "field-sheet",
+        "thermal-field",
+        "optical-field",
+        "readout-panel",
+        "readout-panel",
+        "process-pulse",
+        "thermal-field"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "sampling",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "optics",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "sensor",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "moving-fluid",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "reactant-a",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "light-source",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "reactant-b",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "catalyst-front",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.sport-trajectory.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.acoustic-wave.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fluid-advection.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 46,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.quantum-phase-readout.v1",
+        "visual.operator.phase-transition.v1",
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "quantum",
+        "instrument",
+        "phase",
+        "measurement",
+        "motion",
+        "emission",
+        "signal",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "quantum": 0.657,
+        "instrument": 1,
+        "phase": 0.605,
+        "measurement": 0.92,
+        "motion": 0.68,
+        "emission": 0.76,
+        "signal": 0.84,
+        "surface": 0.39
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomInstrumentReadout",
+        "atomQuantumFringes",
+        "atomFeedbackArcs",
+        "atomReadoutPulse",
+        "atomPhaseBoundary",
+        "atomLatentHeatBand",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0497",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0498",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0499",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0500",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0501",
+          "kind": "concept-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0502",
+          "kind": "concept-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0503",
+          "kind": "concept-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0504",
+          "kind": "concept-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0527",
+          "kind": "catalog-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0651",
+          "kind": "material-candidate",
+          "text": "noun phrase muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0652",
+          "kind": "material-candidate",
+          "text": "noun phrase muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0495",
+          "kind": "visual-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0496",
+          "kind": "visual-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        },
+        {
+          "id": "activation.0692",
+          "kind": "catalog-candidate",
+          "text": "noun phrase muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0372",
+          "kind": "catalog-candidate",
+          "text": "clause readout panels",
+          "slots": []
+        },
+        {
+          "id": "activation.0854",
+          "kind": "catalog-candidate",
+          "text": "noun phrase detector geometry",
+          "slots": []
+        },
+        {
+          "id": "activation.1016",
+          "kind": "catalog-candidate",
+          "text": "noun phrase readout panels",
+          "slots": []
+        },
+        {
+          "id": "activation.0005",
+          "kind": "material-candidate",
+          "text": "prompt particle detector with muon tracks through detector geometry and readout panels",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "material-candidate",
+          "text": "prompt particle detector with muon tracks through detector geometry and readout panels",
+          "slots": []
+        },
+        {
+          "id": "activation.0167",
+          "kind": "material-candidate",
+          "text": "clause particle detector with muon tracks through detector geometry",
+          "slots": []
+        },
+        {
+          "id": "activation.0168",
+          "kind": "material-candidate",
+          "text": "clause particle detector with muon tracks through detector geometry",
+          "slots": []
+        },
+        {
+          "id": "activation.1134",
+          "kind": "material-candidate",
+          "text": "modifier with muon tracks through detector geometry and readout panels",
+          "slots": []
+        },
+        {
+          "id": "activation.1135",
+          "kind": "material-candidate",
+          "text": "modifier with muon tracks through detector geometry and readout panels",
+          "slots": []
+        },
+        {
+          "id": "activation.0492",
+          "kind": "causal-candidate",
+          "text": "noun phrase particle detector",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 77,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 9,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 77,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 9,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 2553994,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "02-custom-particle-detector-with-muon-tracks-through-detector-geometry-and-readout-panels.canvas.png",
+      "canvasScreenshotLater": "02-custom-particle-detector-with-muon-tracks-through-detector-geometry-and-readout-panels.canvas-late.png",
+      "canvasScreenshotHash": "c1b3b8edc7455283ab9e127b66456126f6fc2e19cf104cb610c50648e4b7dd03",
+      "canvasScreenshotLaterHash": "41f1831a5285ba085996e8ed2d3a6d84f4cf8b2c3dc025016be4f60a094e581c",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 67.89,
+      "canvasScreenshotColoredRatio": 0.7261,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 1.532,
+      "canvasFrameLumaStdDelta": 0.452,
+      "canvasFrameColoredRatioDelta": 0.0004,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "quantum",
+          "instrument"
+        ],
+        "matchedSignals": [
+          {
+            "id": "quantum",
+            "strength": 1,
+            "slotHits": [
+              "quantum",
+              "measurement",
+              "instrument",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.quantum-phase-readout.v1"
+            ],
+            "wgslHits": [
+              "atomQuantumFringes"
+            ],
+            "languageHits": []
+          },
+          {
+            "id": "instrument",
+            "strength": 1,
+            "slotHits": [
+              "instrument",
+              "measurement",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.instrument-readout.v1",
+              "visual.operator.particle-track-detector.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    },
+    {
+      "index": 3,
+      "kind": "custom",
+      "prompt": "directed graph nodes edges and network flow pulses between labeled agents",
+      "screenshot": "03-custom-directed-graph-nodes-edges-and-network-flow-pulses-between-labeled-agents.png",
+      "screenshotHash": "8e103aef90435076ec94ca17603809f53994caae440a4e3acc57ca266edd4206",
+      "runtimeState": "ready",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "ready",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v1",
+        "timestamp": "2026-07-05T16:12:13.036Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "ready",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "line": "Ready 100%",
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "doppler-browser-load",
+        "timing": {
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "traceId": "",
+          "rankId": 0,
+          "reuse": false,
+          "providerReady": false
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.035Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime-reuse",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embeddings 96%",
+          "message": "Prompt runtime already loaded",
+          "detail": "Prompt runtime already loaded",
+          "backend": "",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 0,
+            "reuse": true,
+            "providerReady": true
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.035Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 42,
+          "line": "Retrieving embeddings 42%",
+          "message": "Preparing local embeddinggemma",
+          "detail": "Preparing local embeddinggemma",
+          "backend": "",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 3,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95f0b29ec73dea70394c6bcfa8407bc6796df6c9/models/google-embeddinggemma-300m-q4k-ehf16-af32",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 420,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.035Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model-reuse",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 78,
+          "line": "Reusing embedding model 78%",
+          "message": "Reusing loaded embedding model",
+          "detail": "Reusing loaded embedding model",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 0,
+            "reuse": true,
+            "providerReady": true
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.035Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "model-ready",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 80,
+          "line": "Embedding model ready 80%",
+          "message": "Embedding provider ready",
+          "detail": "Embedding provider ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 3,
+            "reuse": true,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.035Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "prompt-embed",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 82,
+          "line": "Embedding prompt 82%",
+          "message": "Embedding prompt",
+          "detail": "Embedding prompt",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 3,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 73,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.140Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "prompt-embed",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 84,
+          "line": "Embedding prompt 84% 105ms",
+          "message": "Prompt embedding ready",
+          "detail": "Prompt embedding ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 105,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 3,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 768,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.273Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "rank",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 86,
+          "line": "Ranking embeddings 86% 134ms",
+          "message": "Primitive, surface, and universe scores ranked",
+          "detail": "Primitive, surface, and universe scores ranked",
+          "backend": "",
+          "timing": {
+            "durationMs": 133.8,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 3,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 420,
+            "rankBackend": "webgpu",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.359Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "span-retrieval",
+          "phaseId": "retrieval",
+          "phaseLabel": "Embedding retrieval",
+          "pipelineStep": 3,
+          "progress": 87,
+          "line": "Retrieving embeddings 87%",
+          "message": "Compiling intent",
+          "detail": "Compiling intent",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.437Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "classification",
+          "phaseId": "grounded-intent",
+          "phaseLabel": "Grounded intent",
+          "pipelineStep": 5,
+          "progress": 96,
+          "line": "Grounding intent 96%",
+          "message": "Intent graph ranked",
+          "detail": "Intent graph ranked",
+          "backend": "",
+          "timing": {
+            "durationMs": 402.5,
+            "elapsedMs": 0,
+            "traceId": "intent-wafnqmt",
+            "rankId": 3,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:12.439Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "compile",
+          "phaseId": "simulation-compile",
+          "phaseLabel": "Simulation compile",
+          "pipelineStep": 6,
+          "progress": 94,
+          "line": "Compiling simulation 94%",
+          "message": "Building VisualIR",
+          "detail": "pipeline worker",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:13.036Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "visual",
+          "phaseId": "visual-ir",
+          "phaseLabel": "VisualIR compile",
+          "pipelineStep": 7,
+          "progress": 98,
+          "line": "Building VisualIR 98%",
+          "message": "Rendering scene",
+          "detail": "Rendering scene",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-05T16:12:13.036Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "ready",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "line": "Ready 100%",
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "city",
+      "physicsCanvasSceneId": "28",
+      "physicsCanvasSceneMix": "network:1.00",
+      "physicsCanvasSceneMixSlots": "1",
+      "phase8Input": "simulatte.sceneRenderPacket.v1",
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:7;fields:5;effects:16;layers:network-flow+node-graph+material-surface+process-pulse;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 7,
+      "sceneRenderFieldCount": 5,
+      "sceneRenderEffectCount": 16,
+      "sceneRenderSpatialHash": "f3963093",
+      "sceneObjectUniforms": "0:network-node:network-flow@0.77,0.36;1:network-node:network-flow@0.85,0.42;2:network-node:node-graph@0.52,0.36;3:network-node:node-graph@0.60,0.32;4:network-node:node-graph@0.62,0.83;5:network-node:node-graph@0.35,0.38;6:structure:material-surface@0.66,0.32;7:atom-process:routing-flow:network-flow@0.50,0.50",
+      "sceneObjectIdentities": "0:network-node:network:network-flow:@0.77,0.36;1:network-node:network:network-flow:@0.85,0.42;2:network-node:network:node-graph:@0.52,0.36;3:network-node:network:node-graph:@0.60,0.32;4:network-node:network:node-graph:@0.62,0.83;5:network-node:network:node-graph:@0.35,0.38;6:structure:surface:material-surface:@0.66,0.32;7:atom-process:routing-flow:process:network-flow:@0.50,0.50",
+      "physicsCanvasRenderCount": "170",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 42.904,
+      "lumaStd": 45.682,
+      "coloredRatio": 0.2767,
+      "canvasHash": "c62feb8e",
+      "specId": "directed-graph-nodes-edges-network-flow-mr7zoncd",
+      "templateId": "custom-world",
+      "rendererSceneKind": "city",
+      "visualIRSceneKind": "city",
+      "visualIRCamera": "network-map-depth",
+      "visualIREntityCount": 7,
+      "visualIRMaterialCount": 9,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 6,
+      "visualIROperatorCount": 9,
+      "visualIRRenderInstanceCount": 34,
+      "visualIRRejectedRowCount": 20,
+      "visualIRReceiptCount": 11,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIRSceneRenderPacketEntityCount": 7,
+      "visualIRSceneRenderPacketFieldCount": 5,
+      "visualIRSceneRenderPacketEffectCount": 16,
+      "visualIRSceneRenderPacketLayers": [
+        "network-flow",
+        "node-graph",
+        "material-surface",
+        "process-pulse"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "network-node",
+        "structure"
+      ],
+      "visualIRAcceptedRenderInstances": 34,
+      "visualIRRenderInstanceSlots": [
+        "network-flow",
+        "network-flow",
+        "node-graph",
+        "node-graph",
+        "material-surface",
+        "node-graph",
+        "node-graph",
+        "node-graph",
+        "node-graph",
+        "network-flow",
+        "network-flow",
+        "network-flow",
+        "process-pulse",
+        "network-flow",
+        "node-graph",
+        "node-graph",
+        "material-surface",
+        "material-surface",
+        "network-flow",
+        "material-surface",
+        "process-pulse",
+        "network-flow",
+        "network-flow",
+        "process-pulse"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "environment-apartment-building",
+          "sourceKind": "embedding-guided-synth-environment",
+          "reason": "embedding-near environment did not match prompt surface terms"
+        },
+        {
+          "id": "environment-city",
+          "sourceKind": "embedding-guided-synth-environment",
+          "reason": "embedding-near environment did not match prompt surface terms"
+        },
+        {
+          "id": "environment-traffic-intersection",
+          "sourceKind": "embedding-guided-synth-environment",
+          "reason": "embedding-near environment did not match prompt surface terms"
+        },
+        {
+          "id": "environment-school",
+          "sourceKind": "embedding-guided-synth-environment",
+          "reason": "embedding-near environment did not match prompt surface terms"
+        },
+        {
+          "id": "sensor-array",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "feedback-controller",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "queue-server",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "controller",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "market-demand",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "logistics-node",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.chemical-diffusion.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 26,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.network-flow.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "network",
+        "motion",
+        "density",
+        "constraint",
+        "signal",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.566,
+        "network": 0.754,
+        "motion": 0.573,
+        "density": 0.475,
+        "constraint": 0.694,
+        "signal": 0.634,
+        "surface": 0.43
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomNetworkPressure",
+        "atomPacketPulses",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.1363",
+          "kind": "catalog-candidate",
+          "text": "noun phrase between labeled agents",
+          "slots": []
+        },
+        {
+          "id": "activation.1523",
+          "kind": "catalog-candidate",
+          "text": "modifier between labeled agents",
+          "slots": []
+        },
+        {
+          "id": "activation.0717",
+          "kind": "catalog-candidate",
+          "text": "noun phrase graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0718",
+          "kind": "catalog-candidate",
+          "text": "noun phrase graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0719",
+          "kind": "catalog-candidate",
+          "text": "noun phrase graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0235",
+          "kind": "catalog-candidate",
+          "text": "clause directed graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0236",
+          "kind": "catalog-candidate",
+          "text": "clause directed graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0237",
+          "kind": "catalog-candidate",
+          "text": "clause directed graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0557",
+          "kind": "catalog-candidate",
+          "text": "noun phrase directed graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0558",
+          "kind": "catalog-candidate",
+          "text": "noun phrase directed graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0559",
+          "kind": "catalog-candidate",
+          "text": "noun phrase directed graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0867",
+          "kind": "operator-candidate",
+          "text": "noun phrase network flow pulses between",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0868",
+          "kind": "operator-candidate",
+          "text": "noun phrase network flow pulses between",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0073",
+          "kind": "catalog-candidate",
+          "text": "prompt directed graph nodes edges and network flow pulses between labeled agents",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0074",
+          "kind": "catalog-candidate",
+          "text": "prompt directed graph nodes edges and network flow pulses between labeled agents",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0075",
+          "kind": "catalog-candidate",
+          "text": "prompt directed graph nodes edges and network flow pulses between labeled agents",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0912",
+          "kind": "catalog-candidate",
+          "text": "noun phrase network flow pulses between",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0805",
+          "kind": "catalog-candidate",
+          "text": "noun phrase network flow pulses between",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0385",
+          "kind": "operator-candidate",
+          "text": "clause network flow pulses between labeled agents",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0386",
+          "kind": "operator-candidate",
+          "text": "clause network flow pulses between labeled agents",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0063",
+          "kind": "operator-candidate",
+          "text": "prompt directed graph nodes edges and network flow pulses between labeled agents",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0064",
+          "kind": "operator-candidate",
+          "text": "prompt directed graph nodes edges and network flow pulses between labeled agents",
+          "slots": [
+            "network"
+          ]
+        },
+        {
+          "id": "activation.0170",
+          "kind": "catalog-candidate",
+          "text": "clause directed graph nodes edges",
+          "slots": []
+        },
+        {
+          "id": "activation.0492",
+          "kind": "catalog-candidate",
+          "text": "noun phrase directed graph nodes edges",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 75,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 10,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 75,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 10,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 2562534,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "03-custom-directed-graph-nodes-edges-and-network-flow-pulses-between-labeled-agents.canvas.png",
+      "canvasScreenshotLater": "03-custom-directed-graph-nodes-edges-and-network-flow-pulses-between-labeled-agents.canvas-late.png",
+      "canvasScreenshotHash": "d2a7b93d9c209e5482ad0570920854132c6086a356992d3b6d75d7095053ca13",
+      "canvasScreenshotLaterHash": "3111fb0d48cbae8900fe7a388c4a44b483a25c61affb06c3bdb6bbbca6a93670",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 45.682,
+      "canvasScreenshotColoredRatio": 0.2767,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.19,
+      "canvasFrameLumaStdDelta": 0.39,
+      "canvasFrameColoredRatioDelta": 0.0055,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 98,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 0.87,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.87,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 0,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 0.917,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "network"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": []
+          },
+          {
+            "id": "network",
+            "strength": 1,
+            "slotHits": [
+              "network",
+              "signal",
+              "constraint"
+            ],
+            "mappingHits": [
+              "visual.operator.network-flow.v1"
+            ],
+            "wgslHits": [
+              "atomNetworkPressure"
+            ],
+            "languageHits": [
+              "noun phrase network flow pulses between",
+              "network",
+              "noun phrase network flow pulses between"
+            ]
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

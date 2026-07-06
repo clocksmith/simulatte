@@ -106,6 +106,8 @@ function parseArgs(argv) {
     frameDelayMs: 650,
     intentMode: 'model',
     url: '',
+    profileDir: '',
+    keepProfile: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -123,12 +125,17 @@ function parseArgs(argv) {
     else if (key === '--timeout-ms') options.timeoutMs = Math.max(1000, Number(readValue() || options.timeoutMs));
     else if (key === '--frame-delay-ms') options.frameDelayMs = Math.max(120, Number(readValue() || options.frameDelayMs));
     else if (key === '--url') options.url = String(readValue() || '').trim();
+    else if (key === '--profile-dir') {
+      options.profileDir = path.resolve(readValue() || '');
+      options.keepProfile = true;
+    }
+    else if (key === '--keep-profile') options.keepProfile = true;
     else if (key === '--intent-mode') {
       const mode = String(readValue() || '').trim().toLowerCase();
       options.intentMode = mode === 'model' ? 'model' : 'local';
     }
     else if (key === '--help') {
-      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--frame-delay-ms N]');
+      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--frame-delay-ms N] [--profile-dir DIR]');
       process.exit(0);
     }
   }
@@ -510,14 +517,29 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
       window.SimulatteStartPhysicsLab();
     }
     const run = document.getElementById('build-lab');
+    const runtime = document.getElementById('intent-runtime');
+    const health = window.SimulatteIntentRuntimeHealth || (() => {
+      try { return runtime && runtime.dataset.health ? JSON.parse(runtime.dataset.health) : null; }
+      catch (_err) { return null; }
+    })();
+    const runtimeEvents = (window.__simulatteIntentRuntimeEvents || []).slice(-8);
+    const blocking = runtime && runtime.dataset.blocking === 'true';
     return {
       ok: document.readyState === 'complete' &&
         !!document.getElementById('build-prompt') &&
         !!document.getElementById('physics-canvas') &&
         !!(window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab) &&
-        (!run || run.disabled === false),
+        (!run || run.disabled === false || !blocking),
       labReady: !!(window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab),
       runDisabled: run && run.disabled,
+      runtimeState: runtime && runtime.dataset.state,
+      runtimeBlocking: runtime && runtime.dataset.blocking,
+      runtimePassive: runtime && runtime.dataset.passive,
+      runtimeStage: runtime && runtime.dataset.stage,
+      runtimeLastStage: runtime && runtime.dataset.lastStage,
+      runtimeDetail: runtime && runtime.dataset.detail,
+      runtimeHealth: health,
+      runtimeEvents,
     };
   })()`), timeoutMs);
   await delay(300);
@@ -555,7 +577,11 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       run.setAttribute('aria-busy', 'false');
       return {
         ok: true,
-        sceneKind: spec && spec.renderProgram && spec.renderProgram.visualIR && spec.renderProgram.visualIR.sceneKind || ''
+        sceneKind: spec && spec.phaseArtifacts && spec.phaseArtifacts.phase7 &&
+          spec.phaseArtifacts.phase7.artifact &&
+          spec.phaseArtifacts.phase7.artifact.visualCompile &&
+          spec.phaseArtifacts.phase7.artifact.visualCompile.sceneRenderPacket &&
+          spec.phaseArtifacts.phase7.artifact.visualCompile.sceneRenderPacket.sceneKind || ''
       };
     })()`);
     await waitForCondition(`local render ready for ${label}`, () => evaluate(cdp, `(() => {
@@ -570,6 +596,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         renderer: canvas && canvas.dataset && canvas.dataset.renderer,
         rendererStatus: canvas && canvas.dataset && canvas.dataset.rendererStatus,
         sceneKind: canvas && canvas.dataset && canvas.dataset.sceneKind,
+        sceneMix: canvas && canvas.dataset && canvas.dataset.sceneMix,
         renderCount: canvas && canvas.dataset && canvas.dataset.renderCount,
         disabled: run && run.disabled
       };
@@ -577,10 +604,36 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   } else {
     await evaluate(cdp, `(() => {
       const input = document.getElementById('build-prompt');
-      const run = document.getElementById('build-lab');
-      if (!input || !run) return { ok: false, reason: 'missing prompt controls' };
+      if (!input) return { ok: false, reason: 'missing prompt input' };
       input.value = ${JSON.stringify(prompt)};
       input.dispatchEvent(new Event('input', { bubbles: true }));
+      return { ok: true };
+    })()`);
+    await waitForCondition(`run button ready for ${label}`, () => evaluate(cdp, `(() => {
+      const run = document.getElementById('build-lab');
+      const node = document.getElementById('intent-runtime');
+      const health = window.SimulatteIntentRuntimeHealth || (() => {
+        try { return node && node.dataset.health ? JSON.parse(node.dataset.health) : null; }
+        catch (_err) { return null; }
+      })();
+      return {
+        ok: !!run && run.disabled === false && (!node || node.dataset.blocking !== 'true'),
+        state: node && node.dataset.state,
+        stageId: node && node.dataset.stage,
+        lastStage: node && node.dataset.lastStage,
+        pipelineStep: node && node.dataset.pipelineStep,
+        progress: node && node.dataset.progress,
+        detail: node && node.dataset.detail,
+        blocking: node && node.dataset.blocking,
+        passive: node && node.dataset.passive,
+        disabled: run && run.disabled,
+        runtimeHealth: health,
+        runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-8),
+      };
+    })()`), timeoutMs);
+    await evaluate(cdp, `(() => {
+      const run = document.getElementById('build-lab');
+      if (!run) return { ok: false, reason: 'missing run control' };
       run.click();
       return { ok: true };
     })()`);
@@ -590,17 +643,40 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       const message = document.getElementById('intent-runtime-message');
       const stage = document.getElementById('intent-runtime-stage');
       const canvas = document.getElementById('physics-canvas');
+      const health = window.SimulatteIntentRuntimeHealth || (() => {
+        try { return node && node.dataset.health ? JSON.parse(node.dataset.health) : null; }
+        catch (_err) { return null; }
+      })();
       return {
         ok: !!node && node.dataset.state === 'ready' && (!run || run.disabled === false),
         state: node && node.dataset.state,
         stageId: node && node.dataset.stage,
+        lastStage: node && node.dataset.lastStage,
         pipelineStep: node && node.dataset.pipelineStep,
         progress: node && node.dataset.progress,
+        detail: node && node.dataset.detail,
+        blocking: node && node.dataset.blocking,
+        passive: node && node.dataset.passive,
+        modelId: node && node.dataset.modelId,
+        cacheMode: node && node.dataset.cacheMode,
+        cacheWorker: node && node.dataset.cacheWorker,
+        resourceKind: node && node.dataset.resourceKind,
+        resourceFile: node && node.dataset.resourceFile,
+        completedBytes: node && node.dataset.completedBytes,
+        totalBytes: node && node.dataset.totalBytes,
+        traceId: node && node.dataset.traceId,
+        rankId: node && node.dataset.rankId,
+        providerReady: node && node.dataset.providerReady,
+        reuse: node && node.dataset.reuse,
+        cacheHitCount: node && node.dataset.cacheHitCount,
+        cacheMissCount: node && node.dataset.cacheMissCount,
         message: message && message.textContent,
-        detail: stage && stage.textContent,
+        phaseLabel: stage && stage.textContent,
         renderer: canvas && canvas.dataset && canvas.dataset.renderer,
         rendererStatus: canvas && canvas.dataset && canvas.dataset.rendererStatus,
-        disabled: run && run.disabled
+        disabled: run && run.disabled,
+        runtimeHealth: health,
+        runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-8),
       };
     })()`), timeoutMs);
   }
@@ -610,6 +686,10 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const fieldCanvas = document.getElementById('field-canvas');
     const runtime = document.getElementById('intent-runtime');
     const message = document.getElementById('intent-runtime-message');
+    const runtimeHealth = window.SimulatteIntentRuntimeHealth || (() => {
+      try { return runtime && runtime.dataset.health ? JSON.parse(runtime.dataset.health) : null; }
+      catch (_err) { return null; }
+    })();
     const preview = document.getElementById('spec-preview');
     const ctx = canvas && canvas.getContext('2d', { willReadFrequently: true });
     const width = canvas ? canvas.width : 0;
@@ -643,21 +723,32 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const variance = samples ? Math.max(0, sumSq / samples - mean * mean) : 0;
     let parsed = null;
     let modelSpec = null;
+    let browserSpec = null;
     const previewText = preview ? preview.textContent || '' : '';
     try { parsed = JSON.parse(previewText); } catch (_err) {}
+    try {
+      const browserLab = window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab;
+      browserSpec = browserLab && typeof browserLab.getSpec === 'function' ? browserLab.getSpec() : null;
+    } catch (_err) {}
     try {
       if (window.SimulattePhysicsModel && typeof window.SimulattePhysicsModel.createSpecFromPrompt === 'function') {
         modelSpec = window.SimulattePhysicsModel.createSpecFromPrompt(${JSON.stringify(prompt)}, { allowPrototypeFallback: true });
       }
     } catch (_err) {}
-    const previewProgram = parsed && parsed.renderProgram || null;
-    const modelProgram = modelSpec && modelSpec.renderProgram || null;
-    const program = previewProgram || modelProgram || null;
-    const rendererPlan = program && program.rendererPlan || null;
-    const visualIR = program && program.visualIR || null;
+    const specForIntent = browserSpec || modelSpec || parsed || null;
+    const phaseArtifacts = specForIntent && specForIntent.phaseArtifacts || {};
+    const phaseArtifactSchemas = Object.fromEntries(Array.from({ length: 7 }, (_, index) => {
+      const key = 'phase' + (index + 1);
+      return [key, phaseArtifacts[key] && phaseArtifacts[key].schema || ''];
+    }));
+    const phase7VisualCompile = phaseArtifacts.phase7 &&
+      phaseArtifacts.phase7.artifact &&
+      phaseArtifacts.phase7.artifact.visualCompile || null;
+    const rendererPlan = phase7VisualCompile && phase7VisualCompile.rendererPlan || null;
+    const visualIR = phase7VisualCompile && phase7VisualCompile.visualIR || null;
+    const sceneRenderPacket = phase7VisualCompile && phase7VisualCompile.sceneRenderPacket || null;
     const graphicsAtoms = visualIR && visualIR.graphicsAtoms || {};
     const atomUniforms = graphicsAtoms && graphicsAtoms.uniforms || {};
-    const specForIntent = modelSpec || parsed || null;
     const intentBrief = specForIntent && specForIntent.intent && specForIntent.intent.intentBrief || null;
     const physicalReceipt = specForIntent && specForIntent.physicalSpec && specForIntent.physicalSpec.receipt || {};
     const visualIRArrayCount = (key) => (
@@ -668,13 +759,50 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     );
     return {
       runtimeState: runtime ? runtime.dataset.state || '' : '',
+      runtimeStage: runtime ? runtime.dataset.stage || '' : '',
+      runtimeLastStage: runtime ? runtime.dataset.lastStage || '' : '',
+      runtimePipelineStep: runtime ? runtime.dataset.pipelineStep || '' : '',
+      runtimeBlocking: runtime ? runtime.dataset.blocking || '' : '',
+      runtimePassive: runtime ? runtime.dataset.passive || '' : '',
+      runtimeDetail: runtime ? runtime.dataset.detail || '' : '',
       runtimeMessage: message ? message.textContent || '' : '',
+      runtimeHealth,
+      runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-12),
+      runtimeModelId: runtime ? runtime.dataset.modelId || '' : '',
+      runtimeCacheMode: runtime ? runtime.dataset.cacheMode || '' : '',
+      runtimeCacheWorker: runtime ? runtime.dataset.cacheWorker || '' : '',
+      runtimeCacheBackends: runtime ? runtime.dataset.cacheBackends || '' : '',
+      runtimeResourceKind: runtime ? runtime.dataset.resourceKind || '' : '',
+      runtimeResourceFile: runtime ? runtime.dataset.resourceFile || '' : '',
+      runtimeCompletedBytes: runtime ? Number(runtime.dataset.completedBytes || 0) : 0,
+      runtimeTotalBytes: runtime ? Number(runtime.dataset.totalBytes || 0) : 0,
+      runtimeTraceId: runtime ? runtime.dataset.traceId || '' : '',
+      runtimeRankId: runtime ? runtime.dataset.rankId || '' : '',
+      runtimeReuse: runtime ? runtime.dataset.reuse || '' : '',
+      runtimeProviderReady: runtime ? runtime.dataset.providerReady || '' : '',
+      runtimeCacheHitCount: runtime ? Number(runtime.dataset.cacheHitCount || 0) : 0,
+      runtimeCacheMissCount: runtime ? Number(runtime.dataset.cacheMissCount || 0) : 0,
+      runtimeCachedSpanCount: runtime ? Number(runtime.dataset.cachedSpanCount || 0) : 0,
       canvasWidth: width,
       canvasHeight: height,
       physicsCanvasRenderer: canvas && canvas.dataset ? canvas.dataset.renderer || '' : '',
       physicsCanvasRendererStatus: canvas && canvas.dataset ? canvas.dataset.rendererStatus || '' : '',
       physicsCanvasSceneKind: canvas && canvas.dataset ? canvas.dataset.sceneKind || '' : '',
       physicsCanvasSceneId: canvas && canvas.dataset ? canvas.dataset.sceneId || '' : '',
+      physicsCanvasSceneMix: canvas && canvas.dataset ? canvas.dataset.sceneMix || '' : '',
+      physicsCanvasSceneMixSlots: canvas && canvas.dataset ? canvas.dataset.sceneMixSlots || '' : '',
+      phase8Input: canvas && canvas.dataset ? canvas.dataset.phase8Input || '' : '',
+      renderExecutionInput: canvas && canvas.dataset ? canvas.dataset.renderExecutionInput || '' : '',
+      phase8Output: canvas && canvas.dataset ? canvas.dataset.phase8Output || '' : '',
+      phase8OutputInput: canvas && canvas.dataset ? canvas.dataset.phase8OutputInput || '' : '',
+      phaseArtifactSchemas,
+      sceneRenderPacket: canvas && canvas.dataset ? canvas.dataset.sceneRenderPacket || '' : '',
+      sceneRenderEntityCount: canvas && canvas.dataset ? Number(canvas.dataset.sceneRenderEntityCount || 0) : 0,
+      sceneRenderFieldCount: canvas && canvas.dataset ? Number(canvas.dataset.sceneRenderFieldCount || 0) : 0,
+      sceneRenderEffectCount: canvas && canvas.dataset ? Number(canvas.dataset.sceneRenderEffectCount || 0) : 0,
+      sceneRenderSpatialHash: canvas && canvas.dataset ? canvas.dataset.sceneRenderSpatialHash || '' : '',
+      sceneObjectUniforms: canvas && canvas.dataset ? canvas.dataset.sceneObjectUniforms || '' : '',
+      sceneObjectIdentities: canvas && canvas.dataset ? canvas.dataset.sceneObjectIdentities || '' : '',
       physicsCanvasRenderCount: canvas && canvas.dataset ? canvas.dataset.renderCount || '' : '',
       physicsCanvasLastFrameMs: canvas && canvas.dataset ? canvas.dataset.lastFrameMs || '' : '',
       fieldCanvasRenderer: fieldCanvas && fieldCanvas.dataset ? fieldCanvas.dataset.renderer || '' : '',
@@ -704,8 +832,45 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       visualIRFieldCount: visualIRArrayCount('fields'),
       visualIRProcessCount: visualIRArrayCount('processes'),
       visualIROperatorCount: visualIRArrayCount('operators'),
+      visualIRRenderInstanceCount: visualIRArrayCount('renderInstances'),
+      visualIRRejectedRowCount: visualIRArrayCount('rejectedRows'),
       visualIRReceiptCount: visualIRArrayCount('receipts'),
       visualIRCausalAffordanceCount: visualIRArrayCount('causalAffordances'),
+      visualIRSceneRenderPacketSchema: sceneRenderPacket && sceneRenderPacket.schema || '',
+      visualIRSceneRenderPacketCompiler: sceneRenderPacket && sceneRenderPacket.compiler || '',
+      visualIRSceneRenderPacketEntityCount: sceneRenderPacket && Array.isArray(sceneRenderPacket.entities)
+        ? sceneRenderPacket.entities.length
+        : 0,
+      visualIRSceneRenderPacketFieldCount: sceneRenderPacket && Array.isArray(sceneRenderPacket.fields)
+        ? sceneRenderPacket.fields.length
+        : 0,
+      visualIRSceneRenderPacketEffectCount: sceneRenderPacket && Array.isArray(sceneRenderPacket.effects)
+        ? sceneRenderPacket.effects.length
+        : 0,
+      visualIRSceneRenderPacketLayers: sceneRenderPacket ? Array.from(new Set([
+        ...((sceneRenderPacket.entities || []).map((row) => row.layerSlot)),
+        ...((sceneRenderPacket.fields || []).map((row) => row.layerSlot)),
+        ...((sceneRenderPacket.effects || []).map((row) => row.layerSlot)),
+      ].filter(Boolean))).slice(0, 24) : [],
+      visualIRSceneRenderPacketIdentities: sceneRenderPacket ? Array.from(new Set(
+        (sceneRenderPacket.entities || [])
+          .map((row) => row && row.identity && (row.identity.label || row.identity.type))
+          .filter(Boolean)
+      )).slice(0, 32) : [],
+      visualIRAcceptedRenderInstances: (visualIR && Array.isArray(visualIR.renderInstances) ? visualIR.renderInstances : [])
+        .filter((row) => row.status !== 'rejected')
+        .length,
+      visualIRRenderInstanceSlots: (visualIR && Array.isArray(visualIR.renderInstances) ? visualIR.renderInstances : [])
+        .map((row) => row.layerSlot)
+        .filter(Boolean)
+        .slice(0, 24),
+      visualIRRejectedRows: (visualIR && Array.isArray(visualIR.rejectedRows) ? visualIR.rejectedRows : [])
+        .map((row) => ({
+          id: row.id || '',
+          sourceKind: row.sourceKind || '',
+          reason: row.reason || '',
+        }))
+        .slice(0, 16),
       visualIRGraphicsAtomCount: ['geometry', 'fields', 'materials', 'processes', 'motion', 'camera']
         .reduce((sum, key) => sum + (Array.isArray(graphicsAtoms[key]) ? graphicsAtoms[key].length : 0), 0),
       visualIRGraphicsMappingIds: (graphicsAtoms.mappings || []).map((row) => row.id).slice(0, 12),
@@ -931,8 +1096,15 @@ function representationQualityForResult(result, expectedCount) {
 }
 
 function expectedVisualSignals(prompt) {
-  const text = String(prompt || '');
+  const text = positiveLanguageText(prompt);
   return VISUAL_RUBRIC_SIGNALS.filter((signal) => signal.pattern.test(text));
+}
+
+function positiveLanguageText(value = '') {
+  const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
+  const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
+  const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
+  return String(value || '').toLowerCase().replace(negated, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function array(value) {
@@ -951,6 +1123,23 @@ function analyze(results) {
     result.visualRubric = rubric;
     if (result.runtimeState !== 'ready') failures.push(`${result.index}: runtime not ready`);
     if (!result.canvasWidth || !result.canvasHeight) failures.push(`${result.index}: missing canvas`);
+    if (result.phase8Input !== 'simulatte.sceneRenderPacket.v1') {
+      failures.push(`${result.index}: Phase 8 input is ${result.phase8Input || 'missing'}, expected sceneRenderPacket`);
+    }
+    if (result.phase8Output !== 'simulatte.phase8.output.v1') {
+      failures.push(`${result.index}: Phase 8 output envelope missing`);
+    }
+    for (let phase = 1; phase <= 7; phase += 1) {
+      const key = `phase${phase}`;
+      const expectedSchema = `simulatte.phase${phase}.output.v1`;
+      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
+        failures.push(`${result.index}: ${key} artifact schema missing`);
+      }
+    }
+    if (result.phaseArtifactSchemas && result.phaseArtifactSchemas.phase7 === 'simulatte.phase7.output.v1' &&
+      result.visualIRSceneRenderPacketSchema !== 'simulatte.sceneRenderPacket.v1') {
+      failures.push(`${result.index}: Phase 7 visualCompile sceneRenderPacket missing`);
+    }
     if (result.lumaStd < 8) failures.push(`${result.index}: low visual contrast std=${result.lumaStd}`);
     if (result.coloredRatio < 0.035) failures.push(`${result.index}: low color diversity ratio=${result.coloredRatio}`);
     if (!rubric.pass) {
@@ -959,6 +1148,7 @@ function analyze(results) {
     if (result.visualIROperatorCount < 5) failures.push(`${result.index}: VisualIR has too few operators`);
     if (result.visualIREntityCount < 2) failures.push(`${result.index}: VisualIR has too few entities`);
     if (result.visualIRProcessCount < 2) failures.push(`${result.index}: VisualIR has too few processes`);
+    if (result.visualIRRenderInstanceCount < 3) failures.push(`${result.index}: VisualIR has too few render instances`);
     if (result.visualIRReceiptCount < 4) failures.push(`${result.index}: VisualIR has too few receipts`);
     if (result.visualIRGraphicsAtomCount < 4) failures.push(`${result.index}: VisualIR has too few graphics atoms`);
     if (!result.visualIRGraphicsCompiler) failures.push(`${result.index}: VisualIR missing graphics atom compiler`);
@@ -1133,7 +1323,8 @@ async function main() {
   await fs.mkdir(options.outDir, { recursive: true });
   const local = options.url ? { server: null, port: 0 } : await startStaticServer();
   const debugPort = await freePort();
-  const profileDir = await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-chrome-profile-'));
+  const profileDir = options.profileDir || await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-chrome-profile-'));
+  await fs.mkdir(profileDir, { recursive: true });
   const chrome = spawn(chromePath, [
     '--headless=new',
     `--remote-debugging-port=${debugPort}`,
@@ -1163,6 +1354,8 @@ async function main() {
       intentMode: options.intentMode,
       target: options.url ? 'live-url' : 'local-public',
       url: pageUrl,
+      profileDir,
+      profilePersistent: Boolean(options.profileDir || options.keepProfile),
       promptCounts: {
         curated: prompts.filter((prompt) => prompt.kind === 'curated').length,
         broad: prompts.filter((prompt) => prompt.kind === 'broad').length,
@@ -1180,7 +1373,9 @@ async function main() {
     if (cdp) cdp.close();
     chrome.kill('SIGTERM');
     if (local.server) local.server.close();
-    await fs.rm(profileDir, { recursive: true, force: true }).catch(() => {});
+    if (!options.profileDir && !options.keepProfile) {
+      await fs.rm(profileDir, { recursive: true, force: true }).catch(() => {});
+    }
   }
 }
 

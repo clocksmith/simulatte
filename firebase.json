@@ -28,7 +28,25 @@
         ]
       },
       {
-        "source": "/js/**",
+        "source": "/app/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/pipeline/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/workers/**",
         "headers": [
           {
             "key": "Cache-Control",
@@ -46,7 +64,7 @@
         ]
       },
       {
-        "source": "/models/simulatte-embedder/**",
+        "source": "/data/simulatte-embedder/**",
         "headers": [
           {
             "key": "Cache-Control",

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const VISUAL_CARD_DIR = path.join(ROOT, 'public/models/simulatte-visual-cards');
+const VISUAL_CARD_DIR = path.join(ROOT, 'public/data/simulatte-visual-cards');
 const MANIFEST_PATH = path.join(VISUAL_CARD_DIR, 'manifest.json');
 const INDEX_PATH = path.join(VISUAL_CARD_DIR, 'visual-card-index-v1.json');
 
