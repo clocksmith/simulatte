@@ -25,7 +25,7 @@
     { "id": "visual-operator-atlas", "path": "public/data/simulatte-visual-cards/visual-operator-atlas-v1.json", "itemKey": "mappings", "expectedCount": 22, "kind": "visual-operator-index" }
   ],
   "runtimeCatalogs": [
-    { "id": "runtime-physical-primitives", "path": "public/pipeline/phase-06-simulation/simulatte-physics-catalog.js", "exportName": "PHYSICAL_PRIMITIVES", "expectedCount": 420, "kind": "compiler-runtime" },
+    { "id": "runtime-physical-primitives", "path": "public/pipeline/phase-06-simulation/simulatte-physics-catalog.js", "exportName": "PHYSICAL_PRIMITIVES", "expectedCount": 420, "kind": "pipeline-runtime" },
     { "id": "runtime-example-intents", "path": "public/pipeline/phase-06-simulation/simulatte-physics-catalog.js", "exportName": "EXAMPLE_INTENTS", "expectedCount": 256, "kind": "prompt-examples" },
     { "id": "runtime-causal-rules", "path": "public/pipeline/phase-05-grounded-intent/simulatte-causal-physics-graph.js", "exportName": "CAUSAL_RELATION_RULES", "expectedCount": 190, "kind": "causal-runtime", "staticMirror": "universe-causal-relations" },
     { "id": "runtime-causal-visual-affordances", "path": "public/pipeline/phase-05-grounded-intent/simulatte-causal-visual-affordances.js", "exportName": "CAUSAL_VISUAL_AFFORDANCES", "expectedCount": 190, "kind": "visual-causal-runtime", "staticMirror": "causal-visual-affordances" }

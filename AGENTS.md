@@ -30,7 +30,7 @@
 
 ## Intent-First Operations
 
-- Treat Simulatte intent as the strict browser simulation/compiler product, not Gamma, Doppler, Reploid, or Poolday.
+- Treat Simulatte intent as the strict browser simulation pipeline product, not Gamma, Doppler, Reploid, or Poolday.
 - If the user asks about app structure, start with the broad boundary: `public/app` is the client UI app, `public/pipeline` is the pipeline, and `public/data` is assets/contracts.
 - Do not preserve confusing taxonomy when the user is simplifying. Use plain job names such as start, page, state, controls, and drawing when they match behavior.
 - For pipeline work, respect the fixed phase order the user gives. Do not add split phases or reverse traversal unless asked.

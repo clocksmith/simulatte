@@ -20,7 +20,7 @@ different prompts should not collapse into the same scene.
 
 Simulatte is not a prompt-to-template toy, generic shader demo, keyword
 visualizer, fixed example gallery, or model hallucinating physics. It is a
-browser-native natural-language simulation compiler with deterministic receipts,
+browser-native natural-language simulation pipeline with deterministic receipts,
 grounded world models, and prompt-faithful visual execution.
 
 Front-door promise:
@@ -49,7 +49,7 @@ Example prompts are convenience inputs, not product boundaries.
 - If Simulatte cannot support part of the prompt, it must say so in receipts
   instead of silently inventing unsupported physics.
 
-## Eight-Phase Compiler
+## Eight-Phase Pipeline
 
 1. Runtime: load the browser runtime, model hooks, catalogs, and worker fallback.
 2. Language graph: preserve prompt spans, clauses, predicates, quantities,
@@ -90,9 +90,9 @@ App code is intentionally split by what a browser user is touching:
 
 - `public/app/start/`: startup files.
 - `public/app/lab/`: the Simulatte lab controller that wires prompt input,
-  compiler output, runtime status, receipts, simulation state, and render calls.
-- `public/app/session/`: app-side session state and scenario/world-session
-  behavior, not compiler world semantics.
+  pipeline output, runtime status, receipts, simulation state, and render calls.
+- `public/app/session/`: app-side session state and scenario behavior, not
+  pipeline world semantics.
 - `public/app/controls/`: DOM controls, panels, status, loading, debug, and review UI.
 - `public/app/graphics/`: app drawing helpers such as iso rendering, GL helpers,
   textures, and material assets.
@@ -118,9 +118,9 @@ App code is intentionally split by what a browser user is touching:
 
 ## Quality Gates
 
-- `npm test` checks compiler structure, artifacts, catalog drift, VisualIR
+- `npm test` checks pipeline structure, artifacts, catalog drift, VisualIR
   mappings, false-positive gates, and browser contracts.
-- `npm run audit:pipeline` scores every compiler phase against the current floor
+- `npm run audit:pipeline` scores every pipeline phase against the current floor
   and records history, baseline, weakest phase, and regressions.
 - `npm run audit:visual` runs the browser visual rubric locally against prompt
   diversity, signal coverage, scene diversity, screenshots, canvas motion, and

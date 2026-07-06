@@ -329,8 +329,8 @@ function scoreRuntime(context, compileError) {
     compileError,
     hasSpec: Boolean(context.spec),
     hasWorker: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'workers', 'simulatte-pipeline-worker.js')),
-    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'shell', 'simulatte-physics-renderer.js')),
-    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'compiler', 'phase-08-render', 'simulatte-webgpu-renderer.js')),
+    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'lab', 'simulatte-physics-renderer.js')),
+    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'pipeline', 'phase-08-render', 'simulatte-webgpu-renderer.js')),
     phaseSchemas: context.phaseSchemas || {},
   };
   if (!compileError && context.spec) score += 18;
@@ -533,7 +533,7 @@ function scoreVisualIR(context) {
 }
 
 function scoreWebGpu(context, liveResult) {
-  const webgpuPath = path.join(ROOT, 'public', 'compiler', 'phase-08-render', 'simulatte-webgpu-renderer.js');
+  const webgpuPath = path.join(ROOT, 'public', 'pipeline', 'phase-08-render', 'simulatte-webgpu-renderer.js');
   const webgpuSource = fsSync.existsSync(webgpuPath) ? fsSync.readFileSync(webgpuPath, 'utf8') : '';
   const atoms = context.graphicsAtoms || {};
   const visual = context.visualIR || {};

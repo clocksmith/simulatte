@@ -75,7 +75,7 @@ test('particle instrument VisualIR preserves causal affordance rows', () => {
   assert.ok(visualIR.sceneRenderPacket.effects.some((row) => row.layerSlot === 'causal-affordance'));
 });
 
-test('phase envelopes enforce neighboring compiler handoffs', () => {
+test('phase envelopes enforce neighboring pipeline handoffs', () => {
   const spec = lab.createSpecFromPrompt('graph nodes route water sensors through a pump controller', {
     allowPrototypeFallback: true,
   });
@@ -220,12 +220,12 @@ test('unsupported and unresolved concepts are preserved in validation receipt', 
   );
 });
 
-test('legacy custom specs migrate to compiler artifacts during normalization', () => {
+test('legacy custom specs migrate to pipeline artifacts during normalization', () => {
   const legacy = {
     schema: 'simulatte.simulationSpec.v1',
     templateId: 'custom-world',
     name: 'Legacy Lava Turbine',
-    description: 'legacy export without compiler artifacts',
+    description: 'legacy export without pipeline artifacts',
     modules: ['fluid', 'thermal'],
     objects: [
       { id: 'lava', type: 'fluid', role: 'lava', domains: ['fluid', 'thermal'], material: 'lava' },

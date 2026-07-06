@@ -1,11 +1,11 @@
 # Simulatte Style Guide
-001. Purpose: Simulatte is a browser-native natural-language simulation compiler.
+001. Purpose: Simulatte is a browser-native natural-language simulation pipeline.
 002. The prompt is source code; every visible artifact must trace back to it.
 003. The compiled world model is the contract, not the visual template.
 004. The visible simulation is product truth and must carry prompt-specific meaning.
 005. Do not hide unsupported prompt content behind plausible visuals.
 006. Do not let broad scene buckets override compiled semantic evidence.
-007. Treat each phase boundary as a typed compiler boundary.
+007. Treat each phase boundary as a typed pipeline boundary.
 008. Prefer explicit receipts over implicit behavior.
 009. Fail closed when a required model, index, cache, schema, or provider is missing.
 010. Do not silently switch to prototype or local fallback in production paths.
@@ -162,7 +162,7 @@
 161. Shared types or schemas live with the subsystem that owns their semantics.
 162. Avoid import cycles and implicit upward dependencies.
 163. Keep dependency direction: contract, helper, implementation, coordinator.
-164. The UI coordinator should orchestrate, not own compiler semantics.
+164. The UI coordinator should orchestrate, not own pipeline semantics.
 165. The catalog owns static primitive and layer data.
 166. The intent modules own language, retrieval, activation, and grounding receipts.
 167. The simulation modules own PhysicsIR, solver graph, renderIR, state, and readouts.

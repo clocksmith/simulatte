@@ -34,7 +34,7 @@ function runtimeFile(name) {
 function publicRuntimeJsFiles() {
   return [
     path.join(publicDir, 'app'),
-    path.join(publicDir, 'compiler'),
+    path.join(publicDir, 'pipeline'),
     path.join(publicDir, 'workers'),
   ].flatMap((dir) => jsFiles(dir));
 }
@@ -52,7 +52,7 @@ test('public javascript keeps lines below the repository ceiling', () => {
   }
 });
 
-test('runtime source is owned by app, compiler, data, and worker directories', () => {
+test('runtime source is owned by app, pipeline, data, and worker directories', () => {
   const expected = [
     'simulatte-physics-catalog.js',
     'simulatte-semantic-rag.js',
@@ -94,43 +94,65 @@ test('runtime source is owned by app, compiler, data, and worker directories', (
   assert.ok(coordinatorLines.length < 80);
 });
 
-test('app product boundaries use boot lab world-session ui and view directories', () => {
+test('app product boundaries use start lab session controls graphics and pipeline directories', () => {
   const retiredGameRoot = path.join(publicDir, 'app', 'game');
   const retiredShellRoot = path.join(publicDir, 'app', 'shell');
   const retiredExperienceRoot = path.join(publicDir, 'app', 'experience');
+  const retiredBootRoot = path.join(publicDir, 'app', 'boot');
+  const retiredWorldSessionRoot = path.join(publicDir, 'app', 'world-session');
+  const retiredViewRoot = path.join(publicDir, 'app', 'view');
+  const retiredDrawingRoot = path.join(publicDir, 'app', 'drawing');
+  const retiredUiRoot = path.join(publicDir, 'app', 'ui');
+  const retiredCompilerRoot = path.join(publicDir, 'compiler');
   const retiredRenderRoot = path.join(publicDir, 'app', 'render');
   const retiredUiRenderRoot = path.join(publicDir, 'app', 'ui', 'render');
-  const bootRoot = path.join(publicDir, 'app', 'boot');
+  const startRoot = path.join(publicDir, 'app', 'start');
   const labRoot = path.join(publicDir, 'app', 'lab');
-  const worldSessionRoot = path.join(publicDir, 'app', 'world-session');
-  const viewRoot = path.join(publicDir, 'app', 'view');
-  const appMain = fs.readFileSync(path.join(bootRoot, 'main.js'), 'utf8');
+  const sessionRoot = path.join(publicDir, 'app', 'session');
+  const controlsRoot = path.join(publicDir, 'app', 'controls');
+  const graphicsRoot = path.join(publicDir, 'app', 'graphics');
+  const pipelineRoot = path.join(publicDir, 'pipeline');
+  const appMain = fs.readFileSync(path.join(startRoot, 'main.js'), 'utf8');
   const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
 
   assert.equal(fs.existsSync(retiredGameRoot), false, 'public/app/game should be retired');
   assert.equal(fs.existsSync(retiredShellRoot), false, 'public/app/shell should be retired');
   assert.equal(fs.existsSync(retiredExperienceRoot), false, 'public/app/experience should be retired');
+  assert.equal(fs.existsSync(retiredBootRoot), false, 'public/app/boot should be retired');
+  assert.equal(fs.existsSync(retiredWorldSessionRoot), false, 'public/app/world-session should be retired');
+  assert.equal(fs.existsSync(retiredViewRoot), false, 'public/app/view should be retired');
+  assert.equal(fs.existsSync(retiredDrawingRoot), false, 'public/app/drawing should be retired');
+  assert.equal(fs.existsSync(retiredUiRoot), false, 'public/app/ui should be retired');
+  assert.equal(fs.existsSync(retiredCompilerRoot), false, 'public/compiler should be retired');
   assert.equal(fs.existsSync(retiredRenderRoot), false, 'public/app/render should be retired');
-  assert.equal(fs.existsSync(retiredUiRenderRoot), false, 'public/app/controls/render should be retired');
-  assert.ok(fs.existsSync(path.join(bootRoot, 'simulatte-browser-boot.js')));
-  assert.ok(fs.existsSync(path.join(bootRoot, 'simulatte-version-guard.js')));
+  assert.equal(fs.existsSync(retiredUiRenderRoot), false, 'public/app/ui/render should be retired');
+  assert.ok(fs.existsSync(path.join(startRoot, 'simulatte-browser-boot.js')));
+  assert.ok(fs.existsSync(path.join(startRoot, 'simulatte-version-guard.js')));
   assert.ok(fs.existsSync(path.join(labRoot, 'simulatte-physics-renderer.js')));
   assert.ok(fs.existsSync(path.join(labRoot, 'simulatte-physics-lab.js')));
-  assert.ok(fs.existsSync(path.join(worldSessionRoot, 'simulatte-scenario-engine.js')));
-  assert.ok(fs.existsSync(path.join(worldSessionRoot, 'simulatte-world-core.js')));
-  assert.ok(fs.existsSync(path.join(worldSessionRoot, 'simulatte-world-model.js')));
-  assert.ok(fs.existsSync(path.join(viewRoot, 'iso-world-renderer.js')));
-  assert.ok(fs.existsSync(path.join(viewRoot, 'assets', 'material-atlas.js')));
-  assert.ok(fs.existsSync(path.join(viewRoot, 'core', 'gl-program.js')));
-  assert.match(appMain, /from '\.\.\/world-session\/simulatte-world-model\.js'/);
-  assert.match(appMain, /from '\.\.\/view\/iso-world-renderer\.js'/);
+  assert.ok(fs.existsSync(path.join(sessionRoot, 'simulatte-scenario-engine.js')));
+  assert.ok(fs.existsSync(path.join(sessionRoot, 'simulatte-world-core.js')));
+  assert.ok(fs.existsSync(path.join(sessionRoot, 'simulatte-world-model.js')));
+  assert.ok(fs.existsSync(path.join(controlsRoot, 'hud-controller.js')));
+  assert.ok(fs.existsSync(path.join(graphicsRoot, 'iso-world-renderer.js')));
+  assert.ok(fs.existsSync(path.join(graphicsRoot, 'assets', 'material-atlas.js')));
+  assert.ok(fs.existsSync(path.join(graphicsRoot, 'core', 'gl-program.js')));
+  assert.ok(fs.existsSync(path.join(pipelineRoot, 'phase-08-render', 'simulatte-webgpu-renderer.js')));
+  assert.match(appMain, /from '\.\.\/session\/simulatte-world-model\.js'/);
+  assert.match(appMain, /from '\.\.\/graphics\/iso-world-renderer\.js'/);
   assert.doesNotMatch(appMain, /from '\.\/render\//);
   assert.match(html, /src="\.\/app\/lab\/simulatte-physics-renderer\.js"/);
   assert.match(html, /src="\.\/app\/lab\/simulatte-physics-lab\.js"/);
-  assert.match(html, /src="\.\/app\/boot\/simulatte-browser-boot\.js"/);
-  assert.match(html, /src="\.\/app\/boot\/simulatte-version-guard\.js"/);
+  assert.match(html, /src="\.\/app\/start\/simulatte-browser-boot\.js"/);
+  assert.match(html, /src="\.\/app\/start\/simulatte-version-guard\.js"/);
+  assert.match(html, /src="\.\/pipeline\/phase-08-render\/simulatte-webgpu-renderer\.js"/);
   assert.doesNotMatch(html, /src="\.\/app\/shell\//);
   assert.doesNotMatch(html, /src="\.\/app\/experience\//);
+  assert.doesNotMatch(html, /src="\.\/app\/boot\//);
+  assert.doesNotMatch(html, /src="\.\/app\/world-session\//);
+  assert.doesNotMatch(html, /src="\.\/app\/view\//);
+  assert.doesNotMatch(html, /src="\.\/app\/ui\//);
+  assert.doesNotMatch(html, /src="\.\/compiler\//);
 });
 
 test('phase contracts declare the strict eight-phase handoff', () => {
@@ -1238,7 +1260,7 @@ test('physics graph updates log intent and composition debug data by default', (
   assert.match(renderer, /console\.table/);
 });
 
-test('compiler phases consume only neighboring compiled artifacts after intent grounding', () => {
+test('pipeline phases consume only neighboring compiled artifacts after intent grounding', () => {
   const model = fs.readFileSync(runtimeFile('simulatte-physics-model.js'), 'utf8');
   const physicsIR = fs.readFileSync(runtimeFile('simulatte-physics-ir.js'), 'utf8');
   const composition = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
@@ -1562,7 +1584,7 @@ test('model-backed intent retrieval uses a 768d EmbeddingGemma index', () => {
   assert.match(worker, /Content-Range/);
 });
 
-test('product path removed the parallel world planner and legacy compiler export', () => {
+test('product path removed the parallel world planner and legacy pipeline export', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const model = require('../public/pipeline/phase-06-simulation/simulatte-physics-model.js');
 

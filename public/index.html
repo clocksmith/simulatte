@@ -2478,7 +2478,7 @@
       <div class="prompt-dock-head">
         <h1>Simulatte</h1>
         <div class="prompt-dock-head-right">
-          <span id="lab-state" class="physics-status" aria-live="polite">loading compiler</span>
+          <span id="lab-state" class="physics-status" aria-live="polite">loading pipeline</span>
           <span id="fps-readout" class="physics-fps" data-perf="idle">FPS --</span>
           <button id="prompt-dock-toggle" class="prompt-dock-toggle" type="button" aria-label="Minimize prompt panel" aria-expanded="true">−</button>
         </div>
@@ -2551,7 +2551,7 @@
       root.addEventListener('error', (event) => {
         const target = event && event.target;
         const src = target && target.tagName === 'SCRIPT' ? target.getAttribute('src') : '';
-        if (!src || !/(^|\/)(app|compiler)\//.test(src)) return;
+        if (!src || !/(^|\/)(app|pipeline)\//.test(src)) return;
         state.failedScripts.push(src);
       }, true);
     })(typeof globalThis !== 'undefined' ? globalThis : window);

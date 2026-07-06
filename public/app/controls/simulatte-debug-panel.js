@@ -23,7 +23,7 @@
       'font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace',
     ].join(';');
     const summary = document.createElement('summary');
-    summary.textContent = 'compiler debug';
+    summary.textContent = 'pipeline debug';
     summary.style.cursor = 'pointer';
     const body = document.createElement('pre');
     body.style.whiteSpace = 'pre-wrap';
