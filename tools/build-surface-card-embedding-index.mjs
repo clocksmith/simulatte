@@ -14,7 +14,7 @@ const DEFAULT_MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
 const MODEL_DIR = process.env.SIMULATTE_EMBED_MODEL_DIR
   ? path.resolve(process.env.SIMULATTE_EMBED_MODEL_DIR)
   : path.resolve(ROOT, `../doppler/models/local/${DEFAULT_MODEL_ID}`);
-const OUT_PATH = path.join(ROOT, 'public/models/simulatte-embedder/surface-card-index-embeddinggemma-v1.json');
+const OUT_PATH = path.join(ROOT, 'public/data/simulatte-embedder/surface-card-index-embeddinggemma-v1.json');
 const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
 const INDEX_ID = process.env.SIMULATTE_SURFACE_CARD_INDEX_ID
   || 'simulatte-surface-card-embeddinggemma-300m-index-v1';
@@ -95,7 +95,7 @@ function expectedEmbeddingDim(manifest) {
 }
 
 async function loadInputs() {
-  const graphSynthesis = require('../public/js/simulatte-graph-synthesis.js');
+  const graphSynthesis = require('../public/pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js');
   const cards = graphSynthesis.createSurfaceCardDocuments();
   if (!cards.length) throw new Error('No Simulatte surface cards found');
 

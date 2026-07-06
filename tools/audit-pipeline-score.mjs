@@ -46,7 +46,7 @@ const SIGNALS = Object.freeze([
   signal('optical', /\b(light|sunlight|shadow|shadows|laser|lens|prism|mirror|photon|caustic|refraction|interference|ray|spectral|glass)\b/i),
   signal('quantum', /\b(quantum|qubit|superconducting|microwave|resonator|spin|ion trap|readout)\b/i),
   signal('acoustic', /\b(acoustic|sound|speaker|membrane|standing wave|standing waves|frequency|vibration|pressure ring)\b/i),
-  signal('biological', /\b(growth|grow|grows|cell|protein|root|roots|coral|algae|mycelium|membrane|neuron|tissue|microbiome|enzyme|mangrove|fermentation|gluten|dough|yeast)\b/i),
+  signal('biological', /\b(growth|grow|grows|cell|protein|root|roots|coral|algae|mycelium|membrane|neuron|tissue|microbiome|enzyme|mangrove|fermentation|gluten|dough|yeast|dog|dogs|cat|cats|animal|animals|mammal|mammals)\b/i),
   signal('chemical', /\b(reaction|chemical|acid|acidic|acidity|crystal|concentration|electrolyte|solvent|catalyst|reagent|diffusion|dose|fermentation|metabolite)\b/i),
   signal('network', /\b(network|queue|market|traffic|route|packet|server|parcel|zoning|agent|dispatch|supply|demand|crowd|railway|data center)\b/i),
   signal('granular', /\b(grain|sand|soil|sediment|erosion|erodes|terrain|slope|dust|powder|silo|avalanche|bead|sieve|hail|boulder|boulders)\b/i),
@@ -124,7 +124,7 @@ function parseArgs(argv) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  const lab = require(path.join(ROOT, 'public', 'js', 'simulatte-physics-lab.js'));
+  const lab = require(path.join(ROOT, 'public', 'app', 'shell', 'simulatte-physics-lab.js'));
   const prompts = await buildPromptRows(options);
   const liveRows = options.liveReport ? await readLiveReport(options.liveReport) : new Map();
   const rows = prompts.map((row, index) => scorePrompt(row, index + 1, lab, liveRows, options));
@@ -140,7 +140,7 @@ async function main() {
     rubricVersion: RUBRIC_VERSION,
     promptSetVersion: PROMPT_SET_VERSION,
     floor: options.floor,
-    measurementMode: options.liveReport ? 'compiled-static-plus-live-visual' : 'compiled-static',
+    measurementMode: options.liveReport ? 'compiled-static-plus-live-visual' : 'compiled-static-live-webgpu-required',
     phaseDefinitions: PHASES,
     promptCount: rows.length,
     phaseScores,
@@ -255,24 +255,69 @@ function scorePrompt(row, index, lab, liveRows, options) {
 function buildContext(spec, prompt, expectedSignals, contentTerms) {
   const intent = spec && spec.intent || {};
   const brief = intent.intentBrief || {};
+  const phaseArtifacts = spec && spec.phaseArtifacts || {};
+  const phase2Artifact = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact || {};
+  const phase3Artifact = phaseArtifacts.phase3 && phaseArtifacts.phase3.artifact || {};
+  const phase4Artifact = phaseArtifacts.phase4 && phaseArtifacts.phase4.artifact || {};
+  const phase5Artifact = phaseArtifacts.phase5 && phaseArtifacts.phase5.artifact || {};
+  const phase6Artifact = phaseArtifacts.phase6 && phaseArtifacts.phase6.artifact || {};
+  const phase7Artifact = phaseArtifacts.phase7 && phaseArtifacts.phase7.artifact || {};
+  const languageGraph = phase2Artifact.languageGraph || null;
+  const retrievalRerankResult = phase3Artifact.retrievalRerankResult || null;
+  const activationCloud = phase4Artifact.activationCloud || null;
+  const groundedIntent = phase5Artifact.groundedIntent || null;
+  const simulationCompile = phase6Artifact.simulationCompile || null;
   const renderProgram = spec && spec.renderProgram || {};
-  const visualIR = renderProgram.visualIR || {};
+  const visualCompile = phase7Artifact.visualCompile || {};
+  const visualIR = visualCompile.visualIR || renderProgram.visualIR || {};
+  const retrievalRows = retrievalRerankResult
+    ? [
+      ...(retrievalRerankResult.rankedPrimitives || []),
+      ...(retrievalRerankResult.rankedCards || []),
+      ...(retrievalRerankResult.rankedUniverseRows || []),
+    ]
+    : brief.retrievedEvidence || [];
+  const acceptedGraph = groundedIntent && groundedIntent.acceptedGraph || spec && spec.universeGraph || {};
+  const graphBrief = acceptedGraph && acceptedGraph.intentBrief || brief;
+  const phaseLanguageEvidence = languageGraph ? {
+    ...languageGraph,
+    predicateFrames: languageGraph.predicateFrames || languageGraph.predicates || [],
+    nounPhrases: languageGraph.nounPhrases || (languageGraph.spans || []).filter((span) => (
+      span.kind === 'entity' || span.kind === 'material'
+    )),
+    verbPhrases: languageGraph.verbPhrases || (languageGraph.spans || []).filter((span) => span.kind === 'process'),
+    summary: {
+      ...(languageGraph.summary || {}),
+      hasCausalLanguage: Boolean((languageGraph.clauses || []).length || (languageGraph.predicates || []).length),
+    },
+  } : null;
+  const phaseSchemas = Object.fromEntries(Array.from({ length: 7 }, (_, index) => {
+    const key = `phase${index + 1}`;
+    return [key, phaseArtifacts[key] && phaseArtifacts[key].schema || ''];
+  }));
   return {
     prompt,
     expectedSignals,
     contentTerms,
     spec,
+    phaseArtifacts,
+    phaseSchemas,
     intent,
-    brief,
-    languageEvidence: brief.languageEvidence || {},
-    activationCloud: brief.activationCloud || [],
-    grounded: brief.groundedInterpretation || {},
-    universeGraph: spec && spec.universeGraph || {},
-    physicsIR: spec && spec.physicsIR || {},
-    validationReceipt: spec && spec.validationReceipt || {},
-    solverGraph: spec && spec.solverGraph || {},
-    renderIR: spec && spec.renderIR || {},
+    brief: graphBrief || brief,
+    languageEvidence: phaseLanguageEvidence || brief.languageEvidence || {},
+    retrievalRerankResult,
+    retrievalRows,
+    activationCloud: activationCloud && activationCloud.weightedActivations || brief.activationCloud || [],
+    grounded: graphBrief && graphBrief.groundedInterpretation || brief.groundedInterpretation || {},
+    groundedIntent,
+    universeGraph: acceptedGraph || {},
+    physicsIR: simulationCompile && simulationCompile.physicsIR || spec && spec.physicsIR || {},
+    validationReceipt: simulationCompile && simulationCompile.validationReceipt || spec && spec.validationReceipt || {},
+    solverGraph: simulationCompile && simulationCompile.solverGraph || spec && spec.solverGraph || {},
+    renderIR: simulationCompile && simulationCompile.renderIR || spec && spec.renderIR || {},
+    simulationCompile,
     renderProgram,
+    visualCompile,
     visualIR,
     graphicsAtoms: visualIR.graphicsAtoms || {},
   };
@@ -283,12 +328,13 @@ function scoreRuntime(context, compileError) {
   const detail = {
     compileError,
     hasSpec: Boolean(context.spec),
-    hasWorker: fsSync.existsSync(path.join(ROOT, 'public', 'js', 'simulatte-pipeline-worker.js')),
-    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'js', 'simulatte-physics-renderer.js')),
-    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'js', 'simulatte-webgpu-renderer.js')),
+    hasWorker: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'workers', 'simulatte-pipeline-worker.js')),
+    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'lab', 'simulatte-physics-renderer.js')),
+    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'pipeline', 'phase-08-render', 'simulatte-webgpu-renderer.js')),
+    phaseSchemas: context.phaseSchemas || {},
   };
   if (!compileError && context.spec) score += 18;
-  if (context.renderProgram && context.renderProgram.schema) score += 10;
+  if (context.phaseSchemas && context.phaseSchemas.phase7 === 'simulatte.phase7.output.v1') score += 10;
   if (context.visualIR && context.visualIR.schema) score += 8;
   if (detail.hasWorker) score += 4;
   if (detail.hasRenderer && detail.hasWebGpuRenderer) score += 6;
@@ -324,8 +370,9 @@ function scoreLanguageGraph(context) {
 }
 
 function scoreRetrieval(context) {
-  const evidenceRows = context.brief.retrievedEvidence || [];
-  const semantic = context.intent.semanticRag || {};
+  const evidenceRows = context.retrievalRows || [];
+  const retrieval = context.retrievalRerankResult || {};
+  const semantic = retrieval.semanticRag || context.intent.semanticRag || {};
   const synthesis = context.intent.synthesis || null;
   const text = compactText(evidenceRows);
   const signalCoverage = signalCoverageScore(context.expectedSignals, text);
@@ -432,7 +479,10 @@ function scoreSimulationCompile(context) {
 function scoreVisualIR(context) {
   const visual = context.visualIR || {};
   const atoms = context.graphicsAtoms || {};
+  const renderInstances = visual.renderInstances || [];
+  const rejectedRows = visual.rejectedRows || [];
   const text = compactText([
+    renderInstances,
     visual.entities || [],
     visual.materials || [],
     visual.fields || [],
@@ -447,15 +497,20 @@ function scoreVisualIR(context) {
     .filter(([, value]) => Number(value || 0) > 0)
     .map(([slot]) => slot);
   const visualSpecificity = visualSpecificityRatio(visual);
+  const acceptedInstanceCount = renderInstances.filter((row) => row.status !== 'rejected').length;
+  const sourceLinkedInstanceCount = renderInstances.filter((row) => row.sourceGraphId || (row.sourceIds || []).length).length;
   const score = sumParts([
-    part(10, (visual.entities || []).length >= 1),
-    part(10, (visual.materials || []).length >= 1),
-    part(10, (visual.fields || []).length >= 1),
-    part(12, (visual.processes || []).length >= 1),
-    part(18, visualSpecificity),
-    part(12, (visual.motion || []).length >= Math.max(1, context.expectedSignals.length)),
-    part(16, (atoms.mappings || []).length >= Math.max(1, Math.min(4, context.expectedSignals.length))),
-    part(12, signalCoverage.coverage),
+    part(8, (visual.entities || []).length >= 1),
+    part(8, (visual.materials || []).length >= 1),
+    part(8, (visual.fields || []).length >= 1),
+    part(10, (visual.processes || []).length >= 1),
+    part(14, visualSpecificity),
+    part(10, (visual.motion || []).length >= Math.max(1, context.expectedSignals.length)),
+    part(12, (atoms.mappings || []).length >= Math.max(1, Math.min(4, context.expectedSignals.length))),
+    part(12, renderInstances.length >= Math.max(3, context.expectedSignals.length + 2)),
+    part(8, acceptedInstanceCount / Math.max(1, renderInstances.length)),
+    part(6, sourceLinkedInstanceCount / Math.max(1, renderInstances.length)),
+    part(4, signalCoverage.coverage),
   ]) - Math.min(32, signalCoverage.falsePositivePenalty);
   return scored(score, `atoms=${(atoms.mappings || []).length} signalCoverage=${pct(signalCoverage.coverage)}`, {
     sceneKind: visual.sceneKind || '',
@@ -465,6 +520,10 @@ function scoreVisualIR(context) {
     processCount: (visual.processes || []).length,
     geometryCount: (visual.geometry || []).length,
     motionCount: (visual.motion || []).length,
+    renderInstanceCount: renderInstances.length,
+    acceptedRenderInstanceCount: acceptedInstanceCount,
+    sourceLinkedRenderInstanceCount: sourceLinkedInstanceCount,
+    rejectedRowCount: rejectedRows.length,
     mappingCount: (atoms.mappings || []).length,
     languageSignalCount: (atoms.languageSignals || []).length,
     uniformSlots: atomSlots,
@@ -474,33 +533,118 @@ function scoreVisualIR(context) {
 }
 
 function scoreWebGpu(context, liveResult) {
-  const webgpuPath = path.join(ROOT, 'public', 'js', 'simulatte-webgpu-renderer.js');
+  const webgpuPath = path.join(ROOT, 'public', 'pipeline', 'phase-08-render', 'simulatte-webgpu-renderer.js');
   const webgpuSource = fsSync.existsSync(webgpuPath) ? fsSync.readFileSync(webgpuPath, 'utf8') : '';
   const atoms = context.graphicsAtoms || {};
   const visual = context.visualIR || {};
+  const scenePacket = context.visualCompile && context.visualCompile.sceneRenderPacket ||
+    visual.sceneRenderPacket ||
+    context.renderProgram && context.renderProgram.sceneRenderPacket ||
+    {};
+  const packetEntities = Array.isArray(scenePacket.entities) ? scenePacket.entities : [];
+  const packetFields = Array.isArray(scenePacket.fields) ? scenePacket.fields : [];
+  const packetEffects = Array.isArray(scenePacket.effects) ? scenePacket.effects : [];
+  const packetSpatialRatio = packetEntities.length
+    ? packetEntities.filter((row) => row.transform &&
+      Array.isArray(row.transform.position) &&
+      Array.isArray(row.transform.scale) &&
+      row.geometry &&
+      row.material &&
+      row.animation &&
+      row.collider).length / packetEntities.length
+    : 0;
+  const packetIdentityRatio = packetEntities.length
+    ? packetEntities.filter((row) => row.identity &&
+      row.identity.type &&
+      row.identity.category &&
+      row.identity.renderClass).length / packetEntities.length
+    : 0;
   const atomValues = atoms.uniforms && atoms.uniforms.values || [];
+  const structuralProofs = [
+    /scenePacketFeatureVector/.test(webgpuSource),
+    /scenePacketAtomUniformVector/.test(webgpuSource),
+    /scenePacketSceneMixVector/.test(webgpuSource),
+    /visualIrLayerVector/.test(webgpuSource),
+    /sceneRenderPacketFromExecutionInput/.test(webgpuSource),
+    /simulatte\.renderExecutionInput\.v1/.test(webgpuSource),
+    /emptySceneRenderPacket/.test(webgpuSource),
+    /scenePacketObjectUniformVector/.test(webgpuSource),
+    /scenePacketIdentitySummary/.test(webgpuSource),
+    /composedVisualIrScene/.test(webgpuSource),
+    /graphComposedVisualIrScene/.test(webgpuSource),
+    /sceneRenderPacketScene/.test(webgpuSource),
+    /scenePacketIdentityAt\(index: i32\)/.test(webgpuSource),
+    /scenePacketSemanticCode/.test(webgpuSource),
+    /sceneMixAt\(index: i32\)/.test(webgpuSource),
+    /visualIrAt\(index: i32\)/.test(webgpuSource),
+    /scenePacketObjectAt\(index: i32\)/.test(webgpuSource),
+    /canvas\.dataset\.sceneMix/.test(webgpuSource),
+    /canvas\.dataset\.visualIrLayers/.test(webgpuSource),
+    /canvas\.dataset\.sceneRenderPacket/.test(webgpuSource),
+    /canvas\.dataset\.sceneObjectUniforms/.test(webgpuSource),
+    /canvas\.dataset\.sceneObjectIdentities/.test(webgpuSource),
+    !/function visualTextFromSpec|function refineSceneKindFromText|function sceneKindFromSpec/.test(webgpuSource),
+    !/renderProgram\.visualIR/.test(webgpuSource),
+  ];
+  const structuralCoverage = structuralProofs.filter(Boolean).length / structuralProofs.length;
   const staticSignalCoverage = signalCoverageScore(
     context.expectedSignals,
-    compactText([atoms.mappings || [], atoms.languageSignals || [], visual.geometry || [], visual.motion || []])
+    compactText([
+      atoms.mappings || [],
+      atoms.languageSignals || [],
+      visual.geometry || [],
+      visual.motion || [],
+      packetEntities,
+      packetFields,
+      packetEffects,
+      packetEntities.map((row) => row.identity || {}),
+    ])
   );
   let score = sumParts([
-    part(14, /visualIR/.test(webgpuSource)),
-    part(12, /graphicsAtomUniformVector/.test(webgpuSource)),
-    part(12, /WEBGPU_SHADER/.test(webgpuSource)),
-    part(10, atomValues.some((value) => Number(value || 0) > 0)),
-    part(10, visual.sceneKind && visual.sceneKind !== 'generic'),
+    part(8, /visualIR/.test(webgpuSource)),
+    part(8, /scenePacketAtomUniformVector/.test(webgpuSource)),
+    part(8, /WEBGPU_SHADER/.test(webgpuSource)),
+    part(8, atomValues.some((value) => Number(value || 0) > 0)),
+    part(8, visual.sceneKind && visual.sceneKind !== 'generic'),
     part(14, staticSignalCoverage.coverage),
+    part(22, structuralCoverage),
+    part(4, (visual.geometry || []).length > 0 && (visual.motion || []).length > 0),
+    part(8, scenePacket.schema === 'simulatte.sceneRenderPacket.v1'),
+    part(4, packetSpatialRatio),
+    part(4, packetIdentityRatio),
+    part(4, /sceneRenderPacketScene/.test(webgpuSource)),
   ]);
   const detail = {
     sceneKind: visual.sceneKind || '',
     shaderUsesVisualIR: /visualIR/.test(webgpuSource),
-    shaderUsesAtomUniforms: /graphicsAtomUniformVector/.test(webgpuSource),
+    shaderUsesAtomUniforms: /scenePacketAtomUniformVector/.test(webgpuSource),
+    shaderUsesSceneRenderPacket: /sceneRenderPacketScene/.test(webgpuSource),
+    rendererRejectsSemanticInference: !/function visualTextFromSpec|function refineSceneKindFromText|function sceneKindFromSpec|renderProgram|renderIR|retrieval/.test(webgpuSource),
     atomUniformCount: atomValues.filter((value) => Number(value || 0) > 0).length,
+    sceneRenderPacket: scenePacket.schema || '',
+    sceneRenderPacketCompiler: scenePacket.compiler || '',
+    sceneRenderPacketEntityCount: packetEntities.length,
+    sceneRenderPacketFieldCount: packetFields.length,
+    sceneRenderPacketEffectCount: packetEffects.length,
+    sceneRenderPacketSpatialRatio: packetSpatialRatio,
+    sceneRenderPacketIdentityRatio: packetIdentityRatio,
+    sceneRenderPacketIdentities: Array.from(new Set(packetEntities
+      .map((row) => row.identity && (row.identity.label || row.identity.type))
+      .filter(Boolean))).slice(0, 32),
+    structuralCoverage,
     staticSignalCoverage,
     liveVisualScore: null,
     liveDynamic: null,
     liveMissingSignals: [],
-    evidenceMode: liveResult ? 'live-report' : 'compiled-static-proxy',
+    livePhase8Input: liveResult && liveResult.phase8Input || '',
+    liveSceneRenderPacket: liveResult && liveResult.sceneRenderPacket || '',
+    liveSceneRenderEntityCount: liveResult && Number(liveResult.sceneRenderEntityCount || 0) || 0,
+    liveSceneRenderSpatialHash: liveResult && liveResult.sceneRenderSpatialHash || '',
+    liveSceneObjectUniforms: liveResult && liveResult.sceneObjectUniforms || '',
+    liveSceneObjectIdentities: liveResult && liveResult.sceneObjectIdentities || '',
+    liveSceneRenderPacketIdentities: liveResult && liveResult.visualIRSceneRenderPacketIdentities || [],
+    liveProofRequired: true,
+    evidenceMode: liveResult ? 'live-report' : 'compiled-static-visual-ir-proof',
   };
   if (liveResult) {
     const rubric = liveResult.visualRubric || {};
@@ -511,11 +655,20 @@ function scoreWebGpu(context, liveResult) {
     detail.liveVisualScore = liveScore;
     detail.liveDynamic = Boolean(rubric.dynamic);
     detail.liveMissingSignals = rubric.missingSignals || [];
+    detail.evidenceMode = 'live-report-required';
     score = score * 0.35 + liveScore * 0.45 + representation * 100 * 0.12 + dynamic * 8 - missingCount * 4;
   } else {
-    score = Math.min(62, score);
+    score = Math.min(68, score);
   }
-  return scored(score, liveResult ? 'live visual report folded in' : 'no live visual proof; static proxy capped', detail);
+  return scored(
+    score,
+    liveResult
+      ? 'live visual report folded in'
+      : structuralCoverage >= 0.75
+        ? 'live WebGPU proof required; static VisualIR proxy capped'
+        : 'no live visual proof; static proxy capped',
+    detail
+  );
 }
 
 function expectedSignalsForPrompt(prompt) {
@@ -635,8 +788,30 @@ function weakestPhase(scores) {
 function coverage(terms, text) {
   if (!terms.length) return 1;
   const normalized = normalize(text);
-  const covered = terms.filter((term) => normalized.includes(normalize(term)));
+  const covered = terms.filter((term) => termVariants(term).some((variant) => {
+    const normalizedVariant = normalize(variant);
+    if (!normalizedVariant) return false;
+    return new RegExp(`\\b${escapeRegExp(normalizedVariant)}\\b`).test(normalized);
+  }));
   return covered.length / terms.length;
+}
+
+function termVariants(term) {
+  const value = normalize(term);
+  const variants = [value];
+  if (value.endsWith('ies') && value.length > 4) variants.push(`${value.slice(0, -3)}y`);
+  if (value.endsWith('es') && value.length > 4) variants.push(value.slice(0, -2));
+  if (value.endsWith('s') && value.length > 3) variants.push(value.slice(0, -1));
+  if (value.endsWith('ing') && value.length > 5) {
+    const stem = value.slice(0, -3);
+    variants.push(stem);
+    if (/([a-z])\1$/.test(stem)) variants.push(stem.slice(0, -1));
+  }
+  return unique(variants);
+}
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function compactText(value) {

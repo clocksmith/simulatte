@@ -133,6 +133,7 @@ function compactRecord(input = {}, type = 'review') {
       mappingIds: stringArray(diagnostics.mappingIds, 64, 160),
       uniformSlots: stringArray(diagnostics.uniformSlots, 64, 80),
       wgslOperators: stringArray(diagnostics.wgslOperators, 64, 120),
+      sceneMix: stringValue(diagnostics.sceneMix || diagnostics.physicsCanvasSceneMix, 400),
       canvasHash: stringValue(diagnostics.canvasHash, 120),
       renderCount: Number(diagnostics.renderCount || 0),
       fps: numberValue(diagnostics.fps, 0),

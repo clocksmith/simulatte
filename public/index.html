@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
-  <meta name="simulatte-build" content="77ca1b5e33b82a90633bb48fabc7bcb3cf4373bd">
+  <meta name="simulatte-build" content="d7df7c3adc24db158b73ec482f7122b80d90a955">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
@@ -2478,7 +2478,7 @@
       <div class="prompt-dock-head">
         <h1>Simulatte</h1>
         <div class="prompt-dock-head-right">
-          <span id="lab-state" class="physics-status" aria-live="polite">loading compiler</span>
+          <span id="lab-state" class="physics-status" aria-live="polite">loading pipeline</span>
           <span id="fps-readout" class="physics-fps" data-perf="idle">FPS --</span>
           <button id="prompt-dock-toggle" class="prompt-dock-toggle" type="button" aria-label="Minimize prompt panel" aria-expanded="true">−</button>
         </div>
@@ -2551,57 +2551,57 @@
       root.addEventListener('error', (event) => {
         const target = event && event.target;
         const src = target && target.tagName === 'SCRIPT' ? target.getAttribute('src') : '';
-        if (!src || !/\/?js\//.test(src)) return;
+        if (!src || !/(^|\/)(app|pipeline)\//.test(src)) return;
         state.failedScripts.push(src);
       }, true);
     })(typeof globalThis !== 'undefined' ? globalThis : window);
   </script>
-  <script defer src="./js/simulatte-physics-catalog.js"></script>
-  <script defer src="./js/simulatte-semantic-rag.js"></script>
-  <script defer src="./js/simulatte-doppler-intent.js"></script>
-  <script defer src="./js/simulatte-graph-synthesis.js"></script>
-  <script defer src="./js/simulatte-intent-embedder.js"></script>
-  <script defer src="./js/simulatte-intent-classifier.js"></script>
-  <script defer src="./js/simulatte-universe-parser.js"></script>
-  <script defer src="./js/simulatte-universe-grounder.js"></script>
-  <script defer src="./js/simulatte-physics-ir.js"></script>
-  <script defer src="./js/simulatte-physics-ir-validator.js"></script>
-  <script defer src="./js/simulatte-intent-brief-schema.js"></script>
-  <script defer src="./js/simulatte-structured-intent-model.js"></script>
-  <script defer src="./js/simulatte-causal-physics-graph.js"></script>
-  <script defer src="./js/simulatte-assumption-ledger.js"></script>
-  <script defer src="./js/simulatte-causal-visual-affordances.js"></script>
-  <script defer src="./js/simulatte-language-evidence.js"></script>
-  <script defer src="./js/simulatte-activation-cloud.js"></script>
-  <script defer src="./js/simulatte-grounded-interpretation.js"></script>
-  <script defer src="./js/simulatte-intent-forensics.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-rigid-body-2d.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-particles.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-constraints.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-thermal.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-advection.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-pressure-flow-lite.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-wave-field.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-reaction-diffusion.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-fracture-threshold.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-rotational-mechanics.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-network-control.js"></script>
-  <script defer src="./js/solvers/simulatte-solver-growth-decay.js"></script>
-  <script defer src="./js/simulatte-solver-registry.js"></script>
-  <script defer src="./js/simulatte-solver-compiler.js"></script>
-  <script defer src="./js/simulatte-render-registry.js"></script>
-  <script defer src="./js/simulatte-render-ir.js"></script>
-  <script defer src="./js/simulatte-visual-operator-atlas.js"></script>
-  <script defer src="./js/simulatte-visual-operator-compiler.js"></script>
-  <script defer src="./js/simulatte-composition-graph.js"></script>
-  <script defer src="./js/simulatte-loading-canvas.js"></script>
-  <script defer src="./js/simulatte-webgpu-renderer.js"></script>
-  <script defer src="./js/simulatte-physics-model.js"></script>
-  <script defer src="./js/simulatte-physics-renderer.js"></script>
-  <script defer src="./js/simulatte-physics-lab.js"></script>
-  <script defer src="./js/simulatte-review-bridge.js"></script>
-  <script defer src="./js/simulatte-browser-boot.js"></script>
-  <script defer src="./js/simulatte-version-guard.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-catalog.js"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag.js"></script>
+  <script defer src="./pipeline/phase-01-runtime/simulatte-doppler-intent.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder.js"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-classifier.js"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-universe-parser.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-universe-grounder.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-ir.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-ir-validator.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-intent-brief-schema.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-structured-intent-model.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-causal-physics-graph.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-assumption-ledger.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-causal-visual-affordances.js"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-language-evidence.js"></script>
+  <script defer src="./pipeline/phase-04-activation/simulatte-activation-cloud.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-grounded-interpretation.js"></script>
+  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-intent-forensics.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-rigid-body-2d.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-particles.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-constraints.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-thermal.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-advection.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-pressure-flow-lite.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-wave-field.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-reaction-diffusion.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-fracture-threshold.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-rotational-mechanics.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-network-control.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-growth-decay.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-solver-registry.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-solver-compiler.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-render-registry.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-render-ir.js"></script>
+  <script defer src="./pipeline/phase-07-visual/simulatte-visual-operator-atlas.js"></script>
+  <script defer src="./pipeline/phase-07-visual/simulatte-visual-operator-compiler.js"></script>
+  <script defer src="./pipeline/phase-07-visual/simulatte-composition-graph.js"></script>
+  <script defer src="./app/controls/simulatte-loading-canvas.js"></script>
+  <script defer src="./pipeline/phase-08-render/simulatte-webgpu-renderer.js"></script>
+  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-model.js"></script>
+  <script defer src="./app/lab/simulatte-physics-renderer.js"></script>
+  <script defer src="./app/lab/simulatte-physics-lab.js"></script>
+  <script defer src="./app/controls/simulatte-review-bridge.js"></script>
+  <script defer src="./app/start/simulatte-browser-boot.js"></script>
+  <script defer src="./app/start/simulatte-version-guard.js"></script>
   <script>
     (function initPromptDockMinimize() {
       const panel = document.querySelector('.prompt-dock');

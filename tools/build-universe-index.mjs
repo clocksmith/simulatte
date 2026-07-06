@@ -876,9 +876,9 @@ function normalizeDocument(indexName, doc) {
 }
 
 function generatedUniverseDocs() {
-  const catalog = require('../public/js/simulatte-physics-catalog.js');
-  const ragApi = require('../public/js/simulatte-semantic-rag.js');
-  const graphApi = require('../public/js/simulatte-graph-synthesis.js');
+  const catalog = require('../public/pipeline/phase-06-simulation/simulatte-physics-catalog.js');
+  const ragApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
+  const graphApi = require('../public/pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js');
   const primitiveIds = new Set((catalog.PHYSICAL_PRIMITIVES || []).map((primitive) => primitive.id));
   const cards = [
     ...(ragApi.SEMANTIC_SURFACE_CARDS || []),
@@ -1231,7 +1231,7 @@ function finalizeGeneratedDoc(doc, indexName, refs) {
 }
 
 function addSemanticFeatures(index) {
-  const ragApi = require('../public/js/simulatte-semantic-rag.js');
+  const ragApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
   const featureDim = Number(ragApi.FEATURE_DIM || 384);
   const packed = new Float32Array(index.documents.length * featureDim);
   index.documents = index.documents.map((doc, order) => {

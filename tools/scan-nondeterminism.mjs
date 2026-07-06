@@ -17,7 +17,7 @@
 // Usage:
 //   node tools/scan-nondeterminism.mjs            # scan default critical set
 //   node tools/scan-nondeterminism.mjs --json     # machine-readable report
-//   node tools/scan-nondeterminism.mjs --all      # scan every public/js module
+//   node tools/scan-nondeterminism.mjs --all      # scan every public runtime module
 //
 // Exit code: 0 = clean, 1 = violation(s) on the critical surface.
 
@@ -27,18 +27,21 @@ import { dirname, join, relative } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
-const jsDir = join(root, 'public', 'js');
-const solversDir = join(jsDir, 'solvers');
+const publicDir = join(root, 'public');
+const pipelineDir = join(publicDir, 'pipeline');
+const appDir = join(publicDir, 'app');
+const workersDir = join(publicDir, 'workers');
+const solversDir = join(pipelineDir, 'phase-06-simulation', 'solvers');
 
 // Determinism-critical modules: the compute path from prompt → executable state.
 const CRITICAL = [
-  'simulatte-physics-model.js',
-  'simulatte-physics-ir.js',
-  'simulatte-physics-ir-validator.js',
-  'simulatte-solver-compiler.js',
-  'simulatte-solver-registry.js',
-  'simulatte-composition-graph.js',
-  'simulatte-render-ir.js',
+  join(pipelineDir, 'phase-06-simulation', 'simulatte-physics-model.js'),
+  join(pipelineDir, 'phase-06-simulation', 'simulatte-physics-ir.js'),
+  join(pipelineDir, 'phase-06-simulation', 'simulatte-physics-ir-validator.js'),
+  join(pipelineDir, 'phase-06-simulation', 'simulatte-solver-compiler.js'),
+  join(pipelineDir, 'phase-06-simulation', 'simulatte-solver-registry.js'),
+  join(pipelineDir, 'phase-07-visual', 'simulatte-composition-graph.js'),
+  join(pipelineDir, 'phase-06-simulation', 'simulatte-render-ir.js'),
 ];
 
 // Non-deterministic / non-reproducible call signatures. Each entry is a label
@@ -117,7 +120,13 @@ function scanFile(absPath) {
 }
 
 function listJsFiles(dir) {
-  return readdirSync(dir).filter((f) => f.endsWith('.js')).map((f) => join(dir, f));
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const file = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...listJsFiles(file));
+    else if (entry.name.endsWith('.js')) files.push(file);
+  }
+  return files;
 }
 
 const args = new Set(process.argv.slice(2));
@@ -126,10 +135,14 @@ const scanAll = args.has('--all');
 
 let targets;
 if (scanAll) {
-  targets = [...listJsFiles(jsDir), ...listJsFiles(solversDir)];
+  targets = [
+    ...listJsFiles(appDir),
+    ...listJsFiles(pipelineDir),
+    ...listJsFiles(workersDir),
+  ];
 } else {
   targets = [
-    ...CRITICAL.map((f) => join(jsDir, f)),
+    ...CRITICAL,
     ...listJsFiles(solversDir),
   ];
 }

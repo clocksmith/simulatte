@@ -5,7 +5,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
-const universeDir = path.join(root, 'public', 'models', 'simulatte-universe');
+const universeDir = path.join(root, 'public', 'data', 'simulatte-universe');
 
 const REQUIRED_INDEXES = [
   ['concepts', 'concept-index', 'concept-index-v1.json', 'simulatte.universeConceptIndex.v1'],

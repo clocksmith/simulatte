@@ -5,7 +5,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
-const visualCardDir = path.join(root, 'public', 'models', 'simulatte-visual-cards');
+const visualCardDir = path.join(root, 'public', 'data', 'simulatte-visual-cards');
 const manifestPath = path.join(visualCardDir, 'manifest.json');
 const indexPath = path.join(visualCardDir, 'visual-card-index-v1.json');
 const visualOperatorAtlasPath = path.join(visualCardDir, 'visual-operator-atlas-v1.json');

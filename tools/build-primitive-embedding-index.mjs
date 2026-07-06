@@ -14,7 +14,7 @@ const DEFAULT_MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
 const MODEL_DIR = process.env.SIMULATTE_EMBED_MODEL_DIR
   ? path.resolve(process.env.SIMULATTE_EMBED_MODEL_DIR)
   : path.resolve(ROOT, `../doppler/models/local/${DEFAULT_MODEL_ID}`);
-const OUT_PATH = path.join(ROOT, 'public/models/simulatte-embedder/primitive-index-v2.json');
+const OUT_PATH = path.join(ROOT, 'public/data/simulatte-embedder/primitive-index-v2.json');
 const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
 const INDEX_ID = process.env.SIMULATTE_PRIMITIVE_INDEX_ID
   || 'simulatte-primitive-embeddinggemma-300m-index-v1';
@@ -105,7 +105,7 @@ function expectedEmbeddingDim(manifest) {
 }
 
 async function main() {
-  const catalog = require('../public/js/simulatte-physics-catalog.js');
+  const catalog = require('../public/pipeline/phase-06-simulation/simulatte-physics-catalog.js');
   const primitives = catalog.PHYSICAL_PRIMITIVES || [];
   if (!primitives.length) throw new Error('No Simulatte primitives found');
 

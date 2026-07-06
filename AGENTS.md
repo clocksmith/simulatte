@@ -7,6 +7,8 @@
 - Maintain the static site under `public/`.
 - Keep interaction and presentation code simple and browser-first.
 - Preserve a fast deploy path through Firebase.
+- Follow [STYLE_GUIDE.md](STYLE_GUIDE.md) for Simulatte phase contracts,
+  browser runtime style, receipt design, rendering boundaries, tests, and docs.
 
 ## Routing Rules
 
@@ -16,6 +18,7 @@
 
 ## Guardrails
 
+- Read [STYLE_GUIDE.md](STYLE_GUIDE.md) before non-trivial edits.
 - Keep assets and links deploy-safe for static hosting.
 - Prefer relative paths for site resources.
 - Avoid adding server/runtime assumptions unless explicitly requested.
@@ -24,6 +27,16 @@
 
 - Changes should run directly in a browser from the hosted `public/` output.
 - Keep pages functional on desktop and mobile.
+
+## Intent-First Operations
+
+- Treat Simulatte intent as the strict browser simulation pipeline product, not Gamma, Doppler, Reploid, or Poolday.
+- If the user asks about app structure, start with the broad boundary: `public/app` is the client UI app, `public/pipeline` is the pipeline, and `public/data` is assets/contracts.
+- Do not preserve confusing taxonomy when the user is simplifying. Use plain job names such as start, page, state, controls, and drawing when they match behavior.
+- For pipeline work, respect the fixed phase order the user gives. Do not add split phases or reverse traversal unless asked.
+- Phase N consumes the exact Phase N-1 output plus allowed runtime context only. Fix loose validators, side channels, audit fallbacks, and compatibility inputs as boundary bugs.
+- When visuals look repetitive or semantically wrong, inspect the named phase boundary first and show the concrete artifact mismatch before broad rewrites.
+- Training commands are operational commands: start the training workflow, report the server/browser URL or exact blocker, and keep the run state clear.
 
 ## No time estimates
 

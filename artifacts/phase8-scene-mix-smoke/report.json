@@ -1,0 +1,412 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-04T22:55:26.644Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:53506/index.html?auditNoInitial=1",
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "watershed"
+    ],
+    "visualIRSceneKinds": [
+      "watershed"
+    ],
+    "visualIRCameras": [
+      "topographic-cutaway-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 25,
+      "mappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "uniformSlots": [
+        "biological",
+        "density",
+        "fluid",
+        "motion",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 100,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "biological",
+        "fluid"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 1
+    },
+    "intentBriefs": {
+      "totalEvidence": 75,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 75,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 7,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 100,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 1,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "dogs and cats swimming",
+      "screenshot": "01-custom-dogs-and-cats-swimming.png",
+      "screenshotHash": "de2d29cb2bb5f968316424ebd284ace358ecc81dc51cf0cf83dd81777b0404be",
+      "runtimeState": "ready",
+      "runtimeMessage": "",
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "watershed",
+      "physicsCanvasSceneId": "2",
+      "physicsCanvasSceneMix": "water:1.00,biological:0.92,magnetic:0.31,mechanical:0.31,chemical:0.26,granular:0.26,network:0.26,optical:0.26",
+      "physicsCanvasSceneMixSlots": "9",
+      "physicsCanvasRenderCount": "44",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 78.812,
+      "lumaStd": 62.963,
+      "coloredRatio": 0.714,
+      "canvasHash": "1af2a8d2",
+      "specId": "dogs-cats-swimming-mr6ynaro",
+      "templateId": "custom-world",
+      "rendererSceneKind": "watershed",
+      "visualIRSceneKind": "watershed",
+      "visualIRCamera": "topographic-cutaway-depth",
+      "visualIREntityCount": 8,
+      "visualIRMaterialCount": 8,
+      "visualIRFieldCount": 5,
+      "visualIRProcessCount": 7,
+      "visualIROperatorCount": 8,
+      "visualIRReceiptCount": 9,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRGraphicsAtomCount": 25,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "biological",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.99,
+        "biological": 1,
+        "motion": 0.911,
+        "density": 0.92,
+        "surface": 0.76
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0007",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0022",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0018",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0024",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0005",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0015",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0020",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 75,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 7,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 75,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 7,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 319719,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-dogs-and-cats-swimming.canvas.png",
+      "canvasScreenshotLater": "01-custom-dogs-and-cats-swimming.canvas-late.png",
+      "canvasScreenshotHash": "1bda1359ec25cdd4e4d5b564153f2b61bf3433953dd86f4b9d898498c4b1e001",
+      "canvasScreenshotLaterHash": "3a7fc7eb1418d257ecccef8505bf05be8934619eabd8000400b8ff89b1a38fa9",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 62.963,
+      "canvasScreenshotColoredRatio": 0.714,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.519,
+      "canvasFrameLumaStdDelta": 0.233,
+      "canvasFrameColoredRatioDelta": 0.0223,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "biological"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": []
+          },
+          {
+            "id": "biological",
+            "strength": 1,
+            "slotHits": [
+              "biological",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.biological-growth.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

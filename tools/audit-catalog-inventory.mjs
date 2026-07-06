@@ -5,12 +5,12 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const root = process.cwd();
-const inventoryPath = path.join(root, 'public/models/simulatte-catalog-inventory.json');
+const inventoryPath = path.join(root, 'public/data/simulatte-catalog-inventory.json');
 const inventory = readJson(inventoryPath);
 const failures = [];
 const summary = {
   schema: 'simulatte.catalogInventoryAudit.v1',
-  inventory: 'public/models/simulatte-catalog-inventory.json',
+  inventory: 'public/data/simulatte-catalog-inventory.json',
   staticCatalogs: [],
   runtimeCatalogs: [],
   manifestContracts: [],
@@ -82,8 +82,8 @@ console.log(JSON.stringify(summary, null, 2));
 if (failures.length) process.exit(1);
 
 function checkCausalMirror() {
-  const runtime = require(path.join(root, 'public/js/simulatte-causal-physics-graph.js')).CAUSAL_RELATION_RULES || [];
-  const staticRows = readJson(path.join(root, 'public/models/simulatte-universe/causal-relation-index-v1.json')).documents || [];
+  const runtime = require(path.join(root, 'public/pipeline/phase-05-grounded-intent/simulatte-causal-physics-graph.js')).CAUSAL_RELATION_RULES || [];
+  const staticRows = readJson(path.join(root, 'public/data/simulatte-universe/causal-relation-index-v1.json')).documents || [];
   const runtimeIds = new Set(runtime.map((row) => row.id));
   const staticIds = new Set(staticRows.map((row) => row.id));
   const missingStatic = [...runtimeIds].filter((id) => !staticIds.has(id));
@@ -101,8 +101,8 @@ function checkCausalMirror() {
 }
 
 function checkVisualMirror() {
-  const runtime = require(path.join(root, 'public/js/simulatte-causal-visual-affordances.js')).CAUSAL_VISUAL_AFFORDANCES || [];
-  const staticRows = readJson(path.join(root, 'public/models/simulatte-visual-cards/causal-visual-affordance-index-v1.json')).documents || [];
+  const runtime = require(path.join(root, 'public/pipeline/phase-05-grounded-intent/simulatte-causal-visual-affordances.js')).CAUSAL_VISUAL_AFFORDANCES || [];
+  const staticRows = readJson(path.join(root, 'public/data/simulatte-visual-cards/causal-visual-affordance-index-v1.json')).documents || [];
   const runtimeRelations = new Set(runtime.map((row) => row.causalRelationId));
   const staticRelations = new Set(staticRows.map((row) => row.causalRelationId));
   const missingStatic = [...runtimeRelations].filter((id) => !staticRelations.has(id));

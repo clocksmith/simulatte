@@ -8,7 +8,7 @@
     "name": "web",
     "port": 4174,
     "existing": false,
-    "pid": 5759,
+    "pid": 50020,
     "startedInRun": true,
     "startedByTrain": true
   },
@@ -16,7 +16,7 @@
     "name": "review",
     "port": 4766,
     "existing": false,
-    "pid": 5758,
+    "pid": 50019,
     "startedInRun": true,
     "startedByTrain": true
   },
@@ -24,5 +24,5 @@
     "web": "artifacts/simulatte-train/web.log",
     "review": "artifacts/simulatte-train/review.log"
   },
-  "updatedAt": "2026-07-04T00:22:45.022Z"
+  "updatedAt": "2026-07-04T22:39:34.801Z"
 }

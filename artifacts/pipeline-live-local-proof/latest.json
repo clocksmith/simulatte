@@ -1,0 +1,242 @@
+{
+  "schema": "simulatte.pipelineAuditRun.v1",
+  "generatedAt": "2026-07-05T00:33:32.021Z",
+  "runId": "2026-07-05T00-33-32-021Z-cadcb66339",
+  "gitSha": "d7df7c3adc24",
+  "version": "",
+  "rubricVersion": "phase-floor-76.v1",
+  "promptSetVersion": "core-adversarial-human-v1",
+  "floor": 76,
+  "measurementMode": "compiled-static-plus-live-visual",
+  "phaseDefinitions": [
+    {
+      "id": "runtime",
+      "step": 1,
+      "label": "Prompt Runtime"
+    },
+    {
+      "id": "languageGraph",
+      "step": 2,
+      "label": "Language Graph"
+    },
+    {
+      "id": "retrieval",
+      "step": 3,
+      "label": "Embedding Retrieval"
+    },
+    {
+      "id": "activationCloud",
+      "step": 4,
+      "label": "Activation Cloud"
+    },
+    {
+      "id": "groundedIntent",
+      "step": 5,
+      "label": "Grounded Intent"
+    },
+    {
+      "id": "simulationCompile",
+      "step": 6,
+      "label": "Simulation Compile"
+    },
+    {
+      "id": "visualIR",
+      "step": 7,
+      "label": "VisualIR Compile"
+    },
+    {
+      "id": "webgpu",
+      "step": 8,
+      "label": "WebGPU Render"
+    }
+  ],
+  "promptCount": 1,
+  "phaseScores": {
+    "runtime": 96,
+    "languageGraph": 100,
+    "retrieval": 83,
+    "activationCloud": 100,
+    "groundedIntent": 84,
+    "simulationCompile": 96,
+    "visualIR": 90,
+    "webgpu": 100
+  },
+  "pipelineScore": 83,
+  "verdict": "pass",
+  "weakestPhase": "retrieval",
+  "belowFloor": [],
+  "failures": [],
+  "prompts": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "dogs and cats swimming in water",
+      "expectedSignals": [
+        "fluid",
+        "biological"
+      ],
+      "phaseScores": {
+        "runtime": 96,
+        "languageGraph": 100,
+        "retrieval": 83,
+        "activationCloud": 100,
+        "groundedIntent": 84,
+        "simulationCompile": 96,
+        "visualIR": 90,
+        "webgpu": 100
+      },
+      "pipelineScore": 83,
+      "weakestPhase": "retrieval",
+      "failures": [],
+      "phaseDetails": {
+        "runtime": {
+          "compileError": "",
+          "hasSpec": true,
+          "hasWorker": true,
+          "hasRenderer": true,
+          "hasWebGpuRenderer": true
+        },
+        "languageGraph": {
+          "tokenCount": 6,
+          "spanCount": 6,
+          "clauseCount": 2,
+          "predicateFrameCount": 0,
+          "termCoverage": 1
+        },
+        "retrieval": {
+          "evidenceCount": 84,
+          "semanticRag": "simulatte.semanticRag.v1",
+          "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
+          "termCoverage": 0.75,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "network"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "activationCloud": {
+          "activationCount": 507,
+          "acceptedActivationCount": 23,
+          "directSignalCount": 3,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "groundedIntent": {
+          "acceptedActivationCount": 23,
+          "evidenceBindingCount": 23,
+          "causalEdgeCount": 0,
+          "visualAffordanceCount": 0,
+          "coverageGapCount": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "simulationCompile": {
+          "universeNodeCount": 5,
+          "physicsEntityCount": 5,
+          "operatorCount": 4,
+          "solverStepCount": 4,
+          "channelCount": 37,
+          "termCoverage": 1,
+          "geometrySpecificity": 1,
+          "topologySpecificity": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "thermal"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "visualIR": {
+          "sceneKind": "watershed",
+          "entityCount": 8,
+          "materialCount": 9,
+          "fieldCount": 5,
+          "processCount": 9,
+          "geometryCount": 14,
+          "motionCount": 13,
+          "renderInstanceCount": 41,
+          "acceptedRenderInstanceCount": 41,
+          "sourceLinkedRenderInstanceCount": 41,
+          "rejectedRowCount": 12,
+          "mappingCount": 2,
+          "languageSignalCount": 28,
+          "uniformSlots": [
+            "fluid",
+            "biological",
+            "motion",
+            "density",
+            "surface"
+          ],
+          "visualSpecificity": 0.8571428571428571,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "chemical",
+              "network"
+            ],
+            "falsePositivePenalty": 8
+          }
+        },
+        "webgpu": {
+          "sceneKind": "watershed",
+          "shaderUsesVisualIR": true,
+          "shaderUsesAtomUniforms": true,
+          "atomUniformCount": 5,
+          "structuralCoverage": 1,
+          "staticSignalCoverage": {
+            "coverage": 1,
+            "found": [
+              "fluid",
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "network"
+            ],
+            "falsePositivePenalty": 4
+          },
+          "liveVisualScore": 100,
+          "liveDynamic": true,
+          "liveMissingSignals": [],
+          "liveProofRequired": true,
+          "evidenceMode": "live-report-required"
+        }
+      }
+    }
+  ],
+  "reportPath": "artifacts/pipeline-live-local-proof/runs/2026-07-05T00-33-32-021Z-cadcb66339/report.json"
+}
