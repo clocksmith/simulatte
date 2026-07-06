@@ -7,10 +7,12 @@ const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
 const moduleMapPath = path.join(root, 'tools', 'simulatte-module-map.json');
 const moduleMap = JSON.parse(fs.readFileSync(moduleMapPath, 'utf8'));
-const runtimeModuleByName = new Map(moduleMap.entries.map((entry) => [
-  path.basename(entry.oldPath),
-  entry.newPath.replace(/^public\//, ''),
-]));
+const runtimeModuleByName = new Map();
+for (const entry of moduleMap.entries) {
+  const rel = entry.newPath.replace(/^public\//, '');
+  runtimeModuleByName.set(path.basename(entry.oldPath), rel);
+  runtimeModuleByName.set(path.basename(entry.newPath), rel);
+}
 const catalog = require(runtimeFile('simulatte-physics-catalog.js'));
 const visualOperatorAtlas = require(runtimeFile('simulatte-visual-operator-atlas.js'));
 const visualOperatorCompiler = require(runtimeFile('simulatte-visual-operator-compiler.js'));
@@ -73,11 +75,11 @@ test('runtime source is owned by app, pipeline, data, and worker directories', (
     'simulatte-intent-forensics.js',
     'simulatte-pipeline-worker.js',
     'simulatte-composition-graph.js',
-    'simulatte-loading-canvas.js',
+    'loading-canvas.js',
     'simulatte-physics-model.js',
-    'simulatte-physics-renderer.js',
-    'simulatte-physics-lab.js',
-    'simulatte-review-bridge.js',
+    'prompt-controller.js',
+    'simulation-lab.js',
+    'prompt-review-bridge.js',
   ];
 
   for (const name of expected) {
@@ -88,70 +90,83 @@ test('runtime source is owned by app, pipeline, data, and worker directories', (
   }
 
   const coordinatorLines = fs.readFileSync(
-    runtimeFile('simulatte-physics-lab.js'),
+    runtimeFile('simulation-lab.js'),
     'utf8'
   ).split(/\r?\n/);
   assert.ok(coordinatorLines.length < 80);
 });
 
-test('app product boundaries use start lab session controls graphics and pipeline directories', () => {
+test('app product boundaries use loading prompt simulation and pipeline directories', () => {
   const retiredGameRoot = path.join(publicDir, 'app', 'game');
   const retiredShellRoot = path.join(publicDir, 'app', 'shell');
   const retiredExperienceRoot = path.join(publicDir, 'app', 'experience');
   const retiredBootRoot = path.join(publicDir, 'app', 'boot');
+  const retiredStartRoot = path.join(publicDir, 'app', 'start');
   const retiredWorldSessionRoot = path.join(publicDir, 'app', 'world-session');
   const retiredViewRoot = path.join(publicDir, 'app', 'view');
   const retiredDrawingRoot = path.join(publicDir, 'app', 'drawing');
   const retiredUiRoot = path.join(publicDir, 'app', 'ui');
+  const retiredLabRoot = path.join(publicDir, 'app', 'lab');
+  const retiredSessionRoot = path.join(publicDir, 'app', 'session');
+  const retiredControlsRoot = path.join(publicDir, 'app', 'controls');
+  const retiredGraphicsRoot = path.join(publicDir, 'app', 'graphics');
   const retiredCompilerRoot = path.join(publicDir, 'compiler');
   const retiredRenderRoot = path.join(publicDir, 'app', 'render');
   const retiredUiRenderRoot = path.join(publicDir, 'app', 'ui', 'render');
-  const startRoot = path.join(publicDir, 'app', 'start');
-  const labRoot = path.join(publicDir, 'app', 'lab');
-  const sessionRoot = path.join(publicDir, 'app', 'session');
-  const controlsRoot = path.join(publicDir, 'app', 'controls');
-  const graphicsRoot = path.join(publicDir, 'app', 'graphics');
+  const loadingRoot = path.join(publicDir, 'app', 'loading');
+  const promptRoot = path.join(publicDir, 'app', 'prompt');
+  const simulationRoot = path.join(publicDir, 'app', 'simulation');
   const pipelineRoot = path.join(publicDir, 'pipeline');
-  const appMain = fs.readFileSync(path.join(startRoot, 'main.js'), 'utf8');
+  const appRoot = path.join(publicDir, 'app');
+  const appMain = fs.readFileSync(path.join(appRoot, 'main.js'), 'utf8');
   const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
 
   assert.equal(fs.existsSync(retiredGameRoot), false, 'public/app/game should be retired');
   assert.equal(fs.existsSync(retiredShellRoot), false, 'public/app/shell should be retired');
   assert.equal(fs.existsSync(retiredExperienceRoot), false, 'public/app/experience should be retired');
   assert.equal(fs.existsSync(retiredBootRoot), false, 'public/app/boot should be retired');
+  assert.equal(fs.existsSync(retiredStartRoot), false, 'public/app/start should be retired');
   assert.equal(fs.existsSync(retiredWorldSessionRoot), false, 'public/app/world-session should be retired');
   assert.equal(fs.existsSync(retiredViewRoot), false, 'public/app/view should be retired');
   assert.equal(fs.existsSync(retiredDrawingRoot), false, 'public/app/drawing should be retired');
   assert.equal(fs.existsSync(retiredUiRoot), false, 'public/app/ui should be retired');
+  assert.equal(fs.existsSync(retiredLabRoot), false, 'public/app/lab should be retired');
+  assert.equal(fs.existsSync(retiredSessionRoot), false, 'public/app/session should be retired');
+  assert.equal(fs.existsSync(retiredControlsRoot), false, 'public/app/controls should be retired');
+  assert.equal(fs.existsSync(retiredGraphicsRoot), false, 'public/app/graphics should be retired');
   assert.equal(fs.existsSync(retiredCompilerRoot), false, 'public/compiler should be retired');
   assert.equal(fs.existsSync(retiredRenderRoot), false, 'public/app/render should be retired');
   assert.equal(fs.existsSync(retiredUiRenderRoot), false, 'public/app/ui/render should be retired');
-  assert.ok(fs.existsSync(path.join(startRoot, 'simulatte-browser-boot.js')));
-  assert.ok(fs.existsSync(path.join(startRoot, 'simulatte-version-guard.js')));
-  assert.ok(fs.existsSync(path.join(labRoot, 'simulatte-physics-renderer.js')));
-  assert.ok(fs.existsSync(path.join(labRoot, 'simulatte-physics-lab.js')));
-  assert.ok(fs.existsSync(path.join(sessionRoot, 'simulatte-scenario-engine.js')));
-  assert.ok(fs.existsSync(path.join(sessionRoot, 'simulatte-world-core.js')));
-  assert.ok(fs.existsSync(path.join(sessionRoot, 'simulatte-world-model.js')));
-  assert.ok(fs.existsSync(path.join(controlsRoot, 'hud-controller.js')));
-  assert.ok(fs.existsSync(path.join(graphicsRoot, 'iso-world-renderer.js')));
-  assert.ok(fs.existsSync(path.join(graphicsRoot, 'assets', 'material-atlas.js')));
-  assert.ok(fs.existsSync(path.join(graphicsRoot, 'core', 'gl-program.js')));
+  assert.ok(fs.existsSync(path.join(appRoot, 'main.js')));
+  assert.ok(fs.existsSync(path.join(appRoot, 'version-guard.js')));
+  assert.ok(fs.existsSync(path.join(loadingRoot, 'loading-canvas.js')));
+  assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-controller.js')));
+  assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-review-bridge.js')));
+  assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-debug-panel.js')));
+  assert.ok(fs.existsSync(path.join(simulationRoot, 'simulation-lab.js')));
+  assert.ok(fs.existsSync(path.join(simulationRoot, 'simulation-scenario-engine.js')));
   assert.ok(fs.existsSync(path.join(pipelineRoot, 'phase-08-render', 'simulatte-webgpu-renderer.js')));
-  assert.match(appMain, /from '\.\.\/session\/simulatte-world-model\.js'/);
-  assert.match(appMain, /from '\.\.\/graphics\/iso-world-renderer\.js'/);
+  assert.match(appMain, /\.\/app\/prompt\/prompt-controller\.js/);
+  assert.match(appMain, /\.\/app\/simulation\/simulation-lab\.js/);
   assert.doesNotMatch(appMain, /from '\.\/render\//);
-  assert.match(html, /src="\.\/app\/lab\/simulatte-physics-renderer\.js"/);
-  assert.match(html, /src="\.\/app\/lab\/simulatte-physics-lab\.js"/);
-  assert.match(html, /src="\.\/app\/start\/simulatte-browser-boot\.js"/);
-  assert.match(html, /src="\.\/app\/start\/simulatte-version-guard\.js"/);
+  assert.match(html, /src="\.\/app\/loading\/loading-canvas\.js"/);
+  assert.match(html, /src="\.\/app\/prompt\/prompt-controller\.js"/);
+  assert.match(html, /src="\.\/app\/simulation\/simulation-lab\.js"/);
+  assert.match(html, /src="\.\/app\/prompt\/prompt-review-bridge\.js"/);
+  assert.match(html, /src="\.\/app\/main\.js"/);
+  assert.match(html, /src="\.\/app\/version-guard\.js"/);
   assert.match(html, /src="\.\/pipeline\/phase-08-render\/simulatte-webgpu-renderer\.js"/);
   assert.doesNotMatch(html, /src="\.\/app\/shell\//);
   assert.doesNotMatch(html, /src="\.\/app\/experience\//);
   assert.doesNotMatch(html, /src="\.\/app\/boot\//);
+  assert.doesNotMatch(html, /src="\.\/app\/start\//);
   assert.doesNotMatch(html, /src="\.\/app\/world-session\//);
   assert.doesNotMatch(html, /src="\.\/app\/view\//);
   assert.doesNotMatch(html, /src="\.\/app\/ui\//);
+  assert.doesNotMatch(html, /src="\.\/app\/lab\//);
+  assert.doesNotMatch(html, /src="\.\/app\/session\//);
+  assert.doesNotMatch(html, /src="\.\/app\/controls\//);
+  assert.doesNotMatch(html, /src="\.\/app\/graphics\//);
   assert.doesNotMatch(html, /src="\.\/compiler\//);
 });
 
@@ -229,11 +244,11 @@ test('intent forensics modules load before the physics model in the browser lab'
     'visual operator compiler should load before composition graph'
   );
   assert.ok(
-    position('simulatte-loading-canvas.js') < position('simulatte-webgpu-renderer.js'),
+    position('loading-canvas.js') < position('simulatte-webgpu-renderer.js'),
     'loading canvas should load before the WebGPU renderer'
   );
   assert.ok(
-    position('simulatte-physics-lab.js') < position('simulatte-review-bridge.js'),
+    position('simulation-lab.js') < position('prompt-review-bridge.js'),
     'review bridge should load after the browser lab runtime'
   );
 });
@@ -241,12 +256,12 @@ test('intent forensics modules load before the physics model in the browser lab'
 test('training mode streams prompt-output critiques over localhost', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const bridge = fs.readFileSync(runtimeFile('simulatte-review-bridge.js'), 'utf8');
-  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
+  const bridge = fs.readFileSync(runtimeFile('prompt-review-bridge.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
   const server = fs.readFileSync(path.join(root, 'tools', 'simulatte-review-server.mjs'), 'utf8');
 
   assert.equal(pkg.scripts['review:server'], 'node tools/simulatte-review-server.mjs');
-  assert.match(html, /simulatte-review-bridge\.js/);
+  assert.match(html, /prompt-review-bridge\.js/);
   assert.match(bridge, /simulatte\.trainingMode\.enabled\.v1/);
   assert.match(bridge, /simulatte-training-reviews-v1/);
   assert.match(bridge, /indexedDB\.open\(DB_NAME, 1\)/);
@@ -491,11 +506,11 @@ test('procedural visual base exposes a broad prompt-addressed catalog', () => {
 
 test('physics renderer is a browser coordinator, not a legacy Canvas2D painter library', () => {
   const renderer = fs.readFileSync(
-    runtimeFile('simulatte-physics-renderer.js'),
+    runtimeFile('prompt-controller.js'),
     'utf8'
   );
   const lab = fs.readFileSync(
-    runtimeFile('simulatte-physics-lab.js'),
+    runtimeFile('simulation-lab.js'),
     'utf8'
   );
   const auditTool = fs.readFileSync(
@@ -523,7 +538,7 @@ test('physics renderer is a browser coordinator, not a legacy Canvas2D painter l
 
 test('prompt compilation has a worker boundary with main-thread fallback', () => {
   const renderer = fs.readFileSync(
-    runtimeFile('simulatte-physics-renderer.js'),
+    runtimeFile('prompt-controller.js'),
     'utf8'
   );
   const worker = fs.readFileSync(
@@ -634,7 +649,7 @@ test('vendored Doppler shader cache resolves kernels beside the loaded module', 
 
 test('physics loading uses a phase-reactive canvas Snake game instead of a card mosaic', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
 
   assert.match(html, /--mosaic-pink/);
   assert.match(html, /--mosaic-lilac/);
@@ -645,7 +660,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(html, /id="loading-canvas"/);
   assert.match(html, /#loading-canvas \{[\s\S]*position: fixed;[\s\S]*opacity: 0;[\s\S]*transition: opacity 160ms ease;/);
   assert.match(html, /#loading-canvas\.is-active \{\n\s+opacity: 1;/);
-  assert.match(html, /simulatte-loading-canvas\.js/);
+  assert.match(html, /loading-canvas\.js/);
   assert.match(html, /simulatte-webgpu-renderer\.js/);
   assert.doesNotMatch(html, /simulatte-particle-field\.js/);
   assert.doesNotMatch(html, /simulatte-cinematic-renderer\.js/);
@@ -688,7 +703,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
     'utf8'
   );
   const loadingCanvas = fs.readFileSync(
-    runtimeFile('simulatte-loading-canvas.js'),
+    runtimeFile('loading-canvas.js'),
     'utf8'
   );
   assert.match(webgpuRenderer, /const SCENE_PACKET_OBJECT_SLOTS = 8/);
@@ -1002,8 +1017,8 @@ test('prompt dock minimizes to corners without drag placement', () => {
 
 test('browser product exposes compiled world model receipts', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const lab = fs.readFileSync(runtimeFile('simulatte-physics-lab.js'), 'utf8');
-  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
+  const lab = fs.readFileSync(runtimeFile('simulation-lab.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
   const auditTool = fs.readFileSync(path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'), 'utf8');
 
   assert.match(html, /id="world-model-panel"/);
@@ -1026,7 +1041,7 @@ test('browser product exposes compiled world model receipts', () => {
 });
 
 test('composition renderer diversity lives in compiled graph and WebGPU operators', () => {
-  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
   const graph = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
   const registry = fs.readFileSync(runtimeFile('simulatte-render-registry.js'), 'utf8');
   const webgpuRenderer = fs.readFileSync(
@@ -1034,7 +1049,7 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
     'utf8'
   );
   const loadingCanvas = fs.readFileSync(
-    runtimeFile('simulatte-loading-canvas.js'),
+    runtimeFile('loading-canvas.js'),
     'utf8'
   );
 
@@ -1245,7 +1260,7 @@ test('WebGPU scene id and operator contracts cover emitted visual artifacts', ()
 });
 
 test('physics graph updates log intent and composition debug data by default', () => {
-  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
 
   assert.match(renderer, /logGraphDebug\(spec\)/);
   assert.match(renderer, /function logGraphDebug/);
@@ -1283,7 +1298,8 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   assert.match(model, /missing artifact\.\$?\{?key/);
   assert.match(model, /unexpected artifact\.\$?\{?key/);
   assert.match(model, /contains forbidden upstream field/);
-  assert.match(model, /function runPhase3Retrieval\(phase2Output, runtimeContext = \{\}, retrievalEvidence = \{\}\)/);
+  assert.match(model, /function runPhase3Retrieval\(phase2Output, runtimeContext = \{\}\)/);
+  assert.doesNotMatch(model, /function runPhase3Retrieval\(phase2Output, runtimeContext = \{\}, retrievalEvidence/);
   assert.match(model, /const query = String\(languageGraph\.sourceText \|\| ''\)/);
   assert.match(model, /function retrievalGroundingEvidence\(retrievalEvidence = \{\}\)/);
   assert.match(model, /function runPhase4ActivationCloud\(phase3Output, runtimeContext = \{\}\)/);
@@ -1307,6 +1323,11 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   assert.match(composition, /function visualObjectAcceptanceLedger/);
   assert.match(composition, /simulatte\.visualObjectAcceptanceLedger\.v1/);
   assert.match(composition, /simulatte\.renderInstance\.v1/);
+  assert.match(composition, /function renderInstanceTransform/);
+  assert.match(composition, /function renderInstanceGeometry/);
+  assert.match(composition, /function renderInstanceMaterial/);
+  assert.match(composition, /function renderInstanceAnimation/);
+  assert.match(composition, /function renderInstanceCollider/);
   assert.match(composition, /supportObjects: objectLedger\.rejected/);
   assert.doesNotMatch(composition, /const intent = spec\.intent/);
   assert.doesNotMatch(composition, /intent\.conceptGraph/);
@@ -1344,7 +1365,7 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
 });
 
 test('intent runtime keeps one visible line and does not silently fallback locally', () => {
-  const renderer = fs.readFileSync(runtimeFile('simulatte-physics-renderer.js'), 'utf8');
+  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
 
   assert.match(renderer, /compactIntentRuntimeMessage/);

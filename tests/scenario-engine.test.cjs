@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const engine = require('../public/app/session/simulatte-scenario-engine.js');
+const engine = require('../public/app/simulation/simulation-scenario-engine.js');
 
 test('builds a transit scenario from prompt terms', () => {
   const scenario = engine.buildScenarioFromPrompt('simulate a transit strike during a heatwave');

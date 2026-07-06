@@ -1,0 +1,65 @@
+{
+  "prompt": "graph nodes route water sensors through a pump controller",
+  "schemas": {
+    "phase1": "simulatte.phase1.output.v1",
+    "phase2": "simulatte.phase2.output.v1",
+    "phase3": "simulatte.phase3.output.v1",
+    "phase4": "simulatte.phase4.output.v1",
+    "phase5": "simulatte.phase5.output.v1",
+    "phase6": "simulatte.phase6.output.v1",
+    "phase7": "simulatte.phase7.output.v1",
+    "phase8": "simulatte.phase8.output.v1"
+  },
+  "inputs": {
+    "phase1": "simulatte.phase0.input.v1",
+    "phase2": "simulatte.phase1.output.v1",
+    "phase3": "simulatte.phase2.output.v1",
+    "phase4": "simulatte.phase3.output.v1",
+    "phase5": "simulatte.phase4.output.v1",
+    "phase6": "simulatte.phase5.output.v1",
+    "phase7": "simulatte.phase6.output.v1",
+    "phase8": "simulatte.phase7.output.v1"
+  },
+  "phase1Receipts": [
+    "phase1-runtime-context",
+    "model-ready",
+    "model-probe",
+    "cache-health",
+    "runtime-ready"
+  ],
+  "phase3Query": "graph nodes route water sensors through a pump controller",
+  "phase4ActivationCount": 467,
+  "phase5NodeCount": 5,
+  "phase7RenderInstanceCount": 48,
+  "phase7RenderInstanceShape": [
+    {
+      "id": "instance:geometry:geometry-control-graph",
+      "hasTransform": true,
+      "hasGeometry": true,
+      "hasMaterial": true,
+      "hasAnimation": true,
+      "hasCollider": true,
+      "layerSlot": "node-graph"
+    },
+    {
+      "id": "instance:geometry:geometry-controller",
+      "hasTransform": true,
+      "hasGeometry": true,
+      "hasMaterial": true,
+      "hasAnimation": true,
+      "hasCollider": true,
+      "layerSlot": "material-surface"
+    },
+    {
+      "id": "instance:geometry:geometry-feedback-controller",
+      "hasTransform": true,
+      "hasGeometry": true,
+      "hasMaterial": true,
+      "hasAnimation": true,
+      "hasCollider": true,
+      "layerSlot": "network-flow"
+    }
+  ],
+  "phase8InputSchema": "simulatte.renderExecutionInput.v1",
+  "phase8ScenePacketSchema": "simulatte.sceneRenderPacket.v1"
+}

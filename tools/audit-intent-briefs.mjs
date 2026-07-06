@@ -2,7 +2,7 @@
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const lab = require('../public/app/lab/simulatte-physics-lab.js');
+const lab = require('../public/app/simulation/simulation-lab.js');
 
 const DEFAULT_PROMPTS = Object.freeze([
   'lava heats rain into steam while wind bends ash over a basalt delta',

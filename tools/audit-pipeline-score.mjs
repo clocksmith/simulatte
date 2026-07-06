@@ -124,7 +124,7 @@ function parseArgs(argv) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  const lab = require(path.join(ROOT, 'public', 'app', 'shell', 'simulatte-physics-lab.js'));
+  const lab = require(path.join(ROOT, 'public', 'app', 'simulation', 'simulation-lab.js'));
   const prompts = await buildPromptRows(options);
   const liveRows = options.liveReport ? await readLiveReport(options.liveReport) : new Map();
   const rows = prompts.map((row, index) => scorePrompt(row, index + 1, lab, liveRows, options));
@@ -329,7 +329,7 @@ function scoreRuntime(context, compileError) {
     compileError,
     hasSpec: Boolean(context.spec),
     hasWorker: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'workers', 'simulatte-pipeline-worker.js')),
-    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'lab', 'simulatte-physics-renderer.js')),
+    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'prompt', 'prompt-controller.js')),
     hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'pipeline', 'phase-08-render', 'simulatte-webgpu-renderer.js')),
     phaseSchemas: context.phaseSchemas || {},
   };

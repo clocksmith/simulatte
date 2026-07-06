@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
-  <meta name="simulatte-build" content="d7df7c3adc24db158b73ec482f7122b80d90a955">
+  <meta name="simulatte-build" content="060b903751a002ee07d2911507e88ab015ad6c56">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
@@ -2594,14 +2594,14 @@
   <script defer src="./pipeline/phase-07-visual/simulatte-visual-operator-atlas.js"></script>
   <script defer src="./pipeline/phase-07-visual/simulatte-visual-operator-compiler.js"></script>
   <script defer src="./pipeline/phase-07-visual/simulatte-composition-graph.js"></script>
-  <script defer src="./app/controls/simulatte-loading-canvas.js"></script>
+  <script defer src="./app/loading/loading-canvas.js"></script>
   <script defer src="./pipeline/phase-08-render/simulatte-webgpu-renderer.js"></script>
   <script defer src="./pipeline/phase-06-simulation/simulatte-physics-model.js"></script>
-  <script defer src="./app/lab/simulatte-physics-renderer.js"></script>
-  <script defer src="./app/lab/simulatte-physics-lab.js"></script>
-  <script defer src="./app/controls/simulatte-review-bridge.js"></script>
-  <script defer src="./app/start/simulatte-browser-boot.js"></script>
-  <script defer src="./app/start/simulatte-version-guard.js"></script>
+  <script defer src="./app/prompt/prompt-controller.js"></script>
+  <script defer src="./app/simulation/simulation-lab.js"></script>
+  <script defer src="./app/prompt/prompt-review-bridge.js"></script>
+  <script defer src="./app/main.js"></script>
+  <script defer src="./app/version-guard.js"></script>
   <script>
     (function initPromptDockMinimize() {
       const panel = document.querySelector('.prompt-dock');

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const lab = require('../public/app/lab/simulatte-physics-lab.js');
+const lab = require('../public/app/simulation/simulation-lab.js');
 const intentEmbedder = require('../public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
 const semanticRagApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
 const graphSynthesis = require('../public/pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js');

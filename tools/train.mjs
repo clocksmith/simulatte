@@ -217,7 +217,7 @@ async function checkWebServer(port) {
     const response = await fetchLimited(`http://${HOST}:${port}/`);
     if (!response.ok) return false;
     const text = await response.text();
-    return /physics-canvas|simulatte-review-bridge\.js|Simulatte/i.test(text);
+    return /physics-canvas|prompt-review-bridge\.js|Simulatte/i.test(text);
   } catch {
     return false;
   }

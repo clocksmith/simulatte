@@ -156,7 +156,7 @@
     },
     {
       "oldPath": "public/js/simulatte-loading-canvas.js",
-      "newPath": "public/app/controls/simulatte-loading-canvas.js"
+      "newPath": "public/app/loading/loading-canvas.js"
     },
     {
       "oldPath": "public/js/simulatte-webgpu-renderer.js",
@@ -168,43 +168,31 @@
     },
     {
       "oldPath": "public/js/simulatte-physics-renderer.js",
-      "newPath": "public/app/lab/simulatte-physics-renderer.js"
+      "newPath": "public/app/prompt/prompt-controller.js"
     },
     {
       "oldPath": "public/js/simulatte-physics-lab.js",
-      "newPath": "public/app/lab/simulatte-physics-lab.js"
+      "newPath": "public/app/simulation/simulation-lab.js"
     },
     {
       "oldPath": "public/js/simulatte-review-bridge.js",
-      "newPath": "public/app/controls/simulatte-review-bridge.js"
+      "newPath": "public/app/prompt/prompt-review-bridge.js"
     },
     {
       "oldPath": "public/js/simulatte-browser-boot.js",
-      "newPath": "public/app/start/simulatte-browser-boot.js"
+      "newPath": "public/app/main.js"
     },
     {
       "oldPath": "public/js/simulatte-version-guard.js",
-      "newPath": "public/app/start/simulatte-version-guard.js"
+      "newPath": "public/app/version-guard.js"
     },
     {
       "oldPath": "public/js/simulatte-scenario-engine.js",
-      "newPath": "public/app/session/simulatte-scenario-engine.js"
+      "newPath": "public/app/simulation/simulation-scenario-engine.js"
     },
     {
       "oldPath": "public/js/simulatte-particle-field.js",
       "newPath": "public/pipeline/phase-08-render/simulatte-particle-field.js"
-    },
-    {
-      "oldPath": "public/js/simulatte-world-core.js",
-      "newPath": "public/app/session/simulatte-world-core.js"
-    },
-    {
-      "oldPath": "public/js/simulatte-world-rendering.js",
-      "newPath": "public/app/session/simulatte-world-rendering.js"
-    },
-    {
-      "oldPath": "public/js/simulatte-world-plan.js",
-      "newPath": "public/app/session/simulatte-world-plan.js"
     },
     {
       "oldPath": "public/js/simulatte-cinematic-renderer.js",
@@ -212,7 +200,7 @@
     },
     {
       "oldPath": "public/js/simulatte-debug-panel.js",
-      "newPath": "public/app/controls/simulatte-debug-panel.js"
+      "newPath": "public/app/prompt/prompt-debug-panel.js"
     },
     {
       "oldPath": "public/js/simulatte-intent-worker.js",

@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const lab = require('../public/app/lab/simulatte-physics-lab.js');
+const lab = require('../public/app/simulation/simulation-lab.js');
 const forensics = require('../public/pipeline/phase-05-grounded-intent/simulatte-intent-forensics.js');
 
 test('intent forensics emits retrieval-grounded causal brief', () => {
