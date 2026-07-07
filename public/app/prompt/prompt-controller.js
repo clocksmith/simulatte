@@ -7,18 +7,25 @@
   }
 
   const model = typeof module === 'object' && module.exports
-    ? require('../../pipeline/phase-06-simulation/simulatte-physics-model.js')
+    ? require('../../pipeline/phase-05-simulation/simulatte-physics-model.js')
     : root.SimulattePhysicsModel;
   if (!model) {
     markMissingDependency('SimulattePhysicsRenderer', 'SimulattePhysicsModel');
     return;
   }
-  const api = factory(model);
+  const runtimeProgress = typeof module === 'object' && module.exports
+    ? require('../runtime/runtime-progress.js')
+    : root.SimulatteRuntimeProgress;
+  if (!runtimeProgress) {
+    markMissingDependency('SimulattePhysicsRenderer', 'SimulatteRuntimeProgress');
+    return;
+  }
+  const api = factory(model, runtimeProgress);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulattePhysicsRenderer = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createPhysicsRenderer(model) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createPhysicsRenderer(model, runtimeProgressApi) {
   const {
     DEFAULT_PARAMS,
     EXAMPLE_INTENTS,
@@ -28,6 +35,7 @@
     controlsForSpec,
     createRenderExecutionInput,
     createSimulationState,
+    createSpec,
     createSpecFromPrompt,
     deserializeSpec,
     energyLedger,
@@ -71,39 +79,44 @@
     }));
     const stateReadout = root.getElementById('lab-state');
     const fpsMeter = createFpsMeter(root.getElementById('fps-readout'), canvas);
-    const runtimeStatus = intentRuntimeElements(root);
-    runtimeStatus.webGpuRenderer = webGpuRenderer;
-    runtimeStatus.loadingCanvas = loadingCanvasController;
     const trainingRun = createTrainingRunState();
-    function syncRuntime(event = {}) {
-      logIntentRuntimeEvent(root.defaultView, event);
-      const runtime = syncIntentRuntime(runtimeStatus, event);
-      syncTrainingRuntime(trainingRun, runtime, event);
-      return runtime;
+    const runtimeProgress = runtimeProgressApi.connect(root, {
+      loadingCanvas: loadingCanvasController,
+      runButton: root.getElementById('build-lab'),
+    });
+    runtimeProgress.subscribe((runtime, event) => syncTrainingRuntime(trainingRun, runtime, event), {
+      replay: false,
+    });
+    function publishRuntime(event = {}) {
+      return runtimeProgress.publish({
+        runId: trainingRun.runId || '',
+        ...event,
+      });
     }
-    registerModelCacheWorker(root.defaultView, (event) => syncRuntime(event));
+    unregisterLegacyModelCacheWorker(root.defaultView);
     if (!webGpuRenderer && stateReadout) {
       stateReadout.textContent = 'WebGPU required';
     }
-    const intentWorker = createIntentWorkerClient(root, (event) => syncRuntime(event));
+    const intentWorker = createIntentWorkerClient(root, (event) => publishRuntime(event));
     const mainThreadEmbedder = root.defaultView && root.defaultView.SimulatteIntentEmbedder
       ? root.defaultView.SimulatteIntentEmbedder.create({
         catalog: model,
-        onProgress: (event) => syncRuntime(event),
+        onProgress: (event) => publishRuntime(event),
         traceEmbeddings: intentTraceEnabled(root.defaultView),
       })
       : null;
-    const embedder = intentWorker || mainThreadEmbedder;
+    const embedder = mainThreadEmbedder || intentWorker;
     const initialParams = promptInput
       ? readPromptParams(promptInput, EXAMPLE_INTENTS[0].params)
       : EXAMPLE_INTENTS[0].params;
-    let spec = createSpecFromPrompt('blank world', { params: initialParams });
+    let spec = createSpec('blank-world', { params: initialParams });
     let state = createSimulationState(spec);
     let last = performance.now();
     let paused = false;
     let lastPreviewSync = 0;
     let buildSerial = 0;
     let compileSerial = 0;
+    let activePromptRuntimeReceipt = null;
     const pipelineCompiler = createPipelineCompiler(root);
 
     setSimulationCanvasVisible(false);
@@ -144,8 +157,8 @@
       const serial = buildSerial + 1;
       buildSerial = serial;
       beginTrainingRun(trainingRun, prompt, params, serial);
-      if (!String(prompt || '').trim() || /\b(blank|empty|scratch)\b/i.test(prompt)) {
-        syncRuntime({
+      if (!String(prompt || '').trim()) {
+        publishRuntime({
           state: 'ready',
           stage: 'blank',
           percent: 100,
@@ -153,10 +166,10 @@
           canvasLoading: false,
         });
         setSimulationCanvasVisible(false);
-        setSpec(createSpecFromPrompt('blank world', { params }), { visible: false });
+        setSpec(createSpec('blank-world', { params }), { visible: false });
         return;
       }
-      syncRuntime({
+      publishRuntime({
         state: 'active',
         stage: 'manifest',
         percent: 1,
@@ -215,7 +228,7 @@
         reportIntentFailure(serial, 'Intent model unavailable');
         return;
       }
-      syncRuntime({
+      publishRuntime({
         state: 'active',
         stage: 'manifest',
         percent: 1,
@@ -227,7 +240,8 @@
         const loadedRuntime = await embedder.loadModel();
         if (serial !== buildSerial) return;
         const promptRuntimeReceipt = loadedRuntime && loadedRuntime.promptRuntimeReceipt || null;
-        syncRuntime({
+        activePromptRuntimeReceipt = promptRuntimeReceipt;
+        publishRuntime({
           state: 'ready',
           stage: 'runtime-ready',
           percent: 100,
@@ -257,7 +271,7 @@
         return;
       }
       if (stateReadout) stateReadout.textContent = 'loading intent';
-      syncRuntime({
+      publishRuntime({
         state: 'active',
         stage: 'start',
         percent: 1,
@@ -284,20 +298,25 @@
             cardMatches: result.cardMatches,
             universeMatches: result.universeMatches,
             spanRetrieval: result.spanRetrieval,
+            slotRetrieval: result.slotRetrieval,
             retrievalPhase: result.retrievalPhase || 'span-refined',
             evidenceRows: result.evidenceRows,
           }, {
-            stage: 'compile',
-            percent: 94,
-            message: 'Building VisualIR',
+            stage: 'language',
+            percent: 31,
+            message: 'Parsing language',
             backend: result.backend,
             canvasLoading: showCanvasLoader,
           });
           if (serial !== buildSerial || token !== compileSerial) return false;
+          publishCompiledPhaseProgress(nextSpec, {
+            backend: result.backend,
+            canvasLoading: showCanvasLoader,
+          });
           setSpec(nextSpec, { visible: true });
-          syncRuntime({
+          publishRuntime({
             state: 'active',
-            stage: 'visual',
+            stage: 'render',
             percent: 98,
             message: 'Rendering scene',
             backend: result.backend,
@@ -305,15 +324,31 @@
           });
           return true;
         };
+        const promptRuntimeReceipt = await ensurePromptRuntimeReceipt(serial);
+        if (serial !== buildSerial) return;
+        const retrievalQueryPlan = retrievalQueryPlanForPrompt(prompt, params, promptRuntimeReceipt);
+        publishRuntime({
+          state: 'active',
+          stage: 'scene-query-plan',
+          percent: 5,
+          message: 'Planning scene retrieval slots',
+          querySlotCount: retrievalQueryPlan.queryPlan &&
+            retrievalQueryPlan.queryPlan.summary &&
+            retrievalQueryPlan.queryPlan.summary.slotCount || 0,
+          canvasLoading: showCanvasLoader,
+        });
         const result = await embedder.rankPrompt(prompt, model.PHYSICAL_PRIMITIVES, {
           max: 36,
-          onProgress: (event) => syncRuntime({
+          queryPlan: retrievalQueryPlan.queryPlan,
+          sceneLanguageGraph: retrievalQueryPlan.sceneLanguageGraph,
+          promptRuntimeReceipt,
+          onProgress: (event) => publishRuntime({
             ...event,
             canvasLoading: showCanvasLoader,
           }),
           onPreview: (preview) => {
             syncTrainingPreviewArtifacts(trainingRun, preview);
-            syncRuntime({
+            publishRuntime({
               state: 'active',
               stage: 'span-retrieval',
               percent: 87,
@@ -326,7 +361,7 @@
         if (serial !== buildSerial) return;
         const applied = await applyIntentResult(result);
         if (!applied) return;
-        syncRuntime({
+        publishRuntime({
           state: 'ready',
           stage: 'ready',
           percent: 100,
@@ -342,9 +377,51 @@
       }
     }
 
+    async function ensurePromptRuntimeReceipt(serial) {
+      if (
+        activePromptRuntimeReceipt &&
+        activePromptRuntimeReceipt.providerReady === true &&
+        activePromptRuntimeReceipt.noFallback === true &&
+        (activePromptRuntimeReceipt.rerankerRequired !== true || activePromptRuntimeReceipt.rerankerReady === true)
+      ) {
+        return activePromptRuntimeReceipt;
+      }
+      const loadedRuntime = await embedder.loadModel();
+      if (serial !== buildSerial) return null;
+      activePromptRuntimeReceipt = loadedRuntime && loadedRuntime.promptRuntimeReceipt || null;
+      return activePromptRuntimeReceipt;
+    }
+
+    function retrievalQueryPlanForPrompt(prompt, params = {}, promptRuntimeReceipt = null) {
+      if (
+        !model ||
+        typeof model.runPhase1RuntimeGate !== 'function' ||
+        typeof model.runPhase2LanguageGraph !== 'function'
+      ) {
+        return { queryPlan: null, sceneLanguageGraph: null };
+      }
+      try {
+        const phase1 = model.runPhase1RuntimeGate(prompt, {
+          params,
+          promptRuntimeReceipt,
+        });
+        const phase2 = model.runPhase2LanguageGraph(phase1);
+        const artifact = phase2 && phase2.artifact || {};
+        return {
+          queryPlan: artifact.queryPlan || null,
+          sceneLanguageGraph: artifact.sceneLanguageGraph || null,
+        };
+      } catch (error) {
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('[simulatte.intent] retrieval query plan unavailable', error);
+        }
+        return { queryPlan: null, sceneLanguageGraph: null };
+      }
+    }
+
     function reportIntentFailure(serial, diagnostic = '') {
       if (serial !== buildSerial) return;
-      syncRuntime({
+      publishRuntime({
         state: 'error',
         stage: 'error',
         percent: 0,
@@ -354,13 +431,34 @@
       if (stateReadout) stateReadout.textContent = 'intent model failed';
     }
 
+    function publishCompiledPhaseProgress(compiledSpec, options = {}) {
+      const artifacts = compiledSpec && compiledSpec.phaseArtifacts || {};
+      [
+        [2, 'language', 35, 'Language graph ready'],
+        [3, 'retrieval', 60, 'Retrieval and activation fused'],
+        [4, 'grounding', 73, 'Grounded intent ready'],
+        [5, 'simulation', 83, 'Simulation compiled'],
+        [6, 'visual', 93, 'VisualIR ready'],
+      ].forEach(([phase, stage, percent, message]) => {
+        if (!artifacts[`phase${phase}`]) return;
+        publishRuntime({
+          state: 'active',
+          stage,
+          percent,
+          message,
+          backend: options.backend,
+          canvasLoading: options.canvasLoading,
+        });
+      });
+    }
+
     async function compilePromptSpec(prompt, options, event = {}) {
       const workerDetail = pipelineCompiler ? 'pipeline worker' : 'main-thread fallback';
-      syncRuntime({
+      publishRuntime({
         state: 'active',
-        stage: event.stage || 'compile',
-        percent: event.percent || 94,
-        message: event.message || 'Building VisualIR',
+        stage: event.stage || 'language',
+        percent: event.percent || 31,
+        message: event.message || 'Parsing language',
         backend: event.backend,
         detail: event.detail || workerDetail,
         canvasLoading: event.canvasLoading,
@@ -373,11 +471,11 @@
           if (typeof console !== 'undefined' && console.warn) {
             console.warn('[simulatte.pipeline] worker compile fell back to main thread', error);
           }
-          syncRuntime({
+          publishRuntime({
             state: 'active',
-            stage: event.stage || 'compile',
-            percent: event.percent || 94,
-            message: 'Building VisualIR',
+            stage: event.stage || 'language',
+            percent: event.percent || 31,
+            message: event.message || 'Parsing language',
             backend: event.backend,
             detail: error && error.message ? error.message : String(error || ''),
             canvasLoading: event.canvasLoading,
@@ -391,7 +489,7 @@
     function tick(now) {
       const dt = clamp((now - last) / 1000 || 0.016, 0.001, 0.05);
       last = now;
-      if (intentRuntimeBusy(runtimeStatus)) {
+      if (runtimeProgress.isBusy()) {
         fpsMeter.sample(now, false);
         requestAnimationFrame(tick);
         return;
@@ -418,7 +516,7 @@
     if (!skipInitialBuildForAudit(root)) {
       warmIntentRuntime(buildSerial);
     } else {
-      syncRuntime({
+      publishRuntime({
         state: 'ready',
         stage: 'blank',
         percent: 100,
@@ -512,6 +610,7 @@
 
     try {
       const url = new URL('./app/workers/simulatte-intent-worker.js', view.location.href);
+      appendBuildVersion(url, view);
       worker = new view.Worker(url, { name: 'simulatte-intent-worker' });
     } catch (_error) {
       return null;
@@ -591,12 +690,13 @@
   }
 
   function intentWorkerConfig(view) {
-    const absolute = (value) => new URL(value, view.location.href).toString();
+    const absolute = (value) => versionedLocalUrl(value, view);
+    const absoluteRaw = (value) => new URL(value, view.location.href).toString();
     return {
       manifestUrl: absolute('./data/simulatte-embedder/manifest.json'),
       modelBaseUrl: urlParam(view, 'embeddingModelBase') || urlParam(view, 'dopplerModelBase') || '',
       dopplerModuleUrl: urlParam(view, 'dopplerModule') || absolute('./vendor/doppler/src/index-browser.js'),
-      dopplerKernelBasePath: urlParam(view, 'dopplerKernelBase') || absolute('./vendor/doppler/src/gpu/kernels'),
+      dopplerKernelBasePath: urlParam(view, 'dopplerKernelBase') || absoluteRaw('./vendor/doppler/src/gpu/kernels'),
       spanLevelEmbedding: cloneWorkerValue(urlParam(view, 'spanLevelEmbedding') || ''),
       traceEmbeddings: intentTraceEnabled(view),
     };
@@ -604,7 +704,15 @@
 
   function cloneIntentWorkerOptions(options = {}) {
     const out = {};
-    for (const key of ['max', 'nowIso', 'dopplerEnabled', 'spanLevelEmbedding', 'traceEmbeddings']) {
+    for (const key of [
+      'max',
+      'nowIso',
+      'dopplerEnabled',
+      'spanLevelEmbedding',
+      'traceEmbeddings',
+      'queryPlan',
+      'sceneLanguageGraph',
+    ]) {
       if (options[key] !== undefined) out[key] = cloneWorkerValue(options[key]);
     }
     return out;
@@ -628,63 +736,23 @@
     }
   }
 
-  function emitRuntimeEvent(callback, event = {}) {
-    if (typeof callback !== 'function') return;
-    callback({
-      timestamp: new Date().toISOString(),
-      ...event,
-    });
-  }
-
-  function nowMs() {
-    if (typeof performance !== 'undefined' && performance && typeof performance.now === 'function') {
-      return performance.now();
-    }
-    return Date.now();
-  }
-
-  function elapsedRuntimeMs(started) {
-    const elapsed = nowMs() - Number(started || 0);
-    return Number(Math.max(0, elapsed).toFixed(1));
-  }
-
-  function registerModelCacheWorker(view, onProgress = null) {
-    if (!view || !view.navigator || !view.navigator.serviceWorker) return;
-    const started = nowMs();
-    emitRuntimeEvent(onProgress, {
-      source: 'simulatte-model-cache',
-      stage: 'cache-worker',
-      percent: 1,
-      message: 'Registering model cache worker',
-      nonBlocking: true,
-      canvasLoading: false,
-    });
-    const workerUrl = new URL('./simulatte-model-cache-sw.js', view.location.href).toString();
-    view.navigator.serviceWorker.register(workerUrl)
-      .then(() => view.navigator.serviceWorker.ready)
-      .then(() => {
-        emitRuntimeEvent(onProgress, {
-          source: 'simulatte-model-cache',
-          stage: 'cache-worker',
-          percent: 20,
-          message: 'Model cache worker registered',
-          durationMs: elapsedRuntimeMs(started),
-          cacheWorker: view.navigator.serviceWorker.controller ? 'controlling' : 'registered',
-          nonBlocking: true,
-          canvasLoading: false,
+  function unregisterLegacyModelCacheWorker(view) {
+    const serviceWorker = view && view.navigator && view.navigator.serviceWorker;
+    if (!serviceWorker || typeof serviceWorker.getRegistrations !== 'function') return;
+    serviceWorker.getRegistrations()
+      .then((registrations) => {
+        registrations.forEach((registration) => {
+          const scriptUrls = [
+            registration.active && registration.active.scriptURL,
+            registration.waiting && registration.waiting.scriptURL,
+            registration.installing && registration.installing.scriptURL,
+          ].filter(Boolean);
+          if (scriptUrls.some((url) => /\/simulatte-model-cache-sw\.js(?:[?#].*)?$/.test(String(url)))) {
+            registration.unregister().catch(() => {});
+          }
         });
       })
-      .catch((error) => {
-        emitRuntimeEvent(onProgress, {
-          source: 'simulatte-model-cache',
-          stage: 'cache-worker',
-          percent: 1,
-          message: error && error.message ? error.message : 'Model cache worker unavailable',
-          cacheWorker: 'error',
-          nonBlocking: true,
-          canvasLoading: false,
-        });
-      });
+      .catch(() => {});
   }
 
   function intentTraceEnabled(view) {
@@ -696,11 +764,23 @@
     return /^(1|true|on|yes|debug|trace)$/i.test(String(value || '').trim());
   }
 
-  function logIntentRuntimeEvent(view, event = {}) {
-    if (!intentTraceEnabled(view) || !view || !view.console || typeof view.console.info !== 'function') return;
-    const payload = { ...event };
-    delete payload.rawEvent;
-    view.console.info('[simulatte.intent.runtime]', payload.stage || payload.phase || 'event', payload);
+  function appBuildVersion(view) {
+    const doc = view && view.document;
+    const meta = doc && doc.querySelector && doc.querySelector('meta[name="simulatte-build"]');
+    return meta ? String(meta.getAttribute('content') || '').trim() : '';
+  }
+
+  function appendBuildVersion(url, view) {
+    const build = appBuildVersion(view);
+    if (!build || !url || url.origin !== view.location.origin) return url;
+    url.searchParams.set('v', build);
+    return url;
+  }
+
+  function versionedLocalUrl(value, view) {
+    const url = new URL(value, view.location.href);
+    appendBuildVersion(url, view);
+    return url.toString();
   }
 
   function createPipelineCompiler(root) {
@@ -719,6 +799,7 @@
 
     try {
       const url = new URL('./app/workers/simulatte-pipeline-worker.js', view.location.href);
+      appendBuildVersion(url, view);
       worker = new view.Worker(url);
     } catch (error) {
       return null;
@@ -768,17 +849,6 @@
     };
   }
 
-  function intentRuntimeElements(root) {
-    return {
-      node: root.getElementById('intent-runtime'),
-      title: root.getElementById('intent-runtime-title'),
-      percent: root.getElementById('intent-runtime-percent'),
-      fill: root.getElementById('intent-runtime-fill'),
-      message: root.getElementById('intent-runtime-message'),
-      stage: root.getElementById('intent-runtime-stage'),
-    };
-  }
-
   function worldModelReceiptElements(root, previewNode) {
     return {
       node: root.getElementById('world-model-panel'),
@@ -787,272 +857,6 @@
       chips: root.getElementById('world-model-chips'),
       preview: previewNode || root.getElementById('spec-preview'),
     };
-  }
-
-  const INTENT_PIPELINE_PHASES = Object.freeze([
-    phaseRule(1, 'prompt-runtime', 'Prompt runtime', [
-      'start',
-      'manifest',
-      'manifest-fetch',
-      'cache',
-      'cache-worker',
-      'cache-storage',
-      'cache-fill',
-      'cache-hit',
-      'cache-ready',
-      'cache-skip',
-      'indexes',
-      'index-fetch',
-      'model-module',
-      'model-load',
-      'model',
-      'model-ready',
-      'model-probe',
-      'model-reuse',
-      'runtime-ready',
-      'runtime-reuse',
-    ]),
-    phaseRule(2, 'language-graph', 'Language graph', ['language', 'parse']),
-    phaseRule(3, 'retrieval', 'Embedding retrieval', [
-      'embed',
-      'prompt-embed',
-      'rank',
-      'retrieval',
-    ]),
-    phaseRule(4, 'activation-cloud', 'Activation cloud', [
-      'span-retrieval',
-      'span-cache',
-      'span-embed',
-      'span-rank',
-      'activation',
-    ]),
-    phaseRule(5, 'grounded-intent', 'Grounded intent', ['classification']),
-    phaseRule(6, 'simulation-compile', 'Simulation compile', ['compile']),
-    phaseRule(7, 'visual-ir', 'VisualIR compile', ['visual']),
-    phaseRule(8, 'webgpu-ready', 'WebGPU ready', ['ready', 'blank']),
-  ]);
-
-  function phaseRule(step, id, label, stages) {
-    return { step, id, label, stages };
-  }
-
-  function loadingPhaseFor(stage, event = {}) {
-    if (event.state === 'error' || stage === 'error') {
-      return { step: 0, id: 'error', label: 'Runtime error', stages: ['error'] };
-    }
-    const normalized = String(stage || '').toLowerCase();
-    const match = INTENT_PIPELINE_PHASES.find((phase) => (
-      phase.stages.some((candidate) => normalized === candidate || normalized.includes(candidate))
-    ));
-    return match || { step: 1, id: 'prompt-runtime', label: 'Prompt runtime', stages: [] };
-  }
-
-  function syncIntentRuntime(elements, event = {}) {
-    if (!elements || !elements.node) return;
-    const hasPercent = Number.isFinite(Number(event.percent));
-    const percent = Math.max(0, Math.min(100, Number(event.percent || 0)));
-    const stage = String(event.stage || event.phase || 'intent');
-    const phase = loadingPhaseFor(stage, event);
-    const passive = passiveRuntimeEvent(event, stage);
-    const previousState = elements.node.dataset.state || '';
-    const state = event.state || (stage === 'error' ? 'error' : percent >= 100 ? 'ready' : passive ? previousState || 'ready' : 'active');
-    const loading = !passive && state === 'active';
-    const indeterminate = loading && !hasPercent;
-    const estimate = estimatedRuntimePercent(phase, stage, state);
-    const visiblePercent = visibleRuntimePercent(percent, estimate, hasPercent, state);
-    const canvasLoading = loading && event.canvasLoading !== false;
-    const runButton = elements.node.closest('.physics-panel')?.querySelector('#build-lab');
-    const rawMessage = event.detail || event.message || stage;
-    const message = compactIntentRuntimeMessage(event.message || stage);
-    const line = runtimeLineText(event, phase, stage, message, visiblePercent, indeterminate);
-    elements.node.dataset.state = state;
-    elements.node.dataset.progress = indeterminate ? 'indeterminate' : 'determinate';
-    elements.node.dataset.loadingVisual = canvasLoading ? 'snake' : loading ? 'simple' : 'idle';
-    elements.node.dataset.stage = phase.id;
-    elements.node.dataset.pipelineStep = String(phase.step);
-    elements.node.dataset.detail = String(line || '');
-    elements.node.dataset.lastStage = stage;
-    elements.node.dataset.lastMessage = String(message || '');
-    elements.node.dataset.lastLine = String(line || '');
-    elements.node.dataset.lastSource = String(event.source || '');
-    elements.node.dataset.backend = String(event.backend || '');
-    elements.node.dataset.blocking = loading ? 'true' : 'false';
-    elements.node.dataset.passive = passive ? 'true' : 'false';
-    elements.node.style.setProperty('--runtime-progress', `${visiblePercent}%`);
-    elements.node.title = String(line || compactIntentRuntimeMessage(rawMessage) || '');
-    publishIntentRuntimeHealth(elements.node, event, {
-      canvasLoading,
-      line,
-      loading,
-      message,
-      passive,
-      percent: visiblePercent,
-      phase,
-      rawMessage,
-      stage,
-      state,
-    });
-    const doc = elements.node.ownerDocument;
-    if (doc && doc.documentElement) {
-      doc.documentElement.dataset.canvasLoading = canvasLoading ? 'snake' : 'idle';
-    }
-    if (elements.loadingCanvas && typeof elements.loadingCanvas.setLoading === 'function') {
-      elements.loadingCanvas.setLoading(canvasLoading, percent, stage);
-    }
-    if (runButton) {
-      runButton.classList.toggle('is-loading', loading);
-      runButton.disabled = loading;
-      runButton.setAttribute('aria-disabled', loading ? 'true' : 'false');
-      runButton.setAttribute('aria-busy', loading ? 'true' : 'false');
-    }
-    if (elements.title) elements.title.textContent = line;
-    if (elements.percent) elements.percent.textContent = '';
-    if (elements.fill) elements.fill.style.width = `${indeterminate ? 38 : visiblePercent}%`;
-    if (elements.message) elements.message.textContent = message;
-    if (elements.stage) elements.stage.textContent = phase.label;
-    return {
-      canvasLoading,
-      line,
-      percent: visiblePercent,
-      phase,
-      stage,
-      state,
-    };
-  }
-
-  function passiveRuntimeEvent(event = {}, stage = '') {
-    if (event.nonBlocking === true || event.blocking === false) return true;
-    if (event.state === 'error' || event.state === 'ready') return false;
-    const source = String(event.source || '').toLowerCase();
-    const normalized = String(stage || event.stage || event.phase || '').toLowerCase();
-    return source === 'simulatte-model-cache' &&
-      normalized === 'cache-worker' &&
-      event.canvasLoading === false;
-  }
-
-  function publishIntentRuntimeHealth(node, event = {}, runtime = {}) {
-    if (!node || !node.dataset) return;
-    const health = compactObject({
-      schema: 'simulatte.intentRuntimeHealth.v1',
-      timestamp: event.timestamp || new Date().toISOString(),
-      source: event.source || '',
-      state: runtime.state || '',
-      blocking: runtime.loading === true,
-      passive: runtime.passive === true,
-      canvasLoading: runtime.canvasLoading === true,
-      stage: runtime.stage || '',
-      phaseId: runtime.phase && runtime.phase.id || '',
-      phaseLabel: runtime.phase && runtime.phase.label || '',
-      pipelineStep: runtime.phase && runtime.phase.step || 0,
-      progress: runtime.percent || 0,
-      line: runtime.line || '',
-      message: runtime.message || '',
-      detail: runtime.rawMessage || '',
-      backend: event.backend || '',
-      timing: {
-        durationMs: numericMetric(event.durationMs),
-        elapsedMs: numericMetric(event.elapsedMs),
-        traceId: event.traceId || '',
-        rankId: event.rankId || 0,
-        reuse: event.reuse === true,
-        providerReady: event.providerReady === true,
-      },
-      model: {
-        id: event.modelId || '',
-        baseUrl: event.modelBaseUrl || '',
-        artifactMode: event.artifactMode || '',
-        sourceSizeBytes: numericMetric(event.sourceSizeBytes),
-        cachePrefetch: event.cachePrefetch === true,
-        cacheSkipReason: event.cacheSkipReason || '',
-      },
-      resource: {
-        kind: event.resourceKind || '',
-        url: event.resourceUrl || '',
-        file: event.file || '',
-        fileKind: event.fileKind || '',
-        status: event.status || 0,
-        byteLength: numericMetric(event.byteLength),
-        completedBytes: numericMetric(event.completedBytes),
-        totalBytes: numericMetric(event.totalBytes),
-        cacheMode: event.cacheMode || '',
-        cacheWorker: event.cacheWorker || '',
-        cacheBackends: Array.isArray(event.cacheBackends) ? event.cacheBackends.join(',') : event.cacheBackends || '',
-      },
-      embeddings: {
-        promptChars: numericMetric(event.promptChars),
-        embeddingDim: numericMetric(event.embeddingDim),
-        candidateCount: numericMetric(event.candidateCount),
-        rankBackend: event.rankBackend || '',
-        spanCount: numericMetric(event.spanCount),
-        embeddedSpanCount: numericMetric(event.embeddedSpanCount),
-        cachedSpanCount: numericMetric(event.cachedSpanCount),
-        cacheHitCount: numericMetric(event.cacheHitCount),
-        cacheMissCount: numericMetric(event.cacheMissCount),
-        batchEmbedding: event.batchEmbedding === true,
-      },
-      promptRuntime: compactObject(event.promptRuntimeReceipt || null, 24),
-    }, 32);
-    const view = node.ownerDocument && node.ownerDocument.defaultView;
-    if (view) {
-      const events = Array.isArray(view.__simulatteIntentRuntimeEvents)
-        ? view.__simulatteIntentRuntimeEvents
-        : [];
-      events.push(health);
-      while (events.length > 80) events.shift();
-      view.__simulatteIntentRuntimeEvents = events;
-      view.SimulatteIntentRuntimeHealth = health;
-    }
-    node.dataset.health = JSON.stringify(health).slice(0, 2400);
-    node.dataset.modelId = String(health.model && health.model.id || '');
-    node.dataset.modelBaseUrl = String(health.model && health.model.baseUrl || '');
-    node.dataset.cacheMode = String(health.resource && health.resource.cacheMode || '');
-    node.dataset.cacheWorker = String(health.resource && health.resource.cacheWorker || '');
-    node.dataset.cacheBackends = String(health.resource && health.resource.cacheBackends || '');
-    node.dataset.resourceKind = String(health.resource && health.resource.kind || '');
-    node.dataset.resourceFile = String(health.resource && health.resource.file || '');
-    node.dataset.completedBytes = String(health.resource && health.resource.completedBytes || 0);
-    node.dataset.totalBytes = String(health.resource && health.resource.totalBytes || 0);
-    node.dataset.traceId = String(health.timing && health.timing.traceId || '');
-    node.dataset.rankId = String(health.timing && health.timing.rankId || '');
-    node.dataset.reuse = health.timing && health.timing.reuse ? 'true' : 'false';
-    node.dataset.providerReady = health.timing && health.timing.providerReady ? 'true' : 'false';
-    node.dataset.promptRuntimeReceipt = health.promptRuntime
-      ? JSON.stringify(health.promptRuntime).slice(0, 1800)
-      : '';
-    node.dataset.cacheHitCount = String(health.embeddings && health.embeddings.cacheHitCount || 0);
-    node.dataset.cacheMissCount = String(health.embeddings && health.embeddings.cacheMissCount || 0);
-    node.dataset.cachedSpanCount = String(health.embeddings && health.embeddings.cachedSpanCount || 0);
-  }
-
-  function intentRuntimeBusy(elements) {
-    const node = elements && elements.node;
-    if (!node || !node.dataset) return false;
-    return node.dataset.state === 'active' && node.dataset.blocking !== 'false';
-  }
-
-  function estimatedRuntimePercent(phase, stage, state) {
-    if (state === 'ready') return 100;
-    if (state === 'error') return 0;
-    const normalized = String(stage || phase && phase.id || '').toLowerCase();
-    if (/cache-fill|shard|weight/.test(normalized)) return 12;
-    if (/manifest-fetch|manifest|model-module|cache-worker/.test(normalized)) return 18;
-    if (/cache-ready|cache-hit|cache-skip|model-load/.test(normalized)) return 24;
-    if (/language|parse/.test(normalized)) return 26;
-    if (/index-fetch|indexes|runtime-ready/.test(normalized)) return 34;
-    if (/model-reuse|model-ready|prompt-embed|rank|model|embed|retrieval/.test(normalized)) return 42;
-    if (/span-cache|span-embed|span-rank|span-retrieval|activation/.test(normalized)) return 50;
-    if (/classification|grounded|intent/.test(normalized)) return 58;
-    if (/compile|simulation/.test(normalized)) return 70;
-    if (/visual/.test(normalized)) return 82;
-    if (/render|ready|blank/.test(normalized)) return 94;
-    return Math.min(94, Math.max(6, (phase && phase.step ? phase.step : 1) * 11));
-  }
-
-  function visibleRuntimePercent(percent, estimate, hasPercent, state) {
-    if (state === 'ready') return 100;
-    if (state === 'error') return 0;
-    const visible = hasPercent ? Math.max(percent, estimate) : estimate;
-    return Math.min(99, Math.max(1, Math.trunc(visible + 0.5)));
   }
 
   function createTrainingRunState() {
@@ -1135,6 +939,7 @@
         batchEmbedding: event.batchEmbedding === true,
       }, 16),
       promptRuntime: compactObject(event.promptRuntimeReceipt || null, 24),
+      loaderReceipt: compactObject(runtime.loaderReceipt || null, 32),
     };
     if (event.promptRuntimeReceipt) {
       storeTrainingArtifact(run, 1, 'prompt-runtime', 'Prompt runtime', {
@@ -1440,79 +1245,6 @@
       .filter(Boolean)
       .flatMap((value) => String(value).toLowerCase().split(/[^a-z0-9]+/))
       .filter((value) => value && !/^(open|surface|generated|entity|prompt|derived|generic|primitive)$/.test(value));
-  }
-
-  function runtimeLineText(event, phase, stage, _message, percent, _indeterminate) {
-    const normalized = String(stage || phase && phase.id || '').toLowerCase();
-    const timing = runtimeTimingSuffix(event);
-    if (event.state === 'error' || normalized === 'error') return 'Intent model failed';
-    if (event.state === 'ready' && /runtime-ready|prompt-runtime/.test(normalized)) {
-      return 'Prompt runtime ready 100%';
-    }
-    if (event.state === 'ready' || percent >= 100 || /^(ready|blank|complete|done)$/.test(normalized)) {
-      return 'Ready 100%';
-    }
-    if (/manifest-fetch/.test(normalized)) return `Loading intent manifest ${percent}%${timing}`;
-    if (/index-fetch|indexes/.test(normalized)) return `Loading embedding indexes ${percent}%${timing}`;
-    if (/model-module/.test(normalized)) return `Loading Doppler runtime ${percent}%${timing}`;
-    if (/cache-worker/.test(normalized)) return `Preparing model cache ${percent}%${timing}`;
-    if (/cache-storage/.test(normalized)) return `Opening persistent model cache ${percent}%${timing}`;
-    if (/cache-skip/.test(normalized)) return `Model cache skipped ${percent}%${timing}`;
-    if (/cache-fill|shard|weight/.test(normalized)) return `Caching model weights ${percent}%${timing}`;
-    if (/cache-ready|cache-hit/.test(normalized)) return `Model cache ready ${percent}%${timing}`;
-    if (/model-reuse/.test(normalized)) return `Reusing embedding model ${percent}%${timing}`;
-    if (/model-ready/.test(normalized)) return `Embedding model ready ${percent}%${timing}`;
-    if (/model-load/.test(normalized)) return `Loading Doppler model ${percent}%${timing}`;
-    if (/prompt-embed/.test(normalized)) return `Embedding prompt ${percent}%${timing}`;
-    if (/\brank\b/.test(normalized)) return `Ranking embeddings ${percent}%${timing}`;
-    if (/span-cache/.test(normalized)) return `Checking span embedding cache ${percent}%${timing}`;
-    if (/span-embed/.test(normalized)) return `Embedding prompt spans ${percent}%${timing}`;
-    if (/span-rank/.test(normalized)) return `Ranking prompt spans ${percent}%${timing}`;
-    if (/\b(language|parse)\b/.test(normalized)) return `Parsing language ${percent}%${timing}`;
-    if (/\b(indexes|model|embed|retrieval)\b/.test(normalized)) return `Retrieving embeddings ${percent}%${timing}`;
-    if (/\b(span-retrieval|activation)\b/.test(normalized)) return `Building activation cloud ${percent}%${timing}`;
-    if (/\b(classification|grounded|intent)\b/.test(normalized)) return `Grounding intent ${percent}%`;
-    if (/\b(compile|simulation)\b/.test(normalized)) return `Compiling simulation ${percent}%`;
-    if (/\b(visual)\b/.test(normalized)) return `Building VisualIR ${percent}%`;
-    if (/\b(render)\b/.test(normalized)) return `Rendering scene ${percent}%`;
-    return `Loading embeddings ${percent}%`;
-  }
-
-  function runtimeTimingSuffix(event = {}) {
-    if (Number.isFinite(Number(event.durationMs)) && Number(event.durationMs) > 0) {
-      return ` ${formatRuntimeDuration(event.durationMs)}`;
-    }
-    if (Number.isFinite(Number(event.elapsedMs)) && Number(event.elapsedMs) > 0) {
-      return ` ${formatRuntimeDuration(event.elapsedMs)} elapsed`;
-    }
-    return '';
-  }
-
-  function formatRuntimeDuration(value) {
-    const ms = Number(value);
-    if (!Number.isFinite(ms)) return '';
-    if (ms < 1000) return `${Math.max(0, Math.round(ms))}ms`;
-    return `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)}s`;
-  }
-
-  function compactIntentRuntimeMessage(message) {
-    const text = String(message || '').trim();
-    if (!text) return 'Intent model busy';
-    if (/attention_small\.wgsl|activationDtype|kvDtype|kvcache/i.test(text)) {
-      return 'Runtime dtype mismatch';
-    }
-    if (/cache worker.*controlling|reload and retry/i.test(text)) return 'Reload to finish model cache';
-    if (/CacheStorage|Service Worker/i.test(text)) return 'Model cache unavailable';
-    if (/model fetch failed|fetch failed|failed to fetch/i.test(text)) return 'Model download failed';
-    if (/Doppler module import|no loader found/i.test(text)) return 'Doppler runtime unavailable';
-    if (/embedModel(Id|Hash) mismatch|embedding dim mismatch|non-finite value/i.test(text)) {
-      return 'Intent model unavailable';
-    }
-    if (/https?:\/\/|huggingface\.co|Clocksmith\/rdrr/i.test(text)) return 'Intent model unavailable';
-    if (/^Caching shard_/i.test(text)) return 'Caching model weights';
-    if (/^Cached shard_/i.test(text)) return 'Model weights cached';
-    if (text.length <= 72) return text;
-    return `${text.slice(0, 69).trim()}...`;
   }
 
   function waitForLoadingPaint() {

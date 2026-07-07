@@ -8,8 +8,8 @@
   const DEFAULT_MANIFEST_URL = './data/simulatte-embedder/manifest.json';
   const DEFAULT_DOPPLER_MODULE_URL = './vendor/doppler/src/index-browser.js';
   const DEFAULT_DOPPLER_KERNEL_BASE_PATH = './vendor/doppler/src/gpu/kernels';
-  const CACHE_WORKER_READY_WAIT_MS = 2400;
-  const DEFAULT_MODEL_OPFS_ROOT = 'simulatte-model-cache';
+  const EMBEDDING_LOAD_PROGRESS = Object.freeze({ start: 20, end: 72 });
+  const RERANKER_LOAD_PROGRESS = Object.freeze({ start: 72, end: 93.8 });
   const TRACE_URL_FLAGS = Object.freeze([
     'embeddingTrace',
     'embeddingTiming',
@@ -23,6 +23,17 @@
   ]);
   const PROMPT_RUNTIME_STABILITY_THRESHOLD = 0.995;
   const PROMPT_RUNTIME_DIVERSITY_THRESHOLD = 0.9999;
+  const FEATURE_MODEL_ID = 'simulatte-semantic-feature-v1';
+  const RERANK_MODEL_BLEND = Object.freeze({ localWeight: 0.35, modelWeight: 0.65 });
+  const SLOT_RERANK_MODEL_BLEND = Object.freeze({ localWeight: 0.3, modelWeight: 0.7 });
+  const HEURISTIC_FUSION_WEIGHTS = Object.freeze({
+    modelScore: 0.58,
+    ragScore: 0.16,
+    lexicalScore: 0.03,
+    symbolicBoost: 0.16,
+    dopplerScore: 0.24,
+    universeScore: 0.12,
+  });
 
   function create(options = {}) {
     return new ModelBackedIntentEmbedder(options);
@@ -31,6 +42,7 @@
   class ModelBackedIntentEmbedder {
     constructor(options = {}) {
       this.manifestUrl = options.manifestUrl || DEFAULT_MANIFEST_URL;
+      this.assetVersionQuery = normalizeAssetVersionQuery(options.assetVersionQuery || defaultAssetVersionQuery());
       this.catalog = options.catalog || null;
       this.modelBaseUrl = options.modelBaseUrl || urlValue('embeddingModelBase') || urlValue('dopplerModelBase') || '';
       this.dopplerModuleUrl = options.dopplerModuleUrl || urlValue('dopplerModule') || '';
@@ -47,7 +59,9 @@
       this.traceId = options.traceId || `intent-${Math.random().toString(36).slice(2, 9)}`;
       this.modelPromise = null;
       this.providerPromise = null;
+      this.rerankerProviderPromise = null;
       this.providerReady = false;
+      this.rerankerReady = false;
       this.providerRequestCount = 0;
       this.rankSerial = 0;
       this.gpuPromise = null;
@@ -81,7 +95,8 @@
               modelId: manifest.embedModel && manifest.embedModel.id || '',
               modelBaseUrl: manifest.embedModel && manifest.embedModel.defaultModelBaseUrl || '',
               sourceSizeBytes: manifest.embedModel && manifest.embedModel.source && manifest.embedModel.source.sizeBytes || 0,
-              cachePrefetch: Boolean(manifest.cache && manifest.cache.prefetch === true),
+              cachePrefetch: false,
+              cacheMode: 'doppler-managed',
             });
             const retrieval = manifest.retrieval || {};
             const indexUrl = retrieval.artifact;
@@ -98,24 +113,27 @@
               progress,
               traceEnabled: trace,
               traceId: this.traceId,
+              assetVersionQuery: this.assetVersionQuery,
             };
             const [index, cardIndex, universe] = await Promise.all([
-              fetchJson(resolveUrl(indexUrl, this.manifestUrl), 'primitive embedding index', {
-                ...fetchTelemetry,
-                stage: 'index-fetch',
-                percent: 10,
-                resourceKind: 'primitive-index',
-              }),
-              cardIndexUrl
-                ? fetchJson(resolveUrl(cardIndexUrl, this.manifestUrl), 'surface card embedding index', {
-                  ...fetchTelemetry,
-                  stage: 'index-fetch',
-                  percent: 12,
-                  resourceKind: 'surface-card-index',
-                })
+	              fetchJson(versionedAssetUrl(resolveUrl(indexUrl, this.manifestUrl), this.assetVersionQuery), 'primitive embedding index', {
+	                ...fetchTelemetry,
+	                stage: 'index-fetch',
+	                percent: 10,
+	                resourceKind: 'primitive-index',
+	                expectedHash: retrieval.artifactHash || retrieval.hash || null,
+	              }),
+	              cardIndexUrl
+	                ? fetchJson(versionedAssetUrl(resolveUrl(cardIndexUrl, this.manifestUrl), this.assetVersionQuery), 'surface card embedding index', {
+	                  ...fetchTelemetry,
+	                  stage: 'index-fetch',
+	                  percent: 12,
+	                  resourceKind: 'surface-card-index',
+	                  expectedHash: cardRetrieval.artifactHash || cardRetrieval.hash || null,
+	                })
                 : Promise.resolve(null),
               universeManifestUrl
-                ? loadUniverseIndexes(resolveUrl(universeManifestUrl, this.manifestUrl), fetchTelemetry)
+                ? loadUniverseIndexes(versionedAssetUrl(resolveUrl(universeManifestUrl, this.manifestUrl), this.assetVersionQuery), fetchTelemetry)
                 : Promise.resolve(null),
             ]);
             const runtime = normalizeModelBackedRuntime(manifest, index, cardIndex, universe);
@@ -132,6 +150,11 @@
               onProgress: progress,
               traceEmbeddings: trace,
             });
+            const rerankProvider = await this.resolveRerankProvider(runtime, provider, {
+              ...options,
+              onProgress: progress,
+              traceEmbeddings: trace,
+            });
             const probe = await verifyPromptRuntimeProvider(runtime, provider, {
               progress,
               trace,
@@ -143,7 +166,7 @@
               trace,
               traceId: this.traceId,
               nowIso: options.nowIso,
-              rerankProvider: options.rerankProvider || options.rerankerProvider || this.rerankProvider,
+              rerankProvider,
               dopplerModelHandle: options.dopplerModelHandle || this.dopplerModelHandle || globalModelHandle(),
             });
             const receipt = promptRuntimeReceipt(runtime, provider, {
@@ -177,7 +200,7 @@
     }
 
     async loadManifest() {
-      const manifest = await fetchJson(this.manifestUrl, 'intent manifest', {
+      const manifest = await fetchJson(versionedAssetUrl(this.manifestUrl, this.assetVersionQuery), 'intent manifest', {
         progress: this.onProgress,
         traceEnabled: this.traceEnabled,
         traceId: this.traceId,
@@ -239,6 +262,25 @@
       }
       if (!manifest.runtime || !manifest.runtime.runtimeConfig) {
         throw new Error('intent manifest runtime.runtimeConfig is required');
+      }
+      if (!manifest.runtime.queryEmbeddingMode) {
+        throw new Error('intent manifest runtime.queryEmbeddingMode is required');
+      }
+      const embeddingText = manifest.runtime.embeddingText || {};
+      if (embeddingText.schema && embeddingText.schema !== 'simulatte.embeddingTextContract.v1') {
+        throw new Error('intent manifest runtime.embeddingText.schema must be simulatte.embeddingTextContract.v1');
+      }
+      if (embeddingText.queryPrefix != null && typeof embeddingText.queryPrefix !== 'string') {
+        throw new Error('intent manifest runtime.embeddingText.queryPrefix must be a string');
+      }
+      if (embeddingText.documentPrefix != null && typeof embeddingText.documentPrefix !== 'string') {
+        throw new Error('intent manifest runtime.embeddingText.documentPrefix must be a string');
+      }
+      if (reranker.enabled && reranker.required && reranker.loadInPhase1WhenRequired !== false) {
+        const model = reranker.model || {};
+        if (!model.id || !model.defaultModelBaseUrl || !hashHex(model.manifestHash)) {
+          throw new Error('required intent reranker must declare model.id, defaultModelBaseUrl, and manifestHash');
+        }
       }
       return manifest;
     }
@@ -341,6 +383,9 @@
         universeCandidateCount: universeMatches && universeMatches.candidates && universeMatches.candidates.length || 0,
       });
       const promptTermSet = new Set(fallbackFeatureTokens(promptText));
+      const nonRetrievableIds = new Set(candidates
+        .filter((primitive) => primitive && primitive.isRetrievable === false)
+        .map((primitive) => primitive.id));
       const basePriors = candidates
         .map((primitive, index) => {
           const prior = primitivePriorFromScore(primitive, scores[index]);
@@ -351,11 +396,11 @@
             matchedTerms: symbolic.terms,
           };
         })
-        .filter((prior) => prior.primitiveId !== 'energy-ledger')
+        .filter((prior) => !nonRetrievableIds.has(prior.primitiveId))
         .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
       const languageEvidence = spanLanguageEvidence(promptText, options);
       const previewRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector);
-      const activeRerankProvider = options.rerankProvider || options.rerankerProvider || this.rerankProvider;
+      const activeRerankProvider = await this.resolveRerankProvider(runtime, provider, options);
       const previewRerank = await rerankIntentPriors({
         priors: basePriors,
         semanticRag: previewRag,
@@ -405,6 +450,21 @@
         traceId: this.traceId,
         rankId,
       });
+      const slotRetrieval = await rankQueryPlanSlots({
+        provider,
+        runtime,
+        candidates,
+        candidateVectors,
+        queryPlan: options.queryPlan,
+        promptText,
+        options,
+        rerankProvider: activeRerankProvider,
+        rankGpu: (vector) => this.tryRankWebGpu(runtime.index.embeddingDim, vector, candidateVectors),
+        progress,
+        traceEnabled: trace,
+        traceId: this.traceId,
+        rankId,
+      });
       const fusedBasePriors = fuseSpanPrimitiveScores(basePriors, spanRetrieval);
       const semanticRag = createRag(promptText, candidates, fusedBasePriors, runtime.index, queryVector);
       const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
@@ -424,6 +484,7 @@
         cardMatches,
         universeMatches,
         spanRetrieval,
+        slotRetrieval,
         semanticRag,
         dopplerIntent,
       });
@@ -445,6 +506,7 @@
         cardMatches,
         universeMatches,
         spanRetrieval,
+        slotRetrieval,
         rerank: rerank.receipt,
         semanticRag,
         dopplerIntent,
@@ -587,9 +649,9 @@
         modelBaseUrl,
         sourceSizeBytes: runtime.manifest && runtime.manifest.embedModel &&
           runtime.manifest.embedModel.source && runtime.manifest.embedModel.source.sizeBytes || 0,
-        cachePrefetch: Boolean(runtime.manifest && runtime.manifest.cache && runtime.manifest.cache.prefetch === true),
+        cachePrefetch: false,
+        cacheMode: 'doppler-managed',
       });
-      await ensureModelArtifactCache(runtime.manifest, modelBaseUrl, progress, trace);
       const runtimeConfig = cloneJsonValue(
         options.runtimeConfig
         || this.runtimeConfig
@@ -602,14 +664,15 @@
       emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
         stage: 'model-load',
-        percent: 68,
+        percent: EMBEDDING_LOAD_PROGRESS.start,
         message: 'Doppler loading embedding model files',
         timing: 'start',
         traceId: this.traceId,
-        artifactMode: 'manifest-directory',
+        artifactMode: 'doppler-managed-url',
         modelBaseUrl,
+        cacheMode: 'doppler-managed',
       });
-      const handle = await load({ url: modelBaseUrl }, {
+      const loadOptions = {
         runtimeConfig,
         onProgress: (event) => {
           emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
@@ -617,26 +680,140 @@
             modelBaseUrl,
             modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
             startedAtMs: dopplerStarted,
+            progressStart: EMBEDDING_LOAD_PROGRESS.start,
+            progressEnd: EMBEDDING_LOAD_PROGRESS.end,
+            stagePrefix: 'model-load',
+            resourceKind: 'embedding-model',
           }));
           if (typeof options.onModelProgress === 'function') options.onModelProgress(event);
         },
-      });
+      };
+      const handle = await load(dopplerModelSource(modelBaseUrl), loadOptions);
       emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
         stage: 'model-ready',
-        percent: 79,
+        percent: EMBEDDING_LOAD_PROGRESS.end,
         message: 'Doppler embedding model ready',
         timing: 'end',
         traceId: this.traceId,
         durationMs: elapsedMsSince(dopplerStarted),
-        artifactMode: 'manifest-directory',
+        artifactMode: 'doppler-managed-url',
         modelBaseUrl,
         backend: 'doppler-browser-load',
         providerReady: true,
+        cacheMode: 'doppler-managed',
         modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
         embeddingDim: runtime.index && runtime.index.embeddingDim || 0,
       });
       return providerFromModelHandle(handle, runtime, 'doppler-browser-load', modelBaseUrl);
+    }
+
+    async resolveRerankProvider(runtime, provider, options = {}) {
+      const explicit = options.rerankProvider || options.rerankerProvider;
+      if (explicit) {
+        this.rerankProvider = normalizeRerankProvider(explicit, 'injected-rerank-provider');
+        this.rerankerReady = true;
+        return this.rerankProvider;
+      }
+      if (this.rerankProvider) {
+        this.rerankerReady = true;
+        return this.rerankProvider;
+      }
+      const providerCapability = resolveRerankerCapability(provider, {});
+      if (providerCapability) {
+        this.rerankProvider = {
+          backend: providerCapability.backend,
+          rerank: providerCapability.rerank,
+        };
+        this.rerankerReady = true;
+        return this.rerankProvider;
+      }
+      const config = rerankerConfig(runtime);
+      if (!config.enabled || !config.model || config.loadInPhase1WhenRequired === false) {
+        this.rerankerReady = false;
+        return null;
+      }
+      if (!this.rerankerProviderPromise) {
+        this.rerankerReady = false;
+        this.rerankerProviderPromise = this.loadDopplerRerankerModel(runtime, options)
+          .then((rerankProvider) => {
+            this.rerankProvider = rerankProvider;
+            this.rerankerReady = true;
+            return rerankProvider;
+          })
+          .catch((error) => {
+            this.rerankerReady = false;
+            this.rerankerProviderPromise = null;
+            if (rerankerRequired(runtime)) throw error;
+            return null;
+          });
+      }
+      return this.rerankerProviderPromise;
+    }
+
+    async loadDopplerRerankerModel(runtime, options = {}) {
+      const config = rerankerConfig(runtime);
+      const model = config.model || {};
+      const progress = progressHandler(options, this.onProgress);
+      const trace = this.traceEnabled || traceEnabled(options);
+      const moduleUrl = options.dopplerModuleUrl
+        || this.dopplerModuleUrl
+        || runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl
+        || DEFAULT_DOPPLER_MODULE_URL;
+      const api = await resolveDopplerApi({
+        dopplerModule: options.dopplerModule || this.dopplerModule,
+        moduleUrl,
+        kernelBasePath: options.dopplerKernelBasePath || this.dopplerKernelBasePath,
+      });
+      const load = api && (api.load || api.doppler && api.doppler.load);
+      if (typeof load !== 'function') {
+        throw new Error(`model-backed intent requires Doppler load() for reranker; no loader found at ${moduleUrl}`);
+      }
+      const modelBaseUrl = options.rerankerModelBaseUrl || model.defaultModelBaseUrl;
+      if (!modelBaseUrl) throw new Error(`intent reranker ${config.id} requires model.defaultModelBaseUrl`);
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'reranker-load',
+        percent: RERANKER_LOAD_PROGRESS.start,
+        message: 'Preparing Doppler reranker model source',
+        traceId: this.traceId,
+        reranker: config.id,
+        modelId: model.id || '',
+        modelBaseUrl,
+        cachePrefetch: false,
+        cacheMode: 'doppler-managed',
+      });
+      const started = nowMs();
+      const loadOptions = {
+        onProgress: (event) => {
+          emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
+            traceId: this.traceId,
+            modelBaseUrl,
+            modelId: model.id || '',
+            startedAtMs: started,
+            progressStart: RERANKER_LOAD_PROGRESS.start,
+            progressEnd: RERANKER_LOAD_PROGRESS.end,
+            stagePrefix: 'reranker-load',
+            resourceKind: 'reranker-model',
+          }));
+        },
+      };
+      if (config.runtimeConfig) loadOptions.runtimeConfig = cloneJsonValue(config.runtimeConfig);
+      const handle = await load(dopplerModelSource(modelBaseUrl), loadOptions);
+      emitRuntimeProgress(progress, trace, {
+        source: 'simulatte-intent-embedder',
+        stage: 'reranker-ready',
+        percent: RERANKER_LOAD_PROGRESS.end,
+        message: 'Doppler reranker ready',
+        timing: 'end',
+        traceId: this.traceId,
+        durationMs: elapsedMsSince(started),
+        reranker: config.id,
+        modelId: model.id || '',
+        modelBaseUrl,
+        cacheMode: 'doppler-managed',
+      });
+      return rerankProviderFromModelHandle(handle, runtime, config, 'doppler-reranker-load', modelBaseUrl);
     }
 
     async gpuDevice() {
@@ -665,10 +842,14 @@
     const started = nowMs();
     const progress = telemetry.progress || null;
     const trace = Boolean(telemetry.traceEnabled);
+    const startPercent = Number.isFinite(Number(telemetry.percent)) ? Number(telemetry.percent) : 0;
+    const endPercent = Number.isFinite(Number(telemetry.progressEnd))
+      ? Number(telemetry.progressEnd)
+      : Math.min(99, startPercent + 1);
     emitRuntimeProgress(progress, trace, {
       source: 'simulatte-intent-embedder',
       stage: telemetry.stage || 'resource-fetch',
-      percent: telemetry.percent || 0,
+      percent: startPercent,
       message: `Fetching ${label}`,
       timing: 'start',
       traceId: telemetry.traceId || '',
@@ -682,7 +863,7 @@
       emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
         stage: telemetry.stage || 'resource-fetch',
-        percent: telemetry.percent || 0,
+        percent: startPercent,
         message: `${label} fetch failed`,
         timing: 'error',
         traceId: telemetry.traceId || '',
@@ -694,12 +875,19 @@
       });
       throw new Error(`${label} fetch failed: ${response.status}`);
     }
-    const contentLength = Number(response.headers && response.headers.get('Content-Length') || 0);
-    const value = await response.json();
-    emitRuntimeProgress(progress, trace, {
+	    const body = await readJsonResponseWithProgress(response, label, {
+	      ...telemetry,
+	      startPercent,
+	      endPercent,
+      progress,
+      trace,
+	      resourceUrl: String(url || ''),
+	    });
+	    const verifiedHash = await assertJsonResourceHash(label, url, body.bytes, telemetry);
+	    emitRuntimeProgress(progress, trace, {
       source: 'simulatte-intent-embedder',
       stage: telemetry.stage || 'resource-fetch',
-      percent: telemetry.percent || 0,
+      percent: endPercent,
       message: `${label} fetched`,
       timing: 'end',
       traceId: telemetry.traceId || '',
@@ -707,10 +895,82 @@
       resourceKind: telemetry.resourceKind || label,
       resourceUrl: String(url || ''),
       status: response.status,
-      byteLength: Number.isFinite(contentLength) ? contentLength : 0,
+      byteLength: body.byteLength,
+      completedBytes: body.byteLength,
+	      totalBytes: body.totalBytes,
+	      verifiedHash,
+	      cacheMode: 'force-cache',
+	    });
+	    return body.value;
+	  }
+
+	  async function assertJsonResourceHash(label, url, bytes, telemetry = {}) {
+	    const expectedHash = telemetry.expectedHash || telemetry.hash || telemetry.integrity || null;
+	    if (!artifactHashHex(expectedHash)) return '';
+	    return assertArtifactBytesHash({
+	      path: String(url || label || 'json-resource'),
+	      hash: expectedHash,
+	      hashAlgorithm: artifactHashAlgorithm(expectedHash) || telemetry.hashAlgorithm || 'sha256',
+	    }, bytes);
+	  }
+
+  async function readJsonResponseWithProgress(response, label, telemetry = {}) {
+    const contentLength = Number(response.headers && response.headers.get('Content-Length') || 0);
+    if (response.body && typeof response.body.getReader === 'function') {
+      const reader = response.body.getReader();
+      const chunks = [];
+      let received = 0;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
+          chunks.push(chunk);
+          received += chunk.byteLength;
+          emitFetchJsonProgress(label, telemetry, received, contentLength);
+        }
+      } finally {
+        if (reader.releaseLock) reader.releaseLock();
+      }
+      const bytes = concatChunks(chunks, received);
+	      return {
+	        value: JSON.parse(new TextDecoder().decode(bytes)),
+	        bytes,
+	        byteLength: bytes.byteLength,
+	        totalBytes: contentLength || bytes.byteLength,
+	      };
+	    }
+	    const text = await response.text();
+	    const bytes = new TextEncoder().encode(text);
+	    const byteLength = bytes.byteLength;
+	    emitFetchJsonProgress(label, telemetry, byteLength, contentLength || byteLength);
+	    return {
+	      value: JSON.parse(text),
+	      bytes,
+	      byteLength,
+	      totalBytes: contentLength || byteLength,
+	    };
+  }
+
+  function emitFetchJsonProgress(label, telemetry = {}, completedBytes = 0, totalBytes = 0) {
+    const progress = telemetry.progress || null;
+    if (typeof progress !== 'function') return;
+    const trace = Boolean(telemetry.trace);
+    const start = Number(telemetry.startPercent || 0);
+    const end = Number.isFinite(Number(telemetry.endPercent)) ? Number(telemetry.endPercent) : start;
+    const fraction = totalBytes > 0 ? Math.max(0, Math.min(1, completedBytes / totalBytes)) : 0;
+    emitRuntimeProgress(progress, trace, {
+      source: 'simulatte-intent-embedder',
+      stage: telemetry.stage || 'resource-fetch',
+      percent: start + fraction * Math.max(0, end - start),
+      message: `Fetching ${label}`,
+      traceId: telemetry.traceId || '',
+      resourceKind: telemetry.resourceKind || label,
+      resourceUrl: String(telemetry.resourceUrl || ''),
+      completedBytes,
+      totalBytes,
       cacheMode: 'force-cache',
     });
-    return value;
   }
 
   function progressHandler(options = {}, fallback = null) {
@@ -771,13 +1031,32 @@
   }
 
   function normalizeDopplerProgress(event = {}, context = {}) {
-    const raw = Number(event.percent);
-    const percent = Number.isFinite(raw)
-      ? Math.max(68, Math.min(94, 68 + raw * 0.26))
-      : 70;
+    const rawPercent = Number(event.percent);
+    const rawProgress = Number.isFinite(rawPercent) ? rawPercent : Number(event.progress);
+    const fraction = Number.isFinite(rawProgress)
+      ? Math.max(0, Math.min(1, rawProgress > 1 ? rawProgress / 100 : rawProgress))
+      : null;
+    const progressStart = Number.isFinite(Number(context.progressStart)) ? Number(context.progressStart) : 68;
+    const progressEnd = Number.isFinite(Number(context.progressEnd)) ? Number(context.progressEnd) : 94;
+    const percent = fraction !== null
+      ? Math.max(progressStart, Math.min(progressEnd, progressStart + fraction * (progressEnd - progressStart)))
+      : progressStart;
+    const rawStage = event.phase || event.stage || 'model-load';
+    const stage = context.stagePrefix ? `${context.stagePrefix}-${rawStage}` : rawStage;
+    const shard = Number(event.shard);
+    const totalShards = Number(event.totalShards);
+    const layer = Number(event.layer);
+    const totalLayers = Number(event.total);
+    const file = Number.isFinite(shard) && shard > 0 && Number.isFinite(totalShards) && totalShards > 0
+      ? `shard-${shard}-of-${totalShards}`
+      : Number.isFinite(layer) && layer > 0 && Number.isFinite(totalLayers) && totalLayers > 0
+        ? `layer-${layer}-of-${totalLayers}`
+        : '';
+    const bytesLoaded = Number(event.bytesLoaded);
+    const totalBytes = Number(event.totalBytes);
     return {
       source: 'doppler',
-      stage: event.phase || event.stage || 'model-load',
+      stage,
       percent,
       message: event.message || 'Loading intent model runtime',
       traceId: context.traceId || '',
@@ -785,426 +1064,173 @@
       artifactMode: 'manifest-directory',
       modelId: context.modelId || '',
       modelBaseUrl: context.modelBaseUrl || '',
+      resourceKind: context.resourceKind || rawStage || 'doppler-model',
+      file,
+      completedBytes: Number.isFinite(bytesLoaded) ? bytesLoaded : 0,
+      totalBytes: Number.isFinite(totalBytes) ? totalBytes : 0,
+      completed: Number.isFinite(shard) && Number.isFinite(totalShards) && totalShards > 0
+        ? shard
+        : Number.isFinite(layer) && Number.isFinite(totalLayers) && totalLayers > 0
+          ? layer
+          : undefined,
+      total: Number.isFinite(totalShards) && totalShards > 0
+        ? totalShards
+        : Number.isFinite(totalLayers) && totalLayers > 0
+          ? totalLayers
+          : undefined,
       rawEvent: event,
     };
   }
 
-  async function ensureModelArtifactCache(manifest, modelBaseUrl, onProgress, trace = false) {
-    const cacheConfig = manifest && manifest.cache || {};
-    const baseUrl = String(modelBaseUrl || '').replace(/\/+$/, '');
-    if (cacheConfig.prefetch !== true) {
-      emitRuntimeProgress(onProgress, trace, {
-        source: 'simulatte-model-cache',
-        stage: 'cache-skip',
-        percent: 21,
-        message: 'Model cache prefetch disabled; Doppler will load model files',
-        artifactMode: 'manifest-directory',
-        modelId: manifest && manifest.embedModel && manifest.embedModel.id || '',
-        modelBaseUrl: baseUrl,
-        cachePrefetch: false,
-      });
-      return;
-    }
-    if (!baseUrl) throw new Error(`${modelLabel(manifest)} cache requires model base URL`);
-    const cacheContext = await openModelCacheContext(manifest, cacheConfig);
-    if (!cacheContext.opfs && !cacheContext.cache) {
-      if (cacheConfig.requirePersistent === true) {
-        throw new Error(`${modelLabel(manifest)} cache requires OPFS or CacheStorage support`);
-      }
-      emitRuntimeProgress(onProgress, trace, {
-        source: 'simulatte-model-cache',
-        stage: 'cache-skip',
-        percent: 21,
-        message: 'Model cache prefetch unavailable in this browser context',
-        artifactMode: 'manifest-directory',
-        modelId: manifest && manifest.embedModel && manifest.embedModel.id || '',
-        modelBaseUrl: baseUrl,
-        cachePrefetch: true,
-        cacheSkipReason: 'persistent-cache-unavailable',
-      });
-      return;
-    }
-    const cacheStarted = nowMs();
-    const cacheTelemetry = {
-      artifactMode: 'manifest-directory',
-      modelId: manifest && manifest.embedModel && manifest.embedModel.id || '',
-      modelBaseUrl: baseUrl,
-      cachePrefetch: true,
-      cacheBackends: cacheContext.backends,
-      cacheStrategy: cacheContext.strategy,
-    };
-    emitRuntimeProgress(onProgress, trace, {
-      source: 'simulatte-model-cache',
-      stage: 'cache',
-      percent: 20,
-      message: 'Preparing model cache',
-      timing: 'start',
-      ...cacheTelemetry,
-    });
-    await ensureCacheWorker(cacheConfig, onProgress, trace);
-    const persistence = await requestPersistentStorage();
-    emitRuntimeProgress(onProgress, trace, {
-      source: 'simulatte-model-cache',
-      stage: 'cache-storage',
-      percent: 21,
-      message: persistence ? 'Persistent model storage requested' : 'Persistent model storage unavailable',
-      persisted: persistence,
-      ...cacheTelemetry,
-    });
-    const modelManifestUrl = `${baseUrl}/manifest.json`;
-    const modelManifestText = await cachedTextArtifact(
-      cacheContext,
-      { path: 'manifest.json', url: modelManifestUrl, kind: 'manifest', size: 0 },
-      `${modelLabel(manifest)} model manifest`,
-      onProgress,
-      trace
-    );
-    const modelManifest = JSON.parse(modelManifestText);
-    const files = modelArtifactFiles(modelManifest, baseUrl);
-    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
-    let completedBytes = 0;
-    for (const file of files) {
-      const cached = await cachedModelArtifact(cacheContext, file);
-      if (cached) {
-        completedBytes += Math.max(file.size, cached.size || 0);
-        emitModelCacheProgress(onProgress, trace, file, completedBytes, totalBytes, true, cached.backend, cacheTelemetry);
-        continue;
-      }
-      completedBytes += await cacheModelFile(cacheContext, file, completedBytes, totalBytes, onProgress, trace, cacheTelemetry);
-    }
-    emitRuntimeProgress(onProgress, trace, {
-      source: 'simulatte-model-cache',
-      stage: 'cache-ready',
-      percent: 68,
-      message: `${modelLabel(manifest)} cached`,
-      totalBytes,
-      timing: 'end',
-      durationMs: elapsedMsSince(cacheStarted),
-      fileCount: files.length,
-      ...cacheTelemetry,
-    });
+  function dopplerModelSource(modelBaseUrl) {
+    return { url: modelBaseUrl };
   }
 
-  async function ensureCacheWorker(cacheConfig, onProgress = null, trace = false) {
-    if (typeof window === 'undefined' || !navigator.serviceWorker) {
-      emitRuntimeProgress(onProgress, trace, {
-        source: 'simulatte-model-cache',
-        stage: 'cache-worker',
-        percent: 20,
-        message: 'Model cache worker registration unavailable in this context',
-        cacheWorker: 'unavailable',
-      });
-      return false;
+  function artifactHashAlgorithm(value) {
+    if (!value) return '';
+    if (typeof value === 'object') {
+      return value.alg || value.algorithm || value.hashAlgorithm || '';
     }
-    const workerPath = cacheConfig.worker || './simulatte-model-cache-sw.js';
-    const workerUrl = new URL(workerPath, window.location.href).toString();
-    await navigator.serviceWorker.register(workerUrl);
-    await waitForCacheWorkerReady(cacheConfig);
-    if (navigator.serviceWorker.controller) return;
-    await new Promise((resolve) => {
-      const finish = () => {
-        navigator.serviceWorker.removeEventListener('controllerchange', finish);
-        resolve();
+    const text = String(value || '').trim().toLowerCase();
+    const match = text.match(/^([a-z0-9_-]+):/);
+    return match ? match[1] : '';
+  }
+
+  function normalizeArtifactHashAlgorithm(value, fallback = 'sha256') {
+    const raw = String(value || fallback || '').trim().toLowerCase().replace(/[-_]/g, '');
+    if (!raw) return '';
+    if (raw === 'sha256') return 'sha256';
+    if (raw === 'blake3') return 'blake3';
+    throw new Error(`unsupported model artifact hash algorithm: ${value || fallback}`);
+  }
+
+  function artifactHashHex(value) {
+    if (!value) return '';
+    if (typeof value === 'object') {
+      return artifactHashHex(value.hex || value.hash || value.digest || value.blake3 || value.sha256);
+    }
+    const text = String(value || '').trim().toLowerCase();
+    if (!text) return '';
+    const prefixed = text.match(/^[a-z0-9_-]+:([a-f0-9]+)$/i);
+    return prefixed ? prefixed[1].toLowerCase() : text;
+  }
+
+  function artifactHashMismatchError(file, expected, actual) {
+    const error = new Error(`cached model artifact hash mismatch for ${file.path}: expected=${expected} got=${actual || ''}`);
+    error.code = 'SIMULATTE_MODEL_CACHE_HASH_MISMATCH';
+    error.expectedHash = expected;
+    error.actualHash = actual || '';
+    error.artifactPath = file && file.path || '';
+    return error;
+  }
+
+  async function assertArtifactBytesHash(file, bytes) {
+    const hasher = await createArtifactHasher(file);
+    updateArtifactHasher(hasher, bytes);
+    return assertArtifactHasherHash(file, hasher);
+  }
+
+  async function assertArtifactHasherHash(file, hasher) {
+    if (!hasher) return '';
+    const expected = artifactHashHex(file && file.hash);
+    const actual = await finalizeArtifactHasherHex(hasher);
+    if (expected && actual !== expected) throw artifactHashMismatchError(file, expected, actual);
+    return actual;
+  }
+
+  async function createArtifactHasher(file) {
+    if (!artifactHashHex(file && file.hash)) return null;
+    const algorithm = normalizeArtifactHashAlgorithm(file.hashAlgorithm || artifactHashAlgorithm(file.hash) || 'sha256');
+    if (algorithm === 'blake3') {
+      const blake3 = await loadBlake3Module();
+      return {
+        algorithm,
+        blake3: blake3.createHasher(),
       };
-      navigator.serviceWorker.addEventListener('controllerchange', finish, { once: true });
-      setTimeout(finish, 2000);
-    });
-    if (!navigator.serviceWorker.controller && cacheConfig.requirePersistent === true) {
-      throw new Error('intent model cache worker is not controlling this page; reload and retry');
     }
-    emitRuntimeProgress(onProgress, trace, {
-      source: 'simulatte-model-cache',
-      stage: 'cache-worker',
-      percent: 20,
-      message: 'Model cache worker ready',
-      cacheWorker: navigator.serviceWorker.controller ? 'controlling' : 'registered',
-    });
-    return true;
-  }
-
-  async function waitForCacheWorkerReady(cacheConfig = {}) {
-    const configured = Number(cacheConfig.readyWaitMs);
-    const waitMs = Number.isFinite(configured) && configured > 0
-      ? configured
-      : CACHE_WORKER_READY_WAIT_MS;
-    let timer = null;
-    try {
-      await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error('intent model cache worker did not become ready')), waitMs);
-        }),
-      ]);
-    } finally {
-      if (timer) clearTimeout(timer);
+    if (algorithm === 'sha256') {
+      return {
+        algorithm,
+        nodeHash: createNodeSha256Hash(),
+        chunks: [],
+        totalBytes: 0,
+      };
     }
+    throw new Error(`unsupported model artifact hash algorithm: ${algorithm}`);
   }
 
-  async function requestPersistentStorage() {
-    if (!navigator.storage || typeof navigator.storage.persist !== 'function') return false;
-    try {
-      return await navigator.storage.persist();
-    } catch (_err) {
-      return false;
-    }
-  }
-
-  function modelCacheName(manifest) {
-    const namespace = manifest.cache && manifest.cache.namespace
-      ? String(manifest.cache.namespace)
-      : 'simulatte-intent-model';
-    const hash = hashHex(manifest.embedModel && manifest.embedModel.manifestHash).slice(0, 16) || 'model';
-    return `simulatte-embedding-model-${namespace}-${hash}`;
-  }
-
-  async function openModelCacheContext(manifest, cacheConfig = {}) {
-    const stores = new Set(normalizeCacheStores(cacheConfig.storage));
-    const strategy = String(cacheConfig.strategy || '').toLowerCase() || 'cache-storage';
-    const wantsOpfs = stores.has('opfs') || strategy.includes('opfs');
-    const wantsCache = stores.has('cachestorage') || stores.has('cache-storage') ||
-      cacheConfig.cacheStorageFallback !== false;
-    const cacheName = modelCacheName(manifest);
-    const opfs = wantsOpfs ? await openOpfsCache(cacheConfig, cacheName) : null;
-    const cache = wantsCache && typeof caches !== 'undefined'
-      ? await caches.open(cacheName).catch(() => null)
-      : null;
-    return {
-      cacheName,
-      opfs,
-      cache,
-      strategy,
-      backends: [
-        opfs ? 'opfs' : '',
-        cache ? 'cache-storage' : '',
-      ].filter(Boolean),
-    };
-  }
-
-  function normalizeCacheStores(value) {
-    if (!Array.isArray(value)) return [];
-    return value.map((item) => String(item || '').toLowerCase().replace(/\s+/g, ''));
-  }
-
-  async function openOpfsCache(cacheConfig, cacheName) {
-    if (!opfsAvailable()) return null;
-    try {
-      const root = await navigator.storage.getDirectory();
-      const cacheRoot = await root.getDirectoryHandle(
-        safeCacheSegment(cacheConfig.opfsRoot || DEFAULT_MODEL_OPFS_ROOT),
-        { create: true }
-      );
-      const modelRoot = await cacheRoot.getDirectoryHandle(safeCacheSegment(cacheName), { create: true });
-      return { dir: modelRoot, backend: 'opfs' };
-    } catch (_err) {
-      return null;
-    }
-  }
-
-  function opfsAvailable() {
-    return typeof navigator !== 'undefined' &&
-      navigator.storage &&
-      typeof navigator.storage.getDirectory === 'function';
-  }
-
-  async function cachedTextArtifact(cacheContext, file, label, onProgress, trace) {
-    const opfsHit = await readOpfsCachedFile(cacheContext.opfs, file);
-    if (opfsHit) {
-      emitModelCacheProgress(onProgress, trace, file, opfsHit.size, Math.max(file.size, opfsHit.size), true, 'opfs');
-      return opfsHit.file.text();
-    }
-    const cached = cacheContext.cache ? await cacheContext.cache.match(file.url) : null;
-    if (cached) return cached.clone().text();
-    const response = await fetch(file.url, { cache: 'reload', mode: 'cors' });
-    if (!response.ok) throw new Error(`${label} fetch failed: ${response.status}`);
-    const text = await response.text();
-    await writeTextArtifact(cacheContext, file, text);
-    return text;
-  }
-
-  async function cachedModelArtifact(cacheContext, file) {
-    const opfsHit = await readOpfsCachedFile(cacheContext.opfs, file);
-    if (opfsHit && cachedFileComplete(file, opfsHit.size)) {
-      return { backend: 'opfs', size: opfsHit.size };
-    }
-    if (!cacheContext.cache) return null;
-    const response = await cacheContext.cache.match(file.url);
-    if (!response) return null;
-    const size = Number(response.headers.get('Content-Length') || file.size || 0);
-    if (!cachedFileComplete(file, size)) return null;
-    return { backend: 'cache-storage', size };
-  }
-
-  function cachedFileComplete(file, size) {
-    const expected = Number(file && file.size || 0);
-    if (!expected) return Number(size || 0) > 0;
-    return Number(size || 0) >= expected;
-  }
-
-  async function writeTextArtifact(cacheContext, file, text) {
-    if (cacheContext.opfs) {
-      await writeOpfsBytes(cacheContext.opfs, file, new TextEncoder().encode(text));
+  function updateArtifactHasher(hasher, chunk) {
+    if (!hasher || !chunk) return;
+    const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+    if (hasher.algorithm === 'blake3') {
+      hasher.blake3.update(bytes);
       return;
     }
-    if (!cacheContext.cache) return;
-    await cacheContext.cache.put(file.url, new Response(text, {
-      status: 200,
-      headers: {
-        'Content-Type': contentTypeForPath(file.path),
-        'Content-Length': String(text.length),
-        'X-Simulatte-Model-Cache': 'full-file',
-      },
-    }));
+    if (hasher.nodeHash) {
+      hasher.nodeHash.update(bytes);
+      return;
+    }
+    hasher.chunks.push(bytes.slice());
+    hasher.totalBytes += bytes.byteLength;
   }
 
-  function modelArtifactFiles(modelManifest, baseUrl) {
-    const files = [{ path: 'manifest.json', size: 0, kind: 'manifest' }];
-    for (const shard of modelManifest.shards || []) {
-      if (!shard || !shard.filename) continue;
-      files.push({ path: shard.filename, size: Number(shard.size || 0), kind: 'weights' });
+  async function finalizeArtifactHasherHex(hasher) {
+    if (hasher.algorithm === 'blake3') return bytesToHex(hasher.blake3.finalize());
+    if (hasher.nodeHash) return hasher.nodeHash.digest('hex');
+    const subtle = globalThis.crypto && globalThis.crypto.subtle;
+    if (!subtle || typeof subtle.digest !== 'function') {
+      throw new Error('SHA-256 model artifact verification requires crypto.subtle or node:crypto');
     }
-    const tokenizer = modelManifest.tokenizer || {};
-    if (tokenizer.file) files.push({ path: tokenizer.file, size: 0, kind: 'tokenizer' });
-    if (tokenizer.sentencepieceModel) {
-      files.push({ path: tokenizer.sentencepieceModel, size: 0, kind: 'tokenizer' });
-    }
-    if (modelManifest.tensorsFile) files.push({ path: modelManifest.tensorsFile, size: 0, kind: 'metadata' });
-    return files.map((file) => ({
-      ...file,
-      url: `${baseUrl}/${String(file.path).replace(/^\/+/, '')}`,
-    }));
+    const digest = await subtle.digest('SHA-256', concatChunks(hasher.chunks, hasher.totalBytes));
+    return bytesToHex(new Uint8Array(digest));
   }
 
-  async function cacheModelFile(cacheContext, file, completedBefore, totalBytes, onProgress, trace = false, telemetry = {}) {
-    const started = nowMs();
-    const plannedBackend = cacheContext.opfs ? 'opfs' : cacheContext.cache ? 'cache-storage' : 'network';
-    emitModelCacheProgress(onProgress, trace, file, completedBefore, totalBytes, false, plannedBackend, telemetry);
-    const response = await fetch(file.url, { cache: 'reload', mode: 'cors' });
-    if (!response.ok) throw new Error(`intent model fetch failed for ${file.path}: ${response.status}`);
-    const opfsWritable = cacheContext.opfs
-      ? await openOpfsWritable(cacheContext.opfs, file).catch(() => null)
-      : null;
-    const backend = opfsWritable ? 'opfs' : cacheContext.cache ? 'cache-storage' : plannedBackend;
-    const headers = new Headers(response.headers);
-    const expectedBytes = Number(file.size || headers.get('Content-Length') || 0);
-    let received = 0;
-    let body;
-    if (opfsWritable && response.body && typeof response.body.getReader === 'function') {
-      const reader = response.body.getReader();
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
-          received += chunk.byteLength;
-          await opfsWritable.write(chunk);
-          emitModelCacheProgress(onProgress, trace, file, completedBefore + received, totalBytes, false, backend, telemetry);
-        }
-      } finally {
-        await opfsWritable.close();
-      }
-      body = null;
-    } else if (response.body && typeof response.body.getReader === 'function') {
-      const reader = response.body.getReader();
-      const chunks = [];
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
-        chunks.push(chunk);
-        received += chunk.byteLength;
-        emitModelCacheProgress(onProgress, trace, file, completedBefore + received, totalBytes, false, backend, telemetry);
-      }
-      body = concatChunks(chunks, received);
-    } else {
-      body = new Uint8Array(await response.arrayBuffer());
-      received = body.byteLength;
-    }
-    if (body && opfsWritable) {
-      try {
-        await opfsWritable.write(body);
-      } finally {
-        await opfsWritable.close();
-      }
-    } else if (body && cacheContext.opfs) {
-      await writeOpfsBytes(cacheContext.opfs, file, body);
-    } else if (body && cacheContext.cache) {
-      headers.set('X-Simulatte-Model-Cache', 'full-file');
-      if (!headers.has('Content-Type')) headers.set('Content-Type', contentTypeForPath(file.path));
-      if (!headers.has('Content-Length')) headers.set('Content-Length', String(body.byteLength));
-      await cacheContext.cache.put(file.url, new Response(body, {
-        status: 200,
-        headers,
-      }));
-    } else if (!opfsWritable) {
-      throw new Error(`intent model cache unavailable for ${file.path}`);
-    }
-    const storedBytes = body ? body.byteLength : received;
-    emitRuntimeProgress(onProgress, trace, {
-      source: 'simulatte-model-cache',
-      stage: 'cache-file-ready',
-      percent: 22 + (totalBytes > 0 ? (completedBefore + storedBytes) / totalBytes : 1) * 44,
-      message: `Cached ${file.path}`,
-      file: file.path,
-      fileKind: file.kind,
-      completedBytes: completedBefore + storedBytes,
-      totalBytes,
-      durationMs: elapsedMsSince(started),
-      cacheMode: backend,
-      ...telemetry,
-    });
-    return Math.max(expectedBytes, storedBytes);
-  }
-
-  function emitModelCacheProgress(onProgress, trace, file, completedBytes, totalBytes, cached, backend = '', telemetry = {}) {
-    const fraction = totalBytes > 0 ? completedBytes / totalBytes : 1;
-    emitRuntimeProgress(onProgress, trace, {
-      source: 'simulatte-model-cache',
-      stage: cached ? 'cache-hit' : 'cache-fill',
-      percent: 22 + Math.min(1, fraction) * 44,
-      message: cached ? `Cached ${file.path}` : `Caching ${file.path}`,
-      file: file.path,
-      fileKind: file.kind,
-      completedBytes,
-      totalBytes,
-      cacheMode: backend || (cached ? 'cache-storage' : 'reload'),
-      ...telemetry,
-    });
-  }
-
-  async function readOpfsCachedFile(opfs, file) {
-    if (!opfs) return null;
+  function createNodeSha256Hash() {
     try {
-      const handle = await opfs.dir.getFileHandle(opfsCacheFileName(file.url, file.path));
-      const stored = await handle.getFile();
-      return { file: stored, size: stored.size };
+      if (typeof require === 'function') {
+        return require('node:crypto').createHash('sha256');
+      }
     } catch (_err) {
       return null;
     }
+    return null;
   }
 
-  async function openOpfsWritable(opfs, file) {
-    if (!opfs) return null;
-    const handle = await opfs.dir.getFileHandle(opfsCacheFileName(file.url, file.path), { create: true });
-    return handle.createWritable();
-  }
+  let blake3ModulePromise = null;
 
-  async function writeOpfsBytes(opfs, file, bytes) {
-    const writable = await openOpfsWritable(opfs, file);
-    try {
-      await writable.write(bytes);
-    } finally {
-      await writable.close();
+  async function loadBlake3Module() {
+    if (globalThis.blake3 && typeof globalThis.blake3.createHasher === 'function') {
+      return globalThis.blake3;
     }
+    if (!blake3ModulePromise) {
+      blake3ModulePromise = import(blake3ModuleUrl()).then((mod) => {
+        if (!mod || typeof mod.createHasher !== 'function') {
+          throw new Error('BLAKE3 model artifact verifier failed to load');
+        }
+        return mod;
+      });
+    }
+    return blake3ModulePromise;
   }
 
-  function opfsCacheFileName(url, path) {
-    const rawName = String(path || url || 'artifact').split('/').filter(Boolean).pop() || 'artifact';
-    return `${hashString(url)}-${safeCacheSegment(rawName)}`;
+  function blake3ModuleUrl() {
+    if (typeof location !== 'undefined' && location.href) {
+      return resolveUrl('./vendor/doppler/src/storage/blake3.js', location.href);
+    }
+    if (typeof require === 'function' && typeof __dirname !== 'undefined') {
+      const path = require('node:path');
+      const { pathToFileURL } = require('node:url');
+      return pathToFileURL(path.resolve(__dirname, '../../vendor/doppler/src/storage/blake3.js')).href;
+    }
+    throw new Error('BLAKE3 model artifact verifier cannot resolve Doppler storage module');
   }
 
-  function safeCacheSegment(value) {
-    const text = String(value || 'cache').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-|-$/g, '');
-    return text || 'cache';
+  function bytesToHex(bytes) {
+    let out = '';
+    for (let i = 0; i < bytes.length; i += 1) {
+      out += bytes[i].toString(16).padStart(2, '0');
+    }
+    return out;
   }
 
   function concatChunks(chunks, total) {
@@ -1215,12 +1241,6 @@
       offset += chunk.byteLength;
     }
     return out;
-  }
-
-  function contentTypeForPath(path) {
-    if (/\.json$/i.test(path)) return 'application/json';
-    if (/\.model$/i.test(path)) return 'application/octet-stream';
-    return 'application/octet-stream';
   }
 
   async function loadUniverseIndexes(manifestUrl, telemetry = {}) {
@@ -1237,12 +1257,13 @@
     const indexes = {};
     await Promise.all(entries.map(async ([name, config]) => {
       if (!config || !config.artifact) throw new Error(`universe index ${name} missing artifact`);
-      indexes[name] = await fetchJson(resolveUrl(config.artifact, manifestUrl), `universe ${name} index`, {
-        ...telemetry,
-        stage: 'index-fetch',
-        percent: 14,
-        resourceKind: `universe-${name}-index`,
-      });
+	      indexes[name] = await fetchJson(versionedAssetUrl(resolveUrl(config.artifact, manifestUrl), telemetry.assetVersionQuery), `universe ${name} index`, {
+	        ...telemetry,
+	        stage: 'index-fetch',
+	        percent: 14,
+	        resourceKind: `universe-${name}-index`,
+	        expectedHash: config.artifactHash || config.hash || null,
+	      });
     }));
     return { manifest, indexes };
   }
@@ -1295,6 +1316,15 @@
           `universe ${name} feature index`
         )
         : null;
+      if (packedFeatures) {
+        const featureModelId = String(index.featureModelId || '');
+        const expectedFeatureModelId = runtimeFeatureModelId();
+        if (featureModelId !== expectedFeatureModelId) {
+          throw new Error(
+            `universe index ${name} featureModelId mismatch (${featureModelId || 'missing'} !== ${expectedFeatureModelId}); rebuild the index or align the runtime feature builder`
+          );
+        }
+      }
       indexes[name] = {
         schema: index.schema || '',
         id: index.id || `simulatte-universe-${name}`,
@@ -1496,11 +1526,14 @@
         primitiveHints: row.primitiveHints || (row.primitiveId ? [row.primitiveId] : []),
         conceptIds: row.conceptIds || row.concepts || [],
         candidateText: row.candidateText || row.text || '',
-        spanId: row.spanId || '',
-        spanKind: row.spanKind || '',
-        spanText: row.spanText || '',
-        retrievalKind: row.retrievalKind || '',
-        evidence: row.evidence || [String(id)],
+	        spanId: row.spanId || '',
+	        spanKind: row.spanKind || '',
+	        spanText: row.spanText || '',
+	        slotId: row.slotId || '',
+	        slotRole: row.slotRole || '',
+	        entryId: row.entryId || '',
+	        retrievalKind: row.retrievalKind || '',
+	        evidence: row.evidence || [String(id)],
       });
     };
     for (const row of payload.basePriors || []) add(row, 'embedding-primitive-prior');
@@ -1513,17 +1546,20 @@
     for (const row of payload.semanticRag && payload.semanticRag.surfaceRetrieved || []) add(row, 'semantic-rag-surface');
     for (const row of payload.dopplerIntent && payload.dopplerIntent.primitives || []) add(row, 'doppler-intent');
     for (const row of spanEvidenceRows(payload.spanRetrieval)) add(row, row.source || 'span-embedding-retrieval');
-    const seen = new Set();
-    return rows
-      .filter((row) => {
-        const key = `${row.id}:${row.source}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-      .slice(0, 260);
-  }
+	    for (const row of slotRetrievalEvidenceRows(payload.slotRetrieval)) add(row, row.source || 'slot-embedding-retrieval');
+	    const seen = new Set();
+	    const sortedRows = rows
+	      .filter((row) => {
+	        const key = `${row.id}:${row.source}`;
+	        if (seen.has(key)) return false;
+	        seen.add(key);
+	        return true;
+	      })
+	      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+	    const slotRows = sortedRows.filter((row) => row.retrievalKind === 'slot-retrieval');
+	    const otherRows = sortedRows.filter((row) => row.retrievalKind !== 'slot-retrieval');
+	    return [...slotRows, ...otherRows].slice(0, 260);
+	  }
 
   function spanConfigFor(runtime, options = {}, instanceConfig = undefined) {
     const manifestConfig = runtime && runtime.manifest && runtime.manifest.retrieval && runtime.manifest.retrieval.spanLevel || {};
@@ -1881,6 +1917,520 @@
     };
   }
 
+  async function rankQueryPlanSlots(payload = {}) {
+    const runtime = payload.runtime;
+    const provider = payload.provider;
+    const candidates = payload.candidates || [];
+    const candidateVectors = payload.candidateVectors || [];
+    const config = slotRetrievalConfig(runtime, payload.options || {});
+    const slots = usefulQueryPlanSlots(payload.queryPlan, config);
+    if (!config.enabled || !slots.length || !runtime || !provider || typeof provider.embed !== 'function') {
+      return emptySlotRetrieval(slots, config, config.enabled ? 'empty' : 'disabled', payload.queryPlan);
+    }
+    const started = nowMs();
+    const bySlot = [];
+    let rerankCallCount = 0;
+    emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+      source: 'simulatte-intent-embedder',
+      stage: 'slot-retrieval',
+      percent: 94.1,
+      message: `Embedding ${slots.length} scene retrieval slots`,
+      slotCount: slots.length,
+      traceId: payload.traceId || '',
+      rankId: payload.rankId || 0,
+    });
+    for (let i = 0; i < slots.length; i += 1) {
+      const slot = slots[i];
+      const queryText = slotQueryText(slot);
+      const query = await provider.embed({
+        text: queryText,
+        nowIso: payload.options && payload.options.nowIso || new Date().toISOString(),
+      });
+      const vector = validateQueryEmbedding(query, runtime.index);
+      const gpuScores = config.primitiveRankBackend === 'webgpu' || config.primitiveRankBackend === 'auto'
+        ? await safeSpanGpuRank(payload.rankGpu, vector)
+        : null;
+      const scores = gpuScores || rankCpu(vector, candidateVectors);
+      const primitiveMatches = candidates
+        .map((primitive, index) => slotPrimitiveMatch(slot, primitive, scores[index], config))
+        .filter((row) => row.score >= config.primitiveScoreFloor || row.lexicalScore > 0)
+        .sort(slotCandidateSort)
+        .slice(0, config.perSlotPrimitiveMax);
+      const cardMatches = rankSurfaceCardsForSlot(runtime.cardIndex, slot, vector, config, payload.options);
+      const universeMatches = rankUniverseIndexes(runtime.universe, queryText, vector, {
+        ...payload.options,
+        maxUniverse: config.perSlotUniverseMax,
+        minUniverseScore: config.universeScoreFloor,
+      });
+      const universeRows = slotUniverseCandidates(slot, universeMatches, config.perSlotUniverseMax);
+      const ranked = uniqueSlotCandidates([
+        ...primitiveMatches,
+        ...cardMatches,
+        ...universeRows,
+      ]).sort(slotCandidateSort).slice(0, config.perSlotCandidateMax);
+      const reranked = await rerankSlotCandidates({
+        candidates: ranked,
+        provider,
+        rerankProvider: payload.rerankProvider,
+        runtime,
+        promptText: payload.promptText,
+        slot,
+      });
+      if (reranked.rerankCall) rerankCallCount += 1;
+      bySlot.push({
+        schema: 'simulatte.phase3ModelSlotRetrievalRow.v1',
+        slotId: slot.slotId || '',
+        slotRole: slot.slotRole || '',
+        entryId: slot.entryId || '',
+        required: slot.required !== false,
+        queryText,
+        vectorHash: embeddingVectorHash(vector),
+        primitiveRankBackend: gpuScores ? 'webgpu' : 'cpu',
+        rerankerMode: reranked.receipt.rerankerMode,
+        rerankerModelReady: reranked.receipt.modelReady,
+        candidates: reranked.candidates,
+        acceptedCandidates: reranked.candidates.filter((row) => row.supportOnly !== true).slice(0, config.perSlotAcceptedMax),
+        supportOnlyCandidates: reranked.candidates.filter((row) => row.supportOnly === true),
+        receipt: reranked.receipt,
+      });
+      emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+        source: 'simulatte-intent-embedder',
+        stage: 'slot-rank',
+        percent: 94.1 + (i + 1) / Math.max(1, slots.length) * 1.3,
+        message: `Scene slot ${i + 1}/${slots.length} ranked`,
+        traceId: payload.traceId || '',
+        rankId: payload.rankId || 0,
+        slotId: slot.slotId || '',
+        slotRole: slot.slotRole || '',
+        candidateCount: reranked.candidates.length,
+      });
+    }
+    return {
+      schema: 'simulatte.phase3SlotRetrieval.v1',
+      queryPlanSchema: payload.queryPlan && payload.queryPlan.schema || '',
+      sourcePromptHash: payload.queryPlan && payload.queryPlan.sourcePromptHash || '',
+      model: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
+      config: slotRetrievalReceiptConfig(config),
+      slotCount: slots.length,
+      embeddedSlotCount: bySlot.length,
+      rerankCallCount,
+      durationMs: elapsedMsSince(started),
+      bySlot,
+      evidenceRows: slotRetrievalEvidenceRows({ bySlot }),
+      candidateCount: bySlot.reduce((sum, row) => sum + row.candidates.length, 0),
+      acceptedCandidateCount: bySlot.reduce((sum, row) => sum + row.acceptedCandidates.length, 0),
+    };
+  }
+
+  function emptySlotRetrieval(slots, config = null, reason = 'empty', queryPlan = null) {
+    return {
+      schema: 'simulatte.phase3SlotRetrieval.v1',
+      queryPlanSchema: queryPlan && queryPlan.schema || '',
+      sourcePromptHash: queryPlan && queryPlan.sourcePromptHash || '',
+      model: '',
+      disabledReason: reason,
+      config: slotRetrievalReceiptConfig(config || {}),
+      slotCount: slots.length,
+      embeddedSlotCount: 0,
+      rerankCallCount: 0,
+      bySlot: [],
+      evidenceRows: [],
+      candidateCount: 0,
+      acceptedCandidateCount: 0,
+    };
+  }
+
+  function slotRetrievalConfig(runtime, options = {}) {
+    const manifestConfig = runtime && runtime.manifest && runtime.manifest.retrieval && runtime.manifest.retrieval.slotLevel || {};
+    const optionConfig = typeof options.slotLevelRetrieval === 'object' && options.slotLevelRetrieval
+      ? options.slotLevelRetrieval
+      : {};
+    return {
+      enabled: options.slotLevelRetrieval !== false,
+      mode: 'typed-scene-slot-embedding-rerank',
+      maxSlots: 32,
+      perSlotPrimitiveMax: 10,
+      perSlotCardMax: 8,
+      perSlotUniverseMax: 10,
+      perSlotCandidateMax: 24,
+      perSlotAcceptedMax: 8,
+      primitiveScoreFloor: 0.14,
+      surfaceScoreFloor: 0.18,
+      universeScoreFloor: 0.12,
+      primitiveRankBackend: 'cpu',
+      ...manifestConfig,
+      ...optionConfig,
+    };
+  }
+
+  function slotRetrievalReceiptConfig(config = {}) {
+    return {
+      enabled: config.enabled !== false,
+      mode: config.mode || 'typed-scene-slot-embedding-rerank',
+      maxSlots: Number(config.maxSlots || 0),
+      perSlotPrimitiveMax: Number(config.perSlotPrimitiveMax || 0),
+      perSlotCardMax: Number(config.perSlotCardMax || 0),
+      perSlotUniverseMax: Number(config.perSlotUniverseMax || 0),
+      perSlotCandidateMax: Number(config.perSlotCandidateMax || 0),
+      perSlotAcceptedMax: Number(config.perSlotAcceptedMax || 0),
+      primitiveRankBackend: config.primitiveRankBackend || 'cpu',
+    };
+  }
+
+  function usefulQueryPlanSlots(queryPlan, config = {}) {
+    const max = Number.isFinite(config.maxSlots) ? config.maxSlots : 32;
+    return (queryPlan && Array.isArray(queryPlan.slots) ? queryPlan.slots : [])
+      .filter((slot) => slot && (slot.slotId || slot.entryId))
+      .slice(0, max);
+  }
+
+  function slotQueryText(slot = {}) {
+    const queries = (slot.queries || []).map((query) => query && query.text || '').filter(Boolean);
+    const raw = [
+      slot.entryId,
+      ...(slot.relationIds || []),
+      ...queries,
+    ].filter(Boolean).join(' ');
+    const normalized = slotQueryTerms(raw).join(' ');
+    if (slot.slotRole === 'visual') return `visual evidence ${normalized}`;
+    if (slot.slotRole === 'relation') return `relation evidence ${normalized}`;
+    return normalized || String(slot.slotId || slot.entryId || '');
+  }
+
+  function slotQueryTerms(value = '') {
+    const stop = new Set([
+      'actor',
+      'object',
+      'action',
+      'environment',
+      'medium',
+      'relation',
+      'visual',
+      'slot',
+      'required',
+    ]);
+    return uniqueStrings(fallbackFeatureTokens(String(value || '').replace(/\b[a-z]+:/gi, ' '))
+      .filter((term) => !stop.has(term)));
+  }
+
+  function slotPrimitiveMatch(slot = {}, primitive = {}, rawScore = 0, config = {}) {
+    const candidateText = [
+      primitive.id,
+      primitive.label,
+      primitive.role,
+      primitive.type,
+      primitive.layer,
+      primitive.text,
+      ...(primitive.domains || []),
+    ].filter(Boolean).join(' ');
+    const lexicalScore = slotLexicalScore(slot, candidateText);
+    const modelScore = clamp01(Number(rawScore || 0));
+    const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
+    const score = clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
+    const supportOnly = slot.slotRole !== 'support' && phase3SupportLikePrimitiveId(primitive.id);
+    return {
+      id: primitive.id,
+      candidateId: primitive.id,
+      primitiveId: primitive.id,
+      candidateType: 'primitive',
+      slotId: slot.slotId || '',
+      slotRole: slot.slotRole || '',
+      entryId: slot.entryId || '',
+      label: primitive.label || primitive.role || primitive.id,
+      candidateText: primitive.text || primitive.role || primitive.id,
+      layer: primitive.layer || '',
+      type: primitive.type || '',
+      domains: primitive.domains || [],
+      source: 'slot-primitive-embedding',
+      score: Number(score.toFixed(4)),
+      modelScore: Number(modelScore.toFixed(4)),
+      lexicalScore: Number(lexicalScore.toFixed(4)),
+      supportOnly,
+      reason: supportOnly ? 'generic support physics cannot satisfy literal scene slot' : 'embedding candidate ranked for typed scene slot',
+      retrievalKind: 'slot-retrieval',
+    };
+  }
+
+  function slotSurfaceCandidate(slot = {}, row = {}) {
+    return {
+      ...row,
+      id: row.cardId || row.id || '',
+      candidateId: row.cardId || row.id || '',
+      candidateType: 'surface-card',
+      slotId: slot.slotId || '',
+      slotRole: slot.slotRole || '',
+      entryId: slot.entryId || '',
+      source: row.source || 'slot-surface-card-index',
+      lexicalScore: row.lexicalScore,
+      supportOnly: false,
+      reason: 'surface card ranked for typed scene slot',
+      retrievalKind: 'slot-retrieval',
+    };
+  }
+
+  function rankSurfaceCardsForSlot(cardIndex, slot = {}, vector = null, config = {}, options = {}) {
+    if (!cardIndex) return [];
+    const modelRows = rankSurfaceCards(cardIndex, vector, {
+      ...options,
+      maxCards: Math.max(config.perSlotCardMax || 0, 12),
+      minCardScore: config.surfaceScoreFloor,
+    }).map((row) => slotSurfaceCandidate(slot, row));
+    const lexicalRows = (cardIndex.documents || []).map((doc) => {
+      const modelScore = vector && doc.vector ? clamp01(dot(vector, doc.vector)) : 0;
+      const lexicalScore = slotLexicalScore(slot, [
+        doc.cardId,
+        doc.type,
+        doc.candidateText,
+        ...(doc.labels || []),
+      ].filter(Boolean).join(' '));
+      const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
+      const score = clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
+      const candidate = slotSurfaceCandidate(slot, {
+        cardId: doc.cardId,
+        type: doc.type || '',
+        labels: Array.isArray(doc.labels) ? doc.labels.slice(0, 5) : [],
+        score: Number(score.toFixed(4)),
+        modelScore: Number(modelScore.toFixed(4)),
+        lexicalScore: Number(lexicalScore.toFixed(4)),
+        semanticScore: Number(modelScore.toFixed(4)),
+        source: `${modelSlug(cardIndex.embedModelId)}-surface-card-slot-index`,
+        indexId: cardIndex.id,
+        textHash: doc.textHash || null,
+        candidateText: doc.candidateText || '',
+      });
+      if (slotCandidateLiteralMatch(slot, candidate)) {
+        candidate.literalSlotMatch = true;
+        candidate.score = Math.max(Number(candidate.score || 0), 0.99);
+      }
+      return candidate;
+    }).filter((row) => row.score >= config.surfaceScoreFloor || Number(row.lexicalScore || 0) > 0);
+    const exactRows = lexicalRows.filter((row) => slotCandidateLiteralMatch(slot, row));
+    return uniqueSlotCandidates([
+      ...exactRows.sort(slotCandidateSort),
+      ...lexicalRows.sort(slotCandidateSort),
+      ...modelRows.sort(slotCandidateSort),
+    ])
+      .slice(0, config.perSlotCardMax);
+  }
+
+  function slotCandidateLiteralMatch(slot = {}, row = {}) {
+    const target = normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, ''));
+    if (!target) return false;
+    const tokens = fallbackFeatureTokens([
+      row.candidateId,
+      row.cardId,
+      row.id,
+      row.label,
+      row.candidateText,
+      ...(row.labels || []),
+    ].filter(Boolean).join(' '));
+    return tokens.includes(target);
+  }
+
+  function slotUniverseCandidates(slot = {}, universeMatches = {}, max = 10) {
+    return (universeMatches && universeMatches.candidates || []).slice(0, max).map((row) => ({
+      ...row,
+      id: row.id || row.canonicalId || '',
+      candidateId: row.id || row.canonicalId || '',
+      candidateType: 'universe-row',
+      slotId: slot.slotId || '',
+      slotRole: slot.slotRole || '',
+      entryId: slot.entryId || '',
+      source: row.indexName || row.source || 'slot-universe-index',
+      supportOnly: false,
+      reason: 'universe row ranked for typed scene slot',
+      retrievalKind: 'slot-retrieval',
+    }));
+  }
+
+  async function rerankSlotCandidates(payload = {}) {
+    const rows = payload.candidates || [];
+    const config = rerankerConfig(payload.runtime);
+    const capability = resolveRerankerCapability(payload.provider, {
+      rerankProvider: payload.rerankProvider,
+      dopplerModelHandle: null,
+    });
+    const required = rerankerRequired(payload.runtime);
+    if (!rows.length || !config.enabled || !capability) {
+      if (required && config.enabled && !capability) {
+        throw new Error(`intent manifest requires Doppler reranker ${config.id}, but no slot rerank capability is available`);
+      }
+      return {
+        candidates: rows,
+        rerankCall: false,
+        receipt: {
+          schema: 'simulatte.phase3SlotRerankReceipt.v1',
+          rerankerMode: config.enabled ? 'heuristic-slot-ranking' : 'disabled',
+          modelReady: false,
+          modelRequired: required,
+          modelStatus: config.enabled ? 'not-available' : 'disabled',
+          candidateInputCount: rows.length,
+          candidateOutputCount: rows.length,
+        },
+      };
+    }
+    try {
+      const input = buildSlotRerankInput({
+        promptText: payload.promptText,
+        slot: payload.slot,
+        candidates: rows,
+        runtime: payload.runtime,
+      });
+      const result = await capability.rerank(input);
+      const modelRows = normalizeRerankerRows(result);
+      if (!modelRows.length) throw new Error(`Doppler reranker ${config.id} returned no slot candidates`);
+      return {
+        candidates: applySlotModelRerank(rows, modelRows),
+        rerankCall: true,
+        receipt: {
+          schema: 'simulatte.phase3SlotRerankReceipt.v1',
+          rerankerMode: 'doppler-reranker',
+          model: config.id,
+          rerankerKind: config.kind,
+          modelReady: true,
+          modelRequired: required,
+          modelStatus: 'ready',
+          modelBackend: capability.backend,
+          candidateInputCount: input.candidates.length,
+          candidateOutputCount: modelRows.length,
+        },
+      };
+    } catch (err) {
+      if (required) throw err;
+      return {
+        candidates: rows,
+        rerankCall: false,
+        receipt: {
+          schema: 'simulatte.phase3SlotRerankReceipt.v1',
+          rerankerMode: 'heuristic-slot-ranking',
+          modelReady: false,
+          modelRequired: false,
+          modelStatus: 'fallback',
+          modelBackend: capability.backend,
+          fallbackReason: err && err.message ? err.message : String(err),
+          candidateInputCount: rows.length,
+          candidateOutputCount: rows.length,
+        },
+      };
+    }
+  }
+
+  function buildSlotRerankInput({ promptText, slot, candidates, runtime }) {
+    return {
+      schema: 'simulatte.intentSlotRerankInput.v1',
+      phase: 3,
+      phaseId: 'retrieval',
+      stage: 'typed-slot-retrieval',
+      reranker: rerankerId(runtime),
+      prompt: String(promptText || ''),
+      slot: {
+        slotId: slot && slot.slotId || '',
+        slotRole: slot && slot.slotRole || '',
+        entryId: slot && slot.entryId || '',
+        required: !slot || slot.required !== false,
+        queries: slot && slot.queries || [],
+        relationIds: slot && slot.relationIds || [],
+      },
+      candidates: (candidates || []).map((candidate, order) => ({
+        primitiveId: candidate.candidateId || candidate.primitiveId || candidate.id,
+        candidateId: candidate.candidateId || candidate.primitiveId || candidate.id,
+        order,
+        candidateType: candidate.candidateType || '',
+        slotRole: candidate.slotRole || '',
+        label: candidate.label || '',
+        score: Number(candidate.score || 0),
+        modelScore: Number(candidate.modelScore || 0),
+        lexicalScore: Number(candidate.lexicalScore || 0),
+        supportOnly: candidate.supportOnly === true,
+        candidateText: candidate.candidateText || '',
+      })),
+      max: Math.min(48, Math.max(1, (candidates || []).length)),
+    };
+  }
+
+  function applySlotModelRerank(localRows, modelRows) {
+    const byId = new Map((localRows || []).map((row) => [row.candidateId || row.primitiveId || row.id, { ...row }]));
+    const modelIds = new Set();
+    for (const modelRow of modelRows || []) {
+      const existing = byId.get(modelRow.primitiveId);
+      if (!existing) continue;
+      modelIds.add(modelRow.primitiveId);
+      const modelScore = clamp01(Number(modelRow.score || 0));
+      existing.modelRerankScore = Number(modelScore.toFixed(4));
+      existing.modelRerankRank = Number(modelRow.rank || 0);
+      existing.modelRerankReason = modelRow.reason || '';
+      existing.score = Number(Math.min(
+        1,
+        existing.score * SLOT_RERANK_MODEL_BLEND.localWeight + modelScore * SLOT_RERANK_MODEL_BLEND.modelWeight
+      ).toFixed(4));
+      byId.set(modelRow.primitiveId, existing);
+    }
+    if (modelIds.size) {
+      for (const [candidateId, existing] of byId) {
+        if (modelIds.has(candidateId)) continue;
+        existing.modelRerankScore = 0;
+        existing.modelRerankRank = Number.MAX_SAFE_INTEGER;
+        existing.modelRerankReason = 'not returned by reranker';
+        existing.score = Number(clamp01(Number(existing.score || 0) * SLOT_RERANK_MODEL_BLEND.localWeight).toFixed(4));
+        byId.set(candidateId, existing);
+      }
+    }
+    return Array.from(byId.values()).sort(slotCandidateSort);
+  }
+
+  function uniqueSlotCandidates(rows = []) {
+    const seen = new Set();
+    return rows.filter((row) => {
+      const key = `${row.candidateType || ''}:${row.candidateId || row.primitiveId || row.id || ''}`;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function slotCandidateSort(a = {}, b = {}) {
+    return (
+      Number(b.score || 0) - Number(a.score || 0) ||
+      String(a.candidateId || a.primitiveId || a.id || '').localeCompare(String(b.candidateId || b.primitiveId || b.id || ''))
+    );
+  }
+
+  function slotLexicalScore(slot = {}, text = '') {
+    const haystack = normalizeSpanText(text);
+    const terms = fallbackFeatureTokens([
+      slot.entryId,
+      slot.slotRole,
+      ...(slot.relationIds || []),
+      ...((slot.queries || []).map((query) => query && query.text || '')),
+    ].filter(Boolean).join(' '));
+    if (!terms.length || !haystack) return 0;
+    const matched = terms.filter((term) => haystack.includes(term) || haystack.includes(term.replace(/s$/, '')));
+    return clamp01(matched.length / Math.max(1, Math.min(4, terms.length)));
+  }
+
+  function phase3SupportLikePrimitiveId(id = '') {
+    return /\b(biomass|collision|elasticity|friction|gel|membrane|soft-body|diffusion|growth-decay|kernel|gradient|constraint)\b/.test(String(id || ''));
+  }
+
+  function slotRetrievalEvidenceRows(slotRetrieval = {}) {
+    const rows = [];
+    for (const slot of slotRetrieval && slotRetrieval.bySlot || []) {
+      for (const candidate of slot.candidates || []) {
+        rows.push({
+          ...candidate,
+          id: candidate.candidateId || candidate.id || candidate.primitiveId || '',
+          slotId: slot.slotId || candidate.slotId || '',
+          slotRole: slot.slotRole || candidate.slotRole || '',
+          entryId: slot.entryId || candidate.entryId || '',
+          source: candidate.source || 'slot-embedding-retrieval',
+          retrievalKind: 'slot-retrieval',
+          evidence: [slot.slotId || '', candidate.candidateId || candidate.id || candidate.primitiveId || ''].filter(Boolean),
+        });
+      }
+    }
+    return rows;
+  }
+
   function usefulRetrievalSpans(languageEvidence, config = {}) {
     const max = Number.isFinite(config.maxSpans) ? config.maxSpans : 18;
     const includeKinds = new Set(config.includeKinds || []);
@@ -2048,15 +2598,6 @@
     return null;
   }
 
-  function embeddingVectorHash(vector) {
-    let hash = 2166136261;
-    for (let i = 0; i < vector.length; i += Math.max(1, Math.floor(vector.length / 64))) {
-      hash ^= Math.floor((Number(vector[i]) + 1) * 1000000);
-      hash = Math.imul(hash, 16777619);
-    }
-    return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
-  }
-
   function normalizeSpanText(value) {
     return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
   }
@@ -2131,12 +2672,16 @@
 
   function universeCandidateForDocument(doc, indexName, tokens, ranking = {}) {
     const labels = universeLabels(doc).map((value) => String(value).toLowerCase());
-    const haystack = labels.join(' ');
+    const haystackWords = new Set(labels.join(' ').split(/[^a-z0-9]+/).filter(Boolean));
     const tokenHits = [];
     for (const token of tokens) {
-      if (token.length > 2 && haystack.includes(token)) tokenHits.push(token);
+      if (token.length > 2 && haystackWords.has(token)) tokenHits.push(token);
     }
-    const phraseHit = labels.some((label) => label && tokens.join(' ').includes(label));
+    const tokenText = ` ${tokens.join(' ')} `;
+    const phraseHit = labels.some((label) => {
+      const phrase = label.replace(/[^a-z0-9]+/g, ' ').trim();
+      return phrase.length > 2 && tokenText.includes(` ${phrase} `);
+    });
     const lexicalScore = clamp01(tokenHits.length / Math.max(2, tokens.length) + (phraseHit ? 0.42 : 0));
     const modelScore = ranking.queryVector && doc.vector && ranking.queryVector.length === doc.vector.length
       ? clamp01(dot(ranking.queryVector, doc.vector))
@@ -2244,6 +2789,11 @@
     return fallbackSemanticFeatureVector(text, dim);
   }
 
+  function runtimeFeatureModelId() {
+    const ragApi = typeof globalThis !== 'undefined' ? globalThis.SimulatteSemanticRag : null;
+    return ragApi && ragApi.FEATURE_MODEL_ID || FEATURE_MODEL_ID;
+  }
+
   function fallbackSemanticFeatureVector(text, dim) {
     const out = new Float32Array(dim);
     const roots = fallbackFeatureTokens(text);
@@ -2348,16 +2898,16 @@
     const normalized = {
       backend,
       embed: async (args) => {
-        const result = await provider.embed(args);
+        const result = await provider.embed(embeddingProviderInput(args, runtime));
         return withEmbeddingProvenance(result, runtime);
       },
       embedMany: async (rows) => {
         if (typeof provider.embedMany === 'function') {
-          const results = await provider.embedMany(rows);
+          const results = await provider.embedMany((rows || []).map((row) => embeddingProviderInput(row, runtime)));
           return (results || []).map((result) => withEmbeddingProvenance(result, runtime));
         }
         if (typeof provider.embedBatch === 'function') {
-          const results = await provider.embedBatch(rows);
+          const results = await provider.embedBatch((rows || []).map((row) => embeddingProviderInput(row, runtime)));
           return (results || []).map((result) => withEmbeddingProvenance(result, runtime));
         }
         const results = [];
@@ -2383,20 +2933,21 @@
       throw new Error('Doppler model handle must expose embedBatch(), embed(), or prefillWithEmbedding()');
     }
     let queue = Promise.resolve();
-    const run = async ({ text }) => {
-      const prompt = String(text || '');
+    const run = async (args) => {
+      const input = embeddingProviderInput(args, runtime);
+      const prompt = String(input.text || '');
       if (!prompt) throw new Error('Doppler embed text required');
       let result = null;
       const embedOptions = {
         useChatTemplate: false,
-        embeddingMode: 'mean',
+        embeddingMode: input.embeddingMode,
         __skipStateSnapshot: true,
       };
-      if (typeof handle.embedBatch === 'function') {
+      if (typeof handle.embed === 'function') {
+        result = await handle.embed(prompt, embedOptions);
+      } else if (typeof handle.embedBatch === 'function') {
         const batch = await handle.embedBatch([prompt], embedOptions);
         result = Array.isArray(batch) ? batch[0] : null;
-      } else if (typeof handle.embed === 'function') {
-        result = await handle.embed(prompt, embedOptions);
       } else {
         const prefill = handle.advanced && handle.advanced.prefillWithEmbedding || handle.prefillWithEmbedding;
         result = await prefill.call(handle.advanced || handle, prompt, embedOptions);
@@ -2434,6 +2985,33 @@
       provider.rerank = (input) => rerankCapability(input);
     }
     return provider;
+  }
+
+  function embeddingProviderInput(args = {}, runtime) {
+    const rawText = String(args && args.text || '');
+    const embeddingKind = String(args && (args.embeddingKind || args.kind) || 'query');
+    return {
+      ...args,
+      text: formatEmbeddingText(rawText, runtime, embeddingKind),
+      rawText,
+      embeddingKind,
+      embeddingMode: embeddingModeForRuntime(runtime),
+    };
+  }
+
+  function embeddingModeForRuntime(runtime) {
+    const mode = String(runtime && runtime.manifest && runtime.manifest.runtime && runtime.manifest.runtime.queryEmbeddingMode || '').trim();
+    if (!mode) throw new Error('intent runtime missing queryEmbeddingMode');
+    return mode;
+  }
+
+  function formatEmbeddingText(text, runtime, kind = 'query') {
+    const value = String(text || '').trim();
+    if (!value) return '';
+    const contract = runtime && runtime.manifest && runtime.manifest.runtime && runtime.manifest.runtime.embeddingText || {};
+    const prefixKey = kind === 'document' ? 'documentPrefix' : 'queryPrefix';
+    const suffixKey = kind === 'document' ? 'documentSuffix' : 'querySuffix';
+    return `${String(contract[prefixKey] || '')}${value}${String(contract[suffixKey] || '')}`;
   }
 
   function modelHandleProvenance(handle, runtime, modelBaseUrl = '') {
@@ -2511,6 +3089,8 @@
       outputSchema: raw.outputSchema || 'simulatte.intentRerank.v1',
       fallbackMode: raw.fallbackMode || 'heuristic-fusion',
       candidateScope: Array.isArray(raw.candidateScope) ? raw.candidateScope.slice() : [],
+      model: raw.model && typeof raw.model === 'object' ? cloneJsonValue(raw.model) : null,
+      runtimeConfig: raw.runtimeConfig && typeof raw.runtimeConfig === 'object' ? cloneJsonValue(raw.runtimeConfig) : null,
     };
   }
 
@@ -2539,6 +3119,137 @@
       embedModelHash: provenance.embedModelHash,
       modelSource,
     };
+  }
+
+  function normalizeRerankProvider(provider, backend) {
+    const rerank = rerankFunctionForTarget(provider);
+    if (!rerank) throw new Error('rerank provider must expose rerank(input)');
+    return {
+      backend: provider && provider.backend || backend,
+      rerank,
+    };
+  }
+
+  function rerankProviderFromModelHandle(handle, runtime, config, backend, modelBaseUrl = '') {
+    const direct = rerankFunctionForTarget(handle)
+      || rerankFunctionForTarget(handle && handle.advanced);
+    if (direct) {
+      return {
+        backend,
+        rerank: (input) => direct(input),
+      };
+    }
+    const prefill = handle && (
+      handle.prefillWithLogits
+      || handle.advanced && handle.advanced.prefillWithLogits
+    );
+    if (typeof prefill !== 'function') {
+      throw new Error(`Doppler reranker ${config.id} must expose rerank() or prefillWithLogits()`);
+    }
+    const scoringConfig = rerankScoringConfig(handle, config);
+    const target = handle.advanced && handle.advanced.prefillWithLogits ? handle.advanced : handle;
+    return {
+      backend,
+      async rerank(input) {
+        const query = String(input && input.prompt || input && input.query || '').trim();
+        if (!query) throw new Error(`Doppler reranker ${config.id} requires a query`);
+        const candidates = input && input.candidates || [];
+        const scored = [];
+        for (let i = 0; i < candidates.length; i += 1) {
+          const candidate = candidates[i] || {};
+          const document = rerankCandidateText(candidate, runtime);
+          if (!document) continue;
+          handle.reset?.();
+          target.reset?.();
+          const prompt = formatRerankPrompt(query, document, scoringConfig);
+          const result = await prefill.call(target, prompt, { useChatTemplate: false });
+          const logits = result && result.logits;
+          if (!ArrayBuffer.isView(logits) && !Array.isArray(logits)) {
+            throw new Error(`Doppler reranker ${config.id} prefillWithLogits() did not return logits`);
+          }
+          const trueLogit = Number(logits[scoringConfig.trueTokenId]);
+          const falseLogit = Number(logits[scoringConfig.falseTokenId]);
+          if (!Number.isFinite(trueLogit) || !Number.isFinite(falseLogit)) {
+            throw new Error(`Doppler reranker ${config.id} returned non-finite yes/no logits`);
+          }
+          const rawScore = scoringConfig.score === 'logit_difference'
+            ? trueLogit - falseLogit
+            : trueLogit;
+          scored.push({
+            primitiveId: String(candidate.primitiveId || candidate.id || ''),
+            score: sigmoid(rawScore),
+            rerankScore: sigmoid(rawScore),
+            rawScore,
+            trueLogit,
+            falseLogit,
+            documentIndex: i,
+            sourceKind: backend,
+            modelBaseUrl,
+          });
+        }
+        return scored
+          .filter((row) => row.primitiveId)
+          .sort((a, b) => b.rawScore - a.rawScore || a.primitiveId.localeCompare(b.primitiveId))
+          .map((row, rank) => ({
+            ...row,
+            rank,
+            score: Number(row.score.toFixed(6)),
+          }));
+      },
+    };
+  }
+
+  function rerankScoringConfig(handle, config) {
+    const raw = config && config.scoring
+      || handle && handle.manifest && handle.manifest.inference && handle.manifest.inference.rerank
+      || {};
+    const trueTokenId = Number(raw.trueTokenId);
+    const falseTokenId = Number(raw.falseTokenId);
+    if (!Number.isFinite(trueTokenId) || !Number.isFinite(falseTokenId)) {
+      throw new Error(`Doppler reranker ${config.id} missing trueTokenId/falseTokenId scoring config`);
+    }
+    return {
+      instruction: String(raw.instruction || 'Given a web search query, retrieve relevant passages that answer the query'),
+      inputTemplate: String(raw.inputTemplate || '<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {document}'),
+      prefix: String(raw.prefix || ''),
+      suffix: String(raw.suffix || ''),
+      score: String(raw.score || 'true_logit'),
+      trueTokenId,
+      falseTokenId,
+    };
+  }
+
+  function formatRerankPrompt(query, document, config) {
+    const input = String(config.inputTemplate || '')
+      .replace(/\{instruction\}/g, config.instruction)
+      .replace(/\{query\}/g, query)
+      .replace(/\{document\}/g, document);
+    return `${config.prefix}${input}${config.suffix}`;
+  }
+
+  function rerankCandidateText(candidate, runtime) {
+    const direct = candidate && (
+      candidate.candidateText
+      || candidate.text
+      || candidate.description
+    );
+    if (direct) return String(direct);
+    const primitiveId = String(candidate && candidate.primitiveId || '');
+    const doc = primitiveId && runtime && runtime.index && runtime.index.byId
+      ? runtime.index.byId.get(primitiveId)
+      : null;
+    if (doc && doc.candidateText) return String(doc.candidateText);
+    return [
+      primitiveId,
+      candidate && candidate.layer,
+      candidate && candidate.type,
+      ...(candidate && candidate.domains || []),
+      ...(candidate && candidate.matchedTerms || []),
+    ].filter(Boolean).join(' ');
+  }
+
+  function sigmoid(value) {
+    return 1 / (1 + Math.exp(-Number(value || 0)));
   }
 
   function cloneJsonValue(value) {
@@ -2771,11 +3482,12 @@
 
   function resolveRerankerCapability(provider, options = {}) {
     const direct = options.rerankProvider || options.rerankerProvider;
+    const directBackend = direct && direct.backend || 'injected-rerank-provider';
     const globalReranker = typeof globalThis !== 'undefined'
       ? globalThis.SimulatteDopplerReranker || globalThis.DopplerReranker || null
       : null;
     const candidates = [
-      { backend: 'injected-rerank-provider', target: direct },
+      { backend: directBackend, target: direct },
       { backend: provider && provider.backend || 'embedding-provider', target: provider },
       { backend: 'injected-doppler-model', target: options.dopplerModelHandle },
       { backend: 'injected-doppler-model-advanced', target: options.dopplerModelHandle && options.dopplerModelHandle.advanced },
@@ -2870,7 +3582,9 @@
       rerankerProbeCount: rerankerProbe.probeCount || 0,
       rerankerProbeCandidateCount: rerankerProbe.probeCandidateCount || 0,
       rerankerProbeOutputCount: rerankerProbe.probeOutputCount || 0,
-      cachePrefetch: Boolean(manifest.cache && manifest.cache.prefetch === true),
+      cachePrefetch: false,
+      cacheMode: 'doppler-managed',
+      cacheOwner: 'doppler',
       embeddingProbe: probe.ok === true,
       probeEmbeddingDim: probe.embeddingDim || 0,
       probeCount: probe.probeCount || 0,
@@ -3013,6 +3727,8 @@
       modelScore: Number(modelScore.toFixed(4)),
       semanticScore: Number(modelScore.toFixed(4)),
       symbolicBoost: 0,
+      role: primitive.role || '',
+      candidateText: primitive.text || primitive.role || primitive.id,
     };
   }
 
@@ -3168,6 +3884,7 @@
         universeScore: Number(prior.universeScore || 0),
         lexicalScore: Number(prior.lexicalScore || 0),
         matchedTerms: prior.matchedTerms || [],
+        candidateText: prior.candidateText || '',
       })),
       context: {
         semanticRag: (semanticRag && semanticRag.retrieved || []).slice(0, 48).map((doc) => ({
@@ -3236,15 +3953,30 @@
 
   function applyModelRerank(localRows, modelRows) {
     const byId = new Map((localRows || []).map((row) => [row.primitiveId, { ...row }]));
+    const modelIds = new Set();
     for (const modelRow of modelRows || []) {
       const existing = byId.get(modelRow.primitiveId);
       if (!existing) continue;
+      modelIds.add(modelRow.primitiveId);
       const modelScore = clamp01(Number(modelRow.score || 0));
       existing.modelRerankScore = Number(modelScore.toFixed(4));
       existing.modelRerankRank = Number(modelRow.rank || 0);
       existing.modelRerankReason = modelRow.reason || '';
-      existing.score = Number(Math.min(1, existing.score * 0.35 + modelScore * 0.65).toFixed(4));
+      existing.score = Number(Math.min(
+        1,
+        existing.score * RERANK_MODEL_BLEND.localWeight + modelScore * RERANK_MODEL_BLEND.modelWeight
+      ).toFixed(4));
       byId.set(modelRow.primitiveId, existing);
+    }
+    if (modelIds.size) {
+      for (const [primitiveId, existing] of byId) {
+        if (modelIds.has(primitiveId)) continue;
+        existing.modelRerankScore = 0;
+        existing.modelRerankRank = Number.MAX_SAFE_INTEGER;
+        existing.modelRerankReason = 'not returned by reranker';
+        existing.score = Number(clamp01(Number(existing.score || 0) * RERANK_MODEL_BLEND.localWeight).toFixed(4));
+        byId.set(primitiveId, existing);
+      }
     }
     return Array.from(byId.values()).sort((a, b) => (
       b.score - a.score ||
@@ -3300,12 +4032,12 @@
     }
     const rows = Array.from(byId.values()).map((prior) => {
       const lexical = Math.min(1, (prior.matchedTerms || []).length / 5);
-      const score = prior.modelScore * 0.58
-        + prior.ragScore * 0.16
-        + lexical * 0.03
-        + prior.symbolicBoost * 0.16
-        + prior.dopplerScore * 0.24
-        + prior.universeScore * 0.12;
+      const score = prior.modelScore * HEURISTIC_FUSION_WEIGHTS.modelScore
+        + prior.ragScore * HEURISTIC_FUSION_WEIGHTS.ragScore
+        + lexical * HEURISTIC_FUSION_WEIGHTS.lexicalScore
+        + prior.symbolicBoost * HEURISTIC_FUSION_WEIGHTS.symbolicBoost
+        + prior.dopplerScore * HEURISTIC_FUSION_WEIGHTS.dopplerScore
+        + prior.universeScore * HEURISTIC_FUSION_WEIGHTS.universeScore;
       return {
         ...prior,
         lexicalScore: Number(lexical.toFixed(4)),
@@ -3522,6 +4254,33 @@
     } catch (_err) {
       return path;
     }
+  }
+
+  function normalizeAssetVersionQuery(value) {
+    return String(value || '').trim().replace(/^\?/, '');
+  }
+
+  function defaultAssetVersionQuery() {
+    if (typeof importScripts === 'function') {
+      try {
+        return String(globalThis.location && globalThis.location.search || '');
+      } catch (_err) {
+        return '';
+      }
+    }
+    if (typeof document !== 'undefined' && typeof document.querySelector === 'function') {
+      const meta = document.querySelector('meta[name="simulatte-build"]');
+      const build = meta && meta.getAttribute('content') || '';
+      if (build && build !== 'dev') return `v=${encodeURIComponent(build)}`;
+    }
+    return '';
+  }
+
+  function versionedAssetUrl(url, versionQuery) {
+    const query = normalizeAssetVersionQuery(versionQuery);
+    const text = String(url || '');
+    if (!query || !text || text.includes('?')) return text;
+    return `${text}?${query}`;
   }
 
   function urlValue(name) {

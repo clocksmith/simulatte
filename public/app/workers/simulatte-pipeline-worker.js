@@ -1,53 +1,60 @@
 (function attachSimulattePipelineWorker(root) {
   const SCRIPT_ORDER = Object.freeze([
-    '../../pipeline/phase-06-simulation/simulatte-physics-catalog.js',
+    '../../pipeline/phase-05-simulation/simulatte-physics-catalog.js',
     '../../pipeline/phase-03-retrieval/simulatte-semantic-rag.js',
     '../../pipeline/phase-01-runtime/simulatte-doppler-intent.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js',
     '../../pipeline/phase-03-retrieval/simulatte-intent-classifier.js',
     '../../pipeline/phase-02-language/simulatte-universe-parser.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-universe-grounder.js',
-    '../../pipeline/phase-06-simulation/simulatte-physics-ir.js',
-    '../../pipeline/phase-06-simulation/simulatte-physics-ir-validator.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-intent-brief-schema.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-structured-intent-model.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-causal-physics-graph.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-assumption-ledger.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-causal-visual-affordances.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js',
+    '../../pipeline/phase-05-simulation/simulatte-physics-ir.js',
+    '../../pipeline/phase-05-simulation/simulatte-physics-ir-validator.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-structured-intent-model.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js',
     '../../pipeline/phase-02-language/simulatte-language-evidence.js',
-    '../../pipeline/phase-04-activation/simulatte-activation-cloud.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-grounded-interpretation.js',
-    '../../pipeline/phase-05-grounded-intent/simulatte-intent-forensics.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-rigid-body-2d.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-particles.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-constraints.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-thermal.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-advection.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-pressure-flow-lite.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-wave-field.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-reaction-diffusion.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-fracture-threshold.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-rotational-mechanics.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-network-control.js',
-    '../../pipeline/phase-06-simulation/solvers/simulatte-solver-growth-decay.js',
-    '../../pipeline/phase-06-simulation/simulatte-solver-registry.js',
-    '../../pipeline/phase-06-simulation/simulatte-solver-compiler.js',
-    '../../pipeline/phase-06-simulation/simulatte-render-registry.js',
-    '../../pipeline/phase-06-simulation/simulatte-render-ir.js',
-    '../../pipeline/phase-07-visual/simulatte-visual-operator-atlas.js',
-    '../../pipeline/phase-07-visual/simulatte-visual-operator-compiler.js',
-    '../../pipeline/phase-07-visual/simulatte-composition-graph.js',
-    '../../pipeline/phase-06-simulation/simulatte-physics-model.js',
+    '../../pipeline/phase-03-retrieval/simulatte-activation-cloud.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js',
+    '../../pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js',
+    '../../pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js',
+    '../../pipeline/phase-05-simulation/simulatte-solver-registry.js',
+    '../../pipeline/phase-05-simulation/simulatte-solver-compiler.js',
+    '../../pipeline/phase-05-simulation/simulatte-render-registry.js',
+    '../../pipeline/phase-05-simulation/simulatte-render-ir.js',
+    '../../pipeline/phase-06-visual/simulatte-visual-operator-atlas.js',
+    '../../pipeline/phase-06-visual/simulatte-visual-operator-compiler.js',
+    '../../pipeline/phase-06-visual/simulatte-composition-graph.js',
+    '../../pipeline/phase-05-simulation/simulatte-physics-model.js',
   ]);
+  const WORKER_SEARCH = root && root.location && root.location.search || '';
 
   function loadCompilerScripts() {
     if (typeof importScripts !== 'function') {
       throw new Error('Worker importScripts unavailable');
     }
-    importScripts(...SCRIPT_ORDER);
+    importScripts(...versionedScriptOrder());
     if (!root.SimulattePhysicsModel || !root.SimulattePhysicsModel.createSpecFromPrompt) {
       throw new Error('SimulattePhysicsModel unavailable in pipeline worker');
     }
+  }
+
+  function versionedScriptOrder() {
+    if (!WORKER_SEARCH || WORKER_SEARCH === '?') return SCRIPT_ORDER;
+    const suffix = WORKER_SEARCH.startsWith('?') ? WORKER_SEARCH : `?${WORKER_SEARCH}`;
+    return SCRIPT_ORDER.map((script) => `${script}${suffix}`);
   }
 
   function errorMessage(error) {

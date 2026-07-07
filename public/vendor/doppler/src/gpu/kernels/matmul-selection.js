@@ -129,13 +129,16 @@ export function selectMatmulKernel(options = {}) {
   const {
     preferF16 = true,
     useVec4 = false,
-    outputDtype = 'f32',
     aDtype = null,
     bDtype = null,
     isPrefill = false,
     prefillRows = 0,
     transposeB = true,
   } = options;
+  const outputDtype = options.outputDtype;
+  if (outputDtype !== 'f16' && outputDtype !== 'f32') {
+    throw new Error(`[Matmul] selectMatmulKernel requires outputDtype "f16" or "f32", got ${String(outputDtype)}.`);
+  }
   const { tiledPrefillMinRows } = getKernelThresholds().matmul;
 
   const inputsAreF16 = aDtype === 'f16' && bDtype === 'f16';
@@ -334,7 +337,11 @@ function resolveMatmulOverride(
   if (!weightDtypeOk) {
     const overridePolicy = selectKernelRuleValue(
       'matmul', 'weightDtypeMismatchPolicy',
-      { requiredWeightDtype, actualWeightDtype: bDtype }
+      {
+        requiredWeightDtype,
+        actualWeightDtype: bDtype,
+        hasSubgroups: capabilities?.hasSubgroups === true,
+      }
     );
     if (overridePolicy === 'fallthrough') {
       return null;
@@ -567,6 +574,17 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
     ) {
       q4kVariant = 'q4_fused_widetile';
     }
+  }
+  if (
+    options.useWideTileQ4KDecode === true
+    && phase === 'decode'
+    && M === 1
+    && aDtype === 'f32'
+    && !wantF16Output
+    && capabilities.hasF16 === true
+    && (q4kVariant === 'q4_fused_multicol' || q4kVariant === 'q4_fused')
+  ) {
+    q4kVariant = 'q4_fused_widetile';
   }
   // Residual-fused WideTile override: when the caller passes a residualTensor
   // and opts into the fusion via useWideTileResidualFusion, route the

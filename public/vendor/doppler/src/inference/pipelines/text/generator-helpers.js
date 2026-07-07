@@ -124,6 +124,8 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     currentSeqLen: state.currentSeqLen,
     currentTokenIds: state.currentTokenIds ?? null,
     diffusionGemmaDecoder: false,
+    __precomputedInputNorm: null,
+    __postFfnNextInputNorm: null,
     useGPU: state.useGPU,
     debug: state.debug,
     stats: state.stats,
@@ -200,7 +202,7 @@ function getWeightBufferConfig(state) {
 export function getLogitsWeights(state) {
   const finalNorm = state.weights.get('final_norm');
   const lmHead = state.weights.get('lm_head');
-  if (!finalNorm || !(isGpuBufferInstance(finalNorm) || finalNorm instanceof Float32Array)) {
+  if (!finalNorm || !(isGpuBufferInstance(finalNorm) || finalNorm instanceof Float32Array || isWeightBuffer(finalNorm))) {
     throw new Error('Final norm not found or invalid type');
   }
   if (!lmHead || !(isGpuBufferInstance(lmHead) || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead))) {
@@ -223,6 +225,7 @@ export function getLogitsConfig(state) {
     useTiedEmbeddings: state.useTiedEmbeddings,
     embeddingVocabSize: state.embeddingVocabSize,
     finalLogitSoftcapping: config.finalLogitSoftcapping,
+    logitInputScale: config.logitInputScale,
     largeWeights: state.runtimeConfig.inference.largeWeights,
     activationDtype: effectiveActivationDtype,
     kernelPath: activeKernelPath,

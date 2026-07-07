@@ -34,6 +34,7 @@
     "ffn": {
       "activation": "silu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "swigluLimit": null
     },
     "rope": {
@@ -51,14 +52,19 @@
       "yarnOriginalMaxPos": 4096,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
       "tieWordEmbeddings": false,
       "scaleEmbeddings": false,
       "embeddingTranspose": false,
-      "embeddingVocabSize": null
+      "embeddingVocabSize": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "moe": {
       "kernelProfileId": "gpt-oss-moe-v1",
@@ -78,7 +84,8 @@
       "globalPattern": "odd",
       "period": null,
       "offset": null,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "gpt-oss",
@@ -99,7 +106,25 @@
       "layout": "contiguous",
       "pageSize": 256,
       "tiering": {
-        "mode": "off"
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
       }
     },
     "decodeLoop": {

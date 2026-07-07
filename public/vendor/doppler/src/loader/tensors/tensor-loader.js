@@ -11,6 +11,7 @@ import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../converter/quantizer.js';
 import { hasSourceTransform } from './source-transform.js';
+import { loadFunctionalDescriptor } from './functional-descriptor-loader.js';
 
 // ============================================================================
 // Q4K Detection
@@ -678,16 +679,23 @@ async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
   }
 
   let numBlocks = null;
+  let rowCount = null;
+  let blocksPerRow = null;
+  let denseElementCount = null;
   let dequantizedTensor;
   if (needsRowwise) {
-    const rows = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
+    rowCount = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
+    blocksPerRow = Math.ceil(K / QK_K);
+    numBlocks = rowCount * blocksPerRow;
+    denseElementCount = rowCount * K;
     debugTrace.loader(
-      `Dequantizing ${name} (row-wise): [${rows},${K}], K not 256-aligned, ` +
+      `Dequantizing ${name} (row-wise): [${rowCount},${K}], K not 256-aligned, ` +
       `outputDtype=${outputDtype}`
     );
-    dequantizedTensor = await dequantizeRowwise(quantBuffer, rows, K, { outputDtype });
+    dequantizedTensor = await dequantizeRowwise(quantBuffer, rowCount, K, { outputDtype });
   } else {
     numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+    denseElementCount = numBlocks * QK_K;
     debugTrace.loader(
       `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
       `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
@@ -706,9 +714,9 @@ async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
     if (isProbeTarget) {
       try {
         const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
-        const requestedOutputBytes = numBlocks * QK_K * bytesPerElem;
+        const requestedOutputBytes = denseElementCount * bytesPerElem;
         const sampleCount = paritySamples;
-        const readSize = Math.min(sampleCount * bytesPerElem, dequantized.size);
+        const readSize = Math.min(sampleCount * bytesPerElem, requestedOutputBytes, dequantized.size);
         const gpuRaw = await readBuffer(dequantized, readSize);
         const gpuBytes = gpuRaw instanceof ArrayBuffer
           ? new Uint8Array(gpuRaw)
@@ -744,7 +752,8 @@ async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
 
         log.warn('DequantProbe',
           `tensor="${name}" shape=[${location.shape}] ` +
-          `location.size=${location.size} numBlocks=${numBlocks} outputDtype=${outputDtype} ` +
+          `location.size=${location.size} numBlocks=${numBlocks} blocksPerRow=${blocksPerRow} ` +
+          `rows=${rowCount} K=${K} denseElements=${denseElementCount} outputDtype=${outputDtype} ` +
           `bytesPerElem=${bytesPerElem} requestedOutputBytes=${requestedOutputBytes} bufSize=${dequantized.size} ` +
           `runParity=true sampleCount=${sampleCount}`
         );
@@ -1010,14 +1019,48 @@ export async function loadFloat(shardData, location, name, config) {
       writeBufferAligned(device, buffer, shardData);
     }
 
-    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-      locationDtype: location.dtype,
-    });
     const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
       layout: location.layout ?? null,
       useColumnWise: false,
     });
     const isMatmulWeight = shouldDequantizeToF16(location);
+    const caps = config.gpuCapabilities || getKernelCapabilities();
+    const dtype = isMatmulWeight
+      ? selectRuleValue('loader', 'weights', 'matmulWeightDtype', {
+        locationDtype: location.dtype,
+        hasF16: Boolean(caps?.hasF16),
+        isMatmulWeight,
+        keepF32Weights: Boolean(config.keepF32Weights),
+      })
+      : selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+        locationDtype: location.dtype,
+      });
+
+    if (location.dtype === 'F16' && dtype === 'f32') {
+      if (isGpuBufferInstance(shardData)) {
+        throw new Error(
+          `Tensor "${name}" requires CPU F16->F32 materialization on this runtime, ` +
+          'but the source was already uploaded to a GPU buffer.'
+        );
+      }
+      const f32Values = convertF16ToF32CPU(toUint16View(shardData, `F16 tensor load for ${name}`));
+      const f32Buffer = acquireAlignedBuffer(f32Values.byteLength, `${name}_f32`);
+      resultBuffer = f32Buffer;
+      writeBufferAligned(device, f32Buffer, new Uint8Array(f32Values.buffer, f32Values.byteOffset, f32Values.byteLength));
+      releaseOwnedGpuBuffer(buffer, ownsBuffer);
+      ownsBuffer = false;
+      resultBuffer = null;
+      if (isMatmulWeight) {
+        return {
+          data: createWeightBuffer(f32Buffer, 'f32', layout, location.shape, name),
+          allocatedBuffers: [f32Buffer],
+        };
+      }
+      return {
+        data: applyBufferLayout(f32Buffer, location, 'f32'),
+        allocatedBuffers: [f32Buffer],
+      };
+    }
 
     if (isMatmulWeight) {
       ownsBuffer = false;
@@ -1105,6 +1148,10 @@ export async function loadW4A16Dequant(shardData, location, name, config) {
 
 
 const GPU_LOADER_DISPATCH = {
+  functional_descriptor: (shardData, location, name, config) => {
+    debugTrace.loader(`Loading functional descriptor: ${name}`);
+    return loadFunctionalDescriptor(shardData, location, name, config);
+  },
   litert_int4_fused: (shardData, location, name, config) => {
     debugTrace.loader(`Loading LiteRT INT4 weight (fused): ${name} (size=${location.size})`);
     return loadLiteRTInt4Fused(shardData, location, name, config);
@@ -1187,6 +1234,11 @@ export async function loadTensorToGPU(shardData, location, name, config) {
 
 
 const CPU_LOADER_DISPATCH = {
+  unsupported_functional_descriptor: (_shardData, _location, name) => {
+    throw new Error(
+      `FUNCTIONAL_DESCRIPTOR tensor "${name ?? 'unknown'}" requires GPU materialization through loadTensorToGPU.`
+    );
+  },
   raw: (shardData, _location) => shardData,
   w4a16_dequant_reference: (shardData, location) => {
     const f16Bytes = dequantizeW4A16ToF16(shardData, location, 'cpu');
@@ -1207,12 +1259,12 @@ const CPU_LOADER_DISPATCH = {
   f32: (shardData, _location) => toFloat32View(shardData, 'F32 CPU tensor load'),
 };
 
-export function loadTensorToCPU(shardData, location) {
+export function loadTensorToCPU(shardData, location, name = null) {
   const dtype = location.dtype;
   const loaderPath = selectRuleValue('loader', 'tensorLoader', 'cpuLoaderPath', { dtype });
   const loader = CPU_LOADER_DISPATCH[loaderPath];
   if (!loader) {
     throw new Error(`Unknown CPU loader path: "${loaderPath}" for dtype "${dtype}"`);
   }
-  return loader(shardData, location);
+  return loader(shardData, location, name);
 }

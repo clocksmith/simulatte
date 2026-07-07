@@ -21,7 +21,7 @@ import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { resolvePerLayerInputsSession } from './generator-helpers.js';
 import { processLayer } from './layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
@@ -39,6 +39,7 @@ import {
 
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
 const FINITENESS_RESET_WORDS = new Uint32Array(4);
+const FINITENESS_STATUS_BYTES = FINITENESS_RESET_WORDS.byteLength;
 
 export function sumProfileTimings(timings) {
   if (!timings || Object.keys(timings).length === 0) return null;
@@ -49,6 +50,23 @@ export function sumProfileTimings(timings) {
     }
   }
   return total;
+}
+
+function mergeRecordOpLabelCounts(target, source) {
+  const merged = target && typeof target === 'object' && !Array.isArray(target)
+    ? target
+    : {};
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    return merged;
+  }
+  for (const [label, rawCount] of Object.entries(source)) {
+    const count = Number(rawCount);
+    if (typeof label !== 'string' || label.length === 0 || !Number.isFinite(count) || count <= 0) {
+      continue;
+    }
+    merged[label] = (Number.isFinite(merged[label]) ? merged[label] : 0) + count;
+  }
+  return merged;
 }
 
 function getEffectiveActivationDtype(state, opts) {
@@ -176,7 +194,53 @@ export function shouldUseFusedDecodeSampling(config) {
     && !hasConvLayers(config.layerTypes ?? []);
 }
 
-function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
+function shouldUseGreedyLmHeadArgmaxFusion(state, opts, samplingDefaults, repetitionPenalty) {
+  const probes = state.runtimeConfig?.shared?.debug?.probes;
+  return state.runtimeConfig?.inference?.session?.useGreedyLmHeadArgmaxFusion === true
+    && opts.temperature < samplingDefaults.greedyThreshold
+    && repetitionPenalty === 1.0
+    && state.operatorDiagnostics == null
+    && !(Array.isArray(probes) && probes.length > 0);
+}
+
+export function createStopTokenLookup(stopTokenIds, eosTokenId) {
+  if (!Array.isArray(stopTokenIds)) {
+    throw new Error('[Pipeline] stopTokenIds must be an array.');
+  }
+
+  const tokenIds = [];
+  for (const tokenId of stopTokenIds) {
+    if (!tokenIds.includes(tokenId)) {
+      tokenIds.push(tokenId);
+    }
+  }
+  if (typeof eosTokenId === 'number' && !tokenIds.includes(eosTokenId)) {
+    tokenIds.push(eosTokenId);
+  }
+
+  if (tokenIds.length === 0) {
+    return { firstTokenId: null, secondTokenId: null, tokenSet: null };
+  }
+  if (tokenIds.length === 1) {
+    return { firstTokenId: tokenIds[0], secondTokenId: null, tokenSet: null };
+  }
+  if (tokenIds.length === 2) {
+    return { firstTokenId: tokenIds[0], secondTokenId: tokenIds[1], tokenSet: null };
+  }
+  return { firstTokenId: null, secondTokenId: null, tokenSet: new Set(tokenIds) };
+}
+
+function lookupHasStopToken(token, stopTokenLookup) {
+  if (stopTokenLookup.tokenSet) {
+    return stopTokenLookup.tokenSet.has(token);
+  }
+  if (stopTokenLookup.firstTokenId !== null && token === stopTokenLookup.firstTokenId) {
+    return true;
+  }
+  return stopTokenLookup.secondTokenId !== null && token === stopTokenLookup.secondTokenId;
+}
+
+export function resolveBatchStop(tokens, stopFlags, stopTokenLookup) {
   let actualCount = tokens.length;
   if (stopFlags) {
     const maxFlags = Math.min(stopFlags.length, tokens.length);
@@ -189,7 +253,7 @@ function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
   }
 
   for (let i = 0; i < actualCount; i++) {
-    if (isStopToken(tokens[i], stopTokenIds, eosTokenId)) {
+    if (lookupHasStopToken(tokens[i], stopTokenLookup)) {
       actualCount = i + 1;
       break;
     }
@@ -217,21 +281,34 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
   const hasFinitenessBuffer = options.hasFinitenessBuffer === true;
   const ring = options.ring ?? null;
   const cleanupRecorder = options.cleanupRecorder ?? null;
+  const timing = {
+    mapWaitMs: 0,
+    cleanupMs: 0,
+    copyMs: 0,
+  };
   let mapped = false;
   let cleanupCompleted = false;
 
   try {
+    const mapStart = performance.now();
     await stagingBuffer.mapAsync(GPUMapMode.READ);
+    timing.mapWaitMs = performance.now() - mapStart;
     mapped = true;
+    const cleanupStart = performance.now();
     await cleanupRecorder?.completeDeferredCleanup();
+    timing.cleanupMs = performance.now() - cleanupStart;
     cleanupCompleted = true;
+    const copyStart = performance.now();
     const mappedWords = new Uint32Array(stagingBuffer.getMappedRange());
-    return {
+    const result = {
       nextToken: mappedWords[0],
       finitenessStatus: hasFinitenessBuffer
         ? parseFinitenessStatusWords(mappedWords, 1)
         : parseFinitenessStatusWords(mappedWords, 0),
+      timing,
     };
+    timing.copyMs = performance.now() - copyStart;
+    return result;
   } finally {
     if (mapped) {
       stagingBuffer.unmap();
@@ -270,6 +347,7 @@ export async function readBatchTokensFromStagingBuffers(options) {
     tokensStagingBuffer,
     stopStagingBuffer = null,
     finitenessStagingBuffer = null,
+    finitenessOffsetBytes = null,
     tokenCount,
     ownsTokensStaging = false,
     ownsStopStaging = false,
@@ -281,28 +359,40 @@ export async function readBatchTokensFromStagingBuffers(options) {
   let stopMapped = false;
   let finitenessMapped = false;
   let cleanupCompleted = false;
+  const hasPackedFiniteness = Number.isFinite(finitenessOffsetBytes) && finitenessOffsetBytes >= 0;
+  const timing = {
+    mapWaitMs: 0,
+    cleanupMs: 0,
+    copyMs: 0,
+  };
 
   try {
+    const mapStart = performance.now();
     const mapPromises = [tokensStagingBuffer.mapAsync(GPUMapMode.READ)];
     if (stopStagingBuffer) {
       mapPromises.push(stopStagingBuffer.mapAsync(GPUMapMode.READ));
     }
-    if (finitenessStagingBuffer) {
+    if (finitenessStagingBuffer && !hasPackedFiniteness) {
       mapPromises.push(finitenessStagingBuffer.mapAsync(GPUMapMode.READ));
     }
     const mapResults = await Promise.allSettled(mapPromises);
+    timing.mapWaitMs = performance.now() - mapStart;
     tokensMapped = mapResults[0]?.status === 'fulfilled';
     stopMapped = Boolean(stopStagingBuffer) && mapResults[1]?.status === 'fulfilled';
-    finitenessMapped = Boolean(finitenessStagingBuffer)
+    finitenessMapped = Boolean(finitenessStagingBuffer) && !hasPackedFiniteness
       && mapResults[stopStagingBuffer ? 2 : 1]?.status === 'fulfilled';
     const mapFailure = mapResults.find((result) => result.status === 'rejected');
     if (mapFailure) {
       throw mapFailure.reason;
     }
+    const cleanupStart = performance.now();
     await cleanupRecorder?.completeDeferredCleanup();
+    timing.cleanupMs = performance.now() - cleanupStart;
     cleanupCompleted = true;
 
-    const tokenWords = new Uint32Array(tokensStagingBuffer.getMappedRange()).subarray(0, tokenCount);
+    const copyStart = performance.now();
+    const tokensRange = tokensStagingBuffer.getMappedRange();
+    const tokenWords = new Uint32Array(tokensRange, 0, tokenCount);
     const tokens = new Uint32Array(tokenWords.length);
     tokens.set(tokenWords);
     let stopFlags = null;
@@ -311,14 +401,18 @@ export async function readBatchTokensFromStagingBuffers(options) {
       stopFlags = new Uint32Array(stopWords.length);
       stopFlags.set(stopWords);
     }
-    const finitenessStatus = finitenessStagingBuffer
+    const finitenessStatus = hasPackedFiniteness
+      ? parseFinitenessStatusWords(new Uint32Array(tokensRange, finitenessOffsetBytes, 4), 0)
+      : finitenessStagingBuffer
       ? parseFinitenessStatusWords(new Uint32Array(finitenessStagingBuffer.getMappedRange()), 0)
       : { triggered: false, metadata: '' };
+    timing.copyMs = performance.now() - copyStart;
 
     return {
       tokens,
       stopFlags,
       finitenessStatus,
+      timing,
     };
   } finally {
     if (finitenessMapped) {
@@ -373,6 +467,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,
     scaleEmbeddings: config.scaleEmbeddings,
+    embeddingScale: config.embeddingScale,
     outputBuffer: decodeHiddenBuffer ?? undefined,
     transpose: state.embeddingTranspose,
     debugProbes: state.runtimeConfig.shared.debug.probes,
@@ -445,7 +540,7 @@ function createDecodeRecorder(state, opts) {
   if (recorderEnabled) {
     recorder = opts.profile
       ? createProfilingRecorder('decode', device)
-      : createCommandRecorder('decode', undefined, device);
+      : createCommandRecorder('decode', { recordLabels: opts.debug === true }, device);
   }
   if (state.decodeStepCount === 1) {
     const path = selectRuleValue('inference', 'config', 'tracePath', { useRecorder: Boolean(recorder) });
@@ -525,6 +620,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,
     scaleEmbeddings: config.scaleEmbeddings,
+    embeddingScale: config.embeddingScale,
     recorder,
     outputBuffer: decodeHiddenBuffer ?? undefined,
     transpose: state.embeddingTranspose,
@@ -717,6 +813,14 @@ export async function decodeStep(state, currentIds, opts, helpers) {
 
     state.stats.singleTokenSubmitWaitMs = (state.stats.singleTokenSubmitWaitMs ?? 0) + submitWaitMs;
     state.stats.singleTokenReadbackWaitMs = (state.stats.singleTokenReadbackWaitMs ?? 0) + readbackWaitMs;
+    if (readbackResult.timing) {
+      state.stats.singleTokenReadbackMapWaitMs = (state.stats.singleTokenReadbackMapWaitMs ?? 0)
+        + readbackResult.timing.mapWaitMs;
+      state.stats.singleTokenReadbackCleanupMs = (state.stats.singleTokenReadbackCleanupMs ?? 0)
+        + readbackResult.timing.cleanupMs;
+      state.stats.singleTokenReadbackCopyMs = (state.stats.singleTokenReadbackCopyMs ?? 0)
+        + readbackResult.timing.copyMs;
+    }
 
     const { nextToken: fusedNextToken, finitenessStatus } = readbackResult;
 
@@ -1219,7 +1323,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const tokensPerInterval = batchSize * readbackInterval;
   const recorder = opts.profile
     ? createProfilingRecorder('batch_decode', device)
-    : createCommandRecorder('batch_decode', undefined, device);
+    : createCommandRecorder('batch_decode', { recordLabels: opts.debug === true }, device);
   const lmHead = state.weights.get('lm_head');
   if (lmHead && isCpuWeightBuffer(lmHead)) {
     throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident LM head.');
@@ -1273,6 +1377,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (eosTokenId == null) {
     throw new Error('[Pipeline] Missing EOS token. Ensure tokenizer or manifest provides stop tokens.');
   }
+  const stopTokenLookup = createStopTokenLookup(stopTokenIds, eosToken);
   const maxTokens = executionPlan?.maxTokens
     ?? opts.maxTokens
     ?? state.runtimeConfig.inference.generation.maxTokens;
@@ -1317,8 +1422,10 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     })
     : null;
 
+  const tokenReadbackBytes = N * 4;
+  const tokenStagingBytes = tokenReadbackBytes + (state.finitenessBuffer ? FINITENESS_STATUS_BYTES : 0);
   const tokensStagingBuffer = ringSlot?.stagingTokens ?? device.createBuffer({
-    size: N * 4,
+    size: tokenStagingBytes,
     usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
   });
   const ownsTokensStaging = !ringSlot?.stagingTokens;
@@ -1330,13 +1437,19 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     })
     : null;
   const ownsStopStaging = useGpuStopFlags && !ringSlot?.stagingStop;
-  const finitenessStagingBuffer = state.finitenessBuffer
+  const packedFinitenessOffsetBytes = state.finitenessBuffer
+    && tokensStagingBuffer.size >= tokenReadbackBytes + FINITENESS_STATUS_BYTES
+      ? tokenReadbackBytes
+      : null;
+  const finitenessStagingBuffer = state.finitenessBuffer && packedFinitenessOffsetBytes == null
     ? ringSlot?.stagingFiniteness ?? device.createBuffer({
-      size: 16,
+      size: FINITENESS_STATUS_BYTES,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
     })
     : null;
-  const ownsFinitenessStaging = Boolean(state.finitenessBuffer) && !ringSlot?.stagingFiniteness;
+  const ownsFinitenessStaging = Boolean(state.finitenessBuffer)
+    && packedFinitenessOffsetBytes == null
+    && !ringSlot?.stagingFiniteness;
   let readbackCleanupDelegated = false;
   let repHistoryBuffer = null;
   let repHistoryCount = 0;
@@ -1393,6 +1506,12 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     const embeddingDtype = selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype });
     const debugProbes = state.runtimeConfig.shared.debug.probes;
     const currentTokenIdsArray = [startToken];
+    const useGreedyLmHeadArgmaxFusion = shouldUseGreedyLmHeadArgmaxFusion(
+      state,
+      opts,
+      samplingDefaults,
+      repetitionPenalty
+    );
 
     for (let i = 0; i < N; i++) {
       // In the GPU batch path, only the start token (i=0) is known on the CPU.
@@ -1410,7 +1529,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         hiddenSize: config.hiddenSize,
         vocabSize: config.vocabSize,
         scaleEmbeddings: config.scaleEmbeddings,
+        embeddingScale: config.embeddingScale,
         recorder,
+        outputBuffer: context.decodeBuffers?.getHiddenBuffer() ?? undefined,
         transpose: state.embeddingTranspose,
         debugProbes,
         operatorDiagnostics: state.operatorDiagnostics,
@@ -1469,48 +1590,67 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         helpers.releaseSharedAttentionState?.(context.sharedAttentionState, recorder);
       }
 
-      const logits = await recordLogitsGPU(
-        recorder,
-        hiddenStatesBuffer,
-        1,
-        helpers.getLogitsWeights(),
-        helpers.getLogitsConfig(),
-        state.operatorDiagnostics
-      );
-      const { logitsBuffer, vocabSize, logitsDtype } = logits;
-
-      // Apply GPU-side repetition penalty before sampling
-      if (repHistoryBuffer && repetitionPenalty !== 1.0) {
-        await recordRepPenalty(recorder, logitsBuffer, repHistoryBuffer, tokensBuffer, {
-          vocabSize,
-          historyCount: repHistoryCount,
-          penalty: repetitionPenalty,
-          batchCount: i,
-          batchOffset: 1,
-          logitsDtype,
-        });
-      }
-
       const outputIndex = i + 1;
-      if (opts.temperature < samplingDefaults.greedyThreshold) {
-        await recordArgmax(recorder, logitsBuffer, vocabSize, {
-          padTokenId,
-          logitSoftcap,
-          logitsDtype,
-          outputBuffer: tokensBuffer,
-          outputIndex,
-        });
+      let logitsBuffer = null;
+      if (useGreedyLmHeadArgmaxFusion) {
+        await recordGreedyLmHeadArgmaxGPU(
+          recorder,
+          hiddenStatesBuffer,
+          1,
+          helpers.getLogitsWeights(),
+          helpers.getLogitsConfig(),
+          {
+            padTokenId,
+            logitSoftcap,
+            outputBuffer: tokensBuffer,
+            outputIndex,
+          },
+          state.operatorDiagnostics
+        );
       } else {
-        await recordGPUSample(recorder, logitsBuffer, vocabSize, {
-          temperature: opts.temperature,
-          topK: opts.topK,
-          padTokenId,
-          logitSoftcap,
-          logitsDtype,
-          outputBuffer: tokensBuffer,
-          outputIndex,
-          greedyThreshold: samplingDefaults.greedyThreshold,
-        });
+        const logits = await recordLogitsGPU(
+          recorder,
+          hiddenStatesBuffer,
+          1,
+          helpers.getLogitsWeights(),
+          helpers.getLogitsConfig(),
+          state.operatorDiagnostics
+        );
+        const { vocabSize, logitsDtype } = logits;
+        logitsBuffer = logits.logitsBuffer;
+
+        // Apply GPU-side repetition penalty before sampling
+        if (repHistoryBuffer && repetitionPenalty !== 1.0) {
+          await recordRepPenalty(recorder, logitsBuffer, repHistoryBuffer, tokensBuffer, {
+            vocabSize,
+            historyCount: repHistoryCount,
+            penalty: repetitionPenalty,
+            batchCount: i,
+            batchOffset: 1,
+            logitsDtype,
+          });
+        }
+
+        if (opts.temperature < samplingDefaults.greedyThreshold) {
+          await recordArgmax(recorder, logitsBuffer, vocabSize, {
+            padTokenId,
+            logitSoftcap,
+            logitsDtype,
+            outputBuffer: tokensBuffer,
+            outputIndex,
+          });
+        } else {
+          await recordGPUSample(recorder, logitsBuffer, vocabSize, {
+            temperature: opts.temperature,
+            topK: opts.topK,
+            padTokenId,
+            logitSoftcap,
+            logitsDtype,
+            outputBuffer: tokensBuffer,
+            outputIndex,
+            greedyThreshold: samplingDefaults.greedyThreshold,
+          });
+        }
       }
 
       const stopCheck = canUseHotVocabularyBatchDecode
@@ -1548,7 +1688,16 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
 
     const recordMs = performance.now() - recordStart;
+    const recordStats = recorder.getStats();
+    const recordOps = recordStats.opCount;
+    const recordPasses = recordStats.computePassCount;
     state.stats.decodeRecordMs = (state.stats.decodeRecordMs ?? 0) + recordMs;
+    state.stats.decodeRecordOps = (state.stats.decodeRecordOps ?? 0) + recordOps;
+    state.stats.decodeRecordPasses = (state.stats.decodeRecordPasses ?? 0) + recordPasses;
+    state.stats.decodeRecordOpLabels = mergeRecordOpLabelCounts(
+      state.stats.decodeRecordOpLabels,
+      recordStats.opLabelCounts
+    );
 
     const encoder = recorder.getEncoder();
     encoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
@@ -1556,8 +1705,22 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       encoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
     }
 
-    if (state.finitenessBuffer && finitenessStagingBuffer) {
-      encoder.copyBufferToBuffer(state.finitenessBuffer, 0, finitenessStagingBuffer, 0, 16);
+    if (state.finitenessBuffer && packedFinitenessOffsetBytes != null) {
+      encoder.copyBufferToBuffer(
+        state.finitenessBuffer,
+        0,
+        tokensStagingBuffer,
+        packedFinitenessOffsetBytes,
+        FINITENESS_STATUS_BYTES
+      );
+    } else if (state.finitenessBuffer && finitenessStagingBuffer) {
+      encoder.copyBufferToBuffer(
+        state.finitenessBuffer,
+        0,
+        finitenessStagingBuffer,
+        0,
+        FINITENESS_STATUS_BYTES
+      );
     }
 
     if (!allowReadback('pipeline.decode.sample')) {
@@ -1572,6 +1735,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       tokensStagingBuffer,
       stopStagingBuffer,
       finitenessStagingBuffer,
+      finitenessOffsetBytes: packedFinitenessOffsetBytes,
       tokenCount: N,
       ownsTokensStaging,
       ownsStopStaging,
@@ -1581,6 +1745,14 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     });
     const readbackWaitMs = performance.now() - readbackStart;
     state.stats.decodeReadbackWaitMs = (state.stats.decodeReadbackWaitMs ?? 0) + readbackWaitMs;
+    if (readback.timing) {
+      state.stats.decodeReadbackMapWaitMs = (state.stats.decodeReadbackMapWaitMs ?? 0)
+        + readback.timing.mapWaitMs;
+      state.stats.decodeReadbackCleanupMs = (state.stats.decodeReadbackCleanupMs ?? 0)
+        + readback.timing.cleanupMs;
+      state.stats.decodeReadbackCopyMs = (state.stats.decodeReadbackCopyMs ?? 0)
+        + readback.timing.copyMs;
+    }
 
     const isInfinite = readback.finitenessStatus.triggered;
     const metadata = readback.finitenessStatus.metadata;
@@ -1599,8 +1771,10 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       log.debug('Pipeline', `[STOP] N=${N} flags=[${Array.from(stopFlags).join(',')}] tokens=[${tokens.join(',')}] eos=${eosTokenId}`);
     }
 
-    const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenIds, eosToken);
-    const generatedTokens = tokens.slice(0, actualCount);
+    const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenLookup);
+    const generatedTokens = actualCount === tokens.length
+      ? tokens
+      : tokens.subarray(0, actualCount);
     const invalidToken = findInvalidGeneratedToken(generatedTokens, config.vocabSize, padTokenId);
 
     if (isInfinite) {
@@ -1613,6 +1787,8 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         `at batch index ${invalidToken.index} (vocabSize=${config.vocabSize}, padTokenId=${padTokenId ?? 'none'}).`
       );
     }
+    state.batchingStats.executedBatchTokens = (state.batchingStats.executedBatchTokens ?? 0) + N;
+    state.batchingStats.resolvedBatchTokens = (state.batchingStats.resolvedBatchTokens ?? 0) + actualCount;
 
     if (opts.profile && recorder.isProfilingEnabled()) {
       const timings = await recorder.resolveProfileTimings();

@@ -1,2 +1,3 @@
-2026/07/04-20:33:40.633 17856d4 Creating DB /Users/xyz/deco/simulatte/artifacts/model-cache-profile/Default/File System/001/t/Paths since it was missing.
-2026/07/04-20:33:40.638 17856d4 Reusing MANIFEST /Users/xyz/deco/simulatte/artifacts/model-cache-profile/Default/File System/001/t/Paths/MANIFEST-000001
+2026/07/06-19:36:01.461 18a0bce Reusing MANIFEST /Users/xyz/deco/simulatte/artifacts/model-cache-profile/Default/File System/001/t/Paths/MANIFEST-000001
+2026/07/06-19:36:01.461 18a0bce Recovering log #3
+2026/07/06-19:36:01.462 18a0bce Reusing old log /Users/xyz/deco/simulatte/artifacts/model-cache-profile/Default/File System/001/t/Paths/000003.log 

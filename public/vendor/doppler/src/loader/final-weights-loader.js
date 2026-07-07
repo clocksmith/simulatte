@@ -167,6 +167,16 @@ async function loadFirstExistingTensor(ctx, prefixes, suffixes, options = {}) {
   return null;
 }
 
+function wrapFinalNormTensor(ctx, tensor, name, location) {
+  if (!isGpuBufferInstance(tensor) || !location?.shape) {
+    return tensor;
+  }
+  const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+    locationDtype: location.dtype,
+  });
+  return createWeightBuffer(tensor, dtype, 'row', location.shape, name);
+}
+
 async function loadDiffusionGemmaSelfConditioning(ctx) {
   const preNorm = await loadFirstExistingTensor(
     ctx,
@@ -218,6 +228,10 @@ async function loadDiffusionGemmaSelfConditioning(ctx) {
   };
 }
 
+function shouldLoadDiffusionGemmaSelfConditioning(ctx) {
+  return ctx.diffusionGemmaSelfConditioning === true;
+}
+
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -235,7 +249,9 @@ export async function loadFinalWeights(ctx) {
   // Load LM head
   const lmHead = await loadLmHead(ctx);
   const embeddingPostprocessor = await loadEmbeddingPostprocessor(ctx);
-  const diffusionGemmaSelfConditioning = await loadDiffusionGemmaSelfConditioning(ctx);
+  const diffusionGemmaSelfConditioning = shouldLoadDiffusionGemmaSelfConditioning(ctx)
+    ? await loadDiffusionGemmaSelfConditioning(ctx)
+    : null;
 
   return {
     finalNorm,
@@ -278,7 +294,8 @@ async function loadFinalNorm(ctx) {
   for (const name of finalNormNames) {
     const location = ctx.tensorLocations.get(name);
     if (location) {
-      finalNorm =  (await ctx.loadTensor(name, true, true));
+      const tensor = await ctx.loadTensor(name, true, true);
+      finalNorm = wrapFinalNormTensor(ctx, tensor, name, location);
       break;
     }
   }

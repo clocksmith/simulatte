@@ -7,7 +7,7 @@
   }
 
   const catalog = typeof module === 'object' && module.exports
-    ? require('../phase-06-simulation/simulatte-physics-catalog.js')
+    ? require('../phase-05-simulation/simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
   if (!catalog) {
     markMissingDependency('SimulatteIntentClassifier', 'SimulattePhysicsCatalog');
@@ -24,6 +24,7 @@
     buildIntentVector,
     clamp,
     explicitPrimitiveScore,
+    isRetrievablePrimitive,
     meaningfulTokens,
     primitiveById,
     primitiveText,
@@ -84,7 +85,7 @@
   function classifyIntentPrompt(promptText = '', options = {}) {
     const prompt = String(promptText || '').trim();
     const max = Number.isFinite(options.max) ? options.max : 36;
-    if (!prompt || /\b(blank|empty|scratch)\b/i.test(prompt)) {
+    if (!prompt || options.blankPromptIntent === true) {
       return blankClassification(prompt);
     }
     const modelBackedPriors = rankedFromEmbeddingPriors(options.embeddingPriors || []);
@@ -112,7 +113,7 @@
     }
     const intentVec = provider.encode(prompt);
     let ranked = PHYSICAL_PRIMITIVES
-      .filter((primitive) => primitive.id !== 'energy-ledger')
+      .filter((primitive) => isRetrievablePrimitive(primitive))
       .map((primitive) => scorePrimitive(prompt, intentVec, primitive))
       .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
     ranked = mergeEmbeddingPriors(ranked, options.embeddingPriors || []);
@@ -180,7 +181,7 @@
     for (const modelPrior of embeddingPriors) {
       const primitiveId = modelPrior && modelPrior.primitiveId;
       const primitive = primitiveById(primitiveId);
-      if (!primitive || primitive.id === 'energy-ledger') continue;
+      if (!isRetrievablePrimitive(primitive)) continue;
       const modelScore = clamp(Number(modelPrior.score || 0), 0, 1);
       const existing = byId.get(primitive.id) || primitivePrior(primitive);
       existing.modelScore = Number(modelScore.toFixed(4));
@@ -198,7 +199,7 @@
     for (const modelPrior of embeddingPriors) {
       const primitiveId = modelPrior && modelPrior.primitiveId;
       const primitive = primitiveById(primitiveId);
-      if (!primitive || primitive.id === 'energy-ledger') continue;
+      if (!isRetrievablePrimitive(primitive)) continue;
       const modelScore = clamp(Number(modelPrior.score || modelPrior.modelScore || 0), 0, 1);
       const prior = {
         primitiveId: primitive.id,
@@ -225,7 +226,7 @@
     const byId = new Map((ranked || []).map((prior) => [prior.primitiveId, { ...prior }]));
     for (const doc of docs) {
       const primitive = primitiveById(doc.primitiveId);
-      if (!primitive || primitive.id === 'energy-ledger') continue;
+      if (!isRetrievablePrimitive(primitive)) continue;
       const existing = byId.get(primitive.id) || primitivePrior(primitive);
       const ragScore = clamp(Number(doc.score || 0), 0, 1);
       existing.ragScore = Number(ragScore.toFixed(4));
@@ -257,7 +258,7 @@
     const byId = new Map((ranked || []).map((prior) => [prior.primitiveId, { ...prior }]));
     const ensure = (primitiveId, score, matchedTerms = []) => {
       const primitive = primitiveById(primitiveId);
-      if (!primitive || primitive.id === 'energy-ledger') return;
+      if (!isRetrievablePrimitive(primitive)) return;
       const existing = byId.get(primitive.id) || primitivePrior(primitive);
       const nextScore = clamp(Math.max(Number(existing.score || 0), score), 0, 1);
       byId.set(primitive.id, {
@@ -269,7 +270,7 @@
       });
     };
     for (const primitive of PHYSICAL_PRIMITIVES) {
-      if (primitive.id === 'energy-ledger') continue;
+      if (!isRetrievablePrimitive(primitive)) continue;
       const idPhrase = primitive.id.replace(/[-_]+/g, ' ');
       const idTerms = primitive.id.split(/[-_]+/).filter((term) => term.length > 2);
       if (
@@ -278,34 +279,6 @@
       ) {
         ensure(primitive.id, 0.74, idTerms);
       }
-    }
-    if (/\b(perpetual|solar magnetic|magnetic slider|magnetic wheel|powered by the sun|generator)\b/i.test(promptText)) {
-      ensure('rotor-wheel', 0.86, ['rotor', 'wheel', 'magnetic']);
-      ensure('stator-slider', 0.84, ['stator', 'slider', 'magnetic']);
-      ensure('solar-panel', 0.8, ['solar', 'sun']);
-      ensure('motor-load', 0.72, ['motor', 'load']);
-    }
-    if (/\b(infection front|infection|disease|epidemic|contagion)\b/i.test(promptText)) {
-      ensure('infection-front', 0.78, ['infection', 'front']);
-      ensure('population-field', 0.64, ['population', 'biology']);
-    }
-    if (/\b(plasma|arc|discharge|lightning)\b/i.test(promptText)) {
-      ensure('plasma-arc', 0.78, ['plasma', 'arc']);
-      ensure('electric-field', 0.62, ['electric', 'field']);
-    }
-    if (/\b(erosion|erode|river erosion|terrain erosion)\b/i.test(promptText)) {
-      ensure('erosion-channel', 0.78, ['erosion', 'channel']);
-      ensure('terrain-heightfield', 0.66, ['terrain', 'heightfield']);
-    }
-    if (/\b(bubble|bubbles|buoyant|buoyancy|float|floating)\b/i.test(promptText)) {
-      ensure('buoyant-body', 0.76, ['buoyant', 'body']);
-    }
-    if (/\b(sound|acoustic|wave|waves)\b/i.test(promptText)) {
-      ensure('acoustic-emitter', 0.74, ['acoustic', 'sound']);
-      ensure('wave-source', 0.62, ['wave', 'source']);
-    }
-    if (/\b(sand|granular|grain|grains|sediment)\b/i.test(promptText)) {
-      ensure('granular-bed', 0.74, ['granular', 'bed']);
     }
     return Array.from(byId.values())
       .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));

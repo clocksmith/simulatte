@@ -69,7 +69,7 @@
     "weightsRef": {
       "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "artifactRoot": "../gemma-4-31b-it-text-q4k-ehf16-af32",
-      "manifestDigest": "sha256:90a8ec45c327428456f8dacc601b6597bbf2f847ad47c7cca0b2746e15649a7b",
+      "manifestDigest": "sha256:dafb0b812dd714c2b63d7a3796d463c60a0ba3b16f9e0933744e24b291bf202c",
       "shardSetHash": "sha256:54933058e14fa0be4480912e641b897730db3e8ee7e871bdb2a92fd404ade146"
     }
   },
@@ -94,6 +94,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -116,7 +117,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": 30,
@@ -124,7 +128,9 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": 262144,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "custom",
@@ -192,7 +198,8 @@
         "sliding_attention",
         "sliding_attention",
         "full_attention"
-      ]
+      ],
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "gemma4",
@@ -213,7 +220,25 @@
       "layout": "contiguous",
       "pageSize": 256,
       "tiering": {
-        "mode": "off"
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
       }
     },
     "decodeLoop": {

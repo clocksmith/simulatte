@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
-  <meta name="simulatte-build" content="060b903751a002ee07d2911507e88ab015ad6c56">
+  <meta name="simulatte-build" content="69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
@@ -1970,7 +1970,7 @@
     }
 
     .prompt-dock[data-collapsed="true"] {
-      width: min(324px, calc(100vw - 24px));
+      width: 34px;
       max-height: 46px;
       overflow: hidden;
       transform: none !important;
@@ -2023,36 +2023,15 @@
     }
 
     .prompt-dock[data-collapsed="true"] .prompt-dock-head {
-      min-height: 30px;
-    }
-
-    .prompt-dock[data-collapsed="true"] .physics-status {
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      opacity: 0.78;
+      justify-content: center;
+      min-height: 34px;
     }
 
     .prompt-dock-head {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      min-height: 28px;
-    }
-
-    .prompt-dock-head h1 {
-      margin: 0;
-      color: var(--mosaic-ink);
-      font-size: 15px;
-      letter-spacing: 0;
-    }
-
-    .prompt-dock-head-right {
-      display: flex;
-      gap: 6px;
-      align-items: center;
+      justify-content: flex-end;
+      min-height: 30px;
     }
 
     .prompt-dock-toggle {
@@ -2077,34 +2056,31 @@
     }
 
     .prompt-dock .builder-row {
-      display: grid;
-      gap: 8px;
-      grid-template-areas:
-        "prompt prompt"
-        "shuffle run";
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      align-items: stretch;
+      position: relative;
+      display: block;
       width: 100%;
     }
 
     .prompt-dock textarea {
-      grid-area: prompt;
+      display: block;
       width: 100%;
       border-radius: 12px;
-      min-height: 68px;
-      max-height: 132px;
+      min-height: 116px;
+      max-height: 180px;
+      padding-bottom: 60px;
       resize: vertical;
       font-size: 15px;
       line-height: 1.35;
     }
 
     .prompt-dock .builder-row button {
-      width: auto;
-      min-width: 128px;
-      min-height: 40px;
-      height: 40px;
-      justify-self: start;
-      align-self: center;
+      position: absolute;
+      bottom: 10px;
+      z-index: 1;
+      width: min(128px, calc(50% - 16px));
+      min-width: 0;
+      min-height: 38px;
+      height: 38px;
       border-radius: 14px;
       margin: 0;
       padding: 0 12px;
@@ -2112,18 +2088,19 @@
       justify-content: center;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.28);
-      border-color: rgba(74, 58, 92, 0.14);
+      background: rgba(255, 255, 255, 0.72);
+      border-color: rgba(74, 58, 92, 0.16);
+      box-shadow: 0 9px 24px rgba(45, 67, 60, 0.08);
+      backdrop-filter: blur(14px) saturate(1.12);
+      -webkit-backdrop-filter: blur(14px) saturate(1.12);
     }
 
     #shuffle-prompt {
-      grid-area: shuffle;
-      justify-self: start;
+      left: 10px;
     }
 
     #build-lab {
-      grid-area: run;
-      justify-self: end;
+      right: 10px;
     }
 
     .prompt-action-icon {
@@ -2154,13 +2131,31 @@
       position: relative;
       display: block;
       margin: 0;
-      min-height: 20px;
-      padding: 0 0 5px;
+      min-height: 42px;
+      padding: 0 0 9px;
       overflow: hidden;
       border: 0;
       border-radius: 0;
       background: transparent;
       box-shadow: none;
+    }
+
+    .prompt-dock .intent-runtime::before {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      border-radius: 999px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(132, 120, 154, 0.2) 0 7px,
+          rgba(132, 120, 154, 0.05) 7px 10px
+        ),
+        rgba(132, 120, 154, 0.11);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
     }
 
     .prompt-dock .intent-runtime::after {
@@ -2169,19 +2164,29 @@
       left: 0;
       bottom: 0;
       width: var(--runtime-progress);
-      height: 2px;
+      height: 3px;
       border-radius: 999px;
       background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.34) 0 2px,
+          rgba(255, 255, 255, 0.02) 2px 10px
+        ),
         linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.86),
-          rgba(255, 205, 133, 0.82),
-          rgba(245, 230, 168, 0.78),
-          rgba(184, 216, 246, 0.84),
-          rgba(178, 151, 255, 0.86)
+          rgba(255, 159, 189, 0.92),
+          rgba(255, 201, 139, 0.88),
+          rgba(246, 232, 153, 0.86),
+          rgba(189, 236, 161, 0.84),
+          rgba(158, 232, 207, 0.86),
+          rgba(155, 220, 255, 0.9),
+          rgba(184, 181, 255, 0.9),
+          rgba(215, 168, 255, 0.92)
         );
+      background-size: 12px 100%, 220% 100%;
+      background-blend-mode: screen, normal;
       opacity: 0;
-      transition: width 180ms ease, opacity 180ms ease;
+      transition: width 220ms cubic-bezier(0.2, 0, 0, 1), opacity 180ms ease;
     }
 
     .prompt-dock .intent-runtime[data-state="active"]::after,
@@ -2190,13 +2195,20 @@
       opacity: 0.92;
     }
 
+    .prompt-dock .intent-runtime[data-state="active"]::after {
+      animation: runtime-pastel-flow 1.55s linear infinite;
+    }
+
     .prompt-dock .intent-runtime[data-progress="indeterminate"]::after {
       width: 36%;
       animation: prompt-runtime-rainbow 1.15s linear infinite;
     }
 
     .prompt-dock .intent-runtime-head {
-      display: block;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
       min-width: 0;
     }
 
@@ -2206,6 +2218,7 @@
       overflow: hidden;
       color: rgba(34, 31, 45, 0.82);
       font-size: 11px;
+      font-weight: 760;
       letter-spacing: 0;
       line-height: 1.32;
       text-overflow: ellipsis;
@@ -2213,11 +2226,53 @@
       white-space: nowrap;
     }
 
-    .prompt-dock .intent-runtime-percent,
+    .prompt-dock .intent-runtime[data-heartbeat="true"] #intent-runtime-title::after {
+      content: "";
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      margin-left: 6px;
+      border-radius: 999px;
+      background: rgba(155, 220, 255, 0.95);
+      box-shadow: 0 0 10px rgba(215, 168, 255, 0.5);
+      vertical-align: 1px;
+      animation: runtime-heartbeat-pulse 0.9s ease-in-out infinite;
+    }
+
+    .prompt-dock .intent-runtime-percent {
+      display: block;
+      color: rgba(74, 58, 92, 0.58);
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 760;
+      letter-spacing: 0;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
     .prompt-dock .intent-runtime-track,
-    .prompt-dock .intent-runtime-meta,
-    .prompt-dock .intent-runtime-detail {
+    .prompt-dock .intent-runtime-meta {
       display: none;
+    }
+
+    .prompt-dock .intent-runtime-detail {
+      display: block;
+      min-width: 0;
+      margin-top: 2px;
+      overflow: hidden;
+      color: rgba(74, 58, 92, 0.52);
+      font-size: 9px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 680;
+      letter-spacing: 0;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .prompt-dock .intent-runtime[data-byte-progress="unknown"] .intent-runtime-detail,
+    .prompt-dock .intent-runtime[data-byte-progress="unknown-total"] .intent-runtime-detail {
+      animation: runtime-detail-heartbeat 1.2s ease-in-out infinite;
     }
 
     .world-model-panel {
@@ -2266,16 +2321,29 @@
     }
 
     .prompt-more-menu {
-      border-top: 1px solid rgba(74, 58, 92, 0.12);
-      padding-top: 6px;
+      border-top: 0;
+      padding-top: 0;
     }
 
     .prompt-more-menu summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
       width: fit-content;
-      color: rgba(34, 31, 45, 0.6);
+      padding: 0 9px;
+      border: 1px solid rgba(74, 58, 92, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.42);
+      color: rgba(34, 31, 45, 0.66);
+      cursor: pointer;
       font-size: 10px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      user-select: none;
+    }
+
+    .prompt-more-menu summary::-webkit-details-marker {
+      display: none;
     }
 
     .prompt-more-content {
@@ -2315,6 +2383,21 @@
     .prompt-corner-controls button.is-active {
       border-color: rgba(117, 190, 255, 0.52);
       background: rgba(255, 255, 255, 0.84);
+    }
+
+    .prompt-more-runtime {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      min-width: 0;
+    }
+
+    .prompt-more-runtime .physics-status {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .world-model-chips {
@@ -2396,6 +2479,40 @@
       }
     }
 
+    @keyframes runtime-pastel-flow {
+      0% {
+        background-position: 0 50%, 0% 50%;
+      }
+
+      100% {
+        background-position: 48px 50%, 220% 50%;
+      }
+    }
+
+    @keyframes runtime-heartbeat-pulse {
+      0%,
+      100% {
+        opacity: 0.44;
+        transform: scale(0.82);
+      }
+
+      45% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes runtime-detail-heartbeat {
+      0%,
+      100% {
+        opacity: 0.5;
+      }
+
+      48% {
+        opacity: 0.92;
+      }
+    }
+
     .prompt-dock .physics-status {
       color: rgba(74, 58, 92, 0.68);
       font-size: 11px;
@@ -2462,12 +2579,12 @@
       }
 
       .prompt-dock textarea {
-        min-height: 68px;
+        min-height: 112px;
       }
 
       .prompt-dock .builder-row button {
-        min-width: min(136px, 44vw);
-        min-height: 42px;
+        width: min(126px, calc(50% - 14px));
+        min-height: 38px;
       }
     }
   </style>
@@ -2476,12 +2593,7 @@
   <main class="physics-stage" aria-label="Simulatte physics lab">
     <section class="physics-panel prompt-dock" aria-label="Simulation prompt runner">
       <div class="prompt-dock-head">
-        <h1>Simulatte</h1>
-        <div class="prompt-dock-head-right">
-          <span id="lab-state" class="physics-status" aria-live="polite">loading pipeline</span>
-          <span id="fps-readout" class="physics-fps" data-perf="idle">FPS --</span>
-          <button id="prompt-dock-toggle" class="prompt-dock-toggle" type="button" aria-label="Minimize prompt panel" aria-expanded="true">−</button>
-        </div>
+        <button id="prompt-dock-toggle" class="prompt-dock-toggle" type="button" aria-label="Minimize prompt panel" aria-expanded="true">−</button>
       </div>
 
       <div class="prompt-dock-core">
@@ -2522,6 +2634,11 @@
               <button type="button" data-dock-corner="bottom-left" aria-label="Minimize to bottom left">↙</button>
               <button type="button" data-dock-corner="bottom-right" aria-label="Minimize to bottom right">↘</button>
             </div>
+            <div class="prompt-more-section-title">Run state</div>
+            <div class="prompt-more-runtime">
+              <span id="lab-state" class="physics-status" aria-live="polite">loading pipeline</span>
+              <span id="fps-readout" class="physics-fps" data-perf="idle">FPS --</span>
+            </div>
             <section id="world-model-panel" class="world-model-panel" aria-label="Compiled world model receipt">
               <div class="world-model-head">
                 <strong>World model</strong>
@@ -2556,52 +2673,54 @@
       }, true);
     })(typeof globalThis !== 'undefined' ? globalThis : window);
   </script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-catalog.js"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag.js"></script>
-  <script defer src="./pipeline/phase-01-runtime/simulatte-doppler-intent.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder.js"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-classifier.js"></script>
-  <script defer src="./pipeline/phase-02-language/simulatte-universe-parser.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-universe-grounder.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-ir.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-ir-validator.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-intent-brief-schema.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-structured-intent-model.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-causal-physics-graph.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-assumption-ledger.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-causal-visual-affordances.js"></script>
-  <script defer src="./pipeline/phase-02-language/simulatte-language-evidence.js"></script>
-  <script defer src="./pipeline/phase-04-activation/simulatte-activation-cloud.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-grounded-interpretation.js"></script>
-  <script defer src="./pipeline/phase-05-grounded-intent/simulatte-intent-forensics.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-rigid-body-2d.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-particles.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-constraints.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-thermal.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-advection.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-pressure-flow-lite.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-wave-field.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-reaction-diffusion.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-fracture-threshold.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-rotational-mechanics.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-network-control.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/solvers/simulatte-solver-growth-decay.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-solver-registry.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-solver-compiler.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-render-registry.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-render-ir.js"></script>
-  <script defer src="./pipeline/phase-07-visual/simulatte-visual-operator-atlas.js"></script>
-  <script defer src="./pipeline/phase-07-visual/simulatte-visual-operator-compiler.js"></script>
-  <script defer src="./pipeline/phase-07-visual/simulatte-composition-graph.js"></script>
-  <script defer src="./app/loading/loading-canvas.js"></script>
-  <script defer src="./pipeline/phase-08-render/simulatte-webgpu-renderer.js"></script>
-  <script defer src="./pipeline/phase-06-simulation/simulatte-physics-model.js"></script>
-  <script defer src="./app/prompt/prompt-controller.js"></script>
-  <script defer src="./app/simulation/simulation-lab.js"></script>
-  <script defer src="./app/prompt/prompt-review-bridge.js"></script>
-  <script defer src="./app/main.js"></script>
-  <script defer src="./app/version-guard.js"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-01-runtime/simulatte-doppler-intent.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-classifier.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-universe-parser.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-validator.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-structured-intent-model.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-language-evidence.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-activation-cloud.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-registry.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-compiler.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-render-registry.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-render-ir.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-atlas.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-compiler.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./app/loading/loading-canvas.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./app/runtime/runtime-progress.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-08-scene-proof/simulatte-scene-proof.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./app/prompt/prompt-controller.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./app/simulation/simulation-lab.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./app/prompt/prompt-review-bridge.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./app/main.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
+  <script defer src="./app/version-guard.js?v=69ee42308512221c17b205352aa69e53a8f0976c-810470a898ab"></script>
   <script>
     (function initPromptDockMinimize() {
       const panel = document.querySelector('.prompt-dock');

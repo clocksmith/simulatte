@@ -1,0 +1,722 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-06T22:09:51.488Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:64226/index.html?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-KD01lG",
+  "profilePersistent": false,
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "sceneKinds": [
+      "watershed"
+    ],
+    "visualIRSceneKinds": [
+      "watershed"
+    ],
+    "visualIRCameras": [
+      "topographic-cutaway-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 25,
+      "mappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "uniformSlots": [
+        "biological",
+        "density",
+        "fluid",
+        "motion",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 100,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "biological",
+        "fluid"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 1
+    },
+    "intentBriefs": {
+      "totalEvidence": 75,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 75,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 3,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 100,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 1,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "dogs and cats swimming in a lake",
+      "screenshot": "01-custom-dogs-and-cats-swimming-in-a-lake.png",
+      "screenshotHash": "a09b8c3dda54c221528531b9b8fb2b11c6a1d4795aeed42a25b627ab59a01f98",
+      "runtimeState": "ready",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "blank",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v1",
+        "timestamp": "2026-07-06T22:09:47.670Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "render.blank",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "line": "Ready 100%",
+        "displayLine": "Ready 100%",
+        "activity": "ready",
+        "heartbeat": false,
+        "silenceMs": 0,
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "",
+        "timing": {
+          "timestamp": "2026-07-06T22:09:47.670Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "timing": "",
+          "traceId": "",
+          "rankId": 0,
+          "reuse": false,
+          "providerReady": false
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-06T22:09:47.565Z",
+          "source": "",
+          "state": "idle",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "runtime.start",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 0,
+          "line": "",
+          "displayLine": "",
+          "activity": "",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "",
+          "detail": "",
+          "backend": "",
+          "timing": {},
+          "model": {},
+          "resource": {},
+          "embeddings": {},
+          "promptRuntime": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-06T22:09:47.670Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "render.blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "line": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "activity": "ready",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-06T22:09:47.670Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "watershed",
+      "physicsCanvasSceneId": "2",
+      "physicsCanvasSceneMix": "water:1.00,biological:0.85",
+      "physicsCanvasSceneMixSlots": "2",
+      "phase8Input": "simulatte.renderExecutionInput.v1",
+      "phase8RenderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase8SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+      "phase8Output": "simulatte.phase8.output.v1",
+      "phase8OutputInput": "simulatte.phase7.output.v1",
+      "phase8RenderData": "simulatte.phase8.compactRenderData.v1",
+      "phase8RenderDataKey": "watershed:9:11:24:1f8bd75f",
+      "phase8RenderPath": "storage-scene-instances-with-uniform-fallback",
+      "phase8PixelReadback": "pass",
+      "phase8PixelReadbackMessage": "",
+      "phase8PixelProofStatus": "pass",
+      "phase8PixelSampleCount": 8,
+      "phase8PixelVisibleSampleCount": 5,
+      "phase8PixelMinContrast": 0.0863,
+      "phase8PixelSampledObligationCount": 4,
+      "phase8PixelRequiredObligationCount": 4,
+      "phase8PixelSampledObligations": "visual:species-distinct-silhouettes,visual:swimming-pose,visual:wake-ripples,visual:partial-submersion",
+      "webgpuOptimizationPath": "compute-storage-indirect",
+      "webgpuFeatureFlags": "enabled:shader-f16+subgroups+timestamp-query;used:compute-scene-culling+storage-buffer-scene-instances+gpu-generated-indirect-fullscreen-draw+meshlet-compatible-instance-packet",
+      "webgpuSceneInstanceCapacity": 32,
+      "webgpuSceneInstanceCount": 32,
+      "webgpuStorageBytes": 3104,
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v1",
+        "phase4": "simulatte.phase4.output.v1",
+        "phase5": "simulatte.phase5.output.v1",
+        "phase6": "simulatte.phase6.output.v1",
+        "phase7": "simulatte.phase7.output.v1"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:9;fields:11;effects:24;layers:biological-agent+water-volume+flow-field+process-pulse;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 9,
+      "sceneRenderFieldCount": 11,
+      "sceneRenderEffectCount": 24,
+      "sceneRenderSpatialHash": "1f8bd75f",
+      "sceneObjectUniforms": "0:dog:biological-agent@0.32,0.63;1:cat:biological-agent@0.46,0.67;2:cat:biological-agent@0.54,0.73;3:cat:biological-agent@0.61,0.74;4:dog:biological-agent@0.61,0.74;5:water:water-volume@0.50,0.66;6:water:water-volume@0.50,0.66;7:water:water-volume@0.50,0.66",
+      "sceneObjectIdentities": "0:dog:animal:biological-agent:@0.32,0.63;1:cat:animal:biological-agent:@0.46,0.67;2:cat:animal:biological-agent:@0.54,0.73;3:cat:animal:biological-agent:@0.61,0.74;4:dog:animal:biological-agent:@0.61,0.74;5:water:medium:water-volume:@0.50,0.66;6:water:medium:water-volume:@0.50,0.66;7:water:medium:water-volume:@0.50,0.66",
+      "physicsCanvasRenderCount": "21",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 143.729,
+      "lumaStd": 81.659,
+      "coloredRatio": 0.8197,
+      "canvasHash": "07b80057",
+      "specId": "dogs-cats-swimming-in-lake-mr9rwd13",
+      "templateId": "custom-world",
+      "rendererSceneKind": "watershed",
+      "visualIRSceneKind": "watershed",
+      "visualIRCamera": "topographic-cutaway-depth",
+      "visualIREntityCount": 9,
+      "visualIRMaterialCount": 13,
+      "visualIRFieldCount": 11,
+      "visualIRProcessCount": 20,
+      "visualIROperatorCount": 7,
+      "visualIRRenderInstanceCount": 48,
+      "visualIRRejectedRowCount": 10,
+      "visualIRReceiptCount": 13,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIRSceneRenderPacketEntityCount": 9,
+      "visualIRSceneRenderPacketFieldCount": 11,
+      "visualIRSceneRenderPacketEffectCount": 24,
+      "visualIRSceneRenderPacketLayers": [
+        "biological-agent",
+        "water-volume",
+        "flow-field",
+        "process-pulse"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "dog",
+        "cat",
+        "water"
+      ],
+      "visualIRAcceptedRenderInstances": 48,
+      "visualIRRenderInstanceSlots": [
+        "biological-agent",
+        "biological-agent",
+        "water-volume",
+        "water-volume",
+        "biological-agent",
+        "water-volume",
+        "biological-agent",
+        "biological-agent",
+        "water-volume",
+        "flow-field",
+        "flow-field",
+        "flow-field",
+        "flow-field",
+        "flow-field",
+        "water-volume",
+        "water-volume",
+        "biological-agent",
+        "biological-agent",
+        "water-volume",
+        "water-volume",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.acoustic-wave.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fermentation-matrix.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 25,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.biological-growth.v1",
+        "visual.operator.fluid-advection.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "biological",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 0.99,
+        "biological": 1,
+        "motion": 0.911,
+        "density": 0.92,
+        "surface": 0.76
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront",
+        "atomFluidRibbons",
+        "atomVectorFlow"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0003",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0026",
+          "kind": "catalog-candidate",
+          "text": "noun phrase lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0007",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0012",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0022",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "catalog-candidate",
+          "text": "noun phrase lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0018",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0028",
+          "kind": "catalog-candidate",
+          "text": "noun phrase lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "prompt dogs and cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "clause dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "catalog-candidate",
+          "text": "clause cats swimming in a lake",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "noun phrase dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0024",
+          "kind": "catalog-candidate",
+          "text": "noun phrase cats swimming",
+          "slots": []
+        },
+        {
+          "id": "activation.0029",
+          "kind": "catalog-candidate",
+          "text": "noun phrase lake",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 75,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 3,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 75,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 3,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 744361,
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-dogs-and-cats-swimming-in-a-lake.canvas.png",
+      "canvasScreenshotLater": "01-custom-dogs-and-cats-swimming-in-a-lake.canvas-late.png",
+      "canvasScreenshotHash": "802395498273c18cecbd73be256090837ca5e128d1b0bcd58927686ce6e822a3",
+      "canvasScreenshotLaterHash": "1d64ea9c7a12678c3e6b1ebf68bde4a108a059369243fedebbdf0c5124af57d9",
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 81.659,
+      "canvasScreenshotColoredRatio": 0.8197,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.927,
+      "canvasFrameLumaStdDelta": 0.776,
+      "canvasFrameColoredRatioDelta": 0.0274,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 2,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "fluid",
+          "biological"
+        ],
+        "matchedSignals": [
+          {
+            "id": "fluid",
+            "strength": 1,
+            "slotHits": [
+              "fluid",
+              "density",
+              "motion"
+            ],
+            "mappingHits": [
+              "visual.operator.fluid-advection.v1"
+            ],
+            "wgslHits": [
+              "atomFluidRibbons"
+            ],
+            "languageHits": []
+          },
+          {
+            "id": "biological",
+            "strength": 1,
+            "slotHits": [
+              "biological",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.biological-growth.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

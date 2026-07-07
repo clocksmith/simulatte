@@ -49,6 +49,10 @@ const KERNEL_FILE_PRECISION_PATCHES = new Map([
   ['gather_f16_vec4_f16_out.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
 ]);
 
+export function getKernelFilePrecisionPatch(kernel) {
+  return KERNEL_FILE_PRECISION_PATCHES.get(kernel) ?? null;
+}
+
 /*
  * Check whether a kernel entry requires subgroup support.
  */
@@ -509,9 +513,24 @@ function deriveQ4DecodeF32ActivationKernelEntry(base) {
   return null;
 }
 
-function deriveQ4PrefillF32ActivationKernelEntry(base) {
+function deriveQ4PrefillF32ActivationKernelEntry(base, options = {}) {
   if (typeof base?.kernel !== 'string') {
     return null;
+  }
+  const replacement = options.fullF32 === true
+    ? {
+      kernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
+      entry: 'main',
+    }
+    : {
+      kernel: 'fused_matmul_q4_widetile.wgsl',
+      entry: 'main',
+    };
+  if (base.kernel === 'fused_matmul_q4_widetile.wgsl' && options.fullF32 === true) {
+    return deriveKernelEntryWithPrecision(
+      deriveKernelEntry(base, replacement.kernel, replacement.entry, null),
+      { inputDtype: 'f32', outputDtype: 'f32' }
+    );
   }
   if (
     base.kernel !== 'fused_matmul_q4_batched_f16.wgsl'
@@ -522,7 +541,7 @@ function deriveQ4PrefillF32ActivationKernelEntry(base) {
   }
   if (base.kernel === 'fused_matmul_q4_widetile_f16a.wgsl') {
     return deriveKernelEntryWithPrecision(
-      deriveKernelEntry(base, 'fused_matmul_q4_widetile.wgsl', 'main', null),
+      deriveKernelEntry(base, replacement.kernel, replacement.entry, null),
       { inputDtype: 'f32', outputDtype: 'f32' }
     );
   }
@@ -671,6 +690,10 @@ const F16_TO_F32_ACTIVATION_MAP = new Map([
   ['attention_head512_f16.wgsl', 'attention_head512_f16kv.wgsl'],
 ]);
 
+export function resolveF16ToF32ActivationKernel(kernel) {
+  return F16_TO_F32_ACTIVATION_MAP.get(kernel) ?? null;
+}
+
 /*
  * Activation-only narrowing: f32-activation shaders that still consume f16
  * weights/KV are rewritten onto the matching f16-activation lane.
@@ -782,12 +805,15 @@ export function widenToF32Activations(graph, ctx) {
   // When the GPU cannot compile any f16 WGSL (hasF16=false), use the full f32
   // map that also covers f16-weight and f16-KV kernels. Otherwise use the
   // activation-only map that preserves f16 weights/KV for precision fallback.
-  const shaderMap = ctx.capabilities?.hasF16 === false
+  const shaderMap = ctx.capabilities?.hasF16 === false || ctx.kvDtype === 'f32'
     ? FULL_F32_SHADER_MAP
     : F16_TO_F32_ACTIVATION_MAP;
+  const fullF32 = ctx.capabilities?.hasF16 === false || ctx.kvDtype === 'f32';
 
   const hasTargetShader = Object.values(graph.kernels).some(
     (entry) => shaderMap.has(entry.kernel)
+      || deriveQ4DecodeF32ActivationKernelEntry(entry)
+      || deriveQ4PrefillF32ActivationKernelEntry(entry, { fullF32 })
   );
   if (!hasTargetShader) {
     return null;
@@ -797,7 +823,7 @@ export function widenToF32Activations(graph, ctx) {
 
   for (const [key, entry] of Object.entries(result.kernels)) {
     const q4FallbackEntry = deriveQ4DecodeF32ActivationKernelEntry(entry)
-      ?? deriveQ4PrefillF32ActivationKernelEntry(entry);
+      ?? deriveQ4PrefillF32ActivationKernelEntry(entry, { fullF32 });
     if (q4FallbackEntry) {
       result.kernels[key] = q4FallbackEntry;
       continue;

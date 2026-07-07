@@ -83,36 +83,36 @@
 082. Phase 3 outputs: ranked primitives, cards, universe rows, scores, provenance.
 083. The reranker is an operation inside Phase 3, not a separate phase.
 084. Phase 3 must separate visual similarity from physics similarity.
-085. Phase 4 Activation Cloud fuses language and retrieved evidence.
-086. Phase 4 inputs: language rows and retrieval/rerank results.
-087. Phase 4 outputs: weighted activations, coverage, conflicts, rejection reasons.
-088. Phase 4 aggregation is evidence, not truth.
-089. Phase 5 Grounded Intent decides the semantic world contract.
-090. Phase 5 inputs: activation cloud, language evidence, retrieval provenance.
-091. Phase 5 outputs: accepted graph, rejected rows, assumptions, unsupported concepts.
+085. Activation fusion is a closing operation inside Phase 3, not a separate phase.
+086. Phase 3 fusion inputs: language rows and retrieval/rerank results.
+087. Phase 3 fusion outputs: weighted activations, coverage by obligation, conflicts, negative evidence, rejection reasons.
+088. Phase 3 keeps raw retrieval and weighted activation as separate receipted artifact sections; fusion is evidence, not truth.
+089. Phase 4 Grounded Intent decides the semantic world contract.
+090. Phase 4 inputs: activation cloud, language evidence, retrieval provenance.
+091. Phase 4 outputs: accepted graph, rejected rows, assumptions, unsupported concepts.
 092. Every accepted semantic node needs provenance.
 093. Inferred roles must be distinguishable from directly grounded roles.
 094. Negative evidence and negation must propagate forward.
-095. Phase 6 Simulation Compile lowers intent into executable simulation artifacts.
-096. Phase 6 inputs: grounded graph, assumptions, unsupported rows.
-097. Phase 6 outputs: PhysicsIR, solver graph, renderIR, channels, controls, readouts.
+095. Phase 5 Simulation Compile lowers intent into executable simulation artifacts.
+096. Phase 5 inputs: grounded graph, assumptions, unsupported rows.
+097. Phase 5 outputs: PhysicsIR, solver graph, renderIR, channels, controls, readouts.
 098. Solver support artifacts must not masquerade as visual intent.
-099. Phase 6 should emit only render-addressable rows that have source evidence.
-100. Phase 7 Visual Compile creates the renderable scene program.
-101. Phase 7 inputs: renderIR, solver graph, visual cards, operator atlas, state bindings.
-102. Phase 7 outputs: VisualIR, render instances, scene packet, camera, lights, passes.
+099. Phase 5 should emit only render-addressable rows that have source evidence.
+100. Phase 6 Visual Compile creates the renderable scene program.
+101. Phase 6 inputs: renderIR, solver graph, visual cards, operator atlas, state bindings.
+102. Phase 6 outputs: VisualIR, render instances, scene packet, camera, lights, passes.
 103. Render instances need transforms, geometry, material, animation, collider, draw order.
 104. Scene entities need semantic identity plus render class.
-105. Phase 7 owns spatial layout and motion intent.
-106. Phase 7 should not emit keyword-like rows as final render commands.
-107. Phase 7 must preserve specific prompt objects such as dog, cat, water, robot, protein.
-108. Phase 7 should reject generic helper rows unless they are marked support-only.
-109. Phase 8 Render Execution draws compiled visual artifacts.
-110. Phase 8 inputs: scene packet, render instances, state, canvas, WebGPU resources.
-111. Phase 8 outputs: pixels, frame status, render receipts, timing receipts.
-112. Phase 8 has no semantic authority.
-113. Phase 8 must not retrieve, rerank, parse, infer, or choose templates.
-114. Phase 8 may consume identity codes already compiled by Phase 7.
+105. Phase 6 owns spatial layout and motion intent.
+106. Phase 6 should not emit keyword-like rows as final render commands.
+107. Phase 6 must preserve specific prompt objects such as dog, cat, water, robot, protein.
+108. Phase 6 should reject generic helper rows unless they are marked support-only.
+109. Phase 7 Render Execution draws compiled visual artifacts.
+110. Phase 7 inputs: scene packet, render instances, state, canvas, WebGPU resources.
+111. Phase 7 outputs: pixels, frame status, render receipts, timing receipts.
+112. Phase 7 has no semantic authority.
+113. Phase 7 must not retrieve, rerank, parse, infer, or choose templates.
+114. Phase 7 may consume identity codes already compiled by Phase 6.
 115. WGSL consumes resolved uniforms, constants, and buffers only.
 116. WGSL must not make policy decisions.
 117. Use override constants for compile-time shader parameters.
@@ -122,7 +122,7 @@
 121. Do not use JS syntax inside WGSL strings.
 122. Shader failures found by browser audit require a regression check.
 123. Keep rendering branches tied to compiled scene data, not raw prompt text.
-124. If a renderer needs semantic shape, Phase 7 must compile it first.
+124. If a renderer needs semantic shape, Phase 6 must compile it first.
 125. Canvas datasets are receipts and should name schemas, counts, hashes, and source contracts.
 126. Dataset receipts must not become the primary data path.
 127. Screenshots and canvas hashes are evidence, not proof by themselves.
@@ -197,4 +197,8 @@
 196. Summaries should name changed files, contracts, and verification commands.
 197. Do not claim deploy success without the hosting command completing.
 198. Do not leave local dev servers running after verification unless the user asked for one.
-199. This guide is mandatory for Simulatte edits and supplements `AGENTS.md`.
+199. Phase 8 Scene Proof settles every composition ledger obligation against render receipts.
+200. Phase 8 inputs: render execution output, composition ledger, pixel and identity receipts.
+201. Phase 8 outputs: settled obligations, verdict, losses; it adds no scene content and has no semantic authority.
+202. A required obligation without render evidence is a surfaced loss or an explicit not-proven receipt, never a silent pass.
+203. This guide is mandatory for Simulatte edits and supplements `AGENTS.md`.

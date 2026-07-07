@@ -21,7 +21,15 @@
     ['lava', 'material'], ['magma', 'material'], ['turbine', 'entity'],
     ['rotor', 'entity'], ['shaft', 'entity'], ['castle', 'entity'],
     ['wall', 'entity'], ['ice', 'material'], ['river', 'entity'],
-    ['water', 'material'], ['projectile', 'entity'], ['stone', 'material'],
+    ['water', 'material', { semanticRole: 'fluid-medium' }],
+    ['lake', 'environment', { semanticRole: 'containing-environment', materialHint: 'water' }],
+    ['pool', 'environment', { semanticRole: 'containing-environment', materialHint: 'water' }],
+    ['beach', 'environment', { semanticRole: 'containing-environment', materialHint: 'water' }],
+    ['dogs', 'entity', { semanticRole: 'biological-agent', entityClass: 'dog' }],
+    ['dog', 'entity', { semanticRole: 'biological-agent', entityClass: 'dog' }],
+    ['cats', 'entity', { semanticRole: 'biological-agent', entityClass: 'cat' }],
+    ['cat', 'entity', { semanticRole: 'biological-agent', entityClass: 'cat' }],
+    ['projectile', 'entity'], ['stone', 'material'],
     ['rocket', 'entity'], ['exhaust', 'entity'], ['fuel', 'material'],
     ['swamp', 'environment'], ['wetland', 'environment'], ['hammer', 'entity'],
     ['glass', 'material'], ['gold', 'material'], ['piano', 'entity'],
@@ -53,6 +61,7 @@
     'diffuses', 'diffuse', 'oscillates', 'oscillate', 'trades', 'trade',
     'eats', 'eat', 'splits', 'split', 'joins', 'join', 'carves', 'carve',
     'erodes', 'erode', 'grows', 'grow', 'flexes', 'flex', 'waves', 'wave',
+    'swims', 'swim', 'swimming', 'swam',
   ];
 
   const MODIFIER_PHRASES = [
@@ -68,6 +77,7 @@
     'energy', 'temperature', 'speed', 'velocity', 'stress', 'pressure',
     'phase', 'damage', 'angular velocity', 'flow', 'torque', 'output',
   ];
+  const NEGATION_RE = /\b(?:no|not|never|without|none|cannot|can't|wont|won't)\b/;
 
   function parsePrompt(promptInput = '') {
     const prompt = String(promptInput || '');
@@ -105,9 +115,13 @@
   }
 
   function addPhraseSpans(spans, lower, phraseRows, tokens) {
-    for (const [phrase, kind] of phraseRows) {
+    for (const [phrase, kind, metadata] of phraseRows) {
       const needle = phrase.toLowerCase();
-      const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+');
+      const escaped = needle
+        .trim()
+        .split(/\s+/)
+        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('\\s+');
       const matcher = new RegExp(`\\b${escaped}\\b`, 'gi');
       let match = matcher.exec(lower);
       while (match) {
@@ -122,6 +136,7 @@
           end,
           tokenStart,
           tokenEnd,
+          ...(metadata && typeof metadata === 'object' ? metadata : {}),
         });
         match = matcher.exec(lower);
       }
@@ -163,16 +178,31 @@
     const processes = spans.filter((span) => span.kind === 'process');
     const clauses = [];
     for (const verb of processes) {
-      const before = entities.filter((span) => span.end <= verb.start).sort((a, b) => b.end - a.end)[0] || null;
+      const subjects = coordinatedSubjectsForVerb(entities, verb, lower);
       const after = entities.filter((span) => span.start >= verb.end).sort((a, b) => a.start - b.start)[0] || null;
-      if (!before && !after) continue;
-      clauses.push({
-        subjectSpanId: before ? before.id : null,
-        verbSpanId: verb.id,
-        objectSpanId: after ? after.id : null,
-        process: normalizeProcess(verb.text),
-        prepositions: nearbyPrepositions(lower, verb.end, after ? after.start : verb.end + 24),
-      });
+      if (!subjects.length && !after) continue;
+      const prepositions = nearbyPrepositions(lower, verb.end, after ? after.start : verb.end + 24);
+      const process = normalizeProcess(verb.text);
+      for (const subject of subjects.length ? subjects : [null]) {
+        const objectRole = after
+          ? semanticRoleForObject(after, prepositions)
+          : implicitObjectRoleFor(subject, process);
+        const spatialRelation = spatialRelationFor(prepositions, after) ||
+          implicitSpatialRelationFor(subject, process, objectRole);
+        const implicitObject = !after && objectRole === 'fluid-medium' ? 'water' : '';
+        clauses.push({
+          subjectSpanId: subject ? subject.id : null,
+          verbSpanId: verb.id,
+          objectSpanId: after ? after.id : null,
+          process,
+          subjectRole: subject ? semanticRoleForSpan(subject, 'agent') : '',
+          objectRole,
+          spatialRelation,
+          causalAffordance: causalAffordanceFor(subject, process, after, prepositions, objectRole),
+          implicitObject,
+          prepositions,
+        });
+      }
     }
     if (!clauses.length && entities.length > 1) {
       clauses.push({
@@ -186,14 +216,44 @@
     return clauses.map((clause, index) => ({ id: `clause${index + 1}`, ...clause }));
   }
 
+  function coordinatedSubjectsForVerb(entities, verb, lower) {
+    const before = entities
+      .filter((span) => span.end <= verb.start)
+      .filter((span) => !spanIsNegated(lower, span))
+      .sort((a, b) => a.start - b.start);
+    const nearest = before[before.length - 1] || null;
+    if (!nearest) return [];
+    const subjects = [nearest];
+    for (let index = before.length - 2; index >= 0; index -= 1) {
+      const candidate = before[index];
+      const bridge = lower.slice(candidate.end, subjects[0].start);
+      if (!isCoordinationBridge(bridge)) break;
+      subjects.unshift(candidate);
+    }
+    return subjects;
+  }
+
+  function spanIsNegated(lower, span) {
+    if (!span || !Number.isFinite(span.start)) return false;
+    const prefix = String(lower || '').slice(Math.max(0, span.start - 24), span.start);
+    return new RegExp(`${NEGATION_RE.source}\\s+$`).test(prefix);
+  }
+
+  function isCoordinationBridge(value = '') {
+    const bridge = String(value || '').toLowerCase();
+    if (!/\b(?:and|or|plus|with)\b|,/.test(bridge)) return false;
+    return /^[\s,]*(?:(?:and|or|plus|with|a|an|the)[\s,]*)*$/.test(bridge);
+  }
+
   function nearbyPrepositions(lower, start, end) {
     const slice = lower.slice(Math.max(0, start), Math.max(start, end + 1));
-    return ['near', 'into', 'through', 'onto', 'on', 'under', 'over', 'with', 'by', 'from', 'to']
+    return ['near', 'in', 'inside', 'into', 'through', 'onto', 'on', 'under', 'over', 'with', 'by', 'from', 'to']
       .filter((word) => new RegExp(`\\b${word}\\b`).test(slice));
   }
 
   function normalizeProcess(text = '') {
     const value = String(text || '').toLowerCase();
+    if (/swim|swam/.test(value)) return 'swimming';
     if (/spin|rotate|drive/.test(value)) return 'rotate';
     if (/melt/.test(value)) return 'phase_transition';
     if (/hit|impact|collide|crack|fracture/.test(value)) return 'impact';
@@ -208,6 +268,66 @@
     if (/join/.test(value)) return 'join';
     if (/eat/.test(value)) return 'consume';
     return value || 'interact';
+  }
+
+  function semanticRoleForSpan(span = {}, fallback = '') {
+    if (span.semanticRole) return span.semanticRole;
+    const text = String(span.text || '').toLowerCase();
+    if (/\b(dog|dogs|cat|cats|animal|mammal)\b/.test(text)) return 'biological-agent';
+    if (/\b(lake|pool|pond|river|beach|ocean)\b/.test(text)) return 'containing-environment';
+    if (/\b(water|fluid)\b/.test(text)) return 'fluid-medium';
+    return fallback;
+  }
+
+  function semanticRoleForObject(span = {}, prepositions = []) {
+    const role = semanticRoleForSpan(span, 'object');
+    if ((prepositions.includes('in') || prepositions.includes('inside')) &&
+      (role === 'containing-environment' || role === 'fluid-medium')) {
+      return 'containing-environment';
+    }
+    return role;
+  }
+
+  function spatialRelationFor(prepositions = [], object = null) {
+    if (!object) return '';
+    if (prepositions.includes('inside')) return 'inside';
+    if (prepositions.includes('in')) return 'in';
+    if (prepositions.includes('through')) return 'through';
+    if (prepositions.includes('into')) return 'into';
+    if (prepositions.includes('on')) return 'on';
+    if (prepositions.includes('near')) return 'near';
+    return '';
+  }
+
+  function implicitObjectRoleFor(subject = null, process = '') {
+    const subjectRole = semanticRoleForSpan(subject || {}, '');
+    if (subjectRole === 'biological-agent' && process === 'swimming') return 'fluid-medium';
+    return '';
+  }
+
+  function implicitSpatialRelationFor(subject = null, process = '', objectRole = '') {
+    const subjectRole = semanticRoleForSpan(subject || {}, '');
+    if (
+      subjectRole === 'biological-agent' &&
+      process === 'swimming' &&
+      objectRole === 'fluid-medium'
+    ) {
+      return 'in';
+    }
+    return '';
+  }
+
+  function causalAffordanceFor(subject = null, process = '', object = null, prepositions = [], fallbackObjectRole = '') {
+    const subjectRole = semanticRoleForSpan(subject || {}, '');
+    const objectRole = fallbackObjectRole || semanticRoleForObject(object || {}, prepositions);
+    if (
+      subjectRole === 'biological-agent' &&
+      process === 'swimming' &&
+      (objectRole === 'containing-environment' || objectRole === 'fluid-medium')
+    ) {
+      return 'agents-in-water';
+    }
+    return '';
   }
 
   function buildModifiers(spans) {

@@ -5,23 +5,51 @@
   }
   root.SimulatteLoadingCanvas = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createLoadingCanvasApi(root) {
-  const MIN_SNAKES = 6;
+  const MIN_SNAKES = 2;
   const MAX_SNAKES = 10;
-  const START_LENGTH = 9;
-  const MAX_SNAKE_LENGTH = 58;
+  const START_LENGTH = 7;
+  const MAX_SNAKE_LENGTH = 64;
   const TARGET_CELL_PX = 32;
   const MIN_CELL_PX = 18;
   const MAX_CELL_PX = 40;
   const LOOP_TURN_BONUS = 5.2;
-  const TRAIL_ORBIT_BONUS = 1.7;
-  const CROSSABLE_BODY_PORTION = 0.25;
-  const HEAD_TO_HEAD_COLLISION_SHARE = 0.5;
-  const HEAD_TO_HEAD_TARGET_BONUS = 12;
-  const HEAD_TO_BODY_TARGET_BONUS = 8;
-  const STEP_MS = 82;
+  const OPEN_AREA_BONUS = 0.72;
+  const NOVEL_CELL_BONUS = 8.2;
+  const VISITED_CELL_PENALTY = 9.5;
+  const RECENT_TRAIL_PENALTY = 5.4;
+  const VISITED_MEMORY_CELLS = 160;
+  const CROSSABLE_BODY_PORTION = 0.16;
+  const HEAD_TO_HEAD_COLLISION_SHARE = 0.58;
+  const HEAD_TO_BODY_COLLISION_SHARE = 0.46;
+  const HEAD_TO_HEAD_TARGET_BONUS = 13;
+  const HEAD_TO_BODY_TARGET_BONUS = 10;
+  const RECT_STRAIGHT_MIN = 3;
+  const RECT_STRAIGHT_MAX = 8;
+  const RECT_STRAIGHT_BONUS = 6.4;
+  const RECT_TURN_BONUS = 2.1;
+  const STEP_MS = 260;
+  const MIN_STEP_MS = 150;
+  const STAGE_SPEEDUP_MS = 40;
   const FADE_MS = 160;
   const MIN_TAIL_ALPHA = 0.3;
   const GHOST_ALPHA = 0.28;
+  const RAIL_HEIGHT_PX = 8;
+  const RAIL_MARGIN_PX = 28;
+  const RAIL_MIN_WIDTH_PX = 190;
+  const RAIL_MAX_WIDTH_PORTION = 0.58;
+  const RAIL_TILE_GAP_PX = 3;
+  const RAIL_MIN_TILE_PX = 5;
+  const RAIL_SWEEP_CYCLE_MS = 5000;
+  const RAIL_SWEEP_TRAIL = 0.28;
+  const RAIL_SWEEP_DOMAIN = 1.8;
+  const RAIL_SWEEP_OFFSET = -0.4;
+  const RAIL_SWEEP_B_OFFSET = 0.1;
+  const RAIL_SWEEP_C_OFFSET = 0.5;
+  const RAIL_TRAIL_DECAY_EXP = 2.6;
+  const RAIL_TRAIL_NOISE = 0.3;
+  const RAIL_FILLED_GHOST_ALPHA = 0.18;
+  const RAIL_UNFILLED_GHOST_ALPHA = 0.035;
+  const RAIL_INDETERMINATE_GHOST_ALPHA = 0.06;
   const DIRECTIONS = Object.freeze([
     { x: 1, y: 0 },
     { x: 0, y: 1 },
@@ -29,14 +57,14 @@
     { x: 0, y: -1 },
   ]);
   const ROYGBIV_SPECTRUM = Object.freeze([
-    '#ff3f4f',
-    '#ff7a32',
-    '#ffd33d',
-    '#9fe04f',
-    '#30d46f',
-    '#30c7f2',
-    '#5f78ff',
-    '#b65cff',
+    '#ff9fbd',
+    '#ffc98b',
+    '#f6e899',
+    '#bdeca1',
+    '#9ee8cf',
+    '#9bdcff',
+    '#b8b5ff',
+    '#d7a8ff',
   ]);
 
   function createController(canvas, options = {}) {
@@ -55,6 +83,8 @@
       this.stopTimer = 0;
       this.progress = 0;
       this.stageCode = 0;
+      this.indeterminate = false;
+      this.heartbeat = false;
       this.lastStepAt = 0;
       this.tick = 0;
       this.lastSizeKey = '';
@@ -63,13 +93,20 @@
       this.nextSnakeId = 1;
       this.rng = createRng(0x51a7e5);
       this.canvas.dataset.renderer = 'multi-snake-loading-canvas';
+      this.canvas.dataset.loadingStyle = 'pastel-rainbow-determinate-cell-sweep';
       this.canvas.hidden = true;
     }
 
-    setLoading(active, percent, stage) {
+    setLoading(active, percent, stage, options = {}) {
       const nextActive = Boolean(active);
       this.progress = clamp(Number(percent || 0) / 100, 0, 1);
       this.stageCode = stageCode(stage);
+      this.indeterminate = Boolean(options.indeterminate);
+      this.heartbeat = Boolean(options.heartbeat);
+      this.canvas.dataset.progress = String(Math.trunc(this.progress * 100 + 0.5));
+      this.canvas.dataset.stage = String(stage || '');
+      this.canvas.dataset.progressMode = this.indeterminate ? 'indeterminate' : 'determinate';
+      this.canvas.dataset.heartbeat = this.heartbeat ? 'true' : 'false';
       if (nextActive) {
         this.show();
         return;
@@ -113,7 +150,7 @@
     frame(now) {
       if (!this.running) return;
       this.resize();
-      const speed = Math.max(32, STEP_MS - this.stageCode * 34);
+      const speed = Math.max(MIN_STEP_MS, STEP_MS - this.stageCode * STAGE_SPEEDUP_MS);
       if (!this.lastStepAt || now - this.lastStepAt >= speed) {
         this.advanceSwarm(now, speed);
         this.lastStepAt = now;
@@ -140,15 +177,41 @@
       this.snakes = [];
       this.nextSnakeId = 1;
       if (!this.board) return;
-      while (this.snakes.length < MIN_SNAKES) {
-        this.spawnSnake();
+      const target = this.targetSnakeCount();
+      while (this.snakes.length < target) {
+        this.spawnSnake(this.spawnLength());
       }
+    }
+
+    targetDensity() {
+      const progress = clamp(Number(this.progress || 0), 0, 1);
+      const stage = clamp(Number(this.stageCode || 0), 0, 1);
+      const source = this.indeterminate
+        ? Math.max(progress, stage * 0.8)
+        : Math.max(progress, stage * 0.35);
+      return Math.pow(clamp(source, 0, 1), 0.85);
+    }
+
+    targetSnakeCount() {
+      return Math.max(
+        MIN_SNAKES,
+        Math.round(MIN_SNAKES + this.targetDensity() * (MAX_SNAKES - MIN_SNAKES))
+      );
+    }
+
+    targetSnakeLength() {
+      return Math.round(START_LENGTH + this.targetDensity() * (MAX_SNAKE_LENGTH - START_LENGTH));
+    }
+
+    spawnLength() {
+      const span = 2 + Math.floor(this.targetDensity() * 5);
+      return START_LENGTH + Math.floor(this.rng() * Math.max(1, span));
     }
 
     spawnSnake(length = START_LENGTH) {
       if (!this.board || this.snakes.length >= MAX_SNAKES) return false;
       const occupied = buildOccupancy(this.snakes);
-      for (let attempt = 0; attempt < 80; attempt += 1) {
+      for (let attempt = 0; attempt < 240; attempt += 1) {
         const direction = DIRECTIONS[Math.floor(this.rng() * DIRECTIONS.length)];
         const x = 2 + Math.floor(this.rng() * Math.max(1, this.board.cols - 4));
         const y = 2 + Math.floor(this.rng() * Math.max(1, this.board.rows - 4));
@@ -162,27 +225,44 @@
           cells.push(cell);
         }
         if (!cells.length) continue;
-        const snake = {
-          id: this.nextSnakeId++,
-          cells,
-          direction,
-          colors: [ROYGBIV_SPECTRUM[Math.floor(this.rng() * ROYGBIV_SPECTRUM.length)]],
-          growthEvery: 4 + Math.floor(this.rng() * 5),
-          phase: Math.floor(this.rng() * 17),
-          turnBias: this.rng() < 0.5 ? -1 : 1,
-          loopiness: 0.72 + this.rng() * 0.38,
-        };
-        primeSnakeAnimation(snake, cells, cells, 0, STEP_MS);
-        this.snakes.push(snake);
-        return true;
+        return this.addSnake(cells, direction);
+      }
+      for (const direction of DIRECTIONS) {
+        for (let y = 1; y < this.board.rows - 1; y += 1) {
+          for (let x = 1; x < this.board.cols - 1; x += 1) {
+            const cells = spawnCellsAt(x, y, direction, length, this.board, occupied);
+            if (cells.length) return this.addSnake(cells, direction);
+          }
+        }
       }
       return false;
+    }
+
+    addSnake(cells, direction) {
+      const snake = {
+        id: this.nextSnakeId++,
+        cells,
+        direction,
+        colors: [ROYGBIV_SPECTRUM[Math.floor(this.rng() * ROYGBIV_SPECTRUM.length)]],
+        growthEvery: 4 + Math.floor(this.rng() * 5),
+        phase: Math.floor(this.rng() * 17),
+        turnBias: this.rng() < 0.5 ? -1 : 1,
+        loopiness: 0.72 + this.rng() * 0.38,
+        straightRunLeft: rectangularRunLength(this.rng),
+        rectangularity: 0.72 + this.rng() * 0.28,
+        visited: visitedFromCells(cells),
+      };
+      primeSnakeAnimation(snake, cells, cells, 0, STEP_MS);
+      this.snakes.push(snake);
+      return true;
     }
 
     advanceSwarm(now, speed) {
       if (!this.board) return;
       this.tick += 1;
       this.enforcePopulation();
+      const density = this.targetDensity();
+      const targetLength = this.targetSnakeLength();
       const drawFromById = new Map(this.snakes.map((snake) => [
         snake.id,
         cloneCells(snake.drawTo || snake.cells),
@@ -200,16 +280,27 @@
       for (const plan of plans) {
         const snake = plan.snake;
         if (!this.snakes.includes(snake)) continue;
+        const previousHead = snake.cells[0];
+        const previousDirection = snake.direction;
         const target = insideBoard(plan.target, this.board)
           ? plan.target
           : addCells(snake.cells[0], invertDirection(snake.direction));
         plan.actualTarget = target;
-        snake.direction = insideBoard(target, this.board) ? directionFromCells(snake.cells[0], target) : snake.direction;
+        const nextDirection = insideBoard(target, this.board)
+          ? directionFromCells(previousHead, target)
+          : previousDirection;
+        snake.direction = nextDirection;
         snake.cells.unshift(target);
-        const growing = snake.cells.length < START_LENGTH ||
+        markVisited(snake, target);
+        updateRectangularCadence(snake, previousDirection, nextDirection, this.rng);
+        const canGrow = snake.cells.length < targetLength;
+        const growing = canGrow && (
+          snake.cells.length < START_LENGTH ||
           (this.tick + snake.phase) % snake.growthEvery === 0 ||
-          this.progress > 0.72 && (this.tick + snake.phase) % 3 === 0;
+          density > 0.68 && (this.tick + snake.phase) % 3 === 0
+        );
         if (!growing) snake.cells.pop();
+        if (snake.cells.length > targetLength) snake.cells.length = targetLength;
         if (snake.cells.length > MAX_SNAKE_LENGTH) snake.cells.length = MAX_SNAKE_LENGTH;
       }
 
@@ -227,8 +318,9 @@
     }
 
     enforcePopulation() {
-      while (this.snakes.length < MIN_SNAKES) {
-        if (!this.spawnSnake(START_LENGTH - 1 + Math.floor(this.rng() * 4))) break;
+      const target = this.targetSnakeCount();
+      while (this.snakes.length < target) {
+        if (!this.spawnSnake(this.spawnLength())) break;
       }
       if (this.snakes.length > MAX_SNAKES) {
         this.snakes.sort((a, b) => b.cells.length - a.cells.length);
@@ -333,6 +425,7 @@
       for (const snake of this.snakes) {
         drawSnake(ctx, this.board, snake, now);
       }
+      drawProgressRail(ctx, width, height, this.progress, this.indeterminate, now, this.stageCode);
       ctx.restore();
     }
   }
@@ -352,10 +445,26 @@
     };
   }
 
+  function spawnCellsAt(x, y, direction, length, board, occupied) {
+    const cells = [];
+    for (let i = 0; i < length; i += 1) {
+      const cell = { x: x - direction.x * i, y: y - direction.y * i };
+      if (!insideBoard(cell, board) || occupied.has(cellKey(cell))) return [];
+      cells.push(cell);
+    }
+    return cells;
+  }
+
   function drawGrid(ctx, board, width, height) {
-    ctx.fillStyle = '#f8f8f9';
+    const wash = ctx.createLinearGradient(0, 0, width, height);
+    ROYGBIV_SPECTRUM.forEach((color, index) => {
+      wash.addColorStop(index / Math.max(1, ROYGBIV_SPECTRUM.length - 1), color);
+    });
+    ctx.fillStyle = wash;
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = 'rgba(198, 201, 207, 0.62)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = 'rgba(132, 120, 154, 0.18)';
     ctx.lineWidth = 1;
     for (let x = 0; x <= board.cols; x += 1) {
       const px = x * board.cell + 0.5;
@@ -392,26 +501,114 @@
       const part = lerpCell(source, target, motion);
       const color = snake.colors[index % snake.colors.length];
       const appears = index < fromLength ? 1 : fade;
-      drawTile(ctx, board, part, color, alphaForCell(index, toCells.length) * appears);
+      drawTile(ctx, board, part, color, alphaForCell(index, toCells.length) * appears, {
+        head: index === 0,
+      });
     }
   }
 
-  function drawTile(ctx, board, part, color, alpha) {
+  function drawTile(ctx, board, part, color, alpha, options = {}) {
     if (!part || alpha <= 0.01) return;
     const cell = board.cell;
-    const inset = Math.max(2, Math.round(cell * 0.12));
+    const inset = Math.max(2, Math.round(cell * (options.head ? 0.08 : 0.12)));
+    const x = part.x * cell + inset;
+    const y = part.y * cell + inset;
+    const size = cell - inset * 2;
+    ctx.shadowColor = colorWithAlpha(color, alpha * (options.head ? 0.42 : 0.22));
+    ctx.shadowBlur = options.head ? 14 : 6;
     ctx.fillStyle = colorWithAlpha(color, alpha);
-    ctx.fillRect(
-      part.x * cell + inset,
-      part.y * cell + inset,
-      cell - inset * 2,
-      cell - inset * 2
+    ctx.fillRect(x, y, size, size);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = `rgba(255, 255, 255, ${clamp(alpha * 0.24, 0, 0.42)})`;
+    ctx.fillRect(x + 1, y + 1, Math.max(1, size - 2), Math.max(1, Math.round(size * 0.22)));
+  }
+
+  function drawProgressRail(ctx, width, height, progress, indeterminate, now, stage) {
+    const available = Math.max(RAIL_MIN_WIDTH_PX, width - RAIL_MARGIN_PX * 2);
+    const railWidth = Math.min(available, Math.max(RAIL_MIN_WIDTH_PX, width * RAIL_MAX_WIDTH_PORTION));
+    const x = Math.max(RAIL_MARGIN_PX, (width - railWidth) * 0.5);
+    const y = Math.max(RAIL_MARGIN_PX, height - RAIL_MARGIN_PX - RAIL_HEIGHT_PX);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.74)';
+    ctx.fillRect(x, y, railWidth, RAIL_HEIGHT_PX);
+    ctx.fillStyle = 'rgba(132, 120, 154, 0.18)';
+    ctx.fillRect(x, y, railWidth, 1);
+    drawDeterministicRailTiles(ctx, x, y, railWidth, RAIL_HEIGHT_PX, progress, indeterminate, now, stage);
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.18 + clamp(stage, 0, 1) * 0.18})`;
+    ctx.fillRect(x, y, railWidth, 2);
+  }
+
+  function drawDeterministicRailTiles(ctx, x, y, width, height, progress, indeterminate, now, stage) {
+    const rawCols = Math.floor((width + RAIL_TILE_GAP_PX) / (RAIL_MIN_TILE_PX + RAIL_TILE_GAP_PX));
+    const cols = Math.max(24, rawCols);
+    const tileWidth = Math.max(2, (width - RAIL_TILE_GAP_PX * (cols - 1)) / cols);
+    const motionSpeed = 1 + clamp(stage, 0, 1) * 0.46;
+    const cycle = Math.max(1200, RAIL_SWEEP_CYCLE_MS / motionSpeed);
+    const phaseA = normalizedPhase(now, cycle, 0);
+    const phaseB = normalizedPhase(now, cycle, RAIL_SWEEP_B_OFFSET);
+    const phaseC = normalizedPhase(now, cycle, RAIL_SWEEP_C_OFFSET);
+    const posA = RAIL_SWEEP_OFFSET + easeInOutQuad(phaseA) * RAIL_SWEEP_DOMAIN;
+    const posB = RAIL_SWEEP_OFFSET + easeInOutQuint(phaseB) * RAIL_SWEEP_DOMAIN;
+    const posC = RAIL_SWEEP_OFFSET + easeInOutQuad(phaseC) * RAIL_SWEEP_DOMAIN;
+    const fillEdge = clamp(progress, 0, 1);
+    for (let index = 0; index < cols; index += 1) {
+      const tileProgress = cols === 1 ? 1 : index / (cols - 1);
+      const filled = indeterminate || tileProgress <= fillEdge;
+      const baseAlpha = indeterminate
+        ? RAIL_INDETERMINATE_GHOST_ALPHA
+        : filled ? RAIL_FILLED_GHOST_ALPHA : RAIL_UNFILLED_GHOST_ALPHA;
+      const noise = tileNoise(index) * RAIL_TRAIL_NOISE;
+      const trailAlpha = filled
+        ? Math.max(
+          railTrailAlpha(posA, tileProgress, noise),
+          railTrailAlpha(posB, tileProgress, noise),
+          railTrailAlpha(posC, tileProgress, noise)
+        )
+        : 0;
+      const alpha = clamp(Math.max(baseAlpha, trailAlpha), 0, 1);
+      if (alpha <= 0.005) continue;
+      const color = ROYGBIV_SPECTRUM[index % ROYGBIV_SPECTRUM.length];
+      ctx.fillStyle = colorWithAlpha(color, alpha);
+      ctx.fillRect(x + index * (tileWidth + RAIL_TILE_GAP_PX), y, tileWidth, height);
+    }
+  }
+
+  function railTrailAlpha(position, tileProgress, noise) {
+    const distance = position - tileProgress;
+    if (distance < 0 || distance > RAIL_SWEEP_TRAIL) return 0;
+    const normalized = distance / RAIL_SWEEP_TRAIL;
+    return clamp(
+      Math.pow(1 - normalized, RAIL_TRAIL_DECAY_EXP) +
+        Math.sin(normalized * Math.PI) * noise,
+      0,
+      1
     );
+  }
+
+  function normalizedPhase(now, cycle, offset) {
+    return (((Number(now || 0) / cycle) - offset) % 1 + 1) % 1;
+  }
+
+  function tileNoise(index) {
+    const x = Math.sin((index + 1) * 12.9898) * 43758.5453;
+    return x - Math.floor(x) - 0.5;
+  }
+
+  function easeInOutQuad(value) {
+    const t = clamp(value, 0, 1);
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  }
+
+  function easeInOutQuint(value) {
+    const t = clamp(value, 0, 1);
+    return t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
   }
 
   function chooseDirection(snake, board, occupied, rng) {
     const current = snake.direction;
     const wantsHeadToHead = rng() < HEAD_TO_HEAD_COLLISION_SHARE;
+    const wantsBodyMerge = rng() < HEAD_TO_BODY_COLLISION_SHARE;
+    const straightRunLeft = Math.max(0, Number(snake.straightRunLeft || 0));
+    const rectangularity = clamp(Number(snake.rectangularity || 0.82), 0.4, 1.2);
     let best = current;
     let bestScore = -Infinity;
     for (const direction of DIRECTIONS) {
@@ -420,13 +617,23 @@
       if (!insideBoard(target, board)) score -= 1000;
       const preferredTurn = turnDirection(current, snake.turnBias || 1);
       const oppositeTurn = turnDirection(current, -(snake.turnBias || 1));
-      if (sameDirection(direction, current)) score += 1.1;
-      if (sameDirection(direction, preferredTurn)) score += LOOP_TURN_BONUS * (snake.loopiness || 0.85);
-      if (sameDirection(direction, oppositeTurn)) score += LOOP_TURN_BONUS * 0.22;
+      if (sameDirection(direction, current)) {
+        score += 1.1 + straightRunLeft * RECT_STRAIGHT_BONUS * rectangularity;
+      }
+      if (sameDirection(direction, preferredTurn)) {
+        const turnBonus = straightRunLeft > 0 ? RECT_TURN_BONUS : LOOP_TURN_BONUS;
+        score += turnBonus * (snake.loopiness || 0.85);
+      }
+      if (sameDirection(direction, oppositeTurn)) {
+        const turnBonus = straightRunLeft > 0 ? RECT_TURN_BONUS * 0.45 : LOOP_TURN_BONUS * 0.22;
+        score += turnBonus;
+      }
       if (sameDirection(direction, invertDirection(current))) score -= 7;
-      score += openNeighborCount(target, board, occupied) * 1.4;
-      score += ownTrailAdjacency(target, snake) * TRAIL_ORBIT_BONUS * (snake.loopiness || 0.85);
-      score += wallDistanceScore(target, board) * 0.35;
+      score += openNeighborCount(target, board, occupied) * 0.7;
+      score += openAreaScore(target, board, occupied) * OPEN_AREA_BONUS;
+      score += visitedCellScore(target, snake);
+      score -= ownTrailAdjacency(target, snake) * RECENT_TRAIL_PENALTY;
+      score += wallDistanceScore(target, board) * 0.18;
       const owner = occupied.get(cellKey(target));
       if (owner && owner.id === snake.id && !isCrossableTail(owner)) score -= 900;
       if (owner && owner.id === snake.id && isCrossableTail(owner)) score += 0.8;
@@ -436,11 +643,11 @@
         } else if (isCrossableTail(owner)) {
           score += 1.2;
         } else {
-          score += wantsHeadToHead ? -5.5 : HEAD_TO_BODY_TARGET_BONUS;
+          score += wantsBodyMerge ? HEAD_TO_BODY_TARGET_BONUS : -3.5;
         }
       }
       const headPressure = nearbyHeadPressure(target, snake, occupied);
-      score += wantsHeadToHead ? headPressure * 1.8 : -headPressure * 1.1;
+      score += wantsHeadToHead ? headPressure * 1.2 : -headPressure * 0.35;
       if (score > bestScore) {
         bestScore = score;
         best = direction;
@@ -470,6 +677,33 @@
     return count;
   }
 
+  function openAreaScore(cell, board, occupied) {
+    if (!insideBoard(cell, board)) return -100;
+    const seen = new Set([cellKey(cell)]);
+    const queue = [{ cell, depth: 0 }];
+    let score = 0;
+    while (queue.length) {
+      const item = queue.shift();
+      const owner = occupied.get(cellKey(item.cell));
+      if (owner && !isCrossableTail(owner)) continue;
+      score += 1 / (item.depth + 1);
+      if (item.depth >= 4) continue;
+      for (const direction of DIRECTIONS) {
+        const next = addCells(item.cell, direction);
+        const key = cellKey(next);
+        if (!insideBoard(next, board) || seen.has(key)) continue;
+        seen.add(key);
+        queue.push({ cell: next, depth: item.depth + 1 });
+      }
+    }
+    return score;
+  }
+
+  function visitedCellScore(target, snake) {
+    if (!snake || !snake.visited || !snake.visited.has(cellKey(target))) return NOVEL_CELL_BONUS;
+    return -VISITED_CELL_PENALTY;
+  }
+
   function wallDistanceScore(cell, board) {
     if (!insideBoard(cell, board)) return -100;
     return Math.min(cell.x, cell.y, board.cols - 1 - cell.x, board.rows - 1 - cell.y);
@@ -484,6 +718,21 @@
       if (count >= 3) return count;
     }
     return count;
+  }
+
+  function updateRectangularCadence(snake, previousDirection, nextDirection, rng) {
+    if (!snake) return;
+    if (sameDirection(previousDirection, nextDirection)) {
+      snake.straightRunLeft = Math.max(0, Number(snake.straightRunLeft || 0) - 1);
+      return;
+    }
+    snake.straightRunLeft = rectangularRunLength(rng);
+    snake.turnBias = snake.turnBias === 1 ? -1 : 1;
+  }
+
+  function rectangularRunLength(rng) {
+    const random = typeof rng === 'function' ? rng() : 0.5;
+    return RECT_STRAIGHT_MIN + Math.floor(random * (RECT_STRAIGHT_MAX - RECT_STRAIGHT_MIN + 1));
   }
 
   function combineSnakes(group, board, nextId, drawFromById) {
@@ -505,6 +754,9 @@
       phase: primary.phase || 0,
       turnBias: primary.turnBias || 1,
       loopiness: Math.max(...group.map((snake) => snake.loopiness || 0.85)),
+      straightRunLeft: Math.max(...group.map((snake) => Number(snake.straightRunLeft || 0))),
+      rectangularity: Math.max(...group.map((snake) => Number(snake.rectangularity || 0.82))),
+      visited: mergeVisited(group),
     };
   }
 
@@ -519,6 +771,16 @@
     attacker.colors = swizzleColors(attacker.colors.concat(victim.colors));
     attacker.growthEvery = Math.max(3, Math.min(attacker.growthEvery || 6, victim.growthEvery || 6));
     attacker.loopiness = Math.max(attacker.loopiness || 0.85, victim.loopiness || 0.85);
+    attacker.straightRunLeft = Math.max(
+      Number(attacker.straightRunLeft || 0),
+      Number(victim.straightRunLeft || 0),
+      RECT_STRAIGHT_MIN
+    );
+    attacker.rectangularity = Math.max(
+      Number(attacker.rectangularity || 0.82),
+      Number(victim.rectangularity || 0.82)
+    );
+    attacker.visited = mergeVisited([attacker, victim]);
     drawFromById.set(attacker.id, alignCells(fromCells, cells));
   }
 
@@ -553,6 +815,38 @@
       if (fallback[i + half]) swizzled.push(fallback[i + half]);
     }
     return swizzled.slice(0, 6);
+  }
+
+  function visitedFromCells(cells) {
+    const visited = new Set();
+    for (const cell of cells || []) {
+      visited.add(cellKey(cell));
+    }
+    return visited;
+  }
+
+  function markVisited(snake, cell) {
+    if (!snake || !cell) return;
+    if (!snake.visited) snake.visited = new Set();
+    snake.visited.add(cellKey(cell));
+    while (snake.visited.size > VISITED_MEMORY_CELLS) {
+      snake.visited.delete(snake.visited.values().next().value);
+    }
+  }
+
+  function mergeVisited(snakes) {
+    const visited = new Set();
+    for (const snake of snakes || []) {
+      for (const key of snake.visited || []) {
+        visited.add(key);
+        if (visited.size >= VISITED_MEMORY_CELLS) return visited;
+      }
+      for (const cell of snake.cells || []) {
+        visited.add(cellKey(cell));
+        if (visited.size >= VISITED_MEMORY_CELLS) return visited;
+      }
+    }
+    return visited;
   }
 
   function buildOccupancy(snakes) {
@@ -702,9 +996,11 @@
     if (/manifest|start/.test(value)) return 0.08;
     if (/cache/.test(value)) return 0.18;
     if (/indexes/.test(value)) return 0.3;
+    if (/reranker/.test(value)) return 0.48;
     if (/model-load|model/.test(value)) return 0.42;
+    if (/retrieval-start/.test(value)) return 0.5;
     if (/embed/.test(value)) return 0.56;
-    if (/span-retrieval/.test(value)) return 0.68;
+    if (/span-refined|span-retrieval/.test(value)) return 0.68;
     if (/classification/.test(value)) return 0.78;
     if (/compile/.test(value)) return 0.88;
     if (/visual/.test(value)) return 0.94;

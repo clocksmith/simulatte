@@ -1,0 +1,62 @@
+--- src/gpu/kernels/attention.wgsl
++++ src/gpu/kernels/attention_f16.wgsl
+@@ -6,6 +6,8 @@
+ //
+ // Based on Flash Attention principles adapted for WebGPU.
+ 
++enable f16;
++
+ // Tile sizes for blocked attention
+ const MAX_BLOCK_SIZE: u32 = 32u;
+ const MAX_HEAD_TILE: u32 = 64u;
+@@ -38,10 +40,10 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> Q: array<f32>;       // [query_len, num_heads, head_dim]
+-@group(0) @binding(2) var<storage, read> K: array<f32>;       // [seq_len, num_kv_heads, head_dim]
+-@group(0) @binding(3) var<storage, read> V: array<f32>;       // [seq_len, num_kv_heads, head_dim]
+-@group(0) @binding(4) var<storage, read_write> output: array<f32>; // [query_len, num_heads, head_dim]
++@group(0) @binding(1) var<storage, read> Q: array<f16>;       // [query_len, num_heads, head_dim]
++@group(0) @binding(2) var<storage, read> K: array<f16>;       // [seq_len, num_kv_heads, head_dim]
++@group(0) @binding(3) var<storage, read> V: array<f16>;       // [seq_len, num_kv_heads, head_dim]
++@group(0) @binding(4) var<storage, read_write> output: array<f16>; // [query_len, num_heads, head_dim]
+ @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
+ @group(0) @binding(6) var<storage, read> page_table: array<u32>;
+ 
+@@ -156,7 +158,7 @@
+     if (valid_query) {
+         let q_offset = query_pos * u.num_heads * head_dim + head_idx * head_dim;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            q_local[d] = Q[q_offset + d];
++            q_local[d] = f32(Q[q_offset + d]);
+         }
+     }
+ 
+@@ -172,7 +174,7 @@
+             let k_idx = get_kv_pos(k_load_idx);
+             let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-                shared_K[thread_idx * head_dim + d] = K[k_offset + d];
++                shared_K[thread_idx * head_dim + d] = f32(K[k_offset + d]);
+             }
+         } else {
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+@@ -186,7 +188,7 @@
+             let v_idx = get_kv_pos(v_load_idx);
+             let v_offset = v_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-                shared_V[thread_idx * head_dim + d] = V[v_offset + d];
++                shared_V[thread_idx * head_dim + d] = f32(V[v_offset + d]);
+             }
+         } else {
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+@@ -262,7 +264,7 @@
+         let out_offset = query_pos * u.num_heads * head_dim + head_idx * head_dim;
+         let inv_l_i = select(0.0, 1.0 / l_i, l_i > 0.0);
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            output[out_offset + d] = acc[d] * inv_l_i;
++            output[out_offset + d] = f16(acc[d] * inv_l_i);
+         }
+     }
+ }

@@ -1,0 +1,5 @@
+# Local regenerated audit outputs. Stable evidence can still be force-added.
+artifacts/pipeline-live-local-audit*/
+artifacts/simulatte-pipeline-audit/live-webgpu/
+artifacts/simulatte-pipeline-audit/live-score/
+artifacts/simulatte-pipeline-audit/runs/*/

@@ -1,4 +1,3 @@
-import { log as debugLog } from '../debug/index.js';
 import { readBuffer } from '../memory/buffer-pool.js';
 import { CAPTURE_LEVELS, createDefaultCaptureConfig } from '../debug/capture-policy.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
@@ -8,46 +7,110 @@ import { cloneJsonValue } from '../utils/clone-json.js';
 import { sha256BytesHex } from '../utils/sha256.js';
 import { resolvePromptInput } from './pipelines/text/generator-prefill-helpers.js';
 
-const DEFAULT_SAMPLING_DEFAULTS = Object.freeze({
-  temperature: 1.0,
-  topP: 0.95,
-  topK: 50,
-  repetitionPenalty: 1.1,
-  greedyThreshold: 0.01,
-  repetitionPenaltyWindow: 100,
-});
-
-const DEFAULT_HARNESS_PROMPT = 'The color of the sky is';
-const DEFAULT_RUNTIME_PLACEHOLDER_PROMPT = 'Hello from Doppler.';
-const DEFAULT_QWEN_PROMPT = Object.freeze({
-  messages: Object.freeze([
-    Object.freeze({
-      role: 'user',
-      content: 'Answer in one short sentence: What color is the sky on a clear day?',
-    }),
-  ]),
-});
-const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
-  messages: Object.freeze([
-    Object.freeze({
-      role: 'user',
-      content: Object.freeze([
-        Object.freeze({
-          type: 'text',
-          source_lang_code: 'en',
-          target_lang_code: 'fr',
-          text: 'Hello world.',
-        }),
-      ]),
-    }),
-  ]),
-});
 const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
 const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
-const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
-let defaultsWarningEmitted = false;
+const DECODE_RECORD_TOP_OP_LIMIT = 20;
+const RERANK_SCORE_POLICIES = new Set(['logit_difference', 'true_logit']);
+
+export function normalizeDecodeRecordOpLabels(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const entries = [];
+  for (const [label, rawCount] of Object.entries(value)) {
+    const count = Number(rawCount);
+    if (typeof label !== 'string' || label.length === 0 || !Number.isFinite(count) || count <= 0) {
+      continue;
+    }
+    entries.push([label, count]);
+  }
+  if (entries.length === 0) {
+    return null;
+  }
+  entries.sort((a, b) => {
+    const countDelta = b[1] - a[1];
+    return countDelta !== 0 ? countDelta : a[0].localeCompare(b[0]);
+  });
+  return Object.fromEntries(entries);
+}
+
+export function buildDecodeRecordTopOps(labelCounts, totalOps = null, limit = DECODE_RECORD_TOP_OP_LIMIT) {
+  const normalized = normalizeDecodeRecordOpLabels(labelCounts);
+  if (!normalized) {
+    return [];
+  }
+  const entries = Object.entries(normalized);
+  const denominator = Number.isFinite(totalOps) && totalOps > 0
+    ? totalOps
+    : entries.reduce((sum, [, count]) => sum + count, 0);
+  const maxEntries = Number.isFinite(limit) && limit > 0
+    ? Math.floor(limit)
+    : DECODE_RECORD_TOP_OP_LIMIT;
+  return entries.slice(0, maxEntries).map(([label, count]) => ({
+    label,
+    count,
+    shareOfOps: denominator > 0 ? count / denominator : null,
+  }));
+}
+
+function normalizeDecodeRecordOpGroupLabel(label) {
+  const grouped = label
+    .replace(/^L\d+[.:]/, '')
+    .replace(/:L\d+(?=:|$)/g, '');
+  return grouped.length > 0 ? grouped : label;
+}
+
+export function groupDecodeRecordOpLabels(labelCounts) {
+  const normalized = normalizeDecodeRecordOpLabels(labelCounts);
+  if (!normalized) {
+    return null;
+  }
+  const groups = {};
+  for (const [label, count] of Object.entries(normalized)) {
+    const groupLabel = normalizeDecodeRecordOpGroupLabel(label);
+    groups[groupLabel] = (groups[groupLabel] ?? 0) + count;
+  }
+  return normalizeDecodeRecordOpLabels(groups);
+}
+
+export function buildDecodeRecordTopOpGroups(labelCounts, totalOps = null, limit = DECODE_RECORD_TOP_OP_LIMIT) {
+  return buildDecodeRecordTopOps(
+    groupDecodeRecordOpLabels(labelCounts),
+    totalOps,
+    limit
+  );
+}
+
+function nonNegativeFiniteNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+export function normalizeUniformCacheStats(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const hits = nonNegativeFiniteNumber(value.hits);
+  const misses = nonNegativeFiniteNumber(value.misses);
+  const evictions = nonNegativeFiniteNumber(value.evictions);
+  const currentSize = nonNegativeFiniteNumber(value.currentSize);
+  const pendingDestruction = nonNegativeFiniteNumber(value.pendingDestruction);
+  const totalLookups = Number.isFinite(hits) && Number.isFinite(misses)
+    ? hits + misses
+    : null;
+  const stats = {};
+  if (Number.isFinite(hits)) stats.hits = hits;
+  if (Number.isFinite(misses)) stats.misses = misses;
+  if (Number.isFinite(totalLookups)) stats.totalLookups = totalLookups;
+  if (Number.isFinite(totalLookups) && totalLookups > 0) stats.hitRateRatio = hits / totalLookups;
+  if (typeof value.hitRate === 'string' && value.hitRate.length > 0) stats.hitRate = value.hitRate;
+  if (Number.isFinite(evictions)) stats.evictions = evictions;
+  if (Number.isFinite(currentSize)) stats.currentSize = currentSize;
+  if (Number.isFinite(pendingDestruction)) stats.pendingDestruction = pendingDestruction;
+  return Object.keys(stats).length > 0 ? stats : null;
+}
 
 function normalizeTokenIdArray(value, label) {
   const raw = ArrayBuffer.isView(value) ? Array.from(value) : value;
@@ -256,43 +319,16 @@ export async function captureKvCacheByteProof(pipeline, enabled) {
   };
 }
 
-function warnIfUsingDefaults(runtimeConfig) {
-  if (defaultsWarningEmitted) return;
-  const promptOverride = runtimeConfig?.inference?.prompt;
-  const hasPrompt = (typeof promptOverride === 'string' && promptOverride.trim().length > 0)
-    || (Array.isArray(promptOverride) && promptOverride.length > 0)
-    || isStructuredPromptInput(promptOverride);
-  const hasSampling = isPlainObject(runtimeConfig?.inference?.sampling)
-    && Object.keys(runtimeConfig.inference.sampling).length > 0;
-  const hasMaxTokens = Number.isFinite(runtimeConfig?.inference?.generation?.maxTokens);
-  if (hasPrompt && hasSampling && hasMaxTokens) return;
-  defaultsWarningEmitted = true;
-  const missingFields = [];
-  const defaults = [];
-  if (!hasPrompt) {
-    missingFields.push('prompt');
-    defaults.push(`  prompt: "${DEFAULT_HARNESS_PROMPT}"`);
-  }
-  if (!hasMaxTokens) {
-    missingFields.push('generation.maxTokens');
-    defaults.push(`  maxTokens: ${DEFAULT_HARNESS_MAX_TOKENS}`);
-  }
-  if (!hasSampling) {
-    missingFields.push('sampling');
-    defaults.push(`  temperature: ${DEFAULT_SAMPLING_DEFAULTS.temperature}`);
-    defaults.push(`  topK: ${DEFAULT_SAMPLING_DEFAULTS.topK}`);
-    defaults.push(`  topP: ${DEFAULT_SAMPLING_DEFAULTS.topP}`);
-  }
-  debugLog.warn('Harness',
-    `Running with default inference parameters for missing fields: ${missingFields.join(', ')}.\n`
-    + defaults.join('\n')
-    + '\n  Provide explicit runtime.inference.sampling and generation.maxTokens if you want harness-stable settings.'
-  );
-}
 const embeddingSemanticFixtureAsset = await loadJson(
   './fixtures/embedding-semantic-fixtures.json',
   import.meta.url,
   'Failed to load embedding semantic fixtures'
+);
+
+const rerankSemanticFixtureAsset = await loadJson(
+  './fixtures/rerank-semantic-fixtures.json',
+  import.meta.url,
+  'Failed to load rerank semantic fixtures'
 );
 
 function asText(value) {
@@ -372,6 +408,59 @@ function normalizeThroughputCorpus(corpus) {
   if (!Array.isArray(corpus)) return null;
   const normalized = corpus.map(asText).filter(Boolean);
   return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeRerankCases(cases) {
+  if (!Array.isArray(cases)) return null;
+  const normalized = [];
+  for (let i = 0; i < cases.length; i++) {
+    const entry = cases[i];
+    if (!entry || typeof entry !== 'object') continue;
+
+    const query = asText(entry.query);
+    const positive = asText(entry.positive);
+    const negative = asText(entry.negative);
+    if (!query || !positive || !negative) {
+      continue;
+    }
+    normalized.push({
+      id: asText(entry.id) ?? `rerank-${i + 1}`,
+      query,
+      positive,
+      negative,
+    });
+  }
+  return normalized.length > 0 ? normalized : null;
+}
+
+function resolveDefaultRerankSemanticFixtures() {
+  const defaults = rerankSemanticFixtureAsset?.defaults;
+  if (!isPlainObject(defaults)) {
+    throw new Error('Rerank semantic fixture asset must define defaults.');
+  }
+
+  const cases = normalizeRerankCases(defaults.cases);
+  if (!cases) {
+    throw new Error('Rerank semantic fixture asset must define cases.');
+  }
+  if (!Number.isFinite(defaults.minPairAcc)) {
+    throw new Error('Rerank semantic fixture asset must define minPairAcc.');
+  }
+  if (!Number.isFinite(defaults.minScoreMargin)) {
+    throw new Error('Rerank semantic fixture asset must define minScoreMargin.');
+  }
+
+  return {
+    cases,
+    minPairAcc: Math.max(0, Math.min(1, Number(defaults.minPairAcc))),
+    minScoreMargin: Number(defaults.minScoreMargin),
+  };
+}
+
+const DEFAULT_RERANK_SEMANTIC_FIXTURES = resolveDefaultRerankSemanticFixtures();
+
+export function getDefaultRerankSemanticFixtures() {
+  return cloneJsonValue(DEFAULT_RERANK_SEMANTIC_FIXTURES);
 }
 
 function resolveDefaultEmbeddingSemanticFixtures() {
@@ -457,12 +546,13 @@ function resolveEmbeddingSemanticFixtures(runtimeConfig, options = null) {
 function resolveEmbeddingSemanticStyle(pipeline) {
   const manifest = pipeline?.manifest ?? null;
   const style = selectRuleValue('inference', 'config', 'embeddingSemanticStyle', {
-    modelId: String(manifest?.modelId ?? '').toLowerCase(),
+    modelType: String(manifest?.modelType ?? '').toLowerCase(),
     manifestModelType: String(
       manifest?.config?.model_type
       ?? manifest?.config?.text_config?.model_type
       ?? ''
     ).toLowerCase(),
+    sourceCheckpointId: String(manifest?.artifactIdentity?.sourceCheckpointId ?? ''),
   });
   if (typeof style === 'string' && style.length > 0) {
     return style;
@@ -479,6 +569,12 @@ function formatEmbeddingSemanticText(text, kind, style) {
       return `title: None | text: ${text}`;
     }
   }
+  if (style === 'qwen3_embedding') {
+    if (kind === 'query') {
+      return `Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ${text}`;
+    }
+    return text;
+  }
   return text;
 }
 
@@ -487,7 +583,290 @@ export function resolvePrompt(runtimeConfig) {
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
     return runtimePrompt.trim();
   }
-  return DEFAULT_HARNESS_PROMPT;
+  throw new Error('Harness embedding requires explicit runtime.inference.prompt.');
+}
+
+function assertRerankTokenId(value, label) {
+  const tokenId = Number(value);
+  if (!Number.isInteger(tokenId) || tokenId < 0) {
+    throw new Error(`Manifest rerank config requires non-negative integer ${label}.`);
+  }
+  return tokenId;
+}
+
+function assertRerankText(value, label, preserve = false) {
+  if (typeof value !== 'string') {
+    throw new Error(`Manifest rerank config requires non-empty ${label}.`);
+  }
+  const text = value.trim();
+  if (!text) {
+    throw new Error(`Manifest rerank config requires non-empty ${label}.`);
+  }
+  return preserve ? value : text;
+}
+
+export function resolveRerankScoringConfig(pipeline) {
+  const config = pipeline?.manifest?.inference?.rerank;
+  if (!isPlainObject(config)) {
+    throw new Error('Rerank workload requires manifest.inference.rerank scoring config.');
+  }
+  const format = assertRerankText(config.format, 'format');
+  if (format !== 'qwen3_yes_no_logit') {
+    throw new Error(`Unsupported rerank scoring format "${format}".`);
+  }
+  const trueTokenId = assertRerankTokenId(config.trueTokenId, 'trueTokenId');
+  const falseTokenId = assertRerankTokenId(config.falseTokenId, 'falseTokenId');
+  if (trueTokenId === falseTokenId) {
+    throw new Error('Manifest rerank config trueTokenId and falseTokenId must be distinct.');
+  }
+  const score = assertRerankText(config.score, 'score');
+  if (!RERANK_SCORE_POLICIES.has(score)) {
+    throw new Error(`Unsupported rerank score policy "${score}".`);
+  }
+  const probability = assertRerankText(config.probability, 'probability');
+  if (probability !== 'sigmoid') {
+    throw new Error(`Unsupported rerank probability policy "${probability}".`);
+  }
+  return {
+    format,
+    instruction: assertRerankText(config.instruction, 'instruction'),
+    inputTemplate: assertRerankText(config.inputTemplate, 'inputTemplate', true),
+    prefix: assertRerankText(config.prefix, 'prefix', true),
+    suffix: assertRerankText(config.suffix, 'suffix', true),
+    trueToken: assertRerankText(config.trueToken, 'trueToken'),
+    trueTokenId,
+    falseToken: assertRerankText(config.falseToken, 'falseToken'),
+    falseTokenId,
+    score,
+    probability,
+  };
+}
+
+function replaceRerankTemplate(template, values) {
+  let output = template;
+  for (const [key, value] of Object.entries(values)) {
+    const placeholder = `{${key}}`;
+    if (!output.includes(placeholder)) {
+      throw new Error(`Manifest rerank inputTemplate is missing ${placeholder}.`);
+    }
+    output = output.split(placeholder).join(value);
+  }
+  return output;
+}
+
+export function formatRerankPrompt(query, document, scoringConfig) {
+  const instruction = assertRerankText(scoringConfig?.instruction, 'instruction');
+  const normalizedQuery = assertRerankText(query, 'query');
+  const normalizedDocument = assertRerankText(document, 'document');
+  const input = replaceRerankTemplate(
+    assertRerankText(scoringConfig?.inputTemplate, 'inputTemplate', true),
+    {
+      instruction,
+      query: normalizedQuery,
+      document: normalizedDocument,
+    }
+  );
+  return `${assertRerankText(scoringConfig?.prefix, 'prefix', true)}${input}${assertRerankText(scoringConfig?.suffix, 'suffix', true)}`;
+}
+
+function sigmoid(value) {
+  return 1 / (1 + Math.exp(-value));
+}
+
+function computeRerankScore(scoringConfig, trueLogit, falseLogit) {
+  if (scoringConfig.score === 'logit_difference') {
+    return trueLogit - falseLogit;
+  }
+  if (scoringConfig.score === 'true_logit') {
+    return trueLogit;
+  }
+  throw new Error(`Unsupported rerank score policy "${scoringConfig.score}".`);
+}
+
+function assertLogitsVector(value) {
+  if (!ArrayBuffer.isView(value) && !Array.isArray(value)) {
+    throw new Error('Rerank prefillWithLogits result must include a logits vector.');
+  }
+  return value;
+}
+
+export async function scoreRerankDocument(pipeline, query, document, scoringConfig = null) {
+  if (!pipeline || typeof pipeline.prefillWithLogits !== 'function') {
+    throw new Error('Rerank workload requires pipeline.prefillWithLogits().');
+  }
+  const config = scoringConfig ?? resolveRerankScoringConfig(pipeline);
+  const prompt = formatRerankPrompt(query, document, config);
+  pipeline.reset?.();
+  const result = await pipeline.prefillWithLogits(prompt, { useChatTemplate: false });
+  const logits = assertLogitsVector(result?.logits);
+  const trueLogit = Number(logits[config.trueTokenId]);
+  const falseLogit = Number(logits[config.falseTokenId]);
+  if (!Number.isFinite(trueLogit) || !Number.isFinite(falseLogit)) {
+    throw new Error(
+      `Rerank logits missing finite yes/no scores at token IDs ${config.trueTokenId}/${config.falseTokenId}.`
+    );
+  }
+  const score = computeRerankScore(config, trueLogit, falseLogit);
+  const probability = sigmoid(score);
+  return {
+    query,
+    document,
+    prompt,
+    tokenCount: Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0,
+    score,
+    probability,
+    trueLogit,
+    falseLogit,
+    trueTokenId: config.trueTokenId,
+    falseTokenId: config.falseTokenId,
+  };
+}
+
+function resolveRerankInput(runtimeConfig, runOverrides = null) {
+  const source = isPlainObject(runOverrides?.rerank)
+    ? runOverrides.rerank
+    : runtimeConfig?.inference?.rerank;
+  if (!isPlainObject(source)) {
+    throw new Error('Harness rerank requires explicit runtime.inference.rerank.');
+  }
+  const query = asText(source.query);
+  if (!query) {
+    throw new Error('Harness rerank requires non-empty runtime.inference.rerank.query.');
+  }
+  const documents = Array.isArray(source.documents)
+    ? source.documents.map(asText).filter(Boolean)
+    : [];
+  if (documents.length === 0) {
+    throw new Error('Harness rerank requires non-empty runtime.inference.rerank.documents.');
+  }
+  return { query, documents };
+}
+
+function summarizeRerankScores(scores) {
+  const sorted = [...scores].sort((a, b) => {
+    const scoreDelta = b.score - a.score;
+    return scoreDelta !== 0 ? scoreDelta : a.index - b.index;
+  });
+  return {
+    ranking: sorted.map((entry, rank) => ({
+      rank: rank + 1,
+      index: entry.index,
+      document: entry.document,
+      score: Number(entry.score.toFixed(6)),
+      probability: Number(entry.probability.toFixed(6)),
+      trueLogit: Number(entry.trueLogit.toFixed(6)),
+      falseLogit: Number(entry.falseLogit.toFixed(6)),
+      tokenCount: entry.tokenCount,
+    })),
+    top: sorted[0] ?? null,
+  };
+}
+
+export async function runRerank(pipeline, runtimeConfig, runOverrides = null) {
+  const input = resolveRerankInput(runtimeConfig, runOverrides);
+  const config = resolveRerankScoringConfig(pipeline);
+  const start = performance.now();
+  const scores = [];
+  for (let i = 0; i < input.documents.length; i++) {
+    const scored = await scoreRerankDocument(
+      pipeline,
+      input.query,
+      input.documents[i],
+      config
+    );
+    scores.push({
+      index: i,
+      ...scored,
+    });
+  }
+  const summary = summarizeRerankScores(scores);
+  return {
+    query: input.query,
+    documents: input.documents,
+    documentCount: input.documents.length,
+    scores,
+    ranking: summary.ranking,
+    topDocument: summary.top
+      ? {
+        index: summary.top.index,
+        document: summary.top.document,
+        score: summary.top.score,
+        probability: summary.top.probability,
+      }
+      : null,
+    durationMs: Math.max(1, performance.now() - start),
+  };
+}
+
+function resolveRerankSemanticFixtures(runtimeConfig, options = null) {
+  const overrides = isPlainObject(options?.rerankSemantic)
+    ? options.rerankSemantic
+    : null;
+  const runtimeOverrides = runtimeConfig?.shared?.benchmark?.run?.rerankSemantic;
+  const source = overrides ?? (isPlainObject(runtimeOverrides) ? runtimeOverrides : null);
+  const cases = normalizeRerankCases(source?.cases)
+    ?? DEFAULT_RERANK_SEMANTIC_FIXTURES.cases;
+  const minPairAcc = Number.isFinite(source?.minPairAcc)
+    ? Math.max(0, Math.min(1, Number(source.minPairAcc)))
+    : DEFAULT_RERANK_SEMANTIC_FIXTURES.minPairAcc;
+  const minScoreMargin = Number.isFinite(source?.minScoreMargin)
+    ? Number(source.minScoreMargin)
+    : DEFAULT_RERANK_SEMANTIC_FIXTURES.minScoreMargin;
+  return {
+    cases,
+    minPairAcc,
+    minScoreMargin,
+  };
+}
+
+export async function runRerankSemanticChecks(pipeline, options = null) {
+  const fixture = resolveRerankSemanticFixtures(pipeline?.runtimeConfig ?? {}, options);
+  const config = resolveRerankScoringConfig(pipeline);
+  const start = performance.now();
+  const pairs = [];
+  let pairPassed = 0;
+  for (const testCase of fixture.cases) {
+    const positive = await scoreRerankDocument(
+      pipeline,
+      testCase.query,
+      testCase.positive,
+      config
+    );
+    const negative = await scoreRerankDocument(
+      pipeline,
+      testCase.query,
+      testCase.negative,
+      config
+    );
+    const margin = positive.score - negative.score;
+    const passed = Number.isFinite(margin) && margin > fixture.minScoreMargin;
+    if (passed) pairPassed++;
+    pairs.push({
+      id: testCase.id,
+      query: testCase.query,
+      positive: testCase.positive,
+      negative: testCase.negative,
+      passed,
+      positiveScore: Number(positive.score.toFixed(6)),
+      negativeScore: Number(negative.score.toFixed(6)),
+      positiveProbability: Number(positive.probability.toFixed(6)),
+      negativeProbability: Number(negative.probability.toFixed(6)),
+      margin: Number.isFinite(margin) ? Number(margin.toFixed(6)) : null,
+    });
+  }
+  const pairAcc = pairs.length > 0 ? pairPassed / pairs.length : 0;
+  const passed = pairAcc >= fixture.minPairAcc;
+  return {
+    passed,
+    pairAcc,
+    pairPassed,
+    pairTotal: pairs.length,
+    minPairAcc: Number(fixture.minPairAcc.toFixed(4)),
+    minScoreMargin: Number(fixture.minScoreMargin.toFixed(4)),
+    failedCaseIds: pairs.filter((item) => !item.passed).map((item) => item.id),
+    pairs,
+    durationMs: Math.max(1, performance.now() - start),
+  };
 }
 
 function isStructuredPromptInput(value) {
@@ -516,26 +895,6 @@ function resolvePromptTemplateType(source) {
   return asText(source?.manifest?.inference?.chatTemplate?.type);
 }
 
-function buildDefaultGenerationPrompt(templateType) {
-  if (templateType === 'qwen') {
-    return clonePromptInput(DEFAULT_QWEN_PROMPT);
-  }
-  if (templateType === 'translategemma') {
-    return clonePromptInput(DEFAULT_TRANSLATEGEMMA_PROMPT);
-  }
-  return DEFAULT_HARNESS_PROMPT;
-}
-
-function shouldPreferModelDefaultPrompt(runtimePrompt, templateType) {
-  if (templateType !== 'translategemma' && templateType !== 'qwen') {
-    return false;
-  }
-  if (typeof runtimePrompt !== 'string') {
-    return false;
-  }
-  return runtimePrompt.trim() === DEFAULT_RUNTIME_PLACEHOLDER_PROMPT;
-}
-
 function assertPromptContract(runtimePrompt, templateType, source = 'runtime.inference.prompt') {
   if (templateType !== 'translategemma') {
     return;
@@ -544,10 +903,6 @@ function assertPromptContract(runtimePrompt, templateType, source = 'runtime.inf
     return;
   }
   if (typeof runtimePrompt === 'string') {
-    const trimmed = runtimePrompt.trim();
-    if (!trimmed || trimmed === DEFAULT_RUNTIME_PLACEHOLDER_PROMPT) {
-      return;
-    }
     throw new Error(
       `TranslateGemma harness prompt contract violation: ${source} must be ` +
       '{ messages: [...] } with source_lang_code/target_lang_code blocks, not a plain string.'
@@ -563,7 +918,7 @@ function assertPromptContract(runtimePrompt, templateType, source = 'runtime.inf
 
 function describePromptInput(promptInput) {
   if (typeof promptInput === 'string') {
-    return promptInput.trim() || DEFAULT_HARNESS_PROMPT;
+    return promptInput.trim() || '[empty prompt]';
   }
   if (isPlainObject(promptInput?.image) && typeof promptInput?.prompt === 'string') {
     const width = Number.isFinite(promptInput.image.width) ? promptInput.image.width : '?';
@@ -816,9 +1171,6 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
 
   const runtimePrompt = runtimeConfig?.inference?.prompt;
   assertPromptContract(runtimePrompt, templateType, 'runtimeConfig.inference.prompt');
-  if (shouldPreferModelDefaultPrompt(runtimePrompt, templateType)) {
-    return buildDefaultGenerationPrompt(templateType);
-  }
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
     return runtimePrompt;
   }
@@ -826,15 +1178,15 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
     return clonePromptInput(runtimePrompt);
   }
 
-  return buildDefaultGenerationPrompt(templateType);
+  throw new Error('Harness generation requires explicit runOverrides.prompt or runtime.inference.prompt.');
 }
 
 function resolveMaxTokens(runtimeConfig) {
   const runtimeMax = runtimeConfig?.inference?.generation?.maxTokens;
-  if (Number.isFinite(runtimeMax)) {
-    return Math.max(1, Math.floor(runtimeMax));
+  if (Number.isFinite(runtimeMax) && runtimeMax > 0) {
+    return Math.floor(runtimeMax);
   }
-  return DEFAULT_HARNESS_MAX_TOKENS;
+  throw new Error('Harness generation requires explicit runtime.inference.generation.maxTokens.');
 }
 
 function resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides = null) {
@@ -1242,8 +1594,68 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   if (Number.isFinite(stats.gpuTimePrefillMs)) gpu.prefillMs = stats.gpuTimePrefillMs;
   if (Number.isFinite(stats.gpuTimeDecodeMs)) gpu.decodeMs = stats.gpuTimeDecodeMs;
   if (Number.isFinite(stats.decodeRecordMs)) gpu.decodeRecordMs = stats.decodeRecordMs;
+  if (Number.isFinite(stats.decodeRecordOps)) gpu.decodeRecordOps = stats.decodeRecordOps;
+  if (Number.isFinite(stats.decodeRecordPasses)) gpu.decodeRecordPasses = stats.decodeRecordPasses;
+  const decodeRecordOpLabels = normalizeDecodeRecordOpLabels(stats.decodeRecordOpLabels);
+  if (decodeRecordOpLabels) {
+    const decodeRecordTopOps = buildDecodeRecordTopOps(decodeRecordOpLabels, stats.decodeRecordOps);
+    const decodeRecordTopOpGroups = buildDecodeRecordTopOpGroups(decodeRecordOpLabels, stats.decodeRecordOps);
+    gpu.decodeRecordOpLabels = decodeRecordOpLabels;
+    gpu.decodeRecordUniqueOpLabels = Object.keys(decodeRecordOpLabels).length;
+    gpu.decodeRecordTopOps = decodeRecordTopOps;
+    gpu.decodeRecordTopOpGroups = decodeRecordTopOpGroups;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordMs) &&
+    Number.isFinite(stats.decodeRecordOps) &&
+    stats.decodeRecordOps > 0
+  ) {
+    gpu.decodeRecordMsPerOp = stats.decodeRecordMs / stats.decodeRecordOps;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordMs) &&
+    Number.isFinite(stats.decodeRecordPasses) &&
+    stats.decodeRecordPasses > 0
+  ) {
+    gpu.decodeRecordMsPerPass = stats.decodeRecordMs / stats.decodeRecordPasses;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordOps) &&
+    Number.isFinite(stats.decodeRecordPasses) &&
+    stats.decodeRecordOps > 0
+  ) {
+    gpu.decodeRecordPassesPerOp = stats.decodeRecordPasses / stats.decodeRecordOps;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordPasses) &&
+    Number.isFinite(stats.batching?.executedBatchTokens) &&
+    stats.batching.executedBatchTokens > 0
+  ) {
+    gpu.decodeRecordPassesPerExecutedBatchToken = stats.decodeRecordPasses / stats.batching.executedBatchTokens;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordMs) &&
+    Number.isFinite(stats.batching?.executedBatchTokens) &&
+    stats.batching.executedBatchTokens > 0
+  ) {
+    gpu.decodeRecordMsPerExecutedBatchToken = stats.decodeRecordMs / stats.batching.executedBatchTokens;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordOps) &&
+    Number.isFinite(stats.batching?.executedBatchTokens) &&
+    stats.batching.executedBatchTokens > 0
+  ) {
+    gpu.decodeRecordOpsPerExecutedBatchToken = stats.decodeRecordOps / stats.batching.executedBatchTokens;
+  }
+  const uniformCacheStats = normalizeUniformCacheStats(stats.uniformCache);
+  if (uniformCacheStats) {
+    gpu.uniformCache = uniformCacheStats;
+  }
   if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
   if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
+  if (Number.isFinite(stats.decodeReadbackMapWaitMs)) gpu.decodeReadbackMapWaitMs = stats.decodeReadbackMapWaitMs;
+  if (Number.isFinite(stats.decodeReadbackCleanupMs)) gpu.decodeReadbackCleanupMs = stats.decodeReadbackCleanupMs;
+  if (Number.isFinite(stats.decodeReadbackCopyMs)) gpu.decodeReadbackCopyMs = stats.decodeReadbackCopyMs;
   if (Number.isFinite(stats.prefillRecordMs)) gpu.prefillRecordMs = stats.prefillRecordMs;
   if (Number.isFinite(stats.prefillSubmitWaitMs)) gpu.prefillSubmitWaitMs = stats.prefillSubmitWaitMs;
   if (
@@ -1257,6 +1669,9 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   }
   if (Number.isFinite(stats.singleTokenSubmitWaitMs)) gpu.singleTokenSubmitWaitMs = stats.singleTokenSubmitWaitMs;
   if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
+  if (Number.isFinite(stats.singleTokenReadbackMapWaitMs)) gpu.singleTokenReadbackMapWaitMs = stats.singleTokenReadbackMapWaitMs;
+  if (Number.isFinite(stats.singleTokenReadbackCleanupMs)) gpu.singleTokenReadbackCleanupMs = stats.singleTokenReadbackCleanupMs;
+  if (Number.isFinite(stats.singleTokenReadbackCopyMs)) gpu.singleTokenReadbackCopyMs = stats.singleTokenReadbackCopyMs;
   if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
   const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
   const batching = {};
@@ -1280,6 +1695,12 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   }
   if (Number.isFinite(stats.batching?.effectiveBatchTokens)) {
     batching.effectiveBatchTokens = stats.batching.effectiveBatchTokens;
+  }
+  if (Number.isFinite(stats.batching?.executedBatchTokens)) {
+    batching.executedBatchTokens = stats.batching.executedBatchTokens;
+  }
+  if (Number.isFinite(stats.batching?.resolvedBatchTokens)) {
+    batching.resolvedBatchTokens = stats.batching.resolvedBatchTokens;
   }
   if (Number.isFinite(stats.batching?.maxBatchTokenCap)) {
     batching.maxBatchTokenCap = stats.batching.maxBatchTokenCap;
@@ -1368,7 +1789,6 @@ export function isCoherentOutput(tokens, output) {
 }
 
 export async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
-  warnIfUsingDefaults(runtimeConfig);
   const tokens = [];
   const tokenIds = [];
   const tokenRecords = [];
@@ -1381,7 +1801,6 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     ? Math.max(1, Math.floor(runOverrides.maxTokens))
     : resolveMaxTokens(runtimeConfig);
   const sampling = {
-    ...DEFAULT_SAMPLING_DEFAULTS,
     ...(runtimeConfig.inference?.sampling || {}),
     ...(isPlainObject(runOverrides?.sampling) ? runOverrides.sampling : {}),
   };
@@ -1529,7 +1948,6 @@ export async function runTextInference(pipeline, runtimeConfig, runOverrides = n
 }
 
 export async function runEmbedding(pipeline, runtimeConfig, runOverrides = null) {
-  warnIfUsingDefaults(runtimeConfig);
   const prompt = typeof runOverrides?.prompt === 'string' && runOverrides.prompt.trim()
     ? runOverrides.prompt.trim()
     : resolvePrompt(runtimeConfig);

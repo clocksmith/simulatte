@@ -10,15 +10,24 @@ import { bootstrapNodeWebGPU } from '../../doppler/src/tooling/node-webgpu.js';
 const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const DEFAULT_MODEL_ID = 'google-embeddinggemma-300m-q4k-ehf16-af32';
+const DEFAULT_MODEL_ID = 'qwen-3-embedding-0-6b-q4k-ehf16-af32';
+const DEFAULT_MODEL_BASE_URL = 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32';
 const MODEL_DIR = process.env.SIMULATTE_EMBED_MODEL_DIR
   ? path.resolve(process.env.SIMULATTE_EMBED_MODEL_DIR)
   : path.resolve(ROOT, `../doppler/models/local/${DEFAULT_MODEL_ID}`);
-const OUT_PATH = path.join(ROOT, 'public/data/simulatte-embedder/primitive-index-v2.json');
+const MODEL_BASE_URL = String(
+  process.env.SIMULATTE_EMBED_MODEL_BASE_URL === undefined
+    ? DEFAULT_MODEL_BASE_URL
+    : process.env.SIMULATTE_EMBED_MODEL_BASE_URL
+).replace(/\/+$/, '');
+const OUT_PATH = process.env.SIMULATTE_PRIMITIVE_INDEX_OUT
+  ? path.resolve(process.env.SIMULATTE_PRIMITIVE_INDEX_OUT)
+  : path.join(ROOT, 'public/data/simulatte-embedder/primitive-index-v2.json');
 const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
 const INDEX_ID = process.env.SIMULATTE_PRIMITIVE_INDEX_ID
-  || 'simulatte-primitive-embeddinggemma-300m-index-v1';
+  || 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1';
 const CHILD_MODE = process.env.SIMULATTE_PRIMITIVE_CHILD === '1';
+const EMBEDDING_MODE = process.env.SIMULATTE_EMBEDDING_MODE || 'last';
 const CHUNK_SIZE = Math.max(
   1,
   Math.min(240, Number.parseInt(process.env.SIMULATTE_PRIMITIVE_CHUNK_SIZE || '120', 10) || 120)
@@ -85,6 +94,23 @@ function primitiveEmbeddingText(primitive) {
   ].join('\n').replace(/[ \t]+/g, ' ').trim();
 }
 
+async function loadModelManifest() {
+  if (MODEL_BASE_URL) {
+    const response = await fetch(`${MODEL_BASE_URL}/manifest.json`);
+    if (!response.ok) throw new Error(`Failed to fetch model manifest: ${response.status}`);
+    const manifestText = await response.text();
+    return { manifestText, manifest: JSON.parse(manifestText), modelSource: { url: MODEL_BASE_URL } };
+  }
+  const manifestPath = path.join(MODEL_DIR, 'manifest.json');
+  const manifestText = await fs.readFile(manifestPath, 'utf8');
+  return { manifestText, manifest: JSON.parse(manifestText), modelSource: { manifest: JSON.parse(manifestText), baseUrl: MODEL_DIR } };
+}
+
+function dopplerLoadSource(manifest) {
+  if (MODEL_BASE_URL) return { url: MODEL_BASE_URL };
+  return { manifest, baseUrl: MODEL_DIR };
+}
+
 function finiteFloat32Array(value, label) {
   const vector = value instanceof Float32Array ? value : null;
   if (!vector) throw new Error(`${label}: expected Float32Array`);
@@ -105,13 +131,11 @@ function expectedEmbeddingDim(manifest) {
 }
 
 async function main() {
-  const catalog = require('../public/pipeline/phase-06-simulation/simulatte-physics-catalog.js');
+  const catalog = require('../public/pipeline/phase-05-simulation/simulatte-physics-catalog.js');
   const primitives = catalog.PHYSICAL_PRIMITIVES || [];
   if (!primitives.length) throw new Error('No Simulatte primitives found');
 
-  const manifestPath = path.join(MODEL_DIR, 'manifest.json');
-  const manifestText = await fs.readFile(manifestPath, 'utf8');
-  const manifest = JSON.parse(manifestText);
+  const { manifestText, manifest } = await loadModelManifest();
   const manifestHash = { alg: 'sha256', hex: sha256HexText(manifestText) };
   const embedModelHash = configuredModelHash(manifestHash);
   if (manifest.modelId !== MODEL_ID) {
@@ -153,7 +177,7 @@ async function writeChildChunk({ manifest, documents }) {
   }
 
   console.log(`loading ${manifest.modelId}`);
-  const model = await doppler.load({ manifest, baseUrl: MODEL_DIR }, {
+  const model = await doppler.load(dopplerLoadSource(manifest), {
     onProgress: (event) => {
       const phase = String(event?.phase || '');
       if (phase === 'ready' || phase === 'load') {
@@ -195,7 +219,7 @@ async function embedDocumentsWithModel(model, manifest, documents, label) {
     console.log(`embedding ${label} ${start + 1}-${end} of ${prompts.length}`);
     const outputs = await model.embedBatch(prompts.slice(start, end), {
       useChatTemplate: false,
-      embeddingMode: 'mean',
+      embeddingMode: EMBEDDING_MODE,
       __skipStateSnapshot: true,
     });
     if (!Array.isArray(outputs) || outputs.length !== end - start) {

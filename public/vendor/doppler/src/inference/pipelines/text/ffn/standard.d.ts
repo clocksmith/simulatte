@@ -1,0 +1,26 @@
+/**
+ * Standard FFN Processing
+ *
+ * Handles FFN with standard architecture (LLaMA-style) where
+ * post-attention norm precedes the FFN block.
+ *
+ * @module inference/pipelines/text/ffn/standard
+ */
+
+import type { Tensor } from '../../../../gpu/tensor.js';
+import type { LayerContext, LayerWeights } from '../types.js';
+
+/**
+ * Process FFN with standard architecture (LLaMA-style).
+ */
+export declare function processFFNStandard(
+  layerIdx: number,
+  postAttn: Tensor,
+  numTokens: number,
+  size: number,
+  context: LayerContext,
+  layerWeights: LayerWeights | undefined,
+  fusedResidualInput?: Tensor | null,
+  finalOutputScale?: number | null,
+  residualBranchScale?: number | null
+): Promise<Tensor>;

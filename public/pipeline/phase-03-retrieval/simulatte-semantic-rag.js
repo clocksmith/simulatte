@@ -7,7 +7,7 @@
   }
 
   const catalog = typeof module === 'object' && module.exports
-    ? require('../phase-06-simulation/simulatte-physics-catalog.js')
+    ? require('../phase-05-simulation/simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
   if (!catalog) {
     markMissingDependency('SimulatteSemanticRag', 'SimulattePhysicsCatalog');
@@ -31,6 +31,9 @@
   const SEMANTIC_RAG_SCHEMA = 'simulatte.semanticRag.v1';
   const SYNTH_GRAPH_SCHEMA = 'simulatte.synthGraph.v1';
   const FEATURE_DIM = 384;
+  const FEATURE_MODEL_ID = 'simulatte-semantic-feature-v1';
+  const MODEL_VECTOR_SPACE = 'qwen-model-embedding';
+  const LOCAL_VECTOR_SPACE = 'simulatte-local-hashed-features';
   const TOKEN_RE = /[a-z0-9][a-z0-9'-]*/g;
   const STOPS = new Set([
     'a', 'an', 'and', 'are', 'as', 'be', 'build', 'by', 'create', 'for', 'from',
@@ -922,10 +925,11 @@
   function createSemanticRag(promptText = '', primitives = PHYSICAL_PRIMITIVES, options = {}) {
     const prompt = String(promptText || '').trim();
     const indexDocs = indexedPrimitiveDocs(options.primitiveIndex);
-    const promptVector = options.promptVector
+    const modelPromptVector = options.promptVector
       ? Float32Array.from(options.promptVector)
-      : buildSemanticFeatureVector(prompt);
-    const featureDim = promptVector.length || FEATURE_DIM;
+      : null;
+    const localPromptVector = buildSemanticFeatureVector(prompt);
+    const featureDim = localPromptVector.length || FEATURE_DIM;
     const candidateDocs = (primitives || []).map((primitive, index) => {
       const indexed = indexDocs.get(primitive.id);
       return indexed ? primitiveDocFromIndex(primitive, indexed, index) : primitiveDoc(primitive, index, featureDim);
@@ -934,16 +938,16 @@
     const groundingDocs = GROUNDING_BASIS_CARDS.map((card, index) => semanticCardDoc(card, index, 'grounding-basis', featureDim));
     const modelPriors = new Map((options.modelPriors || []).map((prior) => [prior.primitiveId, prior]));
     const retrieved = candidateDocs
-      .map((doc) => scoreDocument(promptVector, prompt, doc, modelPriors.get(doc.primitiveId)))
+      .map((doc) => scoreDocument({ modelPromptVector, localPromptVector }, prompt, doc, modelPriors.get(doc.primitiveId)))
       .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId))
       .slice(0, Number.isFinite(options.maxDocuments) ? options.maxDocuments : 60);
     const surfaceRetrieved = surfaceDocs
-      .map((doc) => scoreSemanticCard(promptVector, prompt, doc))
+      .map((doc) => scoreSemanticCard(localPromptVector, prompt, doc))
       .filter((doc) => doc.score > 0.08 || doc.directMatch)
       .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId))
       .slice(0, Number.isFinite(options.maxSurfaceDocuments) ? options.maxSurfaceDocuments : 72);
     const groundingRetrieved = groundingDocs
-      .map((doc) => scoreSemanticCard(promptVector, prompt, doc))
+      .map((doc) => scoreSemanticCard(localPromptVector, prompt, doc))
       .filter((doc) => doc.score > 0.06 || doc.directMatch)
       .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId))
       .slice(0, Number.isFinite(options.maxGroundingDocuments) ? options.maxGroundingDocuments : 64);
@@ -966,6 +970,8 @@
         id: 'simulatte-grid-style-semantic-rag.v1',
         family: indexDocs.size ? 'shipped-index-open-primitive-rag' : 'hashed-embedding-open-primitive-rag',
         featureDim,
+        queryVectorSpace: modelPromptVector ? MODEL_VECTOR_SPACE : LOCAL_VECTOR_SPACE,
+        localVectorSpace: LOCAL_VECTOR_SPACE,
         indexId: options.primitiveIndex && options.primitiveIndex.id || '',
         surfaceIndex: 'simulatte-semantic-surface-cards.v1',
         groundingIndex: 'simulatte-grounding-basis-cards.v1',
@@ -1288,6 +1294,7 @@
       domains: primitive.domains || [],
       text,
       vector: buildSemanticFeatureVector(text, dim),
+      vectorSpace: LOCAL_VECTOR_SPACE,
       index,
     };
   }
@@ -1315,6 +1322,7 @@
       domains: primitive.domains || [],
       text,
       vector: Float32Array.from(indexed.vector || []),
+      vectorSpace: MODEL_VECTOR_SPACE,
       index,
       indexed: true,
       textHash: indexed.textHash || '',
@@ -1331,6 +1339,7 @@
       domains: domainsForCard(card),
       text,
       vector: buildSemanticFeatureVector(text, dim),
+      vectorSpace: LOCAL_VECTOR_SPACE,
       index,
       card,
     };
@@ -1361,11 +1370,22 @@
     ].join(' ');
   }
 
-  function scoreDocument(promptVector, prompt, doc, modelPrior = null) {
-    const semantic = cosineDense(promptVector, doc.vector);
+  function scoreDocument(vectors = {}, prompt, doc, modelPrior = null) {
+    const usesModelVector = doc.vectorSpace === MODEL_VECTOR_SPACE &&
+      vectors.modelPromptVector &&
+      doc.vector &&
+      vectors.modelPromptVector.length === doc.vector.length;
+    const usesLocalVector = doc.vectorSpace === LOCAL_VECTOR_SPACE &&
+      vectors.localPromptVector &&
+      doc.vector &&
+      vectors.localPromptVector.length === doc.vector.length;
+    const semantic = usesModelVector ? cosineDense(vectors.modelPromptVector, doc.vector) : 0;
+    const localFeature = usesLocalVector ? cosineDense(vectors.localPromptVector, doc.vector) : 0;
     const lexical = lexicalOverlap(prompt, doc.text);
     const modelScore = modelPrior ? Number(modelPrior.score || 0) : 0;
-    const score = semantic * 0.48 + lexical * 0.22 + modelScore * 0.3;
+    const score = usesModelVector
+      ? semantic * 0.48 + lexical * 0.22 + modelScore * 0.3
+      : localFeature * 0.16 + lexical * 0.44 + modelScore * 0.4;
     return {
       primitiveId: doc.primitiveId,
       layer: doc.layer,
@@ -1373,6 +1393,9 @@
       domains: doc.domains,
       score: Number(clamp(score, 0, 1).toFixed(4)),
       semanticScore: Number(clamp(semantic, 0, 1).toFixed(4)),
+      featureScore: Number(clamp(localFeature, 0, 1).toFixed(4)),
+      semanticVectorSpace: usesModelVector ? MODEL_VECTOR_SPACE : '',
+      featureVectorSpace: usesLocalVector ? LOCAL_VECTOR_SPACE : '',
       lexicalScore: Number(clamp(lexical, 0, 1).toFixed(4)),
       modelScore: Number(clamp(modelScore, 0, 1).toFixed(4)),
       matchedTerms: matchedTerms(prompt, doc.text).slice(0, 8),
@@ -1380,13 +1403,15 @@
     };
   }
 
-  function scoreSemanticCard(promptVector, prompt, doc) {
-    const semantic = cosineDense(promptVector, doc.vector);
+  function scoreSemanticCard(localPromptVector, prompt, doc) {
+    const feature = localPromptVector && doc.vector && localPromptVector.length === doc.vector.length
+      ? cosineDense(localPromptVector, doc.vector)
+      : 0;
     const lexical = lexicalOverlap(prompt, doc.text);
     const direct = directLabelMatch(prompt, doc.labels);
     const curation = doc.card && doc.card.curation || cardCuration(doc.cardId, doc.type, doc.labels, {});
     const typeFit = promptTypeFit(prompt, doc.type);
-    const score = semantic * 0.28 + lexical * 0.28 + direct * 0.34 + curation.priority * 0.08 + typeFit * 0.02;
+    const score = feature * 0.18 + lexical * 0.36 + direct * 0.36 + curation.priority * 0.08 + typeFit * 0.02;
     return {
       cardId: doc.cardId,
       kind: doc.kind,
@@ -1394,7 +1419,10 @@
       labels: doc.labels,
       domains: doc.domains,
       score: Number(clamp(score, 0, 1).toFixed(4)),
-      semanticScore: Number(clamp(semantic, 0, 1).toFixed(4)),
+      semanticScore: 0,
+      featureScore: Number(clamp(feature, 0, 1).toFixed(4)),
+      semanticVectorSpace: '',
+      featureVectorSpace: LOCAL_VECTOR_SPACE,
       lexicalScore: Number(clamp(lexical, 0, 1).toFixed(4)),
       directScore: Number(clamp(direct, 0, 1).toFixed(4)),
       directMatch: direct > 0,
@@ -2336,6 +2364,7 @@
 
   return {
     FEATURE_DIM,
+    FEATURE_MODEL_ID,
     GROUNDING_BASIS_CARDS,
     SEMANTIC_RAG_SCHEMA,
     SEMANTIC_SURFACE_CARDS,

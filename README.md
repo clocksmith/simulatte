@@ -54,7 +54,7 @@ Example prompts are convenience inputs, not product boundaries.
 1. Runtime: load the browser runtime, model hooks, catalogs, and worker fallback.
 2. Language graph: preserve prompt spans, clauses, predicates, quantities,
    modifiers, negation, and causal language.
-3. Retrieval: use EmbeddingGemma and deterministic catalog retrieval to find
+3. Retrieval: use Qwen embedding, Qwen reranking, and deterministic catalog retrieval to find
    candidate primitives, materials, components, examples, causal rows, and
    visual cards.
 4. Activation cloud: bind spans to candidate meanings and visual signals.
@@ -100,17 +100,17 @@ App code is split around the four product components:
   evidence.
 - `public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js`: model-backed retrieval over
   precomputed primitive, surface-card, and universe indexes.
-- `public/pipeline/phase-04-activation/simulatte-activation-cloud.js`: span-to-candidate activations and
+- `public/pipeline/phase-03-retrieval/simulatte-activation-cloud.js`: span-to-candidate activations and
   native visual signal rows.
-- `public/pipeline/phase-05-grounded-intent/simulatte-grounded-interpretation.js`: accepted activations,
+- `public/pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js`: accepted activations,
   evidence bindings, unresolved spans, and coverage gaps.
-- `public/pipeline/phase-05-grounded-intent/simulatte-intent-forensics.js`: canonical intent brief assembly.
-- `public/pipeline/phase-05-grounded-intent/simulatte-universe-grounder.js`: grounded world graph and compact
+- `public/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js`: canonical intent brief assembly.
+- `public/pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js`: grounded world graph and compact
   downstream intent receipts.
-- `public/pipeline/phase-06-simulation/simulatte-physics-ir.js`: typed simulation IR.
-- `public/pipeline/phase-07-visual/simulatte-composition-graph.js`: VisualIR and graphics atom
+- `public/pipeline/phase-05-simulation/simulatte-physics-ir.js`: typed simulation IR.
+- `public/pipeline/phase-06-visual/simulatte-composition-graph.js`: VisualIR and graphics atom
   composition.
-- `public/pipeline/phase-08-render/simulatte-webgpu-renderer.js`: browser-native visual execution from
+- `public/pipeline/phase-07-render/simulatte-webgpu-renderer.js`: browser-native visual execution from
   compiled VisualIR and graphics atom uniforms.
 - `public/app/prompt/prompt-controller.js`: browser UI coordinator, prompt
   runtime, worker fallback, receipts, and live simulation loop.
@@ -145,14 +145,16 @@ npm run serve
 ```
 
 `npm run serve` serves `public/` and mounts the sibling Doppler repo at
-same-origin `/doppler/`. The intent manifest defaults to the pinned
-EmbeddingGemma artifact URL. For local artifact testing, pass an override such
-as
-`?embeddingModelBase=/doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32`.
+same-origin `/doppler/`. The intent manifest defaults to the pinned Qwen
+embedding and reranker artifact URLs. For local artifact testing, pass an
+override such as
+`?embeddingModelBase=/doppler/models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32`.
 
 ## Deployment
 
 This repo deploys static Firebase Hosting to project `simulatte-world`.
+The deploy preflight verifies that `public/vendor/doppler` matches the pinned
+`doppler-gpu@0.4.7` npm package before stamping the build.
 
 The machine has multiple Firebase accounts, so always check the active account
 before deploying:

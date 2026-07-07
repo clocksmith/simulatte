@@ -38,7 +38,7 @@ import {
   createMatmulBindGroupLayout,
   getMatmulPipeline,
 } from './matmul-dispatch.js';
-import { __dbgRecord } from './utils.js';
+import { RECORD_STAGE_DEBUG_ENABLED, __dbgRecord, getPipelineBindGroupLayout } from './utils.js';
 
 export { isFusedQ4KDisabled, selectMatmulKernel };
 export { createMatmulBindGroupLayout };
@@ -140,10 +140,10 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     || variant === 'q4_fused_prefill_tiled_f16'
     || variant === 'q4_fused_widetile_f16'
     || variant === 'q4_fused_widetile_f16a';
-  // 5-entry WideTile epilogue/prologue variants: output at binding 3 + one
+  // 5-entry Q4K epilogue/prologue variants: output at binding 3 + one
   // extra read-only buffer at binding 4 (residual for _residual, norm weight
   // for _rmsnorm). Distinct from isQ4KF16 (which puts output at binding 4).
-  const isWideTileResidual = variant === 'q4_fused_widetile_residual';
+  const isQ4KResidual = variant === 'q4_fused_widetile_residual';
   const isWideTileRmsnorm = variant === 'q4_fused_rmsnorm_widetile';
   const isW4A16 = variant.startsWith('w4a16_');
 
@@ -157,7 +157,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     assertBindGroupBuffer('matmul', variant, 3, 'scales', scaleBuffer);
   }
   assertBindGroupBuffer('matmul', variant, (isQ4KF16 || isW4A16) ? 4 : 3, 'output', outputBuffer);
-  if (isWideTileResidual) {
+  if (isQ4KResidual) {
     if (!residualBuffer) {
       throw new Error(`[Matmul] variant "${variant}" requires a residual buffer but none was provided.`);
     }
@@ -195,7 +195,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
       binding: 3,
       resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
     });
-    if (isWideTileResidual) {
+    if (isQ4KResidual) {
       entries.push({
         binding: 4,
         resource: { buffer: residualBuffer },
@@ -212,7 +212,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
   return entries;
 }
 
-function resolvePreferredWeightDtype(variant, hasQ4KMaterialization) {
+function resolvePreferredWeightDtype(variant, hasQ4KMaterialization, capabilities) {
   if (typeof variant !== 'string' || variant.length === 0) {
     return null;
   }
@@ -232,7 +232,49 @@ function resolvePreferredWeightDtype(variant, hasQ4KMaterialization) {
   return selectKernelRuleValue('matmul', 'preferredWeightDtype', {
     variantWeightDtype,
     hasQ4KMaterialization,
+    hasSubgroups: capabilities?.hasSubgroups === true,
   });
+}
+
+function buildF16CapabilityErrorDetail({
+  role,
+  layerIdx,
+  pathVariant,
+  preferredWeightDtype,
+  weightDtype,
+  weightLabel,
+  weightLayout,
+  weightShape,
+  hasQ4KMaterialization,
+}) {
+  const parts = [];
+  if (role) parts.push(`role=${role}`);
+  if (Number.isFinite(layerIdx)) parts.push(`layer=${layerIdx}`);
+  if (pathVariant) parts.push(`variant=${pathVariant}`);
+  if (preferredWeightDtype) parts.push(`preferredWeightDtype=${preferredWeightDtype}`);
+  if (weightDtype) parts.push(`weightDtype=${weightDtype}`);
+  if (weightLabel) parts.push(`label=${weightLabel}`);
+  if (weightLayout) parts.push(`layout=${weightLayout}`);
+  if (weightShape) parts.push(`shape=${weightShape}`);
+  if (hasQ4KMaterialization) parts.push('q4kMaterialization=true');
+  return parts.length > 0 ? ` (${parts.join(', ')})` : '';
+}
+
+function requireMatmulOutputDtype(dtype, opLabel) {
+  if (dtype === 'f16' || dtype === 'f32') {
+    return dtype;
+  }
+  throw new Error(`[${opLabel}] options.outputDtype is required and must be "f16" or "f32", got ${String(dtype)}.`);
+}
+
+function requireMatmulWeightDtype(dtype, opLabel, details = []) {
+  if (dtype != null && dtype !== '') {
+    return dtype;
+  }
+  const suffix = details.filter(Boolean).length > 0
+    ? ` (${details.filter(Boolean).join(', ')})`
+    : '';
+  throw new Error(`[${opLabel}] B dtype is required for matmul dispatch${suffix}.`);
 }
 
 async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
@@ -254,7 +296,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
   const hasQ4KMat = isWeightBuffer(B) && B.materializations?.q4k?.buffer != null;
-  const preferredWeightDtype = resolvePreferredWeightDtype(pathVariant, hasQ4KMat);
+  const preferredWeightDtype = resolvePreferredWeightDtype(pathVariant, hasQ4KMat, capabilities);
   const resolvedWeight = resolveWeightBufferMaterialization(B, preferredWeightDtype);
   const bBuffer = getBuffer(resolvedWeight);
   const weightDtype = getWeightDtype(resolvedWeight);
@@ -278,18 +320,30 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   validateMatmulDimensions(opLabel, M, N, K);
 
   const aDtype = toMatmulDtype(A.dtype);
-  const bDtype = toMatmulDtype(weightDtype ?? options.bDtype);
-  const requestedOutputDtype = options.outputDtype || A.dtype;
+  const rawBDtype = requireMatmulWeightDtype(weightDtype ?? options.bDtype, opLabel, [
+    options.role ? `role=${options.role}` : null,
+    Number.isFinite(options.layerIdx) ? `layer=${options.layerIdx}` : null,
+    weightLabel ? `label=${weightLabel}` : null,
+  ]);
+  const bDtype = toMatmulDtype(rawBDtype);
+  const requestedOutputDtype = requireMatmulOutputDtype(options.outputDtype, opLabel);
 
   if (bDtype === 'f16' && capabilities?.hasF16 !== true) {
-    throw new Error(`[${opLabel}] f16 weights require shader-f16 support.`);
+    const detail = buildF16CapabilityErrorDetail({
+      role: options.role,
+      layerIdx: options.layerIdx,
+      pathVariant,
+      preferredWeightDtype,
+      weightDtype,
+      weightLabel,
+      weightLayout,
+      weightShape,
+      hasQ4KMaterialization: hasQ4KMat,
+    });
+    throw new Error(`[${opLabel}] f16 weights require shader-f16 support.${detail}`);
   }
   if (requestedOutputDtype === 'f16' && capabilities?.hasF16 !== true) {
     throw new Error(`[${opLabel}] f16 output requires shader-f16 support.`);
-  }
-
-  if (!isRecord && isTraceEnabled('kernels') && !weightDtype && !options.bDtype && M <= 2) {
-    log.warn('Matmul', `runMatmul: B buffer dtype unknown! size=${bBuffer.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
 
   validateMatmulOffsets(opLabel, aOffset, bOffset, cOffset);
@@ -298,6 +352,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const effectiveOptions = (
     options.useTiledQ4KPrefill == null
     || options.useWideTileQ4KPrefill == null
+    || options.useWideTileQ4KDecode == null
     || options.useWideTileResidualFusion == null
     || options.useFusedRmsnormWideTile == null
   )
@@ -305,6 +360,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
         ...options,
         useTiledQ4KPrefill: options.useTiledQ4KPrefill ?? (runtimeSession?.useTiledQ4KPrefill === true),
         useWideTileQ4KPrefill: options.useWideTileQ4KPrefill ?? (runtimeSession?.useWideTileQ4KPrefill === true),
+        useWideTileQ4KDecode: options.useWideTileQ4KDecode ?? (runtimeSession?.useWideTileQ4KDecode === true),
         useWideTileResidualFusion: options.useWideTileResidualFusion ?? (runtimeSession?.useWideTileResidualFusion === true),
         useFusedRmsnormWideTile: options.useFusedRmsnormWideTile ?? (runtimeSession?.useFusedRmsnormWideTile === true),
       }
@@ -491,7 +547,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   let ownsOutput = false;
   let dispatchPlan;
   try {
-    __dbg = (typeof process !== "undefined" ? process : { env: {} }).env.DOPPLER_DBG_RECORD === '1';
+    __dbg = RECORD_STAGE_DEBUG_ENABLED;
     __t0 = __dbg ? performance.now() : 0;
     config = getMatmulConfig(variant, constants);
     kernel = new MatmulKernel(device);
@@ -580,7 +636,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     const __tBgStart = __dbg ? performance.now() : 0;
     const bindGroup = device.createBindGroup({
       label: 'matmul_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries,
     });
     const __tBg = __dbg ? performance.now() : 0;
