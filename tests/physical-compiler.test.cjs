@@ -497,12 +497,17 @@ test('phase envelopes enforce neighboring pipeline handoffs', () => {
   assert.equal(phases.phase5.artifact.simulationCompile.physicsIR.schema, 'simulatte.physicalIR.v1');
   assert.equal(phases.phase6.artifact.visualCompile.sceneRenderPacket.schema, 'simulatte.sceneRenderPacket.v1');
 
-	  const renderExecutionInput = lab.createRenderExecutionInput(spec, { t: 0 }, {});
-	  assert.equal(renderExecutionInput.schema, 'simulatte.renderExecutionInput.v1');
-	  assert.equal(renderExecutionInput.inputSchema, 'simulatte.phase6.output.v2');
-	  assert.equal(renderExecutionInput.sceneRenderPacket, phases.phase6.artifact.visualCompile.sceneRenderPacket);
-	  assert.equal(renderExecutionInput.compositionLedger.schema, 'simulatte.sceneCompositionLedger.v1');
-	  assert.ok(Array.isArray(renderExecutionInput.visualObligations));
+  const renderExecutionInput = lab.createRenderExecutionInput(spec, { t: 0 }, {});
+  assert.equal(renderExecutionInput.schema, 'simulatte.renderExecutionInput.v1');
+  assert.equal(renderExecutionInput.inputSchema, 'simulatte.phase6.output.v2');
+  assert.equal(renderExecutionInput.sceneRenderPacket, phases.phase6.artifact.visualCompile.sceneRenderPacket);
+  assert.equal(renderExecutionInput.compositionLedger.schema, 'simulatte.sceneCompositionLedger.v1');
+  assert.ok(Array.isArray(renderExecutionInput.visualObligations));
+
+  const directPhase6Input = lab.createRenderExecutionInput(phases.phase6, { t: 1 }, {});
+  assert.equal(directPhase6Input.schema, 'simulatte.renderExecutionInput.v1');
+  assert.equal(directPhase6Input.inputSchema, 'simulatte.phase6.output.v2');
+  assert.equal(directPhase6Input.sceneRenderPacket, phases.phase6.artifact.visualCompile.sceneRenderPacket);
   assert.equal('prompt' in renderExecutionInput, false);
   assert.equal('intent' in renderExecutionInput, false);
   assert.equal('renderIR' in renderExecutionInput, false);
@@ -1058,4 +1063,17 @@ test('solver registry delegates executable operator steps to solver modules', ()
 
   assert.equal(typeof advectionSolver.step, 'function');
   assert.equal(operator.step, advectionSolver.step);
+});
+
+test('primitive retrieval uses catalog retrievability policy without hardcoded exclusions', () => {
+  assert.equal(lab.isRetrievablePrimitive('energy-ledger'), false);
+  assert.ok(!lab.rankPhysicalPrimitives('energy ledger conservation accounting', { max: 32 })
+    .some((primitive) => primitive.id === 'energy-ledger'));
+
+  const catalogSource = require('node:fs').readFileSync(
+    require('node:path').join(__dirname, '..', 'public', 'pipeline', 'phase-05-simulation', 'simulatte-physics-catalog.js'),
+    'utf8'
+  );
+  assert.doesNotMatch(catalogSource, /primitive\.id !== 'energy-ledger'/);
+  assert.match(catalogSource, /\.filter\(\(primitive\) => isRetrievablePrimitive\(primitive\)\)/);
 });

@@ -38,10 +38,11 @@
     './pipeline/phase-05-simulation/simulatte-render-registry.js',
     './pipeline/phase-05-simulation/simulatte-render-ir.js',
     './pipeline/phase-06-visual/simulatte-visual-operator-atlas.js',
-    './pipeline/phase-06-visual/simulatte-visual-operator-compiler.js',
-    './pipeline/phase-06-visual/simulatte-composition-graph.js',
-    './pipeline/phase-07-render/simulatte-webgpu-renderer.js',
-    './pipeline/phase-05-simulation/simulatte-physics-model.js',
+	    './pipeline/phase-06-visual/simulatte-visual-operator-compiler.js',
+	    './pipeline/phase-06-visual/simulatte-composition-graph.js',
+	    './pipeline/phase-07-render/simulatte-webgpu-renderer.js',
+	    './pipeline/phase-08-scene-proof/simulatte-scene-proof.js',
+	    './pipeline/phase-05-simulation/simulatte-physics-model.js',
     './app/runtime/runtime-progress.js',
     './app/prompt/prompt-controller.js',
     './app/simulation/simulation-lab.js',
@@ -55,10 +56,11 @@
     'SimulatteLanguageEvidence',
     'SimulatteCompositionGraph',
     'SimulattePhysicsModel',
-    'SimulatteRuntimeProgress',
-    'SimulattePhysicsRenderer',
-    'SimulattePhysicsLab',
-  ];
+	    'SimulatteRuntimeProgress',
+	    'SimulattePhysicsRenderer',
+	    'SimulatteSceneProof',
+	    'SimulattePhysicsLab',
+	  ];
 
   const state = root.SimulatteBoot = root.SimulatteBoot || { failedScripts: [] };
   state.recovered = false;

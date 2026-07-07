@@ -493,10 +493,12 @@
         const sceneProof = this.phase8Output.artifact.sceneProof;
         this.canvas.dataset.phase8Output = this.phase8Output.schema;
         this.canvas.dataset.sceneProofVerdict = sceneProof.verdict;
+        this.canvas.dataset.sceneProofError = '';
         this.canvas.dataset.sceneProofLostCount = String(sceneProof.summary.lostCount);
         this.canvas.dataset.sceneProofNotProvenCount = String(sceneProof.summary.notProvenCount);
       } catch (error) {
         this.phase8Output = null;
+        this.canvas.dataset.phase8Output = '';
         this.canvas.dataset.sceneProofVerdict = 'error';
         this.canvas.dataset.sceneProofError = error && error.message ? error.message : String(error);
       }
@@ -1071,11 +1073,14 @@
 	    };
 	  }
 
-	  function scenePacketIdentitySummary(sceneRenderPacket = {}) {
-	    return Array.from(new Set((sceneRenderPacket.entities || [])
-	      .map((row) => row.identity && (row.identity.label || row.identity.type))
-	      .filter(Boolean)));
-	  }
+		  function scenePacketIdentitySummary(sceneRenderPacket = {}) {
+		    return Array.from(new Set((sceneRenderPacket.entities || [])
+		      .flatMap((row) => {
+		        const identity = row.identity || {};
+		        return [identity.label, identity.type, identity.sourceLabel, row.label, row.id];
+		      })
+		      .filter(Boolean)));
+		  }
 
 		  function renderObligationProof(sceneRenderPacket = {}, visualObligations = [], compositionLedger = null, rendered = false, renderData = null) {
 	    const identities = new Set((sceneRenderPacket.entities || [])
@@ -1766,10 +1771,10 @@
     return (hash >>> 0) / 4294967295;
   }
 
-  function scenePacketIdentityLabel(row = {}) {
-    const identity = row.identity || {};
-    return identity.label || identity.type || row.label || row.id || row.layerSlot || 'object';
-  }
+	  function scenePacketIdentityLabel(row = {}) {
+	    const identity = row.identity || {};
+	    return identity.sourceLabel || identity.label || identity.type || row.label || row.id || row.layerSlot || 'object';
+	  }
 
   function scenePacketIdentitySummary(packet, sceneKind = '') {
     const drawables = scenePacketUniformDrawables(packet, sceneKind).slice(0, SCENE_PACKET_OBJECT_SLOTS);

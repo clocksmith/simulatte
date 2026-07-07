@@ -2905,10 +2905,10 @@
     const prompt = String(promptText || '').trim();
     if (!prompt) return [];
     const max = Number.isFinite(options.max) ? options.max : 32;
-    const intentVector = buildIntentVector(prompt);
-    const ranked = PHYSICAL_PRIMITIVES
-      .filter((primitive) => primitive.id !== 'energy-ledger')
-      .map((primitive) => {
+	    const intentVector = buildIntentVector(prompt);
+	    const ranked = PHYSICAL_PRIMITIVES
+	      .filter((primitive) => isRetrievablePrimitive(primitive))
+	      .map((primitive) => {
         const candidateVector = buildIntentVector(primitiveText(primitive));
         const score = vectorScore(intentVector, candidateVector) + explicitPrimitiveScore(prompt, primitive);
         return { ...primitive, score: Number(score.toFixed(4)) };

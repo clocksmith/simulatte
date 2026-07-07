@@ -1503,9 +1503,16 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /Phase 7 pixel readback failed/);
   assert.match(tool, /Phase 7 renderExecutionInput dataset is/);
   assert.match(tool, /simulatte\.renderExecutionInput\.v1/);
-  assert.match(tool, /phaseArtifactSchemas/);
-  assert.match(tool, /phase7Output/);
-  assert.match(tool, /const visualIR = phase6VisualCompile && phase6VisualCompile\.visualIR \|\| null/);
+	  assert.match(tool, /phaseArtifactSchemas/);
+	  assert.match(tool, /EXPECTED_PHASE_OUTPUT_SCHEMAS/);
+	  assert.match(tool, /phase3: 'simulatte\.phase3\.output\.v2'/);
+	  assert.match(tool, /phase7: 'simulatte\.phase7\.output\.v2'/);
+	  assert.match(tool, /phase7Output/);
+	  assert.match(tool, /phaseArtifactSchemas\.phase7 = canvas && canvas\.dataset \? canvas\.dataset\.phase7Output \|\| '' : ''/);
+	  assert.match(tool, /sceneProofError/);
+	  assert.match(tool, /Phase 8 output is/);
+	  assert.match(tool, /Scene Proof errored/);
+	  assert.match(tool, /const visualIR = phase6VisualCompile && phase6VisualCompile\.visualIR \|\| null/);
   assert.match(tool, /const sceneRenderPacket = phase6VisualCompile && phase6VisualCompile\.sceneRenderPacket \|\| null/);
   assert.doesNotMatch(tool, /program && program\.visualIR/);
   assert.doesNotMatch(tool, /program && program\.sceneRenderPacket/);
@@ -1516,8 +1523,12 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /sceneRenderSpatialHash/);
   assert.match(tool, /sceneObjectUniforms/);
   assert.match(tool, /sceneObjectIdentities/);
-  assert.match(tool, /visualIRSceneRenderPacketSchema/);
-  assert.match(tool, /visualIRSceneRenderPacketIdentities/);
+	  assert.match(tool, /visualIRSceneRenderPacketSchema/);
+	  assert.match(tool, /visualIRSceneRenderPacketIdentities/);
+
+  const main = fs.readFileSync(path.join(root, 'public', 'app', 'main.js'), 'utf8');
+  assert.match(main, /phase-08-scene-proof\/simulatte-scene-proof\.js/);
+  assert.match(main, /'SimulatteSceneProof'/);
   assert.match(tool, /intentMode !== 'model'/);
   assert.match(tool, /if \(options\.intentMode !== 'model'\) \{\n\s+url\.searchParams\.set\('auditNoInitial', '1'\)/);
   assert.match(tool, /Simulatte UI ready[\s\S]*timeoutMs, \{ extendOnProgress: intentMode === 'model' \}/);

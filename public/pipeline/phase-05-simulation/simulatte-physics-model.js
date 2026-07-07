@@ -3333,10 +3333,10 @@
     return createVisualCompileEnvelope(phase5Output, compositionGraph);
   }
 
-  function createRenderExecutionInput(source = {}, simulationState = null, canvas = null) {
-    const phase6Output = source && source.schema === phaseOutputSchema(7)
-      ? source
-      : source && source.phaseArtifacts && source.phaseArtifacts.phase6 || null;
+	  function createRenderExecutionInput(source = {}, simulationState = null, canvas = null) {
+	    const phase6Output = source && source.schema === phaseOutputSchema(6)
+	      ? source
+	      : source && source.phaseArtifacts && source.phaseArtifacts.phase6 || null;
     if (!phase6Output) {
       throw new Error(`renderExecutionInput source expected ${phaseOutputSchema(6)}, received ${source && source.schema || 'missing phase6 artifact'}`);
     }
@@ -3443,11 +3443,14 @@
 	    });
 	  }
 
-	  function scenePacketIdentitySummary(sceneRenderPacket = {}) {
-	    return Array.from(new Set((sceneRenderPacket.entities || [])
-	      .map((row) => row.identity && (row.identity.label || row.identity.type))
-	      .filter(Boolean)));
-	  }
+		  function scenePacketIdentitySummary(sceneRenderPacket = {}) {
+		    return Array.from(new Set((sceneRenderPacket.entities || [])
+		      .flatMap((row) => {
+		        const identity = row.identity || {};
+		        return [identity.label, identity.type, identity.sourceLabel, row.label, row.id];
+		      })
+		      .filter(Boolean)));
+		  }
 
 		  function renderObligationProof(sceneRenderPacket = {}, visualObligations = [], compositionLedger = null, frameReceipt = {}) {
 	    const identities = new Set((sceneRenderPacket.entities || [])

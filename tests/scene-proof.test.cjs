@@ -90,8 +90,32 @@ test('scene proof reports not-proven without a rendered frame and rejects wrong 
     () => sceneProof.settleSceneProof(spec.phaseArtifacts.phase6),
     /Phase 8 input expected simulatte\.phase7\.output\.v2/
   );
-  assert.throws(
-    () => sceneProof.settleSceneProof(null),
-    /Phase 8 input expected simulatte\.phase7\.output\.v2/
-  );
+	  assert.throws(
+	    () => sceneProof.settleSceneProof(null),
+	    /Phase 8 input expected simulatte\.phase7\.output\.v2/
+	  );
+});
+
+test('scene proof normalizes browser renderer identity summary receipts', () => {
+  const phase7 = renderedPhase7('dogs and cats swimming in a lake');
+  const browserShaped = {
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        packetIdentitySummary: {
+          schema: 'simulatte.browserPacketIdentitySummary.v1',
+          identities: phase7.artifact.renderExecution.packetIdentitySummary.map((identity) => ({
+            label: identity,
+          })),
+        },
+      },
+    },
+  };
+  const phase8 = sceneProof.settleSceneProof(browserShaped);
+
+  assert.equal(phase8.schema, 'simulatte.phase8.output.v2');
+  assert.ok(Array.isArray(phase8.artifact.sceneProof.evidence.packetIdentitySummary));
+  assert.ok(phase8.artifact.sceneProof.evidence.packetIdentitySummary.includes('dog'));
 });

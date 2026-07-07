@@ -13,6 +13,15 @@ import zlib from 'node:zlib';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-intent-scene-audit');
+const EXPECTED_PHASE_OUTPUT_SCHEMAS = Object.freeze({
+  phase1: 'simulatte.phase1.output.v1',
+  phase2: 'simulatte.phase2.output.v1',
+  phase3: 'simulatte.phase3.output.v2',
+  phase4: 'simulatte.phase4.output.v2',
+  phase5: 'simulatte.phase5.output.v2',
+  phase6: 'simulatte.phase6.output.v2',
+  phase7: 'simulatte.phase7.output.v2',
+});
 const CHROME_CANDIDATES = [
   process.env.CHROME_BIN,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -783,10 +792,11 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     } catch (_err) {}
     const specForIntent = browserSpec || modelSpec || parsed || null;
     const phaseArtifacts = specForIntent && specForIntent.phaseArtifacts || {};
-    const phaseArtifactSchemas = Object.fromEntries(Array.from({ length: 7 }, (_, index) => {
+    const phaseArtifactSchemas = Object.fromEntries(Array.from({ length: 6 }, (_, index) => {
       const key = 'phase' + (index + 1);
       return [key, phaseArtifacts[key] && phaseArtifacts[key].schema || ''];
     }));
+    phaseArtifactSchemas.phase7 = canvas && canvas.dataset ? canvas.dataset.phase7Output || '' : '';
     const phase6VisualCompile = phaseArtifacts.phase6 &&
       phaseArtifacts.phase6.artifact &&
       phaseArtifacts.phase6.artifact.visualCompile || null;
@@ -852,6 +862,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7OutputInput: canvas && canvas.dataset ? canvas.dataset.phase7OutputInput || '' : '',
       phase8Output: canvas && canvas.dataset ? canvas.dataset.phase8Output || '' : '',
       sceneProofVerdict: canvas && canvas.dataset ? canvas.dataset.sceneProofVerdict || '' : '',
+      sceneProofError: canvas && canvas.dataset ? canvas.dataset.sceneProofError || '' : '',
       sceneProofLostCount: canvas && canvas.dataset ? canvas.dataset.sceneProofLostCount || '0' : '0',
       sceneProofNotProvenCount: canvas && canvas.dataset ? canvas.dataset.sceneProofNotProvenCount || '0' : '0',
       phase7RenderData: canvas && canvas.dataset ? canvas.dataset.phase7RenderData || '' : '',
@@ -1234,16 +1245,20 @@ function analyze(results) {
     if (result.webgpuSceneInstanceCount < 1) {
       failures.push(`${result.index}: WebGPU scene instance buffer is empty`);
     }
-    if (result.webgpuStorageBytes < 3000) {
-      failures.push(`${result.index}: WebGPU scene storage receipt is missing`);
+	    if (result.webgpuStorageBytes < 3000) {
+	      failures.push(`${result.index}: WebGPU scene storage receipt is missing`);
+	    }
+    if (result.phase8Output !== 'simulatte.phase8.output.v2') {
+      failures.push(`${result.index}: Phase 8 output is ${result.phase8Output || 'missing'}${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
     }
-    for (let phase = 1; phase <= 7; phase += 1) {
-      const key = `phase${phase}`;
-      const expectedSchema = `simulatte.phase${phase}.output.v1`;
-      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
-        failures.push(`${result.index}: ${key} artifact schema missing`);
-      }
+    if (result.sceneProofVerdict === 'error') {
+      failures.push(`${result.index}: Scene Proof errored${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
     }
+	    for (const [key, expectedSchema] of Object.entries(EXPECTED_PHASE_OUTPUT_SCHEMAS)) {
+	      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
+	        failures.push(`${result.index}: ${key} artifact schema is ${result.phaseArtifactSchemas && result.phaseArtifactSchemas[key] || 'missing'}, expected ${expectedSchema}`);
+	      }
+	    }
     if (result.phaseArtifactSchemas && result.phaseArtifactSchemas.phase6 === 'simulatte.phase6.output.v2' &&
       result.visualIRSceneRenderPacketSchema !== 'simulatte.sceneRenderPacket.v1') {
       failures.push(`${result.index}: Phase 6 visualCompile sceneRenderPacket missing`);

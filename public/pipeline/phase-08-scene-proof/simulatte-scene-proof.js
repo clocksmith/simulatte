@@ -17,7 +17,8 @@
     const renderExecution = phase7Output.artifact.renderExecution;
     const sourceLedger = phase7Output.artifact.compositionLedger || { obligations: [], entries: [] };
     const rendered = renderExecution.rendered === true && Number(renderExecution.renderCount || 0) > 0;
-    const identities = new Set((renderExecution.packetIdentitySummary || [])
+    const packetIdentitySummary = normalizePacketIdentitySummary(renderExecution.packetIdentitySummary);
+    const identities = new Set(packetIdentitySummary
       .map((value) => normalizeProofText(value))
       .filter(Boolean));
     const visualProofByObligation = new Map((renderExecution.visualObligationProof || [])
@@ -50,7 +51,7 @@
       settledObligations,
       summary,
       evidence: {
-        packetIdentitySummary: (renderExecution.packetIdentitySummary || []).slice(),
+        packetIdentitySummary,
         pixelAuditStatus: renderExecution.pixelAudit && renderExecution.pixelAudit.status || '',
         renderCount: Number(renderExecution.renderCount || 0),
         visualObligationProofSummary: renderExecution.visualObligationProofSummary || null,
@@ -85,7 +86,7 @@
     };
   }
 
-  function validatePhase7Input(phase7Output) {
+	  function validatePhase7Input(phase7Output) {
     if (!phase7Output || phase7Output.schema !== PHASE7_OUTPUT_SCHEMA || Number(phase7Output.phase) !== 7) {
       const received = phase7Output && phase7Output.schema ? phase7Output.schema : typeof phase7Output;
       throw new Error(`Phase 8 input expected ${PHASE7_OUTPUT_SCHEMA}, received ${received}`);
@@ -97,7 +98,32 @@
     if (!artifact.compositionLedger || !Array.isArray(artifact.compositionLedger.obligations)) {
       throw new Error('Phase 8 input expected artifact.compositionLedger.obligations to settle');
     }
-    return phase7Output;
+	    return phase7Output;
+	  }
+
+  function normalizePacketIdentitySummary(source = null) {
+    const values = [];
+    collectIdentitySummaryValues(source, values);
+    return Array.from(new Set(values.map((value) => String(value || '').trim()).filter(Boolean)));
+  }
+
+  function collectIdentitySummaryValues(source, values) {
+    if (!source) return;
+    if (Array.isArray(source)) {
+      for (const item of source) collectIdentitySummaryValues(item, values);
+      return;
+    }
+    if (typeof source === 'string' || typeof source === 'number') {
+      values.push(source);
+      return;
+    }
+    if (typeof source !== 'object') return;
+    for (const key of ['label', 'type', 'identity', 'target', 'id']) {
+      if (source[key] && typeof source[key] !== 'object') values.push(source[key]);
+    }
+    for (const key of ['identities', 'identitySummary', 'rows', 'items', 'values', 'labels']) {
+      if (source[key]) collectIdentitySummaryValues(source[key], values);
+    }
   }
 
   function settleObligation(row = {}, context = {}) {
@@ -112,11 +138,9 @@
       sourceStatus: row.status || '',
       evidence: [],
     };
+    const carriedFailure = LEDGER_FAILURE_STATUSES.has(String(row.status || ''));
     if (!context.rendered) {
       return { ...base, status: 'not-proven', reason: 'no rendered frame to settle against' };
-    }
-    if (LEDGER_FAILURE_STATUSES.has(String(row.status || ''))) {
-      return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
     }
     if (String(row.status || '') === 'unsupported') {
       return { ...base, status: 'unsupported', reason: 'carried unsupported status' };
@@ -126,15 +150,21 @@
       if (proof && proof.status === 'pass') {
         return { ...base, status: 'preserved', reason: 'visual pixel proof passed', evidence: ['visualObligationProof'] };
       }
+      if (carriedFailure) {
+        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
+      }
       if (proof && proof.status === 'fail') {
         return { ...base, status: base.required ? 'lost' : 'unsupported', reason: 'visual pixel proof failed', evidence: ['visualObligationProof'] };
       }
       return { ...base, status: 'not-proven', reason: 'no visual pixel proof row for obligation' };
     }
-    if (row.kind === 'entity' || row.kind === 'environment' || row.kind === 'medium') {
+    if (row.kind === 'entity' || row.kind === 'object' || row.kind === 'environment' || row.kind === 'medium') {
       const identityTarget = normalizeProofText(target);
-      if (identityTarget && context.identities.has(identityTarget)) {
+      if (identityTarget && hasIdentityEvidence(context.identities, identityTarget)) {
         return { ...base, status: 'preserved', reason: 'identity present in scene render packet', evidence: ['packetIdentitySummary'] };
+      }
+      if (carriedFailure) {
+        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
       }
       return {
         ...base,
@@ -144,9 +174,12 @@
     }
     if (row.kind === 'relation') {
       const endpoints = relationEndpoints(row, obligationId);
-      const present = endpoints.filter((endpoint) => context.identities.has(endpoint));
+      const present = endpoints.filter((endpoint) => endpoint === 'world' || hasIdentityEvidence(context.identities, endpoint));
       if (endpoints.length && present.length === endpoints.length) {
         return { ...base, status: 'preserved', reason: 'relation endpoint identities present', evidence: ['packetIdentitySummary'] };
+      }
+      if (carriedFailure) {
+        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
       }
       if (endpoints.length && present.length === 0) {
         return { ...base, status: base.required ? 'lost' : 'unsupported', reason: 'relation endpoint identities missing' };
@@ -161,9 +194,30 @@
       if (visualMatch) {
         return { ...base, status: 'preserved', reason: 'action proven through passing visual obligation targets', evidence: ['visualObligationProof'] };
       }
+      if (actionTarget && hasIdentityEvidence(context.identities, actionTarget)) {
+        return { ...base, status: 'preserved', reason: 'action target present in scene render packet', evidence: ['packetIdentitySummary'] };
+      }
+      if (carriedFailure) {
+        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
+      }
       return { ...base, status: 'not-proven', reason: 'no render evidence channel for action motion yet' };
     }
+    if (carriedFailure) {
+      return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
+    }
     return { ...base, status: 'preserved', reason: 'carried non-failure status with rendered frame' };
+  }
+
+  function hasIdentityEvidence(identities, target) {
+    if (!target) return false;
+    for (const identity of identities || []) {
+      if (!identity) continue;
+      if (identity === target || identity.includes(target) || target.includes(identity)) return true;
+      const identityTerms = new Set(String(identity).split(/\s+/).filter((term) => term.length > 3));
+      const targetTerms = String(target).split(/\s+/).filter((term) => term.length > 3);
+      if (targetTerms.some((term) => identityTerms.has(term))) return true;
+    }
+    return false;
   }
 
   function relationEndpoints(row = {}, obligationId = '') {

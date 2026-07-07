@@ -257,12 +257,11 @@ function scorePrompt(row, index, lab, liveRows, options) {
 function buildContext(spec, prompt, expectedSignals, contentTerms) {
   const intent = spec && spec.intent || {};
   const brief = intent.intentBrief || {};
-  const phaseArtifacts = spec && spec.phaseArtifacts || {};
-  const phase2Artifact = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact || {};
-  const phase3Artifact = phaseArtifacts.phase3 && phaseArtifacts.phase3.artifact || {};
-  const phase4Artifact = phaseArtifacts.phase4 && phaseArtifacts.phase4.artifact || {};
-  const phase4Artifact = phaseArtifacts.phase4 && phaseArtifacts.phase4.artifact || {};
-  const phase5Artifact = phaseArtifacts.phase5 && phaseArtifacts.phase5.artifact || {};
+	  const phaseArtifacts = spec && spec.phaseArtifacts || {};
+	  const phase2Artifact = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact || {};
+	  const phase3Artifact = phaseArtifacts.phase3 && phaseArtifacts.phase3.artifact || {};
+	  const phase4Artifact = phaseArtifacts.phase4 && phaseArtifacts.phase4.artifact || {};
+	  const phase5Artifact = phaseArtifacts.phase5 && phaseArtifacts.phase5.artifact || {};
   const phase6Artifact = phaseArtifacts.phase6 && phaseArtifacts.phase6.artifact || {};
   const languageGraph = phase2Artifact.languageGraph || null;
   const retrievalRerankResult = phase3Artifact.retrievalRerankResult || null;
