@@ -14,6 +14,14 @@ const DOPPLER_PACKAGE = Object.freeze({
   shasum: 'b25e38953607eb73ebb9e8f59decff2488c3e577',
   fileCount: 1701,
 });
+const DOPPLER_VENDOR_PATCH_HASHES = Object.freeze({
+  'src/client/runtime/index.js': 'd7b7e7e3f0389d6fe3a3797ec36e720c93de39a19276bd514be54925e8153750',
+  'src/client/runtime/model-source.js': '3eb28f6ed0d3386d77acdb25c955e47bce11931e614541fdc85edec3cc7bd82a',
+  'src/config/transforms/execution-graph-transforms.js': '54b2054fde328416c74df77a592f835e9df16a10bf9aae66e15b0dc8270f3483',
+  'src/inference/pipelines/text.js': '4c8a2c3eac83fa1f95a7463bfadf59d50ce80b54da35213ba4fec04736879169',
+  'src/inference/pipelines/text/execution-v1.js': 'c3cb0050da8394681290dd0f661140e3106d668877ba130196adca1c8cebbaf6',
+  'src/rules/inference/capability-transforms.rules.json': 'c3878e781c065975e8cf2a09f8b4eb58818c74af61319dcd6ff07fb05cec2f9d',
+});
 const VENDOR_ROOT = path.join(ROOT, 'public', 'vendor', 'doppler');
 const LIST_LIMIT = 20;
 
@@ -143,10 +151,27 @@ function verifyVendorMatchesPackage(packageRoot) {
   expectedFiles.forEach((relativePath) => {
     const expectedHash = hashFile(path.join(packageRoot, relativePath));
     const actualHash = hashFile(path.join(VENDOR_ROOT, relativePath));
-    if (expectedHash !== actualHash) changed.push(relativePath);
+    if (expectedHash !== actualHash) {
+      changed.push({
+        path: relativePath,
+        actualHash,
+        expectedPatchHash: DOPPLER_VENDOR_PATCH_HASHES[relativePath] || '',
+      });
+    }
   });
-  if (changed.length) {
-    fail('vendor file contents differ from the published Doppler package', relativeSample('changed:', changed));
+  const unknownChanges = changed.filter((row) => !row.expectedPatchHash);
+  if (unknownChanges.length) {
+    fail(
+      'vendor file contents differ from the published Doppler package outside the pinned local patch set',
+      relativeSample('changed:', unknownChanges.map((row) => row.path))
+    );
+  }
+  const patchHashMismatches = changed.filter((row) => row.expectedPatchHash && row.actualHash !== row.expectedPatchHash);
+  if (patchHashMismatches.length) {
+    fail(
+      'vendor local patch hashes differ from the pinned deploy patch set',
+      relativeSample('changed:', patchHashMismatches.map((row) => `${row.path} sha256=${row.actualHash}`))
+    );
   }
 }
 
@@ -171,7 +196,8 @@ function main() {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 
-  console.log(`Deploy surface clean: public/vendor/doppler matches ${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version}.`);
+  const patchCount = Object.keys(DOPPLER_VENDOR_PATCH_HASHES).length;
+  console.log(`Deploy surface clean: public/vendor/doppler matches ${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version} plus ${patchCount} pinned local patch files.`);
 }
 
 try {
