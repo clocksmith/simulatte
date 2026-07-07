@@ -62,6 +62,11 @@
       this.rerankerProviderPromise = null;
       this.providerReady = false;
       this.rerankerReady = false;
+      this.activeDopplerModelRole = '';
+      this.dopplerEmbedHandle = null;
+      this.dopplerEmbedModelBaseUrl = '';
+      this.dopplerRerankerHandle = null;
+      this.dopplerRerankerModelBaseUrl = '';
       this.providerRequestCount = 0;
       this.rankSerial = 0;
       this.gpuPromise = null;
@@ -150,16 +155,16 @@
               onProgress: progress,
               traceEmbeddings: trace,
             });
-            const rerankProvider = await this.resolveRerankProvider(runtime, provider, {
-              ...options,
-              onProgress: progress,
-              traceEmbeddings: trace,
-            });
             const probe = await verifyPromptRuntimeProvider(runtime, provider, {
               progress,
               trace,
               traceId: this.traceId,
               nowIso: options.nowIso,
+            });
+            const rerankProvider = await this.resolveRerankProvider(runtime, provider, {
+              ...options,
+              onProgress: progress,
+              traceEmbeddings: trace,
             });
             const rerankerProbe = await verifyPromptRuntimeReranker(runtime, provider, {
               progress,
@@ -599,6 +604,29 @@
     }
 
     async loadDopplerModel(runtime, options = {}) {
+      const loaded = await this.loadDopplerEmbeddingHandle(runtime, options);
+      return providerFromModelHandle(
+        loaded.handle,
+        runtime,
+        'doppler-browser-load',
+        loaded.modelBaseUrl,
+        (reloadOptions = {}) => this.ensureDopplerEmbeddingHandle(runtime, options, reloadOptions)
+      );
+    }
+
+    async ensureDopplerEmbeddingHandle(runtime, options = {}, reloadOptions = {}) {
+      if (
+        reloadOptions.force !== true &&
+        this.activeDopplerModelRole === 'embedding' &&
+        this.dopplerEmbedHandle
+      ) {
+        return this.dopplerEmbedHandle;
+      }
+      const loaded = await this.loadDopplerEmbeddingHandle(runtime, options);
+      return loaded.handle;
+    }
+
+    async loadDopplerEmbeddingHandle(runtime, options = {}) {
       const progress = progressHandler(options, this.onProgress);
       const trace = this.traceEnabled || traceEnabled(options);
       const moduleUrl = options.dopplerModuleUrl
@@ -689,6 +717,9 @@
         },
       };
       const handle = await load(dopplerModelSource(modelBaseUrl), loadOptions);
+      this.activeDopplerModelRole = 'embedding';
+      this.dopplerEmbedHandle = handle;
+      this.dopplerEmbedModelBaseUrl = modelBaseUrl;
       emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
         stage: 'model-ready',
@@ -705,7 +736,7 @@
         modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
         embeddingDim: runtime.index && runtime.index.embeddingDim || 0,
       });
-      return providerFromModelHandle(handle, runtime, 'doppler-browser-load', modelBaseUrl);
+      return { handle, modelBaseUrl };
     }
 
     async resolveRerankProvider(runtime, provider, options = {}) {
@@ -800,6 +831,9 @@
       };
       if (config.runtimeConfig) loadOptions.runtimeConfig = cloneJsonValue(config.runtimeConfig);
       const handle = await load(dopplerModelSource(modelBaseUrl), loadOptions);
+      this.activeDopplerModelRole = 'reranker';
+      this.dopplerRerankerHandle = handle;
+      this.dopplerRerankerModelBaseUrl = modelBaseUrl;
       emitRuntimeProgress(progress, trace, {
         source: 'simulatte-intent-embedder',
         stage: 'reranker-ready',
@@ -813,7 +847,34 @@
         modelBaseUrl,
         cacheMode: 'doppler-managed',
       });
-      return rerankProviderFromModelHandle(handle, runtime, config, 'doppler-reranker-load', modelBaseUrl);
+      return this.createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl);
+    }
+
+    createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl) {
+      let activeProvider = rerankProviderFromModelHandle(
+        handle,
+        runtime,
+        config,
+        'doppler-reranker-load',
+        modelBaseUrl
+      );
+      return {
+        backend: 'doppler-reranker-load',
+        rerank: async (input) => {
+          if (this.activeDopplerModelRole !== 'reranker' || !this.dopplerRerankerHandle) {
+            const reloaded = await this.loadDopplerRerankerModel(runtime, options);
+            return reloaded.rerank(input);
+          }
+          activeProvider = rerankProviderFromModelHandle(
+            this.dopplerRerankerHandle,
+            runtime,
+            config,
+            'doppler-reranker-load',
+            this.dopplerRerankerModelBaseUrl || modelBaseUrl
+          );
+          return activeProvider.rerank(input);
+        },
+      };
     }
 
     async gpuDevice() {
@@ -2923,7 +2984,7 @@
     return normalized;
   }
 
-  function providerFromModelHandle(handle, runtime, backend, modelBaseUrl = '') {
+  function providerFromModelHandle(handle, runtime, backend, modelBaseUrl = '', reloadHandle = null) {
     if (!handle || (
       typeof handle.embedBatch !== 'function' &&
       typeof handle.embed !== 'function' &&
@@ -2933,36 +2994,29 @@
       throw new Error('Doppler model handle must expose embedBatch(), embed(), or prefillWithEmbedding()');
     }
     let queue = Promise.resolve();
+    let activeHandle = handle;
     const run = async (args) => {
       const input = embeddingProviderInput(args, runtime);
       const prompt = String(input.text || '');
       if (!prompt) throw new Error('Doppler embed text required');
-      let result = null;
-      const embedOptions = {
+      if (typeof reloadHandle === 'function') {
+        activeHandle = await reloadHandle();
+      }
+      const result = await embedWithModelHandle(activeHandle, prompt, {
         useChatTemplate: false,
         embeddingMode: input.embeddingMode,
         __skipStateSnapshot: true,
-      };
-      if (typeof handle.embed === 'function') {
-        result = await handle.embed(prompt, embedOptions);
-      } else if (typeof handle.embedBatch === 'function') {
-        const batch = await handle.embedBatch([prompt], embedOptions);
-        result = Array.isArray(batch) ? batch[0] : null;
-      } else {
-        const prefill = handle.advanced && handle.advanced.prefillWithEmbedding || handle.prefillWithEmbedding;
-        result = await prefill.call(handle.advanced || handle, prompt, embedOptions);
+      });
+      if (!embeddingHasPositiveNorm(result && result.embedding) && typeof reloadHandle === 'function') {
+        activeHandle = await reloadHandle({ force: true });
+        const retryResult = await embedWithModelHandle(activeHandle, prompt, {
+          useChatTemplate: false,
+          embeddingMode: input.embeddingMode,
+          __skipStateSnapshot: true,
+        });
+        return embeddingResultWithProvenance(retryResult, activeHandle, runtime, backend, modelBaseUrl);
       }
-      const provenance = modelHandleProvenance(handle, runtime, modelBaseUrl);
-      return withEmbeddingProvenance({
-        embedding: result && result.embedding,
-        embedModelId: provenance.embedModelId,
-        embedModelHash: provenance.embedModelHash,
-        modelSource: {
-          ...provenance.modelSource,
-          sourceKind: backend,
-          modelBaseUrl,
-        },
-      }, runtime);
+      return embeddingResultWithProvenance(result, activeHandle, runtime, backend, modelBaseUrl);
     };
     const rerankCapability = rerankFunctionForTarget(handle)
       || rerankFunctionForTarget(handle && handle.advanced);
@@ -2985,6 +3039,44 @@
       provider.rerank = (input) => rerankCapability(input);
     }
     return provider;
+  }
+
+  async function embedWithModelHandle(handle, prompt, embedOptions) {
+    if (!handle) throw new Error('Doppler embedding model handle unavailable');
+    if (typeof handle.embed === 'function') {
+      return handle.embed(prompt, embedOptions);
+    }
+    if (typeof handle.embedBatch === 'function') {
+      const batch = await handle.embedBatch([prompt], embedOptions);
+      return Array.isArray(batch) ? batch[0] : null;
+    }
+    const prefill = handle.advanced && handle.advanced.prefillWithEmbedding || handle.prefillWithEmbedding;
+    return prefill.call(handle.advanced || handle, prompt, embedOptions);
+  }
+
+  function embeddingResultWithProvenance(result, handle, runtime, backend, modelBaseUrl) {
+    const provenance = modelHandleProvenance(handle, runtime, modelBaseUrl);
+    return withEmbeddingProvenance({
+      embedding: result && result.embedding,
+      embedModelId: provenance.embedModelId,
+      embedModelHash: provenance.embedModelHash,
+      modelSource: {
+        ...provenance.modelSource,
+        sourceKind: backend,
+        modelBaseUrl,
+      },
+    }, runtime);
+  }
+
+  function embeddingHasPositiveNorm(vector) {
+    if (!vector || typeof vector.length !== 'number') return false;
+    let normSq = 0;
+    for (let i = 0; i < vector.length; i += 1) {
+      const value = Number(vector[i]);
+      if (!Number.isFinite(value)) return false;
+      normSq += value * value;
+    }
+    return Number.isFinite(normSq) && normSq > 0;
   }
 
   function embeddingProviderInput(args = {}, runtime) {

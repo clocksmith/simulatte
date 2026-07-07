@@ -27,10 +27,13 @@
   const RECT_STRAIGHT_MAX = 8;
   const RECT_STRAIGHT_BONUS = 6.4;
   const RECT_TURN_BONUS = 2.1;
+  const SPIRAL_SPAWN_ATTEMPTS = 180;
   const STEP_MS = 260;
   const MIN_STEP_MS = 150;
   const STAGE_SPEEDUP_MS = 40;
   const FADE_MS = 160;
+  const SEGMENT_FADE_MS = 180;
+  const SEGMENT_STAGGER_MS = 34;
   const MIN_TAIL_ALPHA = 0.3;
   const GHOST_ALPHA = 0.28;
   const RAIL_HEIGHT_PX = 8;
@@ -90,7 +93,9 @@
       this.lastSizeKey = '';
       this.board = null;
       this.snakes = [];
+      this.exitSnakes = [];
       this.nextSnakeId = 1;
+      this.frameNow = 0;
       this.rng = createRng(0x51a7e5);
       this.canvas.dataset.renderer = 'multi-snake-loading-canvas';
       this.canvas.dataset.loadingStyle = 'pastel-rainbow-determinate-cell-sweep';
@@ -149,6 +154,7 @@
 
     frame(now) {
       if (!this.running) return;
+      this.frameNow = Number(now || 0);
       this.resize();
       const speed = Math.max(MIN_STEP_MS, STEP_MS - this.stageCode * STAGE_SPEEDUP_MS);
       if (!this.lastStepAt || now - this.lastStepAt >= speed) {
@@ -175,11 +181,12 @@
 
     resetSwarm() {
       this.snakes = [];
+      this.exitSnakes = [];
       this.nextSnakeId = 1;
       if (!this.board) return;
       const target = this.targetSnakeCount();
       while (this.snakes.length < target) {
-        this.spawnSnake(this.spawnLength());
+        this.spawnSnake(this.spawnLength(), this.frameNow);
       }
     }
 
@@ -208,37 +215,29 @@
       return START_LENGTH + Math.floor(this.rng() * Math.max(1, span));
     }
 
-    spawnSnake(length = START_LENGTH) {
+    spawnSnake(length = START_LENGTH, now = this.frameNow) {
       if (!this.board || this.snakes.length >= MAX_SNAKES) return false;
       const occupied = buildOccupancy(this.snakes);
-      for (let attempt = 0; attempt < 240; attempt += 1) {
+      for (let attempt = 0; attempt < SPIRAL_SPAWN_ATTEMPTS; attempt += 1) {
         const direction = DIRECTIONS[Math.floor(this.rng() * DIRECTIONS.length)];
         const x = 2 + Math.floor(this.rng() * Math.max(1, this.board.cols - 4));
         const y = 2 + Math.floor(this.rng() * Math.max(1, this.board.rows - 4));
-        const cells = [];
-        for (let i = 0; i < length; i += 1) {
-          const cell = { x: x - direction.x * i, y: y - direction.y * i };
-          if (!insideBoard(cell, this.board) || occupied.has(cellKey(cell))) {
-            cells.length = 0;
-            break;
-          }
-          cells.push(cell);
-        }
+        const cells = spawnSpiralCellsAt(x, y, direction, length, this.board, occupied);
         if (!cells.length) continue;
-        return this.addSnake(cells, direction);
+        return this.addSnake(cells, directionFromTrail(cells, direction), now);
       }
       for (const direction of DIRECTIONS) {
         for (let y = 1; y < this.board.rows - 1; y += 1) {
           for (let x = 1; x < this.board.cols - 1; x += 1) {
             const cells = spawnCellsAt(x, y, direction, length, this.board, occupied);
-            if (cells.length) return this.addSnake(cells, direction);
+            if (cells.length) return this.addSnake(cells, direction, now);
           }
         }
       }
       return false;
     }
 
-    addSnake(cells, direction) {
+    addSnake(cells, direction, now = this.frameNow) {
       const snake = {
         id: this.nextSnakeId++,
         cells,
@@ -251,6 +250,7 @@
         straightRunLeft: rectangularRunLength(this.rng),
         rectangularity: 0.72 + this.rng() * 0.28,
         visited: visitedFromCells(cells),
+        enterStartedAt: Number(now || 0),
       };
       primeSnakeAnimation(snake, cells, cells, 0, STEP_MS);
       this.snakes.push(snake);
@@ -259,8 +259,9 @@
 
     advanceSwarm(now, speed) {
       if (!this.board) return;
+      this.frameNow = Number(now || 0);
       this.tick += 1;
-      this.enforcePopulation();
+      this.enforcePopulation(now);
       const density = this.targetDensity();
       const targetLength = this.targetSnakeLength();
       const drawFromById = new Map(this.snakes.map((snake) => [
@@ -305,7 +306,7 @@
       }
 
       this.resolveCollisionPlans(plans, occupiedBefore, drawFromById);
-      this.enforcePopulation();
+      this.enforcePopulation(now);
       for (const snake of this.snakes) {
         primeSnakeAnimation(
           snake,
@@ -315,16 +316,23 @@
           speed
         );
       }
+      this.pruneExitSnakes(now);
     }
 
-    enforcePopulation() {
+    enforcePopulation(now = this.frameNow) {
       const target = this.targetSnakeCount();
       while (this.snakes.length < target) {
-        if (!this.spawnSnake(this.spawnLength())) break;
+        const length = this.spawnLength();
+        if (!this.spawnSnake(length, now) &&
+          !this.spawnSnake(START_LENGTH, now) &&
+          !this.spawnSnake(Math.max(4, Math.floor(START_LENGTH * 0.72)), now)) {
+          break;
+        }
       }
       if (this.snakes.length > MAX_SNAKES) {
         this.snakes.sort((a, b) => b.cells.length - a.cells.length);
-        this.snakes.length = MAX_SNAKES;
+        const removed = this.snakes.splice(MAX_SNAKES);
+        removed.forEach((snake) => this.queueExitSnake(snake, now));
       }
     }
 
@@ -402,10 +410,26 @@
         const victim = activeAfterMerge.get(owner.id);
         if (!victim || victim.id === attacker.id || absorbedIds.has(victim.id)) continue;
         absorbSnake(attacker, victim, this.board, drawFromById);
+        this.queueExitSnake(victim, this.frameNow);
         absorbedIds.add(victim.id);
         activeAfterMerge.delete(victim.id);
       }
       this.snakes = this.snakes.filter((snake) => !absorbedIds.has(snake.id)).slice(0, MAX_SNAKES);
+    }
+
+    queueExitSnake(snake, now = this.frameNow) {
+      if (!snake || !snake.cells || !snake.cells.length) return;
+      this.exitSnakes.push({
+        id: `exit:${snake.id}:${Math.round(Number(now || 0))}`,
+        cells: cloneCells(snake.drawTo || snake.cells),
+        colors: Array.isArray(snake.colors) && snake.colors.length ? snake.colors.slice() : [ROYGBIV_SPECTRUM[0]],
+        exitStartedAt: Number(now || 0),
+      });
+      this.pruneExitSnakes(now);
+    }
+
+    pruneExitSnakes(now = this.frameNow) {
+      this.exitSnakes = (this.exitSnakes || []).filter((snake) => !exitSnakeComplete(snake, now));
     }
 
     clear() {
@@ -422,6 +446,10 @@
       ctx.clearRect(0, 0, width, height);
       ctx.save();
       drawGrid(ctx, this.board, width, height);
+      this.pruneExitSnakes(now);
+      for (const snake of this.exitSnakes) {
+        drawExitSnake(ctx, this.board, snake, now);
+      }
       for (const snake of this.snakes) {
         drawSnake(ctx, this.board, snake, now);
       }
@@ -451,6 +479,26 @@
       const cell = { x: x - direction.x * i, y: y - direction.y * i };
       if (!insideBoard(cell, board) || occupied.has(cellKey(cell))) return [];
       cells.push(cell);
+    }
+    return cells;
+  }
+
+  function spawnSpiralCellsAt(x, y, direction, length, board, occupied) {
+    const cells = [{ x, y }];
+    if (!insideBoard(cells[0], board) || occupied.has(cellKey(cells[0]))) return [];
+    let cursor = { x, y };
+    let walk = invertDirection(direction);
+    let legLength = 1;
+    while (cells.length < length) {
+      for (let leg = 0; leg < 2 && cells.length < length; leg += 1) {
+        for (let step = 0; step < legLength && cells.length < length; step += 1) {
+          cursor = addCells(cursor, walk);
+          if (!insideBoard(cursor, board) || occupied.has(cellKey(cursor))) return [];
+          cells.push({ x: cursor.x, y: cursor.y });
+        }
+        walk = turnDirection(walk, 1);
+      }
+      legLength += 1;
     }
     return cells;
   }
@@ -500,10 +548,19 @@
       const source = fromCells[index] || fromCells[index - 1] || fromCells[fromCells.length - 1] || target;
       const part = lerpCell(source, target, motion);
       const color = snake.colors[index % snake.colors.length];
-      const appears = index < fromLength ? 1 : fade;
+      const appears = (index < fromLength ? 1 : fade) * segmentEnterAlpha(snake, index, now);
       drawTile(ctx, board, part, color, alphaForCell(index, toCells.length) * appears, {
         head: index === 0,
       });
+    }
+  }
+
+  function drawExitSnake(ctx, board, snake, now) {
+    const cells = snake.cells || [];
+    for (let index = cells.length - 1; index >= 0; index -= 1) {
+      const color = snake.colors[index % snake.colors.length];
+      const alpha = alphaForCell(index, cells.length) * segmentExitAlpha(snake, index, cells.length, now) * GHOST_ALPHA;
+      drawTile(ctx, board, cells[index], color, alpha);
     }
   }
 
@@ -907,6 +964,26 @@
     snake.drawTo = cloneCells(toCells);
     snake.stepStartedAt = Number(now || 0);
     snake.stepMs = Math.max(16, Number(speed || STEP_MS));
+  }
+
+  function segmentEnterAlpha(snake, index, now) {
+    if (!snake || !Number.isFinite(Number(snake.enterStartedAt))) return 1;
+    const elapsed = Number(now || 0) - Number(snake.enterStartedAt || 0) - index * SEGMENT_STAGGER_MS;
+    return easeInFastOut(clamp(elapsed / SEGMENT_FADE_MS, 0, 1));
+  }
+
+  function segmentExitAlpha(snake, index, length, now) {
+    if (!snake || !Number.isFinite(Number(snake.exitStartedAt))) return 0;
+    const tailFirstIndex = Math.max(0, Number(length || 0) - 1 - index);
+    const elapsed = Number(now || 0) - Number(snake.exitStartedAt || 0) - tailFirstIndex * SEGMENT_STAGGER_MS;
+    return 1 - easeInFastOut(clamp(elapsed / SEGMENT_FADE_MS, 0, 1));
+  }
+
+  function exitSnakeComplete(snake, now) {
+    const length = snake && Array.isArray(snake.cells) ? snake.cells.length : 0;
+    if (!length) return true;
+    return Number(now || 0) - Number(snake.exitStartedAt || 0) >
+      SEGMENT_FADE_MS + length * SEGMENT_STAGGER_MS;
   }
 
   function alignCells(fromCells, toCells) {

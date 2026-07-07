@@ -612,6 +612,76 @@ test('Phase 1 loads Doppler embedding model by URL source only', async () => {
   });
 });
 
+test('Phase 1 reacquires Doppler embedding after reranker model takes over GPU resources', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const loadRoles = [];
+    let activeRole = '';
+    let staleEmbeddingCalls = 0;
+    const dopplerModule = {
+      async load(model) {
+        const url = String(model && model.url || '');
+        if (url === manifest.embedModel.defaultModelBaseUrl) {
+          activeRole = 'embedding';
+          loadRoles.push('embedding');
+          return {
+            modelId: manifest.embedModel.id,
+            manifest: { manifestHash: manifest.embedModel.manifestHash },
+            async embed(prompt) {
+              if (activeRole !== 'embedding') {
+                staleEmbeddingCalls += 1;
+                return { embedding: new Float32Array(index.embeddingDim) };
+              }
+              return { embedding: probeAwareVector(index, prompt, query) };
+            },
+          };
+        }
+        if (url === manifest.reranker.model.defaultModelBaseUrl) {
+          activeRole = 'reranker';
+          loadRoles.push('reranker');
+          return {
+            modelId: manifest.reranker.model.id,
+            manifest: {
+              inference: {
+                rerank: {
+                  trueTokenId: 1,
+                  falseTokenId: 0,
+                },
+              },
+            },
+            rerank(input = {}) {
+              return (input.candidates || []).map((candidate, order) => ({
+                primitiveId: candidate.primitiveId,
+                score: Number((1 - order * 0.1).toFixed(6)),
+              }));
+            },
+          };
+        }
+        throw new Error(`unexpected Doppler model URL ${url}`);
+      },
+    };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModule,
+    });
+
+    const runtime = await embedder.loadModel();
+    const result = await embedder.rankPrompt(
+      'glass lens prism optics bench with a bright beam',
+      lab.PHYSICAL_PRIMITIVES,
+      { max: 8 }
+    );
+
+    assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
+    assert.equal(runtime.promptRuntimeReceipt.rerankerReady, true);
+    assert.equal(result.model.id, manifest.embedModel.id);
+    assert.equal(result.priors[0].primitiveId, 'optics-bench');
+    assert.deepEqual(loadRoles.slice(0, 2), ['embedding', 'reranker']);
+    assert.ok(loadRoles.indexOf('embedding', 2) >= 2);
+    assert.equal(staleEmbeddingCalls, 0);
+  }, { rerankProvider: null });
+});
+
 test('Doppler execution-v1 keeps Qwen reranker KV dtype aligned when f16 is not proven', async () => {
   const [{ compileExecutionV1 }, { EXECUTION_V1_SCHEMA_ID }] = await Promise.all([
     import(pathToFileURL(path.join(

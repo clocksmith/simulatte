@@ -110,6 +110,8 @@ test('loading snake head-to-body collisions absorb and remove the victim', () =>
   assert.equal(instance.snakes.length, 1);
   assert.equal(instance.snakes[0].id, 1);
   assert.ok(instance.snakes[0].cells.length > attackerLength);
+  assert.equal(instance.exitSnakes.length, 1);
+  assert.deepEqual(instance.exitSnakes[0].cells[0], { x: 8, y: 5 });
 });
 
 test('loading snake tail-end crossings do not destroy the crossed snake', () => {
@@ -163,4 +165,24 @@ test('loading snake density starts sparse and increases with progress', () => {
   assert.equal(instance.targetSnakeCount(), 10);
   assert.equal(instance.targetSnakeLength(), 64);
   assert.equal(instance.snakes.length, 10);
+});
+
+test('loading snake spawn appears as a grid spiral before normal travel', () => {
+  const instance = controller([]);
+  instance.frameNow = 512;
+
+  assert.equal(instance.spawnSnake(12, instance.frameNow), true);
+
+  const row = instance.snakes[0];
+  const directions = [];
+  for (let index = 1; index < row.cells.length; index += 1) {
+    directions.push({
+      x: row.cells[index].x - row.cells[index - 1].x,
+      y: row.cells[index].y - row.cells[index - 1].y,
+    });
+  }
+  const directionKeys = new Set(directions.map((direction) => `${direction.x},${direction.y}`));
+
+  assert.equal(row.enterStartedAt, 512);
+  assert.ok(directionKeys.size >= 3);
 });
