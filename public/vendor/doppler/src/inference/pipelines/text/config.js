@@ -1,5 +1,6 @@
 import { log } from '../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
+import { validateModelOverrides } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
   PER_LAYER_INPUT_MATERIALIZATION_MODES,
@@ -230,6 +231,26 @@ function resolveSessionSettings(inferenceConfig, modelId) {
   if (wide !== undefined && wide !== null && typeof wide !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useWideTileQ4KPrefill "${String(wide)}"; expected boolean.`);
   }
+  const wideDecode = session?.useWideTileQ4KDecode;
+  if (wideDecode !== undefined && wideDecode !== null && typeof wideDecode !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useWideTileQ4KDecode "${String(wideDecode)}"; expected boolean.`);
+  }
+  const sandwichRmsNormPair = session?.useSandwichRMSNormPairFusion;
+  if (sandwichRmsNormPair !== undefined && sandwichRmsNormPair !== null && typeof sandwichRmsNormPair !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useSandwichRMSNormPairFusion "${String(sandwichRmsNormPair)}"; expected boolean.`);
+  }
+  const postFfnNextInputRmsNormPair = session?.usePostFfnNextInputRMSNormPairFusion;
+  if (postFfnNextInputRmsNormPair !== undefined && postFfnNextInputRmsNormPair !== null && typeof postFfnNextInputRmsNormPair !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.usePostFfnNextInputRMSNormPairFusion "${String(postFfnNextInputRmsNormPair)}"; expected boolean.`);
+  }
+  const fusedQKVSplitQKNorm = session?.useFusedQKVSplitQKNorm;
+  if (fusedQKVSplitQKNorm !== undefined && fusedQKVSplitQKNorm !== null && typeof fusedQKVSplitQKNorm !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useFusedQKVSplitQKNorm "${String(fusedQKVSplitQKNorm)}"; expected boolean.`);
+  }
+  const fusedQKVSplitQKNormRoPE = session?.useFusedQKVSplitQKNormRoPE;
+  if (fusedQKVSplitQKNormRoPE !== undefined && fusedQKVSplitQKNormRoPE !== null && typeof fusedQKVSplitQKNormRoPE !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useFusedQKVSplitQKNormRoPE "${String(fusedQKVSplitQKNormRoPE)}"; expected boolean.`);
+  }
   const retain = session?.retainQ4KMaterialization;
   if (retain !== undefined && retain !== null && typeof retain !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.retainQ4KMaterialization "${String(retain)}"; expected boolean.`);
@@ -239,6 +260,11 @@ function resolveSessionSettings(inferenceConfig, modelId) {
     prefillTokenChunkSize: tokenChunk ?? null,
     useFlashPrefillAttention: flash ?? null,
     useWideTileQ4KPrefill: wide ?? null,
+    useWideTileQ4KDecode: wideDecode ?? null,
+    useSandwichRMSNormPairFusion: sandwichRmsNormPair ?? null,
+    usePostFfnNextInputRMSNormPairFusion: postFfnNextInputRmsNormPair ?? null,
+    useFusedQKVSplitQKNorm: fusedQKVSplitQKNorm ?? null,
+    useFusedQKVSplitQKNormRoPE: fusedQKVSplitQKNormRoPE ?? null,
     retainQ4KMaterialization: retain ?? null,
   };
 }
@@ -351,90 +377,8 @@ function normalizeFfnTensorShape(value) {
   return [Math.trunc(rows), Math.trunc(cols)];
 }
 
-function isExpertTensorName(name) {
-  const lower = String(name || '').toLowerCase();
-  return lower.includes('.experts.') || lower.includes('.expert.') || lower.includes('block_sparse_moe');
-}
-
-function inferLfm2IntermediateSizeFromManifest(manifest) {
-  const tensors = manifest?.tensors;
-  if (!tensors || typeof tensors !== 'object') return null;
-  const candidates = [];
-  for (const [name, entry] of Object.entries(tensors)) {
-    if (!name || isExpertTensorName(name)) continue;
-    const shape = normalizeFfnTensorShape(entry?.shape);
-    if (!shape) continue;
-    const lower = name.toLowerCase();
-    if (
-      lower.endsWith('.feed_forward.w1.weight')
-      || lower.endsWith('.feed_forward.w3.weight')
-      || lower.endsWith('.ffn_gate.weight')
-      || lower.endsWith('.ffn_up.weight')
-      || lower.endsWith('.ffn.gate_proj.weight')
-      || lower.endsWith('.ffn.up_proj.weight')
-      || lower.endsWith('.mlp.gate_proj.weight')
-      || lower.endsWith('.mlp.up_proj.weight')
-    ) {
-      candidates.push(shape[0]);
-      continue;
-    }
-    if (
-      lower.endsWith('.feed_forward.w2.weight')
-      || lower.endsWith('.ffn_down.weight')
-      || lower.endsWith('.ffn.down_proj.weight')
-      || lower.endsWith('.mlp.down_proj.weight')
-    ) {
-      candidates.push(shape[1]);
-      continue;
-    }
-    if (
-      lower.endsWith('.feed_forward.w1_w3.weight')
-      || lower.endsWith('.ffn_gate_up.weight')
-      || lower.endsWith('.ffn.gate_up_proj.weight')
-      || lower.endsWith('.mlp.gate_up_proj.weight')
-    ) {
-      if (shape[0] % 2 === 0) {
-        candidates.push(Math.trunc(shape[0] / 2));
-      }
-    }
-  }
-  if (candidates.length === 0) return null;
-  const counts = new Map();
-  for (const value of candidates) {
-    counts.set(value, (counts.get(value) ?? 0) + 1);
-  }
-  const result = [...counts.entries()]
-    .sort((a, b) => {
-      if (b[1] !== a[1]) return b[1] - a[1];
-      return a[0] - b[0];
-    })[0]?.[0] ?? null;
-  if (result != null && (!Number.isInteger(result) || result <= 0)) {
-    log.warn(
-      'Config',
-      `inferLfm2IntermediateSizeFromManifest: inferred intermediateSize ${result} is not a positive integer, discarding`
-    );
-    return null;
-  }
-  return result;
-}
-
-function resolveIntermediateSizeForRuntime(manifest, inf, arch, modelId) {
-  const fromArch = arch?.intermediateSize;
-  if (typeof fromArch !== 'number' || !Number.isFinite(fromArch) || fromArch <= 0) {
-    return fromArch;
-  }
-  const normalizedModelId = String(modelId ?? manifest?.modelId ?? '').toLowerCase();
-  if (!normalizedModelId.includes('lfm2')) {
-    return fromArch;
-  }
-  const inferred = inferLfm2IntermediateSizeFromManifest(manifest);
-  if (inferred == null || inferred === fromArch) {
-    return fromArch;
-  }
-  throw new Error(
-    `Manifest "${modelId}" has intermediateSize=${fromArch}, but FFN tensors imply ${inferred}. ` +
-    'Re-convert the model so manifest architecture matches the weights.'
-  );
+function resolveIntermediateSizeForRuntime(arch) {
+  return arch?.intermediateSize;
 }
 
 function buildPerLayerIntermediateSizes({
@@ -530,6 +474,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.gate_proj.weight`,
       `${languagePrefix}.ffn.gate_proj.weight`,
       `${languagePrefix}.ffn_gate.weight`,
+      `${languagePrefix}.feed_forward.w1.weight`,
+      `${genericPrefix}.feed_forward.w1.weight`,
       `layers.${layerIdx}.feed_forward.w1.weight`,
     ]);
     const upShape = getDenseFfnTensorShape(tensors, [
@@ -537,6 +483,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.up_proj.weight`,
       `${languagePrefix}.ffn.up_proj.weight`,
       `${languagePrefix}.ffn_up.weight`,
+      `${languagePrefix}.feed_forward.w3.weight`,
+      `${genericPrefix}.feed_forward.w3.weight`,
       `layers.${layerIdx}.feed_forward.w3.weight`,
     ]);
     const downShape = getDenseFfnTensorShape(tensors, [
@@ -544,6 +492,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.down_proj.weight`,
       `${languagePrefix}.ffn.down_proj.weight`,
       `${languagePrefix}.ffn_down.weight`,
+      `${languagePrefix}.feed_forward.w2.weight`,
+      `${genericPrefix}.feed_forward.w2.weight`,
       `layers.${layerIdx}.feed_forward.w2.weight`,
     ]);
     const gateUpShape = getDenseFfnTensorShape(tensors, [
@@ -551,6 +501,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.gate_up_proj.weight`,
       `${languagePrefix}.ffn.gate_up_proj.weight`,
       `${languagePrefix}.ffn_gate_up.weight`,
+      `${languagePrefix}.feed_forward.w1_w3.weight`,
+      `${genericPrefix}.feed_forward.w1_w3.weight`,
       `layers.${layerIdx}.feed_forward.w1_w3.weight`,
     ]);
 
@@ -727,7 +679,9 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.ffn.gatedActivation == null) {
     errors.push('ffn.gatedActivation is required');
   }
-  if (inf.ffn.branchMode !== undefined) {
+  if (inf.ffn.branchMode == null) {
+    errors.push('ffn.branchMode is required');
+  } else {
     const normalizedBranchMode = typeof inf.ffn.branchMode === 'string'
       ? inf.ffn.branchMode.trim().toLowerCase()
       : '';
@@ -815,6 +769,26 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.output.scaleEmbeddings == null) {
     errors.push('output.scaleEmbeddings is required');
   }
+  if (inf.output.embeddingScale === undefined) {
+    errors.push('output.embeddingScale must be explicitly set (null for scaleEmbeddings semantics, or number)');
+  } else {
+    const embeddingScale = inf.output.embeddingScale;
+    if (embeddingScale !== null && (typeof embeddingScale !== 'number' || !Number.isFinite(embeddingScale) || embeddingScale <= 0)) {
+      errors.push('output.embeddingScale must be a positive finite number or null');
+    }
+    if (embeddingScale !== null && inf.output.scaleEmbeddings === true) {
+      errors.push('output.embeddingScale cannot be set when output.scaleEmbeddings is true');
+    }
+  }
+  if (inf.output.logitInputScale == null) {
+    errors.push('output.logitInputScale is required');
+  } else if (
+    typeof inf.output.logitInputScale !== 'number'
+    || !Number.isFinite(inf.output.logitInputScale)
+    || inf.output.logitInputScale <= 0
+  ) {
+    errors.push('output.logitInputScale must be a positive finite number');
+  }
   if (inf.output.embeddingTranspose == null) {
     errors.push('output.embeddingTranspose is required');
   }
@@ -884,6 +858,15 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.layerPattern?.offset === undefined) {
     errors.push('layerPattern.offset must be explicitly set (null if not applicable)');
   }
+  if (inf.layerPattern?.residualBranchScale == null) {
+    errors.push('layerPattern.residualBranchScale is required');
+  } else if (
+    typeof inf.layerPattern.residualBranchScale !== 'number'
+    || !Number.isFinite(inf.layerPattern.residualBranchScale)
+    || inf.layerPattern.residualBranchScale <= 0
+  ) {
+    errors.push('layerPattern.residualBranchScale must be a positive finite number');
+  }
   if (inf.layerPattern?.type === 'custom' && inf.layerPattern?.layerTypes === undefined) {
     errors.push('layerPattern.layerTypes must be explicitly set for custom patterns');
   }
@@ -905,6 +888,36 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.rope.yarnOriginalMaxPos === undefined) {
     errors.push('rope.yarnOriginalMaxPos must be explicitly set (null if not YARN)');
+  }
+  if (inf.rope.longropeShortFactor === undefined) {
+    errors.push('rope.longropeShortFactor must be explicitly set (null if not LongRoPE)');
+  }
+  if (inf.rope.longropeLongFactor === undefined) {
+    errors.push('rope.longropeLongFactor must be explicitly set (null if not LongRoPE)');
+  }
+  if (inf.rope.longropeOriginalMaxPos === undefined) {
+    errors.push('rope.longropeOriginalMaxPos must be explicitly set (null if not LongRoPE)');
+  }
+  if (inf.rope.ropeScalingType === 'longrope') {
+    if (!Array.isArray(inf.rope.longropeShortFactor) || inf.rope.longropeShortFactor.length === 0) {
+      errors.push('rope.longropeShortFactor must be a non-empty number array for LongRoPE');
+    }
+    if (!Array.isArray(inf.rope.longropeLongFactor) || inf.rope.longropeLongFactor.length === 0) {
+      errors.push('rope.longropeLongFactor must be a non-empty number array for LongRoPE');
+    }
+    if (
+      typeof inf.rope.longropeOriginalMaxPos !== 'number'
+      || !Number.isFinite(inf.rope.longropeOriginalMaxPos)
+      || inf.rope.longropeOriginalMaxPos <= 0
+    ) {
+      errors.push('rope.longropeOriginalMaxPos must be a positive finite number for LongRoPE');
+    }
+  } else if (
+    inf.rope.longropeShortFactor !== null
+    || inf.rope.longropeLongFactor !== null
+    || inf.rope.longropeOriginalMaxPos !== null
+  ) {
+    errors.push('rope LongRoPE fields must be null unless rope.ropeScalingType is "longrope"');
   }
   if (inf.rope.ropeLocalYarnBetaFast === undefined) {
     errors.push('rope.ropeLocalYarnBetaFast must be explicitly set (null if not local YARN)');
@@ -1203,6 +1216,25 @@ function resolveAudioConfig(rawConfig, manifest) {
     }
     return number;
   };
+  const resolveRequiredFiniteNumber = (value, label) => {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid audio_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a finite number.'
+      );
+    }
+    return number;
+  };
+  const resolveRequiredString = (value, label) => {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid audio_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a non-empty string.'
+      );
+    }
+    return value.trim();
+  };
   const audioArchitecture = String(ac.audio_architecture ?? '').trim();
   if (audioArchitecture !== 'gemma4') {
     throw new Error(
@@ -1215,9 +1247,7 @@ function resolveAudioConfig(rawConfig, manifest) {
   const isEncoderFree = (depth === 0);
 
   const hiddenSize = resolveRequiredPositiveInteger(ac.hidden_size, 'hidden_size');
-  const numAttentionHeads = isEncoderFree
-    ? (ac.num_attention_heads !== undefined ? resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads') : 1)
-    : resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads');
+  const numAttentionHeads = resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads');
   const headDim = Math.trunc(hiddenSize / numAttentionHeads);
 
   if (!isEncoderFree) {
@@ -1234,29 +1264,17 @@ function resolveAudioConfig(rawConfig, manifest) {
     hiddenSize,
     numAttentionHeads,
     headDim,
-    convKernelSize: isEncoderFree
-      ? (ac.conv_kernel_size !== undefined ? resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size') : 1)
-      : resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size'),
-    subsamplingConvChannels: isEncoderFree
-      ? (ac.subsampling_conv_channels ? ac.subsampling_conv_channels.map(Number) : [])
-      : ac.subsampling_conv_channels.map(Number),
+    convKernelSize: resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size'),
+    subsamplingConvChannels: ac.subsampling_conv_channels.map(Number),
     outputProjDims: resolveRequiredPositiveInteger(ac.output_proj_dims, 'output_proj_dims'),
-    attentionContextLeft: isEncoderFree
-      ? (ac.attention_context_left !== undefined ? resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left') : 1)
-      : resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left'),
-    attentionContextRight: Number(ac.attention_context_right ?? 0),
-    attentionChunkSize: isEncoderFree
-      ? (ac.attention_chunk_size !== undefined ? resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size') : 1)
-      : resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size'),
-    attentionLogitCap: isEncoderFree
-      ? (ac.attention_logit_cap !== undefined ? resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap') : 1.0)
-      : resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap'),
-    attentionInvalidLogitsValue: Number(ac.attention_invalid_logits_value ?? -1e9),
-    residualWeight: isEncoderFree
-      ? (ac.residual_weight !== undefined ? resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight') : 1.0)
-      : resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight'),
-    rmsNormEps: resolveRequiredPositiveNumber(ac.rms_norm_eps ?? 1e-6, 'rms_norm_eps'),
-    hiddenAct: String(ac.hidden_act ?? 'silu').trim(),
+    attentionContextLeft: resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left'),
+    attentionContextRight: resolveRequiredNonNegativeInteger(ac.attention_context_right, 'attention_context_right'),
+    attentionChunkSize: resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size'),
+    attentionLogitCap: resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap'),
+    attentionInvalidLogitsValue: resolveRequiredFiniteNumber(ac.attention_invalid_logits_value, 'attention_invalid_logits_value'),
+    residualWeight: resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight'),
+    rmsNormEps: resolveRequiredPositiveNumber(ac.rms_norm_eps, 'rms_norm_eps'),
+    hiddenAct: resolveRequiredString(ac.hidden_act, 'hidden_act'),
     useClippedLinears: ac.use_clipped_linears === true,
     audioTokenId: rawConfig?.audio_token_id ?? manifest?.audio_token_id ?? null,
   };
@@ -1339,7 +1357,7 @@ function toParsedConfigFromMerged(merged, manifest) {
       `Re-convert the model using the latest converter to add manifest.architecture.`
     );
   }
-  const resolvedIntermediateSize = resolveIntermediateSizeForRuntime(manifest, inf, arch, merged.modelId);
+  const resolvedIntermediateSize = resolveIntermediateSizeForRuntime(arch);
   const archNumHeads = Number(arch.numAttentionHeads ?? arch.numHeads);
   const archNumKVHeads = Number(arch.numKeyValueHeads ?? arch.numKVHeads);
   const archHeadDim = Number(arch.headDim);
@@ -1544,6 +1562,24 @@ function toParsedConfigFromMerged(merged, manifest) {
       );
     }
   }
+  const validateLongropeFactorArray = (value, label) => {
+    if (!Array.isArray(value)) {
+      throw new Error(`Manifest "${merged.modelId}" ${label} must be an array for LongRoPE.`);
+    }
+    if (value.length !== ropeRotaryDim / 2) {
+      throw new Error(
+        `Manifest "${merged.modelId}" ${label} length ${value.length} does not match ` +
+        `resolved RoPE half dim ${ropeRotaryDim / 2}.`
+      );
+    }
+    for (let i = 0; i < value.length; i += 1) {
+      const entry = Number(value[i]);
+      if (!Number.isFinite(entry) || entry <= 0) {
+        throw new Error(`Manifest "${merged.modelId}" ${label}[${i}] must be a positive finite number.`);
+      }
+    }
+    return value.map((entry) => Number(entry));
+  };
 
   // Build ropeScaling object from manifest values if scaling is enabled
   // Include YARN params when present
@@ -1555,6 +1591,11 @@ function toParsedConfigFromMerged(merged, manifest) {
     ...(ropeScalingType === 'yarn' && inf.rope.yarnBetaSlow != null && { beta_slow: inf.rope.yarnBetaSlow }),
     ...(ropeScalingType === 'yarn' && inf.rope.yarnOriginalMaxPos != null && {
       original_max_position_embeddings: inf.rope.yarnOriginalMaxPos
+    }),
+    ...(ropeScalingType === 'longrope' && {
+      short_factor: validateLongropeFactorArray(inf.rope.longropeShortFactor, 'rope.longropeShortFactor'),
+      long_factor: validateLongropeFactorArray(inf.rope.longropeLongFactor, 'rope.longropeLongFactor'),
+      original_max_position_embeddings: inf.rope.longropeOriginalMaxPos,
     }),
   } : null;
   const ropeLocalScaling = ropeLocalScalingType ? {
@@ -1656,6 +1697,9 @@ function toParsedConfigFromMerged(merged, manifest) {
   const sessionSettings = resolveSessionSettings(inf, merged.modelId);
   const largeWeightsConfig = resolveLargeWeightsConfig(inf, merged.modelId);
   const diffusionGemma = inf.diffusionGemma ?? null;
+  const embeddingScale = inf.output.embeddingScale;
+  const logitInputScale = inf.output.logitInputScale;
+  const residualBranchScale = inf.layerPattern.residualBranchScale;
 
   return {
     modelType: manifest.modelType,
@@ -1705,12 +1749,15 @@ function toParsedConfigFromMerged(merged, manifest) {
     preFeedforwardNorm: inf.normalization.preFeedforwardNorm,
     postFeedforwardNorm: inf.normalization.postFeedforwardNorm,
     scaleEmbeddings: inf.output.scaleEmbeddings,
+    embeddingScale,
+    logitInputScale,
+    residualBranchScale,
     useTiedEmbeddings: inf.output.tieWordEmbeddings,
     embeddingTranspose: inf.output.embeddingTranspose,
     embeddingVocabSize: inf.output.embeddingVocabSize,
     embeddingPostprocessor,
     hiddenActivation,
-    ffnBranchMode: inf.ffn.branchMode ?? 'auto',
+    ffnBranchMode: inf.ffn.branchMode,
     useDoubleWideMlp: inf.ffn.useDoubleWideMlp,
     swigluLimit: inf.ffn.swigluLimit,
     stopTokenIds,
@@ -1750,6 +1797,7 @@ function toParsedConfigFromMerged(merged, manifest) {
 
 export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
   assertSupportedRuntimeModelType(manifest);
+  validateModelOverrides(runtimeOverrides, 'runtime.inference.modelOverrides');
 
   // Merge manifest inference with runtime overrides
   const merged = mergeConfig(

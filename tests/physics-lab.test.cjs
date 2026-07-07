@@ -2,33 +2,28 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { pathToFileURL } = require('node:url');
 
 const lab = require('../public/app/simulation/simulation-lab.js');
 const intentEmbedder = require('../public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
 const semanticRagApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
-const graphSynthesis = require('../public/pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js');
+const graphSynthesis = require('../public/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
 const root = path.resolve(__dirname, '..');
 
 function loadEmbeddingIndex() {
-  const manifest = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/data/simulatte-embedder/manifest.json'),
-    'utf8'
-  ));
-  const index = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/data/simulatte-embedder/primitive-index-v2.json'),
-    'utf8'
-  ));
-  const surfaceIndex = JSON.parse(fs.readFileSync(
-    path.join(root, 'public/data/simulatte-embedder/surface-card-index-embeddinggemma-v1.json'),
-    'utf8'
-  ));
+  const manifestText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/manifest.json'), 'utf8');
+  const indexText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/primitive-index-v2.json'), 'utf8');
+  const surfaceIndexText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/surface-card-index-qwen-v1.json'), 'utf8');
+  const manifest = JSON.parse(manifestText);
+  const index = JSON.parse(indexText);
+  const surfaceIndex = JSON.parse(surfaceIndexText);
   const universeRoot = path.join(root, 'public/data/simulatte-universe');
   const universeManifest = JSON.parse(fs.readFileSync(path.join(universeRoot, 'manifest.json'), 'utf8'));
   const universeIndexes = Object.fromEntries(Object.entries(universeManifest.indexes).map(([name, config]) => [
     name,
     JSON.parse(fs.readFileSync(path.join(universeRoot, config.artifact.replace(/^\.\//, '')), 'utf8')),
   ]));
-  return { manifest, index, surfaceIndex, universeManifest, universeIndexes };
+  return { manifest, manifestText, index, indexText, surfaceIndex, surfaceIndexText, universeManifest, universeIndexes };
 }
 
 function indexedVector(index, primitiveId) {
@@ -91,9 +86,31 @@ function probeAwareEmbedProvider({ index, targetVector, embedModelId, embedModel
   };
 }
 
-async function withIntentArtifactFetch(run) {
+function testRerankProvider() {
+  return {
+    rerank(input = {}) {
+      const candidates = input.candidates || [];
+      const count = Math.max(1, candidates.length);
+      return candidates.map((candidate, index) => ({
+        primitiveId: candidate.primitiveId,
+        score: Number((1 - index / count).toFixed(6)),
+        rank: index,
+      }));
+    },
+  };
+}
+
+async function withIntentArtifactFetch(run, options = {}) {
   const previousFetch = globalThis.fetch;
-  const { manifest, index, surfaceIndex, universeManifest, universeIndexes } = loadEmbeddingIndex();
+  const hadPreviousReranker = Object.hasOwn(globalThis, 'SimulatteDopplerReranker');
+  const previousReranker = globalThis.SimulatteDopplerReranker;
+  const rerankProvider = Object.hasOwn(options, 'rerankProvider') ? options.rerankProvider : testRerankProvider();
+  if (rerankProvider == null) {
+    delete globalThis.SimulatteDopplerReranker;
+  } else {
+    globalThis.SimulatteDopplerReranker = rerankProvider;
+  }
+  const { manifest, manifestText, index, indexText, surfaceIndex, surfaceIndexText, universeManifest, universeIndexes } = loadEmbeddingIndex();
   globalThis.fetch = async (url) => {
     const value = String(url || '');
     if (value.includes('/simulatte-universe/manifest.json')) {
@@ -109,10 +126,10 @@ async function withIntentArtifactFetch(run) {
       return new Response(JSON.stringify(manifest), { status: 200 });
     }
     if (value.endsWith('primitive-index-v2.json')) {
-      return new Response(JSON.stringify(index), { status: 200 });
+      return new Response(indexText, { status: 200 });
     }
-    if (value.endsWith('surface-card-index-embeddinggemma-v1.json')) {
-      return new Response(JSON.stringify(surfaceIndex), { status: 200 });
+    if (value.endsWith('surface-card-index-qwen-v1.json')) {
+      return new Response(surfaceIndexText, { status: 200 });
     }
     return new Response('not found', { status: 404 });
   };
@@ -120,6 +137,11 @@ async function withIntentArtifactFetch(run) {
     return await run({ manifest, index, surfaceIndex, universeManifest, universeIndexes });
   } finally {
     globalThis.fetch = previousFetch;
+    if (hadPreviousReranker) {
+      globalThis.SimulatteDopplerReranker = previousReranker;
+    } else {
+      delete globalThis.SimulatteDopplerReranker;
+    }
   }
 }
 
@@ -197,6 +219,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
       manifestHash: hash,
     },
     runtime: {
+      queryEmbeddingMode: 'mean',
       runtimeConfig: { inference: {} },
     },
     cache: {},
@@ -257,7 +280,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
   }
 });
 
-test('model-backed intent embedder ranks primitives with EmbeddingGemma provenance', async () => {
+test('model-backed intent embedder ranks primitives with Qwen provenance', async () => {
   await withIntentArtifactFetch(async ({ index }) => {
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
@@ -270,26 +293,26 @@ test('model-backed intent embedder ranks primitives with EmbeddingGemma provenan
       { max: 12 }
     );
 
-    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
-    assert.equal(result.model.dimensions, 768);
-    assert.equal(result.model.indexId, 'simulatte-primitive-embeddinggemma-300m-index-v1');
-    assert.equal(result.model.surfaceCardIndexId, 'simulatte-surface-card-embeddinggemma-300m-index-v1');
+    assert.equal(result.model.id, 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
+    assert.equal(result.model.dimensions, 1024);
+    assert.equal(result.model.indexId, 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1');
+    assert.equal(result.model.surfaceCardIndexId, 'simulatte-surface-card-qwen-3-embedding-0-6b-index-v1');
     assert.ok(result.model.surfaceCardDocuments >= 650);
     assert.equal(result.model.universeIndexId, 'simulatte-universe-multi-index-v1');
     assert.ok(result.model.universeDocuments >= 20);
     assert.equal(result.model.reranker, 'simulatte.doppler-intent-reranker.v1');
     assert.equal(result.model.rerankerKind, 'doppler-reranker');
     assert.equal(result.model.rerankerPhase, 3);
-    assert.equal(result.model.rerankerRequired, false);
+    assert.equal(result.model.rerankerRequired, true);
     assert.equal(result.rerank.required, true);
     assert.equal(result.rerank.schema, 'simulatte.intentRerank.v1');
     assert.equal(result.rerank.phase, 3);
     assert.equal(result.rerank.phaseId, 'retrieval');
-    assert.equal(result.rerank.rerankerMode, 'heuristic-fusion');
+    assert.equal(result.rerank.rerankerMode, 'doppler-reranker');
     assert.equal(result.rerank.rerankerKind, 'doppler-reranker');
     assert.equal(result.rerank.rerankerPhase, 3);
-    assert.equal(result.rerank.modelRequired, false);
-    assert.equal(result.rerank.modelReady, false);
+    assert.equal(result.rerank.modelRequired, true);
+    assert.equal(result.rerank.modelReady, true);
     assert.equal(result.rerank.fallbackMode, 'heuristic-fusion');
     assert.ok(result.rerank.scoreFields.includes('modelScore'));
     assert.ok(result.rerank.scoreFields.includes('dopplerScore'));
@@ -345,20 +368,56 @@ test('Phase 1 loadModel verifies the embedding provider before runtime ready', a
     assert.equal(ready.promptRuntimeReceipt.reranker, 'simulatte.doppler-intent-reranker.v1');
     assert.equal(ready.promptRuntimeReceipt.rerankerKind, 'doppler-reranker');
     assert.equal(ready.promptRuntimeReceipt.rerankerPhase, 3);
-    assert.equal(ready.promptRuntimeReceipt.rerankerRequired, false);
-    assert.equal(ready.promptRuntimeReceipt.rerankerReady, false);
-    assert.equal(ready.promptRuntimeReceipt.rerankerStatus, 'not-required');
+    assert.equal(ready.promptRuntimeReceipt.rerankerRequired, true);
+    assert.equal(ready.promptRuntimeReceipt.rerankerReady, true);
+    assert.equal(ready.promptRuntimeReceipt.rerankerStatus, 'ready');
     assert.equal(ready.promptRuntimeReceipt.rerankerFallbackMode, 'heuristic-fusion');
     assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
     assert.equal(runtime.promptRuntimeReceipt.noFallback, true);
   });
 });
 
-test('Phase 1 uses Doppler embedBatch when the model handle exposes batch embedding', async () => {
+test('Phase 1 uses direct Doppler embed for single model-backed probes', async () => {
   await withIntentArtifactFetch(async ({ index }) => {
     const query = indexedVector(index, 'optics-bench');
     let batchCalls = 0;
     let embedCalls = 0;
+    const handle = {
+      modelId: index.embedModelId,
+      manifest: { manifestHash: index.embedModelHash },
+      async embed(prompt, options = {}) {
+        assert.equal(options.embeddingMode, 'mean');
+        assert.equal(options.useChatTemplate, false);
+        assert.equal(options.__skipStateSnapshot, true);
+        embedCalls += 1;
+        return {
+          embedding: probeAwareVector(index, prompt, query),
+        };
+      },
+      async embedBatch() {
+        batchCalls += 1;
+        throw new Error('single probe embedding should not use embedBatch');
+      },
+    };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModelHandle: handle,
+    });
+
+    const runtime = await embedder.loadModel();
+
+    assert.equal(batchCalls, 0);
+    assert.equal(embedCalls, 4);
+    assert.equal(runtime.promptRuntimeReceipt.providerBackend, 'injected-doppler-model');
+    assert.equal(runtime.promptRuntimeReceipt.embeddingProbe, true);
+    assert.ok(runtime.promptRuntimeReceipt.stabilitySimilarity >= 0.995);
+  });
+});
+
+test('Phase 1 falls back to Doppler embedBatch when direct embed is unavailable', async () => {
+  await withIntentArtifactFetch(async ({ index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    let batchCalls = 0;
     const handle = {
       modelId: index.embedModelId,
       manifest: { manifestHash: index.embedModelHash },
@@ -372,10 +431,6 @@ test('Phase 1 uses Doppler embedBatch when the model handle exposes batch embedd
           embedding: probeAwareVector(index, text, query),
         }));
       },
-      async embed() {
-        embedCalls += 1;
-        throw new Error('single embed should not be used when embedBatch is available');
-      },
     };
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
@@ -385,7 +440,6 @@ test('Phase 1 uses Doppler embedBatch when the model handle exposes batch embedd
     const runtime = await embedder.loadModel();
 
     assert.equal(batchCalls, 4);
-    assert.equal(embedCalls, 0);
     assert.equal(runtime.promptRuntimeReceipt.providerBackend, 'injected-doppler-model');
     assert.equal(runtime.promptRuntimeReceipt.embeddingProbe, true);
     assert.ok(runtime.promptRuntimeReceipt.stabilitySimilarity >= 0.995);
@@ -434,11 +488,12 @@ test('Phase 1 loadModel rejects degenerate constant embedding providers', async 
   });
 });
 
-test('Phase 1 rejects a manifest that requires a missing Doppler reranker', async () => {
+test('Phase 1 rejects a manifest that requires an undeclared Doppler reranker model', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     manifest.reranker = {
       ...manifest.reranker,
       required: true,
+      model: null,
     };
     const events = [];
     const query = indexedVector(index, 'optics-bench');
@@ -448,9 +503,238 @@ test('Phase 1 rejects a manifest that requires a missing Doppler reranker', asyn
       embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
     });
 
-    await assert.rejects(() => embedder.loadModel(), /requires Doppler reranker/);
+    await assert.rejects(() => embedder.loadModel(), /required intent reranker must declare model\.id/);
     assert.equal(events.some((event) => event.stage === 'runtime-ready'), false);
+  }, { rerankProvider: null });
+});
+
+test('Phase 1 loads Doppler reranker with f16 KV runtime contract', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    manifest.reranker = {
+      ...manifest.reranker,
+      required: true,
+    };
+    const query = indexedVector(index, 'optics-bench');
+    const loadCalls = [];
+    const dopplerModule = {
+      async load(model, options = {}) {
+        loadCalls.push({
+          model,
+          runtimeConfig: options.runtimeConfig,
+        });
+        return {
+          modelId: manifest.reranker.model.id,
+          manifest: {
+            inference: {
+              rerank: {
+                trueTokenId: 1,
+                falseTokenId: 0,
+              },
+            },
+          },
+          rerank(input = {}) {
+            return {
+              rows: (input.candidates || []).map((candidate, order) => ({
+                primitiveId: candidate.primitiveId,
+                score: Number((1 - order * 0.1).toFixed(6)),
+              })),
+            };
+          },
+        };
+      },
+    };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
+      dopplerModule,
+    });
+
+    const runtime = await embedder.loadModel();
+
+    assert.equal(loadCalls.length, 1);
+    assert.deepEqual(Object.keys(loadCalls[0].model), ['url']);
+    assert.match(loadCalls[0].model.url, /qwen-3-reranker-0-6b-q4k-ehf16-af32$/);
+    assert.equal(loadCalls[0].runtimeConfig.inference.session.compute.defaults.activationDtype, 'f32');
+    assert.equal(loadCalls[0].runtimeConfig.inference.session.compute.defaults.mathDtype, 'f32');
+    assert.equal(loadCalls[0].runtimeConfig.inference.session.compute.defaults.accumDtype, 'f32');
+    assert.equal(loadCalls[0].runtimeConfig.inference.session.compute.defaults.outputDtype, 'f32');
+    assert.equal(loadCalls[0].runtimeConfig.inference.session.kvcache.kvDtype, 'f16');
+    assert.equal(loadCalls[0].runtimeConfig.inference.session.kvcache.layout, 'contiguous');
+    assert.equal(loadCalls[0].runtimeConfig.inference.session.kvcache.tiering.mode, 'off');
+    assert.equal(loadCalls[0].runtimeConfig.inference.compute.rangeAwareSelectiveWidening.onTrigger, 'error');
+    assert.equal(
+      loadCalls[0].runtimeConfig.inference.session.kvcache.kvDtype,
+      manifest.runtime.runtimeConfig.inference.session.kvcache.kvDtype
+    );
+    assert.equal(runtime.promptRuntimeReceipt.rerankerReady, true);
+    assert.equal(runtime.promptRuntimeReceipt.rerankerStatus, 'ready');
+    assert.equal(runtime.promptRuntimeReceipt.rerankerBackend, 'doppler-reranker-load');
+  }, { rerankProvider: null });
+});
+
+test('Phase 1 loads Doppler embedding model by URL source only', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const events = [];
+    const loadCalls = [];
+    const dopplerModule = {
+      async load(model, options = {}) {
+        loadCalls.push({ model, runtimeConfig: options.runtimeConfig });
+        return {
+          modelId: manifest.embedModel.id,
+          manifest: { manifestHash: manifest.embedModel.manifestHash },
+          async embed(prompt) {
+            return {
+              embedding: probeAwareVector(index, prompt, query),
+            };
+          },
+        };
+      },
+    };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModule,
+      onProgress: (event) => events.push(event),
+    });
+
+    const runtime = await embedder.loadModel();
+
+    assert.equal(loadCalls.length, 1);
+    assert.deepEqual(Object.keys(loadCalls[0].model), ['url']);
+    assert.equal(loadCalls[0].model.url, manifest.embedModel.defaultModelBaseUrl);
+    assert.deepEqual(loadCalls[0].runtimeConfig, manifest.runtime.runtimeConfig);
+    assert.equal(events.some((event) => event.source === 'simulatte-model-cache'), false);
+    assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
+    assert.equal(runtime.promptRuntimeReceipt.providerBackend, 'doppler-browser-load');
+    assert.equal(runtime.promptRuntimeReceipt.cachePrefetch, false);
+    assert.equal(runtime.promptRuntimeReceipt.cacheMode, 'doppler-managed');
+    assert.equal(runtime.promptRuntimeReceipt.cacheOwner, 'doppler');
   });
+});
+
+test('Phase 1 reacquires Doppler embedding after reranker model takes over GPU resources', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const loadRoles = [];
+    let activeRole = '';
+    let staleEmbeddingCalls = 0;
+    const dopplerModule = {
+      async load(model) {
+        const url = String(model && model.url || '');
+        if (url === manifest.embedModel.defaultModelBaseUrl) {
+          activeRole = 'embedding';
+          loadRoles.push('embedding');
+          return {
+            modelId: manifest.embedModel.id,
+            manifest: { manifestHash: manifest.embedModel.manifestHash },
+            async embed(prompt) {
+              if (activeRole !== 'embedding') {
+                staleEmbeddingCalls += 1;
+                return { embedding: new Float32Array(index.embeddingDim) };
+              }
+              return { embedding: probeAwareVector(index, prompt, query) };
+            },
+          };
+        }
+        if (url === manifest.reranker.model.defaultModelBaseUrl) {
+          activeRole = 'reranker';
+          loadRoles.push('reranker');
+          return {
+            modelId: manifest.reranker.model.id,
+            manifest: {
+              inference: {
+                rerank: {
+                  trueTokenId: 1,
+                  falseTokenId: 0,
+                },
+              },
+            },
+            rerank(input = {}) {
+              return (input.candidates || []).map((candidate, order) => ({
+                primitiveId: candidate.primitiveId,
+                score: Number((1 - order * 0.1).toFixed(6)),
+              }));
+            },
+          };
+        }
+        throw new Error(`unexpected Doppler model URL ${url}`);
+      },
+    };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModule,
+    });
+
+    const runtime = await embedder.loadModel();
+    const result = await embedder.rankPrompt(
+      'glass lens prism optics bench with a bright beam',
+      lab.PHYSICAL_PRIMITIVES,
+      { max: 8 }
+    );
+
+    assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
+    assert.equal(runtime.promptRuntimeReceipt.rerankerReady, true);
+    assert.equal(result.model.id, manifest.embedModel.id);
+    assert.equal(result.priors[0].primitiveId, 'optics-bench');
+    assert.deepEqual(loadRoles.slice(0, 2), ['embedding', 'reranker']);
+    assert.ok(loadRoles.indexOf('embedding', 2) >= 2);
+    assert.equal(staleEmbeddingCalls, 0);
+  }, { rerankProvider: null });
+});
+
+test('Doppler execution-v1 keeps Qwen reranker KV dtype aligned when f16 is not proven', async () => {
+  const [{ compileExecutionV1 }, { EXECUTION_V1_SCHEMA_ID }] = await Promise.all([
+    import(pathToFileURL(path.join(
+      root,
+      'public/vendor/doppler/src/inference/pipelines/text/execution-v1.js'
+    )).href),
+    import(pathToFileURL(path.join(
+      root,
+      'public/vendor/doppler/src/config/schema/index.js'
+    )).href),
+  ]);
+  const conversion = JSON.parse(fs.readFileSync(
+    path.join(
+      root,
+      'public/vendor/doppler/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json'
+    ),
+    'utf8'
+  ));
+  const manifestInference = {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    session: conversion.session,
+    execution: conversion.execution,
+    attention: conversion.inference.attention,
+    layerPattern: conversion.inference.layerPattern,
+  };
+  const compiled = compileExecutionV1({
+    manifestInference,
+    modelId: 'qwen-3-reranker-0-6b-q4k-ehf16-af32',
+    numLayers: 28,
+    headDim: 128,
+    useGPU: true,
+    kernelPathPolicy: {
+      mode: 'capability-aware',
+      onIncompatible: 'remap',
+      sourceScope: ['manifest'],
+    },
+  });
+  const kernelPath = compiled.runtimeInferencePatch.kernelPath;
+  const attentionSteps = [
+    ...(kernelPath.decode.steps || []),
+    ...(kernelPath.prefill.steps || []),
+  ].filter((step) => String(step.kernel || '').startsWith('attention'));
+
+  assert.equal(compiled.session.kvcache.kvDtype, 'f32');
+  assert.equal(compiled.runtimeInferencePatch.session.kvcache.kvDtype, 'f32');
+  assert.equal(kernelPath.kvDtype, 'f32');
+  assert.ok(compiled.appliedTransforms.includes('widenToF32Activations'));
+  assert.ok(attentionSteps.length > 0);
+  for (const step of attentionSteps) {
+    assert.doesNotMatch(step.kernel, /_f16/);
+    assert.equal(step.precision.activationDtype, 'f32');
+    assert.equal(step.precision.kvDtype, 'f32');
+  }
 });
 
 test('Phase 3 uses Doppler reranker when the required capability is present', async () => {
@@ -497,6 +781,68 @@ test('Phase 3 uses Doppler reranker when the required capability is present', as
   });
 });
 
+test('Phase 3 model-backed retrieval embeds and reranks typed scene slots', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    manifest.reranker = {
+      ...manifest.reranker,
+      required: true,
+    };
+    const prompt = 'dogs and cats swimming in a lake';
+    const phase1 = lab.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true });
+    const phase2 = lab.runPhase2LanguageGraph(phase1);
+    const queryPlan = phase2.artifact.queryPlan;
+    const embedTexts = [];
+    const rerankInputs = [];
+    const query = indexedVector(index, 'water');
+    const provider = probeAwareEmbedProvider({
+      index,
+      targetVector: query,
+      onEmbed: (args) => embedTexts.push(String(args.text || '')),
+    });
+    provider.rerank = async (input = {}) => {
+      rerankInputs.push(input);
+      return {
+        rows: (input.candidates || []).map((candidate, order) => ({
+          primitiveId: candidate.primitiveId,
+          score: candidate.primitiveId === 'surface-dog-1' || candidate.primitiveId === 'surface-cat-1'
+            ? 1
+            : Math.max(0.05, 0.56 - order * 0.01),
+        })),
+      };
+    };
+    const events = [];
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      onProgress: (event) => events.push(event),
+      embedProvider: provider,
+    });
+
+    const result = await embedder.rankPrompt(prompt, lab.PHYSICAL_PRIMITIVES, {
+      max: 12,
+      queryPlan,
+    });
+    const dogSlot = result.slotRetrieval.bySlot.find((row) => row.slotId === 'slot.actor.dog');
+    const catSlot = result.slotRetrieval.bySlot.find((row) => row.slotId === 'slot.actor.cat');
+
+    assert.equal(result.slotRetrieval.schema, 'simulatte.phase3SlotRetrieval.v1');
+    assert.equal(result.slotRetrieval.queryPlanSchema, 'simulatte.sceneQueryPlan.v1');
+    assert.ok(result.slotRetrieval.embeddedSlotCount >= queryPlan.summary.requiredSlotCount);
+    assert.ok(result.slotRetrieval.rerankCallCount >= queryPlan.summary.requiredSlotCount);
+    assert.ok(dogSlot.candidates.some((row) => /\bdog\b|surface-dog/.test(row.candidateId)));
+    assert.ok(catSlot.candidates.some((row) => /\bcat\b|surface-cat/.test(row.candidateId)));
+    assert.ok(rerankInputs.some((input) => input.schema === 'simulatte.intentSlotRerankInput.v1'));
+    assert.ok(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.actor.dog'));
+    assert.ok(embedTexts.some((text) => /\bdog\b/.test(text)));
+    assert.ok(embedTexts.every((text) => !/\b(?:actor|slot|required)\b/.test(text)));
+    assert.ok(events.some((event) => event.stage === 'slot-retrieval'));
+    assert.ok(events.some((event) => event.stage === 'slot-rank'));
+    assert.ok(result.evidenceRows.some((row) => (
+      row.retrievalKind === 'slot-retrieval' &&
+      row.slotId === 'slot.actor.dog'
+    )));
+  });
+});
+
 test('Doppler model handles normalize URL provenance to the manifest model id', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     const query = indexedVector(index, 'optics-bench');
@@ -518,7 +864,7 @@ test('Doppler model handles normalize URL provenance to the manifest model id', 
       { max: 8 }
     );
 
-    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+    assert.equal(result.model.id, 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
     assert.equal(result.backend, 'injected-doppler-model');
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
   });
@@ -542,13 +888,13 @@ test('embed providers normalize default model URL provenance to the manifest mod
       { max: 8 }
     );
 
-    assert.equal(result.model.id, 'google-embeddinggemma-300m-q4k-ehf16-af32');
+    assert.equal(result.model.id, 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
     assert.equal(result.backend, 'configured-provider');
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
   });
 });
 
-test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async () => {
+test('Qwen surface-card retrieval feeds typed graph synthesis', async () => {
   await withIntentArtifactFetch(async ({ index, surfaceIndex }) => {
     const query = indexedCardVector(surfaceIndex, 'lens');
     const embedder = intentEmbedder.create({
@@ -584,6 +930,31 @@ test('EmbeddingGemma surface-card retrieval feeds typed graph synthesis', async 
     assert.ok(spec.objects.some((object) => /lens|laser|ferrofluid/.test(object.id)));
     assert.equal(spec.physicalSpec.receipt.synthesis.valid, true);
   });
+});
+
+test('classifier direct prompt rules do not inject broad scene priors over model evidence', () => {
+  const diesel = lab.classifyIntentPrompt('a diesel generator powers a crane', {
+    embeddingModel: { id: 'qwen-3-embedding-0-6b-q4k-ehf16-af32', dimensions: 1024 },
+    embeddingBackend: 'test',
+    embeddingPriors: [
+      { primitiveId: 'motor-load', score: 0.91 },
+      { primitiveId: 'rigid-body', score: 0.62 },
+    ],
+  });
+  const waterWaves = lab.classifyIntentPrompt('water waves push a small boat near the shore', {
+    embeddingModel: { id: 'qwen-3-embedding-0-6b-q4k-ehf16-af32', dimensions: 1024 },
+    embeddingBackend: 'test',
+    embeddingPriors: [
+      { primitiveId: 'water', score: 0.93 },
+      { primitiveId: 'buoyant-body', score: 0.68 },
+    ],
+  });
+  const dieselIds = new Set(diesel.priors.map((row) => row.primitiveId));
+  const waterWaveIds = new Set(waterWaves.priors.map((row) => row.primitiveId));
+
+  assert.equal(dieselIds.has('solar-panel'), false);
+  assert.equal(dieselIds.has('stator-slider'), false);
+  assert.equal(waterWaveIds.has('acoustic-emitter'), false);
 });
 
 test('builder creates the solar magnetic perpetual motion machine from prompt', () => {
@@ -684,13 +1055,27 @@ test('state labels follow compiled renderer scene identities', () => {
 });
 
 test('blank prompt resolves to empty construction plane intent', () => {
-  const intent = lab.createIntentFromPrompt('blank world');
+  const intent = lab.createIntentFromPrompt('');
   const spec = lab.resolveIntentToSpec(intent);
 
   assert.equal(spec.templateId, 'blank-world');
   assert.deepEqual(intent.domains, ['blank']);
   assert.equal(spec.modules.length, 0);
   assert.equal(spec.objects.length, 0);
+});
+
+test('blank keywords inside real prompts do not select blank intent', () => {
+  const emptyGlass = lab.createSpecFromPrompt('an empty glass fills with water', {
+    allowPrototypeFallback: true,
+  });
+  const scratchCastle = lab.createSpecFromPrompt('build a castle from scratch while wind cracks the gate', {
+    allowPrototypeFallback: true,
+  });
+
+  assert.notEqual(emptyGlass.templateId, 'blank-world');
+  assert.notEqual(scratchCastle.templateId, 'blank-world');
+  assert.notDeepEqual(emptyGlass.intent.domains, ['blank']);
+  assert.notDeepEqual(scratchCastle.intent.domains, ['blank']);
 });
 
 test('simulation specs export, import, and remix with lineage', () => {
@@ -851,11 +1236,11 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
         { primitiveId: 'wave-source', score: 0.82 },
       ],
       embeddingModel: {
-        id: 'google-embeddinggemma-300m-q4k-ehf16-af32',
-        family: 'embeddinggemma',
-        dimensions: 768,
-        indexId: 'simulatte-primitive-embeddinggemma-300m-index-v1',
-        reranker: 'simulatte.google-embeddinggemma-300m-q4k-ehf16-af32-reranker.v1',
+        id: 'qwen-3-embedding-0-6b-q4k-ehf16-af32',
+        family: 'qwen3-embedding',
+        dimensions: 1024,
+        indexId: 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1',
+        reranker: 'simulatte.doppler-intent-reranker.v1',
       },
       embeddingBackend: 'webgpu',
       intentRerank: {
@@ -869,9 +1254,9 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
   const regimes = new Set(spec.renderProgram.objects.map((object) => object.visualRegime));
   const solverFamilies = new Set(spec.renderProgram.solverPlan.families);
 
-  assert.equal(spec.intent.classification.model.id, 'simulatte-google-embeddinggemma-300m-q4k-ehf16-af32-intent-ranker.v1');
+  assert.equal(spec.intent.classification.model.id, 'simulatte-qwen-3-embedding-0-6b-q4k-ehf16-af32-intent-ranker.v1');
   assert.equal(spec.intent.classification.model.runtime.backend, 'webgpu');
-  assert.equal(spec.intent.classification.model.runtime.indexId, 'simulatte-primitive-embeddinggemma-300m-index-v1');
+  assert.equal(spec.intent.classification.model.runtime.indexId, 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1');
   assert.equal(spec.intent.rerank.schema, 'simulatte.intentRerank.v1');
   assert.equal(spec.physicalSpec.receipt.rerank.required, true);
   assert.ok(ids.has('mycelium'));
@@ -1014,7 +1399,7 @@ test('prompt worlds compile into Grid-like classifier composition graphs', () =>
   assert.ok(city.intent.classification.priors.some((prior) => prior.primitiveId === 'city-grid'));
   assert.ok(city.renderProgram.objects.some((object) => object.shape === 'queue-node'));
   assert.ok(city.renderProgram.fields.some((field) => field.kind === 'network-flow'));
-  assert.ok(machine.intent.classification.priors.some((prior) => prior.primitiveId === 'rotor-wheel'));
+  assert.ok(machine.compositionGraph.nodes.some((node) => node.primitiveId === 'rotor-wheel'));
   assert.ok(machine.renderProgram.objects.some((object) => object.shape === 'wheel'));
   assert.ok(machine.renderProgram.fields.some((field) => field.kind === 'dipole'));
   assert.equal(machine.physicalSpec.executionSource, 'solverGraph');
@@ -1851,6 +2236,34 @@ test('semantic curation prefers specific prompt objects over generic neighbors',
   assert.ok(greenhouseNodeIds.has('artifact.fan'));
 });
 
+test('semantic RAG does not dot model query vectors against local hashed feature vectors', () => {
+  const { index } = loadEmbeddingIndex();
+  const promptVector = indexedVector(index, 'water');
+  const primitiveIndex = {
+    id: 'test-normalized-qwen-index',
+    documents: [
+      { primitiveId: 'water', vector: Array.from(promptVector) },
+    ],
+  };
+  const rag = semanticRagApi.createSemanticRag(
+    'dogs and cats swimming in water',
+    lab.PHYSICAL_PRIMITIVES,
+    {
+      primitiveIndex,
+      promptVector,
+      maxDocuments: 16,
+      maxSurfaceDocuments: 12,
+    }
+  );
+  const modelRows = rag.retrieved.filter((row) => row.semanticVectorSpace === 'qwen-model-embedding');
+  const surfaceRows = rag.surfaceRetrieved.filter((row) => row.featureVectorSpace === 'simulatte-local-hashed-features');
+
+  assert.ok(modelRows.length > 0);
+  assert.ok(surfaceRows.length > 0);
+  assert.ok(surfaceRows.every((row) => row.semanticScore === 0));
+  assert.ok(surfaceRows.every((row) => row.featureScore >= 0));
+});
+
 test('literal training review prompts survive semantic grounding into render objects', () => {
   const animalRag = semanticRagApi.createSemanticRag(
     'dogs and cats swimming',
@@ -1888,6 +2301,9 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.ok(mappingIds(flowers).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(flowers).includes('visual.operator.instrument-readout.v1'));
   assert.ok(catalogCount(flowers) <= 6);
+  const flowerPacketIdentities = flowers.renderProgram.sceneRenderPacket.entities.map((entity) => entity.identity);
+  assert.ok(flowerPacketIdentities.some((identity) => identity.type === 'plant'));
+  assert.ok(flowerPacketIdentities.every((identity) => identity.renderClass !== 'water-volume'));
   assert.equal(mountainObjects['tree-a'].shape, 'fuel-bed');
   assert.equal(mountainObjects['environment-mountain'].role, 'mountain');
   assert.equal(mountainObjects['surface-mountain-1'].phrase, 'mountaints');

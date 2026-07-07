@@ -22,6 +22,15 @@ export const TRAINING_EVAL_KINDS = Object.freeze([
   'custom',
 ]);
 
+export const TRAINING_AGENT_EVAL_CATEGORIES = Object.freeze([
+  'js_patching',
+  'wgsl_review',
+  'manifest_config_review',
+  'reploid_vfs_status_tool_loop',
+  'patch_applies',
+  'no_hallucinated_files_tools',
+]);
+
 const LEGACY_DISTILL_TEST_IDS = Object.freeze(['distill-stage-a', 'distill-stage-b']);
 
 function stableSortObject(value) {
@@ -101,6 +110,15 @@ function asFiniteNumber(value, label, options = {}) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
     throw new Error(`${label} must be a finite number.`);
+  }
+  return parsed;
+}
+
+function asUnitInterval(value, label, options = {}) {
+  const parsed = asFiniteNumber(value, label, options);
+  if (parsed === null) return null;
+  if (parsed < 0 || parsed > 1) {
+    throw new Error(`${label} must be between 0 and 1.`);
   }
   return parsed;
 }
@@ -247,11 +265,57 @@ function normalizeEvalDatasets(value, label) {
         `${label}[${index}].scoreboardColumns`,
         { optional: true, allowEmpty: true }
       ) ?? [],
+      quality: normalizeEvalQualityConfig(dataset.quality, `${label}[${index}].quality`),
+      agentEval: normalizeAgentEvalConfig(dataset.agentEval, `${label}[${index}].agentEval`),
       sourceLangs: asStringArray(dataset.sourceLangs, `${label}[${index}].sourceLangs`, { optional: true, allowEmpty: true }),
       targetLangs: asStringArray(dataset.targetLangs, `${label}[${index}].targetLangs`, { optional: true, allowEmpty: true }),
       pairAllowlist: asStringArray(dataset.pairAllowlist, `${label}[${index}].pairAllowlist`, { optional: true, allowEmpty: true }),
     };
   });
+}
+
+function normalizeAgentEvalConfig(value, label) {
+  const config = asObject(value, label, { optional: true });
+  if (!config) return null;
+  const categories = asStringArray(config.categories, `${label}.categories`);
+  for (const category of categories) {
+    if (!TRAINING_AGENT_EVAL_CATEGORIES.includes(category)) {
+      throw new Error(`${label}.categories contains unsupported category "${category}".`);
+    }
+  }
+  return {
+    suiteId: asNonEmptyString(config.suiteId, `${label}.suiteId`),
+    categories,
+    minPassRate: asUnitInterval(config.minPassRate, `${label}.minPassRate`),
+    requirePatchApplies: asBoolean(config.requirePatchApplies, `${label}.requirePatchApplies`),
+    requireNoHallucinatedFiles: asBoolean(
+      config.requireNoHallucinatedFiles,
+      `${label}.requireNoHallucinatedFiles`
+    ),
+    requireNoHallucinatedTools: asBoolean(
+      config.requireNoHallucinatedTools,
+      `${label}.requireNoHallucinatedTools`
+    ),
+    allowedFiles: asStringArray(config.allowedFiles, `${label}.allowedFiles`, { allowEmpty: true }),
+    allowedTools: asStringArray(config.allowedTools, `${label}.allowedTools`, { allowEmpty: true }),
+  };
+}
+
+function normalizeEvalQualityConfig(value, label) {
+  const quality = asObject(value, label, { optional: true });
+  if (!quality) return null;
+  return {
+    baseline: asNonEmptyString(quality.baseline ?? 'base_model', `${label}.baseline`),
+    requireImprovement: asBoolean(quality.requireImprovement ?? false, `${label}.requireImprovement`),
+    minAbsoluteImprovement: asFiniteNumber(
+      quality.minAbsoluteImprovement ?? 0,
+      `${label}.minAbsoluteImprovement`
+    ),
+    minRelativeImprovement: asFiniteNumber(
+      quality.minRelativeImprovement ?? 0,
+      `${label}.minRelativeImprovement`
+    ),
+  };
 }
 
 function normalizeFreezeConfig(value, label) {
@@ -309,6 +373,12 @@ function normalizeStagePlan(value, label) {
   });
 }
 
+function isSftStageEntry(stage) {
+  const trainingStage = String(stage?.trainingStage || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const objective = String(stage?.objective || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return trainingStage === 'sft' || objective === 'sft';
+}
+
 function normalizeLoraConfig(value, label) {
   const lora = asObject(value, label);
   const adapter = asObject(lora.adapter, `${label}.adapter`);
@@ -355,6 +425,11 @@ function normalizeLoraConfig(value, label) {
   };
 }
 
+function normalizeDistillSftLoraConfig(value, label) {
+  if (value === undefined || value === null) return null;
+  return normalizeLoraConfig(value, label);
+}
+
 function normalizeDistillConfig(value, label) {
   const distill = asObject(value, label);
   return {
@@ -369,6 +444,7 @@ function normalizeDistillConfig(value, label) {
     pairAllowlist: asStringArray(distill.pairAllowlist, `${label}.pairAllowlist`, { optional: true, allowEmpty: true }),
     strictPairContract: asBoolean(distill.strictPairContract, `${label}.strictPairContract`),
     subsetSpec: asObject(distill.subsetSpec, `${label}.subsetSpec`, { optional: true }),
+    sftLora: normalizeDistillSftLoraConfig(distill.sftLora, `${label}.sftLora`),
   };
 }
 
@@ -491,12 +567,16 @@ export function normalizeTrainingWorkloadPack(payload, context = {}) {
     workload.pipeline = normalizeLoraConfig(payload.lora ?? payload.pipeline, `${contextLabel}.lora`);
   } else if (kind === 'distill') {
     workload.pipeline = normalizeDistillConfig(payload.distill ?? payload.pipeline, `${contextLabel}.distill`);
-    const stageRequiresTeacher = workload.pipeline.stagePlan.some((stage) => stage.objective !== 'sft');
+    const hasSftStage = workload.pipeline.stagePlan.some((stage) => isSftStageEntry(stage));
+    const stageRequiresTeacher = workload.pipeline.stagePlan.some((stage) => !isSftStageEntry(stage));
     if (stageRequiresTeacher && !workload.teacherModelId) {
       throw new Error(`${contextLabel}.teacherModelId is required when stagePlan includes non-SFT stages.`);
     }
     if (!workload.studentModelId) {
       throw new Error(`${contextLabel}.studentModelId is required for distill workloads.`);
+    }
+    if (hasSftStage && !workload.pipeline.sftLora) {
+      throw new Error(`${contextLabel}.distill.sftLora is required when stagePlan includes SFT stages.`);
     }
   }
 

@@ -876,9 +876,9 @@ function normalizeDocument(indexName, doc) {
 }
 
 function generatedUniverseDocs() {
-  const catalog = require('../public/pipeline/phase-06-simulation/simulatte-physics-catalog.js');
+  const catalog = require('../public/pipeline/phase-05-simulation/simulatte-physics-catalog.js');
   const ragApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
-  const graphApi = require('../public/pipeline/phase-05-grounded-intent/simulatte-graph-synthesis.js');
+  const graphApi = require('../public/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
   const primitiveIds = new Set((catalog.PHYSICAL_PRIMITIVES || []).map((primitive) => primitive.id));
   const cards = [
     ...(ragApi.SEMANTIC_SURFACE_CARDS || []),

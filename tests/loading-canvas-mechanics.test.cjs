@@ -42,11 +42,14 @@ function snake(id, points, direction = { x: 1, y: 0 }) {
     id,
     cells: points.map(([x, y]) => ({ x, y })),
     direction,
-    colors: [id === 1 ? '#ff3f4f' : '#30c7f2'],
+    colors: [id === 1 ? '#ff9fbd' : '#9bdcff'],
     growthEvery: 5,
     phase: 0,
     turnBias: 1,
     loopiness: 0.85,
+    straightRunLeft: 0,
+    rectangularity: 0.82,
+    visited: new Set(points.map(([x, y]) => `${x},${y}`)),
   };
 }
 
@@ -86,8 +89,8 @@ test('loading snake head-to-head collisions combine snakes', () => {
   );
 
   assert.equal(instance.snakes.length, 1);
-  assert.ok(instance.snakes[0].colors.includes('#ff3f4f'));
-  assert.ok(instance.snakes[0].colors.includes('#30c7f2'));
+  assert.ok(instance.snakes[0].colors.includes('#ff9fbd'));
+  assert.ok(instance.snakes[0].colors.includes('#9bdcff'));
 });
 
 test('loading snake head-to-body collisions absorb and remove the victim', () => {
@@ -107,17 +110,19 @@ test('loading snake head-to-body collisions absorb and remove the victim', () =>
   assert.equal(instance.snakes.length, 1);
   assert.equal(instance.snakes[0].id, 1);
   assert.ok(instance.snakes[0].cells.length > attackerLength);
+  assert.equal(instance.exitSnakes.length, 1);
+  assert.deepEqual(instance.exitSnakes[0].cells[0], { x: 8, y: 5 });
 });
 
-test('loading snake tail-quarter crossings do not destroy the crossed snake', () => {
+test('loading snake tail-end crossings do not destroy the crossed snake', () => {
   const beforeAttacker = snake(1, [[4, 5], [3, 5], [2, 5]]);
   const beforeVictim = snake(2, [[8, 5], [9, 5], [10, 5], [11, 5], [12, 5], [13, 5], [14, 5], [15, 5]], { x: -1, y: 0 });
-  const afterAttacker = snake(1, [[14, 5], [4, 5], [3, 5]]);
+  const afterAttacker = snake(1, [[15, 5], [4, 5], [3, 5]]);
   const afterVictim = snake(2, [[8, 5], [9, 5], [10, 5], [11, 5], [12, 5], [13, 5], [14, 5], [15, 5]], { x: -1, y: 0 });
   const instance = controller([afterAttacker, afterVictim]);
 
   instance.resolveCollisionPlans(
-    [{ snake: afterAttacker, target: { x: 14, y: 5 }, actualTarget: { x: 14, y: 5 } }],
+    [{ snake: afterAttacker, target: { x: 15, y: 5 }, actualTarget: { x: 15, y: 5 } }],
     occupancy([beforeAttacker, beforeVictim]),
     drawFrom([beforeAttacker, beforeVictim])
   );
@@ -125,4 +130,59 @@ test('loading snake tail-quarter crossings do not destroy the crossed snake', ()
   assert.equal(instance.snakes.length, 2);
   assert.ok(instance.snakes.some((row) => row.id === 1));
   assert.ok(instance.snakes.some((row) => row.id === 2));
+});
+
+test('loading snake rectangular cadence keeps straight orthogonal runs', () => {
+  const row = snake(1, [[6, 5], [5, 5], [4, 5], [3, 5]]);
+  row.growthEvery = 100;
+  row.straightRunLeft = 3;
+  row.rectangularity = 1;
+  const instance = controller([row]);
+  instance.enforcePopulation = () => {};
+  instance.rng = () => 0.99;
+
+  instance.advanceSwarm(200, 164);
+  instance.advanceSwarm(400, 164);
+
+  assert.deepEqual(row.direction, { x: 1, y: 0 });
+  assert.deepEqual(row.cells[0], { x: 8, y: 5 });
+  assert.equal(row.straightRunLeft, 1);
+  assert.equal(row.visited.has('8,5'), true);
+});
+
+test('loading snake density starts sparse and increases with progress', () => {
+  const instance = controller([]);
+
+  instance.progress = 0;
+  instance.stageCode = 0;
+  assert.equal(instance.targetSnakeCount(), 2);
+  assert.equal(instance.targetSnakeLength(), 7);
+  instance.resetSwarm();
+  assert.equal(instance.snakes.length, 2);
+
+  instance.progress = 1;
+  instance.enforcePopulation();
+  assert.equal(instance.targetSnakeCount(), 10);
+  assert.equal(instance.targetSnakeLength(), 64);
+  assert.equal(instance.snakes.length, 10);
+});
+
+test('loading snake spawn appears as a grid spiral before normal travel', () => {
+  const instance = controller([]);
+  instance.frameNow = 512;
+
+  assert.equal(instance.spawnSnake(12, instance.frameNow), true);
+
+  const row = instance.snakes[0];
+  const directions = [];
+  for (let index = 1; index < row.cells.length; index += 1) {
+    directions.push({
+      x: row.cells[index].x - row.cells[index - 1].x,
+      y: row.cells[index].y - row.cells[index - 1].y,
+    });
+  }
+  const directionKeys = new Set(directions.map((direction) => `${direction.x},${direction.y}`));
+
+  assert.equal(row.enterStartedAt, 512);
+  assert.ok(directionKeys.size >= 3);
 });

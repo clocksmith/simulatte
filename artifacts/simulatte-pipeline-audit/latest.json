@@ -1,8 +1,34 @@
 {
   "schema": "simulatte.pipelineAuditRun.v1",
-  "generatedAt": "2026-07-06T01:06:30.908Z",
-  "runId": "2026-07-06T01-06-30-908Z-6e93b39547",
-  "gitSha": "060b903751a0",
+  "artifactIdentity": {
+    "schema": "simulatte.pipelineAuditArtifactIdentity.v1",
+    "kind": "static-score",
+    "role": "compiled-static-score-proxy",
+    "canonical": false,
+    "compareGroup": "simulatte-pipeline-static-score-v1",
+    "phaseTaxonomyVersion": "strict-8-phase-scene-proof-v2",
+    "phaseIds": [
+      "runtime",
+      "languageGraph",
+      "retrieval",
+      "activationFusion",
+      "groundedIntent",
+      "simulationCompile",
+      "visualIR",
+      "webgpu",
+      "sceneProof"
+    ],
+    "measurementMode": "compiled-static-live-webgpu-required",
+    "sourceLiveReport": null,
+    "outputDir": "artifacts/simulatte-pipeline-audit"
+  },
+  "artifactKind": "static-score",
+  "compareGroup": "simulatte-pipeline-static-score-v1",
+  "phaseTaxonomyVersion": "strict-8-phase-scene-proof-v2",
+  "sourceLiveReport": null,
+  "generatedAt": "2026-07-08T02:25:45.057Z",
+  "runId": "2026-07-08T02-25-45-057Z-dfea7aa9b8",
+  "gitSha": "3b69b3cabf2e",
   "version": "",
   "rubricVersion": "phase-floor-76.v1",
   "promptSetVersion": "core-adversarial-human-v1",
@@ -25,84 +51,112 @@
       "label": "Embedding Retrieval"
     },
     {
-      "id": "activationCloud",
-      "step": 4,
-      "label": "Activation Cloud"
+      "id": "activationFusion",
+      "step": 3,
+      "label": "Activation Fusion"
     },
     {
       "id": "groundedIntent",
-      "step": 5,
+      "step": 4,
       "label": "Grounded Intent"
     },
     {
       "id": "simulationCompile",
-      "step": 6,
+      "step": 5,
       "label": "Simulation Compile"
     },
     {
       "id": "visualIR",
-      "step": 7,
+      "step": 6,
       "label": "VisualIR Compile"
     },
     {
       "id": "webgpu",
-      "step": 8,
+      "step": 7,
       "label": "WebGPU Render"
+    },
+    {
+      "id": "sceneProof",
+      "step": 8,
+      "label": "Scene Proof"
     }
   ],
   "promptCount": 20,
   "phaseScores": {
     "runtime": 96,
-    "languageGraph": 85.9,
-    "retrieval": 81.1,
-    "activationCloud": 86.5,
-    "groundedIntent": 95.4,
-    "simulationCompile": 87.6,
-    "visualIR": 84,
-    "webgpu": 68
+    "languageGraph": 86.6,
+    "retrieval": 83.9,
+    "activationFusion": 86.2,
+    "groundedIntent": 94,
+    "simulationCompile": 87.4,
+    "visualIR": 83.6,
+    "webgpu": 68,
+    "sceneProof": 68
   },
   "pipelineScore": 68,
   "verdict": "fail",
   "weakestPhase": "webgpu",
   "belowFloor": [
-    "webgpu"
+    "webgpu",
+    "sceneProof"
   ],
   "failures": [
     "1:simulationCompile:operators=4 geometry=40%",
     "1:visualIR:atoms=6 signalCoverage=100%",
     "1:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "1:sceneProof:live scene proof required; static settlement proxy capped",
     "2:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "2:sceneProof:live scene proof required; static settlement proxy capped",
     "3:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "3:sceneProof:live scene proof required; static settlement proxy capped",
     "4:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "4:sceneProof:live scene proof required; static settlement proxy capped",
     "5:webgpu:live WebGPU proof required; static VisualIR proxy capped",
-    "6:retrieval:signalCoverage=100%",
+    "5:sceneProof:live scene proof required; static settlement proxy capped",
     "6:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "6:sceneProof:live scene proof required; static settlement proxy capped",
     "7:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "7:sceneProof:live scene proof required; static settlement proxy capped",
+    "8:simulationCompile:operators=2 geometry=83%",
     "8:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "8:sceneProof:live scene proof required; static settlement proxy capped",
     "9:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "9:sceneProof:live scene proof required; static settlement proxy capped",
     "10:languageGraph:termCoverage=100%",
-    "10:retrieval:signalCoverage=100%",
+    "10:groundedIntent:signalCoverage=50% gaps=1",
     "10:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "10:sceneProof:live scene proof required; static settlement proxy capped",
     "11:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "11:sceneProof:live scene proof required; static settlement proxy capped",
     "12:languageGraph:termCoverage=100%",
     "12:retrieval:signalCoverage=100%",
     "12:visualIR:atoms=2 signalCoverage=100%",
     "12:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "12:sceneProof:live scene proof required; static settlement proxy capped",
     "13:retrieval:signalCoverage=100%",
     "13:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "13:sceneProof:live scene proof required; static settlement proxy capped",
     "14:webgpu:live WebGPU proof required; static VisualIR proxy capped",
-    "15:retrieval:signalCoverage=100%",
+    "14:sceneProof:live scene proof required; static settlement proxy capped",
     "15:visualIR:atoms=4 signalCoverage=100%",
     "15:webgpu:live WebGPU proof required; static VisualIR proxy capped",
-    "16:retrieval:signalCoverage=100%",
+    "15:sceneProof:live scene proof required; static settlement proxy capped",
     "16:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "16:sceneProof:live scene proof required; static settlement proxy capped",
     "17:languageGraph:termCoverage=100%",
+    "17:activationFusion:accepted=1 verdicts=1/1 signalCoverage=100%",
     "17:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "17:sceneProof:live scene proof required; static settlement proxy capped",
     "18:languageGraph:termCoverage=100%",
+    "18:activationFusion:accepted=1 verdicts=0/1 signalCoverage=100%",
     "18:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "18:sceneProof:live scene proof required; static settlement proxy capped",
     "19:languageGraph:termCoverage=100%",
     "19:webgpu:live WebGPU proof required; static VisualIR proxy capped",
-    "20:webgpu:live WebGPU proof required; static VisualIR proxy capped"
+    "19:sceneProof:live scene proof required; static settlement proxy capped",
+    "20:retrieval:signalCoverage=100%",
+    "20:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "20:sceneProof:live scene proof required; static settlement proxy capped"
   ],
   "prompts": [
     {
@@ -119,19 +173,21 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 100,
-        "retrieval": 88,
-        "activationCloud": 81,
+        "retrieval": 100,
+        "activationFusion": 86,
         "groundedIntent": 96,
         "simulationCompile": 67.4,
         "visualIR": 70.3,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 67.4,
       "weakestPhase": "simulationCompile",
       "failures": [
         "simulationCompile:operators=4 geometry=40%",
         "visualIR:atoms=6 signalCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -143,11 +199,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -158,7 +214,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 19,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -172,16 +228,36 @@
               "instrument"
             ],
             "missing": [],
-            "unexpected": [
-              "feedback"
-            ],
-            "falsePositivePenalty": 4
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 753,
-          "acceptedActivationCount": 42,
-          "directSignalCount": 19,
+        "activationFusion": {
+          "activationCount": 275,
+          "acceptedActivationCount": 60,
+          "directSignalCount": 9,
+          "ledgerObligationCount": 12,
+          "obligationVerdictCount": 12,
+          "settledVerdictCount": 7,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "missing": 7,
+            "pending": 5
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:particle-collider",
+            "kind": "object",
+            "target": "particle-collider",
+            "required": true,
+            "inferred": false,
+            "verdict": "missing",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -199,8 +275,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 42,
-          "evidenceBindingCount": 52,
+          "acceptedActivationCount": 60,
+          "evidenceBindingCount": 70,
           "causalEdgeCount": 5,
           "visualAffordanceCount": 5,
           "coverageGapCount": 0,
@@ -311,6 +387,7 @@
             "instrument",
             "collision",
             "heat",
+            "structure",
             "smoke",
             "particle collider muon",
             "field lines",
@@ -343,7 +420,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -352,6 +431,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 12,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -367,17 +453,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 80,
-        "activationCloud": 81,
+        "retrieval": 82,
+        "activationFusion": 82.7,
         "groundedIntent": 96,
         "simulationCompile": 95,
         "visualIR": 88,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -389,11 +477,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -404,7 +492,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 7,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -416,18 +504,36 @@
               "granular"
             ],
             "missing": [],
-            "unexpected": [
-              "thermal",
-              "electromagnetic",
-              "network"
-            ],
-            "falsePositivePenalty": 12
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 982,
-          "acceptedActivationCount": 44,
-          "directSignalCount": 9,
+        "activationFusion": {
+          "activationCount": 79,
+          "acceptedActivationCount": 24,
+          "directSignalCount": 2,
+          "ledgerObligationCount": 7,
+          "obligationVerdictCount": 7,
+          "settledVerdictCount": 1,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 6,
+            "missing": 1
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:mangrove",
+            "kind": "object",
+            "target": "mangrove",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -443,8 +549,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 44,
-          "evidenceBindingCount": 48,
+          "acceptedActivationCount": 24,
+          "evidenceBindingCount": 28,
           "causalEdgeCount": 2,
           "visualAffordanceCount": 2,
           "coverageGapCount": 0,
@@ -498,7 +604,7 @@
           "sourceLinkedRenderInstanceCount": 48,
           "rejectedRowCount": 22,
           "mappingCount": 3,
-          "languageSignalCount": 36,
+          "languageSignalCount": 24,
           "uniformSlots": [
             "fluid",
             "biological",
@@ -538,8 +644,8 @@
           "sceneRenderPacketSpatialRatio": 1,
           "sceneRenderPacketIdentityRatio": 1,
           "sceneRenderPacketIdentities": [
+            "plant",
             "structure",
-            "mangrove",
             "water"
           ],
           "structuralCoverage": 1,
@@ -560,7 +666,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -569,6 +677,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 7,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -582,17 +697,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 84,
-        "activationCloud": 81,
+        "retrieval": 82,
+        "activationFusion": 86,
         "groundedIntent": 96,
         "simulationCompile": 89.6,
         "visualIR": 82.9,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -604,11 +721,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -619,7 +736,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 34,
+          "evidenceCount": 6,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -629,17 +746,35 @@
               "biological"
             ],
             "missing": [],
-            "unexpected": [
-              "thermal",
-              "fluid"
-            ],
-            "falsePositivePenalty": 8
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 316,
+        "activationFusion": {
+          "activationCount": 67,
           "acceptedActivationCount": 24,
-          "directSignalCount": 4,
+          "directSignalCount": 1,
+          "ledgerObligationCount": 6,
+          "obligationVerdictCount": 6,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 6
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:gut",
+            "kind": "object",
+            "target": "gut",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -704,7 +839,7 @@
           "sourceLinkedRenderInstanceCount": 26,
           "rejectedRowCount": 10,
           "mappingCount": 1,
-          "languageSignalCount": 31,
+          "languageSignalCount": 26,
           "uniformSlots": [
             "biological",
             "motion",
@@ -763,7 +898,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -772,6 +909,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 6,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -785,17 +929,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 78.2,
-        "activationCloud": 100,
+        "retrieval": 82.2,
+        "activationFusion": 100,
         "groundedIntent": 100,
         "simulationCompile": 94,
         "visualIR": 96,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -807,11 +953,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -822,7 +968,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 48,
+          "evidenceCount": 8,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 0.9090909090909091,
@@ -834,16 +980,36 @@
             "missing": [],
             "unexpected": [
               "fluid",
-              "feedback",
-              "electromagnetic"
+              "feedback"
             ],
-            "falsePositivePenalty": 12
+            "falsePositivePenalty": 8
           }
         },
-        "activationCloud": {
-          "activationCount": 1121,
-          "acceptedActivationCount": 52,
-          "directSignalCount": 7,
+        "activationFusion": {
+          "activationCount": 97,
+          "acceptedActivationCount": 24,
+          "directSignalCount": 1,
+          "ledgerObligationCount": 6,
+          "obligationVerdictCount": 6,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 6
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:railway",
+            "kind": "object",
+            "target": "railway",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -855,8 +1021,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 52,
-          "evidenceBindingCount": 52,
+          "acceptedActivationCount": 24,
+          "evidenceBindingCount": 24,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 0,
           "coverageGapCount": 1,
@@ -904,7 +1070,7 @@
           "sourceLinkedRenderInstanceCount": 26,
           "rejectedRowCount": 17,
           "mappingCount": 1,
-          "languageSignalCount": 36,
+          "languageSignalCount": 24,
           "uniformSlots": [
             "network",
             "motion",
@@ -957,7 +1123,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -966,6 +1134,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 6,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -981,17 +1156,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 84,
-        "activationCloud": 100,
+        "retrieval": 86.2,
+        "activationFusion": 100,
         "groundedIntent": 100,
         "simulationCompile": 88.5,
         "visualIR": 84.3,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -1003,11 +1180,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -1018,10 +1195,10 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 16,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
-          "termCoverage": 1,
+          "termCoverage": 0.9090909090909091,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -1031,16 +1208,37 @@
             ],
             "missing": [],
             "unexpected": [
-              "fluid",
-              "electromagnetic"
+              "fluid"
             ],
-            "falsePositivePenalty": 8
+            "falsePositivePenalty": 4
           }
         },
-        "activationCloud": {
-          "activationCount": 816,
-          "acceptedActivationCount": 58,
-          "directSignalCount": 18,
+        "activationFusion": {
+          "activationCount": 212,
+          "acceptedActivationCount": 42,
+          "directSignalCount": 4,
+          "ledgerObligationCount": 7,
+          "obligationVerdictCount": 7,
+          "settledVerdictCount": 1,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 6,
+            "missing": 1
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:edge",
+            "kind": "object",
+            "target": "edge",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -1054,8 +1252,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 58,
-          "evidenceBindingCount": 64,
+          "acceptedActivationCount": 42,
+          "evidenceBindingCount": 48,
           "causalEdgeCount": 3,
           "visualAffordanceCount": 3,
           "coverageGapCount": 0,
@@ -1074,8 +1272,8 @@
         "simulationCompile": {
           "universeNodeCount": 10,
           "physicsEntityCount": 10,
-          "operatorCount": 7,
-          "solverStepCount": 7,
+          "operatorCount": 6,
+          "solverStepCount": 6,
           "channelCount": 53,
           "termCoverage": 0.9090909090909091,
           "geometrySpecificity": 0.8,
@@ -1152,7 +1350,7 @@
           "sceneRenderPacketIdentityRatio": 1,
           "sceneRenderPacketIdentities": [
             "network-node",
-            "controller"
+            "structure"
           ],
           "structuralCoverage": 1,
           "staticSignalCoverage": {
@@ -1173,7 +1371,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -1182,6 +1382,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 7,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -1196,18 +1403,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 100,
-        "retrieval": 74,
-        "activationCloud": 100,
+        "retrieval": 82,
+        "activationFusion": 95,
         "groundedIntent": 96,
-        "simulationCompile": 87.2,
+        "simulationCompile": 91.2,
         "visualIR": 88.3,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "retrieval:signalCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -1219,11 +1427,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -1234,7 +1442,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 9,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 0.9,
@@ -1247,17 +1455,44 @@
             "missing": [],
             "unexpected": [
               "thermal",
-              "fluid",
-              "feedback",
-              "electromagnetic"
+              "fluid"
             ],
-            "falsePositivePenalty": 16
+            "falsePositivePenalty": 8
           }
         },
-        "activationCloud": {
-          "activationCount": 703,
-          "acceptedActivationCount": 31,
-          "directSignalCount": 4,
+        "activationFusion": {
+          "activationCount": 136,
+          "acceptedActivationCount": 39,
+          "directSignalCount": 1,
+          "ledgerObligationCount": 10,
+          "obligationVerdictCount": 10,
+          "settledVerdictCount": 4,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "missing": 3,
+            "pending": 6,
+            "strongly-supported": 1
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "environment:city",
+            "kind": "environment",
+            "target": "city",
+            "required": true,
+            "inferred": false,
+            "verdict": "strongly-supported",
+            "supportStrength": 0.7639,
+            "provenance": [
+              {
+                "candidateId": "surface-city-1",
+                "candidateType": "primitive",
+                "supportStrength": 0.7639
+              }
+            ],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -1270,8 +1505,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 31,
-          "evidenceBindingCount": 33,
+          "acceptedActivationCount": 39,
+          "evidenceBindingCount": 41,
           "causalEdgeCount": 1,
           "visualAffordanceCount": 1,
           "coverageGapCount": 0,
@@ -1291,8 +1526,8 @@
         "simulationCompile": {
           "universeNodeCount": 4,
           "physicsEntityCount": 4,
-          "operatorCount": 3,
-          "solverStepCount": 3,
+          "operatorCount": 2,
+          "solverStepCount": 2,
           "channelCount": 20,
           "termCoverage": 0.6,
           "geometrySpecificity": 1,
@@ -1305,10 +1540,9 @@
             ],
             "missing": [],
             "unexpected": [
-              "thermal",
-              "orbital"
+              "thermal"
             ],
-            "falsePositivePenalty": 8
+            "falsePositivePenalty": 4
           }
         },
         "visualIR": {
@@ -1385,7 +1619,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -1394,6 +1630,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 10,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -1409,17 +1652,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 100,
-        "retrieval": 76,
-        "activationCloud": 81,
+        "retrieval": 84,
+        "activationFusion": 82.7,
         "groundedIntent": 96,
         "simulationCompile": 77.7,
         "visualIR": 77.8,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -1431,11 +1676,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -1446,7 +1691,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 13,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -1459,18 +1704,38 @@
             ],
             "missing": [],
             "unexpected": [
-              "thermal",
               "fluid",
-              "acoustic",
-              "network"
+              "acoustic"
             ],
-            "falsePositivePenalty": 16
+            "falsePositivePenalty": 8
           }
         },
-        "activationCloud": {
-          "activationCount": 720,
-          "acceptedActivationCount": 31,
-          "directSignalCount": 8,
+        "activationFusion": {
+          "activationCount": 223,
+          "acceptedActivationCount": 43,
+          "directSignalCount": 2,
+          "ledgerObligationCount": 10,
+          "obligationVerdictCount": 10,
+          "settledVerdictCount": 4,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "missing": 4,
+            "pending": 6
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:waves",
+            "kind": "object",
+            "target": "waves",
+            "required": true,
+            "inferred": false,
+            "verdict": "missing",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -1486,8 +1751,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 31,
-          "evidenceBindingCount": 33,
+          "acceptedActivationCount": 43,
+          "evidenceBindingCount": 45,
           "causalEdgeCount": 1,
           "visualAffordanceCount": 1,
           "coverageGapCount": 0,
@@ -1508,9 +1773,9 @@
         "simulationCompile": {
           "universeNodeCount": 8,
           "physicsEntityCount": 8,
-          "operatorCount": 7,
-          "solverStepCount": 7,
-          "channelCount": 45,
+          "operatorCount": 8,
+          "solverStepCount": 8,
+          "channelCount": 48,
           "termCoverage": 0.8333333333333334,
           "geometrySpecificity": 0.75,
           "topologySpecificity": 0.875,
@@ -1592,8 +1857,8 @@
             "planet",
             "moon resonance sorting",
             "moon",
-            "ice boulders",
             "planetary rings shepherd",
+            "ice boulders",
             "orbital gaps",
             "ice material",
             "density waves"
@@ -1618,7 +1883,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -1627,6 +1894,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 10,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -1642,17 +1916,20 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 76,
-        "activationCloud": 81,
+        "retrieval": 100,
+        "activationFusion": 86,
         "groundedIntent": 96,
-        "simulationCompile": 90.7,
+        "simulationCompile": 75.7,
         "visualIR": 87.1,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "simulationCompile:operators=2 geometry=83%",
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -1664,11 +1941,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -1679,7 +1956,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 11,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -1691,19 +1968,35 @@
               "chemical"
             ],
             "missing": [],
-            "unexpected": [
-              "thermal",
-              "electromagnetic",
-              "optical",
-              "network"
-            ],
-            "falsePositivePenalty": 16
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 650,
-          "acceptedActivationCount": 43,
-          "directSignalCount": 20,
+        "activationFusion": {
+          "activationCount": 141,
+          "acceptedActivationCount": 36,
+          "directSignalCount": 9,
+          "ledgerObligationCount": 6,
+          "obligationVerdictCount": 6,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 6
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:sourdough",
+            "kind": "object",
+            "target": "sourdough",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -1719,8 +2012,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 43,
-          "evidenceBindingCount": 45,
+          "acceptedActivationCount": 36,
+          "evidenceBindingCount": 38,
           "causalEdgeCount": 1,
           "visualAffordanceCount": 1,
           "coverageGapCount": 0,
@@ -1741,8 +2034,8 @@
         "simulationCompile": {
           "universeNodeCount": 6,
           "physicsEntityCount": 6,
-          "operatorCount": 3,
-          "solverStepCount": 3,
+          "operatorCount": 2,
+          "solverStepCount": 2,
           "channelCount": 37,
           "termCoverage": 1,
           "geometrySpecificity": 0.8333333333333334,
@@ -1764,11 +2057,11 @@
         "visualIR": {
           "sceneKind": "molecular-biology",
           "entityCount": 7,
-          "materialCount": 14,
+          "materialCount": 15,
           "fieldCount": 8,
-          "processCount": 13,
+          "processCount": 12,
           "geometryCount": 17,
-          "motionCount": 21,
+          "motionCount": 20,
           "renderInstanceCount": 48,
           "acceptedRenderInstanceCount": 48,
           "sourceLinkedRenderInstanceCount": 48,
@@ -1839,7 +2132,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -1848,6 +2143,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 6,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -1862,17 +2164,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 100,
-        "retrieval": 76,
-        "activationCloud": 81,
-        "groundedIntent": 96,
-        "simulationCompile": 95,
+        "retrieval": 88,
+        "activationFusion": 100,
+        "groundedIntent": 100,
+        "simulationCompile": 92.3,
         "visualIR": 79.6,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -1884,11 +2188,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -1899,7 +2203,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 12,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -1911,18 +2215,37 @@
             ],
             "missing": [],
             "unexpected": [
-              "feedback",
-              "electromagnetic",
-              "chemical",
               "network"
             ],
-            "falsePositivePenalty": 16
+            "falsePositivePenalty": 4
           }
         },
-        "activationCloud": {
-          "activationCount": 509,
-          "acceptedActivationCount": 27,
-          "directSignalCount": 5,
+        "activationFusion": {
+          "activationCount": 148,
+          "acceptedActivationCount": 62,
+          "directSignalCount": 4,
+          "ledgerObligationCount": 10,
+          "obligationVerdictCount": 10,
+          "settledVerdictCount": 5,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "missing": 5,
+            "pending": 5
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:warehouse",
+            "kind": "object",
+            "target": "warehouse",
+            "required": true,
+            "inferred": false,
+            "verdict": "missing",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -1930,15 +2253,13 @@
               "fluid"
             ],
             "missing": [],
-            "unexpected": [
-              "network"
-            ],
-            "falsePositivePenalty": 4
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 27,
-          "evidenceBindingCount": 35,
+          "acceptedActivationCount": 62,
+          "evidenceBindingCount": 70,
           "causalEdgeCount": 4,
           "visualAffordanceCount": 4,
           "coverageGapCount": 0,
@@ -1949,21 +2270,19 @@
               "fluid"
             ],
             "missing": [],
-            "unexpected": [
-              "network"
-            ],
-            "falsePositivePenalty": 4
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
         "simulationCompile": {
           "universeNodeCount": 8,
           "physicsEntityCount": 8,
-          "operatorCount": 11,
-          "solverStepCount": 11,
+          "operatorCount": 10,
+          "solverStepCount": 10,
           "channelCount": 45,
-          "termCoverage": 1,
+          "termCoverage": 0.8571428571428571,
           "geometrySpecificity": 0.875,
-          "topologySpecificity": 0.75,
+          "topologySpecificity": 0.625,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -1988,7 +2307,7 @@
           "sourceLinkedRenderInstanceCount": 48,
           "rejectedRowCount": 15,
           "mappingCount": 2,
-          "languageSignalCount": 34,
+          "languageSignalCount": 36,
           "uniformSlots": [
             "thermal",
             "combustion",
@@ -2032,10 +2351,9 @@
             "instrument",
             "fire",
             "water",
-            "combustion front that turns fuel into heat, light, and smoke",
+            "smoke",
             "network-node",
-            "concrete",
-            "renderer layers soot",
+            "structure",
             "concrete stairwell"
           ],
           "structuralCoverage": 1,
@@ -2055,7 +2373,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -2064,6 +2384,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 10,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -2078,19 +2405,21 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 70,
-        "retrieval": 72,
-        "activationCloud": 100,
-        "groundedIntent": 84,
+        "retrieval": 100,
+        "activationFusion": 80,
+        "groundedIntent": 72,
         "simulationCompile": 92,
         "visualIR": 80.4,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
         "languageGraph:termCoverage=100%",
-        "retrieval:signalCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "groundedIntent:signalCoverage=50% gaps=1",
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -2102,11 +2431,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -2117,31 +2446,10 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 8,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
-          "signalCoverage": {
-            "coverage": 1,
-            "found": [
-              "robotic",
-              "network"
-            ],
-            "missing": [],
-            "unexpected": [
-              "thermal",
-              "fluid",
-              "feedback",
-              "electromagnetic",
-              "chemical"
-            ],
-            "falsePositivePenalty": 20
-          }
-        },
-        "activationCloud": {
-          "activationCount": 394,
-          "acceptedActivationCount": 24,
-          "directSignalCount": 4,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -2153,6 +2461,44 @@
             "falsePositivePenalty": 0
           }
         },
+        "activationFusion": {
+          "activationCount": 57,
+          "acceptedActivationCount": 24,
+          "directSignalCount": 1,
+          "ledgerObligationCount": 7,
+          "obligationVerdictCount": 7,
+          "settledVerdictCount": 1,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "missing": 1,
+            "pending": 6
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:warehouse",
+            "kind": "object",
+            "target": "warehouse",
+            "required": true,
+            "inferred": false,
+            "verdict": "missing",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
+          "signalCoverage": {
+            "coverage": 0.5,
+            "found": [
+              "robotic"
+            ],
+            "missing": [
+              "network"
+            ],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
         "groundedIntent": {
           "acceptedActivationCount": 24,
           "evidenceBindingCount": 24,
@@ -2160,12 +2506,13 @@
           "visualAffordanceCount": 0,
           "coverageGapCount": 1,
           "signalCoverage": {
-            "coverage": 1,
+            "coverage": 0.5,
             "found": [
-              "robotic",
+              "robotic"
+            ],
+            "missing": [
               "network"
             ],
-            "missing": [],
             "unexpected": [],
             "falsePositivePenalty": 0
           }
@@ -2203,7 +2550,7 @@
           "sourceLinkedRenderInstanceCount": 28,
           "rejectedRowCount": 15,
           "mappingCount": 1,
-          "languageSignalCount": 29,
+          "languageSignalCount": 24,
           "uniformSlots": [
             "robotic",
             "motion",
@@ -2256,7 +2603,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -2265,6 +2614,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 7,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -2279,17 +2635,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 76,
-        "activationCloud": 81,
-        "groundedIntent": 96,
+        "retrieval": 80,
+        "activationFusion": 77,
+        "groundedIntent": 92,
         "simulationCompile": 88,
         "visualIR": 78.3,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -2301,11 +2659,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -2316,7 +2674,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 36,
+          "evidenceCount": 11,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -2330,16 +2688,36 @@
             "unexpected": [
               "thermal",
               "orbital",
-              "chemical",
-              "network"
+              "chemical"
             ],
-            "falsePositivePenalty": 16
+            "falsePositivePenalty": 12
           }
         },
-        "activationCloud": {
-          "activationCount": 269,
+        "activationFusion": {
+          "activationCount": 61,
           "acceptedActivationCount": 24,
-          "directSignalCount": 3,
+          "directSignalCount": 1,
+          "ledgerObligationCount": 5,
+          "obligationVerdictCount": 5,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 5
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:protein",
+            "kind": "object",
+            "target": "protein",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -2348,14 +2726,15 @@
             ],
             "missing": [],
             "unexpected": [
+              "chemical",
               "network"
             ],
-            "falsePositivePenalty": 4
+            "falsePositivePenalty": 8
           }
         },
         "groundedIntent": {
           "acceptedActivationCount": 24,
-          "evidenceBindingCount": 25,
+          "evidenceBindingCount": 26,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 1,
           "coverageGapCount": 0,
@@ -2367,9 +2746,10 @@
             ],
             "missing": [],
             "unexpected": [
+              "chemical",
               "network"
             ],
-            "falsePositivePenalty": 4
+            "falsePositivePenalty": 8
           }
         },
         "simulationCompile": {
@@ -2407,7 +2787,7 @@
           "sourceLinkedRenderInstanceCount": 42,
           "rejectedRowCount": 13,
           "mappingCount": 2,
-          "languageSignalCount": 30,
+          "languageSignalCount": 24,
           "uniformSlots": [
             "stress",
             "biological",
@@ -2451,7 +2831,7 @@
           "sceneRenderPacketIdentities": [
             "structure",
             "protein",
-            "network-node"
+            "instrument"
           ],
           "structuralCoverage": 1,
           "staticSignalCoverage": {
@@ -2472,7 +2852,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -2481,6 +2863,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 5,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -2496,20 +2885,22 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 70,
-        "retrieval": 68,
-        "activationCloud": 76,
+        "retrieval": 70,
+        "activationFusion": 86,
         "groundedIntent": 96,
-        "simulationCompile": 84.8,
+        "simulationCompile": 95,
         "visualIR": 70.2,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
-      "weakestPhase": "retrieval",
+      "weakestPhase": "webgpu",
       "failures": [
         "languageGraph:termCoverage=100%",
         "retrieval:signalCoverage=100%",
         "visualIR:atoms=2 signalCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -2521,11 +2912,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -2536,7 +2927,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 46,
+          "evidenceCount": 5,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -2549,20 +2940,36 @@
             ],
             "missing": [],
             "unexpected": [
-              "thermal",
-              "fluid",
-              "electromagnetic",
-              "optical",
-              "chemical",
-              "network"
+              "chemical"
             ],
-            "falsePositivePenalty": 24
+            "falsePositivePenalty": 4
           }
         },
-        "activationCloud": {
-          "activationCount": 98,
-          "acceptedActivationCount": 8,
-          "directSignalCount": 2,
+        "activationFusion": {
+          "activationCount": 27,
+          "acceptedActivationCount": 24,
+          "directSignalCount": 3,
+          "ledgerObligationCount": 6,
+          "obligationVerdictCount": 6,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 6
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:robot",
+            "kind": "object",
+            "target": "robot",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -2578,8 +2985,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 8,
-          "evidenceBindingCount": 9,
+          "acceptedActivationCount": 24,
+          "evidenceBindingCount": 26,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 1,
           "coverageGapCount": 0,
@@ -2598,14 +3005,14 @@
           }
         },
         "simulationCompile": {
-          "universeNodeCount": 5,
-          "physicsEntityCount": 5,
-          "operatorCount": 5,
-          "solverStepCount": 5,
-          "channelCount": 30,
+          "universeNodeCount": 4,
+          "physicsEntityCount": 4,
+          "operatorCount": 4,
+          "solverStepCount": 4,
+          "channelCount": 28,
           "termCoverage": 1,
-          "geometrySpecificity": 0.8,
-          "topologySpecificity": 0.7,
+          "geometrySpecificity": 1,
+          "topologySpecificity": 0.875,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -2615,10 +3022,9 @@
             ],
             "missing": [],
             "unexpected": [
-              "thermal",
               "network"
             ],
-            "falsePositivePenalty": 8
+            "falsePositivePenalty": 4
           }
         },
         "visualIR": {
@@ -2634,7 +3040,7 @@
           "sourceLinkedRenderInstanceCount": 28,
           "rejectedRowCount": 12,
           "mappingCount": 2,
-          "languageSignalCount": 11,
+          "languageSignalCount": 24,
           "uniformSlots": [
             "biological",
             "robotic",
@@ -2696,7 +3102,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -2705,6 +3113,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 6,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -2719,18 +3134,20 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 72.7,
-        "activationCloud": 100,
+        "retrieval": 62.7,
+        "activationFusion": 100,
         "groundedIntent": 84,
         "simulationCompile": 78,
-        "visualIR": 83.8,
-        "webgpu": 68
+        "visualIR": 79.8,
+        "webgpu": 68,
+        "sceneProof": 68
       },
-      "pipelineScore": 68,
-      "weakestPhase": "webgpu",
+      "pipelineScore": 62.7,
+      "weakestPhase": "retrieval",
       "failures": [
         "retrieval:signalCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -2742,11 +3159,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -2757,7 +3174,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 6,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 0.8333333333333334,
@@ -2770,17 +3187,36 @@
             "missing": [],
             "unexpected": [
               "thermal",
-              "fluid",
-              "stress",
-              "electromagnetic"
+              "fluid"
             ],
-            "falsePositivePenalty": 16
+            "falsePositivePenalty": 8
           }
         },
-        "activationCloud": {
-          "activationCount": 355,
+        "activationFusion": {
+          "activationCount": 47,
           "acceptedActivationCount": 24,
-          "directSignalCount": 10,
+          "directSignalCount": 5,
+          "ledgerObligationCount": 4,
+          "obligationVerdictCount": 4,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 4
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:qubit",
+            "kind": "object",
+            "target": "qubit",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -2845,7 +3281,7 @@
           "sourceLinkedRenderInstanceCount": 48,
           "rejectedRowCount": 24,
           "mappingCount": 3,
-          "languageSignalCount": 29,
+          "languageSignalCount": 25,
           "uniformSlots": [
             "quantum",
             "instrument",
@@ -2866,9 +3302,10 @@
             "unexpected": [
               "thermal",
               "optical",
-              "acoustic"
+              "acoustic",
+              "network"
             ],
-            "falsePositivePenalty": 12
+            "falsePositivePenalty": 16
           }
         },
         "webgpu": {
@@ -2888,7 +3325,8 @@
           "sceneRenderPacketIdentities": [
             "readout",
             "structure",
-            "instrument"
+            "instrument",
+            "fire"
           ],
           "structuralCoverage": 1,
           "staticSignalCoverage": {
@@ -2908,7 +3346,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -2917,6 +3357,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 4,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -2928,17 +3375,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 86,
-        "retrieval": 100,
-        "activationCloud": 85,
+        "retrieval": 82,
+        "activationFusion": 90,
         "groundedIntent": 100,
-        "simulationCompile": 91.6,
+        "simulationCompile": 78.9,
         "visualIR": 89.6,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -2950,11 +3399,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -2965,7 +3414,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 7,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -2977,10 +3426,31 @@
             "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 114,
-          "acceptedActivationCount": 6,
+        "activationFusion": {
+          "activationCount": 20,
+          "acceptedActivationCount": 20,
           "directSignalCount": 0,
+          "ledgerObligationCount": 4,
+          "obligationVerdictCount": 4,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 4
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:study",
+            "kind": "object",
+            "target": "study",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [],
@@ -2990,8 +3460,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 6,
-          "evidenceBindingCount": 6,
+          "acceptedActivationCount": 20,
+          "evidenceBindingCount": 20,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 0,
           "coverageGapCount": 0,
@@ -3004,14 +3474,14 @@
           }
         },
         "simulationCompile": {
-          "universeNodeCount": 6,
-          "physicsEntityCount": 6,
-          "operatorCount": 1,
-          "solverStepCount": 1,
-          "channelCount": 39,
-          "termCoverage": 0.8571428571428571,
-          "geometrySpecificity": 0.8333333333333334,
-          "topologySpecificity": 0.6666666666666666,
+          "universeNodeCount": 4,
+          "physicsEntityCount": 4,
+          "operatorCount": 3,
+          "solverStepCount": 3,
+          "channelCount": 22,
+          "termCoverage": 0.5714285714285714,
+          "geometrySpecificity": 0.5,
+          "topologySpecificity": 0.5,
           "signalCoverage": {
             "coverage": 1,
             "found": [],
@@ -3021,25 +3491,25 @@
           }
         },
         "visualIR": {
-          "sceneKind": "city",
-          "entityCount": 9,
-          "materialCount": 5,
+          "sceneKind": "biology",
+          "entityCount": 5,
+          "materialCount": 4,
           "fieldCount": 3,
           "processCount": 4,
-          "geometryCount": 12,
+          "geometryCount": 8,
           "motionCount": 6,
-          "renderInstanceCount": 25,
-          "acceptedRenderInstanceCount": 25,
-          "sourceLinkedRenderInstanceCount": 25,
-          "rejectedRowCount": 14,
+          "renderInstanceCount": 21,
+          "acceptedRenderInstanceCount": 21,
+          "sourceLinkedRenderInstanceCount": 21,
+          "rejectedRowCount": 12,
           "mappingCount": 1,
-          "languageSignalCount": 9,
+          "languageSignalCount": 20,
           "uniformSlots": [
             "phase",
             "motion",
             "surface"
           ],
-          "visualSpecificity": 0.25416666666666665,
+          "visualSpecificity": 0.25625,
           "signalCoverage": {
             "coverage": 1,
             "found": [],
@@ -3049,7 +3519,7 @@
           }
         },
         "webgpu": {
-          "sceneKind": "city",
+          "sceneKind": "biology",
           "shaderUsesVisualIR": false,
           "shaderUsesAtomUniforms": true,
           "shaderUsesSceneRenderPacket": true,
@@ -3057,14 +3527,13 @@
           "atomUniformCount": 3,
           "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
           "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
-          "sceneRenderPacketEntityCount": 9,
+          "sceneRenderPacketEntityCount": 5,
           "sceneRenderPacketFieldCount": 3,
           "sceneRenderPacketEffectCount": 10,
           "sceneRenderPacketSpatialRatio": 1,
           "sceneRenderPacketIdentityRatio": 1,
           "sceneRenderPacketIdentities": [
-            "structure",
-            "instrument"
+            "structure"
           ],
           "structuralCoverage": 1,
           "staticSignalCoverage": {
@@ -3077,7 +3546,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -3086,6 +3557,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 4,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -3100,19 +3578,20 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 100,
-        "retrieval": 72.7,
-        "activationCloud": 81,
+        "retrieval": 84.7,
+        "activationFusion": 86,
         "groundedIntent": 80,
-        "simulationCompile": 82,
-        "visualIR": 73.8,
-        "webgpu": 68
+        "simulationCompile": 82.5,
+        "visualIR": 69.8,
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "retrieval:signalCoverage=100%",
         "visualIR:atoms=4 signalCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -3124,11 +3603,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -3139,7 +3618,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 49,
+          "evidenceCount": 10,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 0.8333333333333334,
@@ -3151,18 +3630,37 @@
             ],
             "missing": [],
             "unexpected": [
-              "thermal",
-              "acoustic",
-              "network",
-              "granular"
+              "acoustic"
             ],
-            "falsePositivePenalty": 16
+            "falsePositivePenalty": 4
           }
         },
-        "activationCloud": {
-          "activationCount": 354,
-          "acceptedActivationCount": 24,
-          "directSignalCount": 6,
+        "activationFusion": {
+          "activationCount": 113,
+          "acceptedActivationCount": 30,
+          "directSignalCount": 3,
+          "ledgerObligationCount": 8,
+          "obligationVerdictCount": 8,
+          "settledVerdictCount": 4,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "missing": 4,
+            "pending": 4
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:waves",
+            "kind": "object",
+            "target": "waves",
+            "required": true,
+            "inferred": false,
+            "verdict": "missing",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -3177,8 +3675,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 24,
-          "evidenceBindingCount": 25,
+          "acceptedActivationCount": 30,
+          "evidenceBindingCount": 32,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 1,
           "coverageGapCount": 0,
@@ -3198,12 +3696,12 @@
         "simulationCompile": {
           "universeNodeCount": 8,
           "physicsEntityCount": 8,
-          "operatorCount": 10,
-          "solverStepCount": 10,
-          "channelCount": 44,
+          "operatorCount": 13,
+          "solverStepCount": 13,
+          "channelCount": 45,
           "termCoverage": 0.8333333333333334,
           "geometrySpecificity": 0.75,
-          "topologySpecificity": 0.75,
+          "topologySpecificity": 0.8125,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -3231,7 +3729,7 @@
           "sourceLinkedRenderInstanceCount": 48,
           "rejectedRowCount": 14,
           "mappingCount": 4,
-          "languageSignalCount": 29,
+          "languageSignalCount": 31,
           "uniformSlots": [
             "fluid",
             "stress",
@@ -3251,12 +3749,13 @@
             "missing": [],
             "unexpected": [
               "thermal",
+              "orbital",
               "optical",
               "biological",
               "network",
               "granular"
             ],
-            "falsePositivePenalty": 20
+            "falsePositivePenalty": 24
           }
         },
         "webgpu": {
@@ -3300,7 +3799,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -3309,6 +3810,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 8,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -3324,18 +3832,19 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 100,
-        "retrieval": 72.7,
-        "activationCloud": 81,
+        "retrieval": 96.7,
+        "activationFusion": 86,
         "groundedIntent": 96,
         "simulationCompile": 86,
         "visualIR": 79.5,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "retrieval:signalCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -3347,11 +3856,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -3362,7 +3871,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 8,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 0.8333333333333334,
@@ -3374,19 +3883,36 @@
               "stress"
             ],
             "missing": [],
-            "unexpected": [
-              "feedback",
-              "electromagnetic",
-              "chemical",
-              "network"
-            ],
-            "falsePositivePenalty": 16
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 410,
-          "acceptedActivationCount": 30,
-          "directSignalCount": 11,
+        "activationFusion": {
+          "activationCount": 95,
+          "acceptedActivationCount": 57,
+          "directSignalCount": 7,
+          "ledgerObligationCount": 8,
+          "obligationVerdictCount": 8,
+          "settledVerdictCount": 4,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "missing": 4,
+            "pending": 4
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:fire",
+            "kind": "object",
+            "target": "fire",
+            "required": true,
+            "inferred": false,
+            "verdict": "missing",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -3402,8 +3928,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 30,
-          "evidenceBindingCount": 32,
+          "acceptedActivationCount": 57,
+          "evidenceBindingCount": 59,
           "causalEdgeCount": 1,
           "visualAffordanceCount": 1,
           "coverageGapCount": 0,
@@ -3457,7 +3983,7 @@
           "sourceLinkedRenderInstanceCount": 48,
           "rejectedRowCount": 15,
           "mappingCount": 4,
-          "languageSignalCount": 35,
+          "languageSignalCount": 36,
           "uniformSlots": [
             "thermal",
             "fluid",
@@ -3507,7 +4033,7 @@
             "instrument",
             "structure",
             "forest",
-            "fire"
+            "plant"
           ],
           "structuralCoverage": 1,
           "staticSignalCoverage": {
@@ -3528,7 +4054,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -3537,6 +4065,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 8,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -3550,18 +4085,21 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 68,
-        "retrieval": 88,
-        "activationCloud": 85,
+        "retrieval": 82,
+        "activationFusion": 66,
         "groundedIntent": 100,
-        "simulationCompile": 87,
+        "simulationCompile": 99,
         "visualIR": 88,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
-      "pipelineScore": 68,
-      "weakestPhase": "languageGraph",
+      "pipelineScore": 66,
+      "weakestPhase": "activationFusion",
       "failures": [
         "languageGraph:termCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "activationFusion:accepted=1 verdicts=1/1 signalCoverage=100%",
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -3573,11 +4111,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -3588,7 +4126,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 33,
+          "evidenceCount": 1,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -3598,16 +4136,41 @@
               "biological"
             ],
             "missing": [],
-            "unexpected": [
-              "network"
-            ],
-            "falsePositivePenalty": 4
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 105,
-          "acceptedActivationCount": 6,
+        "activationFusion": {
+          "activationCount": 1,
+          "acceptedActivationCount": 1,
           "directSignalCount": 0,
+          "ledgerObligationCount": 1,
+          "obligationVerdictCount": 1,
+          "settledVerdictCount": 1,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "strongly-supported": 1
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:dog",
+            "kind": "entity",
+            "target": "dog",
+            "required": true,
+            "inferred": false,
+            "verdict": "strongly-supported",
+            "supportStrength": 0.7631,
+            "provenance": [
+              {
+                "candidateId": "surface-dog-1",
+                "candidateType": "primitive",
+                "supportStrength": 0.7631
+              }
+            ],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -3619,8 +4182,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 6,
-          "evidenceBindingCount": 6,
+          "acceptedActivationCount": 1,
+          "evidenceBindingCount": 1,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 0,
           "coverageGapCount": 0,
@@ -3637,38 +4200,36 @@
         "simulationCompile": {
           "universeNodeCount": 4,
           "physicsEntityCount": 4,
-          "operatorCount": 3,
-          "solverStepCount": 3,
-          "channelCount": 34,
+          "operatorCount": 2,
+          "solverStepCount": 2,
+          "channelCount": 37,
           "termCoverage": 1,
-          "geometrySpecificity": 0.75,
-          "topologySpecificity": 0.625,
+          "geometrySpecificity": 1,
+          "topologySpecificity": 0.875,
           "signalCoverage": {
             "coverage": 1,
             "found": [
               "biological"
             ],
             "missing": [],
-            "unexpected": [
-              "stress"
-            ],
-            "falsePositivePenalty": 4
+            "unexpected": [],
+            "falsePositivePenalty": 0
           }
         },
         "visualIR": {
           "sceneKind": "biology",
           "entityCount": 2,
-          "materialCount": 4,
-          "fieldCount": 3,
-          "processCount": 6,
+          "materialCount": 7,
+          "fieldCount": 5,
+          "processCount": 9,
           "geometryCount": 5,
-          "motionCount": 8,
-          "renderInstanceCount": 22,
-          "acceptedRenderInstanceCount": 22,
-          "sourceLinkedRenderInstanceCount": 22,
-          "rejectedRowCount": 11,
+          "motionCount": 9,
+          "renderInstanceCount": 28,
+          "acceptedRenderInstanceCount": 28,
+          "sourceLinkedRenderInstanceCount": 28,
+          "rejectedRowCount": 14,
           "mappingCount": 1,
-          "languageSignalCount": 8,
+          "languageSignalCount": 1,
           "uniformSlots": [
             "biological",
             "motion",
@@ -3700,8 +4261,8 @@
           "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
           "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
           "sceneRenderPacketEntityCount": 2,
-          "sceneRenderPacketFieldCount": 3,
-          "sceneRenderPacketEffectCount": 14,
+          "sceneRenderPacketFieldCount": 5,
+          "sceneRenderPacketEffectCount": 18,
           "sceneRenderPacketSpatialRatio": 1,
           "sceneRenderPacketIdentityRatio": 1,
           "sceneRenderPacketIdentities": [
@@ -3715,15 +4276,18 @@
             ],
             "missing": [],
             "unexpected": [
+              "fluid",
               "chemical",
               "network"
             ],
-            "falsePositivePenalty": 8
+            "falsePositivePenalty": 12
           },
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -3732,6 +4296,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 1,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -3743,18 +4314,21 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 68,
-        "retrieval": 100,
-        "activationCloud": 85,
+        "retrieval": 82,
+        "activationFusion": 66,
         "groundedIntent": 100,
         "simulationCompile": 91,
         "visualIR": 100,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
-      "pipelineScore": 68,
-      "weakestPhase": "languageGraph",
+      "pipelineScore": 66,
+      "weakestPhase": "activationFusion",
       "failures": [
         "languageGraph:termCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "activationFusion:accepted=1 verdicts=0/1 signalCoverage=100%",
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -3766,11 +4340,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -3781,7 +4355,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 34,
+          "evidenceCount": 1,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -3793,10 +4367,31 @@
             "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 108,
-          "acceptedActivationCount": 6,
+        "activationFusion": {
+          "activationCount": 1,
+          "acceptedActivationCount": 1,
           "directSignalCount": 0,
+          "ledgerObligationCount": 1,
+          "obligationVerdictCount": 1,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 1
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:flowers",
+            "kind": "object",
+            "target": "flowers",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [],
@@ -3806,8 +4401,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 6,
-          "evidenceBindingCount": 6,
+          "acceptedActivationCount": 1,
+          "evidenceBindingCount": 1,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 0,
           "coverageGapCount": 0,
@@ -3849,7 +4444,7 @@
           "sourceLinkedRenderInstanceCount": 18,
           "rejectedRowCount": 14,
           "mappingCount": 1,
-          "languageSignalCount": 8,
+          "languageSignalCount": 1,
           "uniformSlots": [
             "biological",
             "motion",
@@ -3880,7 +4475,7 @@
           "sceneRenderPacketSpatialRatio": 1,
           "sceneRenderPacketIdentityRatio": 1,
           "sceneRenderPacketIdentities": [
-            "water"
+            "plant"
           ],
           "structuralCoverage": 1,
           "staticSignalCoverage": {
@@ -3893,7 +4488,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -3902,6 +4499,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 1,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -3913,18 +4517,20 @@
       "phaseScores": {
         "runtime": 96,
         "languageGraph": 68,
-        "retrieval": 100,
-        "activationCloud": 85,
+        "retrieval": 82,
+        "activationFusion": 78,
         "groundedIntent": 100,
         "simulationCompile": 86,
         "visualIR": 95.3,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "languageGraph",
       "failures": [
         "languageGraph:termCoverage=100%",
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -3936,11 +4542,11 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
@@ -3951,7 +4557,7 @@
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 56,
+          "evidenceCount": 3,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -3963,10 +4569,31 @@
             "falsePositivePenalty": 0
           }
         },
-        "activationCloud": {
-          "activationCount": 280,
-          "acceptedActivationCount": 20,
+        "activationFusion": {
+          "activationCount": 6,
+          "acceptedActivationCount": 6,
           "directSignalCount": 0,
+          "ledgerObligationCount": 2,
+          "obligationVerdictCount": 2,
+          "settledVerdictCount": 0,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "pending": 2
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:trees",
+            "kind": "object",
+            "target": "trees",
+            "required": false,
+            "inferred": false,
+            "verdict": "pending",
+            "supportStrength": 0,
+            "provenance": [],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [],
@@ -3976,8 +4603,8 @@
           }
         },
         "groundedIntent": {
-          "acceptedActivationCount": 20,
-          "evidenceBindingCount": 20,
+          "acceptedActivationCount": 6,
+          "evidenceBindingCount": 6,
           "causalEdgeCount": 0,
           "visualAffordanceCount": 0,
           "coverageGapCount": 0,
@@ -4019,7 +4646,7 @@
           "sourceLinkedRenderInstanceCount": 37,
           "rejectedRowCount": 23,
           "mappingCount": 2,
-          "languageSignalCount": 24,
+          "languageSignalCount": 6,
           "uniformSlots": [
             "biological",
             "granular",
@@ -4051,6 +4678,7 @@
           "sceneRenderPacketSpatialRatio": 1,
           "sceneRenderPacketIdentityRatio": 1,
           "sceneRenderPacketIdentities": [
+            "plant",
             "structure",
             "mountaints"
           ],
@@ -4065,7 +4693,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -4074,6 +4704,13 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 2,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     },
@@ -4086,18 +4723,21 @@
       ],
       "phaseScores": {
         "runtime": 96,
-        "languageGraph": 86,
-        "retrieval": 84,
-        "activationCloud": 85,
-        "groundedIntent": 100,
+        "languageGraph": 100,
+        "retrieval": 70,
+        "activationFusion": 90,
+        "groundedIntent": 84,
         "simulationCompile": 100,
         "visualIR": 86,
-        "webgpu": 68
+        "webgpu": 68,
+        "sceneProof": 68
       },
       "pipelineScore": 68,
       "weakestPhase": "webgpu",
       "failures": [
-        "webgpu:live WebGPU proof required; static VisualIR proxy capped"
+        "retrieval:signalCoverage=100%",
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
       ],
       "phaseDetails": {
         "runtime": {
@@ -4109,22 +4749,22 @@
           "phaseSchemas": {
             "phase1": "simulatte.phase1.output.v1",
             "phase2": "simulatte.phase2.output.v1",
-            "phase3": "simulatte.phase3.output.v1",
-            "phase4": "simulatte.phase4.output.v1",
-            "phase5": "simulatte.phase5.output.v1",
-            "phase6": "simulatte.phase6.output.v1",
-            "phase7": "simulatte.phase7.output.v1"
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
           }
         },
         "languageGraph": {
           "tokenCount": 4,
           "spanCount": 3,
-          "clauseCount": 0,
-          "predicateFrameCount": 0,
+          "clauseCount": 2,
+          "predicateFrameCount": 2,
           "termCoverage": 1
         },
         "retrieval": {
-          "evidenceCount": 37,
+          "evidenceCount": 4,
           "semanticRag": "simulatte.semanticRag.v1",
           "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
           "termCoverage": 1,
@@ -4135,16 +4775,45 @@
             ],
             "missing": [],
             "unexpected": [
-              "fluid",
-              "network"
+              "fluid"
             ],
-            "falsePositivePenalty": 8
+            "falsePositivePenalty": 4
           }
         },
-        "activationCloud": {
-          "activationCount": 210,
+        "activationFusion": {
+          "activationCount": 32,
           "acceptedActivationCount": 24,
           "directSignalCount": 0,
+          "ledgerObligationCount": 10,
+          "obligationVerdictCount": 10,
+          "settledVerdictCount": 6,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "strongly-supported": 4,
+            "missing": 1,
+            "inferred": 1,
+            "pending": 4
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:dog",
+            "kind": "entity",
+            "target": "dog",
+            "required": true,
+            "inferred": false,
+            "verdict": "strongly-supported",
+            "supportStrength": 0.7631,
+            "provenance": [
+              {
+                "candidateId": "surface-dog-1",
+                "candidateType": "primitive",
+                "supportStrength": 0.7631
+              }
+            ],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
           "signalCoverage": {
             "coverage": 1,
             "found": [
@@ -4172,11 +4841,11 @@
           }
         },
         "simulationCompile": {
-          "universeNodeCount": 5,
-          "physicsEntityCount": 5,
+          "universeNodeCount": 6,
+          "physicsEntityCount": 6,
           "operatorCount": 2,
           "solverStepCount": 2,
-          "channelCount": 39,
+          "channelCount": 82,
           "termCoverage": 1,
           "geometrySpecificity": 1,
           "topologySpecificity": 1,
@@ -4193,17 +4862,17 @@
         "visualIR": {
           "sceneKind": "watershed",
           "entityCount": 8,
-          "materialCount": 9,
-          "fieldCount": 5,
-          "processCount": 7,
+          "materialCount": 13,
+          "fieldCount": 10,
+          "processCount": 17,
           "geometryCount": 14,
-          "motionCount": 11,
-          "renderInstanceCount": 37,
-          "acceptedRenderInstanceCount": 37,
-          "sourceLinkedRenderInstanceCount": 37,
+          "motionCount": 13,
+          "renderInstanceCount": 48,
+          "acceptedRenderInstanceCount": 48,
+          "sourceLinkedRenderInstanceCount": 48,
           "rejectedRowCount": 10,
           "mappingCount": 2,
-          "languageSignalCount": 28,
+          "languageSignalCount": 24,
           "uniformSlots": [
             "fluid",
             "biological",
@@ -4236,15 +4905,14 @@
           "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
           "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
           "sceneRenderPacketEntityCount": 8,
-          "sceneRenderPacketFieldCount": 5,
-          "sceneRenderPacketEffectCount": 18,
+          "sceneRenderPacketFieldCount": 10,
+          "sceneRenderPacketEffectCount": 24,
           "sceneRenderPacketSpatialRatio": 1,
           "sceneRenderPacketIdentityRatio": 1,
           "sceneRenderPacketIdentities": [
             "dog",
             "cat",
-            "water",
-            "swimming"
+            "water"
           ],
           "structuralCoverage": 1,
           "staticSignalCoverage": {
@@ -4263,7 +4931,9 @@
           "liveVisualScore": null,
           "liveDynamic": null,
           "liveMissingSignals": [],
-          "livePhase8Input": "",
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
           "liveSceneRenderPacket": "",
           "liveSceneRenderEntityCount": 0,
           "liveSceneRenderSpatialHash": "",
@@ -4272,9 +4942,16 @@
           "liveSceneRenderPacketIdentities": [],
           "liveProofRequired": true,
           "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 10,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
         }
       }
     }
   ],
-  "reportPath": "artifacts/simulatte-pipeline-audit/runs/2026-07-06T01-06-30-908Z-6e93b39547/report.json"
+  "reportPath": "artifacts/simulatte-pipeline-audit/runs/2026-07-08T02-25-45-057Z-dfea7aa9b8/report.json"
 }

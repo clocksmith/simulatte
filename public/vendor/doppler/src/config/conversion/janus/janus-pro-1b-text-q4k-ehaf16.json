@@ -34,6 +34,7 @@
     "ffn": {
       "activation": "silu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "swigluLimit": null
     },
     "rope": {
@@ -51,21 +52,27 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
       "tieWordEmbeddings": false,
       "scaleEmbeddings": false,
       "embeddingTranspose": false,
-      "embeddingVocabSize": null
+      "embeddingVocabSize": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "all_attention",
       "globalPattern": null,
       "period": null,
       "offset": null,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": null,
@@ -86,7 +93,25 @@
       "layout": "contiguous",
       "pageSize": 256,
       "tiering": {
-        "mode": "off"
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
       }
     },
     "decodeLoop": {

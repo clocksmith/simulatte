@@ -3,12 +3,12 @@
   "id": "simulatte-catalog-inventory-v1",
   "authoringPolicy": "Inventory counts describe hand-written and exported catalog surfaces; catalog examples remain source-authored.",
   "embedModel": {
-    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
-    "dimensions": 768
+    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "dimensions": 1024
   },
   "staticCatalogs": [
     { "id": "primitive-embeddings", "path": "public/data/simulatte-embedder/primitive-index-v2.json", "itemKey": "documents", "expectedCount": 420, "kind": "embedding-index" },
-    { "id": "surface-card-embeddings", "path": "public/data/simulatte-embedder/surface-card-index-embeddinggemma-v1.json", "itemKey": "documents", "expectedCount": 678, "kind": "embedding-index" },
+    { "id": "surface-card-embeddings", "path": "public/data/simulatte-embedder/surface-card-index-qwen-v1.json", "itemKey": "documents", "expectedCount": 678, "kind": "embedding-index" },
     { "id": "universe-concepts", "path": "public/data/simulatte-universe/concept-index-v1.json", "itemKey": "documents", "expectedCount": 1890, "kind": "semantic-index" },
     { "id": "universe-synonyms", "path": "public/data/simulatte-universe/synonym-index-v1.json", "itemKey": "documents", "expectedCount": 4356, "kind": "semantic-index" },
     { "id": "universe-analogs", "path": "public/data/simulatte-universe/physical-analog-index-v1.json", "itemKey": "documents", "expectedCount": 1863, "kind": "semantic-index" },
@@ -25,10 +25,10 @@
     { "id": "visual-operator-atlas", "path": "public/data/simulatte-visual-cards/visual-operator-atlas-v1.json", "itemKey": "mappings", "expectedCount": 22, "kind": "visual-operator-index" }
   ],
   "runtimeCatalogs": [
-    { "id": "runtime-physical-primitives", "path": "public/pipeline/phase-06-simulation/simulatte-physics-catalog.js", "exportName": "PHYSICAL_PRIMITIVES", "expectedCount": 420, "kind": "pipeline-runtime" },
-    { "id": "runtime-example-intents", "path": "public/pipeline/phase-06-simulation/simulatte-physics-catalog.js", "exportName": "EXAMPLE_INTENTS", "expectedCount": 256, "kind": "prompt-examples" },
-    { "id": "runtime-causal-rules", "path": "public/pipeline/phase-05-grounded-intent/simulatte-causal-physics-graph.js", "exportName": "CAUSAL_RELATION_RULES", "expectedCount": 190, "kind": "causal-runtime", "staticMirror": "universe-causal-relations" },
-    { "id": "runtime-causal-visual-affordances", "path": "public/pipeline/phase-05-grounded-intent/simulatte-causal-visual-affordances.js", "exportName": "CAUSAL_VISUAL_AFFORDANCES", "expectedCount": 190, "kind": "visual-causal-runtime", "staticMirror": "causal-visual-affordances" }
+    { "id": "runtime-physical-primitives", "path": "public/pipeline/phase-05-simulation/simulatte-physics-catalog.js", "exportName": "PHYSICAL_PRIMITIVES", "expectedCount": 420, "kind": "pipeline-runtime" },
+    { "id": "runtime-example-intents", "path": "public/pipeline/phase-05-simulation/simulatte-physics-catalog.js", "exportName": "EXAMPLE_INTENTS", "expectedCount": 256, "kind": "prompt-examples" },
+    { "id": "runtime-causal-rules", "path": "public/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js", "exportName": "CAUSAL_RELATION_RULES", "expectedCount": 190, "kind": "causal-runtime", "staticMirror": "universe-causal-relations" },
+    { "id": "runtime-causal-visual-affordances", "path": "public/pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js", "exportName": "CAUSAL_VISUAL_AFFORDANCES", "expectedCount": 190, "kind": "visual-causal-runtime", "staticMirror": "causal-visual-affordances" }
   ],
   "manifestContracts": [
     { "id": "visual-cards-manifest-causal-document-count", "path": "public/data/simulatte-visual-cards/manifest.json", "jsonPointer": "/indexes/causalAffordances/documentCount", "expectedValue": 190 },

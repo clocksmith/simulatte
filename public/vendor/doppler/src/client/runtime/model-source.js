@@ -32,7 +32,26 @@ export function resolveLoadProgressHandlers(options = {}, defaultLoadProgressLog
 }
 
 export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
-  const response = await fetch(getManifestUrl(baseUrl));
+  const manifestUrl = getManifestUrl(baseUrl);
+  if (/^file:\/\//i.test(manifestUrl)) {
+    let text;
+    try {
+      const [{ readFile }, { fileURLToPath }] = await Promise.all([
+        import('node:fs/promises'),
+        import('node:url'),
+      ]);
+      text = await readFile(fileURLToPath(manifestUrl), 'utf8');
+    } catch (error) {
+      throw new Error(
+        `Failed to read manifest from ${baseUrl}: ${error?.message || String(error)}`
+      );
+    }
+    return {
+      text,
+      manifest: parseManifest(text),
+    };
+  }
+  const response = await fetch(manifestUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch manifest from ${baseUrl}: ${response.status}`);
   }
@@ -129,10 +148,11 @@ export async function resolveManifestArtifactSource(resolved, manifestPayload) {
       ...resolved,
       manifest,
       manifestText: manifestPayload?.text ?? JSON.stringify(manifest),
-      storageManifest: manifest,
+      storageManifest: resolved?.storageManifest ?? manifest,
       storageManifestText: manifestPayload?.text ?? JSON.stringify(manifest),
-      storageBaseUrl: resolved?.baseUrl ?? null,
+      storageBaseUrl: resolved?.storageBaseUrl ?? resolved?.baseUrl ?? null,
       variantBaseUrl: resolved?.baseUrl ?? null,
+      storageContext: resolved?.storageContext ?? resolved?.storage ?? null,
     };
   }
 
@@ -213,6 +233,14 @@ export async function resolveModelSource(model) {
       modelId,
       baseUrl: typeof model.baseUrl === 'string' && model.baseUrl.length > 0 ? model.baseUrl : null,
       manifest,
+      storageContext: model.storageContext || model.storage || null,
+      storage: model.storage || model.storageContext || null,
+      storageManifest: model.storageManifest && typeof model.storageManifest === 'object'
+        ? model.storageManifest
+        : null,
+      storageBaseUrl: typeof model.storageBaseUrl === 'string' && model.storageBaseUrl.length > 0
+        ? model.storageBaseUrl
+        : null,
       trace,
     };
   }

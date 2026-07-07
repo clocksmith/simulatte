@@ -13,6 +13,8 @@ const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-pipeline-audit')
 const FLOOR = 76;
 const RUBRIC_VERSION = 'phase-floor-76.v1';
 const PROMPT_SET_VERSION = 'core-adversarial-human-v1';
+const ARTIFACT_IDENTITY_SCHEMA = 'simulatte.pipelineAuditArtifactIdentity.v1';
+const PHASE_TAXONOMY_VERSION = 'strict-8-phase-scene-proof-v2';
 
 const CORE_PROMPTS = Object.freeze([
   'particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat',
@@ -65,11 +67,12 @@ const PHASES = Object.freeze([
   phase('runtime', 1, 'Prompt Runtime'),
   phase('languageGraph', 2, 'Language Graph'),
   phase('retrieval', 3, 'Embedding Retrieval'),
-  phase('activationCloud', 4, 'Activation Cloud'),
-  phase('groundedIntent', 5, 'Grounded Intent'),
-  phase('simulationCompile', 6, 'Simulation Compile'),
-  phase('visualIR', 7, 'VisualIR Compile'),
-  phase('webgpu', 8, 'WebGPU Render'),
+  phase('activationFusion', 3, 'Activation Fusion'),
+  phase('groundedIntent', 4, 'Grounded Intent'),
+  phase('simulationCompile', 5, 'Simulation Compile'),
+  phase('visualIR', 6, 'VisualIR Compile'),
+  phase('webgpu', 7, 'WebGPU Render'),
+  phase('sceneProof', 8, 'Scene Proof'),
 ]);
 
 function signal(id, pattern) {
@@ -131,8 +134,14 @@ async function main() {
   const phaseScores = aggregatePhaseScores(rows);
   const pipelineScore = minScore(phaseScores);
   const runId = runIdForReport(rows);
+  const artifactIdentity = auditArtifactIdentity(options);
   const report = {
     schema: 'simulatte.pipelineAuditRun.v1',
+    artifactIdentity,
+    artifactKind: artifactIdentity.kind,
+    compareGroup: artifactIdentity.compareGroup,
+    phaseTaxonomyVersion: artifactIdentity.phaseTaxonomyVersion,
+    sourceLiveReport: artifactIdentity.sourceLiveReport,
     generatedAt: new Date().toISOString(),
     runId,
     gitSha: gitSha(),
@@ -155,6 +164,29 @@ async function main() {
   };
   report.reportPath = await writeReport(report, options);
   printSummary(report);
+}
+
+function auditArtifactIdentity(options) {
+  const hasLiveReport = Boolean(options.liveReport);
+  const kind = hasLiveReport ? 'live-score' : 'static-score';
+  return {
+    schema: ARTIFACT_IDENTITY_SCHEMA,
+    kind,
+    role: hasLiveReport
+      ? 'canonical-pipeline-score-with-live-webgpu'
+      : 'compiled-static-score-proxy',
+    canonical: hasLiveReport,
+    compareGroup: hasLiveReport
+      ? 'simulatte-pipeline-live-score-v1'
+      : 'simulatte-pipeline-static-score-v1',
+    phaseTaxonomyVersion: PHASE_TAXONOMY_VERSION,
+    phaseIds: PHASES.map((phase) => phase.id),
+    measurementMode: hasLiveReport
+      ? 'compiled-static-plus-live-visual'
+      : 'compiled-static-live-webgpu-required',
+    sourceLiveReport: hasLiveReport ? path.relative(ROOT, options.liveReport) : null,
+    outputDir: path.relative(ROOT, options.outDir),
+  };
 }
 
 async function buildPromptRows(options) {
@@ -229,11 +261,12 @@ function scorePrompt(row, index, lab, liveRows, options) {
     runtime: scoreRuntime(context, compileError),
     languageGraph: scoreLanguageGraph(context),
     retrieval: scoreRetrieval(context),
-    activationCloud: scoreActivationCloud(context),
+    activationFusion: scoreActivationCloud(context),
     groundedIntent: scoreGroundedIntent(context),
     simulationCompile: scoreSimulationCompile(context),
     visualIR: scoreVisualIR(context),
     webgpu: scoreWebGpu(context, liveRows.get(normalize(row.prompt))),
+    sceneProof: scoreSceneProof(context, liveRows.get(normalize(row.prompt))),
   };
   const phaseScores = Object.fromEntries(Object.entries(phaseRows).map(([key, value]) => [key, value.score]));
   for (const [key, value] of Object.entries(phaseRows)) {
@@ -255,21 +288,20 @@ function scorePrompt(row, index, lab, liveRows, options) {
 function buildContext(spec, prompt, expectedSignals, contentTerms) {
   const intent = spec && spec.intent || {};
   const brief = intent.intentBrief || {};
-  const phaseArtifacts = spec && spec.phaseArtifacts || {};
-  const phase2Artifact = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact || {};
-  const phase3Artifact = phaseArtifacts.phase3 && phaseArtifacts.phase3.artifact || {};
-  const phase4Artifact = phaseArtifacts.phase4 && phaseArtifacts.phase4.artifact || {};
-  const phase5Artifact = phaseArtifacts.phase5 && phaseArtifacts.phase5.artifact || {};
+	  const phaseArtifacts = spec && spec.phaseArtifacts || {};
+	  const phase2Artifact = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact || {};
+	  const phase3Artifact = phaseArtifacts.phase3 && phaseArtifacts.phase3.artifact || {};
+	  const phase4Artifact = phaseArtifacts.phase4 && phaseArtifacts.phase4.artifact || {};
+	  const phase5Artifact = phaseArtifacts.phase5 && phaseArtifacts.phase5.artifact || {};
   const phase6Artifact = phaseArtifacts.phase6 && phaseArtifacts.phase6.artifact || {};
-  const phase7Artifact = phaseArtifacts.phase7 && phaseArtifacts.phase7.artifact || {};
   const languageGraph = phase2Artifact.languageGraph || null;
   const retrievalRerankResult = phase3Artifact.retrievalRerankResult || null;
   const activationCloud = phase4Artifact.activationCloud || null;
-  const groundedIntent = phase5Artifact.groundedIntent || null;
-  const simulationCompile = phase6Artifact.simulationCompile || null;
+  const groundedIntent = phase4Artifact.groundedIntent || null;
+  const simulationCompile = phase5Artifact.simulationCompile || null;
   const renderProgram = spec && spec.renderProgram || {};
-  const visualCompile = phase7Artifact.visualCompile || {};
-  const visualIR = visualCompile.visualIR || renderProgram.visualIR || {};
+  const visualCompile = phase6Artifact.visualCompile || {};
+  const visualIR = visualCompile.visualIR || {};
   const retrievalRows = retrievalRerankResult
     ? [
       ...(retrievalRerankResult.rankedPrimitives || []),
@@ -308,6 +340,7 @@ function buildContext(spec, prompt, expectedSignals, contentTerms) {
     retrievalRerankResult,
     retrievalRows,
     activationCloud: activationCloud && activationCloud.weightedActivations || brief.activationCloud || [],
+    activationFusion: phase3Artifact.activationCloud || activationCloud || null,
     grounded: graphBrief && graphBrief.groundedInterpretation || brief.groundedInterpretation || {},
     groundedIntent,
     universeGraph: acceptedGraph || {},
@@ -330,11 +363,11 @@ function scoreRuntime(context, compileError) {
     hasSpec: Boolean(context.spec),
     hasWorker: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'workers', 'simulatte-pipeline-worker.js')),
     hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'prompt', 'prompt-controller.js')),
-    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'pipeline', 'phase-08-render', 'simulatte-webgpu-renderer.js')),
+    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'pipeline', 'phase-07-render', 'simulatte-webgpu-renderer.js')),
     phaseSchemas: context.phaseSchemas || {},
   };
   if (!compileError && context.spec) score += 18;
-  if (context.phaseSchemas && context.phaseSchemas.phase7 === 'simulatte.phase7.output.v1') score += 10;
+  if (context.phaseSchemas && context.phaseSchemas.phase6 === 'simulatte.phase6.output.v2') score += 10;
   if (context.visualIR && context.visualIR.schema) score += 8;
   if (detail.hasWorker) score += 4;
   if (detail.hasRenderer && detail.hasWebGpuRenderer) score += 6;
@@ -396,21 +429,65 @@ function scoreRetrieval(context) {
 
 function scoreActivationCloud(context) {
   const rows = context.activationCloud || [];
+  const fusion = context.activationFusion || {};
+  const verdicts = Array.isArray(fusion.obligationVerdicts) ? fusion.obligationVerdicts : [];
+  const conflicts = Array.isArray(fusion.evidenceConflicts) ? fusion.evidenceConflicts : [];
   const accepted = context.grounded.acceptedActivations || [];
-  const text = compactText(accepted.length ? accepted : rows);
+  const text = compactText([...(accepted.length ? accepted : rows), ...verdicts]);
   const signalCoverage = signalCoverageScore(context.expectedSignals, text);
   const directSignals = accepted.filter((row) => row.source === 'language-evidence-visual-signal').length;
+  const ledgerObligations = fusion.compositionLedger && Array.isArray(fusion.compositionLedger.obligations)
+    ? fusion.compositionLedger.obligations
+    : [];
+  const settledVerdicts = verdicts.filter((row) => row.verdict && row.verdict !== 'pending');
+  const adjudicationCoverage = ledgerObligations.length
+    ? Math.min(1, verdicts.length / ledgerObligations.length)
+    : 0;
+  const evidenceBackedVerdicts = verdicts.filter((row) => (
+    row.verdict === 'supported' || row.verdict === 'strongly-supported' || row.verdict === 'inferred'
+  ));
+  const claimsWithProvenance = evidenceBackedVerdicts.filter((row) => (row.provenance || []).length > 0);
+  const surfacedNegationConflicts = verdicts.filter((row) => row.negationConflict === true);
+  const claimIntegrity = verdicts.length === 0
+    ? 0
+    : (evidenceBackedVerdicts.length === 0 || claimsWithProvenance.length === evidenceBackedVerdicts.length) &&
+      surfacedNegationConflicts.every((row) => row.verdict === 'negated')
+      ? 1
+      : claimsWithProvenance.length / Math.max(1, evidenceBackedVerdicts.length);
+  const fusionSectionsComplete = verdicts.length > 0 &&
+    Array.isArray(fusion.negativeEvidence) &&
+    fusion.conflictsBySlot && typeof fusion.conflictsBySlot === 'object';
   const score = sumParts([
-    part(18, rows.length >= Math.max(12, context.expectedSignals.length * 2)),
-    part(18, accepted.length >= Math.max(6, context.expectedSignals.length)),
-    part(34, signalCoverage.coverage),
-    part(15, directSignals / Math.max(1, context.expectedSignals.length)),
-    part(15, signalCoverage.falsePositivePenalty === 0),
+    part(12, rows.length >= Math.max(12, context.expectedSignals.length * 2)),
+    part(12, accepted.length >= Math.max(6, context.expectedSignals.length)),
+    part(30, signalCoverage.coverage),
+    part(10, directSignals / Math.max(1, context.expectedSignals.length)),
+    part(10, signalCoverage.falsePositivePenalty === 0),
+    part(10, adjudicationCoverage),
+    part(8, claimIntegrity),
+    part(8, fusionSectionsComplete),
   ]) - signalCoverage.falsePositivePenalty;
-  return scored(score, `accepted=${accepted.length} signalCoverage=${pct(signalCoverage.coverage)}`, {
+  const verdictBuckets = {};
+  for (const row of verdicts) {
+    const bucket = row.verdict || 'unknown';
+    verdictBuckets[bucket] = (verdictBuckets[bucket] || 0) + 1;
+  }
+  const sampleVerdict = evidenceBackedVerdicts[0] || verdicts[0] || null;
+  const reason = ledgerObligations.length === 0
+    ? 'no obligations to adjudicate; language graph tracked no entities for this prompt'
+    : `accepted=${accepted.length} verdicts=${settledVerdicts.length}/${verdicts.length} signalCoverage=${pct(signalCoverage.coverage)}`;
+  return scored(score, reason, {
     activationCount: rows.length,
     acceptedActivationCount: accepted.length,
     directSignalCount: directSignals,
+    ledgerObligationCount: ledgerObligations.length,
+    obligationVerdictCount: verdicts.length,
+    settledVerdictCount: settledVerdicts.length,
+    adjudicationCoverage,
+    claimIntegrity,
+    verdictBuckets,
+    sampleVerdict,
+    evidenceConflictCount: conflicts.length,
     signalCoverage,
   });
 }
@@ -532,15 +609,38 @@ function scoreVisualIR(context) {
   });
 }
 
+function liveRenderExecutionInputSchema(liveResult) {
+  if (!liveResult) return '';
+  if (liveResult.phase7RenderExecutionInput) return liveResult.phase7RenderExecutionInput;
+  if (liveResult.phase7Input === 'simulatte.renderExecutionInput.v1') return liveResult.phase7Input;
+  return liveResult.renderExecutionInput || '';
+}
+
+function liveSceneRenderPacketInputSchema(liveResult) {
+  if (!liveResult) return '';
+  if (liveResult.phase7SceneRenderPacketInput) return liveResult.phase7SceneRenderPacketInput;
+  return liveResult.phase7Input === 'simulatte.sceneRenderPacket.v1'
+    ? liveResult.phase7Input
+    : '';
+}
+
+function moduleFamilySource(dir, prefix) {
+  if (!fsSync.existsSync(dir)) return '';
+  return fsSync.readdirSync(dir)
+    .filter((file) => file.startsWith(prefix) && file.endsWith('.js'))
+    .sort()
+    .map((file) => fsSync.readFileSync(path.join(dir, file), 'utf8'))
+    .join('\n');
+}
+
 function scoreWebGpu(context, liveResult) {
-  const webgpuPath = path.join(ROOT, 'public', 'pipeline', 'phase-08-render', 'simulatte-webgpu-renderer.js');
-  const webgpuSource = fsSync.existsSync(webgpuPath) ? fsSync.readFileSync(webgpuPath, 'utf8') : '';
+  const webgpuSource = moduleFamilySource(
+    path.join(ROOT, 'public', 'pipeline', 'phase-07-render'),
+    'simulatte-webgpu-renderer'
+  );
   const atoms = context.graphicsAtoms || {};
   const visual = context.visualIR || {};
-  const scenePacket = context.visualCompile && context.visualCompile.sceneRenderPacket ||
-    visual.sceneRenderPacket ||
-    context.renderProgram && context.renderProgram.sceneRenderPacket ||
-    {};
+  const scenePacket = context.visualCompile && context.visualCompile.sceneRenderPacket || {};
   const packetEntities = Array.isArray(scenePacket.entities) ? scenePacket.entities : [];
   const packetFields = Array.isArray(scenePacket.fields) ? scenePacket.fields : [];
   const packetEffects = Array.isArray(scenePacket.effects) ? scenePacket.effects : [];
@@ -636,7 +736,9 @@ function scoreWebGpu(context, liveResult) {
     liveVisualScore: null,
     liveDynamic: null,
     liveMissingSignals: [],
-    livePhase8Input: liveResult && liveResult.phase8Input || '',
+    livePhase7Input: liveRenderExecutionInputSchema(liveResult),
+    liveRenderExecutionInput: liveRenderExecutionInputSchema(liveResult),
+    liveSceneRenderPacketInput: liveSceneRenderPacketInputSchema(liveResult),
     liveSceneRenderPacket: liveResult && liveResult.sceneRenderPacket || '',
     liveSceneRenderEntityCount: liveResult && Number(liveResult.sceneRenderEntityCount || 0) || 0,
     liveSceneRenderSpatialHash: liveResult && liveResult.sceneRenderSpatialHash || '',
@@ -667,6 +769,54 @@ function scoreWebGpu(context, liveResult) {
       : structuralCoverage >= 0.75
         ? 'live WebGPU proof required; static VisualIR proxy capped'
         : 'no live visual proof; static proxy capped',
+    detail
+  );
+}
+
+function scoreSceneProof(context, liveResult) {
+  const sceneProofSource = moduleFamilySource(
+    path.join(ROOT, 'public', 'pipeline', 'phase-08-scene-proof'),
+    'simulatte-scene-proof'
+  );
+  const ledger = context.visualCompile && context.visualCompile.compositionLedger || null;
+  const obligations = ledger && Array.isArray(ledger.obligations) ? ledger.obligations : [];
+  const structuralProofs = [
+    /function settleSceneProof/.test(sceneProofSource),
+    /phase8-scene-proof/.test(sceneProofSource),
+    /simulatte\.phase8\.output\.v2/.test(sceneProofSource),
+    /not-proven/.test(sceneProofSource),
+    /requiredLost/.test(sceneProofSource),
+  ];
+  const structuralCoverage = structuralProofs.filter(Boolean).length / structuralProofs.length;
+  let score = sumParts([
+    part(30, structuralCoverage),
+    part(20, obligations.length > 0),
+    part(18, obligations.every((row) => typeof row.status === 'string' && row.status.length > 0)),
+  ]);
+  const detail = {
+    obligationCount: obligations.length,
+    structuralCoverage,
+    liveVerdict: liveResult && liveResult.sceneProofVerdict || '',
+    liveLostCount: liveResult && Number(liveResult.sceneProofLostCount || 0) || 0,
+    evidenceMode: liveResult && liveResult.sceneProofVerdict ? 'live-scene-proof' : 'compiled-static-proxy',
+  };
+  if (liveResult && liveResult.sceneProofVerdict) {
+    const verdictScore = liveResult.sceneProofVerdict === 'pass'
+      ? 100
+      : liveResult.sceneProofVerdict === 'not-proven'
+        ? 62
+        : liveResult.sceneProofVerdict === 'fail'
+          ? 24
+          : 10;
+    score = score * 0.3 + verdictScore * 0.7;
+  } else {
+    score = Math.min(68, score + 20);
+  }
+  return scored(
+    score,
+    detail.liveVerdict
+      ? `live scene proof verdict ${detail.liveVerdict}`
+      : 'live scene proof required; static settlement proxy capped',
     detail
   );
 }
@@ -905,6 +1055,10 @@ async function writeReport(report, options) {
 function summaryRow(report, reportPath) {
   return {
     schema: 'simulatte.pipelineAuditHistoryRow.v1',
+    artifactKind: report.artifactKind,
+    compareGroup: report.compareGroup,
+    phaseTaxonomyVersion: report.phaseTaxonomyVersion,
+    sourceLiveReport: report.sourceLiveReport,
     generatedAt: report.generatedAt,
     runId: report.runId,
     gitSha: report.gitSha,
@@ -919,6 +1073,7 @@ function summaryRow(report, reportPath) {
 }
 
 function printSummary(report) {
+  console.log(`artifact=${report.artifactKind} compareGroup=${report.compareGroup}`);
   console.log(`pipeline=${report.pipelineScore} verdict=${report.verdict} weakest=${report.weakestPhase}`);
   console.log(`belowFloor=${report.belowFloor.join(',') || 'none'}`);
   console.log(`phaseScores=${PHASES.map((phase) => `${phase.id}:${report.phaseScores[phase.id]}`).join(' ')}`);

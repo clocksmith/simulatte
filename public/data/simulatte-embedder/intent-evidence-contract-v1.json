@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.intentEvidenceContract.v1",
-  "id": "simulatte-embeddinggemma-intent-evidence-contract-v1",
-  "retrievalModel": "google-embeddinggemma-300m-q4k-ehf16-af32",
+  "id": "simulatte-qwen-intent-evidence-contract-v1",
+  "retrievalModel": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
   "embeddedInputs": [
     "prompt",
     "physics primitive text",

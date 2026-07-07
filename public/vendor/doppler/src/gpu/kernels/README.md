@@ -1,0 +1,166 @@
+# WGSL Kernels
+
+Purpose: Catalog and guidance for Doppler's WGSL kernel library.
+
+## Scope
+
+- Kernel categories and entry point reuse guidance.
+- Entry points, uniforms, and reuse strategies.
+- Registry-owned kernel naming and inventory pointers.
+
+The repository currently ships over 100 WebGPU compute shaders for inference and auxiliary pipelines.
+
+## Generated Variants
+
+Selected duplicate dtype variants are generated from canonical kernels:
+
+- Source of truth: `src/gpu/kernels/codegen/wgsl-variants.js`
+- Generator: `npm run kernels:codegen:sync`
+- Drift check: `npm run kernels:codegen:check`
+
+Generated targets keep the same runtime file names, so kernel-path IDs and manifest wiring stay stable.
+
+## Categories
+
+| Category | Examples |
+|----------|----------|
+| Attention | `attention.wgsl`, `attention_decode_*.wgsl`, `attention_f16.wgsl` |
+| Matmul | `matmul_f16.wgsl`, `matmul_f16w_f32a.wgsl`, `matmul_gemv*.wgsl` |
+| Dequant | `dequant_q4k.wgsl`, `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
+| Fused | `fused_ffn.wgsl`, `fused_matmul_q4.wgsl`, `fused_matmul_q4_multicol_f16a.wgsl` |
+| Other | `rmsnorm.wgsl`, `rope.wgsl`, `sample.wgsl`, `silu.wgsl` |
+
+## Reusability Mechanisms
+
+Three ways to make kernels flexible:
+
+| Mechanism | When Set | Use For | Trade-off |
+|-----------|----------|---------|-----------|
+| **Entry points** | Pipeline creation | Different algorithms, workgroup sizes | Code duplication |
+| **Override constants** | Pipeline creation | Parameterized array/workgroup sizes | Pipeline per config |
+| **Uniforms** | Per dispatch | Dimensions, flags, runtime params | No compile-time optimization |
+
+### Comparison
+
+| Capability | Entry Points | Override Constants | Uniforms |
+|------------|--------------|-------------------|----------|
+| Array sizes | hardcoded | parameterized | no |
+| Workgroup size | hardcoded | parameterized | no |
+| Compiler optimization | full | full | branches only |
+| Change per dispatch | select different | recompile | yes |
+| Code duplication | high | minimal | none |
+
+Use the topology test from the WGSL style guide. Entry points are for algorithm
+or synchronization changes. Override constants are for model/load-time
+parameters. Uniforms are for per-dispatch values. The registry records which
+choice a variant made; WGSL files must not become a second policy layer.
+
+## Entry Points
+
+One `.wgsl` file can have multiple `@compute` functions:
+
+```wgsl
+@compute @workgroup_size(256)
+fn main() { ... }           // GEMV for small N
+
+@compute @workgroup_size(256)
+fn main_multicol() { ... }  // GEMV for large N (32 cols/workgroup)
+
+@compute @workgroup_size(64, 4)
+fn main_batched() { ... }   // Batched prefill (M > 1)
+```
+
+Selected at dispatch:
+```javascript
+pipeline = device.createComputePipeline({
+  compute: { module, entryPoint: 'main_batched' }
+});
+```
+
+## Uniforms
+
+Runtime parameters passed per dispatch:
+
+```wgsl
+struct Uniforms {
+    M: u32,              // Batch size
+    N: u32,              // Output dimension
+    K: u32,              // Inner dimension
+    hasResidual: u32,    // Flag for conditional path
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
+fn main() {
+    // Use uniforms.M, uniforms.N for loop bounds
+    if (uniforms.hasResidual == 1u) {
+        // Conditional code path
+    }
+}
+```
+
+## When to Use What
+
+| Scenario | Mechanism |
+|----------|-----------|
+| Different workgroup sizes for M=1 vs M>1 | Entry point |
+| Different algorithms (GEMV vs GEMM) | Entry point |
+| Variable dimensions (M, N, K) | Uniform |
+| Optional feature (residual add, causal mask) | Uniform flag |
+| Fixed tile size affecting shared memory | Entry point or override |
+
+## Key Kernels
+
+| Kernel | Entry Points | Purpose |
+|--------|-------------|---------|
+| `fused_matmul_q4.wgsl` | 3 | Q4_K quantized matmul (GEMV, multicol, batched) |
+| `rmsnorm.wgsl` | 4 | RMSNorm with optional fused residual |
+| `attention.wgsl` | 2 | Prefill attention (small/large) |
+| `attention_decode_*.wgsl` | 1-3 | Decode attention variants |
+| `silu.wgsl` | 5 | SiLU activation variants (gate, split, vec4, rowsplit) |
+| `gelu.wgsl` | 3 | GeLU/GeGLU activation variants (gate, rowsplit) |
+
+## Naming Source of Truth
+
+Kernel operation IDs, variant IDs, WGSL filenames, entry points, feature
+requirements, bindings, uniforms, and metadata are defined in
+`src/config/kernels/registry.json`.
+
+The management front door is
+[`docs/developer-guides/config-source-of-truth.md`](../../../docs/developer-guides/config-source-of-truth.md#wgsl-kernel-management).
+Do not add separate kernel inventories in docs, scripts, or runtime helpers.
+
+Use `npm run kernels:registry:check` to audit the on-disk WGSL inventory
+against the registry. This README must not define separate filename suffix
+rules.
+
+## Supported Manifest Usage
+
+Use `npm run kernels:supported-manifests:report` to cross-reference the kernel
+registry against kernels pinned by supported local manifests. The default scope
+is catalog entries marked runtime active, conversion ready, and verified/pass in
+`models/catalog.json`.
+
+The report includes kernels made live by capability-transform fallbacks declared
+in `src/rules/inference/capability-transforms.rules.json`. Use `--manifest-only`
+for the strict manifest-pinned view, or `--include-runtime-transform-variants`
+when auditing runtime-requested lanes such as f16 activation profiles.
+
+The report separates non-live registry entries into protected and candidate
+sets:
+
+- protected by `tools/policies/kernel-usage-allowlist.json` for non-text lanes
+  such as training, diffusion, MoE, generation options, and format utilities
+- protected by registry reachability when conversion configs or rule maps can
+  still select the variant
+- true unused candidates when neither live usage, allowlist policy, nor
+  registry reachability protects the variant
+
+Use `--no-allowlist` to inspect the raw non-live registry set, and
+`--fail-on-unused-candidates` to make the command exit non-zero when true
+unused candidates are present.
+
+The report is advisory for cleanup planning. It is not part of `npm run
+kernels:check` because `models/local/**` is developer-local state, not a CI
+contract surface. Use `--include-untested` when inspecting active/ready local
+artifacts that are not verified yet.

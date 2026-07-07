@@ -16,6 +16,25 @@ function isRouterVector(value) {
   return value instanceof Float32Array || isGpuBufferInstance(value) || isWeightBuffer(value);
 }
 
+function requireRouterDtype(value, label) {
+  if (value !== 'f16' && value !== 'f32') {
+    throw new Error(`MoERouter requires ${label} to be "f16" or "f32", got ${value}.`);
+  }
+  return value;
+}
+
+function inferRouterBufferDtypeFromElementCount(buffer, elementCount, label) {
+  const byteLength = Number.isFinite(buffer?.size) ? buffer.size : buffer?.byteLength;
+  if (!Number.isFinite(byteLength)) {
+    throw new Error(`MoERouter requires ${label} byte size to resolve dtype.`);
+  }
+  const bytesPerElement = byteLength / elementCount;
+  if (bytesPerElement !== 2 && bytesPerElement !== 4) {
+    throw new Error(`MoERouter cannot infer ${label} dtype from bytesPerElement=${bytesPerElement}.`);
+  }
+  return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
+}
+
 
 
 
@@ -61,8 +80,10 @@ export class MoERouter {
   
   _gateWeightGPU = null;
 
+  _gateWeightDtype = null;
+
   
-  lastLogitsDtype = 'f32';
+  lastLogitsDtype = null;
 
   
   constructor(config) {
@@ -122,6 +143,9 @@ export class MoERouter {
     if (this._gateWeightGPU) {
       this._gateWeightGPU.destroy();
     }
+    this._gateWeightDtype = isWeightBuffer(weights)
+      ? getWeightDtype(weights)
+      : inferRouterBufferDtypeFromElementCount(weights, this.numExperts * this.hiddenSize, 'gate weight');
     this.gateWeight = weights;
     this.gateBias = bias;
     this.gateScale = scale;
@@ -140,6 +164,7 @@ export class MoERouter {
     }
     this._gateBiasGPU = null;
     this._gateWeightGPU = null;
+    this._gateWeightDtype = null;
     this.gateWeight = null;
     this.gateBias = null;
     this.gateScale = null;
@@ -197,6 +222,8 @@ export class MoERouter {
       throw new Error('Router gate weights not loaded');
     }
     if (!isWeightBuffer(gateWeightBuffer) && !isGpuBufferInstance(gateWeightBuffer)) {
+      const sourceWeightDtype = this._gateWeightDtype
+        ?? inferRouterBufferDtypeFromElementCount(gateWeightBuffer, this.numExperts * this.hiddenSize, 'gate weight');
       const uploaded = device.createBuffer({
         label: 'moe_gate_weight',
         size: gateWeightBuffer.byteLength,
@@ -209,12 +236,16 @@ export class MoERouter {
         throw error;
       }
       this._gateWeightGPU = uploaded;
+      this._gateWeightDtype = sourceWeightDtype;
       this.gateWeight = uploaded;
       gateWeightBuffer = uploaded;
     }
 
-    const { inputDtype = 'f32', outputDtype = 'f32' } = options;
-    const gateWeightDtype = isWeightBuffer(gateWeightBuffer) ? getWeightDtype(gateWeightBuffer) : null;
+    const inputDtype = requireRouterDtype(options.inputDtype, 'options.inputDtype');
+    const outputDtype = requireRouterDtype(options.outputDtype, 'options.outputDtype');
+    const gateWeightDtype = isWeightBuffer(gateWeightBuffer)
+      ? getWeightDtype(gateWeightBuffer)
+      : this._gateWeightDtype;
 
     // Matrix multiply: hidden_states [numTokens, hiddenSize] @ gate_weight [hiddenSize, numExperts]
     // Result: [numTokens, numExperts]
@@ -274,9 +305,9 @@ export class MoERouter {
     if (bias instanceof Float32Array) return 'f32';
     if (isGpuBufferInstance(bias)) {
       const bytesPerElement = Math.round(bias.size / this.numExperts);
-      return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
+      return inferRouterBufferDtypeFromElementCount(bias, this.numExperts, 'gate bias');
     }
-    return 'f32';
+    throw new Error('MoERouter cannot infer gate bias dtype.');
   }
 
   _getBiasAddPipeline(logitsDtype, biasDtype, device) {
@@ -368,9 +399,9 @@ export class MoERouter {
   }
 
   
-  async routeGPU(hiddenStates, numTokens) {
+  async routeGPU(hiddenStates, numTokens, options = {}) {
     // Compute router logits on GPU
-    const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens);
+    const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens, null, options);
     try {
       const logitsData = await readBuffer(logitsBuffer);
       const logits = this.lastLogitsDtype === 'f16'

@@ -1,21 +1,36 @@
 {
   "schema": "simulatte.structuredIntentModelManifest.v1",
-  "id": "simulatte-gemma3-270m-intent-structurer-v1",
+  "id": "simulatte-qwen-3-5-0-8b-intent-structurer-v1",
   "model": {
-    "id": "gemma-3-270m-it",
-    "family": "gemma3",
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "family": "qwen3.5",
     "role": "catalog-grounded structured intent extraction",
+    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95a01447eecbf13fc5964986f507b08ded0cd40f/models/qwen-3-5-0-8b-q4k-ehaf16",
+    "manifestHash": {
+      "alg": "sha256",
+      "hex": "e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6"
+    },
+    "source": {
+      "kind": "huggingface-rdrr",
+      "repoId": "Clocksmith/rdrr",
+      "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
+      "path": "models/qwen-3-5-0-8b-q4k-ehaf16",
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "sizeBytes": 1146048704,
+      "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1"
+    },
     "inputContract": "prompt plus retrieved catalog evidence",
     "outputContract": "simulatte.intentBrief.v1 fields: entities, materials, phenomena, forces, fields, causal candidates, assumptions, unsupported",
     "guardrail": "The model may select, connect, or question retrieved catalog IDs. It may not invent executable physics primitives."
   },
   "retrievalDependency": {
-    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
     "role": "semantic evidence retrieval for prompt, catalog entries, primitives, materials, visual cards, examples, and causal patterns"
   },
   "rerank": {
-    "id": "simulatte.deterministic-catalog-score-fusion.v1",
-    "policy": "use embedding score, lexical hit, prompt citation, primitive support, and causal operator availability"
+    "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "policy": "use Qwen reranker scores over Phase 3 candidate document text, then fuse with embedding score, lexical hit, prompt citation, primitive support, and causal operator availability"
   },
   "compilerBoundary": {
     "mlCanDraft": true,

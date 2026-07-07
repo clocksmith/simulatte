@@ -13,6 +13,15 @@ import zlib from 'node:zlib';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-intent-scene-audit');
+const EXPECTED_PHASE_OUTPUT_SCHEMAS = Object.freeze({
+  phase1: 'simulatte.phase1.output.v1',
+  phase2: 'simulatte.phase2.output.v1',
+  phase3: 'simulatte.phase3.output.v2',
+  phase4: 'simulatte.phase4.output.v2',
+  phase5: 'simulatte.phase5.output.v2',
+  phase6: 'simulatte.phase6.output.v2',
+  phase7: 'simulatte.phase7.output.v2',
+});
 const CHROME_CANDIDATES = [
   process.env.CHROME_BIN,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -90,6 +99,8 @@ const MIME = Object.freeze({
   '.png': 'image/png',
   '.wasm': 'application/wasm',
 });
+const MODEL_RUNTIME_WAIT_MS = 480000;
+const MODEL_RUNTIME_STALL_MS = 90000;
 
 function parseArgs(argv) {
   const options = {
@@ -465,15 +476,59 @@ async function evaluate(cdp, expression, options = {}) {
   return result.result ? result.result.value : undefined;
 }
 
-async function waitForCondition(label, fn, timeoutMs) {
+async function waitForCondition(label, fn, timeoutMs, options = {}) {
   const started = Date.now();
+  const maxWaitMs = options.extendOnProgress === true
+    ? Math.max(timeoutMs, MODEL_RUNTIME_WAIT_MS)
+    : timeoutMs;
+  let lastProgressAt = started;
+  let lastSignature = '';
   let last = null;
-  while (Date.now() - started < timeoutMs) {
+  while (Date.now() - started < maxWaitMs) {
     last = await fn().catch((err) => ({ error: err.message }));
     if (last && last.ok) return last;
+    const signature = conditionProgressSignature(last);
+    if (signature && signature !== lastSignature) {
+      lastSignature = signature;
+      lastProgressAt = Date.now();
+    }
+    if (
+      options.extendOnProgress === true &&
+      Date.now() - started >= timeoutMs &&
+      Date.now() - lastProgressAt >= MODEL_RUNTIME_STALL_MS
+    ) {
+      break;
+    }
     await delay(120);
   }
   throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(last)}`);
+}
+
+function conditionProgressSignature(value = {}) {
+  const health = value && value.runtimeHealth || {};
+  const timing = health.timing || {};
+  const model = health.model || {};
+  const resource = health.resource || {};
+  return JSON.stringify({
+    state: value && value.state || health.state || '',
+    stage: value && value.stageId || health.stage || '',
+    pipelineStep: value && value.pipelineStep || health.pipelineStep || '',
+    progress: value && value.progress || health.progress || '',
+    blocking: value && value.blocking || health.blocking || '',
+    disabled: value && value.disabled || '',
+    message: value && value.message || health.message || '',
+    displayLine: value && value.displayLine || health.displayLine || '',
+    phaseLabel: value && value.phaseLabel || health.phaseLabel || '',
+    resourceKind: value && value.resourceKind || resource.kind || '',
+    resourceFile: value && value.resourceFile || resource.file || '',
+    completedBytes: value && value.completedBytes || resource.completedBytes || 0,
+    totalBytes: value && value.totalBytes || resource.totalBytes || 0,
+    silenceBucket: Math.floor(Number(health.silenceMs || 0) / 5000),
+    traceId: value && value.traceId || timing.traceId || '',
+    rankId: value && value.rankId || timing.rankId || 0,
+    providerReady: value && value.providerReady || timing.providerReady || false,
+    modelId: value && value.modelId || model.id || '',
+  });
 }
 
 function delay(ms) {
@@ -541,7 +596,7 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
       runtimeHealth: health,
       runtimeEvents,
     };
-  })()`), timeoutMs);
+  })()`), timeoutMs, { extendOnProgress: intentMode === 'model' });
   await delay(300);
 }
 
@@ -577,11 +632,11 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       run.setAttribute('aria-busy', 'false');
       return {
         ok: true,
-        sceneKind: spec && spec.phaseArtifacts && spec.phaseArtifacts.phase7 &&
-          spec.phaseArtifacts.phase7.artifact &&
-          spec.phaseArtifacts.phase7.artifact.visualCompile &&
-          spec.phaseArtifacts.phase7.artifact.visualCompile.sceneRenderPacket &&
-          spec.phaseArtifacts.phase7.artifact.visualCompile.sceneRenderPacket.sceneKind || ''
+        sceneKind: spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 &&
+          spec.phaseArtifacts.phase6.artifact &&
+          spec.phaseArtifacts.phase6.artifact.visualCompile &&
+          spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket &&
+          spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.sceneKind || ''
       };
     })()`);
     await waitForCondition(`local render ready for ${label}`, () => evaluate(cdp, `(() => {
@@ -600,7 +655,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         renderCount: canvas && canvas.dataset && canvas.dataset.renderCount,
         disabled: run && run.disabled
       };
-    })()`), timeoutMs);
+    })()`), timeoutMs, { extendOnProgress: true });
   } else {
     await evaluate(cdp, `(() => {
       const input = document.getElementById('build-prompt');
@@ -630,7 +685,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         runtimeHealth: health,
         runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-8),
       };
-    })()`), timeoutMs);
+    })()`), timeoutMs, { extendOnProgress: true });
     await evaluate(cdp, `(() => {
       const run = document.getElementById('build-lab');
       if (!run) return { ok: false, reason: 'missing run control' };
@@ -678,7 +733,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         runtimeHealth: health,
         runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-8),
       };
-    })()`), timeoutMs);
+    })()`), timeoutMs, { extendOnProgress: true });
   }
   await delay(700);
   const diagnostics = await evaluate(cdp, `(() => {
@@ -737,16 +792,17 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     } catch (_err) {}
     const specForIntent = browserSpec || modelSpec || parsed || null;
     const phaseArtifacts = specForIntent && specForIntent.phaseArtifacts || {};
-    const phaseArtifactSchemas = Object.fromEntries(Array.from({ length: 7 }, (_, index) => {
+    const phaseArtifactSchemas = Object.fromEntries(Array.from({ length: 6 }, (_, index) => {
       const key = 'phase' + (index + 1);
       return [key, phaseArtifacts[key] && phaseArtifacts[key].schema || ''];
     }));
-    const phase7VisualCompile = phaseArtifacts.phase7 &&
-      phaseArtifacts.phase7.artifact &&
-      phaseArtifacts.phase7.artifact.visualCompile || null;
-    const rendererPlan = phase7VisualCompile && phase7VisualCompile.rendererPlan || null;
-    const visualIR = phase7VisualCompile && phase7VisualCompile.visualIR || null;
-    const sceneRenderPacket = phase7VisualCompile && phase7VisualCompile.sceneRenderPacket || null;
+    phaseArtifactSchemas.phase7 = canvas && canvas.dataset ? canvas.dataset.phase7Output || '' : '';
+    const phase6VisualCompile = phaseArtifacts.phase6 &&
+      phaseArtifacts.phase6.artifact &&
+      phaseArtifacts.phase6.artifact.visualCompile || null;
+    const rendererPlan = phase6VisualCompile && phase6VisualCompile.rendererPlan || null;
+    const visualIR = phase6VisualCompile && phase6VisualCompile.visualIR || null;
+    const sceneRenderPacket = phase6VisualCompile && phase6VisualCompile.sceneRenderPacket || null;
     const graphicsAtoms = visualIR && visualIR.graphicsAtoms || {};
     const atomUniforms = graphicsAtoms && graphicsAtoms.uniforms || {};
     const intentBrief = specForIntent && specForIntent.intent && specForIntent.intent.intentBrief || null;
@@ -791,10 +847,41 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       physicsCanvasSceneId: canvas && canvas.dataset ? canvas.dataset.sceneId || '' : '',
       physicsCanvasSceneMix: canvas && canvas.dataset ? canvas.dataset.sceneMix || '' : '',
       physicsCanvasSceneMixSlots: canvas && canvas.dataset ? canvas.dataset.sceneMixSlots || '' : '',
-      phase8Input: canvas && canvas.dataset ? canvas.dataset.phase8Input || '' : '',
+      phase7Input: canvas && canvas.dataset ? canvas.dataset.phase7Input || '' : '',
+      phase7RenderExecutionInput: canvas && canvas.dataset
+        ? canvas.dataset.phase7Input === 'simulatte.renderExecutionInput.v1'
+          ? canvas.dataset.phase7Input
+          : canvas.dataset.renderExecutionInput || ''
+        : '',
       renderExecutionInput: canvas && canvas.dataset ? canvas.dataset.renderExecutionInput || '' : '',
+      phase7SceneRenderPacketInput: canvas && canvas.dataset
+        ? canvas.dataset.phase7SceneRenderPacketInput ||
+          (canvas.dataset.phase7Input === 'simulatte.sceneRenderPacket.v1' ? canvas.dataset.phase7Input : '')
+        : '',
+      phase7Output: canvas && canvas.dataset ? canvas.dataset.phase7Output || '' : '',
+      phase7OutputInput: canvas && canvas.dataset ? canvas.dataset.phase7OutputInput || '' : '',
       phase8Output: canvas && canvas.dataset ? canvas.dataset.phase8Output || '' : '',
-      phase8OutputInput: canvas && canvas.dataset ? canvas.dataset.phase8OutputInput || '' : '',
+      sceneProofVerdict: canvas && canvas.dataset ? canvas.dataset.sceneProofVerdict || '' : '',
+      sceneProofError: canvas && canvas.dataset ? canvas.dataset.sceneProofError || '' : '',
+      sceneProofLostCount: canvas && canvas.dataset ? canvas.dataset.sceneProofLostCount || '0' : '0',
+      sceneProofNotProvenCount: canvas && canvas.dataset ? canvas.dataset.sceneProofNotProvenCount || '0' : '0',
+      phase7RenderData: canvas && canvas.dataset ? canvas.dataset.phase7RenderData || '' : '',
+      phase7RenderDataKey: canvas && canvas.dataset ? canvas.dataset.phase7RenderDataKey || '' : '',
+      phase7RenderPath: canvas && canvas.dataset ? canvas.dataset.phase7RenderPath || '' : '',
+      phase7PixelReadback: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadback || '' : '',
+      phase7PixelReadbackMessage: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadbackMessage || '' : '',
+      phase7PixelProofStatus: canvas && canvas.dataset ? canvas.dataset.phase7PixelProofStatus || '' : '',
+      phase7PixelSampleCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelSampleCount || 0) : 0,
+      phase7PixelVisibleSampleCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelVisibleSampleCount || 0) : 0,
+      phase7PixelMinContrast: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelMinContrast || 0) : 0,
+      phase7PixelSampledObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelSampledObligationCount || 0) : 0,
+      phase7PixelRequiredObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelRequiredObligationCount || 0) : 0,
+      phase7PixelSampledObligations: canvas && canvas.dataset ? canvas.dataset.phase7PixelSampledObligations || '' : '',
+      webgpuOptimizationPath: canvas && canvas.dataset ? canvas.dataset.webgpuOptimizationPath || '' : '',
+      webgpuFeatureFlags: canvas && canvas.dataset ? canvas.dataset.webgpuFeatureFlags || '' : '',
+      webgpuSceneInstanceCapacity: canvas && canvas.dataset ? Number(canvas.dataset.webgpuSceneInstanceCapacity || 0) : 0,
+      webgpuSceneInstanceCount: canvas && canvas.dataset ? Number(canvas.dataset.webgpuSceneInstanceCount || 0) : 0,
+      webgpuStorageBytes: canvas && canvas.dataset ? Number(canvas.dataset.webgpuStorageBytes || 0) : 0,
       phaseArtifactSchemas,
       sceneRenderPacket: canvas && canvas.dataset ? canvas.dataset.sceneRenderPacket || '' : '',
       sceneRenderEntityCount: canvas && canvas.dataset ? Number(canvas.dataset.sceneRenderEntityCount || 0) : 0,
@@ -1123,22 +1210,58 @@ function analyze(results) {
     result.visualRubric = rubric;
     if (result.runtimeState !== 'ready') failures.push(`${result.index}: runtime not ready`);
     if (!result.canvasWidth || !result.canvasHeight) failures.push(`${result.index}: missing canvas`);
-    if (result.phase8Input !== 'simulatte.sceneRenderPacket.v1') {
-      failures.push(`${result.index}: Phase 8 input is ${result.phase8Input || 'missing'}, expected sceneRenderPacket`);
+    const phase7Input = result.phase7RenderExecutionInput || result.phase7Input || result.renderExecutionInput || '';
+    const scenePacketInput = result.phase7SceneRenderPacketInput || '';
+    if (result.renderExecutionInput !== 'simulatte.renderExecutionInput.v1') {
+      failures.push(`${result.index}: Phase 7 renderExecutionInput dataset is ${result.renderExecutionInput || 'missing'}, expected simulatte.renderExecutionInput.v1`);
     }
-    if (result.phase8Output !== 'simulatte.phase8.output.v1') {
-      failures.push(`${result.index}: Phase 8 output envelope missing`);
+    if (phase7Input !== 'simulatte.renderExecutionInput.v1') {
+      failures.push(`${result.index}: Phase 7 input is ${phase7Input || 'missing'}, expected simulatte.renderExecutionInput.v1`);
     }
-    for (let phase = 1; phase <= 7; phase += 1) {
-      const key = `phase${phase}`;
-      const expectedSchema = `simulatte.phase${phase}.output.v1`;
-      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
-        failures.push(`${result.index}: ${key} artifact schema missing`);
-      }
+    if (scenePacketInput !== 'simulatte.sceneRenderPacket.v1') {
+      failures.push(`${result.index}: Phase 7 sceneRenderPacket input is ${scenePacketInput || 'missing'}, expected simulatte.sceneRenderPacket.v1`);
     }
-    if (result.phaseArtifactSchemas && result.phaseArtifactSchemas.phase7 === 'simulatte.phase7.output.v1' &&
+    if (result.phase7Output !== 'simulatte.phase7.output.v2') {
+      failures.push(`${result.index}: Phase 7 output envelope missing`);
+    }
+    if (result.phase7RenderData !== 'simulatte.phase7.compactRenderData.v1') {
+      failures.push(`${result.index}: Phase 7 render data receipt missing`);
+    }
+    if (result.phase7RenderPath !== 'storage-scene-instances-with-uniform-fallback') {
+      failures.push(`${result.index}: Phase 7 render data path is ${result.phase7RenderPath || 'missing'}`);
+    }
+    if (result.phase7PixelReadback === 'fail') {
+      failures.push(`${result.index}: Phase 7 pixel readback failed: ${result.phase7PixelReadbackMessage || 'missing error'}`);
+    }
+    if (result.phase7PixelProofStatus && result.phase7PixelProofStatus !== 'pass') {
+      failures.push(`${result.index}: Phase 7 pixel proof status is ${result.phase7PixelProofStatus}`);
+    }
+    if (result.webgpuOptimizationPath !== 'compute-storage-indirect') {
+      failures.push(`${result.index}: WebGPU optimization path is ${result.webgpuOptimizationPath || 'missing'}`);
+    }
+    if (result.webgpuSceneInstanceCapacity !== 32) {
+      failures.push(`${result.index}: WebGPU scene instance capacity is ${result.webgpuSceneInstanceCapacity || 'missing'}`);
+    }
+    if (result.webgpuSceneInstanceCount < 1) {
+      failures.push(`${result.index}: WebGPU scene instance buffer is empty`);
+    }
+	    if (result.webgpuStorageBytes < 3000) {
+	      failures.push(`${result.index}: WebGPU scene storage receipt is missing`);
+	    }
+    if (result.phase8Output !== 'simulatte.phase8.output.v2') {
+      failures.push(`${result.index}: Phase 8 output is ${result.phase8Output || 'missing'}${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
+    }
+    if (result.sceneProofVerdict === 'error') {
+      failures.push(`${result.index}: Scene Proof errored${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
+    }
+	    for (const [key, expectedSchema] of Object.entries(EXPECTED_PHASE_OUTPUT_SCHEMAS)) {
+	      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
+	        failures.push(`${result.index}: ${key} artifact schema is ${result.phaseArtifactSchemas && result.phaseArtifactSchemas[key] || 'missing'}, expected ${expectedSchema}`);
+	      }
+	    }
+    if (result.phaseArtifactSchemas && result.phaseArtifactSchemas.phase6 === 'simulatte.phase6.output.v2' &&
       result.visualIRSceneRenderPacketSchema !== 'simulatte.sceneRenderPacket.v1') {
-      failures.push(`${result.index}: Phase 7 visualCompile sceneRenderPacket missing`);
+      failures.push(`${result.index}: Phase 6 visualCompile sceneRenderPacket missing`);
     }
     if (result.lumaStd < 8) failures.push(`${result.index}: low visual contrast std=${result.lumaStd}`);
     if (result.coloredRatio < 0.035) failures.push(`${result.index}: low color diversity ratio=${result.coloredRatio}`);
@@ -1310,7 +1433,9 @@ function auditPageUrl(options, port) {
   const raw = options.url || `http://127.0.0.1:${port}/index.html`;
   const url = new URL(raw);
   if (!url.pathname || url.pathname === '/') url.pathname = '/index.html';
-  url.searchParams.set('auditNoInitial', '1');
+  if (options.intentMode !== 'model') {
+    url.searchParams.set('auditNoInitial', '1');
+  }
   return url.toString();
 }
 

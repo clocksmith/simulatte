@@ -88,6 +88,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": true,
       "swigluLimit": null
     },
@@ -110,7 +111,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": 30,
@@ -118,14 +122,17 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": null,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
       "period": 5,
       "offset": 4,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "gemma4",
@@ -146,7 +153,25 @@
       "layout": "contiguous",
       "pageSize": 256,
       "tiering": {
-        "mode": "off"
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
       }
     },
     "decodeLoop": {
@@ -195,9 +220,9 @@
   "execution": {
     "kernels": {
       "embed": {
-        "kernel": "gather.wgsl",
-        "entry": "main",
-        "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+        "kernel": "gather_split8_f16_vec4_f32_out.wgsl",
+        "entry": "gather_vec4_f32_out",
+        "digest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41"
       },
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",

@@ -1,0 +1,119 @@
+(function attachSimulattePhysicsModel(root) {
+  if (typeof module === 'object' && module.exports) {
+    require('./simulatte-physics-model-dependencies.js');
+    require('./simulatte-physics-model-contracts.js');
+    require('./simulatte-physics-model-phase-runtime-language.js');
+    require('./simulatte-physics-model-phase-retrieval.js');
+    require('./simulatte-physics-model-activation-fusion.js');
+    require('./simulatte-physics-model-phase-grounding.js');
+    require('./simulatte-physics-model-phase-simulation.js');
+    require('./simulatte-physics-model-phase-visual-render.js');
+    require('./simulatte-physics-model-state-solvers.js');
+    require('./simulatte-physics-model-spec-api.js');
+    require('./simulatte-physics-model-metrics.js');
+    require('./simulatte-physics-model-compatibility.js');
+  }
+  const scope = root.__SimulattePhysicsModelRefactorScope = root.__SimulattePhysicsModelRefactorScope || {};
+  if (scope.missingDependency) return;
+  let api;
+  with (scope) {
+    api = {
+    ...catalog,
+    COMPOSITION_SCHEMA,
+    INTENT_CLASSIFICATION_SCHEMA,
+    INTENT_MODEL_ID,
+    PHYSICAL_IR_SCHEMA,
+    PHASE_OUTPUT_SCHEMAS,
+    PROMPT_PARSE_SCHEMA,
+    RENDER_PROGRAM_SCHEMA,
+    RENDER_EXECUTION_INPUT_SCHEMA,
+    RENDER_IR_SCHEMA,
+    SEMANTIC_RAG_SCHEMA,
+    SOLVER_GRAPH_SCHEMA,
+    SYNTHESIS_SCHEMA,
+    OBLIGATION_VERDICTS,
+    UNIVERSE_GRAPH_SCHEMA,
+    VALIDATION_RECEIPT_SCHEMA,
+    buildPrimitiveProgram,
+    buildCompositionGraph,
+    buildPhysicsIR,
+    classificationSummary,
+    classifyIntentPrompt,
+    compileCompositionToRenderProgram,
+    compileRenderIR,
+    compileSolverGraph,
+    createPhaseEnvelope,
+    assertPhaseEnvelope,
+    validatePhaseEnvelope,
+    validatePhase1RuntimeReady,
+    validatePhase2LanguageGraph,
+    validatePhase3RetrievalRerank,
+    validatePhase4GroundedIntent,
+    validatePhase5SimulationCompile,
+    validatePhase6VisualCompile,
+    validatePhase7RenderExecution,
+    validatePhase8SceneProof,
+    runPhase1RuntimeGate,
+    runPhase2LanguageGraph,
+    runPhase3Retrieval,
+    runPhase4GroundedIntent,
+    runPhase5SimulationCompile,
+    runPhase6VisualCompile,
+    runPhase7RenderExecution,
+    runPhase8SceneProof,
+    obligationVerdictRows,
+    evidenceConflictRows,
+    createRenderExecutionInput,
+    createBlankState,
+    createComponentStates,
+    createCustomState,
+    createFluidState,
+    createIntentFromPrompt,
+    createSemanticRag,
+    createReactionState,
+    createSimulationState,
+    createSolverState,
+    createSpec,
+    createSpecFromPrompt,
+    createState,
+    deserializeSpec,
+    energyLedger,
+    formatMetric,
+    groundedPrimitiveRows,
+    groundUniverseGraph,
+    hasModule,
+    isMagneticMachine,
+    kineticEnergy,
+    magnetPosition,
+    magneticTorque,
+    maxField,
+    normalizeSpec,
+    operatorTotals,
+    parsePrompt,
+    rankPrimitivesForClassification,
+    readoutLabelsForSpec,
+    readoutValues,
+    remixSpec,
+    resolveIntentToSpec,
+    serializeSpec,
+    sliderTargetAngle,
+    solarPower,
+    stateLabel,
+    stepSolverState,
+    stepBlankState,
+    stepComponentStates,
+    stepCustomState,
+    stepFluidState,
+    stepReactionState,
+    stepSimulation,
+    stepState,
+    synthesizeWorldIntent,
+    titleFromPrompt,
+    validatePhysicsIR,
+  };
+  }
+  if (typeof module === 'object' && module.exports) {
+      module.exports = api;
+    }
+  root.SimulattePhysicsModel = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window);

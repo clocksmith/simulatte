@@ -11,7 +11,7 @@ import {
   getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
-import { modelSupportsEmbedding } from '../config/schema/manifest.schema.js';
+import { modelSupportsEmbedding, modelSupportsRerank } from '../config/schema/manifest.schema.js';
 import {
   resolveReportTimestamp,
   resolveRuntime,
@@ -38,6 +38,8 @@ import {
   safeToFixed,
   sampleTimingNumber,
   buildCanonicalTiming,
+  buildLoadTimingDiagnostics,
+  buildDecodeBottleneckDiagnostics,
   buildTimingDiagnostics,
 } from './browser-harness-suite-helpers.js';
 import {
@@ -47,7 +49,13 @@ import {
 } from './browser-harness-model-helpers.js';
 import {
   resolveBenchmarkRunSettings,
+  normalizeDecodeRecordOpLabels,
+  normalizeUniformCacheStats,
+  buildDecodeRecordTopOps,
+  buildDecodeRecordTopOpGroups,
   runEmbeddingSemanticChecks,
+  runRerank,
+  runRerankSemanticChecks,
   isCoherentOutput,
   runTextInference,
   runEmbedding,
@@ -63,6 +71,21 @@ import { stableSortObject } from '../utils/stable-sort-object.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../experimental/training/suite.js';
 let trainingSuiteModulePromise = null;
+
+function resolvePipelineLoadTimings(pipeline) {
+  if (!pipeline || typeof pipeline.getStats !== 'function') {
+    return { loadTiming: null, pipelineLoadTiming: null };
+  }
+  try {
+    const stats = pipeline.getStats() ?? {};
+    return {
+      loadTiming: stats.loadTiming ?? null,
+      pipelineLoadTiming: stats.pipelineLoadTiming ?? null,
+    };
+  } catch {
+    return { loadTiming: null, pipelineLoadTiming: null };
+  }
+}
 
 async function loadTrainingSuiteModule() {
   if (!trainingSuiteModulePromise) {
@@ -94,6 +117,7 @@ const BROWSER_WORKLOAD_SET = Object.freeze([
   'kernels',
   'inference',
   'embedding',
+  'rerank',
   'training',
   'diffusion',
   'energy',
@@ -106,6 +130,7 @@ const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
     kernels: 'runKernelSuite',
     inference: 'runInferenceSuite',
     embedding: 'runEmbeddingSuite',
+    rerank: 'runRerankSuite',
     training: 'runTrainingSuite',
     diffusion: 'runDiffusionSuite',
     energy: 'runEnergySuite',
@@ -120,10 +145,88 @@ const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
   bench: Object.freeze({
     inference: 'runBenchSuite',
     embedding: 'runBenchSuite',
+    rerank: 'runBenchSuite',
     training: 'runBenchSuite(training)',
     diffusion: 'runBenchSuite(diffusion)',
   }),
 });
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function resolveExecutionPlanCadence(executionPlan) {
+  if (!isPlainObject(executionPlan)) {
+    return null;
+  }
+  const finalActivePlanId = typeof executionPlan.finalActivePlanId === 'string'
+    ? executionPlan.finalActivePlanId
+    : null;
+  for (const candidate of [executionPlan.primary, executionPlan.fallback]) {
+    if (!isPlainObject(candidate)) {
+      continue;
+    }
+    if (finalActivePlanId == null || candidate.id === finalActivePlanId) {
+      return candidate;
+    }
+  }
+  return isPlainObject(executionPlan.primary) ? executionPlan.primary : null;
+}
+
+function resolveDecodeCadence(runtimeConfig, executionPlan = null) {
+  const inference = runtimeConfig?.inference;
+  const batching = inference?.batching;
+  const session = inference?.session;
+  const decodeLoop = session?.decodeLoop;
+  if (!isPlainObject(batching) || !isPlainObject(decodeLoop)) {
+    return null;
+  }
+  const executionPlanCadence = resolveExecutionPlanCadence(executionPlan);
+  const batchSize = executionPlanCadence?.batchSize ?? decodeLoop.batchSize ?? batching.batchSize ?? null;
+  const readbackInterval = executionPlanCadence?.readbackInterval ?? decodeLoop.readbackInterval ?? batching.readbackInterval ?? null;
+  return {
+    batchSize,
+    readbackInterval,
+    stopCheckMode: executionPlanCadence?.stopCheckMode ?? decodeLoop.stopCheckMode ?? batching.stopCheckMode ?? null,
+    readbackMode: executionPlanCadence?.readbackMode ?? decodeLoop.readbackMode ?? batching.readbackMode ?? null,
+    disableCommandBatching: executionPlanCadence?.disableCommandBatching ?? decodeLoop.disableCommandBatching ?? null,
+    disableMultiTokenDecode: inference?.generation?.disableMultiTokenDecode === true,
+    speculationMode: session?.speculation?.mode ?? null,
+    tokensPerReadback: Number.isFinite(batchSize) && Number.isFinite(readbackInterval)
+      ? batchSize * readbackInterval
+      : null,
+    runtimeMirror: {
+      batching: {
+        batchSize: batching.batchSize ?? null,
+        readbackInterval: batching.readbackInterval ?? null,
+        stopCheckMode: batching.stopCheckMode ?? null,
+        readbackMode: batching.readbackMode ?? null,
+      },
+      decodeLoop: {
+        batchSize: decodeLoop.batchSize ?? null,
+        readbackInterval: decodeLoop.readbackInterval ?? null,
+        stopCheckMode: decodeLoop.stopCheckMode ?? null,
+        readbackMode: decodeLoop.readbackMode ?? null,
+        ringTokens: decodeLoop.ringTokens ?? null,
+        ringStop: decodeLoop.ringStop ?? null,
+        ringStaging: decodeLoop.ringStaging ?? null,
+      },
+    },
+    executionPlan: executionPlanCadence
+      ? {
+        id: executionPlanCadence.id ?? null,
+        batchSize: executionPlanCadence.batchSize ?? null,
+        readbackInterval: executionPlanCadence.readbackInterval ?? null,
+        stopCheckMode: executionPlanCadence.stopCheckMode ?? null,
+        readbackMode: executionPlanCadence.readbackMode ?? null,
+        disableCommandBatching: executionPlanCadence.disableCommandBatching ?? null,
+        ringTokens: executionPlanCadence.ringTokens ?? null,
+        ringStop: executionPlanCadence.ringStop ?? null,
+        ringStaging: executionPlanCadence.ringStaging ?? null,
+      }
+      : null,
+  };
+}
 
 export function getBrowserSupportedSuites() {
   return [...BROWSER_WORKLOAD_SET];
@@ -432,10 +535,17 @@ async function runInferenceSuite(options = {}) {
   const runtimeConfig = getRuntimeConfig();
   const modelType = harness.manifest?.modelType || 'transformer';
   const supportsEmbedding = modelSupportsEmbedding(harness.manifest);
+  const supportsRerank = modelSupportsRerank(harness.manifest);
   if (options.expectedModelType === 'embedding' && !supportsEmbedding) {
     throw new Error(
       `Expected an embedding-capable model for workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
       `Set inference.supportsEmbedding=true in the manifest for text-generation models that should expose pipeline.embed().`
+    );
+  }
+  if (options.expectedModelType === 'rerank' && !supportsRerank) {
+    throw new Error(
+      `Expected a rerank-capable model for workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
+      'Set inference.supportsRerank=true and inference.rerank in the manifest for models that should expose rerank scoring.'
     );
   }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -444,7 +554,78 @@ async function runInferenceSuite(options = {}) {
   let output = null;
   let metrics;
 
-  if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
+  if (options.workload === 'rerank' && supportsRerank) {
+    const run = await runRerank(harness.pipeline, runtimeConfig);
+    const semantic = await runRerankSemanticChecks(harness.pipeline, options);
+    const allScoresFinite = run.scores.every((entry) => (
+      Number.isFinite(entry.score)
+      && Number.isFinite(entry.probability)
+      && Number.isFinite(entry.trueLogit)
+      && Number.isFinite(entry.falseLogit)
+    ));
+    const hasRanking = Array.isArray(run.ranking) && run.ranking.length === run.documentCount;
+    const isValidRerank = allScoresFinite && hasRanking && run.documentCount > 0;
+    const isSemanticValid = semantic.passed;
+    output = {
+      mode: 'rerank',
+      query: run.query,
+      documentCount: run.documentCount,
+      topDocument: run.topDocument,
+      ranking: run.ranking,
+      semantic: {
+        passed: isSemanticValid,
+        pairAcc: Number(semantic.pairAcc.toFixed(4)),
+        failedCaseIds: semantic.failedCaseIds,
+        details: {
+          pairs: semantic.pairs,
+        },
+      },
+    };
+    results = [
+      {
+        name: 'rerank',
+        passed: isValidRerank,
+        duration: run.durationMs,
+        error: isValidRerank
+          ? undefined
+          : 'Rerank scores must be finite and produce a full ranking.',
+      },
+      {
+        name: 'rerank-semantic',
+        passed: isSemanticValid,
+        duration: semantic.durationMs,
+        error: isSemanticValid
+          ? undefined
+          : (
+            `Rerank semantic checks below threshold: pairs=${(semantic.pairAcc * 100).toFixed(1)}% `
+            + `(min ${(semantic.minPairAcc * 100).toFixed(1)}%). `
+            + (semantic.failedCaseIds.length > 0 ? `Failed: ${semantic.failedCaseIds.join(', ')}` : '')
+          ),
+      },
+    ];
+    metrics = {
+      query: run.query,
+      documentCount: run.documentCount,
+      topDocumentIndex: run.topDocument?.index ?? null,
+      topDocumentScore: run.topDocument?.score == null ? null : Number(run.topDocument.score.toFixed(6)),
+      topDocumentProbability: run.topDocument?.probability == null ? null : Number(run.topDocument.probability.toFixed(6)),
+      rerankMs: Number(run.durationMs.toFixed(2)),
+      rerankRanking: run.ranking,
+      semanticPassed: isSemanticValid,
+      semanticDurationMs: Number(semantic.durationMs.toFixed(2)),
+      semanticPairAcc: Number(semantic.pairAcc.toFixed(4)),
+      semanticPairPassed: semantic.pairPassed,
+      semanticPairTotal: semantic.pairTotal,
+      semanticMinPairAcc: Number(semantic.minPairAcc.toFixed(4)),
+      semanticMinScoreMargin: Number(semantic.minScoreMargin.toFixed(4)),
+      semanticFailedCases: semantic.failedCaseIds,
+      semanticDetails: {
+        pairs: semantic.pairs,
+      },
+      modelLoadMs: safeModelLoadMs,
+      endToEndMs: safeToFixed(safeModelLoadMs + run.durationMs),
+    };
+  } else if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
     const run = await runEmbedding(harness.pipeline, runtimeConfig);
     const semantic = await runEmbeddingSemanticChecks(harness.pipeline, options);
     const isValidEmbedding = run.embeddingDim > 0 && run.nonFiniteCount === 0;
@@ -596,6 +777,12 @@ async function runInferenceSuite(options = {}) {
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
     ? harness.pipeline.getMemoryStats()
     : null;
+  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);
+  const loadDiagnostics = buildLoadTimingDiagnostics(
+    safeModelLoadMs,
+    loadTimings.loadTiming,
+    loadTimings.pipelineLoadTiming
+  );
   if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
     await harness.pipeline.unload();
   }
@@ -621,7 +808,16 @@ async function runInferenceSuite(options = {}) {
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
+    loadTiming: loadTimings.loadTiming,
+    pipelineLoadTiming: loadTimings.pipelineLoadTiming,
   });
+  const decodeBottleneck = buildDecodeBottleneckDiagnostics(metrics, timing);
+  const metricsWithTimingDiagnostics = decodeBottleneck
+    ? { ...metrics, decodeBottleneck }
+    : metrics;
+  if (decodeBottleneck) {
+    timingDiagnostics.decodeBottleneck = decodeBottleneck;
+  }
   const firstLoad = buildFirstLoadComposition({
     modelLoadMs: timing.modelLoadMs,
     firstTokenMs: timing.firstTokenMs,
@@ -629,7 +825,9 @@ async function runInferenceSuite(options = {}) {
   });
   const metricsWithContracts = buildSuiteContractMetrics(
     options.suiteName || 'inference',
-    metrics,
+    loadDiagnostics
+      ? { ...metricsWithTimingDiagnostics, load: loadDiagnostics }
+      : metricsWithTimingDiagnostics,
     harness.manifest
   );
   return {
@@ -657,12 +855,20 @@ async function runInferenceSuite(options = {}) {
   };
 }
 
+function resolveBenchmarkIterationSettings(runtimeConfig) {
+  const benchConfig = runtimeConfig?.shared?.benchmark?.run || {};
+  return {
+    warmupRuns: Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0)),
+    timedRuns: Math.max(1, Math.floor(benchConfig.timedRuns ?? 1)),
+  };
+}
+
 async function runBenchSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
-  const defaultBenchRun = resolveBenchmarkRunSettings(runtimeConfig);
-  const warmupRuns = defaultBenchRun.warmupRuns;
-  const timedRuns = defaultBenchRun.timedRuns;
+  const iterationSettings = resolveBenchmarkIterationSettings(runtimeConfig);
+  const warmupRuns = iterationSettings.warmupRuns;
+  const timedRuns = iterationSettings.timedRuns;
   const cacheMode = normalizeCacheMode(options.cacheMode);
   const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
   const workloadType = normalizeWorkloadType(
@@ -677,7 +883,7 @@ async function runBenchSuite(options = {}) {
   if (workloadType === 'training') {
     const trainingBench = await runTrainingBenchSuite({
       ...options,
-      benchRun: defaultBenchRun,
+      benchRun: iterationSettings,
       workloadType,
     });
     const trainingReport = trainingBench?.metrics?.trainingMetricsReport;
@@ -773,13 +979,22 @@ async function runBenchSuite(options = {}) {
     },
     () => initializeSuiteModel(options)
   );
-  const benchRun = resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
+  const benchRun = options.workload === 'rerank'
+    ? iterationSettings
+    : resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
   const modelType = harness.manifest?.modelType || 'transformer';
   const supportsEmbedding = modelSupportsEmbedding(harness.manifest);
+  const supportsRerank = modelSupportsRerank(harness.manifest);
   if (options.expectedModelType === 'embedding' && !supportsEmbedding) {
     throw new Error(
       `Expected an embedding-capable model for bench workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
       `Set inference.supportsEmbedding=true in the manifest for text-generation models that should expose pipeline.embed().`
+    );
+  }
+  if (options.expectedModelType === 'rerank' && !supportsRerank) {
+    throw new Error(
+      `Expected a rerank-capable model for bench workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
+      'Set inference.supportsRerank=true and inference.rerank in the manifest for models that should expose rerank scoring.'
     );
   }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -789,7 +1004,155 @@ async function runBenchSuite(options = {}) {
   let output = null;
   let timing;
 
-  if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
+  if (options.workload === 'rerank' && supportsRerank) {
+    const durations = [];
+    const timedDurations = [];
+    const documentCounts = [];
+    const topDocumentScores = [];
+    const topDocumentProbabilities = [];
+    let invalidRuns = 0;
+    let nonFiniteScores = 0;
+    let lastRun = null;
+
+    for (let i = 0; i < warmupRuns + timedRuns; i++) {
+      harness.pipeline.reset?.();
+      const run = await runRerank(harness.pipeline, runtimeConfig, benchRun);
+      if (i >= warmupRuns) {
+        timedDurations.push(run.durationMs);
+        const finiteScores = run.scores.filter((entry) => (
+          Number.isFinite(entry.score)
+          && Number.isFinite(entry.probability)
+          && Number.isFinite(entry.trueLogit)
+          && Number.isFinite(entry.falseLogit)
+        ));
+        nonFiniteScores += run.scores.length - finiteScores.length;
+        const hasRanking = Array.isArray(run.ranking) && run.ranking.length === run.documentCount;
+        if (finiteScores.length === run.scores.length && hasRanking && run.documentCount > 0) {
+          durations.push(run.durationMs);
+          documentCounts.push(run.documentCount);
+          if (Number.isFinite(run.topDocument?.score)) {
+            topDocumentScores.push(run.topDocument.score);
+          }
+          if (Number.isFinite(run.topDocument?.probability)) {
+            topDocumentProbabilities.push(run.topDocument.probability);
+          }
+        } else {
+          invalidRuns++;
+        }
+        lastRun = run;
+      }
+    }
+
+    const semantic = await runRerankSemanticChecks(harness.pipeline, options);
+    const rerankMsStats = computeSampleStats(durations);
+    const timedRerankMsStats = computeSampleStats(timedDurations);
+    const documentCountStats = computeSampleStats(documentCounts);
+    const topScoreStats = computeSampleStats(topDocumentScores);
+    const topProbabilityStats = computeSampleStats(topDocumentProbabilities);
+    const avgMs = rerankMsStats.mean;
+    const semanticPassed = semantic.passed;
+
+    results = [
+      {
+        name: 'benchmark-rerank',
+        passed: durations.length > 0 && invalidRuns === 0,
+        duration: durations.reduce((sum, value) => sum + value, 0),
+        error: durations.length > 0
+          ? (
+            invalidRuns === 0
+              ? undefined
+              : `Invalid rerank runs: ${invalidRuns} (non-finite scores or incomplete ranking observed)`
+          )
+          : 'No valid rerank benchmark runs completed',
+      },
+      {
+        name: 'benchmark-rerank-semantic',
+        passed: semanticPassed,
+        duration: semantic.durationMs,
+        error: semanticPassed
+          ? undefined
+          : (
+            `Rerank semantic checks below threshold: pairs=${(semantic.pairAcc * 100).toFixed(1)}% `
+            + `(min ${(semantic.minPairAcc * 100).toFixed(1)}%). `
+            + (semantic.failedCaseIds.length > 0 ? `Failed: ${semantic.failedCaseIds.join(', ')}` : '')
+          ),
+      },
+    ];
+
+    output = {
+      mode: 'rerank',
+      query: lastRun?.query ?? null,
+      documentCount: lastRun?.documentCount ?? null,
+      topDocument: lastRun?.topDocument ?? null,
+      ranking: lastRun?.ranking ?? [],
+      semantic: {
+        passed: semanticPassed,
+        pairAcc: Number(semantic.pairAcc.toFixed(4)),
+        failedCaseIds: semantic.failedCaseIds,
+        details: {
+          pairs: semantic.pairs,
+        },
+      },
+    };
+
+    metrics = {
+      warmupRuns,
+      timedRuns,
+      validRuns: durations.length,
+      invalidRuns,
+      invalidRatePct: Number((timedRuns > 0 ? (invalidRuns / timedRuns) * 100 : 0).toFixed(2)),
+      query: lastRun?.query ?? null,
+      documentCount: Math.round(documentCountStats.mean),
+      topDocumentIndex: lastRun?.topDocument?.index ?? null,
+      topDocumentScore: lastRun?.topDocument?.score == null ? null : Number(lastRun.topDocument.score.toFixed(6)),
+      topDocumentProbability: lastRun?.topDocument?.probability == null ? null : Number(lastRun.topDocument.probability.toFixed(6)),
+      topDocumentScoreStats: topScoreStats,
+      topDocumentProbabilityStats: topProbabilityStats,
+      nonFiniteScores,
+      firstTimedRerankMs: Number((timedDurations[0] ?? 0).toFixed(2)),
+      minRerankMs: Number(rerankMsStats.min.toFixed(2)),
+      medianRerankMs: Number(rerankMsStats.median.toFixed(2)),
+      p95RerankMs: Number(rerankMsStats.p95.toFixed(2)),
+      p99RerankMs: Number(rerankMsStats.p99.toFixed(2)),
+      maxRerankMs: Number(rerankMsStats.max.toFixed(2)),
+      stdDevRerankMs: Number(rerankMsStats.stdDev.toFixed(2)),
+      ci95RerankMs: Number(rerankMsStats.ci95.toFixed(2)),
+      avgRerankMs: Number(avgMs.toFixed(2)),
+      avgReranksPerSec: Number((avgMs > 0 ? (1000 / avgMs) : 0).toFixed(2)),
+      semanticPassed,
+      semanticDurationMs: Number(semantic.durationMs.toFixed(2)),
+      semanticPairAcc: Number(semantic.pairAcc.toFixed(4)),
+      semanticPairPassed: semantic.pairPassed,
+      semanticPairTotal: semantic.pairTotal,
+      semanticMinPairAcc: Number(semantic.minPairAcc.toFixed(4)),
+      semanticMinScoreMargin: Number(semantic.minScoreMargin.toFixed(4)),
+      semanticFailedCases: semantic.failedCaseIds,
+      semanticDetails: {
+        pairs: semantic.pairs,
+      },
+      modelLoadMs: safeModelLoadMs,
+      latency: {
+        timedRerankMs: timedRerankMsStats,
+        rerankMs: rerankMsStats,
+      },
+      documents: {
+        count: documentCountStats,
+      },
+    };
+
+    timing = buildCanonicalTiming({
+      modelLoadMs: safeModelLoadMs,
+      firstTokenMs: null,
+      firstResponseMs: Number.isFinite(timedDurations[0])
+        ? safeModelLoadMs + timedDurations[0]
+        : null,
+      prefillMs: null,
+      decodeMs: null,
+      totalRunMs: rerankMsStats.median,
+      cacheMode,
+      loadMode,
+    });
+  } else if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
     const durations = [];
     const timedDurations = [];
     const embeddingDims = [];
@@ -909,13 +1272,29 @@ async function runBenchSuite(options = {}) {
     const gpuPrefillMs = [];
     const gpuDecodeMs = [];
     const gpuDecodeRecordMs = [];
+    const gpuDecodeRecordOps = [];
+    const gpuDecodeRecordPasses = [];
+    const gpuDecodeRecordMsPerOp = [];
+    const gpuDecodeRecordMsPerPass = [];
+    const gpuDecodeRecordPassesPerOp = [];
+    const gpuDecodeRecordMsPerExecutedBatchToken = [];
+    const gpuDecodeRecordOpsPerExecutedBatchToken = [];
+    const gpuDecodeRecordPassesPerExecutedBatchToken = [];
+    const gpuDecodeRecordOpLabels = {};
+    let hasGpuDecodeRecordOpLabels = false;
     const gpuDecodeSubmitWaitMs = [];
     const gpuDecodeReadbackWaitMs = [];
+    const gpuDecodeReadbackMapWaitMs = [];
+    const gpuDecodeReadbackCleanupMs = [];
+    const gpuDecodeReadbackCopyMs = [];
     const gpuDecodeOrchestrationMs = [];
     const gpuPrefillRecordMs = [];
     const gpuPrefillSubmitWaitMs = [];
     const singleTokenSubmitWaitMs = [];
     const singleTokenReadbackWaitMs = [];
+    const singleTokenReadbackMapWaitMs = [];
+    const singleTokenReadbackCleanupMs = [];
+    const singleTokenReadbackCopyMs = [];
     const singleTokenOrchestrationMs = [];
     const batchedForwardCalls = [];
     const unbatchedForwardCalls = [];
@@ -924,6 +1303,8 @@ async function runBenchSuite(options = {}) {
     const gpuSubmissions = [];
     const requestedBatchTokens = [];
     const effectiveBatchTokens = [];
+    const executedBatchTokens = [];
+    const resolvedBatchTokens = [];
     const maxBatchTokenCap = [];
     const batchClampCount = [];
     const plePreparedTokenCacheHits = [];
@@ -933,10 +1314,13 @@ async function runBenchSuite(options = {}) {
 
     let generatedText = null;
     let generatedPromptInput = null;
+    let generatedReferenceTranscript = null;
     let lastPromptLabel = benchRun.promptLabel;
     let lastMaxTokens = benchRun.maxTokens;
     let lastDecodeMode = null;
     let lastBatchGuardReason = null;
+    let lastExecutionPlan = null;
+    let lastGpuUniformCache = null;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
       const run = await withHarnessPhase(
@@ -956,10 +1340,15 @@ async function runBenchSuite(options = {}) {
       if (i === warmupRuns + timedRuns - 1) {
         generatedText = run?.output ?? null;
         generatedPromptInput = run?.promptInput ?? null;
+        generatedReferenceTranscript = buildReferenceTranscriptSeed(run, {
+          executionGraphHash: resolveExecutionGraphHash(harness.manifest),
+          kvCache: run?.phase?.kvCache ?? null,
+        });
         lastPromptLabel = run?.prompt ?? benchRun.promptLabel;
         lastMaxTokens = Number.isFinite(run?.maxTokens) ? run.maxTokens : benchRun.maxTokens;
         lastDecodeMode = run?.phase?.decodeMode ?? null;
         lastBatchGuardReason = run?.phase?.batchGuardReason ?? null;
+        lastExecutionPlan = run?.phase?.executionPlan ?? null;
       }
       if (i >= warmupRuns) {
         const phase = run?.phase ?? {};
@@ -982,11 +1371,45 @@ async function runBenchSuite(options = {}) {
         if (phase.decodeMs > 0 && phase.decodeTokens > 0) {
           decodeMsPerToken.push(phase.decodeMs / phase.decodeTokens);
         }
+        const phaseGpuUniformCache = normalizeUniformCacheStats(phaseGpu?.uniformCache);
+        if (phaseGpuUniformCache) {
+          lastGpuUniformCache = phaseGpuUniformCache;
+        }
         if (Number.isFinite(phaseGpu?.prefillMs)) gpuPrefillMs.push(phaseGpu.prefillMs);
         if (Number.isFinite(phaseGpu?.decodeMs)) gpuDecodeMs.push(phaseGpu.decodeMs);
         if (Number.isFinite(phaseGpu?.decodeRecordMs)) gpuDecodeRecordMs.push(phaseGpu.decodeRecordMs);
+        if (Number.isFinite(phaseGpu?.decodeRecordOps)) gpuDecodeRecordOps.push(phaseGpu.decodeRecordOps);
+        if (Number.isFinite(phaseGpu?.decodeRecordPasses)) gpuDecodeRecordPasses.push(phaseGpu.decodeRecordPasses);
+        const phaseDecodeRecordOpLabels = normalizeDecodeRecordOpLabels(phaseGpu?.decodeRecordOpLabels);
+        if (phaseDecodeRecordOpLabels) {
+          hasGpuDecodeRecordOpLabels = true;
+          for (const [label, count] of Object.entries(phaseDecodeRecordOpLabels)) {
+            gpuDecodeRecordOpLabels[label] = (gpuDecodeRecordOpLabels[label] ?? 0) + count;
+          }
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordMsPerOp)) {
+          gpuDecodeRecordMsPerOp.push(phaseGpu.decodeRecordMsPerOp);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordMsPerPass)) {
+          gpuDecodeRecordMsPerPass.push(phaseGpu.decodeRecordMsPerPass);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordPassesPerOp)) {
+          gpuDecodeRecordPassesPerOp.push(phaseGpu.decodeRecordPassesPerOp);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordMsPerExecutedBatchToken)) {
+          gpuDecodeRecordMsPerExecutedBatchToken.push(phaseGpu.decodeRecordMsPerExecutedBatchToken);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordOpsPerExecutedBatchToken)) {
+          gpuDecodeRecordOpsPerExecutedBatchToken.push(phaseGpu.decodeRecordOpsPerExecutedBatchToken);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordPassesPerExecutedBatchToken)) {
+          gpuDecodeRecordPassesPerExecutedBatchToken.push(phaseGpu.decodeRecordPassesPerExecutedBatchToken);
+        }
         if (Number.isFinite(phaseGpu?.decodeSubmitWaitMs)) gpuDecodeSubmitWaitMs.push(phaseGpu.decodeSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeReadbackWaitMs)) gpuDecodeReadbackWaitMs.push(phaseGpu.decodeReadbackWaitMs);
+        if (Number.isFinite(phaseGpu?.decodeReadbackMapWaitMs)) gpuDecodeReadbackMapWaitMs.push(phaseGpu.decodeReadbackMapWaitMs);
+        if (Number.isFinite(phaseGpu?.decodeReadbackCleanupMs)) gpuDecodeReadbackCleanupMs.push(phaseGpu.decodeReadbackCleanupMs);
+        if (Number.isFinite(phaseGpu?.decodeReadbackCopyMs)) gpuDecodeReadbackCopyMs.push(phaseGpu.decodeReadbackCopyMs);
         if (Number.isFinite(phaseGpu?.prefillRecordMs)) gpuPrefillRecordMs.push(phaseGpu.prefillRecordMs);
         if (Number.isFinite(phaseGpu?.prefillSubmitWaitMs)) gpuPrefillSubmitWaitMs.push(phaseGpu.prefillSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeOrchestrationMs)) {
@@ -994,6 +1417,9 @@ async function runBenchSuite(options = {}) {
         }
         if (Number.isFinite(phaseGpu?.singleTokenSubmitWaitMs)) singleTokenSubmitWaitMs.push(phaseGpu.singleTokenSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.singleTokenReadbackWaitMs)) singleTokenReadbackWaitMs.push(phaseGpu.singleTokenReadbackWaitMs);
+        if (Number.isFinite(phaseGpu?.singleTokenReadbackMapWaitMs)) singleTokenReadbackMapWaitMs.push(phaseGpu.singleTokenReadbackMapWaitMs);
+        if (Number.isFinite(phaseGpu?.singleTokenReadbackCleanupMs)) singleTokenReadbackCleanupMs.push(phaseGpu.singleTokenReadbackCleanupMs);
+        if (Number.isFinite(phaseGpu?.singleTokenReadbackCopyMs)) singleTokenReadbackCopyMs.push(phaseGpu.singleTokenReadbackCopyMs);
         if (Number.isFinite(phaseGpu?.singleTokenOrchestrationMs)) singleTokenOrchestrationMs.push(phaseGpu.singleTokenOrchestrationMs);
         if (Number.isFinite(phaseBatching?.batchedForwardCalls)) batchedForwardCalls.push(phaseBatching.batchedForwardCalls);
         if (Number.isFinite(phaseBatching?.unbatchedForwardCalls)) unbatchedForwardCalls.push(phaseBatching.unbatchedForwardCalls);
@@ -1002,6 +1428,8 @@ async function runBenchSuite(options = {}) {
         if (Number.isFinite(phaseBatching?.gpuSubmissions)) gpuSubmissions.push(phaseBatching.gpuSubmissions);
         if (Number.isFinite(phaseBatching?.requestedBatchTokens)) requestedBatchTokens.push(phaseBatching.requestedBatchTokens);
         if (Number.isFinite(phaseBatching?.effectiveBatchTokens)) effectiveBatchTokens.push(phaseBatching.effectiveBatchTokens);
+        if (Number.isFinite(phaseBatching?.executedBatchTokens)) executedBatchTokens.push(phaseBatching.executedBatchTokens);
+        if (Number.isFinite(phaseBatching?.resolvedBatchTokens)) resolvedBatchTokens.push(phaseBatching.resolvedBatchTokens);
         if (Number.isFinite(phaseBatching?.maxBatchTokenCap)) maxBatchTokenCap.push(phaseBatching.maxBatchTokenCap);
         if (Number.isFinite(phaseBatching?.batchClampCount)) batchClampCount.push(phaseBatching.batchClampCount);
         if (Number.isFinite(phasePlePreparedTokenCache?.hits)) plePreparedTokenCacheHits.push(phasePlePreparedTokenCache.hits);
@@ -1024,23 +1452,74 @@ async function runBenchSuite(options = {}) {
     const tokensGeneratedStats = computeSampleStats(tokensGenerated);
     const prefillTokensStats = computeSampleStats(prefillTokens);
     const decodeTokensStats = computeSampleStats(decodeTokens);
+    const gpuDecodeRecordOpsStats = computeSampleStats(gpuDecodeRecordOps);
+    const gpuDecodeRecordPassesStats = computeSampleStats(gpuDecodeRecordPasses);
+    const gpuDecodeRecordOpLabelSampleCount = gpuDecodeRecordOps.length > 0
+      ? gpuDecodeRecordOps.length
+      : 1;
+    const gpuDecodeRecordMeanOpLabels = {};
+    if (hasGpuDecodeRecordOpLabels) {
+      for (const [label, count] of Object.entries(gpuDecodeRecordOpLabels)) {
+        gpuDecodeRecordMeanOpLabels[label] = count / gpuDecodeRecordOpLabelSampleCount;
+      }
+    }
     const hasGpuStats = gpuPrefillMs.length > 0 || gpuDecodeMs.length > 0 || gpuDecodeRecordMs.length > 0
+      || gpuDecodeRecordOps.length > 0 || gpuDecodeRecordPasses.length > 0
+      || gpuDecodeRecordMsPerOp.length > 0 || gpuDecodeRecordMsPerPass.length > 0
+      || gpuDecodeRecordPassesPerOp.length > 0
+      || gpuDecodeRecordMsPerExecutedBatchToken.length > 0
+      || gpuDecodeRecordOpsPerExecutedBatchToken.length > 0
+      || gpuDecodeRecordPassesPerExecutedBatchToken.length > 0
+      || hasGpuDecodeRecordOpLabels
       || gpuDecodeSubmitWaitMs.length > 0 || gpuDecodeReadbackWaitMs.length > 0
+      || gpuDecodeReadbackMapWaitMs.length > 0 || gpuDecodeReadbackCleanupMs.length > 0
+      || gpuDecodeReadbackCopyMs.length > 0
       || gpuDecodeOrchestrationMs.length > 0
+      || lastGpuUniformCache
       || singleTokenSubmitWaitMs.length > 0 || singleTokenReadbackWaitMs.length > 0
+      || singleTokenReadbackMapWaitMs.length > 0 || singleTokenReadbackCleanupMs.length > 0
+      || singleTokenReadbackCopyMs.length > 0
       || singleTokenOrchestrationMs.length > 0;
     const gpuPhaseStats = hasGpuStats
       ? {
         prefillMs: computeSampleStats(gpuPrefillMs),
         decodeMs: computeSampleStats(gpuDecodeMs),
         decodeRecordMs: computeSampleStats(gpuDecodeRecordMs),
+        decodeRecordOps: gpuDecodeRecordOpsStats,
+        decodeRecordPasses: gpuDecodeRecordPassesStats,
+        decodeRecordMsPerOp: computeSampleStats(gpuDecodeRecordMsPerOp),
+        decodeRecordMsPerPass: computeSampleStats(gpuDecodeRecordMsPerPass),
+        decodeRecordPassesPerOp: computeSampleStats(gpuDecodeRecordPassesPerOp),
+        decodeRecordMsPerExecutedBatchToken: computeSampleStats(gpuDecodeRecordMsPerExecutedBatchToken),
+        decodeRecordOpsPerExecutedBatchToken: computeSampleStats(gpuDecodeRecordOpsPerExecutedBatchToken),
+        decodeRecordPassesPerExecutedBatchToken: computeSampleStats(gpuDecodeRecordPassesPerExecutedBatchToken),
+        decodeRecordUniqueOpLabels: hasGpuDecodeRecordOpLabels ? Object.keys(gpuDecodeRecordOpLabels).length : null,
+        decodeRecordTopOps: hasGpuDecodeRecordOpLabels
+          ? buildDecodeRecordTopOps(
+            gpuDecodeRecordMeanOpLabels,
+            gpuDecodeRecordOpsStats?.mean
+          )
+          : [],
+        decodeRecordTopOpGroups: hasGpuDecodeRecordOpLabels
+          ? buildDecodeRecordTopOpGroups(
+            gpuDecodeRecordMeanOpLabels,
+            gpuDecodeRecordOpsStats?.mean
+          )
+          : [],
         decodeSubmitWaitMs: computeSampleStats(gpuDecodeSubmitWaitMs),
         decodeReadbackWaitMs: computeSampleStats(gpuDecodeReadbackWaitMs),
+        decodeReadbackMapWaitMs: computeSampleStats(gpuDecodeReadbackMapWaitMs),
+        decodeReadbackCleanupMs: computeSampleStats(gpuDecodeReadbackCleanupMs),
+        decodeReadbackCopyMs: computeSampleStats(gpuDecodeReadbackCopyMs),
         decodeOrchestrationMs: computeSampleStats(gpuDecodeOrchestrationMs),
         prefillRecordMs: computeSampleStats(gpuPrefillRecordMs),
         prefillSubmitWaitMs: computeSampleStats(gpuPrefillSubmitWaitMs),
+        uniformCache: lastGpuUniformCache,
         singleTokenSubmitWaitMs: computeSampleStats(singleTokenSubmitWaitMs),
         singleTokenReadbackWaitMs: computeSampleStats(singleTokenReadbackWaitMs),
+        singleTokenReadbackMapWaitMs: computeSampleStats(singleTokenReadbackMapWaitMs),
+        singleTokenReadbackCleanupMs: computeSampleStats(singleTokenReadbackCleanupMs),
+        singleTokenReadbackCopyMs: computeSampleStats(singleTokenReadbackCopyMs),
         singleTokenOrchestrationMs: computeSampleStats(singleTokenOrchestrationMs),
       }
       : null;
@@ -1051,6 +1530,8 @@ async function runBenchSuite(options = {}) {
       || gpuSubmissions.length > 0
       || requestedBatchTokens.length > 0
       || effectiveBatchTokens.length > 0
+      || executedBatchTokens.length > 0
+      || resolvedBatchTokens.length > 0
       || maxBatchTokenCap.length > 0
       || batchClampCount.length > 0;
     const batchingPhaseStats = hasBatchingStats
@@ -1062,6 +1543,8 @@ async function runBenchSuite(options = {}) {
         gpuSubmissions: computeSampleStats(gpuSubmissions),
         requestedBatchTokens: computeSampleStats(requestedBatchTokens),
         effectiveBatchTokens: computeSampleStats(effectiveBatchTokens),
+        executedBatchTokens: computeSampleStats(executedBatchTokens),
+        resolvedBatchTokens: computeSampleStats(resolvedBatchTokens),
         maxBatchTokenCap: computeSampleStats(maxBatchTokenCap),
         batchClampCount: computeSampleStats(batchClampCount),
       }
@@ -1136,10 +1619,13 @@ async function runBenchSuite(options = {}) {
       },
       gpu: gpuPhaseStats,
       batching: batchingPhaseStats,
+      decodeCadence: resolveDecodeCadence(getRuntimeConfig(), lastExecutionPlan),
       plePreparedTokenCache: plePreparedTokenCacheStats,
       decodeMode: lastDecodeMode,
       batchGuardReason: lastBatchGuardReason,
+      executionPlan: lastExecutionPlan,
       generatedText,
+      referenceTranscript: generatedReferenceTranscript,
       promptInput: generatedPromptInput,
     };
 
@@ -1166,6 +1652,16 @@ async function runBenchSuite(options = {}) {
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
     ? harness.pipeline.getMemoryStats()
     : null;
+  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);
+  const loadDiagnostics = buildLoadTimingDiagnostics(
+    safeModelLoadMs,
+    loadTimings.loadTiming,
+    loadTimings.pipelineLoadTiming
+  );
+  const decodeBottleneck = buildDecodeBottleneckDiagnostics(metrics, timing);
+  if (decodeBottleneck) {
+    metrics.decodeBottleneck = decodeBottleneck;
+  }
 
   if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
     await harness.pipeline.unload();
@@ -1175,13 +1671,22 @@ async function runBenchSuite(options = {}) {
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
+    loadTiming: loadTimings.loadTiming,
+    pipelineLoadTiming: loadTimings.pipelineLoadTiming,
   });
+  if (decodeBottleneck) {
+    timingDiagnostics.decodeBottleneck = decodeBottleneck;
+  }
   const firstLoad = buildFirstLoadComposition({
     modelLoadMs: timing.modelLoadMs,
     firstTokenMs: timing.firstTokenMs,
     firstResponseMs: timing.firstResponseMs,
   });
-  const metricsWithContracts = buildSuiteContractMetrics('bench', metrics, harness.manifest);
+  const metricsWithContracts = buildSuiteContractMetrics(
+    'bench',
+    loadDiagnostics ? { ...metrics, load: loadDiagnostics } : metrics,
+    harness.manifest
+  );
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -1211,6 +1716,9 @@ async function dispatchBrowserSuite(mode, workload, options) {
   if (mode === 'verify' && workload === 'kernels') {
     return runKernelSuite(options);
   }
+  if (mode === 'bench') {
+    return runBenchSuite(options);
+  }
   if (workload === 'embedding') {
     return runInferenceSuite({
       ...options,
@@ -1218,11 +1726,15 @@ async function dispatchBrowserSuite(mode, workload, options) {
       expectedModelType: options.expectedModelType ?? 'embedding',
     });
   }
+  if (workload === 'rerank') {
+    return runInferenceSuite({
+      ...options,
+      suiteName: 'rerank',
+      expectedModelType: options.expectedModelType ?? 'rerank',
+    });
+  }
   if (mode === 'verify' && workload === 'training') {
     return runTrainingSuite(options);
-  }
-  if (mode === 'bench') {
-    return runBenchSuite(options);
   }
   if (mode === 'verify' && workload === 'diffusion') {
     return runDiffusionSuite(options);

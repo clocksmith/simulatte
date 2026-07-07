@@ -33,6 +33,7 @@ function buildWitnessMergeManifest() {
       ffn: {
         activation: 'gelu',
         gatedActivation: false,
+        branchMode: 'auto',
         swigluLimit: null,
       },
       rope: {
@@ -159,11 +160,13 @@ export function buildMergeContractArtifact() {
   );
 
   const executionPatchBase = {
+    addKernels: [{ key: 'new_kernel' }],
     set: [{ op: 'seed' }],
     remove: ['old_step'],
     add: [{ id: 'new_step' }],
   };
   const executionPatchOverride = {
+    addKernels: undefined,
     set: null,
     remove: [],
     add: undefined,
@@ -174,11 +177,12 @@ export function buildMergeContractArtifact() {
   recordCheck(
     checks,
     'runtime.inference.executionPatch.nullish_null_falls_through',
-    mergedExecutionPatch.set === executionPatchBase.set
+    mergedExecutionPatch.addKernels === executionPatchBase.addKernels
+      && mergedExecutionPatch.set === executionPatchBase.set
       && mergedExecutionPatch.add === executionPatchBase.add
       && Array.isArray(mergedExecutionPatch.remove)
       && mergedExecutionPatch.remove.length === 0,
-    `setLength=${mergedExecutionPatch.set.length}, removeLength=${mergedExecutionPatch.remove.length}, addLength=${mergedExecutionPatch.add.length}`,
+    `addKernelsLength=${mergedExecutionPatch.addKernels.length}, setLength=${mergedExecutionPatch.set.length}, removeLength=${mergedExecutionPatch.remove.length}, addLength=${mergedExecutionPatch.add.length}`,
     'actual'
   );
 

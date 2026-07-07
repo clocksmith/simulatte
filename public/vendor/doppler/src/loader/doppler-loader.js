@@ -8,6 +8,8 @@ import {
   openModelStore,
   verifyIntegrity,
   loadManifestFromStore,
+  loadAuxFile,
+  computeHash,
 } from '../storage/shard-manager.js';
 import { clearManifest, parseManifest, setManifest as setCurrentManifest } from '../formats/rdrr/index.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
@@ -33,6 +35,7 @@ import { buildTensorLocations } from './shard-resolver.js';
 import {
   needsNormWeightOffset,
   resolveWeightLayout,
+  requiresCpuF16ToF32MatmulMaterialization,
   shouldStreamLargeWeight,
 } from './manifest-config.js';
 import { MemoryMonitor } from './memory-monitor.js';
@@ -46,6 +49,8 @@ import { loadEmbeddings } from './embedding-loader.js';
 import { loadPerLayerInputWeights } from './per-layer-input-loader.js';
 import { loadLayer } from './layer-loader.js';
 import { loadFinalWeights } from './final-weights-loader.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
+import { assertFunctionalDescriptorManifest } from '../formats/rdrr/functional-descriptor.js';
 import {
   loadExpert as loadExpertFromModule,
   prefetchExperts as prefetchExpertsFromModule,
@@ -95,6 +100,71 @@ function detectMoE(manifest) {
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
+function nowMs() {
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+}
+
+function roundLoadTimingMs(value) {
+  return Number.isFinite(value) ? Number(value.toFixed(3)) : null;
+}
+
+function createLoadTiming(modelId, hasCustomLoader) {
+  return {
+    schemaVersion: 1,
+    source: 'doppler-loader',
+    modelId: typeof modelId === 'string' ? modelId : null,
+    status: 'running',
+    customShardLoader: hasCustomLoader === true,
+    byteAccountingMode: hasCustomLoader === true
+      ? 'custom-loader-progress-unavailable'
+      : 'full-shard-progress',
+    totalBytes: null,
+    totalShards: null,
+    bytesLoaded: 0,
+    shardsLoaded: 0,
+    bytesPerSecond: null,
+    phasesMs: {
+      preflight: null,
+      tensorLocations: null,
+      embeddings: null,
+      layers: null,
+      finalWeights: null,
+      cleanup: null,
+    },
+    layers: {
+      count: null,
+      totalMs: null,
+      meanMs: null,
+      maxMs: null,
+      maxLayer: null,
+    },
+    totalMs: null,
+    failedPhase: null,
+    error: null,
+  };
+}
+
+function finishLoadPhase(loadTiming, phase, startMs) {
+  if (!loadTiming?.phasesMs || !phase) return;
+  loadTiming.phasesMs[phase] = roundLoadTimingMs(nowMs() - startMs);
+}
+
+function finishLoadTiming(loadTiming, status, startMs, error = null, failedPhase = null) {
+  if (!loadTiming) return;
+  const totalMs = nowMs() - startMs;
+  loadTiming.status = status;
+  loadTiming.totalMs = roundLoadTimingMs(totalMs);
+  loadTiming.bytesPerSecond = totalMs > 0 && Number.isFinite(loadTiming.bytesLoaded)
+    ? Math.round((loadTiming.bytesLoaded / totalMs) * 1000)
+    : null;
+  if (status === 'failed') {
+    loadTiming.failedPhase = failedPhase;
+    loadTiming.error = error?.message ?? String(error ?? 'unknown load error');
+  }
 }
 
 function getTensorShardIndices(location) {
@@ -179,6 +249,8 @@ export class DopplerLoader {
   
   tensorLocations = new Map();
 
+  loadTiming = null;
+
   // Shard cache (LRU with request deduplication)
   
   shardCache;
@@ -189,6 +261,7 @@ export class DopplerLoader {
   #loaderDebug = null;
 
   #perLayerInputSession = null;
+  #loadAuxiliaryFile = null;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
   
@@ -318,6 +391,13 @@ export class DopplerLoader {
       loadRange: options.loadShardRange ?? null,
       streamRange: options.streamShardRange ?? null,
     });
+    this.#loadAuxiliaryFile = typeof options.loadAuxiliaryFile === 'function'
+      ? options.loadAuxiliaryFile
+      : null;
+  }
+
+  setAuxiliaryFileLoader(loadAuxiliaryFile) {
+    this.#loadAuxiliaryFile = typeof loadAuxiliaryFile === 'function' ? loadAuxiliaryFile : null;
   }
 
   
@@ -455,6 +535,10 @@ export class DopplerLoader {
 
     log.info('Loader', `Loading: ${modelId}`);
     this.modelId = modelId;
+    const loadTimingStart = nowMs();
+    let activeLoadPhase = 'preflight';
+    let phaseStart = loadTimingStart;
+    this.loadTiming = createLoadTiming(modelId, this.shardCache.hasCustomLoader);
 
     this.#startMemoryLogging();
     this.#assertResidentBudget('load start');
@@ -491,10 +575,17 @@ export class DopplerLoader {
       }
     }
 
-    await this.#buildTensorLocations();
-
     const totalBytes = (this.manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0);
     const totalShards = this.manifest.shards?.length || 0;
+    this.loadTiming.totalBytes = totalBytes;
+    this.loadTiming.totalShards = totalShards;
+    finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
+
+    activeLoadPhase = 'tensorLocations';
+    phaseStart = nowMs();
+    await this.#buildTensorLocations();
+    finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
+
     const loadStartTime = Date.now();
     let bytesLoaded = 0;
     let shardsLoaded = 0;
@@ -552,6 +643,8 @@ export class DopplerLoader {
         loadedShardIndices.add(shardIndex);
         bytesLoaded += shardSize;
         shardsLoaded++;
+        this.loadTiming.bytesLoaded = bytesLoaded;
+        this.loadTiming.shardsLoaded = shardsLoaded;
         if (!inLayerPhase) {
           const pct = 0.1 + Math.min(bytesLoaded / totalBytes, 1.0) * 0.7;
           const elapsed = (Date.now() - loadStartTime) / 1000;
@@ -585,7 +678,10 @@ export class DopplerLoader {
     let loadError = null;
     try {
       reportProgress('shards', 0.1, 'Loading embeddings...');
+      activeLoadPhase = 'embeddings';
+      phaseStart = nowMs();
       await this.#loadEmbeddings(onProgress);
+      finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
       this.#assertResidentBudget('embeddings');
 
       const resolveNumLayers = (value) => {
@@ -619,14 +715,24 @@ export class DopplerLoader {
       log.info('Loader', `Layers: 0-${numLayers - 1}`);
 
       inLayerPhase = true;
+      activeLoadPhase = 'layers';
       const layersStartTime = performance.now();
+      let layerTotalMs = 0;
+      let maxLayerMs = 0;
+      let maxLayer = null;
 
       for (let l = 0; l < numLayers; l++) {
         const layerStart = performance.now();
         const layerPromise = this.#loadLayer(l, onProgress);
         this.#prefetchLayerShards(l);
         await layerPromise;
-        const layerElapsed = ((performance.now() - layerStart) / 1000).toFixed(2);
+        const layerElapsedMs = performance.now() - layerStart;
+        layerTotalMs += layerElapsedMs;
+        if (layerElapsedMs > maxLayerMs) {
+          maxLayerMs = layerElapsedMs;
+          maxLayer = l;
+        }
+        const layerElapsed = (layerElapsedMs / 1000).toFixed(2);
         log.verbose('Loader', `  Layer ${l}: ${layerElapsed}s`);
 
         await new Promise(r => setTimeout(r, 0));
@@ -664,10 +770,21 @@ export class DopplerLoader {
       }
 
       const layersTotalTime = ((performance.now() - layersStartTime) / 1000).toFixed(2);
+      this.loadTiming.layers = {
+        count: numLayers,
+        totalMs: roundLoadTimingMs(layerTotalMs),
+        meanMs: numLayers > 0 ? roundLoadTimingMs(layerTotalMs / numLayers) : null,
+        maxMs: maxLayer == null ? null : roundLoadTimingMs(maxLayerMs),
+        maxLayer,
+      };
+      finishLoadPhase(this.loadTiming, activeLoadPhase, layersStartTime);
       log.info('Loader', `Layers: ${numLayers} complete (${layersTotalTime}s)`);
 
       reportProgress('gpu_transfer', 0.85, 'Loading final weights...');
+      activeLoadPhase = 'finalWeights';
+      phaseStart = nowMs();
       await this.#loadFinalWeights(onProgress);
+      finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
       this.#assertResidentBudget('final weights');
 
       if (onProgress) {
@@ -679,11 +796,16 @@ export class DopplerLoader {
       const avgSpeed = formatBytes(bytesLoaded / (Date.now() - loadStartTime) * 1000);
       log.info('Loader', `Complete: ${formatBytes(bytesLoaded)} in ${totalTime}s (${avgSpeed}/s)`);
 
+      activeLoadPhase = 'cleanup';
+      phaseStart = nowMs();
       this.shardCache.clear();
+      finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
+      finishLoadTiming(this.loadTiming, 'complete', loadTimingStart);
 
       return  (this.manifest.config) || {};
     } catch (error) {
       loadError = error;
+      finishLoadTiming(this.loadTiming, 'failed', loadTimingStart, error, activeLoadPhase);
     } finally {
       this.#loadShardOverride = null;
       if (this.#memoryMonitor) {
@@ -737,12 +859,8 @@ export class DopplerLoader {
         this.#layerShardMap.set(layerIdx, shards);
       }
 
-      if (location.spans) {
-        for (const span of location.spans) {
-          shards.add(span.shardIndex);
-        }
-      } else {
-        shards.add(location.shardIndex);
+      for (const shardIndex of getTensorShardIndices(location)) {
+        shards.add(shardIndex);
       }
     }
   }
@@ -833,7 +951,9 @@ export class DopplerLoader {
       const preserveRawSourceBytes = toGPU && isLiteRTAffineInt4FusedEligible(location, {
         gpuCapabilities: this.gpuCapabilities,
       });
-      shardData = streamedUpload
+      shardData = this.#isFunctionalDescriptorLocation(location)
+        ? await this.#assembleFunctionalDescriptorData(location, name)
+        : streamedUpload
         ? await this.#assembleShardDataToGpuBuffer(location, name)
         : await this.#assembleShardData(location, name, {
             materializeSourceTransform: !preserveRawSourceBytes,
@@ -854,7 +974,7 @@ export class DopplerLoader {
           releaseBuffer(shardData);
           shardData = await this.#assembleShardData(location, name);
         }
-        return loadTensorToCPU(shardData, location);
+        return loadTensorToCPU(shardData, location, name);
       }
 
       
@@ -899,7 +1019,106 @@ export class DopplerLoader {
       releaseBuffer(shardData);
       shardData = await this.#assembleShardData(location, name);
     }
-    return loadTensorToCPU(shardData, location);
+    return loadTensorToCPU(shardData, location, name);
+  }
+
+  #isFunctionalDescriptorLocation(location) {
+    return String(location?.dtype || '').trim().toUpperCase() === 'FUNCTIONAL_DESCRIPTOR';
+  }
+
+  #getDescriptorShardFiles(location, name) {
+    if (!location?.descriptorManifest) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" is missing descriptorManifest.`
+      );
+    }
+    const manifest = assertFunctionalDescriptorManifest(
+      location.descriptorManifest,
+      `FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptorManifest`
+    );
+    const components = manifest.components;
+    if (!components || typeof components !== 'object') {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptorManifest.components is required.`
+      );
+    }
+    const files = [
+      components.kronecker_sum?.shard_file,
+      components.coordinate_inr?.shard_file,
+      components.sparse_outliers?.shard_file,
+    ];
+    if (files.some((file) => typeof file !== 'string' || file.trim().length === 0)) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" must declare kronecker, SIREN, and sparse shard_file values.`
+      );
+    }
+    return files.map((file) => file.trim());
+  }
+
+  async #loadDescriptorShardFile(file, name) {
+    const loadAuxiliaryFile = this.#loadAuxiliaryFile;
+    const payload = loadAuxiliaryFile
+      ? await loadAuxiliaryFile(file)
+      : await loadAuxFile(file);
+    if (payload == null) {
+      throw new Error(
+        `[DopplerLoader] Descriptor shard "${file}" for tensor "${name}" was not found.`
+      );
+    }
+    if (payload instanceof Uint8Array) {
+      return payload;
+    }
+    if (ArrayBuffer.isView(payload)) {
+      return new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength);
+    }
+    if (payload instanceof ArrayBuffer) {
+      return new Uint8Array(payload);
+    }
+    throw new Error(
+      `[DopplerLoader] Descriptor shard "${file}" for tensor "${name}" must load as ArrayBuffer or Uint8Array.`
+    );
+  }
+
+  async #assertDescriptorHash(location, name, descriptorShards) {
+    const descriptorHash = location?.descriptorManifest?.descriptor_hash;
+    if (typeof descriptorHash !== 'string' || !descriptorHash.trim()) {
+      return;
+    }
+    const match = /^sha256:([a-f0-9]{64})$/i.exec(descriptorHash.trim());
+    if (!match) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptor_hash must be sha256:<64 hex chars>.`
+      );
+    }
+    const totalBytes = Array.from(descriptorShards.values()).reduce((sum, bytes) => sum + bytes.byteLength, 0);
+    const combined = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const bytes of descriptorShards.values()) {
+      combined.set(bytes, offset);
+      offset += bytes.byteLength;
+    }
+    const actual = await computeHash(combined, 'sha256');
+    if (actual.toLowerCase() !== match[1].toLowerCase()) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptor hash mismatch. ` +
+        `Expected ${descriptorHash}, got sha256:${actual}.`
+      );
+    }
+  }
+
+  async #assembleFunctionalDescriptorData(location, name) {
+    const shardFiles = this.#getDescriptorShardFiles(location, name);
+    const descriptorShards = new Map();
+    for (const file of shardFiles) {
+      descriptorShards.set(file, await this.#loadDescriptorShardFile(file, name));
+    }
+    await this.#assertDescriptorHash(location, name, descriptorShards);
+    const data = new Uint8Array(0);
+    Object.defineProperty(data, 'descriptorShards', {
+      value: descriptorShards,
+      enumerable: false,
+    });
+    return data;
   }
 
   
@@ -935,9 +1154,11 @@ export class DopplerLoader {
   }
 
   #shouldStreamUploadToGPU(location) {
+    if (this.#isFunctionalDescriptorLocation(location)) return false;
     if (!location?.size || location.size <= 0) return false;
     if (hasSourceTransform(location)) return false;
     if (Array.isArray(location?.storage?.companions) && location.storage.companions.length > 0) return false;
+    if (requiresCpuF16ToF32MatmulMaterialization(location, this.gpuCapabilities, this.keepF32Weights)) return false;
     if (this.shardCache.hasCustomLoader && !this.shardCache.canStreamRanges) return false;
     const chunkBytes = this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes ?? 0;
     if (!Number.isFinite(chunkBytes) || chunkBytes <= 0) return false;
@@ -1156,6 +1377,7 @@ export class DopplerLoader {
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       embeddings: this.embeddings,
       embeddingPostprocessor: this.manifest?.inference?.output?.embeddingPostprocessor ?? null,
+      diffusionGemmaSelfConditioning: this.manifest?.inference?.diffusionGemma?.selfConditioning === true,
       modelType: this.manifest?.modelType ?? null,
       tieWordEmbeddings,
       gpuBuffers: this.gpuBuffers,
@@ -1204,7 +1426,12 @@ export class DopplerLoader {
       layersLoaded: this.layers.size,
       expertsLoaded: this.experts.size + expertCacheCount,
       gpuBuffers: this.gpuBuffers.size,
+      loadTiming: this.getLoadTiming(),
     };
+  }
+
+  getLoadTiming() {
+    return this.loadTiming ? cloneJsonValue(this.loadTiming) : null;
   }
 
   
@@ -1285,6 +1512,7 @@ export class DopplerLoader {
     this.modelId = null;
     this.loadedShards.clear();
     this.isLoaded = false;
+    this.loadTiming = null;
     this.tensorLocations.clear();
     this.#layerShardMap.clear();
     this.shardCache.clear();

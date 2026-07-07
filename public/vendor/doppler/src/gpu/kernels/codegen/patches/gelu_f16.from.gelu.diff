@@ -1,0 +1,41 @@
+--- src/gpu/kernels/gelu.wgsl
++++ src/gpu/kernels/gelu_f16.wgsl
+@@ -1,9 +1,9 @@
+-// GeLU Activation Kernel
++// GeLU Activation Kernel with F16 Input/Output
+ //
+-// GeLU(x) ≈ 0.5 * x * (1 + tanh(sqrt(2/π) * (x + 0.044715 * x^3)))
+-// Variants:
+-// - geglu: GeLU(gate) * up (separate gate buffer)
+-// - geglu_rowsplit: input = [numTokens, 2*dim] row-split
++// F16 variant for reduced memory bandwidth when using F16 activations.
++
++enable f16;
+
+ override WORKGROUP_SIZE: u32 = 256u;
+ override HAS_GATE: bool = false;
+@@ -17,9 +17,9 @@
+ }
+
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> input: array<f32>;
+-@group(0) @binding(2) var<storage, read_write> output: array<f32>;
+-@group(0) @binding(3) var<storage, read> gate: array<f32>;
++@group(0) @binding(1) var<storage, read> input: array<f16>;
++@group(0) @binding(2) var<storage, read_write> output: array<f16>;
++@group(0) @binding(3) var<storage, read> gate: array<f16>;
+
+-fn gelu(x: f32) -> f32 {
+-    let sqrt_2_over_pi: f32 = 0.7978845608;
+-    let c: f32 = 0.044715;
++fn gelu(x: f16) -> f16 {
++    let sqrt_2_over_pi = f16(0.7978845608);
++    let c = f16(0.044715);
+     let inner = sqrt_2_over_pi * (x + c * x * x * x);
+-    let inner_clamped = clamp(inner, -15.0, 15.0);
+-    return 0.5 * x * (1.0 + tanh(inner_clamped));
++    let inner_clamped = clamp(inner, f16(-15.0), f16(15.0));
++    return f16(0.5) * x * (f16(1.0) + tanh(inner_clamped));
+ }
+
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

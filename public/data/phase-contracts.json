@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Simulatte Phase Contracts",
   "schema": "simulatte.phaseContracts.v1",
-  "version": "strict-8-phase-v1",
+  "version": "strict-8-phase-scene-proof-v2",
   "envelope": {
-    "schemaPattern": "simulatte.phaseN.output.v1",
+    "schemaPattern": "simulatte.phaseN.output.v2",
     "required": [
       "schema",
       "phase",
@@ -32,7 +32,8 @@
       "artifactSchema": "simulatte.phase1.runtimeReady.v1",
       "artifactKeys": [
         "runtimeContext",
-        "promptIngress"
+        "promptIngress",
+        "compositionLedger"
       ],
       "receipts": [
         "phase1-runtime-context",
@@ -52,9 +53,12 @@
         "phase1.promptIngress.sourceText"
       ],
       "outputSchema": "simulatte.phase2.output.v1",
-      "artifactSchema": "simulatte.phase2.languageGraph.v1",
+      "artifactSchema": "simulatte.phase2.sceneLanguageGraph.v1",
       "artifactKeys": [
         "languageGraph",
+        "sceneLanguageGraph",
+        "queryPlan",
+        "compositionLedger",
         "promptParse"
       ],
       "receipts": [
@@ -76,41 +80,19 @@
         "simulatte.phase2.output.v1",
         "phase1.runtimeContext"
       ],
-      "outputSchema": "simulatte.phase3.output.v1",
-      "artifactSchema": "simulatte.phase3.retrievalRerank.v1",
+      "outputSchema": "simulatte.phase3.output.v2",
+      "artifactSchema": "simulatte.phase3.retrievalRerank.v3",
       "artifactKeys": [
         "languageGraph",
-        "retrievalRerankResult"
-      ],
-      "receipts": [
-        "phase3-retrieval-rerank"
-      ],
-      "forbiddenUpstreamReads": [
-        "rawPrompt",
-        "spec.intent",
-        "activationCloud",
-        "groundedIntent",
-        "renderIR",
-        "visualIR",
-        "renderProgram"
-      ]
-    },
-    {
-      "id": "phase4ActivationCloud",
-      "phase": 4,
-      "allowedInputs": [
-        "simulatte.phase3.output.v1",
-        "phase1.runtimeContext"
-      ],
-      "outputSchema": "simulatte.phase4.output.v1",
-      "artifactSchema": "simulatte.phase4.activationCloud.v1",
-      "artifactKeys": [
-        "languageGraph",
+        "sceneLanguageGraph",
+        "queryPlan",
         "retrievalRerankResult",
-        "activationCloud"
+        "activationCloud",
+        "compositionLedger"
       ],
       "receipts": [
-        "phase4-activation-cloud"
+        "phase3-retrieval-rerank",
+        "phase3-activation-fusion"
       ],
       "forbiddenUpstreamReads": [
         "rawPrompt",
@@ -120,23 +102,26 @@
         "renderIR",
         "visualIR",
         "renderProgram"
-      ]
+      ],
+      "notes": "Reranking and activation fusion are closing operations inside Phase 3, not separate phases."
     },
     {
-      "id": "phase5GroundedIntent",
-      "phase": 5,
+      "id": "phase4GroundedIntent",
+      "phase": 4,
       "allowedInputs": [
-        "simulatte.phase4.output.v1",
+        "simulatte.phase3.output.v2",
         "phase1.runtimeContext"
       ],
-      "outputSchema": "simulatte.phase5.output.v1",
-      "artifactSchema": "simulatte.phase5.groundedIntent.v1",
+      "outputSchema": "simulatte.phase4.output.v2",
+      "artifactSchema": "simulatte.phase4.groundedSceneContract.v1",
       "artifactKeys": [
         "activationCloud",
-        "groundedIntent"
+        "groundedIntent",
+        "groundedSceneContract",
+        "compositionLedger"
       ],
       "receipts": [
-        "phase5-grounded-intent"
+        "phase4-grounded-intent"
       ],
       "forbiddenUpstreamReads": [
         "rawPrompt",
@@ -151,42 +136,44 @@
       ]
     },
     {
-      "id": "phase6SimulationCompile",
-      "phase": 6,
+      "id": "phase5SimulationCompile",
+      "phase": 5,
       "allowedInputs": [
-        "simulatte.phase5.output.v1",
+        "simulatte.phase4.output.v2",
         "phase1.runtimeContext"
       ],
-      "outputSchema": "simulatte.phase6.output.v1",
-      "artifactSchema": "simulatte.phase6.simulationCompile.v1",
+      "outputSchema": "simulatte.phase5.output.v2",
+      "artifactSchema": "simulatte.phase5.simulationCompile.v2",
       "artifactKeys": [
-        "simulationCompile"
+        "simulationCompile",
+        "compositionLedger"
       ],
       "receipts": [
-        "phase6-simulation-compile"
+        "phase5-simulation-compile"
       ],
       "forbiddenUpstreamReads": [
         "rawPrompt",
         "retrievalRows",
-        "activationCloudWithoutPhase5",
+        "activationCloudWithoutPhase4",
         "renderProgram",
         "visualIR"
       ]
     },
     {
-      "id": "phase7VisualCompile",
-      "phase": 7,
+      "id": "phase6VisualCompile",
+      "phase": 6,
       "allowedInputs": [
-        "simulatte.phase6.output.v1",
+        "simulatte.phase5.output.v2",
         "phase1.runtimeContext"
       ],
-      "outputSchema": "simulatte.phase7.output.v1",
-      "artifactSchema": "simulatte.phase7.visualCompile.v1",
+      "outputSchema": "simulatte.phase6.output.v2",
+      "artifactSchema": "simulatte.phase6.visualCompile.v2",
       "artifactKeys": [
-        "visualCompile"
+        "visualCompile",
+        "compositionLedger"
       ],
       "receipts": [
-        "phase7-visual-compile"
+        "phase6-visual-compile"
       ],
       "forbiddenUpstreamReads": [
         "rawPrompt",
@@ -198,21 +185,22 @@
       ]
     },
     {
-      "id": "phase8RenderExecution",
-      "phase": 8,
+      "id": "phase7RenderExecution",
+      "phase": 7,
       "allowedInputs": [
-        "simulatte.phase7.output.v1",
+        "simulatte.phase6.output.v2",
         "phase1.runtimeContext",
         "simulationState",
         "canvas"
       ],
-      "outputSchema": "simulatte.phase8.output.v1",
-      "artifactSchema": "simulatte.phase8.renderExecution.v1",
+      "outputSchema": "simulatte.phase7.output.v2",
+      "artifactSchema": "simulatte.phase7.renderExecution.v2",
       "artifactKeys": [
-        "renderExecution"
+        "renderExecution",
+        "compositionLedger"
       ],
       "receipts": [
-        "phase8-webgpu-render"
+        "phase7-webgpu-render"
       ],
       "forbiddenUpstreamReads": [
         "rawPrompt",
@@ -225,6 +213,35 @@
         "visualIR",
         "renderProgram"
       ]
+    },
+    {
+      "id": "phase8SceneProof",
+      "phase": 8,
+      "allowedInputs": [
+        "simulatte.phase7.output.v2",
+        "phase1.runtimeContext"
+      ],
+      "outputSchema": "simulatte.phase8.output.v2",
+      "artifactSchema": "simulatte.phase8.sceneProof.v1",
+      "artifactKeys": [
+        "sceneProof",
+        "compositionLedger"
+      ],
+      "receipts": [
+        "phase8-scene-proof"
+      ],
+      "forbiddenUpstreamReads": [
+        "rawPrompt",
+        "promptParse",
+        "spec.intent",
+        "retrievalRows",
+        "activationCloud",
+        "groundedIntent",
+        "renderIR",
+        "visualIR",
+        "renderProgram"
+      ],
+      "notes": "Scene Proof settles every composition ledger obligation against render receipts. It has no semantic authority to add content; it only judges preservation and surfaces losses."
     }
   ]
 }

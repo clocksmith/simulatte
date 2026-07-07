@@ -1,6 +1,6 @@
 (function attachSimulattePhysicsLab(root, factory) {
   const model = typeof module === 'object' && module.exports
-    ? require('../../pipeline/phase-06-simulation/simulatte-physics-model.js')
+    ? require('../../pipeline/phase-05-simulation/simulatte-physics-model.js')
     : root.SimulattePhysicsModel;
   const renderer = typeof module === 'object' && module.exports
     ? require('../prompt/prompt-controller.js')

@@ -1,0 +1,61 @@
+(function attachSimulattePhysicsRenderermodelbindings(root) {
+  const scope = root.__SimulattePhysicsRendererRefactorScope;
+  if (!scope || scope.missingDependency) return;
+  with (scope) {
+    const {
+        DEFAULT_PARAMS,
+        EXAMPLE_INTENTS,
+        TAU,
+        clamp,
+        clamp01,
+        controlsForSpec,
+        createRenderExecutionInput,
+        createSimulationState,
+        createSpec,
+        createSpecFromPrompt,
+        deserializeSpec,
+        energyLedger,
+        hasModule,
+        hashNoise,
+        maxField,
+        normalizeSpec,
+        readoutLabelsForSpec,
+        readoutValues,
+        remixSpec,
+        serializeSpec,
+        sliderTargetAngle,
+        solarPower,
+        stateLabel,
+        stepSimulation,
+        templateById,
+      } = model;
+
+    Object.assign(scope, {
+      DEFAULT_PARAMS,
+      EXAMPLE_INTENTS,
+      TAU,
+      clamp,
+      clamp01,
+      controlsForSpec,
+      createRenderExecutionInput,
+      createSimulationState,
+      createSpec,
+      createSpecFromPrompt,
+      deserializeSpec,
+      energyLedger,
+      hasModule,
+      hashNoise,
+      maxField,
+      normalizeSpec,
+      readoutLabelsForSpec,
+      readoutValues,
+      remixSpec,
+      serializeSpec,
+      sliderTargetAngle,
+      solarPower,
+      stateLabel,
+      stepSimulation,
+      templateById,
+    });
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : window);
