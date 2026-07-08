@@ -15,11 +15,18 @@ const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
 const phaseScores = report.phaseScores || {};
 const prompts = Array.isArray(report.prompts) ? report.prompts : [];
 const belowFloor = report.belowFloor || [];
+const identity = report.artifactIdentity || {};
+const artifactKind = report.artifactKind || identity.kind || 'unknown';
+const compareGroup = report.compareGroup || identity.compareGroup || 'unknown';
+const phaseTaxonomyVersion = report.phaseTaxonomyVersion || identity.phaseTaxonomyVersion || 'unknown';
+const sourceLiveReport = report.sourceLiveReport || identity.sourceLiveReport || '';
 const weakestPrompts = prompts
   .slice()
   .sort((a, b) => Number(a.pipelineScore || 0) - Number(b.pipelineScore || 0))
   .slice(0, 5);
 
+console.log(`artifact=${artifactKind} compareGroup=${compareGroup} phaseTaxonomy=${phaseTaxonomyVersion}`);
+console.log(`canonical=${identity.canonical === true ? 'true' : 'false'} sourceLiveReport=${sourceLiveReport || 'none'}`);
 console.log(`pipeline=${report.pipelineScore ?? 'n/a'} verdict=${report.verdict || 'n/a'} floor=${report.floor ?? 'n/a'}`);
 console.log(`weakest=${report.weakestPhase || 'n/a'} belowFloor=${belowFloor.join(',') || 'none'}`);
 console.log(`phases=${Object.entries(phaseScores).map(([id, score]) => `${id}:${score}`).join(' ')}`);

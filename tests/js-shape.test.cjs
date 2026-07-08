@@ -440,6 +440,14 @@ test('pipeline audit records phase scores, baselines, and regressions', () => {
   assert.match(wrapper, /\.\.\.extraPromptArgs/);
   assert.match(wrapper, /'dogs and cats swimming'/);
   assert.match(scorer, /simulatte\.pipelineAuditRun\.v1/);
+  assert.match(scorer, /simulatte\.pipelineAuditArtifactIdentity\.v1/);
+  assert.match(scorer, /strict-8-phase-scene-proof-v2/);
+  assert.match(scorer, /function auditArtifactIdentity/);
+  assert.match(scorer, /artifactKind/);
+  assert.match(scorer, /compareGroup/);
+  assert.match(scorer, /sourceLiveReport/);
+  assert.match(scorer, /simulatte-pipeline-live-score-v1/);
+  assert.match(scorer, /simulatte-pipeline-static-score-v1/);
   assert.match(scorer, /phase-floor-76\.v1/);
   assert.match(scorer, /pipelineScore/);
   assert.match(scorer, /weakestPhase/);
@@ -475,6 +483,10 @@ test('pipeline audit records phase scores, baselines, and regressions', () => {
   assert.match(scorer, /liveSceneRenderPacket/);
   assert.doesNotMatch(scorer, /graphicsAtomUniformVector/);
   assert.doesNotMatch(scorer, /composedSceneVector/);
+  assert.match(summary, /artifact=\$\{artifactKind\}/);
+  assert.match(summary, /compareGroup=\$\{compareGroup\}/);
+  assert.match(summary, /phaseTaxonomy=\$\{phaseTaxonomyVersion\}/);
+  assert.match(summary, /sourceLiveReport=\$\{sourceLiveReport/);
   assert.match(summary, /weakestPrompts/);
   assert.match(compare, /phaseDeltas/);
 });

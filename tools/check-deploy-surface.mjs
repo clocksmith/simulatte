@@ -20,6 +20,11 @@ const DOPPLER_VENDOR_PATCH_HASHES = Object.freeze({
   'src/config/transforms/execution-graph-transforms.js': '54b2054fde328416c74df77a592f835e9df16a10bf9aae66e15b0dc8270f3483',
   'src/inference/pipelines/text.js': '4c8a2c3eac83fa1f95a7463bfadf59d50ce80b54da35213ba4fec04736879169',
   'src/inference/pipelines/text/execution-v1.js': 'c3cb0050da8394681290dd0f661140e3106d668877ba130196adca1c8cebbaf6',
+  'src/loader/doppler-loader.js': '448e3d0e7c452aaecd439774c4ff9b809488a0b372453b960e6babcdccb8fe07',
+  'src/loader/index.d.ts': '00e3b4b2ff97fa55015adbb6b00a35a79fbbc0436c2cf3e0f1f9895085b93448',
+  'src/loader/index.js': '42464204d6032a327803dbb00424da118a57563760f6101a2a4137be852b8b5f',
+  'src/loader/manifest-config.d.ts': '80674d4f16eebc7faf9b7bb41a296806c79e608c75d52582be09b571120a7d09',
+  'src/loader/manifest-config.js': 'b7e4f8be5536e45efe447ece8b3d9fb8404c466a459d8521aea10b17ba39206b',
   'src/rules/inference/capability-transforms.rules.json': 'c3878e781c065975e8cf2a09f8b4eb58818c74af61319dcd6ff07fb05cec2f9d',
 });
 const VENDOR_ROOT = path.join(ROOT, 'public', 'vendor', 'doppler');

@@ -13,6 +13,8 @@ const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-pipeline-audit')
 const FLOOR = 76;
 const RUBRIC_VERSION = 'phase-floor-76.v1';
 const PROMPT_SET_VERSION = 'core-adversarial-human-v1';
+const ARTIFACT_IDENTITY_SCHEMA = 'simulatte.pipelineAuditArtifactIdentity.v1';
+const PHASE_TAXONOMY_VERSION = 'strict-8-phase-scene-proof-v2';
 
 const CORE_PROMPTS = Object.freeze([
   'particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat',
@@ -132,8 +134,14 @@ async function main() {
   const phaseScores = aggregatePhaseScores(rows);
   const pipelineScore = minScore(phaseScores);
   const runId = runIdForReport(rows);
+  const artifactIdentity = auditArtifactIdentity(options);
   const report = {
     schema: 'simulatte.pipelineAuditRun.v1',
+    artifactIdentity,
+    artifactKind: artifactIdentity.kind,
+    compareGroup: artifactIdentity.compareGroup,
+    phaseTaxonomyVersion: artifactIdentity.phaseTaxonomyVersion,
+    sourceLiveReport: artifactIdentity.sourceLiveReport,
     generatedAt: new Date().toISOString(),
     runId,
     gitSha: gitSha(),
@@ -156,6 +164,29 @@ async function main() {
   };
   report.reportPath = await writeReport(report, options);
   printSummary(report);
+}
+
+function auditArtifactIdentity(options) {
+  const hasLiveReport = Boolean(options.liveReport);
+  const kind = hasLiveReport ? 'live-score' : 'static-score';
+  return {
+    schema: ARTIFACT_IDENTITY_SCHEMA,
+    kind,
+    role: hasLiveReport
+      ? 'canonical-pipeline-score-with-live-webgpu'
+      : 'compiled-static-score-proxy',
+    canonical: hasLiveReport,
+    compareGroup: hasLiveReport
+      ? 'simulatte-pipeline-live-score-v1'
+      : 'simulatte-pipeline-static-score-v1',
+    phaseTaxonomyVersion: PHASE_TAXONOMY_VERSION,
+    phaseIds: PHASES.map((phase) => phase.id),
+    measurementMode: hasLiveReport
+      ? 'compiled-static-plus-live-visual'
+      : 'compiled-static-live-webgpu-required',
+    sourceLiveReport: hasLiveReport ? path.relative(ROOT, options.liveReport) : null,
+    outputDir: path.relative(ROOT, options.outDir),
+  };
 }
 
 async function buildPromptRows(options) {
@@ -1024,6 +1055,10 @@ async function writeReport(report, options) {
 function summaryRow(report, reportPath) {
   return {
     schema: 'simulatte.pipelineAuditHistoryRow.v1',
+    artifactKind: report.artifactKind,
+    compareGroup: report.compareGroup,
+    phaseTaxonomyVersion: report.phaseTaxonomyVersion,
+    sourceLiveReport: report.sourceLiveReport,
     generatedAt: report.generatedAt,
     runId: report.runId,
     gitSha: report.gitSha,
@@ -1038,6 +1073,7 @@ function summaryRow(report, reportPath) {
 }
 
 function printSummary(report) {
+  console.log(`artifact=${report.artifactKind} compareGroup=${report.compareGroup}`);
   console.log(`pipeline=${report.pipelineScore} verdict=${report.verdict} weakest=${report.weakestPhase}`);
   console.log(`belowFloor=${report.belowFloor.join(',') || 'none'}`);
   console.log(`phaseScores=${PHASES.map((phase) => `${phase.id}:${report.phaseScores[phase.id]}`).join(' ')}`);
