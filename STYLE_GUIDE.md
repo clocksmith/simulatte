@@ -201,4 +201,6 @@
 200. Phase 8 inputs: render execution output, composition ledger, pixel and identity receipts.
 201. Phase 8 outputs: settled obligations, verdict, losses; it adds no scene content and has no semantic authority.
 202. A required obligation without render evidence is a surfaced loss or an explicit not-proven receipt, never a silent pass.
-203. This guide is mandatory for Simulatte edits and supplements `AGENTS.md`.
+203. JavaScript source files have a strict 999-line limit.
+204. Split any JavaScript file before it reaches 1,000 lines.
+205. This guide is mandatory for Simulatte edits and supplements `AGENTS.md`.

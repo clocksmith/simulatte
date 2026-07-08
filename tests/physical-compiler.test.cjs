@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 
 const lab = require('../public/app/simulation/simulation-lab.js');
@@ -7,6 +9,23 @@ const solverRegistry = require('../public/pipeline/phase-05-simulation/simulatte
 const advectionSolver = require('../public/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js');
 const webgpuRenderer = require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
 const universeParser = require('../public/pipeline/phase-02-language/simulatte-universe-parser.js');
+
+function runtimeSourceFromFile(file, seen = new Set()) {
+  if (seen.has(file)) return '';
+  seen.add(file);
+  const source = fs.readFileSync(file, 'utf8');
+  const dir = path.dirname(file);
+  const dependencies = [];
+  const requirePattern = /require\(['"](\.\/[^'"]+\.js)['"]\)/g;
+  let match;
+  while ((match = requirePattern.exec(source))) {
+    dependencies.push(path.resolve(dir, match[1]));
+  }
+  return [
+    ...dependencies.map((dependency) => runtimeSourceFromFile(dependency, seen)),
+    source,
+  ].filter(Boolean).join('\n');
+}
 
 test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, and render IR', () => {
   const spec = lab.createSpecFromPrompt('lava spins a turbine near an ice castle wall');
@@ -1070,9 +1089,8 @@ test('primitive retrieval uses catalog retrievability policy without hardcoded e
   assert.ok(!lab.rankPhysicalPrimitives('energy ledger conservation accounting', { max: 32 })
     .some((primitive) => primitive.id === 'energy-ledger'));
 
-  const catalogSource = require('node:fs').readFileSync(
-    require('node:path').join(__dirname, '..', 'public', 'pipeline', 'phase-05-simulation', 'simulatte-physics-catalog.js'),
-    'utf8'
+  const catalogSource = runtimeSourceFromFile(
+    path.join(__dirname, '..', 'public', 'pipeline', 'phase-05-simulation', 'simulatte-physics-catalog.js')
   );
   assert.doesNotMatch(catalogSource, /primitive\.id !== 'energy-ledger'/);
   assert.match(catalogSource, /\.filter\(\(primitive\) => isRetrievablePrimitive\(primitive\)\)/);

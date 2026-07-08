@@ -34,6 +34,32 @@ function runtimeFile(name) {
   return path.join(publicDir, rel);
 }
 
+function runtimeSource(name) {
+  const file = runtimeFile(name);
+  return runtimeSourceFromFile(file, new Set());
+}
+
+function runtimeSourceFromFile(file, seen) {
+  if (seen.has(file)) return '';
+  seen.add(file);
+  const source = fs.readFileSync(file, 'utf8');
+  const dir = path.dirname(file);
+  const dependencies = [];
+  const requirePattern = /require\(['"](\.\/[^'"]+\.js)['"]\)/g;
+  let match;
+
+  while ((match = requirePattern.exec(source))) {
+    dependencies.push(path.resolve(dir, match[1]));
+  }
+
+  return [
+    ...dependencies.map((dependency) => runtimeSourceFromFile(dependency, seen)),
+    source,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
 function publicRuntimeJsFiles() {
   return [
     path.join(publicDir, 'app'),
@@ -43,15 +69,18 @@ function publicRuntimeJsFiles() {
 }
 
 test('public javascript keeps lines below the repository ceiling', () => {
+  const styleGuide = fs.readFileSync(path.join(root, 'STYLE_GUIDE.md'), 'utf8');
+
+  assert.match(styleGuide, /JavaScript source files have a strict 999-line limit/);
+  assert.match(styleGuide, /Split any JavaScript file before it reaches 1,000 lines/);
+
   for (const file of publicRuntimeJsFiles()) {
     const rel = path.relative(root, file);
     const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
-    lines.forEach((line, index) => {
-      assert.ok(
-        line.length <= 777,
-        `${rel}:${index + 1} has ${line.length} characters`
-      );
-    });
+    assert.ok(
+      lines.length <= 999,
+      `${rel} has ${lines.length} lines`
+    );
   }
 });
 
@@ -91,10 +120,7 @@ test('runtime source is owned by app, pipeline, data, and worker directories', (
     assert.equal(fs.existsSync(path.join(publicDir, retired)), false, `public/${retired} should be retired`);
   }
 
-  const coordinatorLines = fs.readFileSync(
-    runtimeFile('simulation-lab.js'),
-    'utf8'
-  ).split(/\r?\n/);
+  const coordinatorLines = runtimeSource('simulation-lab.js').split(/\r?\n/);
   assert.ok(coordinatorLines.length < 80);
 });
 
@@ -277,8 +303,8 @@ test('intent forensics modules load before the physics model in the browser lab'
 test('training mode streams prompt-output critiques over localhost', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const bridge = fs.readFileSync(runtimeFile('prompt-review-bridge.js'), 'utf8');
-  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
+  const bridge = runtimeSource('prompt-review-bridge.js');
+  const renderer = runtimeSource('prompt-controller.js');
   const server = fs.readFileSync(path.join(root, 'tools', 'simulatte-review-server.mjs'), 'utf8');
 
   assert.equal(pkg.scripts['review:server'], 'node tools/simulatte-review-server.mjs');
@@ -454,14 +480,8 @@ test('pipeline audit records phase scores, baselines, and regressions', () => {
 });
 
 test('causal affordances compile into first-class VisualIR rows', () => {
-  const composition = fs.readFileSync(
-    runtimeFile('simulatte-composition-graph.js'),
-    'utf8'
-  );
-  const model = fs.readFileSync(
-    runtimeFile('simulatte-physics-model.js'),
-    'utf8'
-  );
+  const composition = runtimeSource('simulatte-composition-graph.js');
+  const model = runtimeSource('simulatte-physics-model.js');
 
   assert.match(composition, /function visualGeometryForCausalAffordances/);
   assert.match(composition, /visualMotionForProcesses\(processRows, visualGenome, sceneKind, causalAffordances\)/);
@@ -545,18 +565,9 @@ test('procedural visual base exposes a broad prompt-addressed catalog', () => {
 });
 
 test('physics renderer is a browser coordinator, not a legacy Canvas2D painter library', () => {
-  const renderer = fs.readFileSync(
-    runtimeFile('prompt-controller.js'),
-    'utf8'
-  );
-  const runtimeProgress = fs.readFileSync(
-    runtimeFile('runtime-progress.js'),
-    'utf8'
-  );
-  const lab = fs.readFileSync(
-    runtimeFile('simulation-lab.js'),
-    'utf8'
-  );
+  const renderer = runtimeSource('prompt-controller.js');
+  const runtimeProgress = runtimeSource('runtime-progress.js');
+  const lab = runtimeSource('simulation-lab.js');
   const auditTool = fs.readFileSync(
     path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'),
     'utf8'
@@ -585,18 +596,9 @@ test('physics renderer is a browser coordinator, not a legacy Canvas2D painter l
 });
 
 test('prompt compilation has a worker boundary with main-thread fallback', () => {
-  const renderer = fs.readFileSync(
-    runtimeFile('prompt-controller.js'),
-    'utf8'
-  );
-  const worker = fs.readFileSync(
-    runtimeFile('simulatte-pipeline-worker.js'),
-    'utf8'
-  );
-  const intentWorker = fs.readFileSync(
-    runtimeFile('simulatte-intent-worker.js'),
-    'utf8'
-  );
+  const renderer = runtimeSource('prompt-controller.js');
+  const worker = runtimeSource('simulatte-pipeline-worker.js');
+  const intentWorker = runtimeSource('simulatte-intent-worker.js');
 
   assert.match(worker, /const SCRIPT_ORDER = Object\.freeze/);
   assert.match(worker, /const WORKER_SEARCH = root && root\.location && root\.location\.search \|\| ''/);
@@ -664,7 +666,7 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
 
 test('home prompt shuffle stays consistent between HTML and catalog', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const catalog = fs.readFileSync(runtimeFile('simulatte-physics-catalog.js'), 'utf8');
+  const catalog = runtimeSource('simulatte-physics-catalog.js');
 
   assert.match(html, /id="shuffle-prompt"/);
   assert.match(html, /Shuffle 256 examples/);
@@ -695,7 +697,7 @@ test('home prompt shuffle stays consistent between HTML and catalog', () => {
 });
 
 test('Doppler residual intent has a strict static contract and no network dependency', () => {
-  const runtime = fs.readFileSync(runtimeFile('simulatte-doppler-intent.js'), 'utf8');
+  const runtime = runtimeSource('simulatte-doppler-intent.js');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
   const oldRuntimePath = path.join(root, 'public', 'doppler', 'src', 'index-browser.js');
   const oldRuntime = fs.readFileSync(oldRuntimePath, 'utf8');
@@ -729,8 +731,8 @@ test('vendored Doppler shader cache resolves kernels beside the loaded module', 
 
 test('physics loading uses a phase-reactive canvas Snake game instead of a card mosaic', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
-  const runtimeProgress = fs.readFileSync(runtimeFile('runtime-progress.js'), 'utf8');
+  const renderer = runtimeSource('prompt-controller.js');
+  const runtimeProgress = runtimeSource('runtime-progress.js');
 
   assert.match(html, /--mosaic-pink/);
   assert.match(html, /--mosaic-lilac/);
@@ -786,14 +788,8 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(html, /id="field-canvas"/);
   assert.doesNotMatch(renderer, /fieldCanvas/);
   assert.doesNotMatch(renderer, /requireWebGpu: Boolean\(webGpuRenderer\)/);
-  const webgpuRenderer = fs.readFileSync(
-    runtimeFile('simulatte-webgpu-renderer.js'),
-    'utf8'
-  );
-  const loadingCanvas = fs.readFileSync(
-    runtimeFile('loading-canvas.js'),
-    'utf8'
-  );
+  const webgpuRenderer = runtimeSource('simulatte-webgpu-renderer.js');
+  const loadingCanvas = runtimeSource('loading-canvas.js');
   assert.match(webgpuRenderer, /const SCENE_PACKET_OBJECT_SLOTS = 8/);
   assert.match(webgpuRenderer, /const SCENE_PACKET_FLOATS = SCENE_PACKET_OBJECT_SLOTS \* 12/);
   assert.match(webgpuRenderer, /const GPU_SCENE_INSTANCE_CAPACITY = 32/);
@@ -1599,8 +1595,8 @@ test('prompt dock minimizes to corners without drag placement', () => {
 
 test('browser product exposes compiled world model receipts', () => {
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const lab = fs.readFileSync(runtimeFile('simulation-lab.js'), 'utf8');
-  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
+  const lab = runtimeSource('simulation-lab.js');
+  const renderer = runtimeSource('prompt-controller.js');
   const auditTool = fs.readFileSync(path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'), 'utf8');
 
   assert.match(html, /id="world-model-panel"/);
@@ -1624,17 +1620,11 @@ test('browser product exposes compiled world model receipts', () => {
 });
 
 test('composition renderer diversity lives in compiled graph and WebGPU operators', () => {
-  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
-  const graph = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
-  const registry = fs.readFileSync(runtimeFile('simulatte-render-registry.js'), 'utf8');
-  const webgpuRenderer = fs.readFileSync(
-    runtimeFile('simulatte-webgpu-renderer.js'),
-    'utf8'
-  );
-  const loadingCanvas = fs.readFileSync(
-    runtimeFile('loading-canvas.js'),
-    'utf8'
-  );
+  const renderer = runtimeSource('prompt-controller.js');
+  const graph = runtimeSource('simulatte-composition-graph.js');
+  const registry = runtimeSource('simulatte-render-registry.js');
+  const webgpuRenderer = runtimeSource('simulatte-webgpu-renderer.js');
+  const loadingCanvas = runtimeSource('loading-canvas.js');
 
   for (const token of [
     'atomStructuralScene',
@@ -1736,16 +1726,10 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
 });
 
 test('phase 8 renders compiled scene packets without semantic inference', () => {
-  const webgpuRenderer = fs.readFileSync(
-    runtimeFile('simulatte-webgpu-renderer.js'),
-    'utf8'
-  );
-  const graph = fs.readFileSync(
-    runtimeFile('simulatte-composition-graph.js'),
-    'utf8'
-  );
+  const webgpuRenderer = runtimeSource('simulatte-webgpu-renderer.js');
+  const graph = runtimeSource('simulatte-composition-graph.js');
 
-  const vectorBody = webgpuRenderer.match(/function visualIrLayerVector\(packet\) \{[\s\S]*?return compressVisualIrLayerVector\(vector\);\n  \}/);
+  const vectorBody = webgpuRenderer.match(/function visualIrLayerVector\(packet\) \{[\s\S]*?return compressVisualIrLayerVector\(vector\);\n\s*\}/);
   assert.ok(vectorBody, 'visualIrLayerVector should be parseable');
   assert.match(vectorBody[0], /scenePacketUniformVector\(packet, 'visualLayers', VISUAL_IR_LAYER_SLOTS\.length\)/);
   assert.match(vectorBody[0], /addScenePacketLayers\(vector, packet\)/);
@@ -1797,11 +1781,8 @@ test('phase 8 renders compiled scene packets without semantic inference', () => 
 });
 
 test('WebGPU scene id and operator contracts cover emitted visual artifacts', () => {
-  const webgpuRenderer = fs.readFileSync(
-    runtimeFile('simulatte-webgpu-renderer.js'),
-    'utf8'
-  );
-  const sceneBlock = webgpuRenderer.match(/const SCENE_IDS = Object\.freeze\(\{([\s\S]*?)\n  \}\);/);
+  const webgpuRenderer = runtimeSource('simulatte-webgpu-renderer.js');
+  const sceneBlock = webgpuRenderer.match(/const SCENE_IDS = Object\.freeze\(\{([\s\S]*?)\n\s*\}\);/);
   assert.ok(sceneBlock, 'SCENE_IDS block should be parseable');
   const sceneIds = Object.fromEntries(
     Array.from(sceneBlock[1].matchAll(/['"]?([a-z0-9-]+)['"]?:\s*(\d+)/g))
@@ -1843,7 +1824,7 @@ test('WebGPU scene id and operator contracts cover emitted visual artifacts', ()
 });
 
 test('physics graph updates log intent and composition debug data by default', () => {
-  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
+  const renderer = runtimeSource('prompt-controller.js');
 
   assert.match(renderer, /logGraphDebug\(spec\)/);
   assert.match(renderer, /function logGraphDebug/);
@@ -1859,13 +1840,13 @@ test('physics graph updates log intent and composition debug data by default', (
 });
 
 test('pipeline phases consume only neighboring compiled artifacts after intent grounding', () => {
-  const model = fs.readFileSync(runtimeFile('simulatte-physics-model.js'), 'utf8');
-  const physicsIR = fs.readFileSync(runtimeFile('simulatte-physics-ir.js'), 'utf8');
-  const composition = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
-  const webgpu = fs.readFileSync(runtimeFile('simulatte-webgpu-renderer.js'), 'utf8');
-  const visualOperatorCompiler = fs.readFileSync(runtimeFile('simulatte-visual-operator-compiler.js'), 'utf8');
-  const activationCloud = fs.readFileSync(runtimeFile('simulatte-activation-cloud.js'), 'utf8');
-  const physicsIRCall = model.match(/nextIR = buildPhysicsIR\(\{[\s\S]*?\n      \}\);/);
+  const model = runtimeSource('simulatte-physics-model.js');
+  const physicsIR = runtimeSource('simulatte-physics-ir.js');
+  const composition = runtimeSource('simulatte-composition-graph.js');
+  const webgpu = runtimeSource('simulatte-webgpu-renderer.js');
+  const visualOperatorCompiler = runtimeSource('simulatte-visual-operator-compiler.js');
+  const activationCloud = runtimeSource('simulatte-activation-cloud.js');
+  const physicsIRCall = model.match(/nextIR = buildPhysicsIR\(\{\s*universeGraph,[\s\S]*?\n\s*\}\);/);
   const directLanguageText = visualOperatorCompiler.match(/function directLanguageText\(context = \{\}\) \{[\s\S]*?\n  \}/);
 
   assert.ok(physicsIRCall, 'physics model should compile PhysicsIR through a visible call site');
@@ -1968,8 +1949,8 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
 });
 
 test('intent runtime keeps one visible line and does not silently fallback locally', () => {
-  const renderer = fs.readFileSync(runtimeFile('prompt-controller.js'), 'utf8');
-  const runtimeProgress = fs.readFileSync(runtimeFile('runtime-progress.js'), 'utf8');
+  const renderer = runtimeSource('prompt-controller.js');
+  const runtimeProgress = runtimeSource('runtime-progress.js');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
 
   assert.match(runtimeProgress, /function compactRuntimeMessage/);
@@ -2035,7 +2016,7 @@ test('intent runtime keeps one visible line and does not silently fallback local
 });
 
 test('composition shape inference does not classify catalog provenance as cats', () => {
-  const graph = fs.readFileSync(runtimeFile('simulatte-composition-graph.js'), 'utf8');
+  const graph = runtimeSource('simulatte-composition-graph.js');
 
   assert.ok(graph.includes('/\\b(mouse|gerbil|hamster|dog|cat|animal|organism)\\b/'));
   assert.doesNotMatch(graph, /\/mouse\|gerbil\|hamster\|dog\|cat\|animal\|organism\//);
@@ -2080,7 +2061,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   const retiredIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'primitive-index-v1.json');
   const retiredEncoderPath = path.join(root, 'public', 'data', 'simulatte-intent-embed-v1.json');
   const universeManifestPath = path.join(root, 'public', 'data', 'simulatte-universe', 'manifest.json');
-  const runtime = fs.readFileSync(runtimeFile('simulatte-intent-embedder.js'), 'utf8');
+  const runtime = runtimeSource('simulatte-intent-embedder.js');
   const dopplerRuntime = fs.readFileSync(
     path.join(root, 'public', 'vendor', 'doppler', 'src', 'client', 'runtime', 'index.js'),
     'utf8'
@@ -2151,7 +2132,8 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
   assert.equal(manifest.runtime.moduleUrl, './vendor/doppler/src/index-browser.js');
-  assert.equal(manifest.runtime.queryEmbeddingMode, 'last');
+  assert.equal(manifest.runtime.queryEmbeddingMode, 'mean');
+  assert.notEqual(manifest.runtime.queryEmbeddingMode, 'last');
   assert.equal(manifest.runtime.embeddingText.schema, 'simulatte.embeddingTextContract.v1');
   assert.match(manifest.runtime.embeddingText.queryPrefix, /^Instruct: Given a web search query/);
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.activationDtype, 'f32');
@@ -2223,7 +2205,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(runtime, /DEFAULT_DOPPLER_KERNEL_BASE_PATH = '\.\/vendor\/doppler\/src\/gpu\/kernels'/);
   assert.match(runtime, /dopplerKernelBasePath/);
   assert.match(runtime, /ensureDopplerKernelBasePath/);
-  assert.match(runtime, /ensureDopplerKernelBasePath\(options\.kernelBasePath\);\n    const direct = options\.dopplerModule \|\| globalDopplerApi\(\);/);
+  assert.match(runtime, /ensureDopplerKernelBasePath\(options\.kernelBasePath\);\n\s*const direct = options\.dopplerModule \|\| globalDopplerApi\(\);/);
   assert.match(runtime, /model-backed intent requires Doppler load/);
   assert.match(runtime, /primitive embedding index/);
   assert.match(runtime, /surface card embedding index/);

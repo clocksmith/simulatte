@@ -309,6 +309,7 @@ function buildContext(spec, prompt, expectedSignals, contentTerms) {
     retrievalRerankResult,
     retrievalRows,
     activationCloud: activationCloud && activationCloud.weightedActivations || brief.activationCloud || [],
+    activationFusion: phase3Artifact.activationCloud || activationCloud || null,
     grounded: graphBrief && graphBrief.groundedInterpretation || brief.groundedInterpretation || {},
     groundedIntent,
     universeGraph: acceptedGraph || {},
@@ -397,21 +398,65 @@ function scoreRetrieval(context) {
 
 function scoreActivationCloud(context) {
   const rows = context.activationCloud || [];
+  const fusion = context.activationFusion || {};
+  const verdicts = Array.isArray(fusion.obligationVerdicts) ? fusion.obligationVerdicts : [];
+  const conflicts = Array.isArray(fusion.evidenceConflicts) ? fusion.evidenceConflicts : [];
   const accepted = context.grounded.acceptedActivations || [];
-  const text = compactText(accepted.length ? accepted : rows);
+  const text = compactText([...(accepted.length ? accepted : rows), ...verdicts]);
   const signalCoverage = signalCoverageScore(context.expectedSignals, text);
   const directSignals = accepted.filter((row) => row.source === 'language-evidence-visual-signal').length;
+  const ledgerObligations = fusion.compositionLedger && Array.isArray(fusion.compositionLedger.obligations)
+    ? fusion.compositionLedger.obligations
+    : [];
+  const settledVerdicts = verdicts.filter((row) => row.verdict && row.verdict !== 'pending');
+  const adjudicationCoverage = ledgerObligations.length
+    ? Math.min(1, verdicts.length / ledgerObligations.length)
+    : 0;
+  const evidenceBackedVerdicts = verdicts.filter((row) => (
+    row.verdict === 'supported' || row.verdict === 'strongly-supported' || row.verdict === 'inferred'
+  ));
+  const claimsWithProvenance = evidenceBackedVerdicts.filter((row) => (row.provenance || []).length > 0);
+  const surfacedNegationConflicts = verdicts.filter((row) => row.negationConflict === true);
+  const claimIntegrity = verdicts.length === 0
+    ? 0
+    : (evidenceBackedVerdicts.length === 0 || claimsWithProvenance.length === evidenceBackedVerdicts.length) &&
+      surfacedNegationConflicts.every((row) => row.verdict === 'negated')
+      ? 1
+      : claimsWithProvenance.length / Math.max(1, evidenceBackedVerdicts.length);
+  const fusionSectionsComplete = verdicts.length > 0 &&
+    Array.isArray(fusion.negativeEvidence) &&
+    fusion.conflictsBySlot && typeof fusion.conflictsBySlot === 'object';
   const score = sumParts([
-    part(18, rows.length >= Math.max(12, context.expectedSignals.length * 2)),
-    part(18, accepted.length >= Math.max(6, context.expectedSignals.length)),
-    part(34, signalCoverage.coverage),
-    part(15, directSignals / Math.max(1, context.expectedSignals.length)),
-    part(15, signalCoverage.falsePositivePenalty === 0),
+    part(12, rows.length >= Math.max(12, context.expectedSignals.length * 2)),
+    part(12, accepted.length >= Math.max(6, context.expectedSignals.length)),
+    part(30, signalCoverage.coverage),
+    part(10, directSignals / Math.max(1, context.expectedSignals.length)),
+    part(10, signalCoverage.falsePositivePenalty === 0),
+    part(10, adjudicationCoverage),
+    part(8, claimIntegrity),
+    part(8, fusionSectionsComplete),
   ]) - signalCoverage.falsePositivePenalty;
-  return scored(score, `accepted=${accepted.length} signalCoverage=${pct(signalCoverage.coverage)}`, {
+  const verdictBuckets = {};
+  for (const row of verdicts) {
+    const bucket = row.verdict || 'unknown';
+    verdictBuckets[bucket] = (verdictBuckets[bucket] || 0) + 1;
+  }
+  const sampleVerdict = evidenceBackedVerdicts[0] || verdicts[0] || null;
+  const reason = ledgerObligations.length === 0
+    ? 'no obligations to adjudicate; language graph tracked no entities for this prompt'
+    : `accepted=${accepted.length} verdicts=${settledVerdicts.length}/${verdicts.length} signalCoverage=${pct(signalCoverage.coverage)}`;
+  return scored(score, reason, {
     activationCount: rows.length,
     acceptedActivationCount: accepted.length,
     directSignalCount: directSignals,
+    ledgerObligationCount: ledgerObligations.length,
+    obligationVerdictCount: verdicts.length,
+    settledVerdictCount: settledVerdicts.length,
+    adjudicationCoverage,
+    claimIntegrity,
+    verdictBuckets,
+    sampleVerdict,
+    evidenceConflictCount: conflicts.length,
     signalCoverage,
   });
 }
@@ -548,9 +593,20 @@ function liveSceneRenderPacketInputSchema(liveResult) {
     : '';
 }
 
+function moduleFamilySource(dir, prefix) {
+  if (!fsSync.existsSync(dir)) return '';
+  return fsSync.readdirSync(dir)
+    .filter((file) => file.startsWith(prefix) && file.endsWith('.js'))
+    .sort()
+    .map((file) => fsSync.readFileSync(path.join(dir, file), 'utf8'))
+    .join('\n');
+}
+
 function scoreWebGpu(context, liveResult) {
-  const webgpuPath = path.join(ROOT, 'public', 'pipeline', 'phase-07-render', 'simulatte-webgpu-renderer.js');
-  const webgpuSource = fsSync.existsSync(webgpuPath) ? fsSync.readFileSync(webgpuPath, 'utf8') : '';
+  const webgpuSource = moduleFamilySource(
+    path.join(ROOT, 'public', 'pipeline', 'phase-07-render'),
+    'simulatte-webgpu-renderer'
+  );
   const atoms = context.graphicsAtoms || {};
   const visual = context.visualIR || {};
   const scenePacket = context.visualCompile && context.visualCompile.sceneRenderPacket || {};
@@ -687,8 +743,10 @@ function scoreWebGpu(context, liveResult) {
 }
 
 function scoreSceneProof(context, liveResult) {
-  const sceneProofPath = path.join(ROOT, 'public', 'pipeline', 'phase-08-scene-proof', 'simulatte-scene-proof.js');
-  const sceneProofSource = fsSync.existsSync(sceneProofPath) ? fsSync.readFileSync(sceneProofPath, 'utf8') : '';
+  const sceneProofSource = moduleFamilySource(
+    path.join(ROOT, 'public', 'pipeline', 'phase-08-scene-proof'),
+    'simulatte-scene-proof'
+  );
   const ledger = context.visualCompile && context.visualCompile.compositionLedger || null;
   const obligations = ledger && Array.isArray(ledger.obligations) ? ledger.obligations : [];
   const structuralProofs = [

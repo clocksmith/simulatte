@@ -219,7 +219,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
       manifestHash: hash,
     },
     runtime: {
-      queryEmbeddingMode: 'last',
+      queryEmbeddingMode: 'mean',
       runtimeConfig: { inference: {} },
     },
     cache: {},
@@ -386,7 +386,7 @@ test('Phase 1 uses direct Doppler embed for single model-backed probes', async (
       modelId: index.embedModelId,
       manifest: { manifestHash: index.embedModelHash },
       async embed(prompt, options = {}) {
-        assert.equal(options.embeddingMode, 'last');
+        assert.equal(options.embeddingMode, 'mean');
         assert.equal(options.useChatTemplate, false);
         assert.equal(options.__skipStateSnapshot, true);
         embedCalls += 1;
@@ -423,7 +423,7 @@ test('Phase 1 falls back to Doppler embedBatch when direct embed is unavailable'
       manifest: { manifestHash: index.embedModelHash },
       async embedBatch(prompts, options = {}) {
         assert.equal(prompts.length, 1);
-        assert.equal(options.embeddingMode, 'last');
+        assert.equal(options.embeddingMode, 'mean');
         assert.equal(options.useChatTemplate, false);
         assert.equal(options.__skipStateSnapshot, true);
         batchCalls += prompts.length;

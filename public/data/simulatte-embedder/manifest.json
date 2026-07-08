@@ -191,7 +191,7 @@
   },
   "runtime": {
     "moduleUrl": "./vendor/doppler/src/index-browser.js",
-    "queryEmbeddingMode": "last",
+    "queryEmbeddingMode": "mean",
     "embeddingText": {
       "schema": "simulatte.embeddingTextContract.v1",
       "style": "qwen3_embedding",
