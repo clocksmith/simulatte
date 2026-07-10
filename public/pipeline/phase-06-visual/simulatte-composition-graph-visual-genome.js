@@ -118,7 +118,8 @@
       }
 
     function scenePacketAnimationCode(kind) {
-        switch (String(kind || '').toLowerCase()) {
+        const value = String(kind || '').toLowerCase();
+        switch (value) {
           case 'swim-cycle': return 1;
           case 'flow-ripple': return 2;
           case 'particle-track': return 3;
@@ -127,12 +128,13 @@
           case 'fermentation-rise': return 6;
           case 'plume-rise': return 7;
           case 'orbital-drift': return 8;
-          default: return 0.5;
+          default: return value ? scenePacketStableCode(value, 9, 64) : 0.5;
         }
       }
 
     function scenePacketSemanticCode(identity = {}) {
-        switch (String(identity.type || '').toLowerCase()) {
+        const value = String(identity.type || '').toLowerCase();
+        switch (value) {
           case 'dog': return 1;
           case 'cat': return 2;
           case 'animal': return 3;
@@ -147,7 +149,18 @@
           case 'cell': return 12;
           case 'structure': return 13;
           case 'field': return 14;
-          default: return 0;
+          default: {
+            const text = [
+              identity.type,
+              identity.category,
+              identity.renderClass,
+              identity.sourceLabel,
+              identity.primitive,
+              identity.semanticRef,
+              identity.physicalRef,
+            ].filter(Boolean).join(':').toLowerCase();
+            return text ? scenePacketStableCode(text, 15, 96) : 0;
+          }
         }
       }
 
@@ -178,6 +191,15 @@
 
     function scenePacketVariantCode(id = '', label = '', sourceGraphId = '') {
         const text = `${id}:${label}:${sourceGraphId}`;
+        return scenePacketHashUnit(text);
+      }
+
+    function scenePacketStableCode(text, min, max) {
+        const unit = scenePacketHashUnit(text);
+        return min + Math.floor(unit * Math.max(1, max - min + 1));
+      }
+
+    function scenePacketHashUnit(text) {
         let hash = 2166136261;
         for (let i = 0; i < text.length; i += 1) {
           hash ^= text.charCodeAt(i);

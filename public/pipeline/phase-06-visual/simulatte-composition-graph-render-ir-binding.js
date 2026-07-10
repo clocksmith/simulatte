@@ -512,6 +512,7 @@
           renderInstances,
           graphicsAtoms,
           compositionLedger,
+          visualGenome,
         });
         assertScenePacketIdentityPreserved(sceneRenderPacket);
         return {

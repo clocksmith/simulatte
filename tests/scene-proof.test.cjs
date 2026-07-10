@@ -75,6 +75,34 @@ test('scene proof fails closed when a required entity never rendered', () => {
   assert.ok(phase8.artifact.compositionLedger.losses.some((row) => row.entryId === dogRow.obligationId));
 });
 
+test('scene proof identity settlement requires whole-word identity evidence', () => {
+  const phase7 = renderedPhase7('dogs and cats swimming in a lake');
+  const summary = phase7.artifact.renderExecution.packetIdentitySummary || [];
+  const tamperedWith = (packetIdentitySummary) => ({
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        packetIdentitySummary,
+        visualObligationProof: [],
+      },
+    },
+  });
+
+  const substringSummary = summary.map((identity) => String(identity).replace(/\bdogs?\b/gi, 'dogfish'));
+  const substringProof = lab.runPhase8SceneProof(tamperedWith(substringSummary)).artifact.sceneProof;
+  const substringDog = substringProof.settledObligations.find((row) => row.kind === 'entity' && row.target === 'dog');
+  assert.ok(substringDog, 'dog entity obligation settled against dogfish identities');
+  assert.equal(substringDog.status, 'lost');
+
+  const pluralSummary = summary.map((identity) => String(identity).replace(/\bdog\b/gi, 'dogs'));
+  const pluralProof = lab.runPhase8SceneProof(tamperedWith(pluralSummary)).artifact.sceneProof;
+  const pluralDog = pluralProof.settledObligations.find((row) => row.kind === 'entity' && row.target === 'dog');
+  assert.ok(pluralDog, 'dog entity obligation settled against plural identities');
+  assert.equal(pluralDog.status, 'preserved');
+});
+
 test('scene proof reports not-proven without a rendered frame and rejects wrong inputs', () => {
   const spec = lab.createSpecFromPrompt('dogs and cats swimming in a lake', { allowPrototypeFallback: true });
   const renderExecutionInput = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 8, height: 8 });

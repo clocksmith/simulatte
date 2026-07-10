@@ -364,6 +364,7 @@
   return {
     extractLanguageEvidence,
     tokenize,
-    extractPredicateFrames
+    extractPredicateFrames,
+    NEGATIONS
   };
 });

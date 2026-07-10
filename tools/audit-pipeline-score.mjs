@@ -6,6 +6,7 @@ import fsSync from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { diversitySignatureForContext, scoreDiversity } from './audit-pipeline-diversity.mjs';
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -133,8 +134,12 @@ async function main() {
   const rows = prompts.map((row, index) => scorePrompt(row, index + 1, lab, liveRows, options));
   const phaseScores = aggregatePhaseScores(rows);
   const pipelineScore = minScore(phaseScores);
+  const diversity = scoreDiversity(rows);
   const runId = runIdForReport(rows);
   const artifactIdentity = auditArtifactIdentity(options);
+  const belowFloor = PHASES
+    .filter((phase) => Number(phaseScores[phase.id] || 0) < options.floor)
+    .map((phase) => phase.id);
   const report = {
     schema: 'simulatte.pipelineAuditRun.v1',
     artifactIdentity,
@@ -154,12 +159,16 @@ async function main() {
     promptCount: rows.length,
     phaseScores,
     pipelineScore,
-    verdict: pipelineScore >= options.floor ? 'pass' : 'fail',
+    diversity,
+    verdict: pipelineScore >= options.floor && diversity.verdict === 'pass' ? 'pass' : 'fail',
     weakestPhase: weakestPhase(phaseScores),
-    belowFloor: PHASES
-      .filter((phase) => Number(phaseScores[phase.id] || 0) < options.floor)
-      .map((phase) => phase.id),
-    failures: rows.flatMap((row) => row.failures.map((failure) => `${row.index}:${failure}`)),
+    belowFloor,
+    failures: [
+      ...rows.flatMap((row) => row.failures.map((failure) => `${row.index}:${failure}`)),
+      ...(diversity.verdict === 'pass' ? [] : diversity.closePairs.map((pair) => (
+        `diversity:${pair.promptA} <> ${pair.promptB} distance=${pair.distance} hash=${pair.hashDistance ?? 'n/a'}`
+      ))),
+    ],
     prompts: rows,
   };
   report.reportPath = await writeReport(report, options);
@@ -268,6 +277,7 @@ function scorePrompt(row, index, lab, liveRows, options) {
     webgpu: scoreWebGpu(context, liveRows.get(normalize(row.prompt))),
     sceneProof: scoreSceneProof(context, liveRows.get(normalize(row.prompt))),
   };
+  const diversitySignature = diversitySignatureForContext(context, liveRows.get(normalize(row.prompt)));
   const phaseScores = Object.fromEntries(Object.entries(phaseRows).map(([key, value]) => [key, value.score]));
   for (const [key, value] of Object.entries(phaseRows)) {
     if (value.score < options.floor) failures.push(`${key}:${value.reason}`);
@@ -281,6 +291,7 @@ function scorePrompt(row, index, lab, liveRows, options) {
     pipelineScore: minScore(phaseScores),
     weakestPhase: weakestPhase(phaseScores),
     failures,
+    diversitySignature,
     phaseDetails: Object.fromEntries(Object.entries(phaseRows).map(([key, value]) => [key, value.detail])),
   };
 }
@@ -1068,6 +1079,7 @@ function summaryRow(report, reportPath) {
     verdict: report.verdict,
     weakestPhase: report.weakestPhase,
     belowFloor: report.belowFloor,
+    diversity: report.diversity,
     reportPath,
   };
 }
@@ -1076,6 +1088,7 @@ function printSummary(report) {
   console.log(`artifact=${report.artifactKind} compareGroup=${report.compareGroup}`);
   console.log(`pipeline=${report.pipelineScore} verdict=${report.verdict} weakest=${report.weakestPhase}`);
   console.log(`belowFloor=${report.belowFloor.join(',') || 'none'}`);
+  console.log(`diversity=${report.diversity.score} verdict=${report.diversity.verdict} minPair=${report.diversity.minPairwiseDistance}`);
   console.log(`phaseScores=${PHASES.map((phase) => `${phase.id}:${report.phaseScores[phase.id]}`).join(' ')}`);
   console.log(`run=${path.relative(ROOT, report.reportPath || path.join(DEFAULT_OUT_DIR, 'runs', report.runId, 'report.json'))}`);
 }

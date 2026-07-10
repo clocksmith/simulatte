@@ -452,7 +452,9 @@
         const rawFields = fieldsForComposition(graph, spec);
         const sceneKind = resolveSceneKind(graph, initialObjects, rawFields, spec);
         const fields = focusFieldsForScene(rawFields, sceneKind);
-        const laidOutObjects = layoutObjectsForScene(prioritizeObjectsForScene(initialObjects, sceneKind), sceneKind, spec);
+        const layoutSolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, initialObjects), sceneKind);
+        const layoutGenome = visualGenomeForComposition(graph, initialObjects, fields, layoutSolverPlan, spec, sceneKind);
+        const laidOutObjects = layoutObjectsForScene(prioritizeObjectsForScene(initialObjects, sceneKind), sceneKind, spec, layoutGenome);
         const objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
         const objects = objectLedger.accepted;
         const visualRegimes = uniqueList(objects.map((object) => object.visualRegime));
@@ -683,10 +685,14 @@
           .map((object) => bindRenderIRToObject(object, bindingByText));
         const sceneKind = sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec);
         const irContext = unmatchedRenderIRObjects(graphObjects, irObjects, sceneKind);
+        const layoutFields = focusFieldsForScene(fieldsForComposition(graph, spec), sceneKind);
+        const layoutSolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, graphObjects), sceneKind);
+        const layoutGenome = visualGenomeForComposition(graph, graphObjects, layoutFields, layoutSolverPlan, spec, sceneKind);
         const laidOutObjects = preservePromptGroundedSurfaceObjects(layoutObjectsForScene(
           prioritizeObjectsForScene(uniqueObjectsById([...graphObjects, ...irContext]), sceneKind),
           sceneKind,
-          spec
+          spec,
+          layoutGenome
         ), graphObjects, spec, sceneKind);
         const objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
         const objects = objectLedger.accepted;

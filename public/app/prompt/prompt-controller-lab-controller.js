@@ -46,14 +46,19 @@
           stateReadout.textContent = 'WebGPU required';
         }
         const intentWorker = createIntentWorkerClient(root, (event) => publishRuntime(event));
-        const mainThreadEmbedder = root.defaultView && root.defaultView.SimulatteIntentEmbedder
-          ? root.defaultView.SimulatteIntentEmbedder.create({
+        let mainThreadEmbedder = null;
+        const createMainThreadEmbedder = () => {
+          if (mainThreadEmbedder) return mainThreadEmbedder;
+          const api = root.defaultView && root.defaultView.SimulatteIntentEmbedder;
+          if (!api || typeof api.create !== 'function') return null;
+          mainThreadEmbedder = api.create({
             catalog: model,
             onProgress: (event) => publishRuntime(event),
             traceEmbeddings: intentTraceEnabled(root.defaultView),
-          })
-          : null;
-        const embedder = mainThreadEmbedder || intentWorker;
+          });
+          return mainThreadEmbedder;
+        };
+        const embedder = intentWorker || createMainThreadEmbedder();
         const initialParams = promptInput
           ? readPromptParams(promptInput, EXAMPLE_INTENTS[0].params)
           : EXAMPLE_INTENTS[0].params;

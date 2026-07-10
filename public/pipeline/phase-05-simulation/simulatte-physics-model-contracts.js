@@ -157,7 +157,8 @@
 
     const SWIMMING_RE = /\b(?:swim|swims|swimming|swam)\b/;
 
-    const NEGATION_RE = /\b(?:no|not|never|without|none|cannot|can't|wont|won't)\b/;
+    const NEGATION_RE = scope.universeParser && scope.universeParser.NEGATION_RE ||
+      /\b(?:no|not|never|without|none|cannot|can't|wont|won't)\b/;
 
     Object.assign(scope, {
       CONTROL_LIBRARY,

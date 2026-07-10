@@ -53,7 +53,17 @@ test('activation fusion issues per-obligation verdicts with strength and provena
     verdicts.filter((row) => row.verdict === 'strongly-supported').length
   );
   assert.ok(verdicts.some((row) => ['supported', 'strongly-supported'].includes(row.verdict)));
-  assert.equal(typeof activationCloud.conflictsBySlot, 'object');
+
+  const conflictsBySlot = activationCloud.conflictsBySlot;
+  assert.ok(conflictsBySlot && typeof conflictsBySlot === 'object' && !Array.isArray(conflictsBySlot));
+  const groupedConflicts = Object.values(conflictsBySlot).flat();
+  assert.ok(groupedConflicts.every((row) => row.schema === 'simulatte.evidenceConflict.v1'));
+  for (const row of activationCloud.evidenceConflicts.filter((row) => row.slotId)) {
+    assert.ok(
+      (conflictsBySlot[row.slotId] || []).some((grouped) => grouped.kind === row.kind),
+      `evidence conflict for ${row.slotId} is grouped under its slot`
+    );
+  }
 });
 
 test('negated entities produce negative evidence and never reach the accepted graph', () => {
@@ -146,6 +156,13 @@ test('verdict rows settle negation conflicts and slot ambiguity deterministicall
   assert.equal(ambiguity.slotId, 'slot.actor.dog');
   assert.deepEqual(ambiguity.candidateIds, ['dog', 'surface.dog']);
   assert.ok(ambiguity.scoreMargin <= 0.05);
+
+  const bySlot = lab.conflictsBySlotRows(conflicts, slotEvidence);
+  assert.deepEqual(Object.keys(bySlot).sort(), ['slot.actor.cat', 'slot.actor.dog']);
+  assert.ok(bySlot['slot.actor.cat'].some((row) => (
+    row.kind === 'negation-vs-evidence' && row.obligationId === 'entity:cat'
+  )));
+  assert.ok(bySlot['slot.actor.dog'].some((row) => row.kind === 'slot-ambiguity'));
 
   const rerun = lab.obligationVerdictRows({
     compositionLedger,

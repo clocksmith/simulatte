@@ -656,7 +656,9 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(intentWorker, /\.\.\.\(data\.options \|\| \{\}\)/);
   assert.match(intentWorker, /traceEmbeddings: config\.traceEmbeddings === true/);
   assert.match(renderer, /const intentWorker = createIntentWorkerClient\(root, \(event\) => publishRuntime\(event\)\)/);
-  assert.match(renderer, /const embedder = mainThreadEmbedder \|\| intentWorker/);
+  assert.match(renderer, /let mainThreadEmbedder = null/);
+  assert.match(renderer, /const createMainThreadEmbedder = \(\) =>/);
+  assert.match(renderer, /const embedder = intentWorker \|\| createMainThreadEmbedder\(\)/);
   assert.match(renderer, /function createIntentWorkerClient\(root, onProgress = null\)/);
   assert.match(renderer, /simulatte-intent-worker\.js/);
   assert.match(renderer, /function appBuildVersion\(view\)/);
@@ -2323,4 +2325,22 @@ test('product path removed the parallel world planner and legacy pipeline export
 
   assert.doesNotMatch(html, /simulatte-world-plan\.js/);
   assert.equal(Object.hasOwn(model, 'createLegacySpecFromPrompt'), false);
+});
+
+test('negation vocabulary is canonical in the universe parser with synced mirrors', () => {
+  const parser = require(runtimeFile('simulatte-universe-parser.js'));
+  const evidence = require(runtimeFile('simulatte-language-evidence.js'));
+  const model = require(runtimeFile('simulatte-physics-model.js'));
+
+  assert.ok(Array.isArray(parser.NEGATION_WORDS) && parser.NEGATION_WORDS.length >= 9);
+  assert.equal(parser.NEGATION_RE.source, `\\b(?:${parser.NEGATION_WORDS.join('|')})\\b`);
+  assert.equal(model.NEGATION_RE.source, parser.NEGATION_RE.source);
+
+  for (const word of parser.NEGATION_WORDS) {
+    assert.ok(evidence.NEGATIONS.includes(word), `language evidence negations include ${word}`);
+  }
+  assert.deepEqual(
+    evidence.NEGATIONS.filter((word) => !parser.NEGATION_WORDS.includes(word)),
+    ['avoid', 'exclude', 'except']
+  );
 });

@@ -360,6 +360,55 @@ test('Phase 3 rejects stale slot retrieval from another prompt hash', () => {
   );
 });
 
+test('Phase 3 rejects retrieval evidence whose top-level prompt hash is stale', () => {
+  const prompt = 'dogs swimming in a lake';
+  const phase1 = lab.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true });
+  const phase2 = lab.runPhase2LanguageGraph(phase1);
+
+  assert.throws(
+    () => lab.runPhase3Retrieval(phase2, {
+      retrievalEvidence: {
+        schema: 'simulatte.phase3.retrievalEvidence.v1',
+        sourcePromptHash: 'prompt:stale',
+        rankedPrimitives: [
+          { id: 'dog', label: 'dog', source: 'prompt-explicit', score: 1 },
+        ],
+      },
+    }),
+    /Phase 3 retrieval evidence prompt hash mismatch/
+  );
+});
+
+test('Phase 5 physics obligations prove operators beyond the swimming vertical', () => {
+  const spec = lab.createSpecFromPrompt('lava spins a turbine near an ice castle wall');
+  const rows = spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsObligations;
+  assert.ok(Array.isArray(rows) && rows.length > 0);
+
+  const rotate = rows.filter((row) => row.process === 'rotate');
+  assert.ok(rotate.length >= 1, 'rotate obligations carry operator expectations');
+  for (const row of rotate) {
+    assert.deepEqual(row.expectedOperators, ['rotational_torque']);
+    assert.deepEqual(row.satisfiedOperators, ['rotational_torque']);
+    assert.equal(row.status, 'lowered');
+  }
+
+  const passthrough = rows.filter((row) => row.expectedOperators.length === 0);
+  assert.ok(passthrough.every((row) => row.status !== 'unsupported'));
+
+  const swimSpec = lab.createSpecFromPrompt('dogs and cats swimming in a lake', {
+    allowPrototypeFallback: true,
+  });
+  const swimRows = swimSpec.phaseArtifacts.phase5.artifact.simulationCompile.physicsObligations;
+  const swimming = swimRows.filter((row) => row.process === 'swimming');
+  assert.ok(swimming.length >= 1, 'swimming obligations keep the behavior operator set');
+  for (const row of swimming) {
+    assert.deepEqual(row.expectedOperators, [
+      'fluid_locomotion', 'buoyancy', 'drag', 'wake_generation', 'body_water_contact', 'partial_submersion',
+    ]);
+    assert.equal(row.status, 'lowered');
+  }
+});
+
 test('Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities', () => {
   const spec = lab.createSpecFromPrompt('dogs and cats swimming in a lake', {
     allowPrototypeFallback: true,

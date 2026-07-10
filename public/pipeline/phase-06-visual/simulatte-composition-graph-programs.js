@@ -60,14 +60,27 @@
         const add = (...values) => values.forEach((value) => {
           if (value && !motifs.includes(value)) motifs.push(value);
         });
+        const transitDispatch = /\b(railway|rail|dispatch|signal block|signal blocks|train|platform|headway|transit)\b/.test(text);
+        const urbanShadow = /\b(zoning|shadow|building mass|building masses|sunlight|pedestrian|comfort|parcel)\b/.test(text);
+        const animalSubject = /\b(dog|dogs|cat|cats|animal|animals|mammal|mammals|rider|bird|fish|reptile|amphibian|insect)\b/.test(text);
+        const plantSubject = /\b(flower|flowers|tree|trees|plant|plants|leaf|leaves|root|roots|mangrove|forest|biomass)\b/.test(text);
         if (sceneKind === 'fire' || sceneKind === 'thermal-plume') add('ember-shear', 'smoke-strata', 'charred-edges');
         if (sceneKind === 'acoustic') add('pressure-rings', 'waveguide-lines', 'resonant-slits');
         if (sceneKind === 'planetary-space') add('orbital-arcs', 'limb-glow', 'trajectory-dust');
         if (sceneKind === 'city' || sceneKind === 'civic-market' || sceneKind === 'digital-network') add('route-weave', 'signal-ticks', 'node-ledger');
+        if (sceneKind === 'civic-market' && transitDispatch) add('track-ladder', 'platform-slots', 'headway-pulses');
+        if (sceneKind === 'civic-market' && urbanShadow) add('parcel-zoning-grid', 'solar-shadow-cells', 'comfort-isobands');
+        if ((sceneKind === 'biology' || sceneKind === 'watershed') && animalSubject) {
+          add('animal-gait-cells', 'limb-track-pairs', 'fur-contour-bands');
+        }
+        if ((sceneKind === 'biology' || sceneKind === 'watershed') && plantSubject) {
+          add('petal-radial-growth', 'stem-node-lattice', 'leaf-vein-mesh');
+        }
         if (sceneKind === 'optics' || sceneKind === 'quantum-instrument' || sceneKind === 'particle-instrument') add('caustic-ribs', 'spectral-slices', 'thin-line-optics');
         if (sceneKind === 'biology' || sceneKind === 'molecular-biology' || sceneKind === 'restoration-water') add('branch-network', 'cellular-mesh', 'membrane-rims');
         if (sceneKind === 'granular') add('grain-strata', 'impact-trails', 'sorting-bands');
         if (sceneAllowsMotifFamily(scene, 'architecture') &&
+          !transitDispatch &&
           /building|tower|castle|house|room|wall|structure|street|city|warehouse|factory|office|school|hospital|stairwell|corridor|hallway|basement|garage|roof|shed|cabin/.test(text)) {
           add('architectural-grid', 'occluded-windows', 'structural-silhouette');
         }
@@ -137,8 +150,37 @@
 
     function genomePalette(sceneKind, motifs, seed) {
         const sceneHue = {
+          'advanced-energy': 286,
+          'agro-waste-loop': 92,
+          atomic: 246,
+          'chemical-lab': 166,
+          'chemistry-lab': 166,
+          'clinical-control': 348,
+          'civic-market': 188,
+          'cultural-material': 28,
+          cryosphere: 202,
+          'digital-network': 214,
+          ecology: 128,
+          'evolution-ecology': 122,
           fire: 22,
+          'grid-energy': 52,
+          'hazard-atmosphere': 12,
+          'literal-composite': 148,
+          'manufacturing-line': 32,
+          'mechanical-fluid': 204,
+          'molecular-biology': 276,
+          ocean: 196,
+          'ocean-cryosphere': 206,
           optics: 208,
+          'optics-thermal': 34,
+          'particle-instrument': 192,
+          'planetary-space': 232,
+          'quantum-instrument': 266,
+          'restoration-water': 172,
+          'robotics-control': 24,
+          'space-instrument': 226,
+          'sport-motion': 44,
+          'structural-mechanics': 356,
           city: 172,
           watershed: 194,
           'magnetic-machine': 278,
@@ -152,11 +194,15 @@
           mechanical: 206,
           'literal-composite': 148,
         };
-        const motifShift = motifs.includes('architectural-grid') ? 34
-          : motifs.includes('caustic-ribs') ? 74
-            : motifs.includes('branch-network') ? -36
-              : motifs.includes('route-weave') ? 18
-                : 0;
+        const motifShift = motifs.includes('animal-gait-cells') ? -68
+          : motifs.includes('petal-radial-growth') ? 46
+            : motifs.includes('track-ladder') ? -24
+              : motifs.includes('parcel-zoning-grid') ? 58
+                : motifs.includes('architectural-grid') ? 34
+                  : motifs.includes('caustic-ribs') ? 74
+                    : motifs.includes('branch-network') ? -36
+                      : motifs.includes('route-weave') ? 18
+                        : 0;
         const hue = normalizeHue((sceneHue[sceneKind] ?? 156) + motifShift + Math.round((unitFromSeed(seed, 1) - 0.5) * 58));
         const accentHue = normalizeHue(hue + 82 + Math.round(unitFromSeed(seed, 2) * 112));
         const shadowHue = normalizeHue(hue + 206 + Math.round(unitFromSeed(seed, 3) * 42));
@@ -174,17 +220,20 @@
         const layoutModes = ['strata', 'section', 'radial', 'field-map', 'network', 'specimen'];
         const textureKinds = ['contour-hatch', 'woven-grid', 'cutaway-lines', 'spectral-ribs', 'grain-scan'];
         const motifText = motifs.join(' ');
-        const layoutMode = /route|network|ledger/.test(motifText) || sceneKind === 'city'
-          ? 'network'
-          : /architecture|structural|fracture/.test(motifText) ? 'section'
-            : /flow|sediment|smoke|grain/.test(motifText) ? 'strata'
-              : /caustic|flux|pressure|ray/.test(motifText) ? 'radial'
-                : layoutModes[Math.floor(unitFromSeed(seed, 7) * layoutModes.length) % layoutModes.length];
-        const textureKind = /caustic|ray|spectral/.test(motifText)
-          ? 'spectral-ribs'
-          : /grain|sediment|strata/.test(motifText) ? 'grain-scan'
-            : /architecture|route|network|grid/.test(motifText) ? 'woven-grid'
-              : textureKinds[Math.floor(unitFromSeed(seed, 8) * textureKinds.length) % textureKinds.length];
+        const layoutMode = /animal-gait/.test(motifText) ? 'field-map'
+          : /petal-radial/.test(motifText) ? 'radial'
+            : /route|network|ledger/.test(motifText) || sceneKind === 'city' ? 'network'
+              : /architecture|structural|fracture/.test(motifText) ? 'section'
+                : /flow|sediment|smoke|grain/.test(motifText) ? 'strata'
+                  : /caustic|flux|pressure|ray/.test(motifText) ? 'radial'
+                    : layoutModes[Math.floor(unitFromSeed(seed, 7) * layoutModes.length) % layoutModes.length];
+        const textureKind = /animal-gait|fur-contour/.test(motifText)
+          ? 'contour-hatch'
+          : /petal-radial|leaf-vein/.test(motifText) ? 'cutaway-lines'
+            : /caustic|ray|spectral/.test(motifText) ? 'spectral-ribs'
+              : /grain|sediment|strata/.test(motifText) ? 'grain-scan'
+                : /architecture|route|network|grid/.test(motifText) ? 'woven-grid'
+                  : textureKinds[Math.floor(unitFromSeed(seed, 8) * textureKinds.length) % textureKinds.length];
         const objectCount = Math.max(1, (objects || []).length);
         const fieldCount = Math.max(1, (fields || []).length);
         const dnaDensity = visualDna && Number.isFinite(visualDna.densityBias) ? visualDna.densityBias : 1;
@@ -607,35 +656,28 @@
         return null;
       }
 
-    function layoutObjectsForScene(objects, sceneKind, spec) {
+    function layoutObjectsForScene(objects, sceneKind, spec, visualGenome = null) {
         if (sceneKind === 'mechanical') return layoutMechanicalObjects(objects);
         if (sceneKind === 'thin-film') return layoutThinFilmObjects(objects);
         if (sceneKind === 'ferrofluid') return layoutFerrofluidObjects(objects);
         if (sceneKind === 'thermal-plume') return layoutThermalPlumeObjects(objects);
         if (sceneKind === 'literal-composite') return layoutLiteralCompositeObjects(objects);
-        return layoutGenericSemanticObjects(objects, sceneKind);
+        return layoutGenericSemanticObjects(objects, sceneKind, visualGenome);
       }
 
-    function layoutGenericSemanticObjects(objects, sceneKind = '') {
-        const slots = [
-          [0.18, 0.34],
-          [0.38, 0.28],
-          [0.62, 0.32],
-          [0.82, 0.42],
-          [0.24, 0.66],
-          [0.5, 0.62],
-          [0.74, 0.68],
-          [0.5, 0.82],
-        ];
+    function layoutGenericSemanticObjects(objects, sceneKind = '', visualGenome = null) {
+        const slots = layoutSlotsForGenome(visualGenome);
         let entityIndex = 0;
         let fieldIndex = 0;
         let readoutIndex = 0;
         return objects.map((object) => {
           if (object && object.pose && (Number.isFinite(Number(object.pose.x)) || Array.isArray(object.pose.points))) return object;
           const text = renderObjectText(object);
-          const seed = hashProgram(`${sceneKind}:${object && object.id || ''}:${text}`) || 1;
-          const jitterX = unitFromSeed(seed, 3) * 0.06 - 0.03;
-          const jitterY = unitFromSeed(seed, 5) * 0.06 - 0.03;
+          const genomeSeed = visualGenome && visualGenome.seed || 1;
+          const seed = hashProgram(`${genomeSeed}:${sceneKind}:${object && object.id || ''}:${text}`) || 1;
+          const asymmetry = visualGenome && visualGenome.morphology ? visualGenome.morphology.asymmetry || 0.3 : 0.3;
+          const jitterX = (unitFromSeed(seed, 3) - 0.5) * (0.035 + asymmetry * 0.08);
+          const jitterY = (unitFromSeed(seed, 5) - 0.5) * (0.035 + asymmetry * 0.08);
           if (/field|flow|plume|matrix|volume|water|thermal|optical|chemical|gradient/.test(text)) {
             const y = /water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.64 : 0.52;
             fieldIndex += 1;
@@ -658,6 +700,15 @@
             [0.14 + unitFromSeed(seed, 11) * 0.08, 0.1 + unitFromSeed(seed, 13) * 0.06]
           );
         });
+      }
+
+    function layoutSlotsForGenome(visualGenome = null) {
+        const mode = visualGenome && visualGenome.morphology && visualGenome.morphology.layoutMode || '';
+        if (mode === 'network') return [[0.16, 0.24], [0.38, 0.2], [0.62, 0.24], [0.84, 0.32], [0.25, 0.58], [0.5, 0.54], [0.75, 0.6], [0.5, 0.82]];
+        if (mode === 'radial') return [[0.5, 0.26], [0.68, 0.38], [0.72, 0.6], [0.52, 0.74], [0.3, 0.62], [0.24, 0.4], [0.5, 0.5], [0.82, 0.48]];
+        if (mode === 'strata') return [[0.2, 0.24], [0.42, 0.3], [0.66, 0.38], [0.82, 0.46], [0.24, 0.58], [0.5, 0.66], [0.74, 0.74], [0.5, 0.84]];
+        if (mode === 'section') return [[0.18, 0.28], [0.36, 0.34], [0.58, 0.4], [0.78, 0.48], [0.28, 0.7], [0.54, 0.68], [0.78, 0.74], [0.12, 0.58]];
+        return [[0.18, 0.34], [0.38, 0.28], [0.62, 0.32], [0.82, 0.42], [0.24, 0.66], [0.5, 0.62], [0.74, 0.68], [0.5, 0.82]];
       }
 
     function layoutMechanicalObjects(objects) {

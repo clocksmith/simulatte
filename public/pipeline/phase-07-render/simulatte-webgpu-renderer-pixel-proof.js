@@ -185,7 +185,9 @@
         };
       }
 
-    function paletteForScene(sceneKind, atoms) {
+    function paletteForScene(sceneKind, atoms, compiledPalette = null) {
+        const compiled = paletteVectorToVec4(compiledPalette);
+        if (compiled) return compiled;
         const dominant = dominantAtomSlot(atoms);
         if (dominant === 'quantum') return paletteToVec4(PALETTES.quantum);
         if (dominant === 'robotic') return paletteToVec4(PALETTES.robot);
@@ -220,6 +222,21 @@
         if (sceneKind === 'sport-motion') return paletteToVec4(PALETTES.sport);
         if (sceneKind === 'cultural-material') return paletteToVec4(PALETTES.cultural);
         return paletteToVec4(PALETTES.machine);
+      }
+
+    function paletteVectorToVec4(values = null) {
+        if (!Array.isArray(values) || values.length < 16) return null;
+        const out = [];
+        for (let index = 0; index < 4; index += 1) {
+          const offset = index * 4;
+          out.push(new Float32Array([
+            clamp01(values[offset]),
+            clamp01(values[offset + 1]),
+            clamp01(values[offset + 2]),
+            clamp01(values[offset + 3] || 1),
+          ]));
+        }
+        return out;
       }
 
     function dominantAtomSlot(atoms) {
@@ -366,6 +383,7 @@
       featureStrength,
       metricsForScenePacket,
       paletteForScene,
+      paletteVectorToVec4,
       dominantAtomSlot,
       paletteToVec4,
       hexToRgb,

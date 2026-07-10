@@ -4,6 +4,7 @@
     require('./simulatte-physics-ir-constants.js');
     require('./simulatte-physics-ir-builder.js');
     require('./simulatte-physics-ir-domains.js');
+    require('./simulatte-physics-ir-behaviors.js');
     require('./simulatte-physics-ir-operators.js');
   }
   const scope = root.__SimulattePhysicsIRRefactorScope = root.__SimulattePhysicsIRRefactorScope || {};

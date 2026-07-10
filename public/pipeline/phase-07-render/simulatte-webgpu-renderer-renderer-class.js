@@ -494,7 +494,7 @@
           this.sceneInstanceData = renderData.sceneInstanceData;
           this.sceneInstanceCount = renderData.sceneInstanceCount;
           this.sceneInstanceBufferDirty = true;
-          this.palette = paletteForScene(this.sceneKind, this.atomUniforms);
+          this.palette = paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
           this.metrics = renderData.metrics;
           this.seed = renderData.seed;
           this.canvas.dataset.sceneKind = this.sceneKind;
