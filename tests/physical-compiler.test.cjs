@@ -379,6 +379,18 @@ test('Phase 3 rejects retrieval evidence whose top-level prompt hash is stale', 
   );
 });
 
+test('grounding rejects associative generated identities lacking prompt evidence', () => {
+  const spec = lab.createSpecFromPrompt(
+    'water air rock wood metal glass magnetized metal gravity heat diffusion sample tray'
+  );
+  const graphText = spec.universeGraph.nodes.map((node) => `${node.canonicalId} ${node.id}`).join(' ');
+  assert.ok(!/forest/.test(graphText), 'no forest identity for a prompt without forest language');
+  assert.ok(spec.universeGraph.nodes.some((node) => node.canonicalId === 'material.wood'));
+  assert.ok(spec.universeGraph.nodes.some((node) => node.canonicalId === 'artifact.sample_tray'));
+  assert.equal(spec.renderIR.sceneHint, 'material-tray');
+  assert.ok(spec.universeGraph.rejected.some((row) => /identity lacks prompt evidence/.test(row.reason || '')));
+});
+
 test('Phase 5 physics obligations prove operators beyond the swimming vertical', () => {
   const spec = lab.createSpecFromPrompt('lava spins a turbine near an ice castle wall');
   const rows = spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsObligations;

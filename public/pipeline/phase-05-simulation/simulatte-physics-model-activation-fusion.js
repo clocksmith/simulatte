@@ -234,13 +234,22 @@
           ...(row.domains || []),
         ].filter(Boolean).join(' '));
         if (source === 'semantic-surface-grounder') {
-          return { role: 'candidate', matchKind: 'literal-surface-card', reason: 'surface card matches prompt span' };
+          if (phase3RowDirectlyMatchesPrompt(row, prompt, spans)) {
+            return { role: 'candidate', matchKind: 'literal-surface-card', reason: 'surface card matches prompt span' };
+          }
+          return { role: 'support', matchKind: 'surface-association-support', reason: 'surface card identity lacks prompt evidence' };
         }
         if (source === 'open-semantic-rag') {
-          return { role: 'candidate', matchKind: 'literal-open-component', reason: 'open semantic component matches prompt span' };
+          if (phase3RowDirectlyMatchesPrompt(row, prompt, spans)) {
+            return { role: 'candidate', matchKind: 'literal-open-component', reason: 'open semantic component matches prompt span' };
+          }
+          return { role: 'support', matchKind: 'open-association-support', reason: 'open component identity lacks prompt evidence' };
         }
         if (/^embedding-guided-synth-node/.test(source)) {
-          return { role: 'candidate', matchKind: 'literal-synth-node', reason: 'synthesized node is prompt object' };
+          if (phase3RowDirectlyMatchesPrompt(row, prompt, spans)) {
+            return { role: 'candidate', matchKind: 'literal-synth-node', reason: 'synthesized node is prompt object' };
+          }
+          return { role: 'support', matchKind: 'synth-association-support', reason: 'synthesized row identity lacks prompt evidence' };
         }
         if (source === 'prompt-explicit') {
           return { role: 'candidate', matchKind: 'explicit-primitive', reason: 'primitive id appears in prompt' };
