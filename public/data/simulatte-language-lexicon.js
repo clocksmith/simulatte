@@ -70,9 +70,13 @@
     ['acidity gradients', 'observable'], ['parcels', 'entity'], ['conveyor belts', 'entity'],
     ['protein folding', 'entity'], ['protein sample holder', 'entity'],
     ['sample holder', 'entity'], ['sample tray', 'entity'], ['tray', 'entity'],
+    ['atomic sample', 'entity'], ['material sample', 'entity'],
+    ['materials lab', 'environment'], ['materials studio', 'environment'],
     ['protein', 'entity'], ['bond constraints', 'entity'],
     ['energy minimization', 'observable'], ['robot gripper', 'entity'], ['gripper', 'entity'],
     ['qubit chip', 'entity'], ['microwave resonator', 'entity'], ['resonator', 'entity'],
+    ['solar magnetic machine', 'entity'], ['moving magnetic slider', 'entity'], ['magnetic slider', 'entity'],
+    ['spaceship', 'entity'], ['spacecraft', 'entity'],
     ['glacier', 'entity'], ['fjord', 'environment'], ['sea ice', 'entity'],
     ['forest fire', 'entity'], ['forest', 'environment'], ['road', 'entity'],
   ]);
@@ -95,6 +99,27 @@
     'allocates', 'allocate', 'allocation', 'sorts', 'sort', 'sorting',
     'folds', 'fold', 'folded', 'folding', 'twists', 'twist', 'twisting',
     'calves', 'calve', 'calving', 'minimizes', 'minimize', 'minimizing',
+    'readout', 'readouts', 'crash', 'crashes', 'crashing',
+  ]);
+
+  // Phase 5 consumes this same vocabulary to select a physical behavior bundle.
+  // Keep process semantics data-owned so new language cannot silently create a
+  // second, unsynchronized keyword taxonomy downstream.
+  const BEHAVIOR_PROCESS_LEXICON = Object.freeze([
+    { process: 'swimming', phrases: ['swim', 'swimming'] },
+    { process: 'rotate', phrases: ['spin', 'spins', 'rotate', 'rotates', 'rotation', 'twist', 'twists', 'torque'] },
+    { process: 'impact', phrases: ['hit', 'hits', 'impact', 'collision', 'collide', 'crash', 'crashes', 'crashing', 'fracture', 'fracturing', 'crack', 'jump', 'jumps', 'bounce', 'calve', 'calves', 'calving'] },
+    { process: 'flow', phrases: ['flow', 'flows', 'advection', 'surge', 'tidal', 'channel', 'wind', 'smoke', 'plume', 'pour', 'pours', 'sink', 'float', 'settle', 'erosion'] },
+    { process: 'growth', phrases: ['growth', 'grow', 'grows', 'sourdough', 'yeast', 'dough', 'gluten', 'bubble', 'bubbles', 'microbiome', 'metabolite', 'ferment', 'ferments', 'fermentation'] },
+    { process: 'diffusion', phrases: ['diffuse', 'diffusion', 'dissolve', 'dissolving', 'chemical', 'reaction', 'acidity', 'acid', 'concentration'] },
+    { process: 'cooling', phrases: ['cool', 'cooling'] },
+    { process: 'heat_transfer', phrases: ['heat', 'thermal', 'fire', 'flame', 'combust', 'combustion', 'burn', 'burning'] },
+    { process: 'measurement', phrases: ['measurement', 'readout', 'readouts'] },
+    { process: 'phase_transition', phrases: ['freeze', 'freezing', 'melt', 'melting', 'phase', 'ice'] },
+    { process: 'network_flow', phrases: ['network', 'queue', 'dispatch', 'signal', 'train', 'platform', 'server', 'packet', 'parcel', 'traffic', 'zoning', 'allocation', 'resolve', 'resolution', 'conflict'] },
+    { process: 'oscillation', phrases: ['wave', 'waves', 'resonance', 'orbital', 'orbit', 'ring', 'moon', 'oscillate', 'oscillates', 'oscillation'] },
+    { process: 'motion', phrases: ['motion', 'run', 'runs', 'fly', 'flies'] },
+    { process: 'coexists', phrases: ['coexists', 'adjacent'] },
   ]);
 
   const MODIFIER_PHRASES = Object.freeze([
@@ -110,7 +135,7 @@
   const OBSERVABLE_PHRASES = Object.freeze([
     'energy', 'temperature', 'speed', 'velocity', 'stress', 'pressure',
     'phase', 'damage', 'angular velocity', 'flow', 'torque', 'output',
-    'heat', 'comfort', 'limits', 'density', 'acidity', 'readout',
+    'heat', 'comfort', 'limits', 'density', 'acidity', 'readout', 'sampling',
   ]);
 
   const COVERAGE_PHRASES = Object.freeze([
@@ -179,7 +204,8 @@
     'nickel ions', 'niobium film', 'organic waste', 'paint',
     'patient agents', 'pigment film', 'radio dishes', 'rider agents',
     'root tissue', 'seed', 'shell', 'silicone elastomer', 'slate',
-    'soft tissue', 'thin film', 'wool',
+    'soft tissue', 'thin film', 'wool', 'sample', 'sampling', 'materials',
+    'materials lab', 'materials studio',
   ]);
 
   const LANGUAGE_LEXICON = Object.freeze({
@@ -187,6 +213,7 @@
     id: 'simulatte-language-lexicon-v1',
     entityPhrases: ENTITY_PHRASES,
     processPhrases: PROCESS_PHRASES,
+    behaviorProcessLexicon: BEHAVIOR_PROCESS_LEXICON,
     modifierPhrases: MODIFIER_PHRASES,
     observablePhrases: OBSERVABLE_PHRASES,
     coveragePhrases: COVERAGE_PHRASES,
@@ -197,6 +224,7 @@
     LANGUAGE_LEXICON,
     ENTITY_PHRASES,
     PROCESS_PHRASES,
+    BEHAVIOR_PROCESS_LEXICON,
     MODIFIER_PHRASES,
     OBSERVABLE_PHRASES,
     COVERAGE_PHRASES,

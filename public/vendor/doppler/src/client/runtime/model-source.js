@@ -49,6 +49,7 @@ export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
     return {
       text,
       manifest: parseManifest(text),
+      manifestHash: await sha256ManifestText(text),
     };
   }
   const response = await fetch(manifestUrl);
@@ -59,6 +60,7 @@ export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
   return {
     text,
     manifest: parseManifest(text),
+    manifestHash: await sha256ManifestText(text),
   };
 }
 
@@ -72,7 +74,7 @@ function normalizeDigest(value) {
   return normalized.startsWith('sha256:') ? normalized.slice('sha256:'.length) : normalized;
 }
 
-async function sha256Text(value) {
+export async function sha256ManifestText(value) {
   if (typeof crypto === 'undefined' || !crypto?.subtle) {
     throw new Error('weightsRef manifestDigest verification requires crypto.subtle.');
   }
@@ -160,7 +162,7 @@ export async function resolveManifestArtifactSource(resolved, manifestPayload) {
   const storageManifestPayload = await fetchManifestPayloadFromBaseUrl(storageBaseUrl);
   const expectedManifestDigest = normalizeDigest(weightsRef.manifestDigest);
   if (expectedManifestDigest) {
-    const actualManifestDigest = await sha256Text(storageManifestPayload.text);
+    const actualManifestDigest = await sha256ManifestText(storageManifestPayload.text);
     if (actualManifestDigest !== expectedManifestDigest) {
       throw new Error(
         `${manifest.modelId ?? 'unknown'}: weightsRef.manifestDigest mismatch for ${storageBaseUrl}. ` +

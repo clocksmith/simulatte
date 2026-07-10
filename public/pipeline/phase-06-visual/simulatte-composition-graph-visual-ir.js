@@ -211,6 +211,7 @@
     function visualCompositionLedgerForSpec(spec = {}, entities = [], renderInstances = [], processes = [], fields = []) {
         const sourceLedger = spec && spec.renderIR && spec.renderIR.compositionLedger || null;
         const sourceObligations = sourceLedger && Array.isArray(sourceLedger.obligations) ? sourceLedger.obligations : [];
+        const sourceEntries = sourceLedger && Array.isArray(sourceLedger.entries) ? sourceLedger.entries : [];
         const identities = new Set((renderInstances || [])
           .map((row) => row.identity && row.identity.type)
           .filter(Boolean));
@@ -231,6 +232,7 @@
             row.layerSlot,
             row.primitive,
             row.animation && row.animation.kind,
+            row.material && (row.material.id || row.material.shader || row.material),
             row.identity && row.identity.type,
           ].filter(Boolean).join(' ')),
           ...(processes || []).map((row) => `${row.id || ''} ${row.family || ''} ${row.motion || ''}`),
@@ -271,6 +273,13 @@
               /submersion-mask/.test(String(row.operator || '')))
             .map((row) => row.id),
         ].filter(Boolean));
+        const genericVisualRows = visualEvidenceRows(entities, renderInstances, processes, fields);
+        const sceneVisualRow = genericVisualRows.slice().sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0))[0] || null;
+        const sceneVisualTarget = sceneVisualRow && sceneVisualRow.nameText || 'compiled scene packet';
+        const genericEvidenceByObligation = Object.fromEntries(sourceObligations.map((row) => [
+          row.id || '',
+          genericVisualEvidence(row, genericVisualRows, sourceObligations, sourceEntries),
+        ]));
         const facts = {
           hasDog: identities.has('dog') || /\bdog|surface-dog|primitive-dog/.test(entityText),
           hasCat: identities.has('cat') || /\bcat|surface-cat|primitive-cat/.test(entityText),
@@ -286,6 +295,7 @@
           swimRows,
           wakeRows,
           submersionRows,
+          genericEvidenceByObligation,
         };
         const obligations = sourceObligations.map((row) => {
           const status = visualObligationStatus(row, facts);
@@ -296,6 +306,10 @@
             visualEvidence: visualObligationEvidence(row, facts),
           };
         });
+        if (!obligations.some((row) => row.id === 'visual:compiled-scene-packet')) {
+          const visualEvidence = sceneVisualRow ? [`phase6:${sceneVisualRow.source}:${sceneVisualRow.id}`] : [];
+          obligations.push({ id: 'visual:compiled-scene-packet', kind: 'visual', ownedByPhase: 6, target: sceneVisualTarget, required: true, status: visualEvidence.length ? 'preserved' : 'lost', phase: 6, visualEvidence });
+        }
     	    return {
     	      ...(sourceLedger || {}),
     	      schema: SCENE_COMPOSITION_LEDGER_SCHEMA,
@@ -336,6 +350,7 @@
     	  }
 
     function visualObligationStatus(row = {}, facts = {}) {
+        if (genericVisualEvidenceForObligation(row, facts).length) return 'preserved';
         if (row.id === 'entity:dog') return facts.hasDog ? 'preserved' : 'lost';
         if (row.id === 'entity:cat') return facts.hasCat ? 'preserved' : 'lost';
         if (row.id === 'environment:lake') return facts.hasLake ? 'preserved' : 'lost';
@@ -347,11 +362,11 @@
         if (row.id === 'visual:swimming-pose') return facts.hasSwimming && facts.swimRows && facts.swimRows.length ? 'preserved' : 'lost';
         if (row.id === 'visual:wake-ripples') return facts.hasWake && facts.wakeRows && facts.wakeRows.length ? 'preserved' : 'lost';
         if (row.id === 'visual:partial-submersion') return facts.hasSubmersion && facts.submersionRows && facts.submersionRows.length ? 'preserved' : 'lost';
-        return row.status || 'preserved';
+        return row.required === true ? 'lost' : row.status || 'preserved';
       }
 
     function visualObligationEvidence(row = {}, facts = {}) {
-        const evidence = [];
+        const evidence = genericVisualEvidenceForObligation(row, facts).slice();
         if (/dog/.test(row.id) && facts.hasDog) evidence.push('scene-identity:dog');
         if (/cat/.test(row.id) && facts.hasCat) evidence.push('scene-identity:cat');
         if (/species-distinct/.test(row.id) && facts.hasDog && facts.hasCat) {
@@ -367,6 +382,148 @@
         if (/wake/.test(row.id) && facts.hasWake) evidence.push(...(facts.wakeRows || []));
         if (/submersion/.test(row.id) && facts.hasSubmersion) evidence.push(...(facts.submersionRows || []));
         return evidence;
+      }
+
+    function genericVisualEvidenceForObligation(row = {}, facts = {}) {
+        const byObligation = facts && facts.genericEvidenceByObligation || {};
+        return Array.isArray(byObligation[row.id || '']) ? byObligation[row.id || ''].slice() : [];
+      }
+
+    function visualEvidenceRows(entities = [], renderInstances = [], processes = [], fields = []) {
+        const rows = [];
+        const append = (source, row, index) => {
+          if (!row) return;
+          const identity = row.identity || {};
+          const nameText = normalizeVisualEvidenceText(
+            identity.sourceLabel || row.label || row.id || ''
+          );
+          const values = [
+            row.id,
+            row.label,
+            row.semanticRef,
+            row.physicalRef,
+            row.sourceGraphId,
+            row.sourceObject,
+            row.layerSlot,
+            row.processId,
+            row.family,
+            row.motion,
+            row.kind,
+            identity.label,
+            identity.type,
+            identity.sourceLabel,
+            identity.renderClass,
+            ...(row.sourceIds || []),
+            ...(row.evidence || []),
+          ];
+          const text = normalizeVisualEvidenceText(values.filter(Boolean).join(' '));
+          if (!text) return;
+          rows.push({
+            id: String(row.id || `${source}:${index}`),
+            source,
+            text,
+            nameText,
+            identityText: normalizeVisualEvidenceText([identity.type, identity.label].filter(Boolean).join(' ')),
+            priority: Number(row.renderPriority || row.confidence || 0) + (/\blight\b|emissive/.test(JSON.stringify(row.material || '')) ? 1 : 0),
+          });
+        };
+        (entities || []).forEach((row, index) => append('entity', row, index));
+        (renderInstances || []).forEach((row, index) => append('render-instance', row, index));
+        (processes || []).forEach((row, index) => append('process', row, index));
+        (fields || []).forEach((row, index) => append('field', row, index));
+        return rows;
+      }
+
+    function genericVisualEvidence(row = {}, rows = [], sourceObligations = [], sourceEntries = []) {
+        const id = String(row.id || row.obligationId || '');
+        const parts = id.split(':');
+        if (id === 'action:coexists') {
+          return uniqueList((sourceObligations || [])
+            .filter((candidate) => String(candidate.id || '').split(':')[2] === 'coexists')
+            .flatMap((candidate) => genericVisualEvidence(candidate, rows, [], sourceEntries)));
+        }
+        if (parts[0] === 'relation' && parts.length >= 4) {
+          const subject = visualEvidenceForTarget(parts[1], rows);
+          const process = parts[2] === 'coexists' ? [] : visualEvidenceForLedgerAction(parts[2], rows, sourceEntries);
+          const object = parts.slice(3).join(' ') === 'world' ? ['scene:world'] : visualEvidenceForTarget(parts.slice(3).join(' '), rows);
+          return subject.length && object.length && (!process.length ? parts[2] === 'coexists' : true)
+            ? uniqueList([...subject, ...process, ...object])
+            : [];
+        }
+        return row.kind === 'action'
+          ? visualEvidenceForLedgerAction(visualObligationTarget(row), rows, sourceEntries)
+          : visualEvidenceForTarget(visualObligationTarget(row), rows);
+      }
+
+    function visualEvidenceForLedgerAction(target = '', rows = [], sourceEntries = []) {
+        const direct = visualEvidenceForTarget(target, rows);
+        if (direct.length) return direct;
+        const normalized = normalizeVisualEvidenceText(target);
+        const predicate = (sourceEntries || []).find((entry) => entry && entry.kind === 'action' && entry.source === 'predicate' &&
+          normalizeVisualEvidenceText(entry.label || String(entry.id || '').replace(/^action:/, '')) === normalized);
+        if (!predicate) return [];
+        const spanIds = new Set(predicate.sourceSpanIds || []);
+        return uniqueList((sourceEntries || []).filter((entry) => entry && entry.kind === 'action' && entry.source === 'prompt' &&
+          (entry.sourceSpanIds || []).some((id) => spanIds.has(id))).flatMap((entry) => visualEvidenceForTarget(entry.label || entry.id, rows)));
+      }
+
+    function visualEvidenceForTarget(target = '', rows = []) {
+        const terms = visualEvidenceTokens(target);
+        if (!terms.length) return [];
+        const matches = (rows || [])
+          .map((row, index) => ({
+            row,
+            index,
+            score: terms.reduce((sum, term) => sum + (visualEvidenceTextHasTerm(row.text, term) ? 1 : 0), 0),
+            specificity: Math.max(visualEvidenceSpecificity(row.nameText, terms), terms.length === 1 && visualEvidenceTextHasTerm(row.identityText, terms[0]) ? 1 : 0),
+          }))
+          .filter((entry) => entry.score === terms.length && entry.specificity >= 0.5)
+          .sort((left, right) => right.specificity - left.specificity || right.score - left.score || left.index - right.index)
+          .slice(0, 2);
+        return matches.map((entry) => `phase6:${entry.row.source}:${entry.row.id}`);
+      }
+
+    function visualEvidenceSpecificity(nameText = '', targetTerms = []) {
+        const nameTerms = visualEvidenceTokens(nameText);
+        if (!nameTerms.length || !targetTerms.length) return 0;
+        if (!targetTerms.every((term) => nameTerms.includes(term))) return 0;
+        return targetTerms.length / nameTerms.length;
+      }
+
+    function visualObligationTarget(row = {}) {
+        const explicit = String(row.target || '').trim();
+        if (explicit) return explicit;
+        return String(row.obligationId || row.id || '')
+          .replace(/^[a-z]+:/, '')
+          .replace(/[:_-]+/g, ' ')
+          .trim();
+      }
+
+    function visualEvidenceTokens(value = '') {
+        const ignored = new Set([
+          'and', 'the', 'with', 'from', 'into', 'over', 'under', 'across', 'through',
+          'between', 'within', 'without', 'around', 'near', 'onto', 'that', 'this',
+        ]);
+        return uniqueList(normalizeVisualEvidenceText(value)
+          .split(' ')
+          .filter((term) => term.length > 2 && !ignored.has(term))
+          .map((term) => visualEvidenceStem(term)));
+      }
+
+    function visualEvidenceTextHasTerm(text = '', term = '') {
+        const normalized = normalizeVisualEvidenceText(text);
+        return normalized.split(' ').some((token) => visualEvidenceStem(token) === term);
+      }
+
+    function visualEvidenceStem(term = '') {
+        const value = String(term || '');
+        if (value.endsWith('ing') && value.length > 5) return value.slice(0, -3).replace(/(.)\1$/, '$1');
+        if (value.endsWith('ies') && value.length > 4) return `${value.slice(0, -3)}y`;
+        return value.endsWith('s') && value.length > 4 ? value.slice(0, -1) : value;
+      }
+
+    function normalizeVisualEvidenceText(value = '') {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
       }
 
     function visualCompositionLedgerReceipt(compositionLedger = null) {
@@ -595,6 +752,11 @@
 
     function geometryPrimitiveForGraphicsAtom(id, sceneKind) {
         const text = `${id || ''} ${sceneKind || ''}`.toLowerCase();
+        if (/composition-topology.*(?:conveyor|ladder|lattice|branching)/.test(text)) return 'route-node-graph';
+        if (/composition-topology.*(?:cutaway|stack|corridor|basin|field-map)/.test(text)) return 'sectioned-surface';
+        if (/composition-topology.*specimen/.test(text)) return 'instrument-glyph';
+        if (/composition-topology.*orbit/.test(text)) return 'orbital-body';
+        if (/composition-topology.*radial/.test(text)) return 'optical-field-sheet';
         if (/node[-_ ]?link|graph|route|routing/.test(text)) return 'route-node-graph';
         if (/parcel|grid/.test(text)) return 'parcel-cell-grid';
         if (/agent|controller|feedback/.test(text)) return 'agent-token-swarm';

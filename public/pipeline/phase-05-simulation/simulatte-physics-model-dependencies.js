@@ -52,6 +52,9 @@
   const groundedModule = typeof module === 'object' && module.exports
       ? require('../phase-04-grounded-intent/simulatte-grounded-interpretation.js')
       : root.SimulatteGroundedInterpretation;
+  const languageLexicon = typeof module === 'object' && module.exports
+      ? require('../../data/simulatte-language-lexicon.js')
+      : root.SimulatteLanguageLexicon;
   if (!catalog) {
       markMissingDependency('SimulattePhysicsModel', 'SimulattePhysicsCatalog');
       scope.missingDependency = true; return;
@@ -72,5 +75,6 @@
   scope.intentForensics = intentForensics;
   scope.activationModule = activationModule;
   scope.groundedModule = groundedModule;
+  scope.languageLexicon = languageLexicon;
   scope.initialized = true;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -1,0 +1,227 @@
+{
+  "schema": "simulatte.modelRuntimeLock.v1",
+  "id": "simulatte-doppler-qwen-runtime-lock",
+  "number": 2,
+  "doppler": {
+    "moduleUrl": "../../vendor/doppler/src/index-browser.js",
+    "kernelBasePath": "../../vendor/doppler/src/gpu/kernels",
+    "package": {
+      "name": "doppler-gpu",
+      "version": "0.4.7",
+      "integrity": "sha512-D0+RebGvabiacHk39Jerm+56Slq6kSl4fnjgbxMBp7T/Jis17ZDcQzbmkDyFUcNWAWZL7jOuzKSOHxPVufg1dQ==",
+      "shasum": "b25e38953607eb73ebb9e8f59decff2488c3e577",
+      "fileCount": 1701
+    },
+    "localPatches": {
+      "src/client/runtime/index.js": "6d94cdea690ffc6ed433939c93ed8e6920bdab1a9354296e5b7ef4f6d763d41f",
+      "src/client/runtime/model-session.d.ts": "b365336c2bb30bf84ef1f1d12634ac45b9c91ac9f30d2c2f8ef1a80256d09515",
+      "src/client/runtime/model-session.js": "3779ebd2b2334632415980b109c71e6b655153172dd637e79829903f8aa82800",
+      "src/client/runtime/model-source.d.ts": "84657d38f53d0df5e268444575bfe4dc7de3b5abbfaeea9e0a4a42e3525f62b4",
+      "src/client/runtime/model-source.js": "d15a1884e4d0e868c2bbb0e7d2206622d9dbd891ca115ba033b45f5d71180705",
+      "src/config/transforms/execution-graph-transforms.js": "54b2054fde328416c74df77a592f835e9df16a10bf9aae66e15b0dc8270f3483",
+      "src/inference/pipelines/text.d.ts": "4f3a4e3b981dccd9e227f77f0ca3040f6ef7b0cd932155cd68790f51c1baaeab",
+      "src/inference/pipelines/text.js": "807b00c6bb7ef279a86816a9c2984d3fb7d16df3f2329804d907367438848622",
+      "src/inference/pipelines/text/execution-v1.js": "c3cb0050da8394681290dd0f661140e3106d668877ba130196adca1c8cebbaf6",
+      "src/inference/pipelines/text/generator.js": "f1fa5e2552938f9a9cd41b51933d270a0fdab90839c5c460b40ec10650f83a0f",
+      "src/inference/pipelines/text/init.d.ts": "8d3ee036f90d7e473230631454768b7b62aee51df88cf0293c2dd33512d61f79",
+      "src/inference/pipelines/text/init.js": "8138dc87592ee38bb5dbb15977748bf500ecd9e8a6c86e23c226de0fda46e810",
+      "src/inference/pipelines/text/state.d.ts": "da202f21606988865b22054d64be636d202f208ef546903cd841a892bc7f1a15",
+      "src/inference/pipelines/text/state.js": "00faad44726d86220b697b369a7a2b606a2f2aff90fda24d64404c4297a24376",
+      "src/loader/doppler-loader.js": "448e3d0e7c452aaecd439774c4ff9b809488a0b372453b960e6babcdccb8fe07",
+      "src/loader/index.d.ts": "00e3b4b2ff97fa55015adbb6b00a35a79fbbc0436c2cf3e0f1f9895085b93448",
+      "src/loader/index.js": "42464204d6032a327803dbb00424da118a57563760f6101a2a4137be852b8b5f",
+      "src/loader/manifest-config.d.ts": "80674d4f16eebc7faf9b7bb41a296806c79e608c75d52582be09b571120a7d09",
+      "src/loader/manifest-config.js": "b7e4f8be5536e45efe447ece8b3d9fb8404c466a459d8521aea10b17ba39206b",
+      "src/rules/inference/capability-transforms.rules.json": "c3878e781c065975e8cf2a09f8b4eb58818c74af61319dcd6ff07fb05cec2f9d"
+    }
+  },
+  "embedding": {
+    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "family": "qwen3-embedding",
+    "modelType": "embedding",
+    "dimensions": 1024,
+    "indexEmbeddingMode": "last",
+    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "source": {
+      "kind": "huggingface-rdrr",
+      "repoId": "Clocksmith/rdrr",
+      "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
+      "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "sizeBytes": 558475264,
+      "weightPackId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1"
+    },
+    "manifestHash": {
+      "alg": "sha256",
+      "hex": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979"
+    },
+    "conversion": {
+      "projectPath": "public/vendor/doppler/src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+      "sha256": "955c18fc9bd448b2dd79c00b781088655ee83237e64787f2c9014ab43e6ccd0b"
+    },
+    "runtimeConfig": {
+      "inference": {
+        "session": {
+          "compute": {
+            "defaults": {
+              "activationDtype": "f32",
+              "mathDtype": "f32",
+              "accumDtype": "f32",
+              "outputDtype": "f32"
+            }
+          },
+          "kvcache": {
+            "kvDtype": "f16",
+            "layout": "contiguous",
+            "pageSize": 256,
+            "tiering": {
+              "mode": "off"
+            }
+          },
+          "decodeLoop": {
+            "batchSize": 4,
+            "stopCheckMode": "batch",
+            "readbackInterval": 1,
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1,
+            "disableCommandBatching": false
+          },
+          "perLayerInputs": {
+            "materialization": "auto",
+            "rowCache": {
+              "mode": "lru",
+              "maxRows": 256,
+              "maxBytes": 134217728,
+              "decodedDtype": "f32"
+            },
+            "prefetch": {
+              "mode": "next_token",
+              "rowsAhead": 1
+            },
+            "gpuUpload": {
+              "mode": "per_step_slices",
+              "stagingRows": 2
+            },
+            "hotCache": {
+              "mode": "prepared_tokens",
+              "maxTokens": 1024,
+              "maxBytes": 134217728,
+              "outputDtype": "f32"
+            }
+          },
+          "prefillChunkSubmitMode": "sync",
+          "useFlashPrefillAttention": false,
+          "useWideTileQ4KPrefill": false,
+          "retainQ4KMaterialization": false
+        }
+      }
+    }
+  },
+  "reranker": {
+    "schema": "simulatte.intentRerankerConfig.v1",
+    "id": "simulatte.doppler-intent-reranker.v1",
+    "kind": "doppler-reranker",
+    "phase": 3,
+    "enabled": true,
+    "required": true,
+    "loadInPhase1WhenRequired": true,
+    "executeInPhase": 3,
+    "inputSchema": "simulatte.intentRerankInput.v1",
+    "outputSchema": "simulatte.intentRerank.v1",
+    "maxCandidatesPerCall": 8,
+    "maxSlotCandidatesPerCall": 4,
+    "fallbackMode": "heuristic-fusion",
+    "candidateScope": [
+      "primitive",
+      "surface-card",
+      "universe",
+      "span",
+      "rag",
+      "doppler-hint"
+    ],
+    "model": {
+      "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "family": "qwen3-reranker",
+      "modelType": "rerank",
+      "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "source": {
+        "kind": "huggingface-rdrr",
+        "repoId": "Clocksmith/rdrr",
+        "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+        "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+        "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+        "sizeBytes": 938321920,
+        "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
+        "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2"
+      },
+      "manifestHash": {
+        "alg": "sha256",
+        "hex": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e"
+      }
+    },
+    "conversion": {
+      "projectPath": "public/vendor/doppler/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+      "sha256": "27e095cfeda70333bda0586a1ee01fadb350a23f0a66750a302be2ed62ac7f53"
+    },
+    "runtimeConfig": {
+      "inference": {
+        "compute": {
+          "rangeAwareSelectiveWidening": {
+            "enabled": true,
+            "includeNonFinite": true,
+            "absThreshold": 65500,
+            "onTrigger": "error"
+          }
+        },
+        "session": {
+          "compute": {
+            "defaults": {
+              "activationDtype": "f32",
+              "mathDtype": "f32",
+              "accumDtype": "f32",
+              "outputDtype": "f32"
+            }
+          },
+          "kvcache": {
+            "kvDtype": "f16",
+            "layout": "contiguous",
+            "pageSize": 256,
+            "tiering": {
+              "mode": "off"
+            }
+          }
+        }
+      }
+    },
+    "description": "Required Qwen 3 Reranker 0.6B contract for Phase 3 retrieval. Phase 1 loads and probes this Doppler model before runtime-ready."
+  },
+  "runtimeOrder": [
+    "doppler-browser-load",
+    "injected-doppler-model"
+  ],
+  "runtime": {
+    "queryEmbeddingMode": "last",
+    "embeddingText": {
+      "schema": "simulatte.embeddingTextContract.v1",
+      "style": "qwen3_embedding",
+      "queryPrefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ",
+      "querySuffix": "",
+      "documentPrefix": "",
+      "documentSuffix": ""
+    },
+    "requireModelBackedQuery": true
+  },
+  "cache": {
+    "storage": [
+      "Doppler"
+    ],
+    "namespace": "simulatte-doppler-qwen-runtime-lock-2",
+    "owner": "doppler",
+    "prefetch": false,
+    "strategy": "doppler-managed",
+    "requirePersistent": false
+  }
+}

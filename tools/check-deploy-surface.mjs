@@ -5,28 +5,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readModelRuntimeLock } from './model-runtime-lock-utils.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DOPPLER_PACKAGE = Object.freeze({
-  name: 'doppler-gpu',
-  version: '0.4.7',
-  integrity: 'sha512-D0+RebGvabiacHk39Jerm+56Slq6kSl4fnjgbxMBp7T/Jis17ZDcQzbmkDyFUcNWAWZL7jOuzKSOHxPVufg1dQ==',
-  shasum: 'b25e38953607eb73ebb9e8f59decff2488c3e577',
-  fileCount: 1701,
-});
-const DOPPLER_VENDOR_PATCH_HASHES = Object.freeze({
-  'src/client/runtime/index.js': 'd7b7e7e3f0389d6fe3a3797ec36e720c93de39a19276bd514be54925e8153750',
-  'src/client/runtime/model-source.js': '3eb28f6ed0d3386d77acdb25c955e47bce11931e614541fdc85edec3cc7bd82a',
-  'src/config/transforms/execution-graph-transforms.js': '54b2054fde328416c74df77a592f835e9df16a10bf9aae66e15b0dc8270f3483',
-  'src/inference/pipelines/text.js': '4c8a2c3eac83fa1f95a7463bfadf59d50ce80b54da35213ba4fec04736879169',
-  'src/inference/pipelines/text/execution-v1.js': 'c3cb0050da8394681290dd0f661140e3106d668877ba130196adca1c8cebbaf6',
-  'src/loader/doppler-loader.js': '448e3d0e7c452aaecd439774c4ff9b809488a0b372453b960e6babcdccb8fe07',
-  'src/loader/index.d.ts': '00e3b4b2ff97fa55015adbb6b00a35a79fbbc0436c2cf3e0f1f9895085b93448',
-  'src/loader/index.js': '42464204d6032a327803dbb00424da118a57563760f6101a2a4137be852b8b5f',
-  'src/loader/manifest-config.d.ts': '80674d4f16eebc7faf9b7bb41a296806c79e608c75d52582be09b571120a7d09',
-  'src/loader/manifest-config.js': 'b7e4f8be5536e45efe447ece8b3d9fb8404c466a459d8521aea10b17ba39206b',
-  'src/rules/inference/capability-transforms.rules.json': 'c3878e781c065975e8cf2a09f8b4eb58818c74af61319dcd6ff07fb05cec2f9d',
-});
+const MODEL_RUNTIME_LOCK = readModelRuntimeLock();
+const DOPPLER_PACKAGE = Object.freeze(MODEL_RUNTIME_LOCK.doppler && MODEL_RUNTIME_LOCK.doppler.package || {});
+const DOPPLER_VENDOR_PATCH_HASHES = Object.freeze(MODEL_RUNTIME_LOCK.doppler && MODEL_RUNTIME_LOCK.doppler.localPatches || {});
 const VENDOR_ROOT = path.join(ROOT, 'public', 'vendor', 'doppler');
 const LIST_LIMIT = 20;
 
@@ -202,7 +186,7 @@ function main() {
   }
 
   const patchCount = Object.keys(DOPPLER_VENDOR_PATCH_HASHES).length;
-  console.log(`Deploy surface clean: public/vendor/doppler matches ${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version} plus ${patchCount} pinned local patch files.`);
+  console.log(`Deploy surface clean: lock #${MODEL_RUNTIME_LOCK.number} pins public/vendor/doppler to ${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version} plus ${patchCount} local patch files.`);
 }
 
 try {

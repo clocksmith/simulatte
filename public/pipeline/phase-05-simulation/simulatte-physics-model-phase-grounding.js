@@ -19,6 +19,10 @@
         const languageEvidence = activationCloud.languageEvidence || groundingEvidence.languageEvidence || {};
         const candidateEvidence = activationCloud.candidateEvidence || [];
         const weightedActivations = activationCloud.weightedActivations || [];
+        const acceptedComponents = filterRowsAgainstNegativeEvidence(
+          groundingEvidence.components || [],
+          activationCloud.negativeEvidence || []
+        );
         const intentBrief = phase4IntentBriefFromActivationCloud(activationCloud, groundingEvidence);
         const groundedInterpretation = buildGroundedInterpretation
           ? buildGroundedInterpretation({
@@ -109,7 +113,7 @@
             ]),
           }),
           contract: groundingEvidence.contract || null,
-          components: groundingEvidence.components || [],
+          components: acceptedComponents,
           params: groundingEvidence.params || {},
           visualSource: groundingEvidence.visualSource || null,
           grounding: {
@@ -262,15 +266,29 @@
         const universeCandidateEvidence = candidateEvidenceFromUniverseGraphCandidates(
           groundingEvidence.universeGraphCandidates || null
         );
+        const rejectedComponentIds = new Set([
+          ...(groundingEvidence.rejectedComponentIds || []),
+          ...(groundingEvidence.components || [])
+            .filter((row) => row.supportOnly === true)
+            .map((row) => row.id || row.primitiveId || row.canonicalId),
+        ].flatMap((value) => phase3GroundingIdentityKeys(value)));
+        const carriedUniverseCandidates = universeCandidateEvidence.filter((row) => ![
+          row.id,
+          row.canonicalId,
+          ...(row.primitiveHints || []),
+          ...(row.conceptIds || []),
+        ].flatMap((value) => phase3GroundingIdentityKeys(value))
+          .some((value) => rejectedComponentIds.has(value)));
         const negativeEvidence = activationCloud.negativeEvidence || [];
         const groundingCandidateEvidence = filterRowsAgainstNegativeEvidence(uniqueEvidenceRows([
           ...(candidateEvidence || []),
-          ...universeCandidateEvidence,
+          ...carriedUniverseCandidates,
         ]), negativeEvidence);
         const graph = groundUniverseGraph({
           prompt: languageEvidence.rawText || intentBrief.prompt || '',
           promptParse,
-          components: filterRowsAgainstNegativeEvidence(groundingEvidence.components || [], negativeEvidence),
+          components: filterRowsAgainstNegativeEvidence(groundingEvidence.components || [], negativeEvidence)
+            .filter((row) => row.supportOnly !== true),
           universeMatches: { candidates: groundingCandidateEvidence },
           intentBrief: {
             ...intentBrief,
@@ -295,6 +313,13 @@
         const targets = negativeEvidenceTargets(negativeEvidence);
         if (!targets.length) return rows;
         return (rows || []).filter((row) => !rowMatchesNegativeTarget(row, targets));
+      }
+
+    function phase3GroundingIdentityKeys(value = '') {
+        const normalized = normalizeForEvidence(value);
+        if (!normalized) return [];
+        const unqualified = normalized.replace(/^(?:artifact|entity|environment|material|primitive|scene|semantic)\s+/, '');
+        return unqualified && unqualified !== normalized ? [normalized, unqualified] : [normalized];
       }
 
     function negativeEvidenceTargets(negativeEvidence = []) {
@@ -496,7 +521,9 @@
     	      readouts: readoutLabelsForContract(contract),
     	      visualSource: {
             ...visualSource,
-            objects: visualSource.objects || components,
+            // Phase 4 has already removed negative evidence. Phase 5 carries its
+            // accepted candidates and explicit solver support into Phase 6.
+            objects: components,
             params: visualSource.params || params,
             contract: visualSource.contract || contract,
           },
@@ -515,8 +542,8 @@
     	          renderIR: simulationCompile.renderIR && simulationCompile.renderIR.schema || '',
     	          loweredRelations: simulationCompile.loweredRelations.length,
     	          physicsObligations: simulationCompile.physicsObligations.length,
-    	          unsupportedPhysics: simulationCompile.unsupportedPhysics.length,
-    	          stateChannels: simulationCompile.stateChannels.length,
+	          unsupportedPhysics: simulationCompile.unsupportedPhysics.length,
+	          stateChannels: simulationCompile.stateChannels.length,
     	        },
     	      ],
     	    });
@@ -722,16 +749,28 @@
 
     function visualObligationsFromLedger(compositionLedger = null) {
     	    return (compositionLedger && compositionLedger.obligations || [])
-    	      .filter((row) => row.kind === 'visual' || row.ownedByPhase === 6)
+              .filter((row) => row.kind !== 'relation' && !/^action:coexists/.test(String(row.id || '')) && (row.kind === 'visual' || row.ownedByPhase === 6 || (
+                row.required === true && Array.isArray(row.visualEvidence) && row.visualEvidence.length > 0
+              )))
     	      .map((row) => phaseCarryObject({
     	        schema: 'simulatte.visualObligationReceipt.v1',
     	        obligationId: row.id || '',
-    	        target: row.target || '',
+                target: visualObligationTargetFromLedger(row),
+                sourceKind: row.kind || '',
     	        status: row.status || '',
     	        evidence: row.visualEvidence || [],
     	        required: row.required === true,
     	      }));
     	  }
+
+    function visualObligationTargetFromLedger(row = {}) {
+            const explicit = String(row.target || '').trim();
+            if (explicit) return explicit;
+            return String(row.id || row.obligationId || '')
+              .replace(/^[a-z]+:/, '')
+              .replace(/[:_-]+/g, ' ')
+              .trim();
+          }
 
     function identityPreservationRows(sceneRenderPacket = null, compositionLedger = null) {
     	    const identities = new Set((sceneRenderPacket && sceneRenderPacket.entities || [])

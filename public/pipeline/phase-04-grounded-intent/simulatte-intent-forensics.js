@@ -33,6 +33,7 @@
     INTENT_BRIEF_SCHEMA = 'simulatte.intentBrief.v1',
     createEmptyIntentBrief = (prompt) => ({ schema: INTENT_BRIEF_SCHEMA, prompt }),
     normalizeIntentBrief = (brief) => brief,
+    modelStackForInput = () => ({}),
     validateIntentBrief = () => ({ valid: true, errors: [], warnings: [] }),
     compactBriefSummary = (brief) => ({ schema: brief.schema, prompt: brief.prompt }),
     uniqueStrings = unique,
@@ -132,6 +133,7 @@
     const brief = normalizeIntentBrief({
       ...base,
       prompt,
+      modelStack: modelStackForInput(input),
       retrievedEvidence,
       languageEvidence,
       activationCloud,

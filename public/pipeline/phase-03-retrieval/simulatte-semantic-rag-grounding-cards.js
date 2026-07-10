@@ -11,10 +11,10 @@
 
     const VISUAL_RULES = Object.freeze([
         rule('fluid', ['water', 'river', 'flow', 'fluid', 'vortex', 'brine', 'mercury', 'air', 'wind', 'bubble', 'droplet']),
+        rule('electrical', ['electric', 'charge', 'electron', 'ion', 'current', 'copper', 'silicon', 'circuit', 'qubit', 'quantum', 'microwave', 'resonator', 'readout']),
         rule('thermal', ['fire', 'flame', 'combustion', 'heat', 'thermal', 'smoke', 'plume', 'plasma', 'sun']),
         rule('optical', ['light', 'laser', 'lens', 'glass', 'prism', 'mirror', 'caustic', 'ray', 'spectrum']),
         rule('magnetic', ['magnet', 'magnetic', 'flux', 'field', 'rotor', 'wheel', 'motor', 'stator']),
-        rule('electrical', ['electric', 'charge', 'electron', 'ion', 'current', 'copper', 'silicon', 'circuit']),
         rule('granular', ['sand', 'soil', 'rock', 'grain', 'erosion', 'sediment', 'terrain', 'clay']),
         rule('biological', ['bacteria', 'cell', 'colony', 'mycelium', 'fungal', 'leaf', 'protein', 'growth']),
         rule('soft', ['membrane', 'gel', 'foam', 'fabric', 'elastic', 'tension', 'soft']),

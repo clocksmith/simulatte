@@ -1,19 +1,10 @@
 {
-  "embedModel": {
-    "dimensions": 1024,
-    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-    "manifestHash": {
-      "alg": "sha256",
-      "hex": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979"
-    }
-  },
   "generator": {
     "schema": "simulatte.semanticUniverseGenerator.v1",
     "sources": [
       "simulatte-physics-catalog",
       "simulatte-semantic-surface-cards",
-      "simulatte-grounding-basis-cards",
-      "handwritten-causal-relation-index-v1"
+      "simulatte-grounding-basis-cards"
     ]
   },
   "id": "simulatte-universe-multi-index-v1",
@@ -53,11 +44,6 @@
       "documentSchema": "simulatte.universeRelationIndex.v1",
       "kind": "relation-index"
     },
-    "causalRelations": {
-      "artifact": "./causal-relation-index-v1.json",
-      "documentSchema": "simulatte.universeCausalRelationIndex.v1",
-      "kind": "causal-relation-index"
-    },
     "scenes": {
       "artifact": "./scene-index-v1.json",
       "documentSchema": "simulatte.universeSceneIndex.v1",
@@ -73,6 +59,15 @@
       "documentSchema": "simulatte.universeSynonymIndex.v1",
       "kind": "synonym-index"
     }
+  },
+  "modelRuntimeLock": {
+    "artifact": "../simulatte-embedder/model-runtime-lock.json",
+    "artifactHash": {
+      "alg": "sha256",
+      "hex": "41c7bd3a3e4e235cb9dff12b5e252216ee2f4bf5bbb886b3e16542c816e95807"
+    },
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 2
   },
   "schema": "simulatte.universeManifest.v1"
 }

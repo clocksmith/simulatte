@@ -148,7 +148,7 @@
         return true;
       }
 
-    function genomePalette(sceneKind, motifs, seed) {
+    function genomePalette(sceneKind, motifs, _seed, paletteAnchor = '') {
         const sceneHue = {
           'advanced-energy': 286,
           'agro-waste-loop': 92,
@@ -194,6 +194,24 @@
           mechanical: 206,
           'literal-composite': 148,
         };
+        const anchorHue = {
+          'industrial-amber-cyan': 34,
+          'precision-violet-steel': 274,
+          'field-green-ochre': 78,
+          'chlorophyll-green': 122,
+          'microbe-teal': 156,
+          'ferment-amber': 38,
+          'protein-violet': 276,
+          'transit-cyan-amber': 198,
+          'solar-concrete-violet': 282,
+          'crowd-coral-indigo': 346,
+          'market-amber-blue': 42,
+          'fire-orange-charcoal': 18,
+          'wildfire-amber-green': 54,
+          'kiln-orange-steel': 22,
+          'ice-blue-slate': 204,
+          'sediment-aqua-ochre': 188,
+        };
         const motifShift = motifs.includes('animal-gait-cells') ? -68
           : motifs.includes('petal-radial-growth') ? 46
             : motifs.includes('track-ladder') ? -24
@@ -203,22 +221,20 @@
                     : motifs.includes('branch-network') ? -36
                       : motifs.includes('route-weave') ? 18
                         : 0;
-        const hue = normalizeHue((sceneHue[sceneKind] ?? 156) + motifShift + Math.round((unitFromSeed(seed, 1) - 0.5) * 58));
-        const accentHue = normalizeHue(hue + 82 + Math.round(unitFromSeed(seed, 2) * 112));
-        const shadowHue = normalizeHue(hue + 206 + Math.round(unitFromSeed(seed, 3) * 42));
+        const hue = normalizeHue((anchorHue[paletteAnchor] ?? sceneHue[sceneKind] ?? 156) + motifShift);
+        const accentHue = normalizeHue(hue + 96);
+        const shadowHue = normalizeHue(hue + 216);
         return {
           hue,
           accentHue,
           shadowHue,
-          warmth: Number(unitFromSeed(seed, 4).toFixed(3)),
-          contrast: Number((0.54 + unitFromSeed(seed, 5) * 0.36).toFixed(3)),
-          lightness: Number((0.44 + unitFromSeed(seed, 6) * 0.24).toFixed(3)),
+          warmth: /amber|orange|fire|kiln|coral/.test(paletteAnchor) ? 0.72 : 0.42,
+          contrast: /steel|concrete|slate/.test(paletteAnchor) ? 0.68 : 0.72,
+          lightness: /charcoal|slate/.test(paletteAnchor) ? 0.5 : 0.58,
         };
       }
 
-    function genomeMorphology(sceneKind, motifs, seed, objects, fields, visualDna = null, semanticVisuals = null) {
-        const layoutModes = ['strata', 'section', 'radial', 'field-map', 'network', 'specimen'];
-        const textureKinds = ['contour-hatch', 'woven-grid', 'cutaway-lines', 'spectral-ribs', 'grain-scan'];
+    function genomeMorphology(sceneKind, motifs, seed, objects, fields, visualDna = null, semanticVisuals = null, compositionTopology = '') {
         const motifText = motifs.join(' ');
         const layoutMode = /animal-gait/.test(motifText) ? 'field-map'
           : /petal-radial/.test(motifText) ? 'radial'
@@ -226,14 +242,14 @@
               : /architecture|structural|fracture/.test(motifText) ? 'section'
                 : /flow|sediment|smoke|grain/.test(motifText) ? 'strata'
                   : /caustic|flux|pressure|ray/.test(motifText) ? 'radial'
-                    : layoutModes[Math.floor(unitFromSeed(seed, 7) * layoutModes.length) % layoutModes.length];
+                    : (TOPOLOGY_LAYOUT_MODE[compositionTopology] || 'strata');
         const textureKind = /animal-gait|fur-contour/.test(motifText)
           ? 'contour-hatch'
           : /petal-radial|leaf-vein/.test(motifText) ? 'cutaway-lines'
             : /caustic|ray|spectral/.test(motifText) ? 'spectral-ribs'
               : /grain|sediment|strata/.test(motifText) ? 'grain-scan'
                 : /architecture|route|network|grid/.test(motifText) ? 'woven-grid'
-                  : textureKinds[Math.floor(unitFromSeed(seed, 8) * textureKinds.length) % textureKinds.length];
+                  : (TOPOLOGY_TEXTURE_KIND[compositionTopology] || 'contour-hatch');
         const objectCount = Math.max(1, (objects || []).length);
         const fieldCount = Math.max(1, (fields || []).length);
         const dnaDensity = visualDna && Number.isFinite(visualDna.densityBias) ? visualDna.densityBias : 1;
@@ -253,6 +269,21 @@
           asymmetry: Number((0.18 + unitFromSeed(seed, 16) * 0.74).toFixed(3)),
         };
       }
+
+    const TOPOLOGY_LAYOUT_MODE = Object.freeze({
+      radial: 'radial', ladder: 'section', lattice: 'network', cutaway: 'section',
+      basin: 'strata', orbit: 'radial', conveyor: 'network', branching: 'network',
+      stack: 'strata', plume: 'strata', corridor: 'section', 'field-map': 'field-map',
+      specimen: 'specimen',
+    });
+
+    const TOPOLOGY_TEXTURE_KIND = Object.freeze({
+      radial: 'spectral-ribs', ladder: 'woven-grid', lattice: 'woven-grid',
+      cutaway: 'cutaway-lines', basin: 'grain-scan', orbit: 'spectral-ribs',
+      conveyor: 'woven-grid', branching: 'contour-hatch', stack: 'grain-scan',
+      plume: 'contour-hatch', corridor: 'cutaway-lines', 'field-map': 'contour-hatch',
+      specimen: 'cutaway-lines',
+    });
 
     function normalizeHue(value) {
         return ((Math.round(value) % 360) + 360) % 360;
@@ -328,7 +359,7 @@
     function visualObjectAcceptanceReceipt(object, sceneKind, promptText, index) {
         const source = String(object && object.source || '');
         const phrase = object && (object.phrase || object.role || object.id) || '';
-        const promptGrounded = visualPromptGroundedObject(object, promptText);
+        const promptGrounded = !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && visualPromptGroundedObject(object, promptText);
         return {
           schema: 'simulatte.visualObjectAcceptance.v1',
           id: object && object.id || `object-${index + 1}`,
@@ -365,7 +396,7 @@
         const source = String(object && object.source || '');
         const phrase = object && (object.phrase || object.role || object.id) || '';
         const phraseMatched = phraseMatchesPrompt(phrase, promptText);
-        const promptGrounded = visualPromptGroundedObject(object, promptText);
+        const promptGrounded = !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && visualPromptGroundedObject(object, promptText);
         if (promptGrounded) {
           return {
             status: 'accepted',
@@ -400,7 +431,7 @@
             };
           }
         }
-        if (source && source !== 'catalog' && phraseMatched) {
+        if (source && source !== 'catalog' && phraseMatched && !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase)) {
           return {
             status: 'accepted',
             reason: 'compiled source row phrase matches prompt evidence',
@@ -408,7 +439,7 @@
             promptGrounded: true,
           };
         }
-        if (sceneCompatibleSupportComponent(object, sceneKind, promptText)) {
+        if (!/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && sceneCompatibleSupportComponent(object, sceneKind, promptText)) {
           return hasPromptGrounded
             ? {
               status: 'rejected',
@@ -463,6 +494,7 @@
 
     function sceneObjectPriority(object, sceneKind) {
         const source = String(object && object.source || '');
+        if (source === 'phase2-language-anchor' || sceneKind === 'robotics-control' && source === 'open-semantic-rag' && /(?:protein\s+)?sample\s+holder/.test(object.phrase || '')) return 11;
         const isCatalog = source === 'catalog';
         const text = [
           object.id,
@@ -648,8 +680,8 @@
         }
         if (sceneKind === 'robotics-control') {
           return choose(
-            reject(/\b(protein|bacteria|glacier|plasma|fire|thermal-source|fluid-advection)\b/),
-            keep(/\b(robot|robotic|arm|gripper|servo|workcell|manipulator|warehouse|conveyor|parcel|sort|task|sensor|feedback|force|contact|collision|friction|motor|metal)\b/, 7),
+            reject(/\b(bacteria|glacier|plasma|fire|thermal-source|fluid-advection)\b/),
+            keep(/\b(robot|robotic|arm|gripper|servo|workcell|manipulator|warehouse|conveyor|parcel|sort|task|sensor|feedback|force|contact|collision|friction|motor|metal|protein|sample holder)\b/, 7),
             fallback()
           );
         }
@@ -836,7 +868,6 @@
         const scope = typeof globalThis !== 'undefined' ? globalThis : window;
         return (scope && scope.SimulatteRenderRegistry) || null;
       }
-
     Object.assign(scope, {
       semanticVisualRows,
       atlasAddressableTokens,

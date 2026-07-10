@@ -20,6 +20,7 @@
     '../../pipeline/phase-02-language/simulatte-language-evidence.js',
     '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js',
     '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-constants.js',
+    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-model-lock.js',
     '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js',
     '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js',
     '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js',
@@ -101,10 +102,6 @@
       embedder = root.SimulatteIntentEmbedder.create({
         catalog: root.SimulattePhysicsCatalog,
         manifestUrl: config.manifestUrl || '../../data/simulatte-embedder/manifest.json',
-        modelBaseUrl: config.modelBaseUrl || '',
-        dopplerModuleUrl: config.dopplerModuleUrl || '../../vendor/doppler/src/index-browser.js',
-        dopplerKernelBasePath: config.dopplerKernelBasePath || '../../vendor/doppler/src/gpu/kernels',
-        runtimeConfig: config.runtimeConfig || null,
         spanLevelEmbedding: config.spanLevelEmbedding,
         traceEmbeddings: config.traceEmbeddings === true,
         onProgress: postProgress,

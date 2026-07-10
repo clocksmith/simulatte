@@ -1,81 +1,14 @@
 {
-  "schema": "simulatte.modelBackedEmbedderManifest.v2",
-  "id": "simulatte-qwen-3-embedding-0-6b-primitive-retrieval-v1",
-  "runtimeOrder": [
-    "doppler-browser-load",
-    "injected-doppler-model"
-  ],
-  "reranker": {
-    "schema": "simulatte.intentRerankerConfig.v1",
-    "id": "simulatte.doppler-intent-reranker.v1",
-    "kind": "doppler-reranker",
-    "phase": 3,
-    "enabled": true,
-    "required": true,
-    "loadInPhase1WhenRequired": true,
-    "executeInPhase": 3,
-    "inputSchema": "simulatte.intentRerankInput.v1",
-    "outputSchema": "simulatte.intentRerank.v1",
-    "fallbackMode": "heuristic-fusion",
-    "candidateScope": [
-      "primitive",
-      "surface-card",
-      "universe",
-      "span",
-      "rag",
-      "doppler-hint"
-    ],
-    "model": {
-      "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-      "family": "qwen3-reranker",
-      "modelType": "rerank",
-      "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32",
-      "source": {
-        "kind": "huggingface-rdrr",
-        "repoId": "Clocksmith/rdrr",
-        "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
-        "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32",
-        "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-        "sizeBytes": 938321920,
-        "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
-        "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2"
-      },
-      "manifestHash": {
-        "alg": "sha256",
-        "hex": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e"
-      }
-    },
-    "runtimeConfig": {
-      "inference": {
-        "compute": {
-          "rangeAwareSelectiveWidening": {
-            "enabled": true,
-            "includeNonFinite": true,
-            "absThreshold": 65500,
-            "onTrigger": "error"
-          }
-        },
-        "session": {
-          "compute": {
-            "defaults": {
-              "activationDtype": "f32",
-              "mathDtype": "f32",
-              "accumDtype": "f32",
-              "outputDtype": "f32"
-            }
-          },
-          "kvcache": {
-            "kvDtype": "f16",
-            "layout": "contiguous",
-            "pageSize": 256,
-            "tiering": {
-              "mode": "off"
-            }
-          }
-        }
-      }
-    },
-    "description": "Required Qwen 3 Reranker 0.6B contract for Phase 3 retrieval. Phase 1 loads and probes this Doppler model before runtime-ready."
+  "schema": "simulatte.modelBackedEmbedderManifest.v3",
+  "id": "simulatte-model-backed-intent-retrieval-v1",
+  "modelRuntimeLock": {
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 2,
+    "artifact": "./model-runtime-lock.json",
+    "artifactHash": {
+      "alg": "sha256",
+      "hex": "41c7bd3a3e4e235cb9dff12b5e252216ee2f4bf5bbb886b3e16542c816e95807"
+    }
   },
   "retrieval": {
     "kind": "precomputed-primitive-index",
@@ -85,9 +18,8 @@
       "hex": "1053238b844833b5f157f9519fdbc3a2c6aaa4581b4fd134affd30a0158fd791"
     },
     "documentSchema": "simulatte.primitiveEmbeddingIndex.v2",
-    "dimensions": 1024,
     "rerank": "mandatory",
-    "description": "Qwen 3 Embedding 0.6B index for model-backed physical intent retrieval.",
+    "description": "Pinned model-lock primitive index for model-backed physical intent retrieval.",
     "cards": {
       "kind": "precomputed-surface-card-index",
       "artifact": "./surface-card-index-qwen-v1.json",
@@ -96,15 +28,13 @@
         "hex": "feddce7cfdff749402bbad7aa22f4be65a919d3c26c7bf3d43b8cd4e514c5b81"
       },
       "documentSchema": "simulatte.surfaceCardEmbeddingIndex.v1",
-      "dimensions": 1024,
       "rerank": "mandatory",
-      "description": "Qwen 3 Embedding 0.6B surface-card index for model-backed typed graph synthesis."
+      "description": "Pinned model-lock surface-card index for typed graph synthesis."
     },
     "universe": {
       "kind": "multi-index-universe",
       "artifact": "../simulatte-universe/manifest.json",
       "documentSchema": "simulatte.universeManifest.v1",
-      "dimensions": 1024,
       "rerank": "candidate-only",
       "description": "Multi-index semantic universe candidates for concepts, relations, processes, materials, operators, and analogs."
     },
@@ -113,7 +43,7 @@
       "artifact": "./intent-evidence-contract-v1.json",
       "artifactHash": {
         "alg": "sha256",
-        "hex": "e2f32836bdeb252dc589195974bf655813404e49744cee7ad6df373c1cbf3061"
+        "hex": "f3452957c2edf9c71df822c9360e93a8e26d5cc8ef665345abc5847c937b146f"
       },
       "documentSchema": "simulatte.intentEvidenceContract.v1",
       "description": "Hand-authored evidence row contract for retrieval-grounded semantic scene forensics."
@@ -167,108 +97,5 @@
       "primitiveRankBackend": "auto",
       "description": "Phase 3 embeds typed scene slots from Phase 2 and reranks candidates per slot so literal objects, actions, environments, media, relations, and support evidence stay separated."
     }
-  },
-  "embedModel": {
-    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-    "family": "qwen3-embedding",
-    "modelType": "embedding",
-    "dimensions": 1024,
-    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
-    "source": {
-      "kind": "huggingface-rdrr",
-      "repoId": "Clocksmith/rdrr",
-      "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
-      "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
-      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
-      "sizeBytes": 558475264,
-      "weightPackId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1"
-    },
-    "manifestHash": {
-      "alg": "sha256",
-      "hex": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979"
-    }
-  },
-  "runtime": {
-    "moduleUrl": "./vendor/doppler/src/index-browser.js",
-    "queryEmbeddingMode": "mean",
-    "embeddingText": {
-      "schema": "simulatte.embeddingTextContract.v1",
-      "style": "qwen3_embedding",
-      "queryPrefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ",
-      "querySuffix": "",
-      "documentPrefix": "",
-      "documentSuffix": ""
-    },
-    "requireModelBackedQuery": true,
-    "runtimeConfig": {
-      "inference": {
-        "session": {
-          "compute": {
-            "defaults": {
-              "activationDtype": "f32",
-              "mathDtype": "f32",
-              "accumDtype": "f32",
-              "outputDtype": "f32"
-            }
-          },
-          "kvcache": {
-            "kvDtype": "f16",
-            "layout": "contiguous",
-            "pageSize": 256,
-            "tiering": {
-              "mode": "off"
-            }
-          },
-          "decodeLoop": {
-            "batchSize": 4,
-            "stopCheckMode": "batch",
-            "readbackInterval": 1,
-            "readbackMode": "sequential",
-            "ringTokens": 1,
-            "ringStop": 1,
-            "ringStaging": 1,
-            "disableCommandBatching": false
-          },
-          "perLayerInputs": {
-            "materialization": "auto",
-            "rowCache": {
-              "mode": "lru",
-              "maxRows": 256,
-              "maxBytes": 134217728,
-              "decodedDtype": "f32"
-            },
-            "prefetch": {
-              "mode": "next_token",
-              "rowsAhead": 1
-            },
-            "gpuUpload": {
-              "mode": "per_step_slices",
-              "stagingRows": 2
-            },
-            "hotCache": {
-              "mode": "prepared_tokens",
-              "maxTokens": 1024,
-              "maxBytes": 134217728,
-              "outputDtype": "f32"
-            }
-          },
-          "prefillChunkSubmitMode": "sync",
-          "useFlashPrefillAttention": false,
-          "useWideTileQ4KPrefill": false,
-          "retainQ4KMaterialization": false
-        }
-      }
-    }
-  },
-  "cache": {
-    "storage": [
-      "Doppler"
-    ],
-    "namespace": "simulatte-qwen-3-embedding-0-6b-primitive-retrieval-v1",
-    "owner": "doppler",
-    "prefetch": false,
-    "strategy": "doppler-managed",
-    "requirePersistent": false
   }
 }

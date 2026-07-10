@@ -738,6 +738,10 @@
           schema: SCENE_RENDER_PACKET_SCHEMA,
           compiler: 'simulatte.visual-ir.scene-render-packet.compiler.v1',
           sceneKind,
+          visualDialect: context.visualGenome && context.visualGenome.visualDialect || '',
+          compositionTopology: context.visualGenome && context.visualGenome.compositionTopology || '',
+          cameraArchetype: context.visualGenome && context.visualGenome.cameraArchetype || '',
+          scaleTier: context.visualGenome && context.visualGenome.scaleTier || '',
           coordinateSystem: {
             space: 'normalized-canvas',
             origin: 'top-left',
@@ -765,7 +769,11 @@
             source: 'visualIR.acceptedRows',
             primaryArtifact: 'sceneRenderPacket',
             renderCodeCount: packetEntities.length + packetFields.length + packetEffects.length,
-    	        compositionLedger: context.compositionLedger ? {
+	          visualDialect: context.visualGenome && context.visualGenome.visualDialect || '',
+	          compositionTopology: context.visualGenome && context.visualGenome.compositionTopology || '',
+	          cameraArchetype: context.visualGenome && context.visualGenome.cameraArchetype || '',
+	          scaleTier: context.visualGenome && context.visualGenome.scaleTier || '',
+	        compositionLedger: context.compositionLedger ? {
     	          schema: context.compositionLedger.schema || SCENE_COMPOSITION_LEDGER_SCHEMA,
     	          obligationCount: (context.compositionLedger.obligations || []).length,
     	          preservedCount: (context.compositionLedger.obligations || []).filter((row) => row.status === 'preserved').length,

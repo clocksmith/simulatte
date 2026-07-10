@@ -680,7 +680,10 @@
     function modelHandleProvenance(handle, runtime, modelBaseUrl = '') {
         const handleManifest = handle && handle.manifest || {};
         const rawModelId = handle && (handle.modelId || handleManifest.modelId) || '';
-        const rawHash = handleManifest.modelHash || handleManifest.manifestHash || handleManifest.hash || null;
+        const rawHash = handle && handle.manifestHash || handleManifest.modelHash ||
+          handleManifest.manifestHash || handleManifest.hash ||
+          handleManifest.meta && handleManifest.meta.hash || null;
+        assertPinnedModelHandle(handle, runtime.manifest.embedModel, 'embedding', modelBaseUrl);
         return normalizeEmbeddingModelProvenance(rawModelId, rawHash, runtime, modelBaseUrl);
       }
 
@@ -691,15 +694,8 @@
         const expectedSource = normalizeModelSource(expectedModel.defaultModelBaseUrl);
         const rawSourceMatches = normalizedSource && expectedSource && normalizedSource === expectedSource;
         const rawIdMatches = String(rawModelId || '') === expectedModel.id;
-        const rawHashMatches = !rawHash || hashHex(rawHash) === hashHex(expectedHash);
-        if (!rawHashMatches) {
-          return {
-            embedModelId: rawModelId,
-            embedModelHash: rawHash,
-            modelSource: { rawModelId, rawEmbedModelHash: rawHash },
-          };
-        }
-        if (!rawModelId || rawSourceMatches || rawIdMatches || (rawHash && rawHashMatches)) {
+        const rawHashMatches = hashHex(rawHash) === hashHex(expectedHash);
+        if (rawHashMatches && (!rawModelId || rawSourceMatches || rawIdMatches)) {
           return {
             embedModelId: expectedModel.id,
             embedModelHash: expectedHash,
@@ -750,6 +746,8 @@
           executeInPhase: Number(raw.executeInPhase || raw.phase || 3),
           inputSchema: raw.inputSchema || 'simulatte.intentRerankInput.v1',
           outputSchema: raw.outputSchema || 'simulatte.intentRerank.v1',
+          maxCandidatesPerCall: Math.max(1, Number(raw.maxCandidatesPerCall || 1)),
+          maxSlotCandidatesPerCall: Math.max(1, Number(raw.maxSlotCandidatesPerCall || 1)),
           fallbackMode: raw.fallbackMode || 'heuristic-fusion',
           candidateScope: Array.isArray(raw.candidateScope) ? raw.candidateScope.slice() : [],
           model: raw.model && typeof raw.model === 'object' ? cloneJsonValue(raw.model) : null,

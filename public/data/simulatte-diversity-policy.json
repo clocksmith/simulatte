@@ -1,0 +1,12 @@
+{
+  "schema": "simulatte.diversityPolicy.v1",
+  "id": "simulatte-diversity-policy-v1",
+  "structuralFloor": 0,
+  "hashFloorPolicy": {
+    "method": "max-temporal-jitter-plus-one-bit",
+    "hashBits": 64,
+    "bitMargin": 1,
+    "minimumPromptCount": 20,
+    "evidence": "The hard floor is recomputed from frozen clean-canvas dHash receipts in the current live audit: the largest same-world temporal difference plus one bit. The run fails unless every sampled world clears that derived floor. Static composition distance remains a collision diagnostic, not a rewardable gate."
+  }
+}

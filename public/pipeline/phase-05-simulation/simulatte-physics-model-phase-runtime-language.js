@@ -560,6 +560,7 @@
     function queryPlanFromSceneLanguageGraph(sceneLanguageGraph = {}) {
     	    const slots = [];
     	    const addSlot = (slot) => slots.push(phaseCarryObject(slot));
+	    const actionById = new Map((sceneLanguageGraph.actions || []).map((entry) => [entry.id, entry]));
     	    for (const entry of sceneLanguageGraph.entities || []) {
     	      if (entry.negated === true) continue;
     	      addSlot(sceneQuerySlotForEntry(entry, entry.semanticClass === 'biological-agent' ? 'actor' : 'object'));
@@ -577,6 +578,7 @@
     	      addSlot(sceneQuerySlotForEntry(entry, 'medium'));
     	    }
     	    for (const relation of sceneLanguageGraph.relations || []) {
+	      if (actionById.get(relation.to) && actionById.get(relation.to).negated === true) continue;
     	      addSlot({
     	        schema: 'simulatte.sceneQuerySlot.v1',
     	        slotId: `slot.relation.${relation.id.replace(/^relation:/, '').replace(/:/g, '_')}`,

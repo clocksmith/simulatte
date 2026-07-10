@@ -41,16 +41,22 @@
           this.sceneRenderPacket = null;
           this.sceneRenderPacketKey = '';
           this.renderExecutionInput = null;
+          this.renderInputSerial = 0;
+          this.canvas.dataset.renderInputSerial = '0';
           this.renderData = null;
           this.phase7Output = null;
+          this.phase7OutputPacketKey = '';
           this.phase8Output = null;
           this.pixelReadbackSerial = 0;
           this.pendingPixelReadbackPromise = null;
+          this.pendingPixelReadbackPacketKey = '';
           this.lastPixelReadbackReceipt = null;
           this.sceneObjectUniforms = new Float32Array(SCENE_PACKET_FLOATS);
           this.sceneInstanceData = new Float32Array(GPU_SCENE_INSTANCE_CAPACITY * GPU_SCENE_INSTANCE_FLOATS);
           this.sceneInstanceCount = 0;
           this.sceneInstanceBufferDirty = true;
+          this.sceneStatsBufferDirty = true;
+          this.drawIndirectBufferDirty = true;
           this.gpuScenePath = 'uniform-fullscreen';
           this.computeSceneReady = false;
           this.webgpuFeatureReceipt = makeDefaultWebGpuFeatureReceipt();
@@ -205,12 +211,22 @@
 
         setRenderExecutionInput(renderExecutionInput) {
           const scenePacket = sceneRenderPacketFromExecutionInput(renderExecutionInput);
-          this.renderExecutionInput = renderExecutionInput && renderExecutionInput.schema === 'simulatte.renderExecutionInput.v1'
+          const nextRenderExecutionInput = renderExecutionInput && renderExecutionInput.schema === 'simulatte.renderExecutionInput.v1'
             ? renderExecutionInput
             : null;
+          if (nextRenderExecutionInput !== this.renderExecutionInput) {
+            this.renderInputSerial += 1;
+            this.canvas.dataset.renderInputSerial = String(this.renderInputSerial);
+          }
+          this.renderExecutionInput = nextRenderExecutionInput;
           this.canvas.dataset.renderExecutionInput = this.renderExecutionInput
             ? this.renderExecutionInput.schema
             : 'missing-renderExecutionInput';
+          this.canvas.dataset.phase7InputVisualObligationCount = String(
+            this.renderExecutionInput && Array.isArray(this.renderExecutionInput.visualObligations)
+              ? this.renderExecutionInput.visualObligations.length
+              : 0
+          );
           const packet = scenePacket || emptySceneRenderPacket();
           const sceneKind = packet.sceneKind || '';
           if (this.renderData && packet === this.sceneRenderPacket) {
@@ -228,6 +244,7 @@
           this.sceneRenderPacket = packet;
           this.sceneKind = sceneKind;
           this.sceneRenderPacketKey = packetKey;
+          this.resetPixelReadbackForPacket(packetKey);
           this.renderData = compileSceneRenderData(packet, sceneKind, packetKey);
           this.applyPixelSampleOptions(renderExecutionInput);
           this.applyRenderData(this.renderData, scenePacket !== null);
@@ -240,9 +257,14 @@
         applyPixelSampleOptions(renderExecutionInput = null) {
           if (!this.renderData) return;
           const proof = renderExecutionInput && renderExecutionInput.phase7PixelProof || {};
+          const auditRequiresProof = this.canvas && this.canvas.dataset && this.canvas.dataset.auditRequirePixelProof === 'true';
+          const requiredObligationIds = phase7RequiredVisualObligationIds(renderExecutionInput, this.sceneRenderPacket);
           this.renderData.requireLivePixelSamples = renderExecutionInput && renderExecutionInput.requireLivePixelSamples === true ||
             proof.required === true ||
-            phase7RequiredVisualObligationIds(renderExecutionInput, this.sceneRenderPacket).length > 0;
+            auditRequiresProof ||
+            requiredObligationIds.length > 0;
+          this.canvas.dataset.phase7LivePixelSamplesRequired = this.renderData.requireLivePixelSamples ? 'true' : 'false';
+          this.canvas.dataset.phase7RequiredVisualObligationCount = String(requiredObligationIds.length);
           const samples = renderExecutionInput && (
             renderExecutionInput.pixelSamples ||
             renderExecutionInput.livePixelSamples ||
@@ -304,20 +326,35 @@
           this.canvas.dataset.renderCount = String(this.renderCount);
           this.canvas.dataset.lastFrameMs = String(Number(this.lastFrameMs || 0).toFixed(3));
           this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
-          this.phase7Output = phase7OutputEnvelope(
-            this.renderExecutionInput,
-            this.sceneRenderPacket,
-            this.renderCount,
-            this.lastFrameMs,
-            this.canvas,
-            this.renderData,
-            this.webgpuOptimizationReceipt()
-          );
-          this.canvas.dataset.phase7Output = this.phase7Output.schema;
-          this.canvas.dataset.phase7OutputInput = this.phase7Output.inputSchema;
-          this.settleSceneProof();
+          this.refreshPhase7Output(this.renderCount, this.lastFrameMs);
           this.schedulePixelReadback(pixelReadback, this.renderCount, this.lastFrameMs);
           return true;
+        }
+
+        refreshPhase7Output(renderCount = this.renderCount, frameMs = this.lastFrameMs) {
+          const packetKey = this.renderData && this.renderData.packetKey || '';
+          if (!this.phase7Output || packetKey !== this.phase7OutputPacketKey) {
+            this.phase7Output = phase7OutputEnvelope(
+              this.renderExecutionInput,
+              this.sceneRenderPacket,
+              renderCount,
+              frameMs,
+              this.canvas,
+              this.renderData,
+              this.webgpuOptimizationReceipt()
+            );
+            this.phase7OutputPacketKey = packetKey;
+            this.canvas.dataset.phase7Output = this.phase7Output.schema;
+            this.canvas.dataset.phase7OutputInput = this.phase7Output.inputSchema;
+            this.settleSceneProof();
+            return this.phase7Output;
+          }
+          const execution = this.phase7Output.artifact && this.phase7Output.artifact.renderExecution;
+          if (execution) {
+            execution.renderCount = Number(renderCount || 0);
+            execution.frameMs = Number(frameMs || 0);
+          }
+          return this.phase7Output;
         }
 
         settleSceneProof() {
@@ -334,11 +371,23 @@
             this.canvas.dataset.sceneProofError = '';
             this.canvas.dataset.sceneProofLostCount = String(sceneProof.summary.lostCount);
             this.canvas.dataset.sceneProofNotProvenCount = String(sceneProof.summary.notProvenCount);
+            this.canvas.dataset.sceneProofRequiredLostIds = JSON.stringify(sceneProof.summary.requiredLostIds || []);
+            this.canvas.dataset.sceneProofRequiredNotProvenIds = JSON.stringify(
+              sceneProof.summary.requiredNotProvenIds || []
+            );
+            this.canvas.dataset.sceneProofRequiredFailures = JSON.stringify(
+              (sceneProof.settledObligations || []).filter((row) => (
+                row.required === true && (row.status === 'lost' || row.status === 'not-proven')
+              ))
+            );
           } catch (error) {
             this.phase8Output = null;
             this.canvas.dataset.phase8Output = '';
             this.canvas.dataset.sceneProofVerdict = 'error';
             this.canvas.dataset.sceneProofError = error && error.message ? error.message : String(error);
+            this.canvas.dataset.sceneProofRequiredLostIds = '[]';
+            this.canvas.dataset.sceneProofRequiredNotProvenIds = '[]';
+            this.canvas.dataset.sceneProofRequiredFailures = '[]';
           }
           return this.phase8Output;
         }
@@ -350,7 +399,12 @@
             this.renderExecutionInput,
             this.canvas
           );
-          if (!plan || !plan.samples.length) return null;
+          if (!plan || !plan.samples.length) {
+            this.canvas.dataset.phase7PixelReadbackPlan = 'none';
+            return null;
+          }
+          this.canvas.dataset.phase7PixelReadbackPlan = String(plan.samples.length);
+          if (this.pendingPixelReadbackPacketKey === plan.packetKey) return null;
           if (!this.device || typeof this.device.createBuffer !== 'function') return null;
           if (!encoder || typeof encoder.copyTextureToBuffer !== 'function') return null;
           const size = Math.max(PIXEL_READBACK_BYTES_PER_ROW, plan.samples.length * PIXEL_READBACK_BYTES_PER_ROW);
@@ -373,7 +427,7 @@
               { width: 1, height: 1, depthOrArrayLayers: 1 }
             );
           });
-          return {
+          const readback = {
             schema: 'simulatte.phase7PixelReadback.v1',
             serial: this.pixelReadbackSerial += 1,
             packetKey: this.renderData && this.renderData.packetKey || '',
@@ -381,6 +435,11 @@
             buffer,
             bytesPerRow: PIXEL_READBACK_BYTES_PER_ROW,
           };
+          this.pendingPixelReadbackPacketKey = readback.packetKey;
+          this.canvas.dataset.phase7PixelReadback = 'pending';
+          this.canvas.dataset.phase7PixelReadbackMessage = '';
+          this.canvas.dataset.phase7PixelProofStatus = 'pending';
+          return readback;
         }
 
         schedulePixelReadback(readback, renderCount, frameMs) {
@@ -408,6 +467,11 @@
             })
             .catch((err) => {
               this.recordPixelReadbackFailure(readback, err);
+            })
+            .finally(() => {
+              if (this.pendingPixelReadbackPacketKey === readback.packetKey) {
+                this.pendingPixelReadbackPacketKey = '';
+              }
             });
           this.pendingPixelReadbackPromise = done;
         }
@@ -431,23 +495,12 @@
             sampleCount: samples.length,
             readbackSerial: readback.serial,
           };
-          const optimization = this.webgpuOptimizationReceipt();
-          this.phase7Output = phase7OutputEnvelope(
-            this.renderExecutionInput,
-            this.sceneRenderPacket,
-            renderCount,
-            frameMs,
-            this.canvas,
-            this.renderData,
-            optimization
-          );
+          this.phase7OutputPacketKey = '';
+          this.refreshPhase7Output(renderCount, frameMs);
           const pixelAudit = this.phase7Output && this.phase7Output.artifact &&
             this.phase7Output.artifact.renderExecution &&
             this.phase7Output.artifact.renderExecution.pixelAudit;
           this.renderData.livePixelSamplesStatus = pixelAudit && pixelAudit.status || 'unknown';
-          this.canvas.dataset.phase7Output = this.phase7Output.schema;
-          this.canvas.dataset.phase7OutputInput = this.phase7Output.inputSchema;
-          this.settleSceneProof();
           this.canvas.dataset.phase7PixelReadback = 'pass';
           this.canvas.dataset.phase7PixelSampleCount = String(samples.length);
           this.canvas.dataset.phase7PixelProofStatus = pixelAudit && pixelAudit.status || 'unknown';
@@ -466,6 +519,10 @@
           this.canvas.dataset.phase7PixelSampledObligations = pixelAudit && pixelAudit.livePixelAudit
             ? pixelAudit.livePixelAudit.sampledObligationIds.join(',')
             : '';
+          this.canvas.dataset.phase7VisualObligationProof = JSON.stringify(
+            this.phase7Output && this.phase7Output.artifact && this.phase7Output.artifact.renderExecution.visualObligationProof || []
+          ).slice(0, 2000);
+          this.canvas.dataset.phase7PixelAuditChecks = JSON.stringify(pixelAudit && pixelAudit.checks || []).slice(0, 2000);
         }
 
         recordPixelReadbackFailure(readback, err) {
@@ -482,6 +539,27 @@
           this.errorLog.push(message);
           this.canvas.dataset.phase7PixelReadback = 'fail';
           this.canvas.dataset.phase7PixelReadbackMessage = message;
+          this.canvas.dataset.phase7PixelProofStatus = 'fail';
+        }
+
+        resetPixelReadbackForPacket(packetKey = '') {
+          this.pendingPixelReadbackPacketKey = '';
+          this.lastPixelReadbackReceipt = null;
+          this.phase7Output = null;
+          this.phase7OutputPacketKey = '';
+          if (!this.canvas || !this.canvas.dataset) return;
+          this.canvas.dataset.phase7PixelReadback = '';
+          this.canvas.dataset.phase7PixelReadbackMessage = '';
+          this.canvas.dataset.phase7PixelProofStatus = '';
+          this.canvas.dataset.phase7PixelSampleCount = '0';
+          this.canvas.dataset.phase7PixelVisibleSampleCount = '0';
+          this.canvas.dataset.phase7PixelMinContrast = '0';
+          this.canvas.dataset.phase7PixelSampledObligationCount = '0';
+          this.canvas.dataset.phase7PixelRequiredObligationCount = '0';
+          this.canvas.dataset.phase7PixelSampledObligations = '';
+          this.canvas.dataset.phase7VisualObligationProof = '';
+          this.canvas.dataset.phase7PixelAuditChecks = '';
+          this.canvas.dataset.phase7PixelPacketKey = packetKey;
         }
 
         applyRenderData(renderData, hasScenePacket) {
@@ -494,6 +572,8 @@
           this.sceneInstanceData = renderData.sceneInstanceData;
           this.sceneInstanceCount = renderData.sceneInstanceCount;
           this.sceneInstanceBufferDirty = true;
+          this.sceneStatsBufferDirty = true;
+          this.drawIndirectBufferDirty = true;
           this.palette = paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
           this.metrics = renderData.metrics;
           this.seed = renderData.seed;
@@ -535,17 +615,23 @@
             this.device.queue.writeBuffer(this.sceneInstanceBuffer, 0, this.sceneInstanceData);
             this.sceneInstanceBufferDirty = false;
           }
-          this.device.queue.writeBuffer(
-            this.sceneStatsBuffer,
-            0,
-            new Uint32Array([
+          if (this.sceneStatsBufferDirty) {
+            this.device.queue.writeBuffer(
+              this.sceneStatsBuffer,
               0,
-              Math.min(GPU_SCENE_INSTANCE_CAPACITY, Math.max(0, this.sceneInstanceCount || 0)),
-              GPU_SCENE_INSTANCE_CAPACITY,
-              this.computeSceneReady ? 1 : 0,
-            ])
-          );
-          this.device.queue.writeBuffer(this.drawIndirectBuffer, 0, new Uint32Array([3, 1, 0, 0]));
+              new Uint32Array([
+                0,
+                Math.min(GPU_SCENE_INSTANCE_CAPACITY, Math.max(0, this.sceneInstanceCount || 0)),
+                GPU_SCENE_INSTANCE_CAPACITY,
+                this.computeSceneReady ? 1 : 0,
+              ])
+            );
+            this.sceneStatsBufferDirty = false;
+          }
+          if (this.drawIndirectBufferDirty) {
+            this.device.queue.writeBuffer(this.drawIndirectBuffer, 0, new Uint32Array([3, 1, 0, 0]));
+            this.drawIndirectBufferDirty = false;
+          }
         }
 
         webgpuOptimizationReceipt() {
@@ -580,7 +666,7 @@
           const u = this.uniforms;
           u[0] = this.canvas.width;
           u[1] = this.canvas.height;
-          u[2] = nowMs * 0.001;
+          u[2] = this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001;
           u[3] = this.sceneId;
           u[4] = dynamicMetric(this.metrics.heat, state, 'heat');
           u[5] = dynamicMetric(this.metrics.flow, state, 'motion');
@@ -704,6 +790,7 @@
         const ledgerRows = ledger && Array.isArray(ledger.obligations) ? ledger.obligations : [];
         const rows = direct.length ? direct : ledgerRows;
         return rows.filter((row) => row && row.required === true && (
+          direct.length > 0 ||
           row.kind === 'visual' ||
           row.ownedByPhase === 6 ||
           /^visual:/.test(String(row.obligationId || row.id || ''))

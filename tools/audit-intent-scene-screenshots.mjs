@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
+import { auditPromptMatches, waitForCondition } from './audit-runtime-wait.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -99,8 +100,11 @@ const MIME = Object.freeze({
   '.png': 'image/png',
   '.wasm': 'application/wasm',
 });
-const MODEL_RUNTIME_WAIT_MS = 480000;
 const MODEL_RUNTIME_STALL_MS = 90000;
+const CLEAN_CANVAS_CAPTURE_SELECTORS = Object.freeze([
+  '.prompt-dock',
+  '#loading-canvas',
+]);
 
 function parseArgs(argv) {
   const options = {
@@ -263,6 +267,9 @@ function pngVisualStats(bytes) {
   let sum = 0;
   let sumSq = 0;
   let colored = 0;
+  let nearWhite = 0;
+  let edgeSamples = 0;
+  let strongEdges = 0;
   const yStep = Math.max(1, Math.floor(height / 72));
   const xStep = Math.max(1, Math.floor(width / 96));
   for (let y = 0; y < height; y += yStep) {
@@ -275,6 +282,15 @@ function pngVisualStats(bytes) {
       sum += luma;
       sumSq += luma * luma;
       if (Math.max(r, g, b) - Math.min(r, g, b) > 16) colored += 1;
+      if (luma >= 245) nearWhite += 1;
+      if (x + xStep < width && y + yStep < height) {
+        const right = (y * width + x + xStep) * channels;
+        const below = ((y + yStep) * width + x) * channels;
+        const rightLuma = 0.2126 * pixels[right] + 0.7152 * pixels[right + 1] + 0.0722 * pixels[right + 2];
+        const belowLuma = 0.2126 * pixels[below] + 0.7152 * pixels[below + 1] + 0.0722 * pixels[below + 2];
+        if (Math.max(Math.abs(luma - rightLuma), Math.abs(luma - belowLuma)) >= 24) strongEdges += 1;
+        edgeSamples += 1;
+      }
       hash ^= r + (g << 8) + (b << 16) + samples;
       hash = Math.imul(hash, 16777619) >>> 0;
       samples += 1;
@@ -289,8 +305,31 @@ function pngVisualStats(bytes) {
     lumaMean: Number(mean.toFixed(3)),
     lumaStd: Number(Math.sqrt(variance).toFixed(3)),
     coloredRatio: samples ? Number((colored / samples).toFixed(4)) : 0,
+    nearWhiteRatio: samples ? Number((nearWhite / samples).toFixed(4)) : 0,
+    strongEdgeRatio: edgeSamples ? Number((strongEdges / edgeSamples).toFixed(4)) : 0,
+    perceptualHash: differenceHash(pixels, width, height, channels),
     hash: (hash >>> 0).toString(16).padStart(8, '0'),
   };
+}
+
+function differenceHash(pixels, width, height, channels) {
+  const columns = 9;
+  const rows = 8;
+  let value = 0n;
+  for (let row = 0; row < rows; row += 1) {
+    const y = Math.min(height - 1, Math.floor((row + 0.5) * height / rows));
+    let previous = null;
+    for (let column = 0; column < columns; column += 1) {
+      const x = Math.min(width - 1, Math.floor((column + 0.5) * width / columns));
+      const offset = (y * width + x) * channels;
+      const luma = 0.2126 * pixels[offset] + 0.7152 * pixels[offset + 1] + 0.0722 * pixels[offset + 2];
+      if (previous !== null) {
+        value = (value << 1n) | (previous > luma ? 1n : 0n);
+      }
+      previous = luma;
+    }
+  }
+  return value.toString(16).padStart(16, '0');
 }
 
 function paeth(left, up, upLeft) {
@@ -387,6 +426,7 @@ class CdpClient {
     this.nextId = 1;
     this.pending = new Map();
     this.eventWaiters = new Map();
+    this.diagnosticEvents = [];
     this.ws = new WebSocket(url);
     this.ready = new Promise((resolve, reject) => {
       this.ws.addEventListener('open', resolve, { once: true });
@@ -404,11 +444,29 @@ class CdpClient {
       else resolve(message.result || {});
       return;
     }
+    this.recordDiagnosticEvent(message);
     if (message.method && this.eventWaiters.has(message.method)) {
       const waiters = this.eventWaiters.get(message.method);
       this.eventWaiters.delete(message.method);
       for (const resolve of waiters) resolve(message.params || {});
     }
+  }
+
+  recordDiagnosticEvent(message) {
+    const method = String(message && message.method || '');
+    const params = message && message.params || {};
+    const consoleType = String(params.type || '');
+    const logLevel = String(params.entry && params.entry.level || '');
+    const keep = method === 'Runtime.exceptionThrown' ||
+      (method === 'Runtime.consoleAPICalled' && ['error', 'warning', 'assert'].includes(consoleType)) ||
+      (method === 'Log.entryAdded' && ['error', 'warning'].includes(logLevel));
+    if (!keep) return;
+    this.diagnosticEvents.push({ method, params });
+    if (this.diagnosticEvents.length > 50) this.diagnosticEvents.shift();
+  }
+
+  diagnostics() {
+    return this.diagnosticEvents.slice();
   }
 
   async send(method, params = {}) {
@@ -476,59 +534,44 @@ async function evaluate(cdp, expression, options = {}) {
   return result.result ? result.result.value : undefined;
 }
 
-async function waitForCondition(label, fn, timeoutMs, options = {}) {
-  const started = Date.now();
-  const maxWaitMs = options.extendOnProgress === true
-    ? Math.max(timeoutMs, MODEL_RUNTIME_WAIT_MS)
-    : timeoutMs;
-  let lastProgressAt = started;
-  let lastSignature = '';
-  let last = null;
-  while (Date.now() - started < maxWaitMs) {
-    last = await fn().catch((err) => ({ error: err.message }));
-    if (last && last.ok) return last;
-    const signature = conditionProgressSignature(last);
-    if (signature && signature !== lastSignature) {
-      lastSignature = signature;
-      lastProgressAt = Date.now();
+async function hideCanvasOverlays(cdp) {
+  return evaluate(cdp, `(() => {
+    const selectors = ${JSON.stringify(CLEAN_CANVAS_CAPTURE_SELECTORS)};
+    const rows = Array.from(new Set(selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)))));
+    window.__simulatteAuditOverlayStyles = rows.map((node) => ({ node, cssText: node.style.cssText }));
+    for (const node of rows) {
+      node.style.setProperty('visibility', 'hidden', 'important');
+      node.style.setProperty('pointer-events', 'none', 'important');
     }
-    if (
-      options.extendOnProgress === true &&
-      Date.now() - started >= timeoutMs &&
-      Date.now() - lastProgressAt >= MODEL_RUNTIME_STALL_MS
-    ) {
-      break;
-    }
-    await delay(120);
-  }
-  throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(last)}`);
+    return rows.length;
+  })()`);
 }
 
-function conditionProgressSignature(value = {}) {
-  const health = value && value.runtimeHealth || {};
-  const timing = health.timing || {};
-  const model = health.model || {};
-  const resource = health.resource || {};
-  return JSON.stringify({
-    state: value && value.state || health.state || '',
-    stage: value && value.stageId || health.stage || '',
-    pipelineStep: value && value.pipelineStep || health.pipelineStep || '',
-    progress: value && value.progress || health.progress || '',
-    blocking: value && value.blocking || health.blocking || '',
-    disabled: value && value.disabled || '',
-    message: value && value.message || health.message || '',
-    displayLine: value && value.displayLine || health.displayLine || '',
-    phaseLabel: value && value.phaseLabel || health.phaseLabel || '',
-    resourceKind: value && value.resourceKind || resource.kind || '',
-    resourceFile: value && value.resourceFile || resource.file || '',
-    completedBytes: value && value.completedBytes || resource.completedBytes || 0,
-    totalBytes: value && value.totalBytes || resource.totalBytes || 0,
-    silenceBucket: Math.floor(Number(health.silenceMs || 0) / 5000),
-    traceId: value && value.traceId || timing.traceId || '',
-    rankId: value && value.rankId || timing.rankId || 0,
-    providerReady: value && value.providerReady || timing.providerReady || false,
-    modelId: value && value.modelId || model.id || '',
-  });
+async function restoreCanvasOverlays(cdp) {
+  return evaluate(cdp, `(() => {
+    const rows = Array.isArray(window.__simulatteAuditOverlayStyles)
+      ? window.__simulatteAuditOverlayStyles
+      : [];
+    for (const row of rows) {
+      if (row && row.node && row.node.style) row.node.style.cssText = row.cssText || '';
+    }
+    delete window.__simulatteAuditOverlayStyles;
+    return rows.length;
+  })()`);
+}
+
+async function captureCleanCanvasScreenshot(cdp, clip) {
+  await hideCanvasOverlays(cdp);
+  try {
+    return await cdp.send('Page.captureScreenshot', {
+      format: 'png',
+      captureBeyondViewport: false,
+      fromSurface: true,
+      clip,
+    });
+  } finally {
+    await restoreCanvasOverlays(cdp);
+  }
 }
 
 function delay(ms) {
@@ -555,6 +598,7 @@ function forceLocalIntentScript() {
 async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
+  await cdp.send('Log.enable');
   await cdp.send('Emulation.setDeviceMetricsOverride', {
     width,
     height,
@@ -596,8 +640,45 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
       runtimeHealth: health,
       runtimeEvents,
     };
-  })()`), timeoutMs, { extendOnProgress: intentMode === 'model' });
+  })()`), timeoutMs, {
+    extendOnProgress: intentMode === 'model',
+    stallTimeoutMs: MODEL_RUNTIME_STALL_MS,
+  });
   await delay(300);
+}
+
+async function auditFailureState(cdp) {
+  if (!cdp) return null;
+  try {
+    return await evaluate(cdp, `(() => {
+      const runtime = document.getElementById('intent-runtime');
+      const canvas = document.getElementById('physics-canvas');
+      const lab = window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab;
+      const spec = lab && typeof lab.getSpec === 'function' ? lab.getSpec() : null;
+      const artifacts = spec && spec.phaseArtifacts || {};
+      const phase6 = artifacts.phase6 && artifacts.phase6.artifact || {};
+      const visualCompile = phase6.visualCompile || {};
+      const canvasDiagnostics = canvas && canvas.dataset
+        ? Object.fromEntries(Object.entries(canvas.dataset).filter(([key]) =>
+          /^(?:renderer|renderCount|scene|phase7|phase8|webgpu|audit|error|failed)/i.test(key)))
+        : {};
+      return {
+        url: location.href,
+        runtime: runtime && runtime.dataset ? { ...runtime.dataset } : {},
+        canvas: canvasDiagnostics,
+        labReady: Boolean(lab),
+        spec: spec ? {
+          name: spec.name || '',
+          templateId: spec.templateId || '',
+          phaseSchemas: Object.fromEntries(Object.entries(artifacts).map(([key, value]) => [key, value && value.schema || ''])),
+          phase6SceneKind: visualCompile.sceneRenderPacket && visualCompile.sceneRenderPacket.sceneKind || '',
+          phase6RenderPacketSchema: visualCompile.sceneRenderPacket && visualCompile.sceneRenderPacket.schema || '',
+        } : null,
+      };
+    })()`);
+  } catch (error) {
+    return { captureError: error && error.message ? error.message : String(error) };
+  }
 }
 
 async function runPrompt(cdp, entry, index, outDir, options) {
@@ -605,6 +686,15 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   const frameDelayMs = options.frameDelayMs;
   const prompt = entry.prompt;
   const label = `${String(index + 1).padStart(2, '0')}-${entry.kind}-${slug(prompt)}`;
+  let expectedRenderInputSerial = 0;
+  await evaluate(cdp, `(() => {
+    const canvas = document.getElementById('physics-canvas');
+    if (canvas && canvas.dataset) {
+      canvas.dataset.auditRequirePixelProof = 'true';
+      canvas.dataset.auditFreezeFrame = 'false';
+    }
+    return Boolean(canvas);
+  })()`);
   if (options.intentMode !== 'model') {
     await evaluate(cdp, `(() => {
       const input = document.getElementById('build-prompt');
@@ -655,14 +745,24 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         renderCount: canvas && canvas.dataset && canvas.dataset.renderCount,
         disabled: run && run.disabled
       };
-    })()`), timeoutMs, { extendOnProgress: true });
+    })()`), timeoutMs, { extendOnProgress: true, stallTimeoutMs: MODEL_RUNTIME_STALL_MS });
   } else {
-    await evaluate(cdp, `(() => {
+    const promptBaseline = await evaluate(cdp, `(() => {
       const input = document.getElementById('build-prompt');
       if (!input) return { ok: false, reason: 'missing prompt input' };
+      const canvas = document.getElementById('physics-canvas');
+      const lab = window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab;
+      const spec = lab && typeof lab.getSpec === 'function' ? lab.getSpec() : null;
+      const phase2 = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase2 || null;
       input.value = ${JSON.stringify(prompt)};
       input.dispatchEvent(new Event('input', { bubbles: true }));
-      return { ok: true };
+      return {
+        ok: true,
+        sceneId: canvas && canvas.dataset ? canvas.dataset.sceneId || '' : '',
+        renderInputSerial: Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0),
+        compiledPrompt: phase2 && phase2.artifact && phase2.artifact.languageGraph &&
+          phase2.artifact.languageGraph.sourceText || '',
+      };
     })()`);
     await waitForCondition(`run button ready for ${label}`, () => evaluate(cdp, `(() => {
       const run = document.getElementById('build-lab');
@@ -685,25 +785,39 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         runtimeHealth: health,
         runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-8),
       };
-    })()`), timeoutMs, { extendOnProgress: true });
+    })()`), timeoutMs, { extendOnProgress: true, stallTimeoutMs: MODEL_RUNTIME_STALL_MS });
     await evaluate(cdp, `(() => {
       const run = document.getElementById('build-lab');
       if (!run) return { ok: false, reason: 'missing run control' };
       run.click();
       return { ok: true };
     })()`);
-    await waitForCondition(`intent ready for ${label}`, () => evaluate(cdp, `(() => {
+    const readyState = await waitForCondition(`intent ready for ${label}`, () => evaluate(cdp, `(() => {
       const node = document.getElementById('intent-runtime');
       const run = document.getElementById('build-lab');
       const message = document.getElementById('intent-runtime-message');
       const stage = document.getElementById('intent-runtime-stage');
       const canvas = document.getElementById('physics-canvas');
+      const lab = window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab;
+      const spec = lab && typeof lab.getSpec === 'function' ? lab.getSpec() : null;
+      const phase2 = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase2 || null;
+      const phase6 = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 || null;
+      const phase6Ready = phase6 && phase6.schema === 'simulatte.phase6.output.v2';
+      const sceneVisible = canvas && canvas.dataset && canvas.dataset.sceneVisible === 'true';
+      const sceneId = canvas && canvas.dataset ? canvas.dataset.sceneId || '' : '';
+      const renderInputSerial = Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0);
+      const compiledPrompt = phase2 && phase2.artifact && phase2.artifact.languageGraph &&
+        phase2.artifact.languageGraph.sourceText || '';
+      const normalizePrompt = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      const promptMatches = normalizePrompt(compiledPrompt) === normalizePrompt(${JSON.stringify(prompt)});
+      const renderInputAdvanced = renderInputSerial > ${Number(promptBaseline && promptBaseline.renderInputSerial || 0)};
       const health = window.SimulatteIntentRuntimeHealth || (() => {
         try { return node && node.dataset.health ? JSON.parse(node.dataset.health) : null; }
         catch (_err) { return null; }
       })();
       return {
-        ok: !!node && node.dataset.state === 'ready' && (!run || run.disabled === false),
+        ok: !!node && node.dataset.state === 'ready' && (!run || run.disabled === false) &&
+          phase6Ready && sceneVisible && promptMatches && renderInputAdvanced,
         state: node && node.dataset.state,
         stageId: node && node.dataset.stage,
         lastStage: node && node.dataset.lastStage,
@@ -729,13 +843,70 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         phaseLabel: stage && stage.textContent,
         renderer: canvas && canvas.dataset && canvas.dataset.renderer,
         rendererStatus: canvas && canvas.dataset && canvas.dataset.rendererStatus,
+        sceneVisible,
+        sceneId,
+        renderInputSerial,
+        renderInputAdvanced,
+        compiledPrompt,
+        promptMatches,
+        phase6Schema: phase6 && phase6.schema || '',
+        compiledSpecName: spec && spec.name || '',
         disabled: run && run.disabled,
         runtimeHealth: health,
         runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-8),
       };
-    })()`), timeoutMs, { extendOnProgress: true });
+    })()`), timeoutMs, { extendOnProgress: true, stallTimeoutMs: MODEL_RUNTIME_STALL_MS });
+    expectedRenderInputSerial = Number(readyState && readyState.renderInputSerial || 0);
   }
-  await delay(700);
+  await delay(frameDelayMs);
+  const settledProof = await waitForCondition(`pixel and scene proof settled for ${label}`, () => evaluate(cdp, `(() => {
+    const canvas = document.getElementById('physics-canvas');
+    const lab = window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab;
+    const spec = lab && typeof lab.getSpec === 'function' ? lab.getSpec() : null;
+    const phase2 = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase2 || null;
+    const compiledPrompt = phase2 && phase2.artifact && phase2.artifact.languageGraph &&
+      phase2.artifact.languageGraph.sourceText || '';
+    const normalizePrompt = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const promptMatches = normalizePrompt(compiledPrompt) === normalizePrompt(${JSON.stringify(prompt)});
+    const sceneId = canvas && canvas.dataset ? canvas.dataset.sceneId || '' : '';
+    const renderInputSerial = Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0);
+    const renderInputMatches = ${expectedRenderInputSerial} ? renderInputSerial === ${expectedRenderInputSerial} : true;
+    const sceneProofVerdict = canvas && canvas.dataset ? canvas.dataset.sceneProofVerdict || '' : '';
+    const pixelReadback = canvas && canvas.dataset ? canvas.dataset.phase7PixelReadback || '' : '';
+    const pixelProof = canvas && canvas.dataset ? canvas.dataset.phase7PixelProofStatus || '' : '';
+    const rendered = Number(canvas && canvas.dataset && canvas.dataset.renderCount || 0);
+    const terminalSceneProof = ['pass', 'fail', 'not-proven', 'error'].includes(sceneProofVerdict);
+    const required = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelRequiredObligationCount || 0);
+    const sampled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSampledObligationCount || 0);
+    return {
+      ok: promptMatches && renderInputMatches && rendered >= 3 && terminalSceneProof && pixelReadback === 'pass' && pixelProof === 'pass' && required >= 1 && sampled === required,
+      renderCount: rendered,
+      sceneId,
+      renderInputSerial,
+      renderInputMatches,
+      compiledPrompt,
+      promptMatches,
+      sceneProofVerdict,
+      phase7PixelReadback: pixelReadback,
+      phase7PixelProofStatus: pixelProof,
+      phase7PixelRequiredObligationCount: required,
+      phase7PixelSampledObligationCount: sampled,
+      phase7PixelVisibleSampleCount: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelVisibleSampleCount || 0),
+      phase7PixelMinContrast: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelMinContrast || 0),
+      phase7VisualObligationProof: canvas && canvas.dataset && canvas.dataset.phase7VisualObligationProof || '',
+      phase7PixelAuditChecks: canvas && canvas.dataset && canvas.dataset.phase7PixelAuditChecks || '',
+    };
+  })()`), timeoutMs, {
+    extendOnProgress: true,
+    stallTimeoutMs: MODEL_RUNTIME_STALL_MS,
+    progressSignature: (value) => JSON.stringify({
+      renderCount: value && value.renderCount || 0,
+      sceneProofVerdict: value && value.sceneProofVerdict || '',
+      phase7PixelReadback: value && value.phase7PixelReadback || '',
+      phase7PixelProofStatus: value && value.phase7PixelProofStatus || '',
+      sampled: value && value.phase7PixelSampledObligationCount || 0,
+    }),
+  });
   const diagnostics = await evaluate(cdp, `(() => {
     const canvas = document.getElementById('physics-canvas');
     const fieldCanvas = document.getElementById('field-canvas');
@@ -792,6 +963,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     } catch (_err) {}
     const specForIntent = browserSpec || modelSpec || parsed || null;
     const phaseArtifacts = specForIntent && specForIntent.phaseArtifacts || {};
+    const compiledPrompt = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact &&
+      phaseArtifacts.phase2.artifact.languageGraph &&
+      phaseArtifacts.phase2.artifact.languageGraph.sourceText || '';
+    const compiledSourcePromptHash = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact &&
+      phaseArtifacts.phase2.artifact.sceneLanguageGraph &&
+      phaseArtifacts.phase2.artifact.sceneLanguageGraph.sourcePromptHash || '';
     const phaseArtifactSchemas = Object.fromEntries(Array.from({ length: 6 }, (_, index) => {
       const key = 'phase' + (index + 1);
       return [key, phaseArtifacts[key] && phaseArtifacts[key].schema || ''];
@@ -800,9 +977,28 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const phase6VisualCompile = phaseArtifacts.phase6 &&
       phaseArtifacts.phase6.artifact &&
       phaseArtifacts.phase6.artifact.visualCompile || null;
+    const phase1RuntimeContext = phaseArtifacts.phase1 &&
+      phaseArtifacts.phase1.artifact &&
+      phaseArtifacts.phase1.artifact.runtimeContext || {};
+    const promptRuntimeReceipt = phase1RuntimeContext.promptRuntimeReceipt || {};
+    const phase3Retrieval = phaseArtifacts.phase3 &&
+      phaseArtifacts.phase3.artifact &&
+      phaseArtifacts.phase3.artifact.retrievalRerankResult || {};
+    const phase4AcceptedGraph = phaseArtifacts.phase4 &&
+      phaseArtifacts.phase4.artifact &&
+      phaseArtifacts.phase4.artifact.groundedIntent &&
+      phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph || {};
+    const phase5PhysicsIR = phaseArtifacts.phase5 &&
+      phaseArtifacts.phase5.artifact &&
+      phaseArtifacts.phase5.artifact.simulationCompile &&
+      phaseArtifacts.phase5.artifact.simulationCompile.physicsIR || {};
+    const phase3RerankReceipt = phase3Retrieval.rerankReceipt || {};
+    const sourceRerankReceipt = phase3RerankReceipt.source || {};
+    const slotRetrieval = phase3Retrieval.slotRetrieval || {};
     const rendererPlan = phase6VisualCompile && phase6VisualCompile.rendererPlan || null;
     const visualIR = phase6VisualCompile && phase6VisualCompile.visualIR || null;
     const sceneRenderPacket = phase6VisualCompile && phase6VisualCompile.sceneRenderPacket || null;
+    const phase6CompositionLedger = phase6VisualCompile && phase6VisualCompile.compositionLedger || {};
     const graphicsAtoms = visualIR && visualIR.graphicsAtoms || {};
     const atomUniforms = graphicsAtoms && graphicsAtoms.uniforms || {};
     const intentBrief = specForIntent && specForIntent.intent && specForIntent.intent.intentBrief || null;
@@ -815,6 +1011,9 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     );
     return {
       runtimeState: runtime ? runtime.dataset.state || '' : '',
+      renderInputSerial: Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0),
+      compiledPrompt,
+      compiledSourcePromptHash,
       runtimeStage: runtime ? runtime.dataset.stage || '' : '',
       runtimeLastStage: runtime ? runtime.dataset.lastStage || '' : '',
       runtimePipelineStep: runtime ? runtime.dataset.pipelineStep || '' : '',
@@ -839,6 +1038,83 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       runtimeCacheHitCount: runtime ? Number(runtime.dataset.cacheHitCount || 0) : 0,
       runtimeCacheMissCount: runtime ? Number(runtime.dataset.cacheMissCount || 0) : 0,
       runtimeCachedSpanCount: runtime ? Number(runtime.dataset.cachedSpanCount || 0) : 0,
+      modelExecutionReceipt: promptRuntimeReceipt.schema ? {
+        schema: 'simulatte.modelExecutionAuditReceipt.v1',
+        promptRuntimeSchema: promptRuntimeReceipt.schema || '',
+        ready: promptRuntimeReceipt.ready === true,
+        noFallback: promptRuntimeReceipt.noFallback === true,
+        providerReady: promptRuntimeReceipt.providerReady === true,
+        providerBackend: promptRuntimeReceipt.providerBackend || '',
+        modelRuntimeLock: promptRuntimeReceipt.modelRuntimeLock || null,
+        embeddingModelId: promptRuntimeReceipt.modelId || '',
+        embeddingModelHash: promptRuntimeReceipt.modelHash || '',
+        embeddingDim: Number(promptRuntimeReceipt.embeddingDim || 0),
+        embeddingProbe: promptRuntimeReceipt.embeddingProbe === true,
+        embeddingProbeCount: Number(promptRuntimeReceipt.probeCount || 0),
+        embeddingProbeDim: Number(promptRuntimeReceipt.probeEmbeddingDim || 0),
+        embeddingStabilitySimilarity: Number(promptRuntimeReceipt.stabilitySimilarity || 0),
+        embeddingDistinctProbePairs: Number(promptRuntimeReceipt.distinctProbePairs || 0),
+        rerankerId: promptRuntimeReceipt.reranker || '',
+        rerankerModelId: promptRuntimeReceipt.rerankerModelId || '',
+        rerankerModelHash: promptRuntimeReceipt.rerankerModelHash || '',
+        rerankerRequired: promptRuntimeReceipt.rerankerRequired === true,
+        rerankerReady: promptRuntimeReceipt.rerankerReady === true,
+        rerankerStatus: promptRuntimeReceipt.rerankerStatus || '',
+        rerankerBackend: promptRuntimeReceipt.rerankerBackend || '',
+        rerankerProbeCount: Number(promptRuntimeReceipt.rerankerProbeCount || 0),
+        rerankerProbeCandidateCount: Number(promptRuntimeReceipt.rerankerProbeCandidateCount || 0),
+        rerankerProbeOutputCount: Number(promptRuntimeReceipt.rerankerProbeOutputCount || 0),
+        phase3Rerank: {
+          schema: sourceRerankReceipt.schema || phase3RerankReceipt.sourceSchema || '',
+          model: sourceRerankReceipt.model || phase3RerankReceipt.sourceModelId || '',
+          modelReady: sourceRerankReceipt.modelReady === true,
+          modelRequired: sourceRerankReceipt.modelRequired === true,
+          modelStatus: sourceRerankReceipt.modelStatus || '',
+          modelBackend: sourceRerankReceipt.modelBackend || phase3RerankReceipt.sourceBackend || '',
+          candidateInputCount: Number(sourceRerankReceipt.modelCandidateInputCount || 0),
+          candidateOutputCount: Number(sourceRerankReceipt.modelCandidateOutputCount || 0),
+          slotRerankCallCount: Number(phase3RerankReceipt.slotRerankCallCount || slotRetrieval.rerankCallCount || 0),
+          embeddedSlotCount: Number(phase3RerankReceipt.embeddedSlotCount || slotRetrieval.embeddedSlotCount || 0),
+        },
+      } : null,
+      phase3MissingRequiredSlots: (phase3Retrieval.missingRequiredSlots || []).map((row) => ({
+        slotId: row.slotId || '',
+        entryId: row.entryId || '',
+        reason: row.reason || '',
+      })),
+      phase3SlotEvidence: (phase3Retrieval.slotEvidence || []).map((row) => ({
+        slotId: row.slotId || '',
+        entryId: row.entryId || '',
+        status: row.status || '',
+        acceptedCount: Number(row.acceptedCount || 0),
+        acceptedCandidateIds: row.acceptedCandidateIds || [],
+      })),
+      phase4AcceptedNodeIdentities: (phase4AcceptedGraph.nodes || []).map((row) => ({
+        id: row.id || '',
+        canonicalId: row.canonicalId || '',
+        label: row.label || '',
+        indexName: row.indexName || '',
+      })),
+      phase5EntityIdentities: (phase5PhysicsIR.entities || []).map((row) => ({
+        id: row.id || '',
+        canonicalId: row.canonicalId || '',
+        label: row.label || row.name || '',
+        sourceKind: row.sourceKind || '',
+      })),
+      phase6CompositionObligations: (phase6CompositionLedger.obligations || []).map((row) => ({
+        id: row.id || row.obligationId || '',
+        kind: row.kind || '',
+        target: row.target || '',
+        required: row.required === true,
+        status: row.status || '',
+        visualEvidence: row.visualEvidence || [],
+      })),
+      sceneRenderPacketIdentities: (sceneRenderPacket && sceneRenderPacket.entities || []).map((row) => ({
+        id: row.id || '',
+        label: row.label || '',
+        type: row.identity && row.identity.type || '',
+        sourceLabel: row.identity && row.identity.sourceLabel || '',
+      })),
       canvasWidth: width,
       canvasHeight: height,
       physicsCanvasRenderer: canvas && canvas.dataset ? canvas.dataset.renderer || '' : '',
@@ -865,11 +1141,26 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       sceneProofError: canvas && canvas.dataset ? canvas.dataset.sceneProofError || '' : '',
       sceneProofLostCount: canvas && canvas.dataset ? canvas.dataset.sceneProofLostCount || '0' : '0',
       sceneProofNotProvenCount: canvas && canvas.dataset ? canvas.dataset.sceneProofNotProvenCount || '0' : '0',
+      sceneProofRequiredLostIds: canvas && canvas.dataset ? canvas.dataset.sceneProofRequiredLostIds || '[]' : '[]',
+      sceneProofRequiredNotProvenIds: canvas && canvas.dataset
+        ? canvas.dataset.sceneProofRequiredNotProvenIds || '[]'
+        : '[]',
+      sceneProofRequiredFailures: canvas && canvas.dataset
+        ? canvas.dataset.sceneProofRequiredFailures || '[]'
+        : '[]',
       phase7RenderData: canvas && canvas.dataset ? canvas.dataset.phase7RenderData || '' : '',
       phase7RenderDataKey: canvas && canvas.dataset ? canvas.dataset.phase7RenderDataKey || '' : '',
       phase7RenderPath: canvas && canvas.dataset ? canvas.dataset.phase7RenderPath || '' : '',
+      phase7InputVisualObligationCount: canvas && canvas.dataset
+        ? Number(canvas.dataset.phase7InputVisualObligationCount || 0)
+        : 0,
       phase7PixelReadback: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadback || '' : '',
       phase7PixelReadbackMessage: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadbackMessage || '' : '',
+      phase7PixelReadbackPlan: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadbackPlan || '' : '',
+      phase7LivePixelSamplesRequired: canvas && canvas.dataset ? canvas.dataset.phase7LivePixelSamplesRequired || '' : '',
+      phase7RequiredVisualObligationCount: canvas && canvas.dataset
+        ? Number(canvas.dataset.phase7RequiredVisualObligationCount || 0)
+        : 0,
       phase7PixelProofStatus: canvas && canvas.dataset ? canvas.dataset.phase7PixelProofStatus || '' : '',
       phase7PixelSampleCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelSampleCount || 0) : 0,
       phase7PixelVisibleSampleCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelVisibleSampleCount || 0) : 0,
@@ -934,6 +1225,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       visualIRSceneRenderPacketEffectCount: sceneRenderPacket && Array.isArray(sceneRenderPacket.effects)
         ? sceneRenderPacket.effects.length
         : 0,
+      phase6VisualObligationCount: phase6VisualCompile && Array.isArray(phase6VisualCompile.visualObligations)
+        ? phase6VisualCompile.visualObligations.length
+        : 0,
+      phase6VisualObligationIds: phase6VisualCompile && Array.isArray(phase6VisualCompile.visualObligations)
+        ? phase6VisualCompile.visualObligations.map((row) => row.obligationId || row.id || '').filter(Boolean)
+        : [],
       visualIRSceneRenderPacketLayers: sceneRenderPacket ? Array.from(new Set([
         ...((sceneRenderPacket.entities || []).map((row) => row.layerSlot)),
         ...((sceneRenderPacket.fields || []).map((row) => row.layerSlot)),
@@ -1005,6 +1302,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   let canvasStatsLater = null;
   let canvasScreenshotHash = '';
   let canvasScreenshotLaterHash = '';
+  let canvasPerceptualHash = '';
+  let canvasPerceptualHashLater = '';
+  let canvasDiversityScreenshot = '';
+  let canvasDiversityScreenshotLater = '';
+  let canvasDiversityPerceptualHash = '';
+  let canvasDiversityPerceptualHashLater = '';
   if (diagnostics.canvasRect && diagnostics.canvasRect.width > 0 && diagnostics.canvasRect.height > 0) {
     try {
       const clip = {
@@ -1014,35 +1317,64 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         height: Math.max(1, diagnostics.canvasRect.height),
         scale: 1,
       };
-      const clipped = await cdp.send('Page.captureScreenshot', {
-        format: 'png',
-        captureBeyondViewport: false,
-        fromSurface: true,
-        clip,
-      });
+      const clipped = await captureCleanCanvasScreenshot(cdp, clip);
       const clipBytes = Buffer.from(clipped.data, 'base64');
       canvasScreenshot = `${label}.canvas.png`;
       await fs.writeFile(path.join(outDir, canvasScreenshot), clipBytes);
       canvasStats = pngVisualStats(clipBytes);
       canvasScreenshotHash = sha256Hex(clipBytes);
       await delay(frameDelayMs);
-      const clippedLater = await cdp.send('Page.captureScreenshot', {
-        format: 'png',
-        captureBeyondViewport: false,
-        fromSurface: true,
-        clip,
-      });
+      const clippedLater = await captureCleanCanvasScreenshot(cdp, clip);
       const clipBytesLater = Buffer.from(clippedLater.data, 'base64');
       canvasScreenshotLater = `${label}.canvas-late.png`;
       await fs.writeFile(path.join(outDir, canvasScreenshotLater), clipBytesLater);
       canvasStatsLater = pngVisualStats(clipBytesLater);
       canvasScreenshotLaterHash = sha256Hex(clipBytesLater);
+      canvasPerceptualHash = canvasStats && canvasStats.perceptualHash || '';
+      canvasPerceptualHashLater = canvasStatsLater && canvasStatsLater.perceptualHash || '';
     } catch (_err) {
       canvasStats = null;
       canvasStatsLater = null;
     }
   }
-  const finalDiagnostics = { ...diagnostics };
+  if (diagnostics.canvasRect && diagnostics.canvasRect.width > 0 && diagnostics.canvasRect.height > 0) {
+    try {
+      await evaluate(cdp, `(() => {
+        const canvas = document.getElementById('physics-canvas');
+        if (!canvas || !canvas.dataset) return false;
+        canvas.dataset.auditFreezeFrame = 'true';
+        return true;
+      })()`);
+      await delay(Math.max(80, Math.min(frameDelayMs, 240)));
+      const clip = {
+        x: Math.max(0, diagnostics.canvasRect.x),
+        y: Math.max(0, diagnostics.canvasRect.y),
+        width: Math.max(1, diagnostics.canvasRect.width),
+        height: Math.max(1, diagnostics.canvasRect.height),
+        scale: 1,
+      };
+      const frozen = await captureCleanCanvasScreenshot(cdp, clip);
+      const frozenBytes = Buffer.from(frozen.data, 'base64');
+      canvasDiversityScreenshot = `${label}.canvas-diversity.png`;
+      await fs.writeFile(path.join(outDir, canvasDiversityScreenshot), frozenBytes);
+      canvasDiversityPerceptualHash = pngVisualStats(frozenBytes)?.perceptualHash || '';
+      await delay(Math.max(80, Math.min(frameDelayMs, 240)));
+      const frozenLater = await captureCleanCanvasScreenshot(cdp, clip);
+      const frozenLaterBytes = Buffer.from(frozenLater.data, 'base64');
+      canvasDiversityScreenshotLater = `${label}.canvas-diversity-late.png`;
+      await fs.writeFile(path.join(outDir, canvasDiversityScreenshotLater), frozenLaterBytes);
+      canvasDiversityPerceptualHashLater = pngVisualStats(frozenLaterBytes)?.perceptualHash || '';
+    } catch (_err) {
+      canvasDiversityPerceptualHash = '';
+      canvasDiversityPerceptualHashLater = '';
+    } finally {
+      await evaluate(cdp, `(() => {
+        const canvas = document.getElementById('physics-canvas');
+        if (canvas && canvas.dataset) canvas.dataset.auditFreezeFrame = 'false';
+      })()`);
+    }
+  }
+  const finalDiagnostics = { ...diagnostics, ...settledProof };
   if (!finalDiagnostics.sampleCount && canvasStats && canvasStats.sampleCount) {
     finalDiagnostics.sampleSource = 'canvas-screenshot';
     finalDiagnostics.sampleCount = canvasStats.sampleCount;
@@ -1056,6 +1388,15 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   finalDiagnostics.canvasScreenshotLater = canvasScreenshotLater;
   finalDiagnostics.canvasScreenshotHash = canvasScreenshotHash;
   finalDiagnostics.canvasScreenshotLaterHash = canvasScreenshotLaterHash;
+  finalDiagnostics.canvasPerceptualHash = canvasPerceptualHash;
+  finalDiagnostics.canvasPerceptualHashLater = canvasPerceptualHashLater;
+  finalDiagnostics.canvasDiversityScreenshot = canvasDiversityScreenshot;
+  finalDiagnostics.canvasDiversityScreenshotLater = canvasDiversityScreenshotLater;
+  finalDiagnostics.canvasDiversityPerceptualHash = canvasDiversityPerceptualHash;
+  finalDiagnostics.canvasDiversityPerceptualHashLater = canvasDiversityPerceptualHashLater;
+  finalDiagnostics.canvasDiversityHashKind = 'audit:visual-clean-canvas-dhash-64';
+  finalDiagnostics.canvasDiversityFrameStable = Boolean(canvasDiversityPerceptualHash &&
+    canvasDiversityPerceptualHash === canvasDiversityPerceptualHashLater);
   finalDiagnostics.canvasFrameHashChanged = Boolean(canvasScreenshotHash && canvasScreenshotLaterHash && canvasScreenshotHash !== canvasScreenshotLaterHash);
   if (canvasStats) {
     finalDiagnostics.canvasScreenshotWidth = canvasStats.width;
@@ -1063,6 +1404,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     finalDiagnostics.canvasScreenshotLumaStd = canvasStats.lumaStd;
     finalDiagnostics.canvasScreenshotColoredRatio = canvasStats.coloredRatio;
     finalDiagnostics.canvasScreenshotSampleCount = canvasStats.sampleCount;
+    finalDiagnostics.canvasScreenshotNearWhiteRatio = canvasStats.nearWhiteRatio;
+    finalDiagnostics.canvasScreenshotStrongEdgeRatio = canvasStats.strongEdgeRatio;
   }
   if (canvasStats && canvasStatsLater) {
     finalDiagnostics.canvasFrameSampleHashChanged = canvasStats.hash !== canvasStatsLater.hash;
@@ -1198,16 +1541,29 @@ function array(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function parseJsonArray(value) {
+  if (Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(String(value || '[]'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
 function clamp01(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
 }
 
 function analyze(results) {
   const failures = [];
-  const screenshotHashes = new Map();
+  const perceptualHashes = new Map();
   for (const result of results) {
     const rubric = result.visualRubric || visualRubricForResult(result, result.prompt);
     result.visualRubric = rubric;
+    if (!auditPromptMatches(result.prompt, result.compiledPrompt)) {
+      failures.push(`${result.index}: compiled prompt does not match submitted prompt`);
+    }
     if (result.runtimeState !== 'ready') failures.push(`${result.index}: runtime not ready`);
     if (!result.canvasWidth || !result.canvasHeight) failures.push(`${result.index}: missing canvas`);
     const phase7Input = result.phase7RenderExecutionInput || result.phase7Input || result.renderExecutionInput || '';
@@ -1230,11 +1586,17 @@ function analyze(results) {
     if (result.phase7RenderPath !== 'storage-scene-instances-with-uniform-fallback') {
       failures.push(`${result.index}: Phase 7 render data path is ${result.phase7RenderPath || 'missing'}`);
     }
-    if (result.phase7PixelReadback === 'fail') {
-      failures.push(`${result.index}: Phase 7 pixel readback failed: ${result.phase7PixelReadbackMessage || 'missing error'}`);
+    if (result.phase7PixelReadback !== 'pass') {
+      failures.push(`${result.index}: Phase 7 pixel readback is ${result.phase7PixelReadback || 'missing'}${result.phase7PixelReadbackMessage ? `: ${result.phase7PixelReadbackMessage}` : ''}`);
     }
-    if (result.phase7PixelProofStatus && result.phase7PixelProofStatus !== 'pass') {
-      failures.push(`${result.index}: Phase 7 pixel proof status is ${result.phase7PixelProofStatus}`);
+    if (result.phase7PixelProofStatus !== 'pass') {
+      failures.push(`${result.index}: Phase 7 pixel proof status is ${result.phase7PixelProofStatus || 'missing'}`);
+    }
+    if (result.phase7PixelRequiredObligationCount < 1) {
+      failures.push(`${result.index}: Phase 7 pixel proof has no required visual obligations`);
+    }
+    if (result.phase7PixelSampledObligationCount !== result.phase7PixelRequiredObligationCount) {
+      failures.push(`${result.index}: Phase 7 pixel proof sampled ${result.phase7PixelSampledObligationCount}/${result.phase7PixelRequiredObligationCount} required obligations`);
     }
     if (result.webgpuOptimizationPath !== 'compute-storage-indirect') {
       failures.push(`${result.index}: WebGPU optimization path is ${result.webgpuOptimizationPath || 'missing'}`);
@@ -1251,8 +1613,14 @@ function analyze(results) {
     if (result.phase8Output !== 'simulatte.phase8.output.v2') {
       failures.push(`${result.index}: Phase 8 output is ${result.phase8Output || 'missing'}${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
     }
-    if (result.sceneProofVerdict === 'error') {
-      failures.push(`${result.index}: Scene Proof errored${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
+    if (result.sceneProofVerdict !== 'pass') {
+      const requiredFailures = parseJsonArray(result.sceneProofRequiredFailures);
+      const failureSummary = requiredFailures.map((row) => (
+        `${row.obligationId || 'unknown'} (${row.reason || row.status || 'failed'})`
+      )).join(', ');
+      failures.push(`${result.index}: Scene Proof verdict is ${result.sceneProofVerdict || 'missing'}` +
+        `${result.sceneProofError ? `: ${result.sceneProofError}` : ''}` +
+        `${failureSummary ? `: ${failureSummary}` : ''}`);
     }
 	    for (const [key, expectedSchema] of Object.entries(EXPECTED_PHASE_OUTPUT_SCHEMAS)) {
 	      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
@@ -1303,9 +1671,15 @@ function analyze(results) {
     if (result.kind === 'broad' && /^(generic|literal-composite)$/.test(result.visualIRSceneKind)) {
       failures.push(`${result.index}: broad VisualIR fell into ${result.visualIRSceneKind}`);
     }
-    const duplicate = screenshotHashes.get(result.screenshotHash);
-    if (duplicate) failures.push(`${result.index}: duplicate screenshot hash with ${duplicate}`);
-    screenshotHashes.set(result.screenshotHash, result.index);
+    if (!result.canvasDiversityPerceptualHash) {
+      failures.push(`${result.index}: frozen clean-canvas perceptual hash missing`);
+    } else if (result.canvasDiversityFrameStable !== true) {
+      failures.push(`${result.index}: frozen clean-canvas perceptual hash is not frame-stable`);
+    } else {
+      const duplicate = perceptualHashes.get(result.canvasDiversityPerceptualHash);
+      if (duplicate) failures.push(`${result.index}: duplicate frozen clean-canvas perceptual hash with ${duplicate}`);
+      perceptualHashes.set(result.canvasDiversityPerceptualHash, result.index);
+    }
   }
   const broadResults = results.filter((result) => result.kind === 'broad');
   const broadSceneCount = new Set(broadResults.map((result) => result.rendererSceneKind).filter(Boolean)).size;
@@ -1318,6 +1692,11 @@ function analyze(results) {
     screenshotCount: results.length,
     uniqueCanvasHashes: new Set(results.map((result) => result.canvasHash)).size,
     uniqueScreenshotHashes: new Set(results.map((result) => result.screenshotHash)).size,
+    uniqueCanvasPerceptualHashes: new Set(results.map((result) => result.canvasPerceptualHash).filter(Boolean)).size,
+    minCanvasPerceptualHashDistance: minPerceptualHashDistance(results),
+    uniqueCanvasDiversityPerceptualHashes: new Set(results.map((result) => result.canvasDiversityPerceptualHash).filter(Boolean)).size,
+    minCanvasDiversityPerceptualHashDistance: minPerceptualHashDistance(results, 'canvasDiversityPerceptualHash'),
+    perceptualHashCalibration: perceptualHashCalibration(results),
     sceneKinds: [...new Set(results.map((result) => result.rendererSceneKind).filter(Boolean))].sort(),
     visualIRSceneKinds: [...new Set(results.map((result) => result.visualIRSceneKind).filter(Boolean))].sort(),
     visualIRCameras: [...new Set(results.map((result) => result.visualIRCamera).filter(Boolean))].sort(),
@@ -1379,7 +1758,7 @@ function withAutoRating(summary) {
   const passRate = Number(rubric.passCount || 0) / promptCount;
   const sceneDiversity = Math.min(1, (summary.sceneKinds || []).length / promptCount);
   const screenshotDiversity = Math.min(1, Number(summary.uniqueScreenshotHashes || 0) / promptCount);
-  const canvasDiversity = Math.min(1, Number(summary.uniqueCanvasHashes || 0) / promptCount);
+  const canvasDiversity = Math.min(1, Number(summary.uniqueCanvasDiversityPerceptualHashes || 0) / promptCount);
   const representationQuality = clamp01(Number(rubric.averageRepresentationQuality || 0));
   const causalCoverage = causal.promptCount
     ? 1 - ((causal.promptsMissingAffordances || []).length / Math.max(1, causal.promptCount))
@@ -1419,6 +1798,69 @@ function withAutoRating(summary) {
       missingSignals: rubric.missingSignals || [],
     },
   };
+}
+
+function minPerceptualHashDistance(results = [], key = 'canvasPerceptualHash') {
+  const hashes = results
+    .map((result) => ({ index: result.index, hash: String(result[key] || '') }))
+    .filter((row) => row.hash.length === 16);
+  let minimum = null;
+  for (let left = 0; left < hashes.length; left += 1) {
+    for (let right = left + 1; right < hashes.length; right += 1) {
+      const distance = perceptualHashDistance(hashes[left].hash, hashes[right].hash);
+      if (!Number.isFinite(distance) || (minimum && distance >= minimum.distance)) continue;
+      minimum = { left: hashes[left].index, right: hashes[right].index, bits: perceptualHashBits(hashes[left].hash, hashes[right].hash), distance: Number(distance.toFixed(4)) };
+    }
+  }
+  return minimum;
+}
+
+function perceptualHashCalibration(results = []) {
+  const hashBits = 64;
+  const bitMargin = 1;
+  const rows = (results || []).filter((result) => (
+    /^[0-9a-f]{16}$/i.test(String(result.canvasDiversityPerceptualHash || '')) &&
+    /^[0-9a-f]{16}$/i.test(String(result.canvasDiversityPerceptualHashLater || ''))
+  ));
+  const temporalBits = rows.map((result) => perceptualHashBits(
+    result.canvasDiversityPerceptualHash,
+    result.canvasDiversityPerceptualHashLater
+  ));
+  const maxTemporalBits = temporalBits.length ? Math.max(...temporalBits) : null;
+  const minimum = minPerceptualHashDistance(rows, 'canvasDiversityPerceptualHash');
+  const floorBits = Number.isFinite(maxTemporalBits) ? maxTemporalBits + bitMargin : null;
+  return {
+    schema: 'simulatte.cleanCanvasPerceptualHashCalibration.v1',
+    hashKind: 'audit:visual-clean-canvas-dhash-64',
+    hashBits,
+    promptCount: (results || []).length,
+    usablePromptCount: rows.length,
+    bitMargin,
+    maxTemporalBits,
+    maxTemporalDistance: Number.isFinite(maxTemporalBits) ? Number((maxTemporalBits / hashBits).toFixed(4)) : null,
+    minPairwiseBits: minimum && minimum.bits || null,
+    minPairwiseDistance: minimum && minimum.distance || null,
+    closestPair: minimum ? { left: minimum.left, right: minimum.right } : null,
+    recommendedHashFloorBits: floorBits,
+    recommendedHashFloor: Number.isFinite(floorBits) ? Number((floorBits / hashBits).toFixed(4)) : null,
+    calibrated: Boolean(floorBits && minimum && minimum.bits > floorBits && rows.length === (results || []).length),
+  };
+}
+
+function perceptualHashDistance(left = '', right = '') {
+  if (!/^[0-9a-f]{16}$/i.test(left) || !/^[0-9a-f]{16}$/i.test(right)) return NaN;
+  return perceptualHashBits(left, right) / 64;
+}
+
+function perceptualHashBits(left = '', right = '') {
+  if (!/^[0-9a-f]{16}$/i.test(left) || !/^[0-9a-f]{16}$/i.test(right)) return NaN;
+  let value = BigInt(`0x${left}`) ^ BigInt(`0x${right}`);
+  let bits = 0;
+  while (value) {
+    bits += Number(value & 1n);
+    value >>= 1n;
+  }
+  return bits;
 }
 
 function gradeForScore(score) {
@@ -1494,6 +1936,16 @@ async function main() {
     await fs.writeFile(path.join(options.outDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
     console.log(JSON.stringify({ outDir: options.outDir, ...summary }, null, 2));
     if (!summary.ok) process.exitCode = 1;
+  } catch (error) {
+    const failure = {
+      schema: 'simulatte.intentSceneScreenshotAuditFailure.v1',
+      createdAt: new Date().toISOString(),
+      error: error && error.stack || String(error),
+      page: await auditFailureState(cdp),
+      browserEvents: cdp ? cdp.diagnostics() : [],
+    };
+    await fs.writeFile(path.join(options.outDir, 'failure.json'), `${JSON.stringify(failure, null, 2)}\n`);
+    throw error;
   } finally {
     if (cdp) cdp.close();
     chrome.kill('SIGTERM');

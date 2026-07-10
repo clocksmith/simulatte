@@ -254,6 +254,9 @@
         if (source === 'prompt-explicit') {
           return { role: 'candidate', matchKind: 'explicit-primitive', reason: 'primitive id appears in prompt' };
         }
+        if (source === 'doppler-residual') {
+          return { role: 'candidate', matchKind: 'model-intent-evidence', reason: 'model intent receipt selected primitive' };
+        }
         if (source === 'prompt-family' && id === 'water' && phase3LanguageImpliesWater(prompt, predicates, relations)) {
           return { role: 'candidate', matchKind: 'implied-fluid-medium', reason: 'swimming language implies visible water medium' };
         }
@@ -275,18 +278,27 @@
     function phase3RowDirectlyMatchesPrompt(row = {}, prompt = '', spans = []) {
         if (!prompt) return false;
         const promptText = normalizeForEvidence(prompt);
-        const spanTexts = (spans || []).map((span) => normalizeForEvidence(span.text)).filter(Boolean);
+        const spanTexts = (spans || [])
+          .filter((span) => /^(entity|material|environment|process|observable)$/.test(span.kind || ''))
+          .map((span) => normalizeForEvidence(span.text))
+          .filter(Boolean);
         const values = [
           row.id,
           row.primitiveId,
           row.label,
-          row.phrase,
+          !/^embedding-guided-synth-/.test(row.source || '') || normalizeForEvidence(row.phrase) !== promptText
+            ? row.phrase
+            : '',
           row.role,
         ].map((value) => normalizeForEvidence(value)).filter(Boolean);
         return values.some((value) => {
           if (!value || phase3GenericPromptMatchValue(value)) return false;
+          const containingSpans = spanTexts.filter((spanText) => phase3PhraseInPrompt(value, spanText));
+          if (containingSpans.length) {
+            return containingSpans.some((spanText) => phase3PhraseInPrompt(spanText, value));
+          }
           if (phase3PhraseInPrompt(value, promptText)) return true;
-          return spanTexts.some((spanText) => phase3PhraseInPrompt(value, spanText) || phase3PhraseInPrompt(spanText, value));
+          return false;
         });
       }
 
@@ -333,8 +345,15 @@
     	    slotEvidence = [],
     	    acceptedCandidatesBySlot = {},
     	    missingRequiredSlots = []
-    	  ) {
-        const components = phase3GroundingComponents(retrievalEvidence.components, primitiveCuration);
+      ) {
+        const components = phase3GroundingComponents(retrievalEvidence.components, primitiveCuration, languageGraph);
+        const acceptedComponentIds = new Set(components
+          .filter((row) => row.supportOnly !== true)
+          .map((row) => row.id || row.primitiveId || row.canonicalId)
+          .filter(Boolean));
+        const rejectedComponentIds = (retrievalEvidence.components || [])
+          .map((row) => row && (row.id || row.primitiveId || row.canonicalId))
+          .filter((id) => id && !acceptedComponentIds.has(id));
         return {
           schema: 'simulatte.retrievalGroundingEvidence.v1',
           intentBrief: null,
@@ -343,6 +362,7 @@
           contract: null,
           universeGraphCandidates: phaseCarryObject(retrievalEvidence.universeGraph || null),
           components: phaseCarryObject(components),
+          rejectedComponentIds: phaseCarryObject(rejectedComponentIds),
           assumptions: [],
           unsupported: [],
           visualSource: phaseCarryObject(retrievalEvidence.visualSource || null),
@@ -359,13 +379,13 @@
     	    };
     	  }
 
-    function phase3GroundingComponents(components = [], primitiveCuration = {}) {
+    function phase3GroundingComponents(components = [], primitiveCuration = {}, languageGraph = {}) {
         const rows = Array.isArray(components) ? components : [];
         const candidateById = new Map((primitiveCuration.rankedPrimitives || [])
           .map((row) => [row.id || row.primitiveId, row]));
         const supportById = new Map((primitiveCuration.supportPrimitives || [])
           .map((row) => [row.id || row.primitiveId, row]));
-        return rows.map((component) => {
+        return rows.flatMap((component) => {
           const id = component && (component.id || component.primitiveId || component.canonicalId);
           const candidate = candidateById.get(id);
           const support = supportById.get(id);
@@ -379,16 +399,75 @@
             };
           }
           if (support) {
-            return {
+            if (/association-support$/.test(support.matchKind || '')) return [];
+            return [{
               ...component,
               retrievalRole: 'support',
               matchKind: support.matchKind || component.matchKind || '',
               supportOnly: true,
               supportReason: support.supportReason || support.reason || 'support primitive not literal prompt object',
-            };
+            }];
           }
-          return component;
+          if (/^embedding-guided-synth-/.test(component && component.source || '')) {
+            const decision = phase3SynthComponentDecision(component, languageGraph);
+            if (decision.role !== 'candidate') return [];
+            return [{
+              ...component,
+              retrievalRole: 'candidate',
+              matchKind: decision.matchKind,
+              supportOnly: false,
+              supportReason: '',
+            }];
+          }
+          return [component];
         });
+      }
+
+    function phase3SynthComponentDecision(component = {}, languageGraph = {}) {
+        const prompt = String(languageGraph.sourceText || '');
+        const identity = normalizeForEvidence(component.role || component.label || component.id);
+        const identityCore = identity.replace(/\b(?:artifact|assembly|entity|environment|material|object)\b/g, ' ').replace(/\s+/g, ' ').trim();
+        const typedEntities = (languageGraph.spans || [])
+          .filter((span) => span.kind === 'entity')
+          .map((span) => normalizeForEvidence(span.text))
+          .filter(Boolean);
+        const conflictsWithTypedEntity = typedEntities.some((spanText) => (
+          phase3PhraseInPrompt(identity, spanText) && !phase3PhraseInPrompt(spanText, identity)
+        ));
+        const match = component.synthesis && component.synthesis.match || {};
+        const matchedSpan = String(match.span || '').trim();
+        const directSurfaceReceipt = Boolean(
+          matchedSpan &&
+          normalizeForEvidence(matchedSpan) !== normalizeForEvidence(prompt) &&
+          /surface-card/.test(match.source || '')
+        );
+        if (!conflictsWithTypedEntity && (
+          phase3PhraseInPrompt(identity, prompt) ||
+          phase3PhraseInPrompt(identityCore, prompt) ||
+          directSurfaceReceipt
+        )) {
+          return { role: 'candidate', matchKind: 'literal-synth-node', reason: 'synthesized node identity appears in prompt' };
+        }
+        if (/^embedding-guided-synth-event/.test(component.source || '')) {
+          const eventProcess = phase3BehaviorProcessForText(identity);
+          const promptProcess = phase3BehaviorProcessForText(prompt);
+          if (eventProcess && eventProcess === promptProcess) {
+            return { role: 'candidate', matchKind: 'prompt-derived-synth-event', reason: 'synthesized event matches the prompt process vocabulary' };
+          }
+        }
+        return { role: 'support', matchKind: 'synth-association-support', reason: 'synthesized row identity lacks prompt evidence' };
+      }
+
+    function phase3BehaviorProcessForText(text = '') {
+        const value = normalizeForEvidence(text);
+        const rows = languageLexicon && (
+          languageLexicon.BEHAVIOR_PROCESS_LEXICON ||
+          languageLexicon.LANGUAGE_LEXICON && languageLexicon.LANGUAGE_LEXICON.behaviorProcessLexicon
+        ) || [];
+        for (const row of rows) {
+          if ((row.phrases || []).some((phrase) => phase3PhraseInPrompt(phrase, value))) return row.process || '';
+        }
+        return '';
       }
 
     function phaseCarryIntentBrief(intentBrief = null) {
@@ -688,6 +767,12 @@
 
     function normalizedEvidenceRowsFromPhase3(retrievalRerankResult = {}, intentBrief = {}) {
         const rows = [];
+        // Prompt-owned typed slots define identity. Reserve their place before
+        // bulk retrieval rows so a large model result cannot evict them from
+        // the bounded Phase 4 grounding input.
+        addEvidenceRows(rows, (retrievalRerankResult.slotEvidence || []).flatMap((slot) => (
+          (slot.acceptedCandidates || []).filter((row) => row.source === 'prompt-typed-slot')
+        )), 'prompt-typed-slot');
         addEvidenceRows(rows, retrievalRerankResult.evidenceRows, 'retrieval-evidence');
         addEvidenceRows(rows, intentBrief.retrievedEvidence, 'intent-brief');
         addEvidenceRows(rows, retrievalRerankResult.rankedPrimitives, 'primitive-index');

@@ -97,8 +97,13 @@
         return Array.isArray(rows) ? rows.length : 0;
       }
 
+    function graphDebugEnabled() {
+        const view = typeof globalThis !== 'undefined' ? globalThis : null;
+        return Boolean(view && view.__SIMULATTE_GRAPH_DEBUG__ === true);
+      }
+
     function logGraphDebug(spec) {
-        if (typeof console === 'undefined' || !spec || typeof spec !== 'object') return;
+        if (!graphDebugEnabled() || typeof console === 'undefined' || !spec || typeof spec !== 'object') return;
         if (!spec.compositionGraph && !spec.renderProgram && !spec.physicalSpec) return;
         const graph = spec.compositionGraph || null;
         const renderProgram = spec.renderProgram || null;
@@ -174,6 +179,7 @@
       worldModelSnapshot,
       worldModelSummary,
       countRows,
+      graphDebugEnabled,
       logGraphDebug,
       syncOpenSpecPreview,
       start,

@@ -71,6 +71,7 @@
     '../../pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js',
     '../../pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js',
     '../../pipeline/phase-06-visual/simulatte-composition-graph-programs.js',
+    '../../pipeline/phase-06-visual/simulatte-composition-graph-dialects.js',
     '../../pipeline/phase-06-visual/simulatte-composition-graph-helpers.js',
     '../../pipeline/phase-06-visual/simulatte-composition-graph-facade-support.js',
     '../../pipeline/phase-06-visual/simulatte-composition-graph.js',

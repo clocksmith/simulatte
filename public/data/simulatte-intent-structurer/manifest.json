@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.structuredIntentModelManifest.v1",
   "id": "simulatte-qwen-3-5-0-8b-intent-structurer-v1",
+  "modelRuntimeLock": {
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 2,
+    "artifact": "../simulatte-embedder/model-runtime-lock.json",
+    "artifactHash": {
+      "alg": "sha256",
+      "hex": "41c7bd3a3e4e235cb9dff12b5e252216ee2f4bf5bbb886b3e16542c816e95807"
+    }
+  },
   "model": {
     "id": "qwen-3-5-0-8b-q4k-ehaf16",
     "family": "qwen3.5",
@@ -25,11 +34,9 @@
     "guardrail": "The model may select, connect, or question retrieved catalog IDs. It may not invent executable physics primitives."
   },
   "retrievalDependency": {
-    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
     "role": "semantic evidence retrieval for prompt, catalog entries, primitives, materials, visual cards, examples, and causal patterns"
   },
   "rerank": {
-    "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
     "policy": "use Qwen reranker scores over Phase 3 candidate document text, then fuse with embedding score, lexical hit, prompt citation, primitive support, and causal operator availability"
   },
   "compilerBoundary": {

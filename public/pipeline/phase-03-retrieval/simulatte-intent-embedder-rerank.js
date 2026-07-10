@@ -25,16 +25,24 @@
           async rerank(input) {
             const query = String(input && input.prompt || input && input.query || '').trim();
             if (!query) throw new Error(`Doppler reranker ${config.id} requires a query`);
-            const candidates = input && input.candidates || [];
+            const limit = rerankerInputCandidateLimit(input, config);
+            const candidates = (input && input.candidates || []).slice(0, limit);
             const scored = [];
             for (let i = 0; i < candidates.length; i += 1) {
               const candidate = candidates[i] || {};
               const document = rerankCandidateText(candidate, runtime);
               if (!document) continue;
-              handle.reset?.();
-              target.reset?.();
               const prompt = formatRerankPrompt(query, document, scoringConfig);
-              const result = await prefill.call(target, prompt, { useChatTemplate: false });
+              await resetRerankerHandle(handle, target, config);
+              let result;
+              try {
+                result = await prefill.call(target, prompt, {
+                  useChatTemplate: false,
+                  __skipStateSnapshot: true,
+                });
+              } finally {
+                await resetRerankerHandle(handle, target, config);
+              }
               const logits = result && result.logits;
               if (!ArrayBuffer.isView(logits) && !Array.isArray(logits)) {
                 throw new Error(`Doppler reranker ${config.id} prefillWithLogits() did not return logits`);
@@ -58,6 +66,13 @@
                 sourceKind: backend,
                 modelBaseUrl,
               });
+              if (typeof input.onProgress === 'function') {
+                input.onProgress({
+                  completed: i + 1,
+                  total: candidates.length,
+                  candidateId: String(candidate.primitiveId || candidate.id || ''),
+                });
+              }
             }
             return scored
               .filter((row) => row.primitiveId)
@@ -69,6 +84,25 @@
               }));
           },
         };
+      }
+
+    function rerankerInputCandidateLimit(input, config) {
+        const configured = input && input.schema === 'simulatte.intentSlotRerankInput.v1'
+          ? config.maxSlotCandidatesPerCall
+          : config.maxCandidatesPerCall;
+        const requested = Number(input && input.max || configured);
+        return Math.max(1, Math.min(configured, Number.isFinite(requested) ? Math.floor(requested) : configured));
+      }
+
+    async function resetRerankerHandle(handle, target, config) {
+        const rows = [handle, target].filter(Boolean);
+        const owner = rows.find((row) => typeof row.resetGenerationState === 'function')
+          || rows.find((row) => typeof row.reset === 'function');
+        if (!owner) {
+          throw new Error(`Doppler reranker ${config.id} requires a state-reset capability`);
+        }
+        const reset = owner.resetGenerationState || owner.reset;
+        await reset.call(owner);
       }
 
     function rerankScoringConfig(handle, config) {
@@ -131,9 +165,10 @@
 
     async function resolveDopplerApi(options = {}) {
         ensureDopplerKernelBasePath(options.kernelBasePath);
-        const direct = options.dopplerModule || globalDopplerApi();
+        const direct = options.dopplerModule || null;
         if (direct) return direct;
-        const rawModuleUrl = options.moduleUrl || DEFAULT_DOPPLER_MODULE_URL;
+        const rawModuleUrl = options.moduleUrl;
+        if (!rawModuleUrl) throw new Error('model runtime lock did not provide a Doppler module URL');
         const moduleUrl = typeof location === 'undefined'
           ? rawModuleUrl
           : resolveUrl(rawModuleUrl, location.href);
@@ -147,12 +182,18 @@
 
     function ensureDopplerKernelBasePath(rawKernelBasePath = '') {
         if (typeof globalThis === 'undefined') return;
-        const existing = globalThis.__DOPPLER_KERNEL_BASE_PATH__;
-        if (typeof existing === 'string' && existing.trim()) return;
-        const rawPath = rawKernelBasePath || DEFAULT_DOPPLER_KERNEL_BASE_PATH;
+        const rawPath = rawKernelBasePath;
+        if (!rawPath) throw new Error('model runtime lock did not provide a Doppler kernel base path');
         const resolvedPath = typeof location === 'undefined'
           ? rawPath
           : resolveUrl(rawPath, location.href);
+        const existing = globalThis.__DOPPLER_KERNEL_BASE_PATH__;
+        if (typeof existing === 'string' && existing.trim()) {
+          if (existing.replace(/\/+$/, '') !== resolvedPath.replace(/\/+$/, '')) {
+            throw new Error('Doppler kernel base path differs from the model runtime lock');
+          }
+          return;
+        }
         globalThis.__DOPPLER_KERNEL_BASE_PATH__ = resolvedPath.replace(/\/+$/, '');
       }
 
@@ -429,6 +470,11 @@
           providerBackend: provider && provider.backend || '',
           manifestId: manifest.id || '',
           manifestUrl: details.manifestUrl || '',
+          modelRuntimeLock: {
+            id: manifest.modelRuntimeLock && manifest.modelRuntimeLock.id || '',
+            number: Number(manifest.modelRuntimeLock && manifest.modelRuntimeLock.number || 0),
+            artifactHash: hashHex(manifest.modelRuntimeLock && manifest.modelRuntimeLock.artifactHash),
+          },
           modelId: runtime.index && runtime.index.embedModelId || embedModel.id || '',
           modelBaseUrl: embedModel.defaultModelBaseUrl || '',
           modelHash: hashHex(embedModel.manifestHash) || hashHex(runtime.index && runtime.index.embedModelHash),
@@ -442,6 +488,8 @@
           universeIndexId: runtime.universe ? runtime.universe.id : '',
           universeDocuments: runtime.universe ? runtime.universe.documentCount : 0,
           reranker: reranker.id,
+          rerankerModelId: reranker.model && reranker.model.id || '',
+          rerankerModelHash: hashHex(reranker.model && reranker.model.manifestHash),
           rerankerKind: reranker.kind,
           rerankerPhase: 3,
           rerankerRequired: rerankerProbe.required === true,
@@ -604,40 +652,25 @@
         };
       }
 
-    function createRag(prompt, candidates, priors, primitiveIndex, promptVector) {
+    function createRag(prompt, candidates, priors, primitiveIndex, promptVector, options = {}) {
         const ragApi = typeof globalThis !== 'undefined' ? globalThis.SimulatteSemanticRag : null;
         if (!ragApi || typeof ragApi.createSemanticRag !== 'function') return null;
         return ragApi.createSemanticRag(prompt, candidates, {
           modelPriors: priors,
           primitiveIndex,
           promptVector,
+          typedSpans: options.sceneLanguageGraph && options.sceneLanguageGraph.spans || [],
+          suppressObservableOpenComponents: Boolean(options.sceneLanguageGraph &&
+            (options.sceneLanguageGraph.actions || []).some((row) => row.semanticClass === 'measurement')),
           maxDocuments: 72,
           maxOpenComponents: 12,
         });
       }
 
     async function analyzeDopplerIntent(prompt, candidates, options) {
-        const api = options.dopplerIntentApi || (
-          typeof globalThis !== 'undefined' ? globalThis.SimulatteDopplerIntent : null
-        );
+        const api = typeof globalThis !== 'undefined' ? globalThis.SimulatteDopplerIntent : null;
         if (!api || typeof api.analyzePrompt !== 'function') return null;
-        try {
-          return await api.analyzePrompt(prompt, candidates, options);
-        } catch (err) {
-          if (options.dopplerEnabled === true) {
-            return {
-              schema: 'simulatte.dopplerIntentHints.v1',
-              source: 'doppler-unavailable',
-              unavailable: true,
-              reason: err && err.message ? err.message : String(err),
-              primitives: [],
-              regimes: [],
-              operators: [],
-              confidence: 0,
-            };
-          }
-          return null;
-        }
+        return api.analyzePrompt(prompt, candidates, options);
       }
 
     async function rerankIntentPriors({
@@ -650,6 +683,10 @@
         rerankProvider,
         promptText,
         phaseLabel,
+        progress,
+        trace,
+        traceId,
+        rankId,
       }) {
         const local = rerankPriors(priors, semanticRag, dopplerIntent, runtime, universeMatches);
         const config = rerankerConfig(runtime);
@@ -685,18 +722,31 @@
             runtime,
             phaseLabel,
           });
+          if (typeof progress === 'function') {
+            input.onProgress = (row = {}) => emitRuntimeProgress(progress, trace === true, {
+              source: 'simulatte-intent-embedder',
+              stage: 'model-rerank',
+              percent: 95.6,
+              message: `Reranking candidate ${row.completed || 0}/${row.total || 0}`,
+              traceId: traceId || '',
+              rankId: rankId || 0,
+              candidateCount: row.total || 0,
+            });
+          }
           const result = await capability.rerank(input);
           const modelRows = normalizeRerankerRows(result);
           if (!modelRows.length) {
             throw new Error(`Doppler reranker ${config.id} returned no ranked candidates`);
           }
-          const rows = applyModelRerank(local.priors, modelRows);
+          const rows = applyModelRerank(local.priors, modelRows, input.candidates);
           return {
             priors: rows,
             receipt: {
               ...local.receipt,
               stage: phaseLabel || local.receipt.stage,
               model: config.id,
+              rerankerModelId: config.model && config.model.id || '',
+              rerankerModelHash: hashHex(config.model && config.model.manifestHash),
               rerankerKind: config.kind,
               rerankerMode: 'doppler-reranker',
               modelReady: true,
@@ -735,6 +785,9 @@
         runtime,
         phaseLabel,
       }) {
+        const config = rerankerConfig(runtime);
+        const limit = config.maxCandidatesPerCall;
+        const selectedPriors = (priors || []).slice(0, limit);
         return {
           schema: 'simulatte.intentRerankInput.v1',
           phase: 3,
@@ -742,7 +795,7 @@
           stage: phaseLabel || 'span-refined',
           reranker: rerankerId(runtime),
           prompt: String(promptText || ''),
-          candidates: (priors || []).map((prior, order) => ({
+          candidates: selectedPriors.map((prior, order) => ({
             primitiveId: prior.primitiveId,
             order,
             layer: prior.layer || prior.rawLayer || '',
@@ -777,12 +830,14 @@
               primitiveHints: candidate.primitiveHints || [],
             })),
           },
-          max: Math.min(48, Math.max(1, (priors || []).length)),
+          max: Math.max(1, selectedPriors.length),
         };
       }
 
     Object.assign(scope, {
       rerankProviderFromModelHandle,
+      rerankerInputCandidateLimit,
+      resetRerankerHandle,
       rerankScoringConfig,
       formatRerankPrompt,
       rerankCandidateText,

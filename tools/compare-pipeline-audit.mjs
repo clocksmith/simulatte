@@ -4,8 +4,9 @@ import path from 'node:path';
 
 const root = process.cwd();
 const auditDir = path.join(root, 'artifacts', 'simulatte-pipeline-audit');
-const currentPath = path.resolve(process.argv[2] || path.join(auditDir, 'latest.json'));
-const baselinePath = path.resolve(process.argv[3] || path.join(auditDir, 'baseline.json'));
+const canonicalDir = path.join(auditDir, 'live-score');
+const currentPath = path.resolve(process.argv[2] || path.join(canonicalDir, 'latest.json'));
+const baselinePath = path.resolve(process.argv[3] || path.join(canonicalDir, 'baseline.json'));
 
 if (!fs.existsSync(currentPath)) {
   console.error(`Missing current pipeline report: ${path.relative(root, currentPath)}`);
@@ -18,6 +19,16 @@ if (!fs.existsSync(baselinePath)) {
 
 const current = JSON.parse(fs.readFileSync(currentPath, 'utf8'));
 const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
+const currentIdentity = current.artifactIdentity || {};
+const baselineIdentity = baseline.artifactIdentity || {};
+if (currentIdentity.canonical !== true || baselineIdentity.canonical !== true) {
+  console.error('Pipeline audit comparison requires canonical model-live artifacts.');
+  process.exit(1);
+}
+if (!currentIdentity.compareGroup || currentIdentity.compareGroup !== baselineIdentity.compareGroup) {
+  console.error(`Pipeline audit compare-group mismatch: current=${currentIdentity.compareGroup || 'missing'} baseline=${baselineIdentity.compareGroup || 'missing'}`);
+  process.exit(1);
+}
 const phaseIds = unique([
   ...Object.keys(baseline.phaseScores || {}),
   ...Object.keys(current.phaseScores || {}),

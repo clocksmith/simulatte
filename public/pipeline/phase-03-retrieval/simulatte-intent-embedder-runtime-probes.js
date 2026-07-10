@@ -446,12 +446,14 @@
         if (!universe.manifest || universe.manifest.schema !== 'simulatte.universeManifest.v1') {
           throw new Error('universe index package missing manifest');
         }
+        const universeLock = universe.manifest.modelRuntimeLock || {};
+        const runtimeLock = manifest.modelRuntimeLock || {};
         if (
-          universe.manifest.embedModel &&
-          universe.manifest.embedModel.id &&
-          universe.manifest.embedModel.id !== manifest.embedModel.id
+          universeLock.id !== runtimeLock.id ||
+          Number(universeLock.number) !== Number(runtimeLock.number) ||
+          hashHex(universeLock.artifactHash) !== hashHex(runtimeLock.artifactHash)
         ) {
-          throw new Error(`universe embedModel.id mismatch (${universe.manifest.embedModel.id} !== ${manifest.embedModel.id})`);
+          throw new Error('universe modelRuntimeLock must match the resolved intent model runtime lock');
         }
         const indexes = {};
         let documentCount = 0;

@@ -795,13 +795,11 @@
           object.id,
           object.semanticRef,
           object.physicalRef,
-          object.role,
-          object.shape,
         ].map((value) => String(value || '').toLowerCase()).filter(Boolean)));
         return (irObjects || [])
           .filter((object) => {
             const text = renderObjectText(object);
-            if ([object.id, object.role, object.shape, object.phrase]
+            if ([object.id, object.semanticRef, object.physicalRef]
               .some((value) => seen.has(String(value || '').toLowerCase()))) {
               return false;
             }

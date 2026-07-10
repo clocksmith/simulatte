@@ -9,6 +9,7 @@
     require('./simulatte-composition-graph-scene-packet.js');
     require('./simulatte-composition-graph-visual-genome.js');
     require('./simulatte-composition-graph-programs.js');
+    require('./simulatte-composition-graph-dialects.js');
     require('./simulatte-composition-graph-helpers.js');
     require('./simulatte-composition-graph-facade-support.js');
   }

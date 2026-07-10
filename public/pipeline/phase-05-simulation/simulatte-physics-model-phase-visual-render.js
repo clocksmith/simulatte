@@ -446,7 +446,13 @@
         const promptParse = phase2Output.artifact.promptParse || null;
         const semanticRag = options.semanticRag || (
           createSemanticRag && prompt.trim()
-            ? createSemanticRag(sourceText, PHYSICAL_PRIMITIVES, { maxDocuments: 72, maxOpenComponents: 12 })
+            ? createSemanticRag(sourceText, PHYSICAL_PRIMITIVES, {
+              maxDocuments: 72,
+              maxOpenComponents: 12,
+              typedSpans: promptParse && promptParse.spans || [],
+              suppressObservableOpenComponents: (languageGraph.predicates || [])
+                .some((row) => row.process === 'measurement'),
+            })
             : null
         );
         const universeMatches = options.universeMatches || null;
@@ -592,6 +598,8 @@
             cardMatches: options.cardMatches || options.surfaceCardMatches || [],
             embeddingPriors: options.embeddingPriors || [],
             embeddingModel: options.embeddingModel || null,
+            intentRerank: options.intentRerank || options.rerank || null,
+            promptRuntimeReceipt: options.promptRuntimeReceipt || null,
             spanRetrieval: options.spanRetrieval || null,
             evidenceRows: options.evidenceRows || [],
           })
@@ -615,11 +623,13 @@
         const preferSynthGraph = shouldPreferSynthGraph(sourceText, synthesis);
         const catalogRanked = preferSynthGraph ? [] : baseCatalogRanked;
         const semanticRows = preferSynthGraph ? [] : semanticOpenPrimitives(semanticRag);
+        const languageAnchorRows = lexicalSpanPrimitives(promptParse, semanticRag);
         const explicitRows = explicitPromptPrimitiveRows(classification, sourceText);
         const ranked = mergeRankedPrimitives(
           catalogRanked,
           synthRows,
           semanticRows,
+          languageAnchorRows,
           dopplerHintPrimitives(dopplerIntent, sourceText),
           explicitRows
         );

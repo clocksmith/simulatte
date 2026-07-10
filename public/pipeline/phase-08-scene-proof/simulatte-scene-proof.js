@@ -31,10 +31,13 @@
       identities,
       visualProofByObligation,
       passedVisualTargets,
+      sourceObligations: sourceLedger.obligations || [],
     }));
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
-    const verdict = !rendered ? 'not-proven' : requiredLost.length ? 'fail' : 'pass';
+    const verdict = !rendered
+      ? 'not-proven'
+      : requiredLost.length || requiredNotProven.length ? 'fail' : 'pass';
     const summary = {
       obligationCount: settledObligations.length,
       preservedCount: countByStatus(settledObligations, 'preserved'),
@@ -159,12 +162,12 @@
       return { ...base, status: 'not-proven', reason: 'no visual pixel proof row for obligation' };
     }
     if (row.kind === 'entity' || row.kind === 'object' || row.kind === 'environment' || row.kind === 'medium') {
+      if (carriedFailure) {
+        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
+      }
       const identityTarget = normalizeProofText(target);
       if (identityTarget && hasIdentityEvidence(context.identities, identityTarget)) {
         return { ...base, status: 'preserved', reason: 'identity present in scene render packet', evidence: ['packetIdentitySummary'] };
-      }
-      if (carriedFailure) {
-        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
       }
       return {
         ...base,
@@ -173,13 +176,13 @@
       };
     }
     if (row.kind === 'relation') {
+      if (carriedFailure) {
+        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
+      }
       const endpoints = relationEndpoints(row, obligationId);
       const present = endpoints.filter((endpoint) => endpoint === 'world' || hasIdentityEvidence(context.identities, endpoint));
       if (endpoints.length && present.length === endpoints.length) {
         return { ...base, status: 'preserved', reason: 'relation endpoint identities present', evidence: ['packetIdentitySummary'] };
-      }
-      if (carriedFailure) {
-        return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
       }
       if (endpoints.length && present.length === 0) {
         return { ...base, status: base.required ? 'lost' : 'unsupported', reason: 'relation endpoint identities missing' };
@@ -188,6 +191,9 @@
     }
     if (row.kind === 'action') {
       const actionTarget = normalizeProofText(target);
+      if (actionTarget === 'coexists' && hasCoexistingEndpointEvidence(context)) {
+        return { ...base, status: 'preserved', reason: 'coexisting relation endpoints present in scene render packet', evidence: ['packetIdentitySummary'] };
+      }
       const visualMatch = context.passedVisualTargets.some((visualTarget) => (
         proofPhraseMatch(visualTarget, actionTarget)
       ));
@@ -244,6 +250,15 @@
       return [normalizeProofText(parts[1]), normalizeProofText(parts[parts.length - 1])].filter(Boolean);
     }
     return [];
+  }
+
+  function hasCoexistingEndpointEvidence(context = {}) {
+    return (context.sourceObligations || []).some((row) => {
+      const id = String(row && (row.id || row.obligationId) || '');
+      if (id.split(':')[2] !== 'coexists') return false;
+      const endpoints = relationEndpoints(row, id);
+      return endpoints.length >= 2 && endpoints.every((endpoint) => hasIdentityEvidence(context.identities, endpoint));
+    });
   }
 
   function settleLedger(sourceLedger = {}, settledObligations = []) {
