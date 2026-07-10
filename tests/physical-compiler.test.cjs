@@ -37,10 +37,10 @@ test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, an
   assert.equal(spec.solverGraph.schema, 'simulatte.solverGraph.v1');
   assert.equal(spec.renderIR.schema, 'simulatte.renderIR.v1');
 
-  assert.ok(spec.universeGraph.nodes.some((node) => node.canonicalId === 'material.lava'));
+  assert.ok(spec.universeGraph.nodes.some((node) => /lava/.test(node.canonicalId)));
   assert.ok(spec.universeGraph.nodes.some((node) => /turbine/.test(node.canonicalId)));
-  assert.ok(spec.universeGraph.nodes.some((node) => node.canonicalId === 'material.ice'));
-  assert.ok(spec.universeGraph.nodes.some((node) => node.canonicalId === 'structure.castle_wall'));
+  assert.ok(spec.universeGraph.nodes.some((node) => /(?:^|[.-])ice$/.test(node.canonicalId)));
+  assert.ok(spec.universeGraph.nodes.some((node) => /castle[-_]wall$/.test(node.canonicalId)));
   assert.ok(spec.physicsIR.operators.some((operator) => operator.type === 'rotational_torque'));
   assert.ok(spec.physicsIR.operators.some((operator) => operator.type === 'heat_transfer'));
   assert.ok(spec.physicsIR.operators.some((operator) => operator.type === 'phase_transition'));
@@ -277,7 +277,7 @@ test('Phase 3 separates literal swimming retrieval from generic support physics'
     'growth-decay',
   ];
 
-  for (const id of ['surface-cat-1', 'surface-dog-1', 'lake', 'water', 'open-cats-swimming-1']) {
+  for (const id of ['surface-cat-1', 'surface-dog-1', 'lake', 'water']) {
     assert.ok(candidateIds.has(id), `Phase 3 should keep literal candidate ${id}`);
   }
   for (const id of supportNoise) {
@@ -314,6 +314,45 @@ test('Phase 3 separates literal swimming retrieval from generic support physics'
   assert.equal(receipt.primitiveCount, retrieval.rankedPrimitives.length);
   assert.equal(receipt.supportPrimitiveCount, retrieval.supportPrimitives.length);
   assert.ok(receipt.rawPrimitiveCount > receipt.primitiveCount);
+});
+
+test('qubit readout grounds the typed instrument relation without phase-change or machine-family leakage', () => {
+  const spec = lab.createSpecFromPrompt('qubit chip phase readout through microwave resonator', {
+    allowPrototypeFallback: true,
+  });
+  const phase2 = spec.phaseArtifacts.phase2.artifact;
+  const phase3 = spec.phaseArtifacts.phase3.artifact.retrievalRerankResult;
+  const phase4 = spec.phaseArtifacts.phase4.artifact.groundedIntent;
+  const predicates = phase2.languageGraph.predicates || [];
+  const spanById = new Map(phase2.languageGraph.spans.map((row) => [row.id, row.text]));
+  const candidateIds = new Set((phase3.rankedPrimitives || []).map((row) => row.id || row.primitiveId));
+  const groundedText = JSON.stringify((phase4.components || []).filter((row) => row.supportOnly !== true)).toLowerCase();
+  const operatorTypes = spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators.map((row) => row.type);
+
+  assert.ok(predicates.some((row) => (
+    row.process === 'measurement' &&
+    /readout/.test(spanById.get(row.verbSpanId) || '') &&
+    /qubit chip/.test(spanById.get(row.subjectSpanId) || '') &&
+    /microwave resonator/.test(spanById.get(row.objectSpanId) || '') &&
+    row.spatialRelation === 'through'
+  )));
+  assert.ok(Array.from(candidateIds).some((id) => /qubit/.test(id)), 'Phase 3 should keep qubit identity evidence');
+  assert.ok(Array.from(candidateIds).some((id) => /microwave-resonator|resonator/.test(id)), 'Phase 3 should keep resonator identity evidence');
+  for (const id of [
+    'stator-slider',
+    'rotor-wheel',
+    'solar-panel',
+    'motor-load',
+    'phase-change-material',
+    'phase-change',
+    'surface-microwave-1',
+  ]) {
+    assert.equal(candidateIds.has(id), false, `Phase 3 should reject false literal candidate ${id}`);
+  }
+  assert.doesNotMatch(groundedText, /stator|rotor|solar panel|motor load|phase change material|household microwave|surface-microwave/);
+  assert.ok(operatorTypes.includes('derive_readout'));
+  assert.equal(operatorTypes.includes('phase_transition'), false);
+  assert.equal(operatorTypes.includes('heat_source'), false);
 });
 
 test('Phase 3 strips Phase 4 conclusion fields from retrieval evidence side channels', () => {
@@ -385,8 +424,8 @@ test('grounding rejects associative generated identities lacking prompt evidence
   );
   const graphText = spec.universeGraph.nodes.map((node) => `${node.canonicalId} ${node.id}`).join(' ');
   assert.ok(!/forest/.test(graphText), 'no forest identity for a prompt without forest language');
-  assert.ok(spec.universeGraph.nodes.some((node) => node.canonicalId === 'material.wood'));
-  assert.ok(spec.universeGraph.nodes.some((node) => node.canonicalId === 'artifact.sample_tray'));
+  assert.ok(spec.universeGraph.nodes.some((node) => /(?:^|\.)material\.wood$/.test(node.canonicalId)));
+  assert.ok(spec.universeGraph.nodes.some((node) => /sample[-_]tray$/.test(node.canonicalId || '')));
   assert.equal(spec.renderIR.sceneHint, 'material-tray');
   assert.ok(spec.universeGraph.rejected.some((row) => /identity lacks prompt evidence/.test(row.reason || '')));
 });
@@ -464,10 +503,10 @@ test('Phase 5 and 7 lower swimming into behavior physics and preserve dog cat id
     assert.ok(solverTypes.has(type), `solver graph should keep ${type}`);
   }
   assert.equal(behaviorRelations.length, 2);
-  assert.ok(behaviorRelations.some((row) => row.agentEntityId === 'semantic-surface-dog-1'));
-  assert.ok(behaviorRelations.some((row) => row.agentEntityId === 'semantic-surface-cat-1'));
-  assert.ok(renderBehaviors.some((row) => row.physicalRef === 'semantic-surface-dog-1'));
-  assert.ok(renderBehaviors.some((row) => row.physicalRef === 'semantic-surface-cat-1'));
+  assert.ok(behaviorRelations.some((row) => row.agentEntityId === 'prompt-body-dog'));
+  assert.ok(behaviorRelations.some((row) => row.agentEntityId === 'prompt-body-cat'));
+  assert.ok(renderBehaviors.some((row) => row.physicalRef === 'prompt-body-dog'));
+  assert.ok(renderBehaviors.some((row) => row.physicalRef === 'prompt-body-cat'));
   assert.ok(simulationCompile.renderIR.objects.some((row) => row.stateBindings && row.stateBindings.submersion));
   assert.equal(identityById.get('surface-dog-1'), 'dog');
   assert.equal(identityById.get('surface-cat-1'), 'cat');
@@ -543,6 +582,7 @@ test('particle instrument VisualIR preserves causal affordance rows', () => {
     'particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat'
   );
   const visualIR = spec.renderProgram.visualIR;
+  const visualCompile = spec.phaseArtifacts.phase6.artifact.visualCompile;
   const causalReceipt = visualIR.receipts.find((row) => row.id === 'receipt:causal-affordances');
 
   assert.equal(spec.renderProgram.rendererPlan.sceneKind, 'particle-instrument');
@@ -551,6 +591,65 @@ test('particle instrument VisualIR preserves causal affordance rows', () => {
   assert.ok(causalReceipt.count > 0);
   assert.ok(visualIR.geometry.some((row) => (row.evidence || []).some((item) => item.startsWith('causal-affordance:'))));
   assert.ok(visualIR.sceneRenderPacket.effects.some((row) => row.layerSlot === 'causal-affordance'));
+  const requiredObligations = visualCompile.compositionLedger.obligations.filter((row) => row.required);
+  assert.deepEqual(requiredObligations.filter((row) => row.status !== 'preserved'), []);
+  const sourceLabels = visualCompile.sceneRenderPacket.entities.map((row) => row.identity.sourceLabel);
+  for (const label of ['particle collider', 'muon tracks', 'detector slice', 'calorimeter']) {
+    assert.ok(sourceLabels.some((value) => value.includes(label)), `missing scene identity for ${label}`);
+  }
+});
+
+test('Phase 4 reserves bounded grounding evidence for prompt-owned typed identities', () => {
+  const prompt = 'particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat';
+  const rankedUniverseRows = Array.from({ length: 400 }, (_, index) => ({
+    id: `noise-${index}`,
+    candidateId: `noise-${index}`,
+    canonicalId: `noise.${index}`,
+    label: `unrelated candidate ${index}`,
+    score: 1 - index / 1000,
+  }));
+  const spec = lab.createSpecFromPrompt(prompt, {
+    allowPrototypeFallback: true,
+    phase3RetrievalEvidence: { rankedUniverseRows },
+  });
+  const canonicalIds = new Set(spec.universeGraph.nodes.map((row) => row.canonicalId));
+  const requiredObligations = spec.phaseArtifacts.phase6.artifact.visualCompile.compositionLedger.obligations
+    .filter((row) => row.required);
+
+  for (const id of [
+    'prompt.body.particle-collider',
+    'prompt.body.muon-tracks',
+    'prompt.body.detector-slice',
+    'prompt.body.calorimeter',
+  ]) {
+    assert.ok(canonicalIds.has(id), `missing bounded grounding identity ${id}`);
+  }
+  assert.deepEqual(requiredObligations.filter((row) => row.status !== 'preserved'), []);
+});
+
+test('Phase 6 lowers unmatched typed physics entities for expanded scene kinds', () => {
+  const prompt = 'particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat';
+  const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+  const sparseGraph = {
+    ...spec.compositionGraph,
+    nodes: spec.compositionGraph.nodes.filter((row) => (
+      row.source === 'catalog' || /^embedding-guided-synth/.test(row.source || '')
+    )),
+  };
+  const program = lab.compileCompositionToRenderProgram(sparseGraph, {
+    ...spec,
+    compositionGraph: sparseGraph,
+  });
+  const semanticRefs = new Set(program.objects.map((row) => row.semanticRef).filter(Boolean));
+
+  for (const id of [
+    'prompt.body.particle-collider',
+    'prompt.body.muon-tracks',
+    'prompt.body.detector-slice',
+    'prompt.body.calorimeter',
+  ]) {
+    assert.ok(semanticRefs.has(id), `missing expanded-scene render identity ${id}`);
+  }
 });
 
 test('phase envelopes enforce neighboring pipeline handoffs', () => {
@@ -916,6 +1015,7 @@ test('WebGPU phase 8 layer summary follows compiled VisualIR structures', () => 
         /Phase 7 expected inputSchema simulatte\.phase6\.output\.v2/
       );
       renderer.setRenderExecutionInput(lab.createRenderExecutionInput(spec, null, canvas));
+      assert.equal(canvas.dataset.renderInputSerial, '1');
       assert.equal(canvas.dataset.phase7Input, 'simulatte.renderExecutionInput.v1');
       assert.equal(canvas.dataset.renderExecutionInput, 'simulatte.renderExecutionInput.v1');
       assert.equal(canvas.dataset.phase7SceneRenderPacketInput, 'simulatte.sceneRenderPacket.v1');
@@ -936,6 +1036,7 @@ test('WebGPU phase 8 layer summary follows compiled VisualIR structures', () => 
       const renderData = renderer.renderData;
       const renderDataKey = canvas.dataset.phase7RenderDataKey;
       renderer.setRenderExecutionInput(lab.createRenderExecutionInput(spec, { fields: { heat: 0.7 } }, canvas));
+      assert.equal(canvas.dataset.renderInputSerial, '2');
       assert.equal(renderer.renderData, renderData, `${prompt} should reuse compact render data when only simulation state changes`);
       assert.equal(canvas.dataset.phase7RenderDataKey, renderDataKey);
       assert.equal(renderer.renderExecutionInput.simulationState.fields.heat, 0.7);

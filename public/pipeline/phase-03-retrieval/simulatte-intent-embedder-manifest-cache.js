@@ -370,19 +370,9 @@
             .filter((prior) => !nonRetrievableIds.has(prior.primitiveId))
             .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
           const languageEvidence = spanLanguageEvidence(promptText, options);
-          const previewRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector);
+          const previewRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector, options);
           const activeRerankProvider = await this.resolveRerankProvider(runtime, provider, options);
-          const previewRerank = await rerankIntentPriors({
-            priors: basePriors,
-            semanticRag: previewRag,
-            dopplerIntent: null,
-            runtime,
-            universeMatches,
-            provider,
-            rerankProvider: activeRerankProvider,
-            promptText,
-            phaseLabel: 'prompt-preview',
-          });
+          const previewRerank = rerankPriors(basePriors, previewRag, null, runtime, universeMatches);
           const previewSpanRetrieval = emptySpanRetrieval([], spanConfigFor(runtime, options, this.spanLevelEmbedding), 'prompt-preview');
           const previewEvidenceRows = buildIntentEvidenceRows({
             basePriors,
@@ -437,7 +427,7 @@
             rankId,
           });
           const fusedBasePriors = fuseSpanPrimitiveScores(basePriors, spanRetrieval);
-          const semanticRag = createRag(promptText, candidates, fusedBasePriors, runtime.index, queryVector);
+          const semanticRag = createRag(promptText, candidates, fusedBasePriors, runtime.index, queryVector, options);
           const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
           const rerank = await rerankIntentPriors({
             priors: fusedBasePriors,
@@ -449,6 +439,10 @@
             rerankProvider: activeRerankProvider,
             promptText,
             phaseLabel: 'span-refined',
+            progress,
+            trace,
+            traceId: this.traceId,
+            rankId,
           });
           const evidenceRows = buildIntentEvidenceRows({
             basePriors: fusedBasePriors,

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 1,
+  "number": 2,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index-browser.js",
     "kernelBasePath": "../../vendor/doppler/src/gpu/kernels",
@@ -13,13 +13,16 @@
       "fileCount": 1701
     },
     "localPatches": {
-      "src/client/runtime/index.js": "000188dcc15fa6ad683908bf7056b35d4637006ea4a3cc4f9563983b6ac6b316",
-      "src/client/runtime/model-source.d.ts": "4a0ac13b240e3fd9740ca8e2beac15a11184ce6995a39f567c97a0b62569efc8",
-      "src/client/runtime/model-source.js": "3eb28f6ed0d3386d77acdb25c955e47bce11931e614541fdc85edec3cc7bd82a",
+      "src/client/runtime/index.js": "6d94cdea690ffc6ed433939c93ed8e6920bdab1a9354296e5b7ef4f6d763d41f",
+      "src/client/runtime/model-session.d.ts": "b365336c2bb30bf84ef1f1d12634ac45b9c91ac9f30d2c2f8ef1a80256d09515",
+      "src/client/runtime/model-session.js": "3779ebd2b2334632415980b109c71e6b655153172dd637e79829903f8aa82800",
+      "src/client/runtime/model-source.d.ts": "84657d38f53d0df5e268444575bfe4dc7de3b5abbfaeea9e0a4a42e3525f62b4",
+      "src/client/runtime/model-source.js": "d15a1884e4d0e868c2bbb0e7d2206622d9dbd891ca115ba033b45f5d71180705",
       "src/config/transforms/execution-graph-transforms.js": "54b2054fde328416c74df77a592f835e9df16a10bf9aae66e15b0dc8270f3483",
       "src/inference/pipelines/text.d.ts": "4f3a4e3b981dccd9e227f77f0ca3040f6ef7b0cd932155cd68790f51c1baaeab",
-      "src/inference/pipelines/text.js": "095c36e812b0cea44b467a7fd372c742d693ab0dd5f5df4aae73e1956f512596",
+      "src/inference/pipelines/text.js": "807b00c6bb7ef279a86816a9c2984d3fb7d16df3f2329804d907367438848622",
       "src/inference/pipelines/text/execution-v1.js": "c3cb0050da8394681290dd0f661140e3106d668877ba130196adca1c8cebbaf6",
+      "src/inference/pipelines/text/generator.js": "f1fa5e2552938f9a9cd41b51933d270a0fdab90839c5c460b40ec10650f83a0f",
       "src/inference/pipelines/text/init.d.ts": "8d3ee036f90d7e473230631454768b7b62aee51df88cf0293c2dd33512d61f79",
       "src/inference/pipelines/text/init.js": "8138dc87592ee38bb5dbb15977748bf500ecd9e8a6c86e23c226de0fda46e810",
       "src/inference/pipelines/text/state.d.ts": "da202f21606988865b22054d64be636d202f208ef546903cd841a892bc7f1a15",
@@ -128,6 +131,8 @@
     "executeInPhase": 3,
     "inputSchema": "simulatte.intentRerankInput.v1",
     "outputSchema": "simulatte.intentRerank.v1",
+    "maxCandidatesPerCall": 8,
+    "maxSlotCandidatesPerCall": 4,
     "fallbackMode": "heuristic-fusion",
     "candidateScope": [
       "primitive",
@@ -198,7 +203,7 @@
     "injected-doppler-model"
   ],
   "runtime": {
-    "queryEmbeddingMode": "mean",
+    "queryEmbeddingMode": "last",
     "embeddingText": {
       "schema": "simulatte.embeddingTextContract.v1",
       "style": "qwen3_embedding",
@@ -213,7 +218,7 @@
     "storage": [
       "Doppler"
     ],
-    "namespace": "simulatte-doppler-qwen-runtime-lock-1",
+    "namespace": "simulatte-doppler-qwen-runtime-lock-2",
     "owner": "doppler",
     "prefetch": false,
     "strategy": "doppler-managed",

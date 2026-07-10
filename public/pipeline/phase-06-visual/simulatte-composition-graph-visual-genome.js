@@ -745,7 +745,7 @@
           .flatMap((token) => token.split('-'))
           .map((token) => token.replace(/^-+|-+$/g, ''))
           .filter((token) => token.length > 2 && !/^\d+$/.test(token) && !stop.has(token))
-          .slice(0, 32));
+          .slice(0, 96));
       }
 
     function compiledDnaForGenome(compiledText, seed) {

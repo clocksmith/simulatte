@@ -2,8 +2,8 @@
   "name": "simulatte-world",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.cjs",
-    "test:vendor-inference": "SIMULATTE_RUN_VENDOR_INFERENCE_TESTS=1 node --test --test-timeout=60000 tests/doppler-execution-v1.test.cjs",
+    "test": "node tools/run-test-files.mjs",
+    "test:vendor-inference": "node tools/run-vendor-inference-lane.mjs",
     "train": "node tools/train.mjs",
     "serve": "node tools/serve-local.mjs",
     "review:server": "node tools/simulatte-review-server.mjs",

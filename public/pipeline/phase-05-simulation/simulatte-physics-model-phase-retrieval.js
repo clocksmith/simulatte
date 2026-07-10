@@ -689,10 +689,11 @@
     	  }
 
     function phase3CandidatesForSlot(slot = {}, buckets = {}, rankedCards = [], rankedUniverseRows = [], slotRetrieval = null) {
-    		    const rows = uniquePhase3SlotRows([
-    		      ...phase3ModelRowsForSlot(slot, slotRetrieval),
-    		      ...phase3RowsForSlot(slot, buckets, rankedCards, rankedUniverseRows),
-    		    ]);
+		    const rows = uniquePhase3SlotRows([
+		      phase3LiteralSlotCandidate(slot),
+		      ...phase3ModelRowsForSlot(slot, slotRetrieval),
+		      ...phase3RowsForSlot(slot, buckets, rankedCards, rankedUniverseRows),
+		    ]);
     		    return rows.slice(0, phase3SlotBudget(slot)).map((row) => {
     		      const supportOnly = row.supportOnly === true || slot.slotRole === 'support';
     		      const candidateId = row.candidateId || row.id || row.cardId || row.canonicalId || row.primitiveId || '';
@@ -702,7 +703,15 @@
     		        candidateType: row.candidateType || phase3CandidateType(row),
     		        label: row.label || row.phrase || row.role || row.id || '',
     		        candidateText: row.candidateText || row.label || row.phrase || row.role || row.id || '',
-    		        source: row.source || row.indexName || '',
+		        source: row.source || row.indexName || '',
+		        canonicalId: row.canonicalId || '',
+		        semanticType: row.semanticType || '',
+		        domains: row.domains || [],
+		        materialId: row.materialId || row.material || '',
+		        operatorHints: row.operatorHints || row.operatorTypes || [],
+		        primitiveHints: row.primitiveHints || [],
+		        shapeHints: row.shapeHints || [],
+		        sceneHints: row.sceneHints || [],
     		        slotId: slot.slotId || '',
     		        slotRole: slot.slotRole || '',
     		        modelRerankScore: row.modelRerankScore,
@@ -714,7 +723,38 @@
     	        reason: supportOnly ? row.reason || 'support evidence cannot satisfy required literal slot' : 'slot evidence matches query plan role',
     	      };
     	    });
-    	  }
+		  }
+
+    function phase3LiteralSlotCandidate(slot = {}) {
+        const entryId = String(slot.entryId || '');
+        const role = String(slot.slotRole || '');
+        if (!entryId || role === 'support' || role === 'visual') return null;
+        const label = normalizeForEvidence(entryId.replace(/^[a-z]+:/, '')).trim();
+        if (!label) return null;
+        const slug = label.replace(/\s+/g, '-');
+        const semanticType = {
+          actor: 'body',
+          object: 'body',
+          environment: 'environment',
+          medium: 'material',
+          action: 'process',
+          relation: 'relation',
+        }[role] || 'entity';
+        return {
+          id: `prompt.${role || 'entity'}.${slug}`,
+          candidateId: `prompt.${role || 'entity'}.${slug}`,
+          candidateType: 'prompt-literal',
+          label,
+          candidateText: label,
+          canonicalId: `prompt.${semanticType}.${slug}`,
+          semanticType,
+          source: 'prompt-typed-slot',
+          score: 1,
+          supportOnly: false,
+          identityEvidence: true,
+          reason: 'typed Phase 2 slot preserves literal prompt identity',
+        };
+      }
 
     function phase3RowsForSlot(slot = {}, buckets = {}, rankedCards = [], rankedUniverseRows = []) {
     	    const role = slot.slotRole || '';
@@ -740,22 +780,23 @@
     		  }
 
     function phase3ModelRowsForSlot(slot = {}, slotRetrieval = null) {
-    		    const slotId = String(slot.slotId || '');
-    		    if (!slotId || !slotRetrieval || !Array.isArray(slotRetrieval.bySlot)) return [];
-    		    const row = slotRetrieval.bySlot.find((entry) => entry && entry.slotId === slotId);
-    		    if (!row) return [];
-    		    return (row.candidates || []).map((candidate) => ({
-    		      ...candidate,
-    		      id: candidate.candidateId || candidate.id || candidate.primitiveId || '',
-    		      source: candidate.source || 'slot-embedding-retrieval',
-    		      slotId,
-    		      slotRole: slot.slotRole || candidate.slotRole || '',
-    		    }));
-    		  }
+		    const slotId = String(slot.slotId || '');
+		    if (!slotId || !slotRetrieval || !Array.isArray(slotRetrieval.bySlot)) return [];
+		    const row = slotRetrieval.bySlot.find((entry) => entry && entry.slotId === slotId);
+		    if (!row) return [];
+		    const candidates = (row.candidates || []).map((candidate) => ({
+		      ...candidate,
+		      id: candidate.candidateId || candidate.id || candidate.primitiveId || '',
+		      source: candidate.source || 'slot-embedding-retrieval',
+		      slotId,
+		      slotRole: slot.slotRole || candidate.slotRole || '',
+		    }));
+		    return phase3FilterRowsForEntry(candidates, String(slot.entryId || ''));
+		  }
 
     function uniquePhase3SlotRows(rows = []) {
-    		    const seen = new Set();
-    		    return rows.filter((row) => {
+		    const seen = new Set();
+		    return rows.filter(Boolean).filter((row) => {
     		      const key = `${row.candidateType || phase3CandidateType(row)}:${row.candidateId || row.id || row.cardId || row.canonicalId || row.primitiveId || ''}`;
     		      if (!key || seen.has(key)) return false;
     		      seen.add(key);
@@ -863,6 +904,7 @@
       phase3EvidenceBucketRow,
       phase3SupportRowIsGeneric,
       phase3SlotEvidence,
+      phase3LiteralSlotCandidate,
       phase3CandidatesForSlot,
       phase3RowsForSlot,
       phase3ModelRowsForSlot,

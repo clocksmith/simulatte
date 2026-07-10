@@ -48,6 +48,7 @@ export interface DopplerModelHandle {
   readonly loaded: boolean;
   readonly modelId: string;
   readonly manifest: unknown;
+  readonly manifestHash: string | null;
   readonly deviceInfo: Record<string, unknown> | null;
   readonly advanced: {
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;
@@ -70,5 +71,6 @@ export declare function createModelHandle(
   pipeline: InferencePipeline,
   resolved: {
     modelId: string;
+    manifestHash?: string | null;
   }
 ): DopplerModelHandle;

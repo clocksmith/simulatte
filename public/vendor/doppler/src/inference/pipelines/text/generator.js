@@ -2148,6 +2148,16 @@ export class PipelineGenerator {
     try {
       const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
 
+      if (options.__skipStateSnapshot) {
+        return {
+          cache: null,
+          seqLen: this.#state.currentSeqLen,
+          tokens: inputIds,
+          logits,
+          linearAttention: null,
+        };
+      }
+
       const snapshot = this.#state.kvCache?.clone();
       if (!snapshot) {
         throw new Error('KV cache unavailable after prefill');

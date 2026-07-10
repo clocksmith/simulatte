@@ -111,17 +111,40 @@ test('topology evidence becomes a visible graphics atom', () => {
 
 test('watershed scenes retain an animal-swim dialect when the evidence names animals', () => {
   const swimming = visualAxes(compile('dogs and cats swimming'));
+  const dogs = visualAxes(compile('dogs'));
   const terrain = visualAxes(compile('trees and mountaints'));
 
   assert.deepEqual(
     [swimming.visualDialect, swimming.compositionTopology, swimming.cameraArchetype],
-    ['watershed/animal-swim', 'field-map', 'wide-establishing']
+    ['watershed/animal-swim', 'basin', 'topographic-cutaway']
   );
   assert.deepEqual(
     [terrain.visualDialect, terrain.compositionTopology, terrain.cameraArchetype],
     ['watershed/basin', 'basin', 'aerial-map']
   );
+  assert.notDeepEqual(
+    [swimming.visualDialect, swimming.compositionTopology, swimming.cameraArchetype],
+    [dogs.visualDialect, dogs.compositionTopology, dogs.cameraArchetype]
+  );
+  assert.notDeepEqual(swimming.positions, dogs.positions);
   assert.notDeepEqual(swimming.positions, terrain.positions);
+});
+
+test('particle detectors and qubit readouts compile to evidence-distinct instrument dialects', () => {
+  const particle = visualAxes(compile('particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat'));
+  const qubit = visualAxes(compile('qubit chip phase readout through microwave resonator'));
+
+  assert.deepEqual(
+    [particle.visualDialect, particle.compositionTopology, particle.cameraArchetype, particle.scaleTier],
+    ['particle-instrument/detector-slice', 'cutaway', 'section-elevation', 'human']
+  );
+  assert.deepEqual(
+    [qubit.visualDialect, qubit.compositionTopology, qubit.cameraArchetype, qubit.scaleTier],
+    ['quantum-instrument/resonator-readout', 'radial', 'microscope-cutaway', 'microscopic']
+  );
+  assert.notDeepEqual(particle.positions, qubit.positions);
+  assert.ok(particle.evidence.matchedTerms.some((row) => row.term === 'detector' || row.term === 'muon'));
+  assert.ok(qubit.evidence.matchedTerms.some((row) => row.term === 'qubit' || row.term === 'microwave resonator'));
 });
 
 test('diversity diagnostics ignore generated variant codes', async () => {

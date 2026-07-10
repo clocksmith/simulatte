@@ -63,8 +63,10 @@
           .map((doc) => scoreDocument({ modelPromptVector, localPromptVector }, prompt, doc, modelPriors.get(doc.primitiveId)))
           .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId))
           .slice(0, Number.isFinite(options.maxDocuments) ? options.maxDocuments : 60);
+        const typedSpans = Array.isArray(options.typedSpans) ? options.typedSpans : [];
         const surfaceRetrieved = surfaceDocs
           .map((doc) => scoreSemanticCard(localPromptVector, prompt, doc))
+          .filter((doc) => surfaceCardAlignsWithTypedSpans(prompt, doc.labels, typedSpans))
           .filter((doc) => doc.score > 0.08 || doc.directMatch)
           .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId))
           .slice(0, Number.isFinite(options.maxSurfaceDocuments) ? options.maxSurfaceDocuments : 72);
@@ -78,11 +80,12 @@
           groundingRetrieved,
           primitiveRetrieved: retrieved,
           maxNodes: Number.isFinite(options.maxSynthNodes) ? options.maxSynthNodes : 18,
+          typedSpans,
         });
         const openLimit = Number.isFinite(options.maxOpenComponents) ? options.maxOpenComponents : 12;
         const openComponents = mergeOpenComponents(
           synthGraph.openComponents,
-          extractOpenComponents(prompt, retrieved),
+          extractOpenComponents(prompt, retrieved, typedSpans, options.suppressObservableOpenComponents === true),
           openLimit
         );
         const domains = dominantDomains(retrieved, openComponents);
@@ -559,7 +562,7 @@
     function synthesizeSurfaceGraph(prompt, primitives, context) {
         const primitiveIds = new Set((primitives || []).map((primitive) => primitive.id));
         const basisById = new Map(GROUNDING_BASIS_CARDS.map((card) => [card.id, card]));
-        const directMatches = directSurfaceMatches(prompt);
+        const directMatches = directSurfaceMatches(prompt, context.typedSpans || []);
         const retrievedMatches = (context.surfaceRetrieved || [])
           .filter((doc) => shouldUseRetrievedSurfaceNode(doc, directMatches))
           .slice(0, 12)
@@ -616,7 +619,7 @@
         };
       }
 
-    function directSurfaceMatches(prompt) {
+    function directSurfaceMatches(prompt, typedSpans = []) {
         const lower = String(prompt || '').toLowerCase();
         const matches = [];
         for (const card of SEMANTIC_SURFACE_CARDS) {
@@ -627,6 +630,7 @@
             const specificity = labelSpecificity(normalized);
             if (specificity < 0.18) continue;
             for (const match of labelOccurrences(lower, normalized)) {
+              if (!surfaceOccurrenceAlignsWithTypedSpans(match, typedSpans)) continue;
               matches.push({
                 card,
                 phrase: match.text,
@@ -639,6 +643,28 @@
           }
         }
         return matches.sort((a, b) => a.index - b.index || b.phrase.length - a.phrase.length);
+      }
+
+    function surfaceCardAlignsWithTypedSpans(prompt, labels = [], typedSpans = []) {
+        if (!typedSpans.length) return true;
+        const occurrences = (labels || []).flatMap((label) => labelOccurrences(prompt, label));
+        if (!occurrences.length) return true;
+        return occurrences.some((match) => surfaceOccurrenceAlignsWithTypedSpans(match, typedSpans));
+      }
+
+    function surfaceOccurrenceAlignsWithTypedSpans(match, typedSpans = []) {
+        const overlaps = (typedSpans || []).filter((span) => (
+          Number.isFinite(span.start) &&
+          Number.isFinite(span.end) &&
+          match.index < span.end &&
+          match.end > span.start
+        ));
+        if (!overlaps.length) return true;
+        return overlaps.some((span) => (
+          match.index === span.start && match.end === span.end
+        ) || (
+          match.index >= span.start && match.end === span.end
+        ));
       }
 
     function stableSurfaceMatches(matches, maxNodes) {

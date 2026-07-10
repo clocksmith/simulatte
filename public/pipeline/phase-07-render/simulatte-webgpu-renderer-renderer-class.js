@@ -41,6 +41,8 @@
           this.sceneRenderPacket = null;
           this.sceneRenderPacketKey = '';
           this.renderExecutionInput = null;
+          this.renderInputSerial = 0;
+          this.canvas.dataset.renderInputSerial = '0';
           this.renderData = null;
           this.phase7Output = null;
           this.phase7OutputPacketKey = '';
@@ -209,9 +211,14 @@
 
         setRenderExecutionInput(renderExecutionInput) {
           const scenePacket = sceneRenderPacketFromExecutionInput(renderExecutionInput);
-          this.renderExecutionInput = renderExecutionInput && renderExecutionInput.schema === 'simulatte.renderExecutionInput.v1'
+          const nextRenderExecutionInput = renderExecutionInput && renderExecutionInput.schema === 'simulatte.renderExecutionInput.v1'
             ? renderExecutionInput
             : null;
+          if (nextRenderExecutionInput !== this.renderExecutionInput) {
+            this.renderInputSerial += 1;
+            this.canvas.dataset.renderInputSerial = String(this.renderInputSerial);
+          }
+          this.renderExecutionInput = nextRenderExecutionInput;
           this.canvas.dataset.renderExecutionInput = this.renderExecutionInput
             ? this.renderExecutionInput.schema
             : 'missing-renderExecutionInput';
@@ -364,11 +371,23 @@
             this.canvas.dataset.sceneProofError = '';
             this.canvas.dataset.sceneProofLostCount = String(sceneProof.summary.lostCount);
             this.canvas.dataset.sceneProofNotProvenCount = String(sceneProof.summary.notProvenCount);
+            this.canvas.dataset.sceneProofRequiredLostIds = JSON.stringify(sceneProof.summary.requiredLostIds || []);
+            this.canvas.dataset.sceneProofRequiredNotProvenIds = JSON.stringify(
+              sceneProof.summary.requiredNotProvenIds || []
+            );
+            this.canvas.dataset.sceneProofRequiredFailures = JSON.stringify(
+              (sceneProof.settledObligations || []).filter((row) => (
+                row.required === true && (row.status === 'lost' || row.status === 'not-proven')
+              ))
+            );
           } catch (error) {
             this.phase8Output = null;
             this.canvas.dataset.phase8Output = '';
             this.canvas.dataset.sceneProofVerdict = 'error';
             this.canvas.dataset.sceneProofError = error && error.message ? error.message : String(error);
+            this.canvas.dataset.sceneProofRequiredLostIds = '[]';
+            this.canvas.dataset.sceneProofRequiredNotProvenIds = '[]';
+            this.canvas.dataset.sceneProofRequiredFailures = '[]';
           }
           return this.phase8Output;
         }

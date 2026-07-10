@@ -361,6 +361,12 @@
             runtime,
             promptText: payload.promptText,
             slot,
+            progress: payload.progress,
+            traceEnabled: payload.traceEnabled,
+            traceId: payload.traceId,
+            rankId: payload.rankId,
+            slotIndex: i,
+            slotCount: slots.length,
           });
           if (reranked.rerankCall) rerankCallCount += 1;
           bySlot.push({
@@ -662,11 +668,23 @@
             candidates: rows,
             runtime: payload.runtime,
           });
+          input.onProgress = (row = {}) => emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+            source: 'simulatte-intent-embedder',
+            stage: 'slot-model-rerank',
+            percent: 94.1 + (Number(payload.slotIndex || 0) + 0.5) /
+              Math.max(1, Number(payload.slotCount || 1)) * 1.3,
+            message: `Reranking scene slot ${Number(payload.slotIndex || 0) + 1}/` +
+              `${Number(payload.slotCount || 1)} candidate ${row.completed || 0}/${row.total || 0}`,
+            traceId: payload.traceId || '',
+            rankId: payload.rankId || 0,
+            slotId: payload.slot && payload.slot.slotId || '',
+            candidateCount: row.total || 0,
+          });
           const result = await capability.rerank(input);
           const modelRows = normalizeRerankerRows(result);
           if (!modelRows.length) throw new Error(`Doppler reranker ${config.id} returned no slot candidates`);
           return {
-            candidates: applySlotModelRerank(rows, modelRows),
+            candidates: applySlotModelRerank(rows, modelRows, input.candidates),
             rerankCall: true,
             receipt: {
               schema: 'simulatte.phase3SlotRerankReceipt.v1',
@@ -702,6 +720,8 @@
       }
 
     function buildSlotRerankInput({ promptText, slot, candidates, runtime }) {
+        const config = rerankerConfig(runtime);
+        const selectedCandidates = (candidates || []).slice(0, config.maxSlotCandidatesPerCall);
         return {
           schema: 'simulatte.intentSlotRerankInput.v1',
           phase: 3,
@@ -717,7 +737,7 @@
             queries: slot && slot.queries || [],
             relationIds: slot && slot.relationIds || [],
           },
-          candidates: (candidates || []).map((candidate, order) => ({
+          candidates: selectedCandidates.map((candidate, order) => ({
             primitiveId: candidate.candidateId || candidate.primitiveId || candidate.id,
             candidateId: candidate.candidateId || candidate.primitiveId || candidate.id,
             order,
@@ -730,13 +750,16 @@
             supportOnly: candidate.supportOnly === true,
             candidateText: candidate.candidateText || '',
           })),
-          max: Math.min(48, Math.max(1, (candidates || []).length)),
+          max: Math.max(1, selectedCandidates.length),
         };
       }
 
-    function applySlotModelRerank(localRows, modelRows) {
+    function applySlotModelRerank(localRows, modelRows, evaluatedRows = modelRows) {
         const byId = new Map((localRows || []).map((row) => [row.candidateId || row.primitiveId || row.id, { ...row }]));
         const modelIds = new Set();
+        const evaluatedIds = new Set((evaluatedRows || []).map((row) => String(
+          row && (row.primitiveId || row.candidateId || row.id) || ''
+        )).filter(Boolean));
         for (const modelRow of modelRows || []) {
           const existing = byId.get(modelRow.primitiveId);
           if (!existing) continue;
@@ -745,19 +768,27 @@
           existing.modelRerankScore = Number(modelScore.toFixed(4));
           existing.modelRerankRank = Number(modelRow.rank || 0);
           existing.modelRerankReason = modelRow.reason || '';
+          existing.modelRerankEvaluated = true;
           existing.score = Number(Math.min(
             1,
             existing.score * SLOT_RERANK_MODEL_BLEND.localWeight + modelScore * SLOT_RERANK_MODEL_BLEND.modelWeight
           ).toFixed(4));
           byId.set(modelRow.primitiveId, existing);
         }
-        if (modelIds.size) {
+        if (evaluatedIds.size) {
           for (const [candidateId, existing] of byId) {
             if (modelIds.has(candidateId)) continue;
             existing.modelRerankScore = 0;
             existing.modelRerankRank = Number.MAX_SAFE_INTEGER;
-            existing.modelRerankReason = 'not returned by reranker';
-            existing.score = Number(clamp01(Number(existing.score || 0) * SLOT_RERANK_MODEL_BLEND.localWeight).toFixed(4));
+            existing.modelRerankEvaluated = evaluatedIds.has(candidateId);
+            if (existing.modelRerankEvaluated) {
+              existing.modelRerankReason = 'evaluated but not returned by reranker';
+              existing.score = Number(clamp01(
+                Number(existing.score || 0) * SLOT_RERANK_MODEL_BLEND.localWeight
+              ).toFixed(4));
+            } else {
+              existing.modelRerankReason = 'outside model top-k; local score retained';
+            }
             byId.set(candidateId, existing);
           }
         }

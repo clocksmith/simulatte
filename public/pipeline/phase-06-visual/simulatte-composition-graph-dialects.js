@@ -20,6 +20,8 @@
       acoustic: ['acoustic/waveguide', 'corridor', 'section-elevation', 'human'],
       optics: ['optics/optical-bench', 'corridor', 'lab-bench', 'human'],
       mechanical: ['mechanical/cutaway', 'cutaway', 'section-elevation', 'human'],
+      'particle-instrument': ['particle-instrument/detector-slice', 'cutaway', 'section-elevation', 'human'],
+      'quantum-instrument': ['quantum-instrument/resonator-readout', 'radial', 'microscope-cutaway', 'microscopic'],
     });
 
     function visualDialectPlanForGenome({
@@ -176,8 +178,18 @@
             ['sediment', 5], ['delta', 4], ['erosion', 4], ['grain', 3], ['advection', 2],
           ]);
         }
+        if (sceneKind === 'particle-instrument') {
+          add('particle-instrument/detector-slice', 'cutaway', 'section-elevation', 'human', 'detector-layers-track-arcs-and-calorimeter-cells', 'concentric-detector-slice', 'collision-vertex-and-track-plume', 'detector-cyan-amber', [
+            ['particle collider', 5], ['detector', 5], ['muon', 5], ['calorimeter', 4], ['track', 3], ['field line', 2],
+          ]);
+        }
+        if (sceneKind === 'quantum-instrument') {
+          add('quantum-instrument/resonator-readout', 'radial', 'microscope-cutaway', 'microscopic', 'chip-cells-resonator-rings-and-phase-fringes', 'central-resonator-chip', 'phase-readout-and-microwave-pulse', 'quantum-violet-cyan', [
+            ['qubit', 5], ['microwave resonator', 5], ['resonator', 4], ['readout', 4], ['measurement', 3], ['phase', 2],
+          ]);
+        }
         if (sceneKind === 'watershed' || sceneKind === 'restoration-water') {
-          add('watershed/animal-swim', 'field-map', 'wide-establishing', 'landscape', 'limb-pairs-and-waterline-contours', 'gait-cell-field', 'stroke-and-wake-pairs', 'field-green-ochre', [
+          add('watershed/animal-swim', 'basin', 'topographic-cutaway', 'landscape', 'limb-pairs-waterline-contours-and-submerged-bodies', 'waterline-basin', 'stroke-and-wake-pairs', 'field-green-ochre', [
             ['dog', 5], ['cat', 5], ['animal', 4], ['swimming', 4], ['fluid locomotion', 3], ['wake generation', 2],
           ]);
         }

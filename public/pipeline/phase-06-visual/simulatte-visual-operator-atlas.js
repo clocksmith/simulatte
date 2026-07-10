@@ -149,7 +149,7 @@
     ),
     mapping(
       'visual.operator.biological-growth.v1',
-      ['biology', 'biological', 'biofilm', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'yeast', 'compost', 'greenhouse', 'nutrient', 'biomass', 'crop', 'plant', 'plants', 'flower', 'flowers', 'tree', 'trees', 'leaf', 'leaves', 'dog', 'dogs', 'cat', 'cats', 'animal', 'animals', 'mammal', 'mammals', 'mangrove', 'kelp', 'plankton'],
+      ['biology', 'biological', 'biofilm', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'microbiome', 'microbiota', 'bacteria', 'colony', 'colonies', 'intestinal', 'immune', 'metabolite', 'metabolites', 'yeast', 'compost', 'greenhouse', 'nutrient', 'biomass', 'crop', 'plant', 'plants', 'flower', 'flowers', 'tree', 'trees', 'leaf', 'leaves', 'dog', 'dogs', 'cat', 'cats', 'animal', 'animals', 'mammal', 'mammals', 'mangrove', 'kelp', 'plankton'],
       ['branching-organic-network', 'membrane-sheet', 'cell-cluster'],
       ['nutrient-gradient-field', 'density-front-field'],
       ['fibrous-cellular', 'wet-biological'],
@@ -323,7 +323,7 @@
       'visual.operator.thin-film-interference.v1': ['thin film', 'thin-film', 'soap', 'soap film', 'wire loop', 'wire-loop', 'surface tension', 'iridescent', 'interference'],
       'visual.operator.quantum-phase-readout.v1': ['qubit', 'quantum', 'microwave', 'superconducting'],
       'visual.operator.acoustic-wave.v1': ['acoustic', 'sound', 'standing wave', 'standing waves', 'pressure wave', 'pressure waves', 'frequency', 'speaker', 'vibration', 'pressure ring', 'air pressure', 'levitator', 'waveguide', 'brass tube'],
-      'visual.operator.biological-growth.v1': ['biology', 'biological', 'biofilm', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'yeast', 'compost', 'greenhouse', 'nutrient', 'biomass', 'crop', 'plant', 'plants', 'flower', 'flowers', 'tree', 'trees', 'leaf', 'leaves', 'dog', 'dogs', 'cat', 'cats', 'animal', 'animals', 'mammal', 'mammals', 'mangrove', 'kelp', 'plankton'],
+      'visual.operator.biological-growth.v1': ['biology', 'biological', 'biofilm', 'cell', 'protein', 'root', 'coral', 'algae', 'mycelium', 'membrane', 'microbe', 'microbiome', 'microbiota', 'bacteria', 'colony', 'colonies', 'intestinal', 'immune', 'metabolite', 'metabolites', 'yeast', 'compost', 'greenhouse', 'nutrient', 'biomass', 'crop', 'plant', 'plants', 'flower', 'flowers', 'tree', 'trees', 'leaf', 'leaves', 'dog', 'dogs', 'cat', 'cats', 'animal', 'animals', 'mammal', 'mammals', 'mangrove', 'kelp', 'plankton'],
       'visual.operator.fermentation-matrix.v1': ['ferment', 'fermentation', 'sourdough', 'yeast', 'dough', 'gluten', 'gas bubble', 'gas bubbles', 'bubble', 'bubbles', 'acidity', 'acid gradient', 'acidity gradient'],
       'visual.operator.chemical-diffusion.v1': ['reaction', 'chemical', 'acid', 'acidic', 'acidity', 'crystal', 'concentration', 'microfluidic', 'droplet', 'dose', 'fermentation'],
       'visual.operator.network-flow.v1': ['network', 'queue', 'market', 'traffic', 'route', 'packet', 'parcel'],

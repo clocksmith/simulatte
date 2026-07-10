@@ -44,9 +44,12 @@
         }).filter((row) => row.primitiveId);
       }
 
-    function applyModelRerank(localRows, modelRows) {
+    function applyModelRerank(localRows, modelRows, evaluatedRows = modelRows) {
         const byId = new Map((localRows || []).map((row) => [row.primitiveId, { ...row }]));
         const modelIds = new Set();
+        const evaluatedIds = new Set((evaluatedRows || []).map((row) => String(
+          row && (row.primitiveId || row.candidateId || row.id) || ''
+        )).filter(Boolean));
         for (const modelRow of modelRows || []) {
           const existing = byId.get(modelRow.primitiveId);
           if (!existing) continue;
@@ -55,25 +58,33 @@
           existing.modelRerankScore = Number(modelScore.toFixed(4));
           existing.modelRerankRank = Number(modelRow.rank || 0);
           existing.modelRerankReason = modelRow.reason || '';
+          existing.modelRerankEvaluated = true;
           existing.score = Number(Math.min(
             1,
             existing.score * RERANK_MODEL_BLEND.localWeight + modelScore * RERANK_MODEL_BLEND.modelWeight
           ).toFixed(4));
           byId.set(modelRow.primitiveId, existing);
         }
-        if (modelIds.size) {
+        if (evaluatedIds.size) {
           for (const [primitiveId, existing] of byId) {
             if (modelIds.has(primitiveId)) continue;
             existing.modelRerankScore = 0;
             existing.modelRerankRank = Number.MAX_SAFE_INTEGER;
-            existing.modelRerankReason = 'not returned by reranker';
-            existing.score = Number(clamp01(Number(existing.score || 0) * RERANK_MODEL_BLEND.localWeight).toFixed(4));
+            existing.modelRerankEvaluated = evaluatedIds.has(primitiveId);
+            if (existing.modelRerankEvaluated) {
+              existing.modelRerankReason = 'evaluated but not returned by reranker';
+              existing.score = Number(clamp01(
+                Number(existing.score || 0) * RERANK_MODEL_BLEND.localWeight
+              ).toFixed(4));
+            } else {
+              existing.modelRerankReason = 'outside model top-k; local score retained';
+            }
             byId.set(primitiveId, existing);
           }
         }
         return Array.from(byId.values()).sort((a, b) => (
           b.score - a.score ||
-          b.modelRerankScore - a.modelRerankScore ||
+          Number(b.modelRerankScore || 0) - Number(a.modelRerankScore || 0) ||
           b.modelScore - a.modelScore ||
           a.primitiveId.localeCompare(b.primitiveId)
         ));

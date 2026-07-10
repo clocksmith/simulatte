@@ -1581,17 +1581,22 @@ export class InferencePipeline extends PipelineState {
 
   async embed(prompt, options = {}) {
     assertNotAborted(options?.signal);
-    const result = await this.prefillWithEmbedding(prompt, {
-      ...options,
-      __skipStateSnapshot: true,
-    });
-    assertNotAborted(options?.signal);
-    return {
-      embedding: result.embedding,
-      tokens: result.tokens,
-      seqLen: result.seqLen,
-      embeddingMode: result.embeddingMode,
-    };
+    this.resetForBatch();
+    try {
+      const result = await this.prefillWithEmbedding(prompt, {
+        ...options,
+        __skipStateSnapshot: true,
+      });
+      assertNotAborted(options?.signal);
+      return {
+        embedding: result.embedding,
+        tokens: result.tokens,
+        seqLen: result.seqLen,
+        embeddingMode: result.embeddingMode,
+      };
+    } finally {
+      this.resetForBatch();
+    }
   }
 
   async embedBatch(prompts, options = {}) {

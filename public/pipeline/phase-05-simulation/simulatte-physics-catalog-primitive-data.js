@@ -108,7 +108,7 @@
         const fireRequested = has('flame', 'forest-fire', 'fire-front') ||
           says('fire', 'flame', 'burn', 'burning', 'combust', 'wildfire', 'smoke');
 
-        if (has('rotor-wheel', 'stator-slider', 'solar-panel') || says('perpetual', 'magnetic wheel', 'generator')) {
+        if (says('perpetual', 'magnetic wheel', 'solar magnetic machine', 'generator')) {
           ensure('rotor-wheel', 0.84);
           ensure('stator-slider', 0.82);
           ensure('solar-panel', 0.78);

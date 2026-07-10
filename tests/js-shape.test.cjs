@@ -1481,6 +1481,10 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
     path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'),
     'utf8'
   );
+  const runtimeWait = fs.readFileSync(
+    path.join(root, 'tools', 'audit-runtime-wait.mjs'),
+    'utf8'
+  );
   const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
   assert.match(tool, /VISUAL_RUBRIC_SIGNALS/);
@@ -1514,12 +1518,13 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /SimulatteIntentRuntimeHealth/);
   assert.match(tool, /__simulatteIntentRuntimeEvents/);
   assert.match(tool, /runtimeHealth/);
-  assert.match(tool, /MODEL_RUNTIME_WAIT_MS = 480000/);
   assert.match(tool, /MODEL_RUNTIME_STALL_MS = 90000/);
-  assert.match(tool, /conditionProgressSignature/);
-  assert.match(tool, /progress: value && value\.progress \|\| health\.progress \|\| ''/);
-  assert.match(tool, /silenceBucket: Math\.floor\(Number\(health\.silenceMs \|\| 0\) \/ 5000\)/);
-  assert.match(tool, /run button ready for \$\{label\}`,[\s\S]*timeoutMs, \{ extendOnProgress: true \}/);
+  assert.match(tool, /waitForCondition.*audit-runtime-wait\.mjs/);
+  assert.match(runtimeWait, /conditionProgressSignature/);
+  assert.match(runtimeWait, /progress: value && value\.progress \|\| health\.progress \|\| ''/);
+  assert.doesNotMatch(runtimeWait, /silenceBucket/);
+  assert.doesNotMatch(runtimeWait, /displayLine:/);
+  assert.match(tool, /run button ready for \$\{label\}`,[\s\S]*stallTimeoutMs: MODEL_RUNTIME_STALL_MS/);
   assert.match(tool, /visualIRRenderInstanceCount/);
   assert.match(tool, /phase7Input/);
   assert.match(tool, /phase7RenderExecutionInput/);
@@ -1559,7 +1564,7 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(main, /'SimulatteSceneProof'/);
   assert.match(tool, /intentMode !== 'model'/);
   assert.match(tool, /if \(options\.intentMode !== 'model'\) \{\n\s+url\.searchParams\.set\('auditNoInitial', '1'\)/);
-  assert.match(tool, /Simulatte UI ready[\s\S]*timeoutMs, \{ extendOnProgress: intentMode === 'model' \}/);
+  assert.match(tool, /Simulatte UI ready[\s\S]*extendOnProgress: intentMode === 'model'[\s\S]*stallTimeoutMs: MODEL_RUNTIME_STALL_MS/);
   assert.match(tool, /visualIRGraphicsUniformValues/);
   assert.match(tool, /visualIRGraphicsLanguageSignals/);
   assert.match(tool, /visual rubric failed/);
@@ -2131,7 +2136,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 1);
+  assert.equal(modelRuntimeLock.number, 2);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
 	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2147,7 +2152,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	  assert.equal(manifest.retrieval.cards.artifactHash.hex, 'feddce7cfdff749402bbad7aa22f4be65a919d3c26c7bf3d43b8cd4e514c5b81');
 	  assert.equal(manifest.retrieval.cards.dimensions, 1024);
 	  assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
-	  assert.equal(manifest.retrieval.intentEvidence.artifactHash.hex, '65774f5f85396221c42233d2da8fcffff09222215b4408a0d41cd6cb2b585064');
+	  assert.equal(manifest.retrieval.intentEvidence.artifactHash.hex, 'f3452957c2edf9c71df822c9360e93a8e26d5cc8ef665345abc5847c937b146f');
 	  assert.equal(manifest.retrieval.slotLevel.schema, 'simulatte.slotLevelEmbeddingConfig.v1');
 	  assert.equal(manifest.retrieval.slotLevel.mode, 'typed-scene-slot-embedding-rerank');
 	  assert.equal(manifest.retrieval.slotLevel.primitiveRankBackend, 'auto');
@@ -2163,6 +2168,8 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(manifest.reranker.loadInPhase1WhenRequired, true);
   assert.equal(manifest.reranker.inputSchema, 'simulatte.intentRerankInput.v1');
   assert.equal(manifest.reranker.outputSchema, 'simulatte.intentRerank.v1');
+  assert.equal(manifest.reranker.maxCandidatesPerCall, 8);
+  assert.equal(manifest.reranker.maxSlotCandidatesPerCall, 4);
   assert.equal(manifest.reranker.fallbackMode, 'heuristic-fusion');
   assert.ok(manifest.reranker.candidateScope.includes('primitive'));
   assert.ok(manifest.reranker.candidateScope.includes('span'));
@@ -2190,8 +2197,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
   assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index-browser.js');
-  assert.equal(manifest.runtime.queryEmbeddingMode, 'mean');
-  assert.notEqual(manifest.runtime.queryEmbeddingMode, 'last');
+  assert.equal(manifest.runtime.queryEmbeddingMode, 'last');
   assert.equal(manifest.runtime.embeddingText.schema, 'simulatte.embeddingTextContract.v1');
   assert.match(manifest.runtime.embeddingText.queryPrefix, /^Instruct: Given a web search query/);
   assert.equal(manifest.runtime.runtimeConfig.inference.session.compute.defaults.activationDtype, 'f32');
@@ -2221,7 +2227,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(embeddingConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_decode.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
-  assert.equal(manifest.cache.namespace, 'simulatte-doppler-qwen-runtime-lock-1');
+  assert.equal(manifest.cache.namespace, 'simulatte-doppler-qwen-runtime-lock-2');
   assert.equal(manifest.cache.owner, 'doppler');
   assert.equal(manifest.cache.prefetch, false);
   assert.equal(manifest.cache.strategy, 'doppler-managed');

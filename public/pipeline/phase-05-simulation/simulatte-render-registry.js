@@ -349,6 +349,13 @@
     if (/\b(earthquake|tsunami|hurricane|tornado|wildfire|evacuation|air quality|hazard|mine ventilation|tunnel boring|urban heat|drought)\b/.test(text)) {
       return 'hazard-atmosphere';
     }
+    // Compiled thermal primitives can carry a `fire` materialId, so a bare fire token is
+    // ambiguous. A lava/magma/molten/steam scene is thermal-plume, not combustion; real
+    // fire prompts (forest fire, dry pine, warehouse fire) carry none of those.
+    if (/\b(fire|flame|burn|burning|combust|smoke plume)\b/.test(text) &&
+      !/\b(lava|magma|molten|steam)\b/.test(text)) {
+      return 'fire';
+    }
     const row = EXPANDED_SCENE_RULES.find((rule) => rule.pattern.test(text));
     return row ? row.id : '';
   }
@@ -526,9 +533,21 @@
     return /thermal|heat_source|heat_transfer|temperature|fire/.test(signal.text);
   }
 
+  function materialEvidenceCount(signal) {
+    // Count distinct material evidence from compiled materialIds plus material terms in
+    // the scene text. Grounding may route some materials (air, metal) to relation or
+    // semantic-open nodes that carry no materialId, so a domain-only count undercounts a
+    // genuine materials tray; the text terms recover that evidence.
+    const materials = new Set(signal.materials);
+    for (const material of Object.keys(MATERIAL_STYLES)) {
+      if (new RegExp(`\\b${material}\\b`).test(signal.text)) materials.add(material);
+    }
+    return materials.size;
+  }
+
   function isMaterialTraySignal(signal) {
-    if (signal.materials.size < 5) return false;
-    return /tray|raw material|heat diffusion sample/.test(signal.text) && hasThermal(signal);
+    if (!/tray|raw material|heat diffusion sample/.test(signal.text) || !hasThermal(signal)) return false;
+    return materialEvidenceCount(signal) >= 5;
   }
 
   function isLiteralCompositeSignal(signal) {

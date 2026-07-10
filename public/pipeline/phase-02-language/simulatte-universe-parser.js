@@ -234,7 +234,7 @@
     if (/swim|swam/.test(value)) return 'swimming';
     if (/spin|rotate|drive/.test(value)) return 'rotate';
     if (/melt/.test(value)) return 'phase_transition';
-    if (/hit|impact|collide|crack|fracture/.test(value)) return 'impact';
+    if (/hit|impact|collide|crash|crack|fracture/.test(value)) return 'impact';
     if (/burn|heat/.test(value)) return 'heat_transfer';
     if (/cool/.test(value)) return 'cooling';
     if (/freez/.test(value)) return 'phase_transition';
@@ -249,6 +249,7 @@
     if (/run|jump|bounce|fly/.test(value)) return 'motion';
     if (/fold/.test(value)) return 'folding';
     if (/twist/.test(value)) return 'rotate';
+    if (/readout/.test(value)) return 'measurement';
     if (/sort|resolv|recirculat|allocat|minimiz|sampl/.test(value)) return 'network_flow';
     return value || 'interact';
   }

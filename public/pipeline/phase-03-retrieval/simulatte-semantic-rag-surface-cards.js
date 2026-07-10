@@ -337,7 +337,7 @@
         return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       }
 
-    function extractOpenComponents(prompt, retrieved) {
+    function extractOpenComponents(prompt, retrieved, typedSpans = [], suppressObservableOpenComponents = false) {
         const tokens = tokensWithPositions(prompt);
         const phrases = [];
         for (let i = 0; i < tokens.length; i += 1) {
@@ -345,6 +345,8 @@
             const span = tokens.slice(i, i + width);
             if (span.length !== width || span.some((token) => STOPS.has(token.root))) continue;
             const phrase = span.map((token) => token.value).join(' ');
+            const range = { index: tokens[i].index, end: span[span.length - 1].end };
+            if (!openPhraseAlignsWithTypedSpans(range, typedSpans, suppressObservableOpenComponents)) continue;
             const classified = classifyOpenPhrase(phrase, retrieved);
             if (!classified) continue;
             phrases.push({ phrase, index: tokens[i].index, ...classified });
@@ -362,6 +364,19 @@
           })
           .map((item, index) => openComponent(item, index))
           .sort((a, b) => b.score - a.score || a.index - b.index);
+      }
+
+    function openPhraseAlignsWithTypedSpans(range, typedSpans = [], suppressObservableOpenComponents = false) {
+        const overlaps = (typedSpans || []).filter((span) => (
+          Number.isFinite(span.start) &&
+          Number.isFinite(span.end) &&
+          range.index < span.end &&
+          range.end > span.start
+        ));
+        if (!overlaps.length) return true;
+        if (overlaps[0].kind === 'modifier') return false;
+        if (overlaps[0].kind === 'observable' && suppressObservableOpenComponents) return false;
+        return overlaps.length === 1;
       }
 
     function classifyOpenPhrase(phrase, retrieved) {

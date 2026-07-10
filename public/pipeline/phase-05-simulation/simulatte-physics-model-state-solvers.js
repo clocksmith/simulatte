@@ -6,6 +6,10 @@
         if (!synthesis || !synthesis.synthGraph) return;
         for (const node of synthesis.synthGraph.nodes || []) {
           const componentId = slugify(node.id);
+          const matchedSpan = node.match && String(node.match.span || '').trim();
+          const componentPhrase = matchedSpan && matchedSpan !== String(synthesis.prompt || '').trim()
+            ? matchedSpan
+            : node.label;
           const domains = uniqueList([
             'synth',
             node.nodeType,
@@ -28,7 +32,7 @@
               material: materialForSynthesisNode(node),
               visualRegime: visualRegimeForSynthesisNode(node),
               assembly: node.class || node.cardId,
-              phrase: node.match ? node.match.span : node.label,
+              phrase: componentPhrase,
               source: 'embedding-guided-synth-node',
               primitiveProgram: null,
               geometry: {
@@ -52,7 +56,7 @@
               score: node.match ? node.match.score : 0.72,
               domains,
               prior: null,
-              phrase: node.match ? node.match.span : node.label,
+              phrase: componentPhrase,
               source: 'embedding-guided-synth-node',
             });
           }

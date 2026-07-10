@@ -68,7 +68,8 @@
     function assertPinnedModelHandle(handle, expectedModel, label, modelBaseUrl = '') {
         const manifest = handle && handle.manifest || {};
         const rawModelId = String(handle && (handle.modelId || manifest.modelId) || '').trim();
-        const rawHash = manifest.modelHash || manifest.manifestHash || manifest.hash || manifest.meta && manifest.meta.hash || null;
+        const rawHash = handle && handle.manifestHash || manifest.modelHash || manifest.manifestHash ||
+          manifest.hash || manifest.meta && manifest.meta.hash || null;
         const expectedId = requiredText(expectedModel && expectedModel.id, `model runtime lock ${label}.id`);
         const expectedHash = hashHex(expectedModel && expectedModel.manifestHash);
         const expectedSource = normalizePinnedSource(expectedModel && expectedModel.defaultModelBaseUrl);
@@ -123,9 +124,11 @@
         if (reranker.schema !== 'simulatte.intentRerankerConfig.v1' || reranker.required !== true) {
           throw new Error('model runtime lock requires a required simulatte.intentRerankerConfig.v1 reranker');
         }
+        requiredPositiveInteger(reranker.maxCandidatesPerCall, 'model runtime lock reranker.maxCandidatesPerCall');
+        requiredPositiveInteger(reranker.maxSlotCandidatesPerCall, 'model runtime lock reranker.maxSlotCandidatesPerCall');
         validatePinnedModel(reranker.model, 'reranker', false, reranker.conversion);
         if (!reranker.runtimeConfig) throw new Error('model runtime lock reranker.runtimeConfig is required');
-        validateLockedRuntime(lock.runtime, lock.runtimeOrder, lock.cache);
+        validateLockedRuntime(lock.runtime, lock.runtimeOrder, lock.cache, lock.embedding);
       }
 
       function validatePinnedModel(model, label, requiresDimensions, conversion = null) {
@@ -148,10 +151,13 @@
         }
       }
 
-    function validateLockedRuntime(runtime, runtimeOrder, cache) {
+    function validateLockedRuntime(runtime, runtimeOrder, cache, embedding) {
         const embeddingText = runtime && runtime.embeddingText || {};
         if (!runtime || !requiredText(runtime.queryEmbeddingMode, 'model runtime lock runtime.queryEmbeddingMode')) {
           throw new Error('model runtime lock runtime.queryEmbeddingMode is required');
+        }
+        if (runtime.queryEmbeddingMode !== embedding.indexEmbeddingMode) {
+          throw new Error('model runtime lock query and index embedding modes must match');
         }
         if (!requiredText(embeddingText.schema, 'model runtime lock runtime.embeddingText.schema')) {
           throw new Error('model runtime lock runtime.embeddingText.schema is required');
@@ -183,6 +189,12 @@
       }
 
     function requiredLockNumber(value, label) {
+        const number = Number(value);
+        if (!Number.isInteger(number) || number < 1) throw new Error(`${label} must be a positive integer`);
+        return number;
+    }
+
+    function requiredPositiveInteger(value, label) {
         const number = Number(value);
         if (!Number.isInteger(number) || number < 1) throw new Error(`${label} must be a positive integer`);
         return number;

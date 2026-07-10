@@ -242,6 +242,10 @@
         if (sceneKind === 'literal-composite') return /lava|turbine|ice|castle|storm|bridge|wetland|volcano|rocket|submarine/.test(text);
         if (sceneKind === 'biology') return /algae|wetland|swamp|nutrient|growth|membrane|plant/.test(text);
         if (sceneKind === 'acoustic') return /wave|storm|bridge|cable|pressure|resonance|tube/.test(text);
+        const expandedPriority = typeof expandedSceneObjectPriority === 'function'
+          ? expandedSceneObjectPriority(text, { source: 'render-ir' }, sceneKind)
+          : null;
+        if (Number.isFinite(expandedPriority)) return expandedPriority >= 0;
         return false;
       }
 

@@ -118,25 +118,42 @@ function main() {
   requireText(dopplerPackage.integrity, 'doppler.package.integrity');
   requireText(dopplerPackage.shasum, 'doppler.package.shasum');
   requirePositiveInteger(dopplerPackage.fileCount, 'doppler.package.fileCount');
-  if (!Object.keys(doppler.localPatches || {}).length) fail('doppler.localPatches is required');
+  const localPatches = Object.entries(doppler.localPatches || {});
+  if (!localPatches.length) fail('doppler.localPatches is required');
+  for (const [relativePath, expectedHash] of localPatches) {
+    if (!/^[0-9a-f]{64}$/i.test(String(expectedHash || ''))) {
+      fail(`doppler.localPatches.${relativePath} must be a SHA-256 digest`);
+    }
+    const patchPath = path.join(ROOT, 'public', 'vendor', 'doppler', relativePath);
+    if (!fs.existsSync(patchPath)) fail(`doppler.localPatches.${relativePath} does not exist`);
+    assertEqual(hashFile(patchPath), expectedHash, `doppler.localPatches.${relativePath}`);
+  }
 
   const embedding = lock.embedding || {};
   requirePositiveInteger(embedding.dimensions, 'embedding.dimensions');
-  requireText(embedding.indexEmbeddingMode, 'embedding.indexEmbeddingMode');
+  const indexEmbeddingMode = requireText(embedding.indexEmbeddingMode, 'embedding.indexEmbeddingMode');
   const embeddingConversion = validatePinnedModel(embedding, embedding.conversion || {}, 'embedding');
   assertSubset(embeddingConversion.session, embedding.runtimeConfig?.inference?.session, 'embedding conversion session');
+  const manifestPoolingMode = requireText(
+    embeddingConversion.inference?.output?.embeddingPostprocessor?.poolingMode,
+    'embedding conversion inference.output.embeddingPostprocessor.poolingMode'
+  );
+  assertEqual(indexEmbeddingMode, manifestPoolingMode, 'embedding.indexEmbeddingMode');
 
   const reranker = lock.reranker || {};
   assertEqual(reranker.schema, 'simulatte.intentRerankerConfig.v1', 'reranker.schema');
   assertEqual(reranker.required, true, 'reranker.required');
   assertEqual(reranker.phase, 3, 'reranker.phase');
   assertEqual(reranker.executeInPhase, 3, 'reranker.executeInPhase');
+  requirePositiveInteger(reranker.maxCandidatesPerCall, 'reranker.maxCandidatesPerCall');
+  requirePositiveInteger(reranker.maxSlotCandidatesPerCall, 'reranker.maxSlotCandidatesPerCall');
   const rerankerConversion = validatePinnedModel(reranker.model || {}, reranker.conversion || {}, 'reranker');
   assertEqual(rerankerConversion.inference?.supportsRerank, true, 'reranker conversion inference.supportsRerank');
   assertSubset(rerankerConversion.session, reranker.runtimeConfig?.inference?.session, 'reranker conversion session');
 
   const runtime = lock.runtime || {};
-  requireText(runtime.queryEmbeddingMode, 'runtime.queryEmbeddingMode');
+  const queryEmbeddingMode = requireText(runtime.queryEmbeddingMode, 'runtime.queryEmbeddingMode');
+  assertEqual(queryEmbeddingMode, manifestPoolingMode, 'runtime.queryEmbeddingMode');
   requireText(runtime.embeddingText?.schema, 'runtime.embeddingText.schema');
   assertEqual(runtime.requireModelBackedQuery, true, 'runtime.requireModelBackedQuery');
   if (!Array.isArray(lock.runtimeOrder) || !lock.runtimeOrder.length) {

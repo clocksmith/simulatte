@@ -75,6 +75,8 @@
     ['protein', 'entity'], ['bond constraints', 'entity'],
     ['energy minimization', 'observable'], ['robot gripper', 'entity'], ['gripper', 'entity'],
     ['qubit chip', 'entity'], ['microwave resonator', 'entity'], ['resonator', 'entity'],
+    ['solar magnetic machine', 'entity'], ['moving magnetic slider', 'entity'], ['magnetic slider', 'entity'],
+    ['spaceship', 'entity'], ['spacecraft', 'entity'],
     ['glacier', 'entity'], ['fjord', 'environment'], ['sea ice', 'entity'],
     ['forest fire', 'entity'], ['forest', 'environment'], ['road', 'entity'],
   ]);
@@ -97,6 +99,7 @@
     'allocates', 'allocate', 'allocation', 'sorts', 'sort', 'sorting',
     'folds', 'fold', 'folded', 'folding', 'twists', 'twist', 'twisting',
     'calves', 'calve', 'calving', 'minimizes', 'minimize', 'minimizing',
+    'readout', 'readouts', 'crash', 'crashes', 'crashing',
   ]);
 
   // Phase 5 consumes this same vocabulary to select a physical behavior bundle.
@@ -105,12 +108,13 @@
   const BEHAVIOR_PROCESS_LEXICON = Object.freeze([
     { process: 'swimming', phrases: ['swim', 'swimming'] },
     { process: 'rotate', phrases: ['spin', 'spins', 'rotate', 'rotates', 'rotation', 'twist', 'twists', 'torque'] },
-    { process: 'impact', phrases: ['hit', 'hits', 'impact', 'collision', 'collide', 'fracture', 'fracturing', 'crack', 'jump', 'jumps', 'bounce', 'calve', 'calves', 'calving'] },
+    { process: 'impact', phrases: ['hit', 'hits', 'impact', 'collision', 'collide', 'crash', 'crashes', 'crashing', 'fracture', 'fracturing', 'crack', 'jump', 'jumps', 'bounce', 'calve', 'calves', 'calving'] },
     { process: 'flow', phrases: ['flow', 'flows', 'advection', 'surge', 'tidal', 'channel', 'wind', 'smoke', 'plume', 'pour', 'pours', 'sink', 'float', 'settle', 'erosion'] },
     { process: 'growth', phrases: ['growth', 'grow', 'grows', 'sourdough', 'yeast', 'dough', 'gluten', 'bubble', 'bubbles', 'microbiome', 'metabolite', 'ferment', 'ferments', 'fermentation'] },
     { process: 'diffusion', phrases: ['diffuse', 'diffusion', 'dissolve', 'dissolving', 'chemical', 'reaction', 'acidity', 'acid', 'concentration'] },
     { process: 'cooling', phrases: ['cool', 'cooling'] },
     { process: 'heat_transfer', phrases: ['heat', 'thermal', 'fire', 'flame', 'combust', 'combustion', 'burn', 'burning'] },
+    { process: 'measurement', phrases: ['measurement', 'readout', 'readouts'] },
     { process: 'phase_transition', phrases: ['freeze', 'freezing', 'melt', 'melting', 'phase', 'ice'] },
     { process: 'network_flow', phrases: ['network', 'queue', 'dispatch', 'signal', 'train', 'platform', 'server', 'packet', 'parcel', 'traffic', 'zoning', 'allocation', 'resolve', 'resolution', 'conflict'] },
     { process: 'oscillation', phrases: ['wave', 'waves', 'resonance', 'orbital', 'orbit', 'ring', 'moon', 'oscillate', 'oscillates', 'oscillation'] },

@@ -139,6 +139,9 @@ export function createModelHandle(pipeline, resolved) {
     get manifest() {
       return pipeline.manifest;
     },
+    get manifestHash() {
+      return resolved.manifestHash ?? null;
+    },
     get deviceInfo() {
       return getKernelCapabilities()?.adapterInfo ?? null;
     },

@@ -266,15 +266,29 @@
         const universeCandidateEvidence = candidateEvidenceFromUniverseGraphCandidates(
           groundingEvidence.universeGraphCandidates || null
         );
+        const rejectedComponentIds = new Set([
+          ...(groundingEvidence.rejectedComponentIds || []),
+          ...(groundingEvidence.components || [])
+            .filter((row) => row.supportOnly === true)
+            .map((row) => row.id || row.primitiveId || row.canonicalId),
+        ].flatMap((value) => phase3GroundingIdentityKeys(value)));
+        const carriedUniverseCandidates = universeCandidateEvidence.filter((row) => ![
+          row.id,
+          row.canonicalId,
+          ...(row.primitiveHints || []),
+          ...(row.conceptIds || []),
+        ].flatMap((value) => phase3GroundingIdentityKeys(value))
+          .some((value) => rejectedComponentIds.has(value)));
         const negativeEvidence = activationCloud.negativeEvidence || [];
         const groundingCandidateEvidence = filterRowsAgainstNegativeEvidence(uniqueEvidenceRows([
           ...(candidateEvidence || []),
-          ...universeCandidateEvidence,
+          ...carriedUniverseCandidates,
         ]), negativeEvidence);
         const graph = groundUniverseGraph({
           prompt: languageEvidence.rawText || intentBrief.prompt || '',
           promptParse,
-          components: filterRowsAgainstNegativeEvidence(groundingEvidence.components || [], negativeEvidence),
+          components: filterRowsAgainstNegativeEvidence(groundingEvidence.components || [], negativeEvidence)
+            .filter((row) => row.supportOnly !== true),
           universeMatches: { candidates: groundingCandidateEvidence },
           intentBrief: {
             ...intentBrief,
@@ -299,6 +313,13 @@
         const targets = negativeEvidenceTargets(negativeEvidence);
         if (!targets.length) return rows;
         return (rows || []).filter((row) => !rowMatchesNegativeTarget(row, targets));
+      }
+
+    function phase3GroundingIdentityKeys(value = '') {
+        const normalized = normalizeForEvidence(value);
+        if (!normalized) return [];
+        const unqualified = normalized.replace(/^(?:artifact|entity|environment|material|primitive|scene|semantic)\s+/, '');
+        return unqualified && unqualified !== normalized ? [normalized, unqualified] : [normalized];
       }
 
     function negativeEvidenceTargets(negativeEvidence = []) {

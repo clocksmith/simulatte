@@ -5,11 +5,7 @@ const test = require('node:test');
 const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '..');
-const runVendorInferenceTests = process.env.SIMULATTE_RUN_VENDOR_INFERENCE_TESTS === '1';
-
-test('Doppler execution-v1 keeps Qwen reranker KV dtype aligned when f16 is not proven', {
-  skip: !runVendorInferenceTests,
-}, async () => {
+test('Doppler execution-v1 config keeps Qwen reranker KV dtype aligned when f16 is not proven', async () => {
   const [{ compileExecutionV1 }, { EXECUTION_V1_SCHEMA_ID }] = await Promise.all([
     import(pathToFileURL(path.join(
       root,

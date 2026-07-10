@@ -77,6 +77,7 @@
           add('heat_transfer', from, to);
         } else if (process === 'network_flow') add('network_flow', networkDomain(from, to) || to, networkDomain(from, to) || to);
         else if (process === 'oscillation' || process === 'orbital') add('wave_field', waveDomain(from, to) || to, waveDomain(from, to) || to);
+        else if (process === 'measurement') add('derive_readout', from, to);
         else if (process === 'motion') {
           const flow = fluidDomain(from, to);
           if (flow) {

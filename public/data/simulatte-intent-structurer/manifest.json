@@ -3,11 +3,11 @@
   "id": "simulatte-qwen-3-5-0-8b-intent-structurer-v1",
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 1,
+    "number": 2,
     "artifact": "../simulatte-embedder/model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "204dbb02c6f759dee4a62b1ed28f9caa40fd2d242457fecb11cbf3850be5918a"
+      "hex": "41c7bd3a3e4e235cb9dff12b5e252216ee2f4bf5bbb886b3e16542c816e95807"
     }
   },
   "model": {

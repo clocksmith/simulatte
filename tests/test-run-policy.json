@@ -1,0 +1,20 @@
+{
+  "schema": "simulatte.testRunPolicy.v1",
+  "concurrency": 2,
+  "stallTimeoutMs": 300000,
+  "terminationGraceMs": 2000,
+  "overrides": {
+    "physics-lab.test.cjs": {
+      "stallTimeoutMs": 300000
+    },
+    "physics-world-compile.test.cjs": {
+      "stallTimeoutMs": 300000
+    },
+    "physics-visual-correctness.test.cjs": {
+      "stallTimeoutMs": 300000
+    },
+    "physics-solver.test.cjs": {
+      "stallTimeoutMs": 300000
+    }
+  }
+}

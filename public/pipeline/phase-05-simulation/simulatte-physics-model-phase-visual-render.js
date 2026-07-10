@@ -446,7 +446,13 @@
         const promptParse = phase2Output.artifact.promptParse || null;
         const semanticRag = options.semanticRag || (
           createSemanticRag && prompt.trim()
-            ? createSemanticRag(sourceText, PHYSICAL_PRIMITIVES, { maxDocuments: 72, maxOpenComponents: 12 })
+            ? createSemanticRag(sourceText, PHYSICAL_PRIMITIVES, {
+              maxDocuments: 72,
+              maxOpenComponents: 12,
+              typedSpans: promptParse && promptParse.spans || [],
+              suppressObservableOpenComponents: (languageGraph.predicates || [])
+                .some((row) => row.process === 'measurement'),
+            })
             : null
         );
         const universeMatches = options.universeMatches || null;

@@ -31,8 +31,9 @@ test('Phase 5 behavior selection consumes the data-owned language vocabulary', (
   const phrases = new Set(behaviorRows.flatMap((row) => row.phrases));
   const selector = globalThis.__SimulattePhysicsIRRefactorScope.behaviorProcessForText;
 
-  for (const phrase of ['zoning', 'parcel', 'dispatch', 'calving']) assert.ok(phrases.has(phrase));
+  for (const phrase of ['zoning', 'parcel', 'dispatch', 'calving', 'readout']) assert.ok(phrases.has(phrase));
   assert.equal(selector('zoning allocation across parcels'), 'network_flow');
   assert.equal(selector('railway dispatch'), 'network_flow');
   assert.equal(selector('glacier calving'), 'impact');
+  assert.equal(selector('qubit phase readout'), 'measurement');
 });
