@@ -732,6 +732,7 @@
           fields: packetFields,
           effects: packetEffects,
           graphicsAtoms: context.graphicsAtoms || {},
+          visualGenome: context.visualGenome || {},
         });
         return {
           schema: SCENE_RENDER_PACKET_SCHEMA,

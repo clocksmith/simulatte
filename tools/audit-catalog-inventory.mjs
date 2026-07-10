@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const root = process.cwd();
 const inventoryPath = path.join(root, 'public/data/simulatte-catalog-inventory.json');
 const inventory = readJson(inventoryPath);
+const languageLexicon = require(path.join(root, 'public/data/simulatte-language-lexicon.js'));
 const failures = [];
 const summary = {
   schema: 'simulatte.catalogInventoryAudit.v1',
@@ -14,6 +15,7 @@ const summary = {
   staticCatalogs: [],
   runtimeCatalogs: [],
   manifestContracts: [],
+  lexiconCoverageChecks: [],
   mirrorChecks: [],
 };
 
@@ -75,6 +77,7 @@ for (const contract of inventory.manifestContracts || []) {
 
 checkCausalMirror();
 checkVisualMirror();
+checkLexiconCoverage();
 
 summary.ok = failures.length === 0;
 summary.failures = failures;
@@ -119,6 +122,34 @@ function checkVisualMirror() {
   });
 }
 
+function checkLexiconCoverage() {
+  const phrases = lexiconCoveragePhrases();
+  const phrasePatterns = phrases.map((phrase) => phrasePattern(phrase));
+  for (const catalog of inventory.staticCatalogs || []) {
+    const filePath = path.join(root, catalog.path);
+    const json = readJson(filePath);
+    const rows = Array.isArray(json[catalog.itemKey]) ? json[catalog.itemKey] : [];
+    const missing = [];
+    for (const row of rows) {
+      const text = normalizeCoverageText(collectCoverageText(row));
+      if (!phrasePatterns.some((pattern) => pattern.test(text))) {
+        missing.push(row.id || row.cardId || row.candidateId || row.primitiveId || '');
+      }
+    }
+    const ok = missing.length === 0;
+    if (!ok) failures.push(`${catalog.id}: ${missing.length} rows lack language lexicon coverage`);
+    summary.lexiconCoverageChecks.push({
+      id: `${catalog.id}-language-lexicon-coverage`,
+      path: catalog.path,
+      rowCount: rows.length,
+      coveredCount: rows.length - missing.length,
+      missingCount: missing.length,
+      missingSample: missing.slice(0, 24),
+      ok,
+    });
+  }
+}
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
@@ -149,4 +180,61 @@ function collectText(value) {
   if (Array.isArray(value)) return value.map(collectText).join(' ');
   if (typeof value === 'object') return Object.values(value).map(collectText).join(' ');
   return '';
+}
+
+function lexiconCoveragePhrases() {
+  const lexicon = languageLexicon.LANGUAGE_LEXICON || {};
+  return [
+    ...(lexicon.entityPhrases || languageLexicon.ENTITY_PHRASES || []).map((row) => Array.isArray(row) ? row[0] : row),
+    ...(lexicon.processPhrases || languageLexicon.PROCESS_PHRASES || []),
+    ...(lexicon.modifierPhrases || languageLexicon.MODIFIER_PHRASES || []).map((row) => Array.isArray(row) ? row[0] : row),
+    ...(lexicon.observablePhrases || languageLexicon.OBSERVABLE_PHRASES || []),
+    ...(lexicon.coveragePhrases || languageLexicon.COVERAGE_PHRASES || []),
+  ].map(normalizeCoverageText).filter(Boolean);
+}
+
+function phrasePattern(phrase) {
+  return new RegExp(`\\b${escapeRegExp(phrase)}\\b`);
+}
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function collectCoverageText(value, key = '') {
+  const ignoredKeys = new Set([
+    'schema',
+    'provenance',
+    'sourceHash',
+    'hash',
+    'rowHash',
+    'contentHash',
+    'embedding',
+    'vector',
+    'values',
+    'score',
+    'scores',
+    'rank',
+    'createdAt',
+    'updatedAt',
+    'version',
+    'sourceVersion',
+  ]);
+  if (value === null || value === undefined || ignoredKeys.has(key)) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return '';
+  if (Array.isArray(value)) return value.map((row) => collectCoverageText(row, key)).join(' ');
+  if (typeof value === 'object') {
+    return Object.entries(value).map(([childKey, childValue]) => collectCoverageText(childValue, childKey)).join(' ');
+  }
+  return '';
+}
+
+function normalizeCoverageText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/[^a-z0-9' ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }

@@ -879,7 +879,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     throw new Error('runtime.loading.shardCache.verifyHashes is required.');
   }
 
-  const dopplerLoader = getDopplerLoader(loadingConfig);
+  const dopplerLoader = options.loader ?? getDopplerLoader(loadingConfig);
   const keepF32Weights = options.keepF32Weights === true;
   dopplerLoader.setQ4KConfig(
     resolveQ4KConfig(
@@ -1017,6 +1017,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   }
 
   return {
+    loader: dopplerLoader,
     layerWeights,
     embeddings: dopplerLoader.embeddings,
     lmHead: dopplerLoader.lmHead,

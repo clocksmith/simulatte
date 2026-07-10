@@ -152,9 +152,12 @@
         const loweredBehaviors = new Set((behaviorRelations || []).flatMap((relation) => [
           `relation:${semanticAnimalType(relation.agentEntityId)}:swimming:${semanticWaterType(relation.mediumEntityId)}`,
           'action:swimming',
+          `action:${relation.process}`,
+          `relation:${relation.agentEntityId}:${relation.process}:${relation.mediumEntityId}`,
+          ...(relation.evidence || []),
         ]));
         const obligations = (ledger.obligations || []).map((row) => {
-          if (row.id === 'action:swimming' || loweredBehaviors.has(row.id)) {
+          if (loweredBehaviors.has(row.id)) {
             return {
               ...row,
               status: 'lowered',

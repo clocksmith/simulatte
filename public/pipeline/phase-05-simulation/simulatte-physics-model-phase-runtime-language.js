@@ -269,16 +269,6 @@
         };
       }
 
-    function assertPhase3RetrievalEvidencePromptHash(evidence = {}, expectedPromptHash = '') {
-        if (!evidence || typeof evidence !== 'object') return;
-        const expected = String(expectedPromptHash || '');
-        const received = String(evidence.sourcePromptHash || evidence.promptHash || '');
-        if (!expected || !received) return;
-        if (received !== expected) {
-          throw new Error(`Phase 3 retrieval evidence prompt hash mismatch: expected ${expected}, received ${received}`);
-        }
-      }
-
     function withPhase1RetrievalEvidence(phase1Output, retrievalEvidence = {}) {
         assertPhaseEnvelope(phase1Output, 1, 'Phase 1 retrieval carrier');
         const carried = retrievalEvidence && typeof retrievalEvidence === 'object' ? retrievalEvidence : {};
@@ -813,7 +803,6 @@
       runtimeContextFromPhase,
       retrievalEvidenceFromOptions,
       sanitizePhase3RetrievalEvidence,
-      assertPhase3RetrievalEvidencePromptHash,
       withPhase1RetrievalEvidence,
       clonePhaseValue,
       arrayClone,

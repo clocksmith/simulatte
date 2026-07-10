@@ -315,13 +315,23 @@
           traceId: payload.traceId || '',
           rankId: payload.rankId || 0,
         });
+        const nowIso = payload.options && payload.options.nowIso || new Date().toISOString();
+        const slotRequests = slots.map((slot) => ({
+          text: slotQueryText(slot),
+          nowIso,
+          slotId: slot.slotId || '',
+          slotRole: slot.slotRole || '',
+        }));
+        const batchedSlotQueries = typeof provider.embedMany === 'function'
+          ? await provider.embedMany(slotRequests)
+          : null;
+        const useBatchedSlotQueries = Array.isArray(batchedSlotQueries) && batchedSlotQueries.length === slots.length;
         for (let i = 0; i < slots.length; i += 1) {
           const slot = slots[i];
-          const queryText = slotQueryText(slot);
-          const query = await provider.embed({
-            text: queryText,
-            nowIso: payload.options && payload.options.nowIso || new Date().toISOString(),
-          });
+          const queryText = slotRequests[i].text;
+          const query = useBatchedSlotQueries
+            ? batchedSlotQueries[i]
+            : await provider.embed(slotRequests[i]);
           const vector = validateQueryEmbedding(query, runtime.index);
           const gpuScores = config.primitiveRankBackend === 'webgpu' || config.primitiveRankBackend === 'auto'
             ? await safeSpanGpuRank(payload.rankGpu, vector)

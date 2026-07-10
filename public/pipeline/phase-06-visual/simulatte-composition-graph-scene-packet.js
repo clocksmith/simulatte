@@ -562,6 +562,7 @@
         let stateBinding = 'simulation-time';
         if (/swim[-_ ]?cycle|swimming[-_ ]?pose|swim[-_ ]?stroke|fluid_locomotion/.test(value)) kind = 'swim-cycle';
         else if (/biological-agent/.test(value) && /water|swim|fluid|watershed|ocean/.test(value)) kind = 'swim-cycle';
+        else if (scenePacketAtlasMotionKind(motion, process)) kind = scenePacketAtlasMotionKind(motion, process);
         else if (/water-volume|flow-field|fluid|advection|streamline|ripple|velocity/.test(value)) kind = 'flow-ripple';
         else if (/detector|track-line|particle/.test(value)) kind = 'particle-track';
         else if (/readout|measurement|telemetry/.test(value)) kind = 'readout-pulse';
@@ -584,6 +585,22 @@
             motion && motion.processId,
           ].filter(Boolean)),
         };
+      }
+
+    function scenePacketAtlasMotionKind(motion = null, process = null) {
+        const text = [
+          motion && motion.grammar,
+          motion && motion.motion,
+          motion && motion.atomId,
+          process && process.motion,
+          process && process.family,
+          process && process.operator,
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (!text || /state-pulse-overlay|bounded-state-pulses/.test(text)) return '';
+        if (/streamline-advection|phase-propagating-arcs|packet-or-agent-pulses|branching-front-expansion|impulse-and-contact-ghosts|curling-vector-flux|settling-and-shear-bands|rising-plume-and-isobands/.test(text)) {
+          return text.split(/\s+/)[0].replace(/[^a-z0-9-]+/g, '-');
+        }
+        return '';
       }
 
     function animationSpeedForKind(kind) {
@@ -730,7 +747,7 @@
         return passes;
       }
 
-    function scenePacketUniformsForVisualIR({ sceneKind = '', entities = [], fields = [], effects = [], graphicsAtoms = {} }) {
+    function scenePacketUniformsForVisualIR({ sceneKind = '', entities = [], fields = [], effects = [], graphicsAtoms = {}, visualGenome = {} }) {
         return {
           schema: 'simulatte.sceneRenderPacketUniforms.v1',
           compiler: 'simulatte.visual-ir.scene-render-packet.uniforms.v1',
@@ -740,7 +757,41 @@
           atomUniforms: scenePacketAtomUniforms(graphicsAtoms),
           sceneMix: scenePacketSceneMixVector(sceneKind, entities, fields, effects),
           visualLayers: scenePacketVisualLayerVector(entities, fields, effects),
+          palette: scenePacketGenomePaletteVector(visualGenome),
         };
+      }
+
+    function scenePacketGenomePaletteVector(visualGenome = {}) {
+        const palette = visualGenome && visualGenome.palette || {};
+        const hue = Number.isFinite(Number(palette.hue)) ? Number(palette.hue) : 180;
+        const accentHue = Number.isFinite(Number(palette.accentHue)) ? Number(palette.accentHue) : hue + 96;
+        const shadowHue = Number.isFinite(Number(palette.shadowHue)) ? Number(palette.shadowHue) : hue + 210;
+        const contrast = scenePacketClamp01(palette.contrast, 0.68);
+        const lightness = scenePacketClamp01(palette.lightness, 0.54);
+        return [
+          ...scenePacketHslToRgb(hue, 0.18 + contrast * 0.24, Math.max(0.05, lightness * 0.32)), 1,
+          ...scenePacketHslToRgb(hue, 0.44 + contrast * 0.3, lightness), 1,
+          ...scenePacketHslToRgb(shadowHue, 0.32 + contrast * 0.22, 0.1 + lightness * 0.22), 1,
+          ...scenePacketHslToRgb(accentHue, 0.54 + contrast * 0.28, 0.48 + lightness * 0.24), 1,
+        ].map((value) => Number(clamp(Number(value || 0), 0, 1).toFixed(4)));
+      }
+
+    function scenePacketHslToRgb(hue, saturation, lightness) {
+        const h = (((hue % 360) + 360) % 360) / 360;
+        const s = scenePacketClamp01(saturation, 0.6);
+        const l = scenePacketClamp01(lightness, 0.5);
+        if (s === 0) return [l, l, l];
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        return [h + 1 / 3, h, h - 1 / 3].map((t) => {
+          let v = t;
+          if (v < 0) v += 1;
+          if (v > 1) v -= 1;
+          if (v < 1 / 6) return p + (q - p) * 6 * v;
+          if (v < 1 / 2) return q;
+          if (v < 2 / 3) return p + (q - p) * (2 / 3 - v) * 6;
+          return p;
+        });
       }
 
     function scenePacketAtomUniforms(graphicsAtoms = {}) {

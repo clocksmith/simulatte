@@ -75,6 +75,7 @@ export class PipelineState {
     // DopplerLoader instance
 
     this.dopplerLoader = null;
+    this.ownsDopplerLoader = false;
 
     // GPU context
 

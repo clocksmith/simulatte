@@ -4,6 +4,7 @@
     require('./simulatte-physics-model-contracts.js');
     require('./simulatte-physics-model-phase-runtime-language.js');
     require('./simulatte-physics-model-phase-retrieval.js');
+    require('./simulatte-physics-model-activation-verdicts.js');
     require('./simulatte-physics-model-activation-fusion.js');
     require('./simulatte-physics-model-phase-grounding.js');
     require('./simulatte-physics-model-phase-simulation.js');
@@ -22,6 +23,7 @@
     COMPOSITION_SCHEMA,
     INTENT_CLASSIFICATION_SCHEMA,
     INTENT_MODEL_ID,
+    NEGATION_RE,
     PHYSICAL_IR_SCHEMA,
     PHASE_OUTPUT_SCHEMAS,
     PROMPT_PARSE_SCHEMA,
@@ -63,6 +65,7 @@
     runPhase8SceneProof,
     obligationVerdictRows,
     evidenceConflictRows,
+    conflictsBySlotRows,
     createRenderExecutionInput,
     createBlankState,
     createComponentStates,

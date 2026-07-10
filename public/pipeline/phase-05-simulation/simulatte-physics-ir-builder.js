@@ -52,6 +52,19 @@
           receipt,
           behaviorRelations
         );
+        if (typeof addBehaviorBundlesFromLedger === 'function') {
+          addBehaviorBundlesFromLedger(
+            couplings,
+            operators,
+            stateFields,
+            domains,
+            universeGraph.compositionLedger,
+            prompt,
+            params,
+            receipt,
+            behaviorRelations
+          );
+        }
         addImplicitCouplings(couplings, operators, domains, params, receipt);
         addFallbackIfNeeded(entities, domains, stateFields, operators, boundaryConditions, prompt, params, receipt);
         addIntentBriefReceipt(receipt, intentBrief);
@@ -449,6 +462,12 @@
           if (!from || !to) continue;
           if (isSwimmingEdge(edge, from, to)) {
             addSwimmingBehaviorFromEdge(couplings, operators, fields, from, to, edge, params, receipt, behaviorRelations);
+            continue;
+          }
+          if (
+            typeof addBehaviorBundleFromEdge === 'function' &&
+            addBehaviorBundleFromEdge(couplings, operators, fields, from, to, edge, params, receipt, behaviorRelations)
+          ) {
             continue;
           }
           if (edge.type === 'adjacent') {

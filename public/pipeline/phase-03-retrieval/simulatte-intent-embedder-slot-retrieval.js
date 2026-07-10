@@ -524,13 +524,17 @@
         }
         let queue = Promise.resolve();
         let activeHandle = handle;
+        const reloadActiveHandle = async (reloadOptions = {}) => {
+          if (typeof reloadHandle === 'function') {
+            activeHandle = await reloadHandle(reloadOptions);
+          }
+          return activeHandle;
+        };
         const run = async (args) => {
           const input = embeddingProviderInput(args, runtime);
           const prompt = String(input.text || '');
           if (!prompt) throw new Error('Doppler embed text required');
-          if (typeof reloadHandle === 'function') {
-            activeHandle = await reloadHandle();
-          }
+          await reloadActiveHandle();
           const result = await embedWithModelHandle(activeHandle, prompt, {
             useChatTemplate: false,
             embeddingMode: input.embeddingMode,
@@ -547,6 +551,46 @@
           }
           return embeddingResultWithProvenance(result, activeHandle, runtime, backend, modelBaseUrl);
         };
+        const runBatch = async (rows) => {
+          const inputs = (rows || []).map((row) => embeddingProviderInput(row, runtime));
+          if (!inputs.length) return [];
+          if (inputs.some((input) => !String(input.text || ''))) {
+            throw new Error('Doppler embed text required');
+          }
+          await reloadActiveHandle();
+          const firstMode = inputs[0].embeddingMode;
+          const canBatch = typeof activeHandle.embedBatch === 'function' &&
+            inputs.every((input) => input.embeddingMode === firstMode);
+          if (!canBatch) {
+            const results = [];
+            for (const input of inputs) {
+              const result = await embedWithModelHandle(activeHandle, input.text, {
+                useChatTemplate: false,
+                embeddingMode: input.embeddingMode,
+                __skipStateSnapshot: true,
+              });
+              results.push(embeddingResultWithProvenance(result, activeHandle, runtime, backend, modelBaseUrl));
+            }
+            return results;
+          }
+          const embedOptions = {
+            useChatTemplate: false,
+            embeddingMode: firstMode,
+            __skipStateSnapshot: true,
+          };
+          let batch = await activeHandle.embedBatch(inputs.map((input) => input.text), embedOptions);
+          if (
+            typeof reloadHandle === 'function' &&
+            (!Array.isArray(batch) || batch.length !== inputs.length || batch.some((result) => !embeddingHasPositiveNorm(result && result.embedding)))
+          ) {
+            activeHandle = await reloadActiveHandle({ force: true });
+            batch = await activeHandle.embedBatch(inputs.map((input) => input.text), embedOptions);
+          }
+          if (!Array.isArray(batch) || batch.length !== inputs.length) {
+            throw new Error('Doppler embedBatch must return one result per input');
+          }
+          return batch.map((result) => embeddingResultWithProvenance(result, activeHandle, runtime, backend, modelBaseUrl));
+        };
         const rerankCapability = rerankFunctionForTarget(handle)
           || rerankFunctionForTarget(handle && handle.advanced);
         const provider = {
@@ -556,12 +600,10 @@
             queue = next.then(() => undefined, () => undefined);
             return next;
           },
-          async embedMany(rows) {
-            const results = [];
-            for (const row of rows || []) {
-              results.push(await this.embed(row));
-            }
-            return results;
+          embedMany(rows) {
+            const next = queue.then(() => runBatch(rows), () => runBatch(rows));
+            queue = next.then(() => undefined, () => undefined);
+            return next;
           },
         };
         if (rerankCapability) {

@@ -535,26 +535,70 @@
     	    }));
     	  }
 
+    // Expectations must stay satisfiable by what the IR emits: behavior bundles in
+    // simulatte-physics-ir-behaviors.js plus the coupling operators in the IR builder.
+    // Processes the IR cannot lower stay unlisted so their obligations pass through.
+    const PHYSICS_OBLIGATION_EXPECTED_OPERATORS = Object.freeze({
+      swimming: Object.freeze(['fluid_locomotion', 'buoyancy', 'drag', 'wake_generation', 'body_water_contact', 'partial_submersion']),
+      rotate: Object.freeze(['rotational_torque']),
+      spins: Object.freeze(['rotational_torque']),
+      twists: Object.freeze(['rotational_torque']),
+      impact: Object.freeze(['rigid_collision', 'fracture_threshold']),
+      jumps: Object.freeze(['rigid_collision', 'fracture_threshold']),
+      calving: Object.freeze(['rigid_collision', 'fracture_threshold']),
+      heat_transfer: Object.freeze(['heat_transfer']),
+      'heat-transfer': Object.freeze(['heat_transfer']),
+      heat: Object.freeze(['heat_transfer']),
+      cooling: Object.freeze(['heat_transfer']),
+      phase_transition: Object.freeze(['phase_transition']),
+      'phase-transition': Object.freeze(['phase_transition']),
+      freezes: Object.freeze(['phase_transition']),
+      flow: Object.freeze(['pressure_flow_lite']),
+      diffusion: Object.freeze(['reaction_diffusion']),
+      dissolves: Object.freeze(['reaction_diffusion']),
+      oscillation: Object.freeze(['wave_field']),
+      waves: Object.freeze(['wave_field']),
+      orbital: Object.freeze(['wave_field']),
+      growth: Object.freeze(['growth_decay']),
+      growing: Object.freeze(['growth_decay', 'reaction_diffusion']),
+      fermentation: Object.freeze(['growth_decay', 'reaction_diffusion']),
+      motion: Object.freeze(['rigid_collision']),
+      network_flow: Object.freeze(['network_flow']),
+      'network-flow': Object.freeze(['network_flow']),
+    });
+
+    function physicsObligationProcess(row = {}) {
+    	    const explicit = String(row.action || row.process || '').trim().toLowerCase();
+    	    if (explicit) return explicit;
+    	    const id = String(row.id || row.obligationId || '');
+    	    const parts = id.split(':');
+    	    if (parts[0] === 'action' && parts[1]) return parts[1].toLowerCase();
+    	    if (parts[0] === 'relation' && parts[2]) return parts[2].toLowerCase();
+    	    return String(row.target || '').trim().toLowerCase();
+    	  }
+
     function physicsObligationsFromLedger(compositionLedger = null, physicsIR = null) {
     	    const operatorTypes = new Set((physicsIR && physicsIR.operators || []).map((row) => row.type).filter(Boolean));
     	    return (compositionLedger && compositionLedger.obligations || [])
     	      .filter((row) => row.kind === 'relation' || row.kind === 'action')
-    	      .map((row) => phaseCarryObject({
-    	        schema: 'simulatte.physicsObligationReceipt.v1',
-    	        obligationId: row.id || '',
-    	        required: row.required === true,
-    	        expectedOperators: row.action === 'swimming' || row.target === 'swimming'
-    	          ? ['fluid_locomotion', 'buoyancy', 'drag', 'wake_generation', 'body_water_contact', 'partial_submersion']
-    	          : [],
-    	        satisfiedOperators: row.action === 'swimming' || row.target === 'swimming'
-    	          ? ['fluid_locomotion', 'buoyancy', 'drag', 'wake_generation', 'body_water_contact', 'partial_submersion'].filter((type) => operatorTypes.has(type))
-    	          : [],
-    	        status: row.action === 'swimming' || row.target === 'swimming'
-    	          ? ['fluid_locomotion', 'buoyancy', 'drag', 'wake_generation', 'body_water_contact', 'partial_submersion'].every((type) => operatorTypes.has(type))
-    	            ? 'lowered'
-    	            : 'unsupported'
-    	          : row.status || 'preserved',
-    	      }));
+    	      .map((row) => {
+    	        const process = physicsObligationProcess(row);
+    	        const expectedOperators = PHYSICS_OBLIGATION_EXPECTED_OPERATORS[process] || [];
+    	        const satisfiedOperators = expectedOperators.filter((type) => operatorTypes.has(type));
+    	        return phaseCarryObject({
+    	          schema: 'simulatte.physicsObligationReceipt.v1',
+    	          obligationId: row.id || '',
+    	          required: row.required === true,
+    	          process,
+    	          expectedOperators: expectedOperators.slice(),
+    	          satisfiedOperators,
+    	          status: expectedOperators.length
+    	            ? satisfiedOperators.length === expectedOperators.length
+    	              ? 'lowered'
+    	              : 'unsupported'
+    	            : row.status || 'preserved',
+    	        });
+    	      });
     	  }
 
     function stateChannelsForSolverGraph(solverGraph = null) {
@@ -836,6 +880,7 @@
       uniqueById,
       runPhase5SimulationCompile,
       relationLoweringRows,
+      physicsObligationProcess,
       physicsObligationsFromLedger,
       stateChannelsForSolverGraph,
       uniqueControlsFromComponents,

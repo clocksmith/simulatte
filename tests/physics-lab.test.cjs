@@ -612,23 +612,105 @@ test('Phase 1 loads Doppler embedding model by URL source only', async () => {
   });
 });
 
-test('Phase 1 reacquires Doppler embedding after reranker model takes over GPU resources', async () => {
+test('Phase 1 overlaps required Doppler embedding and reranker loads', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const loadRoles = [];
+    let embeddingResolved = false;
+    let rerankerStartedBeforeEmbeddingResolved = false;
+    let releaseEmbedding = null;
+    let releaseReranker = null;
+    let resolveBothStarted = null;
+    const bothStarted = new Promise((resolve) => {
+      resolveBothStarted = resolve;
+    });
+    const markStarted = () => {
+      if (loadRoles.length === 2) resolveBothStarted();
+    };
+    const dopplerModule = {
+      async load(model, options = {}) {
+        const url = String(model && model.url || '');
+        if (url === manifest.embedModel.defaultModelBaseUrl) {
+          loadRoles.push(`embedding:${options.isolatedLoader === true ? 'isolated' : 'shared'}`);
+          markStarted();
+          return new Promise((resolve) => {
+            releaseEmbedding = () => {
+              embeddingResolved = true;
+              resolve({
+                modelId: manifest.embedModel.id,
+                manifest: { manifestHash: manifest.embedModel.manifestHash },
+                async embed(prompt) {
+                  return { embedding: probeAwareVector(index, prompt, query) };
+                },
+              });
+            };
+          });
+        }
+        if (url === manifest.reranker.model.defaultModelBaseUrl) {
+          rerankerStartedBeforeEmbeddingResolved = !embeddingResolved;
+          loadRoles.push(`reranker:${options.isolatedLoader === true ? 'isolated' : 'shared'}`);
+          markStarted();
+          return new Promise((resolve) => {
+            releaseReranker = () => resolve({
+              modelId: manifest.reranker.model.id,
+              manifest: {
+                inference: {
+                  rerank: {
+                    trueTokenId: 1,
+                    falseTokenId: 0,
+                  },
+                },
+              },
+              rerank(input = {}) {
+                return (input.candidates || []).map((candidate, order) => ({
+                  primitiveId: candidate.primitiveId,
+                  score: Number((1 - order * 0.1).toFixed(6)),
+                }));
+              },
+            });
+          });
+        }
+        throw new Error(`unexpected Doppler model URL ${url}`);
+      },
+    };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModule,
+    });
+
+    const loadPromise = embedder.loadModel();
+    await bothStarted;
+
+    assert.deepEqual(loadRoles.sort(), ['embedding:isolated', 'reranker:isolated']);
+    assert.equal(embeddingResolved, false);
+    assert.equal(rerankerStartedBeforeEmbeddingResolved, true);
+    releaseEmbedding();
+    releaseReranker();
+    const runtime = await loadPromise;
+
+    assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
+    assert.equal(runtime.promptRuntimeReceipt.rerankerReady, true);
+  }, { rerankProvider: null });
+});
+
+test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     const query = indexedVector(index, 'optics-bench');
     const loadRoles = [];
     let activeRole = '';
     let staleEmbeddingCalls = 0;
     const dopplerModule = {
-      async load(model) {
+      async load(model, options = {}) {
         const url = String(model && model.url || '');
+        const isolated = options.isolatedLoader === true;
         if (url === manifest.embedModel.defaultModelBaseUrl) {
-          activeRole = 'embedding';
-          loadRoles.push('embedding');
+          if (!isolated) activeRole = 'embedding';
+          loadRoles.push(`embedding:${isolated ? 'isolated' : 'shared'}`);
           return {
             modelId: manifest.embedModel.id,
             manifest: { manifestHash: manifest.embedModel.manifestHash },
             async embed(prompt) {
-              if (activeRole !== 'embedding') {
+              if (!isolated && activeRole !== 'embedding') {
                 staleEmbeddingCalls += 1;
                 return { embedding: new Float32Array(index.embeddingDim) };
               }
@@ -637,8 +719,8 @@ test('Phase 1 reacquires Doppler embedding after reranker model takes over GPU r
           };
         }
         if (url === manifest.reranker.model.defaultModelBaseUrl) {
-          activeRole = 'reranker';
-          loadRoles.push('reranker');
+          if (!isolated) activeRole = 'reranker';
+          loadRoles.push(`reranker:${isolated ? 'isolated' : 'shared'}`);
           return {
             modelId: manifest.reranker.model.id,
             manifest: {
@@ -676,8 +758,9 @@ test('Phase 1 reacquires Doppler embedding after reranker model takes over GPU r
     assert.equal(runtime.promptRuntimeReceipt.rerankerReady, true);
     assert.equal(result.model.id, manifest.embedModel.id);
     assert.equal(result.priors[0].primitiveId, 'optics-bench');
-    assert.deepEqual(loadRoles.slice(0, 2), ['embedding', 'reranker']);
-    assert.ok(loadRoles.indexOf('embedding', 2) >= 2);
+    assert.ok(loadRoles.includes('embedding:isolated'));
+    assert.ok(loadRoles.includes('reranker:isolated'));
+    assert.equal(loadRoles.filter((role) => role.startsWith('embedding:')).length, 1);
     assert.equal(staleEmbeddingCalls, 0);
   }, { rerankProvider: null });
 });
@@ -1588,6 +1671,22 @@ test('compiled-artifact visual genomes diversify close and broad worlds', () => 
   assert.ok(buildingFireGenome.motifs.includes('architectural-grid'));
   assert.notDeepEqual(fireGenome.palette, buildingFireGenome.palette);
   assert.notDeepEqual(fireGenome.morphology, buildingFireGenome.morphology);
+
+  const railway = createPrototypeSpec('railway dispatch conflict resolution across signal blocks with delayed train agents and platform slots');
+  const zoning = createPrototypeSpec('city zoning shadow allocation between building masses with sunlight volumes and pedestrian comfort');
+  assert.equal(railway.renderProgram.visualIR.sceneKind, zoning.renderProgram.visualIR.sceneKind);
+  assert.ok(railway.renderProgram.visualGenome.motifs.includes('track-ladder'));
+  assert.ok(zoning.renderProgram.visualGenome.motifs.includes('parcel-zoning-grid'));
+  assert.notDeepEqual(railway.renderProgram.visualGenome.motifs, zoning.renderProgram.visualGenome.motifs);
+  assert.notDeepEqual(railway.renderProgram.visualGenome.palette, zoning.renderProgram.visualGenome.palette);
+
+  const dogs = createPrototypeSpec('dogs');
+  const flowers = createPrototypeSpec('flowers');
+  assert.equal(dogs.renderProgram.visualIR.sceneKind, flowers.renderProgram.visualIR.sceneKind);
+  assert.ok(dogs.renderProgram.visualGenome.motifs.includes('animal-gait-cells'));
+  assert.ok(flowers.renderProgram.visualGenome.motifs.includes('petal-radial-growth'));
+  assert.notEqual(dogs.renderProgram.visualGenome.morphology.layoutMode, flowers.renderProgram.visualGenome.morphology.layoutMode);
+  assert.notDeepEqual(dogs.renderProgram.visualGenome.palette, flowers.renderProgram.visualGenome.palette);
 });
 
 test('expanded prompt regimes do not collapse into literal or broad renderer fallbacks', () => {
@@ -2402,7 +2501,7 @@ test('building fire keeps a structural building mixed with fire visuals', () => 
   assert.equal(buildingFire.promptParse.spans.some((span) => span.text === 'building'), true);
   assert.ok(buildingObjects.length >= 1);
   assert.ok(warehouseFire.promptParse.spans.some((span) => span.text === 'warehouse'));
-  assert.ok(warehouseFire.promptParse.spans.some((span) => span.text === 'stairwell'));
+  assert.ok(warehouseFire.promptParse.spans.some((span) => /\bstairwell\b/.test(span.text)));
   assert.ok(warehouseObjects.length >= 1);
   assert.ok(buildingFire.renderProgram.objects.some((object) => object.shape === 'flame-front'));
   assert.ok(warehouseFire.renderProgram.objects.some((object) => object.shape === 'flame-front'));

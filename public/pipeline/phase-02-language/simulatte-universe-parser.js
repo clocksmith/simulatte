@@ -1,83 +1,25 @@
 (function attachSimulatteUniverseParser(root, factory) {
-  const api = factory();
+  const lexiconApi = typeof module === 'object' && module.exports
+    ? require('../../data/simulatte-language-lexicon.js')
+    : root.SimulatteLanguageLexicon;
+  const api = factory(lexiconApi || {});
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteUniverseParser = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseParserApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseParserApi(lexiconApi = {}) {
   const PROMPT_PARSE_SCHEMA = 'simulatte.promptParse.v1';
 
-  const ENTITY_PHRASES = [
-    ['neutrino detector', 'entity'], ['particle detector', 'entity'],
-    ['particle collider', 'entity'], ['underground water tank', 'entity'],
-    ['water tank', 'entity'], ['photon cones', 'entity'], ['photon cone', 'entity'],
-    ['phototube array', 'entity'], ['phototube', 'entity'], ['calorimeter', 'entity'],
-    ['detector', 'entity'], ['muon tracks', 'entity'], ['muon', 'entity'],
-    ['readouts', 'observable'], ['readout', 'observable'],
-    ['castle wall', 'entity'], ['black hole', 'entity'], ['solar panel', 'entity'],
-    ['blade array', 'entity'], ['dry pine', 'entity'], ['traffic queue', 'entity'],
-    ['glass tower', 'entity'], ['bridge cables', 'entity'], ['bridge cable', 'entity'],
-    ['feedback shock', 'entity'], ['basalt delta', 'environment'], ['quartz wetland', 'environment'],
-    ['lava', 'material'], ['magma', 'material'], ['turbine', 'entity'],
-    ['rotor', 'entity'], ['shaft', 'entity'], ['castle', 'entity'],
-    ['wall', 'entity'], ['ice', 'material'], ['river', 'entity'],
-    ['water', 'material', { semanticRole: 'fluid-medium' }],
-    ['lake', 'environment', { semanticRole: 'containing-environment', materialHint: 'water' }],
-    ['pool', 'environment', { semanticRole: 'containing-environment', materialHint: 'water' }],
-    ['beach', 'environment', { semanticRole: 'containing-environment', materialHint: 'water' }],
-    ['dogs', 'entity', { semanticRole: 'biological-agent', entityClass: 'dog' }],
-    ['dog', 'entity', { semanticRole: 'biological-agent', entityClass: 'dog' }],
-    ['cats', 'entity', { semanticRole: 'biological-agent', entityClass: 'cat' }],
-    ['cat', 'entity', { semanticRole: 'biological-agent', entityClass: 'cat' }],
-    ['projectile', 'entity'], ['stone', 'material'],
-    ['rocket', 'entity'], ['exhaust', 'entity'], ['fuel', 'material'],
-    ['swamp', 'environment'], ['wetland', 'environment'], ['hammer', 'entity'],
-    ['glass', 'material'], ['gold', 'material'], ['piano', 'entity'],
-    ['volcano', 'entity'], ['submarine', 'entity'], ['algae', 'entity'],
-    ['storm', 'environment'], ['cloud', 'environment'], ['wind', 'entity'],
-    ['building', 'entity'], ['structure', 'entity'], ['room', 'entity'],
-    ['warehouse', 'entity'], ['factory', 'entity'], ['house', 'entity'],
-    ['apartment', 'entity'], ['office', 'entity'], ['school', 'entity'],
-    ['hospital', 'entity'], ['stairwell', 'entity'], ['corridor', 'entity'],
-    ['hallway', 'entity'], ['basement', 'entity'], ['garage', 'entity'],
-    ['roof', 'entity'], ['shed', 'entity'], ['cabin', 'entity'],
-    ['fire', 'entity'], ['flame', 'entity'], ['magnet', 'entity'],
-    ['wheel', 'entity'], ['lens', 'entity'], ['prism', 'entity'],
-    ['mirror', 'entity'], ['tower', 'entity'], ['bridge', 'entity'],
-    ['cable', 'entity'], ['cables', 'entity'], ['wave', 'entity'], ['waves', 'entity'],
-    ['city', 'environment'], ['traffic', 'entity'],
-    ['queue', 'entity'], ['packet', 'entity'], ['market', 'entity'],
-    ['network', 'entity'], ['feedback', 'entity'], ['shock', 'entity'],
-    ['sand', 'material'], ['rock', 'material'], ['basalt', 'material'],
-    ['rain', 'entity'], ['quartz', 'material'], ['cathedral', 'entity'],
-    ['jellyfish', 'entity'], ['entropy', 'observable'], ['soul', 'entity'],
-  ];
-
-  const PROCESS_PHRASES = [
-    'spins', 'spin', 'rotates', 'rotate', 'melts', 'melt', 'hits', 'hit',
-    'impacts', 'impact', 'burns', 'burn', 'flows', 'flow', 'falls', 'fall',
-    'collides', 'collide', 'fractures', 'fracture', 'cracks', 'crack',
-    'pushes', 'push', 'drives', 'drive', 'heats', 'heat', 'cools', 'cool',
-    'diffuses', 'diffuse', 'oscillates', 'oscillate', 'trades', 'trade',
-    'eats', 'eat', 'splits', 'split', 'joins', 'join', 'carves', 'carve',
-    'erodes', 'erode', 'grows', 'grow', 'flexes', 'flex', 'waves', 'wave',
-    'swims', 'swim', 'swimming', 'swam',
-  ];
-
-  const MODIFIER_PHRASES = [
-    ['hot', 'temperature'], ['cold', 'temperature'], ['molten', 'phase'],
-    ['viscous', 'material'], ['brittle', 'material'], ['elastic', 'material'],
-    ['fast', 'rate'], ['slow', 'rate'], ['glowing', 'emission'],
-    ['magnetic', 'field'], ['electric', 'field'], ['near', 'location'],
-    ['through', 'relation'], ['into', 'relation'], ['under', 'location'],
-    ['over', 'location'], ['made of', 'materialRelation'],
-  ];
-
-  const OBSERVABLE_PHRASES = [
-    'energy', 'temperature', 'speed', 'velocity', 'stress', 'pressure',
-    'phase', 'damage', 'angular velocity', 'flow', 'torque', 'output',
-  ];
-  const NEGATION_RE = /\b(?:no|not|never|without|none|cannot|can't|wont|won't)\b/;
+  const LANGUAGE_LEXICON = lexiconApi.LANGUAGE_LEXICON || lexiconApi;
+  if (!LANGUAGE_LEXICON || LANGUAGE_LEXICON.schema !== 'simulatte.languageLexicon.v1') {
+    throw new Error('Phase 2 language parser requires simulatte.languageLexicon.v1');
+  }
+  const ENTITY_PHRASES = LANGUAGE_LEXICON.entityPhrases || [];
+  const PROCESS_PHRASES = LANGUAGE_LEXICON.processPhrases || [];
+  const MODIFIER_PHRASES = LANGUAGE_LEXICON.modifierPhrases || [];
+  const OBSERVABLE_PHRASES = LANGUAGE_LEXICON.observablePhrases || [];
+  const NEGATION_WORDS = Object.freeze(['no', 'not', 'never', 'without', 'none', 'cannot', "can't", 'wont', "won't"]);
+  const NEGATION_RE = new RegExp(`\\b(?:${NEGATION_WORDS.join('|')})\\b`);
 
   function parsePrompt(promptInput = '') {
     const prompt = String(promptInput || '');
@@ -178,6 +120,25 @@
     const processes = spans.filter((span) => span.kind === 'process');
     const clauses = [];
     for (const verb of processes) {
+      const passive = passiveClauseForVerb(entities, verb, lower);
+      if (passive) {
+        const process = normalizeProcess(verb.text);
+        const prepositions = nearbyPrepositions(lower, verb.end, passive.agent.start);
+        clauses.push({
+          subjectSpanId: passive.agent.id,
+          verbSpanId: verb.id,
+          objectSpanId: passive.patient.id,
+          process,
+          subjectRole: semanticRoleForSpan(passive.agent, 'agent'),
+          objectRole: semanticRoleForObject(passive.patient, prepositions),
+          spatialRelation: 'by',
+          causalAffordance: causalAffordanceFor(passive.agent, process, passive.patient, prepositions),
+          implicitObject: '',
+          prepositions,
+          voice: 'passive',
+        });
+        continue;
+      }
       const subjects = coordinatedSubjectsForVerb(entities, verb, lower);
       const after = entities.filter((span) => span.start >= verb.end).sort((a, b) => a.start - b.start)[0] || null;
       if (!subjects.length && !after) continue;
@@ -214,6 +175,23 @@
       });
     }
     return clauses.map((clause, index) => ({ id: `clause${index + 1}`, ...clause }));
+  }
+
+  function passiveClauseForVerb(entities, verb, lower) {
+    if (!verb || !Number.isFinite(verb.start)) return null;
+    const beforeText = lower.slice(Math.max(0, verb.start - 18), verb.start);
+    if (!/\b(?:is|are|was|were|be|been|being)\s+$/.test(beforeText)) return null;
+    const before = entities
+      .filter((span) => span.end <= verb.start)
+      .filter((span) => !spanIsNegated(lower, span))
+      .sort((a, b) => b.end - a.end)[0] || null;
+    if (!before) return null;
+    const after = entities
+      .filter((span) => span.start >= verb.end)
+      .filter((span) => /\bby\b/.test(lower.slice(verb.end, span.start)))
+      .sort((a, b) => a.start - b.start)[0] || null;
+    if (!after) return null;
+    return { patient: before, agent: after };
   }
 
   function coordinatedSubjectsForVerb(entities, verb, lower) {
@@ -259,14 +237,19 @@
     if (/hit|impact|collide|crack|fracture/.test(value)) return 'impact';
     if (/burn|heat/.test(value)) return 'heat_transfer';
     if (/cool/.test(value)) return 'cooling';
-    if (/flow|fall|push|carve|erode/.test(value)) return 'flow';
-    if (/diffuse/.test(value)) return 'diffusion';
+    if (/freez/.test(value)) return 'phase_transition';
+    if (/flow|fall|push|carve|erode|pour|sink|float|buffer|settle|calv/.test(value)) return 'flow';
+    if (/diffuse|dissolv/.test(value)) return 'diffusion';
     if (/oscillate|flex|wave/.test(value)) return 'oscillation';
-    if (/grow/.test(value)) return 'growth';
-    if (/trade/.test(value)) return 'exchange';
+    if (/grow|ferment/.test(value)) return 'growth';
+    if (/trade|exchange/.test(value)) return 'exchange';
     if (/split/.test(value)) return 'split';
     if (/join/.test(value)) return 'join';
     if (/eat/.test(value)) return 'consume';
+    if (/run|jump|bounce|fly/.test(value)) return 'motion';
+    if (/fold/.test(value)) return 'folding';
+    if (/twist/.test(value)) return 'rotate';
+    if (/sort|resolv|recirculat|allocat|minimiz|sampl/.test(value)) return 'network_flow';
     return value || 'interact';
   }
 
@@ -368,6 +351,9 @@
 
   return {
     PROMPT_PARSE_SCHEMA,
+    LANGUAGE_LEXICON,
+    NEGATION_WORDS,
+    NEGATION_RE,
     parsePrompt,
   };
 });

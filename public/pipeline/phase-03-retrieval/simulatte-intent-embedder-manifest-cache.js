@@ -113,22 +113,25 @@
                   universeDocuments: runtime.universe && runtime.universe.documentCount || 0,
                 });
                 const providerStarted = nowMs();
-                const provider = await this.resolveEmbedProvider(runtime, {
+                const providerOptions = {
                   ...options,
                   onProgress: progress,
                   traceEmbeddings: trace,
-                });
+                };
+                const providerPromise = this.resolveEmbedProvider(runtime, providerOptions);
+                const eagerRerankProviderPromise = this.shouldStartPhase1RerankerLoad(runtime, options)
+                  ? this.resolveRerankProvider(runtime, null, providerOptions)
+                  : null;
+                const provider = await providerPromise;
                 const probe = await verifyPromptRuntimeProvider(runtime, provider, {
                   progress,
                   trace,
                   traceId: this.traceId,
                   nowIso: options.nowIso,
                 });
-                const rerankProvider = await this.resolveRerankProvider(runtime, provider, {
-                  ...options,
-                  onProgress: progress,
-                  traceEmbeddings: trace,
-                });
+                const rerankProvider = eagerRerankProviderPromise
+                  ? await eagerRerankProviderPromise
+                  : await this.resolveRerankProvider(runtime, provider, providerOptions);
                 const rerankerProbe = await verifyPromptRuntimeReranker(runtime, provider, {
                   progress,
                   trace,
@@ -578,11 +581,7 @@
         }
 
         async ensureDopplerEmbeddingHandle(runtime, options = {}, reloadOptions = {}) {
-          if (
-            reloadOptions.force !== true &&
-            this.activeDopplerModelRole === 'embedding' &&
-            this.dopplerEmbedHandle
-          ) {
+          if (reloadOptions.force !== true && this.dopplerEmbedHandle) {
             return this.dopplerEmbedHandle;
           }
           const loaded = await this.loadDopplerEmbeddingHandle(runtime, options);
@@ -664,6 +663,7 @@
             cacheMode: 'doppler-managed',
           });
           const loadOptions = {
+            isolatedLoader: true,
             runtimeConfig,
             onProgress: (event) => {
               emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
@@ -700,6 +700,21 @@
             embeddingDim: runtime.index && runtime.index.embeddingDim || 0,
           });
           return { handle, modelBaseUrl };
+        }
+
+        shouldStartPhase1RerankerLoad(runtime, options = {}) {
+          const config = rerankerConfig(runtime);
+          if (!config.enabled || !config.required || !config.model || config.loadInPhase1WhenRequired === false) {
+            return false;
+          }
+          return !options.rerankProvider &&
+            !options.rerankerProvider &&
+            !this.rerankProvider &&
+            !options.embedProvider &&
+            !this.embedProvider &&
+            !options.dopplerModelHandle &&
+            !this.dopplerModelHandle &&
+            !globalModelHandle();
         }
 
         async resolveRerankProvider(runtime, provider, options = {}) {
@@ -779,6 +794,7 @@
           });
           const started = nowMs();
           const loadOptions = {
+            isolatedLoader: true,
             onProgress: (event) => {
               emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
                 traceId: this.traceId,
@@ -824,7 +840,7 @@
           return {
             backend: 'doppler-reranker-load',
             rerank: async (input) => {
-              if (this.activeDopplerModelRole !== 'reranker' || !this.dopplerRerankerHandle) {
+              if (!this.dopplerRerankerHandle) {
                 const reloaded = await this.loadDopplerRerankerModel(runtime, options);
                 return reloaded.rerank(input);
               }

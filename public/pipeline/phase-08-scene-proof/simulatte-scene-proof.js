@@ -189,7 +189,7 @@
     if (row.kind === 'action') {
       const actionTarget = normalizeProofText(target);
       const visualMatch = context.passedVisualTargets.some((visualTarget) => (
-        visualTarget && actionTarget && (visualTarget.includes(actionTarget) || actionTarget.includes(visualTarget))
+        proofPhraseMatch(visualTarget, actionTarget)
       ));
       if (visualMatch) {
         return { ...base, status: 'preserved', reason: 'action proven through passing visual obligation targets', evidence: ['visualObligationProof'] };
@@ -212,12 +212,26 @@
     if (!target) return false;
     for (const identity of identities || []) {
       if (!identity) continue;
-      if (identity === target || identity.includes(target) || target.includes(identity)) return true;
-      const identityTerms = new Set(String(identity).split(/\s+/).filter((term) => term.length > 3));
-      const targetTerms = String(target).split(/\s+/).filter((term) => term.length > 3);
+      if (proofPhraseMatch(identity, target)) return true;
+      const identityTerms = new Set(proofTokens(identity).filter((term) => term.length > 3));
+      const targetTerms = proofTokens(target).filter((term) => term.length > 3);
       if (targetTerms.some((term) => identityTerms.has(term))) return true;
     }
     return false;
+  }
+
+  function proofTokens(value) {
+    return String(value || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((term) => (term.length > 3 && term.endsWith('s') ? term.slice(0, -1) : term));
+  }
+
+  function proofPhraseMatch(a, b) {
+    const left = proofTokens(a).join(' ');
+    const right = proofTokens(b).join(' ');
+    if (!left || !right) return false;
+    return ` ${left} `.includes(` ${right} `) || ` ${right} `.includes(` ${left} `);
   }
 
   function relationEndpoints(row = {}, obligationId = '') {

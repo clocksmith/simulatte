@@ -443,6 +443,7 @@
           atomUniforms: scenePacketAtomUniformVector(packet),
           sceneMix: scenePacketSceneMixVector(packet, sceneKind),
           visualIrLayers: visualIrLayerVector(packet),
+          palette: scenePacketPaletteVector(packet),
           sceneObjectUniforms,
           sceneInstanceData,
           sceneInstanceSummary: scenePacketIdentitySummaryForDrawables(drawables),
@@ -453,6 +454,16 @@
           metrics: metricsForScenePacket(packet),
           seed: seedForScenePacket(packet, spatialHash, summary),
         };
+      }
+
+    function scenePacketPaletteVector(packet) {
+        const palette = packet && packet.uniforms && Array.isArray(packet.uniforms.palette)
+          ? packet.uniforms.palette
+          : [];
+        return palette.slice(0, 16).map((value) => {
+          const numeric = Number(value || 0);
+          return Number.isFinite(numeric) ? clamp01(numeric) : 0;
+        });
       }
 
     function sceneRenderPacketRenderDataKey(packet, sceneKind = '') {
@@ -782,7 +793,16 @@
         if (/fermentation|bubble|rise/.test(value)) return 6;
         if (/plume|thermal|fire/.test(value)) return 7;
         if (/orbit|drift/.test(value)) return 8;
-        return 0.5;
+        return value ? 9 + Math.floor(scenePacketHashUnit(value) * 56) : 0.5;
+      }
+
+    function scenePacketHashUnit(text) {
+        let hash = 2166136261;
+        for (let i = 0; i < text.length; i += 1) {
+          hash ^= text.charCodeAt(i);
+          hash = Math.imul(hash, 16777619);
+        }
+        return (hash >>> 0) / 4294967295;
       }
 
     function scenePacketSemanticCode(row = {}) {

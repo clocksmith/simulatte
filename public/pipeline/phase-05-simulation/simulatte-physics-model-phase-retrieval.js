@@ -144,7 +144,7 @@
           })),
           quantities: tokens.filter((token) => /^(?:\d+(?:\.\d+)?|\.\d+)$/.test(String(token.text || ''))),
           negations: spans.filter((span) => span.kind === 'negation').concat(
-            tokens.filter((token) => /^(?:no|not|never|without)$/.test(String(token.text || '').toLowerCase()))
+            tokens.filter((token) => NEGATION_RE.test(String(token.text || '').toLowerCase()))
           ),
           relations: [...clauseRelations, ...modifierRelations],
           modifiers,
@@ -406,7 +406,11 @@
     	  }
 
     function assertPhase3RetrievalEvidencePromptHash(retrievalEvidence = {}, expectedHash = '') {
-    	    if (!expectedHash) return;
+    	    if (!expectedHash || !retrievalEvidence || typeof retrievalEvidence !== 'object') return;
+    	    const topLevel = String(retrievalEvidence.sourcePromptHash || retrievalEvidence.promptHash || '');
+    	    if (topLevel && topLevel !== expectedHash) {
+    	      throw new Error(`Phase 3 retrieval evidence prompt hash mismatch: expected ${expectedHash}, received ${topLevel}`);
+    	    }
     	    const rows = [
     	      ['slotRetrieval', retrievalEvidence.slotRetrieval],
     	      ['spanRetrieval', retrievalEvidence.spanRetrieval],
@@ -745,21 +749,46 @@
     	        row.causalAffordance,
     	      ].filter(Boolean).join(' '));
     	      if (!target || !text) return false;
-    	      if (target === 'dog') return /\b(?:dogs?|surface dog|primitive dog)\b/.test(text);
-    	      if (target === 'cat') return /\b(?:cats?|surface cat|primitive cat)\b/.test(text);
-    	      if (target === 'swimming') return /\b(?:swim|swims|swimming|locomotion)\b/.test(text);
-    	      if (target === 'lake') return /\b(?:lake|pond|pool|water body|containing environment)\b/.test(text);
-    	      if (target === 'water') return /\b(?:water|fluid|medium)\b/.test(text);
-    	      if (target.includes('swimming') && target.includes('lake')) {
-    	        const wantsDog = target.includes('dog');
-    	        const wantsCat = target.includes('cat');
-    	        const hasAnimal = wantsDog ? /\bdogs?\b/.test(text) : wantsCat ? /\bcats?\b/.test(text) : true;
-    	        return hasAnimal && /\b(?:swim|swimming)\b/.test(text) && /\blake\b/.test(text);
-    	      }
-    	      return phase3PhraseInPrompt(target, text) || phase3PhraseInPrompt(text, target);
+    	      return phase3PhraseInPrompt(target, text) ||
+              phase3PhraseInPrompt(text, target) ||
+              phase3EntryTermsCovered(target, text);
     	    });
     	    return filtered;
     	  }
+
+    function phase3EntryTermsCovered(target = '', text = '') {
+        const terms = phase3EntryTerms(target);
+        if (!terms.length) return false;
+        return terms.every((term) => phase3TermVariants(term).some((variant) => (
+          new RegExp(`\\b${phase3EscapeRegExp(variant)}\\b`).test(text)
+        )));
+      }
+
+    function phase3EntryTerms(value = '') {
+        const stop = new Set(['a', 'an', 'and', 'in', 'into', 'of', 'on', 'the', 'to', 'with', 'world']);
+        return normalizeForEvidence(value)
+          .split(/\s+/)
+          .map((term) => term.trim())
+          .filter((term) => term.length > 2 && !stop.has(term));
+      }
+
+    function phase3TermVariants(term = '') {
+        const value = normalizeForEvidence(term);
+        const variants = [value];
+        if (value.endsWith('ies') && value.length > 4) variants.push(`${value.slice(0, -3)}y`);
+        if (value.endsWith('es') && value.length > 4) variants.push(value.slice(0, -2));
+        if (value.endsWith('s') && value.length > 3) variants.push(value.slice(0, -1));
+        if (value.endsWith('ing') && value.length > 5) {
+          const stem = value.slice(0, -3);
+          variants.push(stem);
+          if (/([a-z])\1$/.test(stem)) variants.push(stem.slice(0, -1));
+        }
+        return Array.from(new Set(variants.filter(Boolean)));
+      }
+
+    function phase3EscapeRegExp(value) {
+        return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
 
     function phase3VisualRowsForEntry(entryId = '', rows = []) {
     	    const target = normalizeForEvidence(entryId.replace(/^visual:/, '').replace(/-/g, ' '));

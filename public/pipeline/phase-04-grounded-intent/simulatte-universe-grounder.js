@@ -29,6 +29,12 @@
     'bridge cable': concept('constraint.bridge_cable', 'constraint', ['solid', 'oscillator', 'rigidBody', 'wave'], 'metal', ['oscillator']),
     'bridge cables': concept('constraint.bridge_cable', 'constraint', ['solid', 'oscillator', 'rigidBody', 'wave'], 'metal', ['oscillator']),
     ice: concept('material.ice', 'solid', ['solid', 'thermal', 'phase'], 'ice', ['phase_transition']),
+    wood: concept('material.wood', 'solid', ['solid', 'thermal', 'reaction'], 'wood', ['reaction_diffusion']),
+    metal: concept('material.metal', 'solid', ['solid', 'thermal', 'rigidBody'], 'metal', ['heat_transfer']),
+    'magnetized metal': concept('material.magnetized_metal', 'solid', ['solid', 'field', 'rigidBody'], 'metal', ['field_force']),
+    air: concept('material.air', 'fluid', ['fluid', 'thermal'], 'air', ['advection']),
+    tray: concept('artifact.sample_tray', 'body', ['solid', 'rigidBody'], 'metal', ['rigid_collision']),
+    'sample tray': concept('artifact.sample_tray', 'body', ['solid', 'rigidBody'], 'metal', ['rigid_collision']),
     river: concept('environment.river', 'environment', ['fluid', 'terrain'], 'water', ['advection']),
     water: concept('material.water', 'fluid', ['fluid', 'thermal'], 'water', ['advection']),
     projectile: concept('body.projectile', 'body', ['rigidBody', 'collision'], 'metal', ['rigid_collision']),
@@ -423,6 +429,7 @@
         label: text,
         confidence: span.kind === 'observable' ? 0.72 : 0.92,
         evidence: ['parser-lexicon'],
+        identityEvidence: true,
         ...builtin,
       });
     }
@@ -434,11 +441,44 @@
       if (!contained && overlap <= 0) continue;
       matches.push({
         ...row,
+        identityEvidence: rowIdentityMatchesSpan(row, text),
         confidence: clamp01(Number(row.confidence || 0.36) + (exact ? 0.12 : contained ? 0.04 : overlap * 0.08)),
       });
     }
-    matches.sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
-    return { best: matches[0] || null, matches: matches.slice(0, 5) };
+    matches.sort((a, b) => (
+      Number(b.identityEvidence === true) - Number(a.identityEvidence === true) ||
+      Number(b.confidence || 0) - Number(a.confidence || 0)
+    ));
+    const best = matches[0] || null;
+    const typedSpan = ['entity', 'material', 'environment'].includes(span.kind || '');
+    if (best && typedSpan && best.identityEvidence !== true) {
+      return { best: null, matches: matches.slice(0, 5) };
+    }
+    return { best, matches: matches.slice(0, 5) };
+  }
+
+  function rowIdentityMatchesSpan(row, text) {
+    const spanTokens = new Set(identityTokens(text));
+    if (!spanTokens.size) return false;
+    return identityTokensForRow(row).some((token) => spanTokens.has(token));
+  }
+
+  function identityTokensForRow(row = {}) {
+    return identityTokens([
+      row.canonicalId,
+      row.id,
+      ...(row.conceptIds || []),
+      ...(row.primitiveHints || []),
+      ...(row.aliases || []),
+    ].filter(Boolean).join(' '));
+  }
+
+  function identityTokens(value = '') {
+    return String(value || '')
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((token) => token && !/^\d+$/.test(token))
+      .map((token) => (token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token));
   }
 
   function addComponentNodes(nodes, seen, input, rejected) {
@@ -455,8 +495,19 @@
       const directlyMentioned = prompt && (
         prompt.includes(lower) || promptIncludesAny(prompt, [component.id, component.phrase, component.role])
       );
+      const isPromptExplicit = source === 'prompt-explicit';
+      const identityMentioned = prompt && identityTokens(component.id).some((token) => (
+        new RegExp(`\\b${token}(?:s|es)?\\b`).test(prompt)
+      ));
+      const generatedIdentityOk = (isSynthesis || isOpenSemantic) && directlyMentioned && identityMentioned;
       const highConfidence = Number(component.score || 0) >= 0.78 && directlyMentioned;
-      if (!fillsGroundingGap && !isSynthesis && !highConfidence && !(isOpenSemantic && directlyMentioned)) continue;
+      if (!fillsGroundingGap && !highConfidence && !generatedIdentityOk &&
+        !(isPromptExplicit && directlyMentioned)) {
+        if (isSynthesis || isOpenSemantic) {
+          rejected.push({ label, reason: 'generated row identity lacks prompt evidence' });
+        }
+        continue;
+      }
       if (added >= 10) break;
       const id = slugify(`primitive-${component.id}`);
       if (seen.has(id)) continue;

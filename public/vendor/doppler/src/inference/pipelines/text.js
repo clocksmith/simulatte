@@ -299,6 +299,8 @@ export class InferencePipeline extends PipelineState {
       assignStorageContext: true,
     });
     this.runtimeConfig = runtimeConfig;
+    this.dopplerLoader = contexts.loader || null;
+    this.ownsDopplerLoader = contexts.ownsLoader === true;
     this.runtimeOverrides = contexts.runtimeConfig == null
       ? null
       : (typeof structuredClone === 'function'
@@ -649,6 +651,7 @@ export class InferencePipeline extends PipelineState {
           this.modelConfig.perLayerInputsSession ?? null,
           this.runtimeConfig?.inference?.session?.perLayerInputs ?? null
         ),
+        loader: this.dopplerLoader ?? undefined,
         onProgress: (info) => {
           if (info.stage !== 'layers' && info.stage !== 'shards') {
             log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
@@ -676,7 +679,7 @@ export class InferencePipeline extends PipelineState {
 
     this.layerRouterWeights = result.layerRouterWeights;
 
-    this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
+    this.dopplerLoader = result.loader ?? getDopplerLoader(this.runtimeConfig.loading);
     this.stats.loadTiming = result.loadTiming ?? this.dopplerLoader?.getLoadTiming?.() ?? null;
 
     if ((this.modelConfig).useMoE && this.moeRouter) {
@@ -1747,6 +1750,14 @@ export class InferencePipeline extends PipelineState {
     return this.generator.prefillWithLogits(prompt, options);
   }
 
+  prefillWithTokenLogits(prompt, tokenIds, options = {}) {
+    return this.generator.prefillWithTokenLogits(prompt, tokenIds, options);
+  }
+
+  prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
+    return this.generator.prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options);
+  }
+
 
   applyKVCacheSnapshot(snapshot) {
     this.kvCache = snapshot.cache.clone();
@@ -1904,6 +1915,11 @@ export class InferencePipeline extends PipelineState {
     this.plePrefetchPending = null;
     this.weights.clear();
     this.expertWeights.clear();
+    if (this.ownsDopplerLoader && this.dopplerLoader) {
+      await this.dopplerLoader.unload();
+    }
+    this.dopplerLoader = null;
+    this.ownsDopplerLoader = false;
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     this.lora = null;
     destroyMoERouter(this.moeRouter);
