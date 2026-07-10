@@ -270,11 +270,6 @@
         };
       }
 
-    const COMPOSITION_TOPOLOGIES = Object.freeze([
-      'radial', 'ladder', 'lattice', 'cutaway', 'basin', 'orbit', 'conveyor',
-      'branching', 'stack', 'plume', 'corridor', 'field-map', 'specimen',
-    ]);
-
     const TOPOLOGY_LAYOUT_MODE = Object.freeze({
       radial: 'radial', ladder: 'section', lattice: 'network', cutaway: 'section',
       basin: 'strata', orbit: 'radial', conveyor: 'network', branching: 'network',
@@ -289,88 +284,6 @@
       plume: 'contour-hatch', corridor: 'cutaway-lines', 'field-map': 'contour-hatch',
       specimen: 'cutaway-lines',
     });
-
-    // The evidence dialect compiler refines these stable, non-seeded scene defaults.
-    const SCENE_TOPOLOGY_FAMILY = Object.freeze({
-      'material-tray': ['specimen', 'lattice'],
-      'chemistry-lab': ['specimen', 'lattice'],
-      biology: ['specimen', 'branching', 'field-map'],
-      city: ['lattice', 'branching', 'conveyor'],
-      'civic-market': ['lattice', 'conveyor', 'branching'],
-      'digital-network': ['branching', 'lattice'],
-      'robotics-control': ['conveyor', 'ladder'],
-      watershed: ['basin', 'stack'],
-      granular: ['basin', 'stack'],
-      fire: ['plume', 'stack'],
-      'thermal-plume': ['plume', 'cutaway'],
-      mechanical: ['ladder', 'cutaway', 'stack'],
-      optics: ['radial', 'corridor'],
-      'thin-film': ['radial', 'specimen'],
-      ferrofluid: ['radial', 'basin'],
-      acoustic: ['corridor', 'radial'],
-      'planetary-space': ['orbit', 'radial'],
-      'magnetic-machine': ['radial', 'ladder'],
-      'literal-composite': ['stack', 'cutaway', 'ladder'],
-    });
-
-    function genomeCompositionTopology(sceneKind, motifs, objects, fields, _seed) {
-        const motifText = (motifs || []).join(' ');
-        if (/animal-gait|fur-contour|limb-track/.test(motifText)) return 'field-map';
-        if (/petal-radial|leaf-vein|stem-node/.test(motifText)) return 'radial';
-        if (/track-ladder|platform-slot|headway/.test(motifText)) return 'ladder';
-        if (/parcel-zoning-grid|architectural-grid|structural-silhouette/.test(motifText)) return 'lattice';
-        if (/route-weave|node-ledger|signal-tick/.test(motifText)) return 'branching';
-        if (/branch-network|cellular-mesh|membrane-rim/.test(motifText)) return 'branching';
-        if (/orbital-arc|trajectory-dust|limb-glow/.test(motifText)) return 'orbit';
-        if (/caustic-rib|spectral-slice|thin-line-optics|ray-stack/.test(motifText)) return 'radial';
-        if (/flux-hatching|dipole-dust|coil-shadow/.test(motifText)) return 'radial';
-        if (/ember-shear|smoke-strata|reaction-front/.test(motifText)) return 'plume';
-        if (/grain-strata|sediment-band|sorting-band|impact-trail/.test(motifText)) return 'basin';
-        if (/pressure-ring|waveguide-line|resonant-slit/.test(motifText)) return 'corridor';
-        if (/fracture-line|stress-ruler|impact-ghost/.test(motifText)) return 'cutaway';
-        const family = SCENE_TOPOLOGY_FAMILY[sceneKind] || ['stack', 'field-map', 'lattice', 'specimen'];
-        return family[0];
-      }
-
-    function genomeScaleTier(sceneKind, objects) {
-        // Scan only prompt-grounded objects: recipe-support primitives (catalog membrane,
-        // protein, cell) must not push a mechanical or thermal scene to microscopic scale.
-        const groundedObjects = (objects || []).filter(isPromptGroundedGenomeObject);
-        const objectText = (groundedObjects.length ? groundedObjects : [])
-          .map((object) => `${object.id || ''} ${object.role || ''} ${object.material || ''} ${object.phrase || ''}`)
-          .join(' ')
-          .toLowerCase();
-        if (/protein|molecul|\bcell\b|bacteri|mycelium|enzyme|\bdna\b|\brna\b|qubit|atomic|microscop/.test(objectText)) {
-          return 'microscopic';
-        }
-        if (/planet|\borbit|\bmoon\b|asteroid|spacecraft|rocket|galaxy|\bstar\b/.test(objectText)) {
-          return 'orbital';
-        }
-        const scaleByScene = {
-          biology: 'microscopic',
-          'chemistry-lab': 'microscopic',
-          'thin-film': 'microscopic',
-          'planetary-space': 'orbital',
-          city: 'landscape',
-          watershed: 'landscape',
-          fire: 'architectural',
-          'thermal-plume': 'architectural',
-          'literal-composite': 'architectural',
-        };
-        return scaleByScene[sceneKind] || 'human';
-      }
-
-    function genomeCameraArchetype(scaleTier, compositionTopology, sceneKind) {
-        if (scaleTier === 'orbital' || compositionTopology === 'orbit') return 'orbital-wide';
-        if (scaleTier === 'microscopic') return 'microscope-cutaway';
-        if (scaleTier === 'landscape') return compositionTopology === 'basin' ? 'aerial-map' : 'wide-establishing';
-        if (compositionTopology === 'cutaway' || compositionTopology === 'ladder' || compositionTopology === 'stack') {
-          return 'section-elevation';
-        }
-        if (compositionTopology === 'conveyor') return 'isometric-line';
-        if (sceneKind === 'optics' || sceneKind === 'mechanical' || sceneKind === 'material-tray') return 'lab-bench';
-        return 'instrument-panel';
-      }
 
     function normalizeHue(value) {
         return ((Math.round(value) % 360) + 360) % 360;
@@ -966,10 +879,6 @@
       sceneAllowsMotifFamily,
       genomePalette,
       genomeMorphology,
-      genomeCompositionTopology,
-      genomeScaleTier,
-      genomeCameraArchetype,
-      COMPOSITION_TOPOLOGIES,
       normalizeHue,
       unitFromSeed,
       prioritizeObjectsForScene,
