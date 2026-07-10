@@ -130,6 +130,24 @@ test('watershed scenes retain an animal-swim dialect when the evidence names ani
   assert.notDeepEqual(swimming.positions, terrain.positions);
 });
 
+test('restoration water derives a tidal-root dialect from grounded mangrove evidence', () => {
+  const mangrove = visualAxes(compile(
+    'mangrove roots buffering storm surge while sediment settles in brackish tidal channels'
+  ));
+
+  assert.deepEqual(
+    [mangrove.visualDialect, mangrove.compositionTopology, mangrove.cameraArchetype, mangrove.scaleTier],
+    ['restoration-water/tidal-root-buffer', 'branching', 'aerial-map', 'landscape']
+  );
+  assert.ok(mangrove.evidence.matchedTerms.some((row) => row.term === 'mangrove'));
+  assert.deepEqual(mangrove.packet, {
+    visualDialect: mangrove.visualDialect,
+    compositionTopology: mangrove.compositionTopology,
+    cameraArchetype: mangrove.cameraArchetype,
+    scaleTier: mangrove.scaleTier,
+  });
+});
+
 test('particle detectors and qubit readouts compile to evidence-distinct instrument dialects', () => {
   const particle = visualAxes(compile('particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat'));
   const qubit = visualAxes(compile('qubit chip phase readout through microwave resonator'));

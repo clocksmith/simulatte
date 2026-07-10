@@ -2,7 +2,11 @@
   const scope = root.__SimulatteIntentEmbedderRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
-    const EMBEDDING_LOAD_PROGRESS = Object.freeze({ start: 20, end: 72 });
+    const EMBEDDING_CACHE_PROGRESS = Object.freeze({ start: 20, end: 42 });
+
+    const EMBEDDING_LOAD_PROGRESS = Object.freeze({ start: 42, end: 72 });
+
+    const RERANKER_CACHE_PROGRESS = Object.freeze({ start: 42, end: 72 });
 
     const RERANKER_LOAD_PROGRESS = Object.freeze({ start: 72, end: 93.8 });
 
@@ -33,7 +37,9 @@
       });
 
     Object.assign(scope, {
+      EMBEDDING_CACHE_PROGRESS,
       EMBEDDING_LOAD_PROGRESS,
+      RERANKER_CACHE_PROGRESS,
       RERANKER_LOAD_PROGRESS,
       TRACE_URL_FLAGS,
       PROMPT_RUNTIME_PROBES,

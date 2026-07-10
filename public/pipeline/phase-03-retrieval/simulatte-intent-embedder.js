@@ -3,6 +3,7 @@
     require('./simulatte-intent-embedder-dependencies.js');
     require('./simulatte-intent-embedder-constants.js');
     require('./simulatte-intent-embedder-model-lock.js');
+    require('./simulatte-intent-embedder-model-cache.js');
     require('./simulatte-intent-embedder-runtime-class.js');
     require('./simulatte-intent-embedder-manifest-cache.js');
     require('./simulatte-intent-embedder-runtime-probes.js');

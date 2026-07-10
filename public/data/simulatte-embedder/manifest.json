@@ -3,11 +3,11 @@
   "id": "simulatte-model-backed-intent-retrieval-v1",
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 2,
+    "number": 3,
     "artifact": "./model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "41c7bd3a3e4e235cb9dff12b5e252216ee2f4bf5bbb886b3e16542c816e95807"
+      "hex": "f7e28111b45bcfffa68c63718050e1ca6bc46f97703e12660d1f4e6739c7b5d3"
     }
   },
   "retrieval": {
@@ -43,7 +43,7 @@
       "artifact": "./intent-evidence-contract-v1.json",
       "artifactHash": {
         "alg": "sha256",
-        "hex": "f3452957c2edf9c71df822c9360e93a8e26d5cc8ef665345abc5847c937b146f"
+        "hex": "66de0a9ec248f33f762abd8c14be27e4f5128fb855e587411799de6ec1b48577"
       },
       "documentSchema": "simulatte.intentEvidenceContract.v1",
       "description": "Hand-authored evidence row contract for retrieval-grounded semantic scene forensics."

@@ -1,9 +1,10 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 2,
+  "number": 3,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index-browser.js",
+    "storageModuleUrl": "../../vendor/doppler/src/tooling-exports/storage.js",
     "kernelBasePath": "../../vendor/doppler/src/gpu/kernels",
     "package": {
       "name": "doppler-gpu",
@@ -13,12 +14,14 @@
       "fileCount": 1701
     },
     "localPatches": {
-      "src/client/runtime/index.js": "6d94cdea690ffc6ed433939c93ed8e6920bdab1a9354296e5b7ef4f6d763d41f",
+      "src/client/runtime/index.js": "af2d2aff501e53ccf0ba70af35304ab5d2671bdff8d8ef6abab440c13832d5b6",
       "src/client/runtime/model-session.d.ts": "b365336c2bb30bf84ef1f1d12634ac45b9c91ac9f30d2c2f8ef1a80256d09515",
       "src/client/runtime/model-session.js": "3779ebd2b2334632415980b109c71e6b655153172dd637e79829903f8aa82800",
-      "src/client/runtime/model-source.d.ts": "84657d38f53d0df5e268444575bfe4dc7de3b5abbfaeea9e0a4a42e3525f62b4",
-      "src/client/runtime/model-source.js": "d15a1884e4d0e868c2bbb0e7d2206622d9dbd891ca115ba033b45f5d71180705",
+      "src/client/runtime/model-source.d.ts": "4427dbef2da43b92a65d184ae1970160275a4050ad6e5ed3b8940377a0218061",
+      "src/client/runtime/model-source.js": "7e29fd6c47cb482d7fe93a1d4c0efdd811ecc3b94b50a2e8379dd1efaf34d6c1",
       "src/config/transforms/execution-graph-transforms.js": "54b2054fde328416c74df77a592f835e9df16a10bf9aae66e15b0dc8270f3483",
+      "src/formats/rdrr/classification.js": "e66d205f1fb026990b3f7d52498b5b43d812f340b6b852e5188afa8413a85283",
+      "src/inference/browser-harness-suite-helpers.js": "4066b4dc12f0898f1d601239d64dff918f25aa4876158347f110c0d0c0d485f2",
       "src/inference/pipelines/text.d.ts": "4f3a4e3b981dccd9e227f77f0ca3040f6ef7b0cd932155cd68790f51c1baaeab",
       "src/inference/pipelines/text.js": "807b00c6bb7ef279a86816a9c2984d3fb7d16df3f2329804d907367438848622",
       "src/inference/pipelines/text/execution-v1.js": "c3cb0050da8394681290dd0f661140e3106d668877ba130196adca1c8cebbaf6",
@@ -27,12 +30,23 @@
       "src/inference/pipelines/text/init.js": "8138dc87592ee38bb5dbb15977748bf500ecd9e8a6c86e23c226de0fda46e810",
       "src/inference/pipelines/text/state.d.ts": "da202f21606988865b22054d64be636d202f208ef546903cd841a892bc7f1a15",
       "src/inference/pipelines/text/state.js": "00faad44726d86220b697b369a7a2b606a2f2aff90fda24d64404c4297a24376",
-      "src/loader/doppler-loader.js": "448e3d0e7c452aaecd439774c4ff9b809488a0b372453b960e6babcdccb8fe07",
+      "src/loader/doppler-loader.js": "27706d48115a971c5b3dcbd096a02224f1a02406f13564406721890b991c5ad9",
       "src/loader/index.d.ts": "00e3b4b2ff97fa55015adbb6b00a35a79fbbc0436c2cf3e0f1f9895085b93448",
       "src/loader/index.js": "42464204d6032a327803dbb00424da118a57563760f6101a2a4137be852b8b5f",
+      "src/loader/loader-types.d.ts": "cd30d4a7206db0c5c78c326d24a776a2043ffb555be9f06589a01a49595fc87f",
       "src/loader/manifest-config.d.ts": "80674d4f16eebc7faf9b7bb41a296806c79e608c75d52582be09b571120a7d09",
       "src/loader/manifest-config.js": "b7e4f8be5536e45efe447ece8b3d9fb8404c466a459d8521aea10b17ba39206b",
-      "src/rules/inference/capability-transforms.rules.json": "c3878e781c065975e8cf2a09f8b4eb58818c74af61319dcd6ff07fb05cec2f9d"
+      "src/loader/shard-cache.d.ts": "00243bf41c81a37e419b83c033bc0c39797d0c957c49485b55fbeaa371db873f",
+      "src/loader/shard-cache.js": "c4efa1c3b4104caf2be32811f354fb9ab0df3561f61881847803e11c13a20a76",
+      "src/rules/inference/capability-transforms.rules.json": "c3878e781c065975e8cf2a09f8b4eb58818c74af61319dcd6ff07fb05cec2f9d",
+      "src/storage/artifact-storage-context.d.ts": "94a3a17d93d8272c1775c9361677c5234c45e8a5e54b639b066044551d2601a5",
+      "src/storage/artifact-storage-context.js": "7e1013ac19a4e5bb9902a1edbff6c22818d68fd24e0559532136e0ba547d793c",
+      "src/storage/index.d.ts": "f520ad6767ffd3c5514e1a14d24a236983eecf85a0628a24658c1630e6fff065",
+      "src/storage/index.js": "f36ec29a6a3290beaedd1b711bc4fb07bc6c35a790fc7a72cbdcf788b04ebe46",
+      "src/tooling-exports/storage.d.ts": "c098e351ff3d31d0aec457222aea16083b53c0c2478886a83677ab355ca4290d",
+      "src/tooling-exports/storage.js": "59a41668f7f50f9871bf41f7d59899ded5695aee348ed71a81696c32bf2b11ea",
+      "src/tooling/opfs-cache.d.ts": "7d950992d0515d2e5a725b1a52b7e0ed80299efa486ce4219ad1368b24ae6826",
+      "src/tooling/opfs-cache.js": "7efd9cb4ffa50576f8cc07c2447252887ee603c80ee3f2ef0c3174d032a54ab4"
     }
   },
   "embedding": {
@@ -216,12 +230,13 @@
   },
   "cache": {
     "storage": [
-      "Doppler"
+      "Doppler",
+      "OPFS"
     ],
-    "namespace": "simulatte-doppler-qwen-runtime-lock-2",
+    "namespace": "simulatte-doppler-qwen-runtime-lock-3",
     "owner": "doppler",
-    "prefetch": false,
-    "strategy": "doppler-managed",
-    "requirePersistent": false
+    "prefetch": true,
+    "strategy": "doppler-opfs-verified",
+    "requirePersistent": true
   }
 }

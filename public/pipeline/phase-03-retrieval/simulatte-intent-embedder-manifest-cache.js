@@ -13,6 +13,7 @@
           this.rerankProvider = options.rerankProvider || options.rerankerProvider || null;
           this.dopplerModelHandle = options.dopplerModelHandle || null;
           this.dopplerModule = options.dopplerModule || null;
+          this.dopplerStorageModule = options.dopplerStorageModule || null;
           this.spanLevelEmbedding = options.spanLevelEmbedding;
           this.spanEmbeddingCache = options.spanEmbeddingCache || new Map();
           this.traceEnabled = traceEnabled(options);
@@ -27,6 +28,8 @@
           this.dopplerEmbedModelBaseUrl = '';
           this.dopplerRerankerHandle = null;
           this.dopplerRerankerModelBaseUrl = '';
+          this.embeddingCacheReceipt = null;
+          this.rerankerCacheReceipt = null;
           this.providerRequestCount = 0;
           this.rankSerial = 0;
           this.gpuPromise = null;
@@ -60,8 +63,10 @@
                   modelId: manifest.embedModel && manifest.embedModel.id || '',
                   modelBaseUrl: manifest.embedModel && manifest.embedModel.defaultModelBaseUrl || '',
                   sourceSizeBytes: manifest.embedModel && manifest.embedModel.source && manifest.embedModel.source.sizeBytes || 0,
-                  cachePrefetch: false,
-                  cacheMode: 'doppler-managed',
+                  cachePrefetch: manifest.cache && manifest.cache.prefetch === true,
+                  cacheMode: manifest.cache && manifest.cache.storage && manifest.cache.storage.includes('OPFS')
+                    ? 'opfs'
+                    : '',
                 });
                 const retrieval = manifest.retrieval || {};
                 const indexUrl = retrieval.artifact;
@@ -145,13 +150,16 @@
                   traceId: this.traceId,
                   probe,
                   rerankerProbe,
+                  embeddingCache: this.embeddingCacheReceipt,
+                  rerankerCache: this.rerankerCacheReceipt,
                 });
                 runtime.promptRuntimeReranker = rerankerProbe;
                 runtime.promptRuntimeReceipt = receipt;
                 emitLoadProgress('runtime-ready', 96, 'Prompt runtime ready', promptRuntimeReceiptProgress(receipt));
                 return runtime;
               })
-              .catch((error) => {
+              .catch(async (error) => {
+                await this.releaseDopplerHandles();
                 this.modelPromise = null;
                 this.providerReady = false;
                 throw error;
@@ -618,26 +626,22 @@
               `model-backed intent requires Doppler load(); no loader found at ${moduleUrl}`
             );
           }
-          const modelBaseUrl = runtime.manifest.embedModel.defaultModelBaseUrl;
+          const model = runtime.manifest.embedModel || {};
+          const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error('model-backed intent requires embed model base URL');
-          emitRuntimeProgress(progress, trace, {
-            source: 'simulatte-intent-embedder',
-            stage: 'model-load',
-            percent: 21,
-            message: 'Preparing Doppler embedding model',
-            traceId: this.traceId,
-            artifactMode: 'manifest-directory',
-            modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
-            modelBaseUrl,
-            sourceSizeBytes: runtime.manifest && runtime.manifest.embedModel &&
-              runtime.manifest.embedModel.source && runtime.manifest.embedModel.source.sizeBytes || 0,
-            cachePrefetch: false,
-            cacheMode: 'doppler-managed',
-          });
           const runtimeConfig = cloneJsonValue(runtime.manifest.runtime && runtime.manifest.runtime.runtimeConfig);
           if (!runtimeConfig) {
             throw new Error('model-backed intent manifest missing Doppler runtimeConfig');
           }
+          const cachedSource = await prepareDopplerCachedModelSource(runtime, model, {
+            dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
+            progress,
+            trace,
+            traceId: this.traceId,
+            progressRange: EMBEDDING_CACHE_PROGRESS,
+            resourceKind: 'embedding-model',
+          });
+          this.embeddingCacheReceipt = cachedSource.receipt;
           const dopplerStarted = nowMs();
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -646,9 +650,10 @@
             message: 'Doppler loading embedding model files',
             timing: 'start',
             traceId: this.traceId,
-            artifactMode: 'doppler-managed-url',
+            artifactMode: 'verified-opfs',
             modelBaseUrl,
-            cacheMode: 'doppler-managed',
+            cachePrefetch: true,
+            cacheMode: 'opfs',
           });
           const loadOptions = {
             isolatedLoader: true,
@@ -657,7 +662,7 @@
               emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
                 traceId: this.traceId,
                 modelBaseUrl,
-                modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
+                modelId: model.id || '',
                 startedAtMs: dopplerStarted,
                 progressStart: EMBEDDING_LOAD_PROGRESS.start,
                 progressEnd: EMBEDDING_LOAD_PROGRESS.end,
@@ -667,7 +672,14 @@
               if (typeof options.onModelProgress === 'function') options.onModelProgress(event);
             },
           };
-          const handle = await load(dopplerModelSource(modelBaseUrl), loadOptions);
+          let handle;
+          try {
+            handle = await load(cachedSource.modelSource, loadOptions);
+            assertPinnedModelHandle(handle, model, 'embedding', modelBaseUrl);
+          } catch (error) {
+            await disposeFailedDopplerLoad(handle, cachedSource);
+            throw error;
+          }
           this.activeDopplerModelRole = 'embedding';
           this.dopplerEmbedHandle = handle;
           this.dopplerEmbedModelBaseUrl = modelBaseUrl;
@@ -679,12 +691,13 @@
             timing: 'end',
             traceId: this.traceId,
             durationMs: elapsedMsSince(dopplerStarted),
-            artifactMode: 'doppler-managed-url',
+            artifactMode: 'verified-opfs',
             modelBaseUrl,
             backend: 'doppler-browser-load',
             providerReady: true,
-            cacheMode: 'doppler-managed',
-            modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
+            cachePrefetch: true,
+            cacheMode: 'opfs',
+            modelId: model.id || '',
             embeddingDim: runtime.index && runtime.index.embeddingDim || 0,
           });
           return { handle, modelBaseUrl };
@@ -766,19 +779,30 @@
           }
           const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error(`intent reranker ${config.id} requires model.defaultModelBaseUrl`);
+          const cachedSource = await prepareDopplerCachedModelSource(runtime, model, {
+            dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
+            progress,
+            trace,
+            traceId: this.traceId,
+            progressRange: RERANKER_CACHE_PROGRESS,
+            resourceKind: 'reranker-model',
+          });
+          this.rerankerCacheReceipt = cachedSource.receipt;
+          const started = nowMs();
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'reranker-load',
             percent: RERANKER_LOAD_PROGRESS.start,
-            message: 'Preparing Doppler reranker model source',
+            message: 'Doppler loading reranker from verified OPFS cache',
+            timing: 'start',
             traceId: this.traceId,
             reranker: config.id,
             modelId: model.id || '',
             modelBaseUrl,
-            cachePrefetch: false,
-            cacheMode: 'doppler-managed',
+            artifactMode: 'verified-opfs',
+            cachePrefetch: true,
+            cacheMode: 'opfs',
           });
-          const started = nowMs();
           const loadOptions = {
             isolatedLoader: true,
             onProgress: (event) => {
@@ -795,8 +819,14 @@
             },
           };
           if (config.runtimeConfig) loadOptions.runtimeConfig = cloneJsonValue(config.runtimeConfig);
-          const handle = await load(dopplerModelSource(modelBaseUrl), loadOptions);
-          assertPinnedModelHandle(handle, model, 'reranker', modelBaseUrl);
+          let handle;
+          try {
+            handle = await load(cachedSource.modelSource, loadOptions);
+            assertPinnedModelHandle(handle, model, 'reranker', modelBaseUrl);
+          } catch (error) {
+            await disposeFailedDopplerLoad(handle, cachedSource);
+            throw error;
+          }
           this.activeDopplerModelRole = 'reranker';
           this.dopplerRerankerHandle = handle;
           this.dopplerRerankerModelBaseUrl = modelBaseUrl;
@@ -811,9 +841,24 @@
             reranker: config.id,
             modelId: model.id || '',
             modelBaseUrl,
-            cacheMode: 'doppler-managed',
+            artifactMode: 'verified-opfs',
+            cachePrefetch: true,
+            cacheMode: 'opfs',
           });
           return this.createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl);
+        }
+
+        async releaseDopplerHandles() {
+          const handles = [...new Set([
+            this.dopplerEmbedHandle,
+            this.dopplerRerankerHandle,
+          ].filter(Boolean))];
+          this.dopplerEmbedHandle = null;
+          this.dopplerRerankerHandle = null;
+          this.activeDopplerModelRole = '';
+          await Promise.allSettled(handles.map((handle) => (
+            typeof handle.unload === 'function' ? handle.unload() : Promise.resolve()
+          )));
         }
 
         createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl) {

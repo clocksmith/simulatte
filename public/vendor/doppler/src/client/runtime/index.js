@@ -100,11 +100,17 @@ export function createDopplerRuntimeService({
     emitLoadProgress(userProgress, 'manifest', 15, 'Fetching manifest');
     const manifestPayload = resolved.manifest
       ? await (async () => {
-        const text = JSON.stringify(resolved.manifest);
+        const text = resolved.manifestText ?? JSON.stringify(resolved.manifest);
+        const manifestHash = await sha256ManifestText(text);
+        if (resolved.manifestHash && resolved.manifestHash !== manifestHash) {
+          throw new Error(
+            `Resolved manifest hash mismatch: expected ${resolved.manifestHash}, got ${manifestHash}.`
+          );
+        }
         return {
           text,
           manifest: resolved.manifest,
-          manifestHash: await sha256ManifestText(text),
+          manifestHash,
         };
       })()
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);

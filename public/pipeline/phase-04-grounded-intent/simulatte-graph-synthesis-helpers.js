@@ -2,6 +2,12 @@
   const scope = root.__SimulatteGraphSynthesisRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
+    let surfaceCardByIdCache = null;
+    const SURFACE_CARD_TEXT_CACHE = new WeakMap();
+    const SURFACE_CARD_TOKEN_CACHE = new WeakMap();
+    const TOKEN_ROWS_CACHE = new Map();
+    const TOKEN_ROWS_CACHE_LIMIT = 4096;
+
     function synthesizeWorldIntent(promptText = '', context = {}, catalog = {}) {
         const prompt = String(promptText || '').trim();
         const spans = extractSpans(prompt);
@@ -502,7 +508,7 @@
           return score;
         }, 0);
         const spanTokens = tokenSet(span);
-        const cardTokens = tokenSet(cardText(item));
+        const cardTokens = tokenSetForCard(item);
         const overlap = Array.from(spanTokens).filter((token) => cardTokens.has(token)).length;
         const denom = Math.max(1, Math.min(spanTokens.size, 8));
         if (spanTokens.size === 1 && !labelScore) return overlap ? 0.18 : 0;
@@ -701,12 +707,17 @@
       }
 
     function cardById(id) {
-        return SURFACE_CARD_LIBRARY.find((item) => item.id === id) || null;
+        if (!surfaceCardByIdCache) {
+          surfaceCardByIdCache = new Map(SURFACE_CARD_LIBRARY.map((item) => [item.id, item]));
+        }
+        return surfaceCardByIdCache.get(id) || null;
       }
 
     function cardText(item) {
+        const cached = SURFACE_CARD_TEXT_CACHE.get(item);
+        if (cached) return cached;
         const grounding = item.grounding || {};
-        return [
+        const text = [
           item.id,
           item.type,
           item.labels.join(' '),
@@ -720,6 +731,16 @@
           array(grounding.ports).join(' '),
           array(grounding.primitiveIds).join(' '),
         ].join(' ').replace(/\s+/g, ' ').trim();
+        SURFACE_CARD_TEXT_CACHE.set(item, text);
+        return text;
+      }
+
+    function tokenSetForCard(item) {
+        const cached = SURFACE_CARD_TOKEN_CACHE.get(item);
+        if (cached) return cached;
+        const value = tokenSet(cardText(item));
+        SURFACE_CARD_TOKEN_CACHE.set(item, value);
+        return value;
       }
 
     function labelOccurrences(text, label) {
@@ -765,8 +786,11 @@
       }
 
     function tokenRows(text) {
+        const key = String(text || '').toLowerCase();
+        const cached = TOKEN_ROWS_CACHE.get(key);
+        if (cached) return cached;
         const out = [];
-        const value = String(text || '').toLowerCase();
+        const value = key;
         let match;
         const re = /[a-z0-9]+/g;
         while ((match = re.exec(value))) {
@@ -774,6 +798,10 @@
           if (!root || STOPWORDS.has(root)) continue;
           out.push({ value: match[0], root, index: match.index, end: match.index + match[0].length });
         }
+        if (TOKEN_ROWS_CACHE.size >= TOKEN_ROWS_CACHE_LIMIT) {
+          TOKEN_ROWS_CACHE.delete(TOKEN_ROWS_CACHE.keys().next().value);
+        }
+        TOKEN_ROWS_CACHE.set(key, out);
         return out;
       }
 

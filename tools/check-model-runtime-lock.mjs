@@ -112,6 +112,7 @@ function main() {
   const doppler = lock.doppler || {};
   const dopplerPackage = doppler.package || {};
   requireText(doppler.moduleUrl, 'doppler.moduleUrl');
+  requireText(doppler.storageModuleUrl, 'doppler.storageModuleUrl');
   requireText(doppler.kernelBasePath, 'doppler.kernelBasePath');
   requireText(dopplerPackage.name, 'doppler.package.name');
   requireText(dopplerPackage.version, 'doppler.package.version');
@@ -162,6 +163,13 @@ function main() {
   const cache = lock.cache || {};
   requireText(cache.namespace, 'cache.namespace');
   if (!Array.isArray(cache.storage) || !cache.storage.length) fail('cache.storage must be a non-empty array');
+  if (!cache.storage.includes('Doppler') || !cache.storage.includes('OPFS')) {
+    fail('cache.storage must include Doppler and OPFS');
+  }
+  assertEqual(cache.owner, 'doppler', 'cache.owner');
+  assertEqual(cache.prefetch, true, 'cache.prefetch');
+  assertEqual(cache.strategy, 'doppler-opfs-verified', 'cache.strategy');
+  assertEqual(cache.requirePersistent, true, 'cache.requirePersistent');
 
   const manifest = readJson(MANIFEST_PATH);
   assertEqual(manifest.schema, 'simulatte.modelBackedEmbedderManifest.v3', 'intent manifest schema');

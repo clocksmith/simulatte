@@ -4,11 +4,11 @@
   "authoringPolicy": "Inventory counts describe hand-written and exported catalog surfaces; catalog examples remain source-authored.",
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 2,
+    "number": 3,
     "artifact": "./simulatte-embedder/model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "41c7bd3a3e4e235cb9dff12b5e252216ee2f4bf5bbb886b3e16542c816e95807"
+      "hex": "f7e28111b45bcfffa68c63718050e1ca6bc46f97703e12660d1f4e6739c7b5d3"
     }
   },
   "staticCatalogs": [

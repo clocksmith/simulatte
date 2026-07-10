@@ -29,9 +29,19 @@
           return { x: clamp01(domain.center[0]), y: clamp01(domain.center[1]) };
         }
         if (Array.isArray(domain.bounds) && domain.bounds.length >= 4) {
+          const fieldLike = row.packetKind === 'field' || /field|volume|region/.test(String(domain.kind || ''));
+          const fieldOffsets = [
+            [0.25, 0.33],
+            [0.72, 0.67],
+            [0.33, 0.72],
+            [0.67, 0.25],
+          ];
+          const offset = fieldLike
+            ? fieldOffsets[Math.abs(Math.floor(index || 0)) % fieldOffsets.length]
+            : [0.5, 0.5];
           return {
-            x: clamp01(domain.bounds[0] + domain.bounds[2] * 0.5),
-            y: clamp01(domain.bounds[1] + domain.bounds[3] * 0.5),
+            x: clamp01(domain.bounds[0] + domain.bounds[2] * offset[0]),
+            y: clamp01(domain.bounds[1] + domain.bounds[3] * offset[1]),
           };
         }
         const transform = scenePacketDrawableTransform(row, index, total);

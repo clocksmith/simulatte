@@ -217,6 +217,14 @@ export async function resolveModelSource(model) {
       modelId: model.url.trim(),
       baseUrl: model.url.trim(),
       manifest: null,
+      storageContext: model.storageContext || model.storage || null,
+      storage: model.storage || model.storageContext || null,
+      storageManifest: model.storageManifest && typeof model.storageManifest === 'object'
+        ? model.storageManifest
+        : null,
+      storageBaseUrl: typeof model.storageBaseUrl === 'string' && model.storageBaseUrl.length > 0
+        ? model.storageBaseUrl
+        : null,
       trace,
     };
   }
@@ -225,7 +233,26 @@ export async function resolveModelSource(model) {
   }
 
   if (model && typeof model === 'object' && model.manifest && typeof model.manifest === 'object') {
-    const manifest = model.manifest;
+    const manifestText = typeof model.manifestText === 'string' && model.manifestText.length > 0
+      ? model.manifestText
+      : null;
+    const expectedManifestHash = normalizeDigest(model.manifestHash);
+    if (expectedManifestHash && !manifestText) {
+      throw new Error('Inline manifestHash requires manifestText so byte identity can be verified.');
+    }
+    const actualManifestHash = manifestText ? await sha256ManifestText(manifestText) : null;
+    if (expectedManifestHash && actualManifestHash !== expectedManifestHash) {
+      throw new Error(
+        `Inline manifest hash mismatch: expected ${expectedManifestHash}, got ${actualManifestHash}.`
+      );
+    }
+    const manifest = manifestText ? parseManifest(manifestText) : model.manifest;
+    const declaredModelId = typeof model.manifest.modelId === 'string' ? model.manifest.modelId : '';
+    if (declaredModelId && manifest.modelId && declaredModelId !== manifest.modelId) {
+      throw new Error(
+        `Inline manifest modelId mismatch: object declares ${declaredModelId}, text declares ${manifest.modelId}.`
+      );
+    }
     const modelId = typeof manifest.modelId === 'string' && manifest.modelId.length > 0
       ? manifest.modelId
       : 'manifest';
@@ -235,6 +262,8 @@ export async function resolveModelSource(model) {
       modelId,
       baseUrl: typeof model.baseUrl === 'string' && model.baseUrl.length > 0 ? model.baseUrl : null,
       manifest,
+      manifestText,
+      manifestHash: actualManifestHash,
       storageContext: model.storageContext || model.storage || null,
       storage: model.storage || model.storageContext || null,
       storageManifest: model.storageManifest && typeof model.storageManifest === 'object'

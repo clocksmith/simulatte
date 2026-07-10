@@ -2,6 +2,11 @@
   const scope = root.__SimulatteSemanticRagRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
+    const LOCAL_PRIMITIVE_DOC_CACHE = new Map();
+    const LOCAL_PRIMITIVE_DOC_CACHE_LIMIT = 4096;
+    const SEMANTIC_CARD_DOC_CACHE = new WeakMap();
+    const SEMANTIC_CARD_TEXT_CACHE = new WeakMap();
+
     function rule(id, words) {
         return { id, words: new Set(words) };
       }
@@ -412,7 +417,10 @@
           (primitive.recipe || []).join(' '),
           (primitive.controls || []).join(' '),
         ].join(' ');
-        return {
+        const cacheKey = `${dim}\u0000${text}`;
+        const cached = LOCAL_PRIMITIVE_DOC_CACHE.get(cacheKey);
+        if (cached) return { ...cached, index };
+        const row = {
           primitiveId: primitive.id,
           layer: primitive.layer || primitive.type || 'component',
           type: primitive.type || 'component',
@@ -420,8 +428,12 @@
           text,
           vector: buildSemanticFeatureVector(text, dim),
           vectorSpace: LOCAL_VECTOR_SPACE,
-          index,
         };
+        if (LOCAL_PRIMITIVE_DOC_CACHE.size >= LOCAL_PRIMITIVE_DOC_CACHE_LIMIT) {
+          LOCAL_PRIMITIVE_DOC_CACHE.delete(LOCAL_PRIMITIVE_DOC_CACHE.keys().next().value);
+        }
+        LOCAL_PRIMITIVE_DOC_CACHE.set(cacheKey, row);
+        return { ...row, index };
       }
 
     function indexedPrimitiveDocs(index) {
@@ -446,17 +458,23 @@
           type: primitive.type || 'component',
           domains: primitive.domains || [],
           text,
-          vector: Float32Array.from(indexed.vector || []),
+          vector: indexed.vector instanceof Float32Array
+            ? indexed.vector
+            : Float32Array.from(indexed.vector || []),
           vectorSpace: MODEL_VECTOR_SPACE,
-          index,
           indexed: true,
           textHash: indexed.textHash || '',
+          index,
         };
       }
 
     function semanticCardDoc(card, index, kind, dim = FEATURE_DIM) {
+        const cacheKey = `${kind}:${dim}`;
+        const variants = SEMANTIC_CARD_DOC_CACHE.get(card) || new Map();
+        let cached = variants.get(cacheKey);
+        if (cached) return { ...cached, index };
         const text = semanticCardText(card);
-        return {
+        cached = {
           cardId: card.id,
           kind,
           type: card.type,
@@ -465,13 +483,17 @@
           text,
           vector: buildSemanticFeatureVector(text, dim),
           vectorSpace: LOCAL_VECTOR_SPACE,
-          index,
           card,
         };
+        variants.set(cacheKey, cached);
+        SEMANTIC_CARD_DOC_CACHE.set(card, variants);
+        return { ...cached, index };
       }
 
     function semanticCardText(card) {
-        return [
+        const cached = SEMANTIC_CARD_TEXT_CACHE.get(card);
+        if (cached) return cached;
+        const text = [
           card.id,
           card.type,
           (card.labels || []).join(' '),
@@ -493,6 +515,8 @@
           (card.primitives || []).join(' '),
           (card.ports || []).join(' '),
         ].join(' ');
+        SEMANTIC_CARD_TEXT_CACHE.set(card, text);
+        return text;
       }
 
     function scoreDocument(vectors = {}, prompt, doc, modelPrior = null) {

@@ -2119,6 +2119,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
     runtime: {
       ...modelRuntimeLock.runtime,
       moduleUrl: modelRuntimeLock.doppler.moduleUrl,
+      storageModuleUrl: modelRuntimeLock.doppler.storageModuleUrl,
       runtimeConfig: modelRuntimeLock.embedding.runtimeConfig,
     },
     runtimeOrder: modelRuntimeLock.runtimeOrder,
@@ -2136,7 +2137,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 2);
+  assert.equal(modelRuntimeLock.number, 3);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
 	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2152,7 +2153,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	  assert.equal(manifest.retrieval.cards.artifactHash.hex, 'feddce7cfdff749402bbad7aa22f4be65a919d3c26c7bf3d43b8cd4e514c5b81');
 	  assert.equal(manifest.retrieval.cards.dimensions, 1024);
 	  assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
-	  assert.equal(manifest.retrieval.intentEvidence.artifactHash.hex, 'f3452957c2edf9c71df822c9360e93a8e26d5cc8ef665345abc5847c937b146f');
+	  assert.equal(manifest.retrieval.intentEvidence.artifactHash.hex, '66de0a9ec248f33f762abd8c14be27e4f5128fb855e587411799de6ec1b48577');
 	  assert.equal(manifest.retrieval.slotLevel.schema, 'simulatte.slotLevelEmbeddingConfig.v1');
 	  assert.equal(manifest.retrieval.slotLevel.mode, 'typed-scene-slot-embedding-rerank');
 	  assert.equal(manifest.retrieval.slotLevel.primitiveRankBackend, 'auto');
@@ -2197,6 +2198,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
   assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index-browser.js');
+  assert.equal(manifest.runtime.storageModuleUrl, '../../vendor/doppler/src/tooling-exports/storage.js');
   assert.equal(manifest.runtime.queryEmbeddingMode, 'last');
   assert.equal(manifest.runtime.embeddingText.schema, 'simulatte.embeddingTextContract.v1');
   assert.match(manifest.runtime.embeddingText.queryPrefix, /^Instruct: Given a web search query/);
@@ -2227,17 +2229,17 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(embeddingConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_decode.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
-  assert.equal(manifest.cache.namespace, 'simulatte-doppler-qwen-runtime-lock-2');
+  assert.equal(manifest.cache.namespace, 'simulatte-doppler-qwen-runtime-lock-3');
   assert.equal(manifest.cache.owner, 'doppler');
-  assert.equal(manifest.cache.prefetch, false);
-  assert.equal(manifest.cache.strategy, 'doppler-managed');
+  assert.equal(manifest.cache.prefetch, true);
+  assert.equal(manifest.cache.strategy, 'doppler-opfs-verified');
   assert.equal(Object.hasOwn(manifest.cache, 'opfsRoot'), false);
   assert.ok(manifest.cache.storage.includes('Doppler'));
-  assert.equal(manifest.cache.storage.includes('OPFS'), false);
+  assert.equal(manifest.cache.storage.includes('OPFS'), true);
   assert.equal(manifest.cache.storage.includes('CacheStorage'), false);
   assert.equal(manifest.cache.storage.includes('ServiceWorker'), false);
   assert.equal(Object.hasOwn(manifest.cache, 'worker'), false);
-  assert.equal(manifest.cache.requirePersistent, false);
+  assert.equal(manifest.cache.requirePersistent, true);
   assert.equal(manifest.embedModel.manifestHash.hex, index.embedModelHash.hex);
   assert.equal(manifest.embedModel.manifestHash.hex, cardIndex.embedModelHash.hex);
   assert.equal(manifest.embedModel.manifestHash.hex, 'aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979');
@@ -2279,10 +2281,12 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(runtime, /cardMatches/);
   assert.doesNotMatch(runtime, /ensureModelArtifactCache/);
   assert.match(runtime, /const rawProgress = Number\.isFinite\(rawPercent\) \? rawPercent : Number\(event\.progress\)/);
-  assert.match(runtime, /EMBEDDING_LOAD_PROGRESS = Object\.freeze\(\{ start: 20, end: 72 \}\)/);
+  assert.match(runtime, /EMBEDDING_CACHE_PROGRESS = Object\.freeze\(\{ start: 20, end: 42 \}\)/);
+  assert.match(runtime, /EMBEDDING_LOAD_PROGRESS = Object\.freeze\(\{ start: 42, end: 72 \}\)/);
+  assert.match(runtime, /RERANKER_CACHE_PROGRESS = Object\.freeze\(\{ start: 42, end: 72 \}\)/);
   assert.match(runtime, /RERANKER_LOAD_PROGRESS = Object\.freeze\(\{ start: 72, end: 93\.8 \}\)/);
-  assert.doesNotMatch(runtime, /EMBEDDING_CACHE_PROGRESS/);
-  assert.doesNotMatch(runtime, /RERANKER_CACHE_PROGRESS/);
+  assert.match(runtime, /progressRange: EMBEDDING_CACHE_PROGRESS/);
+  assert.match(runtime, /progressRange: RERANKER_CACHE_PROGRESS/);
   assert.match(runtime, /progressStart: EMBEDDING_LOAD_PROGRESS\.start/);
   assert.match(runtime, /progressEnd: EMBEDDING_LOAD_PROGRESS\.end/);
   assert.match(runtime, /stagePrefix: 'model-load'/);
@@ -2321,7 +2325,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(runtime, /degenerate probe embeddings/);
   assert.doesNotMatch(runtime, /Embedding runtime metadata ready/);
   assert.match(runtime, /TRACE_URL_FLAGS/);
-  assert.match(runtime, /cacheMode: 'doppler-managed'/);
+  assert.match(runtime, /cacheMode: 'opfs'/);
   assert.doesNotMatch(runtime, /cache-skip/);
   assert.doesNotMatch(runtime, /openOpfsCache/);
   assert.doesNotMatch(runtime, /opfsCacheFileName/);
@@ -2331,17 +2335,23 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.doesNotMatch(runtime, /Range: `bytes=\$\{resumeOffset\}-`/);
   assert.doesNotMatch(runtime, /createWritable\(\{ keepExistingData \}\)/);
   assert.match(runtime, /function dopplerModelSource/);
-  assert.match(runtime, /load\(dopplerModelSource\(modelBaseUrl\), loadOptions\)/);
-  assert.match(runtime, /return \{ url: modelBaseUrl \}/);
-  assert.doesNotMatch(runtime, /storageContext/);
-  assert.doesNotMatch(runtime, /storageBaseUrl: modelBaseUrl/);
-  assert.doesNotMatch(runtime, /storageManifest/);
+  assert.match(runtime, /prepareDopplerCachedModelSource/);
+  assert.match(runtime, /ensureModelCachedSource/);
+  assert.match(runtime, /load\(cachedSource\.modelSource, loadOptions\)/);
+  assert.match(runtime, /if \(!cachedSource\) return \{ url: modelBaseUrl \}/);
+  assert.match(runtime, /manifest: cachedSource\.manifest/);
+  assert.match(runtime, /baseUrl: modelBaseUrl/);
+  assert.match(runtime, /storageContext: cachedSource\.storageContext/);
+  assert.match(runtime, /storageBaseUrl: modelBaseUrl/);
+  assert.match(runtime, /storageManifest: cachedSource\.manifest/);
   assert.match(dopplerRuntime, /const providedStorageContext = loadSource\?\.storageContext \?\? loadSource\?\.storage/);
   assert.match(dopplerRuntime, /return providedStorageContext/);
   assert.match(dopplerRuntime, /nodeStorageContext \?\? resolveArtifactStorageContext\(loadSource\)/);
   assert.match(dopplerModelSource, /storageContext: model\.storageContext \|\| model\.storage \|\| null/);
   assert.match(dopplerModelSource, /storageContext: resolved\?\.storageContext \?\? resolved\?\.storage \?\? null/);
-  assert.doesNotMatch(runtime, /stage: 'cache-read'/);
+  assert.match(runtime, /rawStage === 'cache-hit'/);
+  assert.match(runtime, /\? 'cache-fill'/);
+  assert.match(runtime, /\? 'cache-ready'/);
   assert.doesNotMatch(runtime, /cached model artifact preflight failed/);
   assert.match(runtime, /model-reuse/);
   assert.match(runtime, /prompt-embed/);

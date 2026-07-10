@@ -119,6 +119,39 @@ function testRerankProvider() {
   };
 }
 
+function testDopplerStorageModule() {
+  const calls = [];
+  return {
+    calls,
+    async ensureModelCachedSource(modelId, modelBaseUrl, onProgress, options = {}) {
+      calls.push({ modelId, modelBaseUrl, expectedManifestHash: options.expectedManifestHash });
+      const manifestHash = typeof options.expectedManifestHash === 'string'
+        ? options.expectedManifestHash
+        : options.expectedManifestHash && options.expectedManifestHash.hex || '';
+      const totalBytes = 1024;
+      onProgress?.({
+        stage: 'cache-hit',
+        modelId,
+        percent: 100,
+        downloadedBytes: totalBytes,
+        totalBytes,
+      });
+      return {
+        cached: true,
+        fromCache: true,
+        cacheState: 'verified-hit',
+        modelId,
+        manifest: { modelId },
+        manifestText: JSON.stringify({ modelId }),
+        manifestHash,
+        storageBackend: 'opfs',
+        storageContext: { async close() {} },
+        totalBytes,
+      };
+    },
+  };
+}
+
 function manifestFacade(rawManifest, modelRuntimeLock) {
   const facade = {
     ...rawManifest,
@@ -291,6 +324,7 @@ module.exports = {
   probeAwareVector,
   probeAwareEmbedProvider,
   testRerankProvider,
+  testDopplerStorageModule,
   manifestFacade,
   withIntentArtifactFetch,
   createPrototypeSpec,

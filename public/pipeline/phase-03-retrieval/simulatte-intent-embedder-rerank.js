@@ -381,8 +381,6 @@
           nowIso: nowIso || new Date().toISOString(),
           candidates: [
             { primitiveId: 'sensor-array', score: 0.92, modelScore: 0.92, layer: 'component', type: 'detector' },
-            { primitiveId: 'water', score: 0.84, modelScore: 0.84, layer: 'material', type: 'fluid' },
-            { primitiveId: 'optics-bench', score: 0.81, modelScore: 0.81, layer: 'component', type: 'instrument' },
           ],
           context: {
             semanticRag: [],
@@ -460,6 +458,11 @@
         const probe = details.probe || {};
         const rerankerProbe = details.rerankerProbe || {};
         const reranker = rerankerConfig(runtime);
+        const embeddingCache = details.embeddingCache || null;
+        const rerankerCache = details.rerankerCache || null;
+        const cacheReceipts = [embeddingCache, rerankerCache].filter(Boolean);
+        const cacheModes = [...new Set(cacheReceipts.map((receipt) => receipt.mode).filter(Boolean))];
+        const cacheOwners = [...new Set(cacheReceipts.map((receipt) => receipt.owner).filter(Boolean))];
         return {
           schema: 'simulatte.promptRuntimeReceipt.v1',
           phase: 1,
@@ -502,9 +505,15 @@
           rerankerProbeCount: rerankerProbe.probeCount || 0,
           rerankerProbeCandidateCount: rerankerProbe.probeCandidateCount || 0,
           rerankerProbeOutputCount: rerankerProbe.probeOutputCount || 0,
-          cachePrefetch: false,
-          cacheMode: 'doppler-managed',
-          cacheOwner: 'doppler',
+          cachePrefetch: cacheReceipts.some((receipt) => receipt.prefetched === true),
+          cacheMode: cacheModes.join(',') || 'external-provider',
+          cacheOwner: cacheOwners.join(',') || 'external',
+          cacheState: cacheReceipts.map((receipt) => receipt.state).filter(Boolean).join(','),
+          cacheBackends: cacheReceipts.length ? ['Doppler', 'OPFS'] : [],
+          cacheVerified: cacheReceipts.length > 0 && cacheReceipts.every((receipt) => receipt.verified === true),
+          embeddingCacheState: embeddingCache && embeddingCache.state || '',
+          rerankerCacheState: rerankerCache && rerankerCache.state || '',
+          cachedModelBytes: cacheReceipts.reduce((sum, receipt) => sum + Number(receipt.totalBytes || 0), 0),
           embeddingProbe: probe.ok === true,
           probeEmbeddingDim: probe.embeddingDim || 0,
           probeCount: probe.probeCount || 0,

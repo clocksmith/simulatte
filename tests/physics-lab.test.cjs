@@ -20,6 +20,7 @@ const {
   probeAwareVector,
   probeAwareEmbedProvider,
   testRerankProvider,
+  testDopplerStorageModule,
   manifestFacade,
   withIntentArtifactFetch,
   createPrototypeSpec,
@@ -37,6 +38,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
     number: 1,
     doppler: {
       moduleUrl: '../../vendor/doppler/src/index-browser.js',
+      storageModuleUrl: '../../vendor/doppler/src/tooling-exports/storage.js',
       kernelBasePath: '../../vendor/doppler/src/gpu/kernels',
       package: {
         name: 'doppler-gpu',
@@ -89,8 +91,12 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
       requireModelBackedQuery: true,
     },
     cache: {
-      storage: ['Doppler'],
+      storage: ['Doppler', 'OPFS'],
       namespace: 'synthetic-runtime-lock-1',
+      owner: 'doppler',
+      prefetch: true,
+      strategy: 'doppler-opfs-verified',
+      requirePersistent: true,
     },
   };
   const modelRuntimeLockText = JSON.stringify(modelRuntimeLock);
@@ -265,6 +271,7 @@ test('Phase 1 refuses embedding and reranker handles with a nonlocked hash', asy
           };
         },
       },
+      dopplerStorageModule: testDopplerStorageModule(),
     });
 
     await assert.rejects(() => embedder.loadModel(), /reranker model handle manifest hash does not match the model runtime lock/);
@@ -539,13 +546,24 @@ test('Phase 1 loads Doppler reranker with f16 KV runtime contract', async () => 
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
       dopplerModule,
+      dopplerStorageModule: testDopplerStorageModule(),
     });
 
     const runtime = await embedder.loadModel();
 
     assert.equal(loadCalls.length, 1);
-    assert.deepEqual(Object.keys(loadCalls[0].model), ['url']);
-    assert.match(loadCalls[0].model.url, /qwen-3-reranker-0-6b-q4k-ehf16-af32$/);
+    assert.deepEqual(Object.keys(loadCalls[0].model), [
+      'manifest',
+      'manifestText',
+      'manifestHash',
+      'baseUrl',
+      'storageContext',
+      'storageManifest',
+      'storageBaseUrl',
+    ]);
+    assert.match(loadCalls[0].model.baseUrl, /qwen-3-reranker-0-6b-q4k-ehf16-af32$/);
+    assert.equal(loadCalls[0].model.manifestHash, manifest.reranker.model.manifestHash.hex);
+    assert.equal(typeof loadCalls[0].model.storageContext.close, 'function');
     assert.equal(loadCalls[0].runtimeConfig.inference.session.compute.defaults.activationDtype, 'f32');
     assert.equal(loadCalls[0].runtimeConfig.inference.session.compute.defaults.mathDtype, 'f32');
     assert.equal(loadCalls[0].runtimeConfig.inference.session.compute.defaults.accumDtype, 'f32');
@@ -648,7 +666,7 @@ test('contrastive top-k reranking retains local scores for unevaluated candidate
   assert.match(slotTail.modelRerankReason, /outside model top-k/);
 });
 
-test('Phase 1 loads Doppler embedding model by URL source only', async () => {
+test('Phase 1 loads Doppler embedding from the verified cached manifest source', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     const query = indexedVector(index, 'optics-bench');
     const events = [];
@@ -670,21 +688,34 @@ test('Phase 1 loads Doppler embedding model by URL source only', async () => {
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       dopplerModule,
+      dopplerStorageModule: testDopplerStorageModule(),
       onProgress: (event) => events.push(event),
     });
 
     const runtime = await embedder.loadModel();
 
     assert.equal(loadCalls.length, 1);
-    assert.deepEqual(Object.keys(loadCalls[0].model), ['url']);
-    assert.equal(loadCalls[0].model.url, manifest.embedModel.defaultModelBaseUrl);
+    assert.deepEqual(Object.keys(loadCalls[0].model), [
+      'manifest',
+      'manifestText',
+      'manifestHash',
+      'baseUrl',
+      'storageContext',
+      'storageManifest',
+      'storageBaseUrl',
+    ]);
+    assert.equal(loadCalls[0].model.baseUrl, manifest.embedModel.defaultModelBaseUrl);
+    assert.equal(loadCalls[0].model.manifestHash, manifest.embedModel.manifestHash.hex);
+    assert.equal(typeof loadCalls[0].model.storageContext.close, 'function');
     assert.deepEqual(loadCalls[0].runtimeConfig, manifest.runtime.runtimeConfig);
     assert.equal(events.some((event) => event.source === 'simulatte-model-cache'), false);
     assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
     assert.equal(runtime.promptRuntimeReceipt.providerBackend, 'doppler-browser-load');
-    assert.equal(runtime.promptRuntimeReceipt.cachePrefetch, false);
-    assert.equal(runtime.promptRuntimeReceipt.cacheMode, 'doppler-managed');
+    assert.equal(runtime.promptRuntimeReceipt.cachePrefetch, true);
+    assert.equal(runtime.promptRuntimeReceipt.cacheMode, 'opfs');
     assert.equal(runtime.promptRuntimeReceipt.cacheOwner, 'doppler');
+    assert.equal(runtime.promptRuntimeReceipt.cacheVerified, true);
+    assert.equal(runtime.promptRuntimeReceipt.embeddingCacheState, 'verified-hit');
   });
 });
 
@@ -705,7 +736,7 @@ test('Phase 1 overlaps required Doppler embedding and reranker loads', async () 
     };
     const dopplerModule = {
       async load(model, options = {}) {
-        const url = String(model && model.url || '');
+        const url = String(model && (model.baseUrl || model.url) || '');
         if (url === manifest.embedModel.defaultModelBaseUrl) {
           loadRoles.push(`embedding:${options.isolatedLoader === true ? 'isolated' : 'shared'}`);
           markStarted();
@@ -753,6 +784,7 @@ test('Phase 1 overlaps required Doppler embedding and reranker loads', async () 
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       dopplerModule,
+      dopplerStorageModule: testDopplerStorageModule(),
     });
 
     const loadPromise = embedder.loadModel();
@@ -778,7 +810,7 @@ test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', as
     let staleEmbeddingCalls = 0;
     const dopplerModule = {
       async load(model, options = {}) {
-        const url = String(model && model.url || '');
+        const url = String(model && (model.baseUrl || model.url) || '');
         const isolated = options.isolatedLoader === true;
         if (url === manifest.embedModel.defaultModelBaseUrl) {
           if (!isolated) activeRole = 'embedding';
@@ -823,6 +855,7 @@ test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', as
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       dopplerModule,
+      dopplerStorageModule: testDopplerStorageModule(),
     });
 
     const runtime = await embedder.loadModel();

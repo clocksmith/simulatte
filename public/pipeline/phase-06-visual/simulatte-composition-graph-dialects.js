@@ -15,6 +15,7 @@
       'ocean-cryosphere': ['ocean-cryosphere/ice-basin', 'basin', 'aerial-map', 'landscape'],
       'planetary-space': ['planetary-space/orbital', 'orbit', 'orbital-wide', 'orbital'],
       watershed: ['watershed/basin', 'basin', 'aerial-map', 'landscape'],
+      'restoration-water': ['restoration-water/tidal-root-buffer', 'branching', 'aerial-map', 'landscape'],
       'material-tray': ['material-tray/specimen', 'specimen', 'lab-bench', 'microscopic'],
       'chemistry-lab': ['chemistry-lab/specimen', 'specimen', 'microscope-cutaway', 'microscopic'],
       acoustic: ['acoustic/waveguide', 'corridor', 'section-elevation', 'human'],
@@ -193,6 +194,12 @@
             ['dog', 5], ['cat', 5], ['animal', 4], ['swimming', 4], ['fluid locomotion', 3], ['wake generation', 2],
           ]);
         }
+        if (sceneKind === 'restoration-water') {
+          add('restoration-water/tidal-root-buffer', 'branching', 'aerial-map', 'landscape', 'mangrove-root-lattice-and-tidal-channel-bands', 'branching-tidal-delta', 'surge-attenuation-and-sediment-settling', 'mangrove-teal-ochre', [
+            ['mangrove', 5], ['root', 4], ['tidal channel', 4], ['storm surge', 4],
+            ['sediment', 3], ['brackish', 3], ['settling', 2], ['advection', 1],
+          ]);
+        }
         return candidates;
       }
 
@@ -251,7 +258,7 @@
 
     function layoutObjectsForScene(objects, sceneKind, spec, visualGenome = null) {
         const dialect = String(visualGenome && visualGenome.visualDialect || '');
-        if (!/^(robotics-control|civic-market|biology|ocean-cryosphere|watershed|fire)\//.test(dialect)) {
+        if (!/^(robotics-control|civic-market|biology|ocean-cryosphere|watershed|restoration-water|fire)\//.test(dialect)) {
           return baseLayoutObjectsForScene(objects, sceneKind, spec, visualGenome);
         }
         return layoutObjectsForDialect(objects, visualGenome);

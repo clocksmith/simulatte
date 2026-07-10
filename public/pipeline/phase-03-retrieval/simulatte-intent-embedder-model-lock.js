@@ -34,6 +34,7 @@
         manifest.runtime = {
           ...clonePinnedValue(lock.runtime),
           moduleUrl: resolveUrl(lock.doppler.moduleUrl, lockUrl),
+          storageModuleUrl: resolveUrl(lock.doppler.storageModuleUrl, lockUrl),
           kernelBasePath: resolveUrl(lock.doppler.kernelBasePath, lockUrl),
           runtimeConfig: clonePinnedValue(lock.embedding.runtimeConfig),
         };
@@ -112,6 +113,7 @@
         const doppler = lock.doppler || {};
         const packageInfo = doppler.package || {};
         requiredText(doppler.moduleUrl, 'model runtime lock doppler.moduleUrl');
+        requiredText(doppler.storageModuleUrl, 'model runtime lock doppler.storageModuleUrl');
         requiredText(doppler.kernelBasePath, 'model runtime lock doppler.kernelBasePath');
         requiredText(packageInfo.name, 'model runtime lock doppler.package.name');
         requiredText(packageInfo.version, 'model runtime lock doppler.package.version');
@@ -173,6 +175,15 @@
         }
         if (!Array.isArray(cache.storage) || !cache.storage.length) {
           throw new Error('model runtime lock cache.storage must be a non-empty array');
+        }
+        if (!cache.storage.includes('Doppler') || !cache.storage.includes('OPFS')) {
+          throw new Error('model runtime lock cache.storage must include Doppler and OPFS');
+        }
+        if (cache.owner !== 'doppler' || cache.prefetch !== true) {
+          throw new Error('model runtime lock cache must be prefetched and owned by Doppler');
+        }
+        if (cache.strategy !== 'doppler-opfs-verified' || cache.requirePersistent !== true) {
+          throw new Error('model runtime lock requires the verified persistent Doppler OPFS strategy');
         }
       }
 

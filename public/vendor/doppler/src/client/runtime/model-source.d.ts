@@ -1,4 +1,5 @@
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
+import type { SourceStorageContext } from '../../tooling/source-runtime-bundle.js';
 
 export interface DopplerLoadProgress {
   phase: 'resolve' | 'manifest' | 'load' | 'ready';
@@ -16,6 +17,8 @@ export interface DopplerModelSourceResolution {
   storageManifestText?: string;
   storageBaseUrl?: string | null;
   variantBaseUrl?: string | null;
+  storageContext?: SourceStorageContext | null;
+  storage?: SourceStorageContext | null;
   trace: Array<{ source: string; id: string; outcome: string }>;
 }
 
@@ -23,10 +26,20 @@ export type DopplerModelSource =
   | string
   | {
     url: string;
+    storageContext?: SourceStorageContext;
+    storage?: SourceStorageContext;
+    storageManifest?: RDRRManifest;
+    storageBaseUrl?: string;
   }
   | {
     manifest: RDRRManifest;
+    manifestText?: string;
+    manifestHash?: string;
     baseUrl?: string;
+    storageContext?: SourceStorageContext;
+    storage?: SourceStorageContext;
+    storageManifest?: RDRRManifest;
+    storageBaseUrl?: string;
   };
 
 export interface DopplerLoadOptions {

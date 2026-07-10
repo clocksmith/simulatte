@@ -28,6 +28,7 @@
     './pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js',
     './pipeline/phase-03-retrieval/simulatte-intent-embedder-constants.js',
     './pipeline/phase-03-retrieval/simulatte-intent-embedder-model-lock.js',
+    './pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js',
     './pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js',
     './pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js',
     './pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js',

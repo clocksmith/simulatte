@@ -9,6 +9,7 @@ const solverRegistry = require('../public/pipeline/phase-05-simulation/simulatte
 const advectionSolver = require('../public/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js');
 const webgpuRenderer = require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
 const universeParser = require('../public/pipeline/phase-02-language/simulatte-universe-parser.js');
+const webgpuRendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
 
 function runtimeSourceFromFile(file, seen = new Set()) {
   if (seen.has(file)) return '';
@@ -26,6 +27,23 @@ function runtimeSourceFromFile(file, seen = new Set()) {
     source,
   ].filter(Boolean).join('\n');
 }
+
+test('pixel proof samples spatial fields across their domain instead of only at center', () => {
+  const field = {
+    packetKind: 'field',
+    domain: { kind: 'graph-field', bounds: [0.08, 0.12, 0.84, 0.76] },
+  };
+  const first = webgpuRendererScope.phase7DrawableSamplePoint(field, 0, 2);
+  const second = webgpuRendererScope.phase7DrawableSamplePoint(field, 1, 2);
+  const entity = webgpuRendererScope.phase7DrawableSamplePoint({
+    packetKind: 'entity',
+    domain: { kind: 'object', bounds: [0.08, 0.12, 0.84, 0.76] },
+  }, 0, 1);
+
+  assert.notDeepEqual(first, second);
+  assert.notDeepEqual(first, { x: 0.5, y: 0.5 });
+  assert.deepEqual(entity, { x: 0.5, y: 0.5 });
+});
 
 test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, and render IR', () => {
   const spec = lab.createSpecFromPrompt('lava spins a turbine near an ice castle wall');

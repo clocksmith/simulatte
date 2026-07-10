@@ -211,6 +211,7 @@
           'kiln-orange-steel': 22,
           'ice-blue-slate': 204,
           'sediment-aqua-ochre': 188,
+          'mangrove-teal-ochre': 164,
         };
         const motifShift = motifs.includes('animal-gait-cells') ? -68
           : motifs.includes('petal-radial-growth') ? 46

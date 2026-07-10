@@ -2,6 +2,8 @@
   const scope = root.__SimulattePhysicsModelRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
+    const normalizedSimulationSpecs = new WeakSet();
+
     function scenePacketIdentitySummary(sceneRenderPacket = {}) {
     		    return Array.from(new Set((sceneRenderPacket.entities || [])
     		      .flatMap((row) => {
@@ -346,6 +348,7 @@
         spec.physicalSpec = overrides.physicalSpec || (
           spec.contract && spec.contract.graph ? compilePhysicalSpec(spec) : null
         );
+        normalizedSimulationSpecs.add(spec);
         return spec;
       }
 
@@ -495,6 +498,7 @@
 
     function normalizeSpec(raw) {
         if (!raw || typeof raw !== 'object') return createSpec('magnetic-wheel');
+        if (normalizedSimulationSpecs.has(raw)) return raw;
         const template = templateById(raw.templateId);
         return createSpec(template.id, {
           id: raw.id || `${template.id}-${Date.now().toString(36)}`,

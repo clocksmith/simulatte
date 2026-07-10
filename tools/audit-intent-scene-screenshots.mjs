@@ -900,7 +900,6 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     extendOnProgress: true,
     stallTimeoutMs: MODEL_RUNTIME_STALL_MS,
     progressSignature: (value) => JSON.stringify({
-      renderCount: value && value.renderCount || 0,
       sceneProofVerdict: value && value.sceneProofVerdict || '',
       phase7PixelReadback: value && value.phase7PixelReadback || '',
       phase7PixelProofStatus: value && value.phase7PixelProofStatus || '',
@@ -957,7 +956,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       browserSpec = browserLab && typeof browserLab.getSpec === 'function' ? browserLab.getSpec() : null;
     } catch (_err) {}
     try {
-      if (window.SimulattePhysicsModel && typeof window.SimulattePhysicsModel.createSpecFromPrompt === 'function') {
+      if (!browserSpec && window.SimulattePhysicsModel && typeof window.SimulattePhysicsModel.createSpecFromPrompt === 'function') {
         modelSpec = window.SimulattePhysicsModel.createSpecFromPrompt(${JSON.stringify(prompt)}, { allowPrototypeFallback: true });
       }
     } catch (_err) {}

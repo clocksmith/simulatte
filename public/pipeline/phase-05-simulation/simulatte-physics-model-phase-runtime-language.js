@@ -73,34 +73,62 @@
             throw new Error(`${label} expected receipt schema simulatte.phaseReceipt.v1`);
           }
         }
-        for (const forbidden of contract ? contract.forbiddenUpstreamReads : []) {
-          if (forbiddenFieldPresent(envelope.artifact, forbidden)) {
-            throw new Error(`${label} contains forbidden upstream field ${forbidden}`);
-          }
+        const forbidden = firstForbiddenField(
+          envelope.artifact,
+          contract ? contract.forbiddenUpstreamReads : []
+        );
+        if (forbidden) {
+          throw new Error(`${label} contains forbidden upstream field ${forbidden}`);
         }
         return envelope;
       }
 
+    function firstForbiddenField(value, forbiddenRows = []) {
+        if (!value || typeof value !== 'object' || !forbiddenRows.length) return '';
+        const names = new Set(forbiddenRows.filter((field) => !field.includes('.')));
+        const paths = forbiddenRows
+          .filter((field) => field.includes('.'))
+          .map((field) => ({ field, parts: field.split('.') }));
+        const stack = [value];
+        const seen = new WeakSet();
+        while (stack.length) {
+          const current = stack.pop();
+          if (!current || typeof current !== 'object' || seen.has(current)) continue;
+          seen.add(current);
+          for (const key of Object.keys(current)) {
+            if (names.has(key)) return key;
+            const child = current[key];
+            if (child && typeof child === 'object') stack.push(child);
+          }
+          for (const path of paths) {
+            if (pathPresentAt(current, path.parts)) return path.field;
+          }
+        }
+        return '';
+      }
+
+    function pathPresentAt(value, pathParts) {
+        let current = value;
+        for (const part of pathParts) {
+          if (!current || typeof current !== 'object' || !Object.prototype.hasOwnProperty.call(current, part)) {
+            return false;
+          }
+          current = current[part];
+        }
+        return true;
+      }
+
     function forbiddenFieldPresent(value, forbidden) {
-        if (!value || typeof value !== 'object' || !forbidden) return false;
-        if (forbidden.includes('.')) return dottedPathPresent(value, forbidden.split('.'));
-        return fieldNamePresent(value, forbidden);
+        return firstForbiddenField(value, forbidden ? [forbidden] : []) === forbidden;
       }
 
     function dottedPathPresent(value, pathParts) {
-        if (!value || typeof value !== 'object' || !pathParts.length) return false;
-        const [head, ...rest] = pathParts;
-        if (Object.prototype.hasOwnProperty.call(value, head)) {
-          if (!rest.length) return true;
-          return dottedPathPresent(value[head], rest);
-        }
-        return Object.values(value).some((child) => dottedPathPresent(child, pathParts));
+        const forbidden = (pathParts || []).join('.');
+        return forbiddenFieldPresent(value, forbidden);
       }
 
     function fieldNamePresent(value, forbidden) {
-        if (!value || typeof value !== 'object') return false;
-        if (Object.prototype.hasOwnProperty.call(value, forbidden)) return true;
-        return Object.values(value).some((child) => fieldNamePresent(child, forbidden));
+        return forbiddenFieldPresent(value, forbidden);
       }
 
     function validatePhaseEnvelope(envelope, phase) {

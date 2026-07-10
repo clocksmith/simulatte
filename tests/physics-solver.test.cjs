@@ -40,6 +40,21 @@ test('blank world is an empty construction plane, not a machine seed', () => {
   }
 });
 
+test('compiler-produced specs normalize once and stay stable during simulation', () => {
+  const spec = lab.createSpec('fluid-vortex');
+  const imported = lab.normalizeSpec(JSON.parse(JSON.stringify(spec)));
+
+  assert.strictEqual(lab.normalizeSpec(spec), spec);
+  assert.notStrictEqual(imported, spec);
+  assert.strictEqual(lab.normalizeSpec(imported), imported);
+
+  let state = lab.createSimulationState(imported);
+  for (let index = 0; index < 12; index += 1) {
+    state = lab.stepSimulation(state, imported, 1 / 60);
+  }
+  assert.ok(Number.isFinite(state.t));
+});
+
 test('flow seed remains visually and structurally separate from machine seed', () => {
   const flow = lab.createSpec('fluid-vortex');
   const machine = lab.createSpec('magnetic-wheel');

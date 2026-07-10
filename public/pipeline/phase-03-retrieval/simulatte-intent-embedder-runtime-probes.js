@@ -246,8 +246,17 @@
         };
       }
 
-    function dopplerModelSource(modelBaseUrl) {
-        return { url: modelBaseUrl };
+    function dopplerModelSource(modelBaseUrl, cachedSource = null) {
+        if (!cachedSource) return { url: modelBaseUrl };
+        return {
+          manifest: cachedSource.manifest,
+          manifestText: cachedSource.manifestText,
+          manifestHash: cachedSource.manifestHash,
+          baseUrl: modelBaseUrl,
+          storageContext: cachedSource.storageContext,
+          storageManifest: cachedSource.manifest,
+          storageBaseUrl: modelBaseUrl,
+        };
       }
 
     function artifactHashAlgorithm(value) {

@@ -26,8 +26,8 @@
   "compareGroup": "simulatte-pipeline-local-live-score-v1",
   "phaseTaxonomyVersion": "strict-8-phase-scene-proof-v2",
   "sourceLiveReport": "artifacts/simulatte-pipeline-audit/local-webgpu/report.json",
-  "generatedAt": "2026-07-11T00:26:20.409Z",
-  "runId": "2026-07-11T00-26-20-408Z-190dfb7440",
+  "generatedAt": "2026-07-11T00:21:00.138Z",
+  "runId": "2026-07-11T00-21-00-138Z-d87439c642",
   "gitSha": "e6ba7c91ff37",
   "version": "",
   "rubricVersion": "phase-floor-76.v1",
@@ -55,11 +55,11 @@
       "hashBits": 64,
       "bitMargin": 1,
       "maxTemporalBits": 0,
-      "minPairwiseBits": 2,
+      "minPairwiseBits": 1,
       "hashFloorBits": 1,
-      "hashFloor": 0.015625,
-      "ready": true,
-      "reason": "ready"
+      "hashFloor": null,
+      "ready": false,
+      "reason": "closest live dHash pair does not clear temporal-jitter margin"
     }
   },
   "measurementMode": "compiled-static-plus-live-visual",
@@ -118,7 +118,7 @@
     "activationFusion": 88.7,
     "groundedIntent": 90.2,
     "simulationCompile": 85.7,
-    "visualIR": 84.2,
+    "visualIR": 84,
     "webgpu": 96.6,
     "sceneProof": 90.4
   },
@@ -128,14 +128,14 @@
     "signatureCount": 20,
     "pairCount": 190,
     "floor": 0,
-    "hashFloor": 0.015625,
-    "score": 3.1,
-    "verdict": "pass",
+    "hashFloor": null,
+    "score": 1.6,
+    "verdict": "fail",
     "minPairwiseDistance": 37.464,
-    "minPerceptualHashDistance": 0.031,
+    "minPerceptualHashDistance": 0.016,
     "perceptualHashAvailable": true,
     "hashEvidenceRequired": true,
-    "hashEvidenceReady": true,
+    "hashEvidenceReady": false,
     "closestPairs": [
       {
         "promptA": "railway dispatch conflict resolution across signal blocks with delayed train agents and platform slots",
@@ -446,135 +446,6 @@
         }
       },
       {
-        "promptA": "mangrove roots buffering storm surge while sediment settles in brackish tidal channels",
-        "promptB": "glacier calving into fjord with sea ice waves",
-        "distance": 40.952,
-        "hashDistance": 0.188,
-        "sceneA": "restoration-water",
-        "sceneB": "ocean-cryosphere",
-        "topologyA": "branching",
-        "topologyB": "basin",
-        "dialectA": "restoration-water/tidal-root-buffer",
-        "dialectB": "ocean-cryosphere/glacier-calving",
-        "cameraA": "aerial-map",
-        "cameraB": "aerial-map",
-        "scaleA": "landscape",
-        "scaleB": "landscape",
-        "sharedLayers": [
-          "biological-agent",
-          "causal-affordance",
-          "field-sheet",
-          "material-surface",
-          "process-pulse",
-          "water-volume"
-        ],
-        "sharedIdentities": [
-          "field",
-          "motion",
-          "process",
-          "structure",
-          "water"
-        ],
-        "sharedOperators": [
-          "advection",
-          "pressure_flow_lite"
-        ],
-        "sharedAtoms": [
-          "advective-transport",
-          "fluid-ripple",
-          "particle-tracer-swarm",
-          "pressure-band-field",
-          "pressure-driven-flow",
-          "ribbon-streamline",
-          "stream-ribbons",
-          "tracer-particles"
-        ],
-        "sharedSemanticVisuals": [
-          "archetype.machine-assembly",
-          "archetype.water-system",
-          "archetype.weather-system",
-          "material.water",
-          "process.flow"
-        ],
-        "sharedAxes": [
-          "cameraArchetype",
-          "scaleTier"
-        ],
-        "groundingDiagnostic": {
-          "schema": "simulatte.diversityGroundingCollisionDiagnostic.v1",
-          "auditOnly": true,
-          "phase2": {
-            "shared": [
-              "flow"
-            ],
-            "leftOnly": [
-              "brackish",
-              "buffering",
-              "mangrove roots",
-              "sediment",
-              "settles",
-              "storm surge",
-              "tidal channels",
-              "while"
-            ],
-            "rightOnly": [
-              "calving",
-              "fjord",
-              "glacier",
-              "into",
-              "oscillation",
-              "sea ice",
-              "waves"
-            ],
-            "collapsed": false
-          },
-          "phase3": {
-            "shared": [],
-            "leftOnly": [
-              "buffering",
-              "mangrove roots",
-              "sediment",
-              "settles",
-              "storm surge",
-              "storm surge while",
-              "tidal channels"
-            ],
-            "rightOnly": [
-              "calving",
-              "fjord",
-              "glacier",
-              "sea ice",
-              "waves"
-            ],
-            "collapsed": false
-          },
-          "phase4": {
-            "shared": [],
-            "leftOnly": [
-              "buffering",
-              "mangrove roots",
-              "sediment",
-              "settles",
-              "storm environment",
-              "storm surge",
-              "storm surge while",
-              "tidal channels"
-            ],
-            "rightOnly": [
-              "calving",
-              "fjord",
-              "glacier",
-              "sea ice",
-              "wave",
-              "waves"
-            ],
-            "collapsed": false
-          },
-          "collapsedStages": [],
-          "nextInspection": "phase6-dialect-or-rendering"
-        }
-      },
-      {
         "promptA": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
         "promptB": "forest fire jumps a road under wind shear",
         "distance": 41.308,
@@ -701,6 +572,129 @@
         }
       },
       {
+        "promptA": "mangrove roots buffering storm surge while sediment settles in brackish tidal channels",
+        "promptB": "edge data center server racks recirculating heat between cooling aisles under controller limits",
+        "distance": 41.787,
+        "hashDistance": 0.25,
+        "sceneA": "restoration-water",
+        "sceneB": "digital-network",
+        "topologyA": "specimen",
+        "topologyB": "specimen",
+        "dialectA": "generic/compiled-scene",
+        "dialectB": "generic/compiled-scene",
+        "cameraA": "instrument-panel",
+        "cameraB": "instrument-panel",
+        "scaleA": "human",
+        "scaleB": "human",
+        "sharedLayers": [
+          "causal-affordance",
+          "material-surface"
+        ],
+        "sharedIdentities": [
+          "field",
+          "motion",
+          "process",
+          "structure"
+        ],
+        "sharedOperators": [
+          "advection",
+          "pressure_flow_lite"
+        ],
+        "sharedAtoms": [
+          "composition-topology-specimen"
+        ],
+        "sharedSemanticVisuals": [
+          "archetype.machine-assembly",
+          "archetype.water-system",
+          "archetype.weather-system",
+          "material.water",
+          "process.flow"
+        ],
+        "sharedAxes": [
+          "visualDialect",
+          "compositionTopology",
+          "cameraArchetype",
+          "scaleTier"
+        ],
+        "groundingDiagnostic": {
+          "schema": "simulatte.diversityGroundingCollisionDiagnostic.v1",
+          "auditOnly": true,
+          "phase2": {
+            "shared": [],
+            "leftOnly": [
+              "brackish",
+              "buffering",
+              "flow",
+              "mangrove roots",
+              "sediment",
+              "settles",
+              "storm surge",
+              "tidal channels"
+            ],
+            "rightOnly": [
+              "between",
+              "controller limits",
+              "cooling aisles",
+              "edge data center",
+              "heat",
+              "heat_transfer",
+              "network_flow",
+              "recirculating"
+            ],
+            "collapsed": false
+          },
+          "phase3": {
+            "shared": [],
+            "leftOnly": [
+              "buffering",
+              "mangrove roots",
+              "sediment",
+              "settles",
+              "storm surge",
+              "storm surge while",
+              "tidal channels"
+            ],
+            "rightOnly": [
+              "between cooling aisles",
+              "controller",
+              "controller limits",
+              "cooling aisles",
+              "edge data center",
+              "heat",
+              "recirculating",
+              "server racks"
+            ],
+            "collapsed": false
+          },
+          "phase4": {
+            "shared": [],
+            "leftOnly": [
+              "buffering",
+              "mangrove roots",
+              "sediment",
+              "settles",
+              "storm environment",
+              "storm surge",
+              "storm surge while",
+              "tidal channels"
+            ],
+            "rightOnly": [
+              "between cooling aisles",
+              "center server racks",
+              "controller",
+              "controller limits",
+              "cooling aisles",
+              "edge data center",
+              "heat",
+              "recirculating"
+            ],
+            "collapsed": false
+          },
+          "collapsedStages": [],
+          "nextInspection": "phase6-dialect-or-rendering"
+        }
+      },
+      {
         "promptA": "dogs",
         "promptB": "dogs and cats swimming",
         "distance": 42.106,
@@ -779,118 +773,6 @@
               "cat",
               "cats",
               "swimming"
-            ],
-            "collapsed": false
-          },
-          "collapsedStages": [],
-          "nextInspection": "phase6-dialect-or-rendering"
-        }
-      },
-      {
-        "promptA": "mangrove roots buffering storm surge while sediment settles in brackish tidal channels",
-        "promptB": "trees and mountaints",
-        "distance": 43.728,
-        "hashDistance": 0.063,
-        "sceneA": "restoration-water",
-        "sceneB": "watershed",
-        "topologyA": "branching",
-        "topologyB": "basin",
-        "dialectA": "restoration-water/tidal-root-buffer",
-        "dialectB": "watershed/basin",
-        "cameraA": "aerial-map",
-        "cameraB": "aerial-map",
-        "scaleA": "landscape",
-        "scaleB": "landscape",
-        "sharedLayers": [
-          "biological-agent",
-          "chemical-front",
-          "field-sheet",
-          "material-surface",
-          "process-pulse"
-        ],
-        "sharedIdentities": [
-          "field",
-          "motion",
-          "plant",
-          "process",
-          "structure"
-        ],
-        "sharedOperators": [
-          "advection"
-        ],
-        "sharedAtoms": [
-          "branch-expansion",
-          "branching-organic-network",
-          "cell-cluster",
-          "cell-pulses",
-          "channel-cutting",
-          "density-front-field",
-          "diffusion-limited-aggregation",
-          "erosion-channel"
-        ],
-        "sharedSemanticVisuals": [
-          "archetype.water-system",
-          "process.flow"
-        ],
-        "sharedAxes": [
-          "cameraArchetype",
-          "scaleTier"
-        ],
-        "groundingDiagnostic": {
-          "schema": "simulatte.diversityGroundingCollisionDiagnostic.v1",
-          "auditOnly": true,
-          "phase2": {
-            "shared": [],
-            "leftOnly": [
-              "brackish",
-              "buffering",
-              "flow",
-              "mangrove roots",
-              "sediment",
-              "settles",
-              "storm surge",
-              "tidal channels"
-            ],
-            "rightOnly": [
-              "mountaints",
-              "trees"
-            ],
-            "collapsed": false
-          },
-          "phase3": {
-            "shared": [],
-            "leftOnly": [
-              "buffering",
-              "mangrove roots",
-              "sediment",
-              "settles",
-              "storm surge",
-              "storm surge while",
-              "tidal channels"
-            ],
-            "rightOnly": [
-              "mountaints",
-              "trees"
-            ],
-            "collapsed": false
-          },
-          "phase4": {
-            "shared": [],
-            "leftOnly": [
-              "buffering",
-              "mangrove roots",
-              "sediment",
-              "settles",
-              "storm environment",
-              "storm surge",
-              "storm surge while",
-              "tidal channels"
-            ],
-            "rightOnly": [
-              "mountain",
-              "mountaints",
-              "tree",
-              "trees"
             ],
             "collapsed": false
           },
@@ -1004,11 +886,140 @@
           "collapsedStages": [],
           "nextInspection": "phase6-dialect-or-rendering"
         }
+      },
+      {
+        "promptA": "gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling",
+        "promptB": "sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients",
+        "distance": 44.18,
+        "hashDistance": 0.078,
+        "sceneA": "evolution-ecology",
+        "sceneB": "molecular-biology",
+        "topologyA": "branching",
+        "topologyB": "basin",
+        "dialectA": "biology/microbiome",
+        "dialectB": "biology/fermentation",
+        "cameraA": "microscope-cutaway",
+        "cameraB": "lab-cutaway",
+        "scaleA": "microscopic",
+        "scaleB": "microscopic",
+        "sharedLayers": [
+          "biological-agent",
+          "chemical-front",
+          "field-sheet",
+          "material-surface",
+          "process-pulse",
+          "thermal-field"
+        ],
+        "sharedIdentities": [
+          "field",
+          "motion",
+          "process",
+          "structure"
+        ],
+        "sharedOperators": [
+          "growth_decay",
+          "reaction_diffusion"
+        ],
+        "sharedAtoms": [
+          "branch-expansion",
+          "branching-organic-network",
+          "cell-cluster",
+          "cell-pulses",
+          "density-front-field",
+          "diffusion-limited-aggregation",
+          "fibrous-cellular",
+          "growth-front"
+        ],
+        "sharedSemanticVisuals": [
+          "archetype.machine-assembly"
+        ],
+        "sharedAxes": [
+          "scaleTier"
+        ],
+        "groundingDiagnostic": {
+          "schema": "simulatte.diversityGroundingCollisionDiagnostic.v1",
+          "auditOnly": true,
+          "phase2": {
+            "shared": [
+              "through"
+            ],
+            "leftOnly": [
+              "exchanging",
+              "folding",
+              "folds",
+              "gut microbiome",
+              "immune sampling",
+              "intestinal folds",
+              "metabolites",
+              "microbiome colonies"
+            ],
+            "rightOnly": [
+              "acidity gradients",
+              "coexists",
+              "dough matrix",
+              "gas bubbles",
+              "gluten strands",
+              "growing",
+              "sourdough fermentation"
+            ],
+            "collapsed": false
+          },
+          "phase3": {
+            "shared": [],
+            "leftOnly": [
+              "colonies exchanging",
+              "folds",
+              "gut microbiome",
+              "immune sampling",
+              "intestinal folds",
+              "metabolites",
+              "microbiome colonies",
+              "sampling"
+            ],
+            "rightOnly": [
+              "acidity gradients",
+              "dough matrix",
+              "gas bubbles",
+              "gas bubbles growing",
+              "gluten strands",
+              "gradient",
+              "sourdough fermentation",
+              "wing wing airfoil lift drag aerodynamic surface component wing aluminum fabric carbon plastic"
+            ],
+            "collapsed": false
+          },
+          "phase4": {
+            "shared": [],
+            "leftOnly": [
+              "colonies exchanging",
+              "folds",
+              "gut microbiome",
+              "immune sampling",
+              "intestinal folds",
+              "metabolites",
+              "microbiome colonies",
+              "sampling"
+            ],
+            "rightOnly": [
+              "acidity gradients",
+              "dough matrix",
+              "gas bubbles",
+              "gas bubbles growing",
+              "gluten strands",
+              "gradient",
+              "sourdough fermentation",
+              "wing"
+            ],
+            "collapsed": false
+          },
+          "collapsedStages": [],
+          "nextInspection": "phase6-dialect-or-rendering"
+        }
       }
     ],
     "closePairs": []
   },
-  "verdict": "pass",
+  "verdict": "fail",
   "weakestPhase": "retrieval",
   "belowFloor": [],
   "failures": [
@@ -1028,7 +1039,9 @@
     "18:languageGraph:termCoverage=100%",
     "18:activationFusion:accepted=2 verdicts=1/1 signalCoverage=100%",
     "19:languageGraph:termCoverage=100%",
-    "20:retrieval:signalCoverage=100%"
+    "20:retrieval:signalCoverage=100%",
+    "diversity:clean-canvas perceptual-hash evidence or policy missing",
+    "diversity:calibration closest live dHash pair does not clear temporal-jitter margin"
   ],
   "prompts": [
     {
@@ -1429,7 +1442,7 @@
         "live": {
           "hash": "0a2b331727330b93",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "dfc3e651",
+          "canvasHash": "6023d50f",
           "sceneObjectUniforms": "0:plume:thermal-field@0.63,0.68;1:particle collider muon:detector-geometry@0.52,0.76;2:muon tracks:track-line@0.69,0.48;3:calorimeter:detector-geometry@0.73,0.52;4:detector slice:detector-geometry@0.57,0.72;5:detector:detector-geometry@0.64,0.31;6:heat:thermal-field@0.40,0.64;7:muon tracks collision:track-line@0.77,0.66",
           "sceneObjectIdentities": "0:plume:medium:thermal-field:@0.63,0.68;1:particle collider muon:instrument:detector-geometry:@0.52,0.76;2:muon tracks:surface:track-line:@0.69,0.48;3:calorimeter:instrument:detector-geometry:@0.73,0.52;4:detector slice:instrument:detector-geometry:@0.57,0.72;5:detector:instrument:detector-geometry:@0.64,0.31;6:heat:instrument:thermal-field:@0.40,0.64;7:muon tracks collision:object:track-line:@0.77,0.66"
         }
@@ -1723,7 +1736,7 @@
         "activationFusion": 86,
         "groundedIntent": 96,
         "simulationCompile": 72.4,
-        "visualIR": 88,
+        "visualIR": 84,
         "webgpu": 97.2,
         "sceneProof": 90.4
       },
@@ -1808,11 +1821,11 @@
           0.84
         ],
         "spatialLayout": [
+          0.75,
           0.5,
           0.25,
           0.25,
-          0.25,
-          0.25,
+          0.75,
           0.25,
           0.25,
           0,
@@ -1820,16 +1833,16 @@
           0.25,
           0.25,
           0,
-          0.25,
+          0.75,
           0.5,
           0.25,
           0,
           0.5,
-          0.5,
           0.25,
           0.25,
+          0.25,
           0.5,
-          0.5,
+          0.25,
           0,
           0,
           0.75,
@@ -1895,7 +1908,7 @@
           "cell-cluster",
           "cell-pulses",
           "channel-cutting",
-          "composition-topology-branching",
+          "composition-topology-specimen",
           "density-front-field",
           "diffusion-limited-aggregation",
           "erosion-channel",
@@ -1971,9 +1984,9 @@
           "id": "vg_11dqtp8",
           "seed": 2260335068,
           "palette": {
-            "hue": 128,
-            "accentHue": 224,
-            "shadowHue": 344,
+            "hue": 136,
+            "accentHue": 232,
+            "shadowHue": 352,
             "warmth": 0.42,
             "contrast": 0.72,
             "lightness": 0.58
@@ -2008,17 +2021,17 @@
             "material.water",
             "process.flow"
           ],
-          "visualDialect": "restoration-water/tidal-root-buffer",
-          "compositionTopology": "branching",
-          "cameraArchetype": "aerial-map",
-          "scaleTier": "landscape"
+          "visualDialect": "generic/compiled-scene",
+          "compositionTopology": "specimen",
+          "cameraArchetype": "instrument-panel",
+          "scaleTier": "human"
         },
         "live": {
-          "hash": "8e0e0f1f1f0f0f0e",
+          "hash": "8e0f0f1f1f0f0f0e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "91c9682a",
-          "sceneObjectUniforms": "0:tidal channels:water-volume@0.66,0.31;1:sediment:water-volume@0.82,0.62;2:mangrove roots:biological-agent@0.58,0.60;3:storm environment:material-surface@0.50,0.16;4:buffering:material-surface@0.34,0.36;5:settles:material-surface@0.66,0.36;6:storm surge:material-surface@0.18,0.62;7:storm surge while:material-surface@0.42,0.60",
-          "sceneObjectIdentities": "0:tidal channels:medium:water-volume:@0.66,0.31;1:sediment:medium:water-volume:@0.82,0.62;2:mangrove roots:biological:biological-agent:@0.58,0.60;3:storm environment:surface:material-surface:@0.50,0.16;4:buffering:surface:material-surface:@0.34,0.36;5:settles:surface:material-surface:@0.66,0.36;6:storm surge:surface:material-surface:@0.18,0.62;7:storm surge while:surface:material-surface:@0.42,0.60"
+          "canvasHash": "a5beb3c5",
+          "sceneObjectUniforms": "0:tidal channels:water-volume@0.66,0.31;1:sediment:water-volume@0.73,0.52;2:mangrove roots:biological-agent@0.57,0.33;3:storm environment:material-surface@0.76,0.58;4:buffering:material-surface@0.73,0.31;5:settles:material-surface@0.80,0.36;6:storm surge:material-surface@0.69,0.48;7:storm surge while:material-surface@0.52,0.35",
+          "sceneObjectIdentities": "0:tidal channels:medium:water-volume:@0.66,0.31;1:sediment:medium:water-volume:@0.73,0.52;2:mangrove roots:biological:biological-agent:@0.57,0.33;3:storm environment:surface:material-surface:@0.76,0.58;4:buffering:surface:material-surface:@0.73,0.31;5:settles:surface:material-surface:@0.80,0.36;6:storm surge:surface:material-surface:@0.69,0.48;7:storm surge while:surface:material-surface:@0.52,0.35"
         }
       },
       "phaseDetails": {
@@ -2188,9 +2201,10 @@
             "missing": [],
             "unexpected": [
               "chemical",
-              "network"
+              "network",
+              "instrument"
             ],
-            "falsePositivePenalty": 8
+            "falsePositivePenalty": 12
           }
         },
         "webgpu": {
@@ -2223,9 +2237,10 @@
             "missing": [],
             "unexpected": [
               "chemical",
-              "network"
+              "network",
+              "instrument"
             ],
-            "falsePositivePenalty": 8
+            "falsePositivePenalty": 12
           },
           "liveVisualScore": 100,
           "liveDynamic": true,
@@ -2235,9 +2250,9 @@
           "liveSceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
           "liveSceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:8;fields:7;effects:24;layers:material-surface+biological-agent+water-volume+field-sheet+process-pulse+chemical-front+causal-affordance;passes:background+fields+entities+effects",
           "liveSceneRenderEntityCount": 8,
-          "liveSceneRenderSpatialHash": "f538f3e1",
-          "liveSceneObjectUniforms": "0:tidal channels:water-volume@0.66,0.31;1:sediment:water-volume@0.82,0.62;2:mangrove roots:biological-agent@0.58,0.60;3:storm environment:material-surface@0.50,0.16;4:buffering:material-surface@0.34,0.36;5:settles:material-surface@0.66,0.36;6:storm surge:material-surface@0.18,0.62;7:storm surge while:material-surface@0.42,0.60",
-          "liveSceneObjectIdentities": "0:tidal channels:medium:water-volume:@0.66,0.31;1:sediment:medium:water-volume:@0.82,0.62;2:mangrove roots:biological:biological-agent:@0.58,0.60;3:storm environment:surface:material-surface:@0.50,0.16;4:buffering:surface:material-surface:@0.34,0.36;5:settles:surface:material-surface:@0.66,0.36;6:storm surge:surface:material-surface:@0.18,0.62;7:storm surge while:surface:material-surface:@0.42,0.60",
+          "liveSceneRenderSpatialHash": "c3a3f3bd",
+          "liveSceneObjectUniforms": "0:tidal channels:water-volume@0.66,0.31;1:sediment:water-volume@0.73,0.52;2:mangrove roots:biological-agent@0.57,0.33;3:storm environment:material-surface@0.76,0.58;4:buffering:material-surface@0.73,0.31;5:settles:material-surface@0.80,0.36;6:storm surge:material-surface@0.69,0.48;7:storm surge while:material-surface@0.52,0.35",
+          "liveSceneObjectIdentities": "0:tidal channels:medium:water-volume:@0.66,0.31;1:sediment:medium:water-volume:@0.73,0.52;2:mangrove roots:biological:biological-agent:@0.57,0.33;3:storm environment:surface:material-surface:@0.76,0.58;4:buffering:surface:material-surface:@0.73,0.31;5:settles:surface:material-surface:@0.80,0.36;6:storm surge:surface:material-surface:@0.69,0.48;7:storm surge while:surface:material-surface:@0.52,0.35",
           "liveSceneRenderPacketIdentities": [
             "structure",
             "plant",
@@ -2521,7 +2536,7 @@
         "live": {
           "hash": "8e0f070f1f0f0f0a",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "d2ed48c4",
+          "canvasHash": "7f450033",
           "sceneObjectUniforms": "0:gut microbiome:biological-agent@0.34,0.36;1:intestinal folds:biological-agent@0.66,0.36;2:microbiome colonies:biological-agent@0.42,0.60;3:colonies exchanging:biological-agent@0.58,0.60;4:immune sampling:biological-agent@0.82,0.62;5:folds:material-surface@0.50,0.16;6:metabolites:material-surface@0.18,0.62;7:motion:atom:cell-pulses:biological-agent@0.50,0.50",
           "sceneObjectIdentities": "0:gut microbiome:surface:biological-agent:@0.34,0.36;1:intestinal folds:surface:biological-agent:@0.66,0.36;2:microbiome colonies:surface:biological-agent:@0.42,0.60;3:colonies exchanging:biological:biological-agent:@0.58,0.60;4:immune sampling:biological:biological-agent:@0.82,0.62;5:folds:surface:material-surface:@0.50,0.16;6:metabolites:surface:material-surface:@0.18,0.62;7:motion:atom:cell-pulses:process:biological-agent:@0.50,0.50"
         }
@@ -3009,7 +3024,7 @@
         "live": {
           "hash": "0a3315071f470f0e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "1cffec19",
+          "canvasHash": "f7821bf1",
           "sceneObjectUniforms": "0:railway dispatch:network-flow@0.18,0.20;1:signal blocks:node-graph@0.42,0.20;2:railway dispatch conflict:network-flow@0.66,0.20;3:resolution across signal:node-graph@0.82,0.20;4:platform slots:network-flow@0.18,0.50;5:train agents:network-flow@0.42,0.50;6:delay:material-surface@0.66,0.20;7:atom-process:routing-flow:network-flow@0.50,0.50",
           "sceneObjectIdentities": "0:railway dispatch:network:network-flow:@0.18,0.20;1:signal blocks:network:node-graph:@0.42,0.20;2:railway dispatch conflict:network:network-flow:@0.66,0.20;3:resolution across signal:network:node-graph:@0.82,0.20;4:platform slots:network:network-flow:@0.18,0.50;5:train agents:network:network-flow:@0.42,0.50;6:delay:surface:material-surface:@0.66,0.20;7:atom-process:routing-flow:process:network-flow:@0.50,0.50"
         }
@@ -3560,7 +3575,7 @@
         "live": {
           "hash": "060f258f17771f9f",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "92e35b66",
+          "canvasHash": "cfa3134e",
           "sceneObjectUniforms": "0:center server racks:node-graph@0.80,0.74;1:heat:network-flow@0.57,0.72;2:heat:network-flow@0.52,0.76;3:heat:network-flow@0.73,0.31;4:server racks:node-graph@0.80,0.74;5:controller limits:node-graph@0.73,0.52;6:server racks:node-graph@0.75,0.75;7:heat transfer physics:network-flow@0.45,0.79",
           "sceneObjectIdentities": "0:center server racks:network:node-graph:@0.80,0.74;1:heat:network:network-flow:@0.57,0.72;2:heat:network:network-flow:@0.52,0.76;3:heat:network:network-flow:@0.73,0.31;4:server racks:network:node-graph:@0.80,0.74;5:controller limits:network:node-graph:@0.73,0.52;6:server racks:network:node-graph:@0.75,0.75;7:heat transfer physics:network:network-flow:@0.45,0.79"
         }
@@ -4092,7 +4107,7 @@
         "live": {
           "hash": "0f0f1d071f450a05",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "6594a4ed",
+          "canvasHash": "158fa286",
           "sceneObjectUniforms": "0:allocation:biological-agent@0.50,0.20;1:city zoning shadow:node-graph@0.18,0.50;2:city grid scene:node-graph@0.18,0.80;3:allocation between:biological-agent@0.82,0.50;4:city environment:material-surface@0.18,0.20;5:city zoning:material-surface@0.82,0.20;6:building masses:material-surface@0.50,0.50;7:pedestrian comfort:material-surface@0.82,0.50",
           "sceneObjectIdentities": "0:allocation:surface:biological-agent:@0.50,0.20;1:city zoning shadow:network:node-graph:@0.18,0.50;2:city grid scene:network:node-graph:@0.18,0.80;3:allocation between:object:biological-agent:@0.82,0.50;4:city environment:surface:material-surface:@0.18,0.20;5:city zoning:surface:material-surface:@0.82,0.20;6:building masses:surface:material-surface:@0.50,0.50;7:pedestrian comfort:surface:material-surface:@0.82,0.50"
         }
@@ -4649,7 +4664,7 @@
         "live": {
           "hash": "8b0e0f1f1f0f8e2a",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "38f71791",
+          "canvasHash": "e97f2678",
           "sceneObjectUniforms": "0:density waves:material-surface@0.62,0.35;1:shepherd moon:orbital-body@0.73,0.40;2:sorting:material-surface@0.81,0.52;3:waves:material-surface@0.80,0.68;4:motion:atom:trajectory-trails:track-line@0.50,0.50;5:atom-process:gravitational-curvature:phase-boundary@0.50,0.50;6:motion:gravitational-curvature:phase-boundary@0.50,0.50;7:atom-process:threshold-fracture:phase-boundary@0.50,0.50",
           "sceneObjectIdentities": "0:density waves:surface:material-surface:@0.62,0.35;1:shepherd moon:surface:orbital-body:@0.73,0.40;2:sorting:surface:material-surface:@0.81,0.52;3:waves:surface:material-surface:@0.80,0.68;4:motion:atom:trajectory-trails:process:track-line:@0.50,0.50;5:atom-process:gravitational-curvature:process:phase-boundary:@0.50,0.50;6:motion:gravitational-curvature:process:phase-boundary:@0.50,0.50;7:atom-process:threshold-fracture:process:phase-boundary:@0.50,0.50"
         }
@@ -5210,7 +5225,7 @@
         "live": {
           "hash": "0e0f0f0f170f070e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "41c6590e",
+          "canvasHash": "c1a824de",
           "sceneObjectUniforms": "0:gas bubbles:bubble-volume@0.16,0.68;1:gas bubbles growing:bubble-volume@0.50,0.72;2:dough matrix:organic-matrix@0.50,0.69;3:gluten strands:organic-matrix@0.34,0.56;4:sourdough fermentation:organic-matrix@0.52,0.48;5:Gradient Math:material-surface@0.50,0.80;6:atom-process:microbial-fermentation:organic-matrix@0.50,0.50;7:motion:microbial-fermentation:organic-matrix@0.50,0.50",
           "sceneObjectIdentities": "0:gas bubbles:medium:bubble-volume:@0.16,0.68;1:gas bubbles growing:medium:bubble-volume:@0.50,0.72;2:dough matrix:object:organic-matrix:@0.50,0.70;3:gluten strands:object:organic-matrix:@0.34,0.56;4:sourdough fermentation:object:organic-matrix:@0.52,0.48;5:Gradient Math:surface:material-surface:@0.50,0.80;6:atom-process:microbial-fermentation:process:organic-matrix:@0.50,0.50;7:motion:microbial-fermentation:process:organic-matrix:@0.50,0.50"
         }
@@ -5781,7 +5796,7 @@
         "live": {
           "hash": "0f0f070f1f0f0f0f",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "266c5143",
+          "canvasHash": "539894bf",
           "sceneObjectUniforms": "0:smoke:thermal-field@0.50,0.62;1:smoke:thermal-field@0.50,0.64;2:fire plasma material:thermal-field@0.82,0.46;3:combustion front that turns fuel into heat, light, and smoke:thermal-field@0.74,0.74;4:soot:thermal-field@0.42,0.30;5:renderer layers soot:thermal-field@0.66,0.38;6:Fire:thermal-field@0.24,0.58;7:warehouse:material-surface@0.20,0.24",
           "sceneObjectIdentities": "0:smoke:medium:thermal-field:@0.50,0.61;1:smoke:medium:thermal-field:@0.50,0.64;2:fire plasma material:medium:thermal-field:@0.82,0.46;3:combustion front that turns fuel into heat, light, and smoke:medium:thermal-field:@0.74,0.74;4:soot:process:thermal-field:@0.42,0.30;5:renderer layers soot:process:thermal-field:@0.66,0.38;6:Fire:process:thermal-field:@0.24,0.58;7:warehouse:surface:material-surface:@0.20,0.24"
         }
@@ -6281,7 +6296,7 @@
         "live": {
           "hash": "0e8f1b173b0f8f0e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "a7d83cb1",
+          "canvasHash": "90f189e8",
           "sceneObjectUniforms": "0:parcels:material-surface@0.14,0.28;1:sort:material-surface@0.36,0.28;2:warehouse:material-surface@0.58,0.28;3:conveyor belts:material-surface@0.80,0.28;4:warehouse robot arms:robot-armature@0.20,0.62;5:conveyor belts:material-surface@0.44,0.62;6:atom-field:task-queue-field:network-flow@0.50,0.50;7:network-composition-flow:network-flow@0.50,0.50",
           "sceneObjectIdentities": "0:parcels:surface:material-surface:@0.14,0.28;1:sort:surface:material-surface:@0.36,0.28;2:warehouse:surface:material-surface:@0.58,0.28;3:conveyor belts:surface:material-surface:@0.80,0.28;4:warehouse robot arms:network:robot-armature:@0.20,0.62;5:conveyor belts:surface:material-surface:@0.44,0.62;6:atom-field:task-queue-field:field:network-flow:@0.50,0.50;7:network-composition-flow:field:network-flow:@0.50,0.50"
         }
@@ -6797,7 +6812,7 @@
         "live": {
           "hash": "0a0f070717070f0a",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "aacbf678",
+          "canvasHash": "dfa05df6",
           "sceneObjectUniforms": "0:Constraint Math:water-volume@0.50,0.59;1:protein:biological-agent@0.50,0.56;2:conservation accounting for inputs, stored energy, useful output, and loss:detector-geometry@0.14,0.16;3:folding:material-surface@0.50,0.47;4:protein folding:material-surface@0.32,0.30;5:constraint:material-surface@0.68,0.30;6:bond constraints:material-surface@0.28,0.66;7:energy minimization:material-surface@0.72,0.66",
           "sceneObjectIdentities": "0:Constraint Math:medium:water-volume:@0.50,0.59;1:protein:biological:biological-agent:@0.50,0.57;2:conservation accounting for inputs, stored energy, useful output, and loss:instrument:detector-geometry:@0.14,0.16;3:folding:surface:material-surface:@0.50,0.47;4:protein folding:surface:material-surface:@0.32,0.30;5:constraint:surface:material-surface:@0.68,0.30;6:bond constraints:surface:material-surface:@0.28,0.66;7:energy minimization:surface:material-surface:@0.72,0.66"
         }
@@ -7313,7 +7328,7 @@
         "live": {
           "hash": "0e871b071b2f8f0a",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "f4cde9de",
+          "canvasHash": "6b014154",
           "sceneObjectUniforms": "0:protein sample holder:biological-agent@0.50,0.47;1:protein:biological-agent@0.50,0.56;2:twists:material-surface@0.32,0.30;3:robot gripper:robot-armature@0.68,0.30;4:motion:atom:cell-pulses:biological-agent@0.50,0.50;5:atom-field:task-queue-field:network-flow@0.50,0.50;6:atom-field:nutrient-gradient-field:biological-agent@0.50,0.50;7:atom-field:density-front-field:biological-agent@0.50,0.50",
           "sceneObjectIdentities": "0:protein sample holder:biological:biological-agent:@0.50,0.47;1:protein:biological:biological-agent:@0.50,0.57;2:twists:surface:material-surface:@0.32,0.30;3:robot gripper:machine:robot-armature:@0.68,0.30;4:motion:atom:cell-pulses:process:biological-agent:@0.50,0.50;5:atom-field:task-queue-field:field:network-flow:@0.50,0.50;6:atom-field:nutrient-gradient-field:field:biological-agent:@0.50,0.50;7:atom-field:density-front-field:field:biological-agent:@0.50,0.50"
         }
@@ -7842,7 +7857,7 @@
         "live": {
           "hash": "890f130f2f1f0f0e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "e12e5b6a",
+          "canvasHash": "e86aeb4f",
           "sceneObjectUniforms": "0:readout:detector-geometry@0.73,0.31;1:phase readout:detector-geometry@0.64,0.31;2:material that melts, freezes, or boils around a threshold:phase-boundary@0.77,0.66;3:phase change physics:phase-boundary@0.37,0.44;4:microwave resonator:material-surface@0.80,0.36;5:qubit chip:material-surface@0.69,0.48;6:atom-process:quantum-readout:readout-panel@0.50,0.50;7:motion:quantum-readout:readout-panel@0.50,0.50",
           "sceneObjectIdentities": "0:readout:instrument:detector-geometry:@0.73,0.31;1:phase readout:instrument:detector-geometry:@0.64,0.31;2:material that melts, freezes, or boils around a threshold:surface:phase-boundary:@0.77,0.66;3:phase change physics:surface:phase-boundary:@0.37,0.44;4:microwave resonator:surface:material-surface:@0.80,0.36;5:qubit chip:surface:material-surface:@0.69,0.48;6:atom-process:quantum-readout:process:readout-panel:@0.50,0.50;7:motion:quantum-readout:process:readout-panel:@0.50,0.50"
         }
@@ -8305,7 +8320,7 @@
         "live": {
           "hash": "0f0f0f0f0f0f0f0f",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "c5b5eaae",
+          "canvasHash": "6a635012",
           "sceneObjectUniforms": "0:phase study:phase-boundary@0.32,0.30;1:lab:material-surface@0.50,0.47;2:generic lab:material-surface@0.68,0.30;3:atom-process:phase-front:phase-boundary@0.50,0.50;4:motion:phase-front:phase-boundary@0.50,0.50;5:atom-process:latent-heat-exchange:thermal-field@0.50,0.50;6:motion:latent-heat-exchange:thermal-field@0.50,0.50;7:motion:reaction-diffusion-lite:thermal-field@0.50,0.50",
           "sceneObjectIdentities": "0:phase study:surface:phase-boundary:@0.32,0.30;1:lab:surface:material-surface:@0.50,0.47;2:generic lab:surface:material-surface:@0.68,0.30;3:atom-process:phase-front:process:phase-boundary:@0.50,0.50;4:motion:phase-front:process:phase-boundary:@0.50,0.50;5:atom-process:latent-heat-exchange:process:thermal-field:@0.50,0.50;6:motion:latent-heat-exchange:process:thermal-field:@0.50,0.50;7:motion:reaction-diffusion-lite:process:thermal-field:@0.50,0.50"
         }
@@ -8799,7 +8814,7 @@
         "live": {
           "hash": "0e170b5f552f170e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "02e59fe1",
+          "canvasHash": "11cd9e7a",
           "sceneObjectUniforms": "0:wave:water-volume@0.16,0.68;1:surface or membrane wave driver:biological-agent@0.43,0.78;2:glacier:material-surface@0.34,0.56;3:calving:material-surface@0.52,0.48;4:waves:material-surface@0.70,0.56;5:waves:material-surface@0.86,0.68;6:sea ice:material-surface@0.28,0.80;7:ice material:material-surface@0.50,0.74",
           "sceneObjectIdentities": "0:wave:medium:water-volume:@0.16,0.68;1:surface or membrane wave driver:medium:biological-agent:@0.43,0.78;2:glacier:surface:material-surface:@0.34,0.56;3:calving:surface:material-surface:@0.52,0.48;4:waves:surface:material-surface:@0.70,0.56;5:waves:surface:material-surface:@0.86,0.68;6:sea ice:surface:material-surface:@0.28,0.80;7:ice material:surface:material-surface:@0.50,0.74"
         }
@@ -9384,7 +9399,7 @@
         "live": {
           "hash": "0f0f2f17170f0f0d",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "11b5328e",
+          "canvasHash": "2dfd6513",
           "sceneObjectUniforms": "0:jumps a road:water-volume@0.80,0.74;1:wind shear:water-volume@0.50,0.64;2:road:water-volume@0.80,0.74;3:fire plasma material:thermal-field@0.84,0.32;4:jump:detector-geometry@0.14,0.16;5:forest fire:thermal-field@0.72,0.64;6:forest fire:thermal-field@0.50,0.62;7:forest environment:material-surface@0.16,0.26",
           "sceneObjectIdentities": "0:jumps a road:medium:water-volume:@0.80,0.74;1:wind shear:medium:water-volume:@0.50,0.64;2:road:medium:water-volume:@0.80,0.74;3:fire plasma material:medium:thermal-field:@0.84,0.32;4:jump:instrument:detector-geometry:@0.14,0.16;5:forest fire:biological:thermal-field:@0.72,0.64;6:forest fire:biological:thermal-field:@0.50,0.61;7:forest environment:surface:material-surface:@0.16,0.26"
         }
@@ -9862,7 +9877,7 @@
         "live": {
           "hash": "4b0f0f0f1f2f0f0f",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "75c0a80f",
+          "canvasHash": "610c8aa8",
           "sceneObjectUniforms": "0:dog:biological-agent@0.32,0.63;1:dogs:biological-agent@0.62,0.69;2:motion:growth-diffusion:biological-agent@0.50,0.50;3:process:growth-diffusion:biological-agent@0.50,0.50;4:motion:membrane-relaxation:biological-agent@0.50,0.50;5:process:membrane-relaxation:biological-agent@0.50,0.50;6:motion:growth-decay:biological-agent@0.50,0.50;7:process:growth-decay:biological-agent@0.50,0.50",
           "sceneObjectIdentities": "0:dog:animal:biological-agent:@0.32,0.63;1:dogs:animal:biological-agent:@0.62,0.69;2:motion:growth-diffusion:process:biological-agent:@0.50,0.50;3:process:growth-diffusion:process:biological-agent:@0.50,0.50;4:motion:membrane-relaxation:process:biological-agent:@0.50,0.50;5:process:membrane-relaxation:process:biological-agent:@0.50,0.50;6:motion:growth-decay:process:biological-agent:@0.50,0.50;7:process:growth-decay:process:biological-agent:@0.50,0.50"
         }
@@ -10291,7 +10306,7 @@
         "live": {
           "hash": "0e0f070f1f2f0f0e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "a3b558fa",
+          "canvasHash": "10cf87e6",
           "sceneObjectUniforms": "0:flower:biological-agent@0.50,0.56;1:flowers:biological-agent@0.50,0.59;2:motion:growth-diffusion:biological-agent@0.50,0.50;3:process:growth-diffusion:biological-agent@0.50,0.50;4:motion:growth-decay:biological-agent@0.50,0.50;5:process:growth-decay:biological-agent@0.50,0.50;6:motion:growth:biological-agent@0.50,0.50;7:process:growth:biological-agent@0.50,0.50",
           "sceneObjectIdentities": "0:flower:biological:biological-agent:@0.50,0.57;1:flowers:biological:biological-agent:@0.50,0.59;2:motion:growth-diffusion:process:biological-agent:@0.50,0.50;3:process:growth-diffusion:process:biological-agent:@0.50,0.50;4:motion:growth-decay:process:biological-agent:@0.50,0.50;5:process:growth-decay:process:biological-agent:@0.50,0.50;6:motion:growth:process:biological-agent:@0.50,0.50;7:process:growth:process:biological-agent:@0.50,0.50"
         }
@@ -10732,7 +10747,7 @@
         "live": {
           "hash": "0e0f0f0f0f0f0f0e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "d045d8de",
+          "canvasHash": "4f8ee92d",
           "sceneObjectUniforms": "0:tree:biological-agent@0.16,0.68;1:mountain:material-surface@0.34,0.56;2:motion:granular-settling:biological-agent@0.50,0.50;3:process:granular-settling:biological-agent@0.50,0.50;4:motion:fracture:biological-agent@0.50,0.50;5:process:fracture:biological-agent@0.50,0.50;6:mountaints:field-sheet@0.50,0.69;7:atom-field:nutrient-gradient-field:biological-agent@0.50,0.50",
           "sceneObjectIdentities": "0:tree:biological:biological-agent:@0.16,0.68;1:mountain:surface:material-surface:@0.34,0.56;2:motion:granular-settling:process:biological-agent:@0.50,0.50;3:process:granular-settling:process:biological-agent:@0.50,0.50;4:motion:fracture:process:biological-agent:@0.50,0.50;5:process:fracture:process:biological-agent:@0.50,0.50;6:mountaints:field:field-sheet:@0.50,0.70;7:atom-field:nutrient-gradient-field:field:biological-agent:@0.50,0.50"
         }
@@ -11203,7 +11218,7 @@
         "live": {
           "hash": "8e0f0f1f1f0f0f8e",
           "hashKind": "audit:visual-clean-canvas-dhash-64",
-          "canvasHash": "6eec2df1",
+          "canvasHash": "4a4e0f92",
           "sceneObjectUniforms": "0:dog:biological-agent@0.32,0.63;1:cat:biological-agent@0.48,0.67;2:cats:biological-agent@0.59,0.74;3:dogs:biological-agent@0.61,0.74;4:swimming:water-volume@0.50,0.66;5:swimming:water-volume@0.50,0.66;6:swimming:water-volume@0.50,0.66;7:swimming:water-volume@0.50,0.66",
           "sceneObjectIdentities": "0:dog:animal:biological-agent:@0.32,0.63;1:cat:animal:biological-agent:@0.48,0.67;2:cats:animal:biological-agent:@0.59,0.74;3:dogs:animal:biological-agent:@0.61,0.74;4:swimming:medium:water-volume:@0.50,0.66;5:swimming:medium:water-volume:@0.50,0.66;6:swimming:medium:water-volume:@0.50,0.66;7:swimming:medium:water-volume:@0.50,0.66"
         }
@@ -11429,6 +11444,5 @@
         }
       }
     }
-  ],
-  "reportPath": "artifacts/simulatte-pipeline-audit/local-score/runs/2026-07-11T00-26-20-408Z-190dfb7440/report.json"
+  ]
 }
