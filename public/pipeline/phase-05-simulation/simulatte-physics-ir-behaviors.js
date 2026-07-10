@@ -146,19 +146,25 @@
 
     function behaviorProcessForText(text = '') {
         const value = String(text || '').toLowerCase().replace(/[_-]+/g, ' ');
-        if (/\bswim|swimming/.test(value)) return 'swimming';
-        if (/\b(spin|spins|rotate|rotates|rotation|twist|twists|torque)\b/.test(value)) return 'rotate';
-        if (/\b(hit|hits|impact|collision|collide|fracture|fracturing|crack|jump|jumps|bounce)\b|\bcalv[a-z]*\b/.test(value)) return 'impact';
-        if (/\b(flow|flows|advection|surge|tidal|channel|wind|smoke|plume|pour|pours|sink|float|settle|erosion)\b/.test(value)) return 'flow';
-        if (/\b(growth|sourdough|yeast|dough|gluten|bubble|bubbles|microbiome|metabolite)\b|\bgrow[a-z]*\b|\bferment[a-z]*\b/.test(value)) return 'growth';
-        if (/\b(diffuse|diffusion|dissolve|dissolving|chemical|reaction|acidity|acid|concentration)\b/.test(value)) return 'diffusion';
-        if (/\b(cool|cooling)\b/.test(value)) return 'cooling';
-        if (/\b(heat|thermal|fire|flame|combust|burn|burning)\b/.test(value)) return 'heat_transfer';
-        if (/\b(freeze|freezing|melt|melting|phase|ice)\b/.test(value)) return 'phase_transition';
-        if (/\b(network|queue|dispatch|signal|train|platform|server|packet|parcel|traffic|zoning|allocation|resolve|resolution|conflict)\b/.test(value)) return 'network_flow';
-        if (/\b(wave|waves|resonance|orbital|orbit|ring|moon)\b|\boscillat[a-z]*\b/.test(value)) return 'oscillation';
-        if (/\b(motion|run|runs|fly|flies)\b/.test(value)) return 'motion';
-        return /\bcoexists|adjacent\b/.test(value) ? 'coexists' : '';
+        const lexicon = languageLexicon && (
+          languageLexicon.BEHAVIOR_PROCESS_LEXICON ||
+          languageLexicon.LANGUAGE_LEXICON && languageLexicon.LANGUAGE_LEXICON.behaviorProcessLexicon
+        ) || [];
+        for (const row of lexicon) {
+          const phrases = Array.isArray(row && row.phrases) ? row.phrases : [];
+          if (phrases.some((phrase) => behaviorPhraseInText(phrase, value))) return row.process || '';
+        }
+        return '';
+      }
+
+    function behaviorPhraseInText(phrase = '', text = '') {
+        const normalized = String(phrase || '').trim().toLowerCase().replace(/[_-]+/g, ' ');
+        if (!normalized) return false;
+        return new RegExp(`\\b${escapeBehaviorPhrase(normalized)}\\b`).test(text);
+      }
+
+    function escapeBehaviorPhrase(value = '') {
+        return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+');
       }
 
     function behaviorDomainsForLedgerRow(row, domains, process) {

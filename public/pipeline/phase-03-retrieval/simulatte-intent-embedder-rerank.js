@@ -131,9 +131,10 @@
 
     async function resolveDopplerApi(options = {}) {
         ensureDopplerKernelBasePath(options.kernelBasePath);
-        const direct = options.dopplerModule || globalDopplerApi();
+        const direct = options.dopplerModule || null;
         if (direct) return direct;
-        const rawModuleUrl = options.moduleUrl || DEFAULT_DOPPLER_MODULE_URL;
+        const rawModuleUrl = options.moduleUrl;
+        if (!rawModuleUrl) throw new Error('model runtime lock did not provide a Doppler module URL');
         const moduleUrl = typeof location === 'undefined'
           ? rawModuleUrl
           : resolveUrl(rawModuleUrl, location.href);
@@ -147,12 +148,18 @@
 
     function ensureDopplerKernelBasePath(rawKernelBasePath = '') {
         if (typeof globalThis === 'undefined') return;
-        const existing = globalThis.__DOPPLER_KERNEL_BASE_PATH__;
-        if (typeof existing === 'string' && existing.trim()) return;
-        const rawPath = rawKernelBasePath || DEFAULT_DOPPLER_KERNEL_BASE_PATH;
+        const rawPath = rawKernelBasePath;
+        if (!rawPath) throw new Error('model runtime lock did not provide a Doppler kernel base path');
         const resolvedPath = typeof location === 'undefined'
           ? rawPath
           : resolveUrl(rawPath, location.href);
+        const existing = globalThis.__DOPPLER_KERNEL_BASE_PATH__;
+        if (typeof existing === 'string' && existing.trim()) {
+          if (existing.replace(/\/+$/, '') !== resolvedPath.replace(/\/+$/, '')) {
+            throw new Error('Doppler kernel base path differs from the model runtime lock');
+          }
+          return;
+        }
         globalThis.__DOPPLER_KERNEL_BASE_PATH__ = resolvedPath.replace(/\/+$/, '');
       }
 
@@ -429,6 +436,11 @@
           providerBackend: provider && provider.backend || '',
           manifestId: manifest.id || '',
           manifestUrl: details.manifestUrl || '',
+          modelRuntimeLock: {
+            id: manifest.modelRuntimeLock && manifest.modelRuntimeLock.id || '',
+            number: Number(manifest.modelRuntimeLock && manifest.modelRuntimeLock.number || 0),
+            artifactHash: hashHex(manifest.modelRuntimeLock && manifest.modelRuntimeLock.artifactHash),
+          },
           modelId: runtime.index && runtime.index.embedModelId || embedModel.id || '',
           modelBaseUrl: embedModel.defaultModelBaseUrl || '',
           modelHash: hashHex(embedModel.manifestHash) || hashHex(runtime.index && runtime.index.embedModelHash),
@@ -617,27 +629,9 @@
       }
 
     async function analyzeDopplerIntent(prompt, candidates, options) {
-        const api = options.dopplerIntentApi || (
-          typeof globalThis !== 'undefined' ? globalThis.SimulatteDopplerIntent : null
-        );
+        const api = typeof globalThis !== 'undefined' ? globalThis.SimulatteDopplerIntent : null;
         if (!api || typeof api.analyzePrompt !== 'function') return null;
-        try {
-          return await api.analyzePrompt(prompt, candidates, options);
-        } catch (err) {
-          if (options.dopplerEnabled === true) {
-            return {
-              schema: 'simulatte.dopplerIntentHints.v1',
-              source: 'doppler-unavailable',
-              unavailable: true,
-              reason: err && err.message ? err.message : String(err),
-              primitives: [],
-              regimes: [],
-              operators: [],
-              confidence: 0,
-            };
-          }
-          return null;
-        }
+        return api.analyzePrompt(prompt, candidates, options);
       }
 
     async function rerankIntentPriors({

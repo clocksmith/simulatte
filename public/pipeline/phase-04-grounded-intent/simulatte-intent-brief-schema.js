@@ -7,9 +7,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createIntentBriefSchemaApi() {
   const INTENT_BRIEF_SCHEMA = 'simulatte.intentBrief.v1';
   const INTENT_BRIEF_MODEL_STACK = Object.freeze({
-    retrieval: 'qwen-3-embedding-0-6b-q4k-ehf16-af32',
-    structurer: 'qwen-3-5-0-8b-q4k-ehaf16-intent-structurer',
-    reranker: 'qwen-3-reranker-0-6b-q4k-ehf16-af32',
+    retrieval: '',
+    structurer: 'catalog-grounded-structured-intent',
+    reranker: '',
+    modelRuntimeLockId: '',
+    modelRuntimeLockNumber: 0,
     compiler: 'simulatte.retrieval-grounded-semantic-scene-forensics.v1',
   });
 
@@ -116,6 +118,20 @@
     }
     normalized.evidenceSummary = evidenceSummary(normalized);
     return normalized;
+  }
+
+  function modelStackForInput(input = {}) {
+    const receipt = input.promptRuntimeReceipt || {};
+    const lock = receipt.modelRuntimeLock || {};
+    const rerank = input.intentRerank || input.rerank || {};
+    const number = Number(lock.number);
+    return {
+      ...INTENT_BRIEF_MODEL_STACK,
+      retrieval: input.embeddingModel && input.embeddingModel.id || receipt.modelId || '',
+      reranker: rerank.model || receipt.reranker || '',
+      modelRuntimeLockId: lock.id || '',
+      modelRuntimeLockNumber: Number.isInteger(number) && number > 0 ? number : 0,
+    };
   }
 
   function validateIntentBrief(brief = {}) {
@@ -265,6 +281,7 @@
     INTENT_BRIEF_MODEL_STACK,
     createEmptyIntentBrief,
     normalizeIntentBrief,
+    modelStackForInput,
     validateIntentBrief,
     compactBriefSummary,
     slugify,

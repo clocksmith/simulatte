@@ -148,7 +148,7 @@
         return true;
       }
 
-    function genomePalette(sceneKind, motifs, seed) {
+    function genomePalette(sceneKind, motifs, _seed, paletteAnchor = '') {
         const sceneHue = {
           'advanced-energy': 286,
           'agro-waste-loop': 92,
@@ -194,6 +194,24 @@
           mechanical: 206,
           'literal-composite': 148,
         };
+        const anchorHue = {
+          'industrial-amber-cyan': 34,
+          'precision-violet-steel': 274,
+          'field-green-ochre': 78,
+          'chlorophyll-green': 122,
+          'microbe-teal': 156,
+          'ferment-amber': 38,
+          'protein-violet': 276,
+          'transit-cyan-amber': 198,
+          'solar-concrete-violet': 282,
+          'crowd-coral-indigo': 346,
+          'market-amber-blue': 42,
+          'fire-orange-charcoal': 18,
+          'wildfire-amber-green': 54,
+          'kiln-orange-steel': 22,
+          'ice-blue-slate': 204,
+          'sediment-aqua-ochre': 188,
+        };
         const motifShift = motifs.includes('animal-gait-cells') ? -68
           : motifs.includes('petal-radial-growth') ? 46
             : motifs.includes('track-ladder') ? -24
@@ -203,22 +221,20 @@
                     : motifs.includes('branch-network') ? -36
                       : motifs.includes('route-weave') ? 18
                         : 0;
-        const hue = normalizeHue((sceneHue[sceneKind] ?? 156) + motifShift + Math.round((unitFromSeed(seed, 1) - 0.5) * 58));
-        const accentHue = normalizeHue(hue + 82 + Math.round(unitFromSeed(seed, 2) * 112));
-        const shadowHue = normalizeHue(hue + 206 + Math.round(unitFromSeed(seed, 3) * 42));
+        const hue = normalizeHue((anchorHue[paletteAnchor] ?? sceneHue[sceneKind] ?? 156) + motifShift);
+        const accentHue = normalizeHue(hue + 96);
+        const shadowHue = normalizeHue(hue + 216);
         return {
           hue,
           accentHue,
           shadowHue,
-          warmth: Number(unitFromSeed(seed, 4).toFixed(3)),
-          contrast: Number((0.54 + unitFromSeed(seed, 5) * 0.36).toFixed(3)),
-          lightness: Number((0.44 + unitFromSeed(seed, 6) * 0.24).toFixed(3)),
+          warmth: /amber|orange|fire|kiln|coral/.test(paletteAnchor) ? 0.72 : 0.42,
+          contrast: /steel|concrete|slate/.test(paletteAnchor) ? 0.68 : 0.72,
+          lightness: /charcoal|slate/.test(paletteAnchor) ? 0.5 : 0.58,
         };
       }
 
-    function genomeMorphology(sceneKind, motifs, seed, objects, fields, visualDna = null, semanticVisuals = null) {
-        const layoutModes = ['strata', 'section', 'radial', 'field-map', 'network', 'specimen'];
-        const textureKinds = ['contour-hatch', 'woven-grid', 'cutaway-lines', 'spectral-ribs', 'grain-scan'];
+    function genomeMorphology(sceneKind, motifs, seed, objects, fields, visualDna = null, semanticVisuals = null, compositionTopology = '') {
         const motifText = motifs.join(' ');
         const layoutMode = /animal-gait/.test(motifText) ? 'field-map'
           : /petal-radial/.test(motifText) ? 'radial'
@@ -226,14 +242,14 @@
               : /architecture|structural|fracture/.test(motifText) ? 'section'
                 : /flow|sediment|smoke|grain/.test(motifText) ? 'strata'
                   : /caustic|flux|pressure|ray/.test(motifText) ? 'radial'
-                    : layoutModes[Math.floor(unitFromSeed(seed, 7) * layoutModes.length) % layoutModes.length];
+                    : (TOPOLOGY_LAYOUT_MODE[compositionTopology] || 'strata');
         const textureKind = /animal-gait|fur-contour/.test(motifText)
           ? 'contour-hatch'
           : /petal-radial|leaf-vein/.test(motifText) ? 'cutaway-lines'
             : /caustic|ray|spectral/.test(motifText) ? 'spectral-ribs'
               : /grain|sediment|strata/.test(motifText) ? 'grain-scan'
                 : /architecture|route|network|grid/.test(motifText) ? 'woven-grid'
-                  : textureKinds[Math.floor(unitFromSeed(seed, 8) * textureKinds.length) % textureKinds.length];
+                  : (TOPOLOGY_TEXTURE_KIND[compositionTopology] || 'contour-hatch');
         const objectCount = Math.max(1, (objects || []).length);
         const fieldCount = Math.max(1, (fields || []).length);
         const dnaDensity = visualDna && Number.isFinite(visualDna.densityBias) ? visualDna.densityBias : 1;
@@ -252,6 +268,108 @@
           fieldComplexity: 3 + Math.round(unitFromSeed(seed, 15) * 6) + Math.min(4, fieldCount) + semanticLayerCount,
           asymmetry: Number((0.18 + unitFromSeed(seed, 16) * 0.74).toFixed(3)),
         };
+      }
+
+    const COMPOSITION_TOPOLOGIES = Object.freeze([
+      'radial', 'ladder', 'lattice', 'cutaway', 'basin', 'orbit', 'conveyor',
+      'branching', 'stack', 'plume', 'corridor', 'field-map', 'specimen',
+    ]);
+
+    const TOPOLOGY_LAYOUT_MODE = Object.freeze({
+      radial: 'radial', ladder: 'section', lattice: 'network', cutaway: 'section',
+      basin: 'strata', orbit: 'radial', conveyor: 'network', branching: 'network',
+      stack: 'strata', plume: 'strata', corridor: 'section', 'field-map': 'field-map',
+      specimen: 'specimen',
+    });
+
+    const TOPOLOGY_TEXTURE_KIND = Object.freeze({
+      radial: 'spectral-ribs', ladder: 'woven-grid', lattice: 'woven-grid',
+      cutaway: 'cutaway-lines', basin: 'grain-scan', orbit: 'spectral-ribs',
+      conveyor: 'woven-grid', branching: 'contour-hatch', stack: 'grain-scan',
+      plume: 'contour-hatch', corridor: 'cutaway-lines', 'field-map': 'contour-hatch',
+      specimen: 'cutaway-lines',
+    });
+
+    // The evidence dialect compiler refines these stable, non-seeded scene defaults.
+    const SCENE_TOPOLOGY_FAMILY = Object.freeze({
+      'material-tray': ['specimen', 'lattice'],
+      'chemistry-lab': ['specimen', 'lattice'],
+      biology: ['specimen', 'branching', 'field-map'],
+      city: ['lattice', 'branching', 'conveyor'],
+      'civic-market': ['lattice', 'conveyor', 'branching'],
+      'digital-network': ['branching', 'lattice'],
+      'robotics-control': ['conveyor', 'ladder'],
+      watershed: ['basin', 'stack'],
+      granular: ['basin', 'stack'],
+      fire: ['plume', 'stack'],
+      'thermal-plume': ['plume', 'cutaway'],
+      mechanical: ['ladder', 'cutaway', 'stack'],
+      optics: ['radial', 'corridor'],
+      'thin-film': ['radial', 'specimen'],
+      ferrofluid: ['radial', 'basin'],
+      acoustic: ['corridor', 'radial'],
+      'planetary-space': ['orbit', 'radial'],
+      'magnetic-machine': ['radial', 'ladder'],
+      'literal-composite': ['stack', 'cutaway', 'ladder'],
+    });
+
+    function genomeCompositionTopology(sceneKind, motifs, objects, fields, _seed) {
+        const motifText = (motifs || []).join(' ');
+        if (/animal-gait|fur-contour|limb-track/.test(motifText)) return 'field-map';
+        if (/petal-radial|leaf-vein|stem-node/.test(motifText)) return 'radial';
+        if (/track-ladder|platform-slot|headway/.test(motifText)) return 'ladder';
+        if (/parcel-zoning-grid|architectural-grid|structural-silhouette/.test(motifText)) return 'lattice';
+        if (/route-weave|node-ledger|signal-tick/.test(motifText)) return 'branching';
+        if (/branch-network|cellular-mesh|membrane-rim/.test(motifText)) return 'branching';
+        if (/orbital-arc|trajectory-dust|limb-glow/.test(motifText)) return 'orbit';
+        if (/caustic-rib|spectral-slice|thin-line-optics|ray-stack/.test(motifText)) return 'radial';
+        if (/flux-hatching|dipole-dust|coil-shadow/.test(motifText)) return 'radial';
+        if (/ember-shear|smoke-strata|reaction-front/.test(motifText)) return 'plume';
+        if (/grain-strata|sediment-band|sorting-band|impact-trail/.test(motifText)) return 'basin';
+        if (/pressure-ring|waveguide-line|resonant-slit/.test(motifText)) return 'corridor';
+        if (/fracture-line|stress-ruler|impact-ghost/.test(motifText)) return 'cutaway';
+        const family = SCENE_TOPOLOGY_FAMILY[sceneKind] || ['stack', 'field-map', 'lattice', 'specimen'];
+        return family[0];
+      }
+
+    function genomeScaleTier(sceneKind, objects) {
+        // Scan only prompt-grounded objects: recipe-support primitives (catalog membrane,
+        // protein, cell) must not push a mechanical or thermal scene to microscopic scale.
+        const groundedObjects = (objects || []).filter(isPromptGroundedGenomeObject);
+        const objectText = (groundedObjects.length ? groundedObjects : [])
+          .map((object) => `${object.id || ''} ${object.role || ''} ${object.material || ''} ${object.phrase || ''}`)
+          .join(' ')
+          .toLowerCase();
+        if (/protein|molecul|\bcell\b|bacteri|mycelium|enzyme|\bdna\b|\brna\b|qubit|atomic|microscop/.test(objectText)) {
+          return 'microscopic';
+        }
+        if (/planet|\borbit|\bmoon\b|asteroid|spacecraft|rocket|galaxy|\bstar\b/.test(objectText)) {
+          return 'orbital';
+        }
+        const scaleByScene = {
+          biology: 'microscopic',
+          'chemistry-lab': 'microscopic',
+          'thin-film': 'microscopic',
+          'planetary-space': 'orbital',
+          city: 'landscape',
+          watershed: 'landscape',
+          fire: 'architectural',
+          'thermal-plume': 'architectural',
+          'literal-composite': 'architectural',
+        };
+        return scaleByScene[sceneKind] || 'human';
+      }
+
+    function genomeCameraArchetype(scaleTier, compositionTopology, sceneKind) {
+        if (scaleTier === 'orbital' || compositionTopology === 'orbit') return 'orbital-wide';
+        if (scaleTier === 'microscopic') return 'microscope-cutaway';
+        if (scaleTier === 'landscape') return compositionTopology === 'basin' ? 'aerial-map' : 'wide-establishing';
+        if (compositionTopology === 'cutaway' || compositionTopology === 'ladder' || compositionTopology === 'stack') {
+          return 'section-elevation';
+        }
+        if (compositionTopology === 'conveyor') return 'isometric-line';
+        if (sceneKind === 'optics' || sceneKind === 'mechanical' || sceneKind === 'material-tray') return 'lab-bench';
+        return 'instrument-panel';
       }
 
     function normalizeHue(value) {
@@ -328,7 +446,7 @@
     function visualObjectAcceptanceReceipt(object, sceneKind, promptText, index) {
         const source = String(object && object.source || '');
         const phrase = object && (object.phrase || object.role || object.id) || '';
-        const promptGrounded = visualPromptGroundedObject(object, promptText);
+        const promptGrounded = !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && visualPromptGroundedObject(object, promptText);
         return {
           schema: 'simulatte.visualObjectAcceptance.v1',
           id: object && object.id || `object-${index + 1}`,
@@ -365,7 +483,7 @@
         const source = String(object && object.source || '');
         const phrase = object && (object.phrase || object.role || object.id) || '';
         const phraseMatched = phraseMatchesPrompt(phrase, promptText);
-        const promptGrounded = visualPromptGroundedObject(object, promptText);
+        const promptGrounded = !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && visualPromptGroundedObject(object, promptText);
         if (promptGrounded) {
           return {
             status: 'accepted',
@@ -400,7 +518,7 @@
             };
           }
         }
-        if (source && source !== 'catalog' && phraseMatched) {
+        if (source && source !== 'catalog' && phraseMatched && !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase)) {
           return {
             status: 'accepted',
             reason: 'compiled source row phrase matches prompt evidence',
@@ -408,7 +526,7 @@
             promptGrounded: true,
           };
         }
-        if (sceneCompatibleSupportComponent(object, sceneKind, promptText)) {
+        if (!/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && sceneCompatibleSupportComponent(object, sceneKind, promptText)) {
           return hasPromptGrounded
             ? {
               status: 'rejected',
@@ -463,6 +581,7 @@
 
     function sceneObjectPriority(object, sceneKind) {
         const source = String(object && object.source || '');
+        if (source === 'phase2-language-anchor' || sceneKind === 'robotics-control' && source === 'open-semantic-rag' && /(?:protein\s+)?sample\s+holder/.test(object.phrase || '')) return 11;
         const isCatalog = source === 'catalog';
         const text = [
           object.id,
@@ -648,8 +767,8 @@
         }
         if (sceneKind === 'robotics-control') {
           return choose(
-            reject(/\b(protein|bacteria|glacier|plasma|fire|thermal-source|fluid-advection)\b/),
-            keep(/\b(robot|robotic|arm|gripper|servo|workcell|manipulator|warehouse|conveyor|parcel|sort|task|sensor|feedback|force|contact|collision|friction|motor|metal)\b/, 7),
+            reject(/\b(bacteria|glacier|plasma|fire|thermal-source|fluid-advection)\b/),
+            keep(/\b(robot|robotic|arm|gripper|servo|workcell|manipulator|warehouse|conveyor|parcel|sort|task|sensor|feedback|force|contact|collision|friction|motor|metal|protein|sample holder)\b/, 7),
             fallback()
           );
         }
@@ -836,7 +955,6 @@
         const scope = typeof globalThis !== 'undefined' ? globalThis : window;
         return (scope && scope.SimulatteRenderRegistry) || null;
       }
-
     Object.assign(scope, {
       semanticVisualRows,
       atlasAddressableTokens,
@@ -848,6 +966,10 @@
       sceneAllowsMotifFamily,
       genomePalette,
       genomeMorphology,
+      genomeCompositionTopology,
+      genomeScaleTier,
+      genomeCameraArchetype,
+      COMPOSITION_TOPOLOGIES,
       normalizeHue,
       unitFromSeed,
       prioritizeObjectsForScene,

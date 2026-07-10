@@ -147,3 +147,12 @@ test('scene proof normalizes browser renderer identity summary receipts', () => 
   assert.ok(Array.isArray(phase8.artifact.sceneProof.evidence.packetIdentitySummary));
   assert.ok(phase8.artifact.sceneProof.evidence.packetIdentitySummary.includes('dog'));
 });
+
+test('every compiled scene carries a concrete Phase 6 pixel obligation', () => {
+  const phase7 = renderedPhase7('flowers');
+  const visual = phase7.artifact.renderExecution.visualObligationProof || [];
+  const phase8 = lab.runPhase8SceneProof(phase7).artifact.sceneProof;
+
+  assert.ok(visual.some((row) => row.obligationId === 'visual:compiled-scene-packet' && row.status === 'pass'));
+  assert.equal(phase8.verdict, 'pass');
+});

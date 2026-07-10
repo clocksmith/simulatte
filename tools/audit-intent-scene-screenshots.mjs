@@ -101,6 +101,10 @@ const MIME = Object.freeze({
 });
 const MODEL_RUNTIME_WAIT_MS = 480000;
 const MODEL_RUNTIME_STALL_MS = 90000;
+const CLEAN_CANVAS_CAPTURE_SELECTORS = Object.freeze([
+  '.prompt-dock',
+  '#loading-canvas',
+]);
 
 function parseArgs(argv) {
   const options = {
@@ -263,6 +267,9 @@ function pngVisualStats(bytes) {
   let sum = 0;
   let sumSq = 0;
   let colored = 0;
+  let nearWhite = 0;
+  let edgeSamples = 0;
+  let strongEdges = 0;
   const yStep = Math.max(1, Math.floor(height / 72));
   const xStep = Math.max(1, Math.floor(width / 96));
   for (let y = 0; y < height; y += yStep) {
@@ -275,6 +282,15 @@ function pngVisualStats(bytes) {
       sum += luma;
       sumSq += luma * luma;
       if (Math.max(r, g, b) - Math.min(r, g, b) > 16) colored += 1;
+      if (luma >= 245) nearWhite += 1;
+      if (x + xStep < width && y + yStep < height) {
+        const right = (y * width + x + xStep) * channels;
+        const below = ((y + yStep) * width + x) * channels;
+        const rightLuma = 0.2126 * pixels[right] + 0.7152 * pixels[right + 1] + 0.0722 * pixels[right + 2];
+        const belowLuma = 0.2126 * pixels[below] + 0.7152 * pixels[below + 1] + 0.0722 * pixels[below + 2];
+        if (Math.max(Math.abs(luma - rightLuma), Math.abs(luma - belowLuma)) >= 24) strongEdges += 1;
+        edgeSamples += 1;
+      }
       hash ^= r + (g << 8) + (b << 16) + samples;
       hash = Math.imul(hash, 16777619) >>> 0;
       samples += 1;
@@ -289,8 +305,31 @@ function pngVisualStats(bytes) {
     lumaMean: Number(mean.toFixed(3)),
     lumaStd: Number(Math.sqrt(variance).toFixed(3)),
     coloredRatio: samples ? Number((colored / samples).toFixed(4)) : 0,
+    nearWhiteRatio: samples ? Number((nearWhite / samples).toFixed(4)) : 0,
+    strongEdgeRatio: edgeSamples ? Number((strongEdges / edgeSamples).toFixed(4)) : 0,
+    perceptualHash: differenceHash(pixels, width, height, channels),
     hash: (hash >>> 0).toString(16).padStart(8, '0'),
   };
+}
+
+function differenceHash(pixels, width, height, channels) {
+  const columns = 9;
+  const rows = 8;
+  let value = 0n;
+  for (let row = 0; row < rows; row += 1) {
+    const y = Math.min(height - 1, Math.floor((row + 0.5) * height / rows));
+    let previous = null;
+    for (let column = 0; column < columns; column += 1) {
+      const x = Math.min(width - 1, Math.floor((column + 0.5) * width / columns));
+      const offset = (y * width + x) * channels;
+      const luma = 0.2126 * pixels[offset] + 0.7152 * pixels[offset + 1] + 0.0722 * pixels[offset + 2];
+      if (previous !== null) {
+        value = (value << 1n) | (previous > luma ? 1n : 0n);
+      }
+      previous = luma;
+    }
+  }
+  return value.toString(16).padStart(16, '0');
 }
 
 function paeth(left, up, upLeft) {
@@ -476,6 +515,46 @@ async function evaluate(cdp, expression, options = {}) {
   return result.result ? result.result.value : undefined;
 }
 
+async function hideCanvasOverlays(cdp) {
+  return evaluate(cdp, `(() => {
+    const selectors = ${JSON.stringify(CLEAN_CANVAS_CAPTURE_SELECTORS)};
+    const rows = Array.from(new Set(selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)))));
+    window.__simulatteAuditOverlayStyles = rows.map((node) => ({ node, cssText: node.style.cssText }));
+    for (const node of rows) {
+      node.style.setProperty('visibility', 'hidden', 'important');
+      node.style.setProperty('pointer-events', 'none', 'important');
+    }
+    return rows.length;
+  })()`);
+}
+
+async function restoreCanvasOverlays(cdp) {
+  return evaluate(cdp, `(() => {
+    const rows = Array.isArray(window.__simulatteAuditOverlayStyles)
+      ? window.__simulatteAuditOverlayStyles
+      : [];
+    for (const row of rows) {
+      if (row && row.node && row.node.style) row.node.style.cssText = row.cssText || '';
+    }
+    delete window.__simulatteAuditOverlayStyles;
+    return rows.length;
+  })()`);
+}
+
+async function captureCleanCanvasScreenshot(cdp, clip) {
+  await hideCanvasOverlays(cdp);
+  try {
+    return await cdp.send('Page.captureScreenshot', {
+      format: 'png',
+      captureBeyondViewport: false,
+      fromSurface: true,
+      clip,
+    });
+  } finally {
+    await restoreCanvasOverlays(cdp);
+  }
+}
+
 async function waitForCondition(label, fn, timeoutMs, options = {}) {
   const started = Date.now();
   const maxWaitMs = options.extendOnProgress === true
@@ -605,6 +684,14 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   const frameDelayMs = options.frameDelayMs;
   const prompt = entry.prompt;
   const label = `${String(index + 1).padStart(2, '0')}-${entry.kind}-${slug(prompt)}`;
+  await evaluate(cdp, `(() => {
+    const canvas = document.getElementById('physics-canvas');
+    if (canvas && canvas.dataset) {
+      canvas.dataset.auditRequirePixelProof = 'true';
+      canvas.dataset.auditFreezeFrame = 'false';
+    }
+    return Boolean(canvas);
+  })()`);
   if (options.intentMode !== 'model') {
     await evaluate(cdp, `(() => {
       const input = document.getElementById('build-prompt');
@@ -735,7 +822,30 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       };
     })()`), timeoutMs, { extendOnProgress: true });
   }
-  await delay(700);
+  await delay(frameDelayMs);
+  const settledProof = await waitForCondition(`pixel and scene proof settled for ${label}`, () => evaluate(cdp, `(() => {
+    const canvas = document.getElementById('physics-canvas');
+    const sceneProofVerdict = canvas && canvas.dataset ? canvas.dataset.sceneProofVerdict || '' : '';
+    const pixelReadback = canvas && canvas.dataset ? canvas.dataset.phase7PixelReadback || '' : '';
+    const pixelProof = canvas && canvas.dataset ? canvas.dataset.phase7PixelProofStatus || '' : '';
+    const rendered = Number(canvas && canvas.dataset && canvas.dataset.renderCount || 0);
+    const terminalSceneProof = ['pass', 'fail', 'not-proven', 'error'].includes(sceneProofVerdict);
+    const required = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelRequiredObligationCount || 0);
+    const sampled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSampledObligationCount || 0);
+    return {
+      ok: rendered >= 3 && terminalSceneProof && pixelReadback === 'pass' && pixelProof === 'pass' && required >= 1 && sampled === required,
+      renderCount: rendered,
+      sceneProofVerdict,
+      phase7PixelReadback: pixelReadback,
+      phase7PixelProofStatus: pixelProof,
+      phase7PixelRequiredObligationCount: required,
+      phase7PixelSampledObligationCount: sampled,
+      phase7PixelVisibleSampleCount: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelVisibleSampleCount || 0),
+      phase7PixelMinContrast: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelMinContrast || 0),
+      phase7VisualObligationProof: canvas && canvas.dataset && canvas.dataset.phase7VisualObligationProof || '',
+      phase7PixelAuditChecks: canvas && canvas.dataset && canvas.dataset.phase7PixelAuditChecks || '',
+    };
+  })()`), timeoutMs);
   const diagnostics = await evaluate(cdp, `(() => {
     const canvas = document.getElementById('physics-canvas');
     const fieldCanvas = document.getElementById('field-canvas');
@@ -868,8 +978,16 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7RenderData: canvas && canvas.dataset ? canvas.dataset.phase7RenderData || '' : '',
       phase7RenderDataKey: canvas && canvas.dataset ? canvas.dataset.phase7RenderDataKey || '' : '',
       phase7RenderPath: canvas && canvas.dataset ? canvas.dataset.phase7RenderPath || '' : '',
+      phase7InputVisualObligationCount: canvas && canvas.dataset
+        ? Number(canvas.dataset.phase7InputVisualObligationCount || 0)
+        : 0,
       phase7PixelReadback: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadback || '' : '',
       phase7PixelReadbackMessage: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadbackMessage || '' : '',
+      phase7PixelReadbackPlan: canvas && canvas.dataset ? canvas.dataset.phase7PixelReadbackPlan || '' : '',
+      phase7LivePixelSamplesRequired: canvas && canvas.dataset ? canvas.dataset.phase7LivePixelSamplesRequired || '' : '',
+      phase7RequiredVisualObligationCount: canvas && canvas.dataset
+        ? Number(canvas.dataset.phase7RequiredVisualObligationCount || 0)
+        : 0,
       phase7PixelProofStatus: canvas && canvas.dataset ? canvas.dataset.phase7PixelProofStatus || '' : '',
       phase7PixelSampleCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelSampleCount || 0) : 0,
       phase7PixelVisibleSampleCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelVisibleSampleCount || 0) : 0,
@@ -934,6 +1052,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       visualIRSceneRenderPacketEffectCount: sceneRenderPacket && Array.isArray(sceneRenderPacket.effects)
         ? sceneRenderPacket.effects.length
         : 0,
+      phase6VisualObligationCount: phase6VisualCompile && Array.isArray(phase6VisualCompile.visualObligations)
+        ? phase6VisualCompile.visualObligations.length
+        : 0,
+      phase6VisualObligationIds: phase6VisualCompile && Array.isArray(phase6VisualCompile.visualObligations)
+        ? phase6VisualCompile.visualObligations.map((row) => row.obligationId || row.id || '').filter(Boolean)
+        : [],
       visualIRSceneRenderPacketLayers: sceneRenderPacket ? Array.from(new Set([
         ...((sceneRenderPacket.entities || []).map((row) => row.layerSlot)),
         ...((sceneRenderPacket.fields || []).map((row) => row.layerSlot)),
@@ -1005,6 +1129,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   let canvasStatsLater = null;
   let canvasScreenshotHash = '';
   let canvasScreenshotLaterHash = '';
+  let canvasPerceptualHash = '';
+  let canvasPerceptualHashLater = '';
+  let canvasDiversityScreenshot = '';
+  let canvasDiversityScreenshotLater = '';
+  let canvasDiversityPerceptualHash = '';
+  let canvasDiversityPerceptualHashLater = '';
   if (diagnostics.canvasRect && diagnostics.canvasRect.width > 0 && diagnostics.canvasRect.height > 0) {
     try {
       const clip = {
@@ -1014,35 +1144,64 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         height: Math.max(1, diagnostics.canvasRect.height),
         scale: 1,
       };
-      const clipped = await cdp.send('Page.captureScreenshot', {
-        format: 'png',
-        captureBeyondViewport: false,
-        fromSurface: true,
-        clip,
-      });
+      const clipped = await captureCleanCanvasScreenshot(cdp, clip);
       const clipBytes = Buffer.from(clipped.data, 'base64');
       canvasScreenshot = `${label}.canvas.png`;
       await fs.writeFile(path.join(outDir, canvasScreenshot), clipBytes);
       canvasStats = pngVisualStats(clipBytes);
       canvasScreenshotHash = sha256Hex(clipBytes);
       await delay(frameDelayMs);
-      const clippedLater = await cdp.send('Page.captureScreenshot', {
-        format: 'png',
-        captureBeyondViewport: false,
-        fromSurface: true,
-        clip,
-      });
+      const clippedLater = await captureCleanCanvasScreenshot(cdp, clip);
       const clipBytesLater = Buffer.from(clippedLater.data, 'base64');
       canvasScreenshotLater = `${label}.canvas-late.png`;
       await fs.writeFile(path.join(outDir, canvasScreenshotLater), clipBytesLater);
       canvasStatsLater = pngVisualStats(clipBytesLater);
       canvasScreenshotLaterHash = sha256Hex(clipBytesLater);
+      canvasPerceptualHash = canvasStats && canvasStats.perceptualHash || '';
+      canvasPerceptualHashLater = canvasStatsLater && canvasStatsLater.perceptualHash || '';
     } catch (_err) {
       canvasStats = null;
       canvasStatsLater = null;
     }
   }
-  const finalDiagnostics = { ...diagnostics };
+  if (diagnostics.canvasRect && diagnostics.canvasRect.width > 0 && diagnostics.canvasRect.height > 0) {
+    try {
+      await evaluate(cdp, `(() => {
+        const canvas = document.getElementById('physics-canvas');
+        if (!canvas || !canvas.dataset) return false;
+        canvas.dataset.auditFreezeFrame = 'true';
+        return true;
+      })()`);
+      await delay(Math.max(80, Math.min(frameDelayMs, 240)));
+      const clip = {
+        x: Math.max(0, diagnostics.canvasRect.x),
+        y: Math.max(0, diagnostics.canvasRect.y),
+        width: Math.max(1, diagnostics.canvasRect.width),
+        height: Math.max(1, diagnostics.canvasRect.height),
+        scale: 1,
+      };
+      const frozen = await captureCleanCanvasScreenshot(cdp, clip);
+      const frozenBytes = Buffer.from(frozen.data, 'base64');
+      canvasDiversityScreenshot = `${label}.canvas-diversity.png`;
+      await fs.writeFile(path.join(outDir, canvasDiversityScreenshot), frozenBytes);
+      canvasDiversityPerceptualHash = pngVisualStats(frozenBytes)?.perceptualHash || '';
+      await delay(Math.max(80, Math.min(frameDelayMs, 240)));
+      const frozenLater = await captureCleanCanvasScreenshot(cdp, clip);
+      const frozenLaterBytes = Buffer.from(frozenLater.data, 'base64');
+      canvasDiversityScreenshotLater = `${label}.canvas-diversity-late.png`;
+      await fs.writeFile(path.join(outDir, canvasDiversityScreenshotLater), frozenLaterBytes);
+      canvasDiversityPerceptualHashLater = pngVisualStats(frozenLaterBytes)?.perceptualHash || '';
+    } catch (_err) {
+      canvasDiversityPerceptualHash = '';
+      canvasDiversityPerceptualHashLater = '';
+    } finally {
+      await evaluate(cdp, `(() => {
+        const canvas = document.getElementById('physics-canvas');
+        if (canvas && canvas.dataset) canvas.dataset.auditFreezeFrame = 'false';
+      })()`);
+    }
+  }
+  const finalDiagnostics = { ...diagnostics, ...settledProof };
   if (!finalDiagnostics.sampleCount && canvasStats && canvasStats.sampleCount) {
     finalDiagnostics.sampleSource = 'canvas-screenshot';
     finalDiagnostics.sampleCount = canvasStats.sampleCount;
@@ -1056,6 +1215,15 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   finalDiagnostics.canvasScreenshotLater = canvasScreenshotLater;
   finalDiagnostics.canvasScreenshotHash = canvasScreenshotHash;
   finalDiagnostics.canvasScreenshotLaterHash = canvasScreenshotLaterHash;
+  finalDiagnostics.canvasPerceptualHash = canvasPerceptualHash;
+  finalDiagnostics.canvasPerceptualHashLater = canvasPerceptualHashLater;
+  finalDiagnostics.canvasDiversityScreenshot = canvasDiversityScreenshot;
+  finalDiagnostics.canvasDiversityScreenshotLater = canvasDiversityScreenshotLater;
+  finalDiagnostics.canvasDiversityPerceptualHash = canvasDiversityPerceptualHash;
+  finalDiagnostics.canvasDiversityPerceptualHashLater = canvasDiversityPerceptualHashLater;
+  finalDiagnostics.canvasDiversityHashKind = 'audit:visual-clean-canvas-dhash-64';
+  finalDiagnostics.canvasDiversityFrameStable = Boolean(canvasDiversityPerceptualHash &&
+    canvasDiversityPerceptualHash === canvasDiversityPerceptualHashLater);
   finalDiagnostics.canvasFrameHashChanged = Boolean(canvasScreenshotHash && canvasScreenshotLaterHash && canvasScreenshotHash !== canvasScreenshotLaterHash);
   if (canvasStats) {
     finalDiagnostics.canvasScreenshotWidth = canvasStats.width;
@@ -1063,6 +1231,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     finalDiagnostics.canvasScreenshotLumaStd = canvasStats.lumaStd;
     finalDiagnostics.canvasScreenshotColoredRatio = canvasStats.coloredRatio;
     finalDiagnostics.canvasScreenshotSampleCount = canvasStats.sampleCount;
+    finalDiagnostics.canvasScreenshotNearWhiteRatio = canvasStats.nearWhiteRatio;
+    finalDiagnostics.canvasScreenshotStrongEdgeRatio = canvasStats.strongEdgeRatio;
   }
   if (canvasStats && canvasStatsLater) {
     finalDiagnostics.canvasFrameSampleHashChanged = canvasStats.hash !== canvasStatsLater.hash;
@@ -1204,7 +1374,7 @@ function clamp01(value) {
 
 function analyze(results) {
   const failures = [];
-  const screenshotHashes = new Map();
+  const perceptualHashes = new Map();
   for (const result of results) {
     const rubric = result.visualRubric || visualRubricForResult(result, result.prompt);
     result.visualRubric = rubric;
@@ -1230,11 +1400,17 @@ function analyze(results) {
     if (result.phase7RenderPath !== 'storage-scene-instances-with-uniform-fallback') {
       failures.push(`${result.index}: Phase 7 render data path is ${result.phase7RenderPath || 'missing'}`);
     }
-    if (result.phase7PixelReadback === 'fail') {
-      failures.push(`${result.index}: Phase 7 pixel readback failed: ${result.phase7PixelReadbackMessage || 'missing error'}`);
+    if (result.phase7PixelReadback !== 'pass') {
+      failures.push(`${result.index}: Phase 7 pixel readback is ${result.phase7PixelReadback || 'missing'}${result.phase7PixelReadbackMessage ? `: ${result.phase7PixelReadbackMessage}` : ''}`);
     }
-    if (result.phase7PixelProofStatus && result.phase7PixelProofStatus !== 'pass') {
-      failures.push(`${result.index}: Phase 7 pixel proof status is ${result.phase7PixelProofStatus}`);
+    if (result.phase7PixelProofStatus !== 'pass') {
+      failures.push(`${result.index}: Phase 7 pixel proof status is ${result.phase7PixelProofStatus || 'missing'}`);
+    }
+    if (result.phase7PixelRequiredObligationCount < 1) {
+      failures.push(`${result.index}: Phase 7 pixel proof has no required visual obligations`);
+    }
+    if (result.phase7PixelSampledObligationCount !== result.phase7PixelRequiredObligationCount) {
+      failures.push(`${result.index}: Phase 7 pixel proof sampled ${result.phase7PixelSampledObligationCount}/${result.phase7PixelRequiredObligationCount} required obligations`);
     }
     if (result.webgpuOptimizationPath !== 'compute-storage-indirect') {
       failures.push(`${result.index}: WebGPU optimization path is ${result.webgpuOptimizationPath || 'missing'}`);
@@ -1251,8 +1427,8 @@ function analyze(results) {
     if (result.phase8Output !== 'simulatte.phase8.output.v2') {
       failures.push(`${result.index}: Phase 8 output is ${result.phase8Output || 'missing'}${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
     }
-    if (result.sceneProofVerdict === 'error') {
-      failures.push(`${result.index}: Scene Proof errored${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
+    if (result.sceneProofVerdict !== 'pass') {
+      failures.push(`${result.index}: Scene Proof verdict is ${result.sceneProofVerdict || 'missing'}${result.sceneProofError ? `: ${result.sceneProofError}` : ''}`);
     }
 	    for (const [key, expectedSchema] of Object.entries(EXPECTED_PHASE_OUTPUT_SCHEMAS)) {
 	      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
@@ -1303,9 +1479,15 @@ function analyze(results) {
     if (result.kind === 'broad' && /^(generic|literal-composite)$/.test(result.visualIRSceneKind)) {
       failures.push(`${result.index}: broad VisualIR fell into ${result.visualIRSceneKind}`);
     }
-    const duplicate = screenshotHashes.get(result.screenshotHash);
-    if (duplicate) failures.push(`${result.index}: duplicate screenshot hash with ${duplicate}`);
-    screenshotHashes.set(result.screenshotHash, result.index);
+    if (!result.canvasDiversityPerceptualHash) {
+      failures.push(`${result.index}: frozen clean-canvas perceptual hash missing`);
+    } else if (result.canvasDiversityFrameStable !== true) {
+      failures.push(`${result.index}: frozen clean-canvas perceptual hash is not frame-stable`);
+    } else {
+      const duplicate = perceptualHashes.get(result.canvasDiversityPerceptualHash);
+      if (duplicate) failures.push(`${result.index}: duplicate frozen clean-canvas perceptual hash with ${duplicate}`);
+      perceptualHashes.set(result.canvasDiversityPerceptualHash, result.index);
+    }
   }
   const broadResults = results.filter((result) => result.kind === 'broad');
   const broadSceneCount = new Set(broadResults.map((result) => result.rendererSceneKind).filter(Boolean)).size;
@@ -1318,6 +1500,11 @@ function analyze(results) {
     screenshotCount: results.length,
     uniqueCanvasHashes: new Set(results.map((result) => result.canvasHash)).size,
     uniqueScreenshotHashes: new Set(results.map((result) => result.screenshotHash)).size,
+    uniqueCanvasPerceptualHashes: new Set(results.map((result) => result.canvasPerceptualHash).filter(Boolean)).size,
+    minCanvasPerceptualHashDistance: minPerceptualHashDistance(results),
+    uniqueCanvasDiversityPerceptualHashes: new Set(results.map((result) => result.canvasDiversityPerceptualHash).filter(Boolean)).size,
+    minCanvasDiversityPerceptualHashDistance: minPerceptualHashDistance(results, 'canvasDiversityPerceptualHash'),
+    perceptualHashCalibration: perceptualHashCalibration(results),
     sceneKinds: [...new Set(results.map((result) => result.rendererSceneKind).filter(Boolean))].sort(),
     visualIRSceneKinds: [...new Set(results.map((result) => result.visualIRSceneKind).filter(Boolean))].sort(),
     visualIRCameras: [...new Set(results.map((result) => result.visualIRCamera).filter(Boolean))].sort(),
@@ -1379,7 +1566,7 @@ function withAutoRating(summary) {
   const passRate = Number(rubric.passCount || 0) / promptCount;
   const sceneDiversity = Math.min(1, (summary.sceneKinds || []).length / promptCount);
   const screenshotDiversity = Math.min(1, Number(summary.uniqueScreenshotHashes || 0) / promptCount);
-  const canvasDiversity = Math.min(1, Number(summary.uniqueCanvasHashes || 0) / promptCount);
+  const canvasDiversity = Math.min(1, Number(summary.uniqueCanvasDiversityPerceptualHashes || 0) / promptCount);
   const representationQuality = clamp01(Number(rubric.averageRepresentationQuality || 0));
   const causalCoverage = causal.promptCount
     ? 1 - ((causal.promptsMissingAffordances || []).length / Math.max(1, causal.promptCount))
@@ -1419,6 +1606,69 @@ function withAutoRating(summary) {
       missingSignals: rubric.missingSignals || [],
     },
   };
+}
+
+function minPerceptualHashDistance(results = [], key = 'canvasPerceptualHash') {
+  const hashes = results
+    .map((result) => ({ index: result.index, hash: String(result[key] || '') }))
+    .filter((row) => row.hash.length === 16);
+  let minimum = null;
+  for (let left = 0; left < hashes.length; left += 1) {
+    for (let right = left + 1; right < hashes.length; right += 1) {
+      const distance = perceptualHashDistance(hashes[left].hash, hashes[right].hash);
+      if (!Number.isFinite(distance) || (minimum && distance >= minimum.distance)) continue;
+      minimum = { left: hashes[left].index, right: hashes[right].index, bits: perceptualHashBits(hashes[left].hash, hashes[right].hash), distance: Number(distance.toFixed(4)) };
+    }
+  }
+  return minimum;
+}
+
+function perceptualHashCalibration(results = []) {
+  const hashBits = 64;
+  const bitMargin = 1;
+  const rows = (results || []).filter((result) => (
+    /^[0-9a-f]{16}$/i.test(String(result.canvasDiversityPerceptualHash || '')) &&
+    /^[0-9a-f]{16}$/i.test(String(result.canvasDiversityPerceptualHashLater || ''))
+  ));
+  const temporalBits = rows.map((result) => perceptualHashBits(
+    result.canvasDiversityPerceptualHash,
+    result.canvasDiversityPerceptualHashLater
+  ));
+  const maxTemporalBits = temporalBits.length ? Math.max(...temporalBits) : null;
+  const minimum = minPerceptualHashDistance(rows, 'canvasDiversityPerceptualHash');
+  const floorBits = Number.isFinite(maxTemporalBits) ? maxTemporalBits + bitMargin : null;
+  return {
+    schema: 'simulatte.cleanCanvasPerceptualHashCalibration.v1',
+    hashKind: 'audit:visual-clean-canvas-dhash-64',
+    hashBits,
+    promptCount: (results || []).length,
+    usablePromptCount: rows.length,
+    bitMargin,
+    maxTemporalBits,
+    maxTemporalDistance: Number.isFinite(maxTemporalBits) ? Number((maxTemporalBits / hashBits).toFixed(4)) : null,
+    minPairwiseBits: minimum && minimum.bits || null,
+    minPairwiseDistance: minimum && minimum.distance || null,
+    closestPair: minimum ? { left: minimum.left, right: minimum.right } : null,
+    recommendedHashFloorBits: floorBits,
+    recommendedHashFloor: Number.isFinite(floorBits) ? Number((floorBits / hashBits).toFixed(4)) : null,
+    calibrated: Boolean(floorBits && minimum && minimum.bits > floorBits && rows.length === (results || []).length),
+  };
+}
+
+function perceptualHashDistance(left = '', right = '') {
+  if (!/^[0-9a-f]{16}$/i.test(left) || !/^[0-9a-f]{16}$/i.test(right)) return NaN;
+  return perceptualHashBits(left, right) / 64;
+}
+
+function perceptualHashBits(left = '', right = '') {
+  if (!/^[0-9a-f]{16}$/i.test(left) || !/^[0-9a-f]{16}$/i.test(right)) return NaN;
+  let value = BigInt(`0x${left}`) ^ BigInt(`0x${right}`);
+  let bits = 0;
+  while (value) {
+    bits += Number(value & 1n);
+    value >>= 1n;
+  }
+  return bits;
 }
 
 function gradeForScore(score) {

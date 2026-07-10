@@ -45,6 +45,7 @@
       .map((row, index) => scoreMapping(row, index, text, normalized, context));
     const accepted = selectDiverseMappings(entries, 10);
     const source = accepted.length ? accepted.map(compiledMapping) : [fallbackMapping(context)];
+    const topologyAtoms = compositionTopologyAtoms(context);
     const uniforms = compileAtomUniforms(source);
     return {
       schema: GRAPHICS_ATOM_PLAN_SCHEMA,
@@ -54,7 +55,10 @@
       source: 'handwritten-operator-graphics-basis',
       contextHash: stableContextHash(text),
       mappings: source,
-      geometry: atomsForCategory(source, 'geometryAtoms', 'geometry'),
+      geometry: uniqueAtomRows([
+        ...atomsForCategory(source, 'geometryAtoms', 'geometry'),
+        ...topologyAtoms,
+      ]),
       fields: atomsForCategory(source, 'fieldAtoms', 'field'),
       materials: atomsForCategory(source, 'materialAtoms', 'material'),
       processes: atomsForCategory(source, 'processAtoms', 'process'),
@@ -82,6 +86,27 @@
           matchedTerms: entry.matchedTerms,
         })),
     };
+  }
+
+  function compositionTopologyAtoms(context = {}) {
+    const genome = context.visualGenome || {};
+    const topology = normalizeText(genome.compositionTopology || '').replace(/\s+/g, '-');
+    if (!topology) return [];
+    return [{
+      id: `composition-topology-${topology}`,
+      category: 'geometry',
+      label: `Composition topology ${topology}`,
+      sourceMappingIds: [],
+      evidence: [
+        `visual-dialect:${genome.visualDialect || 'compiled-scene'}`,
+        `composition-topology:${topology}`,
+      ],
+    }];
+  }
+
+  function uniqueAtomRows(rows = []) {
+    const ids = new Set();
+    return (rows || []).filter((row) => row && row.id && !ids.has(row.id) && ids.add(row.id));
   }
 
   function scoreMapping(row, index, text, normalized, context) {

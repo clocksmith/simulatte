@@ -16,10 +16,8 @@
     	      .map((row) => row.identity && row.identity.type)
     	      .filter(Boolean));
     	    const packetText = JSON.stringify({
+              packet: sceneRenderPacket,
     	      identities: Array.from(identities),
-    	      fields: (sceneRenderPacket.fields || []).map((row) => [row.id, row.kind, row.layerSlot]),
-    	      effects: (sceneRenderPacket.effects || []).map((row) => [row.id, row.kind, row.layerSlot]),
-    	      entities: (sceneRenderPacket.entities || []).map((row) => [row.id, row.layerSlot, row.geometry && row.geometry.primitive, row.animation && row.animation.kind]),
     	    }).toLowerCase();
     	    const obligations = visualObligations.length
     	      ? visualObligations
@@ -34,11 +32,7 @@
     	      : identityList.length;
     	    return obligations.map((row) => {
     	      const target = normalizeForEvidence(row.target || row.obligationId || row.id || '');
-    	      const packetSatisfied = target.split(/\s+|-/).filter(Boolean).some((term) => packetText.includes(term)) ||
-    	        (/species distinct|species-distinct/.test(target) && distinctEntityIdentityCount >= 2) ||
-    	        (/wake|ripple/.test(target) && /wake|ripple/.test(packetText)) ||
-    	        (/submersion/.test(target) && /submersion/.test(packetText)) ||
-    	        (/swimming|swim/.test(target) && /swim/.test(packetText));
+              const packetSatisfied = visualObligationPacketSatisfied(target, packetText, distinctEntityIdentityCount);
     		      const rendered = frameReceipt.rendered === true;
     		      const sourceStatus = row.status || '';
     		      const status = rendered && packetSatisfied && !LEDGER_FAILURE_STATUSES.has(sourceStatus)
@@ -57,7 +51,18 @@
     		        evidence: packetSatisfied ? ['sceneRenderPacket'] : [],
     		      });
     		    });
-    		  }
+          }
+
+    function visualObligationPacketSatisfied(target = '', packetText = '', distinctEntityIdentityCount = 0) {
+	    if (/compiled scene packet/.test(target)) return /simulatte\.scenerenderpacket\.v1/.test(packetText) && /"entities":\[/.test(packetText);
+            if (/species distinct|species-distinct/.test(target)) return distinctEntityIdentityCount >= 2;
+            if (/wake|ripple/.test(target)) return /wake|ripple/.test(packetText);
+            if (/submersion/.test(target)) return /submersion/.test(packetText);
+            if (/swimming|swim/.test(target)) return /swim/.test(packetText);
+            const ignored = new Set(['and', 'the', 'with', 'from', 'into', 'over', 'under', 'across', 'through']);
+            const terms = target.split(/\s+|-/).filter((term) => term.length > 2 && !ignored.has(term));
+            return terms.length > 0 && terms.every((term) => packetText.includes(term));
+          }
 
     function summarizeRenderObligationProof(proofs = []) {
     		    return {
@@ -210,8 +215,8 @@
     		    const sampledRequiredIds = new Set(samples
     		      .filter((row) => row.visible === true && row.obligationId && requiredIds.includes(row.obligationId))
     		      .map((row) => row.obligationId));
-    		    const minVisibleSampleCount = required
-    		      ? Math.max(1, Math.min(3, drawableCount || samples.length || 1))
+            const minVisibleSampleCount = required
+              ? Math.max(1, Math.min(3, drawableCount || 1, samples.length || 1))
     		      : 0;
     		    const minContrast = required ? 0.035 : 0;
     		    const minContrastValue = visibleSamples.length

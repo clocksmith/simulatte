@@ -1,7 +1,15 @@
 {
   "schema": "simulatte.intentEvidenceContract.v1",
   "id": "simulatte-qwen-intent-evidence-contract-v1",
-  "retrievalModel": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+  "modelRuntimeLock": {
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 1,
+    "artifact": "./model-runtime-lock.json",
+    "artifactHash": {
+      "alg": "sha256",
+      "hex": "204dbb02c6f759dee4a62b1ed28f9caa40fd2d242457fecb11cbf3850be5918a"
+    }
+  },
   "embeddedInputs": [
     "prompt",
     "physics primitive text",

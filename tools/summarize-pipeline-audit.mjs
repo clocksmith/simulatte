@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const defaultReport = path.join(root, 'artifacts', 'simulatte-pipeline-audit', 'latest.json');
+const defaultReport = path.join(root, 'artifacts', 'simulatte-pipeline-audit', 'live-score', 'latest.json');
 const reportPath = path.resolve(process.argv[2] || defaultReport);
 
 if (!fs.existsSync(reportPath)) {

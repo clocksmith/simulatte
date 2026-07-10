@@ -1,0 +1,1293 @@
+{
+  "schema": "simulatte.pipelineAuditRun.v1",
+  "artifactIdentity": {
+    "schema": "simulatte.pipelineAuditArtifactIdentity.v1",
+    "kind": "static-score",
+    "role": "compiled-static-score-proxy",
+    "canonical": false,
+    "compareGroup": "simulatte-pipeline-static-score-v1",
+    "phaseTaxonomyVersion": "strict-8-phase-scene-proof-v2",
+    "phaseIds": [
+      "runtime",
+      "languageGraph",
+      "retrieval",
+      "activationFusion",
+      "groundedIntent",
+      "simulationCompile",
+      "visualIR",
+      "webgpu",
+      "sceneProof"
+    ],
+    "measurementMode": "compiled-static-live-webgpu-required",
+    "sourceLiveReport": null,
+    "outputDir": "artifacts/simulatte-pipeline-audit/static-score"
+  },
+  "artifactKind": "static-score",
+  "compareGroup": "simulatte-pipeline-static-score-v1",
+  "phaseTaxonomyVersion": "strict-8-phase-scene-proof-v2",
+  "sourceLiveReport": null,
+  "generatedAt": "2026-07-10T11:46:55.883Z",
+  "runId": "2026-07-10T11-46-55-883Z-c08155ee4a",
+  "gitSha": "c2fc45a9baf8",
+  "version": "",
+  "rubricVersion": "phase-floor-76.v1",
+  "promptSetVersion": "core-adversarial-human-v1",
+  "floor": 76,
+  "diversityPolicy": {
+    "schema": "simulatte.diversityPolicy.v1",
+    "id": "simulatte-diversity-policy-v1",
+    "structuralFloor": 0,
+    "hashFloorPolicy": {
+      "method": "max-temporal-jitter-plus-one-bit",
+      "hashBits": 64,
+      "bitMargin": 1,
+      "minimumPromptCount": 20,
+      "evidence": "The hard floor is recomputed from frozen clean-canvas dHash receipts in the current live audit: the largest same-world temporal difference plus one bit. The run fails unless every sampled world clears that derived floor. Static composition distance remains a collision diagnostic, not a rewardable gate."
+    },
+    "effectiveCalibration": {
+      "schema": "simulatte.diversityCalibration.v1",
+      "method": "max-temporal-jitter-plus-one-bit",
+      "sourceReportSchema": "",
+      "intentMode": "",
+      "promptCount": 0,
+      "usablePromptCount": 0,
+      "proofPassCount": 0,
+      "hashBits": 64,
+      "bitMargin": 1,
+      "maxTemporalBits": null,
+      "minPairwiseBits": null,
+      "hashFloorBits": null,
+      "hashFloor": null,
+      "ready": false,
+      "reason": "live screenshot audit missing"
+    }
+  },
+  "measurementMode": "compiled-static-live-webgpu-required",
+  "phaseDefinitions": [
+    {
+      "id": "runtime",
+      "step": 1,
+      "label": "Prompt Runtime"
+    },
+    {
+      "id": "languageGraph",
+      "step": 2,
+      "label": "Language Graph"
+    },
+    {
+      "id": "retrieval",
+      "step": 3,
+      "label": "Embedding Retrieval"
+    },
+    {
+      "id": "activationFusion",
+      "step": 3,
+      "label": "Activation Fusion"
+    },
+    {
+      "id": "groundedIntent",
+      "step": 4,
+      "label": "Grounded Intent"
+    },
+    {
+      "id": "simulationCompile",
+      "step": 5,
+      "label": "Simulation Compile"
+    },
+    {
+      "id": "visualIR",
+      "step": 6,
+      "label": "VisualIR Compile"
+    },
+    {
+      "id": "webgpu",
+      "step": 7,
+      "label": "WebGPU Render"
+    },
+    {
+      "id": "sceneProof",
+      "step": 8,
+      "label": "Scene Proof"
+    }
+  ],
+  "promptCount": 2,
+  "phaseScores": {
+    "runtime": 96,
+    "languageGraph": 100,
+    "retrieval": 77,
+    "activationFusion": 95,
+    "groundedIntent": 90,
+    "simulationCompile": 96,
+    "visualIR": 79.2,
+    "webgpu": 68,
+    "sceneProof": 68
+  },
+  "pipelineScore": 68,
+  "diversity": {
+    "schema": "simulatte.pipelineDiversityAudit.v1",
+    "signatureCount": 2,
+    "pairCount": 1,
+    "floor": 0,
+    "hashFloor": null,
+    "score": 71.932,
+    "verdict": "fail",
+    "minPairwiseDistance": 71.932,
+    "minPerceptualHashDistance": null,
+    "perceptualHashAvailable": false,
+    "hashEvidenceRequired": true,
+    "hashEvidenceReady": false,
+    "closestPairs": [
+      {
+        "promptA": "dogs and cats swimming",
+        "promptB": "warehouse fire in a stairwell",
+        "distance": 71.932,
+        "hashDistance": null,
+        "sceneA": "watershed",
+        "sceneB": "fire",
+        "topologyA": "field-map",
+        "topologyB": "cutaway",
+        "dialectA": "watershed/animal-swim",
+        "dialectB": "fire/structure-fire",
+        "cameraA": "wide-establishing",
+        "cameraB": "section-elevation",
+        "scaleA": "landscape",
+        "scaleB": "architectural",
+        "sharedLayers": [
+          "process-pulse"
+        ],
+        "sharedIdentities": [
+          "field",
+          "motion",
+          "process",
+          "water"
+        ],
+        "sharedOperators": [],
+        "sharedAtoms": [],
+        "sharedSemanticVisuals": [],
+        "sharedAxes": [],
+        "groundingDiagnostic": {
+          "schema": "simulatte.diversityGroundingCollisionDiagnostic.v1",
+          "auditOnly": true,
+          "phase2": {
+            "shared": [],
+            "leftOnly": [
+              "cats",
+              "dogs",
+              "swimming"
+            ],
+            "rightOnly": [
+              "coexists",
+              "fire",
+              "stairwell",
+              "warehouse"
+            ],
+            "collapsed": false
+          },
+          "phase3": {
+            "shared": [],
+            "leftOnly": [
+              "cats",
+              "cats swimming",
+              "dogs",
+              "swimming"
+            ],
+            "rightOnly": [
+              "air air gas atmosphere wind pressure material air pressure fluid-advection diffusion",
+              "fire",
+              "fire flame combustion burning fuel smoke heat light ignition ember blaze",
+              "fire plasma fire plasma ionized hot flame glow material fire-plasma fire plasma combustion heat-transfer radiation",
+              "logistics warehouse inventory supply chain route hub transport port delivery",
+              "stairwell",
+              "warehouse",
+              "warehouse fire"
+            ],
+            "collapsed": false
+          },
+          "phase4": {
+            "shared": [],
+            "leftOnly": [
+              "cats",
+              "cats swimming",
+              "dogs",
+              "dogs and cats swimming",
+              "swimming"
+            ],
+            "rightOnly": [
+              "air",
+              "burn",
+              "fire",
+              "fire-front",
+              "fire-plasma",
+              "logistics-node",
+              "stairwell",
+              "warehouse"
+            ],
+            "collapsed": false
+          },
+          "collapsedStages": [],
+          "nextInspection": "phase6-dialect-or-rendering"
+        }
+      }
+    ],
+    "closePairs": []
+  },
+  "verdict": "fail",
+  "weakestPhase": "webgpu",
+  "belowFloor": [
+    "webgpu",
+    "sceneProof"
+  ],
+  "failures": [
+    "1:retrieval:signalCoverage=100%",
+    "1:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "1:sceneProof:live scene proof required; static settlement proxy capped",
+    "2:visualIR:atoms=3 signalCoverage=100%",
+    "2:webgpu:live WebGPU proof required; static VisualIR proxy capped",
+    "2:sceneProof:live scene proof required; static settlement proxy capped",
+    "diversity:clean-canvas perceptual-hash evidence or policy missing",
+    "diversity:calibration live screenshot audit missing"
+  ],
+  "prompts": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "dogs and cats swimming",
+      "expectedSignals": [
+        "biological"
+      ],
+      "phaseScores": {
+        "runtime": 96,
+        "languageGraph": 100,
+        "retrieval": 70,
+        "activationFusion": 90,
+        "groundedIntent": 84,
+        "simulationCompile": 100,
+        "visualIR": 86.3,
+        "webgpu": 68,
+        "sceneProof": 68
+      },
+      "pipelineScore": 68,
+      "weakestPhase": "webgpu",
+      "failures": [
+        "retrieval:signalCoverage=100%",
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
+      ],
+      "hardFailure": false,
+      "diversitySignature": {
+        "schema": "simulatte.pipelineDiversitySignature.v1",
+        "prompt": "dogs and cats swimming",
+        "sceneKind": "watershed",
+        "sceneMix": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.92,
+          0.92,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "visualLayers": [
+          1,
+          0.92,
+          0,
+          0,
+          0,
+          0,
+          0.92,
+          0.92,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.76,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.76,
+          0
+        ],
+        "atomUniforms": [
+          0,
+          0.99,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.911,
+          0.92,
+          0,
+          0,
+          0,
+          0.76
+        ],
+        "spatialLayout": [
+          0.25,
+          0.75,
+          0.25,
+          0,
+          0.5,
+          0.75,
+          0.25,
+          0,
+          0.5,
+          0.75,
+          0.75,
+          0.25,
+          0.5,
+          0.75,
+          0.75,
+          0.25,
+          0.5,
+          0.75,
+          0.75,
+          0.25,
+          0.5,
+          0.75,
+          0.75,
+          0.25,
+          0.5,
+          0.75,
+          0.25,
+          0,
+          0.5,
+          0.75,
+          0.25,
+          0,
+          0.5,
+          0.75,
+          0.25,
+          0
+        ],
+        "drawableCount": 43,
+        "animationKinds": [
+          "flow-ripple",
+          "state-pulse",
+          "streamline-advection",
+          "swim-cycle"
+        ],
+        "identityCategories": [
+          "animal",
+          "field",
+          "medium",
+          "process"
+        ],
+        "renderClasses": [
+          "biological-agent",
+          "chemical-front",
+          "field-sheet",
+          "flow-field",
+          "process-pulse",
+          "water-volume"
+        ],
+        "layerSlots": [
+          "biological-agent",
+          "chemical-front",
+          "field-sheet",
+          "flow-field",
+          "process-pulse",
+          "water-volume"
+        ],
+        "identities": [
+          "cat",
+          "dog",
+          "field",
+          "motion",
+          "process",
+          "water"
+        ],
+        "operatorTypes": [
+          "growth_decay"
+        ],
+        "behaviorProcesses": [],
+        "atomIds": [
+          "advective-transport",
+          "branch-expansion",
+          "branching-organic-network",
+          "cell-cluster",
+          "cell-pulses",
+          "composition-topology-field-map",
+          "density-front-field",
+          "diffusion-limited-aggregation",
+          "fibrous-cellular",
+          "fluid-ripple",
+          "growth-front",
+          "membrane-sheet",
+          "nutrient-gradient-field",
+          "particle-tracer-swarm",
+          "pressure-band-field",
+          "pressure-driven-flow",
+          "ribbon-streamline",
+          "stream-ribbons",
+          "tracer-particles",
+          "transparent-flow-tube",
+          "velocity-vector-field",
+          "visual.operator.biological-growth.v1",
+          "visual.operator.fluid-advection.v1",
+          "wet-biological",
+          "wet-refractive"
+        ],
+        "motionAtoms": [
+          "branch-expansion",
+          "cell-pulses",
+          "stream-ribbons",
+          "tracer-particles"
+        ],
+        "evidence": {
+          "phase2Terms": [
+            "cats",
+            "dogs",
+            "swimming"
+          ],
+          "phase3PromptCandidates": [
+            "cats",
+            "cats swimming",
+            "dogs",
+            "swimming"
+          ],
+          "phase4GroundedComponents": [
+            "cats",
+            "cats swimming",
+            "dogs",
+            "dogs and cats swimming",
+            "swimming"
+          ]
+        },
+        "genome": {
+          "id": "vg_09uh74",
+          "seed": 16538512,
+          "palette": {
+            "hue": 10,
+            "accentHue": 106,
+            "shadowHue": 226,
+            "warmth": 0.42,
+            "contrast": 0.72,
+            "lightness": 0.58
+          },
+          "morphology": {
+            "layoutMode": "field-map",
+            "textureKind": "contour-hatch",
+            "strokeWeight": 1.748,
+            "grain": 0.384,
+            "bandCount": 8,
+            "particleDensity": 43,
+            "flowCurl": 0.322,
+            "objectScale": 1.009,
+            "fieldComplexity": 6,
+            "asymmetry": 0.381
+          },
+          "motifs": [
+            "animal-gait-cells",
+            "limb-track-pairs",
+            "fur-contour-bands",
+            "petal-radial-growth",
+            "stem-node-lattice",
+            "leaf-vein-mesh",
+            "flow-contours",
+            "sediment-bands",
+            "wet-refraction"
+          ],
+          "semanticVisualIds": [],
+          "visualDialect": "watershed/animal-swim",
+          "compositionTopology": "field-map",
+          "cameraArchetype": "wide-establishing",
+          "scaleTier": "landscape"
+        },
+        "live": {
+          "hash": "",
+          "hashKind": "",
+          "canvasHash": ""
+        }
+      },
+      "phaseDetails": {
+        "runtime": {
+          "compileError": "",
+          "hasSpec": true,
+          "hasWorker": true,
+          "hasRenderer": true,
+          "hasWebGpuRenderer": true,
+          "phaseSchemas": {
+            "phase1": "simulatte.phase1.output.v1",
+            "phase2": "simulatte.phase2.output.v1",
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
+          }
+        },
+        "languageGraph": {
+          "tokenCount": 4,
+          "spanCount": 3,
+          "clauseCount": 2,
+          "predicateFrameCount": 2,
+          "termCoverage": 1
+        },
+        "retrieval": {
+          "evidenceCount": 5,
+          "semanticRag": "simulatte.semanticRag.v1",
+          "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
+          "termCoverage": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "activationFusion": {
+          "activationCount": 40,
+          "acceptedActivationCount": 24,
+          "directSignalCount": 0,
+          "ledgerObligationCount": 10,
+          "obligationVerdictCount": 10,
+          "settledVerdictCount": 6,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "strongly-supported": 5,
+            "inferred": 1,
+            "pending": 4
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:dog",
+            "kind": "entity",
+            "target": "dog",
+            "required": true,
+            "inferred": false,
+            "verdict": "strongly-supported",
+            "supportStrength": 0.7631,
+            "provenance": [
+              {
+                "candidateId": "surface-dog-1",
+                "candidateType": "primitive",
+                "supportStrength": 0.7631
+              }
+            ],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "groundedIntent": {
+          "acceptedActivationCount": 24,
+          "evidenceBindingCount": 24,
+          "causalEdgeCount": 0,
+          "visualAffordanceCount": 0,
+          "coverageGapCount": 0,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "simulationCompile": {
+          "universeNodeCount": 6,
+          "physicsEntityCount": 6,
+          "operatorCount": 2,
+          "solverStepCount": 2,
+          "channelCount": 82,
+          "termCoverage": 1,
+          "geometrySpecificity": 1,
+          "topologySpecificity": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "visualIR": {
+          "sceneKind": "watershed",
+          "entityCount": 9,
+          "materialCount": 13,
+          "fieldCount": 10,
+          "processCount": 17,
+          "geometryCount": 16,
+          "motionCount": 13,
+          "renderInstanceCount": 48,
+          "acceptedRenderInstanceCount": 48,
+          "sourceLinkedRenderInstanceCount": 48,
+          "rejectedRowCount": 10,
+          "mappingCount": 2,
+          "languageSignalCount": 24,
+          "uniformSlots": [
+            "fluid",
+            "biological",
+            "motion",
+            "density",
+            "surface"
+          ],
+          "visualSpecificity": 0.875,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid",
+              "chemical",
+              "network"
+            ],
+            "falsePositivePenalty": 12
+          }
+        },
+        "webgpu": {
+          "sceneKind": "watershed",
+          "shaderUsesVisualIR": false,
+          "shaderUsesAtomUniforms": true,
+          "shaderUsesSceneRenderPacket": true,
+          "rendererRejectsSemanticInference": true,
+          "atomUniformCount": 5,
+          "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
+          "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+          "sceneRenderPacketEntityCount": 9,
+          "sceneRenderPacketFieldCount": 10,
+          "sceneRenderPacketEffectCount": 24,
+          "sceneRenderPacketSpatialRatio": 1,
+          "sceneRenderPacketIdentityRatio": 1,
+          "sceneRenderPacketIdentities": [
+            "dog",
+            "cat",
+            "water"
+          ],
+          "structuralCoverage": 1,
+          "staticSignalCoverage": {
+            "coverage": 1,
+            "found": [
+              "biological"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid",
+              "chemical",
+              "network"
+            ],
+            "falsePositivePenalty": 12
+          },
+          "liveVisualScore": null,
+          "liveDynamic": null,
+          "liveMissingSignals": [],
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
+          "liveSceneRenderPacket": "",
+          "liveSceneRenderEntityCount": 0,
+          "liveSceneRenderSpatialHash": "",
+          "liveSceneObjectUniforms": "",
+          "liveSceneObjectIdentities": "",
+          "liveSceneRenderPacketIdentities": [],
+          "liveProofRequired": true,
+          "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 11,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "kind": "custom",
+      "prompt": "warehouse fire in a stairwell",
+      "expectedSignals": [
+        "thermal"
+      ],
+      "phaseScores": {
+        "runtime": 96,
+        "languageGraph": 100,
+        "retrieval": 84,
+        "activationFusion": 100,
+        "groundedIntent": 96,
+        "simulationCompile": 92,
+        "visualIR": 72,
+        "webgpu": 68,
+        "sceneProof": 68
+      },
+      "pipelineScore": 68,
+      "weakestPhase": "webgpu",
+      "failures": [
+        "visualIR:atoms=3 signalCoverage=100%",
+        "webgpu:live WebGPU proof required; static VisualIR proxy capped",
+        "sceneProof:live scene proof required; static settlement proxy capped"
+      ],
+      "hardFailure": false,
+      "diversitySignature": {
+        "schema": "simulatte.pipelineDiversitySignature.v1",
+        "prompt": "warehouse fire in a stairwell",
+        "sceneKind": "fire",
+        "sceneMix": [
+          1,
+          0,
+          0,
+          0,
+          0.6256,
+          0,
+          0,
+          0,
+          0,
+          0.2944,
+          0,
+          0,
+          0,
+          0.92,
+          0,
+          0
+        ],
+        "visualLayers": [
+          0,
+          0,
+          0.7296,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0.5472,
+          0,
+          0.92,
+          0,
+          0,
+          0,
+          0.92,
+          0.92,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "atomUniforms": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0.92,
+          0,
+          0,
+          0.76,
+          0.76,
+          0.84,
+          0,
+          0,
+          0.39
+        ],
+        "spatialLayout": [
+          0.25,
+          0.25,
+          0.25,
+          0,
+          0.25,
+          0.25,
+          0,
+          0,
+          0.5,
+          0.25,
+          0.25,
+          0,
+          0.75,
+          0.5,
+          0,
+          0,
+          0.25,
+          0.5,
+          0,
+          0,
+          0.5,
+          0.75,
+          0,
+          0,
+          0.5,
+          0.25,
+          0,
+          0,
+          0.5,
+          0.75,
+          0.75,
+          0.5
+        ],
+        "drawableCount": 39,
+        "animationKinds": [
+          "impulse-and-contact-ghosts",
+          "plume-rise",
+          "rising-plume-and-isobands",
+          "state-pulse",
+          "streamline-advection"
+        ],
+        "identityCategories": [
+          "field",
+          "instrument",
+          "medium",
+          "network",
+          "process"
+        ],
+        "renderClasses": [
+          "causal-affordance",
+          "detector-geometry",
+          "material-surface",
+          "optical-field",
+          "process-pulse",
+          "thermal-field"
+        ],
+        "layerSlots": [
+          "causal-affordance",
+          "detector-geometry",
+          "material-surface",
+          "optical-field",
+          "process-pulse",
+          "thermal-field"
+        ],
+        "identities": [
+          "field",
+          "fire",
+          "instrument",
+          "motion",
+          "network-node",
+          "process",
+          "water"
+        ],
+        "operatorTypes": [
+          "heat_source",
+          "heat_transfer",
+          "reaction_diffusion"
+        ],
+        "behaviorProcesses": [
+          "heat_transfer"
+        ],
+        "atomIds": [
+          "boundary-crawl",
+          "buoyant-rise",
+          "charred-surface",
+          "combustion-front",
+          "composition-topology-cutaway",
+          "crystal-skin",
+          "droplet-front",
+          "droplet-release",
+          "ember-shear",
+          "emissive-boundary",
+          "emissive-flame",
+          "emissive-hot",
+          "flame-front-volume",
+          "fuel-bed-surface",
+          "heat-shimmer",
+          "heatmap-isobands",
+          "latent-heat-band",
+          "latent-heat-exchange",
+          "phase-boundary-sheet",
+          "phase-change-boundary",
+          "phase-fraction-field",
+          "phase-front",
+          "reaction-heat-field",
+          "smoke-column",
+          "smoke-rise",
+          "soot-density-field",
+          "soot-transport",
+          "surface-phase-boundary",
+          "thermal-diffusion-front",
+          "thermal-glow-gradient",
+          "thermal-vector-fan",
+          "transparent-phase",
+          "transparent-vapor",
+          "visual.operator.heat-transfer.v1",
+          "visual.operator.phase-transition.v1",
+          "visual.operator.thermal-combustion.v1",
+          "volume-vapor-plume"
+        ],
+        "motionAtoms": [
+          "boundary-crawl",
+          "buoyant-rise",
+          "droplet-release",
+          "ember-shear",
+          "heat-shimmer",
+          "smoke-rise"
+        ],
+        "evidence": {
+          "phase2Terms": [
+            "coexists",
+            "fire",
+            "stairwell",
+            "warehouse"
+          ],
+          "phase3PromptCandidates": [
+            "air air gas atmosphere wind pressure material air pressure fluid-advection diffusion",
+            "fire",
+            "fire flame combustion burning fuel smoke heat light ignition ember blaze",
+            "fire plasma fire plasma ionized hot flame glow material fire-plasma fire plasma combustion heat-transfer radiation",
+            "logistics warehouse inventory supply chain route hub transport port delivery",
+            "stairwell",
+            "warehouse",
+            "warehouse fire"
+          ],
+          "phase4GroundedComponents": [
+            "air",
+            "burn",
+            "fire",
+            "fire-front",
+            "fire-plasma",
+            "logistics-node",
+            "stairwell",
+            "warehouse",
+            "warehouse fire"
+          ]
+        },
+        "genome": {
+          "id": "vg_deeijn",
+          "seed": 810252131,
+          "palette": {
+            "hue": 52,
+            "accentHue": 148,
+            "shadowHue": 268,
+            "warmth": 0.72,
+            "contrast": 0.72,
+            "lightness": 0.5
+          },
+          "morphology": {
+            "layoutMode": "section",
+            "textureKind": "grain-scan",
+            "strokeWeight": 1.989,
+            "grain": 0.631,
+            "bandCount": 12,
+            "particleDensity": 88,
+            "flowCurl": 0.609,
+            "objectScale": 1.127,
+            "fieldComplexity": 16,
+            "asymmetry": 0.677
+          },
+          "motifs": [
+            "ember-shear",
+            "smoke-strata",
+            "charred-edges",
+            "architectural-grid",
+            "occluded-windows",
+            "structural-silhouette"
+          ],
+          "semanticVisualIds": [
+            "archetype.built-enclosure",
+            "archetype.machine-assembly",
+            "archetype.operations-network",
+            "archetype.weather-system",
+            "material.concrete",
+            "material.fire",
+            "material.plant",
+            "process.burn",
+            "process.melt"
+          ],
+          "visualDialect": "fire/structure-fire",
+          "compositionTopology": "cutaway",
+          "cameraArchetype": "section-elevation",
+          "scaleTier": "architectural"
+        },
+        "live": {
+          "hash": "",
+          "hashKind": "",
+          "canvasHash": ""
+        }
+      },
+      "phaseDetails": {
+        "runtime": {
+          "compileError": "",
+          "hasSpec": true,
+          "hasWorker": true,
+          "hasRenderer": true,
+          "hasWebGpuRenderer": true,
+          "phaseSchemas": {
+            "phase1": "simulatte.phase1.output.v1",
+            "phase2": "simulatte.phase2.output.v1",
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2",
+            "phase7": ""
+          }
+        },
+        "languageGraph": {
+          "tokenCount": 5,
+          "spanCount": 3,
+          "clauseCount": 1,
+          "predicateFrameCount": 1,
+          "termCoverage": 1
+        },
+        "retrieval": {
+          "evidenceCount": 9,
+          "semanticRag": "simulatte.semanticRag.v1",
+          "synthesis": "simulatte.embeddingGuidedGraphSynthesis.v1",
+          "termCoverage": 1,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "thermal"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid",
+              "network"
+            ],
+            "falsePositivePenalty": 8
+          }
+        },
+        "activationFusion": {
+          "activationCount": 66,
+          "acceptedActivationCount": 43,
+          "directSignalCount": 3,
+          "ledgerObligationCount": 5,
+          "obligationVerdictCount": 5,
+          "settledVerdictCount": 5,
+          "adjudicationCoverage": 1,
+          "claimIntegrity": 1,
+          "verdictBuckets": {
+            "strongly-supported": 2,
+            "supported": 1,
+            "missing": 2
+          },
+          "sampleVerdict": {
+            "schema": "simulatte.obligationVerdict.v1",
+            "obligationId": "entity:warehouse",
+            "kind": "object",
+            "target": "warehouse",
+            "required": true,
+            "inferred": false,
+            "verdict": "strongly-supported",
+            "supportStrength": 0.88,
+            "provenance": [
+              {
+                "candidateId": "open-warehouse-fire-1",
+                "candidateType": "primitive",
+                "supportStrength": 0.88
+              },
+              {
+                "candidateId": "surface-warehouse-1",
+                "candidateType": "primitive",
+                "supportStrength": 0.7708
+              },
+              {
+                "candidateId": "logistics-node",
+                "candidateType": "primitive",
+                "supportStrength": 0.74
+              },
+              {
+                "candidateId": "warehouse",
+                "candidateType": "primitive",
+                "supportStrength": 0.74
+              }
+            ],
+            "negationConflict": false
+          },
+          "evidenceConflictCount": 0,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "thermal"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "groundedIntent": {
+          "acceptedActivationCount": 43,
+          "evidenceBindingCount": 49,
+          "causalEdgeCount": 3,
+          "visualAffordanceCount": 3,
+          "coverageGapCount": 0,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "thermal"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid"
+            ],
+            "falsePositivePenalty": 4
+          }
+        },
+        "simulationCompile": {
+          "universeNodeCount": 4,
+          "physicsEntityCount": 4,
+          "operatorCount": 9,
+          "solverStepCount": 9,
+          "channelCount": 26,
+          "termCoverage": 1,
+          "geometrySpecificity": 0.75,
+          "topologySpecificity": 0.75,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "thermal"
+            ],
+            "missing": [],
+            "unexpected": [],
+            "falsePositivePenalty": 0
+          }
+        },
+        "visualIR": {
+          "sceneKind": "fire",
+          "entityCount": 8,
+          "materialCount": 21,
+          "fieldCount": 7,
+          "processCount": 16,
+          "geometryCount": 21,
+          "motionCount": 25,
+          "renderInstanceCount": 48,
+          "acceptedRenderInstanceCount": 48,
+          "sourceLinkedRenderInstanceCount": 48,
+          "rejectedRowCount": 17,
+          "mappingCount": 3,
+          "languageSignalCount": 36,
+          "uniformSlots": [
+            "thermal",
+            "combustion",
+            "phase",
+            "motion",
+            "density",
+            "emission",
+            "surface"
+          ],
+          "visualSpecificity": 0.7142857142857143,
+          "signalCoverage": {
+            "coverage": 1,
+            "found": [
+              "thermal"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid",
+              "optical",
+              "biological",
+              "chemical",
+              "network",
+              "instrument"
+            ],
+            "falsePositivePenalty": 24
+          }
+        },
+        "webgpu": {
+          "sceneKind": "fire",
+          "shaderUsesVisualIR": false,
+          "shaderUsesAtomUniforms": true,
+          "shaderUsesSceneRenderPacket": true,
+          "rendererRejectsSemanticInference": true,
+          "atomUniformCount": 7,
+          "sceneRenderPacket": "simulatte.sceneRenderPacket.v1",
+          "sceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+          "sceneRenderPacketEntityCount": 8,
+          "sceneRenderPacketFieldCount": 7,
+          "sceneRenderPacketEffectCount": 24,
+          "sceneRenderPacketSpatialRatio": 1,
+          "sceneRenderPacketIdentityRatio": 1,
+          "sceneRenderPacketIdentities": [
+            "instrument",
+            "fire",
+            "stairwell",
+            "water",
+            "combustion front that turns fuel into heat, light, and smoke",
+            "network-node"
+          ],
+          "structuralCoverage": 1,
+          "staticSignalCoverage": {
+            "coverage": 1,
+            "found": [
+              "thermal"
+            ],
+            "missing": [],
+            "unexpected": [
+              "fluid",
+              "optical",
+              "network",
+              "instrument"
+            ],
+            "falsePositivePenalty": 16
+          },
+          "liveVisualScore": null,
+          "liveDynamic": null,
+          "liveMissingSignals": [],
+          "livePhase7Input": "",
+          "liveRenderExecutionInput": "",
+          "liveSceneRenderPacketInput": "",
+          "liveSceneRenderPacket": "",
+          "liveSceneRenderEntityCount": 0,
+          "liveSceneRenderSpatialHash": "",
+          "liveSceneObjectUniforms": "",
+          "liveSceneObjectIdentities": "",
+          "liveSceneRenderPacketIdentities": [],
+          "liveProofRequired": true,
+          "evidenceMode": "compiled-static-visual-ir-proof"
+        },
+        "sceneProof": {
+          "obligationCount": 6,
+          "structuralCoverage": 1,
+          "liveVerdict": "",
+          "liveLostCount": 0,
+          "evidenceMode": "compiled-static-proxy"
+        }
+      }
+    }
+  ],
+  "reportPath": "/Users/xyz/deco/simulatte/artifacts/simulatte-pipeline-audit/static-score/runs/2026-07-10T11-46-55-883Z-c08155ee4a/report.json"
+}

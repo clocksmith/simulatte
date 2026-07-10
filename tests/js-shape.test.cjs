@@ -425,17 +425,25 @@ test('pipeline audit records phase scores, baselines, and regressions', () => {
   const summary = fs.readFileSync(path.join(root, 'tools', 'summarize-pipeline-audit.mjs'), 'utf8');
   const compare = fs.readFileSync(path.join(root, 'tools', 'compare-pipeline-audit.mjs'), 'utf8');
 
-  assert.equal(pkg.scripts['audit:pipeline'], 'node tools/audit-pipeline.mjs');
+  assert.equal(
+    pkg.scripts['audit:pipeline'],
+    'node tools/audit-pipeline.mjs --intent-mode model --profile-dir artifacts/model-cache-profile'
+  );
+  assert.equal(pkg.scripts['audit:pipeline:local'], 'node tools/audit-pipeline.mjs --intent-mode local');
   assert.equal(pkg.scripts['audit:pipeline:score'], 'node tools/audit-pipeline-score.mjs');
-  assert.equal(pkg.scripts['audit:pipeline:baseline'], 'node tools/audit-pipeline-score.mjs --write-baseline');
+  assert.equal(
+    pkg.scripts['audit:pipeline:baseline'],
+    'node tools/audit-pipeline.mjs --intent-mode model --profile-dir artifacts/model-cache-profile --write-baseline'
+  );
   assert.equal(pkg.scripts['audit:pipeline:summary'], 'node tools/summarize-pipeline-audit.mjs');
   assert.equal(pkg.scripts['audit:pipeline:compare'], 'node tools/compare-pipeline-audit.mjs');
   assert.match(wrapper, /audit-intent-scene-screenshots\.mjs/);
   assert.match(wrapper, /audit-pipeline-score\.mjs/);
   assert.match(wrapper, /--live-report/);
-  assert.match(wrapper, /--out', SCORE_OUT_DIR/);
-  assert.match(wrapper, /simulatte-pipeline-audit', 'live-webgpu/);
-  assert.match(wrapper, /simulatte-pipeline-audit', 'live-score/);
+  assert.match(wrapper, /function outputDirsFor/);
+  assert.match(wrapper, /intentMode: 'model'/);
+  assert.match(wrapper, /AUDIT_DIR, 'live-webgpu'/);
+  assert.match(wrapper, /AUDIT_DIR, 'live-score'/);
   assert.match(wrapper, /function promptArgsFrom/);
   assert.match(wrapper, /\.\.\.extraPromptArgs/);
   assert.match(wrapper, /'dogs and cats swimming'/);
@@ -453,6 +461,9 @@ test('pipeline audit records phase scores, baselines, and regressions', () => {
   assert.match(scorer, /weakestPhase/);
   assert.match(scorer, /history\.jsonl/);
   assert.match(scorer, /baseline\.json/);
+  assert.match(scorer, /simulatte\.diversityPolicy\.v1/);
+  assert.match(scorer, /requiredLiveProof/);
+  assert.match(scorer, /process\.exitCode = 1/);
   assert.match(scorer, /scoreLanguageGraph/);
   assert.match(scorer, /scoreWebGpu/);
   assert.match(scorer, /const phaseArtifacts = spec && spec\.phaseArtifacts \|\| \{\}/);
@@ -593,8 +604,11 @@ test('physics renderer is a browser coordinator, not a legacy Canvas2D painter l
   assert.match(runtimeProgress, /function phaseForStage/);
   assert.match(runtimeProgress, /function createRuntimeStripObserver/);
   assert.match(renderer, /if \(simulationVisible && webGpuRenderer\)/);
-  assert.match(renderer, /webGpuRenderer\.render\(createRenderExecutionInput\(spec, state, canvas\), now\)/);
-  assert.match(renderer, /webGpuRenderer\.setRenderExecutionInput\(createRenderExecutionInput\(spec, state, canvas\)\)/);
+  assert.match(renderer, /let renderExecutionInput = null/);
+  assert.match(renderer, /const refreshRenderExecutionInput = \(\) =>/);
+  assert.match(renderer, /webGpuRenderer\.render\(input, now\)/);
+  assert.match(renderer, /webGpuRenderer\.setRenderExecutionInput\(nextRenderExecutionInput\)/);
+  assert.doesNotMatch(renderer, /webGpuRenderer\.render\(createRenderExecutionInput\(spec, state, canvas\), now\)/);
   assert.doesNotMatch(renderer, /function drawSimulation/);
   assert.doesNotMatch(renderer, /function drawMaterialContinuumField/);
   assert.doesNotMatch(renderer, /function paint[A-Z][A-Za-z]+World/);
@@ -710,26 +724,18 @@ test('home prompt shuffle stays consistent between HTML and catalog', () => {
   assert.doesNotMatch(catalog, /id: 'lava-turbine'|id: 'fracture-tower'/);
 });
 
-test('Doppler residual intent has a strict static contract and no network dependency', () => {
+test('Doppler residual intent cannot select a model outside the numbered runtime lock', () => {
   const runtime = runtimeSource('simulatte-doppler-intent.js');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  const oldRuntimePath = path.join(root, 'public', 'doppler', 'src', 'index-browser.js');
-  const oldRuntime = fs.readFileSync(oldRuntimePath, 'utf8');
 
   assert.match(runtime, /simulatte\.dopplerIntentHints\.v1/);
   assert.match(runtime, /normalizeDopplerIntent/);
-  assert.match(runtime, /strictPrompt/);
-  assert.match(runtime, /importDopplerModule/);
-  assert.match(runtime, /chatText/);
-  assert.match(runtime, /DEFAULT_MODULE_URL = '\.\/vendor\/doppler\/src\/index-browser\.js'/);
-  assert.match(runtime, /DEFAULT_KERNEL_BASE_PATH = '\.\/vendor\/doppler\/src\/gpu\/kernels'/);
-  assert.match(runtime, /ensureDopplerKernelBasePath/);
-  assert.match(runtime, /ensureDopplerKernelBasePath\(options\.dopplerKernelBasePath \|\| urlValue\('dopplerKernelBase'\)\);\n    const moduleApi = options\.dopplerModule \|\| globalDopplerModule\(\) \|\| await importDopplerModule\(options\);/);
-  assert.doesNotMatch(runtime, /DEFAULT_MODULE_URL = '\/doppler\/src\/index-browser\.js'/);
+  assert.match(runtime, /numbered model runtime lock owns all Doppler model execution/);
+  assert.match(runtime, /assertNoModelExecutionOptions/);
+  assert.doesNotMatch(runtime, /importDopplerModule|chatText|DEFAULT_MODULE_URL|DEFAULT_KERNEL_BASE_PATH/);
+  assert.doesNotMatch(runtime, /urlValue|urlFlag|new URLSearchParams/);
   assert.doesNotMatch(runtime, /http:|https:/);
-  assert.match(oldRuntime, /\.\.\/\.\.\/vendor\/doppler\/src\/index-browser\.js/);
   assert.match(html, /simulatte-doppler-intent\.js/);
-  assert.match(html, /__DOPPLER_KERNEL_BASE_PATH__/);
 });
 
 test('vendored Doppler shader cache resolves kernels beside the loaded module', () => {
@@ -1522,7 +1528,7 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /phase7PixelProofStatus/);
   assert.match(tool, /phase7PixelVisibleSampleCount/);
   assert.match(tool, /phase7PixelSampledObligations/);
-  assert.match(tool, /Phase 7 pixel readback failed/);
+  assert.match(tool, /Phase 7 pixel readback is/);
   assert.match(tool, /Phase 7 renderExecutionInput dataset is/);
   assert.match(tool, /simulatte\.renderExecutionInput\.v1/);
 	  assert.match(tool, /phaseArtifactSchemas/);
@@ -1533,7 +1539,7 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
 	  assert.match(tool, /phaseArtifactSchemas\.phase7 = canvas && canvas\.dataset \? canvas\.dataset\.phase7Output \|\| '' : ''/);
 	  assert.match(tool, /sceneProofError/);
 	  assert.match(tool, /Phase 8 output is/);
-	  assert.match(tool, /Scene Proof errored/);
+	  assert.match(tool, /Scene Proof verdict is/);
 	  assert.match(tool, /const visualIR = phase6VisualCompile && phase6VisualCompile\.visualIR \|\| null/);
   assert.match(tool, /const sceneRenderPacket = phase6VisualCompile && phase6VisualCompile\.sceneRenderPacket \|\| null/);
   assert.doesNotMatch(tool, /program && program\.visualIR/);
@@ -1621,8 +1627,10 @@ test('browser product exposes compiled world model receipts', () => {
   assert.match(renderer, /function worldModelSnapshot/);
   assert.match(renderer, /simulatte\.visibleWorldModelReceipt\.v1/);
   assert.match(renderer, /templateId: spec\.templateId/);
-  assert.match(renderer, /rendererPlan: spec\.renderProgram\.rendererPlan/);
-  assert.match(renderer, /visualIR: spec\.renderProgram\.visualIR/);
+  assert.match(renderer, /function renderProgramPreviewPlan/);
+  assert.match(renderer, /function renderProgramPreviewVisualIR/);
+  assert.match(renderer, /rendererPlan: renderProgramPreviewPlan\(spec\.renderProgram\.rendererPlan\)/);
+  assert.match(renderer, /visualIR: renderProgramPreviewVisualIR\(spec\.renderProgram\.visualIR\)/);
   assert.match(lab, /document\.readyState === 'loading'/);
   assert.match(lab, /startWhenReady\(\)/);
   assert.match(auditTool, /window\.SimulatteStartPhysicsLab\(\)/);
@@ -1837,11 +1845,14 @@ test('WebGPU scene id and operator contracts cover emitted visual artifacts', ()
   assert.deepEqual(unusedFns, []);
 });
 
-test('physics graph updates log intent and composition debug data by default', () => {
+test('physics graph debug data is explicit and does not log every compiled world', () => {
   const renderer = runtimeSource('prompt-controller.js');
 
   assert.match(renderer, /logGraphDebug\(spec\)/);
+  assert.match(renderer, /function graphDebugEnabled/);
+  assert.match(renderer, /__SIMULATTE_GRAPH_DEBUG__ === true/);
   assert.match(renderer, /function logGraphDebug/);
+  assert.match(renderer, /if \(!graphDebugEnabled\(\)/);
   assert.match(renderer, /console\.groupCollapsed/);
   assert.match(renderer, /\[simulatte\.graph\]/);
   assert.match(renderer, /console\.log\('intentReceipt'/);
@@ -2040,14 +2051,15 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'firebase.json'), 'utf8'));
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const deployCheck = fs.readFileSync(path.join(root, 'tools', 'check-deploy-surface.mjs'), 'utf8');
+  const modelLockUtils = fs.readFileSync(path.join(root, 'tools', 'model-runtime-lock-utils.mjs'), 'utf8');
   const headers = config.hosting.headers;
   assert.equal(config.hosting.predeploy, 'npm run check:deploy && npm run stamp:build');
-  assert.equal(pkg.scripts['check:deploy'], 'node tools/check-deploy-surface.mjs');
+  assert.equal(pkg.scripts['check:model-lock'], 'node tools/check-model-runtime-lock.mjs');
+  assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && node tools/check-deploy-surface.mjs');
   assert.match(deployCheck, /public\/vendor\/doppler/);
-  assert.match(deployCheck, /name: 'doppler-gpu'/);
-  assert.match(deployCheck, /version: '0\.4\.7'/);
-  assert.match(deployCheck, /integrity: 'sha512-D0\+RebGvabiacHk39Jerm\+56Slq6kSl4fnjgbxMBp7T\/Jis17ZDcQzbmkDyFUcNWAWZL7jOuzKSOHxPVufg1dQ=='/);
-  assert.match(deployCheck, /fileCount: 1701/);
+  assert.match(deployCheck, /readModelRuntimeLock/);
+  assert.match(modelLockUtils, /model-runtime-lock\.json/);
+  assert.match(deployCheck, /MODEL_RUNTIME_LOCK\.doppler/);
   assert.match(deployCheck, /npm', \[\n\s+'pack',/);
   assert.match(deployCheck, /vendor file contents differ from the published Doppler package/);
   assert.doesNotMatch(deployCheck, /git', \['status', '--porcelain=v1'/);
@@ -2084,15 +2096,47 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
     path.join(root, 'public', 'vendor', 'doppler', 'src', 'client', 'runtime', 'model-source.js'),
     'utf8'
   );
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const rawManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const modelRuntimeLock = JSON.parse(fs.readFileSync(
+    path.join(root, 'public', 'data', 'simulatte-embedder', 'model-runtime-lock.json'),
+    'utf8'
+  ));
+  const manifest = {
+    ...rawManifest,
+    embedModel: modelRuntimeLock.embedding,
+    reranker: modelRuntimeLock.reranker,
+    retrieval: {
+      ...rawManifest.retrieval,
+      dimensions: modelRuntimeLock.embedding.dimensions,
+      cards: { ...rawManifest.retrieval.cards, dimensions: modelRuntimeLock.embedding.dimensions },
+      universe: { ...rawManifest.retrieval.universe, dimensions: modelRuntimeLock.embedding.dimensions },
+    },
+    runtime: {
+      ...modelRuntimeLock.runtime,
+      moduleUrl: modelRuntimeLock.doppler.moduleUrl,
+      runtimeConfig: modelRuntimeLock.embedding.runtimeConfig,
+    },
+    runtimeOrder: modelRuntimeLock.runtimeOrder,
+    cache: modelRuntimeLock.cache,
+  };
   const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
   const cardIndex = JSON.parse(fs.readFileSync(cardIndexPath, 'utf8'));
-  const universeManifest = JSON.parse(fs.readFileSync(universeManifestPath, 'utf8'));
+  const rawUniverseManifest = JSON.parse(fs.readFileSync(universeManifestPath, 'utf8'));
+  const universeManifest = { ...rawUniverseManifest, embedModel: modelRuntimeLock.embedding };
   const packedBytes = Buffer.from(index.embeddingsPackedBase64, 'base64');
   const cardPackedBytes = Buffer.from(cardIndex.embeddingsPackedBase64, 'base64');
 
-  assert.equal(manifest.schema, 'simulatte.modelBackedEmbedderManifest.v2');
-  assert.equal(manifest.id, 'simulatte-qwen-3-embedding-0-6b-primitive-retrieval-v1');
+  assert.equal(manifest.schema, 'simulatte.modelBackedEmbedderManifest.v3');
+  assert.equal(manifest.id, 'simulatte-model-backed-intent-retrieval-v1');
+  assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
+  assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
+  assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
+  assert.equal(modelRuntimeLock.number, 1);
+  assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
+  assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
+	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
+	  assert.equal(Object.hasOwn(rawManifest, 'runtimeOrder'), false);
+	  assert.equal(Object.hasOwn(rawManifest, 'cache'), false);
 	  assert.equal(manifest.retrieval.kind, 'precomputed-primitive-index');
 	  assert.equal(manifest.retrieval.artifact, './primitive-index-v2.json');
 	  assert.equal(manifest.retrieval.artifactHash.hex, '1053238b844833b5f157f9519fdbc3a2c6aaa4581b4fd134affd30a0158fd791');
@@ -2103,7 +2147,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	  assert.equal(manifest.retrieval.cards.artifactHash.hex, 'feddce7cfdff749402bbad7aa22f4be65a919d3c26c7bf3d43b8cd4e514c5b81');
 	  assert.equal(manifest.retrieval.cards.dimensions, 1024);
 	  assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
-	  assert.equal(manifest.retrieval.intentEvidence.artifactHash.hex, 'e2f32836bdeb252dc589195974bf655813404e49744cee7ad6df373c1cbf3061');
+	  assert.equal(manifest.retrieval.intentEvidence.artifactHash.hex, '65774f5f85396221c42233d2da8fcffff09222215b4408a0d41cd6cb2b585064');
 	  assert.equal(manifest.retrieval.slotLevel.schema, 'simulatte.slotLevelEmbeddingConfig.v1');
 	  assert.equal(manifest.retrieval.slotLevel.mode, 'typed-scene-slot-embedding-rerank');
 	  assert.equal(manifest.retrieval.slotLevel.primitiveRankBackend, 'auto');
@@ -2145,7 +2189,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
-  assert.equal(manifest.runtime.moduleUrl, './vendor/doppler/src/index-browser.js');
+  assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index-browser.js');
   assert.equal(manifest.runtime.queryEmbeddingMode, 'mean');
   assert.notEqual(manifest.runtime.queryEmbeddingMode, 'last');
   assert.equal(manifest.runtime.embeddingText.schema, 'simulatte.embeddingTextContract.v1');
@@ -2177,7 +2221,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(embeddingConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_decode.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
-  assert.equal(manifest.cache.namespace, 'simulatte-qwen-3-embedding-0-6b-primitive-retrieval-v1');
+  assert.equal(manifest.cache.namespace, 'simulatte-doppler-qwen-runtime-lock-1');
   assert.equal(manifest.cache.owner, 'doppler');
   assert.equal(manifest.cache.prefetch, false);
   assert.equal(manifest.cache.strategy, 'doppler-managed');
@@ -2208,6 +2252,8 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(universeManifest.embedModel.id, manifest.embedModel.id);
   assert.equal(universeManifest.embedModel.dimensions, manifest.embedModel.dimensions);
   assert.equal(universeManifest.embedModel.manifestHash.hex, manifest.embedModel.manifestHash.hex);
+  assert.equal(rawUniverseManifest.modelRuntimeLock.id, modelRuntimeLock.id);
+  assert.equal(rawUniverseManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(Object.hasOwn(manifest, 'fallback'), false);
   assert.equal(fs.existsSync(retiredEmbeddingGemmaCardIndexPath), false);
   assert.equal(fs.existsSync(retiredCardIndexPath), false);
@@ -2216,10 +2262,10 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(runtime, /navigator\.gpu/);
   assert.match(runtime, /runtimeConfig/);
   assert.match(runtime, /manifestUrl/);
-  assert.match(runtime, /DEFAULT_DOPPLER_KERNEL_BASE_PATH = '\.\/vendor\/doppler\/src\/gpu\/kernels'/);
-  assert.match(runtime, /dopplerKernelBasePath/);
+  assert.match(runtime, /MODEL_RUNTIME_LOCK_SCHEMA = 'simulatte\.modelRuntimeLock\.v1'/);
+  assert.match(runtime, /model runtime lock forbids source overrides/);
   assert.match(runtime, /ensureDopplerKernelBasePath/);
-  assert.match(runtime, /ensureDopplerKernelBasePath\(options\.kernelBasePath\);\n\s*const direct = options\.dopplerModule \|\| globalDopplerApi\(\);/);
+  assert.match(runtime, /ensureDopplerKernelBasePath\(options\.kernelBasePath\);\n\s*const direct = options\.dopplerModule \|\| null;/);
   assert.match(runtime, /model-backed intent requires Doppler load/);
   assert.match(runtime, /primitive embedding index/);
   assert.match(runtime, /surface card embedding index/);

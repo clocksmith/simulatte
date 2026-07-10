@@ -311,7 +311,7 @@
         if (/wake[-_ ]?ripple|wake_generation|agent[-_ ]?wake|ripple[-_ ]?trail/.test(text)) return 'flow-field';
         if (/partial[-_ ]?submersion|partial_submersion|submersion[-_ ]?mask|waterline|body_water_contact/.test(text)) return 'process-pulse';
         if (/swim[-_ ]?pose|swim[-_ ]?stroke|swim[-_ ]?cycle|fluid_locomotion/.test(text) && (type === 'process' || type === 'motion')) return 'process-pulse';
-        if (networkScene && /\b(flow[-_ ]?path|flow|fluid|field|route|routing|queue|network|packet|traffic|backlog|throughput)\b/.test(text)) {
+        if (networkScene && /\b(flow[-_ ]?path|flows?|fluid|field|route|routing|queue|network|packet|traffic|backlog|throughput)\b/.test(text)) {
           return /\b(node|nodes|graph)\b/.test(text) ? 'node-graph' : 'network-flow';
         }
         if (/thermal|heat|combust|flame|fire|smoke|soot|plasma/.test(text)) return 'thermal-field';
@@ -328,7 +328,7 @@
             : 'node-graph';
         }
         if (/\b(track|tracks|trajectory|muon|collider|particle[-_ ]?track|particle[-_ ]?instrument)\b/.test(text)) return 'track-line';
-        if (/water|fluid|flow|ripple|volume-ribbon/.test(text)) return 'water-volume';
+        if (/water|fluid|ripple|volume-ribbon/.test(text)) return 'water-volume';
         if (/optical|ray|caustic|spectral/.test(text)) return 'optical-field';
         if (/field|scalar|vector|pressure|force/.test(text)) return 'field-sheet';
         if (/robot|gripper|servo/.test(text)) return 'robot-armature';
@@ -556,8 +556,10 @@
         return 'bench';
       }
 
-    function visualCameraForScene(sceneKind, recipe, entities) {
+    function visualCameraForScene(sceneKind, recipe, entities, visualGenome = null) {
         const scale = visualScaleForScene(sceneKind, entities);
+        const scaleTier = visualGenome && visualGenome.scaleTier || scale;
+        const archetype = visualGenome && visualGenome.cameraArchetype || '';
         const mode = recipe && recipe.camera ||
           (scale === 'micro' ? 'microscopic-cutaway-depth'
             : scale === 'orbital' ? 'orbital-depth'
@@ -567,6 +569,8 @@
         return {
           mode,
           scale,
+          scaleTier,
+          archetype,
           framing: /network|system|map/.test(mode) ? 'wide-system' : /micro/.test(mode) ? 'macro-detail' : 'explanatory-three-quarter',
           depth: /depth|cutaway|orbital/.test(mode) ? 'layered' : 'flat',
         };
@@ -625,8 +629,19 @@
         const visualDna = compiledDnaForGenome(compiledText, seed);
         const motifs = genomeMotifs(motifText, sceneKind, genomeObjects, fields);
         const semanticVisuals = semanticVisualsForGenome(compiledText, genomeObjects, fields, sceneKind, seed, tokens);
-        const palette = genomePalette(sceneKind, motifs, seed);
-        const morphology = genomeMorphology(sceneKind, motifs, seed, genomeObjects, fields, visualDna, semanticVisuals);
+        const dialectPlan = visualDialectPlanForGenome({
+          sceneKind,
+          objects: genomeObjects,
+          fields,
+          solverPlan,
+          semanticVisuals,
+        });
+        const visualDialect = dialectPlan.visualDialect;
+        const compositionTopology = dialectPlan.compositionTopology;
+        const scaleTier = dialectPlan.scaleTier;
+        const cameraArchetype = dialectPlan.cameraArchetype;
+        const palette = genomePalette(sceneKind, motifs, seed, dialectPlan.paletteAnchor);
+        const morphology = genomeMorphology(sceneKind, motifs, seed, genomeObjects, fields, visualDna, semanticVisuals, compositionTopology);
         return {
           schema: VISUAL_GENOME_SCHEMA,
           id: `vg_${seed.toString(36).padStart(6, '0')}`,
@@ -634,6 +649,17 @@
           sourceHash: hashProgram(compiledText),
           source: 'compiled-artifact-seeded-procedural',
           sceneKind,
+          visualDialect,
+          compositionTopology,
+          cameraArchetype,
+          scaleTier,
+          evidence: dialectPlan.evidence,
+          dialect: {
+            geometryGrammar: dialectPlan.geometryGrammar,
+            layoutGrammar: dialectPlan.layoutGrammar,
+            motionGrammar: dialectPlan.motionGrammar,
+            paletteAnchor: dialectPlan.paletteAnchor,
+          },
           palette,
           morphology,
           motifs,
@@ -651,11 +677,8 @@
               'material-shader',
               'process-overlay',
               'ngram-dna',
-              'palette',
-              'layout',
               'texture',
               'motif',
-              'scale',
               'field-density',
             ],
           },

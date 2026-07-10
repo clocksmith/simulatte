@@ -10,7 +10,9 @@ import { diversitySignatureForContext, scoreDiversity } from './audit-pipeline-d
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-pipeline-audit');
+const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-pipeline-audit', 'static-score');
+const DEFAULT_DIVERSITY_POLICY_PATH = path.join(ROOT, 'public', 'data', 'simulatte-diversity-policy.json');
+const DIVERSITY_POLICY_SCHEMA = 'simulatte.diversityPolicy.v1';
 const FLOOR = 76;
 const RUBRIC_VERSION = 'phase-floor-76.v1';
 const PROMPT_SET_VERSION = 'core-adversarial-human-v1';
@@ -94,6 +96,7 @@ function parseArgs(argv) {
     includeHuman: true,
     floor: FLOOR,
     liveReport: '',
+    diversityPolicyPath: DEFAULT_DIVERSITY_POLICY_PATH,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -107,6 +110,7 @@ function parseArgs(argv) {
     else if (key === '--no-human') options.includeHuman = false;
     else if (key === '--floor') options.floor = Number(readValue() || FLOOR);
     else if (key === '--live-report') options.liveReport = path.resolve(readValue() || '');
+    else if (key === '--diversity-policy') options.diversityPolicyPath = path.resolve(readValue() || options.diversityPolicyPath);
     else if (key === '--help') {
       console.log([
         'usage: node tools/audit-pipeline-score.mjs [options]',
@@ -118,6 +122,7 @@ function parseArgs(argv) {
         '--no-adversarial       skip adversarial prompt set',
         '--no-human             skip human review prompts',
         '--floor N              phase pass floor, default 76',
+        '--diversity-policy PATH  clean-canvas perceptual-hash floor policy',
         '--out DIR              audit output directory',
       ].join('\n'));
       process.exit(0);
@@ -134,9 +139,15 @@ async function main() {
   const rows = prompts.map((row, index) => scorePrompt(row, index + 1, lab, liveRows, options));
   const phaseScores = aggregatePhaseScores(rows);
   const pipelineScore = minScore(phaseScores);
-  const diversity = scoreDiversity(rows);
+  const diversityPolicy = await readDiversityPolicy(options.diversityPolicyPath);
+  const diversityCalibration = calibrateDiversityPolicy(diversityPolicy, liveRows);
+  const diversity = scoreDiversity(rows, {
+    hashFloor: diversityCalibration.hashFloor,
+    floor: diversityPolicy && diversityPolicy.structuralFloor,
+    requireLiveHash: true,
+  });
   const runId = runIdForReport(rows);
-  const artifactIdentity = auditArtifactIdentity(options);
+  const artifactIdentity = auditArtifactIdentity(options, liveRows);
   const belowFloor = PHASES
     .filter((phase) => Number(phaseScores[phase.id] || 0) < options.floor)
     .map((phase) => phase.id);
@@ -154,40 +165,51 @@ async function main() {
     rubricVersion: RUBRIC_VERSION,
     promptSetVersion: PROMPT_SET_VERSION,
     floor: options.floor,
+    diversityPolicy: diversityPolicy ? { ...diversityPolicy, effectiveCalibration: diversityCalibration } : null,
     measurementMode: options.liveReport ? 'compiled-static-plus-live-visual' : 'compiled-static-live-webgpu-required',
     phaseDefinitions: PHASES,
     promptCount: rows.length,
     phaseScores,
     pipelineScore,
     diversity,
-    verdict: pipelineScore >= options.floor && diversity.verdict === 'pass' ? 'pass' : 'fail',
+    verdict: pipelineScore >= options.floor && diversity.verdict === 'pass' && !rows.some((row) => row.hardFailure) ? 'pass' : 'fail',
     weakestPhase: weakestPhase(phaseScores),
     belowFloor,
     failures: [
       ...rows.flatMap((row) => row.failures.map((failure) => `${row.index}:${failure}`)),
+      ...rows.filter((row) => row.hardFailure).map((row) => `${row.index}:required-live-proof-failed`),
       ...(diversity.verdict === 'pass' ? [] : diversity.closePairs.map((pair) => (
         `diversity:${pair.promptA} <> ${pair.promptB} distance=${pair.distance} hash=${pair.hashDistance ?? 'n/a'}`
       ))),
+      ...(diversity.hashEvidenceReady ? [] : ['diversity:clean-canvas perceptual-hash evidence or policy missing']),
+      ...(diversityCalibration.ready ? [] : [`diversity:calibration ${diversityCalibration.reason}`]),
     ],
     prompts: rows,
   };
   report.reportPath = await writeReport(report, options);
   printSummary(report);
+  if (report.verdict !== 'pass') process.exitCode = 1;
 }
 
-function auditArtifactIdentity(options) {
+function auditArtifactIdentity(options, liveRows = null) {
   const hasLiveReport = Boolean(options.liveReport);
-  const kind = hasLiveReport ? 'live-score' : 'static-score';
+  const intentMode = liveRows && liveRows.auditMetadata && liveRows.auditMetadata.intentMode || '';
+  const canonical = hasLiveReport && intentMode === 'model';
+  const kind = canonical ? 'live-score' : hasLiveReport ? 'local-live-score' : 'static-score';
   return {
     schema: ARTIFACT_IDENTITY_SCHEMA,
     kind,
-    role: hasLiveReport
-      ? 'canonical-pipeline-score-with-live-webgpu'
-      : 'compiled-static-score-proxy',
-    canonical: hasLiveReport,
-    compareGroup: hasLiveReport
+    role: canonical
+      ? 'canonical-model-pipeline-score-with-live-webgpu'
+      : hasLiveReport
+        ? 'local-live-pipeline-score-proxy'
+        : 'compiled-static-score-proxy',
+    canonical,
+    compareGroup: canonical
       ? 'simulatte-pipeline-live-score-v1'
-      : 'simulatte-pipeline-static-score-v1',
+      : hasLiveReport
+        ? 'simulatte-pipeline-local-live-score-v1'
+        : 'simulatte-pipeline-static-score-v1',
     phaseTaxonomyVersion: PHASE_TAXONOMY_VERSION,
     phaseIds: PHASES.map((phase) => phase.id),
     measurementMode: hasLiveReport
@@ -246,12 +268,115 @@ async function readLiveReport(reportPath) {
   if (!fsSync.existsSync(reportPath)) return new Map();
   const report = JSON.parse(await fs.readFile(reportPath, 'utf8'));
   const rows = new Map();
+  rows.auditMetadata = {
+    schema: report.schema || '',
+    intentMode: String(report.intentMode || '').toLowerCase(),
+    target: report.target || '',
+    summaryOk: report.summary && report.summary.ok === true,
+    perceptualHashCalibration: report.summary && report.summary.perceptualHashCalibration || null,
+  };
   for (const result of report.results || []) {
     const prompt = normalize(result.prompt || '');
     if (!prompt) continue;
     rows.set(prompt, result);
   }
   return rows;
+}
+
+async function readDiversityPolicy(policyPath) {
+  if (!policyPath || !fsSync.existsSync(policyPath)) return null;
+  const policy = JSON.parse(await fs.readFile(policyPath, 'utf8'));
+  if (policy.schema !== DIVERSITY_POLICY_SCHEMA) {
+    throw new Error(`diversity policy schema expected ${DIVERSITY_POLICY_SCHEMA}, received ${policy.schema || 'missing'}`);
+  }
+  if (!Number.isFinite(Number(policy.structuralFloor)) || Number(policy.structuralFloor) < 0 || Number(policy.structuralFloor) > 100) {
+    throw new Error('diversity policy structuralFloor must be a number in [0, 100]');
+  }
+  const hashPolicy = policy.hashFloorPolicy || {};
+  if (hashPolicy.method !== 'max-temporal-jitter-plus-one-bit' || Number(hashPolicy.hashBits) !== 64 ||
+    !Number.isInteger(Number(hashPolicy.bitMargin)) || Number(hashPolicy.bitMargin) < 1 ||
+    !Number.isInteger(Number(hashPolicy.minimumPromptCount)) || Number(hashPolicy.minimumPromptCount) < 2) {
+    throw new Error('diversity policy requires a 64-bit clean-canvas temporal-jitter hashFloorPolicy');
+  }
+  return {
+    ...policy,
+    structuralFloor: Number(policy.structuralFloor),
+    hashFloorPolicy: {
+      ...hashPolicy,
+      hashBits: Number(hashPolicy.hashBits),
+      bitMargin: Number(hashPolicy.bitMargin),
+      minimumPromptCount: Number(hashPolicy.minimumPromptCount),
+    },
+  };
+}
+
+function calibrateDiversityPolicy(policy = null, liveRows = null) {
+  const hashPolicy = policy && policy.hashFloorPolicy || {};
+  const hashBits = Number(hashPolicy.hashBits || 64);
+  const bitMargin = Number(hashPolicy.bitMargin || 0);
+  const minimumPromptCount = Number(hashPolicy.minimumPromptCount || 0);
+  const metadata = liveRows && liveRows.auditMetadata || {};
+  const results = liveRows instanceof Map ? Array.from(liveRows.values()) : [];
+  const validHash = (value) => new RegExp(`^[0-9a-f]{${hashBits / 4}}$`, 'i').test(String(value || ''));
+  const rows = results.filter((row) => row && row.canvasDiversityFrameStable === true &&
+    validHash(row.canvasDiversityPerceptualHash) && validHash(row.canvasDiversityPerceptualHashLater));
+  const proofRows = rows.filter((row) => row.sceneProofVerdict === 'pass' &&
+    row.phase7PixelReadback === 'pass' && row.phase7PixelProofStatus === 'pass');
+  const temporalBits = rows.map((row) => perceptualHashBits(row.canvasDiversityPerceptualHash, row.canvasDiversityPerceptualHashLater));
+  const maxTemporalBits = temporalBits.length ? Math.max(...temporalBits) : null;
+  let minPairwiseBits = null;
+  for (let left = 0; left < rows.length; left += 1) {
+    for (let right = left + 1; right < rows.length; right += 1) {
+      const bits = perceptualHashBits(rows[left].canvasDiversityPerceptualHash, rows[right].canvasDiversityPerceptualHash);
+      if (Number.isFinite(bits) && (minPairwiseBits === null || bits < minPairwiseBits)) minPairwiseBits = bits;
+    }
+  }
+  const hashFloorBits = Number.isFinite(maxTemporalBits) ? maxTemporalBits + bitMargin : null;
+  const sourceCalibration = metadata.perceptualHashCalibration || null;
+  const sourceMatches = !sourceCalibration || (
+    Number(sourceCalibration.hashBits) === hashBits &&
+    Number(sourceCalibration.maxTemporalBits) === maxTemporalBits &&
+    Number(sourceCalibration.minPairwiseBits) === minPairwiseBits &&
+    Number(sourceCalibration.recommendedHashFloorBits) === hashFloorBits
+  );
+  let reason = 'ready';
+  if (!policy) reason = 'policy missing';
+  else if (metadata.schema !== 'simulatte.intentSceneScreenshotAudit.v1') reason = 'live screenshot audit missing';
+  else if (results.length < minimumPromptCount) reason = `requires ${minimumPromptCount} live prompts, received ${results.length}`;
+  else if (rows.length !== results.length) reason = 'frozen clean-canvas dHash missing or unstable';
+  else if (proofRows.length !== rows.length) reason = 'live Scene Proof or pixel proof failed';
+  else if (!Number.isFinite(hashFloorBits) || !Number.isFinite(minPairwiseBits)) reason = 'insufficient pairwise dHash evidence';
+  else if (minPairwiseBits <= hashFloorBits) reason = 'closest live dHash pair does not clear temporal-jitter margin';
+  else if (!sourceMatches) reason = 'live report dHash calibration receipt disagrees with recomputed evidence';
+  const ready = reason === 'ready';
+  return {
+    schema: 'simulatte.diversityCalibration.v1',
+    method: hashPolicy.method || '',
+    sourceReportSchema: metadata.schema || '',
+    intentMode: metadata.intentMode || '',
+    promptCount: results.length,
+    usablePromptCount: rows.length,
+    proofPassCount: proofRows.length,
+    hashBits,
+    bitMargin,
+    maxTemporalBits,
+    minPairwiseBits,
+    hashFloorBits,
+    hashFloor: ready ? Number((hashFloorBits / hashBits).toFixed(6)) : null,
+    ready,
+    reason,
+  };
+}
+
+function perceptualHashBits(left = '', right = '') {
+  if (!/^[0-9a-f]{16}$/i.test(String(left)) || !/^[0-9a-f]{16}$/i.test(String(right))) return NaN;
+  let value = BigInt(`0x${left}`) ^ BigInt(`0x${right}`);
+  let bits = 0;
+  while (value) {
+    bits += Number(value & 1n);
+    value >>= 1n;
+  }
+  return bits;
 }
 
 function scorePrompt(row, index, lab, liveRows, options) {
@@ -266,6 +391,7 @@ function scorePrompt(row, index, lab, liveRows, options) {
     compileError = error && error.message ? error.message : String(error);
   }
   const context = buildContext(spec, row.prompt, expectedSignals, contentTerms);
+  const liveResult = liveRows.get(normalize(row.prompt));
   const phaseRows = {
     runtime: scoreRuntime(context, compileError),
     languageGraph: scoreLanguageGraph(context),
@@ -274,13 +400,24 @@ function scorePrompt(row, index, lab, liveRows, options) {
     groundedIntent: scoreGroundedIntent(context),
     simulationCompile: scoreSimulationCompile(context),
     visualIR: scoreVisualIR(context),
-    webgpu: scoreWebGpu(context, liveRows.get(normalize(row.prompt))),
-    sceneProof: scoreSceneProof(context, liveRows.get(normalize(row.prompt))),
+    webgpu: scoreWebGpu(context, liveResult),
+    sceneProof: scoreSceneProof(context, liveResult),
   };
-  const diversitySignature = diversitySignatureForContext(context, liveRows.get(normalize(row.prompt)));
+  const diversitySignature = diversitySignatureForContext(context, liveResult);
   const phaseScores = Object.fromEntries(Object.entries(phaseRows).map(([key, value]) => [key, value.score]));
   for (const [key, value] of Object.entries(phaseRows)) {
     if (value.score < options.floor) failures.push(`${key}:${value.reason}`);
+  }
+  const hardFailure = Boolean(options.liveReport) && (
+    !liveResult ||
+    liveResult.sceneProofVerdict !== 'pass' ||
+    liveResult.phase7PixelReadback !== 'pass' ||
+    liveResult.phase7PixelProofStatus !== 'pass' ||
+    Number(liveResult.phase7PixelRequiredObligationCount || 0) < 1 ||
+    Number(liveResult.phase7PixelSampledObligationCount || 0) !== Number(liveResult.phase7PixelRequiredObligationCount || 0)
+  );
+  if (hardFailure) {
+    failures.push(`requiredLiveProof:sceneProof=${liveResult && liveResult.sceneProofVerdict || 'missing'} pixelReadback=${liveResult && liveResult.phase7PixelReadback || 'missing'} pixelProof=${liveResult && liveResult.phase7PixelProofStatus || 'missing'}`);
   }
   return {
     index,
@@ -291,6 +428,7 @@ function scorePrompt(row, index, lab, liveRows, options) {
     pipelineScore: minScore(phaseScores),
     weakestPhase: weakestPhase(phaseScores),
     failures,
+    hardFailure,
     diversitySignature,
     phaseDetails: Object.fromEntries(Object.entries(phaseRows).map(([key, value]) => [key, value.detail])),
   };

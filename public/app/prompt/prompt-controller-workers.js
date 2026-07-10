@@ -16,37 +16,44 @@
           pending.clear();
         }
 
-        try {
+        function ensureWorker() {
+          if (worker) return worker;
+          if (failed) throw new Error('Pipeline worker unavailable');
           const url = new URL('./app/workers/simulatte-pipeline-worker.js', view.location.href);
           appendBuildVersion(url, view);
-          worker = new view.Worker(url);
-        } catch (error) {
-          return null;
-        }
-
-        worker.addEventListener('message', (event) => {
-          const data = event && event.data || {};
-          if (data.type !== 'simulatte:pipeline-worker:result') return;
-          const entry = pending.get(data.id);
-          if (!entry) return;
-          pending.delete(data.id);
-          if (data.ok) {
-            entry.resolve(data.spec);
-          } else {
-            entry.reject(new Error(data.error || 'Pipeline worker compile failed'));
+          try {
+            worker = new view.Worker(url);
+          } catch (error) {
+            failed = true;
+            throw error;
           }
-        });
-        worker.addEventListener('error', (event) => {
-          rejectAll(new Error(event.message || 'Pipeline worker failed'));
-        });
-        worker.addEventListener('messageerror', () => {
-          rejectAll(new Error('Pipeline worker message clone failed'));
-        });
+          worker.addEventListener('message', (event) => {
+            const data = event && event.data || {};
+            if (data.type !== 'simulatte:pipeline-worker:result') return;
+            const entry = pending.get(data.id);
+            if (!entry) return;
+            pending.delete(data.id);
+            if (data.ok) {
+              entry.resolve(data.spec);
+            } else {
+              entry.reject(new Error(data.error || 'Pipeline worker compile failed'));
+            }
+          });
+          worker.addEventListener('error', (event) => {
+            rejectAll(new Error(event.message || 'Pipeline worker failed'));
+          });
+          worker.addEventListener('messageerror', () => {
+            rejectAll(new Error('Pipeline worker message clone failed'));
+          });
+          return worker;
+        }
 
         return {
           compile(prompt, options) {
-            if (!worker || failed) {
-              return Promise.reject(new Error('Pipeline worker unavailable'));
+            try {
+              ensureWorker();
+            } catch (error) {
+              return Promise.reject(error);
             }
             const id = nextId + 1;
             nextId = id;
@@ -665,12 +672,14 @@
           worldModel,
           intent: spec.intent ? {
             schema: spec.intent.schema,
-            intentBrief: spec.intent.intentBrief || null,
+            intentBrief: compactObject(spec.intent.intentBrief || null, 16),
           } : null,
           intentReceipt: spec.physicalSpec && spec.physicalSpec.receipt
-            ? spec.physicalSpec.receipt.intentBrief || null
+            ? compactObject(spec.physicalSpec.receipt.intentBrief || null, 16)
             : null,
-          semanticRetrievalReceipt: spec.universeGraph ? spec.universeGraph.intentBrief || null : null,
+          semanticRetrievalReceipt: spec.universeGraph
+            ? compactObject(spec.universeGraph.intentBrief || null, 16)
+            : null,
           contract: spec.contract ? {
             layerFocus: spec.contract.layerFocus,
             topLevel: spec.contract.topLevel,
@@ -713,7 +722,7 @@
             operators: spec.physicsIR.operators.map((operator) => operator.type),
             couplings: spec.physicsIR.couplings,
           } : null,
-          validationReceipt: spec.validationReceipt || null,
+          validationReceipt: compactObject(spec.validationReceipt || null, 20),
           solverGraph: spec.solverGraph ? {
             schema: spec.solverGraph.schema,
             channels: Object.keys(spec.solverGraph.channels || {}),
@@ -731,8 +740,8 @@
           } : null,
           renderProgram: spec.renderProgram ? {
             schema: spec.renderProgram.schema,
-            rendererPlan: spec.renderProgram.rendererPlan || null,
-            visualIR: spec.renderProgram.visualIR || null,
+            rendererPlan: renderProgramPreviewPlan(spec.renderProgram.rendererPlan),
+            visualIR: renderProgramPreviewVisualIR(spec.renderProgram.visualIR),
             objects: spec.renderProgram.objects.length,
             relations: spec.renderProgram.relations.length,
             fields: spec.renderProgram.fields.map((field) => field.kind),
@@ -746,11 +755,62 @@
             stateTextures: spec.physicalSpec.stateTextures,
             renderPasses: spec.physicalSpec.renderPasses,
             quality: spec.physicalSpec.quality,
-            receipt: spec.physicalSpec.receipt,
+            receipt: compactObject(spec.physicalSpec.receipt, 20),
           } : null,
           params: Object.fromEntries(Object.entries(spec.params).slice(0, 8)),
           remixOf: spec.remixOf || null,
         }, null, 2);
+      }
+
+    function renderProgramPreviewPlan(plan = null) {
+        if (!plan) return null;
+        const genome = plan.visualGenome || {};
+        return {
+          schema: plan.schema || '',
+          renderer: plan.renderer || '',
+          sceneKind: plan.sceneKind || '',
+          dominantRegime: plan.dominantRegime || '',
+          passOrder: (plan.passOrder || []).slice(0, 12),
+          visualIdentity: compactObject(plan.visualIdentity || {}, 16),
+          visualGenome: {
+            id: genome.id || '',
+            sceneKind: genome.sceneKind || '',
+            visualDialect: genome.visualDialect || '',
+            compositionTopology: genome.compositionTopology || '',
+            cameraArchetype: genome.cameraArchetype || '',
+            scaleTier: genome.scaleTier || '',
+            motifs: (genome.motifs || []).slice(0, 12),
+            evidence: compactObject(genome.evidence || {}, 12),
+          },
+        };
+      }
+
+    function renderProgramPreviewVisualIR(visualIR = null) {
+        if (!visualIR) return null;
+        const packet = visualIR.sceneRenderPacket || {};
+        return {
+          schema: visualIR.schema || '',
+          sceneKind: visualIR.sceneKind || '',
+          scale: visualIR.scale || '',
+          camera: compactObject(visualIR.camera || {}, 12),
+          lighting: compactObject(visualIR.lighting || {}, 12),
+          entities: rowCount(visualIR.entities),
+          materials: rowCount(visualIR.materials),
+          fields: rowCount(visualIR.fields),
+          processes: rowCount(visualIR.processes),
+          geometry: rowCount(visualIR.geometry),
+          motion: rowCount(visualIR.motion),
+          renderInstances: rowCount(visualIR.renderInstances),
+          packet: {
+            schema: packet.schema || '',
+            topology: packet.compositionTopology || '',
+            cameraArchetype: packet.camera && packet.camera.archetype || '',
+            scaleTier: packet.camera && packet.camera.scaleTier || '',
+            entities: rowCount(packet.entities),
+            fields: rowCount(packet.fields),
+            effects: rowCount(packet.effects),
+          },
+        };
       }
 
     function syncWorldModelReceipt(elements, spec) {
@@ -826,6 +886,8 @@
       syncReadoutLabels,
       syncReadouts,
       syncSpecPreview,
+      renderProgramPreviewPlan,
+      renderProgramPreviewVisualIR,
       syncWorldModelReceipt,
     });
   }

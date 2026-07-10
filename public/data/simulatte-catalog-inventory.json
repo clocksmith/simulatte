@@ -2,9 +2,14 @@
   "schema": "simulatte.catalogInventory.v1",
   "id": "simulatte-catalog-inventory-v1",
   "authoringPolicy": "Inventory counts describe hand-written and exported catalog surfaces; catalog examples remain source-authored.",
-  "embedModel": {
-    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-    "dimensions": 1024
+  "modelRuntimeLock": {
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 1,
+    "artifact": "./simulatte-embedder/model-runtime-lock.json",
+    "artifactHash": {
+      "alg": "sha256",
+      "hex": "204dbb02c6f759dee4a62b1ed28f9caa40fd2d242457fecb11cbf3850be5918a"
+    }
   },
   "staticCatalogs": [
     { "id": "primitive-embeddings", "path": "public/data/simulatte-embedder/primitive-index-v2.json", "itemKey": "documents", "expectedCount": 420, "kind": "embedding-index" },

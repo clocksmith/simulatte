@@ -680,7 +680,9 @@
     function modelHandleProvenance(handle, runtime, modelBaseUrl = '') {
         const handleManifest = handle && handle.manifest || {};
         const rawModelId = handle && (handle.modelId || handleManifest.modelId) || '';
-        const rawHash = handleManifest.modelHash || handleManifest.manifestHash || handleManifest.hash || null;
+        const rawHash = handleManifest.modelHash || handleManifest.manifestHash || handleManifest.hash ||
+          handleManifest.meta && handleManifest.meta.hash || null;
+        assertPinnedModelHandle(handle, runtime.manifest.embedModel, 'embedding', modelBaseUrl);
         return normalizeEmbeddingModelProvenance(rawModelId, rawHash, runtime, modelBaseUrl);
       }
 
@@ -691,15 +693,8 @@
         const expectedSource = normalizeModelSource(expectedModel.defaultModelBaseUrl);
         const rawSourceMatches = normalizedSource && expectedSource && normalizedSource === expectedSource;
         const rawIdMatches = String(rawModelId || '') === expectedModel.id;
-        const rawHashMatches = !rawHash || hashHex(rawHash) === hashHex(expectedHash);
-        if (!rawHashMatches) {
-          return {
-            embedModelId: rawModelId,
-            embedModelHash: rawHash,
-            modelSource: { rawModelId, rawEmbedModelHash: rawHash },
-          };
-        }
-        if (!rawModelId || rawSourceMatches || rawIdMatches || (rawHash && rawHashMatches)) {
+        const rawHashMatches = hashHex(rawHash) === hashHex(expectedHash);
+        if (rawHashMatches && (!rawModelId || rawSourceMatches || rawIdMatches)) {
           return {
             embedModelId: expectedModel.id,
             embedModelHash: expectedHash,

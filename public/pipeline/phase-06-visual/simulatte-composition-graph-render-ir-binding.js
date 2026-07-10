@@ -97,11 +97,12 @@
           return 'acoustic';
         }
         if (/granular|grain|bead|sieve|avalanche|powder/.test(text)) return 'granular';
-        if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|density/.test(text)) return 'biology';
+        if (/growth_decay|reaction_diffusion|mycelium|bacteria|biofilm|fermentation|nutrient/.test(text)) return 'biology';
         if (/rigid_collision|fracture_threshold|rotational_torque|projectile|collision/.test(text) &&
           !/acoustic|sound|wave_field|resonance|amplitude/.test(text)) {
           return 'mechanical';
         }
+        if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|density/.test(text)) return 'biology';
         if (/acoustic|sound|wave_field|resonance|amplitude/.test(text)) return 'acoustic';
         if (/fluid|water|flowVelocity|advection/.test(text)) return 'watershed';
         if (/turbine|castle|ice|storm|instrument/.test(text)) return 'literal-composite';
@@ -412,6 +413,10 @@
           objectCount: (objects || []).length,
           visualGenomeId: visualGenome.id,
           visualGenomeSeed: visualGenome.seed,
+          visualDialect: visualGenome.visualDialect || '',
+          compositionTopology: visualGenome.compositionTopology || '',
+          cameraArchetype: visualGenome.cameraArchetype || '',
+          scaleTier: visualGenome.scaleTier || '',
           motifs: visualGenome.motifs,
         };
         const registry = renderRegistryRef();
@@ -495,7 +500,7 @@
           graphicsAtoms
         );
         const camera = {
-          ...visualCameraForScene(sceneKind, recipe, visualEntities),
+          ...visualCameraForScene(sceneKind, recipe, visualEntities, visualGenome),
           atoms: graphicsAtoms.camera,
         };
         const lighting = visualLightingForScene(sceneKind, recipe, visualGenome);
@@ -522,6 +527,9 @@
           sceneKind,
           painterKind: recipe && recipe.painterKind || sceneKind,
           scale: visualScaleForScene(sceneKind, visualEntities),
+          scaleTier: visualGenome.scaleTier || '',
+          visualDialect: visualGenome.visualDialect || '',
+          compositionTopology: visualGenome.compositionTopology || '',
           camera,
           lighting,
           entities: visualEntities,

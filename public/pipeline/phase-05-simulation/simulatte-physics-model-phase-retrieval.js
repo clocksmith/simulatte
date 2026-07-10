@@ -578,11 +578,23 @@
           row.material,
           ...(row.domains || []),
         ].filter(Boolean).join(' '));
-        if (/\b(?:dog|dogs|cat|cats|animal|mammal|agent)\b/.test(text)) return 'literalPromptObjects';
+        const spans = languageGraph.spans || [];
+        // `phrase` may describe the trigger that selected a primitive (for example
+        // water selected by "swimming"). Preserve the primitive's direct material
+        // identity before using that contextual phrase as evidence.
+        if (id === 'water') return 'materialMediumEvidence';
+        const matchedSpans = phase3MatchingLanguageSpans(row, spans);
+        if (matchedSpans.some((span) => span.kind === 'environment' || span.semanticRole === 'containing-environment')) {
+          return 'environmentEvidence';
+        }
+        if (matchedSpans.some((span) => span.kind === 'material' || span.semanticRole === 'fluid-medium')) {
+          return 'materialMediumEvidence';
+        }
+        if (matchedSpans.some((span) => span.kind === 'process')) return 'actionEvidence';
+        if (matchedSpans.some((span) => span.kind === 'entity')) return 'literalPromptObjects';
         if (/\b(?:lake|pool|pond|river|ocean|beach|environment|container)\b/.test(text)) return 'environmentEvidence';
         if (id === 'water' || /\b(?:water|fluid|medium)\b/.test(text)) return 'materialMediumEvidence';
         if (/\b(?:swim|swims|swimming|locomotion|gait)\b/.test(text)) return 'actionEvidence';
-        const spans = languageGraph.spans || [];
         if (spans.some((span) => span.semanticRole === 'containing-environment' && phase3PhraseInPrompt(row.id || row.label || '', span.text))) {
           return 'environmentEvidence';
         }
@@ -590,6 +602,28 @@
           return 'literalPromptObjects';
         }
         return 'supportOnlyPhysicsEvidence';
+      }
+
+    function phase3MatchingLanguageSpans(row = {}, spans = []) {
+        const identityValues = [row.id, row.primitiveId, row.label, row.material]
+          .map((value) => normalizeForEvidence(value))
+          .filter(Boolean);
+        const contextualValues = [row.role, row.phrase]
+          .map((value) => normalizeForEvidence(value))
+          .filter(Boolean);
+        const directMatches = (spans || []).filter((span) => {
+          const spanText = normalizeForEvidence(span && span.text);
+          return spanText && identityValues.some((value) => (
+            phase3PhraseInPrompt(value, spanText) || phase3PhraseInPrompt(spanText, value)
+          ));
+        });
+        if (directMatches.length) return directMatches;
+        return (spans || []).filter((span) => {
+          const spanText = normalizeForEvidence(span && span.text);
+          return spanText && contextualValues.some((value) => (
+            phase3PhraseInPrompt(value, spanText) || phase3PhraseInPrompt(spanText, value)
+          ));
+        });
       }
 
     function phase3EvidenceBucketRow(row = {}) {
@@ -825,6 +859,7 @@
       curatePhase3PrimitiveCandidates,
       phase3TypedEvidenceBuckets,
       phase3EvidenceSlot,
+      phase3MatchingLanguageSpans,
       phase3EvidenceBucketRow,
       phase3SupportRowIsGeneric,
       phase3SlotEvidence,

@@ -64,13 +64,33 @@
           : EXAMPLE_INTENTS[0].params;
         let spec = createSpec('blank-world', { params: initialParams });
         let state = createSimulationState(spec);
+        let renderExecutionInput = null;
         let last = performance.now();
         let paused = false;
-        let lastPreviewSync = 0;
         let buildSerial = 0;
         let compileSerial = 0;
         let activePromptRuntimeReceipt = null;
         const pipelineCompiler = createPipelineCompiler(root);
+
+        const refreshRenderExecutionInput = () => {
+          const phase6Output = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 || null;
+          if (!phase6Output) {
+            renderExecutionInput = null;
+            return null;
+          }
+          renderExecutionInput = createRenderExecutionInput(phase6Output, state, canvas);
+          return renderExecutionInput;
+        };
+
+        const previewDisclosure = specPreview && specPreview.closest
+          ? specPreview.closest('details')
+          : null;
+        if (previewDisclosure) {
+          previewDisclosure.addEventListener('toggle', () => {
+            if (!previewDisclosure.open) return;
+            syncSpecPreview(specPreview, spec);
+          });
+        }
 
         setSimulationCanvasVisible(false);
 
@@ -78,6 +98,7 @@
           const visible = options.visible === true || simulationVisible;
           spec = normalizeSpec(nextSpec);
           state = createSimulationState(spec);
+          renderExecutionInput = null;
           if (nameInput) nameInput.value = spec.name;
           renderControls(controlStack, spec);
           syncComponentStack(componentStack, spec);
@@ -87,13 +108,13 @@
           syncSpecPreview(specPreview, spec);
           logGraphDebug(spec);
           if (visible && webGpuRenderer) {
-            webGpuRenderer.setRenderExecutionInput(createRenderExecutionInput(spec, state, canvas));
+            const nextRenderExecutionInput = refreshRenderExecutionInput();
+            if (nextRenderExecutionInput) webGpuRenderer.setRenderExecutionInput(nextRenderExecutionInput);
           }
           if (visible) {
             setSimulationCanvasVisible(true);
             syncTrainingSpecArtifacts(trainingRun, spec, state, canvas);
           }
-          lastPreviewSync = performance.now();
           last = performance.now();
         };
 
@@ -447,21 +468,28 @@
             requestAnimationFrame(tick);
             return;
           }
+          const previousSpec = spec;
           spec = readSpecFromUi(spec, controlStack, nameInput);
-          if (!paused) {
+          if (spec !== previousSpec) {
+            renderExecutionInput = null;
+            if (previewDisclosure && previewDisclosure.open) syncSpecPreview(specPreview, spec);
+          }
+          if (!paused && canvas.dataset.auditFreezeFrame !== 'true') {
             const substeps = spec.templateId === 'reaction-diffusion' ? 2 : 3;
             for (let i = 0; i < substeps; i += 1) {
               state = stepSimulation(state, spec, dt / substeps);
             }
           }
           if (simulationVisible && webGpuRenderer) {
-            webGpuRenderer.render(createRenderExecutionInput(spec, state, canvas), now);
+            const input = renderExecutionInput || refreshRenderExecutionInput();
+            if (input) {
+              input.simulationState = state;
+              input.canvas = canvas;
+              webGpuRenderer.render(input, now);
+            }
           }
           fpsMeter.sample(now, simulationVisible && webGpuRenderer);
           syncReadouts(readouts, stateReadout, state, spec);
-          syncOpenSpecPreview(specPreview, spec, now, lastPreviewSync, (value) => {
-            lastPreviewSync = value;
-          });
           requestAnimationFrame(tick);
         }
 
@@ -561,40 +589,49 @@
           pending.clear();
         }
 
-        try {
+        function ensureWorker() {
+          if (worker) return worker;
+          if (failed) throw new Error('Intent worker unavailable');
           const url = new URL('./app/workers/simulatte-intent-worker.js', view.location.href);
           appendBuildVersion(url, view);
-          worker = new view.Worker(url, { name: 'simulatte-intent-worker' });
-        } catch (_error) {
-          return null;
+          try {
+            worker = new view.Worker(url, { name: 'simulatte-intent-worker' });
+          } catch (error) {
+            failed = true;
+            throw error;
+          }
+          worker.addEventListener('message', (event) => {
+            const data = event && event.data || {};
+            const entry = pending.get(data.id);
+            if (data.type === 'simulatte:intent-worker:progress') {
+              if (entry && typeof entry.onProgress === 'function') entry.onProgress(data.event || {});
+              return;
+            }
+            if (data.type === 'simulatte:intent-worker:preview') {
+              if (entry && typeof entry.onPreview === 'function') entry.onPreview(data.preview || {});
+              return;
+            }
+            if (data.type !== 'simulatte:intent-worker:result' || !entry) return;
+            pending.delete(data.id);
+            if (data.ok) entry.resolve(data.result);
+            else entry.reject(new Error(data.error || 'Intent worker failed'));
+          });
+          worker.addEventListener('error', (event) => {
+            rejectAll(new Error(event.message || 'Intent worker failed'));
+          });
+          worker.addEventListener('messageerror', () => {
+            rejectAll(new Error('Intent worker message clone failed'));
+          });
+          return worker;
         }
-
-        worker.addEventListener('message', (event) => {
-          const data = event && event.data || {};
-          const entry = pending.get(data.id);
-          if (data.type === 'simulatte:intent-worker:progress') {
-            if (entry && typeof entry.onProgress === 'function') entry.onProgress(data.event || {});
-            return;
-          }
-          if (data.type === 'simulatte:intent-worker:preview') {
-            if (entry && typeof entry.onPreview === 'function') entry.onPreview(data.preview || {});
-            return;
-          }
-          if (data.type !== 'simulatte:intent-worker:result' || !entry) return;
-          pending.delete(data.id);
-          if (data.ok) entry.resolve(data.result);
-          else entry.reject(new Error(data.error || 'Intent worker failed'));
-        });
-        worker.addEventListener('error', (event) => {
-          rejectAll(new Error(event.message || 'Intent worker failed'));
-        });
-        worker.addEventListener('messageerror', () => {
-          rejectAll(new Error('Intent worker message clone failed'));
-        });
 
         function request(type, payload = {}, options = {}) {
           const run = () => {
-            if (!worker || failed) return Promise.reject(new Error('Intent worker unavailable'));
+            try {
+              ensureWorker();
+            } catch (error) {
+              return Promise.reject(error);
+            }
             const id = nextId + 1;
             nextId = id;
             return new Promise((resolve, reject) => {
@@ -644,12 +681,8 @@
 
     function intentWorkerConfig(view) {
         const absolute = (value) => versionedLocalUrl(value, view);
-        const absoluteRaw = (value) => new URL(value, view.location.href).toString();
         return {
           manifestUrl: absolute('./data/simulatte-embedder/manifest.json'),
-          modelBaseUrl: urlParam(view, 'embeddingModelBase') || urlParam(view, 'dopplerModelBase') || '',
-          dopplerModuleUrl: urlParam(view, 'dopplerModule') || absolute('./vendor/doppler/src/index-browser.js'),
-          dopplerKernelBasePath: urlParam(view, 'dopplerKernelBase') || absoluteRaw('./vendor/doppler/src/gpu/kernels'),
           spanLevelEmbedding: cloneWorkerValue(urlParam(view, 'spanLevelEmbedding') || ''),
           traceEmbeddings: intentTraceEnabled(view),
         };
@@ -660,7 +693,6 @@
         for (const key of [
           'max',
           'nowIso',
-          'dopplerEnabled',
           'spanLevelEmbedding',
           'traceEmbeddings',
           'queryPlan',

@@ -301,12 +301,15 @@
     if (/granular|grain|bead|sieve|avalanche|powder/.test(text)) {
       return 'granular';
     }
-    if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|biofilm|density/.test(text)) {
+    if (/growth_decay|reaction_diffusion|mycelium|bacteria|biofilm|fermentation|nutrient/.test(text)) {
       return 'biology';
     }
     if (/rigid_collision|fracture_threshold|rotational_torque|projectile|collision/.test(text) &&
       !/acoustic|sound|wave_field|waveApparatus|resonance|amplitude/.test(text)) {
       return 'mechanical';
+    }
+    if (/biology|growth|mycelium|bacteria|membrane|protein|nutrient|biofilm|density/.test(text)) {
+      return 'biology';
     }
     if (/acoustic|sound|wave_field|waveApparatus|resonance|amplitude/.test(text)) return 'acoustic';
     if (signal.kinds.has('fluid') && signal.operators.has('advection')) return 'watershed';

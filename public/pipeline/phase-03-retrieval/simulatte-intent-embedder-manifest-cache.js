@@ -4,18 +4,15 @@
   with (scope) {
     class ModelBackedIntentEmbedder {
         constructor(options = {}) {
+          assertPinnedRuntimeOptions(options);
           this.manifestUrl = options.manifestUrl || DEFAULT_MANIFEST_URL;
           this.assetVersionQuery = normalizeAssetVersionQuery(options.assetVersionQuery || defaultAssetVersionQuery());
           this.catalog = options.catalog || null;
-          this.modelBaseUrl = options.modelBaseUrl || urlValue('embeddingModelBase') || urlValue('dopplerModelBase') || '';
-          this.dopplerModuleUrl = options.dopplerModuleUrl || urlValue('dopplerModule') || '';
-          this.dopplerKernelBasePath = options.dopplerKernelBasePath || urlValue('dopplerKernelBase') || '';
           this.onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
           this.embedProvider = options.embedProvider || null;
           this.rerankProvider = options.rerankProvider || options.rerankerProvider || null;
           this.dopplerModelHandle = options.dopplerModelHandle || null;
           this.dopplerModule = options.dopplerModule || null;
-          this.runtimeConfig = options.runtimeConfig || null;
           this.spanLevelEmbedding = options.spanLevelEmbedding;
           this.spanEmbeddingCache = options.spanEmbeddingCache || new Map();
           this.traceEnabled = traceEnabled(options);
@@ -171,7 +168,7 @@
         }
 
         async loadManifest() {
-          const manifest = await fetchJson(versionedAssetUrl(this.manifestUrl, this.assetVersionQuery), 'intent manifest', {
+          const rawManifest = await fetchJson(versionedAssetUrl(this.manifestUrl, this.assetVersionQuery), 'intent manifest', {
             progress: this.onProgress,
             traceEnabled: this.traceEnabled,
             traceId: this.traceId,
@@ -179,9 +176,12 @@
             percent: 4,
             resourceKind: 'intent-manifest',
           });
-          if (!manifest || manifest.schema !== 'simulatte.modelBackedEmbedderManifest.v2') {
-            throw new Error('intent manifest schema mismatch; expected simulatte.modelBackedEmbedderManifest.v2');
-          }
+          const manifest = await resolvePinnedModelManifest(rawManifest, this.manifestUrl, {
+            progress: this.onProgress,
+            traceEnabled: this.traceEnabled,
+            traceId: this.traceId,
+            assetVersionQuery: this.assetVersionQuery,
+          });
           if (!manifest.retrieval || manifest.retrieval.kind !== 'precomputed-primitive-index') {
             throw new Error('intent manifest retrieval must be a precomputed primitive index');
           }
@@ -591,10 +591,8 @@
         async loadDopplerEmbeddingHandle(runtime, options = {}) {
           const progress = progressHandler(options, this.onProgress);
           const trace = this.traceEnabled || traceEnabled(options);
-          const moduleUrl = options.dopplerModuleUrl
-            || this.dopplerModuleUrl
-            || runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl
-            || DEFAULT_DOPPLER_MODULE_URL;
+          const moduleUrl = runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl;
+          if (!moduleUrl) throw new Error('model runtime lock did not resolve a Doppler module URL');
           const moduleStarted = nowMs();
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -608,7 +606,7 @@
           const api = await resolveDopplerApi({
             dopplerModule: options.dopplerModule || this.dopplerModule,
             moduleUrl,
-            kernelBasePath: options.dopplerKernelBasePath || this.dopplerKernelBasePath,
+            kernelBasePath: runtime.manifest.runtime && runtime.manifest.runtime.kernelBasePath,
           });
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -626,7 +624,7 @@
               `model-backed intent requires Doppler load(); no loader found at ${moduleUrl}`
             );
           }
-          const modelBaseUrl = options.modelBaseUrl || this.modelBaseUrl || runtime.manifest.embedModel.defaultModelBaseUrl;
+          const modelBaseUrl = runtime.manifest.embedModel.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error('model-backed intent requires embed model base URL');
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -642,11 +640,7 @@
             cachePrefetch: false,
             cacheMode: 'doppler-managed',
           });
-          const runtimeConfig = cloneJsonValue(
-            options.runtimeConfig
-            || this.runtimeConfig
-            || runtime.manifest.runtime && runtime.manifest.runtime.runtimeConfig
-          );
+          const runtimeConfig = cloneJsonValue(runtime.manifest.runtime && runtime.manifest.runtime.runtimeConfig);
           if (!runtimeConfig) {
             throw new Error('model-backed intent manifest missing Doppler runtimeConfig');
           }
@@ -765,20 +759,18 @@
           const model = config.model || {};
           const progress = progressHandler(options, this.onProgress);
           const trace = this.traceEnabled || traceEnabled(options);
-          const moduleUrl = options.dopplerModuleUrl
-            || this.dopplerModuleUrl
-            || runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl
-            || DEFAULT_DOPPLER_MODULE_URL;
+          const moduleUrl = runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl;
+          if (!moduleUrl) throw new Error('model runtime lock did not resolve a Doppler module URL');
           const api = await resolveDopplerApi({
             dopplerModule: options.dopplerModule || this.dopplerModule,
             moduleUrl,
-            kernelBasePath: options.dopplerKernelBasePath || this.dopplerKernelBasePath,
+            kernelBasePath: runtime.manifest.runtime && runtime.manifest.runtime.kernelBasePath,
           });
           const load = api && (api.load || api.doppler && api.doppler.load);
           if (typeof load !== 'function') {
             throw new Error(`model-backed intent requires Doppler load() for reranker; no loader found at ${moduleUrl}`);
           }
-          const modelBaseUrl = options.rerankerModelBaseUrl || model.defaultModelBaseUrl;
+          const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error(`intent reranker ${config.id} requires model.defaultModelBaseUrl`);
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -810,6 +802,7 @@
           };
           if (config.runtimeConfig) loadOptions.runtimeConfig = cloneJsonValue(config.runtimeConfig);
           const handle = await load(dopplerModelSource(modelBaseUrl), loadOptions);
+          assertPinnedModelHandle(handle, model, 'reranker', modelBaseUrl);
           this.activeDopplerModelRole = 'reranker';
           this.dopplerRerankerHandle = handle;
           this.dopplerRerankerModelBaseUrl = modelBaseUrl;

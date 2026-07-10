@@ -19,6 +19,10 @@
         const languageEvidence = activationCloud.languageEvidence || groundingEvidence.languageEvidence || {};
         const candidateEvidence = activationCloud.candidateEvidence || [];
         const weightedActivations = activationCloud.weightedActivations || [];
+        const acceptedComponents = filterRowsAgainstNegativeEvidence(
+          groundingEvidence.components || [],
+          activationCloud.negativeEvidence || []
+        );
         const intentBrief = phase4IntentBriefFromActivationCloud(activationCloud, groundingEvidence);
         const groundedInterpretation = buildGroundedInterpretation
           ? buildGroundedInterpretation({
@@ -109,7 +113,7 @@
             ]),
           }),
           contract: groundingEvidence.contract || null,
-          components: groundingEvidence.components || [],
+          components: acceptedComponents,
           params: groundingEvidence.params || {},
           visualSource: groundingEvidence.visualSource || null,
           grounding: {
@@ -496,7 +500,9 @@
     	      readouts: readoutLabelsForContract(contract),
     	      visualSource: {
             ...visualSource,
-            objects: visualSource.objects || components,
+            // Phase 4 has already removed negative evidence. Phase 5 carries its
+            // accepted candidates and explicit solver support into Phase 6.
+            objects: components,
             params: visualSource.params || params,
             contract: visualSource.contract || contract,
           },
@@ -515,8 +521,8 @@
     	          renderIR: simulationCompile.renderIR && simulationCompile.renderIR.schema || '',
     	          loweredRelations: simulationCompile.loweredRelations.length,
     	          physicsObligations: simulationCompile.physicsObligations.length,
-    	          unsupportedPhysics: simulationCompile.unsupportedPhysics.length,
-    	          stateChannels: simulationCompile.stateChannels.length,
+	          unsupportedPhysics: simulationCompile.unsupportedPhysics.length,
+	          stateChannels: simulationCompile.stateChannels.length,
     	        },
     	      ],
     	    });
@@ -722,16 +728,28 @@
 
     function visualObligationsFromLedger(compositionLedger = null) {
     	    return (compositionLedger && compositionLedger.obligations || [])
-    	      .filter((row) => row.kind === 'visual' || row.ownedByPhase === 6)
+              .filter((row) => row.kind !== 'relation' && !/^action:coexists/.test(String(row.id || '')) && (row.kind === 'visual' || row.ownedByPhase === 6 || (
+                row.required === true && Array.isArray(row.visualEvidence) && row.visualEvidence.length > 0
+              )))
     	      .map((row) => phaseCarryObject({
     	        schema: 'simulatte.visualObligationReceipt.v1',
     	        obligationId: row.id || '',
-    	        target: row.target || '',
+                target: visualObligationTargetFromLedger(row),
+                sourceKind: row.kind || '',
     	        status: row.status || '',
     	        evidence: row.visualEvidence || [],
     	        required: row.required === true,
     	      }));
     	  }
+
+    function visualObligationTargetFromLedger(row = {}) {
+            const explicit = String(row.target || '').trim();
+            if (explicit) return explicit;
+            return String(row.id || row.obligationId || '')
+              .replace(/^[a-z]+:/, '')
+              .replace(/[:_-]+/g, ' ')
+              .trim();
+          }
 
     function identityPreservationRows(sceneRenderPacket = null, compositionLedger = null) {
     	    const identities = new Set((sceneRenderPacket && sceneRenderPacket.entities || [])

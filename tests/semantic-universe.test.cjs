@@ -33,11 +33,21 @@ function runTool(script, args = []) {
 
 test('semantic universe manifest exposes the full parallel-worker contract', () => {
   const manifest = readJson(path.join(universeDir, 'manifest.json'));
+  const modelRuntimeLock = readJson(path.join(
+    root,
+    'public',
+    'data',
+    'simulatte-embedder',
+    'model-runtime-lock.json'
+  ));
 
   assert.equal(manifest.schema, 'simulatte.universeManifest.v1');
   assert.equal(manifest.id, 'simulatte-universe-multi-index-v1');
-  assert.equal(manifest.embedModel.id, 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
-  assert.equal(manifest.embedModel.dimensions, 1024);
+  assert.equal(manifest.modelRuntimeLock.id, modelRuntimeLock.id);
+  assert.equal(manifest.modelRuntimeLock.number, modelRuntimeLock.number);
+  assert.equal(Object.hasOwn(manifest, 'embedModel'), false);
+  assert.equal(modelRuntimeLock.embedding.id, 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
+  assert.equal(modelRuntimeLock.embedding.dimensions, 1024);
 
   for (const [name, kind, artifact, schema] of REQUIRED_INDEXES) {
     assert.equal(manifest.indexes[name].kind, kind);

@@ -6,28 +6,24 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { doppler } from '../../doppler/src/index.js';
 import { bootstrapNodeWebGPU } from '../../doppler/src/tooling/node-webgpu.js';
+import { lockedEmbeddingModel } from './model-runtime-lock-utils.mjs';
 
 const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const DEFAULT_MODEL_ID = 'qwen-3-embedding-0-6b-q4k-ehf16-af32';
-const DEFAULT_MODEL_BASE_URL = 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32';
+const EMBEDDING_MODEL = lockedEmbeddingModel();
+const MODEL_ID = EMBEDDING_MODEL.id;
 const MODEL_DIR = process.env.SIMULATTE_EMBED_MODEL_DIR
   ? path.resolve(process.env.SIMULATTE_EMBED_MODEL_DIR)
-  : path.resolve(ROOT, `../doppler/models/local/${DEFAULT_MODEL_ID}`);
-const MODEL_BASE_URL = String(
-  process.env.SIMULATTE_EMBED_MODEL_BASE_URL === undefined
-    ? DEFAULT_MODEL_BASE_URL
-    : process.env.SIMULATTE_EMBED_MODEL_BASE_URL
-).replace(/\/+$/, '');
+  : '';
+const MODEL_BASE_URL = MODEL_DIR ? '' : EMBEDDING_MODEL.defaultModelBaseUrl.replace(/\/+$/, '');
 const OUT_PATH = process.env.SIMULATTE_SURFACE_CARD_INDEX_OUT
   ? path.resolve(process.env.SIMULATTE_SURFACE_CARD_INDEX_OUT)
   : path.join(ROOT, 'public/data/simulatte-embedder/surface-card-index-qwen-v1.json');
-const MODEL_ID = process.env.SIMULATTE_EMBED_MODEL_ID || DEFAULT_MODEL_ID;
 const INDEX_ID = process.env.SIMULATTE_SURFACE_CARD_INDEX_ID
   || 'simulatte-surface-card-qwen-3-embedding-0-6b-index-v1';
 const CHILD_MODE = process.env.SIMULATTE_SURFACE_CARD_CHILD === '1';
-const EMBEDDING_MODE = process.env.SIMULATTE_EMBEDDING_MODE || 'last';
+const EMBEDDING_MODE = EMBEDDING_MODEL.indexEmbeddingMode;
 const CHUNK_SIZE = Math.max(1, Number(process.env.SIMULATTE_SURFACE_CARD_CHUNK_SIZE || 240));
 const EMBED_BATCH_SIZE = Math.max(
   1,
@@ -53,15 +49,6 @@ function sha256HexBytes(bytes) {
 
 function sha256HexText(text) {
   return sha256HexBytes(Buffer.from(String(text), 'utf8'));
-}
-
-function configuredModelHash(fallbackHash) {
-  const raw = String(process.env.SIMULATTE_EMBED_MODEL_HASH || '').trim().replace(/^sha256:/, '');
-  if (!raw) return fallbackHash;
-  if (!/^[a-f0-9]{64}$/i.test(raw)) {
-    throw new Error('SIMULATTE_EMBED_MODEL_HASH must be a sha256 hex digest');
-  }
-  return { alg: 'sha256', hex: raw.toLowerCase() };
 }
 
 function indexHash(index) {
@@ -131,9 +118,12 @@ async function loadInputs() {
 
   const { manifestText, manifest } = await loadModelManifest();
   const manifestHash = { alg: 'sha256', hex: sha256HexText(manifestText) };
-  const embedModelHash = configuredModelHash(manifestHash);
+  const embedModelHash = EMBEDDING_MODEL.manifestHash;
   if (manifest.modelId !== MODEL_ID) {
     throw new Error(`Unexpected modelId ${manifest.modelId}; expected ${MODEL_ID}`);
+  }
+  if (manifestHash.hex !== embedModelHash.hex) {
+    throw new Error(`Unexpected ${MODEL_ID} manifest hash; expected ${embedModelHash.hex}`);
   }
 
   const documents = cards.map((doc, order) => {

@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -8,22 +9,40 @@ const lab = require('../public/app/simulation/simulation-lab.js');
 const intentEmbedder = require('../public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
 const semanticRagApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
 const graphSynthesis = require('../public/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
+const dopplerIntent = require('../public/pipeline/phase-01-runtime/simulatte-doppler-intent.js');
+const intentForensics = require('../public/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
 const root = path.resolve(__dirname, '..');
+let embeddingFixture = null;
 
 function loadEmbeddingIndex() {
-  const manifestText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/manifest.json'), 'utf8');
-  const indexText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/primitive-index-v2.json'), 'utf8');
-  const surfaceIndexText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/surface-card-index-qwen-v1.json'), 'utf8');
-  const manifest = JSON.parse(manifestText);
-  const index = JSON.parse(indexText);
-  const surfaceIndex = JSON.parse(surfaceIndexText);
-  const universeRoot = path.join(root, 'public/data/simulatte-universe');
-  const universeManifest = JSON.parse(fs.readFileSync(path.join(universeRoot, 'manifest.json'), 'utf8'));
-  const universeIndexes = Object.fromEntries(Object.entries(universeManifest.indexes).map(([name, config]) => [
-    name,
-    JSON.parse(fs.readFileSync(path.join(universeRoot, config.artifact.replace(/^\.\//, '')), 'utf8')),
-  ]));
-  return { manifest, manifestText, index, indexText, surfaceIndex, surfaceIndexText, universeManifest, universeIndexes };
+  if (!embeddingFixture) {
+    const manifestText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/manifest.json'), 'utf8');
+    const modelRuntimeLockText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/model-runtime-lock.json'), 'utf8');
+    const indexText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/primitive-index-v2.json'), 'utf8');
+    const surfaceIndexText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/surface-card-index-qwen-v1.json'), 'utf8');
+    const universeRoot = path.join(root, 'public/data/simulatte-universe');
+    const universeManifest = JSON.parse(fs.readFileSync(path.join(universeRoot, 'manifest.json'), 'utf8'));
+    embeddingFixture = {
+      manifestText,
+      modelRuntimeLockText,
+      indexText,
+      surfaceIndexText,
+      index: JSON.parse(indexText),
+      surfaceIndex: JSON.parse(surfaceIndexText),
+      universeManifest,
+      universeIndexes: Object.fromEntries(Object.entries(universeManifest.indexes).map(([name, config]) => [
+        name,
+        JSON.parse(fs.readFileSync(path.join(universeRoot, config.artifact.replace(/^\.\//, '')), 'utf8')),
+      ])),
+    };
+  }
+  return {
+    ...embeddingFixture,
+    // Tests intentionally alter manifest requirements. Keep that mutable request
+    // contract isolated without reparsing the large immutable retrieval indexes.
+    manifest: JSON.parse(embeddingFixture.manifestText),
+    modelRuntimeLock: JSON.parse(embeddingFixture.modelRuntimeLockText),
+  };
 }
 
 function indexedVector(index, primitiveId) {
@@ -100,6 +119,30 @@ function testRerankProvider() {
   };
 }
 
+function manifestFacade(rawManifest, modelRuntimeLock) {
+  const facade = {
+    ...rawManifest,
+    runtime: {
+      ...(modelRuntimeLock.runtime || {}),
+      runtimeConfig: modelRuntimeLock.embedding.runtimeConfig,
+    },
+    runtimeOrder: modelRuntimeLock.runtimeOrder,
+    cache: modelRuntimeLock.cache,
+  };
+  Object.defineProperties(facade, {
+    embedModel: {
+      get: () => modelRuntimeLock.embedding,
+    },
+    reranker: {
+      get: () => modelRuntimeLock.reranker,
+      set: (value) => {
+        modelRuntimeLock.reranker = value;
+      },
+    },
+  });
+  return facade;
+}
+
 async function withIntentArtifactFetch(run, options = {}) {
   const previousFetch = globalThis.fetch;
   const hadPreviousReranker = Object.hasOwn(globalThis, 'SimulatteDopplerReranker');
@@ -110,7 +153,24 @@ async function withIntentArtifactFetch(run, options = {}) {
   } else {
     globalThis.SimulatteDopplerReranker = rerankProvider;
   }
-  const { manifest, manifestText, index, indexText, surfaceIndex, surfaceIndexText, universeManifest, universeIndexes } = loadEmbeddingIndex();
+  const {
+    manifest: rawManifest,
+    modelRuntimeLock,
+    index,
+    indexText,
+    surfaceIndex,
+    surfaceIndexText,
+    universeManifest,
+    universeIndexes,
+  } = loadEmbeddingIndex();
+  const manifest = manifestFacade(rawManifest, modelRuntimeLock);
+  const serializedModelRuntimeLock = () => {
+    const text = JSON.stringify(modelRuntimeLock);
+    const hash = crypto.createHash('sha256').update(text).digest('hex');
+    rawManifest.modelRuntimeLock.artifactHash.hex = hash;
+    universeManifest.modelRuntimeLock.artifactHash.hex = hash;
+    return text;
+  };
   globalThis.fetch = async (url) => {
     const value = String(url || '');
     if (value.includes('/simulatte-universe/manifest.json')) {
@@ -123,7 +183,11 @@ async function withIntentArtifactFetch(run, options = {}) {
       }
     }
     if (value.endsWith('/simulatte-embedder/manifest.json')) {
-      return new Response(JSON.stringify(manifest), { status: 200 });
+      serializedModelRuntimeLock();
+      return new Response(JSON.stringify(rawManifest), { status: 200 });
+    }
+    if (value.endsWith('model-runtime-lock.json')) {
+      return new Response(JSON.stringify(modelRuntimeLock), { status: 200 });
     }
     if (value.endsWith('primitive-index-v2.json')) {
       return new Response(indexText, { status: 200 });
@@ -134,7 +198,15 @@ async function withIntentArtifactFetch(run, options = {}) {
     return new Response('not found', { status: 404 });
   };
   try {
-    return await run({ manifest, index, surfaceIndex, universeManifest, universeIndexes });
+    return await run({
+      manifest,
+      rawManifest,
+      modelRuntimeLock,
+      index,
+      surfaceIndex,
+      universeManifest,
+      universeIndexes,
+    });
   } finally {
     globalThis.fetch = previousFetch;
     if (hadPreviousReranker) {
@@ -201,33 +273,89 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
     alg: 'sha256',
     hex: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
   };
-  const manifest = {
-    schema: 'simulatte.modelBackedEmbedderManifest.v2',
-    id: 'simulatte-synthetic-cosine-retrieval-v1',
-    retrieval: {
-      kind: 'precomputed-primitive-index',
-      artifact: './synthetic-index.json',
-      dimensions: 2,
-      rerank: 'mandatory',
+  const modelRuntimeLock = {
+    schema: 'simulatte.modelRuntimeLock.v1',
+    id: 'synthetic-runtime-lock',
+    number: 1,
+    doppler: {
+      moduleUrl: '../../vendor/doppler/src/index-browser.js',
+      kernelBasePath: '../../vendor/doppler/src/gpu/kernels',
+      package: {
+        name: 'doppler-gpu',
+        version: '0.4.7',
+        integrity: 'synthetic-integrity',
+        fileCount: 1,
+      },
     },
-    embedModel: {
+    embedding: {
       id: 'synthetic-mean-pooled-transformer',
       family: 'synthetic',
       modelType: 'transformer',
       dimensions: 2,
-      defaultModelBaseUrl: 'https://simulatte.test/models/synthetic',
+      indexEmbeddingMode: 'last',
+      defaultModelBaseUrl: 'https://simulatte.test/resolve/rev/models/synthetic',
+      source: { revision: 'rev', path: 'models/synthetic' },
       manifestHash: hash,
-    },
-    runtime: {
-      queryEmbeddingMode: 'mean',
+      conversion: {
+        projectPath: 'public/vendor/doppler/synthetic-embedding.json',
+        sha256: '0000000000000000000000000000000000000000000000000000000000000000',
+      },
       runtimeConfig: { inference: {} },
     },
-    cache: {},
+    reranker: {
+      schema: 'simulatte.intentRerankerConfig.v1',
+      id: 'synthetic-reranker',
+      kind: 'doppler-reranker',
+      phase: 3,
+      required: true,
+      model: {
+        id: 'synthetic-reranker-model',
+        defaultModelBaseUrl: 'https://simulatte.test/resolve/rev/models/synthetic-reranker',
+        source: { revision: 'rev', path: 'models/synthetic-reranker' },
+        manifestHash: hash,
+      },
+      conversion: {
+        projectPath: 'public/vendor/doppler/synthetic-reranker.json',
+        sha256: '0000000000000000000000000000000000000000000000000000000000000000',
+      },
+      runtimeConfig: { inference: {} },
+    },
+    runtimeOrder: ['doppler-browser-load'],
+    runtime: {
+      queryEmbeddingMode: 'mean',
+      embeddingText: {
+        schema: 'simulatte.embeddingTextContract.v1',
+      },
+      requireModelBackedQuery: true,
+    },
+    cache: {
+      storage: ['Doppler'],
+      namespace: 'synthetic-runtime-lock-1',
+    },
+  };
+  const modelRuntimeLockText = JSON.stringify(modelRuntimeLock);
+  const manifest = {
+    schema: 'simulatte.modelBackedEmbedderManifest.v3',
+    id: 'simulatte-synthetic-cosine-retrieval-v1',
+    modelRuntimeLock: {
+      id: modelRuntimeLock.id,
+      number: modelRuntimeLock.number,
+      artifact: './model-runtime-lock.json',
+      artifactHash: {
+        alg: 'sha256',
+        hex: crypto.createHash('sha256').update(modelRuntimeLockText).digest('hex'),
+      },
+    },
+    retrieval: {
+      kind: 'precomputed-primitive-index',
+      artifact: './synthetic-index.json',
+      rerank: 'mandatory',
+    },
   };
   const index = {
     schema: 'simulatte.primitiveEmbeddingIndex.v2',
     id: 'simulatte-synthetic-cosine-index-v1',
-    embedModelId: manifest.embedModel.id,
+    embedModelId: modelRuntimeLock.embedding.id,
     embedModelHash: hash,
     embeddingDim: 2,
     documents: [
@@ -253,6 +381,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
   globalThis.fetch = async (url) => {
     const value = String(url || '');
     if (value.endsWith('/manifest.json')) return new Response(JSON.stringify(manifest), { status: 200 });
+    if (value.includes('/model-runtime-lock.json')) return new Response(modelRuntimeLockText, { status: 200 });
     if (value.endsWith('/synthetic-index.json')) return new Response(JSON.stringify(index), { status: 200 });
     return new Response('not found', { status: 404 });
   };
@@ -262,9 +391,10 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
       embedProvider: probeAwareEmbedProvider({
         index,
         targetVector: Float32Array.from([4, 0]),
-        embedModelId: manifest.embedModel.id,
+        embedModelId: modelRuntimeLock.embedding.id,
         embedModelHash: hash,
       }),
+      rerankProvider: testRerankProvider(),
     });
     const result = await embedder.rankPrompt('aligned vector', candidates, { max: 2 });
     const aligned = result.priors.find((prior) => prior.primitiveId === 'aligned');
@@ -278,6 +408,107 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
     globalThis.SimulatteSemanticRag = previousRag;
     globalThis.SimulatteDopplerIntent = previousDopplerIntent;
   }
+});
+
+test('Phase 1 resolves only the selected numbered model runtime lock', async () => {
+  await withIntentArtifactFetch(async ({ rawManifest, modelRuntimeLock }) => {
+    rawManifest.modelRuntimeLock.number = modelRuntimeLock.number + 1;
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+    });
+
+    await assert.rejects(() => embedder.loadModel(), /model runtime lock number mismatch/);
+  });
+
+  await withIntentArtifactFetch(async ({ rawManifest }) => {
+    rawManifest.runtime = { queryEmbeddingMode: 'last' };
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+    });
+
+    await assert.rejects(() => embedder.loadModel(), /must reference modelRuntimeLock instead of declaring model runtime policy inline/);
+  });
+});
+
+test('model source overrides and residual text-model execution fail closed', async () => {
+  assert.throws(() => intentEmbedder.create({
+    manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+    modelBaseUrl: 'https://example.test/not-the-lock',
+  }), /model runtime lock forbids source overrides/);
+
+  await assert.rejects(
+    () => dopplerIntent.analyzePrompt('a model-selected hint', [], { dopplerEnabled: true }),
+    /numbered model runtime lock owns all Doppler model execution/
+  );
+});
+
+test('Phase 4 receipts inherit the selected runtime lock number from Phase 1', () => {
+  const { modelRuntimeLock } = loadEmbeddingIndex();
+  const brief = intentForensics.buildIntentForensics({
+    prompt: 'a copper coil heats a ferrofluid lens',
+    embeddingModel: { id: modelRuntimeLock.embedding.id },
+    intentRerank: { model: modelRuntimeLock.reranker.id },
+    promptRuntimeReceipt: {
+      modelId: modelRuntimeLock.embedding.id,
+      reranker: modelRuntimeLock.reranker.id,
+      modelRuntimeLock: {
+        id: modelRuntimeLock.id,
+        number: modelRuntimeLock.number,
+      },
+    },
+  });
+
+  assert.equal(brief.modelStack.modelRuntimeLockId, modelRuntimeLock.id);
+  assert.equal(brief.modelStack.modelRuntimeLockNumber, modelRuntimeLock.number);
+  assert.equal(brief.modelStack.retrieval, modelRuntimeLock.embedding.id);
+  assert.equal(brief.modelStack.reranker, modelRuntimeLock.reranker.id);
+});
+
+test('Phase 1 refuses embedding and reranker handles with a nonlocked hash', async () => {
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModelHandle: {
+        modelId: manifest.embedModel.id,
+        manifest: {
+          manifestHash: { alg: 'sha256', hex: '0'.repeat(64) },
+        },
+        async embed(prompt) {
+          return { embedding: probeAwareVector(index, prompt, query) };
+        },
+      },
+    });
+
+    await assert.rejects(() => embedder.loadModel(), /embedding model handle manifest hash does not match the model runtime lock/);
+  });
+
+  await withIntentArtifactFetch(async ({ manifest, index }) => {
+    const query = indexedVector(index, 'optics-bench');
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
+      dopplerModule: {
+        async load() {
+          return {
+            modelId: manifest.reranker.model.id,
+            manifest: {
+              manifestHash: { alg: 'sha256', hex: '0'.repeat(64) },
+              inference: { rerank: { trueTokenId: 1, falseTokenId: 0 } },
+            },
+            rerank(input = {}) {
+              return (input.candidates || []).map((candidate) => ({
+                primitiveId: candidate.primitiveId,
+                score: 1,
+              }));
+            },
+          };
+        },
+      },
+    });
+
+    await assert.rejects(() => embedder.loadModel(), /reranker model handle manifest hash does not match the model runtime lock/);
+  }, { rerankProvider: null });
 });
 
 test('model-backed intent embedder ranks primitives with Qwen provenance', async () => {
@@ -503,7 +734,7 @@ test('Phase 1 rejects a manifest that requires an undeclared Doppler reranker mo
       embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
     });
 
-    await assert.rejects(() => embedder.loadModel(), /required intent reranker must declare model\.id/);
+    await assert.rejects(() => embedder.loadModel(), /model runtime lock reranker model id, URL, source, and manifest hash are required/);
     assert.equal(events.some((event) => event.stage === 'runtime-ready'), false);
   }, { rerankProvider: null });
 });
@@ -525,6 +756,7 @@ test('Phase 1 loads Doppler reranker with f16 KV runtime contract', async () => 
         return {
           modelId: manifest.reranker.model.id,
           manifest: {
+            manifestHash: manifest.reranker.model.manifestHash,
             inference: {
               rerank: {
                 trueTokenId: 1,
@@ -654,6 +886,7 @@ test('Phase 1 overlaps required Doppler embedding and reranker loads', async () 
             releaseReranker = () => resolve({
               modelId: manifest.reranker.model.id,
               manifest: {
+                manifestHash: manifest.reranker.model.manifestHash,
                 inference: {
                   rerank: {
                     trueTokenId: 1,
@@ -724,6 +957,7 @@ test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', as
           return {
             modelId: manifest.reranker.model.id,
             manifest: {
+              manifestHash: manifest.reranker.model.manifestHash,
               inference: {
                 rerank: {
                   trueTokenId: 1,
@@ -763,61 +997,6 @@ test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', as
     assert.equal(loadRoles.filter((role) => role.startsWith('embedding:')).length, 1);
     assert.equal(staleEmbeddingCalls, 0);
   }, { rerankProvider: null });
-});
-
-test('Doppler execution-v1 keeps Qwen reranker KV dtype aligned when f16 is not proven', async () => {
-  const [{ compileExecutionV1 }, { EXECUTION_V1_SCHEMA_ID }] = await Promise.all([
-    import(pathToFileURL(path.join(
-      root,
-      'public/vendor/doppler/src/inference/pipelines/text/execution-v1.js'
-    )).href),
-    import(pathToFileURL(path.join(
-      root,
-      'public/vendor/doppler/src/config/schema/index.js'
-    )).href),
-  ]);
-  const conversion = JSON.parse(fs.readFileSync(
-    path.join(
-      root,
-      'public/vendor/doppler/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json'
-    ),
-    'utf8'
-  ));
-  const manifestInference = {
-    schema: EXECUTION_V1_SCHEMA_ID,
-    session: conversion.session,
-    execution: conversion.execution,
-    attention: conversion.inference.attention,
-    layerPattern: conversion.inference.layerPattern,
-  };
-  const compiled = compileExecutionV1({
-    manifestInference,
-    modelId: 'qwen-3-reranker-0-6b-q4k-ehf16-af32',
-    numLayers: 28,
-    headDim: 128,
-    useGPU: true,
-    kernelPathPolicy: {
-      mode: 'capability-aware',
-      onIncompatible: 'remap',
-      sourceScope: ['manifest'],
-    },
-  });
-  const kernelPath = compiled.runtimeInferencePatch.kernelPath;
-  const attentionSteps = [
-    ...(kernelPath.decode.steps || []),
-    ...(kernelPath.prefill.steps || []),
-  ].filter((step) => String(step.kernel || '').startsWith('attention'));
-
-  assert.equal(compiled.session.kvcache.kvDtype, 'f32');
-  assert.equal(compiled.runtimeInferencePatch.session.kvcache.kvDtype, 'f32');
-  assert.equal(kernelPath.kvDtype, 'f32');
-  assert.ok(compiled.appliedTransforms.includes('widenToF32Activations'));
-  assert.ok(attentionSteps.length > 0);
-  for (const step of attentionSteps) {
-    assert.doesNotMatch(step.kernel, /_f16/);
-    assert.equal(step.precision.activationDtype, 'f32');
-    assert.equal(step.precision.kvDtype, 'f32');
-  }
 });
 
 test('Phase 3 uses Doppler reranker when the required capability is present', async () => {
@@ -2184,15 +2363,14 @@ test('negated visual operator language does not satisfy positive graphics requir
   assert.doesNotMatch(phaseSignals, /\b(qubit|quantum)\b/);
 });
 
-test('Doppler residual hints can steer the selected physical graph', () => {
+test('provided residual hints can steer the selected physical graph without naming a model', () => {
   const spec = lab.createSpecFromPrompt('quiet demonstration plane', {
     dopplerIntent: {
       schema: 'simulatte.dopplerIntentHints.v1',
-      source: 'doppler-test',
-      model: { id: 'doppler-test-model', family: 'local-text-graph-delta' },
+      source: 'provided-intent-hints',
       primitives: [
-        { primitiveId: 'optics-bench', score: 0.99, reason: 'local model inferred optical bench' },
-        { primitiveId: 'prism', score: 0.96, reason: 'split beam requested by residual hint' },
+        { primitiveId: 'optics-bench', score: 0.99, reason: 'provided optical bench receipt' },
+        { primitiveId: 'prism', score: 0.96, reason: 'provided beam-split receipt' },
       ],
       regimes: ['optical'],
       operators: ['refraction'],
@@ -2207,7 +2385,7 @@ test('Doppler residual hints can steer the selected physical graph', () => {
   assert.ok(ids.has('lens'));
   assert.ok(sources.has('doppler-residual'));
   assert.equal(spec.renderProgram.rendererPlan.sceneKind, 'optics');
-  assert.equal(spec.physicalSpec.receipt.doppler.model, 'doppler-test-model');
+  assert.equal(spec.physicalSpec.receipt.doppler.model, '');
   assert.ok(spec.contract.doppler.primitives.includes('optics-bench'));
 });
 

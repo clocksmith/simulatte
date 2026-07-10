@@ -262,6 +262,63 @@
         }));
       }
 
+    function lexicalSpanPrimitives(promptParse = {}, semanticRag = null) {
+        const coveredPhrases = new Set((semanticRag && semanticRag.openComponents || [])
+          .map((row) => normalizeLanguageAnchorText(row && (row.phrase || row.role || '')))
+          .filter(Boolean));
+        return (promptParse && promptParse.spans || [])
+          .filter((span) => span && span.text && ['entity', 'material', 'environment', 'process'].includes(span.kind))
+          .filter((span) => !languageAnchorSpanIsNegated(promptParse, span))
+          .filter((span) => !coveredPhrases.has(normalizeLanguageAnchorText(span.text)))
+          .slice(0, 24)
+          .map((span, index) => {
+            const phrase = String(span.text).trim();
+            const visualRegime = visualRegimeForSynthesisText(`${span.kind} ${phrase}`);
+            const assembly = span.kind === 'environment' ? 'field' : span.kind === 'material' ? 'material' : span.kind === 'process' ? 'effect' : 'component';
+            const id = `language-${slugify(phrase)}-${slugify(span.id || index + 1)}`;
+            return {
+              id,
+              type: assembly,
+              role: phrase,
+              layer: 'language-anchor',
+              domains: uniqueList(['phase2-language-anchor', span.kind, visualRegime]),
+              params: {},
+              controls: [],
+              // These rows preserve otherwise-unmapped prompt language for visual compilation.
+              // They deliberately rank below catalog and grounded retrieval evidence so they
+              // cannot replace an authoritative Phase 4 concept for the same span.
+              score: 0.52,
+              material: span.kind === 'material' ? slugify(phrase) : '',
+              visualRegime,
+              assembly,
+              phrase,
+              source: 'phase2-language-anchor',
+              pinned: true,
+              primitiveProgram: buildPrimitiveProgram ? buildPrimitiveProgram({
+                id,
+                phrase,
+                visualRegime,
+                assembly,
+                seed: index + 1,
+              }) : null,
+              recipe: [],
+              text: phrase,
+              languageSpanId: span.id || '',
+            };
+          });
+      }
+
+    function normalizeLanguageAnchorText(value = '') {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      }
+
+    function languageAnchorSpanIsNegated(promptParse = {}, span = {}) {
+        const start = Number(span && span.tokenStart);
+        if (!Number.isInteger(start)) return false;
+        return (promptParse.tokens || []).slice(Math.max(0, start - 3), start)
+          .some((token) => /^(without|no|not|never|exclude|avoid)$/.test(String(token && token.text || '').toLowerCase()));
+      }
+
     function dopplerHintPrimitives(dopplerIntent, promptText) {
         const hints = dopplerIntent && Array.isArray(dopplerIntent.primitives)
           ? dopplerIntent.primitives
@@ -795,6 +852,7 @@
       hasCatalogCriticalDomain,
       synthesisReceipt,
       semanticOpenPrimitives,
+      lexicalSpanPrimitives,
       dopplerHintPrimitives,
       explicitPromptPrimitiveRows,
       mergeRankedPrimitives,

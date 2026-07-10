@@ -592,6 +592,8 @@
             cardMatches: options.cardMatches || options.surfaceCardMatches || [],
             embeddingPriors: options.embeddingPriors || [],
             embeddingModel: options.embeddingModel || null,
+            intentRerank: options.intentRerank || options.rerank || null,
+            promptRuntimeReceipt: options.promptRuntimeReceipt || null,
             spanRetrieval: options.spanRetrieval || null,
             evidenceRows: options.evidenceRows || [],
           })
@@ -615,11 +617,13 @@
         const preferSynthGraph = shouldPreferSynthGraph(sourceText, synthesis);
         const catalogRanked = preferSynthGraph ? [] : baseCatalogRanked;
         const semanticRows = preferSynthGraph ? [] : semanticOpenPrimitives(semanticRag);
+        const languageAnchorRows = lexicalSpanPrimitives(promptParse, semanticRag);
         const explicitRows = explicitPromptPrimitiveRows(classification, sourceText);
         const ranked = mergeRankedPrimitives(
           catalogRanked,
           synthRows,
           semanticRows,
+          languageAnchorRows,
           dopplerHintPrimitives(dopplerIntent, sourceText),
           explicitRows
         );

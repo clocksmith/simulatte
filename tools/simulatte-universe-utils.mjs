@@ -2,20 +2,16 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { modelRuntimeLockReference } from './model-runtime-lock-utils.mjs';
 
 const require = createRequire(import.meta.url);
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const UNIVERSE_DIR = path.join(ROOT, 'public/data/simulatte-universe');
 
-export const DEFAULT_EMBED_MODEL = Object.freeze({
-  id: 'qwen-3-embedding-0-6b-q4k-ehf16-af32',
-  dimensions: 1024,
-  manifestHash: {
-    alg: 'sha256',
-    hex: 'aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979',
-  },
-});
+export const MODEL_RUNTIME_LOCK_REFERENCE = Object.freeze(
+  modelRuntimeLockReference('../simulatte-embedder/model-runtime-lock.json')
+);
 
 export const INDEX_DEFINITIONS = Object.freeze([
   {
@@ -172,7 +168,7 @@ export function createManifest(existing = {}) {
   return {
     schema: 'simulatte.universeManifest.v1',
     id: existing.id || 'simulatte-universe-multi-index-v1',
-    embedModel: cloneJson(DEFAULT_EMBED_MODEL),
+    modelRuntimeLock: cloneJson(MODEL_RUNTIME_LOCK_REFERENCE),
     indexes: Object.fromEntries(INDEX_DEFINITIONS.map((definition) => [
       definition.name,
       {
@@ -210,11 +206,12 @@ export function validateUniversePackage({ manifest, indexes }, options = {}) {
     errors.push('manifest.schema must be simulatte.universeManifest.v1');
   }
   if (!manifest || !manifest.id) errors.push('manifest.id is required');
-  if (!manifest || !manifest.embedModel || manifest.embedModel.id !== DEFAULT_EMBED_MODEL.id) {
-    errors.push(`manifest.embedModel.id must be ${DEFAULT_EMBED_MODEL.id}`);
+  const lock = manifest && manifest.modelRuntimeLock || {};
+  if (lock.id !== MODEL_RUNTIME_LOCK_REFERENCE.id || Number(lock.number) !== MODEL_RUNTIME_LOCK_REFERENCE.number) {
+    errors.push(`manifest.modelRuntimeLock must reference ${MODEL_RUNTIME_LOCK_REFERENCE.id}#${MODEL_RUNTIME_LOCK_REFERENCE.number}`);
   }
-  if (Number(manifest && manifest.embedModel && manifest.embedModel.dimensions) !== DEFAULT_EMBED_MODEL.dimensions) {
-    errors.push(`manifest.embedModel.dimensions must be ${DEFAULT_EMBED_MODEL.dimensions}`);
+  if (lock.artifact !== MODEL_RUNTIME_LOCK_REFERENCE.artifact || lock.artifactHash?.hex !== MODEL_RUNTIME_LOCK_REFERENCE.artifactHash.hex) {
+    errors.push('manifest.modelRuntimeLock artifact must match the pinned model runtime lock');
   }
   for (const name of requiredNames) {
     if (!actualNames.has(name)) errors.push(`manifest.indexes.${name} is required`);
