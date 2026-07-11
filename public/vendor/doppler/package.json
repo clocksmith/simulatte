@@ -32,6 +32,8 @@
     "ci:contracts:check": "node tools/check-contract-artifacts.js --with-lean --lean-require-manifest-match",
     "ci:diffusion:contract": "node tools/ci-diffusion-contract-gates.js",
     "ci:training:contract": "node tools/ci-training-contract-gates.js",
+    "training:teachers:verify": "node tools/verify-host-teacher-contracts.js",
+    "training:teachers:qualify": "node tools/qualify-code-teachers.js",
     "training:contract:delta": "node tools/emit-training-contract-delta.js",
     "training:workloads:verify": "node tools/verify-training-workload-packs.js --registry src/experimental/training/workload-packs/registry.json",
     "training:report-ids:publish": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-packs/registry.json",
@@ -168,9 +170,13 @@
     "verify:qwen3.6-27b": "node tools/run-registry-verify.js qwen3.6-27b",
     "verify:qwen3.6-27b-f16": "node tools/run-registry-verify.js qwen3.6-27b-f16",
     "verify:translategemma": "node tools/run-registry-verify.js translategemma",
+    "verify:translategemma-1b-translation-student": "node tools/run-registry-verify.js translategemma-1b-translation-student",
     "verify:translategemma-4b": "node tools/run-registry-verify.js translategemma-4b",
+    "verify:translategemma-4b-1b-enes-q4k-ehf16-af32": "node tools/run-registry-verify.js translategemma-4b-1b-enes-q4k-ehf16-af32",
     "verify:translategemma-4b-it-q4k-ehf16-af32": "node tools/run-registry-verify.js translategemma-4b-it-q4k-ehf16-af32",
-    "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16"
+    "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16",
+    "verify:translategemma-enes-1b": "node tools/run-registry-verify.js translategemma-enes-1b",
+    "verify:translategemma-nativekd2-enes-1b": "node tools/run-registry-verify.js translategemma-nativekd2-enes-1b"
   },
   "exports": {
     ".": {
@@ -280,10 +286,12 @@
   ],
   "files": [
     "assets/doppler.svg",
-    "assets/doppler-webgpu-evidence.svg",
     "src",
+    "!src/config/schema/host-teacher-output.schema.json",
+    "!src/config/schema/host-teacher-qualification-policy.schema.json",
+    "!src/config/schema/host-teacher-qualification-receipt.schema.json",
+    "!src/config/schema/host-teacher-task-bank.schema.json",
     "models/catalog.json",
-    "!models/README.md",
     "tests/kernels/browser/kernel-suite.js",
     "tests/kernels/browser/test-page.js",
     "tests/kernels/harness/benchmark.js",
@@ -291,8 +299,6 @@
     "tests/kernels/harness/tolerance.js",
     "tests/kernels/reference",
     "!tests/kernels/reference/fused-ffn-q4k.js",
-    "!tests/README.md",
-    "!tests/kernels/README.md",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",

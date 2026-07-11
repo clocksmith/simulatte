@@ -9,14 +9,14 @@
     "package": {
       "name": "doppler-gpu",
       "version": "0.4.8",
-      "integrity": "sha512-xJMjB6LGChjgBDIENo1YOcr5ZYzyj2MRGyif8JbWuCie4PwjMflGPxYfcE/V/OVh7Nsoe3MYKv4uE/Xns332Zg==",
-      "shasum": "2f4b0233dfb00235c7b9fc61ecaa6e6a615050d3",
-      "fileCount": 1350
+      "integrity": "sha512-GQy70LqxmT1o1ORFf2PdAc/jBlKF5LBq+8dzyCD3jtrv1bRg/FB4u/EGUXnWEJjUC9EhI4wcZJlBT1JTqw+eUA==",
+      "shasum": "c168c7530ba14dee615646103a03852601a925aa",
+      "fileCount": 1349
     },
     "development": {
       "kind": "sibling-git-archive",
       "workspacePath": "../doppler",
-      "gitSha": "35822506f0e87d4da897861bd1eee1679f60f237"
+      "gitSha": "cf1a9a38b26f25363ffc297a07877dd46fdd01cb"
     }
   },
   "embedding": {
