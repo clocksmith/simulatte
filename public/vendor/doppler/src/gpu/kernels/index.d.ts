@@ -42,9 +42,16 @@ export {
   type MatmulOptions,
 } from './matmul.js';
 export {
+  recordLmHeadArgmax,
   recordLmHeadArgmaxF16,
+  type LmHeadArgmaxOptions,
   type LmHeadArgmaxF16Options,
 } from './lm-head-argmax.js';
+export {
+  runLmHeadSelectLogitsF16,
+  type LmHeadSelectLogitsF16Options,
+  type LmHeadSelectLogitsF16Result,
+} from './lm-head-select-logits.js';
 
 // Dequantization
 export {
@@ -107,8 +114,12 @@ export {
   RMSNORM_PAIR_CACHE_LIMIT,
   runSandwichRMSNormPair,
   recordSandwichRMSNormPair,
+  runResidualNextRMSNormPair,
+  recordResidualNextRMSNormPair,
   type SandwichRMSNormPairOptions,
   type SandwichRMSNormPairResult,
+  type ResidualNextRMSNormPairOptions,
+  type ResidualNextRMSNormPairResult,
 } from './rmsnorm-pair.js';
 
 // LayerNorm
@@ -368,10 +379,20 @@ export {
 export {
   runFusedFFN,
   recordFusedFFN,
+  runFusedFFNFromRMSNormStats,
+  recordFusedFFNFromRMSNormStats,
   calculateFusedFFNSavings,
   type FusedFFNOptions,
+  type FusedNormedFFNOptions,
   type FFNActivation,
 } from './fused_ffn.js';
+
+export {
+  runRMSNormStats,
+  recordRMSNormStats,
+  type RMSNormStatsOptions,
+  type RMSNormStatsResult,
+} from './rmsnorm-stats.js';
 
 // Fused Matmul + RMSNorm (P0 - 1.2-1.5x decode speedup)
 export {

@@ -25,6 +25,20 @@ function countTokens(pipeline, text) {
   }
 }
 
+function tokenizeText(pipeline, text) {
+  if (typeof text !== 'string') {
+    throw new Error('Doppler advanced.tokenizeText requires a string.');
+  }
+  if (!pipeline?.tokenizer || typeof pipeline.tokenizer.encode !== 'function') {
+    throw new Error('Loaded Doppler pipeline does not expose tokenizer.encode().');
+  }
+  const tokenIds = pipeline.tokenizer.encode(text);
+  if (!Array.isArray(tokenIds) && !ArrayBuffer.isView(tokenIds)) {
+    throw new Error('Loaded Doppler tokenizer.encode() must return token IDs.');
+  }
+  return Array.from(tokenIds);
+}
+
 function resolveChatPromptForUsage(pipeline, messages) {
   const templateType = pipeline?.manifest?.inference?.chatTemplate?.enabled === false
     ? null
@@ -136,23 +150,37 @@ export function createModelHandle(pipeline, resolved) {
     get modelId() {
       return resolved.modelId;
     },
+    get manifestHash() {
+      return resolved.manifestHash || null;
+    },
     get manifest() {
       return pipeline.manifest;
-    },
-    get manifestHash() {
-      return resolved.manifestHash ?? null;
     },
     get deviceInfo() {
       return getKernelCapabilities()?.adapterInfo ?? null;
     },
     advanced: {
+      tokenizeText(text) {
+        return tokenizeText(pipeline, text);
+      },
       prefillKV(prompt, options = {}) {
         assertSupportedGenerationOptions(options);
         return pipeline.prefillKVOnly(prompt, options);
       },
+      resetToSeqLen(seqLen) {
+        return pipeline.resetToSeqLen(seqLen);
+      },
       prefillWithLogits(prompt, options = {}) {
         assertSupportedGenerationOptions(options);
         return pipeline.prefillWithLogits(prompt, options);
+      },
+      prefillWithTokenLogits(prompt, tokenIds, options = {}) {
+        assertSupportedGenerationOptions(options);
+        return pipeline.prefillWithTokenLogits(prompt, tokenIds, options);
+      },
+      prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
+        assertSupportedGenerationOptions(options);
+        return pipeline.prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options);
       },
       decodeStepLogits(currentIds, options = {}) {
         assertSupportedGenerationOptions(options);

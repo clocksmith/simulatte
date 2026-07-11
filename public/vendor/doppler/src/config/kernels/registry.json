@@ -157,10 +157,13 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "matmul.rules.json#matmulKernel"
@@ -196,7 +199,9 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
-            "ruleChains": [],
+            "ruleChains": [
+              "matmul.rules.json#matmulKernel"
+            ],
             "wgslOnDisk": true
           }
         },
@@ -341,7 +346,10 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvVariant"
@@ -467,9 +475,12 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",
@@ -843,7 +854,8 @@
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -910,7 +922,9 @@
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -993,6 +1007,32 @@
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "q4_fused_metal_simd16": {
+          "wgsl": "fused_matmul_q4_metal_simd16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "colsPerWg": 16
+          },
+          "description": "Metal Q4_K GEMV with one 16-lane subgroup partition per output row.",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "runtime/profiles/qwen-3-5-2b-metal-throughput"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -1183,7 +1223,9 @@
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -1384,6 +1426,27 @@
             "wgslOnDisk": true
           }
         },
+        "f16_batched": {
+          "wgsl": "fused_ffn_f16w_f32a_batched.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "description": "Packed f16 gate/up weights with f32 activations and f32 output for prefill",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "f16_native": {
           "wgsl": "fused_ffn_f16.wgsl",
           "entryPoint": "main",
@@ -1465,6 +1528,27 @@
             "ruleChains": [
               "fused-ffn.rules.json#variant"
             ],
+            "wgslOnDisk": true
+          }
+        },
+        "q4k_metal_simd16": {
+          "wgsl": "fused_ffn_q4k_metal_simd16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "description": "Metal Q4_K fused gate/up GEMV with one 16-lane subgroup partition per output row.",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "runtime/profiles/qwen-3-5-2b-metal-throughput"
+            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -2364,7 +2448,8 @@
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2402,7 +2487,37 @@
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "prefill_head128_f16kv": {
+          "wgsl": "attention_head128_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "tiled_small",
+            "queryBlockSize": 32,
+            "exactHeadDim": 128,
+            "maxHeadDim": 128,
+            "requiredShared": 8192
+          },
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "runtime/profiles/qwen-3-reranker-0-6b-metal-stability",
+              "runtime/profiles/qwen-3-reranker-0-6b-metal-throughput"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2596,10 +2711,14 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2637,10 +2756,14 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2714,10 +2837,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
@@ -2749,6 +2876,36 @@
             "inlineConfigs": [
               "gemma3/gemma-3-270m-it-f16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "decode_online_head256_f16kv_output_gate": {
+          "wgsl": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "subgroup",
+            "exactHeadDim": 256,
+            "maxHeadDim": 256
+          },
+          "description": "Online decode kernel specialized for head_dim=256 with f32 Q, f16 KV, subgroup reductions, and fused f32 output-gate sigmoid",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "runtime/profiles/qwen-3-5-0-8b-metal-parity",
+              "runtime/profiles/qwen-3-5-0-8b-metal-throughput",
+              "runtime/profiles/qwen-3-5-2b-metal-throughput"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -3615,7 +3772,7 @@
       }
     },
     "lm_head_argmax": {
-      "description": "Fused LM-head f16-weight GEMV plus greedy argmax",
+      "description": "Fused LM-head GEMV plus greedy argmax",
       "baseBindings": [
         {
           "index": 0,
@@ -3711,9 +3868,33 @@
             "threadsPerCol": 4
           },
           "reachability": {
-            "status": "unused",
+            "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase1Variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "phase1_q4k_f32a": {
+          "wgsl": "lm_head_argmax_q4k.wgsl",
+          "entryPoint": "phase1",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "colsPerWg": 64,
+            "threadsPerCol": 4
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase1Variant"
+            ],
             "wgslOnDisk": true
           }
         },
@@ -3728,6 +3909,122 @@
           "requires": [
             "shader-f16"
           ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase2Variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "phase2_q4k": {
+          "wgsl": "lm_head_argmax_q4k.wgsl",
+          "entryPoint": "phase2",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase2Variant"
+            ],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "lm_head_select_logits": {
+      "description": "Selected-token LM-head f16-weight GEMV for rerank yes/no logits",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "hidden",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "weights",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "token_ids",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "vocab_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "token_count",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "hidden_offset",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "transpose_b",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "logit_softcap",
+            "type": "f32",
+            "offset": 20
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "f16w_f32a": {
+          "wgsl": "lm_head_select_logits.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "weightDtype": "f16",
+          "inputDtype": "f32",
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -3846,10 +4143,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "rmsnorm.rules.json#variant"
@@ -4081,6 +4382,106 @@
         "subgroup": {
           "wgsl": "rmsnorm_pair.wgsl",
           "entryPoint": "main_subgroup",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "residual_rmsnorm_pair": {
+      "description": "Two-output decode kernel: residual add plus next-layer input RMSNorm",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "residual",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "norm_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "residual_output",
+          "type": "storage"
+        },
+        {
+          "index": 5,
+          "name": "norm_output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 8
+          },
+          {
+            "name": "output_scale",
+            "type": "f32",
+            "offset": 12
+          },
+          {
+            "name": "token_stride",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "subgroup": {
+          "wgsl": "residual_rmsnorm_pair.wgsl",
+          "entryPoint": "main",
           "workgroup": [
             256,
             1,
@@ -5062,10 +5463,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "rope.rules.json#variant"
@@ -5400,10 +5805,14 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "silu.rules.json#variant"
@@ -6505,10 +6914,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "gather.rules.json#variant"
@@ -7079,10 +7492,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "residual.rules.json#biasAddVariant",
@@ -8630,7 +9047,7 @@
       }
     },
     "split_qkv_rmsnorm_rope_qk": {
-      "description": "Split fused QKV output and apply weighted RMSNorm plus full-head RoPE to Q and K buffers",
+      "description": "Split fused QKV output and apply weighted RMSNorm plus partial/full RoPE to Q and K buffers",
       "baseBindings": [
         {
           "index": 0,
@@ -8737,7 +9154,7 @@
             "offset": 40
           },
           {
-            "name": "half_dim",
+            "name": "rotary_dim",
             "type": "u32",
             "offset": 44
           },
@@ -8747,7 +9164,7 @@
             "offset": 48
           },
           {
-            "name": "_pad0",
+            "name": "interleaved",
             "type": "u32",
             "offset": 52
           },
@@ -8783,7 +9200,7 @@
       }
     },
     "split_qkv_rmsnorm_rope_qk_f16kv_cache": {
-      "description": "Split fused QKV output, apply weighted RMSNorm plus full-head RoPE to Q/K, and write K/V directly to contiguous f16 KV cache",
+      "description": "Split fused QKV output, apply weighted RMSNorm plus partial/full RoPE to Q/K, and write K/V directly to contiguous f16 KV cache",
       "baseBindings": [
         {
           "index": 0,
@@ -8890,7 +9307,7 @@
             "offset": 40
           },
           {
-            "name": "half_dim",
+            "name": "rotary_dim",
             "type": "u32",
             "offset": 44
           },
@@ -8905,7 +9322,7 @@
             "offset": 52
           },
           {
-            "name": "_pad1",
+            "name": "interleaved",
             "type": "u32",
             "offset": 56
           },
@@ -9375,10 +9792,13 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true

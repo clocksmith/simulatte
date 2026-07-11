@@ -997,7 +997,6 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
       layerWeights.set(`layer_${l}`, weights);
     }
   }
-
   // Collect per-layer router weights for MoE
   
   const layerRouterWeights = new Map();

@@ -1,0 +1,2182 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-11T03:06:29.499Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "model",
+  "target": "local-public",
+  "url": "http://127.0.0.1:62181/index.html",
+  "profileDir": "artifacts/model-cache-profile",
+  "profilePersistent": true,
+  "promptCounts": {
+    "curated": 1,
+    "broad": 0,
+    "custom": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 1,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 1,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 1,
+      "bitMargin": 1,
+      "maxTemporalBits": 0,
+      "maxTemporalDistance": 0,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": 1,
+      "recommendedHashFloor": 0.0156,
+      "calibrated": false
+    },
+    "sceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRSceneKinds": [
+      "particle-instrument"
+    ],
+    "visualIRCameras": [
+      "instrumented-lab-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 36,
+      "mappingIds": [
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.instrument-readout.v1",
+        "visual.operator.particle-track-detector.v1"
+      ],
+      "uniformSlots": [
+        "emission",
+        "instrument",
+        "measurement",
+        "motion",
+        "phase",
+        "signal",
+        "thermal"
+      ],
+      "wgslOperators": [
+        "atomFeedbackArcs",
+        "atomInstrumentReadout",
+        "atomMeasurementBands",
+        "atomPhaseBoundary",
+        "atomQuantumFringes",
+        "atomThermalPlume"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 100,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "electromagnetic",
+        "instrument",
+        "stress",
+        "thermal"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 1
+    },
+    "intentBriefs": {
+      "totalEvidence": 160,
+      "totalCausalEdges": 5,
+      "totalAffordances": 5,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 260,
+      "totalCausalEdges": 5,
+      "totalCausalAffordances": 5,
+      "totalAssumptions": 14,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 100,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 1,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "curated",
+      "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "screenshot": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.png",
+      "screenshotHash": "f2913a332bc0f5d9b12d508e1b5da6170c97da85c36cdc2eeea75781229f6f7a",
+      "runtimeState": "ready",
+      "renderInputSerial": 1,
+      "compiledPrompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "compiledSourcePromptHash": "fnv1a:5b0099fe",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "ready",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v1",
+        "timestamp": "2026-07-11T03:06:25.175Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "render.ready",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "line": "Ready 100%",
+        "displayLine": "Ready 100%",
+        "label": "Ready",
+        "subline": "",
+        "byteText": "",
+        "sourceText": "",
+        "byteProgress": "",
+        "activity": "ready",
+        "heartbeat": false,
+        "silenceMs": 0,
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "doppler-browser-load",
+        "timing": {
+          "timestamp": "2026-07-11T03:06:25.175Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "timing": "",
+          "traceId": "",
+          "rankId": 0,
+          "reuse": false,
+          "providerReady": false
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null,
+        "loaderReceipt": {
+          "schema": "simulatte.loaderPhaseReceipt.v1",
+          "id": "loader-65",
+          "runId": "mrfs6rl1-1",
+          "stage": "render.ready",
+          "sourceStage": "ready",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8
+        }
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:21.159Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 549.5,
+          "message": "Reranking candidate 1/8",
+          "detail": "Reranking candidate 1/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:21.159Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:21.763Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Reranking candidate 2/8",
+          "detail": "Reranking candidate 2/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:21.763Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:22.108Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Reranking candidate 3/8",
+          "detail": "Reranking candidate 3/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:22.108Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:22.545Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Reranking candidate 4/8",
+          "detail": "Reranking candidate 4/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:22.545Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:22.545Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 64.39990234375,
+          "message": "Reranking candidate 4/8",
+          "detail": "Reranking candidate 4/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:22.545Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:23.042Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Reranking candidate 5/8",
+          "detail": "Reranking candidate 5/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:23.042Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:23.042Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 468.60009765625,
+          "message": "Reranking candidate 5/8",
+          "detail": "Reranking candidate 5/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:23.042Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:23.528Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Reranking candidate 6/8",
+          "detail": "Reranking candidate 6/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:23.528Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:23.964Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Reranking candidate 7/8",
+          "detail": "Reranking candidate 7/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:23.964Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:23.964Z",
+          "source": "simulatte-intent-embedder",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "runtime.model.load",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 96,
+          "line": "Loading embedding model 96%",
+          "displayLine": "Loading embedding model 96%",
+          "label": "Loading embedding model",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "unknown",
+          "activity": "loading embedding model",
+          "heartbeat": false,
+          "silenceMs": 448.800048828125,
+          "message": "Reranking candidate 7/8",
+          "detail": "Reranking candidate 7/8",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:23.964Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "intent-ydstiis",
+            "rankId": 1,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 8,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "runtime.model.load",
+            "sourceStage": "model-rerank",
+            "phaseId": "prompt-runtime",
+            "phaseLabel": "Prompt runtime",
+            "pipelineStep": 1
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:24.436Z",
+          "source": "",
+          "state": "active",
+          "blocking": true,
+          "passive": false,
+          "canvasLoading": true,
+          "stage": "language.parse",
+          "phaseId": "language-graph",
+          "phaseLabel": "Language graph",
+          "pipelineStep": 2,
+          "progress": 96,
+          "line": "Parsing language 96%",
+          "displayLine": "Parsing language 96%",
+          "label": "Parsing language",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "parsing language",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Parsing language",
+          "detail": "pipeline worker",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:24.436Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "language.parse",
+            "sourceStage": "language",
+            "phaseId": "language-graph",
+            "phaseLabel": "Language graph",
+            "pipelineStep": 2
+          }
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v1",
+          "timestamp": "2026-07-11T03:06:25.175Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "render.ready",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "line": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "ready",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "doppler-browser-load",
+          "timing": {
+            "timestamp": "2026-07-11T03:06:25.175Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v1",
+            "id": "loader-65",
+            "runId": "mrfs6rl1-1",
+            "stage": "render.ready",
+            "sourceStage": "ready",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8
+          }
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "modelExecutionReceipt": {
+        "schema": "simulatte.modelExecutionAuditReceipt.v1",
+        "promptRuntimeSchema": "simulatte.promptRuntimeReceipt.v1",
+        "ready": true,
+        "noFallback": true,
+        "providerReady": true,
+        "providerBackend": "doppler-browser-load",
+        "modelRuntimeLock": {
+          "id": "simulatte-doppler-qwen-runtime-lock",
+          "number": 4,
+          "artifactHash": "5f692503b892ea440f25b64949dc3630279e641894d5c9ee7976de9c4dbd70f5"
+        },
+        "embeddingModelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+        "embeddingModelHash": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979",
+        "embeddingDim": 1024,
+        "embeddingProbe": true,
+        "embeddingProbeCount": 3,
+        "embeddingProbeDim": 1024,
+        "embeddingStabilitySimilarity": 1,
+        "embeddingDistinctProbePairs": 3,
+        "rerankerId": "simulatte.doppler-intent-reranker.v1",
+        "rerankerModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+        "rerankerModelHash": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e",
+        "rerankerRequired": true,
+        "rerankerReady": true,
+        "rerankerStatus": "ready",
+        "rerankerBackend": "doppler-reranker-load",
+        "rerankerProbeCount": 1,
+        "rerankerProbeCandidateCount": 1,
+        "rerankerProbeOutputCount": 1,
+        "phase3Rerank": {
+          "schema": "simulatte.intentRerank.v1",
+          "model": "simulatte.doppler-intent-reranker.v1",
+          "modelReady": true,
+          "modelRequired": true,
+          "modelStatus": "ready",
+          "modelBackend": "doppler-reranker-load",
+          "candidateInputCount": 8,
+          "candidateOutputCount": 8,
+          "promptScoringPaths": [
+            "prefix-selected-token-logits"
+          ],
+          "promptSelectedTokenLogitCount": 8,
+          "promptPrefixKvReuseCount": 8,
+          "promptPrefixStateReuseCount": 8,
+          "promptMinimumPrefixTokenCount": 82,
+          "slotRerankCallCount": 9,
+          "slotCandidateInputCount": 36,
+          "slotCandidateOutputCount": 36,
+          "slotScoringPaths": [
+            "prefix-selected-token-logits"
+          ],
+          "slotSelectedTokenLogitCount": 36,
+          "slotPrefixKvReuseCount": 36,
+          "slotPrefixStateReuseCount": 32,
+          "slotMinimumPrefixTokenCount": 82,
+          "scoringPaths": [
+            "prefix-selected-token-logits"
+          ],
+          "embeddedSlotCount": 9
+        }
+      },
+      "phase3MissingRequiredSlots": [],
+      "phase3SlotEvidence": [
+        {
+          "slotId": "slot.object.particle_collider",
+          "entryId": "entity:particle-collider",
+          "status": "preserved",
+          "acceptedCount": 3,
+          "acceptedCandidateIds": [
+            "prompt.object.particle-collider",
+            "concept.particle-collider-event",
+            "affordance.particle-collider-event"
+          ]
+        },
+        {
+          "slotId": "slot.object.muon_tracks",
+          "entryId": "entity:muon-tracks",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.object.muon-tracks"
+          ]
+        },
+        {
+          "slotId": "slot.object.detector_slice",
+          "entryId": "entity:detector-slice",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.object.detector-slice",
+            "shape.detector-layer-slice"
+          ]
+        },
+        {
+          "slotId": "slot.object.calorimeter",
+          "entryId": "entity:calorimeter",
+          "status": "preserved",
+          "acceptedCount": 5,
+          "acceptedCandidateIds": [
+            "prompt.object.calorimeter",
+            "calorimeter",
+            "analog.artifact-calorimeter",
+            "analog.synthesis-calorimeter",
+            "concept.card-artifact-calorimeter"
+          ]
+        },
+        {
+          "slotId": "slot.object.collision",
+          "entryId": "entity:collision",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.object.collision"
+          ]
+        },
+        {
+          "slotId": "slot.object.plume",
+          "entryId": "entity:plume",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.object.plume"
+          ]
+        },
+        {
+          "slotId": "slot.action.heat",
+          "entryId": "action:heat",
+          "status": "preserved",
+          "acceptedCount": 7,
+          "acceptedCandidateIds": [
+            "catalyst-front",
+            "prompt.action.heat",
+            "analog.synthesis-heat",
+            "concept.card-synthesis-heat",
+            "concept.card-synthesis-heating",
+            "language-heat-span8",
+            "action:heat_transfer"
+          ]
+        },
+        {
+          "slotId": "slot.action.heat_transfer",
+          "entryId": "action:heat-transfer",
+          "status": "preserved",
+          "acceptedCount": 3,
+          "acceptedCandidateIds": [
+            "prompt.action.heat-transfer",
+            "heat-transfer",
+            "action:heat_transfer"
+          ]
+        },
+        {
+          "slotId": "slot.relation.calorimeter_heat-transfer_world",
+          "entryId": "relation:calorimeter:heat-transfer:world",
+          "status": "preserved",
+          "acceptedCount": 3,
+          "acceptedCandidateIds": [
+            "prompt.relation.calorimeter-heat-transfer-world",
+            "clause1",
+            "clause1:agent-process"
+          ]
+        }
+      ],
+      "phase4AcceptedNodeIdentities": [
+        {
+          "id": "prompt-body-particle-collider",
+          "canonicalId": "prompt.body.particle-collider",
+          "label": "Particle Collider",
+          "indexName": "prompt-typed-slot"
+        },
+        {
+          "id": "prompt-body-muon-tracks",
+          "canonicalId": "prompt.body.muon-tracks",
+          "label": "Muon Tracks",
+          "indexName": "prompt-typed-slot"
+        },
+        {
+          "id": "prompt-body-detector-slice",
+          "canonicalId": "prompt.body.detector-slice",
+          "label": "Detector Slice",
+          "indexName": "prompt-typed-slot"
+        },
+        {
+          "id": "affordance-cooling-field",
+          "canonicalId": "affordance.cooling-field",
+          "label": "Field Lines",
+          "indexName": "affordances"
+        },
+        {
+          "id": "prompt-body-calorimeter",
+          "canonicalId": "prompt.body.calorimeter",
+          "label": "Calorimeter",
+          "indexName": "prompt-typed-slot"
+        },
+        {
+          "id": "primitive-heat-exchanger-a",
+          "canonicalId": "primitive.heat-exchanger-a",
+          "label": "Heat",
+          "indexName": "components"
+        },
+        {
+          "id": "primitive-collision",
+          "canonicalId": "primitive.collision",
+          "label": "Collision Physics",
+          "indexName": "components"
+        },
+        {
+          "id": "primitive-collision-1",
+          "canonicalId": "primitive.collision-1",
+          "label": "Collision",
+          "indexName": "components"
+        }
+      ],
+      "phase5EntityIdentities": [
+        {
+          "id": "prompt-body-particle-collider",
+          "canonicalId": "prompt.body.particle-collider",
+          "label": "Particle Collider",
+          "sourceKind": ""
+        },
+        {
+          "id": "prompt-body-muon-tracks",
+          "canonicalId": "prompt.body.muon-tracks",
+          "label": "Muon Tracks",
+          "sourceKind": ""
+        },
+        {
+          "id": "prompt-body-detector-slice",
+          "canonicalId": "prompt.body.detector-slice",
+          "label": "Detector Slice",
+          "sourceKind": ""
+        },
+        {
+          "id": "affordance-cooling-field",
+          "canonicalId": "affordance.cooling-field",
+          "label": "Field Lines",
+          "sourceKind": ""
+        },
+        {
+          "id": "prompt-body-calorimeter",
+          "canonicalId": "prompt.body.calorimeter",
+          "label": "Calorimeter",
+          "sourceKind": ""
+        },
+        {
+          "id": "primitive-heat-exchanger-a",
+          "canonicalId": "primitive.heat-exchanger-a",
+          "label": "Heat",
+          "sourceKind": ""
+        },
+        {
+          "id": "primitive-collision",
+          "canonicalId": "primitive.collision",
+          "label": "Collision Physics",
+          "sourceKind": ""
+        },
+        {
+          "id": "primitive-collision-1",
+          "canonicalId": "primitive.collision-1",
+          "label": "Collision",
+          "sourceKind": ""
+        }
+      ],
+      "phase6CompositionObligations": [
+        {
+          "id": "entity:particle-collider",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:prompt-body-particle-collider",
+            "phase6:render-instance:instance:geometry:geometry-prompt-body-particle-collider"
+          ]
+        },
+        {
+          "id": "entity:muon-tracks",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:prompt-body-muon-tracks",
+            "phase6:render-instance:instance:geometry:geometry-prompt-body-muon-tracks"
+          ]
+        },
+        {
+          "id": "entity:detector-slice",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:prompt-body-detector-slice",
+            "phase6:render-instance:instance:geometry:geometry-prompt-body-detector-slice"
+          ]
+        },
+        {
+          "id": "entity:calorimeter",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:prompt-body-calorimeter",
+            "phase6:render-instance:instance:geometry:geometry-prompt-body-calorimeter"
+          ]
+        },
+        {
+          "id": "entity:collision",
+          "kind": "object",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:collision-1",
+            "phase6:entity:collision"
+          ]
+        },
+        {
+          "id": "entity:plume",
+          "kind": "object",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": []
+        },
+        {
+          "id": "action:heat",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:heat-exchanger-a",
+            "phase6:entity:heat-event-2"
+          ]
+        },
+        {
+          "id": "action:heat-transfer",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:heat-transfer",
+            "phase6:render-instance:instance:geometry:geometry-heat-transfer"
+          ]
+        },
+        {
+          "id": "relation:calorimeter:heat-transfer:world",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:prompt-body-calorimeter",
+            "phase6:render-instance:instance:geometry:geometry-prompt-body-calorimeter",
+            "phase6:entity:heat-transfer",
+            "phase6:render-instance:instance:geometry:geometry-heat-transfer",
+            "scene:world"
+          ]
+        },
+        {
+          "id": "visual:compiled-scene-packet",
+          "kind": "visual",
+          "target": "field lines",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:render-instance:instance:geometry:geometry-affordance-cooling-field"
+          ]
+        }
+      ],
+      "sceneRenderPacketIdentities": [
+        {
+          "id": "heat-exchanger-a",
+          "label": "heat",
+          "type": "field",
+          "sourceLabel": "heat"
+        },
+        {
+          "id": "ceramic-a",
+          "label": "structure",
+          "type": "structure",
+          "sourceLabel": "whole prompt"
+        },
+        {
+          "id": "collision-1",
+          "label": "collision",
+          "type": "object",
+          "sourceLabel": "collision"
+        },
+        {
+          "id": "heat-event-2",
+          "label": "heat",
+          "type": "field",
+          "sourceLabel": "heat"
+        },
+        {
+          "id": "heat-3",
+          "label": "instrument",
+          "type": "instrument",
+          "sourceLabel": "heat"
+        },
+        {
+          "id": "language-heat-span8",
+          "label": "heat",
+          "type": "field",
+          "sourceLabel": "heat"
+        },
+        {
+          "id": "collision",
+          "label": "structure",
+          "type": "structure",
+          "sourceLabel": "collision"
+        },
+        {
+          "id": "prompt-body-particle-collider",
+          "label": "Particle Collider",
+          "type": "object",
+          "sourceLabel": "Particle Collider"
+        },
+        {
+          "id": "prompt-body-muon-tracks",
+          "label": "Muon Tracks",
+          "type": "object",
+          "sourceLabel": "Muon Tracks"
+        },
+        {
+          "id": "prompt-body-detector-slice",
+          "label": "instrument",
+          "type": "instrument",
+          "sourceLabel": "Detector Slice"
+        },
+        {
+          "id": "prompt-body-calorimeter",
+          "label": "instrument",
+          "type": "instrument",
+          "sourceLabel": "Calorimeter"
+        },
+        {
+          "id": "sensor-array",
+          "label": "instrument",
+          "type": "instrument",
+          "sourceLabel": "detector"
+        },
+        {
+          "id": "particle-set",
+          "label": "collider",
+          "type": "field",
+          "sourceLabel": "collider"
+        },
+        {
+          "id": "heat-transfer",
+          "label": "heat transfer physics",
+          "type": "field",
+          "sourceLabel": "heat transfer physics"
+        },
+        {
+          "id": "scalar-field",
+          "label": "scalar field math",
+          "type": "field",
+          "sourceLabel": "scalar field math"
+        },
+        {
+          "id": "vector-field",
+          "label": "vector field math",
+          "type": "field",
+          "sourceLabel": "vector field math"
+        },
+        {
+          "id": "affordance-cooling-field",
+          "label": "Field Lines",
+          "type": "field",
+          "sourceLabel": "Field Lines"
+        }
+      ],
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "particle-instrument",
+      "physicsCanvasSceneId": "15",
+      "physicsCanvasSceneMix": "thermal:1.00,instrument:0.85,optical:0.58",
+      "physicsCanvasSceneMixSlots": "3",
+      "phase7Input": "simulatte.renderExecutionInput.v1",
+      "phase7RenderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase7SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+      "phase7Output": "simulatte.phase7.output.v2",
+      "phase7OutputInput": "simulatte.phase6.output.v2",
+      "phase8Output": "simulatte.phase8.output.v2",
+      "sceneProofVerdict": "pass",
+      "sceneProofError": "",
+      "sceneProofLostCount": "0",
+      "sceneProofNotProvenCount": "0",
+      "sceneProofRequiredLostIds": "[]",
+      "sceneProofRequiredNotProvenIds": "[]",
+      "sceneProofRequiredFailures": "[]",
+      "phase7RenderData": "simulatte.phase7.compactRenderData.v1",
+      "phase7RenderDataKey": "particle-instrument:17:7:24:3fc68284",
+      "phase7RenderPath": "storage-scene-instances-with-uniform-fallback",
+      "phase7InputVisualObligationCount": 7,
+      "phase7PixelReadback": "pass",
+      "phase7PixelReadbackMessage": "",
+      "phase7PixelReadbackPlan": "none",
+      "phase7LivePixelSamplesRequired": "true",
+      "phase7RequiredVisualObligationCount": 7,
+      "phase7PixelProofStatus": "pass",
+      "phase7PixelSampleCount": 14,
+      "phase7PixelVisibleSampleCount": 14,
+      "phase7PixelMinContrast": 0.3961,
+      "phase7PixelSampledObligationCount": 7,
+      "phase7PixelRequiredObligationCount": 7,
+      "phase7PixelSampledObligations": "entity:particle-collider,entity:muon-tracks,entity:detector-slice,entity:calorimeter,action:heat,action:heat-transfer,visual:compiled-scene-packet",
+      "webgpuOptimizationPath": "compute-storage-indirect",
+      "webgpuFeatureFlags": "enabled:shader-f16+subgroups+timestamp-query;used:compute-scene-culling+storage-buffer-scene-instances+gpu-generated-indirect-fullscreen-draw+meshlet-compatible-instance-packet",
+      "webgpuSceneInstanceCapacity": 32,
+      "webgpuSceneInstanceCount": 32,
+      "webgpuStorageBytes": 3104,
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v2",
+        "phase4": "simulatte.phase4.output.v2",
+        "phase5": "simulatte.phase5.output.v2",
+        "phase6": "simulatte.phase6.output.v2",
+        "phase7": "simulatte.phase7.output.v2"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:17;fields:7;effects:24;layers:thermal-field+material-surface+process-pulse+track-line+detector-geometry+field-sheet+optical-field+readout-panel;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 17,
+      "sceneRenderFieldCount": 7,
+      "sceneRenderEffectCount": 24,
+      "sceneRenderSpatialHash": "3fc68284",
+      "sceneObjectUniforms": "0:Detector Slice:detector-geometry@0.50,0.47;1:Calorimeter:detector-geometry@0.50,0.47;2:detector:detector-geometry@0.67,0.33;3:heat:thermal-field@0.57,0.84;4:Particle Collider:track-line@0.44,0.44;5:Muon Tracks:track-line@0.44,0.44;6:heat:thermal-field@0.69,0.53;7:heat:thermal-field@0.66,0.77",
+      "sceneObjectIdentities": "0:Detector Slice:instrument:detector-geometry:@0.50,0.47;1:Calorimeter:instrument:detector-geometry:@0.50,0.47;2:detector:instrument:detector-geometry:@0.67,0.33;3:heat:instrument:thermal-field:@0.57,0.84;4:Particle Collider:object:track-line:@0.44,0.44;5:Muon Tracks:object:track-line:@0.44,0.44;6:heat:field:thermal-field:@0.69,0.53;7:heat:field:thermal-field:@0.66,0.77",
+      "physicsCanvasRenderCount": "31",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 113.09,
+      "lumaStd": 54.628,
+      "coloredRatio": 0.926,
+      "canvasHash": "e9ad9c36",
+      "specId": "particle-collider-muon-tracks-collision-plume-mrfs97qf",
+      "templateId": "custom-world",
+      "rendererSceneKind": "particle-instrument",
+      "visualIRSceneKind": "particle-instrument",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 17,
+      "visualIRMaterialCount": 21,
+      "visualIRFieldCount": 7,
+      "visualIRProcessCount": 16,
+      "visualIROperatorCount": 10,
+      "visualIRRenderInstanceCount": 48,
+      "visualIRRejectedRowCount": 16,
+      "visualIRReceiptCount": 13,
+      "visualIRCausalAffordanceCount": 5,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIRSceneRenderPacketEntityCount": 17,
+      "visualIRSceneRenderPacketFieldCount": 7,
+      "visualIRSceneRenderPacketEffectCount": 24,
+      "phase6VisualObligationCount": 7,
+      "phase6VisualObligationIds": [
+        "entity:particle-collider",
+        "entity:muon-tracks",
+        "entity:detector-slice",
+        "entity:calorimeter",
+        "action:heat",
+        "action:heat-transfer",
+        "visual:compiled-scene-packet"
+      ],
+      "visualIRSceneRenderPacketLayers": [
+        "thermal-field",
+        "material-surface",
+        "process-pulse",
+        "track-line",
+        "detector-geometry",
+        "field-sheet",
+        "optical-field",
+        "readout-panel",
+        "causal-affordance"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "heat",
+        "structure",
+        "collision",
+        "instrument",
+        "Particle Collider",
+        "Muon Tracks",
+        "collider",
+        "heat transfer physics",
+        "scalar field math",
+        "vector field math",
+        "Field Lines"
+      ],
+      "visualIRAcceptedRenderInstances": 48,
+      "visualIRRenderInstanceSlots": [
+        "field-sheet",
+        "material-surface",
+        "material-surface",
+        "process-pulse",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "field-sheet",
+        "detector-geometry",
+        "detector-geometry",
+        "track-line",
+        "track-line",
+        "field-sheet",
+        "detector-geometry",
+        "field-sheet",
+        "thermal-field",
+        "water-volume",
+        "thermal-field",
+        "water-volume",
+        "material-surface",
+        "optical-field",
+        "thermal-field"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "electromagnetism",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "curve-path",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "optics",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "curl",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "divergence",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "diffusion",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.phase-transition.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fluid-advection.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thermal-combustion.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.acoustic-wave.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 36,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.heat-transfer.v1",
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "thermal",
+        "instrument",
+        "phase",
+        "measurement",
+        "motion",
+        "emission",
+        "signal"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "thermal": 1,
+        "instrument": 1,
+        "phase": 0.92,
+        "measurement": 0.92,
+        "motion": 0.76,
+        "emission": 0.84,
+        "signal": 0.84
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomThermalPlume",
+        "atomPhaseBoundary",
+        "atomInstrumentReadout",
+        "atomQuantumFringes",
+        "atomFeedbackArcs",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "entity particle collider",
+          "slots": []
+        },
+        {
+          "id": "activation.0246",
+          "kind": "catalog-candidate",
+          "text": "entity particle collider",
+          "slots": []
+        },
+        {
+          "id": "activation.0252",
+          "kind": "catalog-candidate",
+          "text": "entity muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0498",
+          "kind": "catalog-candidate",
+          "text": "entity muon tracks",
+          "slots": []
+        },
+        {
+          "id": "activation.0753",
+          "kind": "catalog-candidate",
+          "text": "entity detector slice",
+          "slots": []
+        },
+        {
+          "id": "activation.0999",
+          "kind": "catalog-candidate",
+          "text": "entity detector slice",
+          "slots": []
+        },
+        {
+          "id": "activation.1251",
+          "kind": "catalog-candidate",
+          "text": "observable field lines",
+          "slots": []
+        },
+        {
+          "id": "activation.1256",
+          "kind": "catalog-candidate",
+          "text": "entity calorimeter",
+          "slots": []
+        },
+        {
+          "id": "activation.1281",
+          "kind": "catalog-candidate",
+          "text": "entity calorimeter",
+          "slots": []
+        },
+        {
+          "id": "activation.1497",
+          "kind": "catalog-candidate",
+          "text": "entity calorimeter",
+          "slots": []
+        },
+        {
+          "id": "activation.1510",
+          "kind": "catalog-candidate",
+          "text": "observable heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1559",
+          "kind": "catalog-candidate",
+          "text": "observable heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1560",
+          "kind": "concept-candidate",
+          "text": "observable heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1761",
+          "kind": "catalog-candidate",
+          "text": "process heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1810",
+          "kind": "catalog-candidate",
+          "text": "process heat",
+          "slots": []
+        },
+        {
+          "id": "activation.1811",
+          "kind": "concept-candidate",
+          "text": "process heat",
+          "slots": []
+        },
+        {
+          "id": "activation.2010",
+          "kind": "catalog-candidate",
+          "text": "term collision",
+          "slots": []
+        },
+        {
+          "id": "activation.2103",
+          "kind": "primitive-candidate",
+          "text": "term collision",
+          "slots": []
+        },
+        {
+          "id": "activation.2262",
+          "kind": "catalog-candidate",
+          "text": "term plume",
+          "slots": []
+        },
+        {
+          "id": "activation.2503",
+          "kind": "catalog-candidate",
+          "text": "term plume",
+          "slots": []
+        },
+        {
+          "id": "activation.2510",
+          "kind": "catalog-candidate",
+          "text": "subject calorimeter",
+          "slots": []
+        },
+        {
+          "id": "activation.2515",
+          "kind": "causal-candidate",
+          "text": "subject calorimeter",
+          "slots": []
+        },
+        {
+          "id": "activation.2535",
+          "kind": "catalog-candidate",
+          "text": "subject calorimeter",
+          "slots": []
+        },
+        {
+          "id": "activation.2751",
+          "kind": "catalog-candidate",
+          "text": "subject calorimeter",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 160,
+      "intentBriefCausalEdgeCount": 5,
+      "intentBriefAssumptionCount": 14,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 260,
+      "physicalReceiptCausalEdgeCount": 5,
+      "physicalReceiptCausalAffordanceCount": 5,
+      "physicalReceiptAssumptionCount": 14,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 5,
+      "previewLength": 107076,
+      "ok": true,
+      "renderCount": 31,
+      "sceneId": "15",
+      "renderInputMatches": true,
+      "promptMatches": true,
+      "phase7VisualObligationProof": "[{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:particle-collider\",\"target\":\"particle collider\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"pixelSatisfied\":true,\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"webgpu-frame\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:muon-tracks\",\"target\":\"muon tracks\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"pixelSatisfied\":true,\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"webgpu-frame\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:detector-slice\",\"target\":\"detector slice\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"pixelSatisfied\":true,\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"webgpu-frame\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:calorimeter\",\"target\":\"calorimeter\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"pixelSatisfied\":true,\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"webgpu-frame\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"action:heat\",\"target\":\"heat\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"pixelSatisfied\":true,\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"webgpu-frame\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"action:heat-transfer\",\"target\":\"heat transfer\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"pixelSatisfied\":true,\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"webgpu-frame\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:compiled-scene-packet\",\"target\":\"field lines\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"pixelSatisfied\":true,\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"webgpu-frame\"]}]",
+      "phase7PixelAuditChecks": "[{\"id\":\"scene-packet-drawables\",\"actual\":48,\"expectedMin\":1,\"pass\":true},{\"id\":\"draw-count\",\"actual\":32,\"expectedMin\":1,\"pass\":true},{\"id\":\"scene-instance-count\",\"actual\":32,\"expectedMin\":1,\"pass\":true},{\"id\":\"canvas-pixels\",\"actual\":1497600,\"expectedMin\":1,\"pass\":true},{\"id\":\"visual-obligation-failures\",\"actual\":0,\"expectedMax\":0,\"pass\":true},{\"id\":\"live-pixel-sample-count\",\"actual\":14,\"expectedMin\":3,\"pass\":true},{\"id\":\"live-pixel-contrast\",\"actual\":0.3961,\"expectedMin\":0.035,\"pass\":true},{\"id\":\"visual-obligation-pixel-samples\",\"actual\":7,\"expectedMin\":7,\"pass\":true}]",
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.canvas.png",
+      "canvasScreenshotLater": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.canvas-late.png",
+      "canvasScreenshotHash": "91eed28ca6e79cd6332332b5d59893495aca2e0bb059a4322f17bb0310a7ede3",
+      "canvasScreenshotLaterHash": "1f1ce590154e081c3e5710a8554bcd1e3319046e700ae719de57ce7e134f526c",
+      "canvasPerceptualHash": "0e8f332737b32f8f",
+      "canvasPerceptualHashLater": "0f0e339e37334d0b",
+      "canvasDiversityScreenshot": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.canvas-diversity.png",
+      "canvasDiversityScreenshotLater": "01-curated-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel.canvas-diversity-late.png",
+      "canvasDiversityPerceptualHash": "0f2b339333b32aaa",
+      "canvasDiversityPerceptualHashLater": "0f2b339333b32aaa",
+      "canvasDiversityHashKind": "audit:visual-clean-canvas-dhash-64",
+      "canvasDiversityFrameStable": true,
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 54.628,
+      "canvasScreenshotColoredRatio": 0.926,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasScreenshotNearWhiteRatio": 0.006,
+      "canvasScreenshotStrongEdgeRatio": 0.492,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 1.828,
+      "canvasFrameLumaStdDelta": 0.161,
+      "canvasFrameColoredRatioDelta": 0,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 100,
+        "pass": true,
+        "expectedCount": 4,
+        "coverage": 1,
+        "representationQuality": 1,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 1,
+          "entityStructure": 1,
+          "materialIdentity": 1,
+          "processMotion": 1,
+          "fieldStructure": 1,
+          "cameraSpecificity": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "thermal",
+          "stress",
+          "electromagnetic",
+          "instrument"
+        ],
+        "matchedSignals": [
+          {
+            "id": "thermal",
+            "strength": 1,
+            "slotHits": [
+              "thermal",
+              "phase",
+              "emission"
+            ],
+            "mappingHits": [
+              "visual.operator.heat-transfer.v1"
+            ],
+            "wgslHits": [
+              "atomThermalPlume"
+            ],
+            "languageHits": []
+          },
+          {
+            "id": "stress",
+            "strength": 0.45,
+            "slotHits": [
+              "motion"
+            ],
+            "mappingHits": [],
+            "wgslHits": [],
+            "languageHits": []
+          },
+          {
+            "id": "electromagnetic",
+            "strength": 0.9,
+            "slotHits": [
+              "emission",
+              "signal"
+            ],
+            "mappingHits": [],
+            "wgslHits": [],
+            "languageHits": []
+          },
+          {
+            "id": "instrument",
+            "strength": 1,
+            "slotHits": [
+              "instrument",
+              "measurement",
+              "signal"
+            ],
+            "mappingHits": [
+              "visual.operator.instrument-readout.v1",
+              "visual.operator.particle-track-detector.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

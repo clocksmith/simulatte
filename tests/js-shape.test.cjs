@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -298,6 +299,38 @@ test('intent forensics modules load before the physics model in the browser lab'
     position('simulation-lab.js') < position('prompt-review-bridge.js'),
     'review bridge should load after the browser lab runtime'
   );
+});
+
+test('selected-token reranker runtime loads before the model-backed embedder class captures it', () => {
+  const files = [
+    path.join(root, 'public', 'index.html'),
+    path.join(root, 'public', 'app', 'main.js'),
+    path.join(root, 'public', 'app', 'workers', 'simulatte-intent-worker.js'),
+    path.join(root, 'public', 'pipeline', 'phase-03-retrieval', 'simulatte-intent-embedder.js'),
+  ];
+  for (const file of files) {
+    const source = fs.readFileSync(file, 'utf8');
+    const runtimePosition = source.indexOf('simulatte-intent-embedder-rerank-runtime.js');
+    const embedderPosition = source.indexOf('simulatte-intent-embedder-manifest-cache.js');
+    assert.notEqual(runtimePosition, -1, `${path.basename(file)} must load the reranker runtime`);
+    assert.notEqual(embedderPosition, -1, `${path.basename(file)} must load the model-backed embedder`);
+    assert.ok(runtimePosition < embedderPosition, `${path.basename(file)} must load reranking before the embedder`);
+  }
+  const legacyRerankSource = fs.readFileSync(
+    path.join(root, 'public', 'pipeline', 'phase-03-retrieval', 'simulatte-intent-embedder-rerank.js'),
+    'utf8'
+  );
+  for (const symbol of [
+    'rerankProviderFromModelHandle',
+    'rerankerInputCandidateLimit',
+    'resetRerankerHandle',
+    'rerankScoringConfig',
+    'formatRerankPrompt',
+    'rerankCandidateText',
+    'sigmoid',
+  ]) {
+    assert.doesNotMatch(legacyRerankSource, new RegExp(`\\b${symbol}\\b`), `${symbol} has one runtime owner`);
+  }
 });
 
 test('training mode streams prompt-output critiques over localhost', () => {
@@ -2056,10 +2089,18 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'firebase.json'), 'utf8'));
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const deployCheck = fs.readFileSync(path.join(root, 'tools', 'check-deploy-surface.mjs'), 'utf8');
+  const developmentSync = fs.readFileSync(path.join(root, 'tools', 'sync-doppler-development.mjs'), 'utf8');
   const modelLockUtils = fs.readFileSync(path.join(root, 'tools', 'model-runtime-lock-utils.mjs'), 'utf8');
   const headers = config.hosting.headers;
   assert.equal(config.hosting.predeploy, 'npm run check:deploy && npm run stamp:build');
-  assert.equal(pkg.scripts['check:model-lock'], 'node tools/check-model-runtime-lock.mjs');
+  assert.equal(pkg.scripts['sync:doppler:development'], 'node tools/sync-doppler-development.mjs --write');
+  assert.equal(pkg.scripts['check:doppler:development'], 'node tools/sync-doppler-development.mjs --check');
+  assert.equal(pkg.scripts['sync:model-lock-references'], 'node tools/sync-model-runtime-lock-references.mjs --write');
+  assert.equal(pkg.scripts['check:model-lock-references'], 'node tools/sync-model-runtime-lock-references.mjs --check');
+  assert.equal(
+    pkg.scripts['check:model-lock'],
+    'npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development'
+  );
   assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && node tools/check-deploy-surface.mjs');
   assert.match(deployCheck, /public\/vendor\/doppler/);
   assert.match(deployCheck, /readModelRuntimeLock/);
@@ -2067,6 +2108,12 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.match(deployCheck, /MODEL_RUNTIME_LOCK\.doppler/);
   assert.match(deployCheck, /npm', \[\n\s+'pack',/);
   assert.match(deployCheck, /vendor file contents differ from the published Doppler package/);
+  assert.match(developmentSync, /sibling-git-archive/);
+  assert.match(developmentSync, /git', \['archive'/);
+  assert.match(developmentSync, /public', 'vendor', 'doppler'/);
+  assert.match(developmentSync, /if \(!WRITE && siblingHead !== development\.gitSha\)/);
+  assert.match(developmentSync, /packagePin\.integrity = entry\.integrity/);
+  assert.match(developmentSync, /development\.gitSha = sourceSha/);
   assert.doesNotMatch(deployCheck, /git', \['status', '--porcelain=v1'/);
   const noCacheSources = new Set(headers
     .filter((entry) => entry.headers.some((header) => (
@@ -2087,6 +2134,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   const manifestPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'manifest.json');
   const indexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'primitive-index-v2.json');
   const cardIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'surface-card-index-qwen-v1.json');
+  const intentEvidencePath = path.join(root, 'public', 'data', 'simulatte-embedder', 'intent-evidence-contract-v1.json');
   const retiredEmbeddingGemmaCardIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'surface-card-index-embeddinggemma-v1.json');
   const retiredCardIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'surface-card-index-v1.json');
   const retiredIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'primitive-index-v1.json');
@@ -2137,7 +2185,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 3);
+  assert.equal(modelRuntimeLock.number, 4);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
 	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2153,7 +2201,10 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	  assert.equal(manifest.retrieval.cards.artifactHash.hex, 'feddce7cfdff749402bbad7aa22f4be65a919d3c26c7bf3d43b8cd4e514c5b81');
 	  assert.equal(manifest.retrieval.cards.dimensions, 1024);
 	  assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
-	  assert.equal(manifest.retrieval.intentEvidence.artifactHash.hex, '66de0a9ec248f33f762abd8c14be27e4f5128fb855e587411799de6ec1b48577');
+	  assert.equal(
+	    manifest.retrieval.intentEvidence.artifactHash.hex,
+	    crypto.createHash('sha256').update(fs.readFileSync(intentEvidencePath)).digest('hex')
+	  );
 	  assert.equal(manifest.retrieval.slotLevel.schema, 'simulatte.slotLevelEmbeddingConfig.v1');
 	  assert.equal(manifest.retrieval.slotLevel.mode, 'typed-scene-slot-embedding-rerank');
 	  assert.equal(manifest.retrieval.slotLevel.primitiveRankBackend, 'auto');
@@ -2172,6 +2223,9 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(manifest.reranker.maxCandidatesPerCall, 8);
   assert.equal(manifest.reranker.maxSlotCandidatesPerCall, 4);
   assert.equal(manifest.reranker.fallbackMode, 'heuristic-fusion');
+  assert.equal(manifest.reranker.execution.selectedTokenLogits, 'required');
+  assert.equal(manifest.reranker.execution.prefixKvReuse, 'required');
+  assert.equal(manifest.reranker.execution.statefulPrefixReuse, 'required');
   assert.ok(manifest.reranker.candidateScope.includes('primitive'));
   assert.ok(manifest.reranker.candidateScope.includes('span'));
   assert.equal(manifest.reranker.model.id, 'qwen-3-reranker-0-6b-q4k-ehf16-af32');
@@ -2197,7 +2251,10 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
-  assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index-browser.js');
+  assert.equal(modelRuntimeLock.doppler.package.version, '0.4.8');
+  assert.equal(modelRuntimeLock.doppler.development.kind, 'sibling-git-archive');
+  assert.match(modelRuntimeLock.doppler.development.gitSha, /^[0-9a-f]{40}$/);
+  assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index.js');
   assert.equal(manifest.runtime.storageModuleUrl, '../../vendor/doppler/src/tooling-exports/storage.js');
   assert.equal(manifest.runtime.queryEmbeddingMode, 'last');
   assert.equal(manifest.runtime.embeddingText.schema, 'simulatte.embeddingTextContract.v1');
@@ -2229,7 +2286,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.match(embeddingConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_decode.kernel, /_f16kv\.wgsl$/);
   assert.match(rerankerConversion.execution.kernels.attn_stream.kernel, /_f16kv\.wgsl$/);
-  assert.equal(manifest.cache.namespace, 'simulatte-doppler-qwen-runtime-lock-3');
+  assert.equal(manifest.cache.namespace, 'simulatte-doppler-qwen-runtime-lock-4');
   assert.equal(manifest.cache.owner, 'doppler');
   assert.equal(manifest.cache.prefetch, true);
   assert.equal(manifest.cache.strategy, 'doppler-opfs-verified');

@@ -2,6 +2,10 @@
   const scope = root.__SimulatteIntentEmbedderRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
+    const createRerankProviderFromHandle = scope.rerankProviderFromModelHandle;
+    if (typeof createRerankProviderFromHandle !== 'function') {
+      throw new Error('Doppler reranker runtime must load before the model-backed embedder');
+    }
     class ModelBackedIntentEmbedder {
         constructor(options = {}) {
           assertPinnedRuntimeOptions(options);
@@ -862,8 +866,9 @@
         }
 
         createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl) {
-          let activeProvider = rerankProviderFromModelHandle(
-            handle,
+          let activeHandle = handle;
+          let activeProvider = createRerankProviderFromHandle(
+            activeHandle,
             runtime,
             config,
             'doppler-reranker-load',
@@ -876,13 +881,16 @@
                 const reloaded = await this.loadDopplerRerankerModel(runtime, options);
                 return reloaded.rerank(input);
               }
-              activeProvider = rerankProviderFromModelHandle(
-                this.dopplerRerankerHandle,
-                runtime,
-                config,
-                'doppler-reranker-load',
-                this.dopplerRerankerModelBaseUrl || modelBaseUrl
-              );
+              if (this.dopplerRerankerHandle !== activeHandle) {
+                activeHandle = this.dopplerRerankerHandle;
+                activeProvider = createRerankProviderFromHandle(
+                  activeHandle,
+                  runtime,
+                  config,
+                  'doppler-reranker-load',
+                  this.dopplerRerankerModelBaseUrl || modelBaseUrl
+                );
+              }
               return activeProvider.rerank(input);
             },
           };

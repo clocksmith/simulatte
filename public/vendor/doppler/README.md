@@ -1,62 +1,80 @@
 # doppler-gpu
 
-WebGPU inference runtime for browser, Node, Bun, CLI, and local server use.
-Doppler runs JavaScript orchestration over WGSL kernels and loads models from
-RDRR manifests.
+[![Build](https://img.shields.io/github/actions/workflow/status/clocksmith/doppler/check-green.yml?branch=main&label=build)](https://github.com/clocksmith/doppler/actions/workflows/check-green.yml)
+[![npm version](https://img.shields.io/npm/v/doppler-gpu.svg?label=version)](https://www.npmjs.com/package/doppler-gpu)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/clocksmith/doppler/pulls)
+
+JavaScript and WGSL WebGPU inference for browser and Node, with CLI and
+OpenAI-compatible local server entry points. Doppler loads sharded
+[RDRR model artifacts](./docs/rdrr-format.md) for text generation, embeddings,
+and reranking. Bun WebGPU support is experimental.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
-Broader model status and compare evidence live in the support and release
-matrices. See the
-[benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
-for the receipt contract and disclosure rules.
+## Current evidence
 
-## What it is
+Doppler is faster than Transformers.js on every model shown below, across
+Apple Metal and AMD Vulkan.
 
-- A WebGPU inference engine written in JavaScript and WGSL.
-- A shared browser, Node, Bun, CLI, and OpenAI-compatible server surface.
-- An RDRR model loader for sharded weights, manifest-owned config, and tokenizer
-  metadata.
-- A runtime that keeps kernel paths, dtype policy, and benchmark contracts
-  visible in JSON, JavaScript, and WGSL.
+![Metal and Vulkan browser WebGPU latency distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
 
-## Goals
+Metal evidence: [Qwen 3.5 0.8B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) ·
+[Qwen 3 Embedding 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json) ·
+[Qwen 3 Reranker 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json) ·
+[Qwen 3.5 2B paired run](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/qwen35-2b-metal-paired-p256-d512-20260710.json) ·
+[runtime profile](https://github.com/clocksmith/doppler/blob/main/src/config/runtime/profiles/qwen-3-5-2b-metal-parity.json)
 
-Doppler's mainline work is organized around three concrete surfaces:
+Vulkan evidence: [Qwen 3.5 0.8B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T153509.json) ·
+[Qwen 3 Embedding 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json) ·
+[Qwen 3 Reranker 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json) ·
+[Qwen 3.5 2B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json) ·
+[Gemma 4](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T170557.json)
 
-1. Make local WebGPU inference a real product surface across the hosted browser
-   demo, `npx doppler-gpu`, root API, CLI, Node/Bun, and OpenAI-compatible
-   localhost server.
-2. Own the model artifact and runtime contract through RDRR manifests, hosted
-   registry IDs, explicit runtime config, tokenizer/shard identity, and support
-   matrices.
-3. Make correctness and performance evidence-backed through release receipts,
-   benchmark artifacts, command parity, explicit kernel paths, and fail-closed
-   unsupported paths.
-
-See
-[docs/goals.md](https://github.com/clocksmith/doppler/blob/main/docs/goals.md)
-for the product and technical contract behind those goals. The current
-completion gate is `src/config/goal-completion-matrix.json`, checked by
-`npm run goals:check`.
+The links include output checks, load time, and hardware details. Qwen 3.5 2B
+Metal used 20 paired runs and a local Doppler model artifact. Transformers.js
+still loads the Vulkan embedding and reranker models faster. See the
+[methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+and [full results](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
 
 ## How it works
 
-![Doppler runtime contract map](./assets/doppler-runtime-map.svg)
+```text
+registry ID / model URL
+          |
+          v
++----------------------+    +----------------------+
+| RDRR manifest        |--->| verified shards      |
+| model + tokenizer    |    | OPFS / disk cache    |
+| session + execution  |    +----------+-----------+
++----------------------+               |
+                                       |
+prompt / documents                     v
+        +--------------------->+----------------------+
+                               | JavaScript runtime   |
+                               | prefill / decode / KV|
+                               +----------+-----------+
+                                          |
+                                          v
+                               +----------------------+
+                               | WGSL / WebGPU        |
+                               | selected kernels     |
+                               +----------+-----------+
+                                          |
+                                          v
+                              text / embeddings / scores
+```
 
-1. A registry ID or model URL resolves to an RDRR manifest and weight shards.
-2. The manifest owns model parameters, tokenizer metadata, session policy, and
-   execution graph.
-3. The loader caches shards in OPFS or disk and uploads weights to WebGPU
-   buffers.
-4. JavaScript orchestrates prefill, decode, KV cache, and streaming.
-5. WGSL kernels run the tensor work selected by the manifest and runtime config.
+The manifest and runtime config select dtype and kernel paths before execution.
+Unsupported paths fail closed.
 
 ## Quick start
 
 ### Browser
 
-Use the live demo link above — it runs entirely in the browser with no server required. Models load into the browser cache and work offline after first download.
+Use the live demo link above. It runs entirely in the browser with no server
+required. Models load into the browser cache and work offline after the first
+download.
 
 ### CLI
 
@@ -77,18 +95,14 @@ npx doppler-gpu --list-models
 
 ### Root API
 
-The `doppler` facade is the primary app-facing API.
-The root package intentionally stays small: it exports `doppler` and `DOPPLER_VERSION`.
-Advanced surfaces now live on explicit subpaths such as `doppler-gpu/loaders`,
-`doppler-gpu/generation`, `doppler-gpu/tooling`, and `doppler-gpu/orchestration`.
-Support tiers for those subpaths are tracked in the subsystem support matrix rather
-than assumed from export shape alone.
+The `dr` facade is the primary app-facing API. `doppler` remains a compatibility
+alias. Advanced APIs live on explicit package subpaths.
 
 ```js
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
 // Stream tokens
-const model = await doppler.load('qwen3-0.8b');
+const model = await dr.load('qwen3-0.8b');
 for await (const token of model.generate('Describe WebGPU briefly')) {
   process.stdout.write(token);
 }
@@ -116,80 +130,34 @@ const response = await client.chat.completions.create({
 });
 ```
 
-This is a compatibility bridge — the core engine runs identically in the browser or Node.
+This compatibility bridge uses the same runtime contract as the browser and Node APIs.
 
 Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. See the [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
-## Support contract
+## Support
 
-Doppler keeps model support and subsystem support separate:
+The primary proof surface is the hosted browser demo, root `dr` API, quickstart
+CLI, OpenAI-compatible local server, and the hosted Qwen registry lanes below.
 
-- [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md): which models are verified right now
-- [subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md): which runtime and API surfaces are `tier1`, `experimental`, or `internal-only`
+| Registry alias | Artifact ID | Task |
+| --- | --- | --- |
+| `qwen3-0.8b` | `qwen-3-5-0-8b-q4k-ehaf16` | Text generation |
+| `qwen3-embedding-0.6b` | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | Embeddings |
+| `qwen3-reranker-0.6b-q4k` | `qwen-3-reranker-0-6b-q4k-ehf16-af32` | Reranking |
 
-The tier1 proof surface is the hosted browser demo, the root `doppler` API,
-the quickstart CLI, the OpenAI-compatible localhost server, and the verified
-Qwen text, embedding, and rerank paths behind them.
-
-## Tier 1 Qwen registry lanes
-
-The hosted `Clocksmith/rdrr` registry carries the current Tier 1 Qwen lanes:
-
-- `qwen3-0.8b` / `qwen-3-5-0-8b-q4k-ehaf16`: text generation.
-- `qwen3-embedding-0.6b` / `qwen-3-embedding-0-6b-q4k-ehf16-af32`: sentence embeddings.
-- `qwen3-reranker-0.6b-q4k` / `qwen-3-reranker-0-6b-q4k-ehf16-af32`: document reranking.
-
-Each lane has a catalog-owned hosted artifact pointer and explicit verify
-contract. The model support matrix is the source of truth for current receipts,
-runtime surfaces, and benchmark evidence.
-
-Defaults and policy choices must be represented in schema, manifest, config,
-profile, or rule assets. Runtime code must not invent hidden fallbacks or
-surface-specific behavior.
-
-## Benchmark evidence
-
-The npm package includes the runtime, config contracts, schemas, and quickstart
-surface. It does not bundle the full benchmark result tree, local hardware
-artifacts, browser run outputs, or release evidence reports.
-
-The GitHub release matrix lists checked benchmark fixtures with hardware and
-backend, including Apple Metal and AMD Vulkan rows. Each row states backend,
-surface, comparator, metric direction, result, claim state, and evidence path.
-Metal and Vulkan rows are separate evidence lanes and should only be compared
-within a row.
-
-- Benchmark methodology:
-  [docs/benchmark-methodology.md](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
-- Backend evidence summary:
-  [benchmarks/vendors/results/doppler-backend-evidence-summary.svg](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
+Browser and Node are mainline runtime surfaces. Bun WebGPU is experimental.
+Use the [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
+for verified models and the
+[subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md)
+for public, experimental, and internal-only APIs.
 
 ## Model roadmap
 
-The README tracks model priority by source model, not by implementation lane.
-Doppler selects the best RDRR/runtime implementation from committed verification
-and benchmark evidence.
-
-The current roadmap is maintained in
-[docs/model-roadmap.md](https://github.com/clocksmith/doppler/blob/main/docs/model-roadmap.md).
-It replaces the old README quickstart-model table as the product-facing model
-plan.
-
-Current tiers:
-
-- Tier 1: Qwen 3.5 0.8B, Qwen 3 Embedding 0.6B, Qwen 3 Reranker 0.6B.
-- Tier 2: Qwen 3.5 2B, Gemma 4 E2B.
-- Tier 3A: Qwen 3.6 27B, Gemma 4 12B.
-- Tier 3B: DiffusionGemma 26B A4B, Gemma 4 MoE after a concrete catalog target exists.
-- Stretch: Gemma 4 31B and larger Qwen 3.6/3.7-class dense targets after a real catalog/HF target exists.
-
-For exact runtime evidence, supported registry IDs, and benchmark claims, use
-the [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md),
-[model support inventory](https://github.com/clocksmith/doppler/blob/main/docs/model-support-inventory.md),
+Current model priorities and promotion state live in the
+[model roadmap](https://github.com/clocksmith/doppler/blob/main/docs/model-roadmap.md).
+Exact registry IDs, runtime verification, and benchmark claims remain in the
+[model support inventory](https://github.com/clocksmith/doppler/blob/main/docs/model-support-inventory.md)
 and [release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
-Subsystem support tiers for direct-source inputs, advanced subpaths, diffusion,
-energy, and training live in the
-[subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md).
 
 ## Documentation
 

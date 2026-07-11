@@ -3,3 +3,12 @@ artifacts/pipeline-live-local-audit*/
 artifacts/simulatte-pipeline-audit/live-webgpu/
 artifacts/simulatte-pipeline-audit/live-score/
 artifacts/simulatte-pipeline-audit/runs/*/
+
+# Local credentials, dependencies, and browser state.
+.env
+.env.*
+!.env.example
+firebase-debug.log
+node_modules/
+artifacts/model-cache-profile/
+artifacts/simulatte-train/*.log

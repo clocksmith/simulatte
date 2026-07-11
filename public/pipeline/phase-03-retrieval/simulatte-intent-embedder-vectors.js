@@ -40,6 +40,10 @@
             score: clamp01(Number.isFinite(rawScore) ? rawScore : 1 - index / count),
             rank: Number(row && row.rank != null ? row.rank : index),
             reason: row && row.reason || '',
+            scoringPath: String(row && row.scoringPath || ''),
+            promptTokenCount: Number(row && row.promptTokenCount || 0),
+            prefixTokenCount: Number(row && row.prefixTokenCount || 0),
+            prefixStateReused: row && row.prefixStateReused === true,
           };
         }).filter((row) => row.primitiveId);
       }

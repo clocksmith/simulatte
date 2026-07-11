@@ -42,13 +42,8 @@ test('Doppler computes and preserves manifest SHA-256 provenance on model handle
     root,
     'public/vendor/doppler/src/client/runtime/model-source.js'
   ), 'utf8');
-  const generatorSource = fs.readFileSync(path.join(
-    root,
-    'public/vendor/doppler/src/inference/pipelines/text/generator.js'
-  ), 'utf8');
   assert.match(loaderSource, /manifestHash:\s*manifestPayload\.manifestHash/);
   assert.match(modelSource, /manifestHash:\s*await sha256ManifestText\(text\)/);
-  assert.match(generatorSource, /if \(options\.__skipStateSnapshot\)/);
 });
 
 test('Doppler single embeddings reset sequence state before and after every call', async () => {

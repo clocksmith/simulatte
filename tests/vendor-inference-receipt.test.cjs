@@ -10,6 +10,7 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
     embedding: { id: 'embed', dimensions: 4, manifestHash: { hex: 'embed-hash' } },
     reranker: {
       id: 'reranker-contract',
+      maxSlotCandidatesPerCall: 4,
       model: { id: 'reranker-model', manifestHash: { hex: 'reranker-hash' } },
     },
   };
@@ -45,7 +46,19 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
       modelBackend: 'doppler-reranker',
       candidateInputCount: 8,
       candidateOutputCount: 8,
+      promptScoringPaths: ['prefix-selected-token-logits'],
+      promptSelectedTokenLogitCount: 8,
+      promptPrefixKvReuseCount: 8,
+      promptPrefixStateReuseCount: 8,
+      promptMinimumPrefixTokenCount: 12,
       slotRerankCallCount: 2,
+      slotCandidateInputCount: 8,
+      slotCandidateOutputCount: 8,
+      slotScoringPaths: ['prefix-selected-token-logits'],
+      slotSelectedTokenLogitCount: 8,
+      slotPrefixKvReuseCount: 8,
+      slotPrefixStateReuseCount: 4,
+      slotMinimumPrefixTokenCount: 10,
     },
   };
   const report = {
@@ -73,5 +86,12 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
   assert.throws(
     () => validateVendorInferenceReport(configOnly, lock, 'lock-hash'),
     /real reranker probe did not execute/
+  );
+
+  const fullLogitFallback = structuredClone(report);
+  fullLogitFallback.results[0].modelExecutionReceipt.phase3Rerank.promptScoringPaths = ['full-logits'];
+  assert.throws(
+    () => validateVendorInferenceReport(fullLogitFallback, lock, 'lock-hash'),
+    /prompt reranking did not exclusively use prefix-selected-token logits/
   );
 });

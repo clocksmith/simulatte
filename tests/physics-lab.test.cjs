@@ -37,7 +37,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
     id: 'synthetic-runtime-lock',
     number: 1,
     doppler: {
-      moduleUrl: '../../vendor/doppler/src/index-browser.js',
+      moduleUrl: '../../vendor/doppler/src/index.js',
       storageModuleUrl: '../../vendor/doppler/src/tooling-exports/storage.js',
       kernelBasePath: '../../vendor/doppler/src/gpu/kernels',
       package: {
@@ -633,6 +633,166 @@ test('Doppler reranker fallback caps candidates and resets state around every pr
   assert.equal(resetCount, 6);
   assert.equal(sequenceLength, 0);
   assert.deepEqual(progressRows.map((row) => row.completed), [1, 2, 3]);
+});
+
+test('Doppler reranker uses selected-token logits with one reusable token-exact KV prefix', async () => {
+  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  let resetCount = 0;
+  let prefixCount = 0;
+  let prefixResetCount = 0;
+  let prefixScoreCount = 0;
+  let snapshotScoreCount = 0;
+  let snapshotDestroyCount = 0;
+  let sequenceLength = 0;
+  const progressRows = [];
+  const handle = {
+    manifest: {
+      inference: {
+        rerank: {
+          trueTokenId: 1,
+          falseTokenId: 0,
+          score: 'logit_difference',
+        },
+      },
+    },
+    resetGenerationState() {
+      sequenceLength = 0;
+      resetCount += 1;
+    },
+    advanced: {
+      tokenizeText(text) {
+        return Array.from(text, (character) => character.charCodeAt(0));
+      },
+      async prefillKV(_prompt, options) {
+        prefixCount += 1;
+        sequenceLength = options.inputIds.length;
+        return {
+          cache: {
+            destroy() {
+              snapshotDestroyCount += 1;
+            },
+          },
+          seqLen: options.inputIds.length,
+          tokens: options.inputIds,
+        };
+      },
+      resetToSeqLen(seqLen) {
+        assert.ok(seqLen <= sequenceLength);
+        sequenceLength = seqLen;
+        prefixResetCount += 1;
+      },
+      async prefillWithTokenLogits(prompt, tokenIds, options) {
+        assert.equal(prompt, '');
+        assert.deepEqual(tokenIds, [1, 0]);
+        const suffix = String.fromCharCode(...options.inputIds);
+        const relevant = suffix.includes('OPTICAL_MATCH');
+        sequenceLength += options.inputIds.length;
+        prefixScoreCount += 1;
+        return {
+          tokenIds,
+          logits: Float32Array.from(relevant ? [8, -1] : [-1, 8]),
+          logitsByTokenId: relevant ? { 1: 8, 0: -1 } : { 1: -1, 0: 8 },
+          phase: { selectedTokenCount: 2 },
+        };
+      },
+      async prefillWithTokenLogitsFromKV() {
+        snapshotScoreCount += 1;
+        throw new Error('stateful prefix scoring should not clone a KV snapshot per candidate');
+      },
+    },
+  };
+  const embedder = new scope.ModelBackedIntentEmbedder();
+  embedder.dopplerRerankerHandle = handle;
+  const provider = embedder.createDopplerRerankerProvider({ index: null }, {
+    id: 'selected-token-reranker',
+    maxCandidatesPerCall: 3,
+    maxSlotCandidatesPerCall: 2,
+    execution: {
+      selectedTokenLogits: 'required',
+      prefixKvReuse: 'required',
+    },
+  }, {}, handle, 'https://simulatte.test/reranker');
+  const request = {
+    schema: 'simulatte.intentRerankInput.v1',
+    prompt: 'rank these candidates',
+    candidates: [
+      { primitiveId: 'negative', candidateText: 'UNRELATED_GRAVITY' },
+      { primitiveId: 'positive', candidateText: 'OPTICAL_MATCH' },
+    ],
+    onProgress: (row) => progressRows.push(row),
+  };
+  const rows = await provider.rerank(request);
+  const reusedRows = await provider.rerank({
+    ...request,
+    candidates: [
+      { primitiveId: 'second-negative', candidateText: 'UNRELATED_THERMAL_FLOW' },
+      { primitiveId: 'second-positive', candidateText: 'SECOND_OPTICAL_MATCH' },
+    ],
+  });
+
+  assert.equal(rows[0].primitiveId, 'positive');
+  assert.equal(rows[0].scoringPath, 'prefix-selected-token-logits');
+  assert.ok(rows.every((row) => row.prefixTokenCount > 0));
+  assert.ok(rows.every((row) => row.prefixStateReused === false));
+  assert.ok(reusedRows.every((row) => row.prefixStateReused === true));
+  assert.equal(prefixCount, 1);
+  assert.equal(prefixScoreCount, 4);
+  assert.equal(snapshotScoreCount, 0);
+  assert.equal(snapshotDestroyCount, 1);
+  assert.equal(prefixResetCount, 4);
+  assert.equal(resetCount, 1);
+  assert.ok(sequenceLength > 0);
+  assert.deepEqual(progressRows.map((row) => row.completed), [1, 2, 1, 2]);
+  const normalized = scope.normalizeRerankerRows(rows);
+  assert.ok(normalized.every((row) => row.scoringPath === 'prefix-selected-token-logits'));
+  assert.deepEqual(scope.rerankExecutionSummary(normalized), {
+    scoringPaths: ['prefix-selected-token-logits'],
+    selectedTokenLogitCount: 2,
+    prefixKvReuseCount: 2,
+    prefixStateReuseCount: 0,
+    minimumPrefixTokenCount: rows[0].prefixTokenCount,
+    maximumPrefixTokenCount: rows[0].prefixTokenCount,
+  });
+  assert.equal(scope.rerankExecutionSummary(scope.normalizeRerankerRows(reusedRows)).prefixStateReuseCount, 2);
+});
+
+test('required selected-token reranking fails closed on an incomplete Doppler handle', () => {
+  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  assert.throws(() => scope.rerankProviderFromModelHandle({
+    resetGenerationState() {},
+    advanced: {
+      async prefillWithLogits() {
+        return { logits: Float32Array.from([0, 1]) };
+      },
+    },
+  }, { index: null }, {
+    id: 'incomplete-reranker',
+    maxCandidatesPerCall: 1,
+    maxSlotCandidatesPerCall: 1,
+    execution: {
+      selectedTokenLogits: 'required',
+      prefixKvReuse: 'required',
+    },
+  }, 'test-reranker'), /requires selected-token logits/);
+});
+
+test('model-backed embedder captures its reranker factory when the ordered runtime modules load', () => {
+  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const factory = scope.rerankProviderFromModelHandle;
+  const handle = { rerank: () => [] };
+  const embedder = new scope.ModelBackedIntentEmbedder();
+  delete scope.rerankProviderFromModelHandle;
+  try {
+    assert.doesNotThrow(() => embedder.createDopplerRerankerProvider(
+      { index: null },
+      { id: 'captured-factory-reranker' },
+      {},
+      handle,
+      'https://simulatte.test/reranker'
+    ));
+  } finally {
+    scope.rerankProviderFromModelHandle = factory;
+  }
 });
 
 test('contrastive top-k reranking retains local scores for unevaluated candidates', () => {

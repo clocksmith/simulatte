@@ -406,6 +406,34 @@
           slotCount: slots.length,
           embeddedSlotCount: bySlot.length,
           rerankCallCount,
+          rerankCandidateInputCount: bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.candidateInputCount || 0),
+            0
+          ),
+          rerankCandidateOutputCount: bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.candidateOutputCount || 0),
+            0
+          ),
+          rerankScoringPaths: [...new Set(bySlot.flatMap(
+            (row) => row.receipt && row.receipt.scoringPaths || []
+          ))].sort(),
+          selectedTokenLogitCount: bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.selectedTokenLogitCount || 0),
+            0
+          ),
+          prefixKvReuseCount: bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.prefixKvReuseCount || 0),
+            0
+          ),
+          prefixStateReuseCount: bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.prefixStateReuseCount || 0),
+            0
+          ),
+          minimumPrefixTokenCount: bySlot.reduce((minimum, row) => {
+            const count = Number(row.receipt && row.receipt.minimumPrefixTokenCount || 0);
+            if (count <= 0) return minimum;
+            return minimum > 0 ? Math.min(minimum, count) : count;
+          }, 0),
           durationMs: elapsedMsSince(started),
           bySlot,
           evidenceRows: slotRetrievalEvidenceRows({ bySlot }),
@@ -425,6 +453,13 @@
           slotCount: slots.length,
           embeddedSlotCount: 0,
           rerankCallCount: 0,
+          rerankCandidateInputCount: 0,
+          rerankCandidateOutputCount: 0,
+          rerankScoringPaths: [],
+          selectedTokenLogitCount: 0,
+          prefixKvReuseCount: 0,
+          prefixStateReuseCount: 0,
+          minimumPrefixTokenCount: 0,
           bySlot: [],
           evidenceRows: [],
           candidateCount: 0,
@@ -697,6 +732,7 @@
               modelBackend: capability.backend,
               candidateInputCount: input.candidates.length,
               candidateOutputCount: modelRows.length,
+              ...rerankExecutionSummary(modelRows),
             },
           };
         } catch (err) {

@@ -691,7 +691,11 @@ export class InferencePipeline extends PipelineState {
     }
 
     if (this.useGPU && this.modelConfig) {
-      fuseQKVWeights(result.layerWeights, this.modelConfig, this.resolvedKernelPath);
+      const session = this.runtimeConfig?.inference?.session ?? null;
+      fuseQKVWeights(result.layerWeights, this.modelConfig, this.resolvedKernelPath, {
+        allowQ4K: session?.useFusedQKVSplitQKNorm === true
+          || session?.useFusedQKVSplitQKNormRoPE === true,
+      });
     }
 
     if (this.useGPU && this.modelConfig) {
@@ -1593,6 +1597,7 @@ export class InferencePipeline extends PipelineState {
         tokens: result.tokens,
         seqLen: result.seqLen,
         embeddingMode: result.embeddingMode,
+        phase: result.phase ?? null,
       };
     } finally {
       this.resetForBatch();
@@ -1610,7 +1615,6 @@ export class InferencePipeline extends PipelineState {
       // Check between every prompt so a superseded revision drops the rest.
       assertNotAborted(options?.signal);
       outputs.push(await this.embed(prompt, batchOptions));
-      this.resetForBatch();
     }
     return outputs;
   }

@@ -994,6 +994,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const phase3RerankReceipt = phase3Retrieval.rerankReceipt || {};
     const sourceRerankReceipt = phase3RerankReceipt.source || {};
     const slotRetrieval = phase3Retrieval.slotRetrieval || {};
+    const promptRerankScoringPaths = sourceRerankReceipt.scoringPaths || [];
+    const slotRerankScoringPaths = slotRetrieval.rerankScoringPaths || [];
     const rendererPlan = phase6VisualCompile && phase6VisualCompile.rendererPlan || null;
     const visualIR = phase6VisualCompile && phase6VisualCompile.visualIR || null;
     const sceneRenderPacket = phase6VisualCompile && phase6VisualCompile.sceneRenderPacket || null;
@@ -1072,7 +1074,20 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           modelBackend: sourceRerankReceipt.modelBackend || phase3RerankReceipt.sourceBackend || '',
           candidateInputCount: Number(sourceRerankReceipt.modelCandidateInputCount || 0),
           candidateOutputCount: Number(sourceRerankReceipt.modelCandidateOutputCount || 0),
+          promptScoringPaths: promptRerankScoringPaths,
+          promptSelectedTokenLogitCount: Number(sourceRerankReceipt.selectedTokenLogitCount || 0),
+          promptPrefixKvReuseCount: Number(sourceRerankReceipt.prefixKvReuseCount || 0),
+          promptPrefixStateReuseCount: Number(sourceRerankReceipt.prefixStateReuseCount || 0),
+          promptMinimumPrefixTokenCount: Number(sourceRerankReceipt.minimumPrefixTokenCount || 0),
           slotRerankCallCount: Number(phase3RerankReceipt.slotRerankCallCount || slotRetrieval.rerankCallCount || 0),
+          slotCandidateInputCount: Number(slotRetrieval.rerankCandidateInputCount || 0),
+          slotCandidateOutputCount: Number(slotRetrieval.rerankCandidateOutputCount || 0),
+          slotScoringPaths: slotRerankScoringPaths,
+          slotSelectedTokenLogitCount: Number(slotRetrieval.selectedTokenLogitCount || 0),
+          slotPrefixKvReuseCount: Number(slotRetrieval.prefixKvReuseCount || 0),
+          slotPrefixStateReuseCount: Number(slotRetrieval.prefixStateReuseCount || 0),
+          slotMinimumPrefixTokenCount: Number(slotRetrieval.minimumPrefixTokenCount || 0),
+          scoringPaths: [...new Set([...promptRerankScoringPaths, ...slotRerankScoringPaths])].sort(),
           embeddedSlotCount: Number(phase3RerankReceipt.embeddedSlotCount || slotRetrieval.embeddedSlotCount || 0),
         },
       } : null,

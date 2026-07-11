@@ -59,6 +59,19 @@ function requirePositiveInteger(value, label) {
   return number;
 }
 
+function requireLockedArtifact(relativePath, label, expectedKind) {
+  const value = requireText(relativePath, label);
+  const artifactPath = path.resolve(path.dirname(MODEL_RUNTIME_LOCK_PATH), value);
+  if (!artifactPath.startsWith(path.join(ROOT, 'public') + path.sep)) {
+    fail(`${label} must resolve inside public/`);
+  }
+  if (!fs.existsSync(artifactPath)) fail(`${label} does not exist at ${artifactPath}`);
+  const stat = fs.statSync(artifactPath);
+  if (expectedKind === 'file' && !stat.isFile()) fail(`${label} must resolve to a file`);
+  if (expectedKind === 'directory' && !stat.isDirectory()) fail(`${label} must resolve to a directory`);
+  return value;
+}
+
 function assertEqual(actual, expected, label) {
   if (actual !== expected) fail(`${label}: expected ${expected}, received ${actual}`);
 }
@@ -111,23 +124,20 @@ function main() {
   requirePositiveInteger(lock.number, 'lock.number');
   const doppler = lock.doppler || {};
   const dopplerPackage = doppler.package || {};
-  requireText(doppler.moduleUrl, 'doppler.moduleUrl');
-  requireText(doppler.storageModuleUrl, 'doppler.storageModuleUrl');
-  requireText(doppler.kernelBasePath, 'doppler.kernelBasePath');
+  requireLockedArtifact(doppler.moduleUrl, 'doppler.moduleUrl', 'file');
+  requireLockedArtifact(doppler.storageModuleUrl, 'doppler.storageModuleUrl', 'file');
+  requireLockedArtifact(doppler.kernelBasePath, 'doppler.kernelBasePath', 'directory');
   requireText(dopplerPackage.name, 'doppler.package.name');
   requireText(dopplerPackage.version, 'doppler.package.version');
   requireText(dopplerPackage.integrity, 'doppler.package.integrity');
   requireText(dopplerPackage.shasum, 'doppler.package.shasum');
   requirePositiveInteger(dopplerPackage.fileCount, 'doppler.package.fileCount');
-  const localPatches = Object.entries(doppler.localPatches || {});
-  if (!localPatches.length) fail('doppler.localPatches is required');
-  for (const [relativePath, expectedHash] of localPatches) {
-    if (!/^[0-9a-f]{64}$/i.test(String(expectedHash || ''))) {
-      fail(`doppler.localPatches.${relativePath} must be a SHA-256 digest`);
-    }
-    const patchPath = path.join(ROOT, 'public', 'vendor', 'doppler', relativePath);
-    if (!fs.existsSync(patchPath)) fail(`doppler.localPatches.${relativePath} does not exist`);
-    assertEqual(hashFile(patchPath), expectedHash, `doppler.localPatches.${relativePath}`);
+  if (doppler.localPatches) fail('doppler.localPatches is forbidden; sync the complete sibling package');
+  const development = doppler.development || {};
+  assertEqual(development.kind, 'sibling-git-archive', 'doppler.development.kind');
+  requireText(development.workspacePath, 'doppler.development.workspacePath');
+  if (!/^[0-9a-f]{40}$/i.test(String(development.gitSha || ''))) {
+    fail('doppler.development.gitSha must be a full Git SHA');
   }
 
   const embedding = lock.embedding || {};
@@ -148,6 +158,9 @@ function main() {
   assertEqual(reranker.executeInPhase, 3, 'reranker.executeInPhase');
   requirePositiveInteger(reranker.maxCandidatesPerCall, 'reranker.maxCandidatesPerCall');
   requirePositiveInteger(reranker.maxSlotCandidatesPerCall, 'reranker.maxSlotCandidatesPerCall');
+  assertEqual(reranker.execution?.selectedTokenLogits, 'required', 'reranker.execution.selectedTokenLogits');
+  assertEqual(reranker.execution?.prefixKvReuse, 'required', 'reranker.execution.prefixKvReuse');
+  assertEqual(reranker.execution?.statefulPrefixReuse, 'required', 'reranker.execution.statefulPrefixReuse');
   const rerankerConversion = validatePinnedModel(reranker.model || {}, reranker.conversion || {}, 'reranker');
   assertEqual(rerankerConversion.inference?.supportsRerank, true, 'reranker conversion inference.supportsRerank');
   assertSubset(rerankerConversion.session, reranker.runtimeConfig?.inference?.session, 'reranker conversion session');

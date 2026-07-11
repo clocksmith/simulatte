@@ -107,11 +107,7 @@ export function createDopplerRuntimeService({
             `Resolved manifest hash mismatch: expected ${resolved.manifestHash}, got ${manifestHash}.`
           );
         }
-        return {
-          text,
-          manifest: resolved.manifest,
-          manifestHash,
-        };
+        return { text, manifest: resolved.manifest, manifestHash };
       })()
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
     const resolvedArtifactSource = await resolveManifestArtifactSource(resolved, manifestPayload);

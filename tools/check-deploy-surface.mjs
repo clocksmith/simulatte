@@ -10,7 +10,6 @@ import { readModelRuntimeLock } from './model-runtime-lock-utils.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MODEL_RUNTIME_LOCK = readModelRuntimeLock();
 const DOPPLER_PACKAGE = Object.freeze(MODEL_RUNTIME_LOCK.doppler && MODEL_RUNTIME_LOCK.doppler.package || {});
-const DOPPLER_VENDOR_PATCH_HASHES = Object.freeze(MODEL_RUNTIME_LOCK.doppler && MODEL_RUNTIME_LOCK.doppler.localPatches || {});
 const VENDOR_ROOT = path.join(ROOT, 'public', 'vendor', 'doppler');
 const LIST_LIMIT = 20;
 
@@ -141,25 +140,13 @@ function verifyVendorMatchesPackage(packageRoot) {
     const expectedHash = hashFile(path.join(packageRoot, relativePath));
     const actualHash = hashFile(path.join(VENDOR_ROOT, relativePath));
     if (expectedHash !== actualHash) {
-      changed.push({
-        path: relativePath,
-        actualHash,
-        expectedPatchHash: DOPPLER_VENDOR_PATCH_HASHES[relativePath] || '',
-      });
+      changed.push(relativePath);
     }
   });
-  const unknownChanges = changed.filter((row) => !row.expectedPatchHash);
-  if (unknownChanges.length) {
+  if (changed.length) {
     fail(
-      'vendor file contents differ from the published Doppler package outside the pinned local patch set',
-      relativeSample('changed:', unknownChanges.map((row) => row.path))
-    );
-  }
-  const patchHashMismatches = changed.filter((row) => row.expectedPatchHash && row.actualHash !== row.expectedPatchHash);
-  if (patchHashMismatches.length) {
-    fail(
-      'vendor local patch hashes differ from the pinned deploy patch set',
-      relativeSample('changed:', patchHashMismatches.map((row) => `${row.path} sha256=${row.actualHash}`))
+      'vendor file contents differ from the published Doppler package',
+      relativeSample('changed:', changed)
     );
   }
 }
@@ -185,8 +172,7 @@ function main() {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 
-  const patchCount = Object.keys(DOPPLER_VENDOR_PATCH_HASHES).length;
-  console.log(`Deploy surface clean: lock #${MODEL_RUNTIME_LOCK.number} pins public/vendor/doppler to ${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version} plus ${patchCount} local patch files.`);
+  console.log(`Deploy surface clean: lock #${MODEL_RUNTIME_LOCK.number} pins public/vendor/doppler to ${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version}.`);
 }
 
 try {

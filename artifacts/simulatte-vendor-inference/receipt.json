@@ -1,0 +1,59 @@
+{
+  "schema": "simulatte.vendorInferenceLaneReceipt.v1",
+  "createdAt": "2026-07-11T03:06:29.499Z",
+  "status": "pass",
+  "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+  "modelRuntimeLock": {
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 4,
+    "sha256": "5f692503b892ea440f25b64949dc3630279e641894d5c9ee7976de9c4dbd70f5"
+  },
+  "dopplerPackage": {
+    "name": "doppler-gpu",
+    "version": "0.4.8",
+    "integrity": "sha512-xJMjB6LGChjgBDIENo1YOcr5ZYzyj2MRGyif8JbWuCie4PwjMflGPxYfcE/V/OVh7Nsoe3MYKv4uE/Xns332Zg==",
+    "shasum": "2f4b0233dfb00235c7b9fc61ecaa6e6a615050d3",
+    "fileCount": 1350
+  },
+  "embedding": {
+    "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "manifestHash": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979",
+    "dimensions": 1024,
+    "backend": "doppler-browser-load",
+    "probeCount": 3,
+    "stabilitySimilarity": 1,
+    "distinctProbePairs": 3
+  },
+  "reranker": {
+    "contractId": "simulatte.doppler-intent-reranker.v1",
+    "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "manifestHash": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e",
+    "backend": "doppler-reranker-load",
+    "probeCount": 1,
+    "promptBackend": "doppler-reranker-load",
+    "candidateInputCount": 8,
+    "candidateOutputCount": 8,
+    "promptScoringPaths": [
+      "prefix-selected-token-logits"
+    ],
+    "promptSelectedTokenLogitCount": 8,
+    "promptPrefixKvReuseCount": 8,
+    "promptPrefixStateReuseCount": 8,
+    "slotRerankCallCount": 9,
+    "slotCandidateInputCount": 36,
+    "slotCandidateOutputCount": 36,
+    "slotScoringPaths": [
+      "prefix-selected-token-logits"
+    ],
+    "slotSelectedTokenLogitCount": 36,
+    "slotPrefixKvReuseCount": 36,
+    "slotPrefixStateReuseCount": 32
+  },
+  "browserProof": {
+    "sceneProofVerdict": "pass",
+    "pixelProofStatus": "pass",
+    "renderer": "webgpu",
+    "rendererStatus": "WebGPU renderer ready"
+  },
+  "sourceReport": "report.json"
+}

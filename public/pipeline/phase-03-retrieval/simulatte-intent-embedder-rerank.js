@@ -2,162 +2,6 @@
   const scope = root.__SimulatteIntentEmbedderRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
-    function rerankProviderFromModelHandle(handle, runtime, config, backend, modelBaseUrl = '') {
-        const direct = rerankFunctionForTarget(handle)
-          || rerankFunctionForTarget(handle && handle.advanced);
-        if (direct) {
-          return {
-            backend,
-            rerank: (input) => direct(input),
-          };
-        }
-        const prefill = handle && (
-          handle.prefillWithLogits
-          || handle.advanced && handle.advanced.prefillWithLogits
-        );
-        if (typeof prefill !== 'function') {
-          throw new Error(`Doppler reranker ${config.id} must expose rerank() or prefillWithLogits()`);
-        }
-        const scoringConfig = rerankScoringConfig(handle, config);
-        const target = handle.advanced && handle.advanced.prefillWithLogits ? handle.advanced : handle;
-        return {
-          backend,
-          async rerank(input) {
-            const query = String(input && input.prompt || input && input.query || '').trim();
-            if (!query) throw new Error(`Doppler reranker ${config.id} requires a query`);
-            const limit = rerankerInputCandidateLimit(input, config);
-            const candidates = (input && input.candidates || []).slice(0, limit);
-            const scored = [];
-            for (let i = 0; i < candidates.length; i += 1) {
-              const candidate = candidates[i] || {};
-              const document = rerankCandidateText(candidate, runtime);
-              if (!document) continue;
-              const prompt = formatRerankPrompt(query, document, scoringConfig);
-              await resetRerankerHandle(handle, target, config);
-              let result;
-              try {
-                result = await prefill.call(target, prompt, {
-                  useChatTemplate: false,
-                  __skipStateSnapshot: true,
-                });
-              } finally {
-                await resetRerankerHandle(handle, target, config);
-              }
-              const logits = result && result.logits;
-              if (!ArrayBuffer.isView(logits) && !Array.isArray(logits)) {
-                throw new Error(`Doppler reranker ${config.id} prefillWithLogits() did not return logits`);
-              }
-              const trueLogit = Number(logits[scoringConfig.trueTokenId]);
-              const falseLogit = Number(logits[scoringConfig.falseTokenId]);
-              if (!Number.isFinite(trueLogit) || !Number.isFinite(falseLogit)) {
-                throw new Error(`Doppler reranker ${config.id} returned non-finite yes/no logits`);
-              }
-              const rawScore = scoringConfig.score === 'logit_difference'
-                ? trueLogit - falseLogit
-                : trueLogit;
-              scored.push({
-                primitiveId: String(candidate.primitiveId || candidate.id || ''),
-                score: sigmoid(rawScore),
-                rerankScore: sigmoid(rawScore),
-                rawScore,
-                trueLogit,
-                falseLogit,
-                documentIndex: i,
-                sourceKind: backend,
-                modelBaseUrl,
-              });
-              if (typeof input.onProgress === 'function') {
-                input.onProgress({
-                  completed: i + 1,
-                  total: candidates.length,
-                  candidateId: String(candidate.primitiveId || candidate.id || ''),
-                });
-              }
-            }
-            return scored
-              .filter((row) => row.primitiveId)
-              .sort((a, b) => b.rawScore - a.rawScore || a.primitiveId.localeCompare(b.primitiveId))
-              .map((row, rank) => ({
-                ...row,
-                rank,
-                score: Number(row.score.toFixed(6)),
-              }));
-          },
-        };
-      }
-
-    function rerankerInputCandidateLimit(input, config) {
-        const configured = input && input.schema === 'simulatte.intentSlotRerankInput.v1'
-          ? config.maxSlotCandidatesPerCall
-          : config.maxCandidatesPerCall;
-        const requested = Number(input && input.max || configured);
-        return Math.max(1, Math.min(configured, Number.isFinite(requested) ? Math.floor(requested) : configured));
-      }
-
-    async function resetRerankerHandle(handle, target, config) {
-        const rows = [handle, target].filter(Boolean);
-        const owner = rows.find((row) => typeof row.resetGenerationState === 'function')
-          || rows.find((row) => typeof row.reset === 'function');
-        if (!owner) {
-          throw new Error(`Doppler reranker ${config.id} requires a state-reset capability`);
-        }
-        const reset = owner.resetGenerationState || owner.reset;
-        await reset.call(owner);
-      }
-
-    function rerankScoringConfig(handle, config) {
-        const raw = config && config.scoring
-          || handle && handle.manifest && handle.manifest.inference && handle.manifest.inference.rerank
-          || {};
-        const trueTokenId = Number(raw.trueTokenId);
-        const falseTokenId = Number(raw.falseTokenId);
-        if (!Number.isFinite(trueTokenId) || !Number.isFinite(falseTokenId)) {
-          throw new Error(`Doppler reranker ${config.id} missing trueTokenId/falseTokenId scoring config`);
-        }
-        return {
-          instruction: String(raw.instruction || 'Given a web search query, retrieve relevant passages that answer the query'),
-          inputTemplate: String(raw.inputTemplate || '<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {document}'),
-          prefix: String(raw.prefix || ''),
-          suffix: String(raw.suffix || ''),
-          score: String(raw.score || 'true_logit'),
-          trueTokenId,
-          falseTokenId,
-        };
-      }
-
-    function formatRerankPrompt(query, document, config) {
-        const input = String(config.inputTemplate || '')
-          .replace(/\{instruction\}/g, config.instruction)
-          .replace(/\{query\}/g, query)
-          .replace(/\{document\}/g, document);
-        return `${config.prefix}${input}${config.suffix}`;
-      }
-
-    function rerankCandidateText(candidate, runtime) {
-        const direct = candidate && (
-          candidate.candidateText
-          || candidate.text
-          || candidate.description
-        );
-        if (direct) return String(direct);
-        const primitiveId = String(candidate && candidate.primitiveId || '');
-        const doc = primitiveId && runtime && runtime.index && runtime.index.byId
-          ? runtime.index.byId.get(primitiveId)
-          : null;
-        if (doc && doc.candidateText) return String(doc.candidateText);
-        return [
-          primitiveId,
-          candidate && candidate.layer,
-          candidate && candidate.type,
-          ...(candidate && candidate.domains || []),
-          ...(candidate && candidate.matchedTerms || []),
-        ].filter(Boolean).join(' ');
-      }
-
-    function sigmoid(value) {
-        return 1 / (1 + Math.exp(-Number(value || 0)));
-      }
-
     function cloneJsonValue(value) {
         if (value == null) return null;
         return JSON.parse(JSON.stringify(value));
@@ -764,6 +608,7 @@
               modelBackend: capability.backend,
               modelCandidateInputCount: input.candidates.length,
               modelCandidateOutputCount: modelRows.length,
+              ...rerankExecutionSummary(modelRows),
               top: rows.slice(0, 12).map((row) => row.primitiveId),
             },
           };
@@ -844,13 +689,6 @@
       }
 
     Object.assign(scope, {
-      rerankProviderFromModelHandle,
-      rerankerInputCandidateLimit,
-      resetRerankerHandle,
-      rerankScoringConfig,
-      formatRerankPrompt,
-      rerankCandidateText,
-      sigmoid,
       cloneJsonValue,
       resolveDopplerApi,
       ensureDopplerKernelBasePath,

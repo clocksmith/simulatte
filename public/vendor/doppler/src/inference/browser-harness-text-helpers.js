@@ -690,17 +690,7 @@ function assertLogitsVector(value) {
   return value;
 }
 
-export async function scoreRerankDocument(pipeline, query, document, scoringConfig = null) {
-  if (!pipeline || typeof pipeline.prefillWithLogits !== 'function') {
-    throw new Error('Rerank workload requires pipeline.prefillWithLogits().');
-  }
-  const config = scoringConfig ?? resolveRerankScoringConfig(pipeline);
-  const prompt = formatRerankPrompt(query, document, config);
-  pipeline.reset?.();
-  const result = await pipeline.prefillWithLogits(prompt, { useChatTemplate: false });
-  const logits = assertLogitsVector(result?.logits);
-  const trueLogit = Number(logits[config.trueTokenId]);
-  const falseLogit = Number(logits[config.falseTokenId]);
+function buildRerankScoreRecord(query, document, prompt, tokenCount, trueLogit, falseLogit, config, scoringPath, phase = null) {
   if (!Number.isFinite(trueLogit) || !Number.isFinite(falseLogit)) {
     throw new Error(
       `Rerank logits missing finite yes/no scores at token IDs ${config.trueTokenId}/${config.falseTokenId}.`
@@ -712,14 +702,82 @@ export async function scoreRerankDocument(pipeline, query, document, scoringConf
     query,
     document,
     prompt,
-    tokenCount: Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0,
+    tokenCount,
     score,
     probability,
     trueLogit,
     falseLogit,
     trueTokenId: config.trueTokenId,
     falseTokenId: config.falseTokenId,
+    scoringPath,
+    phase,
   };
+}
+
+export async function scoreRerankDocument(pipeline, query, document, scoringConfig = null, options = {}) {
+  if (!pipeline || (typeof pipeline.prefillWithTokenLogits !== 'function' && typeof pipeline.prefillWithLogits !== 'function')) {
+    throw new Error('Rerank workload requires pipeline.prefillWithTokenLogits() or pipeline.prefillWithLogits().');
+  }
+  const config = scoringConfig ?? resolveRerankScoringConfig(pipeline);
+  const prompt = formatRerankPrompt(query, document, config);
+  pipeline.reset?.();
+  let trueLogit;
+  let falseLogit;
+  let tokenCount = 0;
+  let scoringPath = 'full-logits';
+  let resultPhase = null;
+  const totalStart = performance.now();
+  if (typeof pipeline.prefillWithTokenLogits === 'function') {
+    const prefillCallStart = performance.now();
+    const result = await pipeline.prefillWithTokenLogits(
+      prompt,
+      [config.trueTokenId, config.falseTokenId],
+      {
+        useChatTemplate: false,
+        benchmark: options.benchmark === true,
+      }
+    );
+    const prefillCallMs = performance.now() - prefillCallStart;
+    const logits = assertLogitsVector(result?.logits);
+    trueLogit = Number(logits[0]);
+    falseLogit = Number(logits[1]);
+    tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
+    scoringPath = 'selected-token-logits';
+    resultPhase = {
+      ...(isPlainObject(result?.phase) ? result.phase : {}),
+      prefillCallMs,
+    };
+  } else {
+    const prefillCallStart = performance.now();
+    const result = await pipeline.prefillWithLogits(prompt, {
+      useChatTemplate: false,
+      benchmark: options.benchmark === true,
+    });
+    const prefillCallMs = performance.now() - prefillCallStart;
+    const logits = assertLogitsVector(result?.logits);
+    trueLogit = Number(logits[config.trueTokenId]);
+    falseLogit = Number(logits[config.falseTokenId]);
+    tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
+    resultPhase = {
+      ...(isPlainObject(result?.phase) ? result.phase : {}),
+      prefillCallMs,
+    };
+  }
+  return buildRerankScoreRecord(
+    query,
+    document,
+    prompt,
+    tokenCount,
+    trueLogit,
+    falseLogit,
+    config,
+    scoringPath,
+    {
+      ...(resultPhase ?? {}),
+      totalMs: performance.now() - totalStart,
+      promptChars: prompt.length,
+    }
+  );
 }
 
 function resolveRerankInput(runtimeConfig, runOverrides = null) {
@@ -757,9 +815,123 @@ function summarizeRerankScores(scores) {
       trueLogit: Number(entry.trueLogit.toFixed(6)),
       falseLogit: Number(entry.falseLogit.toFixed(6)),
       tokenCount: entry.tokenCount,
+      scoringPath: entry.scoringPath,
     })),
     top: sorted[0] ?? null,
   };
+}
+
+function getPipelineTokenizer(pipeline) {
+  const tokenizer = pipeline?.tokenizer;
+  return tokenizer && typeof tokenizer.encode === 'function' ? tokenizer : null;
+}
+
+function longestCommonTokenPrefixLength(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return 0;
+  }
+  const first = rows[0];
+  let length = Array.isArray(first) ? first.length : 0;
+  for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex];
+    if (!Array.isArray(row)) {
+      return 0;
+    }
+    length = Math.min(length, row.length);
+    for (let index = 0; index < length; index += 1) {
+      if (row[index] !== first[index]) {
+        length = index;
+        break;
+      }
+    }
+  }
+  return length;
+}
+
+async function createRerankPrefixContext(pipeline, query, documents, config, options = {}) {
+  const totalStart = performance.now();
+  if (
+    typeof pipeline?.prefillKVOnly !== 'function'
+    || typeof pipeline?.prefillWithTokenLogits !== 'function'
+    || typeof pipeline?.resetToSeqLen !== 'function'
+  ) {
+    return null;
+  }
+  const tokenizer = getPipelineTokenizer(pipeline);
+  if (!tokenizer) {
+    return null;
+  }
+  const prompts = documents.map((document) => formatRerankPrompt(query, document, config));
+  const tokenRows = prompts.map((prompt, index) => normalizeTokenIdArray(
+    tokenizer.encode(prompt),
+    `rerank.prompt[${index}].tokenIds`
+  ));
+  const prefixLength = longestCommonTokenPrefixLength(tokenRows);
+  if (prefixLength <= 0 || tokenRows.some((row) => row.length <= prefixLength)) {
+    return null;
+  }
+  const prefixTokens = tokenRows[0].slice(0, prefixLength);
+  pipeline.reset?.();
+  const prefillStart = performance.now();
+  const prefix = await pipeline.prefillKVOnly('', {
+    useChatTemplate: false,
+    inputIds: prefixTokens,
+    benchmark: options.benchmark === true,
+  });
+  const prefillMs = performance.now() - prefillStart;
+  return {
+    prefix,
+    seqLen: prefix.seqLen,
+    prefixTokens,
+    prompts,
+    tokenRows,
+    suffixRows: tokenRows.map((row) => row.slice(prefixLength)),
+    phase: {
+      totalMs: performance.now() - totalStart,
+      prefillMs,
+      prefixTokens: prefixTokens.length,
+      documentCount: documents.length,
+    },
+  };
+}
+
+async function scoreRerankDocumentFromPrefix(pipeline, query, document, config, prefixContext, index, options = {}) {
+  const suffixTokens = prefixContext.suffixRows[index];
+  const totalStart = performance.now();
+  try {
+    const prefillCallStart = performance.now();
+    const result = await pipeline.prefillWithTokenLogits(
+      '',
+      [config.trueTokenId, config.falseTokenId],
+      {
+        useChatTemplate: false,
+        inputIds: suffixTokens,
+        benchmark: options.benchmark === true,
+      }
+    );
+    const prefillCallMs = performance.now() - prefillCallStart;
+    const logits = assertLogitsVector(result?.logits);
+    const trueLogit = Number(logits[0]);
+    const falseLogit = Number(logits[1]);
+    return buildRerankScoreRecord(
+      query,
+      document,
+      prefixContext.prompts[index],
+      prefixContext.prefixTokens.length + suffixTokens.length,
+      trueLogit,
+      falseLogit,
+      config,
+      'prefix-selected-token-logits',
+      {
+        ...(isPlainObject(result?.phase) ? result.phase : {}),
+        totalMs: performance.now() - totalStart,
+        prefillCallMs,
+        suffixTokens: suffixTokens.length,
+      }
+    );
+  } finally {
+    pipeline.resetToSeqLen(prefixContext.seqLen);
+  }
 }
 
 export async function runRerank(pipeline, runtimeConfig, runOverrides = null) {
@@ -767,19 +939,44 @@ export async function runRerank(pipeline, runtimeConfig, runOverrides = null) {
   const config = resolveRerankScoringConfig(pipeline);
   const start = performance.now();
   const scores = [];
+  const prefixStart = performance.now();
+  const prefixContext = await createRerankPrefixContext(pipeline, input.query, input.documents, config, {
+    benchmark: runOverrides?.benchmark === true,
+  });
+  const prefixMs = performance.now() - prefixStart;
   for (let i = 0; i < input.documents.length; i++) {
-    const scored = await scoreRerankDocument(
-      pipeline,
-      input.query,
-      input.documents[i],
-      config
-    );
+    const scored = prefixContext
+      ? await scoreRerankDocumentFromPrefix(
+        pipeline,
+        input.query,
+        input.documents[i],
+        config,
+        prefixContext,
+        i,
+        {
+          benchmark: runOverrides?.benchmark === true,
+        }
+      )
+      : await scoreRerankDocument(
+        pipeline,
+        input.query,
+        input.documents[i],
+        config,
+        {
+          benchmark: runOverrides?.benchmark === true,
+        }
+      );
     scores.push({
       index: i,
       ...scored,
     });
   }
   const summary = summarizeRerankScores(scores);
+  const durationMs = Math.max(1, performance.now() - start);
+  const documentDurations = scores
+    .map((entry) => Number(entry.phase?.totalMs))
+    .filter((value) => Number.isFinite(value));
+  const documentTotalMs = documentDurations.reduce((sum, value) => sum + value, 0);
   return {
     query: input.query,
     documents: input.documents,
@@ -794,7 +991,26 @@ export async function runRerank(pipeline, runtimeConfig, runOverrides = null) {
         probability: summary.top.probability,
       }
       : null,
-    durationMs: Math.max(1, performance.now() - start),
+    phase: {
+      totalMs: durationMs,
+      prefixMs,
+      prefixApplied: prefixContext != null,
+      prefixTokens: Number.isFinite(prefixContext?.prefixTokens?.length)
+        ? prefixContext.prefixTokens.length
+        : 0,
+      prefix: prefixContext?.phase ?? null,
+      documentCount: input.documents.length,
+      documentTotalMs,
+      maxDocumentMs: documentDurations.length > 0 ? Math.max(...documentDurations) : 0,
+      avgDocumentMs: documentDurations.length > 0 ? documentTotalMs / documentDurations.length : 0,
+      documents: scores.map((entry) => ({
+        index: entry.index,
+        scoringPath: entry.scoringPath,
+        tokenCount: entry.tokenCount,
+        phase: entry.phase ?? null,
+      })),
+    },
+    durationMs,
   };
 }
 
@@ -1657,6 +1873,17 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   if (Number.isFinite(stats.decodeReadbackCleanupMs)) gpu.decodeReadbackCleanupMs = stats.decodeReadbackCleanupMs;
   if (Number.isFinite(stats.decodeReadbackCopyMs)) gpu.decodeReadbackCopyMs = stats.decodeReadbackCopyMs;
   if (Number.isFinite(stats.prefillRecordMs)) gpu.prefillRecordMs = stats.prefillRecordMs;
+  if (Number.isFinite(stats.prefillRecordOps)) gpu.prefillRecordOps = stats.prefillRecordOps;
+  if (Number.isFinite(stats.prefillRecordPasses)) gpu.prefillRecordPasses = stats.prefillRecordPasses;
+  const prefillRecordOpLabels = normalizeDecodeRecordOpLabels(stats.prefillRecordOpLabels);
+  if (prefillRecordOpLabels) {
+    const prefillRecordTopOps = buildDecodeRecordTopOps(prefillRecordOpLabels, stats.prefillRecordOps);
+    const prefillRecordTopOpGroups = buildDecodeRecordTopOpGroups(prefillRecordOpLabels, stats.prefillRecordOps);
+    gpu.prefillRecordOpLabels = prefillRecordOpLabels;
+    gpu.prefillRecordUniqueOpLabels = Object.keys(prefillRecordOpLabels).length;
+    gpu.prefillRecordTopOps = prefillRecordTopOps;
+    gpu.prefillRecordTopOpGroups = prefillRecordTopOpGroups;
+  }
   if (Number.isFinite(stats.prefillSubmitWaitMs)) gpu.prefillSubmitWaitMs = stats.prefillSubmitWaitMs;
   if (
     Number.isFinite(decodeMs) &&
@@ -1828,6 +2055,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     repetitionPenalty: sampling.repetitionPenalty,
     greedyThreshold: sampling.greedyThreshold,
     useChatTemplate,
+    benchmark: runOverrides?.benchmark === true,
     profile,
     ...(disableCommandBatchingForDiagnostics ? { disableCommandBatching: true } : {}),
     diagnostics,
@@ -1952,7 +2180,9 @@ export async function runEmbedding(pipeline, runtimeConfig, runOverrides = null)
     ? runOverrides.prompt.trim()
     : resolvePrompt(runtimeConfig);
   const start = performance.now();
-  const result = await pipeline.embed(prompt);
+  const result = await pipeline.embed(prompt, {
+    benchmark: runOverrides?.benchmark === true,
+  });
   const durationMs = Math.max(1, performance.now() - start);
   const tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
   const stats = summarizeEmbeddingValues(result?.embedding);
@@ -1960,6 +2190,7 @@ export async function runEmbedding(pipeline, runtimeConfig, runOverrides = null)
     prompt,
     tokenCount,
     durationMs,
+    phase: result?.phase ?? null,
     ...stats,
   };
 }

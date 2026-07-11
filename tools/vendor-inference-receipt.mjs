@@ -53,6 +53,44 @@ export function validateVendorInferenceReport(report, modelRuntimeLock, modelRun
   requireValue(phase3.modelReady === true && phase3.modelRequired === true, 'Phase 3 did not require and execute the reranker');
   requireValue(phase3.modelStatus === 'ready' && Boolean(phase3.modelBackend), 'Phase 3 reranker backend was not ready');
   requireValue(phase3.candidateInputCount > 0 && phase3.candidateOutputCount > 0, 'Phase 3 reranker did not rank prompt candidates');
+  requireValue(
+    Array.isArray(phase3.promptScoringPaths) &&
+      phase3.promptScoringPaths.length === 1 &&
+      phase3.promptScoringPaths[0] === 'prefix-selected-token-logits',
+    'prompt reranking did not exclusively use prefix-selected-token logits'
+  );
+  requireValue(
+    phase3.promptSelectedTokenLogitCount === phase3.candidateOutputCount &&
+      phase3.promptPrefixKvReuseCount === phase3.candidateOutputCount &&
+      phase3.promptMinimumPrefixTokenCount > 0,
+    'prompt reranking selected-token or prefix-KV counts are incomplete'
+  );
+  requireValue(
+    phase3.promptPrefixStateReuseCount === phase3.candidateOutputCount,
+    'prompt reranking did not reuse the live slot-query prefix state'
+  );
+  requireValue(phase3.slotRerankCallCount > 0, 'Phase 3 did not rerank typed scene slots');
+  requireValue(
+    phase3.slotCandidateInputCount > 0 && phase3.slotCandidateOutputCount > 0,
+    'typed scene slot reranking had no candidates'
+  );
+  requireValue(
+    Array.isArray(phase3.slotScoringPaths) &&
+      phase3.slotScoringPaths.length === 1 &&
+      phase3.slotScoringPaths[0] === 'prefix-selected-token-logits',
+    'slot reranking did not exclusively use prefix-selected-token logits'
+  );
+  requireValue(
+    phase3.slotSelectedTokenLogitCount === phase3.slotCandidateOutputCount &&
+      phase3.slotPrefixKvReuseCount === phase3.slotCandidateOutputCount &&
+      phase3.slotMinimumPrefixTokenCount > 0,
+    'slot reranking selected-token or prefix-KV counts are incomplete'
+  );
+  const slotColdStartBudget = Math.max(1, Number(expectedReranker.maxSlotCandidatesPerCall || 0));
+  requireValue(
+    phase3.slotPrefixStateReuseCount >= phase3.slotCandidateOutputCount - slotColdStartBudget,
+    'slot reranking did not reuse live prefix state across compatible calls'
+  );
   requireValue(result.sceneProofVerdict === 'pass', 'scene proof did not pass');
   requireValue(result.phase7PixelProofStatus === 'pass', 'pixel proof did not pass');
 
@@ -85,7 +123,17 @@ export function validateVendorInferenceReport(report, modelRuntimeLock, modelRun
       promptBackend: phase3.modelBackend,
       candidateInputCount: phase3.candidateInputCount,
       candidateOutputCount: phase3.candidateOutputCount,
+      promptScoringPaths: phase3.promptScoringPaths,
+      promptSelectedTokenLogitCount: phase3.promptSelectedTokenLogitCount,
+      promptPrefixKvReuseCount: phase3.promptPrefixKvReuseCount,
+      promptPrefixStateReuseCount: phase3.promptPrefixStateReuseCount,
       slotRerankCallCount: phase3.slotRerankCallCount,
+      slotCandidateInputCount: phase3.slotCandidateInputCount,
+      slotCandidateOutputCount: phase3.slotCandidateOutputCount,
+      slotScoringPaths: phase3.slotScoringPaths,
+      slotSelectedTokenLogitCount: phase3.slotSelectedTokenLogitCount,
+      slotPrefixKvReuseCount: phase3.slotPrefixKvReuseCount,
+      slotPrefixStateReuseCount: phase3.slotPrefixStateReuseCount,
     },
     browserProof: {
       sceneProofVerdict: result.sceneProofVerdict,

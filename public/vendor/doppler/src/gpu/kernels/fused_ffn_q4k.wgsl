@@ -31,6 +31,7 @@ const MAX_WORKGROUP_SIZE: u32 = 256u;
 override WORKGROUP_SIZE: u32 = 256u;
 override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
+override USE_FULL_BLOCK_FAST_PATH: bool = false;
 
 struct Uniforms {
     M: u32,                   // Batch size (usually 1 for decode)
@@ -118,7 +119,8 @@ fn silu(x: f32) -> f32 {
 // GELU activation (approximate)
 fn gelu(x: f32) -> f32 {
     let c = 0.7978845608; // sqrt(2/pi)
-    return 0.5 * x * (1.0 + tanh(c * (x + 0.044715 * x * x * x)));
+    let inner = c * (x + 0.044715 * x * x * x);
+    return 0.5 * x * (1.0 + tanh(clamp(inner, -15.0, 15.0)));
 }
 
 // Main entry point: multi-column decode (M=1)
@@ -168,7 +170,7 @@ fn main(
             // Process all 8 sub-blocks (skip sub-blocks beyond hidden_size)
             for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
                 let sb_base = sb * SUBBLOCK_SIZE;
-                if (k_base + sb_base >= u.hidden_size) { break; }
+                if (!USE_FULL_BLOCK_FAST_PATH && k_base + sb_base >= u.hidden_size) { break; }
 
                 let gate_sm = get_scale_min_k4(gate_block.scales, sb);
                 let gate_scale = gate_d * f32(gate_sm.x);
@@ -291,7 +293,7 @@ fn main_batched(
 
             for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
                 let sb_base = sb * SUBBLOCK_SIZE;
-                if (k_base + sb_base >= u.hidden_size) { break; }
+                if (!USE_FULL_BLOCK_FAST_PATH && k_base + sb_base >= u.hidden_size) { break; }
 
                 let gate_sm = get_scale_min_k4(gate_block.scales, sb);
                 let gate_scale = gate_d * f32(gate_sm.x);
