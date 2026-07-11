@@ -114,12 +114,13 @@ test('loading snake head-to-body collisions absorb and remove the victim', () =>
   assert.deepEqual(instance.exitSnakes[0].cells[0], { x: 8, y: 5 });
 });
 
-test('loading snake tail-end crossings do not destroy the crossed snake', () => {
+test('loading snake tail-end collisions absorb the crossed snake', () => {
   const beforeAttacker = snake(1, [[4, 5], [3, 5], [2, 5]]);
   const beforeVictim = snake(2, [[8, 5], [9, 5], [10, 5], [11, 5], [12, 5], [13, 5], [14, 5], [15, 5]], { x: -1, y: 0 });
   const afterAttacker = snake(1, [[15, 5], [4, 5], [3, 5]]);
   const afterVictim = snake(2, [[8, 5], [9, 5], [10, 5], [11, 5], [12, 5], [13, 5], [14, 5], [15, 5]], { x: -1, y: 0 });
   const instance = controller([afterAttacker, afterVictim]);
+  const attackerLength = afterAttacker.cells.length;
 
   instance.resolveCollisionPlans(
     [{ snake: afterAttacker, target: { x: 15, y: 5 }, actualTarget: { x: 15, y: 5 } }],
@@ -127,9 +128,25 @@ test('loading snake tail-end crossings do not destroy the crossed snake', () => 
     drawFrom([beforeAttacker, beforeVictim])
   );
 
-  assert.equal(instance.snakes.length, 2);
-  assert.ok(instance.snakes.some((row) => row.id === 1));
-  assert.ok(instance.snakes.some((row) => row.id === 2));
+  assert.equal(instance.snakes.length, 1);
+  assert.equal(instance.snakes[0].id, 1);
+  assert.ok(instance.snakes[0].cells.length > attackerLength);
+  assert.equal(instance.exitSnakes.length, 1);
+  assert.deepEqual(instance.exitSnakes[0].cells[0], { x: 8, y: 5 });
+});
+
+test('loading snake stalls instead of crossing its own body', () => {
+  const row = snake(1, [
+    [5, 5], [6, 5], [6, 6], [5, 6], [4, 6], [4, 5], [4, 4], [5, 4],
+  ]);
+  const before = row.cells.map((cell) => ({ ...cell }));
+  const instance = controller([row]);
+  instance.enforcePopulation = () => {};
+
+  instance.advanceSwarm(200, 164);
+
+  assert.deepEqual(row.cells, before);
+  assert.equal(new Set(row.cells.map((cell) => `${cell.x},${cell.y}`)).size, row.cells.length);
 });
 
 test('loading snake rectangular cadence keeps straight orthogonal runs', () => {

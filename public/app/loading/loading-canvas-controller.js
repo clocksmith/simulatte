@@ -218,13 +218,15 @@
             return {
               snake,
               direction,
-              target: addCells(snake.cells[0], direction),
+              stalled: !direction,
+              target: direction ? addCells(snake.cells[0], direction) : { ...snake.cells[0] },
             };
           });
 
           for (const plan of plans) {
             const snake = plan.snake;
             if (!this.snakes.includes(snake)) continue;
+            if (plan.stalled) continue;
             const previousHead = snake.cells[0];
             const previousDirection = snake.direction;
             const target = insideBoard(plan.target, this.board)
@@ -529,12 +531,14 @@
         const wantsBodyMerge = rng() < HEAD_TO_BODY_COLLISION_SHARE;
         const straightRunLeft = Math.max(0, Number(snake.straightRunLeft || 0));
         const rectangularity = clamp(Number(snake.rectangularity || 0.82), 0.4, 1.2);
-        let best = current;
+        let best = null;
         let bestScore = -Infinity;
         for (const direction of DIRECTIONS) {
           const target = addCells(snake.cells[0], direction);
+          if (!insideBoard(target, board)) continue;
+          const owner = occupied.get(cellKey(target));
+          if (owner && owner.id === snake.id) continue;
           let score = rng() * 0.5;
-          if (!insideBoard(target, board)) score -= 1000;
           const preferredTurn = turnDirection(current, snake.turnBias || 1);
           const oppositeTurn = turnDirection(current, -(snake.turnBias || 1));
           if (sameDirection(direction, current)) {
@@ -554,14 +558,9 @@
           score += visitedCellScore(target, snake);
           score -= ownTrailAdjacency(target, snake) * RECENT_TRAIL_PENALTY;
           score += wallDistanceScore(target, board) * 0.18;
-          const owner = occupied.get(cellKey(target));
-          if (owner && owner.id === snake.id && !isCrossableTail(owner)) score -= 900;
-          if (owner && owner.id === snake.id && isCrossableTail(owner)) score += 0.8;
           if (owner && owner.id !== snake.id) {
             if (owner.index === 0) {
               score += wantsHeadToHead ? HEAD_TO_HEAD_TARGET_BONUS : HEAD_TO_HEAD_TARGET_BONUS * 0.3;
-            } else if (isCrossableTail(owner)) {
-              score += 1.2;
             } else {
               score += wantsBodyMerge ? HEAD_TO_BODY_TARGET_BONUS : -3.5;
             }
@@ -592,7 +591,7 @@
           const next = addCells(cell, direction);
           if (!insideBoard(next, board)) continue;
           const owner = occupied.get(cellKey(next));
-          if (!owner || isCrossableTail(owner)) count += 1;
+          if (!owner) count += 1;
         }
         return count;
       }
@@ -605,7 +604,7 @@
         while (queue.length) {
           const item = queue.shift();
           const owner = occupied.get(cellKey(item.cell));
-          if (owner && !isCrossableTail(owner)) continue;
+          if (owner) continue;
           score += 1 / (item.depth + 1);
           if (item.depth >= 4) continue;
           for (const direction of DIRECTIONS) {

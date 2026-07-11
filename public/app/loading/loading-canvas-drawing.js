@@ -70,12 +70,7 @@
       }
 
     function isDestructiveBodyCollision(owner, snakeId) {
-        return Boolean(owner && owner.id !== snakeId && owner.index > 0 && !isCrossableTail(owner));
-      }
-
-    function isCrossableTail(owner) {
-        if (!owner || owner.index === 0 || owner.length <= 1) return false;
-        return owner.index >= Math.ceil(owner.length * (1 - CROSSABLE_BODY_PORTION));
+        return Boolean(owner && owner.id !== snakeId && owner.index > 0);
       }
 
     function findParent(parent, id) {
@@ -250,7 +245,6 @@
       buildOccupancy,
       headCellsBySnakeId,
       isDestructiveBodyCollision,
-      isCrossableTail,
       findParent,
       alphaForCell,
       colorWithAlpha,

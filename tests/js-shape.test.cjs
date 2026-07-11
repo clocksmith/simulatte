@@ -961,7 +961,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /const VISITED_CELL_PENALTY = 9\.5/);
   assert.match(loadingCanvas, /const RECENT_TRAIL_PENALTY = 5\.4/);
   assert.match(loadingCanvas, /const VISITED_MEMORY_CELLS = 160/);
-  assert.match(loadingCanvas, /const CROSSABLE_BODY_PORTION = 0\.16/);
+  assert.doesNotMatch(loadingCanvas, /CROSSABLE_BODY_PORTION|isCrossableTail/);
   assert.match(loadingCanvas, /const HEAD_TO_HEAD_COLLISION_SHARE = 0\.58/);
   assert.match(loadingCanvas, /const HEAD_TO_BODY_COLLISION_SHARE = 0\.46/);
   assert.match(loadingCanvas, /const HEAD_TO_HEAD_TARGET_BONUS = 13/);
@@ -1044,8 +1044,9 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /function combineSnakes/);
   assert.match(loadingCanvas, /function absorbSnake/);
   assert.match(loadingCanvas, /function isDestructiveBodyCollision/);
-  assert.match(loadingCanvas, /function isCrossableTail/);
-  assert.match(loadingCanvas, /owner\.index >= Math\.ceil\(owner\.length \* \(1 - CROSSABLE_BODY_PORTION\)\)/);
+  assert.match(loadingCanvas, /owner && owner\.id !== snakeId && owner\.index > 0/);
+  assert.match(loadingCanvas, /if \(owner && owner\.id === snake\.id\) continue/);
+  assert.match(loadingCanvas, /stalled: !direction/);
   assert.match(loadingCanvas, /const wantsHeadToHead = rng\(\) < HEAD_TO_HEAD_COLLISION_SHARE/);
   assert.match(loadingCanvas, /const wantsBodyMerge = rng\(\) < HEAD_TO_BODY_COLLISION_SHARE/);
   assert.match(loadingCanvas, /wantsHeadToHead \? HEAD_TO_HEAD_TARGET_BONUS/);
