@@ -154,10 +154,12 @@ function main() {
     fail(`sibling repository not found at ${siblingRoot}`);
   }
   const siblingHead = run('git', ['rev-parse', 'HEAD'], { cwd: siblingRoot }).trim();
-  if (!WRITE && siblingHead !== development.gitSha) {
-    fail(`sibling HEAD ${siblingHead} differs from lock #${lock.number} source ${development.gitSha}`);
-  }
   const sourceSha = WRITE ? siblingHead : development.gitSha;
+  if (!WRITE && siblingHead !== sourceSha) {
+    console.log(
+      `Doppler sibling checkout is ${siblingHead}; validating pinned lock #${lock.number} source ${sourceSha}.`
+    );
+  }
 
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-doppler-development-'));
   try {

@@ -2258,7 +2258,9 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.match(developmentSync, /sibling-git-archive/);
   assert.match(developmentSync, /git', \['archive'/);
   assert.match(developmentSync, /public', 'vendor', 'doppler'/);
-  assert.match(developmentSync, /if \(!WRITE && siblingHead !== development\.gitSha\)/);
+  assert.match(developmentSync, /const sourceSha = WRITE \? siblingHead : development\.gitSha/);
+  assert.match(developmentSync, /validating pinned lock/);
+  assert.doesNotMatch(developmentSync, /fail\(`sibling HEAD/);
   assert.match(developmentSync, /packagePin\.integrity = entry\.integrity/);
   assert.match(developmentSync, /development\.gitSha = sourceSha/);
   assert.doesNotMatch(deployCheck, /git', \['status', '--porcelain=v1'/);
