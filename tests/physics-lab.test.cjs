@@ -20,6 +20,7 @@ const {
   probeAwareVector,
   probeAwareEmbedProvider,
   testRerankProvider,
+  testDopplerDeviceModule,
   testDopplerStorageModule,
   manifestFacade,
   withIntentArtifactFetch,
@@ -38,6 +39,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
     number: 1,
     doppler: {
       moduleUrl: '../../vendor/doppler/src/index.js',
+      deviceModuleUrl: '../../vendor/doppler/src/tooling-exports/device.js',
       storageModuleUrl: '../../vendor/doppler/src/tooling-exports/storage.js',
       kernelBasePath: '../../vendor/doppler/src/gpu/kernels',
       package: {
@@ -70,6 +72,13 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
       required: true,
       maxCandidatesPerCall: 8,
       maxSlotCandidatesPerCall: 4,
+      maxCandidateTermsPerDocument: 32,
+      scoreCacheMaxEntries: 256,
+      execution: {
+        selectedTokenLogits: 'required',
+        prefixKvReuse: 'required',
+        statefulPrefixReuse: 'required',
+      },
       model: {
         id: 'synthetic-reranker-model',
         defaultModelBaseUrl: 'https://simulatte.test/resolve/rev/models/synthetic-reranker',
@@ -271,6 +280,7 @@ test('Phase 1 refuses embedding and reranker handles with a nonlocked hash', asy
           };
         },
       },
+      dopplerDeviceModule: testDopplerDeviceModule(),
       dopplerStorageModule: testDopplerStorageModule(),
     });
 
@@ -546,6 +556,7 @@ test('Phase 1 loads Doppler reranker with f16 KV runtime contract', async () => 
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       embedProvider: probeAwareEmbedProvider({ index, targetVector: query }),
       dopplerModule,
+      dopplerDeviceModule: testDopplerDeviceModule(),
       dopplerStorageModule: testDopplerStorageModule(),
     });
 
@@ -616,6 +627,8 @@ test('Doppler reranker fallback caps candidates and resets state around every pr
     id: 'controlled-reranker',
     maxCandidatesPerCall: 3,
     maxSlotCandidatesPerCall: 2,
+    maxCandidateTermsPerDocument: 32,
+    scoreCacheMaxEntries: 16,
   }, 'test-reranker');
   const rows = await provider.rerank({
     schema: 'simulatte.intentRerankInput.v1',
@@ -685,7 +698,7 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
         assert.equal(prompt, '');
         assert.deepEqual(tokenIds, [1, 0]);
         const suffix = String.fromCharCode(...options.inputIds);
-        const relevant = suffix.includes('OPTICAL_MATCH');
+        const relevant = suffix.includes('optical match');
         sequenceLength += options.inputIds.length;
         prefixScoreCount += 1;
         return {
@@ -707,6 +720,8 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
     id: 'selected-token-reranker',
     maxCandidatesPerCall: 3,
     maxSlotCandidatesPerCall: 2,
+    maxCandidateTermsPerDocument: 32,
+    scoreCacheMaxEntries: 16,
     execution: {
       selectedTokenLogits: 'required',
       prefixKvReuse: 'required',
@@ -729,12 +744,14 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
       { primitiveId: 'second-positive', candidateText: 'SECOND_OPTICAL_MATCH' },
     ],
   });
+  const cachedRows = await provider.rerank(request);
 
   assert.equal(rows[0].primitiveId, 'positive');
   assert.equal(rows[0].scoringPath, 'prefix-selected-token-logits');
   assert.ok(rows.every((row) => row.prefixTokenCount > 0));
   assert.ok(rows.every((row) => row.prefixStateReused === false));
   assert.ok(reusedRows.every((row) => row.prefixStateReused === true));
+  assert.ok(cachedRows.every((row) => row.scoreCacheHit === true));
   assert.equal(prefixCount, 1);
   assert.equal(prefixScoreCount, 4);
   assert.equal(snapshotScoreCount, 0);
@@ -742,18 +759,34 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
   assert.equal(prefixResetCount, 4);
   assert.equal(resetCount, 1);
   assert.ok(sequenceLength > 0);
-  assert.deepEqual(progressRows.map((row) => row.completed), [1, 2, 1, 2]);
+  assert.deepEqual(progressRows.map((row) => row.completed), [1, 2, 1, 2, 1, 2]);
   const normalized = scope.normalizeRerankerRows(rows);
   assert.ok(normalized.every((row) => row.scoringPath === 'prefix-selected-token-logits'));
-  assert.deepEqual(scope.rerankExecutionSummary(normalized), {
+  const executionSummary = scope.rerankExecutionSummary(normalized);
+  assert.deepEqual({
+    scoringPaths: executionSummary.scoringPaths,
+    selectedTokenLogitCount: executionSummary.selectedTokenLogitCount,
+    selectedTokenExecutionCount: executionSummary.selectedTokenExecutionCount,
+    prefixKvReuseCount: executionSummary.prefixKvReuseCount,
+    prefixStateReuseCount: executionSummary.prefixStateReuseCount,
+    scoreCacheHitCount: executionSummary.scoreCacheHitCount,
+    minimumPrefixTokenCount: executionSummary.minimumPrefixTokenCount,
+    maximumPrefixTokenCount: executionSummary.maximumPrefixTokenCount,
+  }, {
     scoringPaths: ['prefix-selected-token-logits'],
     selectedTokenLogitCount: 2,
+    selectedTokenExecutionCount: 2,
     prefixKvReuseCount: 2,
     prefixStateReuseCount: 0,
+    scoreCacheHitCount: 0,
     minimumPrefixTokenCount: rows[0].prefixTokenCount,
     maximumPrefixTokenCount: rows[0].prefixTokenCount,
   });
+  assert.ok(executionSummary.totalExecutionDurationMs >= 0);
+  assert.ok(executionSummary.meanExecutionDurationMs >= 0);
+  assert.ok(executionSummary.maximumExecutionDurationMs >= 0);
   assert.equal(scope.rerankExecutionSummary(scope.normalizeRerankerRows(reusedRows)).prefixStateReuseCount, 2);
+  assert.equal(scope.rerankExecutionSummary(scope.normalizeRerankerRows(cachedRows)).scoreCacheHitCount, 2);
 });
 
 test('required selected-token reranking fails closed on an incomplete Doppler handle', () => {
@@ -769,6 +802,8 @@ test('required selected-token reranking fails closed on an incomplete Doppler ha
     id: 'incomplete-reranker',
     maxCandidatesPerCall: 1,
     maxSlotCandidatesPerCall: 1,
+    maxCandidateTermsPerDocument: 32,
+    scoreCacheMaxEntries: 16,
     execution: {
       selectedTokenLogits: 'required',
       prefixKvReuse: 'required',
@@ -826,6 +861,126 @@ test('contrastive top-k reranking retains local scores for unevaluated candidate
   assert.match(slotTail.modelRerankReason, /outside model top-k/);
 });
 
+test('slot lexical evidence uses whole semantic tokens and excludes support candidates from model work', () => {
+  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const slot = {
+    slotId: 'slot.actor.cat',
+    slotRole: 'actor',
+    entryId: 'actor:cat',
+    required: true,
+    relationIds: [],
+    queries: [{ text: 'cat feline' }],
+  };
+  assert.ok(scope.slotLexicalScore(slot, 'cat feline small mammal') > 0);
+  assert.ok(scope.slotLexicalScore(slot, 'cats with articulated bodies') > 0);
+  assert.equal(scope.slotLexicalScore(slot, 'caterpillar relation table dna strand'), 0);
+  assert.equal(scope.slotCandidateLiteralMatch(slot, { candidateId: 'cat', label: 'cat' }), true);
+  assert.equal(scope.slotCandidateLiteralMatch(slot, {
+    candidateId: 'caterpillar',
+    candidateText: 'cat-like motion',
+  }), false);
+
+  const runtime = {
+    manifest: {
+      reranker: {
+        id: 'slot-reranker',
+        maxCandidatesPerCall: 8,
+        maxSlotCandidatesPerCall: 2,
+        maxCandidateTermsPerDocument: 32,
+        scoreCacheMaxEntries: 16,
+      },
+    },
+  };
+  const input = scope.buildSlotRerankInput({
+    promptText: 'cats swim in a lake',
+    slot,
+    runtime,
+    candidates: [
+      { candidateId: 'constraint-graph', supportOnly: true, score: 0.9 },
+      { candidateId: 'cat', candidateText: 'cat feline', score: 0.8 },
+      { candidateId: 'tail', candidateText: 'other', score: 0.7 },
+    ],
+  });
+  assert.deepEqual(input.candidates.map((row) => row.candidateId), ['cat']);
+  assert.match(input.prompt, /Scene prompt: cats swim in a lake/);
+  assert.match(input.prompt, /Required actor evidence: cat feline/);
+  assert.equal(scope.slotRerankSkipReason(slot, [{ literalSlotMatch: true }]), 'literal-slot-identity');
+  assert.equal(scope.slotRerankSkipReason({ ...slot, required: false }, []), 'optional-slot-local-evidence');
+  assert.equal(scope.phase3SupportLikePrimitiveId('population-field'), true);
+  assert.equal(scope.phase3SupportLikePrimitiveId('relation-table'), true);
+  const relationSlot = {
+    slotId: 'slot.relation.cat_swimming_lake',
+    slotRole: 'relation',
+    entryId: 'relation:cat_swimming_lake',
+    required: true,
+    relationIds: ['cat_swimming_lake'],
+    queries: [{ text: 'cat swimming lake' }],
+  };
+  const universeRows = scope.slotUniverseCandidates(relationSlot, {
+    candidates: [
+      { id: 'affordance.anemone', indexName: 'affordances', label: 'swimming', score: 0.9 },
+      { id: 'operator.jumping', indexName: 'operators', label: 'jumping', score: 0.795, semanticScore: 0 },
+      { id: 'relation.swimming', indexName: 'relations', label: 'swimming', score: 0.795, semanticScore: 0 },
+    ],
+  }, 3).sort(scope.slotCandidateSort);
+  assert.equal(universeRows[0].candidateId, 'relation.swimming');
+  assert.equal(universeRows[1].candidateId, 'operator.jumping');
+  assert.equal(universeRows[2].candidateId, 'affordance.anemone');
+  assert.match(scope.slotQueryText({
+    slotRole: 'visual',
+    entryId: 'visual:species-distinct-silhouettes',
+  }, 'dogs and cats swimming in a lake'), /species-distinct-silhouette dog cat swimming lake/);
+  const visualSlot = {
+    slotRole: 'visual',
+    budgets: { primitive: 0, surfaceCard: 4, universe: 2 },
+    allowedCandidateTypes: ['visual-card', 'surface-card', 'render-operator'],
+  };
+  assert.equal(scope.slotCandidateBudget(visualSlot, 'primitive', 10), 0);
+  assert.equal(scope.slotCandidateBudget(visualSlot, 'surfaceCard', 8), 4);
+  assert.equal(scope.slotAllowsCandidateType(visualSlot, 'primitive'), false);
+  assert.equal(scope.slotAllowsCandidateType(visualSlot, 'surface-card'), true);
+});
+
+test('reranker order stays inside the local evidence score band', () => {
+  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const local = [
+    { primitiveId: 'a', score: 0.9, modelScore: 0.9 },
+    { primitiveId: 'b', score: 0.85, modelScore: 0.85 },
+    { primitiveId: 'c', score: 0.8, modelScore: 0.8 },
+    { primitiveId: 'tail', score: 0.75, modelScore: 0.75 },
+  ];
+  const model = [
+    { primitiveId: 'c', score: 0.99, rank: 0 },
+    { primitiveId: 'b', score: 0.98, rank: 1 },
+    { primitiveId: 'a', score: 0.97, rank: 2 },
+  ];
+  const rows = scope.applyModelRerank(local, model, model);
+  assert.deepEqual(rows.map((row) => row.primitiveId), ['c', 'b', 'a', 'tail']);
+  assert.deepEqual(rows.slice(0, 3).map((row) => row.score), [0.9, 0.85, 0.8]);
+  assert.deepEqual(rows.slice(0, 3).map((row) => row.modelRerankScore), [0.99, 0.98, 0.97]);
+  assert.equal(rows[3].score, 0.75);
+});
+
+test('reranker documents are compact and its score cache is bounded across queries', () => {
+  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const text = scope.compactRerankCandidateText(
+    'simulatte surface card cat type entity labels cat feline materials biomass description cat feline agile mammal',
+    5
+  );
+  assert.equal(text.split(' ').length, 5);
+  assert.match(text, /cat/);
+  assert.match(text, /feline/);
+  assert.doesNotMatch(text, /simulatte|surface|label|description/);
+  const cache = new Map();
+  scope.writeRerankScoreCache(cache, 'query-a', { score: 1 }, 2);
+  scope.writeRerankScoreCache(cache, 'query-b', { score: 2 }, 2);
+  assert.equal(scope.readRerankScoreCache(cache, 'query-a').score, 1);
+  scope.writeRerankScoreCache(cache, 'query-c', { score: 3 }, 2);
+  assert.equal(cache.has('query-b'), false);
+  assert.equal(cache.has('query-a'), true);
+  assert.equal(cache.has('query-c'), true);
+});
+
 test('Phase 1 loads Doppler embedding from the verified cached manifest source', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     const query = indexedVector(index, 'optics-bench');
@@ -848,6 +1003,7 @@ test('Phase 1 loads Doppler embedding from the verified cached manifest source',
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       dopplerModule,
+      dopplerDeviceModule: testDopplerDeviceModule(),
       dopplerStorageModule: testDopplerStorageModule(),
       onProgress: (event) => events.push(event),
     });
@@ -885,6 +1041,7 @@ test('Phase 1 overlaps required Doppler embedding and reranker loads', async () 
     const loadRoles = [];
     let embeddingResolved = false;
     let rerankerStartedBeforeEmbeddingResolved = false;
+    let deviceInitCalls = 0;
     let releaseEmbedding = null;
     let releaseReranker = null;
     let resolveBothStarted = null;
@@ -944,6 +1101,12 @@ test('Phase 1 overlaps required Doppler embedding and reranker loads', async () 
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       dopplerModule,
+      dopplerDeviceModule: {
+        async initDevice() {
+          deviceInitCalls += 1;
+          return { label: 'shared-test-device' };
+        },
+      },
       dopplerStorageModule: testDopplerStorageModule(),
     });
 
@@ -953,6 +1116,7 @@ test('Phase 1 overlaps required Doppler embedding and reranker loads', async () 
     assert.deepEqual(loadRoles.sort(), ['embedding:isolated', 'reranker:isolated']);
     assert.equal(embeddingResolved, false);
     assert.equal(rerankerStartedBeforeEmbeddingResolved, true);
+    assert.equal(deviceInitCalls, 1);
     releaseEmbedding();
     releaseReranker();
     const runtime = await loadPromise;
@@ -1015,6 +1179,7 @@ test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', as
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
       dopplerModule,
+      dopplerDeviceModule: testDopplerDeviceModule(),
       dopplerStorageModule: testDopplerStorageModule(),
     });
 
@@ -1126,11 +1291,15 @@ test('Phase 3 model-backed retrieval embeds and reranks typed scene slots', asyn
     assert.equal(result.slotRetrieval.schema, 'simulatte.phase3SlotRetrieval.v1');
     assert.equal(result.slotRetrieval.queryPlanSchema, 'simulatte.sceneQueryPlan.v1');
     assert.ok(result.slotRetrieval.embeddedSlotCount >= queryPlan.summary.requiredSlotCount);
-    assert.ok(result.slotRetrieval.rerankCallCount >= queryPlan.summary.requiredSlotCount);
+    assert.ok(result.slotRetrieval.rerankCallCount > 0);
+    assert.ok(result.slotRetrieval.rerankCallCount < queryPlan.summary.requiredSlotCount);
+    assert.ok(result.slotRetrieval.rerankCandidateInputCount <= result.slotRetrieval.rerankCallCount * 2);
     assert.ok(dogSlot.candidates.some((row) => /\bdog\b|surface-dog/.test(row.candidateId)));
     assert.ok(catSlot.candidates.some((row) => /\bcat\b|surface-cat/.test(row.candidateId)));
+    assert.equal(dogSlot.receipt.skipReason, 'literal-slot-identity');
+    assert.equal(catSlot.receipt.skipReason, 'literal-slot-identity');
     assert.ok(rerankInputs.some((input) => input.schema === 'simulatte.intentSlotRerankInput.v1'));
-    assert.ok(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.actor.dog'));
+    assert.equal(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.actor.dog'), false);
     assert.ok(embedTexts.some((text) => /\bdog\b/.test(text)));
     assert.ok(embedTexts.every((text) => !/\b(?:actor|slot|required)\b/.test(text)));
     assert.ok(events.some((event) => event.stage === 'slot-retrieval'));

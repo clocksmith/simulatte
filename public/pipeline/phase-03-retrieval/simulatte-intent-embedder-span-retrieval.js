@@ -317,7 +317,7 @@
         });
         const nowIso = payload.options && payload.options.nowIso || new Date().toISOString();
         const slotRequests = slots.map((slot) => ({
-          text: slotQueryText(slot),
+          text: slotQueryText(slot, payload.promptText),
           nowIso,
           slotId: slot.slotId || '',
           slotRole: slot.slotRole || '',
@@ -337,18 +337,30 @@
             ? await safeSpanGpuRank(payload.rankGpu, vector)
             : null;
           const scores = gpuScores || rankCpu(vector, candidateVectors);
-          const primitiveMatches = candidates
-            .map((primitive, index) => slotPrimitiveMatch(slot, primitive, scores[index], config))
-            .filter((row) => row.score >= config.primitiveScoreFloor || row.lexicalScore > 0)
-            .sort(slotCandidateSort)
-            .slice(0, config.perSlotPrimitiveMax);
-          const cardMatches = rankSurfaceCardsForSlot(runtime.cardIndex, slot, vector, config, payload.options);
-          const universeMatches = rankUniverseIndexes(runtime.universe, queryText, vector, {
-            ...payload.options,
-            maxUniverse: config.perSlotUniverseMax,
-            minUniverseScore: config.universeScoreFloor,
-          });
-          const universeRows = slotUniverseCandidates(slot, universeMatches, config.perSlotUniverseMax);
+          const primitiveMax = slotCandidateBudget(slot, 'primitive', config.perSlotPrimitiveMax);
+          const cardMax = slotCandidateBudget(slot, 'surfaceCard', config.perSlotCardMax);
+          const universeMax = slotCandidateBudget(slot, 'universe', config.perSlotUniverseMax);
+          const primitiveMatches = slotAllowsCandidateType(slot, 'primitive') && primitiveMax > 0
+            ? candidates
+              .map((primitive, index) => slotPrimitiveMatch(slot, primitive, scores[index], config))
+              .filter((row) => row.score >= config.primitiveScoreFloor || row.lexicalScore > 0)
+              .sort(slotCandidateSort)
+              .slice(0, primitiveMax)
+            : [];
+          const cardMatches = slotAllowsCandidateType(slot, 'surface-card') && cardMax > 0
+            ? rankSurfaceCardsForSlot(runtime.cardIndex, slot, vector, { ...config, perSlotCardMax: cardMax }, payload.options)
+            : [];
+          const universeAllowed = slotAllowsCandidateType(slot, 'universe-row') && universeMax > 0;
+          const universeMatches = universeAllowed
+            ? rankUniverseIndexes(runtime.universe, queryText, vector, {
+              ...payload.options,
+              maxUniverse: universeMax,
+              minUniverseScore: config.universeScoreFloor,
+            })
+            : { candidates: [] };
+          const universeRows = universeAllowed
+            ? slotUniverseCandidates(slot, universeMatches, universeMax)
+            : [];
           const ranked = uniqueSlotCandidates([
             ...primitiveMatches,
             ...cardMatches,
@@ -429,6 +441,21 @@
             (sum, row) => sum + Number(row.receipt && row.receipt.prefixStateReuseCount || 0),
             0
           ),
+          selectedTokenExecutionCount: bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.selectedTokenExecutionCount || 0),
+            0
+          ),
+          scoreCacheHitCount: bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.scoreCacheHitCount || 0),
+            0
+          ),
+          totalExecutionDurationMs: Number(bySlot.reduce(
+            (sum, row) => sum + Number(row.receipt && row.receipt.totalExecutionDurationMs || 0),
+            0
+          ).toFixed(3)),
+          maximumExecutionDurationMs: Number(Math.max(0, ...bySlot.map(
+            (row) => Number(row.receipt && row.receipt.maximumExecutionDurationMs || 0)
+          )).toFixed(3)),
           minimumPrefixTokenCount: bySlot.reduce((minimum, row) => {
             const count = Number(row.receipt && row.receipt.minimumPrefixTokenCount || 0);
             if (count <= 0) return minimum;
@@ -459,6 +486,10 @@
           selectedTokenLogitCount: 0,
           prefixKvReuseCount: 0,
           prefixStateReuseCount: 0,
+          selectedTokenExecutionCount: 0,
+          scoreCacheHitCount: 0,
+          totalExecutionDurationMs: 0,
+          maximumExecutionDurationMs: 0,
           minimumPrefixTokenCount: 0,
           bySlot: [],
           evidenceRows: [],
@@ -511,35 +542,6 @@
           .slice(0, max);
       }
 
-    function slotQueryText(slot = {}) {
-        const queries = (slot.queries || []).map((query) => query && query.text || '').filter(Boolean);
-        const raw = [
-          slot.entryId,
-          ...(slot.relationIds || []),
-          ...queries,
-        ].filter(Boolean).join(' ');
-        const normalized = slotQueryTerms(raw).join(' ');
-        if (slot.slotRole === 'visual') return `visual evidence ${normalized}`;
-        if (slot.slotRole === 'relation') return `relation evidence ${normalized}`;
-        return normalized || String(slot.slotId || slot.entryId || '');
-      }
-
-    function slotQueryTerms(value = '') {
-        const stop = new Set([
-          'actor',
-          'object',
-          'action',
-          'environment',
-          'medium',
-          'relation',
-          'visual',
-          'slot',
-          'required',
-        ]);
-        return uniqueStrings(fallbackFeatureTokens(String(value || '').replace(/\b[a-z]+:/gi, ' '))
-          .filter((term) => !stop.has(term)));
-      }
-
     function slotPrimitiveMatch(slot = {}, primitive = {}, rawScore = 0, config = {}) {
         const candidateText = [
           primitive.id,
@@ -553,7 +555,13 @@
         const lexicalScore = slotLexicalScore(slot, candidateText);
         const modelScore = clamp01(Number(rawScore || 0));
         const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
-        const score = clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
+        const literalSlotMatch = slotCandidateLiteralMatch(slot, {
+          candidateId: primitive.id,
+          label: primitive.label || primitive.role || primitive.id,
+        });
+        const score = literalSlotMatch
+          ? 0.99
+          : clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
         const supportOnly = slot.slotRole !== 'support' && phase3SupportLikePrimitiveId(primitive.id);
         return {
           id: primitive.id,
@@ -572,6 +580,11 @@
           score: Number(score.toFixed(4)),
           modelScore: Number(modelScore.toFixed(4)),
           lexicalScore: Number(lexicalScore.toFixed(4)),
+          literalSlotMatch,
+          slotRolePriority: slotCandidateRolePriority(slot, {
+            candidateId: primitive.id,
+            candidateType: 'primitive',
+          }),
           supportOnly,
           reason: supportOnly ? 'generic support physics cannot satisfy literal scene slot' : 'embedding candidate ranked for typed scene slot',
           retrievalKind: 'slot-retrieval',
@@ -579,7 +592,7 @@
       }
 
     function slotSurfaceCandidate(slot = {}, row = {}) {
-        return {
+        const candidate = {
           ...row,
           id: row.cardId || row.id || '',
           candidateId: row.cardId || row.id || '',
@@ -593,6 +606,8 @@
           reason: 'surface card ranked for typed scene slot',
           retrievalKind: 'slot-retrieval',
         };
+        candidate.slotRolePriority = slotCandidateRolePriority(slot, candidate);
+        return candidate;
       }
 
     function rankSurfaceCardsForSlot(cardIndex, slot = {}, vector = null, config = {}, options = {}) {
@@ -643,31 +658,56 @@
     function slotCandidateLiteralMatch(slot = {}, row = {}) {
         const target = normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, ''));
         if (!target) return false;
-        const tokens = fallbackFeatureTokens([
+        const targetTokens = fallbackFeatureTokens(target);
+        const tokens = new Set(fallbackFeatureTokens(normalizeSpanText([
           row.candidateId,
           row.cardId,
           row.id,
           row.label,
-          row.candidateText,
           ...(row.labels || []),
-        ].filter(Boolean).join(' '));
-        return tokens.includes(target);
+        ].filter(Boolean).join(' '))));
+        return targetTokens.length > 0 && targetTokens.every((token) => tokens.has(token));
       }
 
     function slotUniverseCandidates(slot = {}, universeMatches = {}, max = 10) {
-        return (universeMatches && universeMatches.candidates || []).slice(0, max).map((row) => ({
-          ...row,
-          id: row.id || row.canonicalId || '',
-          candidateId: row.id || row.canonicalId || '',
-          candidateType: 'universe-row',
-          slotId: slot.slotId || '',
-          slotRole: slot.slotRole || '',
-          entryId: slot.entryId || '',
-          source: row.indexName || row.source || 'slot-universe-index',
-          supportOnly: false,
-          reason: 'universe row ranked for typed scene slot',
-          retrievalKind: 'slot-retrieval',
-        }));
+        return (universeMatches && universeMatches.candidates || []).slice(0, max).map((row) => {
+          const candidate = {
+            ...row,
+            id: row.id || row.canonicalId || '',
+            candidateId: row.id || row.canonicalId || '',
+            candidateType: 'universe-row',
+            slotId: slot.slotId || '',
+            slotRole: slot.slotRole || '',
+            entryId: slot.entryId || '',
+            source: row.indexName || row.source || 'slot-universe-index',
+            supportOnly: false,
+            reason: 'universe row ranked for typed scene slot',
+            retrievalKind: 'slot-retrieval',
+          };
+          const modelScore = clamp01(Math.max(
+            Number(row.modelScore || 0),
+            Number(row.semanticScore || 0),
+            Number(row.score || 0)
+          ));
+          const lexicalScore = slotFocusLexicalScore(slot, [
+            candidate.candidateId,
+            candidate.label,
+            candidate.edgeType,
+            candidate.operatorType,
+            ...(candidate.operatorHints || []),
+            ...(candidate.primitiveHints || []),
+          ].filter(Boolean).join(' '));
+          const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
+          candidate.modelScore = Number(modelScore.toFixed(4));
+          candidate.lexicalScore = Number(lexicalScore.toFixed(4));
+          candidate.score = Number(clamp01(
+            modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost
+          ).toFixed(4));
+          candidate.literalSlotMatch = slotCandidateLiteralMatch(slot, candidate);
+          candidate.slotRolePriority = slotCandidateRolePriority(slot, candidate);
+          if (candidate.literalSlotMatch) candidate.score = Math.max(Number(candidate.score || 0), 0.99);
+          return candidate;
+        });
       }
 
     async function rerankSlotCandidates(payload = {}) {
@@ -696,6 +736,27 @@
             },
           };
         }
+        const skipReason = slotRerankSkipReason(payload.slot, rows);
+        if (skipReason) {
+          return {
+            candidates: rows,
+            rerankCall: false,
+            receipt: {
+              schema: 'simulatte.phase3SlotRerankReceipt.v1',
+              rerankerMode: 'local-evidence-ranking',
+              model: config.id,
+              rerankerKind: config.kind,
+              modelReady: true,
+              modelRequired: required,
+              modelStatus: 'skipped',
+              modelBackend: capability.backend,
+              skipReason,
+              candidateInputCount: 0,
+              candidateOutputCount: 0,
+              localCandidateCount: rows.length,
+            },
+          };
+        }
         try {
           const input = buildSlotRerankInput({
             promptText: payload.promptText,
@@ -708,12 +769,21 @@
             stage: 'slot-model-rerank',
             percent: 94.1 + (Number(payload.slotIndex || 0) + 0.5) /
               Math.max(1, Number(payload.slotCount || 1)) * 1.3,
-            message: `Reranking scene slot ${Number(payload.slotIndex || 0) + 1}/` +
-              `${Number(payload.slotCount || 1)} candidate ${row.completed || 0}/${row.total || 0}`,
+            message: `${row.scoreCacheHit === true ? 'Reusing score for' : 'Reranking'} scene slot ` +
+              `${Number(payload.slotIndex || 0) + 1}/${Number(payload.slotCount || 1)} candidate ` +
+              `${row.completed || 0}/${row.total || 0}`,
             traceId: payload.traceId || '',
             rankId: payload.rankId || 0,
             slotId: payload.slot && payload.slot.slotId || '',
+            candidateId: row.candidateId || '',
+            completed: row.completed || 0,
+            total: row.total || 0,
             candidateCount: row.total || 0,
+            scoreCacheHit: row.scoreCacheHit === true,
+            promptTokenCount: row.promptTokenCount || 0,
+            prefixTokenCount: row.prefixTokenCount || 0,
+            prefixStateReused: row.prefixStateReused === true,
+            executionDurationMs: row.executionDurationMs || 0,
           });
           const result = await capability.rerank(input);
           const modelRows = normalizeRerankerRows(result);
@@ -757,14 +827,15 @@
 
     function buildSlotRerankInput({ promptText, slot, candidates, runtime }) {
         const config = rerankerConfig(runtime);
-        const selectedCandidates = (candidates || []).slice(0, config.maxSlotCandidatesPerCall);
+        const selectedCandidates = (candidates || []).slice(0, config.maxSlotCandidatesPerCall)
+          .filter((candidate) => candidate.supportOnly !== true);
         return {
           schema: 'simulatte.intentSlotRerankInput.v1',
           phase: 3,
           phaseId: 'retrieval',
           stage: 'typed-slot-retrieval',
           reranker: rerankerId(runtime),
-          prompt: String(promptText || ''),
+          prompt: slotRerankQuery(promptText, slot),
           slot: {
             slotId: slot && slot.slotId || '',
             slotRole: slot && slot.slotRole || '',
@@ -790,45 +861,25 @@
         };
       }
 
+    function slotRerankQuery(promptText = '', slot = {}) {
+        const role = String(slot && slot.slotRole || 'scene').trim();
+        const target = slotQueryText(slot);
+        return [
+          `Scene prompt: ${String(promptText || '').trim()}`,
+          `Required ${role} evidence: ${target}`,
+        ].filter((line) => !line.endsWith(': ')).join('\n');
+      }
+
+    function slotRerankSkipReason(slot = {}, candidates = []) {
+        if (slot && slot.required === false) return 'optional-slot-local-evidence';
+        if ((candidates || []).some((candidate) => candidate.literalSlotMatch === true)) {
+          return 'literal-slot-identity';
+        }
+        return '';
+      }
+
     function applySlotModelRerank(localRows, modelRows, evaluatedRows = modelRows) {
-        const byId = new Map((localRows || []).map((row) => [row.candidateId || row.primitiveId || row.id, { ...row }]));
-        const modelIds = new Set();
-        const evaluatedIds = new Set((evaluatedRows || []).map((row) => String(
-          row && (row.primitiveId || row.candidateId || row.id) || ''
-        )).filter(Boolean));
-        for (const modelRow of modelRows || []) {
-          const existing = byId.get(modelRow.primitiveId);
-          if (!existing) continue;
-          modelIds.add(modelRow.primitiveId);
-          const modelScore = clamp01(Number(modelRow.score || 0));
-          existing.modelRerankScore = Number(modelScore.toFixed(4));
-          existing.modelRerankRank = Number(modelRow.rank || 0);
-          existing.modelRerankReason = modelRow.reason || '';
-          existing.modelRerankEvaluated = true;
-          existing.score = Number(Math.min(
-            1,
-            existing.score * SLOT_RERANK_MODEL_BLEND.localWeight + modelScore * SLOT_RERANK_MODEL_BLEND.modelWeight
-          ).toFixed(4));
-          byId.set(modelRow.primitiveId, existing);
-        }
-        if (evaluatedIds.size) {
-          for (const [candidateId, existing] of byId) {
-            if (modelIds.has(candidateId)) continue;
-            existing.modelRerankScore = 0;
-            existing.modelRerankRank = Number.MAX_SAFE_INTEGER;
-            existing.modelRerankEvaluated = evaluatedIds.has(candidateId);
-            if (existing.modelRerankEvaluated) {
-              existing.modelRerankReason = 'evaluated but not returned by reranker';
-              existing.score = Number(clamp01(
-                Number(existing.score || 0) * SLOT_RERANK_MODEL_BLEND.localWeight
-              ).toFixed(4));
-            } else {
-              existing.modelRerankReason = 'outside model top-k; local score retained';
-            }
-            byId.set(candidateId, existing);
-          }
-        }
-        return Array.from(byId.values()).sort(slotCandidateSort);
+        return applyRankBandRerank(localRows, modelRows, evaluatedRows, slotCandidateSort);
       }
 
     function uniqueSlotCandidates(rows = []) {
@@ -843,26 +894,30 @@
 
     function slotCandidateSort(a = {}, b = {}) {
         return (
+          Number(a.supportOnly === true) - Number(b.supportOnly === true) ||
+          Number(b.literalSlotMatch === true) - Number(a.literalSlotMatch === true) ||
+          Number(a.slotRolePriority || 0) - Number(b.slotRolePriority || 0) ||
           Number(b.score || 0) - Number(a.score || 0) ||
+          Number(b.modelRerankEvaluated === true) - Number(a.modelRerankEvaluated === true) ||
+          Number(a.modelRerankRank ?? Number.MAX_SAFE_INTEGER) - Number(b.modelRerankRank ?? Number.MAX_SAFE_INTEGER) ||
           String(a.candidateId || a.primitiveId || a.id || '').localeCompare(String(b.candidateId || b.primitiveId || b.id || ''))
         );
       }
 
     function slotLexicalScore(slot = {}, text = '') {
-        const haystack = normalizeSpanText(text);
-        const terms = fallbackFeatureTokens([
+        const haystack = new Set(fallbackFeatureTokens(text));
+        const terms = slotQueryTerms([
           slot.entryId,
-          slot.slotRole,
           ...(slot.relationIds || []),
           ...((slot.queries || []).map((query) => query && query.text || '')),
         ].filter(Boolean).join(' '));
-        if (!terms.length || !haystack) return 0;
-        const matched = terms.filter((term) => haystack.includes(term) || haystack.includes(term.replace(/s$/, '')));
+        if (!terms.length || !haystack.size) return 0;
+        const matched = terms.filter((term) => haystack.has(term));
         return clamp01(matched.length / Math.max(1, Math.min(4, terms.length)));
       }
 
     function phase3SupportLikePrimitiveId(id = '') {
-        return /\b(biomass|collision|elasticity|friction|gel|membrane|soft-body|diffusion|growth-decay|kernel|gradient|constraint)\b/.test(String(id || ''));
+        return /\b(biomass|collision|elasticity|friction|gel|membrane|soft-body|diffusion|growth-decay|kernel|gradient|constraint|population-field|particle-set|state-vector|adaptive-tree|adjacency-matrix|sampling|relation-table)\b/.test(String(id || ''));
       }
 
     Object.assign(scope, {
@@ -881,8 +936,6 @@
       slotRetrievalConfig,
       slotRetrievalReceiptConfig,
       usefulQueryPlanSlots,
-      slotQueryText,
-      slotQueryTerms,
       slotPrimitiveMatch,
       slotSurfaceCandidate,
       rankSurfaceCardsForSlot,
@@ -890,6 +943,8 @@
       slotUniverseCandidates,
       rerankSlotCandidates,
       buildSlotRerankInput,
+      slotRerankQuery,
+      slotRerankSkipReason,
       applySlotModelRerank,
       uniqueSlotCandidates,
       slotCandidateSort,

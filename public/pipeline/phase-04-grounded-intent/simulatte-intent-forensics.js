@@ -37,7 +37,9 @@
     validateIntentBrief = () => ({ valid: true, errors: [], warnings: [] }),
     compactBriefSummary = (brief) => ({ schema: brief.schema, prompt: brief.prompt }),
     uniqueStrings = unique,
+    uniqueById,
   } = schema;
+  if (typeof uniqueById !== 'function') throw new Error('Intent brief uniqueById contract unavailable');
   const { draftStructuredIntent } = structured;
   const { buildCausalPhysicsGraph } = causal;
   const { buildAssumptionLedger } = assumptions;
@@ -609,16 +611,6 @@
     const seen = new Set();
     return (rows || []).filter((row) => {
       const key = `${row.id}:${row.source}`.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }
-
-  function uniqueById(rows) {
-    const seen = new Set();
-    return (rows || []).filter((row) => {
-      const key = row.id || JSON.stringify(row);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;

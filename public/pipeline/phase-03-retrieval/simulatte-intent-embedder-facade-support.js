@@ -23,10 +23,6 @@
         { id: 'network-control', text: 'queue network detector readout flow prompt runtime probe' },
       ]);
 
-    const RERANK_MODEL_BLEND = Object.freeze({ localWeight: 0.35, modelWeight: 0.65 });
-
-    const SLOT_RERANK_MODEL_BLEND = Object.freeze({ localWeight: 0.3, modelWeight: 0.7 });
-
     const HEURISTIC_FUSION_WEIGHTS = Object.freeze({
         modelScore: 0.58,
         ragScore: 0.16,
@@ -43,8 +39,6 @@
       RERANKER_LOAD_PROGRESS,
       TRACE_URL_FLAGS,
       PROMPT_RUNTIME_PROBES,
-      RERANK_MODEL_BLEND,
-      SLOT_RERANK_MODEL_BLEND,
       HEURISTIC_FUSION_WEIGHTS,
     });
   }

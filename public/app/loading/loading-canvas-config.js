@@ -64,40 +64,6 @@
 
     const GHOST_ALPHA = 0.28;
 
-    const RAIL_HEIGHT_PX = 8;
-
-    const RAIL_MARGIN_PX = 28;
-
-    const RAIL_MIN_WIDTH_PX = 190;
-
-    const RAIL_MAX_WIDTH_PORTION = 0.58;
-
-    const RAIL_TILE_GAP_PX = 3;
-
-    const RAIL_MIN_TILE_PX = 5;
-
-    const RAIL_SWEEP_CYCLE_MS = 5000;
-
-    const RAIL_SWEEP_TRAIL = 0.28;
-
-    const RAIL_SWEEP_DOMAIN = 1.8;
-
-    const RAIL_SWEEP_OFFSET = -0.4;
-
-    const RAIL_SWEEP_B_OFFSET = 0.1;
-
-    const RAIL_SWEEP_C_OFFSET = 0.5;
-
-    const RAIL_TRAIL_DECAY_EXP = 2.6;
-
-    const RAIL_TRAIL_NOISE = 0.3;
-
-    const RAIL_FILLED_GHOST_ALPHA = 0.18;
-
-    const RAIL_UNFILLED_GHOST_ALPHA = 0.035;
-
-    const RAIL_INDETERMINATE_GHOST_ALPHA = 0.06;
-
     Object.assign(scope, {
       MIN_SNAKES,
       MAX_SNAKES,
@@ -130,23 +96,6 @@
       SEGMENT_STAGGER_MS,
       MIN_TAIL_ALPHA,
       GHOST_ALPHA,
-      RAIL_HEIGHT_PX,
-      RAIL_MARGIN_PX,
-      RAIL_MIN_WIDTH_PX,
-      RAIL_MAX_WIDTH_PORTION,
-      RAIL_TILE_GAP_PX,
-      RAIL_MIN_TILE_PX,
-      RAIL_SWEEP_CYCLE_MS,
-      RAIL_SWEEP_TRAIL,
-      RAIL_SWEEP_DOMAIN,
-      RAIL_SWEEP_OFFSET,
-      RAIL_SWEEP_B_OFFSET,
-      RAIL_SWEEP_C_OFFSET,
-      RAIL_TRAIL_DECAY_EXP,
-      RAIL_TRAIL_NOISE,
-      RAIL_FILLED_GHOST_ALPHA,
-      RAIL_UNFILLED_GHOST_ALPHA,
-      RAIL_INDETERMINATE_GHOST_ALPHA,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

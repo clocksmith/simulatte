@@ -748,7 +748,10 @@
           outputSchema: raw.outputSchema || 'simulatte.intentRerank.v1',
           maxCandidatesPerCall: Math.max(1, Number(raw.maxCandidatesPerCall || 1)),
           maxSlotCandidatesPerCall: Math.max(1, Number(raw.maxSlotCandidatesPerCall || 1)),
+          maxCandidateTermsPerDocument: Math.max(1, Number(raw.maxCandidateTermsPerDocument || 1)),
+          scoreCacheMaxEntries: Math.max(1, Number(raw.scoreCacheMaxEntries || 1)),
           fallbackMode: raw.fallbackMode || 'heuristic-fusion',
+          execution: raw.execution && typeof raw.execution === 'object' ? cloneJsonValue(raw.execution) : null,
           candidateScope: Array.isArray(raw.candidateScope) ? raw.candidateScope.slice() : [],
           model: raw.model && typeof raw.model === 'object' ? cloneJsonValue(raw.model) : null,
           runtimeConfig: raw.runtimeConfig && typeof raw.runtimeConfig === 'object' ? cloneJsonValue(raw.runtimeConfig) : null,
@@ -789,6 +792,77 @@
           backend: provider && provider.backend || backend,
           rerank,
         };
+      }
+
+    function slotQueryText(slot = {}, promptText = '') {
+        const queries = (slot.queries || []).map((query) => query && query.text || '').filter(Boolean);
+        const raw = [slot.entryId, ...(slot.relationIds || []), ...queries].filter(Boolean).join(' ');
+        const normalized = slotQueryTerms(raw).join(' ');
+        const promptTerms = slotQueryTerms(promptText).join(' ');
+        if (slot.slotRole === 'visual') return `visual evidence ${normalized} ${promptTerms}`.trim();
+        if (slot.slotRole === 'relation') return `relation evidence ${normalized} ${promptTerms}`.trim();
+        return normalized || String(slot.slotId || slot.entryId || '');
+      }
+
+    function slotQueryTerms(value = '') {
+        const stop = new Set([
+          'actor', 'object', 'action', 'environment', 'medium',
+          'relation', 'visual', 'slot', 'required',
+        ]);
+        return uniqueStrings(fallbackFeatureTokens(String(value || '').replace(/\b[a-z]+:/gi, ' '))
+          .filter((term) => !stop.has(term)));
+      }
+
+    function slotCandidateBudget(slot = {}, key = '', maximum = 0) {
+        const configured = Number(slot && slot.budgets && slot.budgets[key]);
+        const limit = Math.max(0, Number(maximum || 0));
+        return Number.isFinite(configured) ? Math.min(limit, Math.max(0, configured)) : limit;
+      }
+
+    function slotAllowsCandidateType(slot = {}, type = '') {
+        const allowed = Array.isArray(slot.allowedCandidateTypes) ? slot.allowedCandidateTypes : [];
+        return !allowed.length || allowed.includes(type);
+      }
+
+    function slotFocusTerms(slot = {}) {
+        const lexicalQueries = (slot.queries || []).filter((query) => query && query.kind === 'lexical')
+          .flatMap((query) => fallbackFeatureTokens(query.text || ''));
+        if (lexicalQueries.length) return uniqueStrings(lexicalQueries);
+        if (slot.slotRole === 'relation') {
+          const structured = (slot.queries || []).flatMap((query) => {
+            const terms = [];
+            const text = String(query && query.text || '').toLowerCase();
+            const pattern = /\b(?:action|predicate):([a-z0-9-]+)/g;
+            let match;
+            while ((match = pattern.exec(text))) terms.push(match[1]);
+            return terms;
+          });
+          if (structured.length) return uniqueStrings(structured.flatMap(fallbackFeatureTokens));
+          const parts = String(slot.entryId || '').split(':').filter(Boolean);
+          if (parts.length >= 3) return fallbackFeatureTokens(parts[2]);
+        }
+        return fallbackFeatureTokens(String(slot.entryId || '').replace(/^[a-z]+:/, ' '));
+      }
+
+    function slotFocusLexicalScore(slot = {}, text = '') {
+        const terms = slotFocusTerms(slot);
+        const tokens = new Set(fallbackFeatureTokens(text));
+        if (!terms.length || !tokens.size) return 0;
+        return clamp01(terms.filter((term) => tokens.has(term)).length / terms.length);
+      }
+
+    function slotCandidateRolePriority(slot = {}, row = {}) {
+        const id = String(row.candidateId || row.primitiveId || row.id || '');
+        const indexName = String(row.indexName || '').toLowerCase();
+        const type = String(row.candidateType || '');
+        if (slot.slotRole === 'relation') {
+          if (indexName === 'relations' || id.startsWith('relation.')) return 0;
+          if (indexName === 'operators' || id.startsWith('operator.')) return 1;
+          if (type === 'primitive' || type === 'surface-card') return 2;
+          return 3;
+        }
+        if (slot.slotRole === 'visual') return type === 'surface-card' ? 0 : 2;
+        return 0;
       }
 
     Object.assign(scope, {
@@ -838,6 +912,13 @@
       rerankerId,
       withEmbeddingProvenance,
       normalizeRerankProvider,
+      slotQueryText,
+      slotQueryTerms,
+      slotCandidateBudget,
+      slotAllowsCandidateType,
+      slotFocusTerms,
+      slotFocusLexicalScore,
+      slotCandidateRolePriority,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

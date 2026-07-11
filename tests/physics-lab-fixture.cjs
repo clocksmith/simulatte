@@ -152,6 +152,14 @@ function testDopplerStorageModule() {
   };
 }
 
+function testDopplerDeviceModule() {
+  return {
+    async initDevice() {
+      return { label: 'shared-test-device' };
+    },
+  };
+}
+
 function manifestFacade(rawManifest, modelRuntimeLock) {
   const facade = {
     ...rawManifest,
@@ -324,6 +332,7 @@ module.exports = {
   probeAwareVector,
   probeAwareEmbedProvider,
   testRerankProvider,
+  testDopplerDeviceModule,
   testDopplerStorageModule,
   manifestFacade,
   withIntentArtifactFetch,

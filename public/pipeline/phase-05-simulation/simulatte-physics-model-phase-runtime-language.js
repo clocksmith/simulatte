@@ -8,16 +8,6 @@
         return PHASE_OUTPUT_SCHEMAS[Number(phase)] || `simulatte.phase${Number(phase) || 0}.output.v1`;
       }
 
-    function phaseContract(phase, inputSchema, artifactKeys, receiptIds, forbiddenUpstreamReads) {
-        return Object.freeze({
-          phase,
-          inputSchema,
-          artifactKeys: Object.freeze(artifactKeys),
-          receiptIds: Object.freeze(receiptIds),
-          forbiddenUpstreamReads: Object.freeze(forbiddenUpstreamReads),
-        });
-      }
-
     function createPhaseEnvelope({ phase, inputSchema, runtimeReceiptId, artifact = {}, receipts = [] }) {
         const phaseNumber = Number(phase);
         if (!Number.isInteger(phaseNumber) || phaseNumber < 1 || phaseNumber > 8) {
@@ -810,7 +800,6 @@
 
     Object.assign(scope, {
       phaseOutputSchema,
-      phaseContract,
       createPhaseEnvelope,
       assertPhaseEnvelope,
       forbiddenFieldPresent,

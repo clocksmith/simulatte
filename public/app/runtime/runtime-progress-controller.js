@@ -25,12 +25,18 @@
         let state = initialState(options.initialState || {});
         let pending = false;
         let heartbeatTimer = 0;
+        let heartbeatDueAtMs = 0;
         let lastEvent = null;
         let activeLoaderReceiptKey = '';
         let activeLoaderReceipt = null;
+        let runStartedAtMs = 0;
+        let lastProgressLogAtMs = 0;
+        let progressLogSequence = 0;
         const observers = new Set();
         const events = [];
         const loaderReceipts = [];
+        const progressLogs = [];
+        const performanceLogs = [];
         const setTimer = view && typeof view.setTimeout === 'function'
           ? view.setTimeout.bind(view)
           : null;
@@ -47,15 +53,67 @@
           raf(flush);
         }
 
+        function controllerClockMs() {
+          return view && view.performance && typeof view.performance.now === 'function'
+            ? Number(view.performance.now())
+            : Date.now();
+        }
+
+        function recordControllerPerformance(kind, startedAtMs, details = {}) {
+          const durationMs = Math.max(0, controllerClockMs() - Number(startedAtMs || 0));
+          const receipt = {
+            schema: 'simulatte.runtimeProgressPerformance.v1',
+            timestamp: new Date().toISOString(),
+            kind,
+            durationMs: Number(durationMs.toFixed(3)),
+            runId: String(state.runId || ''),
+            stage: String(state.stage || ''),
+            ...details,
+          };
+          performanceLogs.push(receipt);
+          while (performanceLogs.length > MAX_EVENT_HISTORY) performanceLogs.shift();
+          if (view) {
+            view.__simulatteRuntimePerformanceLogs = performanceLogs;
+            if (durationMs >= 16 && view.console && typeof view.console.warn === 'function') {
+              view.console.warn(`[Simulatte][ProgressPerformance] ${kind} ${durationMs.toFixed(1)}ms`, receipt);
+            }
+          }
+          return receipt;
+        }
+
         function flush() {
+          const startedAtMs = controllerClockMs();
           pending = false;
           observers.forEach((observer) => observer(state, lastEvent));
+          recordControllerPerformance('observer-flush', startedAtMs, {
+            observerCount: observers.size,
+          });
+        }
+
+        function recordProgressTransition(previous, next, event) {
+          const timestampMs = eventTimestampMs(event, next && next.lastEventAt) || nowMs(view);
+          const runChanged = String(previous && previous.runId || '') !== String(next && next.runId || '');
+          if (!runStartedAtMs || runChanged || (next.state === 'active' && previous.state !== 'active')) {
+            runStartedAtMs = timestampMs;
+            lastProgressLogAtMs = 0;
+          }
+          const receipt = logRuntimeProgress(view, previous, next, event, {
+            sequence: progressLogSequence + 1,
+            runStartedAtMs,
+            lastProgressLogAtMs,
+          });
+          if (!receipt) return;
+          progressLogSequence += 1;
+          lastProgressLogAtMs = timestampMs;
+          progressLogs.push(receipt);
+          while (progressLogs.length > MAX_PROGRESS_LOGS) progressLogs.shift();
         }
 
         function clearHeartbeat() {
           if (!heartbeatTimer || !clearTimer) return;
           clearTimer(heartbeatTimer);
           heartbeatTimer = 0;
+          heartbeatDueAtMs = 0;
         }
 
         function scheduleHeartbeat() {
@@ -65,12 +123,19 @@
             return;
           }
           if (heartbeatTimer) return;
+          heartbeatDueAtMs = controllerClockMs() + HEARTBEAT_MS;
           heartbeatTimer = setTimer(() => {
+            const startedAtMs = controllerClockMs();
+            const schedulerLagMs = Math.max(0, startedAtMs - heartbeatDueAtMs);
             heartbeatTimer = 0;
+            heartbeatDueAtMs = 0;
             if (!(state.state === 'active' && state.blocking !== false)) return;
             state = heartbeatRuntimeProgressState(state, view);
             schedule();
             scheduleHeartbeat();
+            recordControllerPerformance('heartbeat-handler', startedAtMs, {
+              schedulerLagMs: Number(schedulerLagMs.toFixed(3)),
+            });
           }, HEARTBEAT_MS);
         }
 
@@ -90,7 +155,7 @@
               loaderReceipts: loaderReceipts.slice(-12).map((receipt) => ({ ...receipt })),
             };
           }
-          logRuntimeProgress(view, event);
+          recordProgressTransition(previous, state, event);
           schedule();
           scheduleHeartbeat();
           return state;
@@ -118,6 +183,12 @@
           },
           receipts() {
             return loaderReceipts.map((receipt) => ({ ...receipt }));
+          },
+          logs() {
+            return progressLogs.map((receipt) => ({ ...receipt }));
+          },
+          performanceLogs() {
+            return performanceLogs.map((receipt) => ({ ...receipt }));
           },
           isBusy() {
             return state.state === 'active' && state.blocking !== false;

@@ -64,37 +64,6 @@
         return '';
       }
 
-    function stageForOperator(type) {
-        if (type === 'heat_source') return 'sources';
-        if ([
-          'advection',
-          'diffusion',
-          'wave_field',
-          'reaction_diffusion',
-          'growth_decay',
-          'network_flow',
-          'fluid_locomotion',
-          'wake_generation',
-        ].includes(type)) {
-          return 'fields';
-        }
-        if ([
-          'heat_transfer',
-          'rotational_torque',
-          'phase_transition',
-          'pressure_flow_lite',
-          'buoyancy',
-          'drag',
-          'body_water_contact',
-          'partial_submersion',
-        ].includes(type)) {
-          return 'couplings';
-        }
-        if (['rigid_collision', 'fracture_threshold'].includes(type)) return 'collisions';
-        if (type === 'derive_readout') return 'derivedReadouts';
-        return 'events';
-      }
-
     function boundsForField(name) {
         if (name === 'temperature') return [0, 2];
         if (name === 'angularVelocity') return [-24, 24];
@@ -208,7 +177,6 @@
       materialViscosity,
       materialDensity,
       materialFromDomains,
-      stageForOperator,
       boundsForField,
       anchorValue,
       hasTag,

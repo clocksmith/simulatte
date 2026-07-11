@@ -1,8 +1,12 @@
 (function attachSimulatteConstraintSolver(root, factory) {
-  const api = factory();
+  const values = typeof module === 'object' && module.exports
+    ? require('./simulatte-solver-values.js')
+    : root.SimulatteSolverValues;
+  const api = factory(values);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteConstraintSolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createConstraintSolverApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createConstraintSolverApi(values) {
+  const { firstOutput, vector, finite } = values;
   return {
     id: 'springs-constraints',
     operatorTypes: ['spring_constraint'],
@@ -23,17 +27,4 @@
     };
   }
 
-  function firstOutput(step, prefix) {
-    return ((step.outputs || step.writes || []).find((id) => id.startsWith(`${prefix}:`))) || '';
-  }
-
-  function vector(value, fallback) {
-    if (value && typeof value === 'object') return { x: finite(value.x, fallback.x), y: finite(value.y, fallback.y) };
-    return { ...fallback };
-  }
-
-  function finite(value, fallback) {
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  }
 });

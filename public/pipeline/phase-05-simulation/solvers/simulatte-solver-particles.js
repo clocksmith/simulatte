@@ -1,8 +1,12 @@
 (function attachSimulatteParticleSolver(root, factory) {
-  const api = factory();
+  const values = typeof module === 'object' && module.exports
+    ? require('./simulatte-solver-values.js')
+    : root.SimulatteSolverValues;
+  const api = factory(values);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteParticleSolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createParticleSolverApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createParticleSolverApi(values) {
+  const { scalar, clamp } = values;
   return {
     id: 'particles',
     operatorTypes: ['advection', 'reaction_diffusion'],
@@ -20,12 +24,4 @@
     }
   }
 
-  function scalar(value, fallback) {
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
 });

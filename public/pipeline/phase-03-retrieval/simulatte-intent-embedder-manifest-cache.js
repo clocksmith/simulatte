@@ -17,6 +17,7 @@
           this.rerankProvider = options.rerankProvider || options.rerankerProvider || null;
           this.dopplerModelHandle = options.dopplerModelHandle || null;
           this.dopplerModule = options.dopplerModule || null;
+          this.dopplerDeviceModule = options.dopplerDeviceModule || null;
           this.dopplerStorageModule = options.dopplerStorageModule || null;
           this.spanLevelEmbedding = options.spanLevelEmbedding;
           this.spanEmbeddingCache = options.spanEmbeddingCache || new Map();
@@ -37,6 +38,7 @@
           this.providerRequestCount = 0;
           this.rankSerial = 0;
           this.gpuPromise = null;
+          this.dopplerDevicePromise = null;
         }
 
         async loadModel(options = {}) {
@@ -586,6 +588,25 @@
           );
         }
 
+        async ensureDopplerDevice(runtime, options = {}) {
+          if (!this.dopplerDevicePromise) {
+            const runtimeConfig = runtime.manifest.runtime || {};
+            this.dopplerDevicePromise = resolveDopplerDeviceApi({
+              dopplerDeviceModule: options.dopplerDeviceModule || this.dopplerDeviceModule,
+              deviceModuleUrl: runtimeConfig.deviceModuleUrl,
+            }).then((deviceApi) => {
+              if (!deviceApi || typeof deviceApi.initDevice !== 'function') {
+                throw new Error('pinned Doppler device module does not export initDevice()');
+              }
+              return deviceApi.initDevice();
+            }).catch((error) => {
+              this.dopplerDevicePromise = null;
+              throw error;
+            });
+          }
+          return this.dopplerDevicePromise;
+        }
+
         async ensureDopplerEmbeddingHandle(runtime, options = {}, reloadOptions = {}) {
           if (reloadOptions.force !== true && this.dopplerEmbedHandle) {
             return this.dopplerEmbedHandle;
@@ -637,14 +658,17 @@
           if (!runtimeConfig) {
             throw new Error('model-backed intent manifest missing Doppler runtimeConfig');
           }
-          const cachedSource = await prepareDopplerCachedModelSource(runtime, model, {
-            dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
-            progress,
-            trace,
-            traceId: this.traceId,
-            progressRange: EMBEDDING_CACHE_PROGRESS,
-            resourceKind: 'embedding-model',
-          });
+          const [cachedSource] = await Promise.all([
+            prepareDopplerCachedModelSource(runtime, model, {
+              dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
+              progress,
+              trace,
+              traceId: this.traceId,
+              progressRange: EMBEDDING_CACHE_PROGRESS,
+              resourceKind: 'embedding-model',
+            }),
+            this.ensureDopplerDevice(runtime, options),
+          ]);
           this.embeddingCacheReceipt = cachedSource.receipt;
           const dopplerStarted = nowMs();
           emitRuntimeProgress(progress, trace, {
@@ -783,14 +807,17 @@
           }
           const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error(`intent reranker ${config.id} requires model.defaultModelBaseUrl`);
-          const cachedSource = await prepareDopplerCachedModelSource(runtime, model, {
-            dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
-            progress,
-            trace,
-            traceId: this.traceId,
-            progressRange: RERANKER_CACHE_PROGRESS,
-            resourceKind: 'reranker-model',
-          });
+          const [cachedSource] = await Promise.all([
+            prepareDopplerCachedModelSource(runtime, model, {
+              dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
+              progress,
+              trace,
+              traceId: this.traceId,
+              progressRange: RERANKER_CACHE_PROGRESS,
+              resourceKind: 'reranker-model',
+            }),
+            this.ensureDopplerDevice(runtime, options),
+          ]);
           this.rerankerCacheReceipt = cachedSource.receipt;
           const started = nowMs();
           emitRuntimeProgress(progress, trace, {
@@ -897,6 +924,9 @@
         }
 
         async gpuDevice() {
+          if (this.dopplerDevicePromise) {
+            return this.dopplerDevicePromise;
+          }
           if (typeof navigator === 'undefined' || !navigator.gpu) return null;
           if (!this.gpuPromise) {
             this.gpuPromise = navigator.gpu

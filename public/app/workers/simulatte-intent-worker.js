@@ -1,39 +1,16 @@
 (function attachSimulatteIntentWorker(root) {
-  const SCRIPT_ORDER = Object.freeze([
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-constants.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-primitive-data.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-materials.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-graph-data.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-examples.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog-graph-helpers.js',
-    '../../pipeline/phase-05-simulation/simulatte-physics-catalog.js',
-    '../../pipeline/phase-03-retrieval/simulatte-semantic-rag-dependencies.js',
-    '../../pipeline/phase-03-retrieval/simulatte-semantic-rag-constants.js',
-    '../../pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js',
-    '../../pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js',
-    '../../pipeline/phase-03-retrieval/simulatte-semantic-rag-grounding-cards.js',
-    '../../pipeline/phase-03-retrieval/simulatte-semantic-rag-retrieval.js',
-    '../../pipeline/phase-03-retrieval/simulatte-semantic-rag.js',
-    '../../pipeline/phase-01-runtime/simulatte-doppler-intent.js',
-    '../../pipeline/phase-02-language/simulatte-language-evidence.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-constants.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-model-lock.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-vectors.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder-facade-support.js',
-    '../../pipeline/phase-03-retrieval/simulatte-intent-embedder.js',
-  ]);
   const WORKER_SEARCH = root && root.location && root.location.search || '';
+  let manifestLoadError = null;
+  try {
+    if (typeof importScripts !== 'function') throw new Error('Worker importScripts unavailable');
+    importScripts(versionedScriptPath('../runtime-script-manifest.js'));
+  } catch (error) {
+    manifestLoadError = error;
+  }
+  const runtimeManifest = root.SimulatteRuntimeScriptManifest;
+  const SCRIPT_ORDER = Object.freeze(runtimeManifest
+    ? runtimeManifest.intentWorker.map((src) => `../../${src}`)
+    : []);
 
   let embedder = null;
   let embedderConfigKey = '';
@@ -97,6 +74,8 @@
       throw loadError;
     }
     try {
+      if (manifestLoadError) throw manifestLoadError;
+      if (!SCRIPT_ORDER.length) throw new Error('Intent worker script manifest unavailable');
       importScripts(...versionedScriptOrder());
       if (!root.SimulatteIntentEmbedder || typeof root.SimulatteIntentEmbedder.create !== 'function') {
         throw new Error('SimulatteIntentEmbedder unavailable in intent worker');
@@ -157,9 +136,13 @@
   }
 
   function versionedScriptOrder() {
-    if (!WORKER_SEARCH || WORKER_SEARCH === '?') return SCRIPT_ORDER;
+    return SCRIPT_ORDER.map((script) => versionedScriptPath(script));
+  }
+
+  function versionedScriptPath(script) {
+    if (!WORKER_SEARCH || WORKER_SEARCH === '?') return script;
     const suffix = WORKER_SEARCH.startsWith('?') ? WORKER_SEARCH : `?${WORKER_SEARCH}`;
-    return SCRIPT_ORDER.map((script) => `${script}${suffix}`);
+    return `${script}${suffix}`;
   }
 
   async function handleLoad(data = {}) {

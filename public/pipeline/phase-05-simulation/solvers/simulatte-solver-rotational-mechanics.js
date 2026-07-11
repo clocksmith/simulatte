@@ -1,10 +1,12 @@
 (function attachSimulatteRotationalMechanicsSolver(root, factory) {
-  const api = factory();
+  const values = typeof module === 'object' && module.exports
+    ? require('./simulatte-solver-values.js')
+    : root.SimulatteSolverValues;
+  const api = factory(values);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRotationalMechanicsSolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRotationalMechanicsSolverApi() {
-  const TAU = Math.PI * 2;
-
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRotationalMechanicsSolverApi(values) {
+  const { firstInput, firstOutput, vector, scalar, finite, clamp, wrapAngle } = values;
   return {
     id: 'rotational-mechanics',
     operatorTypes: ['rotational_torque'],
@@ -33,38 +35,4 @@
     if (torqueId) channels[torqueId] = torque;
   }
 
-  function firstInput(step, prefix) {
-    return firstMatching(step.inputs || step.reads || [], prefix);
-  }
-
-  function firstOutput(step, prefix) {
-    return firstMatching(step.outputs || step.writes || [], prefix);
-  }
-
-  function firstMatching(values, prefix) {
-    return (values || []).find((id) => id.startsWith(`${prefix}:`)) || '';
-  }
-
-  function vector(value, fallback) {
-    if (value && typeof value === 'object') return { x: finite(value.x, fallback.x), y: finite(value.y, fallback.y) };
-    return { ...fallback };
-  }
-
-  function scalar(value, fallback) {
-    return finite(value, fallback);
-  }
-
-  function finite(value, fallback) {
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function wrapAngle(angle) {
-    const wrapped = angle % TAU;
-    return wrapped < 0 ? wrapped + TAU : wrapped;
-  }
 });

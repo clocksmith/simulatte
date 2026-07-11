@@ -55,6 +55,12 @@
   const languageLexicon = typeof module === 'object' && module.exports
       ? require('../../data/simulatte-language-lexicon.js')
       : root.SimulatteLanguageLexicon;
+  const phaseContracts = typeof module === 'object' && module.exports
+      ? require('../simulatte-phase-contracts.js')
+      : root.SimulattePhaseContracts;
+  const renderProof = typeof module === 'object' && module.exports
+      ? require('../phase-07-render/simulatte-render-proof.js')
+      : root.SimulatteRenderProof;
   if (!catalog) {
       markMissingDependency('SimulattePhysicsModel', 'SimulattePhysicsCatalog');
       scope.missingDependency = true; return;
@@ -76,5 +82,7 @@
   scope.activationModule = activationModule;
   scope.groundedModule = groundedModule;
   scope.languageLexicon = languageLexicon;
+  scope.phaseContracts = phaseContracts;
+  Object.assign(scope, renderProof || {});
   scope.initialized = true;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

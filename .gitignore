@@ -9,6 +9,7 @@ artifacts/simulatte-pipeline-audit/runs/*/
 .env.*
 !.env.example
 firebase-debug.log
+.firebase/
 node_modules/
 artifacts/model-cache-profile/
 artifacts/simulatte-train/*.log

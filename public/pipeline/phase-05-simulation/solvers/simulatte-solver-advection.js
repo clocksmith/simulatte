@@ -1,8 +1,12 @@
 (function attachSimulatteAdvectionSolver(root, factory) {
-  const api = factory();
+  const values = typeof module === 'object' && module.exports
+    ? require('./simulatte-solver-values.js')
+    : root.SimulatteSolverValues;
+  const api = factory(values);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAdvectionSolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAdvectionSolverApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAdvectionSolverApi(values) {
+  const { firstInput, firstOutput, vector, scalar, finite, clamp } = values;
   return {
     id: 'advection',
     operatorTypes: ['advection'],
@@ -27,33 +31,4 @@
     if (pressureId) channels[pressureId] = clamp(Math.hypot(flow.x, flow.y) * (1 + viscosity), 0, 2);
   }
 
-  function firstInput(step, prefix) {
-    return firstMatching(step.inputs || step.reads || [], prefix);
-  }
-
-  function firstOutput(step, prefix) {
-    return firstMatching(step.outputs || step.writes || [], prefix);
-  }
-
-  function firstMatching(values, prefix) {
-    return (values || []).find((id) => id.startsWith(`${prefix}:`)) || '';
-  }
-
-  function vector(value, fallback) {
-    if (value && typeof value === 'object') return { x: finite(value.x, fallback.x), y: finite(value.y, fallback.y) };
-    return { ...fallback };
-  }
-
-  function scalar(value, fallback) {
-    return finite(value, fallback);
-  }
-
-  function finite(value, fallback) {
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
 });

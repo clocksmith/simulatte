@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,15 +15,13 @@ import { auditPromptMatches, waitForCondition } from './audit-runtime-wait.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-intent-scene-audit');
-const EXPECTED_PHASE_OUTPUT_SCHEMAS = Object.freeze({
-  phase1: 'simulatte.phase1.output.v1',
-  phase2: 'simulatte.phase2.output.v1',
-  phase3: 'simulatte.phase3.output.v2',
-  phase4: 'simulatte.phase4.output.v2',
-  phase5: 'simulatte.phase5.output.v2',
-  phase6: 'simulatte.phase6.output.v2',
-  phase7: 'simulatte.phase7.output.v2',
-});
+const require = createRequire(import.meta.url);
+const phaseContracts = require('../public/pipeline/simulatte-phase-contracts.js');
+const EXPECTED_PHASE_OUTPUT_SCHEMAS = Object.freeze(Object.fromEntries(
+  phaseContracts.phases
+    .filter((row) => row.phase <= 7)
+    .map((row) => [`phase${row.phase}`, row.outputSchema])
+));
 const CHROME_CANDIDATES = [
   process.env.CHROME_BIN,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -123,6 +122,7 @@ function parseArgs(argv) {
     url: '',
     profileDir: '',
     keepProfile: false,
+    localPort: 4173,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -144,13 +144,20 @@ function parseArgs(argv) {
       options.profileDir = path.resolve(readValue() || '');
       options.keepProfile = true;
     }
+    else if (key === '--local-port') {
+      const port = Number(readValue());
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        throw new Error('--local-port must be an integer from 1 through 65535');
+      }
+      options.localPort = port;
+    }
     else if (key === '--keep-profile') options.keepProfile = true;
     else if (key === '--intent-mode') {
       const mode = String(readValue() || '').trim().toLowerCase();
       options.intentMode = mode === 'model' ? 'model' : 'local';
     }
     else if (key === '--help') {
-      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--frame-delay-ms N] [--profile-dir DIR]');
+      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
       process.exit(0);
     }
   }
@@ -389,7 +396,7 @@ async function freePort() {
   });
 }
 
-function startStaticServer() {
+function startStaticServer(port = 0) {
   const server = createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://127.0.0.1');
     const requested = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
@@ -413,7 +420,7 @@ function startStaticServer() {
     });
   });
   return new Promise((resolve, reject) => {
-    server.listen(0, '127.0.0.1', () => resolve({ server, port: server.address().port }));
+    server.listen(port, '127.0.0.1', () => resolve({ server, port: server.address().port }));
     server.on('error', reject);
   });
 }
@@ -1024,6 +1031,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       runtimeMessage: message ? message.textContent || '' : '',
       runtimeHealth,
       runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-12),
+      runtimeProgressLogs: (window.__simulatteRuntimeProgressLogs || []).slice(-2048),
+      runtimePerformanceLogs: (window.__simulatteRuntimePerformanceLogs || []).slice(-120),
       runtimeModelId: runtime ? runtime.dataset.modelId || '' : '',
       runtimeCacheMode: runtime ? runtime.dataset.cacheMode || '' : '',
       runtimeCacheWorker: runtime ? runtime.dataset.cacheWorker || '' : '',
@@ -1076,17 +1085,26 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           candidateOutputCount: Number(sourceRerankReceipt.modelCandidateOutputCount || 0),
           promptScoringPaths: promptRerankScoringPaths,
           promptSelectedTokenLogitCount: Number(sourceRerankReceipt.selectedTokenLogitCount || 0),
+          promptSelectedTokenExecutionCount: Number(sourceRerankReceipt.selectedTokenExecutionCount || 0),
+          promptScoreCacheHitCount: Number(sourceRerankReceipt.scoreCacheHitCount || 0),
           promptPrefixKvReuseCount: Number(sourceRerankReceipt.prefixKvReuseCount || 0),
           promptPrefixStateReuseCount: Number(sourceRerankReceipt.prefixStateReuseCount || 0),
           promptMinimumPrefixTokenCount: Number(sourceRerankReceipt.minimumPrefixTokenCount || 0),
+          promptTotalExecutionDurationMs: Number(sourceRerankReceipt.totalExecutionDurationMs || 0),
+          promptMeanExecutionDurationMs: Number(sourceRerankReceipt.meanExecutionDurationMs || 0),
+          promptMaximumExecutionDurationMs: Number(sourceRerankReceipt.maximumExecutionDurationMs || 0),
           slotRerankCallCount: Number(phase3RerankReceipt.slotRerankCallCount || slotRetrieval.rerankCallCount || 0),
           slotCandidateInputCount: Number(slotRetrieval.rerankCandidateInputCount || 0),
           slotCandidateOutputCount: Number(slotRetrieval.rerankCandidateOutputCount || 0),
           slotScoringPaths: slotRerankScoringPaths,
           slotSelectedTokenLogitCount: Number(slotRetrieval.selectedTokenLogitCount || 0),
+          slotSelectedTokenExecutionCount: Number(slotRetrieval.selectedTokenExecutionCount || 0),
+          slotScoreCacheHitCount: Number(slotRetrieval.scoreCacheHitCount || 0),
           slotPrefixKvReuseCount: Number(slotRetrieval.prefixKvReuseCount || 0),
           slotPrefixStateReuseCount: Number(slotRetrieval.prefixStateReuseCount || 0),
           slotMinimumPrefixTokenCount: Number(slotRetrieval.minimumPrefixTokenCount || 0),
+          slotTotalExecutionDurationMs: Number(slotRetrieval.totalExecutionDurationMs || 0),
+          slotMaximumExecutionDurationMs: Number(slotRetrieval.maximumExecutionDurationMs || 0),
           scoringPaths: [...new Set([...promptRerankScoringPaths, ...slotRerankScoringPaths])].sort(),
           embeddedSlotCount: Number(phase3RerankReceipt.embeddedSlotCount || slotRetrieval.embeddedSlotCount || 0),
         },
@@ -1102,6 +1120,25 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         status: row.status || '',
         acceptedCount: Number(row.acceptedCount || 0),
         acceptedCandidateIds: row.acceptedCandidateIds || [],
+      })),
+      phase3SlotCandidates: (slotRetrieval.bySlot || []).map((row) => ({
+        slotId: row.slotId || '',
+        slotRole: row.slotRole || '',
+        required: row.required !== false,
+        candidates: (row.candidates || []).slice(0, 8).map((candidate) => ({
+          id: candidate.candidateId || candidate.primitiveId || candidate.id || '',
+          type: candidate.candidateType || '',
+          score: Number(candidate.score || 0),
+          embeddingScore: Number(candidate.modelScore || 0),
+          lexicalScore: Number(candidate.lexicalScore || 0),
+          rerankScore: Number(candidate.modelRerankScore || 0),
+          rerankRank: Number(candidate.modelRerankRank || 0),
+          rerankRankScore: Number(candidate.modelRerankRankScore || 0),
+          rerankBandScore: Number(candidate.modelRerankBandScore || 0),
+          rerankEvaluated: candidate.modelRerankEvaluated === true,
+          literalSlotMatch: candidate.literalSlotMatch === true,
+          supportOnly: candidate.supportOnly === true,
+        })),
       })),
       phase4AcceptedNodeIdentities: (phase4AcceptedGraph.nodes || []).map((row) => ({
         id: row.id || '',
@@ -1760,6 +1797,21 @@ function analyze(results) {
   };
 }
 
+function browserDiagnosticText(event = {}) {
+  const params = event.params || {};
+  const consoleText = (params.args || []).map((arg) => arg.value || arg.description || '').join(' ');
+  return [consoleText, params.entry && params.entry.text || '', params.exceptionDetails && params.exceptionDetails.text || '']
+    .filter(Boolean)
+    .join(' ');
+}
+
+function webGpuValidationFailures(events = []) {
+  return events.map(browserDiagnosticText).filter((message) => (
+    /GPUValidationError|Invalid CommandBuffer|associated with \[Device\].*cannot be used|CreateBindGroup.*invalid|device lost/i
+      .test(message)
+  ));
+}
+
 function promptNeedsCausalGraph(prompt) {
   return /\b(heat|heats|cool|cools|melt|melts|freeze|freezes|drive|drives|push|pushes|pull|pulls|erode|erodes|collide|collides|impact|fracture|diffuse|diffuses|flow|flows|orbit|orbits|feedback|load|loads|pressure|wave|waves|burn|burns|grow|grows|stabilize|stabilizes)\b/i
     .test(String(prompt || ''));
@@ -1902,7 +1954,9 @@ async function main() {
   if (!prompts.length) throw new Error('No audit prompts selected');
   await fs.rm(options.outDir, { recursive: true, force: true });
   await fs.mkdir(options.outDir, { recursive: true });
-  const local = options.url ? { server: null, port: 0 } : await startStaticServer();
+  const local = options.url
+    ? { server: null, port: 0 }
+    : await startStaticServer(options.profileDir ? options.localPort : 0);
   const debugPort = await freePort();
   const profileDir = options.profileDir || await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-chrome-profile-'));
   await fs.mkdir(profileDir, { recursive: true });
@@ -1927,7 +1981,14 @@ async function main() {
       results.push(await runPrompt(cdp, prompts[i], i, options.outDir, options));
       console.log(`${i + 1}/${prompts.length} ${prompts[i].kind} ${results[results.length - 1].canvasHash} ${results[results.length - 1].rendererSceneKind || 'scene'}`);
     }
-    const summary = withAutoRating(analyze(results));
+    const browserEvents = cdp.diagnostics();
+    const analyzed = analyze(results);
+    const gpuValidationFailures = webGpuValidationFailures(browserEvents);
+    if (gpuValidationFailures.length > 0) {
+      analyzed.ok = false;
+      analyzed.failures.push(...gpuValidationFailures.map((message) => `WebGPU validation: ${message}`));
+    }
+    const summary = withAutoRating(analyzed);
     const report = {
       schema: 'simulatte.intentSceneScreenshotAudit.v1',
       createdAt: new Date().toISOString(),
@@ -1944,6 +2005,8 @@ async function main() {
         random4gram: prompts.filter((prompt) => prompt.kind === 'random-4gram').length,
         random80gram: prompts.filter((prompt) => prompt.kind === 'random-80gram').length,
       },
+      browserEvents,
+      gpuValidationFailures,
       summary,
       results,
     };

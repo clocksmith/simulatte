@@ -580,10 +580,20 @@
               source: 'simulatte-intent-embedder',
               stage: 'model-rerank',
               percent: 95.6,
-              message: `Reranking candidate ${row.completed || 0}/${row.total || 0}`,
+              message: row.scoreCacheHit === true
+                ? `Reusing reranker score ${row.completed || 0}/${row.total || 0}`
+                : `Reranking candidate ${row.completed || 0}/${row.total || 0}`,
               traceId: traceId || '',
               rankId: rankId || 0,
+              candidateId: row.candidateId || '',
+              completed: row.completed || 0,
+              total: row.total || 0,
               candidateCount: row.total || 0,
+              scoreCacheHit: row.scoreCacheHit === true,
+              promptTokenCount: row.promptTokenCount || 0,
+              prefixTokenCount: row.prefixTokenCount || 0,
+              prefixStateReused: row.prefixStateReused === true,
+              executionDurationMs: row.executionDurationMs || 0,
             });
           }
           const result = await capability.rerank(input);

@@ -14,6 +14,7 @@
     EVENT_SCHEMA,
     STATE_SCHEMA,
     LOADER_RECEIPT_SCHEMA,
+    PROGRESS_LOG_SCHEMA,
     RUNTIME_PHASES,
     connect,
     createController,

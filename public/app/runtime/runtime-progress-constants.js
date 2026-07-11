@@ -10,9 +10,13 @@
 
     const LOADER_RECEIPT_SCHEMA = 'simulatte.loaderPhaseReceipt.v1';
 
+    const PROGRESS_LOG_SCHEMA = 'simulatte.runtimeProgressLog.v1';
+
     const MAX_EVENT_HISTORY = 120;
 
     const MAX_LOADER_RECEIPTS = 64;
+
+    const MAX_PROGRESS_LOGS = 2048;
 
     const DEFAULT_STAGE = 'runtime.start';
 
@@ -25,8 +29,10 @@
       STATE_SCHEMA,
       HEALTH_SCHEMA,
       LOADER_RECEIPT_SCHEMA,
+      PROGRESS_LOG_SCHEMA,
       MAX_EVENT_HISTORY,
       MAX_LOADER_RECEIPTS,
+      MAX_PROGRESS_LOGS,
       DEFAULT_STAGE,
       HEARTBEAT_MS,
       STALE_EVENT_MS,

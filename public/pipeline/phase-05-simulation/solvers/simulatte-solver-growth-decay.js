@@ -1,8 +1,12 @@
 (function attachSimulatteGrowthDecaySolver(root, factory) {
-  const api = factory();
+  const values = typeof module === 'object' && module.exports
+    ? require('./simulatte-solver-values.js')
+    : root.SimulatteSolverValues;
+  const api = factory(values);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteGrowthDecaySolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createGrowthDecaySolverApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createGrowthDecaySolverApi(values) {
+  const { firstInput, firstOutput, scalar, finite, clamp } = values;
   return {
     id: 'growth-decay',
     operatorTypes: ['growth_decay'],
@@ -24,28 +28,4 @@
     channels[nutrientId] = clamp(nutrient - growth * 0.7 + dt * 0.01, 0, 1);
   }
 
-  function firstInput(step, prefix) {
-    return firstMatching(step.inputs || step.reads || [], prefix);
-  }
-
-  function firstOutput(step, prefix) {
-    return firstMatching(step.outputs || step.writes || [], prefix);
-  }
-
-  function firstMatching(values, prefix) {
-    return (values || []).find((id) => id.startsWith(`${prefix}:`)) || '';
-  }
-
-  function scalar(value, fallback) {
-    return finite(value, fallback);
-  }
-
-  function finite(value, fallback) {
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
 });

@@ -6,6 +6,7 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
+const runtimeScriptManifest = require(path.join(publicDir, 'app', 'runtime-script-manifest.js'));
 const moduleMapPath = path.join(root, 'tools', 'simulatte-module-map.json');
 const moduleMap = JSON.parse(fs.readFileSync(moduleMapPath, 'utf8'));
 const runtimeModuleByName = new Map();
@@ -173,13 +174,12 @@ test('app product boundaries use loading prompt simulation and pipeline director
   assert.ok(fs.existsSync(path.join(runtimeRoot, 'runtime-progress.js')));
   assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-controller.js')));
   assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-review-bridge.js')));
-  assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-debug-panel.js')));
   assert.ok(fs.existsSync(path.join(simulationRoot, 'simulation-lab.js')));
-  assert.ok(fs.existsSync(path.join(simulationRoot, 'simulation-scenario-engine.js')));
   assert.ok(fs.existsSync(path.join(pipelineRoot, 'phase-07-render', 'simulatte-webgpu-renderer.js')));
-  assert.match(appMain, /\.\/app\/prompt\/prompt-controller\.js/);
-  assert.match(appMain, /\.\/app\/runtime\/runtime-progress\.js/);
-  assert.match(appMain, /\.\/app\/simulation\/simulation-lab\.js/);
+  assert.match(appMain, /runtimeManifest\.browser/);
+  assert.ok(runtimeScriptManifest.browser.includes('app/prompt/prompt-controller.js'));
+  assert.ok(runtimeScriptManifest.browser.includes('app/runtime/runtime-progress.js'));
+  assert.ok(runtimeScriptManifest.browser.includes('app/simulation/simulation-lab.js'));
   assert.doesNotMatch(appMain, /from '\.\/render\//);
   assert.match(html, /src="\.\/app\/loading\/loading-canvas\.js\?v=[^"]+"/);
   assert.match(html, /src="\.\/app\/runtime\/runtime-progress\.js\?v=[^"]+"/);
@@ -193,6 +193,20 @@ test('app product boundaries use loading prompt simulation and pipeline director
   const deferredScripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
     .map((match) => match[1]);
   assert.ok(deferredScripts.length > 40);
+  const deferredScriptPaths = deferredScripts.map((src) => src.replace(/^\.\//, '').replace(/\?v=.*$/, ''));
+  assert.deepEqual(deferredScriptPaths, [
+    'app/runtime-script-manifest.js',
+    ...runtimeScriptManifest.browser,
+    'app/main.js',
+    'app/version-guard.js',
+  ]);
+  for (const relativePath of new Set([
+    ...runtimeScriptManifest.browser,
+    ...runtimeScriptManifest.pipelineWorker,
+    ...runtimeScriptManifest.intentWorker,
+  ])) {
+    assert.ok(fs.existsSync(path.join(publicDir, relativePath)), `runtime script missing ${relativePath}`);
+  }
   deferredScripts.forEach((src) => {
     assert.match(src, new RegExp(`\\?v=${buildStamp.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
   });
@@ -211,8 +225,8 @@ test('app product boundaries use loading prompt simulation and pipeline director
 });
 
 test('phase contracts declare the strict eight-phase handoff', () => {
-  const contractsPath = path.join(publicDir, 'data', 'phase-contracts.json');
-  const contracts = JSON.parse(fs.readFileSync(contractsPath, 'utf8'));
+  const contractsPath = path.join(publicDir, 'pipeline', 'simulatte-phase-contracts.js');
+  const contracts = require(contractsPath);
 
   assert.equal(contracts.schema, 'simulatte.phaseContracts.v1');
   assert.equal(contracts.envelope.schemaPattern, 'simulatte.phaseN.output.v2');
@@ -302,20 +316,25 @@ test('intent forensics modules load before the physics model in the browser lab'
 });
 
 test('selected-token reranker runtime loads before the model-backed embedder class captures it', () => {
-  const files = [
-    path.join(root, 'public', 'index.html'),
-    path.join(root, 'public', 'app', 'main.js'),
-    path.join(root, 'public', 'app', 'workers', 'simulatte-intent-worker.js'),
-    path.join(root, 'public', 'pipeline', 'phase-03-retrieval', 'simulatte-intent-embedder.js'),
-  ];
-  for (const file of files) {
-    const source = fs.readFileSync(file, 'utf8');
-    const runtimePosition = source.indexOf('simulatte-intent-embedder-rerank-runtime.js');
-    const embedderPosition = source.indexOf('simulatte-intent-embedder-manifest-cache.js');
-    assert.notEqual(runtimePosition, -1, `${path.basename(file)} must load the reranker runtime`);
-    assert.notEqual(embedderPosition, -1, `${path.basename(file)} must load the model-backed embedder`);
-    assert.ok(runtimePosition < embedderPosition, `${path.basename(file)} must load reranking before the embedder`);
+  for (const [name, scripts] of [
+    ['browser', runtimeScriptManifest.browser],
+    ['intent worker', runtimeScriptManifest.intentWorker],
+  ]) {
+    const runtimePosition = scripts.indexOf('pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js');
+    const embedderPosition = scripts.indexOf('pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js');
+    assert.notEqual(runtimePosition, -1, `${name} must load the reranker runtime`);
+    assert.notEqual(embedderPosition, -1, `${name} must load the model-backed embedder`);
+    assert.ok(runtimePosition < embedderPosition, `${name} must load reranking before the embedder`);
   }
+  const embedderFacade = fs.readFileSync(
+    path.join(root, 'public', 'pipeline', 'phase-03-retrieval', 'simulatte-intent-embedder.js'),
+    'utf8'
+  );
+  assert.ok(
+    embedderFacade.indexOf('simulatte-intent-embedder-rerank-runtime.js')
+      < embedderFacade.indexOf('simulatte-intent-embedder-manifest-cache.js'),
+    'CommonJS embedder facade must load reranking before the embedder'
+  );
   const legacyRerankSource = fs.readFileSync(
     path.join(root, 'public', 'pipeline', 'phase-03-retrieval', 'simulatte-intent-embedder-rerank.js'),
     'utf8'
@@ -663,8 +682,9 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(worker, /const WORKER_SEARCH = root && root\.location && root\.location\.search \|\| ''/);
   assert.match(worker, /importScripts\(\.\.\.versionedScriptOrder\(\)\)/);
   assert.match(worker, /function versionedScriptOrder\(\)/);
-  assert.match(worker, /simulatte-physics-model\.js/);
-  assert.match(worker, /simulatte-visual-operator-compiler\.js/);
+  assert.match(worker, /runtimeManifest\.pipelineWorker/);
+  assert.ok(runtimeScriptManifest.pipelineWorker.includes('pipeline/phase-05-simulation/simulatte-physics-model.js'));
+  assert.ok(runtimeScriptManifest.pipelineWorker.includes('pipeline/phase-06-visual/simulatte-visual-operator-compiler.js'));
   assert.match(worker, /simulatte:pipeline-worker:compile/);
   assert.match(worker, /SimulattePhysicsModel\.createSpecFromPrompt/);
   assert.match(worker, /type: 'simulatte:pipeline-worker:result'/);
@@ -688,7 +708,8 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(intentWorker, /const WORKER_SEARCH = root && root\.location && root\.location\.search \|\| ''/);
   assert.match(intentWorker, /importScripts\(\.\.\.versionedScriptOrder\(\)\)/);
   assert.match(intentWorker, /function versionedScriptOrder\(\)/);
-  assert.match(intentWorker, /simulatte-intent-embedder\.js/);
+  assert.match(intentWorker, /runtimeManifest\.intentWorker/);
+  assert.ok(runtimeScriptManifest.intentWorker.includes('pipeline/phase-03-retrieval/simulatte-intent-embedder.js'));
   assert.match(intentWorker, /let embedderConfigKey = ''/);
   assert.match(intentWorker, /let loadPromise = null/);
   assert.match(intentWorker, /let loadedRuntime = null/);
@@ -954,10 +975,6 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /const SEGMENT_STAGGER_MS = 34/);
   assert.match(loadingCanvas, /const MIN_TAIL_ALPHA = 0\.3/);
   assert.match(loadingCanvas, /const GHOST_ALPHA = 0\.28/);
-  assert.match(loadingCanvas, /const RAIL_HEIGHT_PX = 8/);
-  assert.match(loadingCanvas, /const RAIL_MAX_WIDTH_PORTION = 0\.58/);
-  assert.match(loadingCanvas, /const RAIL_SWEEP_CYCLE_MS = 5000/);
-  assert.match(loadingCanvas, /const RAIL_SWEEP_TRAIL = 0\.28/);
   assert.match(loadingCanvas, /const ROYGBIV_SPECTRUM = Object\.freeze/);
   assert.match(loadingCanvas, /'#ff9fbd'/);
   assert.match(loadingCanvas, /'#f6e899'/);
@@ -981,11 +998,6 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /segmentExitAlpha\(snake, index, cells\.length, now\)/);
   assert.match(loadingCanvas, /drawSnake\(ctx, this\.board, snake, now\)/);
   assert.match(loadingCanvas, /drawExitSnake\(ctx, this\.board, snake, now\)/);
-  assert.match(loadingCanvas, /function drawProgressRail/);
-  assert.match(loadingCanvas, /drawProgressRail\(ctx, width, height, this\.progress, this\.indeterminate, now, this\.stageCode\)/);
-  assert.match(loadingCanvas, /function drawDeterministicRailTiles/);
-  assert.match(loadingCanvas, /function railTrailAlpha/);
-  assert.match(loadingCanvas, /function tileNoise/);
   assert.match(loadingCanvas, /const motion = easeOutCubic\(progress\)/);
   assert.match(loadingCanvas, /const fade = easeInFastOut\(progress\)/);
   assert.match(loadingCanvas, /function drawTile/);
@@ -1210,6 +1222,122 @@ test('runtime progress bus reduces granular producer events into one observable 
   assert.equal(seen[0].line, 'Embedding prompt spans 59%');
 });
 
+test('runtime progress logs every visible transition as a benchmarkable receipt', () => {
+  const consoleRows = [];
+  const view = {
+    __simulatteNow: 1000,
+    requestAnimationFrame() {
+      return 1;
+    },
+    location: { search: '' },
+    console: {
+      info(...args) {
+        consoleRows.push(args);
+      },
+    },
+  };
+  const controller = runtimeProgressApi.createController({ view });
+
+  controller.publish({
+    runId: 'timed-run',
+    state: 'active',
+    stage: 'cache-fill',
+    message: 'Caching embedding model',
+    percent: 20,
+    completedBytes: 100,
+    totalBytes: 400,
+    resourceKind: 'embedding-model',
+    cacheMode: 'opfs',
+    timestamp: 1000,
+  });
+  controller.publish({
+    runId: 'timed-run',
+    stage: 'cache-storage',
+    message: 'Passive cache detail',
+    nonBlocking: true,
+    timestamp: 1200,
+  });
+  controller.publish({
+    runId: 'timed-run',
+    state: 'active',
+    stage: 'model-load',
+    message: 'Loading embedding model',
+    percent: 70,
+    completedBytes: 400,
+    totalBytes: 400,
+    resourceKind: 'embedding-model',
+    cacheMode: 'opfs',
+    operationId: 2,
+    queueDepth: 2,
+    queueWaitMs: 700,
+    timestamp: 2000,
+  });
+
+  assert.equal(consoleRows.length, 2);
+  assert.match(consoleRows[0][0], /^\[Simulatte\]\[Progress\] #1 /);
+  assert.equal(consoleRows[0][1].schema, 'simulatte.runtimeProgressLog.v1');
+  assert.equal(consoleRows[0][1].runId, 'timed-run');
+  assert.equal(consoleRows[0][1].stage, 'runtime.cache.file');
+  assert.equal(consoleRows[0][1].runElapsedMs, 0);
+  assert.equal(consoleRows[1][1].sequence, 2);
+  assert.equal(consoleRows[1][1].transitionMs, 1000);
+  assert.equal(consoleRows[1][1].runElapsedMs, 1000);
+  assert.equal(consoleRows[1][1].resource.completedBytes, 400);
+  assert.equal(consoleRows[1][1].resource.totalBytes, 400);
+  assert.equal(consoleRows[1][1].resource.operationId, 2);
+  assert.equal(consoleRows[1][1].resource.queueDepth, 2);
+  assert.equal(consoleRows[1][1].timing.queueWaitMs, 700);
+  assert.equal(controller.logs().length, 2);
+  assert.equal(view.__simulatteRuntimeProgressLogs.length, 2);
+});
+
+test('runtime progress logs detailed reranker updates even when the visible line is unchanged', () => {
+  const consoleRows = [];
+  const view = {
+    requestAnimationFrame() {
+      return 1;
+    },
+    location: { search: '' },
+    console: { info(...args) { consoleRows.push(args); } },
+  };
+  const controller = runtimeProgressApi.createController({ view });
+  const base = {
+    runId: 'rerank-run',
+    state: 'active',
+    stage: 'slot-model-rerank',
+    percent: 96,
+    slotId: 'slot.actor.cat',
+    total: 2,
+    candidateCount: 2,
+  };
+  controller.publish({
+    ...base,
+    message: 'Reranking scene slot 2/8 candidate 1/2',
+    candidateId: 'cat',
+    completed: 1,
+    promptTokenCount: 93,
+    prefixTokenCount: 70,
+    executionDurationMs: 812.5,
+  });
+  controller.publish({
+    ...base,
+    message: 'Reranking scene slot 2/8 candidate 2/2',
+    candidateId: 'caterpillar',
+    completed: 2,
+    promptTokenCount: 91,
+    prefixTokenCount: 70,
+    executionDurationMs: 779.25,
+  });
+
+  assert.equal(consoleRows.length, 2);
+  assert.match(consoleRows[0][0], /candidate 1\/2/);
+  assert.match(consoleRows[1][0], /candidate 2\/2/);
+  assert.equal(consoleRows[1][1].detail, 'Reranking scene slot 2/8 candidate 2/2');
+  assert.equal(consoleRows[1][1].reranker.candidateId, 'caterpillar');
+  assert.equal(consoleRows[1][1].reranker.completed, 2);
+  assert.equal(consoleRows[1][1].reranker.executionDurationMs, 779.25);
+});
+
 test('runtime progress keeps passive cache receipts out of the visible run line', () => {
   const controller = runtimeProgressApi.createController({
     view: {
@@ -1430,6 +1558,7 @@ test('runtime progress heartbeat keeps active work visible without moving progre
   assert.equal(state.displayLine, 'Still downloading model weights 30% - network');
   assert.equal(state.byteProgress, 'unknown');
   assert.equal(state.silenceMs, 1600);
+  assert.equal(controller.performanceLogs().some((row) => row.kind === 'heartbeat-handler'), true);
 
   const node = {
     dataset: {},
@@ -1526,6 +1655,12 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /positiveLanguageText\(prompt\)/);
   assert.match(tool, /const negated = new RegExp/);
   assert.match(tool, /visualRubricForResult/);
+  assert.match(tool, /startStaticServer\(options\.profileDir \? options\.localPort : 0\)/);
+  assert.match(tool, /runtimeProgressLogs: \(window\.__simulatteRuntimeProgressLogs/);
+  assert.match(tool, /runtimePerformanceLogs: \(window\.__simulatteRuntimePerformanceLogs/);
+  assert.match(tool, /const browserEvents = cdp\.diagnostics\(\)/);
+  assert.match(tool, /function webGpuValidationFailures/);
+  assert.match(tool, /Invalid CommandBuffer/);
   assert.match(tool, /canvasFrameHashChanged/);
   assert.match(tool, /canvasFrameSampleHashChanged/);
   assert.match(tool, /dynamicMagnitude/);
@@ -1571,8 +1706,8 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /simulatte\.renderExecutionInput\.v1/);
 	  assert.match(tool, /phaseArtifactSchemas/);
 	  assert.match(tool, /EXPECTED_PHASE_OUTPUT_SCHEMAS/);
-	  assert.match(tool, /phase3: 'simulatte\.phase3\.output\.v2'/);
-	  assert.match(tool, /phase7: 'simulatte\.phase7\.output\.v2'/);
+	  assert.match(tool, /simulatte-phase-contracts\.js/);
+	  assert.doesNotMatch(tool, /phase3: 'simulatte\.phase3\.output\.v2'/);
 	  assert.match(tool, /phase7Output/);
 	  assert.match(tool, /phaseArtifactSchemas\.phase7 = canvas && canvas\.dataset \? canvas\.dataset\.phase7Output \|\| '' : ''/);
 	  assert.match(tool, /sceneProofError/);
@@ -1593,7 +1728,8 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
 	  assert.match(tool, /visualIRSceneRenderPacketIdentities/);
 
   const main = fs.readFileSync(path.join(root, 'public', 'app', 'main.js'), 'utf8');
-  assert.match(main, /phase-08-scene-proof\/simulatte-scene-proof\.js/);
+  assert.match(main, /runtimeManifest\.browser/);
+  assert.ok(runtimeScriptManifest.browser.includes('pipeline/phase-08-scene-proof/simulatte-scene-proof.js'));
   assert.match(main, /'SimulatteSceneProof'/);
   assert.match(tool, /intentMode !== 'model'/);
   assert.match(tool, /if \(options\.intentMode !== 'model'\) \{\n\s+url\.searchParams\.set\('auditNoInitial', '1'\)/);
@@ -1921,7 +2057,11 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
 
   assert.match(model, /function createPhaseEnvelope/);
   assert.match(model, /schema: phaseOutputSchema\(phaseNumber\)/);
-  assert.match(model, /const PHASE_CONTRACTS = Object\.freeze/);
+  const phaseContractsSource = fs.readFileSync(
+    path.join(publicDir, 'pipeline', 'simulatte-phase-contracts.js'),
+    'utf8'
+  );
+  assert.match(phaseContractsSource, /const PHASE_CONTRACTS = Object\.freeze/);
   assert.match(model, /missing artifact\.\$?\{?key/);
   assert.match(model, /unexpected artifact\.\$?\{?key/);
   assert.match(model, /contains forbidden upstream field/);
@@ -1948,7 +2088,12 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   assert.match(model, /function compilePhase6VisualProgram\(phase5Output, compositionGraph = null\)/);
   assert.doesNotMatch(model, /function createVisualCompileEnvelope\(phase5Output, compositionGraph = null, renderProgram/);
 	  assert.match(model, /renderExecutionInput source expected/);
-	  assert.match(model, /function renderObligationProof\(sceneRenderPacket = \{\}, visualObligations = \[\], compositionLedger = null,/);
+	  const renderProofSource = fs.readFileSync(
+	    path.join(publicDir, 'pipeline', 'phase-07-render', 'simulatte-render-proof.js'),
+	    'utf8'
+	  );
+	  assert.match(renderProofSource, /function renderObligationProof\(/);
+	  assert.doesNotMatch(model, /function renderObligationProof\(/);
 	  assert.doesNotMatch(model, /source && source\.visualCompile/);
   assert.match(model, /Phase 7 input expected sceneRenderPacket simulatte\.sceneRenderPacket\.v1/);
   assert.match(model, /buildCompositionGraph\(phase6Input\)/);
@@ -2061,6 +2206,8 @@ test('intent runtime keeps one visible line and does not silently fallback local
   assert.match(runtimeProgress, /elements\.stage\.textContent = subline \|\| state\.phase\.label/);
   assert.match(runtimeProgress, /LOADER_RECEIPT_SCHEMA = 'simulatte\.loaderPhaseReceipt\.v1'/);
   assert.match(runtimeProgress, /__simulatteLoaderPhaseReceipts/);
+  assert.match(runtimeProgress, /__simulatteRuntimeProgressLogs/);
+  assert.match(runtimeProgress, /__simulatteRuntimePerformanceLogs/);
   assert.match(runtimeProgress, /function runtimeByteProgressState/);
   assert.match(runtimeProgress, /function runtimeSublineText/);
   assert.match(runtimeProgress, /return `\$\{label\} \$\{percent\}%\$\{resource\}\$\{timing\}`/);
@@ -2167,6 +2314,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
     runtime: {
       ...modelRuntimeLock.runtime,
       moduleUrl: modelRuntimeLock.doppler.moduleUrl,
+      deviceModuleUrl: modelRuntimeLock.doppler.deviceModuleUrl,
       storageModuleUrl: modelRuntimeLock.doppler.storageModuleUrl,
       runtimeConfig: modelRuntimeLock.embedding.runtimeConfig,
     },
@@ -2185,7 +2333,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 4);
+  assert.equal(modelRuntimeLock.number, 6);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
 	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2221,7 +2369,9 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(manifest.reranker.inputSchema, 'simulatte.intentRerankInput.v1');
   assert.equal(manifest.reranker.outputSchema, 'simulatte.intentRerank.v1');
   assert.equal(manifest.reranker.maxCandidatesPerCall, 8);
-  assert.equal(manifest.reranker.maxSlotCandidatesPerCall, 4);
+  assert.equal(manifest.reranker.maxSlotCandidatesPerCall, 2);
+  assert.equal(manifest.reranker.maxCandidateTermsPerDocument, 32);
+  assert.equal(manifest.reranker.scoreCacheMaxEntries, 256);
   assert.equal(manifest.reranker.fallbackMode, 'heuristic-fusion');
   assert.equal(manifest.reranker.execution.selectedTokenLogits, 'required');
   assert.equal(manifest.reranker.execution.prefixKvReuse, 'required');
@@ -2255,6 +2405,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(modelRuntimeLock.doppler.development.kind, 'sibling-git-archive');
   assert.match(modelRuntimeLock.doppler.development.gitSha, /^[0-9a-f]{40}$/);
   assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index.js');
+  assert.equal(manifest.runtime.deviceModuleUrl, '../../vendor/doppler/src/tooling-exports/device.js');
   assert.equal(manifest.runtime.storageModuleUrl, '../../vendor/doppler/src/tooling-exports/storage.js');
   assert.equal(manifest.runtime.queryEmbeddingMode, 'last');
   assert.equal(manifest.runtime.embeddingText.schema, 'simulatte.embeddingTextContract.v1');

@@ -1,9 +1,10 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 4,
+  "number": 6,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index.js",
+    "deviceModuleUrl": "../../vendor/doppler/src/tooling-exports/device.js",
     "storageModuleUrl": "../../vendor/doppler/src/tooling-exports/storage.js",
     "kernelBasePath": "../../vendor/doppler/src/gpu/kernels",
     "package": {
@@ -116,7 +117,9 @@
     "inputSchema": "simulatte.intentRerankInput.v1",
     "outputSchema": "simulatte.intentRerank.v1",
     "maxCandidatesPerCall": 8,
-    "maxSlotCandidatesPerCall": 4,
+    "maxSlotCandidatesPerCall": 2,
+    "maxCandidateTermsPerDocument": 32,
+    "scoreCacheMaxEntries": 256,
     "fallbackMode": "heuristic-fusion",
     "execution": {
       "selectedTokenLogits": "required",

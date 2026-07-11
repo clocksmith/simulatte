@@ -3,6 +3,7 @@
   if (!scope || scope.missingDependency) return;
   with (scope) {
     const storageApiPromises = new Map();
+    const deviceApiPromises = new Map();
 
     async function resolveDopplerStorageApi(options = {}) {
       const direct = options.dopplerStorageModule || null;
@@ -18,6 +19,22 @@
         }));
       }
       return storageApiPromises.get(moduleUrl);
+    }
+
+    async function resolveDopplerDeviceApi(options = {}) {
+      const direct = options.dopplerDeviceModule || null;
+      if (direct) return direct;
+      const moduleUrl = String(options.deviceModuleUrl || '').trim();
+      if (!moduleUrl) {
+        throw new Error('model runtime lock did not resolve a Doppler device module URL');
+      }
+      if (!deviceApiPromises.has(moduleUrl)) {
+        deviceApiPromises.set(moduleUrl, import(moduleUrl).catch((error) => {
+          deviceApiPromises.delete(moduleUrl);
+          throw error;
+        }));
+      }
+      return deviceApiPromises.get(moduleUrl);
     }
 
     async function prepareDopplerCachedModelSource(runtime, model, options = {}) {
@@ -146,6 +163,11 @@
         totalBytes: Number.isFinite(totalBytes) ? totalBytes : 0,
         completed: Number(event.completedShards || 0),
         total: Number(event.totalShards || 0),
+        bytesPerSecond: Number(event.speed || 0),
+        eta: String(event.eta || ''),
+        operationId: Number(event.operationId || 0),
+        queueDepth: Number(event.queueDepth || 0),
+        queueWaitMs: Number(event.queueWaitMs || 0),
         cachePrefetch: true,
         cacheMode: 'opfs',
         rawEvent: event,
@@ -176,6 +198,7 @@
 
     Object.assign(scope, {
       resolveDopplerStorageApi,
+      resolveDopplerDeviceApi,
       prepareDopplerCachedModelSource,
       emitDopplerCacheProgress,
       closeDopplerCachedSource,

@@ -276,6 +276,16 @@
     return Array.from(new Set((values || []).filter(Boolean).map((value) => String(value))));
   }
 
+  function uniqueById(rows) {
+    const seen = new Set();
+    return (rows || []).filter((row) => {
+      const key = row.id || JSON.stringify(row);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   return {
     INTENT_BRIEF_SCHEMA,
     INTENT_BRIEF_MODEL_STACK,
@@ -286,5 +296,6 @@
     compactBriefSummary,
     slugify,
     uniqueStrings,
+    uniqueById,
   };
 });

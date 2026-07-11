@@ -58,6 +58,8 @@
         stageAlias(/model-rerank-probe|phase1-reranker-probe/, 'runtime.reranker.probe', 'Verifying reranker'),
         stageAlias(/reranker-ready/, 'runtime.reranker.ready', 'Reranker ready'),
         stageAlias(/reranker-load/, 'runtime.reranker.load', 'Loading reranker'),
+        stageAlias(/slot-model-rerank/, 'retrieval.slot.model-rerank', 'Reranking scene slots'),
+        stageAlias(/^model-rerank$/, 'retrieval.primitive.model-rerank', 'Reranking candidates'),
         stageAlias(/model-reuse/, 'runtime.model.reuse', 'Reusing embedding model'),
         stageAlias(/model-probe/, 'runtime.model.probe', 'Verifying embedding model'),
         stageAlias(/model-ready/, 'runtime.model.ready', 'Embedding model ready'),

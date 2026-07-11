@@ -1,8 +1,12 @@
 (function attachSimulatteRigidBodySolver(root, factory) {
-  const api = factory();
+  const values = typeof module === 'object' && module.exports
+    ? require('./simulatte-solver-values.js')
+    : root.SimulatteSolverValues;
+  const api = factory(values);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRigidBodySolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRigidBodySolverApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRigidBodySolverApi(values) {
+  const { firstOutput, scalar, finite, clamp } = values;
   return {
     id: 'rigid-body-2d',
     operatorTypes: ['rigid_collision'],
@@ -20,24 +24,4 @@
     if (damageId) channels[damageId] = clamp(scalar(channels[damageId], 0) + impulse * dt * 0.22, 0, 1);
   }
 
-  function firstOutput(step, prefix) {
-    return firstMatching(step.outputs || step.writes || [], prefix);
-  }
-
-  function firstMatching(values, prefix) {
-    return (values || []).find((id) => id.startsWith(`${prefix}:`)) || '';
-  }
-
-  function scalar(value, fallback) {
-    return finite(value, fallback);
-  }
-
-  function finite(value, fallback) {
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
 });

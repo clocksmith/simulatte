@@ -385,7 +385,6 @@
           for (const snake of this.snakes) {
             drawSnake(ctx, this.board, snake, now);
           }
-          drawProgressRail(ctx, width, height, this.progress, this.indeterminate, now, this.stageCode);
           ctx.restore();
         }
       }
@@ -510,86 +509,6 @@
         ctx.shadowBlur = 0;
         ctx.fillStyle = `rgba(255, 255, 255, ${clamp(alpha * 0.24, 0, 0.42)})`;
         ctx.fillRect(x + 1, y + 1, Math.max(1, size - 2), Math.max(1, Math.round(size * 0.22)));
-      }
-
-    function drawProgressRail(ctx, width, height, progress, indeterminate, now, stage) {
-        const available = Math.max(RAIL_MIN_WIDTH_PX, width - RAIL_MARGIN_PX * 2);
-        const railWidth = Math.min(available, Math.max(RAIL_MIN_WIDTH_PX, width * RAIL_MAX_WIDTH_PORTION));
-        const x = Math.max(RAIL_MARGIN_PX, (width - railWidth) * 0.5);
-        const y = Math.max(RAIL_MARGIN_PX, height - RAIL_MARGIN_PX - RAIL_HEIGHT_PX);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.74)';
-        ctx.fillRect(x, y, railWidth, RAIL_HEIGHT_PX);
-        ctx.fillStyle = 'rgba(132, 120, 154, 0.18)';
-        ctx.fillRect(x, y, railWidth, 1);
-        drawDeterministicRailTiles(ctx, x, y, railWidth, RAIL_HEIGHT_PX, progress, indeterminate, now, stage);
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.18 + clamp(stage, 0, 1) * 0.18})`;
-        ctx.fillRect(x, y, railWidth, 2);
-      }
-
-    function drawDeterministicRailTiles(ctx, x, y, width, height, progress, indeterminate, now, stage) {
-        const rawCols = Math.floor((width + RAIL_TILE_GAP_PX) / (RAIL_MIN_TILE_PX + RAIL_TILE_GAP_PX));
-        const cols = Math.max(24, rawCols);
-        const tileWidth = Math.max(2, (width - RAIL_TILE_GAP_PX * (cols - 1)) / cols);
-        const motionSpeed = 1 + clamp(stage, 0, 1) * 0.46;
-        const cycle = Math.max(1200, RAIL_SWEEP_CYCLE_MS / motionSpeed);
-        const phaseA = normalizedPhase(now, cycle, 0);
-        const phaseB = normalizedPhase(now, cycle, RAIL_SWEEP_B_OFFSET);
-        const phaseC = normalizedPhase(now, cycle, RAIL_SWEEP_C_OFFSET);
-        const posA = RAIL_SWEEP_OFFSET + easeInOutQuad(phaseA) * RAIL_SWEEP_DOMAIN;
-        const posB = RAIL_SWEEP_OFFSET + easeInOutQuint(phaseB) * RAIL_SWEEP_DOMAIN;
-        const posC = RAIL_SWEEP_OFFSET + easeInOutQuad(phaseC) * RAIL_SWEEP_DOMAIN;
-        const fillEdge = clamp(progress, 0, 1);
-        for (let index = 0; index < cols; index += 1) {
-          const tileProgress = cols === 1 ? 1 : index / (cols - 1);
-          const filled = indeterminate || tileProgress <= fillEdge;
-          const baseAlpha = indeterminate
-            ? RAIL_INDETERMINATE_GHOST_ALPHA
-            : filled ? RAIL_FILLED_GHOST_ALPHA : RAIL_UNFILLED_GHOST_ALPHA;
-          const noise = tileNoise(index) * RAIL_TRAIL_NOISE;
-          const trailAlpha = filled
-            ? Math.max(
-              railTrailAlpha(posA, tileProgress, noise),
-              railTrailAlpha(posB, tileProgress, noise),
-              railTrailAlpha(posC, tileProgress, noise)
-            )
-            : 0;
-          const alpha = clamp(Math.max(baseAlpha, trailAlpha), 0, 1);
-          if (alpha <= 0.005) continue;
-          const color = ROYGBIV_SPECTRUM[index % ROYGBIV_SPECTRUM.length];
-          ctx.fillStyle = colorWithAlpha(color, alpha);
-          ctx.fillRect(x + index * (tileWidth + RAIL_TILE_GAP_PX), y, tileWidth, height);
-        }
-      }
-
-    function railTrailAlpha(position, tileProgress, noise) {
-        const distance = position - tileProgress;
-        if (distance < 0 || distance > RAIL_SWEEP_TRAIL) return 0;
-        const normalized = distance / RAIL_SWEEP_TRAIL;
-        return clamp(
-          Math.pow(1 - normalized, RAIL_TRAIL_DECAY_EXP) +
-            Math.sin(normalized * Math.PI) * noise,
-          0,
-          1
-        );
-      }
-
-    function normalizedPhase(now, cycle, offset) {
-        return (((Number(now || 0) / cycle) - offset) % 1 + 1) % 1;
-      }
-
-    function tileNoise(index) {
-        const x = Math.sin((index + 1) * 12.9898) * 43758.5453;
-        return x - Math.floor(x) - 0.5;
-      }
-
-    function easeInOutQuad(value) {
-        const t = clamp(value, 0, 1);
-        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-      }
-
-    function easeInOutQuint(value) {
-        const t = clamp(value, 0, 1);
-        return t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
       }
 
     function chooseDirection(snake, board, occupied, rng) {
@@ -801,13 +720,6 @@
       drawSnake,
       drawExitSnake,
       drawTile,
-      drawProgressRail,
-      drawDeterministicRailTiles,
-      railTrailAlpha,
-      normalizedPhase,
-      tileNoise,
-      easeInOutQuad,
-      easeInOutQuint,
       chooseDirection,
       nearbyHeadPressure,
       openNeighborCount,

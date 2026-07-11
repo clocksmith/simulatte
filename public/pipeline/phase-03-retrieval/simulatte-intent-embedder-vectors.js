@@ -14,12 +14,13 @@
             || result.top
           ) || [];
         const count = Math.max(1, rows.length);
-        return rows.map((row, index) => {
+        const normalized = rows.map((row, index) => {
           if (typeof row === 'string') {
             return {
               primitiveId: row,
               score: Number((1 - index / count).toFixed(4)),
               rank: index,
+              rankExplicit: false,
             };
           }
           const primitiveId = String(row && (
@@ -39,55 +40,92 @@
             primitiveId,
             score: clamp01(Number.isFinite(rawScore) ? rawScore : 1 - index / count),
             rank: Number(row && row.rank != null ? row.rank : index),
+            rankExplicit: row && row.rank != null,
             reason: row && row.reason || '',
             scoringPath: String(row && row.scoringPath || ''),
             promptTokenCount: Number(row && row.promptTokenCount || 0),
             prefixTokenCount: Number(row && row.prefixTokenCount || 0),
             prefixStateReused: row && row.prefixStateReused === true,
+            scoreCacheHit: row && row.scoreCacheHit === true,
+            executionDurationMs: Number(row && row.executionDurationMs || 0),
           };
         }).filter((row) => row.primitiveId);
+        return normalized.sort((a, b) => {
+          if (a.rankExplicit && b.rankExplicit) return a.rank - b.rank || b.score - a.score;
+          return b.score - a.score || a.rank - b.rank || a.primitiveId.localeCompare(b.primitiveId);
+        }).map((row, rank) => ({ ...row, rank }));
       }
 
-    function applyModelRerank(localRows, modelRows, evaluatedRows = modelRows) {
-        const byId = new Map((localRows || []).map((row) => [row.primitiveId, { ...row }]));
+    function rerankerRankBand(localRows = [], modelRows = []) {
+        const localById = new Map((localRows || []).map((row) => [
+          String(row && (row.primitiveId || row.candidateId || row.id) || ''),
+          row,
+        ]));
+        const ranked = (modelRows || []).filter((row) => localById.has(String(row.primitiveId || '')))
+          .slice()
+          .sort((a, b) => (
+            Number(a.rank || 0) - Number(b.rank || 0) ||
+            Number(b.score || 0) - Number(a.score || 0) ||
+            String(a.primitiveId || '').localeCompare(String(b.primitiveId || ''))
+          ));
+        const localScores = ranked.map((row) => clamp01(Number(localById.get(String(row.primitiveId)).score || 0)));
+        const floor = localScores.length ? Math.min(...localScores) : 0;
+        const ceiling = localScores.length ? Math.max(...localScores) : 0;
+        return new Map(ranked.map((row, index) => {
+          const rankScore = ranked.length > 1 ? 1 - index / (ranked.length - 1) : 1;
+          const bandScore = floor + (ceiling - floor) * rankScore;
+          return [String(row.primitiveId), {
+            rank: index,
+            rankScore,
+            bandScore,
+          }];
+        }));
+      }
+
+    function applyRankBandRerank(localRows, modelRows, evaluatedRows, sortRows) {
+        const rowId = (row) => String(row && (row.primitiveId || row.candidateId || row.id) || '');
+        const byId = new Map((localRows || []).map((row) => [rowId(row), { ...row }]));
         const modelIds = new Set();
-        const evaluatedIds = new Set((evaluatedRows || []).map((row) => String(
-          row && (row.primitiveId || row.candidateId || row.id) || ''
-        )).filter(Boolean));
+        const rankBand = rerankerRankBand(localRows, modelRows);
+        const evaluatedIds = new Set((evaluatedRows || []).map(rowId).filter(Boolean));
         for (const modelRow of modelRows || []) {
-          const existing = byId.get(modelRow.primitiveId);
+          const id = rowId(modelRow);
+          const existing = byId.get(id);
           if (!existing) continue;
-          modelIds.add(modelRow.primitiveId);
+          modelIds.add(id);
           const modelScore = clamp01(Number(modelRow.score || 0));
+          const band = rankBand.get(id);
           existing.modelRerankScore = Number(modelScore.toFixed(4));
-          existing.modelRerankRank = Number(modelRow.rank || 0);
+          existing.modelRerankRank = Number(band && band.rank || 0);
+          existing.modelRerankRankScore = Number((band && band.rankScore || 0).toFixed(4));
+          existing.modelRerankBandScore = Number((band && band.bandScore || existing.score || 0).toFixed(4));
           existing.modelRerankReason = modelRow.reason || '';
           existing.modelRerankEvaluated = true;
-          existing.score = Number(Math.min(
-            1,
-            existing.score * RERANK_MODEL_BLEND.localWeight + modelScore * RERANK_MODEL_BLEND.modelWeight
-          ).toFixed(4));
-          byId.set(modelRow.primitiveId, existing);
+          existing.score = existing.modelRerankBandScore;
+          byId.set(id, existing);
         }
         if (evaluatedIds.size) {
-          for (const [primitiveId, existing] of byId) {
-            if (modelIds.has(primitiveId)) continue;
+          for (const [id, existing] of byId) {
+            if (modelIds.has(id)) continue;
             existing.modelRerankScore = 0;
             existing.modelRerankRank = Number.MAX_SAFE_INTEGER;
-            existing.modelRerankEvaluated = evaluatedIds.has(primitiveId);
+            existing.modelRerankEvaluated = evaluatedIds.has(id);
             if (existing.modelRerankEvaluated) {
-              existing.modelRerankReason = 'evaluated but not returned by reranker';
-              existing.score = Number(clamp01(
-                Number(existing.score || 0) * RERANK_MODEL_BLEND.localWeight
-              ).toFixed(4));
+              existing.modelRerankReason = 'evaluated but not returned; local score retained';
             } else {
               existing.modelRerankReason = 'outside model top-k; local score retained';
             }
-            byId.set(primitiveId, existing);
+            byId.set(id, existing);
           }
         }
-        return Array.from(byId.values()).sort((a, b) => (
+        return Array.from(byId.values()).sort(sortRows);
+      }
+
+    function applyModelRerank(localRows, modelRows, evaluatedRows = modelRows) {
+        return applyRankBandRerank(localRows, modelRows, evaluatedRows, (a, b) => (
           b.score - a.score ||
+          Number(b.modelRerankEvaluated === true) - Number(a.modelRerankEvaluated === true) ||
+          Number(a.modelRerankRank ?? Number.MAX_SAFE_INTEGER) - Number(b.modelRerankRank ?? Number.MAX_SAFE_INTEGER) ||
           Number(b.modelRerankScore || 0) - Number(a.modelRerankScore || 0) ||
           b.modelScore - a.modelScore ||
           a.primitiveId.localeCompare(b.primitiveId)
@@ -401,6 +439,8 @@
 
     Object.assign(scope, {
       normalizeRerankerRows,
+      rerankerRankBand,
+      applyRankBandRerank,
       applyModelRerank,
       rerankPriors,
       symbolicPromptMatch,

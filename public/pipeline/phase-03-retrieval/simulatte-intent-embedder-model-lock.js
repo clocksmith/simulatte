@@ -34,6 +34,7 @@
         manifest.runtime = {
           ...clonePinnedValue(lock.runtime),
           moduleUrl: resolveUrl(lock.doppler.moduleUrl, lockUrl),
+          deviceModuleUrl: resolveUrl(lock.doppler.deviceModuleUrl, lockUrl),
           storageModuleUrl: resolveUrl(lock.doppler.storageModuleUrl, lockUrl),
           kernelBasePath: resolveUrl(lock.doppler.kernelBasePath, lockUrl),
           runtimeConfig: clonePinnedValue(lock.embedding.runtimeConfig),
@@ -57,6 +58,7 @@
           'modelBaseUrl',
           'rerankerModelBaseUrl',
           'dopplerModuleUrl',
+          'dopplerDeviceModuleUrl',
           'dopplerKernelBasePath',
           'runtimeConfig',
         ];
@@ -113,6 +115,7 @@
         const doppler = lock.doppler || {};
         const packageInfo = doppler.package || {};
         requiredText(doppler.moduleUrl, 'model runtime lock doppler.moduleUrl');
+        requiredText(doppler.deviceModuleUrl, 'model runtime lock doppler.deviceModuleUrl');
         requiredText(doppler.storageModuleUrl, 'model runtime lock doppler.storageModuleUrl');
         requiredText(doppler.kernelBasePath, 'model runtime lock doppler.kernelBasePath');
         requiredText(packageInfo.name, 'model runtime lock doppler.package.name');
@@ -128,6 +131,8 @@
         }
         requiredPositiveInteger(reranker.maxCandidatesPerCall, 'model runtime lock reranker.maxCandidatesPerCall');
         requiredPositiveInteger(reranker.maxSlotCandidatesPerCall, 'model runtime lock reranker.maxSlotCandidatesPerCall');
+        requiredPositiveInteger(reranker.maxCandidateTermsPerDocument, 'model runtime lock reranker.maxCandidateTermsPerDocument');
+        requiredPositiveInteger(reranker.scoreCacheMaxEntries, 'model runtime lock reranker.scoreCacheMaxEntries');
         validatePinnedModel(reranker.model, 'reranker', false, reranker.conversion);
         if (!reranker.runtimeConfig) throw new Error('model runtime lock reranker.runtimeConfig is required');
         validateLockedRuntime(lock.runtime, lock.runtimeOrder, lock.cache, lock.embedding);

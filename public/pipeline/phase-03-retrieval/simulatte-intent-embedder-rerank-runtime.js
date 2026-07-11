@@ -59,6 +59,7 @@
     function selectedTokenRerankProvider(handle, selectedRuntime, runtime, config, backend, modelBaseUrl) {
       const scoringConfig = rerankScoringConfig(handle, config);
       let activePrefix = null;
+      const scoreCache = new Map();
       return {
         backend,
         async rerank(input) {
@@ -76,6 +77,22 @@
             activePrefix = prefix;
             for (let i = 0; i < rows.length; i += 1) {
               const row = rows[i];
+              const executionStarted = nowMs();
+              const cachedScore = readRerankScoreCache(scoreCache, row.prompt);
+              if (cachedScore) {
+                scored.push({
+                  ...cachedScore,
+                  primitiveId: row.primitiveId,
+                  documentIndex: row.documentIndex,
+                  scoreCacheHit: true,
+                  executionDurationMs: 0,
+                });
+                emitRerankProgress(input, row, i + 1, rows.length, {
+                  ...rerankProgressDetails(cachedScore, elapsedMsSince(executionStarted)),
+                  scoreCacheHit: true,
+                });
+                continue;
+              }
               let result;
               if (prefix) {
                 try {
@@ -101,15 +118,22 @@
                   await resetRerankerHandle(handle, selectedRuntime.target, config);
                 }
               }
-              scored.push(rerankScoreRow(row, result, scoringConfig, {
+              const scoredRow = rerankScoreRow(row, result, scoringConfig, {
                 backend,
                 modelBaseUrl,
                 scoringPath: prefix ? 'prefix-selected-token-logits' : 'selected-token-logits',
                 promptTokenCount: prefix ? row.tokenIds.length : Number(result && result.tokens && result.tokens.length || 0),
                 prefixTokenCount: prefix ? prefix.length : 0,
                 prefixStateReused: prefix ? prefix.cacheHit : false,
-              }));
-              emitRerankProgress(input, row, i + 1, rows.length);
+              });
+              scoredRow.executionDurationMs = elapsedMsSince(executionStarted);
+              scoredRow.scoreCacheHit = false;
+              writeRerankScoreCache(scoreCache, row.prompt, scoredRow, config.scoreCacheMaxEntries);
+              scored.push(scoredRow);
+              emitRerankProgress(input, row, i + 1, rows.length, {
+                ...rerankProgressDetails(scoredRow, scoredRow.executionDurationMs),
+                scoreCacheHit: false,
+              });
             }
           } catch (error) {
             activePrefix = null;
@@ -191,6 +215,7 @@
           const scored = [];
           for (let i = 0; i < rows.length; i += 1) {
             const row = rows[i];
+            const executionStarted = nowMs();
             await resetRerankerHandle(handle, target, config);
             let result;
             try {
@@ -201,12 +226,17 @@
             } finally {
               await resetRerankerHandle(handle, target, config);
             }
-            scored.push(rerankScoreRow(row, result, scoringConfig, {
+            const scoredRow = rerankScoreRow(row, result, scoringConfig, {
               backend,
               modelBaseUrl,
               scoringPath: 'full-logits',
-            }));
-            emitRerankProgress(input, row, i + 1, rows.length);
+            });
+            scoredRow.executionDurationMs = elapsedMsSince(executionStarted);
+            scored.push(scoredRow);
+            emitRerankProgress(input, row, i + 1, rows.length, {
+              ...rerankProgressDetails(scoredRow, scoredRow.executionDurationMs),
+              scoreCacheHit: false,
+            });
           }
           return rankedRerankRows(scored);
         },
@@ -217,8 +247,12 @@
       const query = String(input && input.prompt || input && input.query || '').trim();
       if (!query) throw new Error(`Doppler reranker ${config.id} requires a query`);
       const limit = rerankerInputCandidateLimit(input, config);
+      const maxTerms = Number(config.maxCandidateTermsPerDocument);
+      if (!Number.isInteger(maxTerms) || maxTerms < 1) {
+        throw new Error(`Doppler reranker ${config.id} requires maxCandidateTermsPerDocument`);
+      }
       return (input && input.candidates || []).slice(0, limit).map((candidate, index) => {
-        const document = rerankCandidateText(candidate, runtime);
+        const document = rerankCandidateText(candidate, runtime, maxTerms);
         if (!document) return null;
         return {
           candidate,
@@ -291,19 +325,42 @@
         row && row.scoringPath === 'prefix-selected-token-logits' && Number(row.prefixTokenCount || 0) > 0
       ));
       const prefixTokenCounts = prefixRows.map((row) => Number(row.prefixTokenCount));
+      const scoreCacheHitCount = rows.filter((row) => row && row.scoreCacheHit === true).length;
+      const executionDurations = rows.filter((row) => row && row.scoreCacheHit !== true)
+        .map((row) => Number(row.executionDurationMs || 0))
+        .filter((value) => Number.isFinite(value) && value >= 0);
+      const totalExecutionDurationMs = executionDurations.reduce((sum, value) => sum + value, 0);
       return {
         scoringPaths,
         selectedTokenLogitCount,
+        selectedTokenExecutionCount: Math.max(0, selectedTokenLogitCount - scoreCacheHitCount),
         prefixKvReuseCount: prefixRows.length,
         prefixStateReuseCount: prefixRows.filter((row) => row.prefixStateReused === true).length,
+        scoreCacheHitCount,
+        totalExecutionDurationMs: Number(totalExecutionDurationMs.toFixed(3)),
+        meanExecutionDurationMs: executionDurations.length
+          ? Number((totalExecutionDurationMs / executionDurations.length).toFixed(3))
+          : 0,
+        maximumExecutionDurationMs: executionDurations.length
+          ? Number(Math.max(...executionDurations).toFixed(3))
+          : 0,
         minimumPrefixTokenCount: prefixTokenCounts.length ? Math.min(...prefixTokenCounts) : 0,
         maximumPrefixTokenCount: prefixTokenCounts.length ? Math.max(...prefixTokenCounts) : 0,
       };
     }
 
-    function emitRerankProgress(input, row, completed, total) {
+    function emitRerankProgress(input, row, completed, total, details = {}) {
       if (typeof input.onProgress !== 'function') return;
-      input.onProgress({ completed, total, candidateId: row.primitiveId });
+      input.onProgress({ completed, total, candidateId: row.primitiveId, ...details });
+    }
+
+    function rerankProgressDetails(row = {}, executionDurationMs = 0) {
+      return {
+        promptTokenCount: Number(row.promptTokenCount || 0),
+        prefixTokenCount: Number(row.prefixTokenCount || 0),
+        prefixStateReused: row.prefixStateReused === true,
+        executionDurationMs: Number(Number(executionDurationMs || 0).toFixed(3)),
+      };
     }
 
     function rerankerInputCandidateLimit(input, config) {
@@ -361,21 +418,51 @@
       return `${config.prefix}${input}`;
     }
 
-    function rerankCandidateText(candidate, runtime) {
+    function rerankCandidateText(candidate, runtime, maxTerms) {
       const direct = candidate && (candidate.candidateText || candidate.text || candidate.description);
-      if (direct) return String(direct);
       const primitiveId = String(candidate && candidate.primitiveId || '');
       const doc = primitiveId && runtime && runtime.index && runtime.index.byId
         ? runtime.index.byId.get(primitiveId)
         : null;
-      if (doc && doc.candidateText) return String(doc.candidateText);
-      return [
+      const source = direct || doc && doc.candidateText || [
         primitiveId,
         candidate && candidate.layer,
         candidate && candidate.type,
         ...(candidate && candidate.domains || []),
         ...(candidate && candidate.matchedTerms || []),
       ].filter(Boolean).join(' ');
+      return compactRerankCandidateText(source, maxTerms);
+    }
+
+    function compactRerankCandidateText(value, maxTerms) {
+      const limit = Number(maxTerms);
+      if (!Number.isInteger(limit) || limit < 1) {
+        throw new Error('reranker maxCandidateTermsPerDocument must be a positive integer');
+      }
+      const metadataTerms = new Set([
+        'simulatte', 'surface', 'card', 'type', 'label', 'class', 'part', 'shape',
+        'material', 'behavior', 'constraint', 'port', 'primitive', 'description',
+      ]);
+      const terms = fallbackFeatureTokens(value).filter((term) => !metadataTerms.has(term));
+      return terms.slice(0, limit).join(' ');
+    }
+
+    function readRerankScoreCache(cache, key) {
+      const value = cache.get(key);
+      if (!value) return null;
+      cache.delete(key);
+      cache.set(key, value);
+      return value;
+    }
+
+    function writeRerankScoreCache(cache, key, value, maxEntries) {
+      const limit = Number(maxEntries);
+      if (!Number.isInteger(limit) || limit < 1) {
+        throw new Error('reranker scoreCacheMaxEntries must be a positive integer');
+      }
+      cache.delete(key);
+      cache.set(key, value);
+      while (cache.size > limit) cache.delete(cache.keys().next().value);
     }
 
     function sigmoid(value) {
@@ -393,7 +480,11 @@
       formatRerankPrompt,
       formatRerankPromptPrefix,
       rerankCandidateText,
+      compactRerankCandidateText,
+      readRerankScoreCache,
+      writeRerankScoreCache,
       rerankExecutionSummary,
+      rerankProgressDetails,
       sigmoid,
     });
   }

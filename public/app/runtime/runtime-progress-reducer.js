@@ -25,10 +25,14 @@
           totalBytes: numericMetric(event.totalBytes),
           cacheMode: event.cacheMode || '',
           cacheWorker: event.cacheWorker || '',
+          bytesPerSecond: numericMetric(event.bytesPerSecond),
+          eta: event.eta || '',
+          operationId: numericMetric(event.operationId),
+          queueDepth: numericMetric(event.queueDepth),
           cacheBackends: Array.isArray(event.cacheBackends)
             ? event.cacheBackends.join(',')
             : event.cacheBackends || '',
-        }, 12);
+        }, 18);
       }
 
     function embeddingReceipt(event = {}) {
@@ -46,11 +50,29 @@
         }, 12);
       }
 
+    function rerankerReceipt(event = {}) {
+        return compactObject({
+          slotId: event.slotId || '',
+          candidateId: event.candidateId || '',
+          completed: numericMetric(event.completed),
+          total: numericMetric(event.total),
+          candidateCount: numericMetric(event.candidateCount),
+          scoreCacheHit: event.scoreCacheHit === true,
+          promptTokenCount: numericMetric(event.promptTokenCount),
+          prefixTokenCount: numericMetric(event.prefixTokenCount),
+          prefixStateReused: event.prefixStateReused === true,
+          executionDurationMs: numericMetric(event.executionDurationMs),
+        }, 12);
+      }
+
     function timingReceipt(event = {}) {
         return compactObject({
           timestamp: event.timestamp || '',
           durationMs: numericMetric(event.durationMs),
           elapsedMs: numericMetric(event.elapsedMs),
+          queueWaitMs: numericMetric(event.queueWaitMs),
+          schedulerLagMs: numericMetric(event.schedulerLagMs),
+          handlerDurationMs: numericMetric(event.handlerDurationMs),
           timing: event.timing || '',
           traceId: event.traceId || '',
           rankId: event.rankId || 0,
@@ -228,11 +250,82 @@
         return `${text.slice(0, 69).trim()}...`;
       }
 
-    function logRuntimeProgress(view, event = {}) {
-        if (!traceEnabled(view) || !view || !view.console || typeof view.console.info !== 'function') return;
-        const payload = { ...(event || {}) };
-        delete payload.rawEvent;
-        view.console.info('[simulatte.runtime]', payload.stage || 'event', payload);
+    function visibleRuntimeProgressChanged(previous = {}, next = {}) {
+        if (!next || typeof next !== 'object') return false;
+        return String(previous.displayLine || previous.line || '') !== String(next.displayLine || next.line || '') ||
+          String(previous.message || '') !== String(next.message || '') ||
+          String(previous.detail || '') !== String(next.detail || '') ||
+          String(previous.subline || '') !== String(next.subline || '') ||
+          String(previous.runId || '') !== String(next.runId || '') ||
+          String(previous.state || '') !== String(next.state || '') ||
+          String(previous.stage || '') !== String(next.stage || '') ||
+          Number(previous.progress || 0) !== Number(next.progress || 0);
+      }
+
+    function runtimeProgressLogReceipt(previous = {}, next = {}, event = {}, context = {}) {
+        if (!visibleRuntimeProgressChanged(previous, next)) return null;
+        const timestampMs = eventTimestampMs(event, next.lastEventAt);
+        const runStartedAtMs = Number(context.runStartedAtMs || timestampMs);
+        const lastProgressLogAtMs = Number(context.lastProgressLogAtMs || 0);
+        const loaderDurationMs = Number(next.loaderReceipt && next.loaderReceipt.durationMs || 0);
+        const completedBytes = Number(next.resource && next.resource.completedBytes || 0);
+        return {
+          schema: PROGRESS_LOG_SCHEMA,
+          sequence: Math.max(1, Number(context.sequence || 1)),
+          timestamp: isoFromTimestamp(timestampMs, event.timestamp),
+          timestampMs,
+          runId: String(next.runId || ''),
+          state: String(next.state || ''),
+          blocking: next.blocking === true,
+          phase: compactObject(next.phase || {}, 8),
+          stage: String(next.stage || ''),
+          sourceStage: String(next.sourceStage || event.stage || ''),
+          source: String(next.source || event.source || ''),
+          progress: boundedProgress(next.progress || 0),
+          line: String(next.displayLine || next.line || next.message || ''),
+          label: String(next.label || ''),
+          subline: String(next.subline || ''),
+          message: String(next.message || ''),
+          detail: String(next.detail || event.message || ''),
+          transitionMs: lastProgressLogAtMs > 0 ? Math.max(0, timestampMs - lastProgressLogAtMs) : 0,
+          runElapsedMs: Math.max(0, timestampMs - runStartedAtMs),
+          throughputBytesPerSecond: loaderDurationMs > 0 && completedBytes > 0
+            ? Math.round(completedBytes / (loaderDurationMs / 1000))
+            : 0,
+          model: compactObject(next.model || {}, 16),
+          resource: compactObject(next.resource || {}, 16),
+          embeddings: compactObject(next.embeddings || {}, 16),
+          reranker: rerankerReceipt(event),
+          timing: compactObject(next.timing || {}, 16),
+          loaderReceipt: compactObject(next.loaderReceipt || null, 24),
+        };
+      }
+
+    function logRuntimeProgress(view, previous = {}, next = {}, event = {}, context = {}) {
+        const receipt = runtimeProgressLogReceipt(previous, next, event, context);
+        if (!receipt) {
+          if (traceEnabled(view) && view && view.console && typeof view.console.info === 'function') {
+            const payload = { ...(event || {}) };
+            delete payload.rawEvent;
+            view.console.info('[simulatte.runtime:trace]', payload.stage || 'event', payload);
+          }
+          return null;
+        }
+        if (view) {
+          const logs = Array.isArray(view.__simulatteRuntimeProgressLogs)
+            ? view.__simulatteRuntimeProgressLogs
+            : [];
+          logs.push(receipt);
+          while (logs.length > MAX_PROGRESS_LOGS) logs.shift();
+          view.__simulatteRuntimeProgressLogs = logs;
+          if (view.console && typeof view.console.info === 'function') {
+            const detail = receipt.detail && receipt.detail !== receipt.line
+              ? ` | ${receipt.detail}`
+              : '';
+            view.console.info(`[Simulatte][Progress] #${receipt.sequence} ${receipt.line}${detail}`, receipt);
+          }
+        }
+        return receipt;
       }
 
     function traceEnabled(view) {
@@ -269,6 +362,7 @@
       modelReceipt,
       resourceReceipt,
       embeddingReceipt,
+      rerankerReceipt,
       timingReceipt,
       runtimeTimingSuffix,
       runtimeResourceSuffix,
@@ -289,6 +383,8 @@
       longerRuntimeText,
       formatRuntimeDuration,
       compactRuntimeMessage,
+      visibleRuntimeProgressChanged,
+      runtimeProgressLogReceipt,
       logRuntimeProgress,
       traceEnabled,
       compactObject,

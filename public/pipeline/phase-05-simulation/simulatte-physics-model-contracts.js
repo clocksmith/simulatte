@@ -118,18 +118,14 @@
         buildGroundedInterpretation,
       } = groundedModule || {};
 
-    const PHASE_ZERO_INPUT_SCHEMA = 'simulatte.phase0.input.v1';
-
-    const PHASE_OUTPUT_SCHEMAS = Object.freeze({
-      1: 'simulatte.phase1.output.v1',
-      2: 'simulatte.phase2.output.v1',
-      3: 'simulatte.phase3.output.v2',
-      4: 'simulatte.phase4.output.v2',
-      5: 'simulatte.phase5.output.v2',
-      6: 'simulatte.phase6.output.v2',
-      7: 'simulatte.phase7.output.v2',
-      8: 'simulatte.phase8.output.v2',
-    });
+    const {
+      PHASE_CONTRACTS,
+      PHASE_OUTPUT_SCHEMAS,
+      PHASE_ZERO_INPUT_SCHEMA,
+    } = phaseContracts || {};
+    if (!PHASE_CONTRACTS || !PHASE_OUTPUT_SCHEMAS || !PHASE_ZERO_INPUT_SCHEMA) {
+      throw new Error('Simulatte phase contract module unavailable');
+    }
 
     const RENDER_EXECUTION_INPUT_SCHEMA = 'simulatte.renderExecutionInput.v1';
 
@@ -232,6 +228,7 @@
       buildActivationCloud,
       summarizeActivationCloud,
       buildGroundedInterpretation,
+      PHASE_CONTRACTS,
       PHASE_ZERO_INPUT_SCHEMA,
       PHASE_OUTPUT_SCHEMAS,
       RENDER_EXECUTION_INPUT_SCHEMA,

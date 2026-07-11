@@ -125,6 +125,7 @@ function main() {
   const doppler = lock.doppler || {};
   const dopplerPackage = doppler.package || {};
   requireLockedArtifact(doppler.moduleUrl, 'doppler.moduleUrl', 'file');
+  requireLockedArtifact(doppler.deviceModuleUrl, 'doppler.deviceModuleUrl', 'file');
   requireLockedArtifact(doppler.storageModuleUrl, 'doppler.storageModuleUrl', 'file');
   requireLockedArtifact(doppler.kernelBasePath, 'doppler.kernelBasePath', 'directory');
   requireText(dopplerPackage.name, 'doppler.package.name');
@@ -158,6 +159,8 @@ function main() {
   assertEqual(reranker.executeInPhase, 3, 'reranker.executeInPhase');
   requirePositiveInteger(reranker.maxCandidatesPerCall, 'reranker.maxCandidatesPerCall');
   requirePositiveInteger(reranker.maxSlotCandidatesPerCall, 'reranker.maxSlotCandidatesPerCall');
+  requirePositiveInteger(reranker.maxCandidateTermsPerDocument, 'reranker.maxCandidateTermsPerDocument');
+  requirePositiveInteger(reranker.scoreCacheMaxEntries, 'reranker.scoreCacheMaxEntries');
   assertEqual(reranker.execution?.selectedTokenLogits, 'required', 'reranker.execution.selectedTokenLogits');
   assertEqual(reranker.execution?.prefixKvReuse, 'required', 'reranker.execution.prefixKvReuse');
   assertEqual(reranker.execution?.statefulPrefixReuse, 'required', 'reranker.execution.statefulPrefixReuse');

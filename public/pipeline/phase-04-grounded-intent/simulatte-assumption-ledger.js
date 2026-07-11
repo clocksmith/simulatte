@@ -8,7 +8,8 @@
   }
   root.SimulatteAssumptionLedger = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAssumptionLedgerApi(schema = {}) {
-  const { slugify = defaultSlugify, uniqueStrings = unique } = schema;
+  const { slugify = defaultSlugify, uniqueStrings = unique, uniqueById } = schema;
+  if (typeof uniqueById !== 'function') throw new Error('Intent brief uniqueById contract unavailable');
 
   const ASSUMPTION_RULES = Object.freeze([
     assumption('assumption.rain-is-water', ['rain', 'storm', 'droplet'], 'water rain', 'Precipitation is treated as liquid water unless acid, methane, ammonia, or other chemistry is stated.', ['acid rain changes corrosion and pH response', 'methane rain changes cryogenic phase behavior']),
@@ -153,16 +154,6 @@
 
   function promptIncludesAny(prompt, terms) {
     return matchesAny(prompt, terms);
-  }
-
-  function uniqueById(rows) {
-    const seen = new Set();
-    return (rows || []).filter((row) => {
-      const key = row.id || JSON.stringify(row);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
   }
 
   function unique(values) {
