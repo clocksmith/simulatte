@@ -1,189 +1,115 @@
 # Simulatte
 
-## Intent
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fsimulatte.world&label=live)](https://simulatte.world)
+[![License: not declared](https://img.shields.io/badge/license-not%20declared-lightgrey.svg)](#license)
 
-Simulatte compiles natural language into executable world models: grounded
-representations of anything a person describes, rendered as inspectable moving
-simulations.
+[Open Simulatte](https://simulatte.world)
 
-The prompt is the source program. What it names, relates, constrains, causes,
-changes, measures, or implies should survive into the compiled world model
-unless Simulatte explicitly marks it unsupported or assumed. The world model
-must carry receipts: language evidence, grounding, assumptions, unsupported
-claims, causal structure, simulation structure, VisualIR, and renderer bindings.
+Simulatte compiles natural-language prompts into inspectable, moving world
+models in the browser. The prompt is source code. The compiler preserves the
+prompt's language evidence, grounds accepted meanings, and lowers them into
+physics and visual programs. WebGPU renders the scene, then Scene Proof checks
+the result against the prompt's visible obligations.
 
-The visible simulation is the product truth. It must clearly represent the
-prompt's specific intent without requiring logs or internal artifacts. Different
-meanings should produce meaningfully different worlds, behavior, and visual
-language; closely related prompts should preserve their differences; broadly
-different prompts should not collapse into the same scene.
+The visible simulation is product truth. Prompt-specific entities, relations,
+materials, motion, fields, and causal processes must appear in the moving
+world. Unsupported meaning remains explicit in the receipts.
 
-Simulatte is not a prompt-to-template toy, generic shader demo, keyword
-visualizer, fixed example gallery, or model hallucinating physics. It is a
-browser-native natural-language simulation pipeline with deterministic receipts,
-grounded world models, and prompt-faithful visual execution.
+## Product contract
 
-Front-door promise:
+| Guarantee | Contract |
+| --- | --- |
+| Traceable | Language spans, clauses, quantities, modifiers, negation, and causal terms remain linked to downstream artifacts. |
+| Grounded | Accepted world nodes carry provenance. Assumptions, alternatives, unresolved spans, and unsupported concepts stay explicit. |
+| Executable | Grounded intent lowers into PhysicsIR, a solver graph, state channels, controls, readouts, VisualIR, and a scene packet. |
+| Visible | WebGPU consumes the compiled scene packet. Scene Proof settles whether required objects and processes reached the pixels. |
 
-> Prompt a world. Resolve intent into a world model. Run the simulation.
+The mandatory rules live in [STYLE_GUIDE.md](STYLE_GUIDE.md). The
+[pipeline contract](public/pipeline/README.md) owns phase authority, inputs, and
+outputs.
 
-Simulatte uses browser-native simulation surfaces for entities, fields, motion,
-materials, constraints, controls, causal processes, ledgers, visible state
-evolution, and WebGPU visual execution. The front door is a single prompt.
-Example prompts are convenience inputs, not product boundaries.
+## Eight-phase compiler
 
-## Product Contract
+Each phase consumes the exact output of the previous phase plus allowed runtime
+context.
 
-- The prompt is compiled, not decorated. Prompt terms must be preserved as
-  language evidence before they can become physics, visual atoms, or renderer
-  behavior.
-- The compiled world model is inspectable. It carries receipts for language
-  spans, accepted activations, retrieved evidence, assumptions, unsupported
-  claims, causal edges, PhysicsIR, simulation channels, VisualIR, graphics atom
-  mappings, and renderer uniform bindings.
-- The simulation is executable. The renderer should consume compiled artifacts
-  rather than raw prompt text or broad scene buckets.
-- The visual output is the user-facing proof. Prompt-specific entities,
-  relations, materials, fields, motion, and causal processes must be visible
-  enough that different meanings produce different worlds.
-- If Simulatte cannot support part of the prompt, it must say so in receipts
-  instead of silently inventing unsupported physics.
-
-## Eight-Phase Pipeline
-
-1. Runtime: load the browser runtime, model hooks, catalogs, and worker fallback.
-2. Language graph: preserve prompt spans, clauses, predicates, quantities,
-   modifiers, negation, and causal language.
-3. Retrieval: use Qwen embedding, Qwen reranking, and deterministic catalog retrieval to find
-   candidate primitives, materials, components, examples, causal rows, and
-   visual cards.
-4. Activation cloud: bind spans to candidate meanings and visual signals.
-5. Grounded intent: accept evidence-backed meanings, expose unresolved spans,
-   and build assumptions, alternatives, causal edges, and visual affordances.
-6. Simulation compile: lower the grounded world into PhysicsIR, validation,
-   solver graph, channels, state, controls, and readouts.
-7. VisualIR compile: compose entities, geometry, materials, fields, processes,
-   motion, camera, receipts, graphics atoms, uniform slots, and WGSL operator
-   bindings.
-8. WebGPU execution: render the compiled world model as a moving scene and keep
-   the visible output tied to VisualIR and graphics atoms.
-
-## Runtime Artifacts
-
-- `spec.intent.intentBrief`: canonical intent receipt with language evidence,
-  activation cloud, grounded interpretation, causal graph, assumptions, and
-  visual intent.
-- `spec.universeGraph`: grounded world graph built from accepted evidence.
-- `spec.physicsIR`: typed simulation contract, operators, couplings, state
-  fields, readouts, assumptions, and validation.
-- `spec.solverGraph`: executable update channels and solver steps.
-- `spec.renderIR.intentBriefReceipt`: compact handoff from grounded intent into
-  render compilation.
-- `spec.renderProgram.visualIR`: visual program for entities, materials, fields,
-  processes, motion, camera, causal affordances, receipts, and graphics atoms.
-- `spec.renderProgram.visualIR.graphicsAtoms`: operator mappings, language
-  signals, uniforms, WGSL operators, and renderer-facing visual slots.
-
-## Browser Modules
-
-App code is split around the four product components:
-
-- `public/app/main.js` and `public/app/version-guard.js`: startup and version checks.
-- `public/app/loading/`: snake loading canvas and loading presentation.
-- `public/app/prompt/`: prompt input, run/shuffle behavior, status, debug, and review UI.
-- `public/app/simulation/`: simulation canvas host, app-side simulation state,
-  readouts, scenario behavior, and simulation graphics helpers.
-- `public/pipeline/`: the strict eight-phase prompt-to-render engine that powers
-  the simulation canvas.
-
-- `public/pipeline/phase-02-language/simulatte-language-evidence.js`: language-first span and predicate
-  evidence.
-- `public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js`: model-backed retrieval over
-  precomputed primitive, surface-card, and universe indexes.
-- `public/pipeline/phase-03-retrieval/simulatte-activation-cloud.js`: span-to-candidate activations and
-  native visual signal rows.
-- `public/pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js`: accepted activations,
-  evidence bindings, unresolved spans, and coverage gaps.
-- `public/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js`: canonical intent brief assembly.
-- `public/pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js`: grounded world graph and compact
-  downstream intent receipts.
-- `public/pipeline/phase-05-simulation/simulatte-physics-ir.js`: typed simulation IR.
-- `public/pipeline/phase-06-visual/simulatte-composition-graph.js`: VisualIR and graphics atom
-  composition.
-- `public/pipeline/phase-07-render/simulatte-webgpu-renderer.js`: browser-native visual execution from
-  compiled VisualIR and graphics atom uniforms.
-- `public/app/prompt/prompt-controller.js`: browser UI coordinator, prompt
-  runtime, worker fallback, receipts, and live simulation loop.
-
-## Quality Gates
-
-- `npm test` checks pipeline structure, artifacts, catalog drift, VisualIR
-  mappings, false-positive gates, and browser contracts.
-- `npm run audit:pipeline` scores every pipeline phase against the current floor
-  and records history, baseline, weakest phase, and regressions.
-- `npm run audit:visual` runs the browser visual rubric locally against prompt
-  diversity, signal coverage, scene diversity, screenshots, canvas motion, and
-  representation quality.
-- `npm run eval:live` runs the same visual rubric against the deployed page.
-
-## Boundary
-
-Simulatte is not a D4DA archive, Reploid agent room, Grid wrapper, Dream demo,
-or new separate product. Grid, Dream, Reploid, D4DA, Doppler, Doe, and Plasma
-can later integrate only as packaged dependencies. The first product loop is
-owned here:
+| Phase | Question | Output |
+| --- | --- | --- |
+| [1. Runtime](public/pipeline/phase-01-runtime/) | Are the required models, indexes, caches, and providers proven? | Runtime readiness and model, index, reranker, provider, and cache receipts. |
+| [2. Language](public/pipeline/phase-02-language/) | What did the prompt say? | Tokens, spans, clauses, predicates, quantities, negation, relations, and query plans. |
+| [3. Retrieval](public/pipeline/phase-03-retrieval/) | What evidence activates each prompt obligation? | Ranked candidates, reranker provenance, activation weights, conflicts, negative evidence, and coverage. |
+| [4. Grounded intent](public/pipeline/phase-04-grounded-intent/) | What world meaning does the compiler accept? | Grounded world graph, rejected evidence, assumptions, alternatives, and unsupported concepts. |
+| [5. Simulation](public/pipeline/phase-05-simulation/) | What executable physics follows from that world? | PhysicsIR, solver graph, RenderIR, state channels, controls, and readouts. |
+| [6. Visual](public/pipeline/phase-06-visual/) | What scene represents the simulation? | VisualIR, render instances, camera, lights, passes, graphics atoms, and scene packet. |
+| [7. Render](public/pipeline/phase-07-render/) | What did WebGPU draw? | Pixels, frame state, identity receipts, and timing receipts. |
+| [8. Scene Proof](public/pipeline/phase-08-scene-proof/) | Which composition obligations reached the render? | Settled obligations, verdict, explicit losses, and not-proven receipts. |
 
 ```text
-prompt -> intent -> world model -> simulation spec -> continuous render -> export/remix
+prompt -> evidence -> grounded world -> simulation -> visual program
+       -> WebGPU pixels -> scene proof
 ```
 
-## Local Check
+Phase 3 retrieves and weights evidence. Phase 4 accepts meaning. Phase 6 owns
+visual composition. Phase 7 draws the compiled scene without adding semantics.
+Phase 8 checks the result without adding scene content.
+
+## Run locally
 
 ```bash
 npm test
 npm run serve
 ```
 
-`npm run serve` serves `public/` and mounts the sibling Doppler repo at
-same-origin `/doppler/`. The intent manifest defaults to the pinned Qwen
-embedding and reranker artifact URLs. For local artifact testing, pass an
-override such as
-`?embeddingModelBase=/doppler/models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32`.
+`npm run serve` serves `public/` and mounts the sibling Doppler repository at
+same-origin `/doppler/`. The
+[model-runtime lock](public/data/simulatte-embedder/model-runtime-lock.json)
+owns the Doppler package version, embedding and reranker identities, manifest
+hashes, artifact URLs, and integrity values.
+
+For a local artifact, override the embedding base URL in the browser:
+
+```text
+?embeddingModelBase=/doppler/models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32
+```
+
+## Evidence gates
+
+| Command | Proof |
+| --- | --- |
+| `npm test` | Phase boundaries, artifact shapes, catalog drift, deterministic output, VisualIR mappings, false-positive guards, and browser contracts. |
+| `npm run audit:pipeline` | Model-backed phase receipts, scores, weakest phase, regressions, and audit history. |
+| `npm run audit:visual` | Local screenshots, canvas motion, signal coverage, representation quality, and prompt diversity. |
+| `npm run eval:live` | The visual rubric against the deployed Firebase surface. |
+| `npm run check:deploy` | Model lock, vendored Doppler integrity, and the deploy surface before Firebase stamps the build. |
+
+Screenshots and hashes are evidence inputs. The pipeline receipts and settled
+obligations explain what the render represented and what it lost.
+
+## Start here
+
+| Reader | Entry points |
+| --- | --- |
+| Users | [Live application](https://simulatte.world) |
+| UI contributors | [Browser app](public/app/) and [simulation host](public/app/simulation/) |
+| Pipeline contributors | [Pipeline contract](public/pipeline/README.md) and [style guide](STYLE_GUIDE.md) |
+| Runtime and catalog maintainers | [Model-runtime lock](public/data/simulatte-embedder/model-runtime-lock.json), [data contracts](public/data/), and [vendored Doppler](public/vendor/doppler/) |
+| Evidence and deploy operators | [Repository commands](package.json) and [deployment runbook](docs/deployment.md) |
 
 ## Deployment
 
-This repo deploys static Firebase Hosting to project `simulatte-world`.
-The deploy preflight verifies that `public/vendor/doppler` matches the pinned
-`doppler-gpu@0.4.7` npm package before stamping the build.
-
-The machine has multiple Firebase accounts, so always check the active account
-before deploying:
+Firebase Hosting serves `public/` from project `simulatte-world`. The predeploy
+hook runs the deploy gate and stamps the build.
 
 ```bash
-firebase login:list
-firebase login:use <account-email>
-firebase use
-```
-
-The deploy commands pin the project explicitly:
-
-```bash
+npm run firebase:check
 npm run deploy:preview
 npm run deploy:hosting
 ```
 
+Account selection, account-pinned scripts, authentication recovery, and domain
+checks live in [docs/deployment.md](docs/deployment.md).
 
-If the CLI reports expired credentials, reauthenticate the selected account:
+## License
 
-```bash
-firebase login --reauth
-```
-
-`https://simulatte.world` and `https://simulatte-world.web.app` should both
-serve the `simulatte-world` Firebase Hosting site when the custom domain is
-attached to this project. Verify the active domain target with:
-
-```bash
-curl -I https://simulatte.world
-curl -I https://simulatte-world.web.app
-```
+`package.json` marks this repository private and does not declare a license. No
+standalone `LICENSE` file is present.

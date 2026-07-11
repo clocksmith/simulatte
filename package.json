@@ -35,7 +35,13 @@
     "benchmark:universe": "node tools/benchmark-semantic-coverage.mjs",
     "firebase:whoami": "firebase login:list && firebase use",
     "firebase:check": "firebase login:list && firebase use && firebase hosting:sites:list --project simulatte-world",
+    "firebase:check:d4da": "firebase --account \"$SIMULATTE_FIREBASE_D4DA_ACCOUNT\" hosting:sites:list --project simulatte-world",
+    "firebase:check:personal": "firebase --account \"$SIMULATTE_FIREBASE_PERSONAL_ACCOUNT\" hosting:sites:list --project simulatte-world",
     "deploy:preview": "firebase hosting:channel:deploy preview --project simulatte-world",
-    "deploy:hosting": "firebase deploy --only hosting --project simulatte-world"
+    "deploy:preview:d4da": "firebase --account \"$SIMULATTE_FIREBASE_D4DA_ACCOUNT\" hosting:channel:deploy preview --project simulatte-world",
+    "deploy:preview:personal": "firebase --account \"$SIMULATTE_FIREBASE_PERSONAL_ACCOUNT\" hosting:channel:deploy preview --project simulatte-world",
+    "deploy:hosting": "firebase deploy --only hosting --project simulatte-world",
+    "deploy:hosting:d4da": "firebase --account \"$SIMULATTE_FIREBASE_D4DA_ACCOUNT\" deploy --only hosting --project simulatte-world",
+    "deploy:hosting:personal": "firebase --account \"$SIMULATTE_FIREBASE_PERSONAL_ACCOUNT\" deploy --only hosting --project simulatte-world"
   }
 }
