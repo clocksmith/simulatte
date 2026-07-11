@@ -948,7 +948,10 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /this\.canvas\.hidden = true/);
   assert.match(loadingCanvas, /const FADE_MS = 160/);
   assert.match(loadingCanvas, /const MIN_SNAKES = 2/);
-  assert.match(loadingCanvas, /const MAX_SNAKES = 10/);
+  assert.match(loadingCanvas, /const MAX_SNAKES = 16/);
+  assert.match(loadingCanvas, /const START_LENGTH = 8/);
+  assert.match(loadingCanvas, /const MIN_SPAWN_LENGTH = 2/);
+  assert.match(loadingCanvas, /const MAX_SNAKE_LENGTH = 64/);
   assert.match(loadingCanvas, /const TARGET_CELL_PX = 32/);
   assert.match(loadingCanvas, /const MIN_CELL_PX = 18/);
   assert.match(loadingCanvas, /const MAX_CELL_PX = 40/);
@@ -969,8 +972,8 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /const RECT_TURN_BONUS = 2\.1/);
   assert.match(loadingCanvas, /const SPIRAL_SPAWN_ATTEMPTS = 180/);
   assert.match(loadingCanvas, /const STEP_MS = 260/);
-  assert.match(loadingCanvas, /const MIN_STEP_MS = 150/);
-  assert.match(loadingCanvas, /const STAGE_SPEEDUP_MS = 40/);
+  assert.match(loadingCanvas, /const MIN_SPEED_MULTIPLIER = 0\.5/);
+  assert.match(loadingCanvas, /const MAX_SPEED_MULTIPLIER = 4/);
   assert.match(loadingCanvas, /const SEGMENT_FADE_MS = 180/);
   assert.match(loadingCanvas, /const SEGMENT_STAGGER_MS = 34/);
   assert.match(loadingCanvas, /const MIN_TAIL_ALPHA = 0\.3/);
@@ -1009,6 +1012,8 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(loadingCanvas, /queueExitSnake/);
   assert.match(loadingCanvas, /pruneExitSnakes/);
   assert.match(loadingCanvas, /targetDensity/);
+  assert.match(loadingCanvas, /targetSpeedMultiplier/);
+  assert.match(loadingCanvas, /targetStepMs/);
   assert.match(loadingCanvas, /targetSnakeCount/);
   assert.match(loadingCanvas, /targetSnakeLength/);
   assert.match(loadingCanvas, /spawnLength/);

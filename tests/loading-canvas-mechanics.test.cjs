@@ -154,17 +154,36 @@ test('loading snake density starts sparse and increases with progress', () => {
   const instance = controller([]);
 
   instance.progress = 0;
-  instance.stageCode = 0;
+  instance.stageCode = 0.94;
+  instance.indeterminate = false;
   assert.equal(instance.targetSnakeCount(), 2);
-  assert.equal(instance.targetSnakeLength(), 7);
+  assert.equal(instance.targetSnakeLength(), 8);
   instance.resetSwarm();
   assert.equal(instance.snakes.length, 2);
 
   instance.progress = 1;
   instance.enforcePopulation();
-  assert.equal(instance.targetSnakeCount(), 10);
+  assert.equal(instance.targetSnakeCount(), 16);
   assert.equal(instance.targetSnakeLength(), 64);
-  assert.equal(instance.snakes.length, 10);
+  assert.equal(instance.snakes.length, 16);
+});
+
+test('loading snake velocity scales from half speed to four times speed with progress', () => {
+  const instance = controller([]);
+  instance.stageCode = 0.94;
+  instance.indeterminate = false;
+
+  instance.progress = 0;
+  assert.equal(instance.targetSpeedMultiplier(), 0.5);
+  assert.equal(instance.targetStepMs(), 520);
+
+  instance.progress = 0.5;
+  assert.equal(instance.targetSpeedMultiplier(), 2.25);
+  assert.equal(instance.targetStepMs(), 260 / 2.25);
+
+  instance.progress = 1;
+  assert.equal(instance.targetSpeedMultiplier(), 4);
+  assert.equal(instance.targetStepMs(), 65);
 });
 
 test('loading snake spawn appears as a grid spiral before normal travel', () => {

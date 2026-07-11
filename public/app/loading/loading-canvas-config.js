@@ -4,9 +4,11 @@
   with (scope) {
     const MIN_SNAKES = 2;
 
-    const MAX_SNAKES = 10;
+    const MAX_SNAKES = 16;
 
-    const START_LENGTH = 7;
+    const START_LENGTH = 8;
+
+    const MIN_SPAWN_LENGTH = 2;
 
     const MAX_SNAKE_LENGTH = 64;
 
@@ -50,9 +52,9 @@
 
     const STEP_MS = 260;
 
-    const MIN_STEP_MS = 150;
+    const MIN_SPEED_MULTIPLIER = 0.5;
 
-    const STAGE_SPEEDUP_MS = 40;
+    const MAX_SPEED_MULTIPLIER = 4;
 
     const FADE_MS = 160;
 
@@ -68,6 +70,7 @@
       MIN_SNAKES,
       MAX_SNAKES,
       START_LENGTH,
+      MIN_SPAWN_LENGTH,
       MAX_SNAKE_LENGTH,
       TARGET_CELL_PX,
       MIN_CELL_PX,
@@ -89,8 +92,8 @@
       RECT_TURN_BONUS,
       SPIRAL_SPAWN_ATTEMPTS,
       STEP_MS,
-      MIN_STEP_MS,
-      STAGE_SPEEDUP_MS,
+      MIN_SPEED_MULTIPLIER,
+      MAX_SPEED_MULTIPLIER,
       FADE_MS,
       SEGMENT_FADE_MS,
       SEGMENT_STAGGER_MS,

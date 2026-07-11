@@ -88,7 +88,7 @@
           if (!this.running) return;
           this.frameNow = Number(now || 0);
           this.resize();
-          const speed = Math.max(MIN_STEP_MS, STEP_MS - this.stageCode * STAGE_SPEEDUP_MS);
+          const speed = this.targetStepMs();
           if (!this.lastStepAt || now - this.lastStepAt >= speed) {
             this.advanceSwarm(now, speed);
             this.lastStepAt = now;
@@ -127,8 +127,20 @@
           const stage = clamp(Number(this.stageCode || 0), 0, 1);
           const source = this.indeterminate
             ? Math.max(progress, stage * 0.8)
-            : Math.max(progress, stage * 0.35);
+            : progress;
           return Math.pow(clamp(source, 0, 1), 0.85);
+        }
+
+        targetSpeedMultiplier() {
+          const progress = clamp(Number(this.progress || 0), 0, 1);
+          const stage = clamp(Number(this.stageCode || 0), 0, 1);
+          const source = this.indeterminate ? Math.max(progress, stage) : progress;
+          return MIN_SPEED_MULTIPLIER +
+            clamp(source, 0, 1) * (MAX_SPEED_MULTIPLIER - MIN_SPEED_MULTIPLIER);
+        }
+
+        targetStepMs() {
+          return STEP_MS / this.targetSpeedMultiplier();
         }
 
         targetSnakeCount() {
@@ -257,7 +269,7 @@
             const length = this.spawnLength();
             if (!this.spawnSnake(length, now) &&
               !this.spawnSnake(START_LENGTH, now) &&
-              !this.spawnSnake(Math.max(4, Math.floor(START_LENGTH * 0.72)), now)) {
+              !this.spawnSnake(MIN_SPAWN_LENGTH, now)) {
               break;
             }
           }
