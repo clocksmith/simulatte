@@ -283,10 +283,6 @@
                 canvasLoading: showCanvasLoader,
               });
               if (serial !== buildSerial || token !== compileSerial) return false;
-              publishCompiledPhaseProgress(nextSpec, {
-                backend: result.backend,
-                canvasLoading: showCanvasLoader,
-              });
               setSpec(nextSpec, { visible: true });
               publishRuntime({
                 state: 'active',
@@ -405,34 +401,20 @@
           if (stateReadout) stateReadout.textContent = 'intent model failed';
         }
 
-        function publishCompiledPhaseProgress(compiledSpec, options = {}) {
-          const artifacts = compiledSpec && compiledSpec.phaseArtifacts || {};
-          [
-            [2, 'language', 35, 'Language graph ready'],
-            [3, 'retrieval', 60, 'Retrieval and activation fused'],
-            [4, 'grounding', 73, 'Grounded intent ready'],
-            [5, 'simulation', 83, 'Simulation compiled'],
-            [6, 'visual', 93, 'VisualIR ready'],
-          ].forEach(([phase, stage, percent, message]) => {
-            if (!artifacts[`phase${phase}`]) return;
-            publishRuntime({
-              state: 'active',
-              stage,
-              percent,
-              message,
-              backend: options.backend,
-              canvasLoading: options.canvasLoading,
-            });
-          });
-        }
-
         async function compilePromptSpec(prompt, options, event = {}) {
           const workerDetail = pipelineCompiler ? 'pipeline worker' : 'main-thread fallback';
+          const onPhaseProgress = (progressEvent = {}) => publishRuntime({
+            ...progressEvent,
+            backend: event.backend,
+            canvasLoading: event.canvasLoading,
+          });
           publishRuntime({
             state: 'active',
-            stage: event.stage || 'language',
+            stage: 'pipeline-dispatch',
+            taskPercent: 0,
+            progressScope: 'task',
             percent: event.percent || 31,
-            message: event.message || 'Parsing language',
+            message: 'Starting compiler',
             backend: event.backend,
             detail: event.detail || workerDetail,
             canvasLoading: event.canvasLoading,
@@ -440,16 +422,18 @@
           await waitForLoadingPaint();
           if (pipelineCompiler) {
             try {
-              return await pipelineCompiler.compile(prompt, options);
+              return await pipelineCompiler.compile(prompt, options, onPhaseProgress);
             } catch (error) {
               if (typeof console !== 'undefined' && console.warn) {
                 console.warn('[simulatte.pipeline] worker compile fell back to main thread', error);
               }
               publishRuntime({
                 state: 'active',
-                stage: event.stage || 'language',
+                stage: 'pipeline-dispatch',
+                taskPercent: 0,
+                progressScope: 'task',
                 percent: event.percent || 31,
-                message: event.message || 'Parsing language',
+                message: 'Restarting compiler on main thread',
                 backend: event.backend,
                 detail: error && error.message ? error.message : String(error || ''),
                 canvasLoading: event.canvasLoading,
@@ -457,7 +441,7 @@
               await waitForLoadingPaint();
             }
           }
-          return createSpecFromPrompt(prompt, options);
+          return createSpecFromPrompt(prompt, { ...options, onPhaseProgress });
         }
 
         function tick(now) {

@@ -183,6 +183,12 @@ test('loading snake density starts sparse and increases with progress', () => {
   assert.equal(instance.targetSnakeCount(), 16);
   assert.equal(instance.targetSnakeLength(), 64);
   assert.equal(instance.snakes.length, 16);
+
+  instance.progress = 0;
+  instance.enforcePopulation(1000);
+  assert.equal(instance.targetSnakeCount(), 2);
+  assert.equal(instance.snakes.length, 2);
+  assert.equal(instance.exitSnakes.length, 14);
 });
 
 test('loading snake velocity scales from half speed to four times speed with progress', () => {

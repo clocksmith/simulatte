@@ -859,7 +859,8 @@
     		      compositionLedger,
     		      frameReceipt
     		    );
-    		    const visualObligationProofSummary = summarizeRenderObligationProof(visualObligationProof);
+		    const visualObligationProofSummary = summarizeRenderObligationProof(visualObligationProof);
+		    const objectRealization = objectRealizationForScenePacket(sceneRenderPacket);
     		    const pixelAudit = frameReceipt.pixelAudit || renderPixelAudit(
     		      sceneRenderPacket,
     		      frameReceipt,
@@ -876,7 +877,8 @@
     	          renderExecutionInputSchema: renderExecutionInput.schema,
     	          sceneRenderPacketSchema: sceneRenderPacket.schema || '',
     		          rendered: frameReceipt.rendered === true,
-    		          packetIdentitySummary: scenePacketIdentitySummary(sceneRenderPacket),
+		          packetIdentitySummary: scenePacketIdentitySummary(sceneRenderPacket),
+		          objectRealization,
     		          visualObligationProof,
     		          visualObligationProofSummary,
     		          shaderPath: frameReceipt.shaderPath || frameReceipt.renderPath || '',

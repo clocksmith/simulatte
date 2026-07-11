@@ -60,7 +60,7 @@
       const started = nowMs();
       emitRuntimeProgress(progress, trace, {
         source: 'doppler',
-        stage: 'cache-storage',
+        stage: 'cache-read',
         percent: progressRange.start,
         message: `Opening verified OPFS cache for ${modelId}`,
         timing: 'start',

@@ -346,6 +346,9 @@
 
   function sceneHintForText(value = '') {
     const text = positiveLanguageText(value);
+    if (/\b(galaxy|galaxies|nebula|black hole|event horizon|planet|planets|moon|moons|star|stars|solar system)\b/.test(text)) {
+      return 'planetary-space';
+    }
     if (/\b(earthquake|tsunami|hurricane|tornado|wildfire|evacuation|air quality|hazard|mine ventilation|tunnel boring|urban heat|drought)\b/.test(text)) {
       return 'hazard-atmosphere';
     }

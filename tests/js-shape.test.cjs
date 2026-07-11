@@ -687,6 +687,8 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.ok(runtimeScriptManifest.pipelineWorker.includes('pipeline/phase-06-visual/simulatte-visual-operator-compiler.js'));
   assert.match(worker, /simulatte:pipeline-worker:compile/);
   assert.match(worker, /SimulattePhysicsModel\.createSpecFromPrompt/);
+  assert.match(worker, /simulatte:pipeline-worker:progress/);
+  assert.match(worker, /durationMs: taskPercent >= 100/);
   assert.match(worker, /type: 'simulatte:pipeline-worker:result'/);
   assert.match(renderer, /const pipelineCompiler = createPipelineCompiler\(root\)/);
   assert.match(renderer, /function createPipelineCompiler\(root\)/);
@@ -694,14 +696,15 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(renderer, /appendBuildVersion\(url, view\)/);
   assert.match(renderer, /new view\.Worker\(url\)/);
   assert.match(renderer, /function compilePromptSpec\(prompt, options, event = \{\}\)/);
-  assert.match(renderer, /pipelineCompiler\.compile\(prompt, options\)/);
+  assert.match(renderer, /pipelineCompiler\.compile\(prompt, options, onPhaseProgress\)/);
+  assert.match(renderer, /data\.type === 'simulatte:pipeline-worker:progress'/);
   assert.match(renderer, /worker compile fell back to main thread/);
-  assert.match(renderer, /return createSpecFromPrompt\(prompt, options\)/);
+  assert.match(renderer, /return createSpecFromPrompt\(prompt, \{ \.\.\.options, onPhaseProgress \}\)/);
   assert.match(renderer, /let compileSerial = 0/);
   assert.match(renderer, /token !== compileSerial/);
   assert.doesNotMatch(renderer, /Compiling preview simulation graph/);
   assert.match(renderer, /message: 'Parsing language'/);
-  assert.match(renderer, /publishCompiledPhaseProgress\(nextSpec/);
+  assert.doesNotMatch(renderer, /publishCompiledPhaseProgress/);
   assert.doesNotMatch(renderer, /stage: 'compile',\n\s+percent: 94/);
 
   assert.match(intentWorker, /const SCRIPT_ORDER = Object\.freeze/);
@@ -868,16 +871,17 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /const SCENE_PACKET_FLOATS = SCENE_PACKET_OBJECT_SLOTS \* 12/);
   assert.match(webgpuRenderer, /const GPU_SCENE_INSTANCE_CAPACITY = 32/);
   assert.match(webgpuRenderer, /const GPU_SCENE_INSTANCE_FLOATS = 12/);
+  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_CAPACITY = 256/);
+  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 16/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze/);
-  assert.match(webgpuRenderer, /'subgroups'/);
-  assert.match(webgpuRenderer, /'timestamp-query'/);
-  assert.match(webgpuRenderer, /'chromium-experimental-multi-draw-indirect'/);
+  assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze\(\[\]\)/);
   assert.match(webgpuRenderer, /const UNIFORM_FLOAT_COUNT = 144 \+ SCENE_PACKET_FLOATS/);
   assert.match(webgpuRenderer, /const RENDER_DATA_SCHEMA = 'simulatte\.phase7\.compactRenderData\.v1'/);
   assert.match(webgpuRenderer, /new Float32Array\(UNIFORM_FLOAT_COUNT\)/);
-  assert.match(webgpuRenderer, /sceneInstanceBuffer = this\.device\.createBuffer/);
-  assert.match(webgpuRenderer, /drawIndirectBuffer = this\.device\.createBuffer/);
-  assert.match(webgpuRenderer, /GPUBufferUsage\.STORAGE \| GPUBufferUsage\.INDIRECT \| GPUBufferUsage\.COPY_DST/);
+  assert.match(webgpuRenderer, /const WEBGPU_BACKGROUND_SHADER = `/);
+  assert.match(webgpuRenderer, /code: WEBGPU_BACKGROUND_SHADER/);
+  assert.match(webgpuRenderer, /entryPoint: 'backgroundVs'/);
+  assert.match(webgpuRenderer, /entryPoint: 'backgroundFs'/);
   assert.match(webgpuRenderer, /const PIXEL_READBACK_BYTES_PER_ROW = 256/);
   assert.match(webgpuRenderer, /usage: canvasTextureUsage\(\)/);
   assert.match(webgpuRenderer, /GPUTextureUsage\.RENDER_ATTACHMENT \| GPUTextureUsage\.COPY_SRC/);
@@ -887,13 +891,12 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /GPUBufferUsage\.COPY_DST \| GPUBufferUsage\.MAP_READ/);
   assert.match(webgpuRenderer, /readback\.buffer\.mapAsync\(GPUMapMode\.READ\)/);
   assert.match(webgpuRenderer, /source: 'webgpu-texture-copy-readback'/);
-  assert.match(webgpuRenderer, /const WEBGPU_SCENE_PREPARE_SHADER = `/);
-  assert.match(webgpuRenderer, /@compute @workgroup_size\(64\)/);
-  assert.match(webgpuRenderer, /var<storage, read> sceneInstances: array<SceneInstance>/);
-  assert.match(webgpuRenderer, /var<storage, read_write> visibleInstances: array<SceneInstance>/);
-  assert.match(webgpuRenderer, /atomicAdd\(&sceneStats\[0\], 1u\)/);
-  assert.match(webgpuRenderer, /computePass\.dispatchWorkgroups\(1\)/);
-  assert.match(webgpuRenderer, /pass\.drawIndirect\(this\.drawIndirectBuffer, 0\)/);
+  assert.doesNotMatch(webgpuRenderer, /const WEBGPU_SCENE_PREPARE_SHADER = `/);
+  assert.doesNotMatch(webgpuRenderer, /createComputePipeline/);
+  assert.match(webgpuRenderer, /this\.objectPartBuffer = this\.device\.createBuffer/);
+  assert.match(webgpuRenderer, /await this\.setupObjectPartPipeline\(\)/);
+  assert.match(webgpuRenderer, /pass\.draw\(3, 1, 0, 0\)/);
+  assert.match(webgpuRenderer, /pass\.draw\(6, this\.objectPartCount, 0, 0\)/);
   assert.match(webgpuRenderer, /const scenePacket = sceneRenderPacketFromExecutionInput\(renderExecutionInput\)/);
   assert.match(webgpuRenderer, /if \(this\.renderData && packet === this\.sceneRenderPacket\)/);
   assert.match(webgpuRenderer, /const packetKey = sceneRenderPacketRenderDataKey\(packet, sceneKind\)/);
@@ -910,6 +913,8 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /this\.sceneObjectUniforms = renderData\.sceneObjectUniforms/);
   assert.match(webgpuRenderer, /this\.sceneInstanceData = renderData\.sceneInstanceData/);
   assert.match(webgpuRenderer, /this\.sceneInstanceCount = renderData\.sceneInstanceCount/);
+  assert.match(webgpuRenderer, /this\.objectPartData = renderData\.objectPartData/);
+  assert.match(webgpuRenderer, /this\.objectPartCount = renderData\.objectPartCount/);
   assert.match(webgpuRenderer, /canvas\.dataset\.sceneMix = sceneMixSummary\(this\.sceneMix\)/);
   assert.match(webgpuRenderer, /canvas\.dataset\.visualIrLayers = visualIrLayerSummary\(this\.visualIrLayers\)/);
   assert.match(webgpuRenderer, /canvas\.dataset\.webgpuOptimizationPath = this\.gpuScenePath/);
@@ -925,13 +930,10 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /canvas\.dataset\.sceneRenderPacket = renderData\.summary/);
   assert.match(webgpuRenderer, /canvas\.dataset\.sceneObjectIdentities = renderData\.sceneObjectIdentitySummary/);
   assert.match(webgpuRenderer, /sceneMix0: vec4f/);
-  assert.match(webgpuRenderer, /visualIr0: vec4f/);
-  assert.match(webgpuRenderer, /sceneObj0: vec4f/);
-  assert.match(webgpuRenderer, /sceneStyle0: vec4f/);
-  assert.match(webgpuRenderer, /sceneIdentity0: vec4f/);
-  assert.match(webgpuRenderer, /@group\(0\) @binding\(1\) var<storage, read> visibleSceneInstances: array<SceneInstance>/);
-  assert.match(webgpuRenderer, /@group\(0\) @binding\(2\) var<storage, read> sceneStats: array<u32>/);
-  assert.match(webgpuRenderer, /fn storageSceneInstanceCount\(\) -> i32/);
+  assert.match(webgpuRenderer, /struct BackgroundUniforms/);
+  assert.match(webgpuRenderer, /struct ObjectPart/);
+  assert.match(webgpuRenderer, /@group\(0\) @binding\(1\) var<storage, read> objectParts: array<ObjectPart>/);
+  assert.doesNotMatch(webgpuRenderer, /visibleSceneInstances|sceneStats: array<u32>/);
   assert.doesNotMatch(webgpuRenderer, /LOADING_CANVAS|resolveLoadingCanvas|SimulatteLoadingCanvas/);
   assert.doesNotMatch(webgpuRenderer, /loadingGrid\(uv, t, u\.loading\.y, u\.loading\.z\)/);
   assert.doesNotMatch(webgpuRenderer, /\$\{LOADING_CANVAS\.shader\}/);
@@ -1092,7 +1094,8 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /function scenePacketIdentitySummary/);
   assert.match(webgpuRenderer, /function scenePacketSemanticCode/);
   assert.match(webgpuRenderer, /function addScenePacketLayers/);
-  assert.match(webgpuRenderer, /fn sceneRenderPacketScene/);
+  assert.match(webgpuRenderer, /const WEBGPU_BACKGROUND_SHADER = `/);
+  assert.match(webgpuRenderer, /const WEBGPU_OBJECT_SHADER = `/);
   assert.doesNotMatch(webgpuRenderer, /function addVisualIrLayerEvidence/);
   assert.match(webgpuRenderer, /function compressVisualIrLayerVector/);
   assert.match(webgpuRenderer, /function visualIrLayerSummary/);
@@ -1100,25 +1103,12 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /dominantAtomSlot/);
   assert.doesNotMatch(webgpuRenderer, /mergeFeatureVectors\(featureVector\(text\), graphicsAtomFeatureVector\(spec\)\)/);
   assert.doesNotMatch(webgpuRenderer, /renderProgram\.intentText|renderProgram\.prompt|rendererPlan\.intentText|renderIR\.prompt/);
-  assert.match(webgpuRenderer, /atomAt\(index: i32\)/);
-  assert.match(webgpuRenderer, /sceneMixAt\(index: i32\)/);
-  assert.match(webgpuRenderer, /visualIrAt\(index: i32\)/);
-  assert.match(webgpuRenderer, /scenePacketObjectAt\(index: i32\)/);
-  assert.match(webgpuRenderer, /scenePacketStyleAt\(index: i32\)/);
-  assert.match(webgpuRenderer, /atomStructuralScene/);
-  assert.match(webgpuRenderer, /capsuleLine/);
-  assert.match(webgpuRenderer, /rectMask/);
-  assert.match(webgpuRenderer, /atomOperatorOverlays/);
-  assert.match(webgpuRenderer, /graphComposedVisualIrScene/);
-  assert.match(webgpuRenderer, /composedVisualIrScene/);
-  assert.match(webgpuRenderer, /atomThermalPlume/);
-  assert.match(webgpuRenderer, /atomFluidRibbons/);
-  assert.match(webgpuRenderer, /atomQuantumFringes/);
-  assert.match(webgpuRenderer, /color = atomStructuralScene\(p, t, color\)/);
-  assert.match(webgpuRenderer, /color = graphComposedVisualIrScene\(p, t, color\)/);
-  assert.match(webgpuRenderer, /color = composedVisualIrScene\(p, t, color\)/);
-  assert.match(webgpuRenderer, /color = atomOperatorOverlays\(p, t, color\)/);
-  assert.doesNotMatch(webgpuRenderer, /sceneGroup == 13\.0 \|\| sceneGroup == 15\.0 \|\| sceneGroup == 17\.0 \|\| sceneGroup == 29\.0/);
+  assert.match(webgpuRenderer, /fn backgroundSceneMix\(index: i32\) -> f32/);
+  assert.match(webgpuRenderer, /fn objectPartMask\(local: vec2f, shape: f32\) -> f32/);
+  assert.match(webgpuRenderer, /fn objectSpiral\(local: vec2f\) -> f32/);
+  assert.match(webgpuRenderer, /fn objectWave\(local: vec2f\) -> f32/);
+  assert.match(webgpuRenderer, /pass\.draw\(6, this\.objectPartCount, 0, 0\)/);
+  assert.doesNotMatch(webgpuRenderer, /WEBGPU_SHADER_PARTS|sceneRenderPacketScene|atomStructuralScene/);
   assert.match(webgpuRenderer, /scenePacketUniformVector\(packet, 'visualLayers', VISUAL_IR_LAYER_SLOTS\.length\)/);
   assert.match(webgpuRenderer, /const codes = row\.renderCodes \|\| \{\}/);
   assert.match(webgpuRenderer, /this\.canvas\.dataset\.phase7Output = this\.phase7Output\.schema/);
@@ -1162,9 +1152,13 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(runtimeProgress, /return 'Prompt runtime ready 100%'/);
   assert.match(runtimeProgress, /function measuredFraction/);
   assert.match(runtimeProgress, /function weightedPercent/);
+  assert.match(runtimeProgress, /function runtimeTaskProgressState/);
+  assert.match(runtimeProgress, /function runtimeRunProgressState/);
+  assert.match(runtimeProgress, /function recordRuntimeTaskDuration/);
+  assert.match(runtimeProgress, /overallProgressBasis: 'observed-duration-forecast'/);
   assert.match(runtimeProgress, /completedBytes \/ totalBytes/);
-  assert.match(renderer, /function publishCompiledPhaseProgress/);
-  assert.match(renderer, /\[6, 'visual', 93, 'VisualIR ready'\]/);
+  assert.match(renderer, /const onPhaseProgress = \(progressEvent = \{\}\) => publishRuntime/);
+  assert.doesNotMatch(renderer, /publishCompiledPhaseProgress/);
   assert.match(renderer, /stage: 'render'/);
   assert.doesNotMatch(renderer, /stage: 'visual',\n\s+percent: 98/);
   assert.match(html, /--runtime-progress: 0%/);
@@ -1206,26 +1200,30 @@ test('runtime progress bus reduces granular producer events into one observable 
 
   assert.equal(frames.length, 1);
   assert.equal(seen.length, 0);
-  assert.equal(cacheState.schema, 'simulatte.runtimeProgressState.v1');
+  assert.equal(cacheState.schema, 'simulatte.runtimeProgressState.v2');
   assert.equal(cacheState.phase.id, 'prompt-runtime');
-  assert.equal(cacheState.progress, 15);
-  assert.equal(cacheState.line, 'Downloading model weights 15% - network - 50 B / 100 B');
+  assert.equal(cacheState.progress, 50);
+  assert.equal(cacheState.sourceProgress, 15);
+  assert.equal(cacheState.overallProgress, 0);
+  assert.equal(cacheState.progressBasis, 'measured-work');
+  assert.equal(cacheState.line, 'Downloading model weights 50% - network - 50 B / 100 B');
   assert.equal(cacheState.label, 'Downloading model weights');
-  assert.equal(cacheState.subline, 'network - 50 B / 100 B');
+  assert.equal(cacheState.subline, 'network - 50 B / 100 B - 45s estimated remaining');
   assert.equal(cacheState.byteText, '50 B / 100 B');
   assert.equal(cacheState.sourceText, 'network');
   assert.equal(cacheState.byteProgress, 'known');
-  assert.equal(cacheState.loaderReceipt.schema, 'simulatte.loaderPhaseReceipt.v1');
+  assert.equal(cacheState.loaderReceipt.schema, 'simulatte.loaderPhaseReceipt.v2');
   assert.equal(cacheState.loaderReceipt.status, 'active');
-  assert.equal(cacheState.loaderReceipt.percentStart, 15);
-  assert.equal(cacheState.loaderReceipt.percentEnd, 15);
+  assert.equal(cacheState.loaderReceipt.percentStart, 0);
+  assert.equal(cacheState.loaderReceipt.percentEnd, 50);
   assert.equal(cacheState.loaderReceipt.completedBytes, 50);
   assert.equal(cacheState.loaderReceipt.totalBytes, 100);
   controller.flush();
   assert.equal(seen.length, 1);
   assert.equal(seen[0].phase.id, 'activation-cloud');
-  assert.equal(seen[0].progress, 59);
-  assert.equal(seen[0].line, 'Embedding prompt spans 59%');
+  assert.equal(seen[0].progress, 50);
+  assert.equal(seen[0].sourceProgress, 59);
+  assert.equal(seen[0].line, 'Embedding prompt spans 50%');
 });
 
 test('runtime progress logs every visible transition as a benchmarkable receipt', () => {
@@ -1281,7 +1279,7 @@ test('runtime progress logs every visible transition as a benchmarkable receipt'
 
   assert.equal(consoleRows.length, 2);
   assert.match(consoleRows[0][0], /^\[Simulatte\]\[Progress\] #1 /);
-  assert.equal(consoleRows[0][1].schema, 'simulatte.runtimeProgressLog.v1');
+  assert.equal(consoleRows[0][1].schema, 'simulatte.runtimeProgressLog.v2');
   assert.equal(consoleRows[0][1].runId, 'timed-run');
   assert.equal(consoleRows[0][1].stage, 'runtime.cache.file');
   assert.equal(consoleRows[0][1].runElapsedMs, 0);
@@ -1455,7 +1453,7 @@ test('runtime progress ignores late active events for a completed run', () => {
   assert.equal(nextRun.blocking, true);
 });
 
-test('runtime progress uses explicit producer percent before measured counters', () => {
+test('runtime progress uses measured task work separately from legacy run percent', () => {
   const controller = runtimeProgressApi.createController({
     view: {
       requestAnimationFrame(callback) {
@@ -1478,12 +1476,13 @@ test('runtime progress uses explicit producer percent before measured counters',
   });
 
   assert.equal(state.phase.id, 'prompt-runtime');
-  assert.equal(state.progress, 66);
-  assert.equal(state.line, 'Downloading model weights 66% - network - shard_00001.bin - 50 B / 100 B');
-  assert.equal(state.subline, 'network - shard_00001.bin - 50 B / 100 B');
+  assert.equal(state.progress, 50);
+  assert.equal(state.sourceProgress, 66);
+  assert.equal(state.line, 'Downloading model weights 50% - network - shard_00001.bin - 50 B / 100 B');
+  assert.equal(state.subline, 'network - shard_00001.bin - 50 B / 100 B - 45s estimated remaining');
 });
 
-test('runtime progress stays monotonic during one active model load', () => {
+test('runtime progress resets for a transitional task while source progress stays monotonic', () => {
   const controller = runtimeProgressApi.createController({
     view: {
       requestAnimationFrame(callback) {
@@ -1519,14 +1518,116 @@ test('runtime progress stays monotonic during one active model load', () => {
     canvasLoading: true,
   });
 
-  assert.equal(rerankerCache.progress, 94);
-  assert.equal(rerankerCache.line, 'Downloading reranker model 94% - network - reranker-shard.bin - 10 B / 100 B');
+  assert.equal(rerankerCache.progress, 10);
+  assert.equal(rerankerCache.sourceProgress, 94);
+  assert.equal(rerankerCache.line, 'Downloading reranker model 10% - network - reranker-shard.bin - 10 B / 100 B');
   assert.equal(rerankerCache.label, 'Downloading reranker model');
-  assert.equal(rerankerCache.subline, 'network - reranker-shard.bin - 10 B / 100 B');
-  assert.equal(nextRun.progress, 1);
+  assert.equal(
+    rerankerCache.subline,
+    'network - reranker-shard.bin - 10 B / 100 B - 45s estimated remaining'
+  );
+  assert.equal(nextRun.progress, 0);
+  assert.equal(nextRun.sourceProgress, 1);
 });
 
-test('runtime progress heartbeat keeps active work visible without moving progress', () => {
+test('runtime progress learns task duration and still starts the next task at zero', () => {
+  const controller = runtimeProgressApi.createController({
+    view: {
+      requestAnimationFrame() {
+        return 1;
+      },
+      location: { search: '' },
+      console: { info() {} },
+    },
+  });
+
+  controller.publish({
+    runId: 'profile-a',
+    state: 'active',
+    stage: 'model-load',
+    percent: 70,
+    timestamp: 1000,
+  });
+  const visual = controller.publish({
+    runId: 'profile-a',
+    state: 'active',
+    stage: 'visual',
+    percent: 96,
+    timestamp: 3000,
+  });
+  controller.publish({
+    runId: 'profile-a',
+    state: 'ready',
+    stage: 'ready',
+    percent: 100,
+    timestamp: 3500,
+  });
+
+  assert.equal(visual.progress, 0);
+  assert.equal(controller.timingProfile().tasks['runtime.model.load'].averageDurationMs, 2000);
+
+  const nextStart = controller.publish({
+    runId: 'profile-b',
+    state: 'active',
+    stage: 'model-load',
+    percent: 70,
+    timestamp: 4000,
+  });
+  const nextUpdate = controller.publish({
+    runId: 'profile-b',
+    state: 'active',
+    stage: 'model-load',
+    percent: 70,
+    timestamp: 5000,
+  });
+
+  assert.equal(nextStart.progress, 0);
+  assert.equal(nextStart.taskExpectedDurationMs, 2000);
+  assert.equal(nextUpdate.progress, 50);
+  assert.equal(nextUpdate.taskElapsedMs, 1000);
+  const firstModelReceipt = controller.receipts().find((receipt) => (
+    receipt.runId === 'profile-a' && receipt.stage === 'runtime.model.load'
+  ));
+  assert.equal(firstModelReceipt.percentStart, 0);
+  assert.equal(firstModelReceipt.percentEnd, 100);
+});
+
+test('runtime cache hit completes the cache-read task instead of creating a task at one hundred', () => {
+  const controller = runtimeProgressApi.createController({
+    view: {
+      requestAnimationFrame() {
+        return 1;
+      },
+      location: { search: '' },
+      console: { info() {} },
+    },
+  });
+  const start = controller.publish({
+    runId: 'cache-run',
+    state: 'active',
+    stage: 'cache-read',
+    resourceKind: 'embedding-model',
+    timestamp: 1000,
+  });
+  const hit = controller.publish({
+    runId: 'cache-run',
+    state: 'active',
+    stage: 'cache-hit',
+    resourceKind: 'embedding-model',
+    completedBytes: 400,
+    totalBytes: 400,
+    timestamp: 1100,
+  });
+
+  assert.equal(start.progress, 0);
+  assert.equal(hit.progress, 100);
+  assert.equal(start.taskKey, 'runtime.cache.read:embedding-model');
+  assert.equal(hit.taskKey, start.taskKey);
+  assert.equal(controller.receipts().length, 1);
+  assert.equal(controller.receipts()[0].percentStart, 0);
+});
+
+test('runtime progress heartbeat advances elapsed-time task progress', () => {
   const scheduled = [];
   const frames = [];
   const view = {
@@ -1558,10 +1659,13 @@ test('runtime progress heartbeat keeps active work visible without moving progre
   scheduled[0].callback();
 
   const state = controller.state();
-  assert.equal(state.progress, 30);
-  assert.equal(state.line, 'Downloading model weights 30% - network');
-  assert.equal(state.heartbeatLine, 'Still downloading model weights 30% - network');
-  assert.equal(state.displayLine, 'Still downloading model weights 30% - network');
+  assert.equal(state.progress, 4);
+  assert.equal(state.sourceProgress, 30);
+  assert.equal(state.progressBasis, 'elapsed-time-forecast');
+  assert.equal(state.taskElapsedMs, 1600);
+  assert.equal(state.line, 'Downloading model weights 4% - network');
+  assert.equal(state.heartbeatLine, 'Still downloading model weights 4% - network');
+  assert.equal(state.displayLine, 'Still downloading model weights 4% - network');
   assert.equal(state.byteProgress, 'unknown');
   assert.equal(state.silenceMs, 1600);
   assert.equal(controller.performanceLogs().some((row) => row.kind === 'heartbeat-handler'), true);
@@ -1579,10 +1683,12 @@ test('runtime progress heartbeat keeps active work visible without moving progre
   assert.equal(node.dataset.heartbeat, 'true');
   assert.equal(node.dataset.activity, 'downloading model weights');
   assert.equal(node.dataset.byteProgress, 'unknown');
-  assert.equal(title.textContent, 'Still downloading model weights 30% - network');
-  assert.equal(percent.textContent, '30%');
-  assert.equal(node.dataset.subline, 'network');
-  assert.equal(node.dataset.loaderReceipt.includes('simulatte.loaderPhaseReceipt.v1'), true);
+  assert.equal(title.textContent, 'Still downloading model weights 4% - network');
+  assert.equal(percent.textContent, '4%');
+  assert.match(node.dataset.subline, /^network - 1\.6s elapsed,/);
+  assert.equal(node.dataset.taskProgress, '4');
+  assert.equal(node.dataset.sourceProgress, '30');
+  assert.equal(node.dataset.loaderReceipt.includes('simulatte.loaderPhaseReceipt.v2'), true);
 });
 
 test('runtime progress emits loader phase receipts with completion and duration', () => {
@@ -1628,12 +1734,12 @@ test('runtime progress emits loader phase receipts with completion and duration'
   });
 
   const receipts = controller.receipts();
-  assert.equal(receipts[0].schema, 'simulatte.loaderPhaseReceipt.v1');
+  assert.equal(receipts[0].schema, 'simulatte.loaderPhaseReceipt.v2');
   assert.equal(receipts[0].label, 'Downloading embedding model');
   assert.equal(receipts[0].status, 'complete');
   assert.equal(receipts[0].durationMs, 800);
-  assert.equal(receipts[0].percentStart, 44);
-  assert.equal(receipts[0].percentEnd, 44);
+  assert.equal(receipts[0].percentStart, 0);
+  assert.equal(receipts[0].percentEnd, 100);
   assert.equal(receipts[0].completedBytes, 312 * 1024 * 1024);
   assert.equal(receipts[0].totalBytes, 1200 * 1024 * 1024);
   assert.equal(receipts[0].sourceText, 'network');
@@ -1829,46 +1935,30 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   const loadingCanvas = runtimeSource('loading-canvas.js');
 
   for (const token of [
-    'atomStructuralScene',
-    'atomOperatorOverlays',
-    'atomThermalPlume',
-    'atomFluidRibbons',
-    'atomQuantumFringes',
-    'atomStressCracks',
-    'atomFeedbackArcs',
-    'atomNetworkPressure',
-    'cinematic3dScene',
-    'graphComposedVisualIrScene',
-    'composedVisualIrScene',
-    'sceneRenderPacketScene',
-    'scenePacketObjectMask',
-    'scenePacketIdentityAt',
-    'sceneMixAt',
-    'visualIrAt',
-    'scenePacketObjectAt',
+    'WEBGPU_BACKGROUND_SHADER',
+    'backgroundSceneMix',
+    'backgroundVs',
+    'backgroundFs',
+    'WEBGPU_OBJECT_SHADER',
+    'ObjectPart',
+    'objectParts',
+    'objectVs',
+    'objectFs',
+    'objectPartMask',
+    'objectEllipse',
+    'objectCapsule',
+    'objectTriangle',
+    'objectRing',
+    'objectStar',
+    'objectSpiral',
+    'objectWave',
+    'scenePacketObjectParts',
+    'scenePacketObjectPartStorageVector',
+    'scenePacketObjectRealization',
     'VISUAL_IR_LAYER_SLOTS',
     'visualIrLayerVector',
     'SCENE_MIX_SLOTS',
     'scenePacketUniformVector',
-    'loopPulse',
-    'waterLane',
-    'gasBubbles',
-    'heatBreath',
-    'muonTrackA',
-    'fieldSweep',
-    'calorimeterPulse',
-    'thin-film',
-    'sceneGroup == 33.0',
-    'sceneGroup == 34.0',
-    'biologicalAgent',
-    'waterVolume',
-    'detectorGeometry',
-    'nodeGraph',
-    'readoutPanel',
-    'trackLine',
-    'organicMatrix',
-    'bubbleVolume',
-    'causalAffordance',
   ]) {
     assert.match(webgpuRenderer, new RegExp(token));
   }
@@ -1907,9 +1997,7 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   assert.match(webgpuRenderer, /'thin-film': 34/);
   assert.match(webgpuRenderer, /fire: 33/);
   assert.match(webgpuRenderer, /'magnetic-machine': 4/);
-  for (const sceneGroup of ['3.0', '4.0', '6.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '33.0', '34.0', '35.0', '36.0']) {
-    assert.match(webgpuRenderer, new RegExp(`sceneGroup == ${sceneGroup}`));
-  }
+  assert.doesNotMatch(webgpuRenderer, /sceneGroup ==/);
   for (const pass of ['coil-field', 'film-frame', 'bead-stream', 'cooling-fins']) {
     assert.match(graph, new RegExp(pass));
   }
@@ -1943,46 +2031,28 @@ test('phase 8 renders compiled scene packets without semantic inference', () => 
   assert.match(webgpuRenderer, /row\.renderCodes \|\| \{\}/);
   assert.match(webgpuRenderer, /codes\.semanticCode/);
   assert.doesNotMatch(webgpuRenderer, /function visualTextFromSpec|function refineSceneKindFromText|function sceneKindFromSpec|function graphicsAtomFeatureVector|function composedSceneVector/);
-  assert.match(webgpuRenderer, /sceneRenderPacketScene\(p, t, color\)/);
-  assert.match(webgpuRenderer, /scenePacketStrength\(\)/);
-  assert.match(webgpuRenderer, /scenePacketLayerColor\(style\.x\)/);
-  assert.match(webgpuRenderer, /scenePacketIdentityAt\(i\)/);
+  assert.doesNotMatch(webgpuRenderer, /color = sceneRenderPacketScene\(p, t, color\)/);
+  assert.match(webgpuRenderer, /function scenePacketObjectParts/);
+  assert.match(webgpuRenderer, /function scenePacketObjectPartStorageVector/);
+  assert.match(webgpuRenderer, /const objectRealization = scenePacketObjectRealization\(packet\)/);
+  assert.match(webgpuRenderer, /pass\.draw\(6, this\.objectPartCount, 0, 0\)/);
+  assert.match(graph, /simulatte\.objectGeometryProgram\.v1/);
 
-  const shaderBody = webgpuRenderer.match(/fn graphComposedVisualIrScene\(p: vec2f, t: f32, base: vec3f\) -> vec3f \{[\s\S]*?return mix\(base, color, clamp\(0\.16 \+ layerTotal \* 0\.055, 0\.0, 0\.78\)\);\n\}/);
-  assert.ok(shaderBody, 'graphComposedVisualIrScene should be parseable');
-  for (const layerToken of [
-    'biologicalAgent',
-    'waterVolume',
-    'detectorGeometry',
-    'nodeGraph',
-    'readoutPanel',
-    'trackLine',
-    'fieldSheet',
-    'flowField',
-    'networkFlow',
-    'organicMatrix',
-    'bubbleVolume',
-    'constraintSurface',
-    'causalAffordance',
-    'processPulse',
-  ]) {
-    assert.match(shaderBody[0], new RegExp(layerToken));
-  }
+  const shaderBody = webgpuRenderer.match(/fn objectPartMask\(local: vec2f, shape: f32\) -> f32 \{[\s\S]*?return objectBox\(local, 0\.12\);\n\}/);
+  assert.ok(shaderBody, 'objectPartMask should be parseable');
   for (const primitive of [
-    'animalBodyA',
-    'waterBody',
-    'detectorShell',
-    'detectorPanel',
-    'graphNodes',
-    'graphPulse',
-    'dough',
-    'causalArrowA',
-  ]) {
-    assert.match(shaderBody[0], new RegExp(primitive));
-  }
+    'objectEllipse',
+    'objectBox',
+    'objectCapsule',
+    'objectTriangle',
+    'objectRing',
+    'objectStar',
+    'objectSpiral',
+    'objectWave',
+  ]) assert.match(shaderBody[0], new RegExp(primitive));
 });
 
-test('WebGPU scene id and operator contracts cover emitted visual artifacts', () => {
+test('WebGPU scene ids and object-part contracts cover emitted visual artifacts', () => {
   const webgpuRenderer = runtimeSource('simulatte-webgpu-renderer.js');
   const sceneBlock = webgpuRenderer.match(/const SCENE_IDS = Object\.freeze\(\{([\s\S]*?)\n\s*\}\);/);
   assert.ok(sceneBlock, 'SCENE_IDS block should be parseable');
@@ -1990,39 +2060,17 @@ test('WebGPU scene id and operator contracts cover emitted visual artifacts', ()
     Array.from(sceneBlock[1].matchAll(/['"]?([a-z0-9-]+)['"]?:\s*(\d+)/g))
       .map((match) => [match[1], Number(match[2])])
   );
-  const sceneBranches = new Set(
-    Array.from(webgpuRenderer.matchAll(/sceneGroup == ([0-9]+)\.0/g))
-      .map((match) => Number(match[1]))
-  );
-  const missingBranches = Object.entries(sceneIds)
-    .filter(([, id]) => !sceneBranches.has(id))
-    .map(([sceneKind, id]) => `${sceneKind}:${id}`);
-
-  assert.deepEqual(missingBranches, []);
+  assert.ok(Object.keys(sceneIds).length >= 40);
   assert.equal(sceneIds.cryosphere, sceneIds['ocean-cryosphere']);
   assert.notEqual(sceneIds['material-tray'], sceneIds['chemistry-lab']);
   assert.notEqual(sceneIds['cultural-material'], sceneIds.granular);
-
-  const atlasOperators = new Set(
-    visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS
-      .flatMap((row) => row.wgslOperators || [])
-  );
-  const wgslFns = new Set(
-    Array.from(webgpuRenderer.matchAll(/fn\s+(atom[A-Za-z0-9_]+)\s*\(/g))
-      .map((match) => match[1])
-  );
-  const missingFns = Array.from(atlasOperators)
-    .filter((operator) => !wgslFns.has(operator))
-    .sort();
-  const unusedFns = Array.from(atlasOperators)
-    .filter((operator) => {
-      const escaped = operator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      return (webgpuRenderer.match(new RegExp(`\\b${escaped}\\s*\\(`, 'g')) || []).length < 2;
-    })
-    .sort();
-
-  assert.deepEqual(missingFns, []);
-  assert.deepEqual(unusedFns, []);
+  assert.match(webgpuRenderer, /fn backgroundSceneMix/);
+  assert.match(webgpuRenderer, /const OBJECT_PART_SHAPE_CODES = Object\.freeze/);
+  assert.match(webgpuRenderer, /pass\.draw\(6, this\.objectPartCount, 0, 0\)/);
+  assert.doesNotMatch(webgpuRenderer, /sceneGroup ==|fn\s+atom[A-Za-z0-9_]+\s*\(/);
+  assert.ok(visualOperatorAtlas.VISUAL_OPERATOR_MAPPINGS.every((row) => (
+    Array.isArray(row.uniformSlots) && row.uniformSlots.length > 0
+  )));
 });
 
 test('physics graph debug data is explicit and does not log every compiled world', () => {
@@ -2210,7 +2258,7 @@ test('intent runtime keeps one visible line and does not silently fallback local
   assert.match(runtimeProgress, /node\.dataset\.activity = String\(state\.activity/);
   assert.match(runtimeProgress, /elements\.title\.textContent = titleLine/);
   assert.match(runtimeProgress, /elements\.stage\.textContent = subline \|\| state\.phase\.label/);
-  assert.match(runtimeProgress, /LOADER_RECEIPT_SCHEMA = 'simulatte\.loaderPhaseReceipt\.v1'/);
+  assert.match(runtimeProgress, /LOADER_RECEIPT_SCHEMA = 'simulatte\.loaderPhaseReceipt\.v2'/);
   assert.match(runtimeProgress, /__simulatteLoaderPhaseReceipts/);
   assert.match(runtimeProgress, /__simulatteRuntimeProgressLogs/);
   assert.match(runtimeProgress, /__simulatteRuntimePerformanceLogs/);
@@ -2335,6 +2383,11 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   const universeManifest = { ...rawUniverseManifest, embedModel: modelRuntimeLock.embedding };
   const packedBytes = Buffer.from(index.embeddingsPackedBase64, 'base64');
   const cardPackedBytes = Buffer.from(cardIndex.embeddingsPackedBase64, 'base64');
+
+  assert.equal(
+    (runtime.match(/input\.onProgress\(\{ completed: 0, total: input\.candidates\.length \}\)/g) || []).length,
+    2
+  );
 
   assert.equal(manifest.schema, 'simulatte.modelBackedEmbedderManifest.v3');
   assert.equal(manifest.id, 'simulatte-model-backed-intent-retrieval-v1');

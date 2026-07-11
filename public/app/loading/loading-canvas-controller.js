@@ -275,9 +275,9 @@
               break;
             }
           }
-          if (this.snakes.length > MAX_SNAKES) {
+          if (this.snakes.length > target) {
             this.snakes.sort((a, b) => b.cells.length - a.cells.length);
-            const removed = this.snakes.splice(MAX_SNAKES);
+            const removed = this.snakes.splice(target);
             removed.forEach((snake) => this.queueExitSnake(snake, now));
           }
         }

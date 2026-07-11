@@ -783,10 +783,18 @@ function moduleFamilySource(dir, prefix) {
 }
 
 function scoreWebGpu(context, liveResult) {
-  const webgpuSource = moduleFamilySource(
-    path.join(ROOT, 'public', 'pipeline', 'phase-07-render'),
-    'simulatte-webgpu-renderer'
-  );
+  const webgpuDir = path.join(ROOT, 'public', 'pipeline', 'phase-07-render');
+  const webgpuSource = [
+    'simulatte-webgpu-renderer-dependencies.js',
+    'simulatte-webgpu-renderer-constants.js',
+    'simulatte-webgpu-renderer-renderer-class.js',
+    'simulatte-webgpu-renderer-packets.js',
+    'simulatte-webgpu-renderer-pixel-proof.js',
+    'simulatte-webgpu-renderer-gpu-data.js',
+    'simulatte-webgpu-renderer-background-shader.js',
+    'simulatte-webgpu-renderer-object-shader.js',
+    'simulatte-webgpu-renderer.js',
+  ].map((file) => fsSync.readFileSync(path.join(webgpuDir, file), 'utf8')).join('\n');
   const atoms = context.graphicsAtoms || {};
   const visual = context.visualIR || {};
   const scenePacket = context.visualCompile && context.visualCompile.sceneRenderPacket || {};
@@ -819,14 +827,15 @@ function scoreWebGpu(context, liveResult) {
     /emptySceneRenderPacket/.test(webgpuSource),
     /scenePacketObjectUniformVector/.test(webgpuSource),
     /scenePacketIdentitySummary/.test(webgpuSource),
-    /composedVisualIrScene/.test(webgpuSource),
-    /graphComposedVisualIrScene/.test(webgpuSource),
-    /sceneRenderPacketScene/.test(webgpuSource),
-    /scenePacketIdentityAt\(index: i32\)/.test(webgpuSource),
+    /scenePacketObjectParts/.test(webgpuSource),
+    /scenePacketObjectPartStorageVector/.test(webgpuSource),
+    /scenePacketObjectRealization/.test(webgpuSource),
+    /WEBGPU_BACKGROUND_SHADER/.test(webgpuSource),
+    /WEBGPU_OBJECT_SHADER/.test(webgpuSource),
+    /objectPartMask/.test(webgpuSource),
+    /pass\.draw\(6, this\.objectPartCount/.test(webgpuSource),
     /scenePacketSemanticCode/.test(webgpuSource),
-    /sceneMixAt\(index: i32\)/.test(webgpuSource),
-    /visualIrAt\(index: i32\)/.test(webgpuSource),
-    /scenePacketObjectAt\(index: i32\)/.test(webgpuSource),
+    /backgroundSceneMix/.test(webgpuSource),
     /canvas\.dataset\.sceneMix/.test(webgpuSource),
     /canvas\.dataset\.visualIrLayers/.test(webgpuSource),
     /canvas\.dataset\.sceneRenderPacket/.test(webgpuSource),
@@ -850,9 +859,9 @@ function scoreWebGpu(context, liveResult) {
     ])
   );
   let score = sumParts([
-    part(8, /visualIR/.test(webgpuSource)),
+    part(8, /visualIrLayerVector/.test(webgpuSource)),
     part(8, /scenePacketAtomUniformVector/.test(webgpuSource)),
-    part(8, /WEBGPU_SHADER/.test(webgpuSource)),
+    part(8, /WEBGPU_BACKGROUND_SHADER/.test(webgpuSource) && /WEBGPU_OBJECT_SHADER/.test(webgpuSource)),
     part(8, atomValues.some((value) => Number(value || 0) > 0)),
     part(8, visual.sceneKind && visual.sceneKind !== 'generic'),
     part(14, staticSignalCoverage.coverage),
@@ -861,13 +870,14 @@ function scoreWebGpu(context, liveResult) {
     part(8, scenePacket.schema === 'simulatte.sceneRenderPacket.v1'),
     part(4, packetSpatialRatio),
     part(4, packetIdentityRatio),
-    part(4, /sceneRenderPacketScene/.test(webgpuSource)),
+    part(4, /scenePacketObjectParts/.test(webgpuSource) && /pass\.draw\(6, this\.objectPartCount/.test(webgpuSource)),
   ]);
   const detail = {
     sceneKind: visual.sceneKind || '',
-    shaderUsesVisualIR: /visualIR/.test(webgpuSource),
+    shaderUsesVisualIR: /visualIrLayerVector/.test(webgpuSource),
     shaderUsesAtomUniforms: /scenePacketAtomUniformVector/.test(webgpuSource),
-    shaderUsesSceneRenderPacket: /sceneRenderPacketScene/.test(webgpuSource),
+    shaderUsesSceneRenderPacket: /scenePacketObjectParts/.test(webgpuSource),
+    shaderUsesLiteralObjectGeometry: /WEBGPU_OBJECT_SHADER/.test(webgpuSource) && /objectPartMask/.test(webgpuSource),
     rendererRejectsSemanticInference: !/function visualTextFromSpec|function refineSceneKindFromText|function sceneKindFromSpec|renderProgram|renderIR|retrieval/.test(webgpuSource),
     atomUniformCount: atomValues.filter((value) => Number(value || 0) > 0).length,
     sceneRenderPacket: scenePacket.schema || '',

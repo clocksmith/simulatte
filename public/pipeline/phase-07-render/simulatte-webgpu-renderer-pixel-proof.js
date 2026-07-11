@@ -17,7 +17,7 @@
     	    return identity.sourceLabel || identity.label || identity.type || row.label || row.id || row.layerSlot || 'object';
     	  }
 
-    function scenePacketIdentitySummary(packet, sceneKind = '') {
+    function scenePacketCompactIdentitySummary(packet, sceneKind = '') {
         const drawables = scenePacketUniformDrawables(packet, sceneKind).slice(0, SCENE_PACKET_OBJECT_SLOTS);
         return scenePacketIdentitySummaryForDrawables(drawables);
       }
@@ -365,7 +365,7 @@
     Object.assign(scope, {
       scenePacketVariantCode,
       scenePacketIdentityLabel,
-      scenePacketIdentitySummary,
+      scenePacketCompactIdentitySummary,
       scenePacketIdentitySummaryForDrawables,
       sceneObjectUniformSummary,
       sceneObjectUniformSummaryForDrawables,

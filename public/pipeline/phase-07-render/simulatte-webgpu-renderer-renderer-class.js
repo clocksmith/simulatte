@@ -54,11 +54,10 @@
           this.sceneObjectUniforms = new Float32Array(SCENE_PACKET_FLOATS);
           this.sceneInstanceData = new Float32Array(GPU_SCENE_INSTANCE_CAPACITY * GPU_SCENE_INSTANCE_FLOATS);
           this.sceneInstanceCount = 0;
-          this.sceneInstanceBufferDirty = true;
-          this.sceneStatsBufferDirty = true;
-          this.drawIndirectBufferDirty = true;
-          this.gpuScenePath = 'uniform-fullscreen';
-          this.computeSceneReady = false;
+          this.objectPartData = new Float32Array(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_FLOATS);
+          this.objectPartCount = 0;
+          this.objectPartBufferDirty = true;
+          this.gpuScenePath = 'background-plus-instanced-object-parts';
           this.webgpuFeatureReceipt = makeDefaultWebGpuFeatureReceipt();
           this.palette = paletteToVec4(PALETTES.machine);
           this.metrics = { heat: 0.35, flow: 0.45, density: 0.48, bloom: 0.56, motion: 0.42 };
@@ -97,47 +96,31 @@
               size: this.uniforms.byteLength,
               usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             });
-            this.sceneInstanceBuffer = this.device.createBuffer({
-              size: GPU_SCENE_INSTANCE_CAPACITY * GPU_SCENE_INSTANCE_BYTES,
+            this.objectPartBuffer = this.device.createBuffer({
+              size: GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES,
               usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-            });
-            this.visibleSceneInstanceBuffer = this.device.createBuffer({
-              size: GPU_SCENE_INSTANCE_CAPACITY * GPU_SCENE_INSTANCE_BYTES,
-              usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-            });
-            this.sceneStatsBuffer = this.device.createBuffer({
-              size: GPU_SCENE_STATS_BYTES,
-              usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-            });
-            this.drawIndirectBuffer = this.device.createBuffer({
-              size: GPU_DRAW_INDIRECT_BYTES,
-              usage: GPUBufferUsage.STORAGE | GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
             });
             this.bindGroupLayout = this.device.createBindGroupLayout({
               entries: [
                 { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
-                { binding: 1, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
-                { binding: 2, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
               ],
             });
-            const shader = this.device.createShaderModule({ code: WEBGPU_SHADER });
+            const shader = this.device.createShaderModule({ code: WEBGPU_BACKGROUND_SHADER });
             this.pipeline = this.device.createRenderPipeline({
               layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.bindGroupLayout] }),
-              vertex: { module: shader, entryPoint: 'vs' },
-              fragment: { module: shader, entryPoint: 'fs', targets: [{ format: this.format }] },
+              vertex: { module: shader, entryPoint: 'backgroundVs' },
+              fragment: { module: shader, entryPoint: 'backgroundFs', targets: [{ format: this.format }] },
               primitive: { topology: 'triangle-list' },
             });
             this.bindGroup = this.device.createBindGroup({
               layout: this.bindGroupLayout,
               entries: [
                 { binding: 0, resource: { buffer: this.uniformBuffer } },
-                { binding: 1, resource: { buffer: this.visibleSceneInstanceBuffer } },
-                { binding: 2, resource: { buffer: this.sceneStatsBuffer } },
               ],
             });
             const pipelineError = await this.device.popErrorScope();
             if (pipelineError) throw new Error(pipelineError.message || 'WebGPU pipeline validation failed');
-            await this.setupComputeScenePrepare();
+            await this.setupObjectPartPipeline();
             this.device.lost.then((info) => {
               this.ready = false;
               this.status = `WebGPU device lost: ${info && info.message ? info.message : 'unknown'}`;
@@ -158,47 +141,50 @@
           }
         }
 
-        async setupComputeScenePrepare() {
-          this.computeSceneReady = false;
-          this.gpuScenePath = 'storage-fragment-uniform-fallback';
-          try {
-            this.device.pushErrorScope('validation');
-            this.scenePrepareBindGroupLayout = this.device.createBindGroupLayout({
-              entries: [
-                { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
-                { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
-                { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
-                { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
-              ],
-            });
-            const shader = this.device.createShaderModule({ code: WEBGPU_SCENE_PREPARE_SHADER });
-            this.scenePreparePipeline = this.device.createComputePipeline({
-              layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.scenePrepareBindGroupLayout] }),
-              compute: { module: shader, entryPoint: 'cs' },
-            });
-            this.scenePrepareBindGroup = this.device.createBindGroup({
-              layout: this.scenePrepareBindGroupLayout,
-              entries: [
-                { binding: 0, resource: { buffer: this.sceneInstanceBuffer } },
-                { binding: 1, resource: { buffer: this.visibleSceneInstanceBuffer } },
-                { binding: 2, resource: { buffer: this.sceneStatsBuffer } },
-                { binding: 3, resource: { buffer: this.drawIndirectBuffer } },
-              ],
-            });
-            const computeError = await this.device.popErrorScope();
-            if (computeError) throw new Error(computeError.message || 'WebGPU compute scene prepare validation failed');
-            this.computeSceneReady = true;
-            this.gpuScenePath = 'compute-storage-indirect';
-          } catch (err) {
-            this.computeSceneReady = false;
-            this.gpuScenePath = 'storage-fragment-uniform-fallback';
-            this.errorLog.push(err && err.message ? err.message : 'WebGPU compute scene prepare unavailable');
-          }
-          this.webgpuFeatureReceipt.used = this.computeSceneReady
-            ? WEBGPU_TRANSLATED_TECHNIQUES.slice()
-            : ['storage-buffer-scene-instances', 'uniform-fullscreen-fallback'];
-          this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
-          this.canvas.dataset.webgpuFeatureFlags = webgpuFeatureSummary(this.webgpuFeatureReceipt);
+        async setupObjectPartPipeline() {
+          this.device.pushErrorScope('validation');
+          this.objectBindGroupLayout = this.device.createBindGroupLayout({
+            entries: [
+              {
+                binding: 0,
+                visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                buffer: { type: 'uniform' },
+              },
+              { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+            ],
+          });
+          const shader = this.device.createShaderModule({ code: WEBGPU_OBJECT_SHADER });
+          this.objectPipeline = this.device.createRenderPipeline({
+            layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.objectBindGroupLayout] }),
+            vertex: { module: shader, entryPoint: 'objectVs' },
+            fragment: {
+              module: shader,
+              entryPoint: 'objectFs',
+              targets: [{
+                format: this.format,
+                blend: {
+                  color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+                  alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+                },
+              }],
+            },
+            primitive: { topology: 'triangle-list' },
+          });
+          this.objectBindGroup = this.device.createBindGroup({
+            layout: this.objectBindGroupLayout,
+            entries: [
+              { binding: 0, resource: { buffer: this.uniformBuffer } },
+              { binding: 1, resource: { buffer: this.objectPartBuffer } },
+            ],
+          });
+          const error = await this.device.popErrorScope();
+          if (error) throw new Error(error.message || 'WebGPU object-part pipeline validation failed');
+          this.gpuScenePath = 'background-plus-instanced-object-parts';
+          this.webgpuFeatureReceipt.used = [
+            'compiled-object-geometry-programs',
+            'storage-buffer-object-parts',
+            'instanced-bounded-quads',
+          ];
         }
 
         isReady() {
@@ -290,15 +276,8 @@
           this.resize();
           this.writeUniforms(state, nowMs || 0);
           this.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniforms);
-          this.writeSceneBuffers();
+          this.writeObjectPartBuffer();
           const encoder = this.device.createCommandEncoder();
-          if (this.computeSceneReady && this.scenePreparePipeline && this.scenePrepareBindGroup) {
-            const computePass = encoder.beginComputePass();
-            computePass.setPipeline(this.scenePreparePipeline);
-            computePass.setBindGroup(0, this.scenePrepareBindGroup);
-            computePass.dispatchWorkgroups(1);
-            computePass.end();
-          }
           const frameTexture = this.context.getCurrentTexture();
           const pass = encoder.beginRenderPass({
             colorAttachments: [{
@@ -310,10 +289,11 @@
           });
           pass.setPipeline(this.pipeline);
           pass.setBindGroup(0, this.bindGroup);
-          if (this.computeSceneReady && this.drawIndirectBuffer) {
-            pass.drawIndirect(this.drawIndirectBuffer, 0);
-          } else {
-            pass.draw(3, 1, 0, 0);
+          pass.draw(3, 1, 0, 0);
+          if (this.objectPipeline && this.objectBindGroup && this.objectPartCount > 0) {
+            pass.setPipeline(this.objectPipeline);
+            pass.setBindGroup(0, this.objectBindGroup);
+            pass.draw(6, this.objectPartCount, 0, 0);
           }
           pass.end();
           const pixelReadback = this.encodePixelReadback(encoder, frameTexture);
@@ -571,9 +551,9 @@
           this.sceneObjectUniforms = renderData.sceneObjectUniforms;
           this.sceneInstanceData = renderData.sceneInstanceData;
           this.sceneInstanceCount = renderData.sceneInstanceCount;
-          this.sceneInstanceBufferDirty = true;
-          this.sceneStatsBufferDirty = true;
-          this.drawIndirectBufferDirty = true;
+          this.objectPartData = renderData.objectPartData;
+          this.objectPartCount = renderData.objectPartCount;
+          this.objectPartBufferDirty = true;
           this.palette = paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
           this.metrics = renderData.metrics;
           this.seed = renderData.seed;
@@ -604,45 +584,31 @@
           this.canvas.dataset.webgpuSceneInstanceCapacity = String(GPU_SCENE_INSTANCE_CAPACITY);
           this.canvas.dataset.webgpuSceneInstanceCount = String(renderData.sceneInstanceCount);
           this.canvas.dataset.webgpuSceneInstances = renderData.sceneInstanceSummary;
-          this.canvas.dataset.webgpuStorageBytes = String(
-            GPU_SCENE_INSTANCE_CAPACITY * GPU_SCENE_INSTANCE_BYTES * 2 + GPU_SCENE_STATS_BYTES + GPU_DRAW_INDIRECT_BYTES
-          );
+          this.canvas.dataset.webgpuObjectPartCapacity = String(GPU_OBJECT_PART_CAPACITY);
+          this.canvas.dataset.webgpuObjectPartCount = String(renderData.objectPartCount);
+          this.canvas.dataset.webgpuObjectParts = renderData.objectPartSummary;
+          this.canvas.dataset.webgpuObjectRealization = JSON.stringify(renderData.objectRealization).slice(0, 4000);
+          this.canvas.dataset.webgpuStorageBytes = String(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES);
         }
 
-        writeSceneBuffers() {
-          if (!this.sceneInstanceBuffer || !this.sceneStatsBuffer || !this.drawIndirectBuffer) return;
-          if (this.sceneInstanceBufferDirty) {
-            this.device.queue.writeBuffer(this.sceneInstanceBuffer, 0, this.sceneInstanceData);
-            this.sceneInstanceBufferDirty = false;
-          }
-          if (this.sceneStatsBufferDirty) {
-            this.device.queue.writeBuffer(
-              this.sceneStatsBuffer,
-              0,
-              new Uint32Array([
-                0,
-                Math.min(GPU_SCENE_INSTANCE_CAPACITY, Math.max(0, this.sceneInstanceCount || 0)),
-                GPU_SCENE_INSTANCE_CAPACITY,
-                this.computeSceneReady ? 1 : 0,
-              ])
-            );
-            this.sceneStatsBufferDirty = false;
-          }
-          if (this.drawIndirectBufferDirty) {
-            this.device.queue.writeBuffer(this.drawIndirectBuffer, 0, new Uint32Array([3, 1, 0, 0]));
-            this.drawIndirectBufferDirty = false;
-          }
+        writeObjectPartBuffer() {
+          if (!this.objectPartBuffer || !this.objectPartBufferDirty) return;
+          this.device.queue.writeBuffer(this.objectPartBuffer, 0, this.objectPartData);
+          this.objectPartBufferDirty = false;
         }
 
         webgpuOptimizationReceipt() {
           return {
             schema: 'simulatte.phase7.webgpuOptimization.v1',
             path: this.gpuScenePath,
-            computeSceneReady: this.computeSceneReady,
+            computeSceneReady: false,
             instanceCapacity: GPU_SCENE_INSTANCE_CAPACITY,
             instanceCount: this.sceneInstanceCount,
-            storageBytes: GPU_SCENE_INSTANCE_CAPACITY * GPU_SCENE_INSTANCE_BYTES * 2 + GPU_SCENE_STATS_BYTES + GPU_DRAW_INDIRECT_BYTES,
-            indirectDraw: this.computeSceneReady ? 'compute-generated' : 'cpu-fallback-draw',
+            objectPartCapacity: GPU_OBJECT_PART_CAPACITY,
+            objectPartCount: this.objectPartCount,
+            storageBytes: GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES,
+            indirectDraw: 'not-used-direct-instancing',
+            drawCalls: this.objectPartCount > 0 ? 2 : 1,
             translatedTechniques: WEBGPU_TRANSLATED_TECHNIQUES.slice(),
             unsupportedNativeFeatures: WEBGPU_NATIVE_ONLY_FEATURES.slice(),
             features: this.webgpuFeatureReceipt,
@@ -788,13 +754,22 @@
           sceneRenderPacket && sceneRenderPacket.compositionLedger ||
           null;
         const ledgerRows = ledger && Array.isArray(ledger.obligations) ? ledger.obligations : [];
-        const rows = direct.length ? direct : ledgerRows;
-        return rows.filter((row) => row && row.required === true && (
-          direct.length > 0 ||
+        const directIds = new Set(direct.map((row) => row && (row.obligationId || row.id)).filter(Boolean));
+        return [
+          ...direct,
+          ...ledgerRows.filter((row) => !directIds.has(row && (row.obligationId || row.id))),
+        ].filter((row) => {
+          const id = row && (row.obligationId || row.id) || '';
+          return row && row.required === true && (directIds.has(id) || (
           row.kind === 'visual' ||
+          row.kind === 'entity' ||
+          row.kind === 'object' ||
+          row.kind === 'environment' ||
+          row.kind === 'medium' ||
           row.ownedByPhase === 6 ||
-          /^visual:/.test(String(row.obligationId || row.id || ''))
-        ));
+          /^visual:/.test(id)
+          ));
+        });
       }
 
     function drawablesForPixelObligation(drawables = [], obligation = {}) {
@@ -810,7 +785,7 @@
           score: pixelObligationDrawableScore(row, obligationText),
         })).filter((entry) => entry.score > 0);
         if (!scored.length) {
-          return drawables.slice(0, 1);
+          return [];
         }
         return scored
           .sort((a, b) => b.score - a.score || a.index - b.index)

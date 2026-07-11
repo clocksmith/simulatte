@@ -436,7 +436,10 @@
 
     function createIntentFromPrompt(promptText = '', options = {}) {
         const phase1Output = runPhase1RuntimeGate(promptText, options);
+        reportCompilePhaseProgress(options, 'language', 0, 'Parsing language');
         const phase2Output = runPhase2LanguageGraph(phase1Output);
+        reportCompilePhaseProgress(options, 'language', 100, 'Language graph ready');
+        reportCompilePhaseProgress(options, 'retrieval-start', 0, 'Building retrieval evidence');
         const runtimeContext = runtimeContextFromPhase(phase1Output);
         const languageGraph = phase2Output.artifact.languageGraph;
         const sourceText = languageGraph.sourceText;
@@ -568,7 +571,10 @@
           });
           const retrievalRuntimeContext = runtimeContextFromPhase(phase1WithRetrieval);
           const phase3Output = runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
+          reportCompilePhaseProgress(options, 'retrieval-start', 100, 'Retrieval and activation fused');
+          reportCompilePhaseProgress(options, 'grounding', 0, 'Grounding intent');
           const phase4Output = runPhase4GroundedIntent(phase3Output, retrievalRuntimeContext);
+          reportCompilePhaseProgress(options, 'grounding', 100, 'Grounded intent ready');
           intent.phaseArtifacts = phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output);
           return intent;
         }
@@ -757,7 +763,10 @@
         });
         const retrievalRuntimeContext = runtimeContextFromPhase(phase1WithRetrieval);
         const phase3Output = runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
+        reportCompilePhaseProgress(options, 'retrieval-start', 100, 'Retrieval and activation fused');
+        reportCompilePhaseProgress(options, 'grounding', 0, 'Grounding intent');
         const phase4Output = runPhase4GroundedIntent(phase3Output, retrievalRuntimeContext);
+        reportCompilePhaseProgress(options, 'grounding', 100, 'Grounded intent ready');
         intent.phaseArtifacts = phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output);
         return intent;
       }

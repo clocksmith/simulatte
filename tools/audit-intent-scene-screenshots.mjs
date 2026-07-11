@@ -1649,7 +1649,7 @@ function analyze(results) {
     if (result.phase7PixelSampledObligationCount !== result.phase7PixelRequiredObligationCount) {
       failures.push(`${result.index}: Phase 7 pixel proof sampled ${result.phase7PixelSampledObligationCount}/${result.phase7PixelRequiredObligationCount} required obligations`);
     }
-    if (result.webgpuOptimizationPath !== 'compute-storage-indirect') {
+    if (result.webgpuOptimizationPath !== 'background-plus-instanced-object-parts') {
       failures.push(`${result.index}: WebGPU optimization path is ${result.webgpuOptimizationPath || 'missing'}`);
     }
     if (result.webgpuSceneInstanceCapacity !== 32) {

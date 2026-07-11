@@ -88,10 +88,12 @@
 
     function scenePacketEntity({ entity, geometry, material, instance, motion, sceneKind, index, total }) {
         if (!entity || !visualRowAccepted(entity)) return null;
-        const transform = scenePacketTransform(entity.pose, index, total, sceneKind);
+        const initialTransform = scenePacketTransform(entity.pose, index, total, sceneKind);
         const layerSlot = instance && instance.layerSlot ||
           renderInstanceLayerSlot('geometry', geometry || {}, entity, null, sceneKind);
         const identity = scenePacketEntityIdentity(entity, geometry, layerSlot);
+        const geometryProgram = objectGeometryProgramForIdentity(identity, geometry || {}, entity);
+        const transform = scenePacketReadableTransform(initialTransform, geometryProgram);
         const animation = scenePacketAnimation({
           layerSlot,
           entity,
@@ -137,6 +139,8 @@
             kind: geometry && geometry.layout || 'anchored',
             primitive: geometry && geometry.primitive || entity.shape || 'procedural-silhouette',
             bounds,
+            program: geometryProgram,
+            coverage: objectGeometryProgramCoverage(geometryProgram),
             instancing: geometry && geometry.instancing || instancingForEntity(entity),
             constraints: geometry && geometry.constraints || [],
           },
@@ -288,7 +292,52 @@
           entity.role,
           entity.kind === 'medium' || entity.kind === 'field' ? '' : entity.kind,
           entity.visualRegime,
+          entity.label,
+          entity.semanticRef,
+          entity.physicalRef,
         ].filter(Boolean).join(' ').toLowerCase();
+        if (/\bblack[- ]hole\b|event[- ]horizon/.test(text)) {
+          return { type: 'black-hole', category: 'celestial' };
+        }
+        if (/\b(tv|television|screen|monitor)\b/.test(text)) {
+          return { type: 'television', category: 'artifact' };
+        }
+        if (/\b(person|human|people|worker|runner)\b/.test(text)) {
+          return { type: 'person', category: 'person' };
+        }
+        if (/\b(chair|stool|seat)\b/.test(text)) {
+          return { type: 'chair', category: 'furniture' };
+        }
+        if (/\b(table|desk|bench)\b/.test(text) && !/relation[- ]table|contact[- ]pair[- ]table/.test(text)) {
+          return { type: 'table', category: 'furniture' };
+        }
+        if (/\b(building|house|skyscraper|apartment)\b/.test(text)) {
+          return { type: 'building', category: 'structure' };
+        }
+        if (/\b(galaxy|nebula)\b/.test(text)) {
+          return { type: 'galaxy', category: 'celestial' };
+        }
+        if (/\b(planets?|moons?)\b/.test(text)) {
+          return { type: 'planet', category: 'celestial' };
+        }
+        if (/\b(stars?|sun)\b/.test(text) && !/starfish/.test(text)) {
+          return { type: 'star', category: 'celestial' };
+        }
+        if (/\b(tree|trees|forest|oak|pine|willow|maple)\b/.test(text)) {
+          return { type: 'tree', category: 'plant' };
+        }
+        if (/\b(flower|flowers|rose|sunflower|orchid)\b/.test(text)) {
+          return { type: 'flower', category: 'plant' };
+        }
+        if (/\b(mountain|mountains|peak|ridge)\b/.test(text)) {
+          return { type: 'mountain', category: 'terrain' };
+        }
+        if (/\b(car|automobile|truck)\b/.test(text)) {
+          return { type: 'car', category: 'vehicle' };
+        }
+        if (/\b(water|lake|pool|river|ocean|pond|beach)\b|fluid[-_ ]volume/.test(text) || layerSlot === 'water-volume') {
+          return { type: 'water', category: 'medium' };
+        }
         if (layerSlot === 'node-graph' || layerSlot === 'network-flow' || /\b(node|edge|queue|network|packet|route)\b/.test(text)) {
           return { type: 'network-node', category: 'network' };
         }
@@ -300,9 +349,6 @@
         }
         if (/\b(flower|flowers|plant|plants|tree|trees|leaf|leaves|root|roots|mangrove|botanical)\b|plant[-_ ]cluster|botanical[-_ ]cluster/.test(text)) {
           return { type: 'plant', category: 'biological' };
-        }
-        if (/\b(water|lake|pool|river|ocean|pond|beach)\b|fluid[-_ ]volume/.test(text) || layerSlot === 'water-volume') {
-          return { type: 'water', category: 'medium' };
         }
         if (/\b(robot|gripper|armature)\b/.test(text)) {
           return { type: 'robot', category: 'machine' };
@@ -316,7 +362,7 @@
     function scenePacketIdentityLabel(type, entity = {}) {
         if (type && type !== 'object' && type !== 'field') return type;
         const role = String(entity.role || '').toLowerCase();
-        const roleMatch = role.match(/\b(dog|cat|mouse|gerbil|hamster|water|robot|fire|smoke|protein|cell|plant|flower|tree|root|instrument|readout|structure)\b/);
+        const roleMatch = role.match(/\b(dog|cat|mouse|gerbil|hamster|person|human|chair|table|television|tv|building|galaxy|star|planet|water|robot|fire|smoke|protein|cell|plant|flower|tree|root|instrument|readout|structure)\b/);
         if (roleMatch) return roleMatch[1];
         return entity.label || entity.id || type || 'object';
       }

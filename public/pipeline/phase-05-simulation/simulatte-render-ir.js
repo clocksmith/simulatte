@@ -12,7 +12,7 @@
 
   function compileRenderIR(physicsIR = {}, solverGraph = {}, universeGraph = {}) {
     const domainByEntity = new Map((physicsIR.domains || []).map((domain) => [domain.entityId, domain]));
-    const objects = (physicsIR.entities || []).map((entity, index) => {
+    const physicalObjects = (physicsIR.entities || []).map((entity, index) => {
       const domain = domainByEntity.get(entity.id) || {};
       const glyph = renderRegistry.glyphForEntity ? renderRegistry.glyphForEntity(entity, domain) : 'body';
       const materialStyle = renderRegistry.materialStyle ? renderRegistry.materialStyle(entity.materialId) : {};
@@ -42,6 +42,10 @@
         order: index,
       };
     });
+    const objects = [
+      ...physicalObjects,
+      ...visualOnlyObjects(universeGraph, physicalObjects, renderRegistry),
+    ];
     const sceneHint = renderRegistry.sceneHintForObjects
       ? renderRegistry.sceneHintForObjects(objects, physicsIR, solverGraph)
       : 'generic';
@@ -63,6 +67,72 @@
         registry: renderRegistry.RENDER_REGISTRY_SCHEMA || '',
       },
     };
+  }
+
+  function visualOnlyObjects(universeGraph = {}, physicalObjects = [], registry = {}) {
+    const represented = new Set((physicalObjects || []).flatMap((row) => identityKeys([
+      row.id,
+      row.semanticRef,
+      row.physicalRef,
+      row.label,
+    ].filter(Boolean).join(' '))));
+    const rows = [];
+    for (const node of universeGraph.nodes || []) {
+      const nodeKeys = identityKeys([
+        node.id,
+        node.canonicalId,
+        node.label,
+        ...(node.aliases || []),
+      ].filter(Boolean).join(' '));
+      if (nodeKeys.some((key) => represented.has(key))) continue;
+      if (!node.id || !node.label || node.supportOnly === true) continue;
+      if (/^(event|process|action|operator|property|state)$/.test(String(node.semanticType || '').toLowerCase())) {
+        continue;
+      }
+      const domain = {
+        kind: node.semanticType || 'object',
+        materialId: node.materialId || '',
+        tags: node.domains || [],
+        operatorHints: node.operatorTypes || node.operatorHints || [],
+      };
+      const materialStyle = registry.materialStyle ? registry.materialStyle(node.materialId) : {};
+      rows.push({
+        id: `render:${node.id}`,
+        semanticRef: node.canonicalId || node.id,
+        physicalRef: '',
+        sourceGraphId: node.id,
+        sourceIds: [node.id, ...(node.evidence || [])],
+        domainRef: '',
+        domainKind: domain.kind,
+        domainTags: domain.tags.slice(),
+        operatorHints: unique(node.operatorTypes || node.operatorHints || []),
+        label: node.label,
+        glyph: node.shapeHints && node.shapeHints[0] || 'body',
+        materialId: node.materialId || '',
+        materialStyle,
+        visualRegime: registry.visualRegimeForDomain
+          ? registry.visualRegimeForDomain(domain)
+          : domain.kind,
+        geometry: node.shapeHints && node.shapeHints[0] || null,
+        stateBindings: {},
+        behavior: null,
+        physicsOperators: unique(node.operatorTypes || node.operatorHints || []),
+        renderOnly: true,
+        evidence: node.evidence || [],
+        order: physicalObjects.length + rows.length,
+      });
+      nodeKeys.forEach((key) => represented.add(key));
+    }
+    return rows;
+  }
+
+  function identityKeys(value = '') {
+    const ignored = new Set(['artifact', 'entity', 'environment', 'primitive', 'prompt', 'render', 'surface']);
+    return String(value || '')
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((token) => token.length > 2 && !ignored.has(token))
+      .map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token);
   }
 
   function stateBindingsForEntity(entity, domain, solverGraph) {

@@ -8,6 +8,7 @@ const compositionGraph = require('../public/pipeline/phase-06-visual/simulatte-c
 const solverRegistry = require('../public/pipeline/phase-05-simulation/simulatte-solver-registry.js');
 const advectionSolver = require('../public/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js');
 const webgpuRenderer = require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+require('../public/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
 const universeParser = require('../public/pipeline/phase-02-language/simulatte-universe-parser.js');
 const webgpuRendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
 
@@ -27,6 +28,24 @@ function runtimeSourceFromFile(file, seen = new Set()) {
     source,
   ].filter(Boolean).join('\n');
 }
+
+test('prompt compile reports each real compiler task from zero through one hundred', () => {
+  const events = [];
+  lab.createSpecFromPrompt('dogs and cats swimming in a lake', {
+    allowPrototypeFallback: true,
+    onPhaseProgress(event) {
+      events.push(event);
+    },
+  });
+
+  const stages = ['language', 'retrieval-start', 'grounding', 'simulation', 'visual'];
+  assert.deepEqual(events.map((event) => event.stage), stages.flatMap((stage) => [stage, stage]));
+  for (const stage of stages) {
+    const taskEvents = events.filter((event) => event.stage === stage);
+    assert.deepEqual(taskEvents.map((event) => event.taskPercent), [0, 100]);
+    assert.ok(taskEvents.every((event) => event.progressScope === 'task'));
+  }
+});
 
 test('pixel proof samples spatial fields across their domain instead of only at center', () => {
   const field = {
@@ -670,6 +689,55 @@ test('Phase 6 lowers unmatched typed physics entities for expanded scene kinds',
   }
 });
 
+test('common-world and celestial nouns survive grounding as literal object geometry', () => {
+  const cases = [
+    {
+      prompt: 'a person sits in a chair at a table watching a tv inside a building with trees outside',
+      identities: ['person', 'chair', 'table', 'television', 'building', 'tree'],
+      grounded: ['human', 'chair', 'table', 'screen', 'building', 'tree'],
+    },
+    {
+      prompt: 'a spiral galaxy with stars and planets orbiting a black hole',
+      identities: ['galaxy', 'star', 'planet', 'black-hole'],
+      grounded: ['galaxy', 'sun', 'planet', 'black-hole'],
+      sceneKind: 'planetary-space',
+    },
+  ];
+
+  for (const { prompt, identities, grounded, sceneKind } of cases) {
+    const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    const acceptedIds = (spec.phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph.nodes || [])
+      .map((row) => row.id);
+    const packet = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+    const packetTypes = new Set(packet.entities.map((row) => row.identity.type));
+    const renderData = webgpuRendererScope.compileSceneRenderData(packet, packet.sceneKind, 'literal-object-test');
+
+    for (const term of grounded) {
+      assert.ok(acceptedIds.some((id) => id.includes(term)), `${prompt} should ground ${term}`);
+    }
+    for (const identity of identities) {
+      assert.ok(packetTypes.has(identity), `${prompt} should compile ${identity} into Phase 6`);
+      const entities = packet.entities.filter((row) => row.identity.type === identity);
+      assert.ok(entities.every((row) => row.geometry.program.literal === true));
+      assert.ok(entities.every((row) => row.geometry.program.grammarId.startsWith(`object-grammar.${identity}`)));
+      assert.ok(renderData.objectRealization.rows.some((row) => (
+        row.identityType === identity && row.realized === true
+      )), `${prompt} should realize ${identity} in Phase 7`);
+    }
+    assert.ok(renderData.objectPartCount > identities.length);
+    assert.equal(renderData.objectPartData.length, 256 * 16);
+    if (identities.includes('person')) {
+      const person = packet.entities.find((row) => row.identity.type === 'person');
+      assert.equal(person.geometry.program.pose, 'sitting');
+      assert.equal(person.geometry.program.grammarId, 'object-grammar.person-sitting');
+    }
+    if (identities.includes('galaxy')) {
+      assert.ok(!packet.entities.some((row) => row.identity.type === 'instrument'));
+    }
+    if (sceneKind) assert.equal(packet.sceneKind, sceneKind);
+  }
+});
+
 test('phase envelopes enforce neighboring pipeline handoffs', () => {
   const spec = lab.createSpecFromPrompt('graph nodes route water sensors through a pump controller', {
     allowPrototypeFallback: true,
@@ -1246,6 +1314,7 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
     assert.equal(canvas.dataset.phase7PixelReadback, 'pass');
     assert.equal(canvas.dataset.phase7PixelProofStatus, 'pass');
     assert.equal(renderer.lastPixelReadbackReceipt.status, 'pass');
+    assert.equal(renderer.phase8Output.artifact.sceneProof.verdict, 'pass');
   } finally {
     restore('navigator', previousNavigator);
     restore('window', previousWindow);

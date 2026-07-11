@@ -259,7 +259,10 @@
           String(previous.runId || '') !== String(next.runId || '') ||
           String(previous.state || '') !== String(next.state || '') ||
           String(previous.stage || '') !== String(next.stage || '') ||
-          Number(previous.progress || 0) !== Number(next.progress || 0);
+          String(previous.taskKey || '') !== String(next.taskKey || '') ||
+          Number(previous.progress || 0) !== Number(next.progress || 0) ||
+          Number(previous.overallProgress || 0) !== Number(next.overallProgress || 0) ||
+          Number(previous.taskElapsedMs || 0) !== Number(next.taskElapsedMs || 0);
       }
 
     function runtimeProgressLogReceipt(previous = {}, next = {}, event = {}, context = {}) {
@@ -282,6 +285,12 @@
           sourceStage: String(next.sourceStage || event.stage || ''),
           source: String(next.source || event.source || ''),
           progress: boundedProgress(next.progress || 0),
+          taskProgress: boundedProgress(next.progress || 0),
+          overallProgress: boundedProgress(next.overallProgress || 0),
+          sourceProgress: boundedProgress(next.sourceProgress || 0),
+          progressBasis: String(next.progressBasis || ''),
+          progressEstimated: next.progressEstimated === true,
+          taskKey: String(next.taskKey || ''),
           line: String(next.displayLine || next.line || next.message || ''),
           label: String(next.label || ''),
           subline: String(next.subline || ''),
@@ -289,6 +298,17 @@
           detail: String(next.detail || event.message || ''),
           transitionMs: lastProgressLogAtMs > 0 ? Math.max(0, timestampMs - lastProgressLogAtMs) : 0,
           runElapsedMs: Math.max(0, timestampMs - runStartedAtMs),
+          taskTiming: {
+            elapsedMs: numericMetric(next.taskElapsedMs),
+            expectedDurationMs: numericMetric(next.taskExpectedDurationMs),
+            estimatedRemainingMs: numericMetric(next.taskRemainingMs),
+          },
+          runTiming: {
+            elapsedMs: numericMetric(next.runElapsedMs),
+            expectedDurationMs: numericMetric(next.runExpectedDurationMs),
+            estimatedRemainingMs: numericMetric(next.runRemainingMs),
+            basis: String(next.overallProgressBasis || ''),
+          },
           throughputBytesPerSecond: loaderDurationMs > 0 && completedBytes > 0
             ? Math.round(completedBytes / (loaderDurationMs / 1000))
             : 0,

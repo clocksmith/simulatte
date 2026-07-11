@@ -2,15 +2,25 @@
   const scope = root.__SimulatteRuntimeProgressRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
-    const EVENT_SCHEMA = 'simulatte.runtimeProgressEvent.v1';
+    const EVENT_SCHEMA = 'simulatte.runtimeProgressEvent.v2';
 
-    const STATE_SCHEMA = 'simulatte.runtimeProgressState.v1';
+    const STATE_SCHEMA = 'simulatte.runtimeProgressState.v2';
 
-    const HEALTH_SCHEMA = 'simulatte.intentRuntimeHealth.v1';
+    const HEALTH_SCHEMA = 'simulatte.intentRuntimeHealth.v2';
 
-    const LOADER_RECEIPT_SCHEMA = 'simulatte.loaderPhaseReceipt.v1';
+    const LOADER_RECEIPT_SCHEMA = 'simulatte.loaderPhaseReceipt.v2';
 
-    const PROGRESS_LOG_SCHEMA = 'simulatte.runtimeProgressLog.v1';
+    const PROGRESS_LOG_SCHEMA = 'simulatte.runtimeProgressLog.v2';
+
+    const TIMING_PROFILE_SCHEMA = 'simulatte.runtimeTaskTimingProfile.v1';
+
+    const TIMING_PROFILE_STORAGE_KEY = 'simulatte.runtime-task-timing-profile.v1';
+
+    const TIME_ESTIMATE_PROGRESS_CAP = 95;
+
+    const RUN_DURATION_FALLBACK_MS = 24000;
+
+    const TASK_DURATION_FALLBACK_MS = 1200;
 
     const MAX_EVENT_HISTORY = 120;
 
@@ -30,6 +40,11 @@
       HEALTH_SCHEMA,
       LOADER_RECEIPT_SCHEMA,
       PROGRESS_LOG_SCHEMA,
+      TIMING_PROFILE_SCHEMA,
+      TIMING_PROFILE_STORAGE_KEY,
+      TIME_ESTIMATE_PROGRESS_CAP,
+      RUN_DURATION_FALLBACK_MS,
+      TASK_DURATION_FALLBACK_MS,
       MAX_EVENT_HISTORY,
       MAX_LOADER_RECEIPTS,
       MAX_PROGRESS_LOGS,

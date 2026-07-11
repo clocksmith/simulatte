@@ -161,6 +161,7 @@
     }
 
     addComponentNodes(nodes, seen, input, rejected);
+    addPromptIdentityCandidateNodes(nodes, seen, candidateRows, input, rejected);
     addUniverseCandidateNodes(nodes, seen, candidateRows, input);
     const promptEdges = edgeRowsForClauses(promptParse.clauses || [], bySpan, nodes);
     const edges = uniqueEdgeRows([
@@ -535,6 +536,79 @@
         sceneHints: [],
         indexName: 'components',
         evidence: ['intent-component'],
+      });
+      added += 1;
+    }
+  }
+
+  function surfaceIdentityTokens(value = '') {
+    const generic = new Set([
+      'artifact', 'assembly', 'component', 'entity', 'environment', 'generated',
+      'material', 'primitive', 'prompt', 'semantic', 'surface',
+    ]);
+    return identityTokens(value).filter((token) => !generic.has(token));
+  }
+
+  function addPromptIdentityCandidateNodes(nodes, seen, candidateRows, input, rejected) {
+    const prompt = String(input.prompt || input.promptParse && input.promptParse.prompt || '').toLowerCase();
+    const rows = (candidateRows || [])
+      .filter((row) => row && String(row.indexName || '') === 'semantic-surface-grounder')
+      .sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
+    let added = 0;
+    for (const row of rows) {
+      if (added >= 16) break;
+      if (Number(row.confidence || 0) < 0.7) continue;
+      const identity = surfaceIdentityTokens([
+        row.id,
+        row.canonicalId,
+        row.label,
+        ...(row.aliases || []),
+      ].filter(Boolean).join(' '));
+      const directlyMentioned = identity.some((token) => (
+        new RegExp(`\\b${token}(?:s|es)?\\b`).test(prompt)
+      ));
+      if (!directlyMentioned) {
+        rejected.push({ label: row.label || row.id, reason: 'surface candidate identity lacks prompt evidence' });
+        continue;
+      }
+      const duplicate = nodes.some((node) => {
+        const nodeTokens = new Set(surfaceIdentityTokens([
+          node.id,
+          node.canonicalId,
+          node.label,
+          ...(node.aliases || []),
+        ].filter(Boolean).join(' ')));
+        return identity.some((token) => nodeTokens.has(token));
+      });
+      if (duplicate) continue;
+      const id = slugify(row.id || row.canonicalId || row.label);
+      if (!id || seen.has(id)) continue;
+      const canonicalId = row.canonicalId || `surface.${row.id}`;
+      const canonicalType = String(canonicalId).split('.')[0];
+      const semanticType = canonicalType === 'entity'
+        ? 'entity'
+        : canonicalType === 'environment' ? 'environment' : 'assembly';
+      seen.set(id, 1);
+      nodes.push({
+        id,
+        spanId: null,
+        semanticType,
+        canonicalId,
+        label: labelFromSpan(row.label || row.id),
+        aliases: unique([row.label, row.id, ...(row.aliases || [])]),
+        confidence: clamp01(Number(row.confidence || 0.7)),
+        domains: row.domains || [],
+        materialId: row.materialId || '',
+        materialIds: row.materialIds || (row.materialId ? [row.materialId] : []),
+        operatorHints: row.operatorHints || row.operatorTypes || [],
+        operatorTypes: row.operatorTypes || row.operatorHints || [],
+        primitiveHints: row.primitiveHints && row.primitiveHints.length ? row.primitiveHints : [row.id],
+        conceptIds: row.conceptIds && row.conceptIds.length ? row.conceptIds : [canonicalId],
+        shapeHints: row.shapeHints || [],
+        sceneHints: row.sceneHints || [],
+        indexName: row.indexName,
+        rankSignals: row.rankSignals || null,
+        evidence: unique([...(row.evidence || []), 'phase3-exact-surface-identity']),
       });
       added += 1;
     }

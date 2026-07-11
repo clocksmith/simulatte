@@ -4,6 +4,18 @@
   with (scope) {
     const normalizedSimulationSpecs = new WeakSet();
 
+    function reportCompilePhaseProgress(options = {}, stage = '', taskPercent = 0, message = '') {
+        if (typeof options.onPhaseProgress !== 'function') return;
+        options.onPhaseProgress({
+          source: 'simulatte-pipeline-compiler',
+          state: 'active',
+          stage,
+          taskPercent,
+          progressScope: 'task',
+          message,
+        });
+      }
+
     function createSpec(templateId = 'magnetic-wheel', overrides = {}) {
         const template = templateById(templateId);
         const name = String(overrides.name || template.name).trim() || template.name;
@@ -41,6 +53,7 @@
           remixOf: overrides.remixOf || '',
         };
         if (spec.templateId === 'custom-world') {
+          reportCompilePhaseProgress(overrides, 'simulation', 0, 'Compiling simulation');
           Object.assign(spec, compileCompilerArtifacts(spec, overrides));
         }
         if (spec.phaseArtifacts && spec.phaseArtifacts.phase4 && !spec.phaseArtifacts.phase5) {
@@ -52,7 +65,11 @@
           spec.solverGraph = spec.solverGraph || simulationCompile.solverGraph || null;
           spec.renderIR = spec.renderIR || simulationCompile.renderIR || null;
         }
+        if (spec.templateId === 'custom-world') {
+          reportCompilePhaseProgress(overrides, 'simulation', 100, 'Simulation compiled');
+        }
         if (spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
+          reportCompilePhaseProgress(overrides, 'visual', 0, 'Building VisualIR');
           const phase6Compiled = compilePhase6VisualProgram(spec.phaseArtifacts.phase5, overrides.compositionGraph || null);
           spec.compositionGraph = phase6Compiled.compositionGraph;
           spec.renderProgram = phase6Compiled.visualProgram;
@@ -60,6 +77,7 @@
             ...spec.phaseArtifacts,
             phase6: createVisualCompileEnvelopeFromCompiled(spec.phaseArtifacts.phase5, phase6Compiled),
           };
+          reportCompilePhaseProgress(overrides, 'visual', 100, 'VisualIR ready');
         } else {
           spec.compositionGraph = overrides.compositionGraph || (
             buildCompositionGraph && spec.templateId === 'custom-world' ? buildCompositionGraph(spec) : null
@@ -502,6 +520,7 @@
       }
 
     Object.assign(scope, {
+      reportCompilePhaseProgress,
       createSpec,
       refineRenderProgramSceneKind,
       authoritativeVisualSceneKind,

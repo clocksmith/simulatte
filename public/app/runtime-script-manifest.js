@@ -112,6 +112,7 @@
     'pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-materials.js',
+    'pipeline/phase-06-visual/simulatte-object-geometry-grammars.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-programs.js',
@@ -131,6 +132,7 @@
   const runtimeProgress = group(
     'app/runtime/runtime-progress-dependencies.js',
     'app/runtime/runtime-progress-constants.js',
+    'app/runtime/runtime-progress-timing.js',
     'app/runtime/runtime-progress-controller.js',
     'app/runtime/runtime-progress-reducer.js',
     'app/runtime/runtime-progress-observers.js',
@@ -146,10 +148,8 @@
     'pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-gpu-data.js',
-    'pipeline/phase-07-render/simulatte-webgpu-renderer-shader-core.js',
-    'pipeline/phase-07-render/simulatte-webgpu-renderer-shader-atoms.js',
-    'pipeline/phase-07-render/simulatte-webgpu-renderer-shader-scene.js',
-    'pipeline/phase-07-render/simulatte-webgpu-renderer-shader-composition.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-background-shader.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-object-shader.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer.js'
   );
   const sceneProof = group(

@@ -27,6 +27,7 @@
       }
 
     function directSceneKindForText(text = '', promptText = text) {
+        if (/\b(galaxy|galaxies|nebula|black hole|event horizon|planet|planets|moon|moons|star|stars|solar system)\b/.test(promptText)) return 'planetary-space';
         if (hasDirectCombustionSignal(promptText)) return 'fire';
         if (hasDirectSwimmingSignal(promptText)) return 'watershed';
         if (hasDirectAnimalOrPlantSignal(text) && !hasDirectMechanicalRigSignal(promptText)) return 'biology';

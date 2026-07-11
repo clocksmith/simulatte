@@ -6,10 +6,8 @@
     require('./simulatte-webgpu-renderer-packets.js');
     require('./simulatte-webgpu-renderer-pixel-proof.js');
     require('./simulatte-webgpu-renderer-gpu-data.js');
-    require('./simulatte-webgpu-renderer-shader-core.js');
-    require('./simulatte-webgpu-renderer-shader-atoms.js');
-    require('./simulatte-webgpu-renderer-shader-scene.js');
-    require('./simulatte-webgpu-renderer-shader-composition.js');
+    require('./simulatte-webgpu-renderer-background-shader.js');
+    require('./simulatte-webgpu-renderer-object-shader.js');
   }
   const scope = root.__SimulatteWebGpuRendererRefactorScope = root.__SimulatteWebGpuRendererRefactorScope || {};
   if (scope.missingDependency) return;

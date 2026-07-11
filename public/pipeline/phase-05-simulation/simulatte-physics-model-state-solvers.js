@@ -474,6 +474,7 @@
             description: intent.prompt ? `Intent: ${intent.prompt}` : 'Empty 2d construction surface.',
             params: { ...(plane ? plane.params : {}), ...overrideParams },
             intent,
+            onPhaseProgress: overrides.onPhaseProgress,
             phaseArtifacts: intent.phaseArtifacts || null,
           });
         }
@@ -545,6 +546,7 @@
           params,
           intent,
           contract,
+          onPhaseProgress: overrides.onPhaseProgress,
           phaseArtifacts: intent.phaseArtifacts || null,
         });
       }

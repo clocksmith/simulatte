@@ -32,6 +32,8 @@
         let runStartedAtMs = 0;
         let lastProgressLogAtMs = 0;
         let progressLogSequence = 0;
+        let timingProfile = loadRuntimeTimingProfile(view);
+        if (view) view.__simulatteRuntimeTimingProfile = createRuntimeTimingProfile(timingProfile);
         const observers = new Set();
         const events = [];
         const loaderReceipts = [];
@@ -130,7 +132,23 @@
             heartbeatTimer = 0;
             heartbeatDueAtMs = 0;
             if (!(state.state === 'active' && state.blocking !== false)) return;
+            const previous = state;
             state = heartbeatRuntimeProgressState(state, view);
+            const heartbeatEvent = {
+              ...(lastEvent || {}),
+              timestamp: nowMs(view),
+              heartbeat: true,
+              schedulerLagMs,
+            };
+            const loaderReceipt = updateLoaderPhaseReceipts(previous, state, heartbeatEvent);
+            if (loaderReceipt) {
+              state = {
+                ...state,
+                loaderReceipt: copyLoaderReceipt(loaderReceipt),
+                loaderReceipts: loaderReceipts.slice(-12).map((receipt) => ({ ...receipt })),
+              };
+            }
+            recordProgressTransition(previous, state, heartbeatEvent);
             schedule();
             scheduleHeartbeat();
             recordControllerPerformance('heartbeat-handler', startedAtMs, {
@@ -146,7 +164,7 @@
           events.push(event);
           while (events.length > MAX_EVENT_HISTORY) events.shift();
           const previous = state;
-          state = reduceRuntimeProgress(state, event);
+          state = reduceRuntimeProgress(state, event, { timingProfile, timestampMs: nowMs(view) });
           const loaderReceipt = updateLoaderPhaseReceipts(previous, state, event);
           if (loaderReceipt) {
             state = {
@@ -154,6 +172,9 @@
               loaderReceipt: copyLoaderReceipt(loaderReceipt),
               loaderReceipts: loaderReceipts.slice(-12).map((receipt) => ({ ...receipt })),
             };
+          }
+          if (previous.state === 'active' && state.state === 'ready' && state.runElapsedMs > 0) {
+            if (recordRuntimeRunDuration(timingProfile, state.runElapsedMs)) persistTimingProfile();
           }
           recordProgressTransition(previous, state, event);
           schedule();
@@ -190,10 +211,17 @@
           performanceLogs() {
             return performanceLogs.map((receipt) => ({ ...receipt }));
           },
+          timingProfile() {
+            return createRuntimeTimingProfile(timingProfile);
+          },
           isBusy() {
             return state.state === 'active' && state.blocking !== false;
           },
         };
+
+        function persistTimingProfile() {
+          timingProfile = saveRuntimeTimingProfile(view, timingProfile);
+        }
 
         function updateLoaderPhaseReceipts(previous, next, event) {
           if (!next || !event) return null;
@@ -208,6 +236,12 @@
           if (!receiptKey) return null;
           if (activeLoaderReceipt && activeLoaderReceiptKey && activeLoaderReceiptKey !== receiptKey) {
             closeLoaderReceipt(activeLoaderReceipt, 'complete', timestampMs, previous);
+            if (recordRuntimeTaskDuration(
+              timingProfile,
+              activeLoaderReceipt.taskKey,
+              activeLoaderReceipt.stage,
+              activeLoaderReceipt.durationMs
+            )) persistTimingProfile();
           }
           if (!activeLoaderReceipt || activeLoaderReceiptKey !== receiptKey) {
             activeLoaderReceipt = createLoaderReceipt(next, event, timestampMs, 'active', loaderReceipts.length + 1);
@@ -217,6 +251,12 @@
           updateLoaderReceipt(activeLoaderReceipt, next, event, timestampMs);
           if (next.state === 'ready') {
             closeLoaderReceipt(activeLoaderReceipt, 'complete', timestampMs, next);
+            if (recordRuntimeTaskDuration(
+              timingProfile,
+              activeLoaderReceipt.taskKey,
+              activeLoaderReceipt.stage,
+              activeLoaderReceipt.durationMs
+            )) persistTimingProfile();
             activeLoaderReceiptKey = '';
           } else if (next.state === 'error') {
             closeLoaderReceipt(activeLoaderReceipt, 'error', timestampMs, next);
@@ -247,11 +287,8 @@
       }
 
     function loaderReceiptKey(state = {}) {
-        const phaseId = state.phase && state.phase.id || '';
-        const kind = state.resource && state.resource.kind || '';
-        const modelId = state.model && state.model.id || '';
         const runId = state.runId || 'runtime';
-        return [runId, state.stage || DEFAULT_STAGE, phaseId, kind || modelId].join(':');
+        return [runId, state.taskKey || state.stage || DEFAULT_STAGE].join(':');
       }
 
     function createLoaderReceipt(state = {}, event = {}, timestampMs = 0, status = 'active', ordinal = 1) {
@@ -275,8 +312,16 @@
           updatedAt: startedAt,
           completedAt: status === 'active' ? '' : startedAt,
           durationMs: 0,
-          percentStart: boundedProgress(state.progress || 0),
+          taskKey: String(state.taskKey || ''),
+          progressBasis: String(state.progressBasis || ''),
+          progressEstimated: state.progressEstimated === true,
+          expectedDurationMs: numericMetric(state.taskExpectedDurationMs),
+          percentStart: 0,
           percentEnd: boundedProgress(state.progress || 0),
+          overallPercentStart: boundedProgress(state.overallProgress || 0),
+          overallPercentEnd: boundedProgress(state.overallProgress || 0),
+          sourcePercentStart: boundedProgress(state.sourceProgress || 0),
+          sourcePercentEnd: boundedProgress(state.sourceProgress || 0),
           completedBytes: numericMetric(state.resource && state.resource.completedBytes),
           totalBytes: numericMetric(state.resource && state.resource.totalBytes),
           byteLength: numericMetric(state.resource && state.resource.byteLength),
@@ -303,9 +348,14 @@
         receipt.state = state.state || receipt.state || '';
         receipt.blocking = state.blocking === true;
         receipt.indeterminate = state.indeterminate === true;
+        receipt.progressBasis = state.progressBasis || receipt.progressBasis || '';
+        receipt.progressEstimated = state.progressEstimated === true;
+        receipt.expectedDurationMs = numericMetric(state.taskExpectedDurationMs) || receipt.expectedDurationMs || 0;
         receipt.label = state.label || receipt.label || runtimeStageLabel(state.stage, state.phase, state);
         receipt.subline = longerRuntimeText(receipt.subline, state.subline);
         receipt.percentEnd = boundedProgress(state.progress || receipt.percentEnd || 0);
+        receipt.overallPercentEnd = boundedProgress(state.overallProgress || receipt.overallPercentEnd || 0);
+        receipt.sourcePercentEnd = boundedProgress(state.sourceProgress || receipt.sourcePercentEnd || 0);
         receipt.completedBytes = Math.max(
           numericMetric(receipt.completedBytes),
           numericMetric(state.resource && state.resource.completedBytes)
@@ -341,7 +391,9 @@
         receipt.updatedAt = receipt.completedAt;
         receipt.durationMs = durationSinceIso(receipt.startedAt || receipt.completedAt, timestampMs);
         if (state && Number.isFinite(Number(state.progress))) {
-          receipt.percentEnd = boundedProgress(state.progress);
+          receipt.percentEnd = status === 'complete' ? 100 : boundedProgress(state.progress);
+          receipt.overallPercentEnd = boundedProgress(state.overallProgress || receipt.overallPercentEnd || 0);
+          receipt.sourcePercentEnd = boundedProgress(state.sourceProgress || receipt.sourcePercentEnd || 0);
         }
         return receipt;
       }
@@ -375,12 +427,27 @@
           stage: DEFAULT_STAGE,
           sourceStage: '',
           progress: 0,
+          sourceProgress: 0,
+          overallProgress: 0,
+          overallProgressBasis: 'observed-duration-forecast',
+          taskKey: '',
+          taskStartedAtMs: 0,
+          taskElapsedMs: 0,
+          taskExpectedDurationMs: TASK_DURATION_FALLBACK_MS,
+          taskRemainingMs: TASK_DURATION_FALLBACK_MS,
+          progressBasis: 'elapsed-time-forecast',
+          progressEstimated: true,
+          runStartedAtMs: 0,
+          runElapsedMs: 0,
+          runExpectedDurationMs: RUN_DURATION_FALLBACK_MS,
+          runRemainingMs: RUN_DURATION_FALLBACK_MS,
           line: '',
           displayLine: '',
           heartbeatLine: '',
           heartbeatTick: 0,
           silenceMs: 0,
           label: '',
+          baseSubline: '',
           subline: '',
           byteText: '',
           sourceText: '',
@@ -401,25 +468,31 @@
         };
       }
 
-    function reduceRuntimeProgress(previous = initialState(), rawEvent = {}) {
+    function reduceRuntimeProgress(previous = initialState(), rawEvent = {}, context = {}) {
         const event = normalizeEvent(rawEvent, previous.runId);
         const stage = canonicalStage(event);
         const phase = phaseForStage(stage, event);
         const rawPercent = eventPercent(event, stage, phase);
-        const percent = monotonicEventPercent(previous, event, rawPercent);
+        const sourceProgress = monotonicEventPercent(previous, event, rawPercent);
         const passive = passiveEvent(event, stage);
-        const state = event.state || stateForEvent(event, stage, percent, passive, previous);
+        const state = event.state || stateForEvent(event, stage, sourceProgress, passive, previous);
         const loading = !passive && state === 'active';
-        const indeterminate = loading && !hasMeasuredProgress(event);
         const canvasLoading = loading && event.canvasLoading !== false;
         const message = compactRuntimeMessage(event.message || stage);
-        const line = runtimeLineText(event, stage, phase, percent);
-        const eventAt = eventTimestampMs(event, previous.lastEventAt);
+        const eventAt = eventTimestampMs(event, context.timestampMs || previous.lastEventAt);
+        const timingProfile = context.timingProfile || createRuntimeTimingProfile();
+        const taskTiming = runtimeTaskProgressState(previous, event, stage, eventAt, timingProfile);
+        const runTiming = runtimeRunProgressState(previous, event, eventAt, timingProfile);
+        const line = runtimeLineText(event, stage, phase, taskTiming.progress);
         const label = runtimeStageLabel(stage, phase, event);
         const byteText = runtimeBytePairText(event);
         const sourceText = runtimeSourceText(event, stage);
         const byteProgress = runtimeByteProgressState(event, stage, loading);
-        const subline = runtimeSublineText(event, stage, byteText, sourceText);
+        const baseSubline = runtimeSublineText(event, stage, byteText, sourceText);
+        const taskTimingText = runtimeTaskTimingText(taskTiming);
+        const subline = [baseSubline, taskTimingText]
+          .filter(Boolean)
+          .join(' - ');
         const activity = runtimeActivityText(stage, phase, event);
         const nextState = {
           schema: STATE_SCHEMA,
@@ -428,17 +501,20 @@
           blocking: loading,
           passive,
           canvasLoading,
-          indeterminate,
+          indeterminate: false,
           phase,
           stage,
           sourceStage: String(event.stage || event.phase || ''),
-          progress: percent,
+          sourceProgress,
+          ...taskTiming,
+          ...runTiming,
           line,
           displayLine: line,
           heartbeatLine: '',
           heartbeatTick: 0,
           silenceMs: 0,
           label,
+          baseSubline,
           subline,
           byteText,
           sourceText,
@@ -471,7 +547,8 @@
           heartbeatTick: 0,
           silenceMs: 0,
           label: current.label || receiptState.label || '',
-          subline: receiptState.subline || current.subline || '',
+          baseSubline: current.baseSubline || receiptState.baseSubline || '',
+          subline: current.subline || receiptState.subline || '',
           byteText: receiptState.byteText || current.byteText || '',
           sourceText: receiptState.sourceText || current.sourceText || '',
           byteProgress: receiptState.byteProgress || current.byteProgress || '',
@@ -486,17 +563,6 @@
         };
       }
 
-    function mergeRuntimeReceipt(previous = {}, next = {}) {
-        const meaningful = Object.fromEntries(Object.entries(next || {}).filter((entry) => (
-          entry[1] !== '' &&
-          entry[1] !== null &&
-          entry[1] !== undefined &&
-          entry[1] !== false &&
-          entry[1] !== 0
-        )));
-        return compactObject({ ...(previous || {}), ...meaningful }, 24) || {};
-      }
-
     function normalizeEvent(rawEvent = {}, runId = '') {
         const event = rawEvent && typeof rawEvent === 'object' ? rawEvent : {};
         return {
@@ -504,21 +570,6 @@
           timestamp: event.timestamp || new Date().toISOString(),
           runId: event.runId || runId || '',
           ...event,
-        };
-      }
-
-    function heartbeatRuntimeProgressState(previous = initialState(), view) {
-        const current = previous || initialState();
-        const now = nowMs(view);
-        const lastEventAt = Number(current.lastEventAt || now);
-        const silenceMs = Math.max(0, now - lastEventAt);
-        const heartbeatLine = silenceMs >= STALE_EVENT_MS ? runtimeHeartbeatLine(current) : '';
-        return {
-          ...current,
-          heartbeatTick: Number(current.heartbeatTick || 0) + 1,
-          silenceMs,
-          heartbeatLine,
-          displayLine: heartbeatLine || current.line || current.message || '',
         };
       }
 
@@ -557,7 +608,7 @@
         const previousRunId = String(previous.runId || '');
         const nextRunId = String(event.runId || previousRunId || '');
         if (previousRunId && nextRunId && previousRunId !== nextRunId) return next;
-        return Math.max(boundedProgress(previous.progress || 0), next);
+        return Math.max(boundedProgress(previous.sourceProgress || 0), next);
       }
 
     function measuredFraction(event = {}) {
@@ -585,8 +636,7 @@
     	  }
 
     function hasMeasuredProgress(event = {}) {
-        if (measuredFraction(event) !== null) return true;
-        return Number.isFinite(Number(event.percent));
+        return measuredTaskFraction(event) !== null;
       }
 
     function weightedPercent(phase, fraction) {
@@ -606,7 +656,7 @@
 
     function stateForEvent(event, stage, percent, passive, previous) {
         if (stage === 'error') return 'error';
-        if (percent >= 100) return 'ready';
+        if (percent >= 100 && event.progressScope !== 'task') return 'ready';
         if (passive) return previous.state || 'ready';
         return 'active';
       }
@@ -618,7 +668,7 @@
         if (event.state === 'ready' && phase.id === 'prompt-runtime') {
           return 'Prompt runtime ready 100%';
         }
-        if (event.state === 'ready' || percent >= 100 || /render\.(ready|blank)/.test(stage)) {
+        if (event.state === 'ready' || /render\.(ready|blank)/.test(stage)) {
           return 'Ready 100%';
         }
         const label = runtimeStageLabel(stage, phase, event);
@@ -688,7 +738,9 @@
           const heartbeatActive = Boolean(state.heartbeatLine);
           const key = [
             state.state,
+            state.taskKey,
             state.progress,
+            state.overallProgress,
             state.indeterminate,
             state.stage,
             displayLine,
@@ -702,6 +754,14 @@
           lastKey = key;
           node.dataset.state = state.state;
           node.dataset.progress = state.indeterminate ? 'indeterminate' : 'determinate';
+          node.dataset.taskProgress = String(boundedProgress(state.progress));
+          node.dataset.overallProgress = String(boundedProgress(state.overallProgress));
+          node.dataset.sourceProgress = String(boundedProgress(state.sourceProgress));
+          node.dataset.progressBasis = String(state.progressBasis || '');
+          node.dataset.progressEstimated = state.progressEstimated ? 'true' : 'false';
+          node.dataset.taskKey = String(state.taskKey || '');
+          node.dataset.taskElapsedMs = String(Math.trunc(Number(state.taskElapsedMs || 0)));
+          node.dataset.taskRemainingMs = String(Math.trunc(Number(state.taskRemainingMs || 0)));
           node.dataset.loadingVisual = loadingVisual;
           node.dataset.stage = state.phase.id;
           node.dataset.pipelineStep = String(state.phase.step);
@@ -726,6 +786,7 @@
             ? JSON.stringify(state.loaderReceipt).slice(0, 2400)
             : '';
           node.style.setProperty('--runtime-progress', `${state.progress}%`);
+          node.style.setProperty('--runtime-overall-progress', `${state.overallProgress}%`);
           node.title = [titleLine, subline].filter(Boolean).join(' - ');
           if (elements.title) elements.title.textContent = titleLine;
           if (elements.percent) elements.percent.textContent = runtimePercentText(state);
@@ -745,6 +806,7 @@
           if (!loadingCanvas || typeof loadingCanvas.setLoading !== 'function') return;
           const key = [
             state.canvasLoading,
+            state.taskKey,
             state.progress,
             state.stage,
             state.indeterminate,
@@ -755,7 +817,8 @@
           lastKey = key;
           loadingCanvas.setLoading(state.canvasLoading, state.progress, state.stage, {
             heartbeat: Boolean(state.heartbeatLine),
-            indeterminate: state.indeterminate || state.byteProgress === 'unknown' || state.byteProgress === 'unknown-total',
+            indeterminate: state.indeterminate,
+            overallProgress: state.overallProgress,
           });
         };
       }
@@ -851,6 +914,18 @@
           phaseLabel: state.phase && state.phase.label || '',
           pipelineStep: state.phase && state.phase.step || 0,
           progress: state.progress || 0,
+          taskProgress: state.progress || 0,
+          overallProgress: state.overallProgress || 0,
+          sourceProgress: state.sourceProgress || 0,
+          progressBasis: state.progressBasis || '',
+          progressEstimated: state.progressEstimated === true,
+          taskKey: state.taskKey || '',
+          taskElapsedMs: numericMetric(state.taskElapsedMs),
+          taskExpectedDurationMs: numericMetric(state.taskExpectedDurationMs),
+          taskRemainingMs: numericMetric(state.taskRemainingMs),
+          runElapsedMs: numericMetric(state.runElapsedMs),
+          runExpectedDurationMs: numericMetric(state.runExpectedDurationMs),
+          runRemainingMs: numericMetric(state.runRemainingMs),
           line: state.line || '',
           displayLine: runtimeDisplayLine(state),
           label: state.label || '',
@@ -870,7 +945,7 @@
           embeddings: state.embeddings,
           promptRuntime: state.promptRuntime,
           loaderReceipt: state.loaderReceipt,
-        }, 32);
+        }, 48);
       }
 
     Object.assign(scope, {

@@ -29,9 +29,13 @@
           }
           worker.addEventListener('message', (event) => {
             const data = event && event.data || {};
-            if (data.type !== 'simulatte:pipeline-worker:result') return;
             const entry = pending.get(data.id);
             if (!entry) return;
+            if (data.type === 'simulatte:pipeline-worker:progress') {
+              if (entry.onProgress) entry.onProgress(data.event || {});
+              return;
+            }
+            if (data.type !== 'simulatte:pipeline-worker:result') return;
             pending.delete(data.id);
             if (data.ok) {
               entry.resolve(data.spec);
@@ -49,7 +53,7 @@
         }
 
         return {
-          compile(prompt, options) {
+          compile(prompt, options, onProgress = null) {
             try {
               ensureWorker();
             } catch (error) {
@@ -58,7 +62,11 @@
             const id = nextId + 1;
             nextId = id;
             return new Promise((resolve, reject) => {
-              pending.set(id, { resolve, reject });
+              pending.set(id, {
+                resolve,
+                reject,
+                onProgress: typeof onProgress === 'function' ? onProgress : null,
+              });
               try {
                 worker.postMessage({
                   type: 'simulatte:pipeline-worker:compile',
@@ -120,7 +128,12 @@
           label: runtime.phase && runtime.phase.label || '',
           stage: runtime.stage || '',
           state: runtime.state || '',
-          percent: Number(runtime.percent || 0),
+          percent: Number(runtime.progress || 0),
+          overallPercent: Number(runtime.overallProgress || 0),
+          progressBasis: runtime.progressBasis || '',
+          taskKey: runtime.taskKey || '',
+          taskElapsedMs: numericMetric(runtime.taskElapsedMs),
+          taskRemainingMs: numericMetric(runtime.taskRemainingMs),
           line: runtime.line || '',
           backend: event.backend || '',
           timing: compactObject({

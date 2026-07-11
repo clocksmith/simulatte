@@ -2,6 +2,7 @@
   if (typeof module === 'object' && module.exports) {
     require('./runtime-progress-dependencies.js');
     require('./runtime-progress-constants.js');
+    require('./runtime-progress-timing.js');
     require('./runtime-progress-controller.js');
     require('./runtime-progress-reducer.js');
     require('./runtime-progress-observers.js');
@@ -15,6 +16,7 @@
     STATE_SCHEMA,
     LOADER_RECEIPT_SCHEMA,
     PROGRESS_LOG_SCHEMA,
+    TIMING_PROFILE_SCHEMA,
     RUNTIME_PHASES,
     connect,
     createController,

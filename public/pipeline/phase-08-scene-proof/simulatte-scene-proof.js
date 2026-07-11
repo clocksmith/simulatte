@@ -26,12 +26,17 @@
     const passedVisualTargets = (renderExecution.visualObligationProof || [])
       .filter((row) => row.status === 'pass')
       .map((row) => normalizeProofText(row.target || row.obligationId || ''));
+    const objectRealizationRows = renderExecution.objectRealization &&
+      Array.isArray(renderExecution.objectRealization.rows)
+      ? renderExecution.objectRealization.rows
+      : [];
     const settledObligations = (sourceLedger.obligations || []).map((row) => settleObligation(row, {
       rendered,
       identities,
       visualProofByObligation,
       passedVisualTargets,
       sourceObligations: sourceLedger.obligations || [],
+      objectRealizationRows,
     }));
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
@@ -58,6 +63,7 @@
         pixelAuditStatus: renderExecution.pixelAudit && renderExecution.pixelAudit.status || '',
         renderCount: Number(renderExecution.renderCount || 0),
         visualObligationProofSummary: renderExecution.visualObligationProofSummary || null,
+        objectRealization: renderExecution.objectRealization || null,
       },
       nowIso: options.nowIso || new Date().toISOString(),
     };
@@ -167,7 +173,21 @@
       }
       const identityTarget = normalizeProofText(target);
       if (identityTarget && hasIdentityEvidence(context.identities, identityTarget)) {
-        return { ...base, status: 'preserved', reason: 'identity present in scene render packet', evidence: ['packetIdentitySummary'] };
+        const realization = objectRealizationForTarget(context.objectRealizationRows, identityTarget);
+        if (realization && realization.realized === true && Number(realization.projectedArea || 0) >= 0.002) {
+          return {
+            ...base,
+            status: 'preserved',
+            reason: 'identity has a rendered literal geometry program',
+            evidence: ['packetIdentitySummary', 'objectRealization'],
+          };
+        }
+        return {
+          ...base,
+          status: base.required ? 'lost' : 'not-proven',
+          reason: `identity ${identityTarget} lacks realized literal geometry`,
+          evidence: ['packetIdentitySummary'],
+        };
       }
       return {
         ...base,
@@ -224,6 +244,12 @@
       if (targetTerms.some((term) => identityTerms.has(term))) return true;
     }
     return false;
+  }
+
+  function objectRealizationForTarget(rows = [], target = '') {
+    return (rows || []).find((row) => [row && row.identityType, ...(row && row.identityLabels || [])]
+      .filter(Boolean)
+      .some((value) => proofPhraseMatch(normalizeProofText(value), normalizeProofText(target)))) || null;
   }
 
   function proofTokens(value) {

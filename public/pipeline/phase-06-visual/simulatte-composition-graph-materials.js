@@ -347,10 +347,23 @@
         ].join(' ').toLowerCase();
         const local = `${identityLocal} ${entity.label || ''}`.toLowerCase();
         const scene = String(sceneKind || '').toLowerCase();
+        if (/\bblack[-_ ]hole\b|event[-_ ]horizon/.test(local)) return 'black-hole';
+        if (/\b(tv|television|screen|monitor)\b/.test(local)) return 'television';
+        if (/\b(person|human|people|worker|runner)\b/.test(local)) return 'person-body';
+        if (/\b(chair|stool|seat)\b/.test(local)) return 'chair-frame';
+        if (/\b(table|desk|bench)\b/.test(local) && !/relation[-_ ]table|contact[-_ ]pair[-_ ]table/.test(local)) return 'table-frame';
+        if (/\b(building|house|skyscraper|apartment)\b/.test(local)) return 'building-body';
+        if (/\b(galaxy|nebula)\b/.test(local)) return 'galaxy-spiral';
+        if (/\b(planets?|moons?)\b/.test(local)) return 'planet-body';
+        if (/\b(stars?|sun)\b/.test(local) && !/starfish/.test(local)) return 'star-body';
+        if (/\b(tree|trees|forest|oak|pine|willow|maple)\b/.test(local)) return 'tree-body';
+        if (/\b(flower|flowers|rose|sunflower|orchid)\b/.test(local)) return 'flower-body';
+        if (/\b(mountain|mountains|peak|ridge)\b/.test(local)) return 'mountain-body';
+        if (/\b(car|automobile|truck)\b/.test(local)) return 'car-body';
         if (/\bdogs?\b|(?:^|[-_])dog(?:[-_]|$)|surface[-_ ]dog|primitive[-_ ]dog/.test(identityLocal)) return 'dog-body';
         if (/\bcats?\b|(?:^|[-_])cat(?:[-_]|$)|surface[-_ ]cat|primitive[-_ ]cat/.test(identityLocal)) return 'cat-body';
         if (/\b(dog|dogs|cat|cats|animal|mammal|swimmer)\b|animal-body/.test(identityLocal)) return 'animal-body';
-        if (/\b(flower|flowers|plant|plants|tree|trees|leaf|leaves|root|mangrove|botanical|fuel-bed|biomass)\b/.test(identityLocal)) return 'botanical-cluster';
+        if (/\b(flower|flowers|plant|plants|tree|trees|leaf|leaves|root|mangrove|botanical|fuel-bed)\b/.test(identityLocal)) return 'botanical-cluster';
         if (/\b(gut|microbiome|microbe|bacteria|colonies|colony|intestinal|immune|tissue|cell|membrane)\b/.test(identityLocal)) return 'cellular-fold-volume';
         if (/\b(train|railway|rail|subway|dispatch|platform|signal block|signal blocks)\b/.test(identityLocal)) return 'rail-dispatch-grid';
         if (/\b(building|zoning|shadow|sunlight|pedestrian|comfort|city-grid|city grid)\b/.test(identityLocal)) return 'building-shadow-volume';
@@ -688,7 +701,7 @@
         const instancesByProcess = renderInstanceLookup(renderInstances, 'processId');
         const processById = new Map(processes.map((row) => [row.id, row]));
         const motionByProcess = new Map(motion.map((row) => [row.processId, row]));
-        const packetEntities = entities
+        const packetEntities = scenePacketComposeLiteralEntities(entities
           .map((entity, index) => scenePacketEntity({
             entity,
             geometry: geometryByEntity.get(entity.id),
@@ -699,7 +712,7 @@
             index,
             total: entities.length,
           }))
-          .filter(Boolean)
+          .filter(Boolean))
           .slice(0, 32);
         const packetFields = fields
           .map((field, index) => scenePacketField({

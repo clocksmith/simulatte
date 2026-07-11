@@ -433,7 +433,7 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.ok(!mappingIds(flowers).includes('visual.operator.instrument-readout.v1'));
   assert.ok(catalogCount(flowers) <= 6);
   const flowerPacketIdentities = flowers.renderProgram.sceneRenderPacket.entities.map((entity) => entity.identity);
-  assert.ok(flowerPacketIdentities.some((identity) => identity.type === 'plant'));
+  assert.ok(flowerPacketIdentities.some((identity) => identity.type === 'flower'));
   assert.ok(flowerPacketIdentities.every((identity) => identity.renderClass !== 'water-volume'));
   assert.equal(mountainObjects['tree-a'].shape, 'fuel-bed');
   assert.equal(mountainObjects['environment-mountain'].role, 'mountain');

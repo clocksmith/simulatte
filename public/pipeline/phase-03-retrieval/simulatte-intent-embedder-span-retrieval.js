@@ -785,6 +785,7 @@
             prefixStateReused: row.prefixStateReused === true,
             executionDurationMs: row.executionDurationMs || 0,
           });
+          input.onProgress({ completed: 0, total: input.candidates.length });
           const result = await capability.rerank(input);
           const modelRows = normalizeRerankerRows(result);
           if (!modelRows.length) throw new Error(`Doppler reranker ${config.id} returned no slot candidates`);

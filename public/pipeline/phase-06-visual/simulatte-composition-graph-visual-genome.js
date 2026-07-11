@@ -149,6 +149,19 @@
           case 'cell': return 12;
           case 'structure': return 13;
           case 'field': return 14;
+          case 'person': return 15;
+          case 'tree': return 16;
+          case 'building': return 17;
+          case 'table': return 18;
+          case 'chair': return 19;
+          case 'television': return 20;
+          case 'galaxy': return 21;
+          case 'star': return 22;
+          case 'planet': return 23;
+          case 'black-hole': return 24;
+          case 'flower': return 25;
+          case 'mountain': return 26;
+          case 'car': return 27;
           default: {
             const text = [
               identity.type,
@@ -159,7 +172,7 @@
               identity.semanticRef,
               identity.physicalRef,
             ].filter(Boolean).join(':').toLowerCase();
-            return text ? scenePacketStableCode(text, 15, 96) : 0;
+            return text ? scenePacketStableCode(text, 64, 160) : 0;
           }
         }
       }

@@ -93,12 +93,7 @@
         'phase-boundary',
       ]);
 
-    const WEBGPU_OPTIONAL_FEATURES = Object.freeze([
-        'shader-f16',
-        'subgroups',
-        'timestamp-query',
-        'chromium-experimental-multi-draw-indirect',
-      ]);
+    const WEBGPU_OPTIONAL_FEATURES = Object.freeze([]);
 
     const WEBGPU_NATIVE_ONLY_FEATURES = Object.freeze([
         'mesh-shader-api',
@@ -107,10 +102,9 @@
       ]);
 
     const WEBGPU_TRANSLATED_TECHNIQUES = Object.freeze([
-        'compute-scene-culling',
-        'storage-buffer-scene-instances',
-        'gpu-generated-indirect-fullscreen-draw',
-        'meshlet-compatible-instance-packet',
+        'compiled-object-geometry-programs',
+        'storage-buffer-object-parts',
+        'direct-instanced-bounded-quads',
       ]);
 
     const DEFAULT_WEBGPU_FEATURE_RECEIPT = Object.freeze({
@@ -119,7 +113,7 @@
         requested: Object.freeze([]),
         enabled: Object.freeze([]),
         failed: Object.freeze([]),
-        used: Object.freeze(['uniform-fullscreen-fallback']),
+        used: Object.freeze(['lightweight-background', 'direct-instanced-bounded-quads']),
         unsupportedNativeFeatures: WEBGPU_NATIVE_ONLY_FEATURES,
       });
 

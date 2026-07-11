@@ -7,7 +7,14 @@
     return Array.from(new Set((sceneRenderPacket.entities || [])
       .flatMap((row) => {
         const identity = row.identity || {};
-        return [identity.label, identity.type, identity.sourceLabel, row.label, row.id];
+        return [
+          identity.label,
+          identity.type,
+          identity.sourceLabel,
+          row.label,
+          row.id,
+          ...(row.representedEntityIds || []),
+        ];
       })
       .filter(Boolean)));
   }
@@ -24,6 +31,8 @@
       : null;
     const rendered = frameReceipt ? frameReceipt.rendered === true : renderedOrFrame === true;
     const renderData = suppliedRenderData || frameReceipt && frameReceipt.renderData || frameReceipt;
+    const objectRealization = renderData && renderData.objectRealization ||
+      objectRealizationForScenePacket(sceneRenderPacket);
     const identities = new Set((sceneRenderPacket.entities || [])
       .map((row) => row.identity && row.identity.type)
       .filter(Boolean));
@@ -52,8 +61,9 @@
         packetText,
         distinctEntityIdentityCount
       );
+      const geometrySatisfied = visualObligationGeometrySatisfied(target, objectRealization);
       const sourceStatus = row.status || '';
-      const status = rendered && packetSatisfied && !phase7FailureStatus(sourceStatus)
+      const status = rendered && packetSatisfied && geometrySatisfied && !phase7FailureStatus(sourceStatus)
         ? 'pass'
         : rendered ? 'fail' : 'not-proven';
       return {
@@ -63,11 +73,12 @@
         required: row.required === true,
         phase6Status: sourceStatus,
         packetSatisfied,
-        pixelSatisfied: rendered && packetSatisfied,
+        geometrySatisfied,
+        pixelSatisfied: rendered && packetSatisfied && geometrySatisfied,
         status,
         pass: status === 'pass',
-        evidence: packetSatisfied
-          ? ['sceneRenderPacket', ...(rendered ? ['webgpu-frame'] : [])]
+        evidence: packetSatisfied && geometrySatisfied
+          ? ['sceneRenderPacket', 'objectGeometryProgram', ...(rendered ? ['webgpu-frame'] : [])]
           : [],
       };
     });
@@ -117,6 +128,7 @@
         drawableCount,
       }
     );
+    const literalRealization = auditLiteralObjectRealization(sceneRenderPacket, renderData);
     const thresholds = {
       minDrawableCount: drawableCount > 0 ? 1 : 0,
       minDrawCount: drawableCount > 0 ? 1 : 0,
@@ -127,6 +139,7 @@
         : 0,
       minLivePixelContrast: livePixelAudit.required ? livePixelAudit.thresholds.minContrast : 0,
       maxFailedObligations: 0,
+      minLiteralRealizations: literalRealization.requiredCount,
     };
     const checks = [];
     if (frameReceiptMode) {
@@ -162,6 +175,11 @@
         thresholds.minLivePixelSamples
       ),
       minimumCheck(
+        'literal-object-realization',
+        literalRealization.realizedRequiredCount,
+        thresholds.minLiteralRealizations
+      ),
+      minimumCheck(
         'live-pixel-contrast',
         livePixelAudit.minContrast,
         thresholds.minLivePixelContrast
@@ -185,7 +203,99 @@
       drawableCount,
       optimizationPath: optimization && optimization.path || '',
       livePixelAudit,
+      literalRealization,
     };
+  }
+
+  function objectRealizationForScenePacket(sceneRenderPacket = {}) {
+    const rows = (sceneRenderPacket.entities || []).map((row) => {
+      const program = row && row.geometry && row.geometry.program || {};
+      const parts = Array.isArray(program.parts) ? program.parts : [];
+      const scale = row && row.transform && row.transform.scale || [];
+      return {
+        schema: 'simulatte.objectRenderRealization.v1',
+        entityId: row.id || '',
+        identityType: row.identity && row.identity.type || program.identityType || '',
+        identityLabels: [
+          row.id,
+          row.label,
+          row.identity && row.identity.label,
+          row.identity && row.identity.sourceLabel,
+          row.identity && row.identity.type,
+          ...(row.representedEntityIds || []),
+        ].filter(Boolean),
+        grammarId: program.grammarId || '',
+        literal: program.literal === true,
+        partCount: parts.length,
+        primitiveCount: new Set(parts.map((part) => part.primitive).filter(Boolean)).size,
+        projectedArea: Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5)),
+        realized: program.literal === true && parts.length >= 2,
+      };
+    });
+    return {
+      schema: 'simulatte.objectRenderRealizationSummary.v1',
+      entityCount: rows.length,
+      literalCount: rows.filter((row) => row.literal).length,
+      realizedCount: rows.filter((row) => row.realized).length,
+      unprovenEntityIds: rows.filter((row) => !row.realized).map((row) => row.entityId),
+      rows,
+    };
+  }
+
+  function visualObligationGeometrySatisfied(target = '', realization = {}) {
+    const rows = realization && Array.isArray(realization.rows) ? realization.rows : [];
+    if (/compiled scene packet/.test(target)) return rows.some((row) => row.realized);
+    if (/species distinct|species-distinct/.test(target)) {
+      return new Set(rows.filter((row) => row.realized && ['dog', 'cat', 'animal'].includes(row.identityType))
+        .map((row) => row.identityType)).size >= 2;
+    }
+    if (/swimming pose|swim/.test(target)) {
+      return rows.some((row) => row.realized && ['dog', 'cat', 'animal'].includes(row.identityType));
+    }
+    return true;
+  }
+
+  function auditLiteralObjectRealization(sceneRenderPacket = {}, renderData = null) {
+    const realization = renderData && renderData.objectRealization ||
+      objectRealizationForScenePacket(sceneRenderPacket);
+    const rows = realization && Array.isArray(realization.rows) ? realization.rows : [];
+    const ledger = sceneRenderPacket && sceneRenderPacket.compositionLedger || {};
+    const obligations = (ledger.obligations || []).filter((row) => row && row.required === true &&
+      ['entity', 'object', 'environment', 'medium'].includes(row.kind));
+    const settled = obligations.map((obligation) => {
+      const target = normalizeForProof(obligation.target || obligation.obligationId || obligation.id || '');
+      const matches = rows.filter((row) => [row.identityType, ...(row.identityLabels || [])]
+        .some((value) => proofPhraseMatch(value, target)));
+      const realized = matches.some((row) => row.realized && Number(row.projectedArea || 0) >= 0.002);
+      return {
+        obligationId: obligation.obligationId || obligation.id || '',
+        target: obligation.target || '',
+        realized,
+        entityIds: matches.map((row) => row.entityId),
+        grammarIds: Array.from(new Set(matches.map((row) => row.grammarId).filter(Boolean))),
+      };
+    });
+    return {
+      schema: 'simulatte.literalObjectRealizationAudit.v1',
+      requiredCount: settled.length,
+      realizedRequiredCount: settled.filter((row) => row.realized).length,
+      failedObligationIds: settled.filter((row) => !row.realized).map((row) => row.obligationId),
+      status: settled.every((row) => row.realized) ? 'pass' : 'fail',
+      rows: settled,
+      realization,
+    };
+  }
+
+  function proofPhraseMatch(a, b) {
+    const left = proofTokensForRealization(a).join(' ');
+    const right = proofTokensForRealization(b).join(' ');
+    if (!left || !right) return false;
+    return ` ${left} `.includes(` ${right} `) || ` ${right} `.includes(` ${left} `);
+  }
+
+  function proofTokensForRealization(value = '') {
+    return normalizeForProof(value).split(/\s+/).filter(Boolean)
+      .map((term) => term.length > 3 && term.endsWith('s') ? term.slice(0, -1) : term);
   }
 
   function minimumCheck(id, actual, expectedMin) {
@@ -352,5 +462,8 @@
     phase7FailureStatus,
     normalizeForProof,
     visualObligationPacketSatisfied,
+    objectRealizationForScenePacket,
+    visualObligationGeometrySatisfied,
+    auditLiteralObjectRealization,
   });
 });

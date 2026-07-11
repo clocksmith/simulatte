@@ -22,6 +22,15 @@
         const domainByNode = new Map();
 
         for (const node of universeGraph.nodes || []) {
+          if (/^(event|process|action|operator|property|state)$/.test(String(node.semanticType || '').toLowerCase())) {
+            receipt.exact.push({
+              promptSpan: node.label,
+              canonicalId: node.canonicalId,
+              confidence: node.confidence,
+              loweredAs: 'non-entity semantic evidence',
+            });
+            continue;
+          }
           const entity = entityForNode(node);
           entities.push(entity);
           receipt.exact.push({ promptSpan: node.label, canonicalId: node.canonicalId, confidence: node.confidence });
@@ -138,7 +147,11 @@
           canonicalId: node.canonicalId,
           label: node.label || node.canonicalId,
           semanticType: node.semanticType || 'body',
-          materialId: node.materialId || materialFromDomains(node.domains || []),
+          materialId: node.materialId || materialFromDomains([
+            ...(node.domains || []),
+            node.label,
+            node.canonicalId,
+          ]),
           domains: node.domains || [],
           operatorHints: node.operatorHints || [],
           geometryRef: geometryForNode(node),
@@ -245,6 +258,9 @@
         }
         if (/\b(sunlight|shadow|phase study|lab sample|sample holder|immune sampling|metabolite|nutrient|density)\b/.test(text)) {
           return 'field';
+        }
+        if (/\b(lava|magma|water|river|lake|pool|pond|ocean|fluid|flow channel)\b/.test(text)) {
+          return 'fluid';
         }
         return preferredDomainKind(domains, semanticType);
       }

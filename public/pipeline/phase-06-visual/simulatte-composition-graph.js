@@ -6,6 +6,7 @@
     require('./simulatte-composition-graph-render-ir-binding.js');
     require('./simulatte-composition-graph-visual-ir.js');
     require('./simulatte-composition-graph-materials.js');
+    require('./simulatte-object-geometry-grammars.js');
     require('./simulatte-composition-graph-scene-packet.js');
     require('./simulatte-composition-graph-visual-genome.js');
     require('./simulatte-composition-graph-programs.js');

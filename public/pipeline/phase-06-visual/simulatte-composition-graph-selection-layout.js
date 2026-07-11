@@ -790,7 +790,7 @@
         return uniqueObjectsById([...objects, ...directSurface]).slice(0, 24);
       }
 
-    function unmatchedRenderIRObjects(graphObjects, irObjects, sceneKind) {
+    function unmatchedRenderIRObjects(graphObjects, irObjects, _sceneKind) {
         const seen = new Set((graphObjects || []).flatMap((object) => [
           object.id,
           object.semanticRef,
@@ -803,9 +803,9 @@
               .some((value) => seen.has(String(value || '').toLowerCase()))) {
               return false;
             }
-            return contextObjectForRenderIRScene(text, sceneKind);
+            return Boolean(text);
           })
-          .slice(0, 10);
+          .slice(0, 16);
       }
 
     Object.assign(scope, {
