@@ -111,7 +111,9 @@
 
   function scoreMapping(row, index, text, normalized, context) {
     const matchedTerms = termsMatched(row.matchTerms || [], text, normalized);
-    const requireResult = passesRequires(row.requires || [], directRequirementEvidence(context));
+    const directRequirements = passesRequires(row.requires || [], directRequirementEvidence(context));
+    const solverRequirements = passesRequires(row.requires || [], solverRequirementEvidence(context));
+    const requireResult = directRequirements.ok ? directRequirements : solverRequirements;
     const blockedTerms = termsMatched(row.excludes || [], text, normalized);
     const sceneGate = sceneAcceptsMapping(context, row);
     let score = 0;
@@ -151,6 +153,13 @@
       matchedTerms,
       requiredGroups: requireResult.matchedGroups,
     };
+  }
+
+  function solverRequirementEvidence(context = {}) {
+    return uniqueStrings([
+      ...((context.solverPlan && context.solverPlan.steps) || []).map(solverStepText),
+      ...((context.solverPlan && context.solverPlan.executableSteps) || []).map(solverStepText),
+    ]).map((text) => ({ text, negationText: '' }));
   }
 
   function compiledMapping(entry) {

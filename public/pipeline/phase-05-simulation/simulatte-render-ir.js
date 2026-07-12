@@ -31,6 +31,14 @@
           ...(domain.operatorHints || []),
         ]),
         label: entity.label,
+        sourceLabel: entity.sourceLabel || entity.label,
+        aliases: (entity.aliases || []).slice(),
+        semanticClass: entity.semanticClass || '',
+        visualArchetype: entity.visualArchetype || '',
+        shapeHints: (entity.shapeHints || []).slice(),
+        construction: entity.construction || null,
+        constructionProvenance: (entity.constructionProvenance || []).slice(),
+        directlyGrounded: entity.directlyGrounded === true,
         glyph,
         materialId: entity.materialId,
         materialStyle,
@@ -40,6 +48,7 @@
         behavior: behaviorForEntity(entity, physicsIR.behaviorRelations || []),
         physicsOperators: operatorTypesForEntity(entity, physicsIR.operators || [], solverGraph.steps || []),
         order: index,
+        evidence: (entity.evidence || []).slice(),
       };
     });
     const objects = [
@@ -77,7 +86,11 @@
       row.label,
     ].filter(Boolean).join(' '))));
     const rows = [];
+    const materialAttributeNodeIds = new Set((universeGraph.edges || [])
+      .filter((edge) => edge.type === 'materialOf')
+      .map((edge) => edge.from));
     for (const node of universeGraph.nodes || []) {
+      if (materialAttributeNodeIds.has(node.id)) continue;
       const nodeKeys = identityKeys([
         node.id,
         node.canonicalId,
@@ -86,7 +99,8 @@
       ].filter(Boolean).join(' '));
       if (nodeKeys.some((key) => represented.has(key))) continue;
       if (!node.id || !node.label || node.supportOnly === true) continue;
-      if (/^(event|process|action|operator|property|state)$/.test(String(node.semanticType || '').toLowerCase())) {
+      const semanticType = String(node.semanticType || node.type || '').toLowerCase();
+      if (/^(event|process|action|observable|operator|property|state)$/.test(semanticType)) {
         continue;
       }
       const domain = {
@@ -107,13 +121,22 @@
         domainTags: domain.tags.slice(),
         operatorHints: unique(node.operatorTypes || node.operatorHints || []),
         label: node.label,
+        sourceLabel: node.label,
+        aliases: (node.aliases || []).slice(),
+        semanticClass: node.semanticClass || '',
+        visualArchetype: node.visualArchetype || '',
+        shapeHints: (node.shapeHints || []).slice(),
+        construction: node.construction || null,
+        constructionProvenance: (node.constructionProvenance || []).slice(),
+        directlyGrounded: node.directlyGrounded === true || node.indexName === 'prompt-typed-slot',
         glyph: node.shapeHints && node.shapeHints[0] || 'body',
         materialId: node.materialId || '',
         materialStyle,
         visualRegime: registry.visualRegimeForDomain
           ? registry.visualRegimeForDomain(domain)
           : domain.kind,
-        geometry: node.shapeHints && node.shapeHints[0] || null,
+        geometry: node.construction ? { kind: 'constructive-program', construction: node.construction } :
+          node.shapeHints && node.shapeHints[0] || null,
         stateBindings: {},
         behavior: null,
         physicsOperators: unique(node.operatorTypes || node.operatorHints || []),
@@ -234,6 +257,7 @@
       processes: unique(rows.map((row) => row.process).filter(Boolean)),
       roles: unique(rows.map((row) => row.agentEntityId === entityId ? 'agent' : 'medium')),
       relationIds: rows.map((row) => row.id).filter(Boolean),
+      sourceEvidence: unique(rows.flatMap((row) => row.evidence || [])),
       operators: unique(rows.flatMap((row) => row.operators || [])),
     };
   }

@@ -556,11 +556,18 @@ function scoreRetrieval(context) {
   const retrieval = context.retrievalRerankResult || {};
   const semantic = retrieval.semanticRag || context.intent.semanticRag || {};
   const synthesis = context.intent.synthesis || null;
+  const requiredSlots = (retrieval.queryPlan && retrieval.queryPlan.slots || []).filter((row) => row.required === true);
+  const preservedSlotIds = new Set((retrieval.slotEvidence || [])
+    .filter((row) => row && row.status === 'preserved' && Number(row.acceptedCount || 0) > 0)
+    .map((row) => row.slotId || row.id));
+  const requiredSlotCoverage = requiredSlots.length
+    ? requiredSlots.filter((row) => preservedSlotIds.has(row.slotId)).length / requiredSlots.length
+    : Number(evidenceRows.length > 0);
   const text = compactText(evidenceRows);
   const signalCoverage = signalCoverageScore(context.expectedSignals, text);
   const termCoverage = coverage(context.contentTerms, text);
   const score = sumParts([
-    part(18, evidenceRows.length >= Math.max(8, context.expectedSignals.length * 2)),
+    part(18, requiredSlotCoverage),
     part(12, semantic.schema || evidenceRows.length),
     part(12, synthesis && synthesis.schema || evidenceRows.length >= 16),
     part(30, signalCoverage.coverage),
@@ -569,6 +576,9 @@ function scoreRetrieval(context) {
   ]) - signalCoverage.falsePositivePenalty;
   return scored(score, `signalCoverage=${pct(signalCoverage.coverage)}`, {
     evidenceCount: evidenceRows.length,
+    requiredSlotCount: requiredSlots.length,
+    preservedRequiredSlotCount: requiredSlots.filter((row) => preservedSlotIds.has(row.slotId)).length,
+    requiredSlotCoverage,
     semanticRag: semantic.schema || '',
     synthesis: synthesis && synthesis.schema || '',
     termCoverage,

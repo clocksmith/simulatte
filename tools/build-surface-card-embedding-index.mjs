@@ -241,18 +241,20 @@ async function embedDocumentsWithModel(model, manifest, documents, label) {
 async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash }) {
   const createdAt = new Date().toISOString();
   const chunkDir = await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-surface-cards-'));
-  const chunks = [];
   try {
-    for (let offset = 0; offset < documents.length; offset += CHUNK_SIZE) {
-      const limit = Math.min(CHUNK_SIZE, documents.length - offset);
+    const reusable = await reusableIndexVectors(documents, embedModelHash);
+    const chunks = [];
+    for (const [offset, limit] of missingDocumentRanges(reusable.vectors)) {
       const chunkPath = path.join(chunkDir, `surface-cards-${offset}.json`);
       await runChildChunk(offset, limit, chunkPath);
       chunks.push(JSON.parse(await fs.readFile(chunkPath, 'utf8')));
     }
-    const embeddingDim = chunks[0] ? Number(chunks[0].embeddingDim) : 0;
+    const embeddingDim = Number(reusable.embeddingDim || chunks[0] && chunks[0].embeddingDim || 0);
     if (!embeddingDim) throw new Error('No surface-card chunks were generated');
     const packed = new Float32Array(documents.length * embeddingDim);
-    const mergedDocuments = [];
+    reusable.vectors.forEach((vector, index) => {
+      if (vector) packed.set(vector, index * embeddingDim);
+    });
     for (const chunk of chunks) {
       if (Number(chunk.embeddingDim) !== embeddingDim) {
         throw new Error(`Surface-card chunk dim mismatch (${chunk.embeddingDim} !== ${embeddingDim})`);
@@ -262,16 +264,15 @@ async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash 
       if (vectors.length !== chunkDocuments.length * embeddingDim) {
         throw new Error(`Surface-card chunk byte length mismatch at offset ${chunk.offset}`);
       }
-      mergedDocuments.push(...chunkDocuments);
       packed.set(vectors, Number(chunk.offset) * embeddingDim);
     }
-    if (mergedDocuments.length !== documents.length) {
-      throw new Error(`Surface-card chunk document count mismatch (${mergedDocuments.length} !== ${documents.length})`);
-    }
-    for (let i = 0; i < mergedDocuments.length; i += 1) {
-      if (mergedDocuments[i].order !== i || mergedDocuments[i].cardId !== documents[i].cardId) {
-        throw new Error(`Surface-card chunk order mismatch at ${i}`);
-      }
+    const missingAfterBuild = missingDocumentRanges(documents.map((_, index) => (
+      packed.subarray(index * embeddingDim, (index + 1) * embeddingDim).some((value) => value !== 0)
+        ? packed.subarray(index * embeddingDim, (index + 1) * embeddingDim)
+        : null
+    )));
+    if (missingAfterBuild.length) {
+      throw new Error(`Surface-card vectors missing after build: ${JSON.stringify(missingAfterBuild)}`);
     }
     const packedBytes = Buffer.from(packed.buffer, packed.byteOffset, packed.byteLength);
 
@@ -279,12 +280,12 @@ async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash 
       schema: graphSynthesis.CARD_INDEX_SCHEMA,
       id: INDEX_ID,
       createdAt,
-      documentCount: mergedDocuments.length,
+      documentCount: documents.length,
       embeddingDim,
       embedModelId: MODEL_ID,
       embedModelHash,
       embedModelManifestHash: embedModelHash,
-      documents: mergedDocuments,
+      documents,
       embeddingsPackedBase64: packedBytes.toString('base64'),
     };
     index.indexHash = indexHash(index);
@@ -298,11 +299,54 @@ async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash 
       embedModelId: index.embedModelId,
       embedModelHash: index.embedModelHash,
       indexHash: index.indexHash,
+      reusedVectors: reusable.reusedCount,
+      embeddedVectors: documents.length - reusable.reusedCount,
       bytes: Buffer.byteLength(stableStringify(index)),
     }, null, 2));
   } finally {
     await fs.rm(chunkDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+async function reusableIndexVectors(documents, embedModelHash) {
+  const empty = { embeddingDim: 0, reusedCount: 0, vectors: new Array(documents.length).fill(null) };
+  let existing;
+  try {
+    existing = JSON.parse(await fs.readFile(OUT_PATH, 'utf8'));
+  } catch {
+    return empty;
+  }
+  const embeddingDim = Number(existing.embeddingDim || 0);
+  const modelHash = existing.embedModelHash && existing.embedModelHash.hex || '';
+  const expectedHash = embedModelHash && embedModelHash.hex || '';
+  const existingDocuments = Array.isArray(existing.documents) ? existing.documents : [];
+  const packed = base64ToFloat32(existing.embeddingsPackedBase64);
+  if (existing.embedModelId !== MODEL_ID || modelHash !== expectedHash || !embeddingDim ||
+    packed.length !== existingDocuments.length * embeddingDim) return empty;
+  const byCardId = new Map(existingDocuments.map((document, index) => [document.cardId, { document, index }]));
+  let reusedCount = 0;
+  const vectors = documents.map((document) => {
+    const previous = byCardId.get(document.cardId);
+    if (!previous || previous.document.textHash?.hex !== document.textHash?.hex) return null;
+    reusedCount += 1;
+    return packed.slice(previous.index * embeddingDim, (previous.index + 1) * embeddingDim);
+  });
+  console.log(`reusing ${reusedCount}/${documents.length} surface-card vectors from ${OUT_PATH}`);
+  return { embeddingDim, reusedCount, vectors };
+}
+
+function missingDocumentRanges(vectors = []) {
+  const ranges = [];
+  for (let index = 0; index < vectors.length;) {
+    if (vectors[index]) {
+      index += 1;
+      continue;
+    }
+    const offset = index;
+    while (index < vectors.length && !vectors[index] && index - offset < CHUNK_SIZE) index += 1;
+    ranges.push([offset, index - offset]);
+  }
+  return ranges;
 }
 
 function base64ToFloat32(base64) {

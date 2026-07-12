@@ -5,7 +5,32 @@
     function sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec) {
         const sceneHint = normalizedSceneHint(renderIR.sceneHint);
         const directScene = directSceneKindForRenderIR(renderIR, spec);
+        const promptText = directPromptSceneText(renderIR, spec);
+        const promptTerrain = (graphObjects || []).some((object) => (
+          isPromptGroundedComponent(object, promptText) && hasDirectTerrainSignal([
+            object.id,
+            object.role,
+            object.phrase,
+            object.shape,
+            ...(object.domains || []),
+          ].filter(Boolean).join(' '))
+        ));
+        if (directScene === 'biology' && promptTerrain) return 'watershed';
+        if (directScene === 'mechanical' && sceneHint === 'city' &&
+          (hasDirectBuiltEnvironmentSignal(promptText) || hasDirectMechanicalRigSignal(promptText)) &&
+          !hasDirectNetworkSignal(promptText)) {
+          return 'mechanical';
+        }
+        if (directScene === 'mechanical' &&
+          (hasDirectBuiltEnvironmentSignal(promptText) || hasDirectMechanicalRigSignal(promptText)) &&
+          !/\b(magnet|magnetic|ferrofluid|coil|stator|flux|dipole)\b/.test(promptText) &&
+          ['', 'biology', 'city', 'literal-composite', 'magnetic-machine', 'watershed'].includes(sceneHint)) return 'mechanical';
         if (directScene && broadSceneHintCanYieldToDirectLanguage(sceneHint)) return directScene;
+        const residualOptics = (graphObjects || []).some((object) => (
+          object.source === 'doppler-residual' &&
+          /optical|optics|lens|prism|refraction/.test(`${object.visualRegime || ''} ${object.shape || ''} ${object.role || ''}`)
+        ));
+        if (residualOptics) return 'optics';
         if (sceneHint && sceneHint !== 'literal-composite') return sceneHint;
         const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph, spec);
         if (signalScene && signalScene !== 'literal-composite') return signalScene;
@@ -29,7 +54,12 @@
     function directSceneKindForText(text = '', promptText = text) {
         if (/\b(galaxy|galaxies|nebula|black hole|event horizon|planet|planets|moon|moons|star|stars|solar system)\b/.test(promptText)) return 'planetary-space';
         if (hasDirectCombustionSignal(promptText)) return 'fire';
+        if (hasDirectThermalSignal(promptText)) return 'thermal-plume';
         if (hasDirectSwimmingSignal(promptText)) return 'watershed';
+        if (hasThinFilmSignal(promptText)) return 'thin-film';
+        if (hasDirectTerrainSignal(text)) return 'watershed';
+        if (hasDirectMechanicalRigSignal(promptText)) return 'mechanical';
+        if (hasDirectBuiltEnvironmentSignal(promptText)) return 'mechanical';
         if (hasDirectAnimalOrPlantSignal(text) && !hasDirectMechanicalRigSignal(promptText)) return 'biology';
         return '';
       }
@@ -131,12 +161,24 @@
         const promptParse = spec && spec.promptParse || {};
         const universeGraph = spec && spec.universeGraph || {};
         const physicsIR = spec && spec.physicsIR || {};
+        const promptOwnedObjects = (renderIR && renderIR.objects || []).filter((object) => (
+          object.directlyGrounded === true ||
+          /^prompt\./.test(String(object.semanticRef || object.physicalRef || ''))
+        ));
         return positiveLanguageText([
           renderIR && renderIR.prompt,
           universeGraph.prompt,
           physicsIR.prompt,
           spec && spec.name,
           ...((promptParse.spans || []).map((span) => span.text)),
+          ...promptOwnedObjects.map((object) => [
+            object.sourceLabel,
+            object.label,
+            object.visualArchetype,
+            object.semanticClass,
+            object.semanticRef,
+            object.physicalRef,
+          ].filter(Boolean).join(' ')),
         ].filter(Boolean).join(' '));
       }
 
@@ -145,8 +187,16 @@
           (hasDirectAnimalOrPlantSignal(text) || /\b(swim|swims|swimming|swam|underwater)\b/.test(text));
       }
 
+    function hasDirectTerrainSignal(text = '') {
+        return /\b(mountain|mountains|terrain|watershed|river|erosion|sediment|delta|lake|pond)\b/.test(text);
+      }
+
     function hasDirectCombustionSignal(text = '') {
         return /\b(forest fire|wildfire|fire|flame|flames|smoke|soot|burn|burns|burning|combust|combustion|ember|embers)\b/.test(text);
+      }
+
+    function hasDirectThermalSignal(text = '') {
+        return /\b(lava|magma|molten|volcano|volcanic|steam|thermal plume|heat plume)\b/.test(text);
       }
 
     function hasDirectAnimalOrPlantSignal(text = '') {
@@ -154,7 +204,15 @@
       }
 
     function hasDirectMechanicalRigSignal(text = '') {
-        return /\b(hamster wheel|running wheel|wheel crashing|crash|crashes|crashing|collision|collide|impact|fracture|projectile|gear|rotor|motor)\b/.test(text);
+        return /\b(hamster wheel|running wheel|wheel crashing|bicycle|airplane|aircraft|crash|crashes|crashing|collision|collide|impact|fracture|projectile|gear|rotor|motor)\b/.test(text);
+      }
+
+    function hasDirectBuiltEnvironmentSignal(text = '') {
+        return /\b(chair|table|sofa|lamp|television|tv|building|room|house|apartment|office|shelf)\b/.test(text);
+      }
+
+    function hasDirectNetworkSignal(text = '') {
+        return /\b(city|traffic|network|queue|market|power grid|railway|dispatch|packet|server|zoning|logistics)\b/.test(text);
       }
 
     function hasRoboticsSignal(text = '') {
@@ -297,13 +355,26 @@
       }
 
     function shapeForRenderGlyph(glyph, object) {
+        if (/^(?:dog|cat|animal)$/.test(object.visualArchetype)) return 'animal-body';
+        if (/^(?:flower|plant|tree)$/.test(object.visualArchetype)) return 'plant-cluster';
+        if (object.visualArchetype === 'building') return 'building';
+        if (object.visualArchetype === 'instrument') return 'instrument';
+        if (object.visualArchetype === 'wheel') return 'wheel';
+        if (object.visualArchetype === 'water') return 'pool';
+        if (object.visualArchetype === 'particle-cloud') return 'grain-bed';
+        if (object.visualArchetype === 'waveguide') return 'instrument';
+        if (object.visualArchetype === 'star') return 'source-field';
         if (glyph === 'lava') return 'lava-flow';
         if (glyph === 'volcano') return 'volcano';
-        if (glyph === 'turbine') return 'turbine';
+        if (glyph === 'turbine') {
+          return object.visualArchetype === 'wheel' || object.semanticClass === 'wheel'
+            ? 'wheel'
+            : 'turbine';
+        }
         if (glyph === 'bridge') return 'bridge';
         if (glyph === 'tower') return 'tower';
         if (glyph === 'castle') return /wall/i.test(object.label || '') ? 'wall' : 'castle';
-        if (glyph === 'ice') return 'sample';
+        if (glyph === 'ice') return 'ice';
         if (glyph === 'lens') return 'lens';
         if (glyph === 'prism') return 'prism';
         if (glyph === 'mirror') return 'mirror';
@@ -316,7 +387,11 @@
         if (glyph === 'rocket') return 'rocket';
         if (glyph === 'submarine') return 'submarine';
         if (glyph === 'instrument') return 'instrument';
-        if (glyph === 'network') return 'network-node';
+        if (glyph === 'network') {
+          const tags = [object.semanticClass, object.visualArchetype, ...(object.domainTags || [])]
+            .filter(Boolean).join(' ').toLowerCase();
+          return /(?:^|\s)(?:queue|market-queue)(?:\s|$)/.test(tags) ? 'queue-node' : 'network-node';
+        }
         if (glyph === 'field') return 'field-envelope';
         if (glyph === 'particle_cloud') return 'flow-path';
         if (glyph === 'organism') return 'plant-cluster';
@@ -370,6 +445,7 @@
 
     function relationsFromPhysicsIR(spec) {
         const ir = spec.physicsIR || {};
+        const seen = new Set();
         return (ir.couplings || []).map((coupling) => ({
           from: String(coupling.from || '').replace(/^domain:/, ''),
           to: String(coupling.to || '').replace(/^domain:/, ''),
@@ -377,7 +453,12 @@
           reason: coupling.type || 'coupling',
           strength: 0.72,
           operatorId: coupling.operatorId,
-        }));
+        })).filter((relation) => {
+          const key = `${relation.from}:${relation.to}:${relation.channel}:${relation.operatorId || ''}`;
+          if (!relation.from || !relation.to || relation.from === relation.to || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
       }
 
     function renderObjectForNode(node, spec) {
@@ -632,7 +713,7 @@
           entity.stateBindings && Object.keys(entity.stateBindings).join(' '),
           entity.stateBindings && Object.values(entity.stateBindings).join(' '),
         ].filter(Boolean).join(' ').toLowerCase();
-        return /\bswim|fluid_locomotion|buoyancy|drag|wake_generation|body_water_contact|partial_submersion|submersion|wake/.test(text);
+        return /\bswim|fluid_locomotion|wake_generation|body_water_contact|partial_submersion|submersion|wake/.test(text);
       }
 
     function swimmingAgentSpecies(entity = {}) {

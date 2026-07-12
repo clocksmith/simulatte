@@ -23,7 +23,7 @@
       "id": "surface-card-embeddings",
       "path": "public/data/simulatte-embedder/surface-card-index-qwen-v1.json",
       "itemKey": "documents",
-      "expectedCount": 678,
+    "expectedCount": 687,
       "kind": "embedding-index"
     },
     {

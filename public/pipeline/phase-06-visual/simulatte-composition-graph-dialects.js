@@ -2,11 +2,6 @@
   const scope = root.__SimulatteCompositionGraphRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
-    // Capture the programs.js implementation from scope explicitly: the local
-    // `function layoutObjectsForScene` below is hoisted and would otherwise shadow
-    // it here, making this wrapper call itself and recurse without a base case.
-    const baseLayoutObjectsForScene = scope.layoutObjectsForScene;
-
     const DIALECT_DEFAULTS = Object.freeze({
       biology: ['biology/specimen', 'specimen', 'microscope-cutaway', 'microscopic'],
       'civic-market': ['civic-market/network-ledger', 'lattice', 'aerial-map', 'landscape'],
@@ -84,7 +79,10 @@
         const text = [
           ...sourceObjects.map((row) => [
             row.id, row.role, row.phrase, row.shape, row.material, row.assembly,
-            row.visualRegime, row.semanticRef, row.physicalRef,
+            row.visualRegime, row.semanticRef, row.physicalRef, row.sourceLabel,
+            ...(row.aliases || []),
+            ...(row.construction && row.construction.partHints || []),
+            ...(row.construction && row.construction.shapeHints || []),
           ].filter(Boolean).join(' ')),
           ...(fields || []).map((row) => [
             row.id, row.kind, row.channel, row.stateBinding, row.domainId,
@@ -127,6 +125,14 @@
           add('robotics-control/precision-gripper', 'specimen', 'lab-cutaway', 'microscopic', 'articulated-gripper-and-constrained-specimen', 'central-specimen-stage', 'torsion-arc-and-contact-pulse', 'precision-violet-steel', [
             ['gripper', 5], ['sample holder', 5], ['protein', 4], ['twist', 3],
             ['torsion', 3], ['angular momentum', 3], ['rotational torque', 2], ['contact', 2],
+          ]);
+        }
+        if (sceneKind === 'mechanical') {
+          add('mechanical/common-world-interior', 'interior', 'ground-level', 'human', 'literal-object-silhouettes', 'room-plane', 'evidence-bound-object-motion', 'daylight-slate-warm', [
+            ['chair', 5], ['table', 5], ['sofa', 5], ['lamp', 4], ['television', 4], ['building', 3], ['person', 3], ['shelf', 3],
+          ]);
+          add('mechanical/transport-infrastructure', 'corridor', 'wide-establishing', 'human', 'vehicle-and-infrastructure-silhouettes', 'travel-corridor', 'path-traverse-and-structure-response', 'sky-steel-asphalt', [
+            ['airplane', 5], ['aircraft', 5], ['bicycle', 4], ['bridge', 4], ['road', 4], ['vehicle', 3], ['flight', 3],
           ]);
         }
         if (sceneKind === 'biology' || sceneKind === 'molecular-biology' || sceneKind === 'evolution-ecology') {
@@ -239,66 +245,6 @@
           (scaleTier === 'orbital' || compositionTopology === 'orbit' ? 'orbital-wide' : 'instrument-panel');
       }
 
-    function layoutSlotsForGenome(visualGenome = null) {
-        const topology = visualGenome && visualGenome.compositionTopology || '';
-        const mode = visualGenome && visualGenome.morphology && visualGenome.morphology.layoutMode || '';
-        if (topology === 'conveyor') return [[0.14, 0.28], [0.36, 0.28], [0.58, 0.28], [0.8, 0.28], [0.2, 0.62], [0.44, 0.62], [0.68, 0.62], [0.86, 0.62]];
-        if (topology === 'specimen') return [[0.5, 0.47], [0.32, 0.3], [0.68, 0.3], [0.28, 0.66], [0.72, 0.66], [0.5, 0.16], [0.5, 0.82], [0.14, 0.5]];
-        if (topology === 'ladder') return [[0.18, 0.2], [0.42, 0.2], [0.66, 0.2], [0.82, 0.2], [0.18, 0.5], [0.42, 0.5], [0.66, 0.5], [0.82, 0.5]];
-        if (topology === 'lattice') return [[0.18, 0.2], [0.5, 0.2], [0.82, 0.2], [0.18, 0.5], [0.5, 0.5], [0.82, 0.5], [0.18, 0.8], [0.5, 0.8]];
-        if (topology === 'branching') return [[0.5, 0.16], [0.34, 0.36], [0.66, 0.36], [0.18, 0.62], [0.42, 0.6], [0.58, 0.6], [0.82, 0.62], [0.5, 0.82]];
-        if (topology === 'basin') return [[0.16, 0.68], [0.34, 0.56], [0.52, 0.48], [0.7, 0.56], [0.86, 0.68], [0.28, 0.8], [0.5, 0.74], [0.72, 0.8]];
-        if (topology === 'plume') return [[0.5, 0.78], [0.45, 0.6], [0.56, 0.48], [0.42, 0.34], [0.6, 0.22], [0.5, 0.1], [0.24, 0.74], [0.76, 0.74]];
-        if (topology === 'field-map') return [[0.16, 0.26], [0.38, 0.22], [0.62, 0.26], [0.84, 0.32], [0.2, 0.66], [0.46, 0.58], [0.72, 0.64], [0.5, 0.82]];
-        if (topology === 'corridor') return [[0.14, 0.5], [0.3, 0.5], [0.46, 0.5], [0.62, 0.5], [0.78, 0.5], [0.3, 0.3], [0.5, 0.7], [0.7, 0.3]];
-        if (mode === 'radial') return [[0.5, 0.26], [0.68, 0.38], [0.72, 0.6], [0.52, 0.74], [0.3, 0.62], [0.24, 0.4], [0.5, 0.5], [0.82, 0.48]];
-        if (mode === 'network') return [[0.16, 0.24], [0.38, 0.2], [0.62, 0.24], [0.84, 0.32], [0.25, 0.58], [0.5, 0.54], [0.75, 0.6], [0.5, 0.82]];
-        return [[0.2, 0.24], [0.42, 0.3], [0.66, 0.38], [0.82, 0.46], [0.24, 0.58], [0.5, 0.66], [0.74, 0.74], [0.5, 0.84]];
-      }
-
-    function layoutObjectsForScene(objects, sceneKind, spec, visualGenome = null) {
-        const dialect = String(visualGenome && visualGenome.visualDialect || '');
-        if (!/^(robotics-control|civic-market|biology|ocean-cryosphere|watershed|restoration-water|fire)\//.test(dialect)) {
-          return baseLayoutObjectsForScene(objects, sceneKind, spec, visualGenome);
-        }
-        return layoutObjectsForDialect(objects, visualGenome);
-      }
-
-    function layoutObjectsForDialect(objects = [], visualGenome = null) {
-        const slots = layoutSlotsForGenome(visualGenome);
-        const topology = visualGenome && visualGenome.compositionTopology || '';
-        let entityIndex = 0;
-        let readoutIndex = 0;
-        let fieldIndex = 0;
-        return (objects || []).map((object) => {
-          const pose = object && object.pose || {};
-          if (Array.isArray(pose.points) && pose.points.length) return object;
-          const text = renderObjectText(object);
-          if (/readout|meter|telemetry|panel|scope|measurement/.test(text)) {
-            const x = readoutIndex % 2 ? 0.86 : 0.14;
-            const y = 0.16 + Math.floor(readoutIndex / 2) * 0.14;
-            readoutIndex += 1;
-            return withPose(object, x, y, 0, [0.15, 0.09]);
-          }
-          if (/field|flow|plume|matrix|volume|water|thermal|optical|chemical|gradient/.test(text)) {
-            const y = topology === 'basin' ? 0.67 : topology === 'plume' ? 0.48 : 0.54;
-            fieldIndex += 1;
-            return withPose(object, 0.5, Math.min(0.86, y + fieldIndex * 0.025), 0, [0.7, 0.38]);
-          }
-          const slot = slots[entityIndex % slots.length];
-          entityIndex += 1;
-          const previousWidth = Number(pose.w || 0);
-          const previousHeight = Number(pose.h || 0);
-          return withPose(
-            object,
-            slot[0],
-            slot[1],
-            Number.isFinite(Number(pose.rotation)) ? Number(pose.rotation) : 0,
-            [previousWidth || 0.17, previousHeight || 0.12]
-          );
-        });
-      }
-
     Object.assign(scope, {
       DIALECT_DEFAULTS,
       visualDialectPlanForGenome,
@@ -309,9 +255,6 @@
       genomeCompositionTopology,
       genomeScaleTier,
       genomeCameraArchetype,
-      layoutSlotsForGenome,
-      layoutObjectsForScene,
-      layoutObjectsForDialect,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

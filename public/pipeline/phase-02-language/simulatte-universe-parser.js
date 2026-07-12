@@ -18,8 +18,14 @@
   const PROCESS_PHRASES = LANGUAGE_LEXICON.processPhrases || [];
   const MODIFIER_PHRASES = LANGUAGE_LEXICON.modifierPhrases || [];
   const OBSERVABLE_PHRASES = LANGUAGE_LEXICON.observablePhrases || [];
+  const TERM_STOPWORDS = new Set(LANGUAGE_LEXICON.termStopwords || []);
   const NEGATION_WORDS = Object.freeze(['no', 'not', 'never', 'without', 'none', 'cannot', "can't", 'wont', "won't"]);
   const NEGATION_RE = new RegExp(`\\b(?:${NEGATION_WORDS.join('|')})\\b`);
+  const SPATIAL_PREPOSITIONS = Object.freeze([
+    'in front of', 'attached to', 'inside', 'outside', 'within', 'through', 'between',
+    'beside', 'behind', 'around', 'above', 'below', 'under', 'over', 'onto', 'into',
+    'near', 'against', 'on', 'in', 'at',
+  ]);
 
   function parsePrompt(promptInput = '') {
     const prompt = String(promptInput || '');
@@ -30,7 +36,9 @@
     addPhraseSpans(spans, lower, PROCESS_PHRASES.map((text) => [text, 'process']), tokenRows);
     addPhraseSpans(spans, lower, MODIFIER_PHRASES.map(([text]) => [text, 'modifier']), tokenRows);
     addPhraseSpans(spans, lower, OBSERVABLE_PHRASES.map((text) => [text, 'observable']), tokenRows);
-    const compact = dedupeSpans(spans)
+    const recognized = resolveEntityProcessCollisions(dedupeSpans(spans), lower);
+    addUnmatchedTermSpans(recognized, tokenRows);
+    const compact = recognized
       .sort((a, b) => a.start - b.start || b.end - a.end)
       .map((span, index) => ({ ...span, id: `span${index + 1}` }));
     const clauses = buildClauses(compact, lower);
@@ -115,8 +123,54 @@
     return out;
   }
 
+  function resolveEntityProcessCollisions(spans, lower) {
+    const exactCollisions = spans.filter((span) => span.kind === 'process').filter((process) => (
+      spans.some((span) => span.kind === 'entity' && span.start === process.start && span.end === process.end)
+    ));
+    const verbalKeys = new Set(exactCollisions.filter((process) => {
+      const prior = spans.filter((span) => (
+        ['entity', 'environment'].includes(span.kind) && span.end <= process.start
+      )).sort((a, b) => b.end - a.end)[0];
+      if (!prior || lower.slice(prior.end, process.start).trim()) return false;
+      return prior.semanticRole === 'biological-agent' ||
+        /^(?:person|people|dog|cat|animal|mammal)$/.test(String(prior.entityClass || ''));
+    }).map(spanRangeKey));
+    const collisionKeys = new Set(exactCollisions.map(spanRangeKey));
+    return spans.filter((span) => {
+      const key = spanRangeKey(span);
+      if (!collisionKeys.has(key)) return true;
+      return span.kind === 'process' ? verbalKeys.has(key) : !verbalKeys.has(key);
+    });
+  }
+
+  function spanRangeKey(span = {}) {
+    return `${Number(span.start || 0)}:${Number(span.end || 0)}`;
+  }
+
+  function addUnmatchedTermSpans(spans, tokens) {
+    const covered = new Set(spans.flatMap((span) => {
+      const indexes = [];
+      for (let index = span.tokenStart; index <= span.tokenEnd; index += 1) indexes.push(index);
+      return indexes;
+    }));
+    for (let index = 0; index < tokens.length; index += 1) {
+      const token = tokens[index];
+      if (covered.has(index) || TERM_STOPWORDS.has(token.text)) continue;
+      spans.push({
+        text: token.text,
+        kind: 'term',
+        start: token.start,
+        end: token.end,
+        tokenStart: index,
+        tokenEnd: index,
+      });
+    }
+  }
+
   function buildClauses(spans, lower) {
-    const entities = spans.filter((span) => span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment');
+    const entities = spans.filter((span) => (
+      span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment' || span.kind === 'term'
+    ));
     const processes = spans.filter((span) => span.kind === 'process');
     const clauses = [];
     for (const verb of processes) {
@@ -129,6 +183,7 @@
           verbSpanId: verb.id,
           objectSpanId: passive.patient.id,
           process,
+          predicate: verb.text,
           subjectRole: semanticRoleForSpan(passive.agent, 'agent'),
           objectRole: semanticRoleForObject(passive.patient, prepositions),
           spatialRelation: 'by',
@@ -139,8 +194,11 @@
         });
         continue;
       }
-      const subjects = coordinatedSubjectsForVerb(entities, verb, lower);
-      const after = entities.filter((span) => span.start >= verb.end).sort((a, b) => a.start - b.start)[0] || null;
+      const inheritedSubject = inheritedAgentiveParticipleSubject(entities, verb, lower, clauses);
+      const subjects = inheritedSubject ? [inheritedSubject] : coordinatedSubjectsForVerb(entities, verb, lower);
+      const after = preferredKnownSpan(
+        entities.filter((span) => span.start >= verb.end).sort((a, b) => a.start - b.start)
+      );
       if (!subjects.length && !after) continue;
       const prepositions = nearbyPrepositions(lower, verb.end, after ? after.start : verb.end + 24);
       const process = normalizeProcess(verb.text);
@@ -156,6 +214,7 @@
           verbSpanId: verb.id,
           objectSpanId: after ? after.id : null,
           process,
+          predicate: verb.text,
           subjectRole: subject ? semanticRoleForSpan(subject, 'agent') : '',
           objectRole,
           spatialRelation,
@@ -165,40 +224,139 @@
         });
       }
     }
-    if (!clauses.length && entities.length > 1) {
+    for (const spatial of spatialClausesForEntities(entities, processes, lower)) {
+      const alreadyExpressed = clauses.some((clause) => (
+        clause.subjectSpanId === spatial.subjectSpanId &&
+        clause.objectSpanId === spatial.objectSpanId &&
+        clause.spatialRelation === spatial.spatialRelation
+      ));
+      if (!alreadyExpressed) clauses.push(spatial);
+    }
+    for (const materialClause of materialClausesForEntities(entities, lower)) clauses.push(materialClause);
+    const seen = new Set();
+    return clauses.filter((clause) => {
+      const key = [clause.subjectSpanId, clause.objectSpanId, clause.spatialRelation,
+        clause.verbSpanId, clause.predicate].join(':');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).map((clause, index) => ({ id: `clause${index + 1}`, ...clause }));
+  }
+
+  function spatialClausesForEntities(entities = [], processes = [], lower = '') {
+    const ordered = entities.slice().sort((a, b) => a.start - b.start);
+    const clauses = [];
+    for (let index = 1; index < ordered.length; index += 1) {
+      const previous = ordered[index - 1];
+      const target = ordered[index];
+      const bridge = lower.slice(previous.end, target.start);
+      const prepositions = spatialPrepositionsInText(bridge);
+      const processBetween = processes.filter((span) => span.start >= previous.end && span.end <= target.start).pop();
+      if (prepositions.length) {
+        const subject = processBetween
+          ? preferredSpatialSubject(ordered, processBetween) || previous
+          : previous;
+        clauses.push(spatialClause(subject, target, processBetween, prepositions));
+        continue;
+      }
+      const prior = clauses[clauses.length - 1];
+      if (prior && prior.objectSpanId === previous.id &&
+        spatialCoordinationTargetsCompatible(previous, target) && isSpatialCoordinationBridge(bridge)) {
+        const subject = ordered.find((span) => span.id === prior.subjectSpanId);
+        clauses.push(spatialClause(subject, target, null, [prior.spatialRelation]));
+      }
+    }
+    for (let index = 1; index < ordered.length; index += 1) {
+      const subject = ordered[index];
+      const previous = ordered[index - 1];
+      const suffixEnd = ordered[index + 1] ? ordered[index + 1].start : lower.length;
+      const suffix = lower.slice(subject.end, Math.min(suffixEnd, subject.end + 24));
+      const postpositions = spatialPrepositionsInText(suffix).filter((word) => word === 'outside');
+      if (postpositions.length) clauses.push(spatialClause(subject, previous, null, postpositions));
+    }
+    return clauses;
+  }
+
+  function preferredSpatialSubject(ordered = [], process = {}) {
+    const candidates = ordered.filter((span) => span.end <= process.start);
+    return candidates.slice().reverse().find((span) => span.kind !== 'term') || candidates.pop() || null;
+  }
+
+  function spatialCoordinationTargetsCompatible(previous = {}, target = {}) {
+    return previous.kind !== 'term' && target.kind !== 'term' && previous.kind === target.kind;
+  }
+
+  function materialClausesForEntities(entities = [], lower = '') {
+    const ordered = entities.slice().sort((a, b) => a.start - b.start);
+    const clauses = [];
+    for (let index = 0; index < ordered.length - 1; index += 1) {
+      const material = ordered[index];
+      const object = ordered[index + 1];
+      if (material.kind !== 'material' || !['entity', 'term'].includes(object.kind)) continue;
+      const bridge = lower.slice(material.end, object.start);
+      if (!/^\s*(?:(?:a|an|the)\s+)?$/.test(bridge)) continue;
       clauses.push({
-        subjectSpanId: entities[0].id,
+        subjectSpanId: material.id,
         verbSpanId: null,
-        objectSpanId: entities[1].id,
-        process: 'coexists',
-        prepositions: nearbyPrepositions(lower, entities[0].end, entities[1].start),
+        objectSpanId: object.id,
+        process: 'material_assignment',
+        predicate: 'material-of',
+        subjectRole: 'material',
+        objectRole: 'object',
+        spatialRelation: '',
+        causalAffordance: '',
+        implicitObject: '',
+        prepositions: [],
+        relationSource: 'compound-material-language',
       });
     }
-    return clauses.map((clause, index) => ({ id: `clause${index + 1}`, ...clause }));
+    return clauses;
+  }
+
+  function spatialClause(subject, object, verb, prepositions = []) {
+    const spatialRelation = spatialRelationFor(prepositions, object);
+    return {
+      subjectSpanId: subject && subject.id || null,
+      verbSpanId: verb && verb.id || null,
+      objectSpanId: object && object.id || null,
+      process: 'spatial_constraint',
+      predicate: spatialRelation,
+      subjectRole: semanticRoleForSpan(subject || {}, 'entity'),
+      objectRole: semanticRoleForObject(object || {}, prepositions),
+      spatialRelation,
+      causalAffordance: '',
+      implicitObject: '',
+      prepositions,
+      relationSource: 'explicit-spatial-language',
+    };
   }
 
   function passiveClauseForVerb(entities, verb, lower) {
     if (!verb || !Number.isFinite(verb.start)) return null;
     const beforeText = lower.slice(Math.max(0, verb.start - 18), verb.start);
     if (!/\b(?:is|are|was|were|be|been|being)\s+$/.test(beforeText)) return null;
-    const before = entities
+    const beforeRows = entities
       .filter((span) => span.end <= verb.start)
       .filter((span) => !spanIsNegated(lower, span))
-      .sort((a, b) => b.end - a.end)[0] || null;
+      .sort((a, b) => b.end - a.end);
+    const before = preferredKnownSpan(beforeRows);
     if (!before) return null;
-    const after = entities
+    const afterRows = entities
       .filter((span) => span.start >= verb.end)
       .filter((span) => /\bby\b/.test(lower.slice(verb.end, span.start)))
-      .sort((a, b) => a.start - b.start)[0] || null;
+      .sort((a, b) => a.start - b.start);
+    const after = preferredKnownSpan(afterRows);
     if (!after) return null;
     return { patient: before, agent: after };
   }
 
   function coordinatedSubjectsForVerb(entities, verb, lower) {
-    const before = entities
+    const beforeRows = entities
       .filter((span) => span.end <= verb.start)
       .filter((span) => !spanIsNegated(lower, span))
       .sort((a, b) => a.start - b.start);
+    const known = beforeRows.filter((span) => span.kind !== 'term');
+    const before = known.length ? known : beforeRows;
     const nearest = before[before.length - 1] || null;
     if (!nearest) return [];
     const subjects = [nearest];
@@ -209,6 +367,25 @@
       subjects.unshift(candidate);
     }
     return subjects;
+  }
+
+  function preferredKnownSpan(rows = []) {
+    const known = rows.filter((span) => span.kind !== 'term');
+    return (known.length ? known : rows)[0] || null;
+  }
+
+  function inheritedAgentiveParticipleSubject(entities, verb, lower, clauses = []) {
+    if (!/ing$/.test(String(verb && verb.text || ''))) return null;
+    if (!/^(measurement|consume)$/.test(normalizeProcess(verb.text))) return null;
+    const nearest = entities.filter((span) => span.end <= verb.start).sort((a, b) => b.end - a.end)[0];
+    if (!nearest || /agent/.test(String(nearest.semanticRole || ''))) return null;
+    const prior = clauses.slice().reverse().find((clause) => clause.subjectSpanId && clause.objectSpanId);
+    if (!prior) return null;
+    const subject = entities.find((span) => span.id === prior.subjectSpanId);
+    const object = entities.find((span) => span.id === prior.objectSpanId);
+    if (!subject || !/agent/.test(String(subject.semanticRole || '')) || !object) return null;
+    const bridge = lower.slice(object.end, nearest.start);
+    return spatialPrepositionsInText(bridge).length ? subject : null;
   }
 
   function spanIsNegated(lower, span) {
@@ -223,10 +400,22 @@
     return /^[\s,]*(?:(?:and|or|plus|with|a|an|the)[\s,]*)*$/.test(bridge);
   }
 
+  function isSpatialCoordinationBridge(value = '') {
+    const bridge = String(value || '').toLowerCase();
+    if (!/\b(?:and|or|plus)\b|,/.test(bridge)) return false;
+    return /^[\s,]*(?:(?:and|or|plus|a|an|the)[\s,]*)*$/.test(bridge);
+  }
+
   function nearbyPrepositions(lower, start, end) {
     const slice = lower.slice(Math.max(0, start), Math.max(start, end + 1));
-    return ['near', 'in', 'inside', 'into', 'through', 'onto', 'on', 'under', 'over', 'with', 'by', 'from', 'to']
-      .filter((word) => new RegExp(`\\b${word}\\b`).test(slice));
+    return [...spatialPrepositionsInText(slice), ...['with', 'by', 'from', 'to']
+      .filter((word) => new RegExp(`\\b${word}\\b`).test(slice))];
+  }
+
+  function spatialPrepositionsInText(text = '') {
+    return SPATIAL_PREPOSITIONS.filter((word) => (
+      new RegExp(`\\b${word.replace(/\\s+/g, '\\s+')}\\b`).test(String(text || '').toLowerCase())
+    ));
   }
 
   function normalizeProcess(text = '') {
@@ -238,15 +427,21 @@
     if (/burn|heat/.test(value)) return 'heat_transfer';
     if (/cool/.test(value)) return 'cooling';
     if (/freez/.test(value)) return 'phase_transition';
-    if (/flow|fall|push|carve|erode|pour|sink|float|buffer|settle|calv/.test(value)) return 'flow';
+    if (/flow|fall|push|carve|erode|pour|sink|float|buffer|settle|calv|bend|reduc/.test(value)) return 'flow';
     if (/diffuse|dissolv/.test(value)) return 'diffusion';
+    if (/orbit/.test(value)) return 'oscillation';
     if (/oscillate|flex|wave/.test(value)) return 'oscillation';
     if (/grow|ferment/.test(value)) return 'growth';
     if (/trade|exchange/.test(value)) return 'exchange';
     if (/split/.test(value)) return 'split';
     if (/join/.test(value)) return 'join';
     if (/eat/.test(value)) return 'consume';
-    if (/run|jump|bounce|fly/.test(value)) return 'motion';
+    if (/run|jump|bounce|fly|cross|sit/.test(value)) return 'motion';
+    if (/watch|observ/.test(value)) return 'measurement';
+    if (/focus/.test(value)) return 'measurement';
+    if (/power/.test(value)) return 'motion';
+    if (/support/.test(value)) return 'support';
+    if (/leak|spill|seep|drip/.test(value)) return 'leak';
     if (/fold/.test(value)) return 'folding';
     if (/twist/.test(value)) return 'rotate';
     if (/readout/.test(value)) return 'measurement';
@@ -280,6 +475,21 @@
     if (prepositions.includes('into')) return 'into';
     if (prepositions.includes('on')) return 'on';
     if (prepositions.includes('near')) return 'near';
+    if (prepositions.includes('within')) return 'inside';
+    if (prepositions.includes('onto')) return 'on';
+    if (prepositions.includes('outside')) return 'outside';
+    if (prepositions.includes('beside')) return 'beside';
+    if (prepositions.includes('above')) return 'above';
+    if (prepositions.includes('below')) return 'below';
+    if (prepositions.includes('under')) return 'under';
+    if (prepositions.includes('over')) return 'over';
+    if (prepositions.includes('around')) return 'around';
+    if (prepositions.includes('behind')) return 'behind';
+    if (prepositions.includes('in front of')) return 'in-front-of';
+    if (prepositions.includes('attached to')) return 'attached-to';
+    if (prepositions.includes('against')) return 'against';
+    if (prepositions.includes('between')) return 'between';
+    if (prepositions.includes('at')) return 'at';
     return '';
   }
 
@@ -290,6 +500,7 @@
   }
 
   function implicitSpatialRelationFor(subject = null, process = '', objectRole = '') {
+    if (process === 'support') return 'supports';
     const subjectRole = semanticRoleForSpan(subject || {}, '');
     if (
       subjectRole === 'biological-agent' &&
@@ -315,7 +526,9 @@
   }
 
   function buildModifiers(spans) {
-    const targets = spans.filter((span) => span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment');
+    const targets = spans.filter((span) => (
+      span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment' || span.kind === 'term'
+    ));
     const modifiers = spans.filter((span) => span.kind === 'modifier');
     return modifiers
       .map((modifier, index) => {
@@ -355,6 +568,7 @@
     LANGUAGE_LEXICON,
     NEGATION_WORDS,
     NEGATION_RE,
+    SPATIAL_PREPOSITIONS,
     parsePrompt,
   };
 });

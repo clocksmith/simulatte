@@ -10,7 +10,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
-import { auditPromptMatches, waitForCondition } from './audit-runtime-wait.mjs';
+import { captureChildProcessOutput } from './audit-process-log.mjs';
+import { auditPromptMatches, waitForCondition, withDeadline } from './audit-runtime-wait.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -80,7 +81,7 @@ const VISUAL_RUBRIC_SIGNALS = Object.freeze([
   rubricSignal('electromagnetic', /\b(magnet|magnetic|electric|charge|current|voltage|coil|plasma|field|flux|transformer|grid|battery)\b/i, ['electromagnetic', 'emission', 'signal'], ['visual.operator.electromagnetic-field.v1'], []),
   rubricSignal('optical', /\b(light|laser|lens|prism|mirror|photon|caustic|refraction|interference|ray|spectral|glass|thin film|soap film|iridescent)\b/i, ['optical', 'phase', 'emission', 'surface'], ['visual.operator.optical-ray.v1', 'visual.operator.thin-film-interference.v1'], []),
   rubricSignal('quantum', /\b(quantum|qubit|superconducting|microwave|resonator|spin|ion trap|readout)\b/i, ['quantum', 'measurement', 'instrument', 'signal'], ['visual.operator.quantum-phase-readout.v1'], ['atomQuantumFringes']),
-  rubricSignal('acoustic', /\b(acoustic|sound|wave|waves|speaker|membrane|standing|frequency|vibration|pressure ring)\b/i, ['acoustic', 'motion'], ['visual.operator.acoustic-wave.v1'], []),
+  rubricSignal('acoustic', /\b(acoustic|sound|speaker|membrane|frequency|vibration|pressure ring|standing wave)\b/i, ['acoustic', 'motion'], ['visual.operator.acoustic-wave.v1'], []),
   rubricSignal('biological', /\b(growth|grow|grows|cell|protein|root|roots|coral|algae|mycelium|membrane|neuron|tissue|microbiome|enzyme|mangrove|fermentation|gluten|plant|plants|flower|flowers|tree|trees|leaf|leaves|dog|dogs|cat|cats|animal|animals|mammal|mammals)\b/i, ['biological', 'density', 'surface'], ['visual.operator.biological-growth.v1'], []),
   rubricSignal('chemical', /\b(reaction|chemical|acid|crystal|concentration|electrolyte|solvent|catalyst|reagent|diffusion|dose|fermentation|metabolite)\b/i, ['chemical', 'density', 'phase'], ['visual.operator.chemical-diffusion.v1'], []),
   rubricSignal('network', /\b(network|queue|market|traffic|route|packet|server|parcel|zoning|agent|dispatch|supply|demand|crowd|railway|data center|warehouse queue|warehouse robot|warehouse robots|warehouse logistics)\b/i, ['network', 'signal', 'constraint'], ['visual.operator.network-flow.v1'], ['atomNetworkPressure']),
@@ -100,6 +101,8 @@ const MIME = Object.freeze({
   '.wasm': 'application/wasm',
 });
 const MODEL_RUNTIME_STALL_MS = 90000;
+const CDP_COMMAND_TIMEOUT_MS = 60000;
+const MODEL_PROMPT_DEADLINE_MULTIPLIER = 2;
 const CLEAN_CANVAS_CAPTURE_SELECTORS = Object.freeze([
   '.prompt-dock',
   '#loading-canvas',
@@ -117,6 +120,7 @@ function parseArgs(argv) {
     width: 1440,
     height: 1040,
     timeoutMs: 10000,
+    promptTimeoutMs: 0,
     frameDelayMs: 650,
     intentMode: 'model',
     url: '',
@@ -138,6 +142,7 @@ function parseArgs(argv) {
     else if (key === '--width') options.width = Math.max(640, Number(readValue() || options.width));
     else if (key === '--height') options.height = Math.max(480, Number(readValue() || options.height));
     else if (key === '--timeout-ms') options.timeoutMs = Math.max(1000, Number(readValue() || options.timeoutMs));
+    else if (key === '--prompt-timeout-ms') options.promptTimeoutMs = Math.max(1000, Number(readValue() || 0));
     else if (key === '--frame-delay-ms') options.frameDelayMs = Math.max(120, Number(readValue() || options.frameDelayMs));
     else if (key === '--url') options.url = String(readValue() || '').trim();
     else if (key === '--profile-dir') {
@@ -157,7 +162,7 @@ function parseArgs(argv) {
       options.intentMode = mode === 'model' ? 'model' : 'local';
     }
     else if (key === '--help') {
-      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
+      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--timeout-ms N] [--prompt-timeout-ms N] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
       process.exit(0);
     }
   }
@@ -277,6 +282,7 @@ function pngVisualStats(bytes) {
   let nearWhite = 0;
   let edgeSamples = 0;
   let strongEdges = 0;
+  const sampleRgb = [];
   const yStep = Math.max(1, Math.floor(height / 72));
   const xStep = Math.max(1, Math.floor(width / 96));
   for (let y = 0; y < height; y += yStep) {
@@ -285,6 +291,7 @@ function pngVisualStats(bytes) {
       const r = pixels[pixel];
       const g = pixels[pixel + 1];
       const b = pixels[pixel + 2];
+      sampleRgb.push(r, g, b);
       const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
       sum += luma;
       sumSq += luma * luma;
@@ -316,6 +323,27 @@ function pngVisualStats(bytes) {
     strongEdgeRatio: edgeSamples ? Number((strongEdges / edgeSamples).toFixed(4)) : 0,
     perceptualHash: differenceHash(pixels, width, height, channels),
     hash: (hash >>> 0).toString(16).padStart(8, '0'),
+    sampleRgb,
+  };
+}
+
+function sampledFrameDifference(left = null, right = null) {
+  const a = left && left.sampleRgb || [];
+  const b = right && right.sampleRgb || [];
+  const length = Math.min(a.length, b.length);
+  if (!length || length % 3 !== 0) return { meanAbsoluteDelta: 0, changedPixelRatio: 0 };
+  let total = 0;
+  let changed = 0;
+  for (let offset = 0; offset < length; offset += 3) {
+    const delta = (Math.abs(a[offset] - b[offset]) + Math.abs(a[offset + 1] - b[offset + 1]) +
+      Math.abs(a[offset + 2] - b[offset + 2])) / 3;
+    total += delta;
+    if (delta >= 6) changed += 1;
+  }
+  const pixelCount = length / 3;
+  return {
+    meanAbsoluteDelta: Number((total / pixelCount).toFixed(4)),
+    changedPixelRatio: Number((changed / pixelCount).toFixed(5)),
   };
 }
 
@@ -412,7 +440,10 @@ function startStaticServer(port = 0) {
         res.end('not found');
         return;
       }
-      res.writeHead(200, { 'content-type': MIME[path.extname(fullPath)] || 'application/octet-stream' });
+      res.writeHead(200, {
+        'content-type': MIME[path.extname(fullPath)] || 'application/octet-stream',
+        'cache-control': 'no-store',
+      });
       createReadStream(fullPath).pipe(res);
     }).catch(() => {
       res.writeHead(404);
@@ -434,19 +465,27 @@ class CdpClient {
     this.pending = new Map();
     this.eventWaiters = new Map();
     this.diagnosticEvents = [];
+    this.closedError = null;
     this.ws = new WebSocket(url);
     this.ready = new Promise((resolve, reject) => {
       this.ws.addEventListener('open', resolve, { once: true });
       this.ws.addEventListener('error', reject, { once: true });
     });
     this.ws.addEventListener('message', (event) => this.handleMessage(event.data));
+    this.ws.addEventListener('close', () => {
+      this.failPending(this.closedError || new Error('CDP connection closed'));
+    });
+    this.ws.addEventListener('error', () => {
+      this.failPending(this.closedError || new Error('CDP connection failed'));
+    });
   }
 
   handleMessage(raw) {
     const message = JSON.parse(String(raw));
     if (message.id && this.pending.has(message.id)) {
-      const { resolve, reject } = this.pending.get(message.id);
+      const { resolve, reject, timer } = this.pending.get(message.id);
       this.pending.delete(message.id);
+      clearTimeout(timer);
       if (message.error) reject(new Error(`${message.error.message || 'CDP error'} ${JSON.stringify(message.error.data || '')}`));
       else resolve(message.result || {});
       return;
@@ -455,7 +494,7 @@ class CdpClient {
     if (message.method && this.eventWaiters.has(message.method)) {
       const waiters = this.eventWaiters.get(message.method);
       this.eventWaiters.delete(message.method);
-      for (const resolve of waiters) resolve(message.params || {});
+      for (const waiter of waiters) waiter.resolve(message.params || {});
     }
   }
 
@@ -478,28 +517,51 @@ class CdpClient {
 
   async send(method, params = {}) {
     await this.ready;
+    if (this.closedError || this.ws.readyState >= 2) {
+      throw this.closedError || new Error(`CDP connection is closed before ${method}`);
+    }
     const id = this.nextId++;
-    this.ws.send(JSON.stringify({ id, method, params }));
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (!this.pending.has(id)) return;
         this.pending.delete(id);
         reject(new Error(`CDP command timed out: ${method}`));
-      }, 60000).unref?.();
+      }, CDP_COMMAND_TIMEOUT_MS);
+      this.pending.set(id, { resolve, reject, timer });
+      try {
+        this.ws.send(JSON.stringify({ id, method, params }));
+      } catch (error) {
+        clearTimeout(timer);
+        this.pending.delete(id);
+        reject(error);
+      }
     });
   }
 
   waitForEvent(method) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const waiters = this.eventWaiters.get(method) || [];
-      waiters.push(resolve);
+      waiters.push({ resolve, reject });
       this.eventWaiters.set(method, waiters);
     });
   }
 
-  close() {
-    this.ws.close();
+  failPending(error) {
+    for (const { reject, timer } of this.pending.values()) {
+      clearTimeout(timer);
+      reject(error);
+    }
+    this.pending.clear();
+    for (const waiters of this.eventWaiters.values()) {
+      for (const waiter of waiters) waiter.reject(error);
+    }
+    this.eventWaiters.clear();
+  }
+
+  close(error = null) {
+    this.closedError = error || this.closedError || new Error('CDP connection closed');
+    this.failPending(this.closedError);
+    if (this.ws.readyState < 2) this.ws.close();
   }
 }
 
@@ -585,6 +647,14 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function promptDeadlineMs(options = {}) {
+  if (Number(options.promptTimeoutMs || 0) > 0) return Number(options.promptTimeoutMs);
+  if (options.intentMode === 'model') {
+    return Number(options.timeoutMs || 0) + MODEL_RUNTIME_STALL_MS * MODEL_PROMPT_DEADLINE_MULTIPLIER;
+  }
+  return Number(options.timeoutMs || 0) * 4;
+}
+
 function forceLocalIntentScript() {
   return `
 (() => {
@@ -606,6 +676,9 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
   await cdp.send('Log.enable');
+  await cdp.send('Network.enable');
+  await cdp.send('Network.clearBrowserCache');
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
   await cdp.send('Emulation.setDeviceMetricsOverride', {
     width,
     height,
@@ -693,6 +766,22 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   const frameDelayMs = options.frameDelayMs;
   const prompt = entry.prompt;
   const label = `${String(index + 1).padStart(2, '0')}-${entry.kind}-${slug(prompt)}`;
+  const auditStartedAt = Date.now();
+  const auditStages = [];
+  let activeStage = { id: 'configure', startedAt: auditStartedAt };
+  const markStage = (id) => {
+    const now = Date.now();
+    auditStages.push({ id: activeStage.id, durationMs: now - activeStage.startedAt });
+    activeStage = { id, startedAt: now };
+    options.onAuditStage?.({
+      schema: 'simulatte.visualAuditProgress.v1',
+      promptIndex: index + 1,
+      promptCount: options.promptCount || 0,
+      prompt,
+      stage: id,
+      elapsedMs: now - auditStartedAt,
+    });
+  };
   let expectedRenderInputSerial = 0;
   await evaluate(cdp, `(() => {
     const canvas = document.getElementById('physics-canvas');
@@ -702,6 +791,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     }
     return Boolean(canvas);
   })()`);
+  markStage('runtime-wait');
   if (options.intentMode !== 'model') {
     await evaluate(cdp, `(() => {
       const input = document.getElementById('build-prompt');
@@ -799,6 +889,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       run.click();
       return { ok: true };
     })()`);
+    markStage('intent-compile');
     const readyState = await waitForCondition(`intent ready for ${label}`, () => evaluate(cdp, `(() => {
       const node = document.getElementById('intent-runtime');
       const run = document.getElementById('build-lab');
@@ -865,6 +956,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     })()`), timeoutMs, { extendOnProgress: true, stallTimeoutMs: MODEL_RUNTIME_STALL_MS });
     expectedRenderInputSerial = Number(readyState && readyState.renderInputSerial || 0);
   }
+  markStage('scene-proof');
   await delay(frameDelayMs);
   const settledProof = await waitForCondition(`pixel and scene proof settled for ${label}`, () => evaluate(cdp, `(() => {
     const canvas = document.getElementById('physics-canvas');
@@ -883,10 +975,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const pixelProof = canvas && canvas.dataset ? canvas.dataset.phase7PixelProofStatus || '' : '';
     const rendered = Number(canvas && canvas.dataset && canvas.dataset.renderCount || 0);
     const terminalSceneProof = ['pass', 'fail', 'not-proven', 'error'].includes(sceneProofVerdict);
+    const terminalPixelReadback = ['pass', 'fail', 'not-proven', 'error'].includes(pixelReadback);
+    const terminalPixelProof = ['pass', 'fail', 'not-proven', 'error'].includes(pixelProof);
     const required = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelRequiredObligationCount || 0);
     const sampled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSampledObligationCount || 0);
     return {
-      ok: promptMatches && renderInputMatches && rendered >= 3 && terminalSceneProof && pixelReadback === 'pass' && pixelProof === 'pass' && required >= 1 && sampled === required,
+      ok: promptMatches && renderInputMatches && rendered >= 3 && terminalSceneProof && terminalPixelReadback && terminalPixelProof && required >= 1 && sampled === required,
       renderCount: rendered,
       sceneId,
       renderInputSerial,
@@ -913,6 +1007,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       sampled: value && value.phase7PixelSampledObligationCount || 0,
     }),
   });
+  markStage('diagnostics');
   const diagnostics = await evaluate(cdp, `(() => {
     const canvas = document.getElementById('physics-canvas');
     const fieldCanvas = document.getElementById('field-canvas');
@@ -1011,6 +1106,14 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const atomUniforms = graphicsAtoms && graphicsAtoms.uniforms || {};
     const intentBrief = specForIntent && specForIntent.intent && specForIntent.intent.intentBrief || null;
     const physicalReceipt = specForIntent && specForIntent.physicalSpec && specForIntent.physicalSpec.receipt || {};
+    const rendererConsumption = (() => {
+      try { return canvas && canvas.dataset.phase7RendererConsumption ? JSON.parse(canvas.dataset.phase7RendererConsumption) : null; }
+      catch (_err) { return null; }
+    })();
+    const objectRealization = (() => {
+      try { return canvas && canvas.dataset.webgpuObjectRealization ? JSON.parse(canvas.dataset.webgpuObjectRealization) : null; }
+      catch (_err) { return null; }
+    })();
     const visualIRArrayCount = (key) => (
       visualIR && Array.isArray(visualIR[key]) ? visualIR[key].length : 0
     );
@@ -1136,6 +1239,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           rerankRankScore: Number(candidate.modelRerankRankScore || 0),
           rerankBandScore: Number(candidate.modelRerankBandScore || 0),
           rerankEvaluated: candidate.modelRerankEvaluated === true,
+          modelEvaluated: candidate.modelEvaluated === true,
+          constructionEvidence: candidate.constructionEvidence === true,
           literalSlotMatch: candidate.literalSlotMatch === true,
           supportOnly: candidate.supportOnly === true,
         })),
@@ -1146,6 +1251,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         label: row.label || '',
         indexName: row.indexName || '',
       })),
+      phase4Canonicalization: phase4AcceptedGraph.canonicalization || null,
+      phase4ConstructionReceipt: phase4AcceptedGraph.constructionReceipt || null,
       phase5EntityIdentities: (phase5PhysicsIR.entities || []).map((row) => ({
         id: row.id || '',
         canonicalId: row.canonicalId || '',
@@ -1165,6 +1272,10 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         label: row.label || '',
         type: row.identity && row.identity.type || '',
         sourceLabel: row.identity && row.identity.sourceLabel || '',
+        layerSlot: row.layerSlot || '',
+        animationKind: row.animation && row.animation.kind || '',
+        animationSpeed: Number(row.animation && row.animation.speed || 0),
+        grammarId: row.geometry && row.geometry.program && row.geometry.program.grammarId || '',
       })),
       canvasWidth: width,
       canvasHeight: height,
@@ -1202,6 +1313,15 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7RenderData: canvas && canvas.dataset ? canvas.dataset.phase7RenderData || '' : '',
       phase7RenderDataKey: canvas && canvas.dataset ? canvas.dataset.phase7RenderDataKey || '' : '',
       phase7RenderPath: canvas && canvas.dataset ? canvas.dataset.phase7RenderPath || '' : '',
+      phase7RendererConsumption: rendererConsumption,
+      webgpuObjectRealization: objectRealization,
+      phase7CameraConsumed: rendererConsumption && rendererConsumption.cameraConsumed === true,
+      phase7LightCountConsumed: Number(rendererConsumption && rendererConsumption.lightCountConsumed || 0),
+      phase7MaterialCountConsumed: Number(rendererConsumption && rendererConsumption.materialCountConsumed || 0),
+      phase7DepthEnabled: rendererConsumption && rendererConsumption.depthEnabled === true,
+      phase7NormalShading: rendererConsumption && rendererConsumption.normalShading === true,
+      phase7ConstructionProgramCount: Number(rendererConsumption && rendererConsumption.constructionProgramCount || 0),
+      phase7ModelEvaluatedConstructionCount: Number(rendererConsumption && rendererConsumption.modelEvaluatedConstructionCount || 0),
       phase7InputVisualObligationCount: canvas && canvas.dataset
         ? Number(canvas.dataset.phase7InputVisualObligationCount || 0)
         : 0,
@@ -1343,6 +1463,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       previewLength: previewText.length,
     };
   })()`);
+  markStage('viewport-screenshot');
   const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false, fromSurface: true });
   const file = `${label}.png`;
   const bytes = Buffer.from(screenshot.data, 'base64');
@@ -1360,6 +1481,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   let canvasDiversityPerceptualHash = '';
   let canvasDiversityPerceptualHashLater = '';
   if (diagnostics.canvasRect && diagnostics.canvasRect.width > 0 && diagnostics.canvasRect.height > 0) {
+    markStage('temporal-canvas-capture');
     try {
       const clip = {
         x: Math.max(0, diagnostics.canvasRect.x),
@@ -1389,6 +1511,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     }
   }
   if (diagnostics.canvasRect && diagnostics.canvasRect.width > 0 && diagnostics.canvasRect.height > 0) {
+    markStage('frozen-canvas-capture');
     try {
       await evaluate(cdp, `(() => {
         const canvas = document.getElementById('physics-canvas');
@@ -1425,6 +1548,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       })()`);
     }
   }
+  markStage('analyze');
   const finalDiagnostics = { ...diagnostics, ...settledProof };
   if (!finalDiagnostics.sampleCount && canvasStats && canvasStats.sampleCount) {
     finalDiagnostics.sampleSource = 'canvas-screenshot';
@@ -1459,18 +1583,29 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     finalDiagnostics.canvasScreenshotStrongEdgeRatio = canvasStats.strongEdgeRatio;
   }
   if (canvasStats && canvasStatsLater) {
+    const frameDifference = sampledFrameDifference(canvasStats, canvasStatsLater);
     finalDiagnostics.canvasFrameSampleHashChanged = canvasStats.hash !== canvasStatsLater.hash;
     finalDiagnostics.canvasFrameLumaMeanDelta = Number(Math.abs(canvasStats.lumaMean - canvasStatsLater.lumaMean).toFixed(3));
     finalDiagnostics.canvasFrameLumaStdDelta = Number(Math.abs(canvasStats.lumaStd - canvasStatsLater.lumaStd).toFixed(3));
     finalDiagnostics.canvasFrameColoredRatioDelta = Number(Math.abs(canvasStats.coloredRatio - canvasStatsLater.coloredRatio).toFixed(4));
+    finalDiagnostics.canvasFrameMeanAbsolutePixelDelta = frameDifference.meanAbsoluteDelta;
+    finalDiagnostics.canvasFrameChangedPixelRatio = frameDifference.changedPixelRatio;
   }
   finalDiagnostics.visualRubric = visualRubricForResult(finalDiagnostics, prompt);
+  markStage('complete');
+  const auditCompletedAt = Date.now();
+  const auditTiming = {
+    schema: 'simulatte.visualAuditTiming.v1',
+    durationMs: auditCompletedAt - auditStartedAt,
+    stages: [...auditStages, { id: activeStage.id, durationMs: auditCompletedAt - activeStage.startedAt }],
+  };
   return {
     index: index + 1,
     kind: entry.kind,
     prompt,
     screenshot: file,
     screenshotHash: sha256Hex(bytes),
+    auditTiming,
     ...finalDiagnostics,
   };
 }
@@ -1511,13 +1646,17 @@ function visualRubricForResult(result, prompt) {
   const dynamicMagnitude = Math.max(
     clamp01(Number(result.canvasFrameLumaMeanDelta || 0) / 0.6),
     clamp01(Number(result.canvasFrameLumaStdDelta || 0) / 0.6),
-    clamp01(Number(result.canvasFrameColoredRatioDelta || 0) / 0.006)
+    clamp01(Number(result.canvasFrameColoredRatioDelta || 0) / 0.006),
+    clamp01(Number(result.canvasFrameMeanAbsolutePixelDelta || 0) / 3),
+    clamp01(Number(result.canvasFrameChangedPixelRatio || 0) / 0.04)
   );
   const dynamic = dynamicMagnitude >= 0.18 ? 1 : 0;
+  const dynamicRequired = promptRequiresVisibleDynamics(prompt);
+  const dynamicPass = dynamicRequired ? dynamic : 1;
   const genericPenalty = /^(generic|literal-composite|blank)$/.test(String(result.rendererSceneKind || result.visualIRSceneKind || '')) ? 0.18 : 0;
   const score = Math.max(0, Math.round(100 * (
     coverage * 0.42 +
-    dynamic * 0.16 +
+    dynamicPass * 0.16 +
     representation.quality * 0.18 +
     atomRichness * 0.1 +
     contrast * 0.07 +
@@ -1529,14 +1668,18 @@ function visualRubricForResult(result, prompt) {
     score,
     pass: score >= 72 &&
       coverage >= 0.66 &&
-      dynamic > 0 &&
+      dynamicPass > 0 &&
       representation.quality >= 0.5 &&
+      representation.silhouetteFidelity >= 0.75 &&
+      representation.framing >= 0.75 &&
       missingSignals.length <= Math.max(1, Math.floor(expectedCount / 3)),
     expectedCount,
     coverage: Number(coverage.toFixed(3)),
     representationQuality: Number(representation.quality.toFixed(3)),
     representation,
     dynamic: Boolean(dynamic),
+    dynamicRequired,
+    dynamicPass: Boolean(dynamicPass),
     dynamicMagnitude: Number(dynamicMagnitude.toFixed(3)),
     atomRichness: Number(atomRichness.toFixed(3)),
     contrast: Number(contrast.toFixed(3)),
@@ -1547,27 +1690,55 @@ function visualRubricForResult(result, prompt) {
   };
 }
 
+function promptRequiresVisibleDynamics(prompt = '') {
+  return /\b(swim|swims|swimming|fly|flies|flying|orbit|orbits|orbiting|flow|flows|float|floats|floating|run|runs|running|move|moves|moving|spin|spins|rotate|rotates|rotating|fall|falls|falling|melt|melts|melting|grow|grows|growing|jump|jumps|crash|crashes|collide|collides|wave|waves|waving|pulse|pulses|pulsing)\b/i.test(prompt);
+}
+
 function representationQualityForResult(result, expectedCount) {
   const sceneKind = String(result.rendererSceneKind || result.visualIRSceneKind || '');
-  const camera = String(result.visualIRCamera || '');
   const languageSignalCount = array(result.visualIRGraphicsLanguageSignals).length;
+  const consumption = result.phase7RendererConsumption || {};
+  const realization = result.webgpuObjectRealization || {};
+  const entityCount = Math.max(1, Number(realization.entityCount || result.visualIRSceneRenderPacketEntityCount || 0));
+  const requiredRelations = array(result.phase6CompositionObligations)
+    .filter((row) => row.required === true && row.kind === 'relation');
+  const provenRelations = requiredRelations.filter((row) => (
+    row.status === 'preserved' && array(row.visualEvidence).length > 0 &&
+    (!String(row.id || '').startsWith('relation:spatial:') ||
+      array(row.visualEvidence).includes(`layout-relation:${row.id}`))
+  ));
   const dimensions = {
-    entityStructure: clamp01(Number(result.visualIREntityCount || 0) / 4),
-    materialIdentity: clamp01(Number(result.visualIRMaterialCount || 0) / 4),
-    processMotion: clamp01(Number(result.visualIRProcessCount || 0) / Math.max(3, expectedCount + 1)),
-    fieldStructure: clamp01(Number(result.visualIRFieldCount || 0) / Math.max(2, expectedCount)),
-    cameraSpecificity: /^(aerial-map-depth|dynamic-motion-depth|instrumented-lab-depth|microscopic-cutaway-depth|wide-system|topographic-cutaway-depth|orbital-depth)$/.test(camera) ? 1 : 0,
+    realizedGeometry: clamp01(Number(realization.realizedCount || 0) / entityCount),
+    constructiveGrounding: clamp01(Number(consumption.modelEvaluatedConstructionCount || 0) / entityCount),
+    silhouetteFidelity: Math.min(
+      clamp01(Number(realization.topologyVerifiedCount || 0) / entityCount),
+      clamp01(Number(realization.semanticFitCount || 0) / entityCount)
+    ),
+    framing: realization.framingPass === true
+      ? 1
+      : clamp01(Number(realization.projectedArea || 0) / Math.min(0.16, entityCount * 0.045)),
+    materialResponse: consumption.normalShading === true
+      ? clamp01(Number(consumption.materialCountConsumed || 0) / entityCount) : 0,
+    cameraResponse: consumption.cameraConsumed === true ? 1 : 0,
+    lightResponse: Number(consumption.lightCountConsumed || 0) > 0 && consumption.normalShading === true ? 1 : 0,
+    depthResponse: consumption.depthEnabled === true ? 1 : 0,
+    spatialRelations: requiredRelations.length ? provenRelations.length / requiredRelations.length : 1,
     sceneSpecificity: sceneKind && !/^(generic|literal-composite|blank|mechanical|custom-world)$/.test(sceneKind) ? 1 : 0,
-    promptBinding: clamp01(languageSignalCount / Math.max(6, expectedCount * 3)),
+    promptBinding: clamp01(languageSignalCount / Math.max(6, expectedCount * 3)) *
+      clamp01(Number(realization.realizedCount || 0) / entityCount),
   };
   const quality = (
-    dimensions.entityStructure * 0.16 +
-    dimensions.materialIdentity * 0.13 +
-    dimensions.processMotion * 0.18 +
-    dimensions.fieldStructure * 0.12 +
-    dimensions.cameraSpecificity * 0.13 +
-    dimensions.sceneSpecificity * 0.14 +
-    dimensions.promptBinding * 0.14
+    dimensions.realizedGeometry * 0.14 +
+    dimensions.constructiveGrounding * 0.08 +
+    dimensions.silhouetteFidelity * 0.18 +
+    dimensions.framing * 0.15 +
+    dimensions.materialResponse * 0.09 +
+    dimensions.cameraResponse * 0.08 +
+    dimensions.lightResponse * 0.07 +
+    dimensions.depthResponse * 0.07 +
+    dimensions.spatialRelations * 0.07 +
+    dimensions.sceneSpecificity * 0.035 +
+    dimensions.promptBinding * 0.035
   );
   return {
     schema: 'simulatte.visualRepresentationQuality.v1',
@@ -1634,8 +1805,29 @@ function analyze(results) {
     if (result.phase7RenderData !== 'simulatte.phase7.compactRenderData.v1') {
       failures.push(`${result.index}: Phase 7 render data receipt missing`);
     }
-    if (result.phase7RenderPath !== 'storage-scene-instances-with-uniform-fallback') {
+    if (result.phase7RenderPath !== 'depth-lit-storage-object-parts-with-uniform-fallback') {
       failures.push(`${result.index}: Phase 7 render data path is ${result.phase7RenderPath || 'missing'}`);
+    }
+    const consumption = result.phase7RendererConsumption || {};
+    if (consumption.schema !== 'simulatte.phase7RendererConsumption.v1') {
+      failures.push(`${result.index}: Phase 7 renderer-consumption receipt missing`);
+    }
+    if (consumption.cameraConsumed !== true) failures.push(`${result.index}: compiled camera was not consumed`);
+    if (Number(consumption.lightCountConsumed || 0) < 1) failures.push(`${result.index}: compiled lights were not consumed`);
+    if (Number(consumption.materialCountConsumed || 0) < 1) failures.push(`${result.index}: compiled materials were not consumed`);
+    if (consumption.depthEnabled !== true) failures.push(`${result.index}: depth execution is not enabled`);
+    if (consumption.normalShading !== true) failures.push(`${result.index}: material lighting does not use surface normals`);
+    if (Number(result.visualIRSceneRenderPacketEntityCount || 0) > 0 &&
+        Number(consumption.modelEvaluatedConstructionCount || 0) < 1) {
+      failures.push(`${result.index}: no model-evaluated construction program reached Phase 7`);
+    }
+    for (const slot of array(result.phase3SlotCandidates)) {
+      for (const candidate of array(slot.candidates)) {
+        if (candidate.type === 'prompt-literal' && candidate.modelEvaluated !== true &&
+            Number(candidate.embeddingScore || 0) !== 0) {
+          failures.push(`${result.index}: local prompt literal ${candidate.id} carries a fabricated model score`);
+        }
+      }
     }
     if (result.phase7PixelReadback !== 'pass') {
       failures.push(`${result.index}: Phase 7 pixel readback is ${result.phase7PixelReadback || 'missing'}${result.phase7PixelReadbackMessage ? `: ${result.phase7PixelReadbackMessage}` : ''}`);
@@ -1688,7 +1880,13 @@ function analyze(results) {
       failures.push(`${result.index}: visual rubric failed score=${rubric.score} coverage=${rubric.coverage} missing=${rubric.missingSignals.join(',') || 'none'} dynamic=${rubric.dynamic}`);
     }
     if (result.visualIROperatorCount < 5) failures.push(`${result.index}: VisualIR has too few operators`);
-    if (result.visualIREntityCount < 2) failures.push(`${result.index}: VisualIR has too few entities`);
+    const requiredEntityCount = array(result.phase6CompositionObligations).filter((row) => (
+      row.required === true && ['entity', 'object', 'environment'].includes(row.kind) && row.status !== 'lost'
+    )).length;
+    const minimumEntityCount = Math.max(1, requiredEntityCount);
+    if (result.visualIREntityCount < minimumEntityCount) {
+      failures.push(`${result.index}: VisualIR has ${result.visualIREntityCount}/${minimumEntityCount} required entities`);
+    }
     if (result.visualIRProcessCount < 2) failures.push(`${result.index}: VisualIR has too few processes`);
     if (result.visualIRRenderInstanceCount < 3) failures.push(`${result.index}: VisualIR has too few render instances`);
     if (result.visualIRReceiptCount < 4) failures.push(`${result.index}: VisualIR has too few receipts`);
@@ -1764,7 +1962,7 @@ function analyze(results) {
       expectedSignals: [...new Set(results.flatMap((result) => result.visualRubric ? result.visualRubric.expectedSignals : []))].sort(),
       missingSignals: [...new Set(results.flatMap((result) => result.visualRubric ? result.visualRubric.missingSignals : []))].sort(),
       dynamicFailures: results
-        .filter((result) => result.visualRubric && !result.visualRubric.dynamic)
+        .filter((result) => result.visualRubric && result.visualRubric.dynamicRequired && !result.visualRubric.dynamic)
         .map((result) => result.index),
       representationFailures: results
         .filter((result) => result.visualRubric && Number(result.visualRubric.representationQuality || 0) < 0.5)
@@ -1971,6 +2169,7 @@ async function main() {
     `--window-size=${options.width},${options.height}`,
     'about:blank',
   ], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const chromeProcessOutput = captureChildProcessOutput(chrome);
   let cdp = null;
   try {
     cdp = await connectToPage(debugPort);
@@ -1978,7 +2177,23 @@ async function main() {
     await setupPage(cdp, pageUrl, options.width, options.height, options.timeoutMs, options.intentMode);
     const results = [];
     for (let i = 0; i < prompts.length; i += 1) {
-      results.push(await runPrompt(cdp, prompts[i], i, options.outDir, options));
+      const active = { stage: 'queued', elapsedMs: 0 };
+      const onAuditStage = (event) => {
+        active.stage = event.stage;
+        active.elapsedMs = event.elapsedMs;
+        console.log(JSON.stringify(event));
+      };
+      const promptOptions = { ...options, promptCount: prompts.length, onAuditStage };
+      const deadlineMs = promptDeadlineMs(promptOptions);
+      results.push(await withDeadline(
+        `visual audit prompt ${i + 1}/${prompts.length}`,
+        () => runPrompt(cdp, prompts[i], i, options.outDir, promptOptions),
+        deadlineMs,
+        {
+          describe: () => `stage=${active.stage}, stageElapsedMs=${active.elapsedMs}`,
+          onTimeout: (error) => cdp.close(error),
+        }
+      ));
       console.log(`${i + 1}/${prompts.length} ${prompts[i].kind} ${results[results.length - 1].canvasHash} ${results[results.length - 1].rendererSceneKind || 'scene'}`);
     }
     const browserEvents = cdp.diagnostics();
@@ -1998,6 +2213,8 @@ async function main() {
       url: pageUrl,
       profileDir,
       profilePersistent: Boolean(options.profileDir || options.keepProfile),
+      promptDeadlineMs: promptDeadlineMs(options),
+      chromeProcessLog: chromeProcessOutput.snapshot(),
       promptCounts: {
         curated: prompts.filter((prompt) => prompt.kind === 'curated').length,
         broad: prompts.filter((prompt) => prompt.kind === 'broad').length,
@@ -2020,6 +2237,7 @@ async function main() {
       error: error && error.stack || String(error),
       page: await auditFailureState(cdp),
       browserEvents: cdp ? cdp.diagnostics() : [],
+      chromeProcessLog: chromeProcessOutput.snapshot(),
     };
     await fs.writeFile(path.join(options.outDir, 'failure.json'), `${JSON.stringify(failure, null, 2)}\n`);
     throw error;

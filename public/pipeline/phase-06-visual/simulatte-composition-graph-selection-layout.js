@@ -352,37 +352,20 @@
     function compositionRelations(nodes, graph) {
         const valid = new Set(nodes.map((node) => node.primitiveId));
         const fromGraph = (graph.edges || [])
-          .filter((edge) => valid.has(edge.from) && valid.has(edge.to))
+          .filter((edge) => valid.has(edge.from) && valid.has(edge.to) && (edge.channel || edge.kind || edge.type))
           .map((edge) => ({
             from: edge.from,
             to: edge.to,
-            channel: edge.channel || edge.kind || 'coupled-state',
+            channel: edge.channel || edge.kind || edge.type,
             strength: Number.isFinite(Number(edge.weight)) ? Number(edge.weight) : 0.64,
           }));
-        if (fromGraph.length) return fromGraph.slice(0, 42);
-        return nodes.slice(1).map((node, index) => ({
-          from: nodes[index].primitiveId,
-          to: node.primitiveId,
-          channel: 'coupled-state',
-          strength: 0.45,
-        }));
+        return fromGraph.slice(0, 42);
       }
 
     function placementFor(component, index, total, spec, contract) {
         const grammar = contract && contract.layout ? contract.layout.grammar : 'freeform';
         const phase = hashNoise((spec.id || '').length + 17, index);
-        const id = String(component && component.id || '');
-        const text = componentText(component);
         const radial = radialPlacement(index, total, phase);
-        if (id === 'rotor-wheel') return anchoredPlacement(0.5, 0.5, 0, index);
-        if (id === 'stator-slider') return anchoredPlacement(0.68, 0.42, -0.18, index);
-        if (id === 'solar-panel') return anchoredPlacement(0.18, 0.18, 0.18, index);
-        if (id === 'motor-load') return anchoredPlacement(0.78, 0.74, 0.12, index);
-        if (/load|generator|motor-load/.test(text)) return anchoredPlacement(0.78, 0.74, 0.12, index);
-        if (/solar|sun|lamp|panel/.test(text)) return anchoredPlacement(0.18, 0.18, 0.18, index);
-        if (/wheel|rotor/.test(text)) return anchoredPlacement(0.5, 0.5, 0, index);
-        if (/slider|stator|magnet/.test(text)) return anchoredPlacement(0.68, 0.42, -0.18, index);
-        if (/mycelium|bacteria|protein|leaf|cell/.test(text)) return anchoredPlacement(0.46, 0.56, 0, index);
         if (grammar === 'bench') return linePlacement(index, total, 0.18, 0.46, 0.74);
         if (grammar === 'orthogonal network' || grammar === 'route graph' || grammar === 'network') {
           return gridPlacement(index);
@@ -431,12 +414,8 @@
       }
 
     function patchPlacement(component, index, total, phase) {
-        const text = componentText(component);
-        if (/wind|air/.test(text)) return anchoredPlacement(0.2, 0.36, 0, index);
-        if (/water|flow/.test(text)) return anchoredPlacement(0.28, 0.74, -0.18, index);
-        if (/wall|rock/.test(text)) return anchoredPlacement(0.76, 0.56, 0.08, index);
         const t = total <= 1 ? 0.5 : index / (total - 1);
-        return { anchor: clampAnchor([0.38 + t * 0.2, 0.55 + (phase - 0.5) * 0.12]), rotation: 0.04, scale: 1, layer: index };
+        return { anchor: clampAnchor([0.22 + t * 0.56, 0.5 + (phase - 0.5) * 0.34]), rotation: 0.04, scale: 1, layer: index };
       }
 
     function compileCompositionToRenderProgram(graph = null, spec = {}) {
@@ -558,6 +537,8 @@
           renderBindingTail(object.physicalRef),
           renderBindingTail(object.semanticRef),
           object.label,
+          object.sourceLabel,
+          ...(object.aliases || []),
         ].flatMap(renderBindingAliases)).filter((key) => key && !genericRenderBindingKey(key));
       }
 
@@ -579,20 +560,15 @@
           object.label,
         ].flatMap(renderBindingAliases)).filter((key) => key && !genericRenderBindingKey(key));
         for (const key of keys) {
-          if (roleKeys.some((candidate) => renderBindingTokenMatches(key, candidate))) return key;
+          if (roleKeys.some((candidate) => renderBindingRefMatches(key, candidate))) return key;
         }
         const text = renderBindingNormalize([
           object.id,
-          object.role,
           object.shape,
           object.material,
           object.assembly,
           object.visualRegime,
         ].join(' '));
-        for (const key of keys) {
-          if (!key || genericRenderBindingKey(key)) continue;
-          if (key.length >= 5 && (text.includes(key) || key.includes(renderBindingNormalize(object.id)))) return key;
-        }
         if (/lava|magma/.test(text) && bindingByText.has('lava')) return 'lava';
         if (/turbine|rotor|wheel/.test(text) && bindingByText.has('turbine')) return 'turbine';
         if (/castle|wall/.test(text) && bindingByText.has('castle')) return 'castle';
@@ -670,6 +646,16 @@
           visualRegime: object.visualRegime || '',
           assembly: object.semanticRef || '',
           phrase: object.label || '',
+          sourceLabel: object.sourceLabel || object.label || '',
+          aliases: object.aliases || [],
+          semanticClass: object.semanticClass || '',
+          visualArchetype: object.visualArchetype || '',
+          shapeHints: object.shapeHints || [],
+          construction: object.construction || object.geometry && object.geometry.construction || null,
+          constructionProvenance: object.constructionProvenance || [],
+          directlyGrounded: object.directlyGrounded === true,
+          domainTags: object.domainTags || [],
+          evidence: object.evidence || [],
           source: 'render-ir',
           pose: poseForRenderObject(object, index, renderIR.objects.length),
           dynamics: {},
@@ -688,8 +674,12 @@
         const layoutFields = focusFieldsForScene(fieldsForComposition(graph, spec), sceneKind);
         const layoutSolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, graphObjects), sceneKind);
         const layoutGenome = visualGenomeForComposition(graph, graphObjects, layoutFields, layoutSolverPlan, spec, sceneKind);
+        const groundedObjects = canonicalVisualObjects(uniqueObjectsById([
+          ...graphObjects,
+          ...irContext,
+        ]));
         const laidOutObjects = preservePromptGroundedSurfaceObjects(layoutObjectsForScene(
-          prioritizeObjectsForScene(uniqueObjectsById([...graphObjects, ...irContext]), sceneKind),
+          prioritizeObjectsForScene(groundedObjects, sceneKind),
           sceneKind,
           spec,
           layoutGenome
@@ -767,13 +757,31 @@
         const key = bestRenderBindingKey(object, bindingByText);
         const binding = key ? bindingByText.get(key) : null;
         if (!binding) return object;
+        const bindingShape = shapeForRenderGlyph(binding.glyph, binding);
+        const bindingOwnsShape = /^(?:lava|volcano|bridge|tower|castle|ice|lens|prism|mirror|flame|smoke|storm|wetland|rocket|submarine|instrument|network|organism)$/.test(
+          String(binding.glyph || '')
+        ) || (binding.glyph === 'turbine' && bindingShape === 'wheel') ||
+          Boolean(binding.visualArchetype && bindingShape !== 'body');
         return {
           ...object,
+          renderIRBound: true,
+          shape: bindingOwnsShape ? bindingShape : object.shape,
+          material: binding.materialId || object.material,
           stateBindings: binding.stateBindings || {},
           behavior: binding.behavior || object.behavior || null,
           physicsOperators: uniqueList([...(object.physicsOperators || []), ...(binding.physicsOperators || [])]),
           physicalRef: binding.physicalRef || object.physicalRef || '',
           semanticRef: binding.semanticRef || object.semanticRef || '',
+          sourceLabel: binding.sourceLabel || binding.label || object.sourceLabel || '',
+          aliases: binding.aliases || object.aliases || [],
+          semanticClass: binding.semanticClass || object.semanticClass || '',
+          visualArchetype: binding.visualArchetype || object.visualArchetype || '',
+          shapeHints: binding.shapeHints || object.shapeHints || [],
+          construction: binding.construction || object.construction || null,
+          constructionProvenance: binding.constructionProvenance || object.constructionProvenance || [],
+          directlyGrounded: binding.directlyGrounded === true || object.directlyGrounded === true,
+          domainTags: binding.domainTags || object.domainTags || [],
+          evidence: uniqueList([...(object.evidence || []), ...(binding.evidence || [])]),
         };
       }
 
@@ -781,7 +789,7 @@
         const promptText = compiledPromptTextForSelection(spec);
         const existing = new Set((objects || []).map((object) => object.id));
         const directSurface = (graphObjects || []).filter((object) => {
-          if (!object || existing.has(object.id)) return false;
+          if (!object || existing.has(object.id) || (objects || []).some((row) => visualObjectsShareConcept(row, object))) return false;
           if (object.source !== 'semantic-surface-grounder') return false;
           if (!isPromptGroundedComponent(object, promptText)) return false;
           return sceneObjectPriority(object, sceneKind) >= 0;
@@ -791,16 +799,18 @@
       }
 
     function unmatchedRenderIRObjects(graphObjects, irObjects, _sceneKind) {
-        const seen = new Set((graphObjects || []).flatMap((object) => [
-          object.id,
-          object.semanticRef,
-          object.physicalRef,
-        ].map((value) => String(value || '').toLowerCase()).filter(Boolean)));
+        const graphRows = graphObjects || [];
         return (irObjects || [])
           .filter((object) => {
             const text = renderObjectText(object);
-            if ([object.id, object.semanticRef, object.physicalRef]
-              .some((value) => seen.has(String(value || '').toLowerCase()))) {
+            const identityKeys = new Set([object.id, object.physicalRef]
+              .map((value) => String(value || '').toLowerCase()).filter(Boolean));
+            const matches = graphRows.filter((row) => [row.id, row.physicalRef]
+              .some((value) => identityKeys.has(String(value || '').toLowerCase())));
+            const onlyEventMatches = matches.length > 0 && matches.every((row) => (
+              row.kind === 'event' || /^embedding-guided-synth-event/.test(String(row.source || ''))
+            ));
+            if (matches.length && !(object.directlyGrounded === true && onlyEventMatches)) {
               return false;
             }
             return Boolean(text);

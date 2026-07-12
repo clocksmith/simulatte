@@ -290,6 +290,8 @@
           components: filterRowsAgainstNegativeEvidence(groundingEvidence.components || [], negativeEvidence)
             .filter((row) => row.supportOnly !== true),
           universeMatches: { candidates: groundingCandidateEvidence },
+          queryPlan: activationCloud.queryPlan || groundingEvidence.queryPlan || intentBrief.queryPlan || null,
+          slotEvidence: activationCloud.slotEvidence || groundingEvidence.slotEvidence || intentBrief.slotEvidence || [],
           intentBrief: {
             ...intentBrief,
             groundedInterpretation,
@@ -408,6 +410,11 @@
           end: span.end,
           tokenStart: span.tokenStart,
           tokenEnd: span.tokenEnd,
+          entityClass: span.entityClass || '',
+          semanticRole: span.semanticRole || '',
+          visualArchetype: span.visualArchetype || '',
+          materialHint: span.materialHint || '',
+          shapeHints: arrayClone(span.shapeHints || []),
         })).filter((span) => span.text);
         if (!prompt && !spans.length) return null;
         return {

@@ -305,33 +305,41 @@
         }
         const started = nowMs();
         const bySlot = [];
+        const modelSlots = slots.filter((slot) => !slotUsesPromptOwnedLocalEvidence(slot));
         let rerankCallCount = 0;
         emitRuntimeProgress(payload.progress, payload.traceEnabled, {
           source: 'simulatte-intent-embedder',
           stage: 'slot-retrieval',
           percent: 94.1,
-          message: `Embedding ${slots.length} scene retrieval slots`,
+          message: `Embedding ${modelSlots.length} construction slots; ${slots.length - modelSlots.length} identity-only slots stay local`,
           slotCount: slots.length,
           traceId: payload.traceId || '',
           rankId: payload.rankId || 0,
         });
         const nowIso = payload.options && payload.options.nowIso || new Date().toISOString();
-        const slotRequests = slots.map((slot) => ({
-          text: slotQueryText(slot, payload.promptText),
+        const slotRequests = modelSlots.map((slot) => ({
+          text: constructionQueryText(slot, payload.promptText),
           nowIso,
           slotId: slot.slotId || '',
           slotRole: slot.slotRole || '',
         }));
-        const batchedSlotQueries = typeof provider.embedMany === 'function'
+        const batchedSlotQueries = slotRequests.length && typeof provider.embedMany === 'function'
           ? await provider.embedMany(slotRequests)
-          : null;
-        const useBatchedSlotQueries = Array.isArray(batchedSlotQueries) && batchedSlotQueries.length === slots.length;
+          : [];
+        const useBatchedSlotQueries = Array.isArray(batchedSlotQueries) && batchedSlotQueries.length === modelSlots.length;
+        let modelSlotIndex = 0;
         for (let i = 0; i < slots.length; i += 1) {
           const slot = slots[i];
-          const queryText = slotRequests[i].text;
+          if (slotUsesPromptOwnedLocalEvidence(slot)) {
+            bySlot.push(promptOwnedLocalSlotRow(slot, payload.promptText));
+            continue;
+          }
+          const request = slotRequests[modelSlotIndex];
+          const queryText = request.text;
           const query = useBatchedSlotQueries
-            ? batchedSlotQueries[i]
-            : await provider.embed(slotRequests[i]);
+            ? batchedSlotQueries[modelSlotIndex]
+            : await provider.embed(request);
+          modelSlotIndex += 1;
           const vector = validateQueryEmbedding(query, runtime.index);
           const gpuScores = config.primitiveRankBackend === 'webgpu' || config.primitiveRankBackend === 'auto'
             ? await safeSpanGpuRank(payload.rankGpu, vector)
@@ -342,7 +350,9 @@
           const universeMax = slotCandidateBudget(slot, 'universe', config.perSlotUniverseMax);
           const primitiveMatches = slotAllowsCandidateType(slot, 'primitive') && primitiveMax > 0
             ? candidates
-              .map((primitive, index) => slotPrimitiveMatch(slot, primitive, scores[index], config))
+              .map((primitive, index) => annotateConstructionCandidate(
+                slot, slotPrimitiveMatch(slot, primitive, scores[index], config)
+              ))
               .filter((row) => row.score >= config.primitiveScoreFloor || row.lexicalScore > 0)
               .sort(slotCandidateSort)
               .slice(0, primitiveMax)
@@ -359,7 +369,9 @@
             })
             : { candidates: [] };
           const universeRows = universeAllowed
-            ? slotUniverseCandidates(slot, universeMatches, universeMax)
+            ? slotUniverseCandidates(
+              slot, constructionUniverseMatches(slot, universeMatches, universeMax), universeMax
+            )
             : [];
           const ranked = uniqueSlotCandidates([
             ...primitiveMatches,
@@ -379,6 +391,7 @@
             rankId: payload.rankId,
             slotIndex: i,
             slotCount: slots.length,
+            constructionMode: slotNeedsModelConstructionEvidence(slot),
           });
           if (reranked.rerankCall) rerankCallCount += 1;
           bySlot.push({
@@ -394,6 +407,7 @@
             rerankerModelReady: reranked.receipt.modelReady,
             candidates: reranked.candidates,
             acceptedCandidates: reranked.candidates.filter((row) => row.supportOnly !== true).slice(0, config.perSlotAcceptedMax),
+            constructionCandidates: constructionCandidatesForSlot(slot, reranked.candidates, 3),
             supportOnlyCandidates: reranked.candidates.filter((row) => row.supportOnly === true),
             receipt: reranked.receipt,
           });
@@ -416,7 +430,8 @@
           model: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
           config: slotRetrievalReceiptConfig(config),
           slotCount: slots.length,
-          embeddedSlotCount: bySlot.length,
+          embeddedSlotCount: modelSlots.length,
+          localEvidenceSlotCount: slots.length - modelSlots.length,
           rerankCallCount,
           rerankCandidateInputCount: bySlot.reduce(
             (sum, row) => sum + Number(row.receipt && row.receipt.candidateInputCount || 0),
@@ -607,7 +622,7 @@
           retrievalKind: 'slot-retrieval',
         };
         candidate.slotRolePriority = slotCandidateRolePriority(slot, candidate);
-        return candidate;
+        return annotateConstructionCandidate(slot, candidate);
       }
 
     function rankSurfaceCardsForSlot(cardIndex, slot = {}, vector = null, config = {}, options = {}) {
@@ -706,7 +721,7 @@
           candidate.literalSlotMatch = slotCandidateLiteralMatch(slot, candidate);
           candidate.slotRolePriority = slotCandidateRolePriority(slot, candidate);
           if (candidate.literalSlotMatch) candidate.score = Math.max(Number(candidate.score || 0), 0.99);
-          return candidate;
+          return annotateConstructionCandidate(slot, candidate);
         });
       }
 
@@ -736,7 +751,7 @@
             },
           };
         }
-        const skipReason = slotRerankSkipReason(payload.slot, rows);
+        const skipReason = slotRerankSkipReason(payload.slot, rows, payload.constructionMode === true);
         if (skipReason) {
           return {
             candidates: rows,
@@ -828,13 +843,17 @@
 
     function buildSlotRerankInput({ promptText, slot, candidates, runtime }) {
         const config = rerankerConfig(runtime);
-        const selectedCandidates = (candidates || []).slice(0, config.maxSlotCandidatesPerCall)
+        const constructionRows = constructionCandidatesForSlot(
+          slot, candidates, config.maxSlotCandidatesPerCall
+        );
+        const selectedCandidates = (constructionRows.length ? constructionRows : candidates || [])
+          .slice(0, config.maxSlotCandidatesPerCall)
           .filter((candidate) => candidate.supportOnly !== true);
         return {
           schema: 'simulatte.intentSlotRerankInput.v1',
           phase: 3,
           phaseId: 'retrieval',
-          stage: 'typed-slot-retrieval',
+          stage: slotNeedsModelConstructionEvidence(slot) ? 'construction-hypothesis-rerank' : 'typed-slot-retrieval',
           reranker: rerankerId(runtime),
           prompt: slotRerankQuery(promptText, slot),
           slot: {
@@ -844,6 +863,7 @@
             required: !slot || slot.required !== false,
             queries: slot && slot.queries || [],
             relationIds: slot && slot.relationIds || [],
+            constructionMode: slotNeedsModelConstructionEvidence(slot),
           },
           candidates: selectedCandidates.map((candidate, order) => ({
             primitiveId: candidate.candidateId || candidate.primitiveId || candidate.id,
@@ -857,6 +877,7 @@
             lexicalScore: Number(candidate.lexicalScore || 0),
             supportOnly: candidate.supportOnly === true,
             candidateText: candidate.candidateText || '',
+            construction: candidate.construction || null,
           })),
           max: Math.max(1, selectedCandidates.length),
         };
@@ -871,10 +892,16 @@
         ].filter((line) => !line.endsWith(': ')).join('\n');
       }
 
-    function slotRerankSkipReason(slot = {}, candidates = []) {
+    function slotRerankSkipReason(slot = {}, candidates = [], constructionMode = false) {
+        if (constructionMode) {
+          return exactConstructionCandidate(slot, candidates) ? 'exact-model-indexed-construction' : '';
+        }
         if (slot && slot.required === false) return 'optional-slot-local-evidence';
         if ((candidates || []).some((candidate) => candidate.literalSlotMatch === true)) {
           return 'literal-slot-identity';
+        }
+        if (slotUsesPromptOwnedLocalEvidence(slot)) {
+          return 'prompt-owned-slot-local-evidence';
         }
         return '';
       }

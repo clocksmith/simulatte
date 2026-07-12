@@ -156,3 +156,19 @@ test('every compiled scene carries a concrete Phase 6 pixel obligation', () => {
   assert.ok(visual.some((row) => row.obligationId === 'visual:compiled-scene-packet' && row.status === 'pass'));
   assert.equal(phase8.verdict, 'pass');
 });
+
+test('scene proof selects realized exact compound geometry after generic support rows', () => {
+  const phase7 = renderedPhase7('warehouse robot arms sort parcels on conveyor belts');
+  const realization = phase7.artifact.renderExecution.objectRealization;
+  assert.ok(realization.rows.findIndex((row) => row.identityType === 'structure') <
+    realization.rows.findIndex((row) => row.identityType === 'warehouse-robot-arms'));
+
+  const proof = sceneProof.settleSceneProof(phase7).artifact.sceneProof;
+  for (const target of ['warehouse-robot-arms', 'conveyor-belts']) {
+    const row = proof.settledObligations.find((entry) => entry.target === target);
+    assert.ok(row, `${target} obligation exists`);
+    assert.equal(row.status, 'preserved');
+    assert.equal(row.reason, 'identity has a rendered literal geometry program');
+  }
+  assert.equal(proof.verdict, 'pass');
+});

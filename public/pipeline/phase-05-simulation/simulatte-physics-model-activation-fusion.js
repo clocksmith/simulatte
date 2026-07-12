@@ -716,9 +716,12 @@
       }
 
     function languageEvidenceFromPhase3Artifact(artifact = {}, intentBrief = {}, groundingEvidence = {}) {
+        if (artifact.languageGraph && artifact.languageGraph.schema) {
+          return languageEvidenceFromLanguageGraph(artifact.languageGraph);
+        }
         if (groundingEvidence.languageEvidence) return phaseCarryObject(groundingEvidence.languageEvidence);
         if (intentBrief.languageEvidence) return phaseCarryObject(intentBrief.languageEvidence);
-        return languageEvidenceFromLanguageGraph(artifact.languageGraph || {});
+        return languageEvidenceFromLanguageGraph({});
       }
 
     function languageEvidenceFromLanguageGraph(languageGraph = {}) {
@@ -730,6 +733,11 @@
           end: span.end,
           tokenStart: span.tokenStart,
           tokenEnd: span.tokenEnd,
+          entityClass: span.entityClass || '',
+          semanticRole: span.semanticRole || '',
+          visualArchetype: span.visualArchetype || '',
+          materialHint: span.materialHint || '',
+          shapeHints: arrayClone(span.shapeHints || []),
         })).filter((span) => span.text);
         const spanById = new Map(spans.map((span) => [span.id, span]));
         const predicateFrames = (languageGraph.clauses || []).map((clause, index) => {
@@ -827,9 +835,13 @@
         return phaseCarryObject({
           id,
           label,
+          sourceLabel: row.sourceLabel || '',
           aliases: arrayClone(row.aliases),
           canonicalId: row.canonicalId || row.conceptId || row.primitiveId || row.cardId || id,
           semanticType: row.semanticType || row.type || row.kind || row.category || '',
+          semanticClass: row.semanticClass || '',
+          visualArchetype: row.visualArchetype || '',
+          identityEvidence: row.identityEvidence === true,
           indexName: row.indexName || row.source || source,
           score: Number((Number.isFinite(score) ? score : 0.35).toFixed(4)),
           domains: arrayClone(row.domains || row.modules),

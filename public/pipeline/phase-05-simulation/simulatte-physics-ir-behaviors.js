@@ -11,13 +11,26 @@
 
     function addBehaviorBundlesFromLedger(couplings, operators, fields, domains, ledger, prompt, params, receipt, behaviorRelations) {
         if (!ledger || !Array.isArray(ledger.obligations)) return;
+        const relationById = new Map((ledger.relations || []).map((row) => [row.id, row]));
+        const relationProcesses = new Set(ledger.obligations
+          .filter((row) => row.kind === 'relation')
+          .map((row) => behaviorProcessForLedgerRow({
+            ...row,
+            ...(relationById.get(row.sourceRelationId || row.id) || {}),
+          }, prompt))
+          .filter(Boolean));
         for (const row of ledger.obligations) {
           if (row.kind !== 'action' && row.kind !== 'relation') continue;
-          const process = behaviorProcessForLedgerRow(row, prompt);
+          const source = row.kind === 'relation' ? {
+            ...row,
+            ...(relationById.get(row.sourceRelationId || row.id) || {}),
+          } : row;
+          const process = behaviorProcessForLedgerRow(source, prompt);
           if (!process || process === 'coexists') continue;
-          const pair = behaviorDomainsForLedgerRow(row, domains, process);
+          if (row.kind === 'action' && relationProcesses.has(process)) continue;
+          const pair = behaviorDomainsForLedgerRow(source, domains, process);
           if (!pair.from || !pair.to) continue;
-          addBehaviorBundle(couplings, operators, fields, pair.from, pair.to, process, row, params, receipt, behaviorRelations);
+          addBehaviorBundle(couplings, operators, fields, pair.from, pair.to, process, source, params, receipt, behaviorRelations);
         }
       }
 
@@ -25,12 +38,13 @@
         const explicit = explicitLedgerProcess(row);
         const direct = behaviorProcessForText(explicit);
         if (direct && direct !== 'coexists') return direct;
-        const local = behaviorProcessForText([row.id, row.action, row.process, row.target].filter(Boolean).join(' '));
+        const local = behaviorProcessForText([row.action, row.process, row.predicate].filter(Boolean).join(' '));
         if (local && local !== 'coexists') return local;
-        return behaviorProcessForText(prompt);
+        return '';
       }
 
     function explicitLedgerProcess(row = {}) {
+        if (row.process) return row.process;
         const id = String(row.id || '');
         const parts = id.split(':');
         if (parts[0] === 'action' && parts[1]) return parts[1];
@@ -66,6 +80,10 @@
             params: { rate: clamp(Number(params.flowRate ?? params.windSpeed ?? 0.55), 0, 2) },
           }));
           add('pressure_flow_lite', flow, flow);
+        } else if (process === 'leak') {
+          const leakDomain = from;
+          ensureFlowFields(fields, leakDomain, params);
+          add('pressure_flow_lite', leakDomain, leakDomain);
         } else if (process === 'growth') {
           const target = biologicalDomain(from, to) || to;
           add('growth_decay', target, target);
@@ -101,7 +119,12 @@
           relation: source.type || source.kind || 'behavior',
           spatialRelation: source.prepositions && source.prepositions[0] || '',
           operators: operatorTypes,
-          evidence: source.evidence || [source.id || 'phase3-composition-ledger'],
+          evidence: unique([
+            ...(source.evidence || []),
+            source.id || 'phase3-composition-ledger',
+            source.predicate ? `action:${source.predicate}` : '',
+            source.process ? `process:${source.process}` : '',
+          ]),
           status: 'lowered',
         });
         receipt.exact.push({
@@ -171,8 +194,8 @@
     function behaviorDomainsForLedgerRow(row, domains, process) {
         const id = String(row.id || '').replace(/[_-]+/g, ' ').toLowerCase();
         const parts = id.split(':');
-        const left = parts[1] || '';
-        const right = parts[3] || parts[1] || '';
+        const left = String(row.from || parts[1] || '').replace(/^[a-z]+:/, '');
+        const right = String(row.target || row.to || parts[3] || parts[1] || '').replace(/^[a-z]+:/, '');
         const from = bestDomainForText(domains, left, process) || domains[0];
         const to = bestDomainForText(domains, right, process) || bestTargetDomain(domains, process) || from;
         return { from, to };
@@ -247,7 +270,9 @@
       }
 
     function behaviorText(edge, from, to) {
-        return [edge.type, edge.processId, edge.relation, edge.causalAffordance, from.entityId, to.entityId].filter(Boolean).join(' ');
+        void from;
+        void to;
+        return [edge.processId, edge.type, edge.relation, edge.causalAffordance].filter(Boolean).join(' ');
       }
 
     function fluidDomain(a, b) { return [a, b].find((domain) => domain && domain.kind === 'fluid'); }

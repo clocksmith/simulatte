@@ -59,3 +59,34 @@ test('audit prompt identity ignores presentation whitespace but rejects stale ar
   ), false);
   assert.equal(auditPromptMatches('', ''), false);
 });
+
+test('audit task deadline fails closed with the active stage', async () => {
+  const { withDeadline } = await import('../tools/audit-runtime-wait.mjs');
+  let timeoutError = null;
+  await assert.rejects(() => withDeadline('prompt capture', () => new Promise(() => {}), 5, {
+    describe: () => 'stage=canvas-screenshot',
+    onTimeout: (error) => { timeoutError = error; },
+  }), (error) => {
+    assert.equal(error.code, 'AUDIT_DEADLINE_EXCEEDED');
+    assert.match(error.message, /stage=canvas-screenshot/);
+    return true;
+  });
+  assert.equal(timeoutError && timeoutError.code, 'AUDIT_DEADLINE_EXCEEDED');
+});
+
+test('child process logs are drained into bounded diagnostic tails', async () => {
+  const { PassThrough } = require('node:stream');
+  const { captureChildProcessOutput } = await import('../tools/audit-process-log.mjs');
+  const child = { stdout: new PassThrough(), stderr: new PassThrough() };
+  const capture = captureChildProcessOutput(child, { maxCharacters: 1024 });
+  child.stdout.write('x'.repeat(1400));
+  child.stderr.write(`prefix-${'y'.repeat(1200)}-failure`);
+  await new Promise((resolve) => setImmediate(resolve));
+  const snapshot = capture.snapshot();
+
+  assert.equal(snapshot.schema, 'simulatte.auditChildProcessLog.v1');
+  assert.equal(snapshot.stdout.tail.length, 1024);
+  assert.equal(snapshot.stdout.truncated, true);
+  assert.equal(snapshot.stderr.truncated, true);
+  assert.match(snapshot.stderr.tail, /-failure$/);
+});

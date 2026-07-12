@@ -128,6 +128,8 @@
           case 'fermentation-rise': return 6;
           case 'plume-rise': return 7;
           case 'orbital-drift': return 8;
+          case 'flight-path': return 10;
+          case 'static-pose': return 0.5;
           default: return value ? scenePacketStableCode(value, 9, 64) : 0.5;
         }
       }
@@ -321,6 +323,8 @@
         if (/causal[-_ ]?affordance|causal[-_ ]?relation|cause|causes|produces|drives|modulates/.test(text)) {
           return 'causal-affordance';
         }
+        const promptOwnedSlot = promptOwnedLayerSlotForEntity(entity);
+        if (promptOwnedSlot) return promptOwnedSlot;
         if (/wake[-_ ]?ripple|wake_generation|agent[-_ ]?wake|ripple[-_ ]?trail/.test(text)) return 'flow-field';
         if (/partial[-_ ]?submersion|partial_submersion|submersion[-_ ]?mask|waterline|body_water_contact/.test(text)) return 'process-pulse';
         if (/swim[-_ ]?pose|swim[-_ ]?stroke|swim[-_ ]?cycle|fluid_locomotion/.test(text) && (type === 'process' || type === 'motion')) return 'process-pulse';
@@ -352,6 +356,19 @@
         if (/phase|melt|freeze|transition/.test(text)) return 'phase-boundary';
         if (/motion|pulse|process/.test(text)) return 'process-pulse';
         return type === 'field' ? 'field-sheet' : type === 'process' || type === 'motion' ? 'process-pulse' : 'material-surface';
+      }
+
+    function promptOwnedLayerSlotForEntity(entity = null) {
+        if (!entity || !(entity.directlyGrounded === true || /^prompt\./.test(String(entity.semanticRef || entity.physicalRef || '')))) return '';
+        const text = [entity.visualArchetype, entity.semanticClass, entity.sourceLabel, entity.label, entity.role]
+          .filter(Boolean).join(' ').toLowerCase();
+        if (/\b(water|river|lake|ocean|pool|pond)\b/.test(text)) return 'water-volume';
+        if (/\b(dog|cat|animal|bird|fish|horse|tree|plant|flower)\b/.test(text)) return 'biological-agent';
+        if (/\b(galaxy|planet|star|black[- ]hole|moon)\b/.test(text)) return 'orbital-body';
+        if (/\b(robot|gripper)\b/.test(text)) return 'robot-armature';
+        if (/\b(detector|instrument|sensor|readout)\b/.test(text)) return 'detector-geometry';
+        if (/\b(person|chair|table|sofa|lamp|television|building|bicycle|airplane|bridge|road|boat|cloud|book|cup|phone|laptop|shelf|car)\b/.test(text)) return 'material-surface';
+        return '';
       }
 
     function visualRowAccepted(row = {}) {
@@ -573,7 +590,8 @@
         const scale = visualScaleForScene(sceneKind, entities);
         const scaleTier = visualGenome && visualGenome.scaleTier || scale;
         const archetype = visualGenome && visualGenome.cameraArchetype || '';
-        const mode = recipe && recipe.camera ||
+        const mode = archetype === 'ground-level' ? 'grounded-perspective-depth' :
+          archetype === 'wide-establishing' ? 'dynamic-motion-depth' : recipe && recipe.camera ||
           (scale === 'micro' ? 'microscopic-cutaway-depth'
             : scale === 'orbital' ? 'orbital-depth'
               : scale === 'system' ? 'network-map-depth'
@@ -709,6 +727,8 @@
 
     function compiledVisualGenomeText(graph, objects, fields, solverPlan, spec, sceneKind) {
         const visualAffordances = causalAffordancesFromSpec(spec, sceneKind);
+        const compositionLedger = spec && spec.renderIR && spec.renderIR.compositionLedger ||
+          spec && spec.physicsIR && spec.physicsIR.compositionLedger || {};
         return [
           sceneKind,
           ...(objects || []).map((object) => [
@@ -732,6 +752,14 @@
           ].filter(Boolean).join(' ')),
           ...((solverPlan && solverPlan.executableSteps) || []),
           ...((solverPlan && solverPlan.steps) || []),
+          ...((compositionLedger.entries || [])
+            .filter((entry) => entry.kind === 'action')
+            .map((entry) => [entry.id, entry.label, entry.semanticClass].filter(Boolean).join(' '))),
+          ...((compositionLedger.relations || []).map((relation) => [
+            relation.predicate,
+            relation.process,
+            relation.spatialRelation,
+          ].filter(Boolean).join(' '))),
           ...visualAffordances.map((row) => [
             row.id,
             row.causalRelationId,
@@ -862,6 +890,7 @@
       scenePacketClamp01,
       scenePacketSize,
       renderInstanceLayerSlot,
+      promptOwnedLayerSlotForEntity,
       visualRowAccepted,
       visualRejectedRowsForIR,
       motionSpeedForScene,

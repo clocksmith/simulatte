@@ -10,7 +10,9 @@ const advectionSolver = require('../public/pipeline/phase-05-simulation/solvers/
 const webgpuRenderer = require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
 require('../public/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
 const universeParser = require('../public/pipeline/phase-02-language/simulatte-universe-parser.js');
+const grounderGraph = require('../public/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js');
 const webgpuRendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
+const compositionGraphScope = globalThis.__SimulatteCompositionGraphRefactorScope;
 
 function runtimeSourceFromFile(file, seen = new Set()) {
   if (seen.has(file)) return '';
@@ -252,7 +254,7 @@ test('Phase 2 does not invent water targets for unrelated intransitive clauses',
 
   assert.deepEqual(sceneGraph.mediums, []);
   assert.ok(sceneGraph.relations.some((relation) => (
-    relation.id === 'relation:turbine:rotate:world' &&
+    relation.id === 'relation:entity-turbine:rotate:world' &&
     relation.kind === 'agent-action' &&
     relation.target === ''
   )));
@@ -277,7 +279,7 @@ test('Phase 2 carries negation without creating required slots for negated entit
   assert.ok(slotIds.has('slot.actor.dog'));
   assert.equal(slotIds.has('slot.actor.cat'), false);
   assert.ok(phase2.sceneLanguageGraph.relations.some((relation) => (
-    relation.id === 'relation:dog:swimming:lake' &&
+    relation.id === 'relation:entity-dog:swimming:environment-lake' &&
     relation.from === 'entity:dog' &&
     relation.target === 'environment:lake'
   )));
@@ -289,6 +291,52 @@ test('Phase 2 phrase parser matches multi-word entities across whitespace', () =
 
   assert.ok(spanTexts.has('neutrino detector'));
   assert.ok(spanTexts.has('water\n   tank'));
+});
+
+test('Phase 2 spatial clauses use grounded nouns instead of nearby terms or nominal verbs', () => {
+  const sourdough = universeParser.parsePrompt(
+    'sourdough fermentation gas bubbles growing through a dough matrix with gluten strands'
+  );
+  const growing = sourdough.spans.find((span) => span.text === 'growing');
+  const gasBubbles = sourdough.spans.find((span) => span.text === 'gas bubbles');
+  const doughMatrix = sourdough.spans.find((span) => span.text === 'dough matrix');
+  const through = sourdough.clauses.find((clause) => clause.spatialRelation === 'through');
+  assert.equal(growing.kind, 'process');
+  assert.equal(through.subjectSpanId, gasBubbles.id);
+  assert.equal(through.verbSpanId, growing.id);
+  assert.equal(through.objectSpanId, doughMatrix.id);
+
+  const zoning = universeParser.parsePrompt(
+    'city zoning shadow allocation between building masses with sunlight volumes'
+  );
+  const cityZoning = zoning.spans.find((span) => span.text === 'city zoning');
+  const buildingMasses = zoning.spans.find((span) => span.text === 'building masses');
+  const between = zoning.clauses.find((clause) => clause.spatialRelation === 'between');
+  assert.equal(between.subjectSpanId, cityZoning.id);
+  assert.equal(between.objectSpanId, buildingMasses.id);
+
+  const fire = universeParser.parsePrompt(
+    'warehouse fire with smoke in concrete stairwell and renderer layers soot'
+  );
+  const spatialTargets = fire.clauses
+    .filter((clause) => clause.spatialRelation === 'in')
+    .map((clause) => fire.spans.find((span) => span.id === clause.objectSpanId)?.text);
+  assert.deepEqual(spatialTargets, ['concrete stairwell']);
+
+  const glacier = universeParser.parsePrompt('glacier calving into fjord with sea ice waves');
+  const waveSpans = glacier.spans.filter((span) => span.text === 'waves');
+  assert.deepEqual(waveSpans.map((span) => span.kind), ['entity']);
+});
+
+test('Phase 2 keeps an agentive participle attached across spatial furniture phrases', () => {
+  const parsed = universeParser.parsePrompt(
+    'a person sits in a chair at a table watching a tv inside a building with trees outside'
+  );
+  const watching = parsed.clauses.find((row) => row.predicate === 'watching');
+  const subject = parsed.spans.find((row) => row.id === watching.subjectSpanId);
+  const object = parsed.spans.find((row) => row.id === watching.objectSpanId);
+  assert.equal(subject.entityClass, 'person');
+  assert.equal(object.entityClass, 'television');
 });
 
 test('Phase 3 separates literal swimming retrieval from generic support physics', () => {
@@ -331,8 +379,8 @@ test('Phase 3 separates literal swimming retrieval from generic support physics'
   assert.ok(buckets.actionEvidence.some((row) => row.id === 'action:swimming'));
   assert.equal(slotById.get('slot.actor.dog').status, 'preserved');
   assert.equal(slotById.get('slot.actor.cat').status, 'preserved');
-  assert.equal(slotById.get('slot.relation.dog_swimming_lake').status, 'preserved');
-  assert.equal(slotById.get('slot.relation.cat_swimming_lake').status, 'preserved');
+  assert.equal(slotById.get('slot.relation.entity-dog_swimming_environment-lake').status, 'preserved');
+  assert.equal(slotById.get('slot.relation.entity-cat_swimming_environment-lake').status, 'preserved');
   assert.equal(slotById.get('slot.visual.wake-ripples').status, 'pending');
   assert.deepEqual(retrieval.missingRequiredSlots, []);
   assert.ok(retrieval.acceptedCandidatesBySlot['slot.actor.dog'].some((row) => row.id === 'surface-dog-1'));
@@ -345,8 +393,8 @@ test('Phase 3 separates literal swimming retrieval from generic support physics'
   assert.ok(ledgerIds.has('entity:dog'));
   assert.ok(ledgerIds.has('entity:cat'));
   assert.ok(ledgerIds.has('action:swimming'));
-  assert.ok(ledgerIds.has('relation:dog:swimming:lake'));
-  assert.ok(ledgerIds.has('relation:cat:swimming:lake'));
+  assert.ok(ledgerIds.has('relation:entity-dog:swimming:environment-lake'));
+  assert.ok(ledgerIds.has('relation:entity-cat:swimming:environment-lake'));
   assert.ok(ledgerIds.has('visual:wake-ripples'));
   assert.equal(receipt.primitiveCount, retrieval.rankedPrimitives.length);
   assert.equal(receipt.supportPrimitiveCount, retrieval.supportPrimitives.length);
@@ -511,22 +559,18 @@ test('Phase 5 and 7 lower swimming into behavior physics and preserve dog cat id
   const sceneEntities = visualCompile.sceneRenderPacket.entities;
   const sceneFields = visualCompile.sceneRenderPacket.fields;
   const sceneEffects = visualCompile.sceneRenderPacket.effects;
-  const entityById = new Map(sceneEntities.map((row) => [row.id, row]));
-  const identityById = new Map(sceneEntities.map((row) => [row.id, row.identity && row.identity.type]));
-  const primitiveById = new Map(sceneEntities.map((row) => [row.id, row.geometry && row.geometry.primitive]));
   const visualLedger = visualCompile.compositionLedger || {};
   const obligationById = new Map((visualLedger.obligations || []).map((row) => [row.id, row]));
   const lostObligations = (visualLedger.obligations || []).filter((row) => row.status === 'lost');
-  const dogEntity = entityById.get('surface-dog-1');
-  const catEntity = entityById.get('surface-cat-1');
-  const synthesizedDogEntity = entityById.get('dog-a');
-  const synthesizedCatEntity = entityById.get('cat-a');
-  const dogWake = sceneFields.find((row) => row.id === 'visual:wake:surface-dog-1');
-  const catWake = sceneFields.find((row) => row.id === 'visual:wake:surface-cat-1');
-  const dogSubmersion = sceneEffects.find((row) => row.id === 'visual:submersion:surface-dog-1');
-  const catSubmersion = sceneEffects.find((row) => row.id === 'visual:submersion:surface-cat-1');
-  const dogSwimPose = sceneEffects.find((row) => row.id === 'visual:swim-pose:surface-dog-1');
-  const catSwimPose = sceneEffects.find((row) => row.id === 'visual:swim-pose:surface-cat-1');
+  const dogEntity = sceneEntities.find((row) => row.identity && row.identity.type === 'dog');
+  const catEntity = sceneEntities.find((row) => row.identity && row.identity.type === 'cat');
+  const waterEntity = sceneEntities.find((row) => row.identity && row.identity.type === 'water');
+  const dogWake = sceneFields.find((row) => row.id === `visual:wake:${dogEntity.id}`);
+  const catWake = sceneFields.find((row) => row.id === `visual:wake:${catEntity.id}`);
+  const dogSubmersion = sceneEffects.find((row) => row.id === `visual:submersion:${dogEntity.id}`);
+  const catSubmersion = sceneEffects.find((row) => row.id === `visual:submersion:${catEntity.id}`);
+  const dogSwimPose = sceneEffects.find((row) => row.id === `visual:swim-pose:${dogEntity.id}`);
+  const catSwimPose = sceneEffects.find((row) => row.id === `visual:swim-pose:${catEntity.id}`);
 
   for (const type of [
     'fluid_locomotion',
@@ -545,31 +589,21 @@ test('Phase 5 and 7 lower swimming into behavior physics and preserve dog cat id
   assert.ok(renderBehaviors.some((row) => row.physicalRef === 'prompt-body-dog'));
   assert.ok(renderBehaviors.some((row) => row.physicalRef === 'prompt-body-cat'));
   assert.ok(simulationCompile.renderIR.objects.some((row) => row.stateBindings && row.stateBindings.submersion));
-  assert.equal(identityById.get('surface-dog-1'), 'dog');
-  assert.equal(identityById.get('surface-cat-1'), 'cat');
-  assert.equal(identityById.get('dog-a'), 'dog');
-  assert.equal(identityById.get('cat-a'), 'cat');
-  assert.equal(primitiveById.get('surface-dog-1'), 'dog-body');
-  assert.equal(primitiveById.get('surface-cat-1'), 'cat-body');
-  assert.equal(primitiveById.get('dog-a'), 'dog-body');
-  assert.equal(primitiveById.get('cat-a'), 'cat-body');
+  assert.equal(dogEntity.identity.type, 'dog');
+  assert.equal(catEntity.identity.type, 'cat');
+  assert.equal(dogEntity.geometry.primitive, 'dog-body');
+  assert.equal(catEntity.geometry.primitive, 'cat-body');
+  assert.equal(sceneEntities.filter((row) => row.identity && row.identity.type === 'dog').length, 1);
+  assert.equal(sceneEntities.filter((row) => row.identity && row.identity.type === 'cat').length, 1);
   assert.equal(dogEntity.material.id, 'dog-swim-fur');
   assert.equal(catEntity.material.id, 'cat-swim-fur');
-  assert.equal(synthesizedDogEntity.material.id, 'dog-swim-fur');
-  assert.equal(synthesizedCatEntity.material.id, 'cat-swim-fur');
   assert.notEqual(dogEntity.material.id, catEntity.material.id);
   assert.equal(dogEntity.layerSlot, 'biological-agent');
   assert.equal(catEntity.layerSlot, 'biological-agent');
-  assert.equal(synthesizedDogEntity.layerSlot, 'biological-agent');
-  assert.equal(synthesizedCatEntity.layerSlot, 'biological-agent');
   assert.equal(dogEntity.animation.kind, 'swim-cycle');
   assert.equal(catEntity.animation.kind, 'swim-cycle');
-  assert.equal(synthesizedDogEntity.animation.kind, 'swim-cycle');
-  assert.equal(synthesizedCatEntity.animation.kind, 'swim-cycle');
   assert.equal(dogEntity.renderCodes.semanticCode, 1);
   assert.equal(catEntity.renderCodes.semanticCode, 2);
-  assert.equal(synthesizedDogEntity.renderCodes.semanticCode, 1);
-  assert.equal(synthesizedCatEntity.renderCodes.semanticCode, 2);
   assert.equal(dogEntity.renderCodes.animationCode, 1);
   assert.equal(catEntity.renderCodes.animationCode, 1);
   assert.equal(dogEntity.visualTraits.species, 'dog');
@@ -580,22 +614,28 @@ test('Phase 5 and 7 lower swimming into behavior physics and preserve dog cat id
   assert.ok(catEntity.geometry.constraints.includes('species-distinct-silhouette'));
   assert.ok(dogEntity.geometry.constraints.includes('partial-submersion'));
   assert.ok(catEntity.geometry.constraints.includes('partial-submersion'));
-  assert.ok(dogEntity.transform.position[1] >= 0.54 && dogEntity.transform.position[1] <= 0.74);
-  assert.ok(catEntity.transform.position[1] >= 0.54 && catEntity.transform.position[1] <= 0.74);
+  const waterBounds = waterEntity.geometry.bounds;
+  for (const animal of [dogEntity, catEntity]) {
+    assert.ok(animal.transform.position[0] >= waterBounds[0]);
+    assert.ok(animal.transform.position[0] <= waterBounds[0] + waterBounds[2]);
+    assert.ok(animal.transform.position[1] >= waterBounds[1]);
+    assert.ok(animal.transform.position[1] <= waterBounds[1] + waterBounds[3]);
+  }
+  assert.equal(visualCompile.sceneRenderPacket.receipts.framing.pass, true);
   assert.equal(dogWake.layerSlot, 'flow-field');
   assert.equal(catWake.layerSlot, 'flow-field');
   assert.equal(dogWake.material.id, 'wake-ripple');
   assert.equal(catWake.material.id, 'wake-ripple');
-  assert.ok(dogWake.evidence.includes('agent:surface-dog-1'));
-  assert.ok(catWake.evidence.includes('agent:surface-cat-1'));
+  assert.ok(dogWake.evidence.includes(`agent:${dogEntity.id}`));
+  assert.ok(catWake.evidence.includes(`agent:${catEntity.id}`));
   assert.equal(dogSubmersion.layerSlot, 'process-pulse');
   assert.equal(catSubmersion.layerSlot, 'process-pulse');
   assert.equal(dogSubmersion.domain.kind, 'submersion-band');
   assert.equal(catSubmersion.domain.kind, 'submersion-band');
   assert.equal(dogSubmersion.material.id, 'submersion-mask');
   assert.equal(catSubmersion.material.id, 'submersion-mask');
-  assert.ok(dogSubmersion.affects.includes('surface-dog-1'));
-  assert.ok(catSubmersion.affects.includes('surface-cat-1'));
+  assert.ok(dogSubmersion.affects.includes(dogEntity.id));
+  assert.ok(catSubmersion.affects.includes(catEntity.id));
   assert.equal(dogSwimPose.animation.kind, 'swim-cycle');
   assert.equal(catSwimPose.animation.kind, 'swim-cycle');
   assert.ok((obligationById.get('visual:species-distinct-silhouettes').visualEvidence || []).includes('material:dog-swim-fur'));
@@ -603,11 +643,10 @@ test('Phase 5 and 7 lower swimming into behavior physics and preserve dog cat id
   assert.ok(!(obligationById.get('visual:species-distinct-silhouettes').visualEvidence || []).includes('material:water'));
   assert.ok(!(obligationById.get('visual:species-distinct-silhouettes').visualEvidence || []).includes('material:light'));
   assert.ok(!(obligationById.get('visual:swimming-pose').visualEvidence || []).some((row) => row.startsWith('instance:geometry:')));
-  assert.ok((obligationById.get('visual:wake-ripples').visualEvidence || []).includes('visual:wake:surface-dog-1'));
-  assert.ok((obligationById.get('visual:wake-ripples').visualEvidence || []).includes('visual:wake:dog-a'));
-  assert.ok((obligationById.get('visual:partial-submersion').visualEvidence || []).includes('visual:submersion:surface-cat-1'));
-  assert.ok((obligationById.get('visual:partial-submersion').visualEvidence || []).includes('visual:submersion:cat-a'));
-  assert.ok(sceneEntities.some((row) => row.identity.type === 'water' && /lake|water/.test(row.id)));
+  assert.ok((obligationById.get('visual:wake-ripples').visualEvidence || []).includes(`visual:wake:${dogEntity.id}`));
+  assert.ok((obligationById.get('visual:partial-submersion').visualEvidence || []).includes(`visual:submersion:${catEntity.id}`));
+  assert.ok(sceneEntities.some((row) => row.identity.type === 'lake' && row.layerSlot === 'water-volume'));
+  assert.equal(obligationById.get('medium:water').status, 'preserved');
   assert.ok(sceneEntities.some((row) => row.animation && row.animation.kind === 'swim-cycle'));
   assert.deepEqual(lostObligations.map((row) => row.id), []);
   assert.equal(visualCompile.sceneRenderPacket.receipts.compositionLedger.failedCount, 0);
@@ -664,6 +703,43 @@ test('Phase 4 reserves bounded grounding evidence for prompt-owned typed identit
   assert.deepEqual(requiredObligations.filter((row) => row.status !== 'preserved'), []);
 });
 
+test('Phase 4 exact construction evidence outranks unrelated reranker confidence', () => {
+  const nodes = [{
+    id: 'prompt-body-sea-ice',
+    canonicalId: 'prompt.body.sea-ice',
+    label: 'Sea Ice',
+    sourceLabel: 'sea ice',
+    directlyGrounded: true,
+  }];
+  const receipt = grounderGraph.attachConstructionEvidence(nodes, [{
+    entryId: 'entity:sea-ice',
+    constructionCandidates: [
+      {
+        candidateId: 'sea_turtle',
+        label: 'sea turtle',
+        score: 0.99,
+        modelRerankEvaluated: true,
+        modelRerankRank: 0,
+        constructionEvidence: true,
+        construction: { sourceLabel: 'sea turtle', partHints: ['shell', 'flippers'] },
+      },
+      {
+        candidateId: 'entity.sea-ice',
+        label: 'sea ice',
+        score: 0.88,
+        literalSlotMatch: true,
+        constructionEvidence: true,
+        construction: { sourceLabel: 'sea ice', partHints: ['ice floe plates', 'pressure ridge'] },
+      },
+    ],
+  }]);
+  assert.equal(receipt.attachedCount, 1);
+  assert.deepEqual(nodes[0].construction.sourceLabels, ['sea ice']);
+  assert.deepEqual(nodes[0].construction.partHints, ['ice floe plates', 'pressure ridge']);
+  assert.equal(nodes[0].constructionProvenance[0].candidateId, 'entity.sea-ice');
+  assert.equal(nodes[0].constructionProvenance[0].literalSlotMatch, true);
+});
+
 test('Phase 6 lowers unmatched typed physics entities for expanded scene kinds', () => {
   const prompt = 'particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat';
   const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
@@ -694,13 +770,31 @@ test('common-world and celestial nouns survive grounding as literal object geome
     {
       prompt: 'a person sits in a chair at a table watching a tv inside a building with trees outside',
       identities: ['person', 'chair', 'table', 'television', 'building', 'tree'],
-      grounded: ['human', 'chair', 'table', 'screen', 'building', 'tree'],
+      grounded: ['person', 'chair', 'table', 'television', 'building', 'tree'],
     },
     {
       prompt: 'a spiral galaxy with stars and planets orbiting a black hole',
       identities: ['galaxy', 'star', 'planet', 'black-hole'],
       grounded: ['galaxy', 'sun', 'planet', 'black-hole'],
       sceneKind: 'planetary-space',
+    },
+    {
+      prompt: 'a bicycle beside a sofa and a floor lamp',
+      identities: ['bicycle', 'sofa', 'lamp'],
+      grounded: ['bicycle', 'sofa', 'lamp'],
+      sceneKind: 'mechanical',
+    },
+    {
+      prompt: 'an airplane flies over a bridge and a road',
+      identities: ['airplane', 'bridge', 'road'],
+      grounded: ['airplane', 'bridge', 'road'],
+      sceneKind: 'mechanical',
+    },
+    {
+      prompt: 'a boat floats on a river under a cloud',
+      identities: ['boat', 'river', 'cloud'],
+      grounded: ['boat', 'river', 'cloud'],
+      sceneKind: 'watershed',
     },
   ];
 
@@ -725,7 +819,7 @@ test('common-world and celestial nouns survive grounding as literal object geome
       )), `${prompt} should realize ${identity} in Phase 7`);
     }
     assert.ok(renderData.objectPartCount > identities.length);
-    assert.equal(renderData.objectPartData.length, 256 * 16);
+    assert.equal(renderData.objectPartData.length, 256 * 20);
     if (identities.includes('person')) {
       const person = packet.entities.find((row) => row.identity.type === 'person');
       assert.equal(person.geometry.program.pose, 'sitting');
@@ -734,8 +828,211 @@ test('common-world and celestial nouns survive grounding as literal object geome
     if (identities.includes('galaxy')) {
       assert.ok(!packet.entities.some((row) => row.identity.type === 'instrument'));
     }
+    if (identities.includes('airplane')) {
+      assert.equal(packet.entities.find((row) => row.identity.type === 'airplane').animation.kind, 'flight-path');
+      assert.equal(packet.entities.find((row) => row.identity.type === 'airplane').layerSlot, 'material-surface');
+      assert.equal(packet.entities.find((row) => row.identity.type === 'road').animation.kind, 'static-pose');
+      assert.equal(packet.entities.find((row) => row.identity.type === 'road').layerSlot, 'material-surface');
+    }
+    assert.deepEqual(spec.renderProgram.visualIR.compositionLedger.losses, []);
     if (sceneKind) assert.equal(packet.sceneKind, sceneKind);
   }
+});
+
+test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts', () => {
+  const objects = [
+    { id: 'subject-a', semanticRef: 'prompt.body.subject', sourceLabel: 'subject', directlyGrounded: true },
+    { id: 'target-a', semanticRef: 'prompt.body.target', sourceLabel: 'target', directlyGrounded: true },
+  ];
+  const solve = (spatialRelation) => compositionGraphScope.constraintLayoutObjects(
+    objects,
+    'mechanical',
+    {
+      renderIR: {
+        compositionLedger: {
+          relations: [{
+            id: `relation:spatial:entity-subject:${spatialRelation}:entity-target`,
+            kind: 'spatial-constraint',
+            spatialRelation,
+            from: 'prompt-body-subject',
+            to: 'prompt-body-target',
+          }],
+        },
+      },
+    },
+    { compositionTopology: 'field-map' }
+  );
+  const above = solve('above');
+  const below = solve('below');
+  assert.ok(above.find((row) => row.id === 'subject-a').pose.y < above.find((row) => row.id === 'target-a').pose.y);
+  assert.ok(below.find((row) => row.id === 'subject-a').pose.y > below.find((row) => row.id === 'target-a').pose.y);
+  assert.ok(above.every((row) => row.layoutReceipt.relationCount === 1));
+
+  const canonical = compositionGraphScope.canonicalVisualObjects([
+    { id: 'prompt-person', semanticRef: 'prompt.body.person', sourceLabel: 'person', directlyGrounded: true },
+    { id: 'generated-human', sourceLabel: 'person', aliases: ['human'], directlyGrounded: true },
+  ]);
+  assert.equal(canonical.length, 1);
+  assert.ok(canonical[0].sourceIds.includes('generated-human'));
+
+  const nominalWave = compositionGraphScope.canonicalVisualObjects([
+    {
+      id: 'wave-event',
+      kind: 'event',
+      source: 'embedding-guided-synth-event',
+      semanticRef: 'prompt.body.waves',
+      physicalRef: 'prompt-body-waves',
+      sourceLabel: 'waves',
+      directlyGrounded: true,
+      construction: { id: 'wave-parts' },
+    },
+    {
+      id: 'render-waves',
+      kind: 'body',
+      source: 'render-ir',
+      semanticRef: 'prompt.body.waves',
+      physicalRef: 'prompt-body-waves',
+      sourceLabel: 'waves',
+      directlyGrounded: true,
+    },
+  ]);
+  assert.equal(nominalWave.length, 1);
+  assert.equal(nominalWave[0].id, 'render-waves');
+  assert.equal(nominalWave[0].source, 'render-ir');
+  assert.equal(nominalWave[0].construction.id, 'wave-parts');
+
+  const renderAnchors = compositionGraphScope.unmatchedRenderIRObjects([
+    {
+      id: 'wave-event',
+      kind: 'event',
+      source: 'embedding-guided-synth-event',
+      physicalRef: 'prompt-body-waves',
+    },
+  ], [
+    {
+      id: 'render-waves',
+      kind: 'body',
+      source: 'render-ir',
+      physicalRef: 'prompt-body-waves',
+      role: 'waves',
+      directlyGrounded: true,
+    },
+  ]);
+  assert.equal(renderAnchors.length, 1);
+  assert.equal(renderAnchors[0].id, 'render-waves');
+});
+
+test('prompt-owned identities override an incorrect network render layer', () => {
+  for (const identityType of ['airplane', 'road']) {
+    const identity = compositionGraphScope.scenePacketEntityIdentity({
+      id: `surface-${identityType}-1`,
+      label: identityType,
+      sourceLabel: identityType,
+      directlyGrounded: true,
+      semanticClass: identityType === 'airplane' ? 'vehicle' : 'surface',
+      visualArchetype: identityType,
+      semanticRef: `prompt.body.${identityType}`,
+    }, { primitive: 'network-flow' }, 'network-flow');
+    assert.equal(identity.type, identityType);
+    assert.equal(identity.visualArchetype, identityType);
+  }
+  assert.equal(compositionGraphScope.directSceneKindForRenderIR({
+    sceneHint: 'city',
+    objects: [{
+      label: 'airplane',
+      sourceLabel: 'airplane',
+      directlyGrounded: true,
+      visualArchetype: 'airplane',
+      semanticRef: 'prompt.body.airplane',
+    }],
+  }, {}), 'mechanical');
+  assert.equal(compositionGraphScope.promptOwnedLayerSlotForEntity({
+    directlyGrounded: true,
+    visualArchetype: 'airplane',
+    sourceLabel: 'airplane',
+    material: 'water',
+  }), 'material-surface');
+  assert.equal(compositionGraphScope.promptOwnedLayerSlotForEntity({
+    directlyGrounded: true,
+    visualArchetype: 'road',
+    sourceLabel: 'road',
+    material: 'water',
+  }), 'material-surface');
+});
+
+test('prompt-owned scientific identities use literal semantic layer geometry', () => {
+  const program = compositionGraphScope.objectGeometryProgramForIdentity({
+    type: 'particle-collider',
+    sourceLabel: 'particle collider',
+    directlyGrounded: true,
+  }, { primitive: 'track-line' }, {
+    id: 'prompt-object-particle-collider',
+    directlyGrounded: true,
+    semanticClass: 'instrument',
+    semanticRef: 'prompt.body.particle-collider',
+  }, 'track-line');
+  const support = compositionGraphScope.objectGeometryProgramForIdentity({ type: 'helper' }, {}, {
+    id: 'solver-helper',
+  }, 'material-surface');
+
+  assert.equal(program.literal, true);
+  assert.match(program.grammarId, /^object-grammar\.semantic\.semantic-track-apparatus\.particle-collider$/);
+  assert.ok(program.parts.length >= 3);
+  assert.equal(support.literal, false);
+  assert.equal(webgpuRendererScope.scenePacketAnimationCode('phase-propagating-arcs'), 8);
+  assert.equal(webgpuRendererScope.scenePacketAnimationCode('impulse-and-contact-ghosts'), 3);
+});
+
+test('compound prompt identities stay distinct and select evidence-owned object grammars', () => {
+  const microbiome = lab.createSpecFromPrompt(
+    'gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling',
+    { allowPrototypeFallback: true }
+  );
+  const microbiomeNodes = microbiome.universeGraph.nodes
+    .filter((row) => /^prompt\.body\.(?:gut-microbiome|microbiome-colonies)$/.test(row.canonicalId || ''));
+  assert.deepEqual(
+    microbiomeNodes.map((row) => row.canonicalId).sort(),
+    ['prompt.body.gut-microbiome', 'prompt.body.microbiome-colonies']
+  );
+
+  const cases = [
+    ['edge data center server racks recirculating heat between cooling aisles', 'server-racks', 'object-grammar.server-rack'],
+    ['warehouse fire with smoke in concrete stairwell', 'concrete-stairwell', 'object-grammar.stairwell'],
+    ['warehouse robot arms sort parcels on conveyor belts', 'warehouse-robot-arms', 'object-grammar.robot'],
+    ['warehouse robot arms sort parcels on conveyor belts', 'conveyor-belts', 'object-grammar.conveyor'],
+    ['warehouse robot arms sort parcels on conveyor belts', 'parcel', 'object-grammar.parcel'],
+  ];
+  for (const [prompt, identityType, grammarId] of cases) {
+    const packet = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true })
+      .renderProgram.visualIR.sceneRenderPacket;
+    const entity = packet.entities.find((row) => row.identity && row.identity.type === identityType);
+    assert.ok(entity, `${identityType} remains an exact packet identity`);
+    assert.equal(entity.geometry.program.identityType, identityType);
+    assert.equal(entity.geometry.program.grammarId, grammarId);
+    assert.equal(entity.geometry.program.literal, true);
+  }
+});
+
+test('scene framing makes literal objects readable without changing relation geometry', () => {
+  const dogPacket = lab.createSpecFromPrompt('dogs', { allowPrototypeFallback: true })
+    .renderProgram.sceneRenderPacket;
+  const dog = dogPacket.entities.find((row) => row.identity.type === 'dog');
+  const warehousePacket = lab.createSpecFromPrompt(
+    'warehouse robot arms sort parcels on conveyor belts',
+    { allowPrototypeFallback: true }
+  ).renderProgram.sceneRenderPacket;
+  const parcel = warehousePacket.entities.find((row) => row.identity.type === 'parcel');
+  const conveyor = warehousePacket.entities.find((row) => row.geometry.program.grammarId === 'object-grammar.conveyor');
+
+  assert.equal(dog.geometry.program.grammarId, 'object-grammar.dog');
+  assert.ok(dog.transform.scale[0] * dog.transform.scale[1] >= 0.12);
+  assert.ok(Math.abs(dog.transform.position[0] - 0.5) <= 0.01);
+  assert.ok(Math.abs(dog.transform.position[1] - 0.48) <= 0.01);
+  assert.equal(dogPacket.receipts.framing.pass, true);
+  assert.equal(warehousePacket.receipts.framing.pass, true);
+  assert.ok(parcel.transform.position[0] >= conveyor.geometry.bounds[0]);
+  assert.ok(parcel.transform.position[0] <= conveyor.geometry.bounds[0] + conveyor.geometry.bounds[2]);
+  assert.ok(parcel.transform.position[1] <= conveyor.transform.position[1]);
 });
 
 test('phase envelopes enforce neighboring pipeline handoffs', () => {
@@ -928,9 +1225,10 @@ test('solver graph evolves typed finite channels for coupled lava turbine ice pr
   const spec = lab.createSpecFromPrompt('lava spins a turbine near an ice castle wall');
   let state = lab.createSimulationState(spec);
   const angularKey = Object.keys(state.solverState.channels).find((key) => key.startsWith('angularVelocity:'));
-  const iceKey = Object.keys(state.solverState.channels).find((key) => key.startsWith('liquidFraction:material-ice'));
+  const iceEntity = spec.physicsIR.entities.find((row) => row.materialId === 'ice');
+  const iceKey = iceEntity && `liquidFraction:${iceEntity.id}`;
   assert.ok(angularKey);
-  assert.ok(iceKey);
+  assert.ok(iceKey && Object.hasOwn(state.solverState.channels, iceKey));
   const startAngular = Number(state.solverState.channels[angularKey]);
   const startIce = Number(state.solverState.channels[iceKey]);
 
@@ -1106,7 +1404,7 @@ test('WebGPU phase 8 layer summary follows compiled VisualIR structures', () => 
       assert.equal(canvas.dataset.renderExecutionInput, 'simulatte.renderExecutionInput.v1');
       assert.equal(canvas.dataset.phase7SceneRenderPacketInput, 'simulatte.sceneRenderPacket.v1');
       assert.equal(canvas.dataset.phase7RenderData, 'simulatte.phase7.compactRenderData.v1');
-      assert.equal(canvas.dataset.phase7RenderPath, 'storage-scene-instances-with-uniform-fallback');
+      assert.equal(canvas.dataset.phase7RenderPath, 'depth-lit-storage-object-parts-with-uniform-fallback');
       assert.match(canvas.dataset.sceneRenderPacket || '', /simulatte\.sceneRenderPacket\.v1/);
       assert.ok(Number(canvas.dataset.sceneRenderEntityCount) > 0, `${prompt} should report packet entity count`);
       assert.ok(Number(canvas.dataset.sceneRenderDrawCount) > 0, `${prompt} should compile compact draw rows`);
@@ -1165,6 +1463,8 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
   const previousGpuTextureUsage = Object.getOwnPropertyDescriptor(globalThis, 'GPUTextureUsage');
   const previousGpuMapMode = Object.getOwnPropertyDescriptor(globalThis, 'GPUMapMode');
   const copyCalls = [];
+  const renderPipelineDescriptors = [];
+  const writeBufferCalls = [];
   let readbackRgba = [250, 250, 255, 255];
   let configureDescriptor = null;
 
@@ -1193,8 +1493,12 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
     createBindGroupLayout: () => ({}),
     createShaderModule: () => ({}),
     createPipelineLayout: () => ({}),
-    createRenderPipeline: () => ({}),
+    createRenderPipeline: (descriptor) => {
+      renderPipelineDescriptors.push(descriptor);
+      return {};
+    },
     createBindGroup: () => ({}),
+    createTexture: () => ({ createView: () => ({}), destroy: () => {} }),
     createComputePipeline: () => ({}),
     createCommandEncoder: () => ({
       beginComputePass: () => ({
@@ -1217,7 +1521,10 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
       finish: () => ({}),
     }),
     queue: {
-      writeBuffer: () => {},
+      writeBuffer: (buffer, offset, data) => {
+        writeBufferCalls.push({ bufferBytes: buffer.data.length, offset, dataBytes: data.byteLength });
+        assert.ok(offset + data.byteLength <= buffer.data.length, 'GPU write must fit its destination buffer');
+      },
       submit: () => {},
       onSubmittedWorkDone: async () => {},
     },
@@ -1276,6 +1583,8 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
     assert.ok(renderer);
     await renderer.initPromise;
     assert.equal(renderer.isReady(), true);
+    assert.equal(renderPipelineDescriptors.length, 2);
+    assert.ok(renderPipelineDescriptors.every((descriptor) => descriptor.depthStencil?.format === 'depth24plus'));
     assert.equal(configureDescriptor.usage & GPUTextureUsage.COPY_SRC, GPUTextureUsage.COPY_SRC);
 
     const spec = lab.createSpecFromPrompt('dogs and cats swimming in a lake', {
@@ -1285,6 +1594,12 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
     renderer.setRenderExecutionInput(renderExecutionInput);
     assert.equal(renderer.renderData.requireLivePixelSamples, true);
     assert.equal(renderer.render(renderExecutionInput, 16), true);
+    assert.ok(writeBufferCalls.length >= 3);
+    assert.equal(renderer.phase7Output.artifact.renderExecution.rendererConsumption.cameraConsumed, true);
+    assert.ok(renderer.phase7Output.artifact.renderExecution.rendererConsumption.lightCountConsumed > 0);
+    assert.ok(renderer.phase7Output.artifact.renderExecution.rendererConsumption.materialCountConsumed > 0);
+    assert.equal(renderer.phase7Output.artifact.renderExecution.rendererConsumption.depthEnabled, true);
+    assert.equal(renderer.phase7Output.artifact.renderExecution.rendererConsumption.normalShading, true);
     assert.ok(copyCalls.length > 0);
     assert.ok(copyCalls.every((call) => call.bytesPerRow === 256));
     assert.equal(renderer.phase7Output.artifact.renderExecution.pixelAudit.status, 'fail');

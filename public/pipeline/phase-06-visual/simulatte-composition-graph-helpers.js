@@ -579,6 +579,9 @@
           component && component.visualRegime,
           component && component.assembly,
         ].filter(Boolean).join(' ').toLowerCase();
+        if (/\b(dust|powder|particle[-_ ]?cloud)\b/.test(directShapeText)) return 'grain-bed';
+        if (/\b(acoustic[-_ ]?levitator|levitator|waveguide|brass[-_ ]?tube|tube)\b/.test(directShapeText)) return 'instrument';
+        if (/\b(sunlight|light[-_ ]?source)\b/.test(directShapeText)) return 'source-field';
         if (/\b(detector|phototube|calorimeter|instrument|sensor[-_ ]?array|data[-_ ]?recorder|readout)\b/.test(directShapeText)) return 'instrument';
         if (/\b(pressure[-_ ]?vessel|water[-_ ]?tank|tank|chamber)\b/.test(directShapeText)) return 'wall';
         if (/\b(laser|lens|glass|prism)\b/.test(directShapeText) && /\b(optical|light|laser|lens|glass|prism)\b/.test(directShapeText)) {
@@ -619,6 +622,8 @@
         if (/glass|lens/.test(identity)) return 'lens';
         if (/spacecraft|spaceship|rocket|satellite/.test(text)) return 'rocket';
         if (/submarine|submersible/.test(text)) return 'submarine';
+        if (/\b(dust|powder|particle cloud)\b/.test(text)) return 'grain-bed';
+        if (/\b(acoustic levitator|levitator|waveguide|brass tube|tube)\b/.test(text)) return 'instrument';
         if (/volcano|volcanic/.test(text)) return 'volcano';
         if (/bridge|truss|span/.test(text)) return 'bridge';
         if (/crystal tower|crystal towers|tower/.test(text)) return 'tower';
@@ -627,7 +632,7 @@
         if (/piano|keyboard|instrument/.test(text)) return 'instrument';
         if (/turbine|propeller|fan turbine/.test(text)) return 'turbine';
         if (/storm|hurricane|rainstorm/.test(text)) return 'storm';
-        if (/algae|plant cluster/.test(text)) return 'plant-cluster';
+        if (/algae|plant cluster|\bforest\b|\btrees?\b/.test(text)) return 'plant-cluster';
         if (/wheel|rotor|gear/.test(text)) return 'wheel';
         if (/\b(mouse|gerbil|hamster|dog|cat|animal|organism)\b/.test(text)) return 'animal-body';
         if (/ferrofluid/.test(text)) return 'pool';

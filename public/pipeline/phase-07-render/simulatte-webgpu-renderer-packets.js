@@ -107,7 +107,8 @@
     		          optimization,
     		          rendered: true,
 	          packetIdentitySummary: scenePacketIdentitySummary(sceneRenderPacket),
-	          objectRealization: renderData && renderData.objectRealization || objectRealizationForScenePacket(sceneRenderPacket),
+		          objectRealization: renderData && renderData.objectRealization || objectRealizationForScenePacket(sceneRenderPacket),
+		          rendererConsumption: renderData && renderData.rendererConsumption || null,
     		          visualObligationProof,
     		          visualObligationProofSummary,
     		          shaderPath: renderData && renderData.path || '',
@@ -138,7 +139,11 @@
     		          visualObligationProofs: visualObligationProofSummary.proofCount,
     		          failedObligations: visualObligationProofSummary.failCount,
     		          unprovenObligations: visualObligationProofSummary.notProvenCount,
-    		          pixelAuditStatus: pixelAudit.status,
+		          pixelAuditStatus: pixelAudit.status,
+		          cameraConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.cameraConsumed === true,
+		          lightCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.lightCountConsumed || 0,
+		          materialCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.materialCountConsumed || 0,
+		          depthEnabled: renderData && renderData.rendererConsumption && renderData.rendererConsumption.depthEnabled === true,
     		        },
     	      ],
     	    };
@@ -174,12 +179,14 @@
         const sceneInstanceData = scenePacketInstanceStorageVectorFromDrawables(drawables);
         const objectParts = scenePacketObjectParts(packet).slice(0, GPU_OBJECT_PART_CAPACITY);
         const objectPartData = scenePacketObjectPartStorageVector(objectParts);
+        const cameraState = scenePacketCameraState(packet);
+        const lightState = scenePacketLightState(packet);
         const objectRealization = scenePacketObjectRealization(packet);
         const spatialHash = scenePacketSpatialHash(packet);
         const summary = sceneRenderPacketSummary(packet);
         return {
           schema: RENDER_DATA_SCHEMA,
-          path: 'storage-scene-instances-with-uniform-fallback',
+          path: 'depth-lit-storage-object-parts-with-uniform-fallback',
           packetKey: packetKey || sceneRenderPacketRenderDataKey(packet, sceneKind),
           sceneKind,
           sceneId: scenePacketSceneId(packet, sceneKind),
@@ -204,6 +211,9 @@
           objectPartCount: objectParts.length,
           objectPartCapacity: GPU_OBJECT_PART_CAPACITY,
           objectPartSummary: scenePacketObjectPartSummary(objectParts),
+          cameraState,
+          lightState,
+          rendererConsumption: scenePacketRendererConsumption(packet, objectParts, cameraState, lightState),
           objectRealization,
           sceneObjectUniformSummary: sceneObjectUniformSummaryForDrawables(sceneObjectUniforms, uniformDrawables),
           sceneObjectIdentitySummary: scenePacketIdentitySummaryForDrawables(uniformDrawables),
@@ -224,6 +234,16 @@
       star: 7,
       spiral: 8,
       wave: 9,
+    });
+    const OBJECT_GRAMMAR_PART_REQUIREMENTS = Object.freeze({
+      dog: ['body', 'head', 'leg', 'tail'], cat: ['body', 'head', 'leg', 'tail'],
+      animal: ['body', 'head', 'leg'], person: ['head', 'torso', 'arm', 'thigh'],
+      tree: ['trunk', 'branch', 'crown'], flower: ['stem', 'petal', 'center'],
+      building: ['shell', 'roof', 'door', 'window'], table: ['top', 'leg'],
+      chair: ['back', 'seat', 'leg'], television: ['frame', 'screen', 'stand'],
+      robot: ['base', 'arm', 'joint', 'gripper'], conveyor: ['belt', 'roller'],
+      parcel: ['carton', 'top', 'tape', 'label'], galaxy: ['halo', 'spiral', 'core'],
+      mountain: ['peak', 'snow'], 'server-rack': ['cabinet', 'server', 'status'],
     });
 
     function scenePacketObjectParts(packet = {}) {
@@ -259,12 +279,28 @@
               animationCode: scenePacketAnimationCode(row.animation && row.animation.kind),
               variantCode: Number(row.renderCodes && row.renderCodes.variantCode || scenePacketVariantCode(row)),
               zOrder: Number(program.zOrder || 0) + Number(sourcePart.order || 0) * 0.001,
+              depth: scenePacketObjectDepth(row, program, sourcePart),
+              roughness: clamp01(Number(row.material && row.material.roughness != null
+                ? row.material.roughness : 0.56)),
+              metallic: clamp01(Number(row.material && row.material.metallic || 0)),
+              emissive: clamp01(Number(row.material && row.material.emissiveStrength ||
+                (row.material && row.material.emissive === true ? 0.42 : 0))),
               literal: program.literal === true,
             });
             if (parts.length >= GPU_OBJECT_PART_CAPACITY) return parts;
           }
         }
         return parts;
+      }
+
+    function scenePacketObjectDepth(row = {}, program = {}, part = {}) {
+        const position = row.transform && Array.isArray(row.transform.position) ? row.transform.position : [];
+        const explicit = Number(position[2]);
+        if (Number.isFinite(explicit) && Math.abs(explicit) > 0.0001) {
+          return clamp(explicit * 0.25 + 0.5, 0.04, 0.94);
+        }
+        const zOrder = Number(program.zOrder || 0) + Number(part.order || 0) * 0.001;
+        return clamp(0.84 - clamp(zOrder / 64, 0, 1) * 0.66, 0.04, 0.94);
       }
 
     function scenePacketObjectPartTransform(row = {}, part = {}) {
@@ -326,6 +362,10 @@
           vector[offset + 13] = Number(row.variantCode || 0);
           vector[offset + 14] = Number(row.zOrder || 0);
           vector[offset + 15] = row.literal === true ? 1 : 0;
+          vector[offset + 16] = Number(row.roughness || 0);
+          vector[offset + 17] = Number(row.metallic || 0);
+          vector[offset + 18] = Number(row.emissive || 0);
+          vector[offset + 19] = Number(row.depth || 0.5);
         });
         return vector;
       }
@@ -335,6 +375,15 @@
           const program = row && row.geometry && row.geometry.program || {};
           const coverage = row && row.geometry && row.geometry.coverage || {};
           const scale = row && row.transform && row.transform.scale || [];
+          const projectedArea = Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5));
+          const topologyVerified = scenePacketObjectTopologyVerified(program);
+          const semanticFit = program.source === 'phase6-data-owned-part-graph' || Boolean(
+            program.constructionReceipt && (
+              program.constructionReceipt.literalSlotMatch === true ||
+              program.constructionReceipt.exactTargetMatch === true
+            )
+          );
+          const readable = projectedArea >= 0.008;
           return {
             schema: 'simulatte.objectRenderRealization.v1',
             entityId: row.id || '',
@@ -348,20 +397,139 @@
               ...(row.representedEntityIds || []),
             ].filter(Boolean),
             grammarId: program.grammarId || '',
+            renderArchetype: program.visualArchetype || program.identityType || '',
             literal: program.literal === true,
             partCount: Array.isArray(program.parts) ? program.parts.length : 0,
             primitiveCount: Number(coverage.primitiveCount || 0),
-            projectedArea: Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5)),
-            realized: program.literal === true && Array.isArray(program.parts) && program.parts.length >= 2,
+            projectedArea,
+            topologyVerified,
+            semanticFit,
+            readable,
+            realized: program.literal === true && topologyVerified && semanticFit && readable,
+            constructionSource: Boolean(program.constructionReceipt),
+            modelEvaluatedConstruction: program.constructionReceipt && program.constructionReceipt.modelEvaluated === true,
+            rerankEvaluatedConstruction: program.constructionReceipt && program.constructionReceipt.rerankEvaluated === true,
           };
         });
+        const framing = packet && packet.receipts && packet.receipts.framing || {};
         return {
           schema: 'simulatte.objectRenderRealizationSummary.v1',
           entityCount: rows.length,
           realizedCount: rows.filter((row) => row.realized).length,
           literalCount: rows.filter((row) => row.literal).length,
+          constructionProgramCount: rows.filter((row) => row.constructionSource).length,
+          modelEvaluatedConstructionCount: rows.filter((row) => row.modelEvaluatedConstruction).length,
+          topologyVerifiedCount: rows.filter((row) => row.topologyVerified).length,
+          semanticFitCount: rows.filter((row) => row.semanticFit).length,
+          readableCount: rows.filter((row) => row.readable).length,
+          projectedArea: Number(rows.reduce((sum, row) => sum + row.projectedArea, 0).toFixed(5)),
+          framingPass: framing.pass === true,
+          framing,
           unprovenEntityIds: rows.filter((row) => !row.realized).map((row) => row.entityId),
           rows,
+        };
+      }
+
+    function scenePacketObjectTopologyVerified(program = {}) {
+        const parts = Array.isArray(program.parts) ? program.parts : [];
+        const ids = parts.map((part) => String(part.id || '').toLowerCase());
+        const grammar = String(program.grammarId || '').replace(/^object-grammar\./, '').replace(/-sitting$/, '');
+        const required = OBJECT_GRAMMAR_PART_REQUIREMENTS[grammar];
+        if (required) return required.every((token) => ids.some((id) => id.includes(token)));
+        if (program.source === 'phase6-data-owned-part-graph') return parts.length >= 2;
+        return Boolean(program.constructionReceipt) && parts.length >= 3 &&
+          new Set(parts.map((part) => part.primitive).filter(Boolean)).size >= 2;
+      }
+
+    function scenePacketCameraState(packet = {}) {
+        const camera = packet.camera || {};
+        const text = [camera.mode, camera.depth, camera.framing, camera.scale,
+          camera.scaleTier, camera.archetype, packet.cameraArchetype].filter(Boolean).join(' ').toLowerCase();
+        const perspective = /orbital|perspective|three-quarter|depth/.test(text) ? 0.34 :
+          /cutaway|layered/.test(text) ? 0.24 : 0.08;
+        const zoom = /macro|micro|detail/.test(text) ? 1.16 : /wide|map|landscape|orbital/.test(text) ? 0.9 : 1;
+        const tilt = /ground|three-quarter|cutaway/.test(text) ? 0.16 : 0;
+        return {
+          schema: 'simulatte.phase7CameraState.v1',
+          mode: camera.mode || '',
+          archetype: camera.archetype || packet.cameraArchetype || '',
+          perspective,
+          zoom,
+          tilt,
+          focalDepth: 0.5,
+          consumed: Object.keys(camera).length > 1,
+        };
+      }
+
+    function scenePacketLightState(packet = {}) {
+        const lights = Array.isArray(packet.lights) ? packet.lights : [];
+        const key = lights.find((light) => light.kind === 'directional') || {};
+        const ambient = lights.find((light) => light.kind === 'ambient') || {};
+        const direction = Array.isArray(key.direction) ? key.direction.slice(0, 3) : [-0.36, -0.58, 0.72];
+        const keyColor = Array.isArray(key.color) ? key.color.slice(0, 3) : [0.96, 0.96, 0.9];
+        const ambientColor = Array.isArray(ambient.color) ? ambient.color.slice(0, 3) : [0.28, 0.36, 0.44];
+        return {
+          schema: 'simulatte.phase7LightState.v1',
+          direction,
+          keyColor,
+          keyIntensity: clamp01(Number(key.intensity || 0.86)),
+          ambientColor,
+          ambientIntensity: clamp01(Number(ambient.intensity || 0.34)),
+          sourceLightCount: lights.length,
+          consumed: lights.length > 0,
+        };
+      }
+
+    function scenePacketCameraLightUniformVector(cameraState = {}, lightState = {}, timeSeconds = 0, width = 0, height = 0) {
+        const vector = new Float32Array(GPU_OBJECT_UNIFORM_FLOATS);
+        vector.set([width, height, timeSeconds, 0], 0);
+        vector.set([
+          Number(cameraState.perspective || 0), Number(cameraState.zoom || 1),
+          Number(cameraState.tilt || 0), Number(cameraState.focalDepth || 0.5),
+        ], 4);
+        vector.set([
+          Number(lightState.direction && lightState.direction[0] || -0.36),
+          Number(lightState.direction && lightState.direction[1] || -0.58),
+          Number(lightState.direction && lightState.direction[2] || 0.72),
+          Number(lightState.keyIntensity || 0.86),
+        ], 8);
+        vector.set([
+          Number(lightState.keyColor && lightState.keyColor[0] || 0.96),
+          Number(lightState.keyColor && lightState.keyColor[1] || 0.96),
+          Number(lightState.keyColor && lightState.keyColor[2] || 0.9),
+          1,
+        ], 12);
+        vector.set([
+          Number(lightState.ambientColor && lightState.ambientColor[0] || 0.28),
+          Number(lightState.ambientColor && lightState.ambientColor[1] || 0.36),
+          Number(lightState.ambientColor && lightState.ambientColor[2] || 0.44),
+          Number(lightState.ambientIntensity || 0.34),
+        ], 16);
+        return vector;
+      }
+
+    function scenePacketRendererConsumption(packet = {}, objectParts = [], cameraState = {}, lightState = {}) {
+        const materialCount = scenePacketRows(packet, 'entities').filter((row) => row.material).length;
+        const constructionPrograms = scenePacketRows(packet, 'entities').filter((row) => (
+          row.geometry && row.geometry.program && row.geometry.program.constructionReceipt
+        ));
+        return {
+          schema: 'simulatte.phase7RendererConsumption.v1',
+          cameraConfigured: cameraState.consumed === true,
+          sourceLightCount: lightState.consumed === true ? Number(lightState.sourceLightCount || 0) : 0,
+          sourceMaterialCount: materialCount,
+          cameraConsumed: false,
+          lightCountConsumed: 0,
+          materialCountConsumed: 0,
+          objectPartCount: objectParts.length,
+          depthConfigured: true,
+          depthEnabled: false,
+          normalShading: false,
+          perspectiveEnabled: Number(cameraState.perspective || 0) > 0,
+          constructionProgramCount: constructionPrograms.length,
+          modelEvaluatedConstructionCount: constructionPrograms.filter((row) => (
+            row.geometry.program.constructionReceipt && row.geometry.program.constructionReceipt.modelEvaluated === true
+          )).length,
         };
       }
 
@@ -700,14 +868,16 @@
 
     function scenePacketAnimationCode(kind) {
         const value = String(kind || '').toLowerCase();
+        if (/static/.test(value)) return 0.5;
         if (/swim/.test(value)) return 1;
-        if (/flow|ripple/.test(value)) return 2;
-        if (/track|particle/.test(value)) return 3;
+        if (/flow|ripple|streamline|curling|settling|shear/.test(value)) return 2;
+        if (/track|particle|impulse|contact/.test(value)) return 3;
         if (/readout|measurement/.test(value)) return 4;
         if (/packet|network|route/.test(value)) return 5;
-        if (/fermentation|bubble|rise/.test(value)) return 6;
+        if (/fermentation|bubble|rise|branching|growth/.test(value)) return 6;
         if (/plume|thermal|fire/.test(value)) return 7;
-        if (/orbit|drift/.test(value)) return 8;
+        if (/orbit|drift|phase-propagating/.test(value)) return 8;
+        if (/flight|fly/.test(value)) return 10;
         return value ? 9 + Math.floor(scenePacketHashUnit(value) * 56) : 0.5;
       }
 
@@ -779,6 +949,11 @@
       scenePacketObjectPartStorageVector,
       scenePacketObjectRealization,
       scenePacketObjectPartSummary,
+      scenePacketObjectDepth,
+      scenePacketCameraState,
+      scenePacketLightState,
+      scenePacketCameraLightUniformVector,
+      scenePacketRendererConsumption,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -351,7 +351,7 @@
     	        kind: 'prompt',
     	        label: 'source prompt',
     	        source: 'prompt',
-    	        required: true,
+                required: true,
     	        status: 'preserved',
     	        evidenceIds: ['promptIngress.sourceText'],
     	        supportOnly: false,
@@ -403,7 +403,7 @@
     	        semanticClass: predicate.process === 'swimming' ? 'locomotion-in-fluid' : predicate.process,
     	        source: 'predicate',
     	        sourceSpanIds: [predicate.verbSpanId].filter(Boolean),
-    	        required: true,
+                required: Boolean(predicate.verbSpanId),
     	      })),
     	    ]);
     	    const environments = uniqueById(spans
@@ -465,17 +465,19 @@
     	    };
     	  }
 
-    function sceneEntryForSpan(span = {}, fallbackKind = '', languageGraph = {}) {
+	    function sceneEntryForSpan(span = {}, fallbackKind = '', languageGraph = {}) {
     	    const kind = fallbackKind === 'action' ? 'action' :
     	      fallbackKind === 'medium' ? 'medium' :
     	      fallbackKind || span.kind || 'entry';
     	    const target = sceneTargetForSpan(span, kind);
     	    const negated = sceneSpanIsNegated(languageGraph, span);
     	    return {
-    	      id: `${kind}:${target}`,
+	      id: sceneEntryIdForSpan(span, kind, languageGraph),
     	      kind,
     	      label: span.text || target,
-    	      semanticClass: span.semanticRole || span.entityClass || span.materialHint || kind,
+	      semanticClass: span.semanticRole || span.entityClass || span.materialHint || kind,
+	      visualArchetype: span.visualArchetype || '',
+	      shapeHints: span.shapeHints || (span.visualArchetype ? [span.visualArchetype] : []),
     	      source: 'prompt',
     	      sourceSpanIds: [span.id].filter(Boolean),
     	      required: negated ? false : true,
@@ -484,6 +486,19 @@
     	      status: negated ? 'negated' : 'preserved',
     	    };
     	  }
+
+    function sceneEntryIdForSpan(span = {}, kind = '', languageGraph = {}) {
+      const target = sceneTargetForSpan(span, kind);
+      const baseId = `${kind}:${target}`;
+      if (!span.id || !['entity', 'environment', 'medium'].includes(kind)) return baseId;
+      const peers = (languageGraph.spans || []).filter((row) => {
+        const rowKind = row.kind === 'environment' ? 'environment' :
+          row.kind === 'material' ? 'medium' : 'entity';
+        return rowKind === kind && sceneTargetForSpan(row, kind) === target;
+      });
+      const occurrence = peers.findIndex((row) => row.id === span.id);
+      return occurrence > 0 ? `${baseId}:${occurrence + 1}` : baseId;
+    }
 
     function sceneTargetForSpan(span = {}, kind = '') {
     	    if (span.entityClass) return normalizeForEvidence(span.entityClass).replace(/\s+/g, '-');
@@ -503,40 +518,82 @@
     	    return ['entity', 'process', 'material', 'environment', 'modifier', 'observable'].includes(span.kind || '');
     	  }
 
-    function sceneRelationsFromLanguageGraph(languageGraph = {}) {
+	    function sceneRelationsFromLanguageGraph(languageGraph = {}) {
     	    const relations = [];
     	    for (const predicate of languageGraph.predicates || []) {
     	      const subject = sceneSpanById(languageGraph, predicate.subjectSpanId);
     	      const object = sceneSpanById(languageGraph, predicate.objectSpanId);
     	      if (sceneSpanIsNegated(languageGraph, subject) || sceneSpanIsNegated(languageGraph, object)) continue;
-    	      const subjectTarget = subject ? sceneTargetForSpan(subject, 'entity') : '';
-    	      const actionTarget = predicate.process ? normalizeForEvidence(predicate.process).replace(/\s+/g, '-') : '';
+	      const subjectId = subject ? sceneNodeIdForSpan(languageGraph, subject) : '';
+	      const actionTarget = predicate.process ? normalizeForEvidence(predicate.process).replace(/\s+/g, '-') : '';
     	      const implicitTarget = predicate.implicitObject
     	        ? normalizeForEvidence(predicate.implicitObject).replace(/\s+/g, '-')
     	        : '';
-    	      const objectTarget = object
-    	        ? sceneTargetForSpan(object, object.kind === 'environment' ? 'environment' : object.kind)
-    	        : implicitTarget;
-    	      if (subjectTarget && actionTarget) {
-    	        relations.push({
-    	          id: `relation:${subjectTarget}:${actionTarget}:${objectTarget || 'world'}`,
-    	          kind: objectTarget ? 'agent-action-location' : 'agent-action',
-    	          from: `entity:${subjectTarget}`,
-    	          to: `action:${actionTarget}`,
-    	          target: object
-    	            ? `${object.kind === 'environment' ? 'environment' : object.kind}:${objectTarget}`
-    	            : objectTarget ? `medium:${objectTarget}` : '',
+	      const objectId = object
+	        ? sceneNodeIdForSpan(languageGraph, object)
+	        : implicitTarget ? `medium:${implicitTarget}` : '';
+	      if (subjectId && actionTarget) {
+	        relations.push({
+	          id: `relation:${sceneRelationIdToken(subjectId)}:${actionTarget}:${sceneRelationIdToken(objectId) || 'world'}`,
+	          kind: objectId ? 'agent-action-location' : 'agent-action',
+	          from: subjectId,
+	          to: `action:${actionTarget}`,
+	          target: objectId,
     	          sourceSpanIds: [predicate.subjectSpanId, predicate.verbSpanId, predicate.objectSpanId].filter(Boolean),
     	          required: true,
     	          status: 'preserved',
-    	          evidenceIds: [predicate.id].filter(Boolean),
-    	          spatialRelation: predicate.spatialRelation || '',
+	          evidenceIds: [predicate.id].filter(Boolean),
+	          predicate: predicate.predicate || '',
+	          process: predicate.process || '',
+	          spatialRelation: predicate.spatialRelation || '',
     	          causalAffordance: predicate.causalAffordance || '',
     	        });
     	      }
-    	    }
-    	    return uniqueById(relations);
-    	  }
+	      }
+	    for (const relation of languageGraph.relations || []) {
+	      if (!relation.relation || relation.relation === 'performs') continue;
+	      if (!/^(?:in|inside|into|within|on|onto|at|over|above|under|below|beside|near|outside|around|behind|in-front-of|attached-to|against|through|between|supports)$/.test(String(relation.relation))) continue;
+	      const subject = sceneSpanById(languageGraph, relation.sourceSpanId);
+	      const object = sceneSpanById(languageGraph, relation.targetSpanId);
+	      if (!subject || !object || sceneSpanIsNegated(languageGraph, subject) || sceneSpanIsNegated(languageGraph, object)) continue;
+	      const from = sceneNodeIdForSpan(languageGraph, subject);
+	      const to = sceneNodeIdForSpan(languageGraph, object);
+	      if (!from || !to) continue;
+	      relations.push({
+	        id: `relation:spatial:${sceneRelationIdToken(from)}:${relation.relation}:${sceneRelationIdToken(to)}`,
+	        kind: 'spatial-constraint',
+	        from,
+	        to,
+	        target: to,
+	        sourceSpanIds: [relation.sourceSpanId, relation.targetSpanId].filter(Boolean),
+	        required: true,
+	        status: 'preserved',
+	        evidenceIds: [relation.id].filter(Boolean),
+	        predicate: relation.predicate || relation.relation || '',
+	        process: relation.process || 'spatial_constraint',
+	        spatialRelation: relation.relation || '',
+	        causalAffordance: relation.causalAffordance || '',
+	      });
+	    }
+	    const seen = new Set();
+	    return relations.filter((relation) => {
+	      const key = [relation.kind, relation.from, relation.to, relation.target,
+	        relation.spatialRelation, relation.predicate].join(':');
+	      if (seen.has(key)) return false;
+	      seen.add(key);
+	      return true;
+	    });
+	  }
+
+	function sceneNodeIdForSpan(languageGraph = {}, span = {}) {
+	  const kind = span.kind === 'environment' ? 'environment' :
+	    span.kind === 'material' ? 'medium' : 'entity';
+	  return sceneEntryIdForSpan(span, kind, languageGraph);
+	}
+
+    function sceneRelationIdToken(value = '') {
+      return String(value || '').replace(/:/g, '-');
+    }
 
     function sceneSpanById(languageGraph = {}, id = '') {
     	    return (languageGraph.spans || []).find((span) => span.id === id) || null;
@@ -602,12 +659,17 @@
     	        slotId: `slot.relation.${relation.id.replace(/^relation:/, '').replace(/:/g, '_')}`,
     	        slotRole: 'relation',
     	        entryId: relation.id,
-    	        relationIds: [relation.id],
+	        relationIds: [relation.id],
+	        predicate: relation.predicate || '',
+	        process: relation.process || '',
+	        spatialRelation: relation.spatialRelation || '',
+	        participants: [relation.from, relation.to, relation.target].filter(Boolean),
     	        required: relation.required !== false,
     	        sourceSpanIds: relation.sourceSpanIds || [],
     	        queries: [{
     	          kind: 'embedding',
-    	          text: [relation.from, relation.to, relation.target, relation.causalAffordance].filter(Boolean).join(' '),
+	          text: [relation.from, relation.predicate, relation.process, relation.spatialRelation,
+	            relation.to, relation.target, relation.causalAffordance].filter(Boolean).join(' '),
     	        }],
     	        budgets: { primitive: 4, surfaceCard: 4, universe: 8, support: 2 },
     	        allowedCandidateTypes: ['relation', 'operator', 'primitive', 'surface-card', 'universe-row'],
@@ -640,15 +702,19 @@
     	    };
     	  }
 
-    function sceneQuerySlotForEntry(entry = {}, role = 'object') {
+	    function sceneQuerySlotForEntry(entry = {}, role = 'object') {
     	    const label = entry.label || entry.id || '';
     	    return {
     	      schema: 'simulatte.sceneQuerySlot.v1',
     	      slotId: `slot.${role}.${String(entry.id || label).replace(/^[a-z]+:/, '').replace(/[^a-z0-9]+/gi, '_')}`,
     	      slotRole: role,
     	      entryId: entry.id || '',
-    	      required: entry.required !== false,
-    	      inferred: entry.inferred === true,
+	      required: entry.required !== false,
+	      inferred: entry.inferred === true,
+	      sourceLabel: label,
+	      semanticClass: entry.semanticClass || '',
+	      visualArchetype: entry.visualArchetype || '',
+	      shapeHints: entry.shapeHints || [],
     	      sourceSpanIds: entry.sourceSpanIds || [],
     	      queries: [
     	        { kind: 'embedding', text: `${label} ${entry.semanticClass || ''}`.trim() },

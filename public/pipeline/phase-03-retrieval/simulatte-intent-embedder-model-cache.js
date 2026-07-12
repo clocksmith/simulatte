@@ -137,6 +137,25 @@
       };
     }
 
+    function prefetchDopplerCachedModelSource(owner, key, runtime, model, options = {}) {
+      const target = owner && typeof owner === 'object' ? owner : {};
+      const promises = target.dopplerCachedSourcePromises || new Map();
+      target.dopplerCachedSourcePromises = promises;
+      if (!promises.has(key)) {
+        const settled = prepareDopplerCachedModelSource(runtime, model, options)
+          .then((value) => ({ value, error: null }), (error) => ({ value: null, error }));
+        promises.set(key, settled);
+      }
+      return promises.get(key);
+    }
+
+    async function takeDopplerCachedModelSource(owner, key, runtime, model, options = {}) {
+      const settled = await prefetchDopplerCachedModelSource(owner, key, runtime, model, options);
+      if (owner && owner.dopplerCachedSourcePromises) owner.dopplerCachedSourcePromises.delete(key);
+      if (settled.error) throw settled.error;
+      return settled.value;
+    }
+
     function emitDopplerCacheProgress(event = {}, context = {}) {
       const range = context.progressRange || { start: 20, end: 42 };
       const fraction = Math.max(0, Math.min(1, Number(event.percent || 0) / 100));
@@ -200,6 +219,8 @@
       resolveDopplerStorageApi,
       resolveDopplerDeviceApi,
       prepareDopplerCachedModelSource,
+      prefetchDopplerCachedModelSource,
+      takeDopplerCachedModelSource,
       emitDopplerCacheProgress,
       closeDopplerCachedSource,
       disposeFailedDopplerLoad,

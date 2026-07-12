@@ -315,8 +315,36 @@
           return { object, index, ...receipt };
         });
         const hasPromptGrounded = rows.some((row) => row.promptGrounded);
+        const representedEventIds = new Set(rows
+          .filter((row) => /^embedding-guided-synth-event/.test(String(row.object && row.object.source || '')))
+          .flatMap((row) => visualObjectConceptIds(row.object)));
+        const materialAttributeIds = materialAttributeConceptIds(spec);
+        const directPromptPhrases = new Set(rows
+          .filter((row) => row.object && row.object.directlyGrounded === true && row.promptGrounded)
+          .map((row) => visualPhraseKey(row.phrase))
+          .filter(Boolean));
+        const observablePhraseKeys = new Set((spec.renderIR && spec.renderIR.readouts || [])
+          .filter((readout) => readout.source === 'prompt-observable')
+          .map((readout) => visualPhraseKey(readout.label))
+          .filter(Boolean));
+        const actionPhraseKeys = new Set((spec.renderIR && spec.renderIR.compositionLedger &&
+          spec.renderIR.compositionLedger.entries || [])
+          .filter((entry) => entry.kind === 'action')
+          .flatMap((entry) => [entry.label, String(entry.id || '').replace(/^action:/, '')])
+          .map(visualPhraseKey)
+          .filter(Boolean));
         for (const row of rows) {
-          const decision = visualObjectAcceptanceDecision(row.object, sceneKind, promptText, hasPromptGrounded);
+          const decision = visualObjectAcceptanceDecision(
+            row.object,
+            sceneKind,
+            promptText,
+            hasPromptGrounded,
+            representedEventIds,
+            materialAttributeIds,
+            directPromptPhrases,
+            observablePhraseKeys,
+            actionPhraseKeys
+          );
           row.status = decision.status;
           row.reason = decision.reason;
           row.confidence = decision.confidence;
@@ -370,6 +398,7 @@
             object && object.id,
             object && object.semanticRef,
             object && object.physicalRef,
+            ...(object && object.sourceIds || []),
           ].filter(Boolean)).slice(0, 6),
           sceneKind,
           phrase,
@@ -383,21 +412,122 @@
     function visualPromptGroundedObject(object, promptText) {
         const source = String(object && object.source || '');
         const phrase = object && (object.phrase || object.role || object.id) || '';
+        if (source === 'prompt-explicit' && object.directlyGrounded !== true) return false;
+        if (object.directlyGrounded === true && (object.physicalRef || object.semanticRef)) {
+          return [
+            object.sourceLabel,
+            object.phrase,
+            object.role,
+            ...(object.aliases || []),
+          ].filter(Boolean).some((value) => phraseMatchesPrompt(value, promptText));
+        }
         if (source === 'semantic-surface-grounder') return phraseMatchesPrompt(phrase, promptText);
+        if (source === 'prompt-family') return phraseMatchesPrompt(phrase, promptText);
         if (/^embedding-guided-synth-environment/.test(source) && phrase && !phraseMatchesPrompt(phrase, promptText)) {
           return false;
         }
         if (/^embedding-guided-synth/.test(source) && phrase) {
-          return phraseMatchesPrompt(phrase, promptText) || /\b(event|node)\b/.test(source);
+          return object.directlyGrounded === true && phraseMatchesPrompt(phrase, promptText);
         }
         return isPromptGroundedComponent(object, promptText);
       }
 
-    function visualObjectAcceptanceDecision(object, sceneKind, promptText, hasPromptGrounded) {
+    function visualObjectAcceptanceDecision(
+      object,
+      sceneKind,
+      promptText,
+      hasPromptGrounded,
+      representedEventIds = new Set(),
+      materialAttributeIds = new Set(),
+      directPromptPhrases = new Set(),
+      observablePhraseKeys = new Set(),
+      actionPhraseKeys = new Set()
+    ) {
         const source = String(object && object.source || '');
         const phrase = object && (object.phrase || object.role || object.id) || '';
         const phraseMatched = phraseMatchesPrompt(phrase, promptText);
         const promptGrounded = !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && visualPromptGroundedObject(object, promptText);
+        const domainTags = (object.domainTags || []).map((value) => String(value || '').toLowerCase());
+        const hasConstructedForm = Boolean(
+          object.construction || object.visualArchetype || (object.shapeHints || []).length ||
+          object.shape && !/^(?:body|sample)$/.test(object.shape)
+        );
+        if (visualObjectConceptIds(object).some((id) => materialAttributeIds.has(id))) {
+          return {
+            status: 'rejected',
+            reason: 'material evidence is applied to its compound object instead of rendered separately',
+            confidence: 0.24,
+            supportOnly: true,
+          };
+        }
+        if (/^embedding-guided-synth-event/.test(source) || object.kind === 'event') {
+          return {
+            status: 'rejected',
+            reason: 'event evidence is rendered by the compiled process and motion programs',
+            confidence: 0.24,
+            supportOnly: true,
+          };
+        }
+        if (observablePhraseKeys.has(visualPhraseKey(phrase))) {
+          return {
+            status: 'rejected',
+            reason: 'prompt observable is rendered through its readout or process program',
+            confidence: 0.22,
+            supportOnly: true,
+          };
+        }
+        const actionDerivedMedium = source === 'prompt-family' &&
+          /\b(water|medium|fluid)\b/.test(`${object.kind || ''} ${object.role || ''} ${object.material || ''}`.toLowerCase());
+        if (actionPhraseKeys.has(visualPhraseKey(phrase)) && !actionDerivedMedium) {
+          return {
+            status: 'rejected',
+            reason: 'prompt action is rendered through its process and motion programs',
+            confidence: 0.22,
+            supportOnly: true,
+          };
+        }
+        if (source === 'semantic-surface-grounder' && object.directlyGrounded !== true &&
+          directPromptPhrases.has(visualPhraseKey(phrase))) {
+          return {
+            status: 'rejected',
+            reason: 'retrieved surface alias duplicates a directly grounded prompt object',
+            confidence: 0.2,
+            supportOnly: true,
+          };
+        }
+        if (!promptGrounded && /^(?:open-semantic-rag|semantic-surface-grounder)$/.test(source) &&
+          domainTags.some((tag) => /^(?:generic|sample|observable)$/.test(tag)) && !hasConstructedForm) {
+          return {
+            status: 'rejected',
+            reason: 'semantic evidence has no constructed render form',
+            confidence: 0.18,
+            supportOnly: true,
+          };
+        }
+        if (object.kind === 'field' && !object.physicalRef && !object.semanticRef) {
+          return {
+            status: 'rejected',
+            reason: 'field evidence is rendered by the compiled field program',
+            confidence: 0.28,
+            supportOnly: true,
+          };
+        }
+        if (source === 'render-ir' && object.directlyGrounded !== true && hasPromptGrounded) {
+          return {
+            status: 'rejected',
+            reason: 'unmatched RenderIR support has no prompt-owned physical identity',
+            confidence: 0.2,
+            supportOnly: true,
+          };
+        }
+        if (source === 'catalog' && visualObjectConceptIds(object).some((id) => representedEventIds.has(id))) {
+          return {
+            status: 'rejected',
+            reason: 'catalog event duplicates a prompt-grounded event instance',
+            confidence: 0.22,
+            supportOnly: true,
+          };
+        }
         if (promptGrounded) {
           return {
             status: 'accepted',
@@ -415,14 +545,6 @@
           };
         }
         if (source === 'catalog') {
-          if (catalogSupportIsPrompted(object, promptText)) {
-            return {
-              status: 'accepted',
-              reason: 'catalog support is explicitly named by the prompt',
-              confidence: 0.72,
-              supportOnly: false,
-            };
-          }
           if (hasPromptGrounded) {
             return {
               status: 'rejected',
@@ -431,8 +553,18 @@
               supportOnly: true,
             };
           }
+          if (catalogSupportIsPrompted(object, promptText)) {
+            return {
+              status: 'accepted',
+              reason: 'catalog seed is the only prompt-addressable visual object',
+              confidence: 0.58,
+              supportOnly: true,
+            };
+          }
         }
-        if (source && source !== 'catalog' && phraseMatched && !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase)) {
+        if (source && source !== 'catalog' && phraseMatched &&
+          (!/^(?:embedding-guided-synth|prompt-explicit)/.test(source) || object.directlyGrounded === true) &&
+          !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase)) {
           return {
             status: 'accepted',
             reason: 'compiled source row phrase matches prompt evidence',
@@ -462,6 +594,27 @@
           supportOnly: true,
         };
       }
+
+    function visualPhraseKey(value = '') {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      }
+
+    function visualObjectConceptIds(object = {}) {
+      return uniqueList([object.id, object.phrase, object.role, object.sourceLabel]
+        .map((value) => String(value || '').replace(/-\d+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim())
+        .filter(Boolean));
+    }
+
+    function materialAttributeConceptIds(spec = {}) {
+      const ledger = spec && spec.renderIR && spec.renderIR.compositionLedger ||
+        spec && spec.physicsIR && spec.physicsIR.compositionLedger || {};
+      return new Set((ledger.relations || [])
+        .filter((relation) => relation.process === 'material_assignment')
+        .map((relation) => String(relation.from || '').replace(/^[a-z]+:/, ''))
+        .flatMap((value) => [value, value.replace(/-\d+$/, '')])
+        .map((value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim())
+        .filter(Boolean));
+    }
 
     function annotateAcceptedVisualObject(object, row) {
         return {
@@ -495,6 +648,7 @@
 
     function sceneObjectPriority(object, sceneKind) {
         const source = String(object && object.source || '');
+        if (object && object.directlyGrounded === true && (object.physicalRef || object.semanticRef)) return 13;
         if (source === 'phase2-language-anchor' || sceneKind === 'robotics-control' && source === 'open-semantic-rag' && /(?:protein\s+)?sample\s+holder/.test(object.phrase || '')) return 11;
         const isCatalog = source === 'catalog';
         const text = [
@@ -690,146 +844,7 @@
       }
 
     function layoutObjectsForScene(objects, sceneKind, spec, visualGenome = null) {
-        if (sceneKind === 'mechanical') return layoutMechanicalObjects(objects);
-        if (sceneKind === 'thin-film') return layoutThinFilmObjects(objects);
-        if (sceneKind === 'ferrofluid') return layoutFerrofluidObjects(objects);
-        if (sceneKind === 'thermal-plume') return layoutThermalPlumeObjects(objects);
-        if (sceneKind === 'literal-composite') return layoutLiteralCompositeObjects(objects);
-        return layoutGenericSemanticObjects(objects, sceneKind, visualGenome);
-      }
-
-    function layoutGenericSemanticObjects(objects, sceneKind = '', visualGenome = null) {
-        const slots = layoutSlotsForGenome(visualGenome);
-        let entityIndex = 0;
-        let fieldIndex = 0;
-        let readoutIndex = 0;
-        return objects.map((object) => {
-          if (object && object.pose && (Number.isFinite(Number(object.pose.x)) || Array.isArray(object.pose.points))) return object;
-          const text = renderObjectText(object);
-          const genomeSeed = visualGenome && visualGenome.seed || 1;
-          const seed = hashProgram(`${genomeSeed}:${sceneKind}:${object && object.id || ''}:${text}`) || 1;
-          const asymmetry = visualGenome && visualGenome.morphology ? visualGenome.morphology.asymmetry || 0.3 : 0.3;
-          const jitterX = (unitFromSeed(seed, 3) - 0.5) * (0.035 + asymmetry * 0.08);
-          const jitterY = (unitFromSeed(seed, 5) - 0.5) * (0.035 + asymmetry * 0.08);
-          if (/field|flow|plume|matrix|volume|water|thermal|optical|chemical|gradient/.test(text)) {
-            const y = /water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.64 : 0.52;
-            fieldIndex += 1;
-            return withPose(object, clamp(0.5 + jitterX, 0.12, 0.88), clamp(y + jitterY + fieldIndex * 0.015, 0.14, 0.86), 0, [0.68, 0.42]);
-          }
-          if (/readout|meter|telemetry|panel|scope|measurement/.test(text)) {
-            const x = readoutIndex % 2 ? 0.84 : 0.16;
-            const y = 0.18 + Math.floor(readoutIndex / 2) * 0.12;
-            readoutIndex += 1;
-            return withPose(object, clamp(x + jitterX, 0.08, 0.92), clamp(y + jitterY, 0.08, 0.9), 0, [0.16, 0.1]);
-          }
-          const slot = slots[entityIndex % slots.length];
-          const row = Math.floor(entityIndex / slots.length);
-          entityIndex += 1;
-          return withPose(
-            object,
-            clamp(slot[0] + jitterX, 0.08, 0.92),
-            clamp(slot[1] + row * 0.08 + jitterY, 0.08, 0.92),
-            unitFromSeed(seed, 7) * 0.2 - 0.1,
-            [0.14 + unitFromSeed(seed, 11) * 0.08, 0.1 + unitFromSeed(seed, 13) * 0.06]
-          );
-        });
-      }
-
-    function layoutSlotsForGenome(visualGenome = null) {
-        const mode = visualGenome && visualGenome.morphology && visualGenome.morphology.layoutMode || '';
-        if (mode === 'network') return [[0.16, 0.24], [0.38, 0.2], [0.62, 0.24], [0.84, 0.32], [0.25, 0.58], [0.5, 0.54], [0.75, 0.6], [0.5, 0.82]];
-        if (mode === 'radial') return [[0.5, 0.26], [0.68, 0.38], [0.72, 0.6], [0.52, 0.74], [0.3, 0.62], [0.24, 0.4], [0.5, 0.5], [0.82, 0.48]];
-        if (mode === 'strata') return [[0.2, 0.24], [0.42, 0.3], [0.66, 0.38], [0.82, 0.46], [0.24, 0.58], [0.5, 0.66], [0.74, 0.74], [0.5, 0.84]];
-        if (mode === 'section') return [[0.18, 0.28], [0.36, 0.34], [0.58, 0.4], [0.78, 0.48], [0.28, 0.7], [0.54, 0.68], [0.78, 0.74], [0.12, 0.58]];
-        return [[0.18, 0.34], [0.38, 0.28], [0.62, 0.32], [0.82, 0.42], [0.24, 0.66], [0.5, 0.62], [0.74, 0.68], [0.5, 0.82]];
-      }
-
-    function layoutMechanicalObjects(objects) {
-        let wheelIndex = 0;
-        let animalIndex = 0;
-        const wheelCount = objects.filter((object) => object.shape === 'wheel').length;
-        const wheelSlots = wheelCount > 1 ? [[0.36, 0.56], [0.64, 0.56]] : [[0.42, 0.56]];
-        return objects.map((object) => {
-          const text = renderObjectText(object);
-          if (object.shape === 'wheel') {
-            const slot = wheelSlots[Math.min(wheelIndex, wheelSlots.length - 1)];
-            wheelIndex += 1;
-            return withPose(object, slot[0], slot[1], 0, [0.27, 0.27]);
-          }
-          if (object.shape === 'animal-body') {
-            const slot = wheelSlots[Math.min(animalIndex, wheelSlots.length - 1)];
-            animalIndex += 1;
-            return withPose(object, slot[0], slot[1] + 0.015, 0.02, [0.17, 0.105]);
-          }
-          if (/wall|constraint|surface-boundary/.test(text)) return withPose(object, 0.78, 0.56, 0.02, [0.055, 0.34]);
-          if (/collision|impact|crash|fractur/.test(text)) return withPose(object, 0.56, 0.51, 0, [0.12, 0.09]);
-          if (/energy-ledger|meter/.test(text)) return withPose(object, 0.18, 0.78, -0.04, [0.11, 0.08]);
-          return object;
-        });
-      }
-
-    function layoutThinFilmObjects(objects) {
-        let bubbleIndex = 0;
-        const bubbleSlots = [[0.42, 0.43], [0.57, 0.51], [0.48, 0.58], [0.62, 0.4]];
-        return objects.map((object) => {
-          if (object.shape === 'film') return withPose(object, 0.5, 0.47, 0.02, [0.46, 0.34]);
-          if (object.shape === 'wire-loop') return withPose(object, 0.5, 0.47, 0, [0.52, 0.38]);
-          if (object.shape === 'bubble') {
-            const slot = bubbleSlots[bubbleIndex % bubbleSlots.length];
-            bubbleIndex += 1;
-            return withPose(object, slot[0], slot[1], 0, [0.12, 0.12]);
-          }
-          return object;
-        });
-      }
-
-    function layoutFerrofluidObjects(objects) {
-        let conductorIndex = 0;
-        return objects.map((object) => {
-          const text = renderObjectText(object);
-          if (/ferrofluid/.test(text)) return withPose(object, 0.5, 0.62, 0, [0.34, 0.18]);
-          if (object.shape === 'coil') return withPose(object, 0.5, 0.34, 0.02, [0.32, 0.2]);
-          if (/current|pulsing|dipole|field-envelope/.test(text)) return withPose(object, 0.5, 0.46, 0, [0.42, 0.3]);
-          if (/copper|conductor|magnet|metal/.test(text)) {
-            const x = conductorIndex % 2 ? 0.72 : 0.28;
-            conductorIndex += 1;
-            return withPose(object, x, 0.55, conductorIndex % 2 ? 0.1 : -0.1, [0.14, 0.09]);
-          }
-          return object;
-        });
-      }
-
-    function layoutThermalPlumeObjects(objects) {
-        return objects.map((object) => {
-          const text = renderObjectText(object);
-          if (object.shape === 'cooling-fins') return withPose(object, 0.5, 0.76, 0, [0.46, 0.18]);
-          if (/thermal plume|plume|heat|thermal-source/.test(text)) {
-            if (object.shape === 'flow-path') {
-              return withPathPose(object, [[0.5, 0.76], [0.52, 0.55], [0.48, 0.28]]);
-            }
-            return withPose(object, 0.5, 0.6, 0, [0.12, 0.09]);
-          }
-          if (/air|smoke/.test(text)) return withPose(object, 0.56, 0.4, 0, [0.12, 0.1]);
-          return object;
-        });
-      }
-
-    function layoutLiteralCompositeObjects(objects) {
-        return objects.map((object) => {
-          const text = renderObjectText(object);
-          const identity = `${object.id || ''} ${object.shape || ''} ${object.material || ''} ${object.role || ''}`.toLowerCase();
-          if (/black hole|singularity/.test(identity) || /black hole|singularity/.test(text)) {
-            return withPose(object, 0.78, 0.32, 0, [0.28, 0.28]);
-          }
-          if (/swamp|wetland/.test(identity) || /swamp|wetland/.test(text)) {
-            return withPose(object, 0.46, 0.75, 0, [0.56, 0.22]);
-          }
-          if (/hammer/.test(identity)) return withPose(object, 0.48, 0.5, -0.38, [0.22, 0.14]);
-          if (/gold/.test(identity)) return withPose(object, 0.34, 0.58, 0.05, [0.24, 0.08]);
-          if (/glass|lens|prism/.test(identity)) return withPose(object, 0.58, 0.49, 0.08, [0.16, 0.14]);
-          if (/fractur|collision|impact/.test(text)) return withPose(object, 0.61, 0.45, 0, [0.12, 0.09]);
-          return object;
-        });
+        return constraintLayoutObjects(objects, sceneKind, spec, visualGenome);
       }
 
     function renderObjectText(object) {
@@ -893,12 +908,6 @@
       promptGroundedScenePriority,
       expandedSceneObjectPriority,
       layoutObjectsForScene,
-      layoutGenericSemanticObjects,
-      layoutMechanicalObjects,
-      layoutThinFilmObjects,
-      layoutFerrofluidObjects,
-      layoutThermalPlumeObjects,
-      layoutLiteralCompositeObjects,
       renderObjectText,
       withPose,
       withPathPose,

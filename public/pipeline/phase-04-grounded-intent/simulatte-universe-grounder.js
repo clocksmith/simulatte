@@ -2,14 +2,18 @@
   const catalog = typeof module === 'object' && module.exports
     ? require('../phase-05-simulation/simulatte-physics-catalog.js')
     : root.SimulattePhysicsCatalog;
-  const api = factory(catalog || {});
+  const graph = typeof module === 'object' && module.exports
+    ? require('./simulatte-universe-grounder-graph.js')
+    : root.SimulatteUniverseGrounderGraph;
+  const api = factory(catalog || {}, graph || {});
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteUniverseGrounder = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseGrounderApi(catalog = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseGrounderApi(catalog = {}, graph = {}) {
   const UNIVERSE_GRAPH_SCHEMA = 'simulatte.universeGraph.v1';
   const { clamp01 = (value) => Math.max(0, Math.min(1, value)), slugify = defaultSlugify } = catalog;
+  const { canonicalizeGroundedNodes, attachConstructionEvidence, edgeRowsForClauses, remapSpanNodes } = graph;
 
   const CONCEPTS = Object.freeze({
     lava: concept('material.lava', 'fluid', ['fluid', 'thermal', 'phase'], 'lava', ['advection', 'heat_source']),
@@ -99,6 +103,9 @@
     split: 'topologySplit',
     join: 'topologyJoin',
     consume: 'consumption',
+    support: 'supports',
+    leak: 'fluidForce',
+    material_assignment: 'materialOf',
     coexists: 'adjacent',
   });
   const ABSTRACT_UNSUPPORTED_TERMS = new Set(['soul']);
@@ -138,14 +145,16 @@
       const node = {
         id: index ? `${slugify(row.best.canonicalId)}-${index + 1}` : slugify(row.best.canonicalId),
         spanId: span.id,
-        semanticType: row.best.semanticType,
+        semanticType: span.kind === 'observable' ? 'observable' : row.best.semanticType,
+        semanticClass: span.entityClass || row.best.semanticClass || '',
+        visualArchetype: span.visualArchetype || row.best.visualArchetype || (row.best.shapeHints || [])[0] || '',
         canonicalId: row.best.canonicalId,
         label: labelFromSpan(span.text),
         aliases: unique([span.text, row.best.label].filter(Boolean)),
         confidence: row.best.confidence,
         domains: row.best.domains,
-        materialId: row.best.materialId,
-        materialIds: row.best.materialIds || (row.best.materialId ? [row.best.materialId] : []),
+        materialId: span.materialHint || row.best.materialId,
+        materialIds: unique([span.materialHint, ...(row.best.materialIds || []), row.best.materialId].filter(Boolean)),
         operatorHints: row.best.operatorHints,
         operatorTypes: row.best.operatorTypes || row.best.operatorHints || [],
         primitiveHints: row.best.primitiveHints || [],
@@ -155,15 +164,21 @@
         indexName: row.best.indexName || '',
         rankSignals: row.best.rankSignals || null,
         evidence: row.best.evidence,
+        directlyGrounded: row.best.identityEvidence === true || row.best.indexName === 'prompt-typed-slot',
       };
       nodes.push(node);
       bySpan.set(span.id, node);
     }
 
+    addPromptOwnedCandidateNodes(nodes, seen, candidateRows, input);
     addComponentNodes(nodes, seen, input, rejected);
     addPromptIdentityCandidateNodes(nodes, seen, candidateRows, input, rejected);
     addUniverseCandidateNodes(nodes, seen, candidateRows, input);
-    const promptEdges = edgeRowsForClauses(promptParse.clauses || [], bySpan, nodes);
+    const canonicalization = canonicalizeGroundedNodes(nodes, input);
+    nodes.splice(0, nodes.length, ...canonicalization.nodes);
+    remapSpanNodes(bySpan, nodes, canonicalization.nodeIdMap);
+    const constructionReceipt = attachConstructionEvidence(nodes, input.slotEvidence || []);
+    const promptEdges = edgeRowsForClauses(promptParse.clauses || [], bySpan, PROCESS_TO_EDGE);
     const edges = uniqueEdgeRows([
       ...promptEdges,
       ...edgeRowsForIntentBrief(intentBrief, nodes),
@@ -195,6 +210,8 @@
       unresolved,
       unsupported,
       rejected,
+      canonicalization: canonicalization.receipt,
+      constructionReceipt,
       intentBrief: intentBrief ? {
         schema: intentBrief.schema || '',
         evidenceCount: (intentBrief.retrievedEvidence || []).length,
@@ -312,6 +329,10 @@
         primitiveHints: row.primitiveHints || [],
         conceptIds: row.conceptIds || (row.canonicalId ? [row.canonicalId] : []),
         shapeHints: row.shapeHints || [],
+        construction: row.construction || null,
+        constructionEvidence: row.constructionEvidence === true,
+        modelEvaluated: row.modelEvaluated === true,
+        modelScore: Number.isFinite(Number(row.modelScore)) ? Number(row.modelScore) : null,
         sceneHints: row.sceneHints || [],
         indexName: row.indexName || '',
         rankSignals: row.rankSignals || null,
@@ -435,6 +456,8 @@
       });
     }
     for (const row of externalRows) {
+      if (['entity', 'material', 'environment'].includes(span.kind) &&
+        /^(?:action|event|operator|process|relation|visual)$/.test(String(row.semanticType || '').toLowerCase())) continue;
       const labels = candidateLabels(row);
       const overlap = labelOverlap(text, labels);
       const exact = labels.includes(text);
@@ -461,7 +484,8 @@
   function rowIdentityMatchesSpan(row, text) {
     const spanTokens = new Set(identityTokens(text));
     if (!spanTokens.size) return false;
-    return identityTokensForRow(row).some((token) => spanTokens.has(token));
+    const rowTokens = identityTokensForRow(row);
+    return Array.from(spanTokens).every((token) => rowTokens.includes(token));
   }
 
   function identityTokensForRow(row = {}) {
@@ -484,11 +508,22 @@
 
   function addComponentNodes(nodes, seen, input, rejected) {
     const prompt = String(input.prompt || input.promptParse && input.promptParse.prompt || '').toLowerCase();
+    const nonEntityLabels = (input.promptParse && input.promptParse.spans || [])
+      .filter((span) => ['modifier', 'observable', 'process'].includes(span.kind))
+      .map((span) => String(span.text || '').toLowerCase());
     let added = 0;
     for (const component of input.components || []) {
       const label = component.role || component.phrase || component.id;
       const lower = String(label || '').toLowerCase();
-      if (nodes.some((node) => lower.includes(String(node.label || '').toLowerCase()))) continue;
+      const componentLabels = [component.id, component.phrase, component.role]
+        .map((value) => String(value || '').toLowerCase())
+        .filter(Boolean);
+      if (nonEntityLabels.some((labelText) => componentLabels.some((value) => (
+        value === labelText || value.includes(labelText)
+      )))) {
+        rejected.push({ label, reason: 'non-entity language evidence is lowered through its typed phase program' });
+        continue;
+      }
       const source = String(component.source || '');
       const fillsGroundingGap = nodes.length < 2;
       const isSynthesis = /^embedding-guided-synth/.test(source);
@@ -543,14 +578,74 @@
 
   function surfaceIdentityTokens(value = '') {
     const generic = new Set([
-      'artifact', 'assembly', 'component', 'entity', 'environment', 'generated',
-      'material', 'primitive', 'prompt', 'semantic', 'surface',
+      'artifact', 'assembly', 'body', 'component', 'entity', 'environment', 'generated',
+      'material', 'primitive', 'process', 'prompt', 'relation', 'semantic', 'surface',
     ]);
     return identityTokens(value).filter((token) => !generic.has(token));
+  }
+  function addPromptOwnedCandidateNodes(nodes, seen, candidateRows, input) {
+    const prompt = String(input.prompt || input.promptParse && input.promptParse.prompt || '').toLowerCase();
+    const rows = (candidateRows || [])
+      .filter((row) => row && row.identityEvidence === true)
+      .filter((row) => !/^(?:action|event|operator|process|relation|visual)$/.test(String(row.semanticType || '').toLowerCase()))
+      .sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
+    for (const row of rows.slice(0, 24)) {
+      const identity = surfaceIdentityTokens([row.label, ...(row.aliases || [])].filter(Boolean).join(' '));
+      if (!identity.some((token) => new RegExp(`\\b${token}(?:s|es)?\\b`).test(prompt))) continue;
+      const identityKey = slugify(String(row.canonicalId || row.id || row.label || '').split('.').pop());
+      const duplicate = nodes.find((node) => slugify(String(node.canonicalId || node.id || node.label || '')
+        .split('.').pop()) === identityKey);
+      const id = slugify(row.canonicalId || row.id || row.label);
+      if (!id || !duplicate && seen.has(id)) continue;
+      const promptNode = {
+        id,
+        spanId: null,
+        semanticType: row.semanticType || 'entity',
+        semanticClass: row.semanticClass || '', visualArchetype: row.visualArchetype || (row.shapeHints || [])[0] || '',
+        canonicalId: row.canonicalId || row.id,
+        label: labelFromSpan(row.label || row.id),
+        sourceLabel: row.sourceLabel || row.label || '',
+        aliases: unique([row.sourceLabel, row.label, row.id, ...(row.aliases || [])].filter(Boolean)),
+        confidence: clamp01(Number(row.confidence || row.score || 1)),
+        domains: row.domains || [],
+        materialId: row.materialId || '',
+        materialIds: row.materialIds || (row.materialId ? [row.materialId] : []),
+        operatorHints: row.operatorHints || row.operatorTypes || [],
+        operatorTypes: row.operatorTypes || row.operatorHints || [],
+        primitiveHints: row.primitiveHints || [],
+        conceptIds: row.conceptIds || (row.canonicalId ? [row.canonicalId] : []),
+        shapeHints: unique([...(row.shapeHints || []), row.visualArchetype].filter(Boolean)),
+        sceneHints: row.sceneHints || [],
+        indexName: 'prompt-typed-slot',
+        evidence: unique([...(row.evidence || []), row.id, 'phase3-prompt-identity']),
+        directlyGrounded: true,
+      };
+      if (duplicate) {
+        const local = {
+          spanId: duplicate.spanId,
+          semanticType: duplicate.semanticType,
+          semanticClass: duplicate.semanticClass,
+          visualArchetype: duplicate.visualArchetype,
+          materialId: duplicate.materialId,
+          materialIds: duplicate.materialIds || [],
+        };
+        Object.assign(duplicate, promptNode, {
+          spanId: local.spanId || promptNode.spanId,
+          semanticType: local.semanticType || promptNode.semanticType,
+          semanticClass: local.semanticClass || promptNode.semanticClass,
+          visualArchetype: local.visualArchetype || promptNode.visualArchetype,
+          materialId: local.materialId || promptNode.materialId,
+          materialIds: unique([...local.materialIds, ...(promptNode.materialIds || [])]),
+        });
+      } else { seen.set(id, 1); nodes.push(promptNode); }
+    }
   }
 
   function addPromptIdentityCandidateNodes(nodes, seen, candidateRows, input, rejected) {
     const prompt = String(input.prompt || input.promptParse && input.promptParse.prompt || '').toLowerCase();
+    const promptIdentityTokens = new Set((input.promptParse && input.promptParse.spans || [])
+      .filter((span) => ['entity', 'environment', 'material', 'observable'].includes(span.kind))
+      .flatMap((span) => surfaceIdentityTokens(span.text || '')));
     const rows = (candidateRows || [])
       .filter((row) => row && String(row.indexName || '') === 'semantic-surface-grounder')
       .sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
@@ -564,9 +659,8 @@
         row.label,
         ...(row.aliases || []),
       ].filter(Boolean).join(' '));
-      const directlyMentioned = identity.some((token) => (
-        new RegExp(`\\b${token}(?:s|es)?\\b`).test(prompt)
-      ));
+      const directlyMentioned = identity.some((token) => promptIdentityTokens.has(token) &&
+        new RegExp(`\\b${token}(?:s|es)?\\b`).test(prompt));
       if (!directlyMentioned) {
         rejected.push({ label: row.label || row.id, reason: 'surface candidate identity lacks prompt evidence' });
         continue;
@@ -593,8 +687,11 @@
         id,
         spanId: null,
         semanticType,
+        semanticClass: row.semanticClass || '',
+        visualArchetype: row.visualArchetype || (row.shapeHints || [])[0] || '',
         canonicalId,
         label: labelFromSpan(row.label || row.id),
+        sourceLabel: row.sourceLabel || row.label || '',
         aliases: unique([row.label, row.id, ...(row.aliases || [])]),
         confidence: clamp01(Number(row.confidence || 0.7)),
         domains: row.domains || [],
@@ -609,6 +706,7 @@
         indexName: row.indexName,
         rankSignals: row.rankSignals || null,
         evidence: unique([...(row.evidence || []), 'phase3-exact-surface-identity']),
+        directlyGrounded: true,
       });
       added += 1;
     }
@@ -857,45 +955,7 @@
   }
 
   function promptIncludesAny(prompt, values) {
-    return (values || []).some((value) => {
-      const text = String(value || '').toLowerCase();
-      return text && prompt.includes(text);
-    });
-  }
-
-  function edgeRowsForClauses(clauses, bySpan, nodes) {
-    const edges = [];
-    for (const clause of clauses || []) {
-      const from = bySpan.get(clause.subjectSpanId) || null;
-      const to = bySpan.get(clause.objectSpanId) || null;
-      if (!from || !to) continue;
-      const type = PROCESS_TO_EDGE[clause.process] || 'interaction';
-      edges.push({
-        id: `edge${edges.length + 1}`,
-        type,
-        from: from.id,
-        to: to.id,
-        processId: clause.process || 'interact',
-        prepositions: clause.prepositions || [],
-        confidence: Math.min(from.confidence, to.confidence, 0.82),
-        evidence: ['prompt-clause'],
-      });
-    }
-    if (!edges.length && nodes.length > 1) {
-      for (let index = 1; index < Math.min(nodes.length, 4); index += 1) {
-        edges.push({
-          id: `edge${edges.length + 1}`,
-          type: 'adjacent',
-          from: nodes[index - 1].id,
-          to: nodes[index].id,
-          processId: 'coexists',
-          prepositions: [],
-          confidence: 0.42,
-          evidence: ['grounding-adjacency'],
-        });
-      }
-    }
-    return edges;
+    return (values || []).some((value) => String(value || '').toLowerCase() && prompt.includes(String(value || '').toLowerCase()));
   }
 
   function operatorHintsForDomains(domains) {
@@ -922,19 +982,12 @@
   }
 
   function labelFromSpan(text) {
-    return String(text || '')
-      .trim()
-      .replace(/\s+/g, ' ')
-      .replace(/\b[a-z]/g, (match) => match.toUpperCase());
+    return String(text || '').trim().replace(/\s+/g, ' ').replace(/\b[a-z]/g, (match) => match.toUpperCase());
   }
 
-  function unique(values) {
-    return Array.from(new Set((values || []).filter(Boolean)));
-  }
+  function unique(values) { return [...new Set((values || []).filter(Boolean))]; }
 
-  function defaultSlugify(value) {
-    return String(value || 'item').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item';
-  }
+  function defaultSlugify(value) { return String(value || 'item').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'; }
 
   return {
     UNIVERSE_GRAPH_SCHEMA,

@@ -398,9 +398,13 @@
       });
 
     const SEMANTIC_STOPWORDS = new Set([
-        'a', 'an', 'and', 'are', 'as', 'be', 'build', 'by', 'create', 'do', 'for', 'from',
+        'a', 'an', 'and', 'are', 'as', 'be', 'build', 'but', 'by', 'create', 'do', 'for', 'from',
         'have', 'in', 'into', 'is', 'it', 'make', 'of', 'on', 'or', 'simulate', 'simulation',
-        'that', 'the', 'this', 'to', 'use', 'uses', 'with', 'world',
+        'another', 'that', 'the', 'this', 'to', 'use', 'uses', 'with', 'world',
+        'above', 'across', 'after', 'against', 'along', 'around', 'before', 'behind',
+        'below', 'beneath', 'beside', 'between', 'during', 'near', 'off', 'onto',
+        'at', 'cannot', 'generic', 'inside', 'never', 'no', 'none', 'not', 'outside',
+        'study', 'through', 'under', 'while', 'within', 'without',
       ]);
 
     const SWIMMING_VISUAL_SLOT_TARGETS = Object.freeze([

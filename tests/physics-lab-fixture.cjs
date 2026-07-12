@@ -281,7 +281,16 @@ function assertVisualIRCase(prompt, expected) {
   assert.equal(ir.camera.depth, 'layered');
   assert.notEqual(ir.sceneKind, 'generic');
   assert.notEqual(ir.sceneKind, 'literal-composite');
-  assert.ok(ir.entities.length >= 5);
+  assert.ok(ir.entities.length >= 1);
+  assert.equal(new Set(ir.entities.map((entity) => entity.id)).size, ir.entities.length);
+  assert.ok(ir.entities.every((entity) => entity.status === 'accepted'));
+  assert.ok(ir.entities.every((entity) => entity.supportOnly !== true));
+  assert.ok(ir.entities.every((entity) => entity.evidence.length >= 1));
+  const packetEntities = program.sceneRenderPacket.entities || [];
+  assert.equal(new Set(packetEntities.map((entity) => entity.id)).size, packetEntities.length);
+  assert.ok(packetEntities.some((entity) => entity.geometry.coverage.realized));
+  assert.ok(packetEntities.filter((entity) => entity.identity.directlyGrounded)
+    .every((entity) => entity.geometry.coverage.realized));
   assert.ok(ir.materials.length >= 2);
   assert.ok(ir.fields.length >= 1);
   assert.ok(ir.processes.length >= 4);

@@ -136,6 +136,7 @@
             verbSpanId: clause.verbSpanId || '',
             objectSpanId: clause.objectSpanId || '',
             process: clause.process || '',
+            predicate: clause.predicate || '',
             subjectRole: clause.subjectRole || '',
             objectRole: clause.objectRole || '',
             spatialRelation: clause.spatialRelation || '',
@@ -162,6 +163,7 @@
               targetSpanId: clause.verbSpanId,
               relation: 'performs',
               process: clause.process || '',
+              predicate: clause.predicate || '',
               subjectRole: clause.subjectRole || '',
               source: 'clause',
             });
@@ -173,6 +175,7 @@
               targetSpanId: clause.objectSpanId,
               relation: clause.spatialRelation,
               process: clause.process || '',
+              predicate: clause.predicate || '',
               subjectRole: clause.subjectRole || '',
               objectRole: clause.objectRole || '',
               causalAffordance: clause.causalAffordance || '',
@@ -668,7 +671,8 @@
     	        status: phase3SlotEvidenceStatus(slot, acceptedCandidates, supportOnlyCandidates),
     	        queryTexts: (slot.queries || []).map((query) => query.text || '').filter(Boolean),
     	        candidates,
-    	        acceptedCandidates,
+	        acceptedCandidates,
+	        constructionCandidates: acceptedCandidates.filter((candidate) => candidate.constructionEvidence === true),
     	        supportOnlyCandidates,
     	        acceptedCount: acceptedCandidates.length,
     	        supportOnlyCount: supportOnlyCandidates.length,
@@ -701,8 +705,10 @@
     		        id: candidateId,
     		        candidateId,
     		        candidateType: row.candidateType || phase3CandidateType(row),
-    		        label: row.label || row.phrase || row.role || row.id || '',
-    		        candidateText: row.candidateText || row.label || row.phrase || row.role || row.id || '',
+		        label: row.label || row.phrase || row.role || row.id || '',
+		        candidateText: row.candidateText || row.label || row.phrase || row.role || row.id || '',
+		        sourceLabel: row.sourceLabel || '',
+		        aliases: row.aliases || [],
 		        source: row.source || row.indexName || '',
 		        canonicalId: row.canonicalId || '',
 		        semanticType: row.semanticType || '',
@@ -711,6 +717,21 @@
 		        operatorHints: row.operatorHints || row.operatorTypes || [],
 		        primitiveHints: row.primitiveHints || [],
 		        shapeHints: row.shapeHints || [],
+		        partHints: row.partHints || row.construction && row.construction.partHints || [],
+		        materialHints: row.materialHints || row.construction && row.construction.materialHints || [],
+		        behaviorHints: row.behaviorHints || row.construction && row.construction.behaviorHints || [],
+		        affordanceHints: row.affordanceHints || row.construction && row.construction.affordanceHints || [],
+		        relationHints: row.relationHints || row.construction && row.construction.relationHints || [],
+		        scaleHints: row.scaleHints || row.construction && row.construction.scaleHints || [],
+		        construction: row.construction || null,
+		        constructionEvidence: row.constructionEvidence === true,
+		        identityEvidence: row.identityEvidence === true,
+		        modelEvaluated: row.modelEvaluated === true,
+		        modelRerankEvaluated: row.modelRerankEvaluated === true,
+		        modelScore: Number.isFinite(Number(row.modelScore)) ? Number(row.modelScore) : null,
+		        vectorHash: row.vectorHash || '',
+		        semanticClass: row.semanticClass || slot.semanticClass || '',
+		        visualArchetype: row.visualArchetype || slot.visualArchetype || '',
 		        sceneHints: row.sceneHints || [],
     		        slotId: slot.slotId || '',
     		        slotRole: slot.slotRole || '',
@@ -729,9 +750,10 @@
         const entryId = String(slot.entryId || '');
         const role = String(slot.slotRole || '');
         if (!entryId || role === 'support' || role === 'visual') return null;
-        const label = normalizeForEvidence(entryId.replace(/^[a-z]+:/, '')).trim();
-        if (!label) return null;
-        const slug = label.replace(/\s+/g, '-');
+        const identityLabel = normalizeForEvidence(entryId.replace(/^[a-z]+:/, '')).trim();
+        const sourceLabel = String(slot.sourceLabel || identityLabel).trim();
+        if (!identityLabel || !sourceLabel) return null;
+        const slug = identityLabel.replace(/\s+/g, '-');
         const semanticType = {
           actor: 'body',
           object: 'body',
@@ -744,14 +766,19 @@
           id: `prompt.${role || 'entity'}.${slug}`,
           candidateId: `prompt.${role || 'entity'}.${slug}`,
           candidateType: 'prompt-literal',
-          label,
-          candidateText: label,
+          label: identityLabel,
+          candidateText: identityLabel,
+          sourceLabel,
+          aliases: [sourceLabel, identityLabel],
           canonicalId: `prompt.${semanticType}.${slug}`,
           semanticType,
+          semanticClass: slot.semanticClass || '',
+          visualArchetype: slot.visualArchetype || '',
+          shapeHints: slot.shapeHints || [],
           source: 'prompt-typed-slot',
           score: 1,
           supportOnly: false,
-          identityEvidence: true,
+          identityEvidence: /^(?:actor|object|environment|medium)$/.test(role),
           reason: 'typed Phase 2 slot preserves literal prompt identity',
         };
       }
@@ -790,8 +817,13 @@
 		      source: candidate.source || 'slot-embedding-retrieval',
 		      slotId,
 		      slotRole: slot.slotRole || candidate.slotRole || '',
+		      vectorHash: row.vectorHash || '',
 		    }));
-		    return phase3FilterRowsForEntry(candidates, String(slot.entryId || ''));
+		    const constructionRows = candidates.filter((candidate) => candidate.constructionEvidence === true);
+		    return uniquePhase3SlotRows([
+		      ...constructionRows,
+		      ...phase3FilterRowsForEntry(candidates, String(slot.entryId || '')),
+		    ]);
 		  }
 
     function uniquePhase3SlotRows(rows = []) {

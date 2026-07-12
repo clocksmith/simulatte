@@ -39,6 +39,8 @@
           this.rankSerial = 0;
           this.gpuPromise = null;
           this.dopplerDevicePromise = null;
+          this.dopplerApiPromise = null;
+          this.dopplerCachedSourcePromises = new Map();
         }
 
         async loadModel(options = {}) {
@@ -74,6 +76,40 @@
                     ? 'opfs'
                     : '',
                 });
+                const prefetchRuntime = { manifest };
+                const prefetchOptions = {
+                  dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
+                  progress,
+                  trace,
+                  traceId: this.traceId,
+                };
+                const hasInjectedEmbedding = options.embedProvider || this.embedProvider ||
+                  options.dopplerModelHandle || this.dopplerModelHandle || globalModelHandle();
+                const runtimeConfig = manifest.runtime || {};
+                if (!hasInjectedEmbedding && !this.dopplerApiPromise && runtimeConfig.moduleUrl) {
+                  this.dopplerApiPromise = resolveDopplerApi({
+                    dopplerModule: options.dopplerModule || this.dopplerModule,
+                    moduleUrl: runtimeConfig.moduleUrl,
+                    kernelBasePath: runtimeConfig.kernelBasePath,
+                  });
+                  this.dopplerApiPromise.catch(() => { this.dopplerApiPromise = null; });
+                }
+                if (!hasInjectedEmbedding && manifest.embedModel) {
+                  prefetchDopplerCachedModelSource(this, 'embedding', prefetchRuntime, manifest.embedModel, {
+                    ...prefetchOptions,
+                    progressRange: EMBEDDING_CACHE_PROGRESS,
+                    resourceKind: 'embedding-model',
+                  });
+                }
+                const eagerReranker = rerankerConfig(manifest);
+                if (!hasInjectedEmbedding && eagerReranker.enabled && eagerReranker.required && eagerReranker.model &&
+                  !options.rerankProvider && !options.rerankerProvider && !this.rerankProvider) {
+                  prefetchDopplerCachedModelSource(this, 'reranker', prefetchRuntime, eagerReranker.model, {
+                    ...prefetchOptions,
+                    progressRange: RERANKER_CACHE_PROGRESS,
+                    resourceKind: 'reranker-model',
+                  });
+                }
                 const retrieval = manifest.retrieval || {};
                 const indexUrl = retrieval.artifact;
                 if (!indexUrl) throw new Error('intent manifest missing retrieval artifact');
@@ -630,11 +666,11 @@
             traceId: this.traceId,
             moduleUrl,
           });
-          const api = await resolveDopplerApi({
+          const api = await (this.dopplerApiPromise || resolveDopplerApi({
             dopplerModule: options.dopplerModule || this.dopplerModule,
             moduleUrl,
             kernelBasePath: runtime.manifest.runtime && runtime.manifest.runtime.kernelBasePath,
-          });
+          }));
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'model-module',
@@ -659,7 +695,7 @@
             throw new Error('model-backed intent manifest missing Doppler runtimeConfig');
           }
           const [cachedSource] = await Promise.all([
-            prepareDopplerCachedModelSource(runtime, model, {
+            takeDopplerCachedModelSource(this, 'embedding', runtime, model, {
               dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
               progress,
               trace,
@@ -796,11 +832,11 @@
           const trace = this.traceEnabled || traceEnabled(options);
           const moduleUrl = runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl;
           if (!moduleUrl) throw new Error('model runtime lock did not resolve a Doppler module URL');
-          const api = await resolveDopplerApi({
+          const api = await (this.dopplerApiPromise || resolveDopplerApi({
             dopplerModule: options.dopplerModule || this.dopplerModule,
             moduleUrl,
             kernelBasePath: runtime.manifest.runtime && runtime.manifest.runtime.kernelBasePath,
-          });
+          }));
           const load = api && (api.load || api.doppler && api.doppler.load);
           if (typeof load !== 'function') {
             throw new Error(`model-backed intent requires Doppler load() for reranker; no loader found at ${moduleUrl}`);
@@ -808,7 +844,7 @@
           const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error(`intent reranker ${config.id} requires model.defaultModelBaseUrl`);
           const [cachedSource] = await Promise.all([
-            prepareDopplerCachedModelSource(runtime, model, {
+            takeDopplerCachedModelSource(this, 'reranker', runtime, model, {
               dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
               progress,
               trace,

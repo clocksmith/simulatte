@@ -212,6 +212,7 @@
         const sourceLedger = spec && spec.renderIR && spec.renderIR.compositionLedger || null;
         const sourceObligations = sourceLedger && Array.isArray(sourceLedger.obligations) ? sourceLedger.obligations : [];
         const sourceEntries = sourceLedger && Array.isArray(sourceLedger.entries) ? sourceLedger.entries : [];
+        const sourceRelations = sourceLedger && Array.isArray(sourceLedger.relations) ? sourceLedger.relations : [];
         const identities = new Set((renderInstances || [])
           .map((row) => row.identity && row.identity.type)
           .filter(Boolean));
@@ -278,7 +279,7 @@
         const sceneVisualTarget = sceneVisualRow && sceneVisualRow.nameText || 'compiled scene packet';
         const genericEvidenceByObligation = Object.fromEntries(sourceObligations.map((row) => [
           row.id || '',
-          genericVisualEvidence(row, genericVisualRows, sourceObligations, sourceEntries),
+          genericVisualEvidence(row, genericVisualRows, sourceObligations, sourceEntries, sourceRelations),
         ]));
         const facts = {
           hasDog: identities.has('dog') || /\bdog|surface-dog|primitive-dog/.test(entityText),
@@ -415,6 +416,7 @@
             identity.renderClass,
             ...(row.sourceIds || []),
             ...(row.evidence || []),
+            ...(row.behavior && row.behavior.sourceEvidence || []),
           ];
           const text = normalizeVisualEvidenceText(values.filter(Boolean).join(' '));
           if (!text) return;
@@ -423,7 +425,13 @@
             source,
             text,
             nameText,
+            evidenceText: normalizeVisualEvidenceText([
+              ...(row.evidence || []), ...(row.behavior && row.behavior.sourceEvidence || []),
+            ].join(' ')),
             identityText: normalizeVisualEvidenceText([identity.type, identity.label].filter(Boolean).join(' ')),
+            referenceText: normalizeVisualEvidenceText([
+              row.semanticRef, row.physicalRef, row.sourceGraphId, ...(row.sourceIds || []),
+            ].filter(Boolean).join(' ')),
             priority: Number(row.renderPriority || row.confidence || 0) + (/\blight\b|emissive/.test(JSON.stringify(row.material || '')) ? 1 : 0),
           });
         };
@@ -434,18 +442,52 @@
         return rows;
       }
 
-    function genericVisualEvidence(row = {}, rows = [], sourceObligations = [], sourceEntries = []) {
+    function genericVisualEvidence(row = {}, rows = [], sourceObligations = [], sourceEntries = [], sourceRelations = []) {
         const id = String(row.id || row.obligationId || '');
         const parts = id.split(':');
+        if (id === 'action:spatial-constraint') {
+          return rows.filter((candidate) => /\blayout relation\b/.test(candidate.evidenceText))
+            .map((candidate) => `phase6:${candidate.source}:${candidate.id}`);
+        }
+        if (parts[0] === 'relation' && parts[1] === 'spatial' && parts.length >= 5) {
+          const subjectTarget = parts[2].replace(/^[a-z]+-/, '');
+          const relationType = parts[3].replace(/_/g, '-');
+          const objectTarget = parts.slice(4).join(' ').replace(/^[a-z]+-/, '');
+          const subject = relationType === 'occurs-in'
+            ? visualEvidenceForLedgerAction(subjectTarget, rows, sourceEntries)
+            : visualEvidenceForTarget(subjectTarget, rows);
+          const object = visualEvidenceForTarget(objectTarget, rows);
+          if (relationType === 'occurs-in') return subject.length && object.length ? uniqueList([...subject, ...object]) : [];
+          const normalizedId = normalizeVisualEvidenceText(id);
+          const constraint = rows.filter((candidate) => candidate.evidenceText.includes(normalizedId))
+            .map((candidate) => `phase6:${candidate.source}:${candidate.id}`);
+          return subject.length && object.length && constraint.length
+            ? uniqueList([...subject, ...object, ...constraint, `layout-relation:${id}`])
+            : [];
+        }
         if (id === 'action:coexists') {
           return uniqueList((sourceObligations || [])
             .filter((candidate) => String(candidate.id || '').split(':')[2] === 'coexists')
-            .flatMap((candidate) => genericVisualEvidence(candidate, rows, [], sourceEntries)));
+            .flatMap((candidate) => genericVisualEvidence(candidate, rows, [], sourceEntries, sourceRelations)));
         }
         if (parts[0] === 'relation' && parts.length >= 4) {
-          const subject = visualEvidenceForTarget(parts[1], rows);
+          const subject = visualEvidenceForTarget(parts[1].replace(/^[a-z]+-/, ''), rows);
           const process = parts[2] === 'coexists' ? [] : visualEvidenceForLedgerAction(parts[2], rows, sourceEntries);
-          const object = parts.slice(3).join(' ') === 'world' ? ['scene:world'] : visualEvidenceForTarget(parts.slice(3).join(' '), rows);
+          const target = parts.slice(3).join(' ').replace(/^[a-z]+-/, '');
+          const object = target === 'world' ? ['scene:world'] : visualEvidenceForTarget(target, rows);
+          const exact = rows.filter((candidate) => candidate.evidenceText.includes(normalizeVisualEvidenceText(id)))
+            .map((candidate) => `phase6:${candidate.source}:${candidate.id}`);
+          if (subject.length && object.length && exact.length) return uniqueList([...subject, ...exact, ...object]);
+          const sourceRelation = sourceRelations.find((candidate) => candidate.id === id);
+          const spatial = sourceRelation && sourceRelations.find((candidate) => (
+            candidate !== sourceRelation && candidate.kind === 'spatial-constraint' &&
+            candidate.from === sourceRelation.from &&
+            (candidate.target || candidate.to) === (sourceRelation.target || sourceRelation.to)
+          ));
+          if (spatial) {
+            const spatialEvidence = genericVisualEvidence({ ...row, id: spatial.id }, rows, sourceObligations, sourceEntries, sourceRelations);
+            if (spatialEvidence.length) return uniqueList([...spatialEvidence, `relation-source:${id}`]);
+          }
           return subject.length && object.length && (!process.length ? parts[2] === 'coexists' : true)
             ? uniqueList([...subject, ...process, ...object])
             : [];
@@ -456,18 +498,26 @@
       }
 
     function visualEvidenceForLedgerAction(target = '', rows = [], sourceEntries = []) {
-        const direct = visualEvidenceForTarget(target, rows);
+        const direct = visualEvidenceForTarget(target, rows, true);
         if (direct.length) return direct;
         const normalized = normalizeVisualEvidenceText(target);
+        const promptEntry = (sourceEntries || []).find((entry) => entry && entry.kind === 'action' && entry.source === 'prompt' &&
+          normalizeVisualEvidenceText(entry.label || String(entry.id || '').replace(/^action:/, '')) === normalized);
+        const promptSpanIds = new Set(promptEntry && promptEntry.sourceSpanIds || []);
+        const normalizedPredicate = promptEntry && (sourceEntries || []).find((entry) => entry && entry.kind === 'action' && entry.source === 'predicate' &&
+          (entry.sourceSpanIds || []).some((id) => promptSpanIds.has(id)));
+        if (normalizedPredicate) {
+          return visualEvidenceForTarget(normalizedPredicate.label || normalizedPredicate.id, rows, true);
+        }
         const predicate = (sourceEntries || []).find((entry) => entry && entry.kind === 'action' && entry.source === 'predicate' &&
           normalizeVisualEvidenceText(entry.label || String(entry.id || '').replace(/^action:/, '')) === normalized);
         if (!predicate) return [];
         const spanIds = new Set(predicate.sourceSpanIds || []);
         return uniqueList((sourceEntries || []).filter((entry) => entry && entry.kind === 'action' && entry.source === 'prompt' &&
-          (entry.sourceSpanIds || []).some((id) => spanIds.has(id))).flatMap((entry) => visualEvidenceForTarget(entry.label || entry.id, rows)));
+          (entry.sourceSpanIds || []).some((id) => spanIds.has(id))).flatMap((entry) => visualEvidenceForTarget(entry.label || entry.id, rows, true)));
       }
 
-    function visualEvidenceForTarget(target = '', rows = []) {
+    function visualEvidenceForTarget(target = '', rows = [], allowEvidence = false) {
         const terms = visualEvidenceTokens(target);
         if (!terms.length) return [];
         const matches = (rows || [])
@@ -475,7 +525,12 @@
             row,
             index,
             score: terms.reduce((sum, term) => sum + (visualEvidenceTextHasTerm(row.text, term) ? 1 : 0), 0),
-            specificity: Math.max(visualEvidenceSpecificity(row.nameText, terms), terms.length === 1 && visualEvidenceTextHasTerm(row.identityText, terms[0]) ? 1 : 0),
+            specificity: Math.max(
+              visualEvidenceSpecificity(row.nameText, terms),
+              terms.length === 1 && visualEvidenceTextHasTerm(row.identityText, terms[0]) ? 1 : 0,
+              terms.every((term) => visualEvidenceTextHasTerm(row.referenceText, term)) ? 1 : 0,
+              allowEvidence && terms.every((term) => visualEvidenceTextHasTerm(row.evidenceText, term)) ? 1 : 0
+            ),
           }))
           .filter((entry) => entry.score === terms.length && entry.specificity >= 0.5)
           .sort((left, right) => right.specificity - left.specificity || right.score - left.score || left.index - right.index)
@@ -883,64 +938,6 @@
         return { ...(receipts || {}), intentBrief: row };
       }
 
-    function visualEntityForObject(object, index, sceneKind) {
-        const text = renderObjectText(object);
-        return {
-          id: object.id || `entity-${index + 1}`,
-          sourceObject: object.id || '',
-          label: object.phrase || object.role || object.id || `entity ${index + 1}`,
-          kind: visualEntityKind(object, text),
-          role: visualEntityRole(object, text, sceneKind),
-          material: object.material || 'matte',
-          shape: object.shape || 'body',
-          visualRegime: object.visualRegime || 'generic',
-          pose: object.pose || {},
-          semanticRef: object.semanticRef || '',
-          physicalRef: object.physicalRef || '',
-          sourceGraphId: object.visualSourceGraphId || object.id || '',
-          sourceKind: object.visualSourceKind || object.source || 'compiled-object',
-          sourceIds: object.visualSourceIds || uniqueList([object.id, object.semanticRef, object.physicalRef].filter(Boolean)),
-          behavior: object.behavior || null,
-          physicsOperators: object.physicsOperators || [],
-          stateBindings: object.stateBindings || {},
-          status: object.visualStatus || 'accepted',
-          confidence: Number.isFinite(Number(object.visualConfidence)) ? Number(object.visualConfidence) : 0.72,
-          reason: object.visualReason || 'accepted compiled graph object',
-          supportOnly: object.visualSupportOnly === true,
-          evidence: visualEvidenceForObject(object, text),
-        };
-      }
-
-    function visualEntityKind(object, text) {
-        if (/field-envelope|vector-band|thermal|gravity|dipole/.test(text) || object.kind === 'field') return 'field';
-        if (/queue|traffic|agent|patient|robot|vehicle|animal|fish|bird|crowd/.test(text)) return 'agent';
-        if (/water|air|smoke|plume|fluid|lava|foam|gel|soil|sand|biofilm|plasma/.test(text)) return 'medium';
-        if (/sensor|meter|instrument|lens|probe|antenna|detector|camera|microscope|telescope/.test(text)) return 'instrument';
-        if (/wall|boundary|bridge|building|vessel|tank|cage|reactor|repository/.test(text)) return 'surface';
-        return 'object';
-      }
-
-    function visualEntityRole(object, text, sceneKind) {
-        if (/source|sun|lamp|battery|pump|heater|injector/.test(text)) return 'source';
-        if (/sink|load|ledger|sensor|detector|readout/.test(text)) return 'measurement';
-        if (/constraint|wall|boundary|containment|repository|vessel/.test(text)) return 'constraint';
-        if (/flow|path|channel|queue|route|orbit|track/.test(text)) return 'path';
-        if (/process|front|reaction|burn|growth|fracture|collision/.test(text)) return 'process';
-        if (/city|digital|civic/.test(sceneKind) && /node|agent|queue/.test(text)) return 'agent';
-        return 'primary';
-      }
-
-    function visualEvidenceForObject(object, text) {
-        return uniqueList([
-          object.source || 'compiled-object',
-          object.shape ? `shape:${object.shape}` : '',
-          object.material ? `material:${object.material}` : '',
-          object.visualRegime ? `regime:${object.visualRegime}` : '',
-          object.phrase ? `phrase:${object.phrase}` : '',
-          text.includes('embedding-guided') ? 'embedding-grounded' : '',
-        ].filter(Boolean));
-      }
-
     Object.assign(scope, {
       wakeFieldRowsForSwimmingAgents,
       swimmingEffectRowsForAgents,
@@ -975,10 +972,6 @@
       visualGeometryForCausalAffordances,
       geometryPrimitiveForAffordance,
       augmentVisualReceiptsWithIntentBrief,
-      visualEntityForObject,
-      visualEntityKind,
-      visualEntityRole,
-      visualEvidenceForObject,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

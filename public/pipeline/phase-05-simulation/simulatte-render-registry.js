@@ -10,6 +10,7 @@
   const MATERIAL_STYLES = Object.freeze({
     air: style('#dff7ff', '#70b8d0', 0.18),
     biomass: style('#75b65c', '#315a32', 0.68),
+    dust: style('#c7aa76', '#7c6845', 0.58),
     fire: style('#ff9857', '#c24a5b', 0.78),
     glass: style('#dff9ff', '#65b9df', 0.34),
     gold: style('#ffd760', '#a86b23', 0.86),
@@ -351,6 +352,9 @@
     }
     if (/\b(earthquake|tsunami|hurricane|tornado|wildfire|evacuation|air quality|hazard|mine ventilation|tunnel boring|urban heat|drought)\b/.test(text)) {
       return 'hazard-atmosphere';
+    }
+    if (/\b(thermal plume|heat plume|lava|magma|molten|volcano|volcanic|steam)\b/.test(text)) {
+      return 'thermal-plume';
     }
     // Compiled thermal primitives can carry a `fire` materialId, so a bare fire token is
     // ambiguous. A lava/magma/molten/steam scene is thermal-plume, not combustion; real

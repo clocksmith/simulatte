@@ -20,9 +20,20 @@
         const controls = Object.keys(params).map((key) => ({ id: key, value: params[key] }));
         const receipt = emptyReceipt();
         const domainByNode = new Map();
+        const materialAssignments = materialAssignmentsForGraph(universeGraph);
 
         for (const node of universeGraph.nodes || []) {
-          if (/^(event|process|action|operator|property|state)$/.test(String(node.semanticType || '').toLowerCase())) {
+          if (materialAssignments.sourceNodeIds.has(node.id)) {
+            receipt.exact.push({
+              promptSpan: node.label,
+              canonicalId: node.canonicalId,
+              confidence: node.confidence,
+              loweredAs: 'material assignment',
+            });
+            continue;
+          }
+          const semanticType = String(node.semanticType || node.type || '').toLowerCase();
+          if (/^(event|process|action|observable|operator|property|state)$/.test(semanticType)) {
             receipt.exact.push({
               promptSpan: node.label,
               canonicalId: node.canonicalId,
@@ -31,7 +42,7 @@
             });
             continue;
           }
-          const entity = entityForNode(node);
+          const entity = entityForNode(node, materialAssignments.byTargetNodeId.get(node.id) || '');
           entities.push(entity);
           receipt.exact.push({ promptSpan: node.label, canonicalId: node.canonicalId, confidence: node.confidence });
           const domain = domainForEntity(entity, node, domains.length);
@@ -140,26 +151,69 @@
         }
       }
 
-    function entityForNode(node) {
+    function materialAssignmentsForGraph(universeGraph = {}) {
+        const byNodeId = new Map((universeGraph.nodes || []).map((node) => [node.id, node]));
+        const byTargetNodeId = new Map();
+        const sourceNodeIds = new Set();
+        for (const edge of universeGraph.edges || []) {
+          if (edge.type !== 'materialOf') continue;
+          const materialNode = byNodeId.get(edge.from);
+          if (!materialNode || !edge.to) continue;
+          const materialId = materialNode.materialId || String(materialNode.canonicalId || materialNode.label || '')
+            .split(/[._-]/).filter(Boolean).pop();
+          if (!materialId) continue;
+          byTargetNodeId.set(edge.to, materialId);
+          sourceNodeIds.add(edge.from);
+        }
+        return { byTargetNodeId, sourceNodeIds };
+      }
+
+    function entityForNode(node, materialOverride = '') {
         return {
           id: slugify(node.id || node.canonicalId || node.label),
           sourceNodeId: node.id,
           canonicalId: node.canonicalId,
           label: node.label || node.canonicalId,
+          sourceLabel: node.sourceLabel || (node.aliases || [])[0] || node.label || node.canonicalId,
           semanticType: node.semanticType || 'body',
-          materialId: node.materialId || materialFromDomains([
+          semanticClass: node.semanticClass || '',
+          visualArchetype: node.visualArchetype || '',
+          aliases: node.aliases || [],
+          shapeHints: node.shapeHints || [],
+          construction: node.construction || null,
+          constructionProvenance: node.constructionProvenance || [],
+          directlyGrounded: node.directlyGrounded === true || node.indexName === 'prompt-typed-slot',
+          materialId: materialOverride || node.materialId || materialFromDomains([
             ...(node.domains || []),
             node.label,
             node.canonicalId,
           ]),
           domains: node.domains || [],
           operatorHints: node.operatorHints || [],
+          evidence: node.evidence || [],
           geometryRef: geometryForNode(node),
           confidence: node.confidence,
         };
       }
 
     function geometryForNode(node) {
+        if (node.construction) {
+          return {
+            kind: 'constructive-program',
+            construction: node.construction,
+            bounds: [0.2, 0.24, 0.28, 0.24],
+          };
+        }
+        if (node.directlyGrounded === true && /^(dog|cat)$/.test(String(node.visualArchetype || ''))) {
+          return { kind: 'animal-body', joints: 6, bounds: [0.22, 0.34, 0.24, 0.14] };
+        }
+        if (node.directlyGrounded === true && node.visualArchetype) {
+          return {
+            kind: 'semantic-object',
+            archetype: node.visualArchetype,
+            bounds: [0.32, 0.34, 0.24, 0.2],
+          };
+        }
         const text = [
           node.label,
           node.canonicalId,
@@ -253,6 +307,10 @@
           semanticType,
           ...(domains || []),
         ].filter(Boolean).join(' ').toLowerCase();
+        if (entity.directlyGrounded === true && entity.visualArchetype &&
+          !/^(?:environment|material|medium)$/.test(String(semanticType).toLowerCase())) {
+          return 'rigidBody';
+        }
         if (/\b(railway|rail|train|subway|dispatch|signal|platform|slot|zoning|queue|traffic|market|network|agent|server|city)\b/.test(text)) {
           return 'network';
         }
@@ -365,14 +423,6 @@
           hasOperatorHint(domain, 'reaction_diffusion')
         ) {
           addField(fields, domain, 'reactionProgress', 'scalar', 'ratio', 0.08);
-        }
-        if (isAnimalDomain(domain)) {
-          addField(fields, domain, 'swimPhase', 'scalar', 'rad', 0);
-          addField(fields, domain, 'strokeForce', 'scalar', 'N', 0.42);
-          addField(fields, domain, 'buoyancy', 'scalar', 'N', 0.5);
-          addField(fields, domain, 'drag', 'scalar', 'ratio', 0.28);
-          addField(fields, domain, 'submersion', 'scalar', 'ratio', 0.58);
-          addField(fields, domain, 'wake', 'scalar', 'ratio', 0.18);
         }
         fields.forEach((field) => {
           if (field.domainId === domain.id) field.entityId = id;
@@ -493,6 +543,7 @@
             });
             continue;
           }
+          if (edge.type === 'materialOf') continue;
           const operator = couplingOperator(edge.type, from, to);
           if (!operator) {
             receipt.unsupported.push({

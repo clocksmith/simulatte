@@ -201,7 +201,13 @@
       }
       const endpoints = relationEndpoints(row, obligationId);
       const present = endpoints.filter((endpoint) => endpoint === 'world' || hasIdentityEvidence(context.identities, endpoint));
+      const spatialRelation = /^relation:spatial:/.test(obligationId);
+      const layoutEvidence = Array.isArray(row.visualEvidence) &&
+        row.visualEvidence.includes(`layout-relation:${obligationId}`);
       if (endpoints.length && present.length === endpoints.length) {
+        if (spatialRelation && !layoutEvidence) {
+          return { ...base, status: 'not-proven', reason: 'spatial relation lacks a Phase 6 constraint-layout receipt' };
+        }
         return { ...base, status: 'preserved', reason: 'relation endpoint identities present', evidence: ['packetIdentitySummary'] };
       }
       if (endpoints.length && present.length === 0) {
@@ -247,9 +253,17 @@
   }
 
   function objectRealizationForTarget(rows = [], target = '') {
-    return (rows || []).find((row) => [row && row.identityType, ...(row && row.identityLabels || [])]
-      .filter(Boolean)
-      .some((value) => proofPhraseMatch(normalizeProofText(value), normalizeProofText(target)))) || null;
+    const targetTokens = proofTokens(normalizeProofText(target));
+    return (rows || [])
+      .filter((row) => [row && row.identityType, ...(row && row.identityLabels || [])]
+        .filter(Boolean)
+        .some((value) => {
+          const tokens = proofTokens(normalizeProofText(value));
+          return targetTokens.length && targetTokens.every((term) => tokens.includes(term));
+        }))
+      .sort((a, b) => Number(b.realized === true) - Number(a.realized === true) ||
+        Number(b.literal === true) - Number(a.literal === true) ||
+        Number(b.projectedArea || 0) - Number(a.projectedArea || 0))[0] || null;
   }
 
   function proofTokens(value) {
@@ -272,6 +286,11 @@
       .filter(Boolean);
     if (explicit.length) return explicit;
     const parts = String(obligationId || '').split(':');
+    if (parts.length >= 5 && parts[0] === 'relation' && parts[1] === 'spatial') {
+      return [parts[2], parts[parts.length - 1]]
+        .map((value) => normalizeProofText(String(value || '').replace(/^[a-z]+-/, '')))
+        .filter(Boolean);
+    }
     if (parts.length >= 4 && parts[0] === 'relation') {
       return [normalizeProofText(parts[1]), normalizeProofText(parts[parts.length - 1])].filter(Boolean);
     }

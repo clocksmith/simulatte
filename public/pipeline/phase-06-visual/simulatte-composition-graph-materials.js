@@ -106,7 +106,7 @@
         if (/glass|ice|quartz|transparent|lens/.test(text)) return 'transparent';
         if (/metal|copper|gold|silicon|graphite|conductor/.test(text)) return 'metal';
         if (/cell|bio|plant|tissue|microbe|microbiome|bacteria|protein|biomass|moss|algae|mycelium/.test(text)) return 'biological';
-        if (/soil|sand|rock|grain|ceramic|porcelain|mineral/.test(text)) return 'granular';
+        if (/soil|sand|rock|grain|dust|ceramic|porcelain|mineral/.test(text)) return 'granular';
         if (/signal|packet|charge|electric|sensor/.test(text)) return 'electric';
         if (/concrete|paper|pigment|artifact/.test(text)) return 'cultural';
         return 'matte';
@@ -701,7 +701,7 @@
         const instancesByProcess = renderInstanceLookup(renderInstances, 'processId');
         const processById = new Map(processes.map((row) => [row.id, row]));
         const motionByProcess = new Map(motion.map((row) => [row.processId, row]));
-        const packetEntities = scenePacketComposeLiteralEntities(entities
+        const rawPacketEntities = entities
           .map((entity, index) => scenePacketEntity({
             entity,
             geometry: geometryByEntity.get(entity.id),
@@ -712,8 +712,10 @@
             index,
             total: entities.length,
           }))
-          .filter(Boolean))
+          .filter(Boolean)
           .slice(0, 32);
+        const sceneFraming = frameScenePacketEntities(rawPacketEntities);
+        const packetEntities = sceneFraming.entities;
         const packetFields = fields
           .map((field, index) => scenePacketField({
             field,
@@ -786,6 +788,7 @@
 	          compositionTopology: context.visualGenome && context.visualGenome.compositionTopology || '',
 	          cameraArchetype: context.visualGenome && context.visualGenome.cameraArchetype || '',
 	          scaleTier: context.visualGenome && context.visualGenome.scaleTier || '',
+	          framing: sceneFraming.receipt,
 	        compositionLedger: context.compositionLedger ? {
     	          schema: context.compositionLedger.schema || SCENE_COMPOSITION_LEDGER_SCHEMA,
     	          obligationCount: (context.compositionLedger.obligations || []).length,

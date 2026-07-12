@@ -55,6 +55,10 @@
           this.sceneInstanceData = new Float32Array(GPU_SCENE_INSTANCE_CAPACITY * GPU_SCENE_INSTANCE_FLOATS);
           this.sceneInstanceCount = 0;
           this.objectPartData = new Float32Array(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_FLOATS);
+          this.objectUniforms = new Float32Array(GPU_OBJECT_UNIFORM_FLOATS);
+          this.cameraState = {};
+          this.lightState = {};
+          this.rendererConsumption = null;
           this.objectPartCount = 0;
           this.objectPartBufferDirty = true;
           this.gpuScenePath = 'background-plus-instanced-object-parts';
@@ -100,6 +104,10 @@
               size: GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES,
               usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
             });
+            this.objectUniformBuffer = this.device.createBuffer({
+              size: this.objectUniforms.byteLength,
+              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            });
             this.bindGroupLayout = this.device.createBindGroupLayout({
               entries: [
                 { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
@@ -111,6 +119,11 @@
               vertex: { module: shader, entryPoint: 'backgroundVs' },
               fragment: { module: shader, entryPoint: 'backgroundFs', targets: [{ format: this.format }] },
               primitive: { topology: 'triangle-list' },
+              depthStencil: {
+                format: 'depth24plus',
+                depthWriteEnabled: false,
+                depthCompare: 'always',
+              },
             });
             this.bindGroup = this.device.createBindGroup({
               layout: this.bindGroupLayout,
@@ -129,7 +142,7 @@
             this.ready = true;
             this.status = 'WebGPU renderer ready';
             this.canvas.dataset.renderer = 'webgpu';
-            this.canvas.dataset.visualTier = 'webgpu-cinematic-3d';
+            this.canvas.dataset.visualTier = 'webgpu-depth-lit-2-5d';
             this.canvas.dataset.rendererStatus = this.status;
             this.canvas.dataset.webgpuFeatureFlags = webgpuFeatureSummary(this.webgpuFeatureReceipt);
             this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
@@ -169,11 +182,16 @@
               }],
             },
             primitive: { topology: 'triangle-list' },
+            depthStencil: {
+              format: 'depth24plus',
+              depthWriteEnabled: true,
+              depthCompare: 'less',
+            },
           });
           this.objectBindGroup = this.device.createBindGroup({
             layout: this.objectBindGroupLayout,
             entries: [
-              { binding: 0, resource: { buffer: this.uniformBuffer } },
+              { binding: 0, resource: { buffer: this.objectUniformBuffer } },
               { binding: 1, resource: { buffer: this.objectPartBuffer } },
             ],
           });
@@ -184,6 +202,9 @@
             'compiled-object-geometry-programs',
             'storage-buffer-object-parts',
             'instanced-bounded-quads',
+            'depth-buffer-occlusion',
+            'camera-perspective-transform',
+            'normal-material-lighting',
           ];
         }
 
@@ -274,8 +295,10 @@
           }
           const state = this.renderExecutionInput && this.renderExecutionInput.simulationState || {};
           this.resize();
+          this.refreshRendererConsumption();
           this.writeUniforms(state, nowMs || 0);
           this.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniforms);
+          this.writeObjectUniforms(nowMs || 0);
           this.writeObjectPartBuffer();
           const encoder = this.device.createCommandEncoder();
           const frameTexture = this.context.getCurrentTexture();
@@ -286,6 +309,14 @@
               loadOp: 'clear',
               storeOp: 'store',
             }],
+            ...(this.depthTexture ? {
+              depthStencilAttachment: {
+                view: this.depthTexture.createView(),
+                depthClearValue: 1,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+              },
+            } : {}),
           });
           pass.setPipeline(this.pipeline);
           pass.setBindGroup(0, this.bindGroup);
@@ -553,6 +584,9 @@
           this.sceneInstanceCount = renderData.sceneInstanceCount;
           this.objectPartData = renderData.objectPartData;
           this.objectPartCount = renderData.objectPartCount;
+          this.cameraState = renderData.cameraState || {};
+          this.lightState = renderData.lightState || {};
+          this.rendererConsumption = renderData.rendererConsumption || null;
           this.objectPartBufferDirty = true;
           this.palette = paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
           this.metrics = renderData.metrics;
@@ -589,6 +623,46 @@
           this.canvas.dataset.webgpuObjectParts = renderData.objectPartSummary;
           this.canvas.dataset.webgpuObjectRealization = JSON.stringify(renderData.objectRealization).slice(0, 4000);
           this.canvas.dataset.webgpuStorageBytes = String(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES);
+          this.canvas.dataset.phase7RendererConsumption = JSON.stringify(this.rendererConsumption || {});
+          this.canvas.dataset.phase7CameraConsumed = this.rendererConsumption && this.rendererConsumption.cameraConsumed ? 'true' : 'false';
+          this.canvas.dataset.phase7LightCountConsumed = String(this.rendererConsumption && this.rendererConsumption.lightCountConsumed || 0);
+          this.canvas.dataset.phase7MaterialCountConsumed = String(this.rendererConsumption && this.rendererConsumption.materialCountConsumed || 0);
+          this.canvas.dataset.phase7DepthEnabled = this.rendererConsumption && this.rendererConsumption.depthEnabled ? 'true' : 'false';
+        }
+
+        refreshRendererConsumption() {
+          if (!this.rendererConsumption) return;
+          const objectPathActive = Boolean(
+            this.objectPipeline && this.objectBindGroup && this.objectUniformBuffer && this.objectPartCount > 0
+          );
+          this.rendererConsumption.cameraConsumed = objectPathActive &&
+            this.rendererConsumption.cameraConfigured === true;
+          this.rendererConsumption.lightCountConsumed = objectPathActive
+            ? Number(this.rendererConsumption.sourceLightCount || 0)
+            : 0;
+          this.rendererConsumption.materialCountConsumed = objectPathActive
+            ? Number(this.rendererConsumption.sourceMaterialCount || 0)
+            : 0;
+          this.rendererConsumption.depthEnabled = objectPathActive && Boolean(this.depthTexture);
+          this.rendererConsumption.normalShading = objectPathActive;
+          if (this.renderData) this.renderData.rendererConsumption = this.rendererConsumption;
+          this.canvas.dataset.phase7RendererConsumption = JSON.stringify(this.rendererConsumption);
+          this.canvas.dataset.phase7CameraConsumed = this.rendererConsumption.cameraConsumed ? 'true' : 'false';
+          this.canvas.dataset.phase7LightCountConsumed = String(this.rendererConsumption.lightCountConsumed);
+          this.canvas.dataset.phase7MaterialCountConsumed = String(this.rendererConsumption.materialCountConsumed);
+          this.canvas.dataset.phase7DepthEnabled = this.rendererConsumption.depthEnabled ? 'true' : 'false';
+        }
+
+        writeObjectUniforms(nowMs = 0) {
+          if (!this.objectUniformBuffer) return;
+          this.objectUniforms = scenePacketCameraLightUniformVector(
+            this.cameraState,
+            this.lightState,
+            this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001,
+            this.canvas.width,
+            this.canvas.height
+          );
+          this.device.queue.writeBuffer(this.objectUniformBuffer, 0, this.objectUniforms);
         }
 
         writeObjectPartBuffer() {
@@ -613,6 +687,7 @@
             unsupportedNativeFeatures: WEBGPU_NATIVE_ONLY_FEATURES.slice(),
             features: this.webgpuFeatureReceipt,
             pixelReadback: this.lastPixelReadbackReceipt,
+            rendererConsumption: this.rendererConsumption,
           };
         }
 
@@ -626,6 +701,14 @@
           this.canvas.width = width;
           this.canvas.height = height;
           this.lastSizeKey = key;
+          if (this.depthTexture && typeof this.depthTexture.destroy === 'function') this.depthTexture.destroy();
+          this.depthTexture = this.device && typeof this.device.createTexture === 'function'
+            ? this.device.createTexture({
+              size: [width, height, 1],
+              format: 'depth24plus',
+              usage: typeof GPUTextureUsage === 'undefined' ? 0x10 : GPUTextureUsage.RENDER_ATTACHMENT,
+            })
+            : null;
         }
 
         writeUniforms(state, nowMs) {

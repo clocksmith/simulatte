@@ -212,6 +212,17 @@
       const program = row && row.geometry && row.geometry.program || {};
       const parts = Array.isArray(program.parts) ? program.parts : [];
       const scale = row && row.transform && row.transform.scale || [];
+      const projectedArea = Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5));
+      const semanticFit = program.source === 'phase6-data-owned-part-graph' || Boolean(
+        program.constructionReceipt && (
+          program.constructionReceipt.literalSlotMatch === true ||
+          program.constructionReceipt.exactTargetMatch === true
+        )
+      );
+      const topologyVerified = program.source === 'phase6-data-owned-part-graph'
+        ? parts.length >= 2
+        : parts.length >= 3 && new Set(parts.map((part) => part.primitive).filter(Boolean)).size >= 2;
+      const readable = projectedArea >= 0.008;
       return {
         schema: 'simulatte.objectRenderRealization.v1',
         entityId: row.id || '',
@@ -228,8 +239,11 @@
         literal: program.literal === true,
         partCount: parts.length,
         primitiveCount: new Set(parts.map((part) => part.primitive).filter(Boolean)).size,
-        projectedArea: Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5)),
-        realized: program.literal === true && parts.length >= 2,
+        projectedArea,
+        semanticFit,
+        topologyVerified,
+        readable,
+        realized: program.literal === true && semanticFit && topologyVerified && readable,
       };
     });
     return {
@@ -266,7 +280,7 @@
       const target = normalizeForProof(obligation.target || obligation.obligationId || obligation.id || '');
       const matches = rows.filter((row) => [row.identityType, ...(row.identityLabels || [])]
         .some((value) => proofPhraseMatch(value, target)));
-      const realized = matches.some((row) => row.realized && Number(row.projectedArea || 0) >= 0.002);
+      const realized = matches.some((row) => row.realized && Number(row.projectedArea || 0) >= 0.008);
       return {
         obligationId: obligation.obligationId || obligation.id || '',
         target: obligation.target || '',

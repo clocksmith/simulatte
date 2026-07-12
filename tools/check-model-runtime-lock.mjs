@@ -190,6 +190,16 @@ function main() {
   const manifest = readJson(MANIFEST_PATH);
   assertEqual(manifest.schema, 'simulatte.modelBackedEmbedderManifest.v3', 'intent manifest schema');
   assertLockReference(manifest.modelRuntimeLock, lock, 'intent manifest modelRuntimeLock', './model-runtime-lock.json');
+  assertEqual(
+    hashHex(manifest.retrieval?.artifactHash),
+    hashFile(INDEX_PATH),
+    'primitive index artifactHash'
+  );
+  assertEqual(
+    hashHex(manifest.retrieval?.cards?.artifactHash),
+    hashFile(CARD_INDEX_PATH),
+    'surface-card index artifactHash'
+  );
   if (manifest.embedModel || manifest.reranker || manifest.runtime || manifest.runtimeOrder || manifest.cache) {
     fail('intent manifest must not duplicate model runtime policy from the numbered lock');
   }

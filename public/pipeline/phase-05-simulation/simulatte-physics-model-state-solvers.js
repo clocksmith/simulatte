@@ -271,7 +271,7 @@
           .map((row) => normalizeLanguageAnchorText(row && (row.phrase || row.role || '')))
           .filter(Boolean));
         return (promptParse && promptParse.spans || [])
-          .filter((span) => span && span.text && ['entity', 'material', 'environment', 'process'].includes(span.kind))
+          .filter((span) => span && span.text && ['entity', 'material', 'environment'].includes(span.kind))
           .filter((span) => !languageAnchorSpanIsNegated(promptParse, span))
           .filter((span) => !coveredPhrases.has(normalizeLanguageAnchorText(span.text)))
           .slice(0, 24)

@@ -30,6 +30,32 @@ export async function waitForCondition(label, check, timeoutMs, options = {}) {
   throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(last)}`);
 }
 
+export async function withDeadline(label, task, timeoutMs, options = {}) {
+  const durationMs = Number(timeoutMs || 0);
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
+    throw new Error(`Deadline for ${label} requires a positive timeoutMs`);
+  }
+  let timer = null;
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const detail = typeof options.describe === 'function' ? String(options.describe() || '') : '';
+      const error = new Error(`Timed out running ${label}${detail ? `: ${detail}` : ''}`);
+      error.code = 'AUDIT_DEADLINE_EXCEEDED';
+      try {
+        options.onTimeout?.(error);
+      } catch (timeoutError) {
+        error.cause = timeoutError;
+      }
+      reject(error);
+    }, durationMs);
+  });
+  try {
+    return await Promise.race([Promise.resolve().then(task), deadline]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export function conditionProgressSignature(value = {}) {
   const health = value && value.runtimeHealth || {};
   const timing = health.timing || {};

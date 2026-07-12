@@ -168,6 +168,7 @@
         semanticProcessRule('erode', 'erode', /\b(erode|erosion|carve|carves|sediment|rain|channel)\b/, ['erode', 'erosion', 'carve', 'carves', 'sediment', 'rain', 'channel'], 'erosion-cuts', 'cut', 42, 0.72, 263),
         semanticProcessRule('sort', 'sort', /\b(sort|sorts|sieve|filter|classify|dust|beads)\b/, ['sort', 'sorts', 'sieve', 'filter', 'classify', 'dust', 'beads'], 'sorting-bands', 'sort', 66, 0.72, 269),
         semanticProcessRule('resonate', 'resonate', /\b(resonate|resonance|acoustic|sound|tube|waveguide)\b/, ['resonate', 'resonance', 'acoustic', 'sound', 'tube', 'waveguide'], 'resonance-rings', 'oscillate', 196, 0.72, 271),
+        semanticProcessRule('interfere', 'interference', /\b(interfere|interference|iridescent|iridescence)\b/, ['interfere', 'interference', 'iridescent', 'iridescence'], 'interference-bands', 'oscillate', 286, 0.74, 277),
       ]);
 
     Object.assign(scope, {

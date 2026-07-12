@@ -5,6 +5,10 @@
     const WEBGPU_OBJECT_SHADER = `
 struct ObjectUniforms {
   viewport: vec4f,
+  camera: vec4f,
+  light: vec4f,
+  keyColor: vec4f,
+  ambient: vec4f,
 };
 
 struct ObjectPart {
@@ -12,6 +16,7 @@ struct ObjectPart {
   style: vec4f,
   color: vec4f,
   identity: vec4f,
+  material: vec4f,
 };
 
 @group(0) @binding(0) var<uniform> u: ObjectUniforms;
@@ -25,6 +30,7 @@ struct ObjectVsOut {
   @location(3) @interpolate(flat) opacity: f32,
   @location(4) @interpolate(flat) semantic: f32,
   @location(5) @interpolate(flat) literal: f32,
+  @location(6) @interpolate(flat) material: vec4f,
 };
 
 @vertex
@@ -48,21 +54,37 @@ fn objectVs(
   }
   let cosine = cos(angle);
   let sine = sin(angle);
-  let scaled = vec2f(local.x * row.rect.z, -local.y * row.rect.w) * motionScale;
+  let depth = clamp(row.material.w, 0.02, 0.98);
+  let depthScale = 1.0 + (u.camera.w - depth) * u.camera.x;
+  let scaled = vec2f(local.x * row.rect.z, -local.y * row.rect.w) * motionScale * depthScale * u.camera.y;
   let rotated = vec2f(
     cosine * scaled.x - sine * scaled.y,
     sine * scaled.x + cosine * scaled.y
   );
   var center = vec2f(row.rect.x * 2.0 - 1.0, 1.0 - row.rect.y * 2.0);
+  center *= u.camera.y;
+  center.x += (u.camera.w - depth) * u.camera.z;
   let phase = row.identity.y * 6.28318;
   let time = u.viewport.z;
   if (row.style.w > 0.75) {
     if (row.style.w < 1.5) {
       center += vec2f(sin(time * 1.4 + phase) * 0.07, cos(time * 2.1 + phase) * 0.028);
+    } else if (row.style.w > 1.5 && row.style.w < 2.5) {
+      center += vec2f(sin(time * 0.9 + phase) * 0.045, cos(time * 1.3 + phase) * 0.018);
+    } else if (row.style.w > 2.5 && row.style.w < 3.5) {
+      center += vec2f(sin(time * 1.6 + phase) * 0.032, cos(time * 1.1 + phase) * 0.014);
+    } else if (row.style.w > 3.5 && row.style.w < 4.5) {
+      center.y += sin(time * 1.2 + phase) * 0.01;
     } else if (row.style.w > 7.5 && row.style.w < 8.5) {
-      center += vec2f(cos(time * 0.42 + phase), sin(time * 0.42 + phase)) * 0.012;
+      center += vec2f(cos(time * 0.42 + phase), sin(time * 0.42 + phase)) * 0.026;
     } else if (row.style.w > 4.5 && row.style.w < 5.5) {
       center.x += fract(time * 0.035 + row.identity.y) * 0.02 - 0.01;
+    } else if (row.style.w > 5.5 && row.style.w < 6.5) {
+      center.y += sin(time * 0.72 + phase) * 0.024;
+    } else if (row.style.w > 6.5 && row.style.w < 7.5) {
+      center += vec2f(sin(time * 0.74 + phase) * 0.012, sin(time * 1.05 + phase) * 0.028);
+    } else if (row.style.w > 9.5 && row.style.w < 10.5) {
+      center += vec2f(cos(time * 0.72 + phase) * 0.065, sin(time * 1.14 + phase) * 0.022);
     } else {
       center.y += sin(time * 0.5 + phase) * 0.004;
     }
@@ -74,13 +96,14 @@ fn objectVs(
     center += vec2f(cos(time * 0.38 + phase), sin(time * 0.38 + phase)) * 0.022;
   }
   var out: ObjectVsOut;
-  out.position = vec4f(center + rotated, 0.0, 1.0);
+  out.position = vec4f(center + rotated, depth, 1.0);
   out.local = local;
   out.color = row.color;
   out.shape = row.style.y;
   out.opacity = row.style.z;
   out.semantic = row.identity.x;
   out.literal = row.identity.w;
+  out.material = row.material;
   return out;
 }
 
@@ -152,13 +175,28 @@ fn objectPartMask(local: vec2f, shape: f32) -> f32 {
 fn objectFs(input: ObjectVsOut) -> @location(0) vec4f {
   let mask = objectPartMask(input.local, input.shape);
   if (mask <= 0.01) { discard; }
-  let light = clamp(0.78 + (1.0 - input.local.y) * 0.13 + (1.0 - abs(input.local.x)) * 0.08, 0.68, 1.12);
+  let radial = clamp(1.0 - dot(input.local, input.local), 0.0, 1.0);
+  let normal = normalize(vec3f(input.local.x * 0.72, -input.local.y * 0.72, 0.35 + sqrt(radial)));
+  let lightDirection = normalize(vec3f(-u.light.x, -u.light.y, u.light.z));
+  let diffuse = max(dot(normal, lightDirection), 0.0);
+  let viewDirection = vec3f(0.0, 0.0, 1.0);
+  let halfDirection = normalize(lightDirection + viewDirection);
+  let roughness = clamp(input.material.x, 0.04, 1.0);
+  let metallic = clamp(input.material.y, 0.0, 1.0);
+  let emissive = clamp(input.material.z, 0.0, 1.0);
+  let specularPower = mix(64.0, 7.0, roughness);
+  let specular = pow(max(dot(normal, halfDirection), 0.0), specularPower) * mix(0.18, 0.82, metallic);
+  let ambientLight = u.ambient.rgb * u.ambient.w;
+  let directLight = u.keyColor.rgb * u.light.w * diffuse;
   let literalGain = mix(0.9, 1.0, clamp(input.literal, 0.0, 1.0));
   var pulse = 1.0;
   if (abs(input.semantic - 20.0) < 0.5 || abs(input.semantic - 22.0) < 0.5) {
     pulse = 0.86 + 0.14 * sin(u.viewport.z * 2.2 + input.semantic);
   }
-  let color = clamp(input.color.rgb * light * literalGain * pulse, vec3f(0.0), vec3f(1.0));
+  let illumination = max(ambientLight + directLight, vec3f(0.28));
+  let reflected = input.color.rgb * illumination + u.keyColor.rgb * specular;
+  let edgeShade = mix(0.62, 1.0, smoothstep(0.12, 0.72, mask));
+  let color = clamp(reflected * literalGain * pulse * edgeShade + input.color.rgb * emissive, vec3f(0.0), vec3f(1.0));
   return vec4f(color, mask * input.opacity * input.color.a);
 }
 `;

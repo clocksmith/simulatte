@@ -872,7 +872,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /const GPU_SCENE_INSTANCE_CAPACITY = 32/);
   assert.match(webgpuRenderer, /const GPU_SCENE_INSTANCE_FLOATS = 12/);
   assert.match(webgpuRenderer, /const GPU_OBJECT_PART_CAPACITY = 256/);
-  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 16/);
+  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 20/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze\(\[\]\)/);
   assert.match(webgpuRenderer, /const UNIFORM_FLOAT_COUNT = 144 \+ SCENE_PACKET_FLOATS/);
@@ -932,7 +932,14 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /sceneMix0: vec4f/);
   assert.match(webgpuRenderer, /struct BackgroundUniforms/);
   assert.match(webgpuRenderer, /struct ObjectPart/);
+  assert.match(webgpuRenderer, /struct ObjectUniforms[\s\S]*camera: vec4f[\s\S]*light: vec4f/);
+  assert.match(webgpuRenderer, /material: vec4f/);
   assert.match(webgpuRenderer, /@group\(0\) @binding\(1\) var<storage, read> objectParts: array<ObjectPart>/);
+  assert.match(webgpuRenderer, /depthStencil:[\s\S]*format: 'depth24plus'/);
+  assert.match(webgpuRenderer, /this\.depthTexture = this\.device[\s\S]*createTexture/);
+  assert.match(webgpuRenderer, /out\.position = vec4f\(center \+ rotated, depth, 1\.0\)/);
+  assert.match(webgpuRenderer, /let diffuse = max\(dot\(normal, lightDirection\), 0\.0\)/);
+  assert.doesNotMatch(webgpuRenderer, /out\.position = vec4f\(center \+ rotated, 0\.0, 1\.0\)/);
   assert.doesNotMatch(webgpuRenderer, /visibleSceneInstances|sceneStats: array<u32>/);
   assert.doesNotMatch(webgpuRenderer, /LOADING_CANVAS|resolveLoadingCanvas|SimulatteLoadingCanvas/);
   assert.doesNotMatch(webgpuRenderer, /loadingGrid\(uv, t, u\.loading\.y, u\.loading\.z\)/);
@@ -1767,6 +1774,9 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /positiveLanguageText\(prompt\)/);
   assert.match(tool, /const negated = new RegExp/);
   assert.match(tool, /visualRubricForResult/);
+  assert.match(tool, /'cache-control': 'no-store'/);
+  assert.match(tool, /Network\.clearBrowserCache/);
+  assert.match(tool, /Network\.setCacheDisabled.*cacheDisabled: true/);
   assert.match(tool, /startStaticServer\(options\.profileDir \? options\.localPort : 0\)/);
   assert.match(tool, /runtimeProgressLogs: \(window\.__simulatteRuntimeProgressLogs/);
   assert.match(tool, /runtimePerformanceLogs: \(window\.__simulatteRuntimePerformanceLogs/);
@@ -1776,6 +1786,8 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /canvasFrameHashChanged/);
   assert.match(tool, /canvasFrameSampleHashChanged/);
   assert.match(tool, /dynamicMagnitude/);
+  assert.match(tool, /promptRequiresVisibleDynamics/);
+  assert.match(tool, /dynamicRequired/);
   assert.match(tool, /representationQualityForResult/);
   assert.match(tool, /simulatte\.visualRepresentationQuality\.v1/);
   assert.match(tool, /representationFailures/);
@@ -1799,6 +1811,11 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /__simulatteIntentRuntimeEvents/);
   assert.match(tool, /runtimeHealth/);
   assert.match(tool, /MODEL_RUNTIME_STALL_MS = 90000/);
+  assert.match(tool, /captureChildProcessOutput/);
+  assert.match(tool, /withDeadline/);
+  assert.match(tool, /promptDeadlineMs/);
+  assert.match(tool, /simulatte\.visualAuditTiming\.v1/);
+  assert.match(tool, /chromeProcessLog/);
   assert.match(tool, /waitForCondition.*audit-runtime-wait\.mjs/);
   assert.match(runtimeWait, /conditionProgressSignature/);
   assert.match(runtimeWait, /progress: value && value\.progress \|\| health\.progress \|\| ''/);
@@ -1933,6 +1950,12 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   const registry = runtimeSource('simulatte-render-registry.js');
   const webgpuRenderer = runtimeSource('simulatte-webgpu-renderer.js');
   const loadingCanvas = runtimeSource('loading-canvas.js');
+  const objectGrammars = fs.readFileSync(path.join(
+    root, 'public', 'pipeline', 'phase-06-visual', 'simulatte-object-geometry-grammars.js'
+  ), 'utf8');
+  const selectionLayout = fs.readFileSync(path.join(
+    root, 'public', 'pipeline', 'phase-06-visual', 'simulatte-composition-graph-selection-layout.js'
+  ), 'utf8');
 
   for (const token of [
     'WEBGPU_BACKGROUND_SHADER',
@@ -2013,6 +2036,10 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   assert.match(graph, /renderIR\.prompt/);
   assert.doesNotMatch(graph, /const promptText = '';/);
   assert.match(graph, /deterministic-compiled-artifact-seeded/);
+  assert.match(graph, /constraintLayoutObjects/);
+  assert.match(graph, /phase3-model-construction-evidence/);
+  assert.doesNotMatch(objectGrammars, /OBJECT_COMPOSITION_LAYOUTS/);
+  assert.doesNotMatch(selectionLayout, /strength:\s*0\.45/);
 });
 
 test('phase 8 renders compiled scene packets without semantic inference', () => {
@@ -2343,6 +2370,10 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   const retiredIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'primitive-index-v1.json');
   const retiredEncoderPath = path.join(root, 'public', 'data', 'simulatte-intent-embed-v1.json');
   const universeManifestPath = path.join(root, 'public', 'data', 'simulatte-universe', 'manifest.json');
+  const surfaceIndexBuilder = fs.readFileSync(
+    path.join(root, 'tools', 'build-surface-card-embedding-index.mjs'),
+    'utf8'
+  );
   const runtime = runtimeSource('simulatte-intent-embedder.js');
   const dopplerRuntime = fs.readFileSync(
     path.join(root, 'public', 'vendor', 'doppler', 'src', 'client', 'runtime', 'index.js'),
@@ -2407,7 +2438,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	  assert.equal(manifest.retrieval.rerank, 'mandatory');
 	  assert.equal(manifest.retrieval.cards.kind, 'precomputed-surface-card-index');
 	  assert.equal(manifest.retrieval.cards.artifact, './surface-card-index-qwen-v1.json');
-	  assert.equal(manifest.retrieval.cards.artifactHash.hex, 'feddce7cfdff749402bbad7aa22f4be65a919d3c26c7bf3d43b8cd4e514c5b81');
+	  assert.equal(manifest.retrieval.cards.artifactHash.hex, '65bc6d4f88e4e11fa812cd5da254c1f36cd148558c73a2562baffe2d931cade4');
 	  assert.equal(manifest.retrieval.cards.dimensions, 1024);
 	  assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
 	  assert.equal(
@@ -2525,7 +2556,11 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(cardIndex.embedModelId, 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
   assert.equal(cardIndex.embeddingDim, 1024);
   assert.ok(cardIndex.documents.length >= 650);
+  assert.ok(cardIndex.documents.some((row) => row.cardId === 'parcel'));
   assert.equal(cardPackedBytes.byteLength, cardIndex.documents.length * cardIndex.embeddingDim * 4);
+  assert.match(surfaceIndexBuilder, /function reusableIndexVectors/);
+  assert.match(surfaceIndexBuilder, /previous\.document\.textHash\?\.hex !== document\.textHash\?\.hex/);
+  assert.match(surfaceIndexBuilder, /reusing \$\{reusedCount\}\/\$\{documents\.length\} surface-card vectors/);
   assert.equal(universeManifest.embedModel.id, manifest.embedModel.id);
   assert.equal(universeManifest.embedModel.dimensions, manifest.embedModel.dimensions);
   assert.equal(universeManifest.embedModel.manifestHash.hex, manifest.embedModel.manifestHash.hex);

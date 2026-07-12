@@ -47,6 +47,7 @@
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js',
+    'pipeline/phase-03-retrieval/simulatte-intent-embedder-construction-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js',
@@ -60,6 +61,7 @@
     'pipeline/phase-03-retrieval/simulatte-intent-classifier.js',
     'data/simulatte-language-lexicon.js',
     'pipeline/phase-02-language/simulatte-universe-parser.js',
+    'pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js',
     'pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js'
   );
   const physicsIr = group(
@@ -110,13 +112,17 @@
     'pipeline/phase-06-visual/simulatte-composition-graph-constants.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js',
+    'pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-materials.js',
+    'pipeline/phase-06-visual/simulatte-construction-geometry.js',
     'pipeline/phase-06-visual/simulatte-object-geometry-grammars.js',
+    'pipeline/phase-06-visual/simulatte-scene-framing.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-programs.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-dialects.js',
+    'pipeline/phase-06-visual/simulatte-composition-graph-constraint-layout.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-helpers.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-facade-support.js',
     'pipeline/phase-06-visual/simulatte-composition-graph.js'

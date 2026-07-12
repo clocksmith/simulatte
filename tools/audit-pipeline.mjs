@@ -51,6 +51,7 @@ function auditOptionsFrom(argv) {
   const options = {
     intentMode: 'model',
     profileDir: path.join(ROOT, 'artifacts', 'model-cache-profile'),
+    localPort: 4199,
     writeBaseline: false,
     scoreArgs: [],
   };
@@ -65,6 +66,10 @@ function auditOptionsFrom(argv) {
     }
     if (key === '--profile-dir') {
       options.profileDir = path.resolve(readValue() || options.profileDir);
+      continue;
+    }
+    if (key === '--local-port') {
+      options.localPort = Math.max(1024, Number(readValue() || options.localPort));
       continue;
     }
     if (key === '--write-baseline') {
@@ -109,6 +114,7 @@ function main() {
     '--out', outputDirs.live,
     '--timeout-ms', '45000',
     '--frame-delay-ms', '650',
+    '--local-port', String(options.localPort),
     ...adversarialArgs,
     ...literalArgs,
     ...extraPromptArgs,

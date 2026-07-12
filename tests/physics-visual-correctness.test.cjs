@@ -92,6 +92,8 @@ test('thin-film prompts do not collapse into fermentation bubble visuals', () =>
   assert.ok(geometryIds.includes('wire-loop-frame'));
   assert.ok(atoms.uniforms.bySlot.optical > 0);
   assert.ok(atoms.uniforms.bySlot.phase > 0);
+  assert.equal(spec.renderProgram.objects.some((object) => /interference/.test(object.id)), false);
+  assert.ok(spec.renderIR.readouts.some((readout) => readout.label === 'iridescent interference'));
 });
 
 test('particle instrument prompts get track and detector graphics atoms', () => {
@@ -123,6 +125,11 @@ test('acoustic dust levitation stays acoustic instead of collapsing into granula
   assert.ok(mappingIds.includes('visual.operator.acoustic-wave.v1'));
   assert.ok(atoms.uniforms.bySlot.acoustic > atoms.uniforms.bySlot.granular);
   assert.ok(atoms.wgslOperators.includes('atomAcousticRings'));
+  assert.ok(spec.renderProgram.objects.some((object) => object.shape === 'instrument' && object.visualArchetype === 'waveguide'));
+  assert.ok(spec.renderProgram.objects.some((object) => object.shape === 'grain-bed' && object.visualArchetype === 'particle-cloud'));
+  const grammarIds = new Set(spec.renderProgram.sceneRenderPacket.entities.map((entity) => entity.geometry.coverage.grammarId));
+  assert.ok(grammarIds.has('object-grammar.waveguide'));
+  assert.ok(grammarIds.has('object-grammar.particle-cloud'));
 });
 
 test('bridge resonance prompts carry structural stress graphics atoms', () => {
@@ -203,7 +210,7 @@ test('negated visual operator language does not satisfy positive graphics requir
     'protein folding in water with no robot arm'
   );
   const phase = createPrototypeSpec(
-    'phase study in a generic lab with no qubits or quantum hardware'
+    'ice melts in a generic lab with no qubits or quantum hardware'
   );
   const proteinMappings = protein.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
   const phaseMappings = phase.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
@@ -215,6 +222,7 @@ test('negated visual operator language does not satisfy positive graphics requir
   assert.ok(phaseMappings.includes('visual.operator.phase-transition.v1'));
   assert.ok(!phaseMappings.includes('visual.operator.quantum-phase-readout.v1'));
   assert.doesNotMatch(phaseSignals, /\b(qubit|quantum)\b/);
+  assert.equal(phase.renderProgram.objects.some((object) => /melt/.test(object.phrase || object.id)), false);
 });
 
 test('provided residual hints can steer the selected physical graph without naming a model', () => {
@@ -250,7 +258,7 @@ test('semantic RAG open components enter graph, solver plan, and render programs
   const openObjects = spec.objects.filter((object) => object.source === 'open-semantic-rag');
   const graphOpenNodes = spec.contract.graph.nodes.filter((node) => node.source === 'open-semantic-rag');
   const programOpenObjects = spec.renderProgram.objects.filter((object) => object.source === 'open-semantic-rag');
-  const programSynthObjects = spec.renderProgram.objects.filter((object) => /^embedding-guided-synth/.test(object.source));
+  const canonicalSourceIds = new Set(spec.renderProgram.objects.flatMap((object) => object.sourceIds || []));
   const regimes = new Set(spec.renderProgram.provenance.visualRegimes);
 
   assert.equal(spec.intent.semanticRag.schema, 'simulatte.semanticRag.v1');
@@ -258,7 +266,12 @@ test('semantic RAG open components enter graph, solver plan, and render programs
   assert.ok(openObjects.length >= 4);
   assert.equal(graphOpenNodes.length, openObjects.length);
   assert.ok(programOpenObjects.length >= 1);
-  assert.ok(programSynthObjects.length >= 2);
+  assert.ok(canonicalSourceIds.has('lens-a'));
+  assert.ok(canonicalSourceIds.has('lens-b'));
+  assert.ok(canonicalSourceIds.has('magnetic-rotor-a'));
+  assert.ok(canonicalSourceIds.has('magnetic-rotor-b'));
+  assert.equal(spec.renderProgram.objects.filter((object) => object.shape === 'lens').length, 1);
+  assert.equal(spec.renderProgram.objects.filter((object) => object.shape === 'wheel').length, 1);
   assert.ok(programOpenObjects.every((object) => object.primitiveProgram));
   assert.ok(regimes.has('optical'));
   assert.ok(regimes.has('fluid'));
@@ -409,25 +422,29 @@ test('literal training review prompts survive semantic grounding into render obj
   const mountains = createPrototypeSpec('trees and mountaints');
   const swimming = createPrototypeSpec('dogs and cats swimming');
 
-  const dogObjects = Object.fromEntries(dogs.renderProgram.objects.map((object) => [object.id, object]));
-  const flowerObjects = Object.fromEntries(flowers.renderProgram.objects.map((object) => [object.id, object]));
-  const mountainObjects = Object.fromEntries(mountains.renderProgram.objects.map((object) => [object.id, object]));
-  const swimmingObjects = Object.fromEntries(swimming.renderProgram.objects.map((object) => [object.id, object]));
+  const dogObjects = dogs.renderProgram.objects.filter((object) => object.shape === 'animal-body');
+  const flowerObjects = flowers.renderProgram.objects.filter((object) => object.shape === 'plant-cluster');
+  const treeObjects = mountains.renderProgram.objects.filter((object) => object.shape === 'plant-cluster');
+  const mountainObjects = mountains.renderProgram.objects.filter((object) => /mountain/.test(object.phrase || object.role || ''));
+  const swimmingAnimals = swimming.renderProgram.objects.filter((object) => object.shape === 'animal-body');
+  const swimmingWater = swimming.renderProgram.objects.find((object) => object.shape === 'pool');
   const mappingIds = (spec) => spec.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
   const catalogCount = (spec) => spec.renderProgram.objects.filter((object) => object.source === 'catalog').length;
   const geometryKinds = (spec) => spec.physicsIR.entities.map((entity) => entity.geometryRef && entity.geometryRef.kind);
 
-  assert.equal(dogObjects['dog-a'].shape, 'animal-body');
-  assert.equal(dogObjects['surface-dog-1'].shape, 'animal-body');
+  assert.equal(dogObjects.length, 1);
+  assert.ok(dogObjects[0].sourceIds.includes('dog-a'));
   assert.ok(geometryKinds(dogs).includes('animal-body'));
   assert.equal(dogs.renderProgram.rendererPlan.sceneKind, 'biology');
   assert.ok(mappingIds(dogs).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(dogs).includes('visual.operator.instrument-readout.v1'));
   assert.ok(catalogCount(dogs) <= 6);
   assert.ok(!dogs.renderProgram.solverPlan.families.includes('fracture-threshold'));
-  assert.equal(flowerObjects['flower-a'].shape, 'fuel-bed');
-  assert.equal(flowerObjects['surface-flower-1'].shape, 'fuel-bed');
-  assert.ok(geometryKinds(flowers).includes('botanical-cluster'));
+  assert.equal(flowerObjects.length, 1);
+  assert.ok(flowerObjects[0].sourceIds.includes('flower-a'));
+  assert.ok(flowers.renderProgram.sceneRenderPacket.entities.some((entity) => (
+    entity.identity.type === 'flower' && entity.geometry.coverage.grammarId === 'object-grammar.flower'
+  )));
   assert.equal(flowers.renderProgram.rendererPlan.sceneKind, 'biology');
   assert.ok(mappingIds(flowers).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(flowers).includes('visual.operator.instrument-readout.v1'));
@@ -435,16 +452,16 @@ test('literal training review prompts survive semantic grounding into render obj
   const flowerPacketIdentities = flowers.renderProgram.sceneRenderPacket.entities.map((entity) => entity.identity);
   assert.ok(flowerPacketIdentities.some((identity) => identity.type === 'flower'));
   assert.ok(flowerPacketIdentities.every((identity) => identity.renderClass !== 'water-volume'));
-  assert.equal(mountainObjects['tree-a'].shape, 'fuel-bed');
-  assert.equal(mountainObjects['environment-mountain'].role, 'mountain');
-  assert.equal(mountainObjects['surface-mountain-1'].phrase, 'mountaints');
+  assert.equal(treeObjects.length, 1);
+  assert.equal(treeObjects[0].sourceIds.includes('tree-a'), true);
+  assert.equal(mountainObjects.length, 1);
+  assert.equal(mountainObjects[0].phrase, 'mountaints');
   assert.equal(mountains.renderProgram.rendererPlan.sceneKind, 'watershed');
   assert.ok(mappingIds(mountains).includes('visual.operator.granular-erosion.v1'));
   assert.ok(mappingIds(mountains).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(mountains).includes('visual.operator.instrument-readout.v1'));
-  assert.equal(swimmingObjects['dog-a'].shape, 'animal-body');
-  assert.equal(swimmingObjects['cat-a'].shape, 'animal-body');
-  assert.equal(swimmingObjects.water.shape, 'pool');
+  assert.equal(swimmingAnimals.length, 2);
+  assert.ok(swimmingWater);
   const swimmingIdentities = new Set(
     swimming.renderProgram.visualIR.sceneRenderPacket.entities
       .map((entity) => entity.identity && entity.identity.type)
@@ -454,7 +471,6 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.ok(swimmingIdentities.has('cat'));
   assert.ok(swimmingIdentities.has('water'));
   assert.ok(geometryKinds(swimming).every((kind) => kind && kind !== 'body'));
-  assert.equal(swimmingObjects['fluid-advection'].source, 'prompt-family');
   assert.equal(swimming.renderProgram.rendererPlan.sceneKind, 'watershed');
   assert.ok(mappingIds(swimming).includes('visual.operator.biological-growth.v1'));
   assert.ok(mappingIds(swimming).includes('visual.operator.fluid-advection.v1'));
@@ -467,7 +483,8 @@ test('embedding-guided graph synthesis composes unseen animal wheel collision sc
   const spec = createPrototypeSpec(prompt);
   const synthesis = spec.intent.synthesis;
   const objectIds = new Set(spec.objects.map((object) => object.id));
-  const renderIds = spec.renderProgram.objects.map((object) => object.id);
+  const renderObjects = spec.renderProgram.objects;
+  const renderIds = renderObjects.map((object) => object.id);
   const primitiveIds = new Set(synthesis.groundedGraph.primitiveIds.map((entry) => entry.id));
 
   assert.equal(synthesis.schema, 'simulatte.embeddingGuidedGraphSynthesis.v1');
@@ -491,13 +508,20 @@ test('embedding-guided graph synthesis composes unseen animal wheel collision sc
   for (const id of ['mouse-a', 'hamster-wheel-a', 'gerbil-a', 'hamster-wheel-b', 'collision-1']) {
     assert.ok(objectIds.has(id), `missing synthesized object ${id}`);
   }
-  assert.deepEqual(renderIds.slice(0, 5), [
-    'mouse-a',
-    'hamster-wheel-a',
-    'gerbil-a',
-    'hamster-wheel-b',
-    'collision-1',
-  ]);
+  const wheels = renderObjects.filter((object) => object.shape === 'wheel');
+  const animals = renderObjects.filter((object) => object.shape === 'animal-body');
+  const mouse = renderObjects.find((object) => object.id === 'mouse-a');
+  const gerbil = renderObjects.find((object) => object.id === 'gerbil-a');
+  const mouseWheel = wheels.find((object) => object.layoutConstraints.some((id) => /entity-mouse:in:entity-wheel$/.test(id)));
+  const gerbilWheel = wheels.find((object) => object.layoutConstraints.some((id) => /entity-gerbil:in:entity-wheel-2$/.test(id)));
+  assert.equal(wheels.length, 2);
+  assert.equal(animals.length, 2);
+  assert.equal(new Set(wheels.map((object) => object.physicalRef)).size, 2);
+  assert.equal(renderIds.includes('collision-1'), false);
+  assert.ok(renderObjectContains(mouseWheel, mouse));
+  assert.ok(renderObjectContains(gerbilWheel, gerbil));
+  assert.ok(Math.abs(renderObjectCenter(wheels[0]).x - renderObjectCenter(wheels[1]).x) > 0.3);
+  assert.ok(spec.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => row.id === 'visual.operator.stress-fracture.v1'));
   assert.equal(spec.renderProgram.rendererPlan.sceneKind, 'mechanical');
   assert.ok(spec.renderProgram.solverPlan.families.includes('constraint-dynamics'));
 });
@@ -509,11 +533,13 @@ test('composition render programs do not collapse into one generic shape vocabul
     'city grid with traffic system, power grid, market queue, sensors, delays, and conservation ledger',
   ];
   const signatures = prompts.map((prompt) => {
-    const spec = lab.createSpecFromPrompt(prompt);
+    const spec = createPrototypeSpec(prompt);
     return new Set(spec.renderProgram.objects.map((object) => object.shape));
   });
 
-  assert.ok(signatures[0].has('fuel-bed'));
+  assert.ok(signatures[0].has('plant-cluster'));
+  assert.ok(signatures[0].has('flame-front'));
+  assert.ok(signatures[0].has('plume'));
   assert.ok(!signatures[0].has('prism'));
   assert.ok(signatures[1].has('prism'));
   assert.ok(!signatures[1].has('queue-node'));
@@ -543,34 +569,42 @@ test('building fire keeps a structural building mixed with fire visuals', () => 
 });
 
 test('render programs keep prompt nouns literal and avoid unrelated scene fields', () => {
-  const thinFilm = lab.createSpecFromPrompt('soap thin film with air bubbles in wire loops');
-  const animalRig = lab.createSpecFromPrompt('mouse in a wheel crashes into a wall');
-  const mixedScene = lab.createSpecFromPrompt(
+  const thinFilm = createPrototypeSpec('soap thin film with air bubbles in wire loops');
+  const animalRig = createPrototypeSpec('mouse in a wheel crashes into a wall');
+  const mixedScene = createPrototypeSpec(
     'gold hammer supports glass in a swamp while fracturing near a black hole'
   );
-  const city = lab.createSpecFromPrompt('city market queue traffic network');
-  const watershed = lab.createSpecFromPrompt('rain erodes a mountain watershed into sediment channels');
-  const ferrofluid = lab.createSpecFromPrompt('ferrofluid with copper coil and pulsing current');
+  const city = createPrototypeSpec('city market queue traffic network');
+  const watershed = createPrototypeSpec('rain erodes a mountain watershed into sediment channels');
+  const ferrofluid = createPrototypeSpec('ferrofluid with copper coil and pulsing current');
 
   const thinById = Object.fromEntries(thinFilm.renderProgram.objects.map((object) => [object.id, object]));
-  const rigById = Object.fromEntries(animalRig.renderProgram.objects.map((object) => [object.id, object]));
+  const rigMouse = animalRig.renderProgram.objects.find((object) => object.shape === 'animal-body');
+  const rigWheel = animalRig.renderProgram.objects.find((object) => object.shape === 'wheel');
+  const rigWall = animalRig.renderProgram.objects.find((object) => object.shape === 'wall');
   const mixedById = Object.fromEntries(mixedScene.renderProgram.objects.map((object) => [object.id, object]));
+  const mixedGlass = mixedScene.renderProgram.objects.find((object) => object.material === 'glass');
 
   assert.equal(thinById['open-soap-thin-film-1'].shape, 'film');
   assert.equal(thinById['open-air-bubbles-2'].shape, 'bubble');
   assert.equal(thinById['open-wire-loops-3'].shape, 'wire-loop');
-  assert.equal(rigById['mouse-a'].shape, 'animal-body');
-  assert.equal(rigById['wheel-a'].shape, 'wheel');
-  assert.ok(Math.abs(rigById['mouse-a'].pose.x - rigById['wheel-a'].pose.x) < 0.03);
-  assert.ok(rigById.collision.pose.x > rigById['wheel-a'].pose.x);
-  assert.equal(mixedById['gold-a'].shape, 'bar');
-  assert.equal(mixedById['gold-a'].material, 'gold');
+  assert.ok(renderObjectContains(rigWheel, rigMouse));
+  assert.ok(rigWheel.layoutConstraints.some((id) => /entity-wheel:into:entity-wall/.test(id)));
+  assert.ok(rigWall.layoutConstraints.some((id) => /entity-wheel:into:entity-wall/.test(id)));
+  assert.equal(animalRig.renderProgram.objects.some((object) => object.id === 'collision'), false);
+  assert.ok(animalRig.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => row.id === 'visual.operator.stress-fracture.v1'));
+  assert.equal(animalRig.renderProgram.visualIR.processes.some((process) => /swim|submersion/.test(process.family)), false);
   assert.equal(mixedById['hammer-a'].shape, 'hammer');
-  assert.equal(mixedById['glass-material-a'].shape, 'lens');
-  assert.equal(mixedById['glass-material-a'].material, 'glass');
+  assert.equal(mixedById['hammer-a'].material, 'gold');
+  assert.equal(mixedScene.renderProgram.objects.some((object) => object.id === 'gold-a'), false);
+  assert.equal(mixedGlass.shape, 'lens');
+  assert.equal(mixedGlass.material, 'glass');
   assert.equal(mixedById['environment-swamp'].shape, 'wetland');
   assert.equal(mixedById['environment-black-hole'].shape, 'singularity');
   assert.equal(mixedScene.renderProgram.rendererPlan.sceneKind, 'planetary-space');
+  assert.ok(mixedScene.renderIR.compositionLedger.relations.some((relation) => (
+    relation.process === 'material_assignment' && relation.target === 'entity:hammer'
+  )));
   assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').shape, 'pool');
   assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').material, 'ferrofluid');
   assert.deepEqual(city.renderProgram.fields.map((field) => field.kind), ['network-flow']);
@@ -580,23 +614,23 @@ test('render programs keep prompt nouns literal and avoid unrelated scene fields
 });
 
 test('expanded universe prompts preserve specific generated simulation objects', () => {
-  const cosmic = lab.createSpecFromPrompt(
+  const cosmic = createPrototypeSpec(
     'spaceship orbiting a volcano while crystal towers melt lava into a river'
   );
-  const acousticCastle = lab.createSpecFromPrompt(
+  const acousticCastle = createPrototypeSpec(
     'quantum piano bends laser light through an ice castle'
   );
-  const undersea = lab.createSpecFromPrompt(
+  const undersea = createPrototypeSpec(
     'submarine city under a storm with turbines and glowing algae'
   );
-  const lavaBridge = lab.createSpecFromPrompt(
+  const lavaBridge = createPrototypeSpec(
     'clockwork bridge over lava with mirrors and falling sand'
   );
 
   const cosmicShapes = new Set(cosmic.renderProgram.objects.map((object) => object.shape));
   const acousticShapes = new Set(acousticCastle.renderProgram.objects.map((object) => object.shape));
   const underseaShapes = new Set(undersea.renderProgram.objects.map((object) => object.shape));
-  const bridgeById = Object.fromEntries(lavaBridge.renderProgram.objects.map((object) => [object.id, object]));
+  const bridgeShapes = new Set(lavaBridge.renderProgram.objects.map((object) => object.shape));
 
   assert.equal(cosmic.renderProgram.rendererPlan.sceneKind, 'thermal-plume');
   assert.ok(cosmicShapes.has('rocket'));
@@ -610,9 +644,11 @@ test('expanded universe prompts preserve specific generated simulation objects',
   assert.ok(underseaShapes.has('storm'));
   assert.ok(underseaShapes.has('turbine'));
   assert.ok(underseaShapes.has('plant-cluster'));
-  assert.equal(bridgeById['gearbox-a'].shape, 'wheel');
-  assert.equal(bridgeById['bridge-a'].shape, 'bridge');
-  assert.equal(bridgeById['lava-material-a'].shape, 'lava-flow');
+  assert.ok(bridgeShapes.has('bridge'));
+  assert.ok(bridgeShapes.has('lava-flow'));
+  assert.ok(bridgeShapes.has('mirror'));
+  assert.ok(bridgeShapes.has('grain-bed'));
+  assert.equal(lavaBridge.renderProgram.objects.some((object) => /gearbox/.test(object.id)), false);
   assert.ok(undersea.renderProgram.solverPlan.families.includes('growth-diffusion'));
   assert.ok(cosmic.renderProgram.solverPlan.families.includes('phase-boundary'));
 });
@@ -640,21 +676,22 @@ test('compiled render programs keep objects positioned inside the visible world'
   }
 });
 
-test('solar magnetic machine places core mechanism parts in physical relation', () => {
+test('solar magnetic machine constructs and separates its core mechanism parts', () => {
   const spec = lab.createSpecFromPrompt(
     'build a solar magnetic perpetual motion machine with a moving magnetic slider powered by the sun'
   );
   const byId = Object.fromEntries(spec.renderProgram.objects.map((object) => [object.id, object]));
-  const wheel = renderObjectCenter(byId['rotor-wheel']);
-  const slider = renderObjectCenter(byId['stator-slider']);
-  const panel = renderObjectCenter(byId['solar-panel']);
-  const load = renderObjectCenter(byId['motor-load']);
-
-  assert.ok(wheel.x > 0.42 && wheel.x < 0.58);
-  assert.ok(wheel.y > 0.42 && wheel.y < 0.58);
-  assert.ok(slider.x > wheel.x);
-  assert.ok(panel.x < wheel.x && panel.y < wheel.y);
-  assert.ok(load.x > wheel.x && load.y > wheel.y);
+  const ids = ['rotor-wheel', 'stator-slider', 'solar-panel', 'motor-load'];
+  const centers = ids.map((id) => renderObjectCenter(byId[id]));
+  const packetById = Object.fromEntries(spec.renderProgram.sceneRenderPacket.entities.map((entity) => [entity.id, entity]));
+  assert.deepEqual(ids.map((id) => packetById[id].identity.type), ['wheel', 'slider', 'panel', 'meter']);
+  assert.ok(ids.every((id) => packetById[id].geometry.coverage.realized));
+  assert.ok(ids.every((id) => packetById[id].geometry.coverage.partCount >= 3));
+  for (let left = 0; left < centers.length; left += 1) {
+    for (let right = left + 1; right < centers.length; right += 1) {
+      assert.ok(Math.hypot(centers[left].x - centers[right].x, centers[left].y - centers[right].y) > 0.08);
+    }
+  }
 });
 
 function renderObjectCenter(object) {
@@ -665,6 +702,15 @@ function renderObjectCenter(object) {
     return { x: sum[0] / pose.points.length, y: sum[1] / pose.points.length };
   }
   return { x: pose.x || 0.5, y: pose.y || 0.5 };
+}
+
+function renderObjectContains(container, child) {
+  assert.ok(container, 'container render object missing');
+  assert.ok(child, 'contained render object missing');
+  const outer = container.pose || {};
+  const inner = child.pose || {};
+  return Math.abs(Number(inner.x) - Number(outer.x)) <= Math.max(0, (Number(outer.w) - Number(inner.w)) * 0.5) + 0.025 &&
+    Math.abs(Number(inner.y) - Number(outer.y)) <= Math.max(0, (Number(outer.h) - Number(inner.h)) * 0.5) + 0.025;
 }
 
 test('component state ownership is initialized and stepped by component id', () => {

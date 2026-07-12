@@ -83,7 +83,7 @@
           classHints: ['plant'], shapeHints: ['branching_structure'], materialHints: ['wood', 'leaf', 'biomass'],
           behaviorHints: ['growth', 'wind_bending'], scaleHints: ['large'], groundingIds: ['ground.plant-body'],
         }),
-        surfaceCard('entity.root-system', 'entity', ['tree root', 'root network', 'roots'], 'branching underground plant structure interacting with soil, moisture, and erosion', {
+        surfaceCard('entity.root-system', 'entity', ['tree root', 'root network', 'roots', 'mangrove roots', 'mangrove'], 'branching underground plant structure interacting with soil, moisture, and erosion', {
           classHints: ['plant_root'], shapeHints: ['branching_network'], materialHints: ['wood', 'biomass', 'soil'],
           behaviorHints: ['growth', 'anchoring', 'water_uptake'], groundingIds: ['ground.branching-network'],
         }),
@@ -148,13 +148,37 @@
           classHints: ['oscillator_machine'], shapeHints: ['pendulum'], partHints: ['bob', 'rod', 'pivot'],
           materialHints: ['metal', 'wood'], behaviorHints: ['oscillates'], groundingIds: ['ground.pendulum'],
         }),
-        surfaceCard('artifact.robot-arm', 'artifact', ['robot arm', 'manipulator', 'servo arm'], 'jointed machine with rigid links, actuators, constraints, and end effector', {
+        surfaceCard('artifact.robot-arm', 'artifact', ['robot arm', 'robot arms', 'warehouse robot arms', 'manipulator', 'servo arm'], 'jointed machine with rigid links, actuators, constraints, and end effector', {
           classHints: ['articulated_machine'], shapeHints: ['linked_rigid_bodies'], partHints: ['joint', 'link', 'motor'],
           materialHints: ['metal', 'copper'], behaviorHints: ['actuated_motion'], groundingIds: ['ground.articulated-machine'],
         }),
-        surfaceCard('artifact.conveyor', 'artifact', ['conveyor belt', 'belt line'], 'moving belt carrying objects with friction, rollers, and transport flow', {
+        surfaceCard('artifact.robot-gripper', 'artifact', ['robot gripper', 'gripper', 'precision gripper'], 'articulated end effector with palm, opposing fingers, joints, contact pads, and torsion control', {
+          classHints: ['articulated_machine'], shapeHints: ['articulated_gripper'], partHints: ['palm frame', 'opposing fingers', 'revolute joints', 'contact pads'],
+          materialHints: ['metal', 'rubber'], behaviorHints: ['grasp', 'twist'], groundingIds: ['ground.articulated-machine'],
+        }),
+        surfaceCard('artifact.sample-holder', 'artifact', ['sample holder', 'protein sample holder', 'specimen holder'], 'constrained specimen mount with frame, sample cavity, clamps, and rotational contact', {
+          classHints: ['instrument'], shapeHints: ['specimen_frame'], partHints: ['support frame', 'sample cavity', 'clamps', 'rotation axis'],
+          materialHints: ['metal', 'glass'], affordanceHints: ['contains', 'constrains'], groundingIds: ['ground.container', 'ground.instrumented-bench'],
+        }),
+        surfaceCard('artifact.particle-collider', 'artifact', ['particle collider', 'collider'], 'ringed beam instrument with beam pipe, interaction vertex, detector shells, and calorimeter layers', {
+          classHints: ['instrument'], shapeHints: ['concentric_detector'], partHints: ['beam pipe', 'interaction vertex', 'detector rings', 'calorimeter cells'],
+          materialHints: ['metal', 'silicon'], behaviorHints: ['particle_collision'], groundingIds: ['ground.instrumented-bench'],
+        }),
+        surfaceCard('artifact.detector-slice', 'artifact', ['detector slice', 'calorimeter'], 'sectioned particle detector with concentric tracking layers, sensor cells, and readout bands', {
+          classHints: ['instrument'], shapeHints: ['sectioned_detector'], partHints: ['tracking rings', 'sensor layers', 'calorimeter cells', 'readout panel'],
+          materialHints: ['silicon', 'metal', 'glass'], behaviorHints: ['measurement'], groundingIds: ['ground.instrumented-bench'],
+        }),
+        surfaceCard('entity.muon-tracks', 'entity', ['muon tracks', 'particle tracks'], 'curved charged-particle trajectories crossing detector layers from a collision vertex', {
+          classHints: ['particle_path'], shapeHints: ['curved_tracks'], partHints: ['collision vertex', 'track arcs', 'detector crossings'],
+          materialHints: ['light'], behaviorHints: ['charged_particle_motion'], groundingIds: ['ground.instrumented-bench'],
+        }),
+        surfaceCard('artifact.conveyor', 'artifact', ['conveyor belt', 'conveyor belts', 'belt line'], 'moving belt carrying objects with friction, rollers, and transport flow', {
           classHints: ['transport_machine'], shapeHints: ['belt_loop'], partHints: ['belt', 'roller', 'motor'],
           materialHints: ['rubber', 'metal'], behaviorHints: ['moves_objects'], groundingIds: ['ground.conveyor'],
+        }),
+        surfaceCard('artifact.parcel', 'artifact', ['parcel', 'parcels', 'package', 'shipping box', 'carton'], 'sealed shipping carton with rigid faces, taped seam, label, contact base, and carried load', {
+          classHints: ['package', 'container'], shapeHints: ['carton', 'rectangular_box'], partHints: ['carton body', 'top flap', 'tape seam', 'shipping label'],
+          materialHints: ['cardboard', 'paper'], behaviorHints: ['carried', 'sorted', 'slides'], groundingIds: ['ground.rigid-machine', 'ground.container'],
         }),
         surfaceCard('artifact.pipe-network', 'artifact', ['pipe network', 'plumbing', 'water pipe', 'irrigation pipe', 'irrigation pipes'], 'connected pipes, valves, pumps, pressure, and fluid flow paths', {
           classHints: ['fluid_network'], shapeHints: ['connected_channels'], partHints: ['pipe', 'valve', 'pump'],
@@ -242,6 +266,23 @@
         surfaceCard('environment.ocean', 'environment', ['ocean', 'sea', 'wave tank'], 'large water environment with waves, currents, buoyancy, and pressure', {
           classHints: ['environment'], materialHints: ['water', 'air'], behaviorHints: ['wave_motion', 'fluid_flow'], groundingIds: ['ground.fluid-domain'],
         }),
+        surfaceCard('entity.ocean-wave', 'entity', ['waves', 'ocean wave', 'water wave', 'sea wave', 'wave crest'], 'moving water surface with a crest, trough, foam line, propagation front, and coupled current', {
+          classHints: ['fluid_surface'], shapeHints: ['wavefront', 'parallel_bands'],
+          partHints: ['crest', 'trough', 'foam line', 'wavefront band'], materialHints: ['water', 'air'],
+          behaviorHints: ['oscillation', 'wave_motion', 'fluid_flow'], groundingIds: ['ground.fluid-domain', 'ground.wave-event'],
+        }),
+        surfaceCard('entity.sea-ice', 'entity', ['sea ice', 'ice floe', 'pack ice', 'floating ice'], 'floating ice cover broken into plates with pressure ridges, crack seams, brine channels, and water contact', {
+          classHints: ['cryosphere_surface'], shapeHints: ['plate_field', 'polygon_sheet'],
+          partHints: ['ice floe plates', 'pressure ridge', 'crack seam', 'brine channel'],
+          materialHints: ['ice', 'water', 'snow'], behaviorHints: ['fracture', 'floating', 'wave_response'],
+          groundingIds: ['ground.ice-mass', 'ground.fluid-domain'],
+        }),
+        surfaceCard('environment.fjord', 'environment', ['fjord', 'glacial inlet', 'glacial bay'], 'narrow glacial water basin bounded by steep rock walls, shoreline, and a glacier mouth', {
+          classHints: ['glacial_basin'], shapeHints: ['basin', 'corridor', 'cutaway'],
+          partHints: ['water basin', 'cliff walls', 'shoreline', 'glacier mouth'],
+          materialHints: ['water', 'rock', 'ice'], behaviorHints: ['containment', 'fluid_flow'],
+          groundingIds: ['ground.fluid-domain', 'ground.granular-terrain'],
+        }),
         surfaceCard('environment.river', 'environment', ['river', 'stream', 'creek'], 'flowing water channel carrying sediment through terrain', {
           classHints: ['fluid_channel'], materialHints: ['water', 'soil', 'rock', 'sand'], behaviorHints: ['fluid_flow', 'erosion'], groundingIds: ['ground.fluid-channel'],
         }),
@@ -276,8 +317,10 @@
         surfaceCard('environment.lightning', 'environment', ['lightning', 'electric storm', 'bolt'], 'branching electrical discharge through air with heat, plasma, light, and shock', {
           classHints: ['electrical_discharge'], shapeHints: ['branching_arc'], materialHints: ['air', 'fire-plasma'], behaviorHints: ['charge_flow', 'heat_exchange'], groundingIds: ['ground.electrical-discharge'],
         }),
-        surfaceCard('environment.glacier', 'environment', ['glacier', 'ice sheet', 'iceberg'], 'slow moving ice mass with gravity creep, fracture, meltwater, and terrain erosion', {
-          classHints: ['terrain'], shapeHints: ['ice_mass'], materialHints: ['ice', 'water', 'rock'], behaviorHints: ['flowing', 'phase_change', 'erosion'], groundingIds: ['ground.ice-mass', 'ground.erosion-event'],
+        surfaceCard('environment.glacier', 'entity_class', ['glacier', 'ice sheet', 'iceberg'], 'slow moving ice mass with gravity creep, fracture, meltwater, and terrain erosion', {
+          classHints: ['terrain', 'cryosphere_mass'], shapeHints: ['ice_mass', 'layered_wedge'],
+          partHints: ['ice tongue', 'crevasse field', 'terminus', 'meltwater channel', 'bedrock contact'],
+          materialHints: ['ice', 'water', 'rock'], behaviorHints: ['flowing', 'phase_change', 'erosion'], groundingIds: ['ground.ice-mass', 'ground.erosion-event'],
         }),
         surfaceCard('environment.avalanche', 'environment', ['avalanche', 'landslide', 'rockslide'], 'granular mass failure flowing downhill with gravity, collision, entrainment, and deposition', {
           classHints: ['granular_flow'], shapeHints: ['flowing_mass'], materialHints: ['snow', 'rock', 'soil'], behaviorHints: ['falling', 'flowing', 'collision'], groundingIds: ['ground.granular-flow', 'ground.collision-event'],

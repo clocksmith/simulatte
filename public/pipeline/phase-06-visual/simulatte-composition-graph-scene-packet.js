@@ -2,6 +2,12 @@
   const scope = root.__SimulatteCompositionGraphRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
+    const COMPILED_SHAPE_IDENTITIES = Object.freeze({
+      wheel: ['wheel', 'machine'], hammer: ['hammer', 'artifact'], turbine: ['turbine', 'machine'],
+      slider: ['slider', 'machine'], panel: ['panel', 'artifact'], meter: ['meter', 'instrument'],
+      lens: ['lens', 'instrument'], prism: ['prism', 'instrument'], instrument: ['instrument', 'instrument'],
+    });
+
     function scenePacketRowIdentity(row = {}, process = null, layerSlot = '') {
         const text = [
           row.id,
@@ -92,7 +98,7 @@
         const layerSlot = instance && instance.layerSlot ||
           renderInstanceLayerSlot('geometry', geometry || {}, entity, null, sceneKind);
         const identity = scenePacketEntityIdentity(entity, geometry, layerSlot);
-        const geometryProgram = objectGeometryProgramForIdentity(identity, geometry || {}, entity);
+        const geometryProgram = objectGeometryProgramForIdentity(identity, geometry || {}, entity, layerSlot);
         const transform = scenePacketReadableTransform(initialTransform, geometryProgram);
         const animation = scenePacketAnimation({
           layerSlot,
@@ -194,7 +200,8 @@
         let type = 'object';
         let category = 'object';
         const directIdentity = scenePacketDirectEntityIdentity(entity, layerSlot);
-        if (directIdentity) {
+        const literalPromptType = scenePacketPromptIdentityType(entity.sourceLabel || entity.label || '');
+        if (directIdentity && (!isNetworkLayer || literalPromptType || entity.visualArchetype)) {
           type = directIdentity.type;
           category = directIdentity.category;
         } else if (isNetworkLayer || /node|edge|queue|network|packet|route/.test(objectText)) {
@@ -274,10 +281,14 @@
           schema: 'simulatte.sceneEntityIdentity.v1',
           type,
           category,
-          label: scenePacketIdentityLabel(type, entity),
+          label: directIdentity && directIdentity.label || scenePacketIdentityLabel(type, entity),
           renderClass: layerSlot || '',
           role: entity.role || '',
-          sourceLabel: entity.label || '',
+          sourceLabel: entity.sourceLabel || entity.label || '',
+          aliases: entity.aliases || [],
+          semanticClass: entity.semanticClass || '',
+          visualArchetype: directIdentity && directIdentity.visualArchetype || entity.visualArchetype || '',
+          directlyGrounded: entity.directlyGrounded === true,
           primitive: geometry && geometry.primitive || entity.shape || '',
           material: entity.material || '',
           semanticRef: entity.semanticRef || '',
@@ -286,6 +297,44 @@
       }
 
     function scenePacketDirectEntityIdentity(entity = {}, layerSlot = '') {
+        const promptType = entity.directlyGrounded === true
+          ? scenePacketPromptIdentityType(entity.sourceLabel || entity.label || '')
+          : '';
+        if (promptType) {
+          return {
+            type: promptType,
+            category: scenePacketGroundedIdentityCategory(promptType),
+            label: entity.sourceLabel || entity.label || promptType,
+            visualArchetype: entity.visualArchetype || promptType,
+          };
+        }
+        const compiledShape = String(entity.shape || '').toLowerCase();
+        if (COMPILED_SHAPE_IDENTITIES[compiledShape]) {
+          const [type, category] = COMPILED_SHAPE_IDENTITIES[compiledShape];
+          return {
+            type,
+            category,
+            label: entity.sourceLabel || entity.label || type,
+            visualArchetype: entity.visualArchetype || type,
+          };
+        }
+        if (entity.directlyGrounded === true) {
+          const sourceLabel = String(entity.sourceLabel || entity.label || entity.role || '').trim();
+          const semanticClass = String(entity.semanticClass || '').trim().toLowerCase();
+          const visualArchetype = String(entity.visualArchetype || '').trim().toLowerCase();
+          const generic = /^(?:body|entity|environment|material|medium|object|term)$/;
+          const sourceType = sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          const type = scenePacketPromptIdentityType(sourceLabel) || (!generic.test(semanticClass) ? semanticClass : '') ||
+            sourceType || visualArchetype;
+          if (type) {
+            return {
+              type,
+              category: scenePacketGroundedIdentityCategory(type),
+              label: sourceLabel || type,
+              visualArchetype: visualArchetype || type,
+            };
+          }
+        }
         const text = [
           entity.id,
           entity.sourceObject,
@@ -296,6 +345,22 @@
           entity.semanticRef,
           entity.physicalRef,
         ].filter(Boolean).join(' ').toLowerCase();
+        const groundedType = [
+          ['bicycle', /\b(bicycle|bike)\b/], ['sofa', /\b(sofa|couch)\b/],
+          ['lamp', /\b(?:floor )?lamp\b/], ['airplane', /\b(airplane|aircraft)\b/],
+          ['bridge', /\bbridge\b/], ['road', /\broad\b/], ['boat', /\b(boat|vessel)\b/],
+          ['cloud', /\bclouds?\b/], ['bird', /\bbirds?\b/], ['fish', /\bfish\b/],
+          ['horse', /\bhorses?\b/], ['book', /\bbooks?\b/], ['cup', /\b(cup|mug)\b/],
+          ['phone', /\b(phone|smartphone)\b/], ['laptop', /\blaptops?\b/], ['shelf', /\bshel(?:f|ves)\b/],
+        ].find(([, pattern]) => pattern.test(text));
+        if (groundedType) {
+          return {
+            type: groundedType[0],
+            category: scenePacketGroundedIdentityCategory(groundedType[0]),
+            label: entity.sourceLabel || entity.label || groundedType[0],
+            visualArchetype: groundedType[0],
+          };
+        }
         if (/\bblack[- ]hole\b|event[- ]horizon/.test(text)) {
           return { type: 'black-hole', category: 'celestial' };
         }
@@ -357,14 +422,6 @@
           return { type: /readout/.test(text) ? 'readout' : 'instrument', category: 'instrument' };
         }
         return null;
-      }
-
-    function scenePacketIdentityLabel(type, entity = {}) {
-        if (type && type !== 'object' && type !== 'field') return type;
-        const role = String(entity.role || '').toLowerCase();
-        const roleMatch = role.match(/\b(dog|cat|mouse|gerbil|hamster|person|human|chair|table|television|tv|building|galaxy|star|planet|water|robot|fire|smoke|protein|cell|plant|flower|tree|root|instrument|readout|structure)\b/);
-        if (roleMatch) return roleMatch[1];
-        return entity.label || entity.id || type || 'object';
       }
 
     function scenePacketField({ field, instance, sceneKind, index }) {
@@ -575,8 +632,14 @@
 
     function scenePacketMaterial(material, entity, layerSlot = '') {
         const row = material || {};
-        const materialId = row.materialId || row.id || entity && entity.material || 'matte';
-        const materialFamily = row.materialId
+        const baseMaterialId = row.materialId || row.id || entity && entity.material || 'matte';
+        const constructionMaterials = entity && entity.construction && entity.construction.materialHints || [];
+        const constructionMaterial = constructionMaterials.find((id) => id === baseMaterialId) ||
+          constructionMaterials[0] || '';
+        const materialId = constructionMaterial || baseMaterialId;
+        const materialFamily = constructionMaterial
+          ? materialFamilyForVisualMaterial(constructionMaterial, entity && entity.visualRegime)
+          : row.materialId
           ? materialFamilyForVisualMaterial(row.materialId, entity && entity.visualRegime)
           : row.family || materialFamilyForVisualMaterial(entity && entity.material, entity && entity.visualRegime);
         if (layerSlot === 'node-graph' || layerSlot === 'network-flow') {
@@ -588,7 +651,10 @@
             fill: style.fill,
             stroke: style.stroke,
             opacity: Number.isFinite(Number(row.opacity)) ? Math.max(Number(row.opacity), 0.52) : style.alpha,
+            roughness: Number.isFinite(Number(row.roughness)) ? Number(row.roughness) : 0.28,
+            metallic: 0.7,
             emissive: true,
+            emissiveStrength: 0.36,
           };
         }
         return {
@@ -598,16 +664,34 @@
           fill: row.fill || '',
           stroke: row.stroke || '',
           opacity: Number.isFinite(Number(row.opacity)) ? Number(row.opacity) : 0.7,
+          roughness: Number.isFinite(Number(row.roughness)) ? Number(row.roughness) : materialRoughness(materialFamily),
+          metallic: Number.isFinite(Number(row.metallic)) ? Number(row.metallic) : materialFamily === 'metal' ? 0.82 : 0,
           emissive: row.emissive === true,
+          emissiveStrength: row.emissive === true ? 0.42 : 0,
         };
       }
 
     function scenePacketAnimation({ layerSlot, entity = null, field = null, process = null, motion = null, text = '', index = 0 }) {
         const value = `${layerSlot || ''} ${text || ''}`.toLowerCase();
+        const behaviorEvidence = [
+          ...((entity && entity.behavior && entity.behavior.sourceEvidence) || []),
+          ...((entity && entity.behavior && entity.behavior.processes) || []),
+        ].join(' ').toLowerCase();
+        const promptIdentity = entity && (entity.directlyGrounded === true || entity.visualArchetype ||
+          /^prompt\./.test(String(entity.semanticRef || entity.physicalRef || '')));
+        const promptOwnedLayer = promptOwnedLayerSlotForEntity(entity);
+        const naturallyDynamicMedium = promptOwnedLayer
+          ? /water-volume|flow-field/.test(promptOwnedLayer)
+          : /water-volume|watershed|ocean|river|fluid/.test(value);
+        const explicitMotionBehavior = /action:(?!coexists\b)[a-z0-9-]+|swim|fluid_locomotion|flow|orbit|fly|flight|run|rotate|spin|fall|grow|pulse|crash|collid/.test(behaviorEvidence);
+        const staticPromptObject = promptIdentity && !naturallyDynamicMedium &&
+          !explicitMotionBehavior;
         let kind = 'state-pulse';
         let stateBinding = 'simulation-time';
-        if (/swim[-_ ]?cycle|swimming[-_ ]?pose|swim[-_ ]?stroke|fluid_locomotion/.test(value)) kind = 'swim-cycle';
+        if (staticPromptObject) kind = 'static-pose';
+        else if (/swim[-_ ]?cycle|swimming[-_ ]?pose|swim[-_ ]?stroke|fluid_locomotion/.test(value)) kind = 'swim-cycle';
         else if (/biological-agent/.test(value) && /water|swim|fluid|watershed|ocean/.test(value)) kind = 'swim-cycle';
+        else if (/action:(?:fly|flies|flying)\b/.test(behaviorEvidence)) kind = 'flight-path';
         else if (scenePacketAtlasMotionKind(motion, process)) kind = scenePacketAtlasMotionKind(motion, process);
         else if (/water-volume|flow-field|fluid|advection|streamline|ripple|velocity/.test(value)) kind = 'flow-ripple';
         else if (/detector|track-line|particle/.test(value)) kind = 'particle-track';
@@ -616,7 +700,9 @@
         else if (/organic-matrix|bubble-volume|fermentation|gas|dough|gluten/.test(value)) kind = 'fermentation-rise';
         else if (/thermal|fire|plume|smoke|combust/.test(value)) kind = 'plume-rise';
         else if (/orbital|orbit|gravity|planet/.test(value)) kind = 'orbital-drift';
-        const speedSource = motion && motion.speed || process && process.speed || field && field.speed;
+        const speedSource = kind === 'flight-path'
+          ? animationSpeedForKind(kind)
+          : motion && motion.speed || process && process.speed || field && field.speed;
         const speed = Number.isFinite(Number(speedSource)) ? Number(speedSource) : animationSpeedForKind(kind);
         return {
           kind,
@@ -650,6 +736,7 @@
       }
 
     function animationSpeedForKind(kind) {
+        if (kind === 'flight-path') return 0.62;
         if (kind === 'particle-track' || kind === 'packet-flow') return 0.74;
         if (kind === 'swim-cycle' || kind === 'flow-ripple') return 0.48;
         if (kind === 'fermentation-rise' || kind === 'orbital-drift') return 0.24;
@@ -658,6 +745,7 @@
       }
 
     function animationAmplitudeForKind(kind) {
+        if (kind === 'flight-path') return 0.07;
         if (kind === 'swim-cycle') return 0.055;
         if (kind === 'flow-ripple') return 0.04;
         if (kind === 'packet-flow' || kind === 'particle-track') return 0.08;
@@ -880,7 +968,6 @@
       scenePacketEntity,
       scenePacketEntityIdentity,
       scenePacketDirectEntityIdentity,
-      scenePacketIdentityLabel,
       scenePacketField,
       scenePacketEffect,
       motionForEntity,

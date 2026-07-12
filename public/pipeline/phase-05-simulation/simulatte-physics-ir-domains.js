@@ -57,6 +57,8 @@
     function materialFromDomains(domains) {
         const text = (domains || []).join(' ');
         if (/lava/.test(text)) return 'lava';
+        if (/smoke/.test(text)) return 'smoke';
+        if (/dust|powder/.test(text)) return 'dust';
         if (/water|fluid|lake|pool|pond|river|ocean|beach/.test(text)) return 'water';
         if (/metal|mechanic|rigid/.test(text)) return 'metal';
         if (/rock|solid|fracture/.test(text)) return 'rock';

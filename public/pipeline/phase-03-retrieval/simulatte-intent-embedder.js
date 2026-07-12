@@ -6,6 +6,7 @@
     require('./simulatte-intent-embedder-model-cache.js');
     require('./simulatte-intent-embedder-runtime-class.js');
     require('./simulatte-intent-embedder-runtime-probes.js');
+    require('./simulatte-intent-embedder-construction-retrieval.js');
     require('./simulatte-intent-embedder-span-retrieval.js');
     require('./simulatte-intent-embedder-slot-retrieval.js');
     require('./simulatte-intent-embedder-rerank-runtime.js');

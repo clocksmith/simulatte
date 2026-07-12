@@ -861,7 +861,7 @@ test('contrastive top-k reranking retains local scores for unevaluated candidate
   assert.match(slotTail.modelRerankReason, /outside model top-k/);
 });
 
-test('slot lexical evidence uses whole semantic tokens and excludes support candidates from model work', () => {
+test('slot lexical evidence separates local identity from model construction work', () => {
   const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
   const slot = {
     slotId: 'slot.actor.cat',
@@ -905,6 +905,11 @@ test('slot lexical evidence uses whole semantic tokens and excludes support cand
   assert.match(input.prompt, /Scene prompt: cats swim in a lake/);
   assert.match(input.prompt, /Required actor evidence: cat feline/);
   assert.equal(scope.slotRerankSkipReason(slot, [{ literalSlotMatch: true }]), 'literal-slot-identity');
+  assert.equal(scope.slotRerankSkipReason(slot, []), '');
+  assert.equal(scope.slotUsesPromptOwnedLocalEvidence(slot), false);
+  assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
+    slotRole: 'action', entryId: 'action:swimming', required: true,
+  }), true);
   assert.equal(scope.slotRerankSkipReason({ ...slot, required: false }, []), 'optional-slot-local-evidence');
   assert.equal(scope.phase3SupportLikePrimitiveId('population-field'), true);
   assert.equal(scope.phase3SupportLikePrimitiveId('relation-table'), true);
@@ -1245,7 +1250,7 @@ test('Phase 3 uses Doppler reranker when the required capability is present', as
   });
 });
 
-test('Phase 3 model-backed retrieval embeds and reranks typed scene slots', async () => {
+test('Phase 3 model-ranks construction while keeping local identity receipts truthful', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     manifest.reranker = {
       ...manifest.reranker,
@@ -1287,23 +1292,41 @@ test('Phase 3 model-backed retrieval embeds and reranks typed scene slots', asyn
     });
     const dogSlot = result.slotRetrieval.bySlot.find((row) => row.slotId === 'slot.actor.dog');
     const catSlot = result.slotRetrieval.bySlot.find((row) => row.slotId === 'slot.actor.cat');
+    const actionSlot = result.slotRetrieval.bySlot.find((row) => row.slotRole === 'action');
+    const visualSlot = result.slotRetrieval.bySlot.find((row) => row.slotRole === 'visual');
 
     assert.equal(result.slotRetrieval.schema, 'simulatte.phase3SlotRetrieval.v1');
     assert.equal(result.slotRetrieval.queryPlanSchema, 'simulatte.sceneQueryPlan.v1');
-    assert.ok(result.slotRetrieval.embeddedSlotCount >= queryPlan.summary.requiredSlotCount);
-    assert.ok(result.slotRetrieval.rerankCallCount > 0);
-    assert.ok(result.slotRetrieval.rerankCallCount < queryPlan.summary.requiredSlotCount);
-    assert.ok(result.slotRetrieval.rerankCandidateInputCount <= result.slotRetrieval.rerankCallCount * 2);
+    assert.ok(result.slotRetrieval.embeddedSlotCount + result.slotRetrieval.localEvidenceSlotCount >=
+      queryPlan.summary.requiredSlotCount);
+    assert.equal(result.slotRetrieval.rerankCallCount, 1);
+    assert.ok(result.slotRetrieval.rerankCandidateInputCount > 0);
     assert.ok(dogSlot.candidates.some((row) => /\bdog\b|surface-dog/.test(row.candidateId)));
     assert.ok(catSlot.candidates.some((row) => /\bcat\b|surface-cat/.test(row.candidateId)));
-    assert.equal(dogSlot.receipt.skipReason, 'literal-slot-identity');
-    assert.equal(catSlot.receipt.skipReason, 'literal-slot-identity');
+    assert.equal(dogSlot.receipt.skipReason, 'exact-model-indexed-construction');
+    assert.equal(catSlot.receipt.skipReason, 'exact-model-indexed-construction');
+    assert.equal(dogSlot.constructionCandidates[0].construction.schema, 'simulatte.constructionEvidence.v1');
+    assert.equal(dogSlot.constructionCandidates[0].construction.sourceCardId, 'entity.dog');
+    assert.equal(dogSlot.constructionCandidates[0].modelEvaluated, true);
+    assert.ok(dogSlot.constructionCandidates[0].construction.partHints.length > 0);
+    assert.equal(catSlot.constructionCandidates[0].construction.sourceCardId, 'entity.cat');
+    assert.equal(actionSlot.acceptedCandidates[0].semanticType, 'action');
+    assert.equal(actionSlot.acceptedCandidates[0].identityEvidence, false);
+    assert.equal(Object.hasOwn(actionSlot.acceptedCandidates[0], 'modelScore'), false);
+    assert.equal(actionSlot.receipt.modelReady, false);
+    assert.equal(actionSlot.receipt.modelStatus, 'not-run');
+    assert.equal(visualSlot.acceptedCandidates[0].semanticType, 'visual');
+    assert.equal(visualSlot.acceptedCandidates[0].identityEvidence, false);
+    assert.equal(Object.hasOwn(visualSlot.acceptedCandidates[0], 'modelScore'), false);
+    assert.equal(visualSlot.receipt.skipReason, 'prompt-owned-local-identity');
+    assert.ok(rerankInputs.some((input) => input.schema === 'simulatte.intentRerankInput.v1'));
     assert.ok(rerankInputs.some((input) => input.schema === 'simulatte.intentSlotRerankInput.v1'));
     assert.equal(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.actor.dog'), false);
-    assert.ok(embedTexts.some((text) => /\bdog\b/.test(text)));
-    assert.ok(embedTexts.every((text) => !/\b(?:actor|slot|required)\b/.test(text)));
+    assert.ok(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.environment.lake'));
+    assert.ok(embedTexts.some((text) => /dogs and cats swimming in a lake/.test(text)));
+    assert.equal(embedTexts.some((text) => /species distinct silhouettes|wake ripples|partial submersion/.test(text)), false);
+    assert.ok(embedTexts.some((text) => /Construct the required actor: dog/.test(text)));
     assert.ok(events.some((event) => event.stage === 'slot-retrieval'));
-    assert.ok(events.some((event) => event.stage === 'slot-rank'));
     assert.ok(result.evidenceRows.some((row) => (
       row.retrievalKind === 'slot-retrieval' &&
       row.slotId === 'slot.actor.dog'
@@ -1319,9 +1342,25 @@ test('Phase 3 model-backed retrieval embeds and reranks typed scene slots', asyn
     assert.ok(groundedCatSlot.acceptedCandidates.some((row) => (
       row.source === 'prompt-typed-slot' && row.candidateText === 'cat'
     )));
-    assert.ok(groundedDogSlot.acceptedCandidates.every((row) => (
-      /\bdog\b|surface-dog/.test(`${row.candidateId} ${row.candidateText}`)
+    assert.ok(groundedDogSlot.constructionCandidates.some((row) => (
+      row.construction && row.construction.sourceCardId === 'entity.dog' && row.modelEvaluated === true
     )));
+
+    const phase4 = lab.runPhase4GroundedIntent(phase3);
+    const acceptedGraph = phase4.artifact.groundedIntent.acceptedGraph;
+    assert.equal(acceptedGraph.constructionReceipt.modelEvaluatedCount, 3);
+    assert.ok(acceptedGraph.constructionReceipt.rerankEvaluatedCount > 0);
+    assert.deepEqual(acceptedGraph.nodes.map((row) => row.id).sort(), [
+      'prompt-body-cat', 'prompt-body-dog', 'prompt-environment-lake',
+    ]);
+    assert.equal(acceptedGraph.nodes.some((row) => /^(?:visual|action|relation)$/.test(row.semanticType)), false);
+    const phase5 = lab.runPhase5SimulationCompile(phase4);
+    const phase6 = lab.runPhase6VisualCompile(phase5);
+    const entities = phase6.artifact.visualCompile.sceneRenderPacket.entities;
+    assert.equal(entities.length, 3);
+    assert.ok(entities.every((row) => row.geometry.program.source === 'phase3-model-construction-evidence'));
+    assert.ok(entities.find((row) => row.identity.type === 'dog').geometry.program.parts.some((row) => row.id === 'tail'));
+    assert.equal(entities.find((row) => row.identity.type === 'lake').material.id, 'water');
   });
 });
 
