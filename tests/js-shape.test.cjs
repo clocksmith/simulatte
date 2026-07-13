@@ -2433,12 +2433,18 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	  assert.equal(Object.hasOwn(rawManifest, 'cache'), false);
 	  assert.equal(manifest.retrieval.kind, 'precomputed-primitive-index');
 	  assert.equal(manifest.retrieval.artifact, './primitive-index-v2.json');
-	  assert.equal(manifest.retrieval.artifactHash.hex, '1053238b844833b5f157f9519fdbc3a2c6aaa4581b4fd134affd30a0158fd791');
+	  assert.equal(
+	    manifest.retrieval.artifactHash.hex,
+	    crypto.createHash('sha256').update(fs.readFileSync(indexPath)).digest('hex')
+	  );
 	  assert.equal(manifest.retrieval.dimensions, 1024);
 	  assert.equal(manifest.retrieval.rerank, 'mandatory');
 	  assert.equal(manifest.retrieval.cards.kind, 'precomputed-surface-card-index');
 	  assert.equal(manifest.retrieval.cards.artifact, './surface-card-index-qwen-v1.json');
-	  assert.equal(manifest.retrieval.cards.artifactHash.hex, '65bc6d4f88e4e11fa812cd5da254c1f36cd148558c73a2562baffe2d931cade4');
+	  assert.equal(
+	    manifest.retrieval.cards.artifactHash.hex,
+	    crypto.createHash('sha256').update(fs.readFileSync(cardIndexPath)).digest('hex')
+	  );
 	  assert.equal(manifest.retrieval.cards.dimensions, 1024);
 	  assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
 	  assert.equal(
