@@ -11,7 +11,7 @@ const ROOT = path.resolve(TOOL_DIR, '../..');
 const DEFAULT_CONTRACT = path.join(TOOL_DIR, 'simulatte-construction-contract.json');
 const DEFAULT_GOLD_SET = path.join(TOOL_DIR, 'simulatte-public-gold-v1.json');
 const require = createRequire(import.meta.url);
-const lab = require('../../public/app/simulation/simulation-lab.js');
+const lab = require('../../public/blank/app/simulation/simulation-lab.js');
 
 function parseArgs(argv) {
   const options = {

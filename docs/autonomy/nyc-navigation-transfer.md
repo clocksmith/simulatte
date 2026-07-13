@@ -46,6 +46,15 @@ The compiled artifact contains 2,422 bike nodes, 3,654 directed bike edges,
 from 26,990 source buildings. Per-source receipts retain authority, license,
 query, snapshot date, and raw SHA-256.
 
+The browser no longer treats that artifact as one indivisible map file. It
+loads a SHA-256-pinned registry and three packs for Manhattan Villages, the
+East River crossing, and North Brooklyn. Twenty-seven duplicated graph nodes
+form declared seams. Composition fails on an omitted or extra pack, a false
+seam, an inconsistent peer, a changed row, or a count mismatch, then verifies
+that the reconstructed world and feature catalog match their original hashes.
+The pack boundaries are loading and provenance boundaries, not geographic
+limits on simulation behavior.
+
 The occurrence catalog drives one assumed signal, one tick-window pedestrian,
 and one node-event pedestrian. These are scenario assumptions, not observed
 traffic. The public diagnostic set freezes 20 by-construction missions with
@@ -99,6 +108,14 @@ LION centerline + DOT bike routes (graph), planimetric sidewalks/crosswalks
 TLC trip records (demand priors for authored actors), Vision Zero crashes
 (risk layer). Every source lands as provenance-carrying cards with per-entry
 validation, mirroring the existing `provenance.sources` shape.
+
+NYC extension means rebuilding the canonical NYC source world and deriving
+all packs again under the same coordinate origin and identity policy. Another
+city is a separate governed world and region registry. It can reuse the
+mission, occurrence, bet, gate, settlement, renderer, and receipt contracts,
+but it cannot share local-meter coordinates or claim connected routing without
+an explicit inter-city transport contract. Registry compilation is inactive
+by default so a second city cannot replace the hosted city accidentally.
 
 ## Mode expansion order
 

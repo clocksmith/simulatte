@@ -4,7 +4,7 @@
     "method": "by_construction_from_named_world_nodes",
     "owner": "tools/autonomy/build-public-navigation-missions.mjs",
     "rowCount": 20,
-    "rowsSha256": "4ae97cbef932ac9934e4919ad51f46a15dc7111bdab88dfa6fd7caf45188f125"
+    "rowsSha256": "77ce4c914c2680e01b9fe0c097135b534439cdcfe99d906bc6489185d8665a9b"
   },
   "contentVersion": "public-navigation-missions-2026-07-13",
   "exposure": "Checked into the repository and available to developers, agents, selectors, and evaluators.",
@@ -15,7 +15,7 @@
     "policyId": "bet-selector-v1",
     "policySha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c",
     "worldId": "villages-williamsburg-delivery-bike-v1",
-    "worldSha256": "ea428e97820d0ac47657bf518232be9a60c78d7d73f6e85ca409e9e571c5d7d1"
+    "worldSha256": "04361791f51e9c2a3275daffa2aec8c00de8e1cbe5cd7ab464d508fe004dfb00"
   },
   "missions": [
     {
@@ -27,9 +27,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "North Williamsburg",
-        "destinationNodeId": "bike-node-8205d9afed22",
+        "destinationNodeId": "bike-node-e25116ea05a4",
         "originLabel": "Union Square",
-        "originNodeId": "bike-node-2b7e2b7ee460",
+        "originNodeId": "bike-node-0d9391b2bfa3",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -39,16 +39,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-eb8af130d55c-tf"
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
         }
       },
       "id": "public-mission-01",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 7220.116811,
-        "firstSegmentId": "bike-eb8af130d55c-tf",
+        "firstSegmentId": "bike-30ee92829e72-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-5e89f817217a-ft",
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
         "protectedSegmentCount": 86,
         "segmentCount": 95,
         "sharedSegmentCount": 9
@@ -64,9 +64,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
-        "destinationNodeId": "bike-node-2b7e2b7ee460",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
         "originLabel": "West Village",
-        "originNodeId": "bike-node-f4ac24f96860",
+        "originNodeId": "bike-node-261ee8be5a25",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -76,16 +76,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-ea00b4bb1320-tf"
+          "routeSegmentCardId": "network.bike-5bc633d32761-tf"
         }
       },
       "id": "public-mission-02",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 1715.457479,
-        "firstSegmentId": "bike-ea00b4bb1320-tf",
+        "firstSegmentId": "bike-5bc633d32761-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-4d03e3afe760-ft",
+        "lastSegmentId": "bike-c698e8b137d0-ft",
         "protectedSegmentCount": 12,
         "segmentCount": 24,
         "sharedSegmentCount": 12
@@ -101,9 +101,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "West Village",
-        "destinationNodeId": "bike-node-f4ac24f96860",
+        "destinationNodeId": "bike-node-261ee8be5a25",
         "originLabel": "Union Square",
-        "originNodeId": "bike-node-2b7e2b7ee460",
+        "originNodeId": "bike-node-0d9391b2bfa3",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -113,16 +113,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-eb8af130d55c-tf"
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
         }
       },
       "id": "public-mission-03",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 2138.734453,
-        "firstSegmentId": "bike-eb8af130d55c-tf",
+        "firstSegmentId": "bike-30ee92829e72-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-52bd97de93d3-tf",
+        "lastSegmentId": "bike-793260e61f7c-tf",
         "protectedSegmentCount": 13,
         "segmentCount": 22,
         "sharedSegmentCount": 9
@@ -138,9 +138,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
-        "destinationNodeId": "bike-node-2b7e2b7ee460",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
         "originLabel": "East Village",
-        "originNodeId": "bike-node-24983f8a7746",
+        "originNodeId": "bike-node-ffea919f743c",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -149,16 +149,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-5c2ccdcf7637-ft"
+          "routeSegmentCardId": "network.bike-bc5707edfa14-ft"
         }
       },
       "id": "public-mission-04",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 1473.07519,
-        "firstSegmentId": "bike-5c2ccdcf7637-ft",
+        "firstSegmentId": "bike-bc5707edfa14-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-4d03e3afe760-ft",
+        "lastSegmentId": "bike-c698e8b137d0-ft",
         "protectedSegmentCount": 11,
         "segmentCount": 20,
         "sharedSegmentCount": 9
@@ -174,9 +174,9 @@
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "East Village",
-        "destinationNodeId": "bike-node-24983f8a7746",
+        "destinationNodeId": "bike-node-ffea919f743c",
         "originLabel": "Union Square",
-        "originNodeId": "bike-node-2b7e2b7ee460",
+        "originNodeId": "bike-node-0d9391b2bfa3",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -186,16 +186,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-eb8af130d55c-tf"
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
         }
       },
       "id": "public-mission-05",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 1528.993856,
-        "firstSegmentId": "bike-eb8af130d55c-tf",
+        "firstSegmentId": "bike-30ee92829e72-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-83437a3672c8-tf",
+        "lastSegmentId": "bike-87ae7cb7e384-tf",
         "protectedSegmentCount": 13,
         "segmentCount": 19,
         "sharedSegmentCount": 6
@@ -211,9 +211,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "East Village",
-        "destinationNodeId": "bike-node-24983f8a7746",
+        "destinationNodeId": "bike-node-ffea919f743c",
         "originLabel": "Washington Square",
-        "originNodeId": "bike-node-5911c5fb8b01",
+        "originNodeId": "bike-node-a3f0f4b7e7e3",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -223,16 +223,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-d465ce808e73-ft"
+          "routeSegmentCardId": "network.bike-2824173a7a8e-ft"
         }
       },
       "id": "public-mission-06",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 3051.531997,
-        "firstSegmentId": "bike-d465ce808e73-ft",
+        "firstSegmentId": "bike-2824173a7a8e-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-83437a3672c8-tf",
+        "lastSegmentId": "bike-87ae7cb7e384-tf",
         "protectedSegmentCount": 25,
         "segmentCount": 37,
         "sharedSegmentCount": 12
@@ -248,9 +248,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Washington Square",
-        "destinationNodeId": "bike-node-5911c5fb8b01",
+        "destinationNodeId": "bike-node-a3f0f4b7e7e3",
         "originLabel": "East Village",
-        "originNodeId": "bike-node-24983f8a7746",
+        "originNodeId": "bike-node-ffea919f743c",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -260,16 +260,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-5c2ccdcf7637-ft"
+          "routeSegmentCardId": "network.bike-bc5707edfa14-ft"
         }
       },
       "id": "public-mission-07",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 2159.554698,
-        "firstSegmentId": "bike-5c2ccdcf7637-ft",
+        "firstSegmentId": "bike-bc5707edfa14-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-c3e37bc64450-tf",
+        "lastSegmentId": "bike-789adb0b13f3-tf",
         "protectedSegmentCount": 15,
         "segmentCount": 21,
         "sharedSegmentCount": 6
@@ -285,9 +285,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
-        "destinationNodeId": "bike-node-2b7e2b7ee460",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
         "originLabel": "Tompkins Square",
-        "originNodeId": "bike-node-6707b42ed598",
+        "originNodeId": "bike-node-429dcefa615d",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -296,16 +296,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-64193dd2824e-ft"
+          "routeSegmentCardId": "network.bike-525b89419eaa-ft"
         }
       },
       "id": "public-mission-08",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 1550.517746,
-        "firstSegmentId": "bike-64193dd2824e-ft",
+        "firstSegmentId": "bike-525b89419eaa-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-4d03e3afe760-ft",
+        "lastSegmentId": "bike-c698e8b137d0-ft",
         "protectedSegmentCount": 11,
         "segmentCount": 21,
         "sharedSegmentCount": 10
@@ -321,9 +321,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Tompkins Square",
-        "destinationNodeId": "bike-node-6707b42ed598",
+        "destinationNodeId": "bike-node-429dcefa615d",
         "originLabel": "Union Square",
-        "originNodeId": "bike-node-2b7e2b7ee460",
+        "originNodeId": "bike-node-0d9391b2bfa3",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -333,16 +333,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-eb8af130d55c-tf"
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
         }
       },
       "id": "public-mission-09",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 1606.436412,
-        "firstSegmentId": "bike-eb8af130d55c-tf",
+        "firstSegmentId": "bike-30ee92829e72-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-02ebbd2dc125-tf",
+        "lastSegmentId": "bike-f9cd8f0bd2bd-tf",
         "protectedSegmentCount": 13,
         "segmentCount": 20,
         "sharedSegmentCount": 7
@@ -358,9 +358,9 @@
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "North Williamsburg",
-        "destinationNodeId": "bike-node-8205d9afed22",
+        "destinationNodeId": "bike-node-e25116ea05a4",
         "originLabel": "Williamsburg Bridge",
-        "originNodeId": "bike-node-085a7a1c37c8",
+        "originNodeId": "bike-node-86300f2cfd65",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -370,16 +370,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-a925bcda9b6a-ft"
+          "routeSegmentCardId": "network.bike-bb2677d5568d-ft"
         }
       },
       "id": "public-mission-10",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 2642.561146,
-        "firstSegmentId": "bike-a925bcda9b6a-ft",
+        "firstSegmentId": "bike-bb2677d5568d-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-5e89f817217a-ft",
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
         "protectedSegmentCount": 23,
         "segmentCount": 30,
         "sharedSegmentCount": 7
@@ -395,9 +395,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Williamsburg Bridge",
-        "destinationNodeId": "bike-node-085a7a1c37c8",
+        "destinationNodeId": "bike-node-86300f2cfd65",
         "originLabel": "North Williamsburg",
-        "originNodeId": "bike-node-8205d9afed22",
+        "originNodeId": "bike-node-e25116ea05a4",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -407,16 +407,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-6a9d765d00f0-ft"
+          "routeSegmentCardId": "network.bike-cadb6da5d98d-ft"
         }
       },
       "id": "public-mission-11",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 2168.157075,
-        "firstSegmentId": "bike-6a9d765d00f0-ft",
+        "firstSegmentId": "bike-cadb6da5d98d-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-e46cc0ab30d7-tf",
+        "lastSegmentId": "bike-396223911d7b-tf",
         "protectedSegmentCount": 18,
         "segmentCount": 25,
         "sharedSegmentCount": 7
@@ -432,9 +432,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "North Williamsburg",
-        "destinationNodeId": "bike-node-8205d9afed22",
+        "destinationNodeId": "bike-node-e25116ea05a4",
         "originLabel": "Williamsburg Waterfront",
-        "originNodeId": "bike-node-8359e13eda6b",
+        "originNodeId": "bike-node-0b79eee2f2ef",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -443,16 +443,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-f997052cde9e-tf"
+          "routeSegmentCardId": "network.bike-e2c1b08cca63-tf"
         }
       },
       "id": "public-mission-12",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 1219.677502,
-        "firstSegmentId": "bike-f997052cde9e-tf",
+        "firstSegmentId": "bike-e2c1b08cca63-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-5e89f817217a-ft",
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
         "protectedSegmentCount": 0,
         "segmentCount": 14,
         "sharedSegmentCount": 14
@@ -468,9 +468,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Williamsburg Waterfront",
-        "destinationNodeId": "bike-node-8359e13eda6b",
+        "destinationNodeId": "bike-node-0b79eee2f2ef",
         "originLabel": "North Williamsburg",
-        "originNodeId": "bike-node-8205d9afed22",
+        "originNodeId": "bike-node-e25116ea05a4",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -480,16 +480,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-6a9d765d00f0-ft"
+          "routeSegmentCardId": "network.bike-cadb6da5d98d-ft"
         }
       },
       "id": "public-mission-13",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 745.206483,
-        "firstSegmentId": "bike-6a9d765d00f0-ft",
+        "firstSegmentId": "bike-cadb6da5d98d-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-5e4c39c0c169-ft",
+        "lastSegmentId": "bike-1ec711b01827-ft",
         "protectedSegmentCount": 0,
         "segmentCount": 8,
         "sharedSegmentCount": 8
@@ -505,9 +505,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Greenpoint",
-        "destinationNodeId": "bike-node-f5163a3fa483",
+        "destinationNodeId": "bike-node-7a95737b9c7d",
         "originLabel": "McCarren Park",
-        "originNodeId": "bike-node-9e1559af8da9",
+        "originNodeId": "bike-node-8a641140b02c",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -517,16 +517,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-451b53112f2d-ft"
+          "routeSegmentCardId": "network.bike-21a25ccf6628-ft"
         }
       },
       "id": "public-mission-14",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 2206.81106,
-        "firstSegmentId": "bike-451b53112f2d-ft",
+        "firstSegmentId": "bike-21a25ccf6628-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-64333a720258-ft",
+        "lastSegmentId": "bike-7767019a7a63-ft",
         "protectedSegmentCount": 13,
         "segmentCount": 21,
         "sharedSegmentCount": 8
@@ -542,9 +542,9 @@
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "McCarren Park",
-        "destinationNodeId": "bike-node-9e1559af8da9",
+        "destinationNodeId": "bike-node-8a641140b02c",
         "originLabel": "Greenpoint",
-        "originNodeId": "bike-node-f5163a3fa483",
+        "originNodeId": "bike-node-7a95737b9c7d",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -554,16 +554,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-4639c43c7dc4-ft"
+          "routeSegmentCardId": "network.bike-6925b5ebf41e-ft"
         }
       },
       "id": "public-mission-15",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 1158.943244,
-        "firstSegmentId": "bike-4639c43c7dc4-ft",
+        "firstSegmentId": "bike-6925b5ebf41e-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-5e8cd597157f-ft",
+        "lastSegmentId": "bike-6e65707f4ed8-ft",
         "protectedSegmentCount": 0,
         "segmentCount": 8,
         "sharedSegmentCount": 8
@@ -579,9 +579,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Greenpoint",
-        "destinationNodeId": "bike-node-f5163a3fa483",
+        "destinationNodeId": "bike-node-7a95737b9c7d",
         "originLabel": "North Williamsburg",
-        "originNodeId": "bike-node-8205d9afed22",
+        "originNodeId": "bike-node-e25116ea05a4",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -590,16 +590,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-6a9d765d00f0-ft"
+          "routeSegmentCardId": "network.bike-cadb6da5d98d-ft"
         }
       },
       "id": "public-mission-16",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 2277.344119,
-        "firstSegmentId": "bike-6a9d765d00f0-ft",
+        "firstSegmentId": "bike-cadb6da5d98d-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-64333a720258-ft",
+        "lastSegmentId": "bike-7767019a7a63-ft",
         "protectedSegmentCount": 13,
         "segmentCount": 27,
         "sharedSegmentCount": 14
@@ -615,9 +615,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "North Williamsburg",
-        "destinationNodeId": "bike-node-8205d9afed22",
+        "destinationNodeId": "bike-node-e25116ea05a4",
         "originLabel": "Greenpoint",
-        "originNodeId": "bike-node-f5163a3fa483",
+        "originNodeId": "bike-node-7a95737b9c7d",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -627,16 +627,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-56e9558e74a2-tf"
+          "routeSegmentCardId": "network.bike-dc4df7aa5145-tf"
         }
       },
       "id": "public-mission-17",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 2205.335439,
-        "firstSegmentId": "bike-56e9558e74a2-tf",
+        "firstSegmentId": "bike-dc4df7aa5145-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-5e89f817217a-ft",
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
         "protectedSegmentCount": 14,
         "segmentCount": 23,
         "sharedSegmentCount": 9
@@ -652,9 +652,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Williamsburg Waterfront",
-        "destinationNodeId": "bike-node-8359e13eda6b",
+        "destinationNodeId": "bike-node-0b79eee2f2ef",
         "originLabel": "Union Square",
-        "originNodeId": "bike-node-2b7e2b7ee460",
+        "originNodeId": "bike-node-0d9391b2bfa3",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -664,16 +664,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-eb8af130d55c-tf"
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
         }
       },
       "id": "public-mission-18",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 5855.294637,
-        "firstSegmentId": "bike-eb8af130d55c-tf",
+        "firstSegmentId": "bike-30ee92829e72-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-1215a603424c-tf",
+        "lastSegmentId": "bike-761e776351e6-tf",
         "protectedSegmentCount": 71,
         "segmentCount": 81,
         "sharedSegmentCount": 10
@@ -689,9 +689,9 @@
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
-        "destinationNodeId": "bike-node-2b7e2b7ee460",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
         "originLabel": "Williamsburg Waterfront",
-        "originNodeId": "bike-node-8359e13eda6b",
+        "originNodeId": "bike-node-0b79eee2f2ef",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -701,16 +701,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-66e0326a5727-ft"
+          "routeSegmentCardId": "network.bike-f8a15271364c-ft"
         }
       },
       "id": "public-mission-19",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 5148.827321,
-        "firstSegmentId": "bike-66e0326a5727-ft",
+        "firstSegmentId": "bike-f8a15271364c-ft",
         "isReachable": true,
-        "lastSegmentId": "bike-4d03e3afe760-ft",
+        "lastSegmentId": "bike-c698e8b137d0-ft",
         "protectedSegmentCount": 76,
         "segmentCount": 92,
         "sharedSegmentCount": 16
@@ -726,9 +726,9 @@
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "Greenpoint",
-        "destinationNodeId": "bike-node-f5163a3fa483",
+        "destinationNodeId": "bike-node-7a95737b9c7d",
         "originLabel": "West Village",
-        "originNodeId": "bike-node-f4ac24f96860",
+        "originNodeId": "bike-node-261ee8be5a25",
         "requiredObligationIds": [
           "obligation-arrival",
           "obligation-payload",
@@ -737,16 +737,16 @@
         ],
         "retrieval": {
           "missionCardId": "scenario.delivery-arrival",
-          "routeSegmentCardId": "network.bike-811223a27837-tf"
+          "routeSegmentCardId": "network.bike-55dee1ed7c4d-tf"
         }
       },
       "id": "public-mission-20",
       "routeControl": {
         "algorithm": "a_star_v1",
         "distanceM": 7095.851366,
-        "firstSegmentId": "bike-811223a27837-tf",
+        "firstSegmentId": "bike-55dee1ed7c4d-tf",
         "isReachable": true,
-        "lastSegmentId": "bike-64333a720258-ft",
+        "lastSegmentId": "bike-7767019a7a63-ft",
         "protectedSegmentCount": 86,
         "segmentCount": 127,
         "sharedSegmentCount": 41

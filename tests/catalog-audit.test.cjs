@@ -4,9 +4,9 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
-const parser = require('../public/pipeline/phase-02-language/simulatte-universe-parser.js');
+const parser = require('../public/blank/pipeline/phase-02-language/simulatte-universe-parser.js');
 const lexicon = require('../public/data/simulatte-language-lexicon.js');
-require('../public/pipeline/phase-05-simulation/simulatte-physics-ir.js');
+require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-ir.js');
 
 test('catalog inventory and language lexicon coverage are a test gate', () => {
   const output = execFileSync(process.execPath, ['tools/audit-catalog-inventory.mjs'], {

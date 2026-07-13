@@ -22,7 +22,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-intent-scene-audit');
 const require = createRequire(import.meta.url);
-const phaseContracts = require('../public/pipeline/simulatte-phase-contracts.js');
+const phaseContracts = require('../public/blank/pipeline/simulatte-phase-contracts.js');
 const EXPECTED_PHASE_OUTPUT_SCHEMAS = Object.freeze(Object.fromEntries(
   phaseContracts.phases
     .filter((row) => row.phase <= 7)
@@ -439,15 +439,18 @@ async function freePort() {
 function startStaticServer(port = 0) {
   const server = createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://127.0.0.1');
-    const requested = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
-    const fullPath = path.resolve(PUBLIC_DIR, `.${requested}`);
-    if (!fullPath.startsWith(PUBLIC_DIR)) {
+    const pathname = decodeURIComponent(url.pathname || '/');
+    const requested = pathname.endsWith('/') ? `${pathname}index.html` : pathname;
+    const requestedPath = path.resolve(PUBLIC_DIR, `.${requested}`);
+    const relativePath = path.relative(PUBLIC_DIR, requestedPath);
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
       res.writeHead(403);
       res.end('forbidden');
       return;
     }
-    fs.stat(fullPath).then((stat) => {
-      if (!stat.isFile()) {
+    fs.stat(requestedPath).then(async (fileStat) => {
+      const fullPath = requestedPath;
+      if (!fileStat.isFile()) {
         res.writeHead(404);
         res.end('not found');
         return;
@@ -1311,6 +1314,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         slotId: row.slotId || '',
         slotRole: row.slotRole || '',
         required: row.required !== false,
+        skipReason: row.receipt && row.receipt.skipReason || '',
+        localGeometryGrammarId: row.receipt && row.receipt.localGeometryGrammarId || '',
         candidates: (row.candidates || []).slice(0, 8).map((candidate) => ({
           id: candidate.candidateId || candidate.primitiveId || candidate.id || '',
           type: candidate.candidateType || '',
@@ -1326,6 +1331,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           constructionEvidence: candidate.constructionEvidence === true,
           literalSlotMatch: candidate.literalSlotMatch === true,
           supportOnly: candidate.supportOnly === true,
+          localGeometryGrammarId: candidate.localGeometryGrammarId || '',
         })),
       })),
       phase4AcceptedNodeIdentities: (phase4AcceptedGraph.nodes || []).map((row) => ({
@@ -1333,6 +1339,9 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         canonicalId: row.canonicalId || '',
         label: row.label || '',
         indexName: row.indexName || '',
+        semanticType: row.semanticType || '',
+        supportOnly: row.supportOnly === true,
+        directlyGrounded: row.directlyGrounded === true,
         construction: constructionAuditSummary(row),
       })),
       phase4Canonicalization: phase4AcceptedGraph.canonicalization || null,
@@ -1342,6 +1351,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         canonicalId: row.canonicalId || '',
         label: row.label || row.name || '',
         sourceKind: row.sourceKind || '',
+        semanticType: row.semanticType || row.type || '',
+        supportOnly: row.supportOnly === true,
         construction: constructionAuditSummary(row),
       })),
       phase6CompositionObligations: (phase6CompositionLedger.obligations || []).map((row) => ({
@@ -1886,6 +1897,41 @@ function clamp01(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
 }
 
+function phase3ConstructionGate(result = {}) {
+  const constructionRoles = new Set(['actor', 'concept', 'object', 'part', 'environment']);
+  const slotEntryIds = new Map(array(result.phase3SlotEvidence).map((row) => [row.slotId, row.entryId]));
+  const realizedIdentities = array(result.sceneRenderPacketIdentities);
+  const requiredSlots = array(result.phase3SlotCandidates).filter((slot) => (
+    slot.required !== false && constructionRoles.has(String(slot.slotRole || ''))
+  ));
+  const rows = requiredSlots.map((slot) => {
+    const localGeometryGrammarId = String(slot.localGeometryGrammarId ||
+      array(slot.candidates).find((candidate) => candidate.localGeometryGrammarId)?.localGeometryGrammarId || '');
+    const targetId = constructionIdentityKey(slotEntryIds.get(slot.slotId) || slot.slotId);
+    const realizedLocal = realizedIdentities.some((identity) => (
+      constructionIdentityKey(identity.type || identity.sourceLabel || identity.label) === targetId &&
+      identity.literal === true && identity.unsupportedIdentity !== true &&
+      Number(identity.partCount || 0) >= 2 && /^object-grammar\.(?!object$)[a-z0-9.-]+$/.test(String(identity.grammarId || ''))
+    ));
+    const localProven = /^object-grammar\.[a-z0-9-]+$/.test(localGeometryGrammarId) || realizedLocal;
+    const modelEvaluated = array(slot.candidates).some((candidate) => (
+      candidate.modelEvaluated === true && candidate.constructionEvidence === true
+    ));
+    return { slotId: slot.slotId || '', localGeometryGrammarId, realizedLocal, localProven, modelEvaluated };
+  });
+  return {
+    requiredCount: rows.length,
+    localProvenCount: rows.filter((row) => row.localProven).length,
+    modelRequiredCount: rows.filter((row) => !row.localProven && row.modelEvaluated).length,
+    missingSlots: rows.filter((row) => !row.localProven && !row.modelEvaluated),
+  };
+}
+
+function constructionIdentityKey(value = '') {
+  return String(value || '').toLowerCase().replace(/^(?:actor|concept|entity|environment|object|part|slot)[.:]/, '')
+    .replace(/_/g, '-').replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 function analyze(results, options = {}) {
   const failures = [];
   const perceptualHashes = new Map();
@@ -1939,9 +1985,13 @@ function analyze(results, options = {}) {
     if (Number(consumption.materialCountConsumed || 0) < 1) failures.push(`${result.index}: compiled materials were not consumed`);
     if (consumption.depthEnabled !== true) failures.push(`${result.index}: depth execution is not enabled`);
     if (consumption.normalShading !== true) failures.push(`${result.index}: material lighting does not use surface normals`);
-    if (options.intentMode === 'model' && Number(result.visualIRSceneRenderPacketEntityCount || 0) > 0 &&
+    const constructionGate = phase3ConstructionGate(result);
+    for (const slot of constructionGate.missingSlots) {
+      failures.push(`${result.index}: required construction slot ${slot.slotId} has neither a proven local grammar nor model-evaluated construction evidence`);
+    }
+    if (options.intentMode === 'model' && constructionGate.modelRequiredCount > 0 &&
         Number(consumption.modelEvaluatedConstructionCount || 0) < 1) {
-      failures.push(`${result.index}: no model-evaluated construction program reached Phase 7`);
+      failures.push(`${result.index}: model-evaluated construction evidence did not reach Phase 7`);
     }
     for (const slot of array(result.phase3SlotCandidates)) {
       for (const candidate of array(slot.candidates)) {
@@ -1966,11 +2016,14 @@ function analyze(results, options = {}) {
     if (result.webgpuOptimizationPath !== 'background-plus-instanced-object-parts') {
       failures.push(`${result.index}: WebGPU optimization path is ${result.webgpuOptimizationPath || 'missing'}`);
     }
-    if (result.webgpuSceneInstanceCapacity !== 32) {
-      failures.push(`${result.index}: WebGPU scene instance capacity is ${result.webgpuSceneInstanceCapacity || 'missing'}`);
+    if (result.webgpuSceneInstanceCapacity < 1) {
+      failures.push(`${result.index}: WebGPU scene instance capacity is missing`);
+    } else if (result.webgpuSceneInstanceCount > result.webgpuSceneInstanceCapacity) {
+      failures.push(`${result.index}: WebGPU scene instances overflow capacity ` +
+        `${result.webgpuSceneInstanceCount}/${result.webgpuSceneInstanceCapacity}`);
     }
     if (result.webgpuSceneInstanceCount < 1) {
-      failures.push(`${result.index}: WebGPU scene instance buffer is empty`);
+      failures.push(`${result.index}: WebGPU object-part instance path is empty`);
     }
 	    if (result.webgpuStorageBytes < 3000) {
 	      failures.push(`${result.index}: WebGPU scene storage receipt is missing`);
@@ -2279,7 +2332,7 @@ function gradeForScore(score) {
 }
 
 function auditPageUrl(options, port) {
-  const raw = options.url || `http://127.0.0.1:${port}/index.html`;
+  const raw = options.url || `http://127.0.0.1:${port}/blank/`;
   const url = new URL(raw);
   if (!url.pathname || url.pathname === '/') url.pathname = '/index.html';
   if (options.intentMode !== 'model') {

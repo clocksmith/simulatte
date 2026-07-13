@@ -618,7 +618,7 @@ test('operational, fermentation, and fire prompts keep one real-world grammar pe
   const poseObligation = forestFire.renderProgram.visualIR.compositionLedger.obligations
     .find((row) => row.id === 'visual:prompt-pose-fire-jump-extended');
   assert.equal(fireEntities.length, 1);
-  assert.equal(fireEntities[0].geometry.coverage.grammarId, 'object-grammar.semantic-thermal-plume');
+  assert.equal(fireEntities[0].geometry.coverage.grammarId, 'object-grammar.fire-front');
   assert.equal(poseObligation.status, 'preserved');
 });
 

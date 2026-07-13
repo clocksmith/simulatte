@@ -1,8 +1,8 @@
 const assert = require('node:assert');
 const test = require('node:test');
 
-const lab = require('../public/pipeline/phase-05-simulation/simulatte-physics-model.js');
-const sceneProof = require('../public/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
+const lab = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+const sceneProof = require('../public/blank/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
 
 function renderedPhase7(prompt) {
   const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });

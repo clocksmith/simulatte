@@ -7,17 +7,19 @@ const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
-const autonomyDir = path.join(publicDir, 'autonomy');
+const autonomyDir = publicDir;
+const autonomySourceDirs = ['app', 'contracts', 'mission', 'runtime', 'verifier', 'world'].map((name) => path.join(publicDir, name));
 const dataDir = path.join(publicDir, 'data', 'autonomy');
-const contracts = require('../public/autonomy/contracts/contract-validator.js');
-const receipts = require('../public/autonomy/runtime/canonical-receipts.js');
-const missionApi = require('../public/autonomy/mission/mission-compiler.js');
-const worldApi = require('../public/autonomy/world/world-model.js');
-const routePlanner = require('../public/autonomy/world/route-planner.js');
-const controllerApi = require('../public/autonomy/runtime/autonomy-controller.js');
-const dataLoader = require('../public/autonomy/runtime/data-loader.js');
-const featureRetrieval = require('../public/autonomy/runtime/feature-retrieval.js');
-const occurrenceApi = require('../public/autonomy/runtime/occurrence-engine.js');
+const contracts = require('../public/contracts/contract-validator.js');
+const receipts = require('../public/runtime/canonical-receipts.js');
+const missionApi = require('../public/mission/mission-compiler.js');
+const worldApi = require('../public/world/world-model.js');
+const routePlanner = require('../public/world/route-planner.js');
+const controllerApi = require('../public/runtime/autonomy-controller.js');
+const dataLoader = require('../public/runtime/data-loader.js');
+const featureRetrieval = require('../public/runtime/feature-retrieval.js');
+const occurrenceApi = require('../public/runtime/occurrence-engine.js');
+const regionApi = require('../public/world/region-pack-merger.js');
 const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
 
 function readJson(file) {
@@ -51,7 +53,12 @@ function governedAssets() {
     policy: readJson('public/data/autonomy/policies/bet-selector-v1.json'),
     occurrenceCatalog: readJson(`public/data/autonomy/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
     rerankerEvidence: readJson(`public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
+    regionRegistry: readJson(`public/data/autonomy/${manifest.regionRegistry.path.replace(/^\.\//, '')}`),
   };
+}
+
+function governedRegionPacks(rows = governedAssets()) {
+  return rows.regionRegistry.packs.map((reference) => readJson(`public/data/autonomy/regions/${reference.path.replace(/^\.\//, '')}`));
 }
 
 function compileDefaultMission(rows = assets()) {
@@ -89,13 +96,21 @@ function jsFiles(directory) {
 test('autonomy manifest pins and validates every governed asset', () => {
   const rows = governedAssets();
   contracts.validateManifest(rows.manifest);
+  assert.equal(rows.manifest.runtime.entryPath, '/');
   contracts.validateFeatureCatalog(rows.featureCatalog);
   contracts.validateWorld(rows.world, rows.featureCatalog);
   contracts.validateEmbodiment(rows.embodiment);
   contracts.validatePolicy(rows.policy);
   contracts.validateOccurrenceCatalog(rows.occurrenceCatalog, rows.world);
   contracts.validateRerankerEvidence(rows.rerankerEvidence, rows.featureCatalog);
-  for (const key of ['world', 'embodiment', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence']) {
+  contracts.validateRegionRegistry(rows.regionRegistry);
+  const regionPacks = governedRegionPacks(rows);
+  regionPacks.forEach((pack) => contracts.validateRegionPack(pack, rows.regionRegistry));
+  const composition = regionApi.mergeRegionPacks(rows.regionRegistry, regionPacks);
+  assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.world)).digest('hex'), rows.manifest.world.sha256);
+  assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.featureCatalog)).digest('hex'), rows.manifest.featureCatalog.sha256);
+  assert.equal(composition.receipt.seamNodeIds.length, 27);
+  for (const key of ['world', 'embodiment', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry']) {
     const reference = rows.manifest[key];
     const file = path.resolve(dataDir, reference.path);
     assert.equal(hashFile(file), reference.sha256, `${key} raw bytes should match the manifest`);
@@ -108,6 +123,98 @@ test('autonomy manifest pins and validates every governed asset', () => {
   assert.ok(rows.world.renderGeometry.streets.length > 2000);
   assert.match(rows.world.provenance.sources.bike.rawSha256, /^[a-f0-9]{64}$/);
   assert.equal(rows.world.scenario.liveConditionsUsed, false);
+});
+
+test('region composition fails closed on missing packs and conflicting seam rows', () => {
+  const rows = governedAssets();
+  const packs = governedRegionPacks(rows);
+  assert.throws(
+    () => regionApi.mergeRegionPacks(rows.regionRegistry, packs.slice(0, -1)),
+    (error) => error.code === 'region_pack_set_mismatch'
+  );
+  assert.throws(
+    () => regionApi.mergeRegionPacks(rows.regionRegistry, [...packs, structuredClone(packs[0])]),
+    (error) => error.code === 'region_pack_set_mismatch'
+  );
+
+  const conflicting = structuredClone(packs);
+  const seamNodeId = rows.regionRegistry.composition.seamNodeIds[0];
+  const memberships = conflicting.filter((pack) => pack.nodes.some((node) => node.id === seamNodeId));
+  assert.ok(memberships.length > 1);
+  memberships[1].nodes.find((node) => node.id === seamNodeId).position.x += 0.001;
+  assert.throws(
+    () => regionApi.mergeRegionPacks(rows.regionRegistry, conflicting),
+    (error) => error.code === 'region_row_conflict' && error.evidence.rowId === seamNodeId
+  );
+
+  const missingSeam = structuredClone(packs);
+  const seamOwner = missingSeam.find((pack) => pack.seams.some((row) => row.nodeId === seamNodeId));
+  seamOwner.seams = seamOwner.seams.filter((row) => row.nodeId !== seamNodeId);
+  assert.throws(
+    () => regionApi.mergeRegionPacks(rows.regionRegistry, missingSeam),
+    (error) => error.code === 'region_pack_seam_set_mismatch'
+  );
+
+  const wrongPeer = structuredClone(packs);
+  const peerOwner = wrongPeer.find((pack) => pack.seams.some((row) => row.nodeId === seamNodeId));
+  peerOwner.seams.find((row) => row.nodeId === seamNodeId).peerPackIds = [];
+  assert.throws(
+    () => regionApi.mergeRegionPacks(rows.regionRegistry, wrongPeer),
+    (error) => error.code === 'region_pack_seam_peer_mismatch'
+  );
+});
+
+test('region pack validation binds every pack to its exact registry identity', () => {
+  const rows = governedAssets();
+  const source = governedRegionPacks(rows)[0];
+  const mutations = [
+    ['contentVersion', (pack) => { pack.contentVersion = 'wrong-version'; }],
+    ['cityId', (pack) => { pack.cityId = 'wrong-city'; }],
+    ['worldId', (pack) => { pack.worldId = 'wrong-world'; }],
+    ['boundsWgs84', (pack) => { pack.boundsWgs84.east += 0.001; }],
+    ['neighborIds', (pack) => { pack.neighborIds = []; }],
+    ['counts', (pack) => { pack.counts.nodes += 1; }],
+    ['provenance.worldSha256', (pack) => { pack.provenance.worldSha256 = '0'.repeat(64); }],
+    ['provenance.featureCatalogSha256', (pack) => { pack.provenance.featureCatalogSha256 = '0'.repeat(64); }],
+  ];
+  mutations.forEach(([pathName, mutate]) => {
+    const pack = structuredClone(source);
+    mutate(pack);
+    assert.throws(
+      () => contracts.validateRegionPack(pack, rows.regionRegistry),
+      (error) => error instanceof contracts.AutonomyContractError && error.path.includes(pathName.split('.')[0]),
+      pathName
+    );
+  });
+
+  const undeclared = structuredClone(source);
+  undeclared.id = 'undeclared-region-v1';
+  assert.throws(
+    () => contracts.validateRegionPack(undeclared, rows.regionRegistry),
+    (error) => error instanceof contracts.AutonomyContractError && error.path === '$.id'
+  );
+});
+
+test('the governed journey crosses all three independently owned region packs', () => {
+  const rows = governedAssets();
+  const mission = compileDefaultMission(rows);
+  const route = routePlanner.planRoute({
+    worldModel: worldApi.createWorldModel(rows.world),
+    originNodeId: mission.originNodeId,
+    destinationNodeId: mission.destinationNodeId,
+    mode: rows.embodiment.mode,
+    tick: 0,
+    mission,
+    policy: rows.policy,
+  });
+  const ownerBySegmentId = new Map(governedRegionPacks(rows)
+    .flatMap((pack) => pack.segments.map((segment) => [segment.id, pack.id])));
+  assert.deepEqual([...new Set(route.segmentIds.map((id) => ownerBySegmentId.get(id)))], [
+    'manhattan-villages-v1',
+    'east-river-crossing-v1',
+    'north-brooklyn-v1',
+  ]);
+  assert.ok(route.segmentIds.every((id) => ownerBySegmentId.has(id)));
 });
 
 test('mission compiler grounds known labels to source intervals and fails closed', () => {
@@ -342,6 +449,8 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   const loaded = await dataLoader.loadAutonomyData('http://localhost/data/autonomy/autonomy-manifest.json', fetchFiles);
   assert.equal(loaded.world.id, 'villages-williamsburg-delivery-bike-v1');
   assert.equal(loaded.receipt.assets.policy.sha256, loaded.manifest.policy.sha256);
+  assert.deepEqual(loaded.regionComposition.packIds, ['manhattan-villages-v1', 'east-river-crossing-v1', 'north-brooklyn-v1']);
+  assert.equal(loaded.regionComposition.seamNodeIds.length, 27);
 
   const tampered = async (url) => {
     const file = fileForUrl(url);
@@ -352,26 +461,42 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     () => dataLoader.loadAutonomyData('http://localhost/data/autonomy/autonomy-manifest.json', tampered),
     (error) => error.code === 'asset_hash_mismatch'
   );
+
+  const tamperedPack = async (url) => {
+    const file = fileForUrl(url);
+    const text = fs.readFileSync(file, 'utf8');
+    return { ok: true, status: 200, text: async () => url.includes('east-river-crossing-v1.json') ? `${text}\n` : text };
+  };
+  await assert.rejects(
+    () => dataLoader.loadAutonomyData('http://localhost/data/autonomy/autonomy-manifest.json', tamperedPack),
+    (error) => error.code === 'asset_hash_mismatch' && error.evidence.key === 'regionPack:east-river-crossing-v1'
+  );
 });
 
 test('autonomy browser surface loads every declared module and stays independent of compiler phases', () => {
   const html = fs.readFileSync(path.join(autonomyDir, 'index.html'), 'utf8');
-  const mainHtml = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
-  const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g)).map((match) => match[1]);
+  const compatibilityHtml = fs.readFileSync(path.join(root, 'public/autonomy/index.html'), 'utf8');
+  const compilerHtml = fs.readFileSync(path.join(root, 'public/blank/index.html'), 'utf8');
+  const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
+    .map((match) => match[1].replace(/\?v=.*$/, ''));
   assert.ok(scripts.length >= 15);
+  assert.ok(scripts.indexOf('./world/region-pack-merger.js') < scripts.indexOf('./runtime/data-loader.js'));
   scripts.forEach((source) => assert.ok(fs.existsSync(path.resolve(autonomyDir, source)), `${source} should exist`));
   assert.match(html, /id="autonomy-canvas"/);
   assert.match(html, /Start mission/);
-  assert.match(mainHtml, /class="prompt-dock-autonomy" href="\.\/autonomy\/"/);
+  assert.match(compatibilityHtml, /location\.replace/);
+  assert.match(compatibilityHtml, /rel="canonical" href="\/"/);
+  assert.match(html, /class="brand" href="\.\/blank\/"/);
+  assert.match(compilerHtml, /class="prompt-dock-autonomy" href="\/"/);
   assert.doesNotMatch(html, /phase-0[1-8]/);
-  for (const file of jsFiles(autonomyDir)) {
+  for (const file of autonomySourceDirs.flatMap(jsFiles)) {
     assert.ok(fs.readFileSync(file, 'utf8').split(/\r?\n/).length <= 999, `${path.relative(root, file)} should remain below 1,000 lines`);
   }
 });
 
 test('autonomy schemas are restrictive and SAME-R declares one intervention', async () => {
-  for (const name of ['mission', 'observation', 'occurrence-receipt', 'action-bet', 'settlement', 'journey-receipt']) {
-    const schema = readJson(`public/autonomy/contracts/${name}.schema.json`);
+  for (const name of ['mission', 'observation', 'occurrence-receipt', 'action-bet', 'settlement', 'journey-receipt', 'region-pack', 'region-registry']) {
+    const schema = readJson(`public/contracts/${name}.schema.json`);
     assert.equal(schema.additionalProperties, false);
     assert.ok(schema.required.length > 0);
   }
@@ -383,7 +508,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(contract.matchedOperationDetails.evaluationOrder, 'scenario_then_lane_then_repetition');
   assert.equal(contract.matchedOperationDetails.modelIdentity, null);
   assert.equal(contract.matchedOperationDetails.adapterIdentity, null);
-  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 16);
+  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 17);
   assert.deepEqual(contract.causalContract.blockingGuardrails, [
     'zero_safety_violations',
     'all_required_obligations_pass',
@@ -398,7 +523,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(scenarios.population, 'public_diagnostic');
   const runner = await import(pathToFileURL(path.join(root, 'tools/samer/autonomy/run-policy-trial.mjs')));
   const sourceIdentity = runner.hashRuntimeSources(contract.matchedOperationDetails.runtimeSourcePaths);
-  assert.equal(sourceIdentity.files.length, 16);
+  assert.equal(sourceIdentity.files.length, 17);
   assert.match(sourceIdentity.aggregateSha256, /^[a-f0-9]{64}$/);
   assert.ok(sourceIdentity.files.every((row) => /^[a-f0-9]{64}$/.test(row.sha256)));
   assert.equal(runner.isSaturated([], contract.budget), false);
@@ -441,7 +566,7 @@ test('browser audit validates explicit desktop and mobile viewport contracts', a
   const audit = await import(pathToFileURL(path.join(root, 'tools/autonomy/run-browser-smoke.mjs')));
   assert.deepEqual(audit.parseViewport('1440x1000'), { width: 1440, height: 1000 });
   assert.deepEqual(audit.parseViewport('390x844'), { width: 390, height: 844 });
-  assert.equal(audit.parseUrl('https://simulatte.world/autonomy/'), 'https://simulatte.world/autonomy/');
+  assert.equal(audit.parseUrl('https://simulatte.world/'), 'https://simulatte.world/');
   assert.throws(() => audit.parseViewport('wide'), /expected WIDTHxHEIGHT/);
   assert.throws(() => audit.parseViewport('319x844'), /at least 320x480/);
   assert.throws(() => audit.parseUrl('file:///tmp/autonomy'), /expected HTTP or HTTPS/);

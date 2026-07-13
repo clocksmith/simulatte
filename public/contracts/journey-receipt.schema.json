@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy journey receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "mission", "identities", "events", "terminalState", "trace", "verification", "integrity"],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyJourneyReceipt.v1" },
+    "mission": { "type": "object" },
+    "identities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId", "regionRegistryId", "regionCompositionId", "regionPackIds"],
+      "properties": {
+        "worldId": { "type": "string" },
+        "worldContentVersion": { "type": "string" },
+        "embodimentId": { "type": "string" },
+        "policyId": { "type": "string" },
+        "occurrenceCatalogId": { "type": ["string", "null"] },
+        "regionRegistryId": { "type": ["string", "null"] },
+        "regionCompositionId": { "type": ["string", "null"] },
+        "regionPackIds": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["schema", "id", "tick", "kind", "sourceId", "evidence"],
+        "properties": {
+          "schema": { "const": "simulatte.autonomyEvent.v1" },
+          "id": { "type": "string" },
+          "tick": { "type": "integer", "minimum": 0 },
+          "kind": { "type": "string" },
+          "sourceId": { "type": ["string", "null"] },
+          "evidence": { "type": ["object", "null"] }
+        }
+      }
+    },
+    "terminalState": { "enum": ["completed", "failed", "budget_exhausted", "active"] },
+    "trace": { "type": "array", "items": { "type": "object" } },
+    "verification": { "type": "object" },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "terminalHash", "entryCount"],
+      "properties": {
+        "algorithm": { "const": "sha256-canonical-json-chain-v1" },
+        "terminalHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "entryCount": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

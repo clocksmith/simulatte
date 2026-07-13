@@ -8,9 +8,9 @@ import { fileURLToPath } from 'node:url';
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
 const require = createRequire(import.meta.url);
-const missionApi = require('../../public/autonomy/mission/mission-compiler.js');
-const routePlanner = require('../../public/autonomy/world/route-planner.js');
-const worldApi = require('../../public/autonomy/world/world-model.js');
+const missionApi = require('../../public/mission/mission-compiler.js');
+const routePlanner = require('../../public/world/route-planner.js');
+const worldApi = require('../../public/world/world-model.js');
 const OUTPUT = path.join(ROOT, 'tools/samer/autonomy/public-navigation-missions-v1.json');
 const PAIRS = Object.freeze([
   ['Union Square', 'North Williamsburg'],

@@ -1,0 +1,3275 @@
+{
+  "city": {
+    "coordinateOriginWgs84": {
+      "latitude": 40.726,
+      "longitude": -73.978
+    },
+    "id": "new-york-city-v1",
+    "label": "New York City",
+    "timeZone": "America/New_York"
+  },
+  "claimBoundary": "The registry proves deterministic composition of frozen region packs. It does not make authored occurrences historical, establish map completeness, or authorize physical autonomy.",
+  "composition": {
+    "defaultPackIds": [
+      "manhattan-villages-v1",
+      "east-river-crossing-v1",
+      "north-brooklyn-v1"
+    ],
+    "expectedCounts": {
+      "actors": 2,
+      "bikeFacilities": 2738,
+      "buildings": 8500,
+      "disruptions": 0,
+      "featureCards": 12991,
+      "land": 12,
+      "nodes": 2422,
+      "segments": 3654,
+      "signals": 1,
+      "streets": 6589
+    },
+    "featureCatalogSha256": "598cb9771cbe30e691482bc7380c3db0c915fbdf230e42ea6a52818ad7f63ef4",
+    "id": "nyc-core-default-composition-v1",
+    "seamNodeIds": [
+      "bike-node-187c7facb939",
+      "bike-node-1975267d9095",
+      "bike-node-3789059164d5",
+      "bike-node-41aeedec0b88",
+      "bike-node-4e24e48e6b4a",
+      "bike-node-52348d2ccb52",
+      "bike-node-528915359373",
+      "bike-node-5decc18dfdec",
+      "bike-node-63c114b0d71f",
+      "bike-node-79aa26033e49",
+      "bike-node-7fd6c43eed7c",
+      "bike-node-866488e9fa41",
+      "bike-node-86b94b32b950",
+      "bike-node-97c1a4a080a0",
+      "bike-node-9df2d077bab2",
+      "bike-node-b934d0a12097",
+      "bike-node-c3be6dd2ddab",
+      "bike-node-c669d3c4e0fe",
+      "bike-node-d10436866cc8",
+      "bike-node-d2b28d3ca932",
+      "bike-node-d312d1cb92af",
+      "bike-node-da75f3e4df63",
+      "bike-node-eaec468ea7bd",
+      "bike-node-f14480898841",
+      "bike-node-f30984b85ecf",
+      "bike-node-f6ec25169c13",
+      "bike-node-fdcb8f82b099"
+    ],
+    "worldSha256": "04361791f51e9c2a3275daffa2aec8c00de8e1cbe5cd7ab464d508fe004dfb00"
+  },
+  "contentVersion": "nyc-core-regions-2026-07-13",
+  "featureCatalogTemplate": {
+    "contentVersion": "autonomy-feature-cards-villages-williamsburg-delivery-bike-2026-07-13",
+    "id": "autonomy-feature-cards-v1",
+    "index": {
+      "method": "deterministic_token_inverted_index_v1",
+      "schema": "simulatte.autonomyFeatureIndex.v1",
+      "stopwordPolicy": "navigation_common_terms_v1"
+    },
+    "provenance": {
+      "baseTypeCatalogId": "autonomy-feature-card-types-v1",
+      "claimBoundary": "Cards identify governed world features and authored simulation assumptions. They do not assert live conditions or semantic embedding quality.",
+      "compiler": "tools/autonomy/build-nyc-autonomy-world.mjs",
+      "snapshotDate": "2026-07-13",
+      "sourceKind": "compiled_world_feature_catalog",
+      "worldId": "villages-williamsburg-delivery-bike-v1"
+    },
+    "rerankerPolicy": {
+      "control": "lexical_overlap_plus_exact_reference",
+      "id": "typed-evidence-reranker-v1",
+      "promotionRule": "Retain only when the public diagnostic receipt improves mean reciprocal rank without reducing recall at five.",
+      "weights": {
+        "constraintMatch": 1.5,
+        "exactReference": 3,
+        "kindMatch": 2
+      }
+    },
+    "schema": "simulatte.autonomyFeatureCatalog.v1"
+  },
+  "id": "nyc-core-region-registry-v1",
+  "mergePolicy": {
+    "assignmentMethod": "geometry_midpoint_half_open_longitude_bands_v1",
+    "conflictPolicy": "fail_closed",
+    "duplicatePolicy": "canonical_byte_equality",
+    "graphSeams": "duplicate_boundary_nodes_with_exact_rows",
+    "nodeIdentity": "wgs84_cluster_centroid_7dp_plus_source_revision_v1",
+    "rowOrder": "id_ascending"
+  },
+  "packs": [
+    {
+      "boundsWgs84": {
+        "east": -73.985,
+        "includeEast": false,
+        "north": 40.752,
+        "south": 40.698,
+        "west": -74.023
+      },
+      "counts": {
+        "actors": 0,
+        "bikeFacilities": 1502,
+        "buildings": 3129,
+        "disruptions": 0,
+        "featureCards": 7214,
+        "nodes": 1322,
+        "seams": 26,
+        "segments": 1878,
+        "signals": 1,
+        "streets": 3833
+      },
+      "id": "manhattan-villages-v1",
+      "neighborIds": [
+        "east-river-crossing-v1"
+      ],
+      "path": "./packs/manhattan-villages-v1.json",
+      "sha256": "c67f8f8a12e818f3281105b348894623207c82bdb46d2e61125e83785c01c7fa"
+    },
+    {
+      "boundsWgs84": {
+        "east": -73.97,
+        "includeEast": false,
+        "north": 40.752,
+        "south": 40.698,
+        "west": -73.985
+      },
+      "counts": {
+        "actors": 1,
+        "bikeFacilities": 542,
+        "buildings": 1757,
+        "disruptions": 0,
+        "featureCards": 2244,
+        "nodes": 514,
+        "seams": 27,
+        "segments": 789,
+        "signals": 0,
+        "streets": 912
+      },
+      "id": "east-river-crossing-v1",
+      "neighborIds": [
+        "manhattan-villages-v1",
+        "north-brooklyn-v1"
+      ],
+      "path": "./packs/east-river-crossing-v1.json",
+      "sha256": "b4df39c76944c80edc07e825850a1ee3aa82f1ae2c4bed1422888d090b3325b4"
+    },
+    {
+      "boundsWgs84": {
+        "east": -73.933,
+        "includeEast": true,
+        "north": 40.752,
+        "south": 40.698,
+        "west": -73.97
+      },
+      "counts": {
+        "actors": 1,
+        "bikeFacilities": 694,
+        "buildings": 3614,
+        "disruptions": 0,
+        "featureCards": 3526,
+        "nodes": 613,
+        "seams": 1,
+        "segments": 987,
+        "signals": 0,
+        "streets": 1844
+      },
+      "id": "north-brooklyn-v1",
+      "neighborIds": [
+        "east-river-crossing-v1"
+      ],
+      "path": "./packs/north-brooklyn-v1.json",
+      "sha256": "e60f5f70ed07b8001fa807163b37a0495c4a22ba84fe66a3b5f35e08da90f91a"
+    }
+  ],
+  "placeIndex": [
+    {
+      "id": "place-bike-node-0b79eee2f2ef",
+      "label": "Williamsburg Waterfront",
+      "nodeId": "bike-node-0b79eee2f2ef",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-0d9391b2bfa3",
+      "label": "Union Square",
+      "nodeId": "bike-node-0d9391b2bfa3",
+      "packIds": [
+        "manhattan-villages-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-261ee8be5a25",
+      "label": "West Village",
+      "nodeId": "bike-node-261ee8be5a25",
+      "packIds": [
+        "manhattan-villages-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-429dcefa615d",
+      "label": "Tompkins Square",
+      "nodeId": "bike-node-429dcefa615d",
+      "packIds": [
+        "east-river-crossing-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-7a95737b9c7d",
+      "label": "Greenpoint",
+      "nodeId": "bike-node-7a95737b9c7d",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-86300f2cfd65",
+      "label": "Williamsburg Bridge",
+      "nodeId": "bike-node-86300f2cfd65",
+      "packIds": [
+        "east-river-crossing-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-8a641140b02c",
+      "label": "McCarren Park",
+      "nodeId": "bike-node-8a641140b02c",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-a3f0f4b7e7e3",
+      "label": "Washington Square",
+      "nodeId": "bike-node-a3f0f4b7e7e3",
+      "packIds": [
+        "manhattan-villages-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-e25116ea05a4",
+      "label": "North Williamsburg",
+      "nodeId": "bike-node-e25116ea05a4",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-bike-node-ffea919f743c",
+      "label": "East Village",
+      "nodeId": "bike-node-ffea919f743c",
+      "packIds": [
+        "east-river-crossing-v1"
+      ]
+    }
+  ],
+  "schema": "simulatte.autonomyRegionRegistry.v1",
+  "sharedFeatureRows": {
+    "cards": [
+      {
+        "constraints": [
+          "blocked_segment_ineligible",
+          "route_revision_receipted"
+        ],
+        "id": "behavior.blocked-segment-replan",
+        "kind": "behavior",
+        "label": "Blocked segment replan",
+        "provenance": {
+          "sourceId": "behavior.blocked-segment-replan",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "blocked",
+          "closure",
+          "replan",
+          "reroute",
+          "network"
+        ],
+        "validationObligations": [
+          "segment_exists",
+          "active_interval_valid"
+        ]
+      },
+      {
+        "constraints": [
+          "minimum_clearance_hard_gate"
+        ],
+        "id": "behavior.pedestrian-yield",
+        "kind": "behavior",
+        "label": "Pedestrian clearance",
+        "provenance": {
+          "sourceId": "behavior.pedestrian-yield",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "pedestrian",
+          "yield",
+          "clearance",
+          "crossing"
+        ],
+        "validationObligations": [
+          "actor_path_valid",
+          "active_interval_valid"
+        ]
+      },
+      {
+        "constraints": [
+          "red_blocks_entry",
+          "green_allows_entry"
+        ],
+        "id": "behavior.signal-compliance",
+        "kind": "behavior",
+        "label": "Signal compliance",
+        "provenance": {
+          "sourceId": "behavior.signal-compliance",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "signal",
+          "red",
+          "green",
+          "stop",
+          "entry"
+        ],
+        "validationObligations": [
+          "signal_cycle_valid",
+          "outgoing_segment_exists"
+        ]
+      },
+      {
+        "constraints": [
+          "destination_reached",
+          "payload_retained"
+        ],
+        "id": "scenario.delivery-arrival",
+        "kind": "scenario",
+        "label": "Parcel delivery arrival",
+        "provenance": {
+          "sourceId": "scenario.delivery-arrival",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "delivery",
+          "arrival",
+          "destination",
+          "parcel",
+          "payload"
+        ],
+        "validationObligations": [
+          "destination_node_exists",
+          "arrival_receipt_required"
+        ]
+      },
+      {
+        "constraints": [
+          "mode_eligible",
+          "speed_limited",
+          "network_contained"
+        ],
+        "id": "street.connector",
+        "kind": "street_segment",
+        "label": "Delivery connector",
+        "provenance": {
+          "sourceId": "street.connector",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "connector",
+          "bike route",
+          "network entry",
+          "network exit"
+        ],
+        "validationObligations": [
+          "endpoints_exist",
+          "geometry_has_two_points",
+          "positive_length"
+        ]
+      },
+      {
+        "constraints": [
+          "mode_eligible",
+          "speed_limited",
+          "pedestrian_clearance"
+        ],
+        "id": "street.protected-lane",
+        "kind": "street_segment",
+        "label": "Protected bike lane",
+        "provenance": {
+          "sourceId": "street.protected-lane",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "protected",
+          "greenway",
+          "separated",
+          "bike lane",
+          "low risk"
+        ],
+        "validationObligations": [
+          "endpoints_exist",
+          "geometry_has_two_points",
+          "positive_length"
+        ]
+      },
+      {
+        "constraints": [
+          "mode_eligible",
+          "speed_limited",
+          "yield_required"
+        ],
+        "id": "street.shared-lane",
+        "kind": "street_segment",
+        "label": "Shared traffic lane",
+        "provenance": {
+          "sourceId": "street.shared-lane",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "shared",
+          "conventional",
+          "curbside",
+          "traffic lane",
+          "bike lane"
+        ],
+        "validationObligations": [
+          "endpoints_exist",
+          "geometry_has_two_points",
+          "positive_length"
+        ]
+      }
+    ],
+    "index": {
+      "kindToCardIds": {
+        "behavior": [
+          "behavior.blocked-segment-replan",
+          "behavior.pedestrian-yield",
+          "behavior.signal-compliance"
+        ],
+        "scenario": [
+          "scenario.delivery-arrival"
+        ],
+        "street_segment": [
+          "street.connector",
+          "street.protected-lane",
+          "street.shared-lane"
+        ]
+      },
+      "tokenToCardIds": {
+        "allows": [
+          "behavior.signal-compliance"
+        ],
+        "arrival": [
+          "scenario.delivery-arrival"
+        ],
+        "blocked": [
+          "behavior.blocked-segment-replan"
+        ],
+        "blocks": [
+          "behavior.signal-compliance"
+        ],
+        "clearance": [
+          "behavior.pedestrian-yield",
+          "street.protected-lane"
+        ],
+        "closure": [
+          "behavior.blocked-segment-replan"
+        ],
+        "compliance": [
+          "behavior.signal-compliance"
+        ],
+        "connector": [
+          "street.connector"
+        ],
+        "contained": [
+          "street.connector"
+        ],
+        "conventional": [
+          "street.shared-lane"
+        ],
+        "crossing": [
+          "behavior.pedestrian-yield"
+        ],
+        "curbside": [
+          "street.shared-lane"
+        ],
+        "delivery": [
+          "scenario.delivery-arrival",
+          "street.connector"
+        ],
+        "destination": [
+          "scenario.delivery-arrival"
+        ],
+        "eligible": [
+          "street.connector",
+          "street.protected-lane",
+          "street.shared-lane"
+        ],
+        "entry": [
+          "behavior.signal-compliance",
+          "street.connector"
+        ],
+        "exit": [
+          "street.connector"
+        ],
+        "gate": [
+          "behavior.pedestrian-yield"
+        ],
+        "green": [
+          "behavior.signal-compliance"
+        ],
+        "greenway": [
+          "street.protected-lane"
+        ],
+        "hard": [
+          "behavior.pedestrian-yield"
+        ],
+        "ineligible": [
+          "behavior.blocked-segment-replan"
+        ],
+        "lane": [
+          "street.protected-lane",
+          "street.shared-lane"
+        ],
+        "limited": [
+          "street.connector",
+          "street.protected-lane",
+          "street.shared-lane"
+        ],
+        "low": [
+          "street.protected-lane"
+        ],
+        "minimum": [
+          "behavior.pedestrian-yield"
+        ],
+        "network": [
+          "behavior.blocked-segment-replan",
+          "street.connector"
+        ],
+        "parcel": [
+          "scenario.delivery-arrival"
+        ],
+        "payload": [
+          "scenario.delivery-arrival"
+        ],
+        "pedestrian": [
+          "behavior.pedestrian-yield",
+          "street.protected-lane"
+        ],
+        "protected": [
+          "street.protected-lane"
+        ],
+        "reached": [
+          "scenario.delivery-arrival"
+        ],
+        "receipted": [
+          "behavior.blocked-segment-replan"
+        ],
+        "red": [
+          "behavior.signal-compliance"
+        ],
+        "replan": [
+          "behavior.blocked-segment-replan"
+        ],
+        "required": [
+          "street.shared-lane"
+        ],
+        "reroute": [
+          "behavior.blocked-segment-replan"
+        ],
+        "retained": [
+          "scenario.delivery-arrival"
+        ],
+        "revision": [
+          "behavior.blocked-segment-replan"
+        ],
+        "risk": [
+          "street.protected-lane"
+        ],
+        "separated": [
+          "street.protected-lane"
+        ],
+        "shared": [
+          "street.shared-lane"
+        ],
+        "signal": [
+          "behavior.signal-compliance"
+        ],
+        "speed": [
+          "street.connector",
+          "street.protected-lane",
+          "street.shared-lane"
+        ],
+        "stop": [
+          "behavior.signal-compliance"
+        ],
+        "traffic": [
+          "street.shared-lane"
+        ],
+        "yield": [
+          "behavior.pedestrian-yield",
+          "street.shared-lane"
+        ]
+      }
+    }
+  },
+  "sharedWorldRows": {
+    "actors": [],
+    "disruptions": [],
+    "nodes": [],
+    "renderGeometry": {
+      "bikeFacilities": [],
+      "buildings": [],
+      "land": [
+        {
+          "id": "nyc-land-1-16",
+          "outerRing": [
+            {
+              "x": -368.951667,
+              "y": -2261.278043
+            },
+            {
+              "x": -376.17153,
+              "y": -2261.381504
+            },
+            {
+              "x": -373.124808,
+              "y": -2230.46999
+            },
+            {
+              "x": -255.104481,
+              "y": -2221.974058
+            },
+            {
+              "x": -254.550457,
+              "y": -2233.183635
+            },
+            {
+              "x": -362.932126,
+              "y": -2239.874297
+            },
+            {
+              "x": -365.242789,
+              "y": -2260.318199
+            },
+            {
+              "x": -368.951667,
+              "y": -2261.278043
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-17",
+          "outerRing": [
+            {
+              "x": 915.248474,
+              "y": -849.375384
+            },
+            {
+              "x": 964.903668,
+              "y": -882.566083
+            },
+            {
+              "x": 961.99448,
+              "y": -887.859337
+            },
+            {
+              "x": 902.053914,
+              "y": -849.713553
+            },
+            {
+              "x": 912.597415,
+              "y": -830.922956
+            },
+            {
+              "x": 922.194452,
+              "y": -835.788984
+            },
+            {
+              "x": 915.248474,
+              "y": -849.375384
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-18",
+          "outerRing": [
+            {
+              "x": 974.95846,
+              "y": -746.896268
+            },
+            {
+              "x": 970.042539,
+              "y": -752.635861
+            },
+            {
+              "x": 974.466596,
+              "y": -753.977689
+            },
+            {
+              "x": 981.437683,
+              "y": -762.671658
+            },
+            {
+              "x": 985.162728,
+              "y": -762.27805
+            },
+            {
+              "x": 981.673298,
+              "y": -768.202588
+            },
+            {
+              "x": 1034.059673,
+              "y": -806.18173
+            },
+            {
+              "x": 1032.600715,
+              "y": -808.154095
+            },
+            {
+              "x": 983.177692,
+              "y": -771.995736
+            },
+            {
+              "x": 980.704604,
+              "y": -775.474548
+            },
+            {
+              "x": 958.695484,
+              "y": -759.394025
+            },
+            {
+              "x": 966.06669,
+              "y": -749.286994
+            },
+            {
+              "x": 969.012843,
+              "y": -751.361883
+            },
+            {
+              "x": 972.914891,
+              "y": -746.870118
+            },
+            {
+              "x": 971.792924,
+              "y": -734.340315
+            },
+            {
+              "x": 968.943142,
+              "y": -726.140107
+            },
+            {
+              "x": 974.95846,
+              "y": -746.896268
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-19",
+          "outerRing": [
+            {
+              "x": 1093.947658,
+              "y": -621.55874
+            },
+            {
+              "x": 1086.811854,
+              "y": -628.271903
+            },
+            {
+              "x": 1039.637257,
+              "y": -588.187702
+            },
+            {
+              "x": 1046.24486,
+              "y": -580.947568
+            },
+            {
+              "x": 1093.947658,
+              "y": -621.55874
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-20",
+          "outerRing": [
+            {
+              "x": 1110.689172,
+              "y": -575.300241
+            },
+            {
+              "x": 1150.614306,
+              "y": -610.485904
+            },
+            {
+              "x": 1147.553881,
+              "y": -614.399678
+            },
+            {
+              "x": 1108.152121,
+              "y": -577.511603
+            },
+            {
+              "x": 1102.971615,
+              "y": -583.619757
+            },
+            {
+              "x": 1094.09799,
+              "y": -575.820395
+            },
+            {
+              "x": 1109.111084,
+              "y": -557.916951
+            },
+            {
+              "x": 1117.561699,
+              "y": -566.242936
+            },
+            {
+              "x": 1110.689172,
+              "y": -575.300241
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-21",
+          "outerRing": [
+            {
+              "x": 1178.867693,
+              "y": -565.86608
+            },
+            {
+              "x": 1175.515362,
+              "y": -574.817842
+            },
+            {
+              "x": 1149.436314,
+              "y": -553.523438
+            },
+            {
+              "x": 1155.053172,
+              "y": -546.546295
+            },
+            {
+              "x": 1178.867693,
+              "y": -565.86608
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-22",
+          "outerRing": [
+            {
+              "x": 1160.770138,
+              "y": -595.564041
+            },
+            {
+              "x": 1157.907837,
+              "y": -599.59465
+            },
+            {
+              "x": 1100.881073,
+              "y": -505.810965
+            },
+            {
+              "x": 1109.971032,
+              "y": -501.389974
+            },
+            {
+              "x": 1164.040489,
+              "y": -590.958529
+            },
+            {
+              "x": 1160.770138,
+              "y": -595.564041
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-23",
+          "outerRing": [
+            {
+              "x": 1318.926959,
+              "y": -197.970329
+            },
+            {
+              "x": 1349.172702,
+              "y": -221.975252
+            },
+            {
+              "x": 1343.666235,
+              "y": -234.311538
+            },
+            {
+              "x": 1310.32778,
+              "y": -206.535191
+            },
+            {
+              "x": 1312.393904,
+              "y": -198.995713
+            },
+            {
+              "x": 1318.926959,
+              "y": -197.970329
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-24",
+          "outerRing": [
+            {
+              "x": 1410.161839,
+              "y": 459.742736
+            },
+            {
+              "x": 1410.321099,
+              "y": 448.905705
+            },
+            {
+              "x": 1400.020048,
+              "y": 448.908717
+            },
+            {
+              "x": 1400.273538,
+              "y": 454.432827
+            },
+            {
+              "x": 1376.231269,
+              "y": 451.209777
+            },
+            {
+              "x": 1357.369412,
+              "y": 438.023661
+            },
+            {
+              "x": 1359.429872,
+              "y": 436.916609
+            },
+            {
+              "x": 1353.242644,
+              "y": 426.64775
+            },
+            {
+              "x": 1347.695119,
+              "y": 429.494574
+            },
+            {
+              "x": 1351.661275,
+              "y": 435.971833
+            },
+            {
+              "x": 1331.684629,
+              "y": 432.978081
+            },
+            {
+              "x": 1314.398892,
+              "y": 420.185545
+            },
+            {
+              "x": 1308.845894,
+              "y": 410.232468
+            },
+            {
+              "x": 1303.457343,
+              "y": 413.86926
+            },
+            {
+              "x": 1309.486093,
+              "y": 424.138228
+            },
+            {
+              "x": 1327.246391,
+              "y": 434.56018
+            },
+            {
+              "x": 1328.517306,
+              "y": 440.564574
+            },
+            {
+              "x": 1333.381123,
+              "y": 439.504139
+            },
+            {
+              "x": 1332.796142,
+              "y": 437.08613
+            },
+            {
+              "x": 1354.516962,
+              "y": 440.711304
+            },
+            {
+              "x": 1374.498835,
+              "y": 455.556872
+            },
+            {
+              "x": 1410.161839,
+              "y": 459.742736
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-25",
+          "outerRing": [
+            {
+              "x": 1352.298697,
+              "y": 616.493926
+            },
+            {
+              "x": 1352.297504,
+              "y": 613.754853
+            },
+            {
+              "x": 1374.02202,
+              "y": 615.278224
+            },
+            {
+              "x": 1377.263771,
+              "y": 605.897768
+            },
+            {
+              "x": 1350.602287,
+              "y": 604.274173
+            },
+            {
+              "x": 1349.969461,
+              "y": 607.224204
+            },
+            {
+              "x": 1273.868986,
+              "y": 602.199997
+            },
+            {
+              "x": 1273.656591,
+              "y": 600.093047
+            },
+            {
+              "x": 1248.501387,
+              "y": 598.839465
+            },
+            {
+              "x": 1248.709648,
+              "y": 591.464931
+            },
+            {
+              "x": 1241.733715,
+              "y": 590.62504
+            },
+            {
+              "x": 1241.734779,
+              "y": 593.153447
+            },
+            {
+              "x": 1218.269679,
+              "y": 589.792072
+            },
+            {
+              "x": 1218.900575,
+              "y": 581.785257
+            },
+            {
+              "x": 1209.810441,
+              "y": 580.314161
+            },
+            {
+              "x": 1206.436861,
+              "y": 600.963926
+            },
+            {
+              "x": 1216.16148,
+              "y": 603.277608
+            },
+            {
+              "x": 1217.637242,
+              "y": 593.795583
+            },
+            {
+              "x": 1241.736197,
+              "y": 596.524645
+            },
+            {
+              "x": 1240.683825,
+              "y": 607.481339
+            },
+            {
+              "x": 1352.298697,
+              "y": 616.493926
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-1-33",
+          "outerRing": [
+            {
+              "x": 645.972796,
+              "y": 2100.26
+            },
+            {
+              "x": 608.393477,
+              "y": 2034.623304
+            },
+            {
+              "x": 595.546591,
+              "y": 2041.833423
+            },
+            {
+              "x": 580.888457,
+              "y": 2012.310057
+            },
+            {
+              "x": 615.578844,
+              "y": 1988.669307
+            },
+            {
+              "x": 610.680759,
+              "y": 1983.320579
+            },
+            {
+              "x": 575.189385,
+              "y": 2001.131344
+            },
+            {
+              "x": 560.375853,
+              "y": 1971.862855
+            },
+            {
+              "x": 573.204565,
+              "y": 1964.462749
+            },
+            {
+              "x": 515.548985,
+              "y": 1848.761587
+            },
+            {
+              "x": 528.059277,
+              "y": 1841.992134
+            },
+            {
+              "x": 509.587131,
+              "y": 1805.993847
+            },
+            {
+              "x": 481.716909,
+              "y": 1627.263655
+            },
+            {
+              "x": 492.213585,
+              "y": 1621.861125
+            },
+            {
+              "x": 486.294328,
+              "y": 1592.374599
+            },
+            {
+              "x": 489.60519,
+              "y": 1592.061111
+            },
+            {
+              "x": 487.881009,
+              "y": 1581.564874
+            },
+            {
+              "x": 485.221579,
+              "y": 1579.746137
+            },
+            {
+              "x": 478.216181,
+              "y": 1548.765792
+            },
+            {
+              "x": 469.149517,
+              "y": 1549.964242
+            },
+            {
+              "x": 450.893469,
+              "y": 1456.725798
+            },
+            {
+              "x": 458.650847,
+              "y": 1154.687756
+            },
+            {
+              "x": 463.136319,
+              "y": 1081.869335
+            },
+            {
+              "x": 432.831267,
+              "y": 1080.071007
+            },
+            {
+              "x": 302.536122,
+              "y": 1151.207097
+            },
+            {
+              "x": 298.66451,
+              "y": 1137.90094
+            },
+            {
+              "x": 335.17913,
+              "y": 1119.302311
+            },
+            {
+              "x": 333.502719,
+              "y": 1116.446199
+            },
+            {
+              "x": 298.097613,
+              "y": 1136.180618
+            },
+            {
+              "x": 294.951762,
+              "y": 1112.539607
+            },
+            {
+              "x": 325.587179,
+              "y": 1100.498288
+            },
+            {
+              "x": 324.688198,
+              "y": 1098.081442
+            },
+            {
+              "x": 294.857046,
+              "y": 1110.073746
+            },
+            {
+              "x": 294.599189,
+              "y": 1082.954386
+            },
+            {
+              "x": 296.235704,
+              "y": 1091.657694
+            },
+            {
+              "x": 299.42154,
+              "y": 1090.933627
+            },
+            {
+              "x": 298.446631,
+              "y": 1086.734721
+            },
+            {
+              "x": 315.628383,
+              "y": 1079.563283
+            },
+            {
+              "x": 297.145679,
+              "y": 1081.950229
+            },
+            {
+              "x": 298.189804,
+              "y": 1068.577586
+            },
+            {
+              "x": 321.224209,
+              "y": 1070.041216
+            },
+            {
+              "x": 386.490569,
+              "y": 1035.509681
+            },
+            {
+              "x": 384.79301,
+              "y": 1032.578217
+            },
+            {
+              "x": 417.005243,
+              "y": 1014.475701
+            },
+            {
+              "x": 438.1271,
+              "y": 1052.773953
+            },
+            {
+              "x": 427.691269,
+              "y": 1062.025695
+            },
+            {
+              "x": 441.799681,
+              "y": 1050.692369
+            },
+            {
+              "x": 422.069958,
+              "y": 1015.476472
+            },
+            {
+              "x": 424.853867,
+              "y": 1013.548575
+            },
+            {
+              "x": 427.561617,
+              "y": 1017.555229
+            },
+            {
+              "x": 431.503671,
+              "y": 1014.779739
+            },
+            {
+              "x": 433.283503,
+              "y": 1018.323996
+            },
+            {
+              "x": 435.525162,
+              "y": 1016.936685
+            },
+            {
+              "x": 426.435251,
+              "y": 1002.0639
+            },
+            {
+              "x": 426.436708,
+              "y": 1006.765215
+            },
+            {
+              "x": 422.183819,
+              "y": 1009.002265
+            },
+            {
+              "x": 424.273143,
+              "y": 1012.238764
+            },
+            {
+              "x": 421.56716,
+              "y": 1013.934786
+            },
+            {
+              "x": 418.704304,
+              "y": 1009.003333
+            },
+            {
+              "x": 396.592595,
+              "y": 1021.64993
+            },
+            {
+              "x": 396.81842,
+              "y": 999.376293
+            },
+            {
+              "x": 383.051671,
+              "y": 991.364377
+            },
+            {
+              "x": 377.715807,
+              "y": 992.136388
+            },
+            {
+              "x": 375.858101,
+              "y": 988.705807
+            },
+            {
+              "x": 300.275825,
+              "y": 1029.875966
+            },
+            {
+              "x": 346.628583,
+              "y": 807.965811
+            },
+            {
+              "x": 350.540076,
+              "y": 803.113018
+            },
+            {
+              "x": 350.15747,
+              "y": 799.497695
+            },
+            {
+              "x": 353.498678,
+              "y": 801.304391
+            },
+            {
+              "x": 355.692088,
+              "y": 795.88074
+            },
+            {
+              "x": 363.233062,
+              "y": 795.40262
+            },
+            {
+              "x": 348.243458,
+              "y": 784.276304
+            },
+            {
+              "x": 397.920407,
+              "y": 565.155195
+            },
+            {
+              "x": 520.523063,
+              "y": 425.102791
+            },
+            {
+              "x": 554.988235,
+              "y": 331.160593
+            },
+            {
+              "x": 540.793439,
+              "y": 181.289324
+            },
+            {
+              "x": 535.567241,
+              "y": 181.640714
+            },
+            {
+              "x": 532.737054,
+              "y": 155.406709
+            },
+            {
+              "x": 548.980904,
+              "y": 151.785055
+            },
+            {
+              "x": 523.77092,
+              "y": -20.535994
+            },
+            {
+              "x": 521.655422,
+              "y": -20.453631
+            },
+            {
+              "x": 409.320135,
+              "y": -664.282032
+            },
+            {
+              "x": 312.785122,
+              "y": -1039.515102
+            },
+            {
+              "x": 232.275094,
+              "y": -1284.726327
+            },
+            {
+              "x": 122.318283,
+              "y": -1576.904089
+            },
+            {
+              "x": 79.588148,
+              "y": -1636.25437
+            },
+            {
+              "x": 8.478759,
+              "y": -1702.33079
+            },
+            {
+              "x": -31.339145,
+              "y": -1714.507734
+            },
+            {
+              "x": -197.115233,
+              "y": -1728.933953
+            },
+            {
+              "x": -196.640807,
+              "y": -1736.921839
+            },
+            {
+              "x": -277.255504,
+              "y": -1744.503825
+            },
+            {
+              "x": -273.823649,
+              "y": -1787.850238
+            },
+            {
+              "x": -881.296431,
+              "y": -1864.387477
+            },
+            {
+              "x": -885.576765,
+              "y": -1859.691213
+            },
+            {
+              "x": -899.938148,
+              "y": -1777.47935
+            },
+            {
+              "x": -905.785424,
+              "y": -1771.874196
+            },
+            {
+              "x": -1327.877618,
+              "y": -1851.973847
+            },
+            {
+              "x": -1361.66511,
+              "y": -1853.394622
+            },
+            {
+              "x": -1448.992318,
+              "y": -1875.389218
+            },
+            {
+              "x": -1626.752531,
+              "y": -1908.846743
+            },
+            {
+              "x": -1711.380943,
+              "y": -1942.195376
+            },
+            {
+              "x": -1770.214251,
+              "y": -1979.478102
+            },
+            {
+              "x": -1814.817077,
+              "y": -2017.497971
+            },
+            {
+              "x": -1813.004218,
+              "y": -2020.467229
+            },
+            {
+              "x": -1818.11562,
+              "y": -2023.506244
+            },
+            {
+              "x": -1823.031186,
+              "y": -2016.252565
+            },
+            {
+              "x": -1902.584993,
+              "y": -2079.890139
+            },
+            {
+              "x": -1956.102353,
+              "y": -2115.754859
+            },
+            {
+              "x": -1951.416277,
+              "y": -2122.472937
+            },
+            {
+              "x": -1959.490385,
+              "y": -2129.567481
+            },
+            {
+              "x": -1955.188552,
+              "y": -2141.42793
+            },
+            {
+              "x": -1938.885159,
+              "y": -2164.736546
+            },
+            {
+              "x": -1974.574576,
+              "y": -2191.056132
+            },
+            {
+              "x": -1905.952981,
+              "y": -2276.009877
+            },
+            {
+              "x": -1961.592227,
+              "y": -2321.34
+            },
+            {
+              "x": -1990.606295,
+              "y": -2321.34
+            },
+            {
+              "x": -2030.001278,
+              "y": -2275.34681
+            },
+            {
+              "x": -2038.046315,
+              "y": -2281.864053
+            },
+            {
+              "x": -2072.758735,
+              "y": -2263.463519
+            },
+            {
+              "x": -2082.500679,
+              "y": -2271.680113
+            },
+            {
+              "x": -2055.31277,
+              "y": -2303.767822
+            },
+            {
+              "x": -2059.774002,
+              "y": -2307.045875
+            },
+            {
+              "x": -2047.371529,
+              "y": -2321.34
+            },
+            {
+              "x": -2076.704179,
+              "y": -2321.34
+            },
+            {
+              "x": -2136.319357,
+              "y": -2251.855084
+            },
+            {
+              "x": -2179.361358,
+              "y": -2287.819516
+            },
+            {
+              "x": -2164.927181,
+              "y": -2304.785558
+            },
+            {
+              "x": -2158.32422,
+              "y": -2300.044563
+            },
+            {
+              "x": -2155.682827,
+              "y": -2302.94163
+            },
+            {
+              "x": -2162.285843,
+              "y": -2307.682623
+            },
+            {
+              "x": -2150.690253,
+              "y": -2321.34
+            },
+            {
+              "x": -2184.411114,
+              "y": -2321.34
+            },
+            {
+              "x": -2198.207033,
+              "y": -2305.050445
+            },
+            {
+              "x": -2217.319044,
+              "y": -2321.34
+            },
+            {
+              "x": -3121.41489,
+              "y": -2321.34
+            },
+            {
+              "x": -3118.914601,
+              "y": -825.087045
+            },
+            {
+              "x": -2970.678154,
+              "y": -849.420323
+            },
+            {
+              "x": -2945.006663,
+              "y": -692.549492
+            },
+            {
+              "x": -2991.07948,
+              "y": -685.159261
+            },
+            {
+              "x": -2987.596048,
+              "y": -661.086458
+            },
+            {
+              "x": -3036.590204,
+              "y": -653.772308
+            },
+            {
+              "x": -3037.052295,
+              "y": -655.813518
+            },
+            {
+              "x": -3121.41489,
+              "y": -643.940245
+            },
+            {
+              "x": -3121.41489,
+              "y": -599.898223
+            },
+            {
+              "x": -2952.673461,
+              "y": -626.420148
+            },
+            {
+              "x": -2944.025954,
+              "y": -567.286198
+            },
+            {
+              "x": -3121.41489,
+              "y": -539.170927
+            },
+            {
+              "x": -3121.41489,
+              "y": -500.717822
+            },
+            {
+              "x": -2966.244019,
+              "y": -524.626908
+            },
+            {
+              "x": -2962.52923,
+              "y": -500.333385
+            },
+            {
+              "x": -3006.279933,
+              "y": -495.599332
+            },
+            {
+              "x": -3004.621951,
+              "y": -487.90338
+            },
+            {
+              "x": -2962.169848,
+              "y": -496.33341
+            },
+            {
+              "x": -2961.443992,
+              "y": -491.395017
+            },
+            {
+              "x": -2913.778209,
+              "y": -497.078861
+            },
+            {
+              "x": -2839.075801,
+              "y": -14.175445
+            },
+            {
+              "x": -2864.811871,
+              "y": -2.476182
+            },
+            {
+              "x": -3121.41489,
+              "y": 33.559787
+            },
+            {
+              "x": -3121.41489,
+              "y": 86.327398
+            },
+            {
+              "x": -2829.690743,
+              "y": 49.449674
+            },
+            {
+              "x": -2816.295408,
+              "y": 246.423767
+            },
+            {
+              "x": -3070.012722,
+              "y": 272.265273
+            },
+            {
+              "x": -3044.386436,
+              "y": 515.467148
+            },
+            {
+              "x": -3038.361882,
+              "y": 517.641096
+            },
+            {
+              "x": -2797.627737,
+              "y": 491.977764
+            },
+            {
+              "x": -2779.002617,
+              "y": 774.638152
+            },
+            {
+              "x": -3037.238104,
+              "y": 781.296918
+            },
+            {
+              "x": -3037.016253,
+              "y": 810.509957
+            },
+            {
+              "x": -2775.857291,
+              "y": 806.678599
+            },
+            {
+              "x": -2775.393996,
+              "y": 812.602463
+            },
+            {
+              "x": -2763.513642,
+              "y": 833.862757
+            },
+            {
+              "x": -2772.706183,
+              "y": 840.40666
+            },
+            {
+              "x": -2769.863061,
+              "y": 885.104172
+            },
+            {
+              "x": -2869.838982,
+              "y": 891.366312
+            },
+            {
+              "x": -2868.431993,
+              "y": 921.726865
+            },
+            {
+              "x": -2768.23901,
+              "y": 915.651861
+            },
+            {
+              "x": -2753.840462,
+              "y": 1110.783044
+            },
+            {
+              "x": -2756.736327,
+              "y": 1111.621186
+            },
+            {
+              "x": -2754.792929,
+              "y": 1143.839704
+            },
+            {
+              "x": -2751.830996,
+              "y": 1143.57949
+            },
+            {
+              "x": -2739.809109,
+              "y": 1333.547993
+            },
+            {
+              "x": -2791.309773,
+              "y": 1336.732594
+            },
+            {
+              "x": -2795.704191,
+              "y": 1369.575435
+            },
+            {
+              "x": -2737.930397,
+              "y": 1366.772463
+            },
+            {
+              "x": -2732.759199,
+              "y": 1456.286742
+            },
+            {
+              "x": -2816.695962,
+              "y": 1460.90284
+            },
+            {
+              "x": -2824.843976,
+              "y": 1465.81148
+            },
+            {
+              "x": -2833.585616,
+              "y": 1467.042155
+            },
+            {
+              "x": -2833.4988,
+              "y": 1489.954271
+            },
+            {
+              "x": -2837.409915,
+              "y": 1493.00697
+            },
+            {
+              "x": -2836.937836,
+              "y": 1499.195832
+            },
+            {
+              "x": -2830.801172,
+              "y": 1498.560517
+            },
+            {
+              "x": -2822.833802,
+              "y": 1612.139099
+            },
+            {
+              "x": -2881.607478,
+              "y": 1614.547033
+            },
+            {
+              "x": -2881.295936,
+              "y": 1622.092327
+            },
+            {
+              "x": -2923.789247,
+              "y": 1624.567938
+            },
+            {
+              "x": -2923.945924,
+              "y": 1630.20396
+            },
+            {
+              "x": -2824.025814,
+              "y": 1623.507642
+            },
+            {
+              "x": -2815.548981,
+              "y": 1627.585172
+            },
+            {
+              "x": -2668.510726,
+              "y": 1618.89891
+            },
+            {
+              "x": -2656.707602,
+              "y": 1629.659101
+            },
+            {
+              "x": -2657.537126,
+              "y": 1639.222393
+            },
+            {
+              "x": -2649.946486,
+              "y": 1675.133475
+            },
+            {
+              "x": -2660.71299,
+              "y": 1685.863073
+            },
+            {
+              "x": -2671.284392,
+              "y": 1691.129392
+            },
+            {
+              "x": -2667.479705,
+              "y": 1698.293506
+            },
+            {
+              "x": -2717.165504,
+              "y": 1725.257243
+            },
+            {
+              "x": -2731.961921,
+              "y": 1702.078729
+            },
+            {
+              "x": -2817.380004,
+              "y": 1749.053775
+            },
+            {
+              "x": -2770.456002,
+              "y": 1834.602979
+            },
+            {
+              "x": -2724.152073,
+              "y": 1808.271314
+            },
+            {
+              "x": -2710.201136,
+              "y": 1832.292445
+            },
+            {
+              "x": -2642.331674,
+              "y": 1795.63859
+            },
+            {
+              "x": -2638.949668,
+              "y": 1802.381277
+            },
+            {
+              "x": -2631.424783,
+              "y": 1800.987488
+            },
+            {
+              "x": -2622.964453,
+              "y": 1866.594918
+            },
+            {
+              "x": -2667.557241,
+              "y": 1873.790997
+            },
+            {
+              "x": -2664.561524,
+              "y": 1908.309554
+            },
+            {
+              "x": -2879.907592,
+              "y": 1937.979217
+            },
+            {
+              "x": -2874.151155,
+              "y": 1981.152437
+            },
+            {
+              "x": -2866.440295,
+              "y": 1982.596849
+            },
+            {
+              "x": -2658.434627,
+              "y": 1953.915404
+            },
+            {
+              "x": -2652.19104,
+              "y": 1986.54258
+            },
+            {
+              "x": -2606.831054,
+              "y": 1980.647661
+            },
+            {
+              "x": -2592.450103,
+              "y": 2087.165192
+            },
+            {
+              "x": -2666.860145,
+              "y": 2100.26
+            },
+            {
+              "x": -2698.783654,
+              "y": 2100.26
+            },
+            {
+              "x": -2698.493361,
+              "y": 2094.087912
+            },
+            {
+              "x": -2688.813011,
+              "y": 2091.030145
+            },
+            {
+              "x": -2713.766993,
+              "y": 2093.885126
+            },
+            {
+              "x": -2713.49253,
+              "y": 2096.272229
+            },
+            {
+              "x": -2702.848663,
+              "y": 2096.220656
+            },
+            {
+              "x": -2702.295564,
+              "y": 2100.26
+            },
+            {
+              "x": -2741.398114,
+              "y": 2100.26
+            },
+            {
+              "x": -2734.981372,
+              "y": 2097.698144
+            },
+            {
+              "x": -2758.882297,
+              "y": 2100.26
+            },
+            {
+              "x": 645.972796,
+              "y": 2100.26
+            }
+          ]
+        },
+        {
+          "id": "nyc-land-3-27",
+          "outerRing": [
+            {
+              "x": 1991.331586,
+              "y": 1449.706955
+            },
+            {
+              "x": 2089.408449,
+              "y": 1436.21125
+            },
+            {
+              "x": 2232.06224,
+              "y": 1394.048482
+            },
+            {
+              "x": 2365.090604,
+              "y": 1340.240138
+            },
+            {
+              "x": 2520.507381,
+              "y": 1259.84147
+            },
+            {
+              "x": 2523.138628,
+              "y": 1267.640096
+            },
+            {
+              "x": 2647.643568,
+              "y": 1207.600305
+            },
+            {
+              "x": 2650.629051,
+              "y": 1209.779493
+            },
+            {
+              "x": 2655.435856,
+              "y": 1207.854437
+            },
+            {
+              "x": 2662.28923,
+              "y": 1191.690427
+            },
+            {
+              "x": 2598.381021,
+              "y": 1034.121333
+            },
+            {
+              "x": 2609.728168,
+              "y": 928.756286
+            },
+            {
+              "x": 2649.147595,
+              "y": 933.203479
+            },
+            {
+              "x": 2637.251321,
+              "y": 1026.108977
+            },
+            {
+              "x": 2678.723769,
+              "y": 1123.767904
+            },
+            {
+              "x": 2685.09518,
+              "y": 1127.827325
+            },
+            {
+              "x": 2710.307202,
+              "y": 1116.656427
+            },
+            {
+              "x": 2735.83709,
+              "y": 1173.084074
+            },
+            {
+              "x": 2740.097748,
+              "y": 1170.691879
+            },
+            {
+              "x": 2737.963003,
+              "y": 1164.852044
+            },
+            {
+              "x": 2748.882471,
+              "y": 1160.862783
+            },
+            {
+              "x": 2753.68085,
+              "y": 1166.169871
+            },
+            {
+              "x": 2766.995997,
+              "y": 1159.258449
+            },
+            {
+              "x": 2765.394647,
+              "y": 1154.480392
+            },
+            {
+              "x": 2777.378723,
+              "y": 1148.897234
+            },
+            {
+              "x": 2781.111975,
+              "y": 1155.001538
+            },
+            {
+              "x": 2784.040157,
+              "y": 1151.548103
+            },
+            {
+              "x": 2762.458691,
+              "y": 1093.548896
+            },
+            {
+              "x": 2768.351499,
+              "y": 1047.825537
+            },
+            {
+              "x": 2781.181484,
+              "y": 1042.239178
+            },
+            {
+              "x": 2805.937648,
+              "y": 1108.079796
+            },
+            {
+              "x": 2829.176016,
+              "y": 1136.210394
+            },
+            {
+              "x": 3003.776742,
+              "y": 1041.922399
+            },
+            {
+              "x": 3059.138791,
+              "y": 989.412359
+            },
+            {
+              "x": 3055.091875,
+              "y": 983.246328
+            },
+            {
+              "x": 3070.24208,
+              "y": 960.338597
+            },
+            {
+              "x": 3075.380911,
+              "y": 965.493494
+            },
+            {
+              "x": 3108.974194,
+              "y": 901.22461
+            },
+            {
+              "x": 3121.628665,
+              "y": 861.160273
+            },
+            {
+              "x": 3108.240993,
+              "y": 856.564468
+            },
+            {
+              "x": 3118.172605,
+              "y": 827.752283
+            },
+            {
+              "x": 3127.392247,
+              "y": 830.309258
+            },
+            {
+              "x": 3136.754345,
+              "y": 801.294394
+            },
+            {
+              "x": 3144.562244,
+              "y": 805.967635
+            },
+            {
+              "x": 3157.801367,
+              "y": 780.245955
+            },
+            {
+              "x": 3147.996183,
+              "y": 775.667705
+            },
+            {
+              "x": 3174.851022,
+              "y": 686.739358
+            },
+            {
+              "x": 3205.777455,
+              "y": 609.122737
+            },
+            {
+              "x": 3205.777455,
+              "y": -2321.34
+            },
+            {
+              "x": -868.239921,
+              "y": -2321.34
+            },
+            {
+              "x": -868.09004,
+              "y": -2313.529354
+            },
+            {
+              "x": -839.978223,
+              "y": -2306.503607
+            },
+            {
+              "x": -782.015075,
+              "y": -2301.915834
+            },
+            {
+              "x": -736.850531,
+              "y": -2309.480177
+            },
+            {
+              "x": -728.305528,
+              "y": -2321.34
+            },
+            {
+              "x": -717.620471,
+              "y": -2321.34
+            },
+            {
+              "x": -711.10185,
+              "y": -2313.692906
+            },
+            {
+              "x": -711.539032,
+              "y": -2282.804936
+            },
+            {
+              "x": -568.882034,
+              "y": -2261.327031
+            },
+            {
+              "x": -458.768875,
+              "y": -2250.141756
+            },
+            {
+              "x": -456.106484,
+              "y": -2269.787387
+            },
+            {
+              "x": -429.101039,
+              "y": -2268.602394
+            },
+            {
+              "x": -429.39412,
+              "y": -2264.794167
+            },
+            {
+              "x": -400.015127,
+              "y": -2258.062313
+            },
+            {
+              "x": -400.603541,
+              "y": -2262.456255
+            },
+            {
+              "x": -376.220654,
+              "y": -2265.097555
+            },
+            {
+              "x": -376.17153,
+              "y": -2261.381504
+            },
+            {
+              "x": -365.242789,
+              "y": -2260.318199
+            },
+            {
+              "x": -246.769201,
+              "y": -2280.52253
+            },
+            {
+              "x": -245.380861,
+              "y": -2220.975891
+            },
+            {
+              "x": -231.212898,
+              "y": -2226.810628
+            },
+            {
+              "x": -187.288481,
+              "y": -2227.262034
+            },
+            {
+              "x": -188.732033,
+              "y": -2236.966635
+            },
+            {
+              "x": -131.53689,
+              "y": -2239.14077
+            },
+            {
+              "x": -131.251278,
+              "y": -2236.200459
+            },
+            {
+              "x": -112.088596,
+              "y": -2236.728997
+            },
+            {
+              "x": -107.969897,
+              "y": -2234.070663
+            },
+            {
+              "x": -107.424205,
+              "y": -2219.959864
+            },
+            {
+              "x": -102.40921,
+              "y": -2221.119989
+            },
+            {
+              "x": -99.776281,
+              "y": -2214.645137
+            },
+            {
+              "x": -78.550225,
+              "y": -2219.100921
+            },
+            {
+              "x": -89.495952,
+              "y": -2216.765961
+            },
+            {
+              "x": -104.890924,
+              "y": -2260.410752
+            },
+            {
+              "x": -81.287618,
+              "y": -2265.827198
+            },
+            {
+              "x": -72.988597,
+              "y": -2225.396177
+            },
+            {
+              "x": -69.100567,
+              "y": -2226.002833
+            },
+            {
+              "x": -78.259628,
+              "y": -2266.490144
+            },
+            {
+              "x": -62.284448,
+              "y": -2270.152831
+            },
+            {
+              "x": -53.913296,
+              "y": -2229.520146
+            },
+            {
+              "x": -50.754336,
+              "y": -2230.369059
+            },
+            {
+              "x": -57.738232,
+              "y": -2271.135262
+            },
+            {
+              "x": -54.438512,
+              "y": -2256.008473
+            },
+            {
+              "x": -39.277395,
+              "y": -2259.191995
+            },
+            {
+              "x": -36.446526,
+              "y": -2246.323646
+            },
+            {
+              "x": -37.878079,
+              "y": -2242.13307
+            },
+            {
+              "x": -35.586133,
+              "y": -2242.514594
+            },
+            {
+              "x": -32.813285,
+              "y": -2229.563658
+            },
+            {
+              "x": -35.582722,
+              "y": -2228.705906
+            },
+            {
+              "x": -34.817664,
+              "y": -2225.087256
+            },
+            {
+              "x": -32.143738,
+              "y": -2225.564079
+            },
+            {
+              "x": -33.668626,
+              "y": -2212.707345
+            },
+            {
+              "x": -71.964103,
+              "y": -2203.555785
+            },
+            {
+              "x": -29.08387,
+              "y": -2210.80387
+            },
+            {
+              "x": -31.56782,
+              "y": -2214.326837
+            },
+            {
+              "x": -29.27969,
+              "y": -2230.135896
+            },
+            {
+              "x": -31.571592,
+              "y": -2229.563963
+            },
+            {
+              "x": -33.008549,
+              "y": -2246.991136
+            },
+            {
+              "x": -35.109597,
+              "y": -2246.609603
+            },
+            {
+              "x": -38.305099,
+              "y": -2259.396122
+            },
+            {
+              "x": -36.008779,
+              "y": -2259.790387
+            },
+            {
+              "x": -49.518869,
+              "y": -2321.34
+            },
+            {
+              "x": 426.762976,
+              "y": -2321.34
+            },
+            {
+              "x": 282.134055,
+              "y": -2202.591024
+            },
+            {
+              "x": 304.478413,
+              "y": -2174.788926
+            },
+            {
+              "x": 388.716934,
+              "y": -2240.290785
+            },
+            {
+              "x": 459.877163,
+              "y": -2188.195619
+            },
+            {
+              "x": 396.60836,
+              "y": -2133.674719
+            },
+            {
+              "x": 284.330016,
+              "y": -2024.975543
+            },
+            {
+              "x": 317.526378,
+              "y": -1987.024358
+            },
+            {
+              "x": 412.847536,
+              "y": -2085.274178
+            },
+            {
+              "x": 571.562355,
+              "y": -2234.024464
+            },
+            {
+              "x": 582.392334,
+              "y": -2227.374748
+            },
+            {
+              "x": 590.167866,
+              "y": -2119.246246
+            },
+            {
+              "x": 585.735777,
+              "y": -2106.181206
+            },
+            {
+              "x": 442.264841,
+              "y": -1897.830414
+            },
+            {
+              "x": 479.152253,
+              "y": -1870.018024
+            },
+            {
+              "x": 618.398062,
+              "y": -2071.551787
+            },
+            {
+              "x": 629.292273,
+              "y": -2065.32092
+            },
+            {
+              "x": 652.781891,
+              "y": -2112.695276
+            },
+            {
+              "x": 633.662536,
+              "y": -2277.050422
+            },
+            {
+              "x": 660.647875,
+              "y": -2281.340724
+            },
+            {
+              "x": 659.814412,
+              "y": -2321.34
+            },
+            {
+              "x": 746.091042,
+              "y": -2321.34
+            },
+            {
+              "x": 734.212598,
+              "y": -2311.575866
+            },
+            {
+              "x": 739.325942,
+              "y": -2211.428641
+            },
+            {
+              "x": 734.54793,
+              "y": -2089.943181
+            },
+            {
+              "x": 687.66894,
+              "y": -1989.383827
+            },
+            {
+              "x": 679.796331,
+              "y": -1845.791022
+            },
+            {
+              "x": 707.392111,
+              "y": -1752.307805
+            },
+            {
+              "x": 708.188862,
+              "y": -1738.700918
+            },
+            {
+              "x": 701.403058,
+              "y": -1733.075802
+            },
+            {
+              "x": 679.759745,
+              "y": -1710.863944
+            },
+            {
+              "x": 703.42647,
+              "y": -1713.400494
+            },
+            {
+              "x": 706.02519,
+              "y": -1696.02119
+            },
+            {
+              "x": 693.561778,
+              "y": -1683.661131
+            },
+            {
+              "x": 700.858181,
+              "y": -1675.023351
+            },
+            {
+              "x": 723.991672,
+              "y": -1664.939412
+            },
+            {
+              "x": 727.686156,
+              "y": -1655.815573
+            },
+            {
+              "x": 682.684572,
+              "y": -1628.461812
+            },
+            {
+              "x": 733.078198,
+              "y": -1646.177942
+            },
+            {
+              "x": 739.443786,
+              "y": -1631.510494
+            },
+            {
+              "x": 734.71221,
+              "y": -1628.232112
+            },
+            {
+              "x": 739.562111,
+              "y": -1610.221557
+            },
+            {
+              "x": 747.044661,
+              "y": -1607.583767
+            },
+            {
+              "x": 770.574787,
+              "y": -1521.925923
+            },
+            {
+              "x": 774.775602,
+              "y": -1519.7097
+            },
+            {
+              "x": 770.620326,
+              "y": -1517.453367
+            },
+            {
+              "x": 772.914915,
+              "y": -1504.488981
+            },
+            {
+              "x": 764.257934,
+              "y": -1501.268894
+            },
+            {
+              "x": 777.496917,
+              "y": -1463.933538
+            },
+            {
+              "x": 783.138714,
+              "y": -1464.992725
+            },
+            {
+              "x": 787.435285,
+              "y": -1452.805831
+            },
+            {
+              "x": 801.573026,
+              "y": -1458.364861
+            },
+            {
+              "x": 806.310452,
+              "y": -1443.825407
+            },
+            {
+              "x": 796.406412,
+              "y": -1438.422678
+            },
+            {
+              "x": 800.876925,
+              "y": -1425.361137
+            },
+            {
+              "x": 771.980819,
+              "y": -1413.52517
+            },
+            {
+              "x": 897.287295,
+              "y": -1051.934117
+            },
+            {
+              "x": 907.712122,
+              "y": -1040.415075
+            },
+            {
+              "x": 906.067948,
+              "y": -1031.230417
+            },
+            {
+              "x": 919.126761,
+              "y": -1004.98621
+            },
+            {
+              "x": 906.801615,
+              "y": -996.333873
+            },
+            {
+              "x": 985.919823,
+              "y": -849.329513
+            },
+            {
+              "x": 995.61841,
+              "y": -856.164108
+            },
+            {
+              "x": 1052.482306,
+              "y": -782.695935
+            },
+            {
+              "x": 1086.631662,
+              "y": -748.699138
+            },
+            {
+              "x": 1063.449264,
+              "y": -709.498996
+            },
+            {
+              "x": 1073.300969,
+              "y": -650.167138
+            },
+            {
+              "x": 1093.947658,
+              "y": -621.55874
+            },
+            {
+              "x": 1140.627185,
+              "y": -659.23975
+            },
+            {
+              "x": 1152.932831,
+              "y": -640.212343
+            },
+            {
+              "x": 1143.319506,
+              "y": -632.623304
+            },
+            {
+              "x": 1152.835144,
+              "y": -620.511989
+            },
+            {
+              "x": 1147.553881,
+              "y": -614.399678
+            },
+            {
+              "x": 1175.515362,
+              "y": -574.817842
+            },
+            {
+              "x": 1181.249924,
+              "y": -559.505055
+            },
+            {
+              "x": 1220.004716,
+              "y": -489.318739
+            },
+            {
+              "x": 1228.521844,
+              "y": -490.897621
+            },
+            {
+              "x": 1268.335195,
+              "y": -438.348899
+            },
+            {
+              "x": 1285.967742,
+              "y": -398.052868
+            },
+            {
+              "x": 1349.172702,
+              "y": -221.975252
+            },
+            {
+              "x": 1358.72093,
+              "y": -209.28515
+            },
+            {
+              "x": 1378.497549,
+              "y": -125.965364
+            },
+            {
+              "x": 1340.131762,
+              "y": -94.173072
+            },
+            {
+              "x": 1358.035121,
+              "y": -75.11184
+            },
+            {
+              "x": 1388.878314,
+              "y": -98.50011
+            },
+            {
+              "x": 1420.35651,
+              "y": -81.290416
+            },
+            {
+              "x": 1482.056023,
+              "y": -97.926429
+            },
+            {
+              "x": 1487.606409,
+              "y": -105.31042
+            },
+            {
+              "x": 1659.345651,
+              "y": -175.570597
+            },
+            {
+              "x": 1683.947028,
+              "y": -173.830685
+            },
+            {
+              "x": 1692.158249,
+              "y": -149.317134
+            },
+            {
+              "x": 1691.388252,
+              "y": -106.512014
+            },
+            {
+              "x": 1657.575006,
+              "y": -88.646746
+            },
+            {
+              "x": 1651.302848,
+              "y": -66.264769
+            },
+            {
+              "x": 1507.983261,
+              "y": -75.207366
+            },
+            {
+              "x": 1494.444916,
+              "y": -5.734548
+            },
+            {
+              "x": 1428.812049,
+              "y": -17.144844
+            },
+            {
+              "x": 1382.26473,
+              "y": -14.860658
+            },
+            {
+              "x": 1379.091017,
+              "y": 22.542006
+            },
+            {
+              "x": 1382.097585,
+              "y": 73.113587
+            },
+            {
+              "x": 1392.049717,
+              "y": 83.025613
+            },
+            {
+              "x": 1398.877419,
+              "y": 149.912105
+            },
+            {
+              "x": 1422.218439,
+              "y": 232.545806
+            },
+            {
+              "x": 1432.739443,
+              "y": 298.948809
+            },
+            {
+              "x": 1421.430542,
+              "y": 390.892075
+            },
+            {
+              "x": 1398.019556,
+              "y": 546.774239
+            },
+            {
+              "x": 1327.579577,
+              "y": 764.445076
+            },
+            {
+              "x": 1321.065293,
+              "y": 816.805112
+            },
+            {
+              "x": 1323.785562,
+              "y": 832.623124
+            },
+            {
+              "x": 1322.087657,
+              "y": 857.164891
+            },
+            {
+              "x": 1325.74063,
+              "y": 889.592302
+            },
+            {
+              "x": 1342.17934,
+              "y": 940.474085
+            },
+            {
+              "x": 1369.872188,
+              "y": 982.879098
+            },
+            {
+              "x": 1385.659926,
+              "y": 1014.714634
+            },
+            {
+              "x": 1555.281426,
+              "y": 1245.638985
+            },
+            {
+              "x": 1736.330466,
+              "y": 1398.247192
+            },
+            {
+              "x": 1779.757129,
+              "y": 1424.856475
+            },
+            {
+              "x": 1991.331586,
+              "y": 1449.706955
+            }
+          ]
+        }
+      ],
+      "streets": []
+    },
+    "segments": [],
+    "signals": []
+  },
+  "worldTemplate": {
+    "contentVersion": "villages-williamsburg-delivery-bike-2026-07-13",
+    "coordinateSystem": {
+      "bounds": {
+        "maximumX": 3755.417108,
+        "maximumY": 2709.04744,
+        "minimumX": -3686.864088,
+        "minimumY": -2974.885086
+      },
+      "kind": "local_cartesian_meters",
+      "originLabel": "40.726,-73.978",
+      "originWgs84": {
+        "latitude": 40.726,
+        "longitude": -73.978
+      }
+    },
+    "id": "villages-williamsburg-delivery-bike-v1",
+    "label": "Villages to North Brooklyn delivery-bike world",
+    "provenance": {
+      "claimBoundary": "The street, bike, building, and land geometry is compiled from the named frozen sources. Traffic actors, signal timing, routing risk, simulated speed, and action outcomes are bounded simulation assumptions, not live conditions or physical autonomy evidence.",
+      "compiler": "tools/autonomy/build-nyc-autonomy-world.mjs",
+      "endpointSnapToleranceM": 3,
+      "snapshotDate": "2026-07-13",
+      "sourceId": "simulatte-villages-williamsburg-open-data-tile-v1",
+      "sourceKind": "compiled_open_data_snapshot",
+      "sources": {
+        "bike": {
+          "authority": "NYC Department of Transportation",
+          "id": "nyc-dot-bike-routes",
+          "license": "NYC Open Data Terms of Use",
+          "query": "$limit=50000&$where=within_box(the_geom, 40.745, -74.015, 40.705, -73.94)",
+          "rawByteCount": 2364213,
+          "rawSha256": "0d890101198fd9038ede92fd2213d988c6c5e5855249aba16ccafd1da19aa98f",
+          "snapshotDate": "2026-07-13",
+          "url": "https://data.cityofnewyork.us/resource/mzxg-pwib.geojson"
+        },
+        "buildings": {
+          "authority": "NYC Department of Information Technology and Telecommunications",
+          "id": "nyc-building-footprints",
+          "license": "NYC Open Data Terms of Use",
+          "query": "$limit=50000&$where=within_box(the_geom, 40.745, -74.015, 40.705, -73.94)",
+          "rawByteCount": 22760861,
+          "rawSha256": "8b2ba47792b7930a5c670731a9c8049e27d2cfbb04db38f3fd2cd20b127efee0",
+          "snapshotDate": "2026-07-13",
+          "url": "https://data.cityofnewyork.us/resource/5zhs-2jue.geojson"
+        },
+        "land": {
+          "authority": "NYC Department of City Planning",
+          "id": "nyc-borough-boundaries",
+          "license": "NYC Open Data Terms of Use",
+          "query": "$where=borocode in ('1','3')",
+          "rawByteCount": 1056182,
+          "rawSha256": "6246c44193d47cce85f090142db72f48f332c03aee6e2c2e47dc1d1d60e58363",
+          "snapshotDate": "2026-07-13",
+          "url": "https://data.cityofnewyork.us/resource/gthc-hcne.geojson"
+        },
+        "streets": {
+          "authority": "OpenStreetMap contributors",
+          "id": "openstreetmap-highways",
+          "license": "ODbL 1.0",
+          "query": "deterministic_3_by_4_bbox_subtiles; OSM map responses filtered to governed highway classes",
+          "rawByteCount": 3512663,
+          "rawSha256": "ffdf8c81b87608cf23a28c6db20f35b1cbc5f9389b2a00d45d8c550325496f7f",
+          "snapshotDate": "2026-07-13",
+          "url": "https://api.openstreetmap.org/api/0.6/map"
+        }
+      }
+    },
+    "renderGeometry": {
+      "buildingLodReceipt": {
+        "fullCoverageClaim": false,
+        "maximumRetainedFeatures": 8500,
+        "omittedFeatureCount": 18490,
+        "policy": "nearest_to_default_route_or_named_focus_center_then_height_and_area",
+        "retainedFeatureCount": 8500,
+        "schema": "simulatte.autonomyBuildingLodReceipt.v1",
+        "sourceFeatureCount": 26990
+      },
+      "claimBoundary": "Building footprints, roof heights, bike facilities, streets, and land geometry preserve the frozen source snapshots. Render colors, widths, lighting, traffic actors, and signal timing are simulation presentation or policy assumptions.",
+      "coordinateSystem": "local_cartesian_meters",
+      "schema": "simulatte.autonomyRenderGeometry.v1"
+    },
+    "scenario": {
+      "defaultMissionText": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
+      "defaultRoute": {
+        "algorithm": "dijkstra_policy_cost_equivalent",
+        "distanceM": 7220.116811,
+        "nodeIds": [
+          "bike-node-0d9391b2bfa3",
+          "bike-node-f356bed35526",
+          "bike-node-1984e67dd0d2",
+          "bike-node-77af8331a291",
+          "bike-node-95be99f131c5",
+          "bike-node-312a3cfb824b",
+          "bike-node-4e805dd283de",
+          "bike-node-c99af2d6d292",
+          "bike-node-54f8042c0dd1",
+          "bike-node-11d4fe0b9b37",
+          "bike-node-c3652540b078",
+          "bike-node-187c7facb939",
+          "bike-node-e9758b096991",
+          "bike-node-8b336dc60eb1",
+          "bike-node-b5657bcabd93",
+          "bike-node-f2a8a15cdbda",
+          "bike-node-ef0f4f6a659a",
+          "bike-node-191a6913cb02",
+          "bike-node-1c1a7239d63d",
+          "bike-node-106df1c28105",
+          "bike-node-fcb1f475c741",
+          "bike-node-0db40a17b291",
+          "bike-node-7d5d2734eb30",
+          "bike-node-00282c9ee82f",
+          "bike-node-c5ecf714e0ae",
+          "bike-node-4deb7720cfe5",
+          "bike-node-c0ea168d34d9",
+          "bike-node-3e109600dae8",
+          "bike-node-cdc227b666e7",
+          "bike-node-4d13e11b841d",
+          "bike-node-c5b1b19f1663",
+          "bike-node-7c4eca8d2429",
+          "bike-node-dc7604e30dc3",
+          "bike-node-4f903aac31f2",
+          "bike-node-d58597471379",
+          "bike-node-80569f99c7f9",
+          "bike-node-fa2bfe03adc6",
+          "bike-node-d2f9b73f38cf",
+          "bike-node-357903ad008f",
+          "bike-node-f1ad44f87bb3",
+          "bike-node-108f7650ee53",
+          "bike-node-d3a2ab38b282",
+          "bike-node-c565dbda03cd",
+          "bike-node-3e637d7b0799",
+          "bike-node-5dde0d623120",
+          "bike-node-2cb472276c9f",
+          "bike-node-4ca97229ea20",
+          "bike-node-917cf30736dd",
+          "bike-node-145d77440c66",
+          "bike-node-0bba97bf3c34",
+          "bike-node-7b07e8d7ecc1",
+          "bike-node-50da1343c1e0",
+          "bike-node-ef5b8edb3424",
+          "bike-node-677c48b1e56b",
+          "bike-node-6070921ed4c8",
+          "bike-node-84f4db3936aa",
+          "bike-node-f5ae8850f8a1",
+          "bike-node-68332ee6d5ba",
+          "bike-node-fbfc93b78d73",
+          "bike-node-a12712737ce6",
+          "bike-node-a5795602e824",
+          "bike-node-3c231a6e60ce",
+          "bike-node-c8d4abfbf8d5",
+          "bike-node-046ffd9b8eb1",
+          "bike-node-0407292954e9",
+          "bike-node-86300f2cfd65",
+          "bike-node-cafcb1a4ed9f",
+          "bike-node-79aa26033e49",
+          "bike-node-545ae5b09251",
+          "bike-node-842ca900b01e",
+          "bike-node-648ef997584d",
+          "bike-node-8c863edf9ef3",
+          "bike-node-6a3b41a659a3",
+          "bike-node-969c7a348e01",
+          "bike-node-bb643d61661c",
+          "bike-node-ae19b895c99e",
+          "bike-node-16c3018ed947",
+          "bike-node-8110a6ab9ccd",
+          "bike-node-ba6b9701e210",
+          "bike-node-c099c3362b0a",
+          "bike-node-69f225e3f54c",
+          "bike-node-9bd6385392c3",
+          "bike-node-423e78e78a8d",
+          "bike-node-f093c1c48dd1",
+          "bike-node-686c19744e12",
+          "bike-node-fb828bfad72f",
+          "bike-node-6d31e3434025",
+          "bike-node-d5a36706cd63",
+          "bike-node-fbfad4ac7e64",
+          "bike-node-553d1a29617e",
+          "bike-node-d10246eb4a1d",
+          "bike-node-6a7beb8d3b34",
+          "bike-node-26611f2dc4fc",
+          "bike-node-faf824d474ca",
+          "bike-node-6e8c28d2d16c",
+          "bike-node-e25116ea05a4"
+        ],
+        "segmentIds": [
+          "bike-30ee92829e72-tf",
+          "bike-4eacc56ba462-tf",
+          "bike-e1e7fd3bf117-tf",
+          "bike-efc8728400e2-tf",
+          "bike-3951bb17f20a-tf",
+          "bike-1c014447d5ff-ft",
+          "bike-ffd1e2b58e1c-ft",
+          "bike-7374fb35e1e4-ft",
+          "bike-abf54d10b73f-ft",
+          "bike-e93122c6a742-ft",
+          "bike-1a4ed07079df-ft",
+          "bike-ecff42fd0ed3-ft",
+          "bike-2cd4e490b79e-ft",
+          "bike-9070b72b439c-ft",
+          "bike-d0f84c188d80-ft",
+          "bike-9c9cf9f25756-ft",
+          "bike-b27bd6010e64-ft",
+          "bike-8874aa6a06bf-ft",
+          "bike-0925fc9ef8fc-ft",
+          "bike-8734049e5bad-ft",
+          "bike-ce1aa5a9d169-ft",
+          "bike-53d64975c1d6-ft",
+          "bike-b73941e286af-ft",
+          "bike-79bd16d6bc55-ft",
+          "bike-de56b0dc6974-ft",
+          "bike-2dcd99cb81e6-ft",
+          "bike-f785e1bb386c-ft",
+          "bike-57a48586e86d-ft",
+          "bike-fb5028a8b097-ft",
+          "bike-8a49054d5998-ft",
+          "bike-2773a11a65aa-ft",
+          "bike-28c3a27670c7-ft",
+          "bike-8d4100d97d96-ft",
+          "bike-6849c545ce67-ft",
+          "bike-a2ed9104b822-ft",
+          "bike-0ad4c84689a0-ft",
+          "bike-04bdc0506c0b-ft",
+          "bike-ca5504c61192-ft",
+          "bike-7cccca33d43c-ft",
+          "bike-4d6e3a4b9625-ft",
+          "bike-cacc4a5d6727-ft",
+          "bike-fa8d503e2c91-ft",
+          "bike-50b03944fe1f-ft",
+          "bike-018b1beb6973-ft",
+          "bike-8d4064d5a523-tf",
+          "bike-2c816cf2f483-tf",
+          "bike-7ac36cb2d164-tf",
+          "bike-1ad5dfae4e2e-tf",
+          "bike-df474c1a255b-tf",
+          "bike-f88282f00f0f-tf",
+          "bike-a741a2231ffd-tf",
+          "bike-5b66f2c4f927-tf",
+          "bike-cc6dab4f48b6-tf",
+          "bike-e6fc7e193202-tf",
+          "bike-4be62926be89-tf",
+          "bike-f6216fe256de-tf",
+          "bike-ac7ab35d743f-tf",
+          "bike-638b260bd215-tf",
+          "bike-208a464737f0-tf",
+          "bike-2cc3f9061530-tf",
+          "bike-86d44ed6b88a-tf",
+          "bike-43bf681dd385-tf",
+          "bike-4133e2af34dc-tf",
+          "bike-00e5e55596ed-ft",
+          "bike-bee1965ac354-ft",
+          "bike-bb2677d5568d-ft",
+          "bike-c8da2fc88e5b-ft",
+          "bike-b308c37d58df-ft",
+          "bike-2735e43501de-ft",
+          "bike-38105803c276-tf",
+          "bike-9c409a35044e-tf",
+          "bike-cb86a29a2369-tf",
+          "bike-3650990b04b5-tf",
+          "bike-8f23ba29ed4c-tf",
+          "bike-96c1dd3d3eb6-tf",
+          "bike-5bcf5194fda5-tf",
+          "bike-46293e770785-tf",
+          "bike-15773808566c-tf",
+          "bike-c99c830e287e-tf",
+          "bike-52c45855a15a-tf",
+          "bike-7c37abd383b3-tf",
+          "bike-21ea49ce94ad-tf",
+          "bike-a2689b3f039a-tf",
+          "bike-f5eafc552b9e-tf",
+          "bike-0ac885d8e593-tf",
+          "bike-1a1dd926ceec-tf",
+          "bike-4e11b9cad3bc-tf",
+          "bike-d237f957d659-tf",
+          "bike-66ac45c2f4ff-ft",
+          "bike-1f4e5def63ff-ft",
+          "bike-ff003383372f-ft",
+          "bike-c9ba830acd70-ft",
+          "bike-c4bc2b91337f-ft",
+          "bike-7eac35d7b4e6-ft",
+          "bike-7bfdf69ee8aa-ft"
+        ]
+      },
+      "eventActorDurationTicks": 18,
+      "eventActorTriggerNodeId": "bike-node-969c7a348e01",
+      "liveConditionsUsed": false,
+      "modeledAssumptions": [
+        "signal_timing",
+        "time_triggered_pedestrian_path",
+        "event_triggered_pedestrian_path",
+        "bike_speed_limits",
+        "lane_risk_scores"
+      ],
+      "schema": "simulatte.autonomyScenarioReceipt.v1"
+    },
+    "schema": "simulatte.autonomyWorld.v1"
+  }
+}

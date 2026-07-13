@@ -165,7 +165,7 @@
       "required": ["kind", "owner", "humanAdjudicationRequiredFor"],
       "properties": {
         "kind": { "const": "deterministic_trace_verifier" },
-        "owner": { "const": "public/autonomy/verifier/journey-verifier.js" },
+        "owner": { "const": "public/verifier/journey-verifier.js" },
         "humanAdjudicationRequiredFor": {
           "type": "array",
           "minItems": 1,

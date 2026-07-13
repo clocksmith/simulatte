@@ -23,7 +23,7 @@
       "id": "surface-card-embeddings",
       "path": "public/data/simulatte-embedder/surface-card-index-qwen-v1.json",
       "itemKey": "documents",
-    "expectedCount": 709,
+      "expectedCount": 1394,
       "kind": "embedding-index"
     },
     {
@@ -130,21 +130,21 @@
   "runtimeCatalogs": [
     {
       "id": "runtime-physical-primitives",
-      "path": "public/pipeline/phase-05-simulation/simulatte-physics-catalog.js",
+      "path": "public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog.js",
       "exportName": "PHYSICAL_PRIMITIVES",
       "expectedCount": 420,
       "kind": "pipeline-runtime"
     },
     {
       "id": "runtime-example-intents",
-      "path": "public/pipeline/phase-05-simulation/simulatte-physics-catalog.js",
+      "path": "public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog.js",
       "exportName": "EXAMPLE_INTENTS",
       "expectedCount": 256,
       "kind": "prompt-examples"
     },
     {
       "id": "runtime-causal-rules",
-      "path": "public/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js",
+      "path": "public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js",
       "exportName": "CAUSAL_RELATION_RULES",
       "expectedCount": 190,
       "kind": "causal-runtime",
@@ -152,7 +152,7 @@
     },
     {
       "id": "runtime-causal-visual-affordances",
-      "path": "public/pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js",
+      "path": "public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js",
       "exportName": "CAUSAL_VISUAL_AFFORDANCES",
       "expectedCount": 190,
       "kind": "visual-causal-runtime",

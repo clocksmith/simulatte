@@ -10,26 +10,27 @@ const ROOT = path.resolve(TOOL_DIR, '../../..');
 const DEFAULT_CONTRACT = path.join(TOOL_DIR, 'autonomy-policy-contract.json');
 const DEFAULT_SCENARIOS = path.join(TOOL_DIR, 'public-navigation-scenarios-v1.json');
 const require = createRequire(import.meta.url);
-const contracts = require('../../../public/autonomy/contracts/contract-validator.js');
-const missionApi = require('../../../public/autonomy/mission/mission-compiler.js');
-const controllerApi = require('../../../public/autonomy/runtime/autonomy-controller.js');
-const receipts = require('../../../public/autonomy/runtime/canonical-receipts.js');
+const contracts = require('../../../public/contracts/contract-validator.js');
+const missionApi = require('../../../public/mission/mission-compiler.js');
+const controllerApi = require('../../../public/runtime/autonomy-controller.js');
+const receipts = require('../../../public/runtime/canonical-receipts.js');
 const EXPECTED_RUNTIME_SOURCE_PATHS = Object.freeze([
-  'public/autonomy/contracts/contract-validator.js',
-  'public/autonomy/mission/mission-compiler.js',
-  'public/autonomy/world/world-model.js',
-  'public/autonomy/world/route-planner.js',
-  'public/autonomy/runtime/canonical-receipts.js',
-  'public/autonomy/runtime/feature-retrieval.js',
-  'public/autonomy/runtime/occurrence-engine.js',
-  'public/autonomy/runtime/observation-builder.js',
-  'public/autonomy/runtime/reference-dynamics.js',
-  'public/autonomy/runtime/bet-proposer.js',
-  'public/autonomy/runtime/safety-gate.js',
-  'public/autonomy/runtime/bet-selector.js',
-  'public/autonomy/runtime/bet-settlement.js',
-  'public/autonomy/runtime/autonomy-controller.js',
-  'public/autonomy/verifier/journey-verifier.js',
+  'public/contracts/contract-validator.js',
+  'public/mission/mission-compiler.js',
+  'public/world/world-model.js',
+  'public/world/route-planner.js',
+  'public/world/region-pack-merger.js',
+  'public/runtime/canonical-receipts.js',
+  'public/runtime/feature-retrieval.js',
+  'public/runtime/occurrence-engine.js',
+  'public/runtime/observation-builder.js',
+  'public/runtime/reference-dynamics.js',
+  'public/runtime/bet-proposer.js',
+  'public/runtime/safety-gate.js',
+  'public/runtime/bet-selector.js',
+  'public/runtime/bet-settlement.js',
+  'public/runtime/autonomy-controller.js',
+  'public/verifier/journey-verifier.js',
   'tools/samer/autonomy/run-policy-trial.mjs',
 ]);
 

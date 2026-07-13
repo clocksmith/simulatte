@@ -10,7 +10,8 @@ const ROOT = path.resolve(TOOL_DIR, '../..');
 const PUBLIC = path.join(ROOT, 'public');
 const MANIFEST_PATH = path.join(PUBLIC, 'data/autonomy/autonomy-manifest.json');
 const require = createRequire(import.meta.url);
-const contracts = require('../../public/autonomy/contracts/contract-validator.js');
+const contracts = require('../../public/contracts/contract-validator.js');
+const regionApi = require('../../public/world/region-pack-merger.js');
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -37,25 +38,38 @@ function resolveReference(manifest, key) {
   return value;
 }
 
+function resolvePackReference(registryFile, reference) {
+  const file = path.resolve(path.dirname(registryFile), reference.path);
+  const relative = path.relative(PUBLIC, file);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error(`Region pack path leaves public/: ${reference.path}`);
+  if (!fs.existsSync(file)) throw new Error(`Region pack path does not exist: ${reference.path}`);
+  const hash = hashFile(file);
+  if (hash !== reference.sha256) throw new Error(`Region pack ${reference.id} SHA-256 expected ${reference.sha256}, received ${hash}`);
+  const value = readJson(file);
+  if (value.id !== reference.id) throw new Error(`Region pack ID expected ${reference.id}, received ${value.id || 'missing'}`);
+  return value;
+}
+
 function publicAutonomyJavaScript() {
-  const root = path.join(PUBLIC, 'autonomy');
+  const roots = ['app', 'contracts', 'mission', 'runtime', 'verifier', 'world']
+    .map((directory) => path.join(PUBLIC, directory));
   const files = [];
   const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) walk(file);
     else if (entry.isFile() && entry.name.endsWith('.js')) files.push(file);
   });
-  walk(root);
+  roots.forEach(walk);
   return files.sort();
 }
 
 function validateHtmlScripts() {
-  const htmlPath = path.join(PUBLIC, 'autonomy/index.html');
+  const htmlPath = path.join(PUBLIC, 'index.html');
   const html = fs.readFileSync(htmlPath, 'utf8');
   const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g)).map((match) => match[1]);
   if (!scripts.length) throw new Error('Autonomy HTML expected deferred runtime scripts');
   scripts.forEach((source) => {
-    const file = path.resolve(path.dirname(htmlPath), source);
+    const file = path.resolve(path.dirname(htmlPath), source.replace(/\?v=.*$/, ''));
     if (!fs.existsSync(file)) throw new Error(`Autonomy HTML script does not exist: ${source}`);
   });
   if (!html.includes('id="autonomy-canvas"')) throw new Error('Autonomy HTML expected autonomy-canvas');
@@ -70,6 +84,16 @@ function main() {
   const policy = resolveReference(manifest, 'policy');
   const occurrenceCatalog = resolveReference(manifest, 'occurrenceCatalog');
   const rerankerEvidence = resolveReference(manifest, 'rerankerEvidence');
+  const regionRegistry = resolveReference(manifest, 'regionRegistry');
+  const registryFile = path.resolve(path.dirname(MANIFEST_PATH), manifest.regionRegistry.path);
+  contracts.validateRegionRegistry(regionRegistry);
+  const regionPacks = regionRegistry.packs.map((reference) => resolvePackReference(registryFile, reference));
+  regionPacks.forEach((pack) => contracts.validateRegionPack(pack, regionRegistry));
+  const composition = regionApi.mergeRegionPacks(regionRegistry, regionPacks);
+  const composedWorldHash = crypto.createHash('sha256').update(`${JSON.stringify(regionApi.sortValue(composition.world), null, 2)}\n`).digest('hex');
+  const composedFeatureHash = crypto.createHash('sha256').update(`${JSON.stringify(regionApi.sortValue(composition.featureCatalog), null, 2)}\n`).digest('hex');
+  if (composedWorldHash !== manifest.world.sha256) throw new Error(`Region-composed world SHA-256 expected ${manifest.world.sha256}, received ${composedWorldHash}`);
+  if (composedFeatureHash !== manifest.featureCatalog.sha256) throw new Error(`Region-composed feature SHA-256 expected ${manifest.featureCatalog.sha256}, received ${composedFeatureHash}`);
   contracts.validateFeatureCatalog(featureCatalog);
   contracts.validateWorld(world, featureCatalog);
   contracts.validateEmbodiment(embodiment);
@@ -86,7 +110,7 @@ function main() {
     if (lineCount > 999) throw new Error(`${path.relative(ROOT, file)} has ${lineCount} lines; maximum is 999`);
   });
   validateHtmlScripts();
-  console.log(`AUTONOMY-DATA manifest=${manifest.id} world=${world.id} embodiment=${embodiment.id} policy=${policy.id} status=verified`);
+  console.log(`AUTONOMY-DATA manifest=${manifest.id} world=${world.id} regions=${regionPacks.length} seams=${composition.receipt.seamNodeIds.length} embodiment=${embodiment.id} policy=${policy.id} status=verified`);
 }
 
 try {

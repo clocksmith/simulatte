@@ -113,8 +113,8 @@ function expectedEmbeddingDim(manifest) {
 }
 
 async function loadInputs() {
-  const graphSynthesis = require('../public/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
-  const semanticRag = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
+  const graphSynthesis = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
+  const semanticRag = require('../public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
   const cards = unifiedSurfaceCardDocuments(
     graphSynthesis.createSurfaceCardDocuments(),
     semanticRag.SEMANTIC_SURFACE_CARDS || []

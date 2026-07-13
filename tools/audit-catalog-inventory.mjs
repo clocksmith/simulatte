@@ -85,7 +85,7 @@ console.log(JSON.stringify(summary, null, 2));
 if (failures.length) process.exit(1);
 
 function checkCausalMirror() {
-  const runtime = require(path.join(root, 'public/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js')).CAUSAL_RELATION_RULES || [];
+  const runtime = require(path.join(root, 'public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js')).CAUSAL_RELATION_RULES || [];
   const staticRows = readJson(path.join(root, 'public/data/simulatte-universe/causal-relation-index-v1.json')).documents || [];
   const runtimeIds = new Set(runtime.map((row) => row.id));
   const staticIds = new Set(staticRows.map((row) => row.id));
@@ -104,7 +104,7 @@ function checkCausalMirror() {
 }
 
 function checkVisualMirror() {
-  const runtime = require(path.join(root, 'public/pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js')).CAUSAL_VISUAL_AFFORDANCES || [];
+  const runtime = require(path.join(root, 'public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js')).CAUSAL_VISUAL_AFFORDANCES || [];
   const staticRows = readJson(path.join(root, 'public/data/simulatte-visual-cards/causal-visual-affordance-index-v1.json')).documents || [];
   const runtimeRelations = new Set(runtime.map((row) => row.causalRelationId));
   const staticRelations = new Set(staticRows.map((row) => row.causalRelationId));

@@ -1,8 +1,8 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const lab = require('../public/pipeline/phase-05-simulation/simulatte-physics-model.js');
-require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+const lab = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
 
 const rendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
 

@@ -69,6 +69,11 @@ obligation coverage.
   performance gain without weakening another release responsibility.
 - Choose concurrency from measured device capacity and memory use. GPU resources from
   one device must never be reused with another device.
+- Use WGSL for settled data-parallel numerics only when a CPU-reference parity gate
+  verifies the same work. Keep semantic decisions whose receipts must explain parsing,
+  retrieval ranking, graph synthesis, construction, or layout in inspectable JavaScript
+  contracts. Phase 3 may call pinned Doppler GPU lanes for similarity numerics; do not
+  add bespoke retrieval WGSL.
 - Benchmark cold load, warm cache, model reuse, retrieval, reranking, graph compile,
   VisualIR compile, first frame, and settled Phase 8 proof as separate costs.
 
@@ -93,7 +98,7 @@ obligation coverage.
 ## Intent-First Operations
 
 - Treat Simulatte intent as the strict browser simulation pipeline product, not Gamma, Doppler, Reploid, or Poolday.
-- If the user asks about app structure, start with the broad boundary: `public/app` is the client UI app, `public/pipeline` is the pipeline, and `public/data` is assets/contracts.
+- If the user asks about app structure, start with the broad boundary: root `public/app`, `public/runtime`, and `public/world` own Autonomy at `/`; `public/blank/app` and `public/blank/pipeline` own the prompt-to-pixels compiler at `/blank/`; `public/data` owns shared and governed assets.
 - Do not preserve confusing taxonomy when the user is simplifying. Use plain job names such as start, page, state, controls, and drawing when they match behavior.
 - For pipeline work, respect the fixed phase order the user gives. Do not add split phases or reverse traversal unless asked.
 - Phase N consumes the exact Phase N-1 output plus allowed runtime context only. Fix loose validators, side channels, audit fallbacks, and compatibility inputs as boundary bugs.

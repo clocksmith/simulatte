@@ -179,7 +179,7 @@ async function runBrowserSmoke(options) {
   if (typeof WebSocket !== 'function') throw new Error('Autonomy browser smoke requires a Node runtime with WebSocket support');
   const chromePath = findChrome(options.chromePath);
   const staticHost = options.url ? null : await createStaticServer();
-  const targetUrl = options.url || `http://127.0.0.1:${staticHost.port}/autonomy/`;
+  const targetUrl = options.url || `http://127.0.0.1:${staticHost.port}/`;
   const devtoolsPort = await freePort();
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-autonomy-browser-'));
   const chrome = spawn(chromePath, [
@@ -289,14 +289,20 @@ async function stopChild(child) {
 
 function browserJourneyExpression() {
   return `(async () => {
-    const waitFor = async (predicate, limit = 60000) => {
+    const waitFor = async (predicate, label, limit = 60000) => {
       const started = performance.now();
       while (!predicate()) {
-        if (performance.now() - started > limit) throw new Error('autonomy browser condition timeout');
+        if (performance.now() - started > limit) {
+          const status = document.getElementById('runtime-status');
+          const state = document.getElementById('metric-state');
+          throw new Error('autonomy browser timeout at ' + label +
+            '; runtime=' + (status && status.dataset.kind) + ':' + (status && status.textContent) +
+            '; state=' + (state && state.textContent));
+        }
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
     };
-    await waitFor(() => document.getElementById('runtime-status').dataset.kind === 'ready');
+    await waitFor(() => document.getElementById('runtime-status').dataset.kind === 'ready', 'runtime-ready');
     const missionInput = document.getElementById('mission-input');
     missionInput.value += ' ';
     missionInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -304,7 +310,7 @@ function browserJourneyExpression() {
       && document.getElementById('runtime-status').dataset.kind === 'changed';
     document.getElementById('start-button').click();
     const missionLockedDuringRun = missionInput.disabled;
-    await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent));
+    await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
     return {
       runtime: document.getElementById('runtime-status').textContent,
       state: document.getElementById('metric-state').textContent,

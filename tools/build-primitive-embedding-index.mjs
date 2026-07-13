@@ -118,7 +118,7 @@ function expectedEmbeddingDim(manifest) {
 }
 
 async function main() {
-  const catalog = require('../public/pipeline/phase-05-simulation/simulatte-physics-catalog.js');
+  const catalog = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog.js');
   const primitives = catalog.PHYSICAL_PRIMITIVES || [];
   if (!primitives.length) throw new Error('No Simulatte primitives found');
 

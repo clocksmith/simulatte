@@ -1,0 +1,66 @@
+{
+  "schema": "simulatte.autonomyRegionBuildConfig.v1",
+  "id": "nyc-core-region-build-v1",
+  "contentVersion": "nyc-core-regions-2026-07-13",
+  "registry": {
+    "id": "nyc-core-region-registry-v1",
+    "compositionId": "nyc-core-default-composition-v1",
+    "manifestContentVersion": "autonomy-nyc-region-packs-v1"
+  },
+  "city": {
+    "id": "new-york-city-v1",
+    "label": "New York City",
+    "timeZone": "America/New_York",
+    "coordinateOriginWgs84": {
+      "longitude": -73.978,
+      "latitude": 40.726
+    }
+  },
+  "assignment": {
+    "method": "geometry_midpoint_half_open_longitude_bands_v1",
+    "nodeIdentity": "wgs84_cluster_centroid_7dp_plus_source_revision_v1",
+    "duplicatePolicy": "canonical_byte_equality",
+    "conflictPolicy": "fail_closed",
+    "renderOwnership": "geometry_centroid_single_owner",
+    "landOwnership": "shared_city_context"
+  },
+  "packs": [
+    {
+      "id": "manhattan-villages-v1",
+      "label": "Manhattan Villages",
+      "boundsWgs84": {
+        "south": 40.698,
+        "west": -74.023,
+        "north": 40.752,
+        "east": -73.985,
+        "includeEast": false
+      },
+      "neighborIds": ["east-river-crossing-v1"]
+    },
+    {
+      "id": "east-river-crossing-v1",
+      "label": "East Village and Williamsburg Bridge",
+      "boundsWgs84": {
+        "south": 40.698,
+        "west": -73.985,
+        "north": 40.752,
+        "east": -73.97,
+        "includeEast": false
+      },
+      "neighborIds": ["manhattan-villages-v1", "north-brooklyn-v1"]
+    },
+    {
+      "id": "north-brooklyn-v1",
+      "label": "Williamsburg and Greenpoint",
+      "boundsWgs84": {
+        "south": 40.698,
+        "west": -73.97,
+        "north": 40.752,
+        "east": -73.933,
+        "includeEast": true
+      },
+      "neighborIds": ["east-river-crossing-v1"]
+    }
+  ],
+  "claimBoundary": "This config partitions one frozen NYC source compilation. Pack boundaries are loading and evidence boundaries, not claims that behavior or map coverage stops at a longitude band."
+}

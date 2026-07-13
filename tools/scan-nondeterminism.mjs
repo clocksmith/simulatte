@@ -28,9 +28,10 @@ import { dirname, join, relative } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
 const publicDir = join(root, 'public');
-const pipelineDir = join(publicDir, 'pipeline');
-const appDir = join(publicDir, 'app');
-const workersDir = join(publicDir, 'workers');
+const compilerDir = join(publicDir, 'blank');
+const pipelineDir = join(compilerDir, 'pipeline');
+const appDir = join(compilerDir, 'app');
+const workersDir = join(appDir, 'workers');
 const solversDir = join(pipelineDir, 'phase-05-simulation', 'solvers');
 
 // Determinism-critical modules: the compute path from prompt → executable state.

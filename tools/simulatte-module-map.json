@@ -4,199 +4,199 @@
   "entries": [
     {
       "oldPath": "public/js/simulatte-physics-catalog.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-physics-catalog.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog.js"
     },
     {
       "oldPath": "public/js/simulatte-semantic-rag.js",
-      "newPath": "public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js"
+      "newPath": "public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag.js"
     },
     {
       "oldPath": "public/js/simulatte-doppler-intent.js",
-      "newPath": "public/pipeline/phase-01-runtime/simulatte-doppler-intent.js"
+      "newPath": "public/blank/pipeline/phase-01-runtime/simulatte-doppler-intent.js"
     },
     {
       "oldPath": "public/js/simulatte-graph-synthesis.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js"
     },
     {
       "oldPath": "public/js/simulatte-intent-embedder.js",
-      "newPath": "public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js"
+      "newPath": "public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder.js"
     },
     {
       "oldPath": "public/js/simulatte-intent-classifier.js",
-      "newPath": "public/pipeline/phase-03-retrieval/simulatte-intent-classifier.js"
+      "newPath": "public/blank/pipeline/phase-03-retrieval/simulatte-intent-classifier.js"
     },
     {
       "oldPath": "public/js/simulatte-universe-parser.js",
-      "newPath": "public/pipeline/phase-02-language/simulatte-universe-parser.js"
+      "newPath": "public/blank/pipeline/phase-02-language/simulatte-universe-parser.js"
     },
     {
       "oldPath": "public/js/simulatte-universe-grounder.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js"
     },
     {
       "oldPath": "public/js/simulatte-physics-ir.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-physics-ir.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-physics-ir.js"
     },
     {
       "oldPath": "public/js/simulatte-physics-ir-validator.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-physics-ir-validator.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-validator.js"
     },
     {
       "oldPath": "public/js/simulatte-intent-brief-schema.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js"
     },
     {
       "oldPath": "public/js/simulatte-structured-intent-model.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-structured-intent-model.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-structured-intent-model.js"
     },
     {
       "oldPath": "public/js/simulatte-causal-physics-graph.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js"
     },
     {
       "oldPath": "public/js/simulatte-assumption-ledger.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js"
     },
     {
       "oldPath": "public/js/simulatte-causal-visual-affordances.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js"
     },
     {
       "oldPath": "public/js/simulatte-language-evidence.js",
-      "newPath": "public/pipeline/phase-02-language/simulatte-language-evidence.js"
+      "newPath": "public/blank/pipeline/phase-02-language/simulatte-language-evidence.js"
     },
     {
       "oldPath": "public/js/simulatte-activation-cloud.js",
-      "newPath": "public/pipeline/phase-03-retrieval/simulatte-activation-cloud.js"
+      "newPath": "public/blank/pipeline/phase-03-retrieval/simulatte-activation-cloud.js"
     },
     {
       "oldPath": "public/js/simulatte-grounded-interpretation.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js"
     },
     {
       "oldPath": "public/js/simulatte-intent-forensics.js",
-      "newPath": "public/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-rigid-body-2d.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-particles.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-constraints.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-thermal.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-advection.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-pressure-flow-lite.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-wave-field.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-reaction-diffusion.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-fracture-threshold.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-rotational-mechanics.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-network-control.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js"
     },
     {
       "oldPath": "public/js/solvers/simulatte-solver-growth-decay.js",
-      "newPath": "public/pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js"
     },
     {
       "oldPath": "public/js/simulatte-solver-registry.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-solver-registry.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-solver-registry.js"
     },
     {
       "oldPath": "public/js/simulatte-solver-compiler.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-solver-compiler.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-solver-compiler.js"
     },
     {
       "oldPath": "public/js/simulatte-render-registry.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-render-registry.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-render-registry.js"
     },
     {
       "oldPath": "public/js/simulatte-render-ir.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-render-ir.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-render-ir.js"
     },
     {
       "oldPath": "public/js/simulatte-visual-operator-atlas.js",
-      "newPath": "public/pipeline/phase-06-visual/simulatte-visual-operator-atlas.js"
+      "newPath": "public/blank/pipeline/phase-06-visual/simulatte-visual-operator-atlas.js"
     },
     {
       "oldPath": "public/js/simulatte-visual-operator-compiler.js",
-      "newPath": "public/pipeline/phase-06-visual/simulatte-visual-operator-compiler.js"
+      "newPath": "public/blank/pipeline/phase-06-visual/simulatte-visual-operator-compiler.js"
     },
     {
       "oldPath": "public/js/simulatte-composition-graph.js",
-      "newPath": "public/pipeline/phase-06-visual/simulatte-composition-graph.js"
+      "newPath": "public/blank/pipeline/phase-06-visual/simulatte-composition-graph.js"
     },
     {
       "oldPath": "public/js/simulatte-loading-canvas.js",
-      "newPath": "public/app/loading/loading-canvas.js"
+      "newPath": "public/blank/app/loading/loading-canvas.js"
     },
     {
       "oldPath": "public/js/simulatte-runtime-progress.js",
-      "newPath": "public/app/runtime/runtime-progress.js"
+      "newPath": "public/blank/app/runtime/runtime-progress.js"
     },
     {
       "oldPath": "public/js/simulatte-webgpu-renderer.js",
-      "newPath": "public/pipeline/phase-07-render/simulatte-webgpu-renderer.js"
+      "newPath": "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js"
     },
     {
       "oldPath": "public/js/simulatte-physics-model.js",
-      "newPath": "public/pipeline/phase-05-simulation/simulatte-physics-model.js"
+      "newPath": "public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js"
     },
     {
       "oldPath": "public/js/simulatte-physics-renderer.js",
-      "newPath": "public/app/prompt/prompt-controller.js"
+      "newPath": "public/blank/app/prompt/prompt-controller.js"
     },
     {
       "oldPath": "public/js/simulatte-physics-lab.js",
-      "newPath": "public/app/simulation/simulation-lab.js"
+      "newPath": "public/blank/app/simulation/simulation-lab.js"
     },
     {
       "oldPath": "public/js/simulatte-review-bridge.js",
-      "newPath": "public/app/prompt/prompt-review-bridge.js"
+      "newPath": "public/blank/app/prompt/prompt-review-bridge.js"
     },
     {
       "oldPath": "public/js/simulatte-browser-boot.js",
-      "newPath": "public/app/main.js"
+      "newPath": "public/blank/app/main.js"
     },
     {
       "oldPath": "public/js/simulatte-version-guard.js",
-      "newPath": "public/app/version-guard.js"
+      "newPath": "public/blank/app/version-guard.js"
     },
     {
       "oldPath": "public/js/simulatte-intent-worker.js",
-      "newPath": "public/app/workers/simulatte-intent-worker.js"
+      "newPath": "public/blank/app/workers/simulatte-intent-worker.js"
     },
     {
       "oldPath": "public/js/simulatte-pipeline-worker.js",
-      "newPath": "public/app/workers/simulatte-pipeline-worker.js"
+      "newPath": "public/blank/app/workers/simulatte-pipeline-worker.js"
     }
   ]
 }

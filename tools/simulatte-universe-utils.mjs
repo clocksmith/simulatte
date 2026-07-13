@@ -191,7 +191,7 @@ export async function loadUniversePackage() {
 }
 
 export function loadPrimitiveIds() {
-  const catalog = require('../public/pipeline/phase-05-simulation/simulatte-physics-catalog.js');
+  const catalog = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog.js');
   return new Set((catalog.PHYSICAL_PRIMITIVES || []).map((primitive) => primitive.id));
 }
 

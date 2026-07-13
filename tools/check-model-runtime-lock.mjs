@@ -24,6 +24,7 @@ const INDEX_BUILDERS = [
 const INTENT_BRIEF_SCHEMA_PATH = path.join(
   ROOT,
   'public',
+  'blank',
   'pipeline',
   'phase-04-grounded-intent',
   'simulatte-intent-brief-schema.js'

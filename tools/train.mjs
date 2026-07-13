@@ -70,7 +70,7 @@ async function main() {
   });
 
   const reviewUrl = `http://${HOST}:${review.port}`;
-  const appUrl = new URL(`http://${HOST}:${web.port}/`);
+  const appUrl = new URL(`http://${HOST}:${web.port}/blank/`);
   appUrl.searchParams.set('training', '1');
   appUrl.searchParams.set('trainingServer', reviewUrl);
   if (args.auditNoInitial) appUrl.searchParams.set('auditNoInitial', '1');
@@ -106,7 +106,7 @@ async function main() {
 
 function assertRepo() {
   const packagePath = path.join(ROOT, 'package.json');
-  const publicPath = path.join(ROOT, 'public', 'index.html');
+  const publicPath = path.join(ROOT, 'public', 'blank', 'index.html');
   const reviewServerPath = path.join(ROOT, 'tools', 'simulatte-review-server.mjs');
   if (!existsSync(packagePath) || !existsSync(publicPath) || !existsSync(reviewServerPath)) {
     throw new Error('run from the Simulatte repository checkout');
@@ -214,7 +214,7 @@ async function waitForService(name, port, isExpected) {
 
 async function checkWebServer(port) {
   try {
-    const response = await fetchLimited(`http://${HOST}:${port}/`);
+    const response = await fetchLimited(`http://${HOST}:${port}/blank/`);
     if (!response.ok) return false;
     const text = await response.text();
     return /physics-canvas|prompt-review-bridge\.js|Simulatte/i.test(text);

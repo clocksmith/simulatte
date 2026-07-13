@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
 const require = createRequire(import.meta.url);
-const contracts = require('../../public/autonomy/contracts/contract-validator.js');
+const contracts = require('../../public/contracts/contract-validator.js');
 const FEATURE_CATALOG = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/autonomy/feature-cards-v1.json'), 'utf8'));
 
 function parseArgs(argv) {

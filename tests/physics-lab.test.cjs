@@ -27,6 +27,7 @@ const {
   createPrototypeSpec,
   assertVisualIRCase,
 } = require('./physics-lab-fixture.cjs');
+const languageLexicon = require('../public/data/simulatte-language-lexicon.js');
 
 test('model-backed intent retrieval cosine-normalizes query and index vectors', async () => {
   const hash = {
@@ -921,8 +922,28 @@ test('slot lexical evidence separates local identity from model construction wor
   assert.equal(scope.slotRerankSkipReason(slot, []), '');
   assert.equal(scope.slotUsesPromptOwnedLocalEvidence(slot), false);
   assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
+    ...slot,
+    semanticClass: 'cat',
+    visualArchetype: 'animal',
+  }), false);
+  assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
+    ...slot,
+    semanticClass: 'cat',
+    visualArchetype: 'cat',
+    localGeometryGrammarId: 'object-grammar.cat',
+  }), true);
+  assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
     slotRole: 'action', entryId: 'action:swimming', required: true,
   }), true);
+  assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
+    slotRole: 'concept', entryId: 'concept:renderer', required: false,
+  }), true);
+  const optionalConcept = scope.promptOwnedLocalSlotRow({
+    slotId: 'slot.concept.renderer', slotRole: 'concept', entryId: 'concept:renderer', required: false,
+  });
+  assert.equal(optionalConcept.candidates[0].supportOnly, true);
+  assert.equal(optionalConcept.candidates[0].identityEvidence, false);
+  assert.equal(optionalConcept.receipt.modelStatus, 'not-run');
   assert.equal(scope.slotRerankSkipReason({ ...slot, required: false }, []), 'optional-slot-local-evidence');
   assert.equal(scope.phase3SupportLikePrimitiveId('population-field'), true);
   assert.equal(scope.phase3SupportLikePrimitiveId('relation-table'), true);
@@ -969,6 +990,18 @@ test('slot lexical evidence separates local identity from model construction wor
   assert.equal(scope.slotCandidateBudget(visualSlot, 'surfaceCard', 8), 4);
   assert.equal(scope.slotAllowsCandidateType(visualSlot, 'primitive'), false);
   assert.equal(scope.slotAllowsCandidateType(visualSlot, 'surface-card'), true);
+});
+
+test('data-owned local construction ids resolve to concrete Phase 6 grammars', () => {
+  const grammars = globalThis.__SimulatteCompositionGraphRefactorScope.OBJECT_GEOMETRY_GRAMMARS;
+  const rows = languageLexicon.ENTITY_PHRASES.filter(([, , metadata]) => metadata?.localGeometryGrammarId);
+
+  assert.ok(rows.length > 0);
+  for (const [phrase, , metadata] of rows) {
+    const grammarId = metadata.localGeometryGrammarId.replace(/^object-grammar\./, '');
+    assert.ok(grammars[grammarId], `${phrase} references missing Phase 6 grammar ${grammarId}`);
+    assert.equal(grammars[grammarId].literal, true);
+  }
 });
 
 test('reranker order stays inside the local evidence score band', () => {
@@ -1295,7 +1328,7 @@ test('Phase 3 uses Doppler reranker when the required capability is present', as
   });
 });
 
-test('Phase 3 model-ranks construction while keeping local identity receipts truthful', async () => {
+test('Phase 3 keeps known visual identities local and model-ranks unresolved construction', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     manifest.reranker = {
       ...manifest.reranker,
@@ -1344,21 +1377,18 @@ test('Phase 3 model-ranks construction while keeping local identity receipts tru
     assert.equal(result.slotRetrieval.queryPlanSchema, 'simulatte.sceneQueryPlan.v1');
     assert.ok(result.slotRetrieval.modelEvidenceSlotCount + result.slotRetrieval.localEvidenceSlotCount >=
       queryPlan.summary.requiredSlotCount);
-    assert.equal(result.slotRetrieval.rerankCallCount, 1);
-    assert.ok(result.slotRetrieval.rerankCandidateInputCount > 0);
+    assert.equal(result.slotRetrieval.rerankCallCount, 0);
+    assert.equal(result.slotRetrieval.rerankCandidateInputCount, 0);
     assert.equal(result.rerank.modelCandidateInputs.length, result.rerank.modelCandidateInputCount);
     assert.equal(result.rerank.modelCandidateOutputs.length, result.rerank.modelCandidateOutputCount);
     assert.ok(result.rerank.modelCandidateInputs.every((row) => row.primitiveId));
-    assert.ok(dogSlot.candidates.some((row) => /\bdog\b|surface-dog/.test(row.candidateId)));
-    assert.ok(catSlot.candidates.some((row) => /\bcat\b|surface-cat/.test(row.candidateId)));
-    assert.equal(dogSlot.receipt.skipReason, 'exact-construction-scored-by-prompt-embedding');
-    assert.equal(catSlot.receipt.skipReason, 'exact-construction-scored-by-prompt-embedding');
-    assert.ok(result.slotRetrieval.promptEmbeddingSlotCount >= 2);
-    assert.equal(dogSlot.constructionCandidates[0].construction.schema, 'simulatte.constructionEvidence.v1');
-    assert.equal(dogSlot.constructionCandidates[0].construction.sourceCardId, 'entity.dog');
-    assert.equal(dogSlot.constructionCandidates[0].modelEvaluated, true);
-    assert.ok(dogSlot.constructionCandidates[0].construction.partHints.length > 0);
-    assert.equal(catSlot.constructionCandidates[0].construction.sourceCardId, 'entity.cat');
+    assert.deepEqual(dogSlot.candidates.map((row) => row.candidateId), ['prompt.actor.dog']);
+    assert.deepEqual(catSlot.candidates.map((row) => row.candidateId), ['prompt.actor.cat']);
+    assert.equal(dogSlot.receipt.skipReason, 'phase2-data-owned-visual-archetype');
+    assert.equal(catSlot.receipt.skipReason, 'phase2-data-owned-visual-archetype');
+    assert.equal(result.slotRetrieval.promptEmbeddingSlotCount, 0);
+    assert.deepEqual(dogSlot.constructionCandidates, []);
+    assert.deepEqual(catSlot.constructionCandidates, []);
     assert.equal(actionSlot.acceptedCandidates[0].semanticType, 'action');
     assert.equal(actionSlot.acceptedCandidates[0].identityEvidence, false);
     assert.equal(Object.hasOwn(actionSlot.acceptedCandidates[0], 'modelScore'), false);
@@ -1368,18 +1398,15 @@ test('Phase 3 model-ranks construction while keeping local identity receipts tru
     assert.equal(visualSlot.acceptedCandidates[0].identityEvidence, false);
     assert.equal(Object.hasOwn(visualSlot.acceptedCandidates[0], 'modelScore'), false);
     assert.equal(visualSlot.receipt.skipReason, 'prompt-owned-local-identity');
-    const rerankedSlot = result.slotRetrieval.bySlot.find((row) => row.receipt.rerankerMode === 'doppler-reranker');
-    assert.equal(rerankedSlot.receipt.candidateInputs.length, rerankedSlot.receipt.candidateInputCount);
-    assert.equal(rerankedSlot.receipt.candidateOutputs.length, rerankedSlot.receipt.candidateOutputCount);
     assert.ok(rerankInputs.some((input) => input.schema === 'simulatte.intentRerankInput.v1'));
-    assert.ok(rerankInputs.some((input) => input.schema === 'simulatte.intentSlotRerankInput.v1'));
+    assert.equal(rerankInputs.some((input) => input.schema === 'simulatte.intentSlotRerankInput.v1'), false);
     assert.equal(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.actor.dog'), false);
-    assert.ok(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.environment.lake'));
+    assert.equal(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.environment.lake'), false);
     assert.ok(embedTexts.some((text) => /dogs and cats swimming in a lake/.test(text)));
     assert.equal(embedTexts.some((text) => /species distinct silhouettes|wake ripples|partial submersion/.test(text)), false);
     assert.equal(embedTexts.some((text) => /Construct the required actor: dog/.test(text)), false);
-    assert.ok(embedTexts.some((text) => /Construct the required environment: lake/.test(text)));
-    assert.equal(dogSlot.primitiveRankBackend, 'prompt-embedding-surface-card-index');
+    assert.equal(embedTexts.some((text) => /Construct the required environment: lake/.test(text)), false);
+    assert.equal(dogSlot.primitiveRankBackend, 'prompt-owned-local-evidence');
     assert.ok(events.some((event) => event.stage === 'slot-retrieval'));
     assert.ok(result.evidenceRows.some((row) => (
       row.retrievalKind === 'slot-retrieval' &&
@@ -1396,14 +1423,12 @@ test('Phase 3 model-ranks construction while keeping local identity receipts tru
     assert.ok(groundedCatSlot.acceptedCandidates.some((row) => (
       row.source === 'prompt-typed-slot' && row.candidateText === 'cat'
     )));
-    assert.ok(groundedDogSlot.constructionCandidates.some((row) => (
-      row.construction && row.construction.sourceCardId === 'entity.dog' && row.modelEvaluated === true
-    )));
+    assert.deepEqual(groundedDogSlot.constructionCandidates, []);
 
     const phase4 = lab.runPhase4GroundedIntent(phase3);
     const acceptedGraph = phase4.artifact.groundedIntent.acceptedGraph;
-    assert.equal(acceptedGraph.constructionReceipt.modelEvaluatedCount, 3);
-    assert.ok(acceptedGraph.constructionReceipt.rerankEvaluatedCount > 0);
+    assert.equal(acceptedGraph.constructionReceipt.modelEvaluatedCount, 0);
+    assert.equal(acceptedGraph.constructionReceipt.rerankEvaluatedCount, 0);
     assert.deepEqual(acceptedGraph.nodes.map((row) => row.id).sort(), [
       'prompt-body-cat', 'prompt-body-dog', 'prompt-environment-lake',
     ]);
@@ -1412,10 +1437,33 @@ test('Phase 3 model-ranks construction while keeping local identity receipts tru
     const phase6 = lab.runPhase6VisualCompile(phase5);
     const entities = phase6.artifact.visualCompile.sceneRenderPacket.entities;
     assert.equal(entities.length, 3);
-    assert.ok(entities.every((row) => row.geometry.program.source === 'phase6-data-owned-part-graph'));
-    assert.ok(entities.every((row) => row.geometry.program.constructionReceipt.modelEvaluated === true));
     assert.ok(entities.find((row) => row.identity.type === 'dog').geometry.program.parts.some((row) => row.id === 'tail'));
     assert.equal(entities.find((row) => row.identity.type === 'lake').material.id, 'water');
+
+    const unresolved = await embedder.rankPrompt('glorp', lab.PHYSICAL_PRIMITIVES, {
+      max: 8,
+      queryPlan: {
+        schema: 'simulatte.sceneQueryPlan.v1',
+        sourcePromptHash: 'fnv1a:glorp',
+        slots: [{
+          schema: 'simulatte.sceneQuerySlot.v1',
+          slotId: 'slot.concept.glorp',
+          slotRole: 'concept',
+          entryId: 'concept:glorp',
+          sourceLabel: 'glorp',
+          semanticClass: 'generic',
+          required: true,
+          queries: [{ kind: 'semantic', text: 'glorp' }],
+        }],
+      },
+    });
+    const unresolvedSlot = unresolved.slotRetrieval.bySlot[0];
+    assert.equal(unresolved.slotRetrieval.embeddedSlotCount, 1);
+    assert.equal(unresolved.slotRetrieval.rerankCallCount, 1);
+    assert.equal(unresolvedSlot.receipt.rerankerMode, 'doppler-reranker');
+    assert.equal(unresolvedSlot.receipt.candidateInputs.length, unresolvedSlot.receipt.candidateInputCount);
+    assert.equal(unresolvedSlot.receipt.candidateOutputs.length, unresolvedSlot.receipt.candidateOutputCount);
+    assert.ok(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.concept.glorp'));
   });
 });
 

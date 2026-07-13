@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy region registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "contentVersion", "city", "mergePolicy", "worldTemplate", "featureCatalogTemplate", "sharedWorldRows", "sharedFeatureRows", "packs", "placeIndex", "composition", "claimBoundary"],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyRegionRegistry.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "contentVersion": { "$ref": "#/$defs/id" },
+    "city": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "timeZone", "coordinateOriginWgs84"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "$ref": "#/$defs/id" },
+        "timeZone": { "$ref": "#/$defs/id" },
+        "coordinateOriginWgs84": { "$ref": "#/$defs/wgs84Point" }
+      }
+    },
+    "mergePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assignmentMethod", "nodeIdentity", "duplicatePolicy", "conflictPolicy", "graphSeams", "rowOrder"],
+      "properties": {
+        "assignmentMethod": { "$ref": "#/$defs/id" },
+        "nodeIdentity": { "$ref": "#/$defs/id" },
+        "duplicatePolicy": { "$ref": "#/$defs/id" },
+        "conflictPolicy": { "$ref": "#/$defs/id" },
+        "graphSeams": { "$ref": "#/$defs/id" },
+        "rowOrder": { "$ref": "#/$defs/id" }
+      }
+    },
+    "worldTemplate": { "$ref": "#/$defs/worldTemplate" },
+    "featureCatalogTemplate": { "$ref": "#/$defs/featureCatalogTemplate" },
+    "sharedWorldRows": { "$ref": "#/$defs/worldRows" },
+    "sharedFeatureRows": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cards", "index"],
+      "properties": {
+        "cards": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+        "index": { "$ref": "#/$defs/featureIndex" }
+      }
+    },
+    "packs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path", "sha256", "boundsWgs84", "neighborIds", "counts"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "path": { "$ref": "#/$defs/id" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "boundsWgs84": { "$ref": "#/$defs/boundsWgs84" },
+          "neighborIds": { "$ref": "#/$defs/ids" },
+          "counts": { "$ref": "#/$defs/packCounts" }
+        }
+      }
+    },
+    "placeIndex": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "nodeId", "packIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "$ref": "#/$defs/id" },
+          "nodeId": { "$ref": "#/$defs/id" },
+          "packIds": { "$ref": "#/$defs/nonEmptyIds" }
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "defaultPackIds", "seamNodeIds", "worldSha256", "featureCatalogSha256", "expectedCounts"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "defaultPackIds": { "$ref": "#/$defs/nonEmptyIds" },
+        "seamNodeIds": { "$ref": "#/$defs/ids" },
+        "worldSha256": { "$ref": "#/$defs/sha256" },
+        "featureCatalogSha256": { "$ref": "#/$defs/sha256" },
+        "expectedCounts": { "$ref": "#/$defs/compositionCounts" }
+      }
+    },
+    "claimBoundary": { "$ref": "#/$defs/id" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "ids": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "nonEmptyIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "wgs84Point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["longitude", "latitude"],
+      "properties": {
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 }
+      }
+    },
+    "boundsWgs84": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["south", "west", "north", "east", "includeEast"],
+      "properties": {
+        "south": { "type": "number", "minimum": -90, "maximum": 90 },
+        "west": { "type": "number", "minimum": -180, "maximum": 180 },
+        "north": { "type": "number", "minimum": -90, "maximum": 90 },
+        "east": { "type": "number", "minimum": -180, "maximum": 180 },
+        "includeEast": { "type": "boolean" }
+      }
+    },
+    "sourceRow": {
+      "description": "An unchanged row owned by the world or feature-catalog contract.",
+      "type": "object",
+      "required": ["id"],
+      "properties": { "id": { "$ref": "#/$defs/id" } },
+      "additionalProperties": true
+    },
+    "rowArray": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+    "renderRows": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["land", "streets", "buildings", "bikeFacilities"],
+      "properties": {
+        "land": { "$ref": "#/$defs/rowArray" },
+        "streets": { "$ref": "#/$defs/rowArray" },
+        "buildings": { "$ref": "#/$defs/rowArray" },
+        "bikeFacilities": { "$ref": "#/$defs/rowArray" }
+      }
+    },
+    "worldRows": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "segments", "signals", "actors", "disruptions", "renderGeometry"],
+      "properties": {
+        "nodes": { "$ref": "#/$defs/rowArray" },
+        "segments": { "$ref": "#/$defs/rowArray" },
+        "signals": { "$ref": "#/$defs/rowArray" },
+        "actors": { "$ref": "#/$defs/rowArray" },
+        "disruptions": { "$ref": "#/$defs/rowArray" },
+        "renderGeometry": { "$ref": "#/$defs/renderRows" }
+      }
+    },
+    "featureIndexMap": {
+      "type": "object",
+      "additionalProperties": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+    },
+    "featureIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokenToCardIds", "kindToCardIds"],
+      "properties": {
+        "tokenToCardIds": { "$ref": "#/$defs/featureIndexMap" },
+        "kindToCardIds": { "$ref": "#/$defs/featureIndexMap" }
+      }
+    },
+    "worldTemplate": {
+      "description": "The world root with partition-owned arrays removed.",
+      "type": "object",
+      "required": ["schema", "id", "renderGeometry"],
+      "properties": {
+        "schema": { "const": "simulatte.autonomyWorld.v1" },
+        "id": { "$ref": "#/$defs/id" },
+        "renderGeometry": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "featureCatalogTemplate": {
+      "description": "The feature-catalog root with partition-owned cards and index maps removed.",
+      "type": "object",
+      "required": ["schema", "id", "index"],
+      "properties": {
+        "schema": { "const": "simulatte.autonomyFeatureCatalog.v1" },
+        "id": { "$ref": "#/$defs/id" },
+        "index": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "packCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "segments", "signals", "actors", "disruptions", "streets", "buildings", "bikeFacilities", "featureCards", "seams"],
+      "properties": {
+        "nodes": { "type": "integer", "minimum": 0 },
+        "segments": { "type": "integer", "minimum": 0 },
+        "signals": { "type": "integer", "minimum": 0 },
+        "actors": { "type": "integer", "minimum": 0 },
+        "disruptions": { "type": "integer", "minimum": 0 },
+        "streets": { "type": "integer", "minimum": 0 },
+        "buildings": { "type": "integer", "minimum": 0 },
+        "bikeFacilities": { "type": "integer", "minimum": 0 },
+        "featureCards": { "type": "integer", "minimum": 0 },
+        "seams": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "compositionCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "segments", "signals", "actors", "disruptions", "land", "streets", "buildings", "bikeFacilities", "featureCards"],
+      "properties": {
+        "nodes": { "type": "integer", "minimum": 0 },
+        "segments": { "type": "integer", "minimum": 0 },
+        "signals": { "type": "integer", "minimum": 0 },
+        "actors": { "type": "integer", "minimum": 0 },
+        "disruptions": { "type": "integer", "minimum": 0 },
+        "land": { "type": "integer", "minimum": 0 },
+        "streets": { "type": "integer", "minimum": 0 },
+        "buildings": { "type": "integer", "minimum": 0 },
+        "bikeFacilities": { "type": "integer", "minimum": 0 },
+        "featureCards": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -5,12 +5,12 @@ const path = require('node:path');
 const test = require('node:test');
 const { pathToFileURL } = require('node:url');
 
-const lab = require('../public/app/simulation/simulation-lab.js');
-const intentEmbedder = require('../public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
-const semanticRagApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
-const graphSynthesis = require('../public/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
-const dopplerIntent = require('../public/pipeline/phase-01-runtime/simulatte-doppler-intent.js');
-const intentForensics = require('../public/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
+const lab = require('../public/blank/app/simulation/simulation-lab.js');
+const intentEmbedder = require('../public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
+const semanticRagApi = require('../public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
+const graphSynthesis = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
+const dopplerIntent = require('../public/blank/pipeline/phase-01-runtime/simulatte-doppler-intent.js');
+const intentForensics = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
 const root = path.resolve(__dirname, '..');
 let embeddingFixture = null;
 

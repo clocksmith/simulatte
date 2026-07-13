@@ -1,42 +1,48 @@
 {
-  "schema": "simulatte.autonomyDataManifest.v1",
-  "id": "simulatte-autonomy-delivery-bike-v1",
-  "contentVersion": "autonomy-villages-williamsburg-webgpu-v1",
+  "claimBoundary": "This manifest governs one delivery-bike simulation assembled from independently hashed region packs for New York City. It does not claim live conditions, physical-world driving capability, or control of a real vehicle.",
+  "contentVersion": "autonomy-nyc-region-packs-v1",
   "defaultMissionText": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
-  "world": {
-    "id": "villages-williamsburg-delivery-bike-v1",
-    "path": "./worlds/villages-williamsburg-delivery-bike-v1.json",
-    "sha256": "ea428e97820d0ac47657bf518232be9a60c78d7d73f6e85ca409e9e571c5d7d1"
-  },
   "embodiment": {
     "id": "delivery-bike-v1",
     "path": "./embodiments/delivery-bike-v1.json",
     "sha256": "c83a1e902a99d7a89fafdd4c07a58bb2ba129307525e91a7b40777b5cab18e6d"
+  },
+  "featureCatalog": {
+    "id": "autonomy-feature-cards-v1",
+    "path": "./feature-cards-v1.json",
+    "sha256": "598cb9771cbe30e691482bc7380c3db0c915fbdf230e42ea6a52818ad7f63ef4"
+  },
+  "id": "simulatte-autonomy-delivery-bike-v1",
+  "occurrenceCatalog": {
+    "id": "nyc-replay-patterns-v1",
+    "path": "./patterns/nyc-replay-patterns-v1.json",
+    "sha256": "bcf70178cfffbc0811386d2c1c07cf19dc16644096ab6db3198328698fcfb6fd"
   },
   "policy": {
     "id": "bet-selector-v1",
     "path": "./policies/bet-selector-v1.json",
     "sha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c"
   },
-  "featureCatalog": {
-    "id": "autonomy-feature-cards-v1",
-    "path": "./feature-cards-v1.json",
-    "sha256": "396465a00fddb2968c024473e54d5b9b2aee16da3dd15df811a1f127aaf4cf37"
-  },
-  "occurrenceCatalog": {
-    "id": "nyc-replay-patterns-v1",
-    "path": "./patterns/nyc-replay-patterns-v1.json",
-    "sha256": "fa377586ef17c9bb7bb19d8936a73462b677a4ab38b5027dc963b331db1f355c"
+  "regionRegistry": {
+    "id": "nyc-core-region-registry-v1",
+    "path": "./regions/nyc-core-v1.json",
+    "sha256": "8eb702f8d68ab06a7ce9f6ac55e642d4629e3db7e3982dbdf47edc5c48a695f4"
   },
   "rerankerEvidence": {
     "id": "feature-reranker-public-diagnostic-v1",
     "path": "./evidence/feature-reranker-public-diagnostic-v1.json",
-    "sha256": "1f2fa0253116a8b83775ed4e89cc89d0d2d157d404640bc483e152cbe6559868"
+    "sha256": "993b9c5b38f9d178b9d2650ca2f3f60b986c325d02c7ca9e61a4a75ea1dbcb6b"
   },
   "runtime": {
-    "entryPath": "/autonomy/",
     "controllerSchema": "simulatte.autonomyController.v1",
-    "receiptSchema": "simulatte.autonomyJourneyReceipt.v1"
+    "entryPath": "/",
+    "receiptSchema": "simulatte.autonomyJourneyReceipt.v1",
+    "worldLoadMode": "verified_region_composition"
   },
-  "claimBoundary": "This manifest governs one delivery-bike simulation over frozen Villages and North Brooklyn geometry. It does not claim live conditions, physical-world driving capability, or control of a real vehicle."
+  "schema": "simulatte.autonomyDataManifest.v2",
+  "world": {
+    "id": "villages-williamsburg-delivery-bike-v1",
+    "path": "./worlds/villages-williamsburg-delivery-bike-v1.json",
+    "sha256": "04361791f51e9c2a3275daffa2aec8c00de8e1cbe5cd7ab464d508fe004dfb00"
+  }
 }

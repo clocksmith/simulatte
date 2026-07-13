@@ -3,7 +3,7 @@
 Owner contracts:
 
 - `public/data/autonomy/autonomy-manifest.json`
-- `public/autonomy/contracts/*.schema.json`
+- `public/contracts/*.schema.json`
 - `public/data/autonomy/policies/bet-selector-v1.json`
 - `public/data/autonomy/patterns/nyc-replay-patterns-v1.json`
 - `public/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json`
@@ -30,8 +30,8 @@ The autonomy system is a sibling of the prompt-to-pixels pipeline.
 
 | Path | Authority |
 | --- | --- |
-| `public/pipeline/` | Existing eight-phase natural-language-to-pixels compiler |
-| `public/autonomy/` | Online mission, observation, action-bet, safety, execution, settlement, and verification runtime |
+| `public/blank/pipeline/` | Existing eight-phase natural-language-to-pixels compiler served at `/blank/` |
+| `public/app/`, `public/runtime/`, `public/world/` | Online mission, observation, action-bet, safety, execution, settlement, and verification runtime served at `/` |
 | `public/data/autonomy/` | Governed world, embodiment, policy, occurrences, feature cards, evidence, and asset hashes |
 | `tools/autonomy/` | Source acquisition, world compilation, mission construction, evaluation, and data validation |
 | `tools/samer/autonomy/` | Matched policy experiments across journeys |
@@ -194,13 +194,15 @@ npm run build:autonomy:data
 npm run eval:autonomy:reranker
 npm run audit:autonomy:browser
 node tools/autonomy/run-browser-smoke.mjs --viewport 390x844 --check
-node tools/autonomy/run-browser-smoke.mjs --url https://simulatte.world/autonomy/ --check
+node tools/autonomy/run-browser-smoke.mjs --url https://simulatte.world/ --check
 npm run samer:autonomy:check
 npm run samer:autonomy
 npm test
 ```
 
-Open `http://localhost:4173/autonomy/` when using `npm run serve:static`.
+Open `http://localhost:4173/` when using `npm run serve:static`. The compiler
+remains available at `http://localhost:4173/blank/`; `/autonomy/` redirects to
+the root Autonomy runtime.
 
 ## Claim boundary
 

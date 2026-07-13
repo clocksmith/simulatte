@@ -75,8 +75,11 @@ Firebase command must complete.
 
 ```bash
 curl -I https://simulatte.world
+curl -I https://simulatte.world/blank/
+curl -I https://simulatte.world/autonomy/
 curl -I https://simulatte-world.web.app
 ```
 
-Both domains should resolve to the `simulatte-world` Hosting site while the
-custom domain remains attached to that project.
+Both domains should resolve to the `simulatte-world` Hosting site. The root
+serves Autonomy, `/blank/` serves the prompt-to-pixels compiler, and
+`/autonomy/` redirects to the root while the custom domain remains attached.

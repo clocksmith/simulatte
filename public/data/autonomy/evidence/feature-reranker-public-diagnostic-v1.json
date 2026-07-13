@@ -20,7 +20,7 @@
   "identities": {
     "corpus": {
       "path": "tools/samer/autonomy/public-navigation-missions-v1.json",
-      "sha256": "91d5f89d92c72608bfac9f7c17cc7d3da3b988b7f79ac39281c42c328d341f48"
+      "sha256": "4cbfad8cdb655526a7de5dfb25fe0e348e10f0d63c96306d7a8c8e5c9d8e71d9"
     },
     "embodiment": {
       "path": "public/data/autonomy/embodiments/delivery-bike-v1.json",
@@ -28,19 +28,19 @@
     },
     "featureCatalog": {
       "path": "public/data/autonomy/feature-cards-v1.json",
-      "sha256": "396465a00fddb2968c024473e54d5b9b2aee16da3dd15df811a1f127aaf4cf37"
+      "sha256": "598cb9771cbe30e691482bc7380c3db0c915fbdf230e42ea6a52818ad7f63ef4"
     },
     "policy": {
       "path": "public/data/autonomy/policies/bet-selector-v1.json",
       "sha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c"
     },
     "runtime": {
-      "path": "public/autonomy/runtime/feature-retrieval.js",
+      "path": "public/runtime/feature-retrieval.js",
       "sha256": "54155ae4c4bb5e7d75ad058c5d5137ded0ddf28ca5f3e64bbc70297326b4a074"
     },
     "world": {
       "path": "public/data/autonomy/worlds/villages-williamsburg-delivery-bike-v1.json",
-      "sha256": "ea428e97820d0ac47657bf518232be9a60c78d7d73f6e85ca409e9e571c5d7d1"
+      "sha256": "04361791f51e9c2a3275daffa2aec8c00de8e1cbe5cd7ab464d508fe004dfb00"
     }
   },
   "intervention": {
@@ -61,7 +61,7 @@
       "controlRank": 1,
       "missionId": "public-mission-01",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-eb8af130d55c-tf"
+      "relevantCardId": "network.bike-30ee92829e72-tf"
     },
     {
       "challengerRank": 2,
@@ -75,7 +75,7 @@
       "controlRank": 1,
       "missionId": "public-mission-02",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-ea00b4bb1320-tf"
+      "relevantCardId": "network.bike-5bc633d32761-tf"
     },
     {
       "challengerRank": 1,
@@ -89,7 +89,7 @@
       "controlRank": 1,
       "missionId": "public-mission-03",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-eb8af130d55c-tf"
+      "relevantCardId": "network.bike-30ee92829e72-tf"
     },
     {
       "challengerRank": 2,
@@ -103,7 +103,7 @@
       "controlRank": 1,
       "missionId": "public-mission-04",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-5c2ccdcf7637-ft"
+      "relevantCardId": "network.bike-bc5707edfa14-ft"
     },
     {
       "challengerRank": 1,
@@ -117,7 +117,7 @@
       "controlRank": 1,
       "missionId": "public-mission-05",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-eb8af130d55c-tf"
+      "relevantCardId": "network.bike-30ee92829e72-tf"
     },
     {
       "challengerRank": 2,
@@ -131,7 +131,7 @@
       "controlRank": 1,
       "missionId": "public-mission-06",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-d465ce808e73-ft"
+      "relevantCardId": "network.bike-2824173a7a8e-ft"
     },
     {
       "challengerRank": 1,
@@ -145,7 +145,7 @@
       "controlRank": 1,
       "missionId": "public-mission-07",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-5c2ccdcf7637-ft"
+      "relevantCardId": "network.bike-bc5707edfa14-ft"
     },
     {
       "challengerRank": 1,
@@ -159,7 +159,7 @@
       "controlRank": 1,
       "missionId": "public-mission-08",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-64193dd2824e-ft"
+      "relevantCardId": "network.bike-525b89419eaa-ft"
     },
     {
       "challengerRank": 1,
@@ -173,7 +173,7 @@
       "controlRank": 1,
       "missionId": "public-mission-09",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-eb8af130d55c-tf"
+      "relevantCardId": "network.bike-30ee92829e72-tf"
     },
     {
       "challengerRank": 2,
@@ -187,7 +187,7 @@
       "controlRank": 1,
       "missionId": "public-mission-10",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-a925bcda9b6a-ft"
+      "relevantCardId": "network.bike-bb2677d5568d-ft"
     },
     {
       "challengerRank": 2,
@@ -201,7 +201,7 @@
       "controlRank": 1,
       "missionId": "public-mission-11",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-6a9d765d00f0-ft"
+      "relevantCardId": "network.bike-cadb6da5d98d-ft"
     },
     {
       "challengerRank": 1,
@@ -215,7 +215,7 @@
       "controlRank": 1,
       "missionId": "public-mission-12",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-f997052cde9e-tf"
+      "relevantCardId": "network.bike-e2c1b08cca63-tf"
     },
     {
       "challengerRank": 1,
@@ -229,7 +229,7 @@
       "controlRank": 1,
       "missionId": "public-mission-13",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-6a9d765d00f0-ft"
+      "relevantCardId": "network.bike-cadb6da5d98d-ft"
     },
     {
       "challengerRank": 1,
@@ -243,7 +243,7 @@
       "controlRank": 1,
       "missionId": "public-mission-14",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-451b53112f2d-ft"
+      "relevantCardId": "network.bike-21a25ccf6628-ft"
     },
     {
       "challengerRank": 1,
@@ -257,7 +257,7 @@
       "controlRank": 1,
       "missionId": "public-mission-15",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-4639c43c7dc4-ft"
+      "relevantCardId": "network.bike-6925b5ebf41e-ft"
     },
     {
       "challengerRank": 1,
@@ -271,7 +271,7 @@
       "controlRank": 1,
       "missionId": "public-mission-16",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-6a9d765d00f0-ft"
+      "relevantCardId": "network.bike-cadb6da5d98d-ft"
     },
     {
       "challengerRank": 1,
@@ -285,7 +285,7 @@
       "controlRank": 1,
       "missionId": "public-mission-17",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-56e9558e74a2-tf"
+      "relevantCardId": "network.bike-dc4df7aa5145-tf"
     },
     {
       "challengerRank": 1,
@@ -299,7 +299,7 @@
       "controlRank": 1,
       "missionId": "public-mission-18",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-eb8af130d55c-tf"
+      "relevantCardId": "network.bike-30ee92829e72-tf"
     },
     {
       "challengerRank": 2,
@@ -313,7 +313,7 @@
       "controlRank": 1,
       "missionId": "public-mission-19",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-66e0326a5727-ft"
+      "relevantCardId": "network.bike-f8a15271364c-ft"
     },
     {
       "challengerRank": 1,
@@ -327,7 +327,7 @@
       "controlRank": 1,
       "missionId": "public-mission-20",
       "queryId": "route-segment",
-      "relevantCardId": "network.bike-811223a27837-tf"
+      "relevantCardId": "network.bike-55dee1ed7c4d-tf"
     },
     {
       "challengerRank": 1,

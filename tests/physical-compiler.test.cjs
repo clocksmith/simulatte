@@ -3,15 +3,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const lab = require('../public/app/simulation/simulation-lab.js');
-const compositionGraph = require('../public/pipeline/phase-06-visual/simulatte-composition-graph.js');
-const solverRegistry = require('../public/pipeline/phase-05-simulation/simulatte-solver-registry.js');
-const advectionSolver = require('../public/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js');
-const webgpuRenderer = require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
-require('../public/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
-const universeParser = require('../public/pipeline/phase-02-language/simulatte-universe-parser.js');
-const grounderGraph = require('../public/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js');
-require('../public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
+const lab = require('../public/blank/app/simulation/simulation-lab.js');
+const compositionGraph = require('../public/blank/pipeline/phase-06-visual/simulatte-composition-graph.js');
+const solverRegistry = require('../public/blank/pipeline/phase-05-simulation/simulatte-solver-registry.js');
+const advectionSolver = require('../public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js');
+const depositionSolver = require('../public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-particle-deposition.js');
+const webgpuRenderer = require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+require('../public/blank/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
+const universeParser = require('../public/blank/pipeline/phase-02-language/simulatte-universe-parser.js');
+const grounderGraph = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js');
+require('../public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
 const webgpuRendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
 const compositionGraphScope = globalThis.__SimulatteCompositionGraphRefactorScope;
 const intentEmbedderScope = globalThis.__SimulatteIntentEmbedderRefactorScope;
@@ -300,6 +301,64 @@ test('Phase 2 carries negation without creating required slots for negated entit
     relation.from === 'entity:dog' &&
     relation.target === 'environment:lake'
   )));
+
+  const laboratory = universeParser.parsePrompt(
+    'phase study in a generic lab with no qubits or quantum hardware'
+  );
+  const negatedIds = new Set(laboratory.spans
+    .filter((span) => ['qubits', 'quantum', 'hardware'].includes(span.text))
+    .map((span) => span.id));
+  assert.ok(negatedIds.size === 3);
+  assert.equal(laboratory.clauses.some((clause) => (
+    negatedIds.has(clause.subjectSpanId) || negatedIds.has(clause.objectSpanId)
+  )), false);
+});
+
+test('Phase 2 extends coordinated negation and promotes syntactic process terms', () => {
+  const negated = lab.createSpecFromPrompt('phase study in a generic lab with no qubits or quantum hardware', {
+    allowPrototypeFallback: true,
+  }).phaseArtifacts.phase2.artifact;
+  assert.equal(negated.queryPlan.slots.some((slot) => slot.entryId === 'concept:hardware'), false);
+
+  for (const [prompt, process] of [
+    ['gut microbiome colonies exchanging metabolites', 'exchanging'],
+    ['warehouse fire and renderer layers soot', 'layers'],
+    ['planetary rings shepherd moon', 'shepherd'],
+  ]) {
+    const parsed = universeParser.parsePrompt(prompt);
+    assert.equal(parsed.spans.find((span) => span.text === process).kind, 'process');
+    assert.ok(parsed.clauses.some((clause) => clause.verbSpanId === parsed.spans.find((span) => span.text === process).id));
+  }
+
+  const microbiome = universeParser.parsePrompt('gut microbiome colonies exchanging metabolites');
+  assert.ok(microbiome.spans.some((span) => (
+    span.text === 'gut microbiome colonies' && span.visualArchetype === 'microbiome'
+  )));
+  assert.equal(microbiome.spans.some((span) => span.text === 'gut microbiome'), false);
+  assert.equal(microbiome.spans.some((span) => span.text === 'microbiome colonies'), false);
+  const metabolites = microbiome.spans.find((span) => span.text === 'metabolites');
+  assert.equal(metabolites.localGeometryGrammarId, 'object-grammar.particle-cloud');
+
+  const pressuredMicrobiome = universeParser.parsePrompt(
+    'gut microbiome colonies exchanging metabolites through intestinal folds under immune pressure'
+  );
+  assert.equal(pressuredMicrobiome.spans.some((span) => (
+    span.kind === 'process' && span.text === 'folds'
+  )), false);
+  assert.equal(pressuredMicrobiome.spans.some((span) => (
+    span.kind === 'term' && span.text === 'immune'
+  )), false);
+  assert.ok(pressuredMicrobiome.spans.some((span) => (
+    span.kind === 'observable' && span.text === 'immune pressure'
+  )));
+  assert.equal(pressuredMicrobiome.clauses.some((clause) => (
+    pressuredMicrobiome.spans.find((span) => span.id === clause.objectSpanId)?.text === 'immune'
+  )), false);
+
+  const pluralObject = universeParser.parsePrompt(
+    'submarine city under a storm with turbines and glowing algae'
+  );
+  assert.equal(pluralObject.spans.find((span) => span.text === 'turbines').kind, 'entity');
 });
 
 test('Phase 2 phrase parser matches multi-word entities across whitespace', () => {
@@ -317,11 +376,15 @@ test('Phase 2 spatial clauses use grounded nouns instead of nearby terms or nomi
   const growing = sourdough.spans.find((span) => span.text === 'growing');
   const gasBubbles = sourdough.spans.find((span) => span.text === 'gas bubbles');
   const doughMatrix = sourdough.spans.find((span) => span.text === 'dough matrix');
+  const glutenStrands = sourdough.spans.find((span) => span.text === 'gluten strands');
   const through = sourdough.clauses.find((clause) => clause.spatialRelation === 'through');
+  const withRelation = sourdough.clauses.find((clause) => clause.spatialRelation === 'with');
   assert.equal(growing.kind, 'process');
   assert.equal(through.subjectSpanId, gasBubbles.id);
   assert.equal(through.verbSpanId, growing.id);
   assert.equal(through.objectSpanId, doughMatrix.id);
+  assert.equal(withRelation.subjectSpanId, doughMatrix.id);
+  assert.equal(withRelation.objectSpanId, glutenStrands.id);
 
   const zoning = universeParser.parsePrompt(
     'city zoning shadow allocation between building masses with sunlight volumes'
@@ -343,6 +406,60 @@ test('Phase 2 spatial clauses use grounded nouns instead of nearby terms or nomi
   const glacier = universeParser.parsePrompt('glacier calving into fjord with sea ice waves');
   const waveSpans = glacier.spans.filter((span) => span.text === 'waves');
   assert.deepEqual(waveSpans.map((span) => span.kind), ['entity']);
+
+  const dataCenter = universeParser.parsePrompt(
+    'edge data center server racks recirculating heat between cooling aisles'
+  );
+  const center = dataCenter.spans.find((span) => span.text === 'edge data center');
+  const racks = dataCenter.spans.find((span) => span.text === 'server racks');
+  const containment = dataCenter.clauses.find((clause) => (
+    clause.subjectSpanId === racks.id && clause.objectSpanId === center.id &&
+    /^data-owned-/.test(clause.relationSource || '')
+  ));
+  assert.equal(containment.subjectSpanId, racks.id);
+  assert.equal(containment.objectSpanId, center.id);
+  assert.equal(containment.spatialRelation, 'inside');
+  const aisles = dataCenter.spans.find((span) => span.text === 'cooling aisles');
+  assert.ok(dataCenter.clauses.some((clause) => (
+    clause.relationSource === 'data-owned-container-class' &&
+    clause.subjectSpanId === aisles.id && clause.objectSpanId === center.id &&
+    clause.spatialRelation === 'inside'
+  )));
+
+  const adjacentObjects = universeParser.parsePrompt('dogs cats');
+  assert.equal(
+    adjacentObjects.clauses.some((clause) => clause.relationSource === 'data-owned-compound-containment'),
+    false
+  );
+});
+
+test('Phase 6 renders laboratories as workspaces rather than exterior buildings', () => {
+  const packet = lab.createSpecFromPrompt('generic lab', { allowPrototypeFallback: true })
+    .renderProgram.visualIR.sceneRenderPacket;
+  const laboratory = packet.entities.find((row) => row.identity && row.identity.type === 'laboratory');
+  assert.ok(laboratory);
+  assert.equal(laboratory.geometry.program.grammarId, 'object-grammar.laboratory');
+  assert.ok(laboratory.geometry.program.parts.some((part) => part.id === 'bench-top'));
+  assert.ok(laboratory.geometry.program.parts.some((part) => part.id === 'microscope-lens'));
+  assert.equal(laboratory.geometry.program.parts.some((part) => part.id === 'roof'), false);
+});
+
+test('Phase 6 solved boxes govern packet placement even when an object also owns a motion path', () => {
+  const packet = lab.createSpecFromPrompt(
+    'edge data center server racks recirculating heat between cooling aisles',
+    { allowPrototypeFallback: true }
+  ).renderProgram.visualIR.sceneRenderPacket;
+  const center = packet.entities.find((row) => row.identity && row.identity.type === 'data-center');
+  const racks = packet.entities.find((row) => row.identity && row.identity.type === 'server-racks');
+  assert.ok(center);
+  assert.ok(racks);
+  assert.ok(Array.isArray(racks.transform.path));
+  const centerBounds = center.geometry.bounds;
+  const rackBounds = racks.geometry.bounds;
+  assert.ok(rackBounds[0] >= centerBounds[0] - 0.001);
+  assert.ok(rackBounds[1] >= centerBounds[1] - 0.001);
+  assert.ok(rackBounds[0] + rackBounds[2] <= centerBounds[0] + centerBounds[2] + 0.001);
+  assert.ok(rackBounds[1] + rackBounds[3] <= centerBounds[1] + centerBounds[3] + 0.001);
 });
 
 test('Phase 2 keeps an agentive participle attached across spatial furniture phrases', () => {
@@ -560,6 +677,72 @@ test('Phase 5 physics obligations prove operators beyond the swimming vertical',
     ]);
     assert.equal(row.status, 'lowered');
   }
+});
+
+test('metabolite exchange and soot layering lower into executable behavior evidence', () => {
+  const exchange = lab.createSpecFromPrompt(
+    'gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling',
+    { allowPrototypeFallback: true }
+  );
+  const layering = lab.createSpecFromPrompt(
+    'warehouse fire with smoke in concrete stairwell and renderer layers soot',
+    { allowPrototypeFallback: true }
+  );
+  const exchangeCompile = exchange.phaseArtifacts.phase5.artifact.simulationCompile;
+  const layeringCompile = layering.phaseArtifacts.phase5.artifact.simulationCompile;
+  const layeringTypes = new Set(layeringCompile.physicsIR.operators.map((row) => row.type));
+  const layeringSolverTypes = new Set(layeringCompile.solverGraph.steps.map((row) => row.operatorType));
+  const exchangeLost = exchange.phaseArtifacts.phase6.artifact.visualCompile.compositionLedger.obligations
+    .filter((row) => row.status === 'lost').map((row) => row.id);
+  const layeringLost = layering.phaseArtifacts.phase6.artifact.visualCompile.compositionLedger.obligations
+    .filter((row) => row.status === 'lost').map((row) => row.id);
+
+  assert.ok(exchangeCompile.physicsIR.behaviorRelations.some((row) => (
+    row.process === 'diffusion' && row.evidence.includes('action:exchanging')
+  )));
+  assert.equal(exchangeLost.includes('action:exchanging'), false);
+  assert.equal(exchangeLost.includes('relation:entity-microbiome-colonies:exchanging:medium-metabolites'), false);
+  for (const identityType of ['gut-microbiome-colonies', 'intestinal-folds']) {
+    const program = exchange.renderProgram.sceneRenderPacket.entities
+      .find((row) => row.identity.type === identityType).geometry.program;
+    const fields = program.parts.filter((row) => row.constructionRole === 'field');
+    const foreground = program.parts.filter((row) => row.constructionRole !== 'field');
+    assert.ok(fields.length > 0 && foreground.length > 0);
+    assert.ok(fields.every((row) => row.opacity === 0.2));
+    assert.ok(Math.max(...fields.map((row) => row.order)) < Math.min(...foreground.map((row) => row.order)));
+  }
+  assert.ok(layeringTypes.has('particle_deposition'));
+  assert.ok(layeringSolverTypes.has('particle_deposition'));
+  assert.equal(layeringLost.includes('action:layers'), false);
+  assert.equal(layeringLost.includes('relation:entity-concrete-stairwell:layers:medium-soot-deposit'), false);
+  assert.equal(layering.universeGraph.nodes.some((row) => /renderer/.test(row.id)), false);
+  assert.equal(layeringCompile.physicsIR.entities.some((row) => /renderer/.test(row.id)), false);
+  const layeringEntities = layering.renderProgram.sceneRenderPacket.entities;
+  assert.equal(layeringEntities.some((row) => /renderer/.test(row.id)), false);
+  assert.equal(layeringEntities.find((row) => row.identity.type === 'warehouse').geometry.program.grammarId,
+    'object-grammar.warehouse');
+  assert.equal(layeringEntities.find((row) => row.identity.type === 'fire-front').geometry.program.grammarId,
+    'object-grammar.fire-front');
+  const soot = layeringEntities.find((row) => row.identity.type === 'soot-deposit');
+  assert.equal(soot.geometry.program.grammarId, 'object-grammar.soot-deposit');
+  assert.ok(soot.layoutRelationRoles.includes('coating:source'));
+  const stairwell = layeringEntities.find((row) => row.identity.type === 'concrete-stairwell');
+  assert.ok(stairwell.layoutRelationRoles.includes('coating:target'));
+  assert.ok(stairwell.layoutRelationRoles.includes('inside:source'));
+
+  const channels = { 'airborneDensity:soot': 0.8, 'depositedMass:soot': 0.2 };
+  depositionSolver.step({
+    channels,
+    dt: 0.5,
+    step: {
+      inputs: ['airborneDensity:soot', 'depositedMass:soot'],
+      outputs: ['airborneDensity:soot', 'depositedMass:soot'],
+      params: { rate: 0.5 },
+    },
+  });
+  assert.ok(channels['airborneDensity:soot'] < 0.8);
+  assert.ok(channels['depositedMass:soot'] > 0.2);
+  assert.equal(Number((channels['airborneDensity:soot'] + channels['depositedMass:soot']).toFixed(6)), 1);
 });
 
 test('Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities', () => {
@@ -1067,6 +1250,34 @@ test('common-world and celestial nouns survive grounding as literal object geome
   }
 });
 
+test('Phase 7 reports submitted object parts and preserves canonical identity aliases beyond 32 rows', () => {
+  const spec = lab.createSpecFromPrompt(
+    'planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps',
+    { allowPrototypeFallback: true }
+  );
+  const packet = spec.renderProgram.visualIR.sceneRenderPacket;
+  const renderData = webgpuRendererScope.compileSceneRenderData(packet, packet.sceneKind, 'capacity-proof');
+  const audit = globalThis.SimulatteRenderProof.renderPixelAudit(
+    packet,
+    renderData,
+    { width: 1280, height: 720 },
+    { failCount: 0 },
+    null
+  );
+
+  assert.ok(renderData.semanticDrawableCount > 32);
+  assert.equal(renderData.drawables.length, renderData.semanticDrawableCount);
+  assert.ok(renderData.objectPartCount > 32);
+  assert.equal(renderData.sceneInstanceCapacity, 256);
+  assert.equal(renderData.sceneInstanceCount, renderData.objectPartCount);
+  assert.equal(renderData.drawCount, renderData.objectPartCount + 1);
+  assert.equal(Object.hasOwn(renderData, 'sceneInstanceData'), false);
+  assert.ok(renderData.objectRealization.rows.every((row) => row.submitted === true));
+  assert.equal(audit.literalRealization.status, 'pass');
+  assert.equal(audit.literalRealization.failedObligationIds.length, 0);
+  assert.equal(audit.literalRealization.rows.find((row) => row.obligationId === 'entity:moon').realized, true);
+});
+
 test('part-scoped properties bind robot eyes and articulated straw arms into one object graph', () => {
   const spec = lab.createSpecFromPrompt('robot with red eyes and bendable straw arms', {
     allowPrototypeFallback: true,
@@ -1208,6 +1419,34 @@ test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts
   assert.ok(throughTarget.w > throughSubject.w);
   assert.ok(throughTarget.h > throughSubject.h);
   assert.ok(throughSubject.z < throughTarget.z);
+
+  const matrixWithNetwork = compositionGraphScope.constraintLayoutObjects([
+    {
+      id: 'matrix', semanticRef: 'prompt.body.dough-matrix', sourceLabel: 'dough matrix', directlyGrounded: true,
+      construction: { targetEntryId: 'entity:dough-matrix', sourceCardIds: ['construction.porous-matrix'] },
+    },
+    {
+      id: 'network', semanticRef: 'prompt.body.gluten-strands', sourceLabel: 'gluten strands', directlyGrounded: true,
+      construction: { targetEntryId: 'entity:gluten-strands', sourceCardIds: ['construction.fiber-network'] },
+    },
+  ], 'molecular-biology', {
+    renderIR: {
+      compositionLedger: {
+        relations: [{
+          id: 'relation:spatial:entity-dough-matrix:with:entity-gluten-strands',
+          kind: 'spatial-constraint',
+          spatialRelation: 'with',
+          from: 'prompt-body-dough-matrix',
+          to: 'prompt-body-gluten-strands',
+        }],
+      },
+    },
+  }, { compositionTopology: 'specimen' });
+  const matrixPose = matrixWithNetwork.find((row) => row.id === 'matrix').pose;
+  const networkPose = matrixWithNetwork.find((row) => row.id === 'network').pose;
+  assert.ok(Math.abs(networkPose.x - matrixPose.x) <= (matrixPose.w - networkPose.w) * 0.5 + 0.025);
+  assert.ok(Math.abs(networkPose.y - matrixPose.y) <= (matrixPose.h - networkPose.h) * 0.5 + 0.025);
+  assert.ok(networkPose.z < matrixPose.z);
 
   const priorityLayout = compositionGraphScope.constraintLayoutObjects([
     ...objects,
@@ -1479,16 +1718,16 @@ test('construction support failures apply only to required identities without a 
   assert.equal(obligations[0].status, 'lost');
 });
 
-test('compound prompt identities stay distinct and select evidence-owned object grammars', () => {
+test('overlapping aliases canonicalize once while distinct prompt identities keep evidence-owned grammars', () => {
   const microbiome = lab.createSpecFromPrompt(
     'gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling',
     { allowPrototypeFallback: true }
   );
   const microbiomeNodes = microbiome.universeGraph.nodes
-    .filter((row) => /^prompt\.body\.(?:gut-microbiome|microbiome-colonies)$/.test(row.canonicalId || ''));
+    .filter((row) => /^prompt\.body\.gut-microbiome-colonies$/.test(row.canonicalId || ''));
   assert.deepEqual(
     microbiomeNodes.map((row) => row.canonicalId).sort(),
-    ['prompt.body.gut-microbiome', 'prompt.body.microbiome-colonies']
+    ['prompt.body.gut-microbiome-colonies']
   );
 
   const cases = [
@@ -1918,9 +2157,11 @@ test('WebGPU phase 8 layer summary follows compiled VisualIR structures', () => 
       assert.match(canvas.dataset.sceneRenderPacket || '', /simulatte\.sceneRenderPacket\.v1/);
       assert.ok(Number(canvas.dataset.sceneRenderEntityCount) > 0, `${prompt} should report packet entity count`);
       assert.ok(Number(canvas.dataset.sceneRenderDrawCount) > 0, `${prompt} should compile compact draw rows`);
-      assert.equal(canvas.dataset.webgpuSceneInstanceCapacity, '32');
-      assert.equal(renderer.renderData.sceneInstanceCapacity, 32);
-      assert.equal(renderer.renderData.sceneInstanceCount, Number(canvas.dataset.sceneRenderDrawCount));
+      assert.equal(canvas.dataset.webgpuSceneInstanceCapacity, '256');
+      assert.equal(renderer.renderData.sceneInstanceCapacity, 256);
+      assert.equal(renderer.renderData.sceneInstanceCount, renderer.renderData.objectPartCount);
+      assert.equal(renderer.renderData.drawCount, renderer.renderData.objectPartCount + 1);
+      assert.equal(renderer.renderData.drawCount, Number(canvas.dataset.sceneRenderDrawCount));
       assert.equal(renderer.renderData.sceneInstanceCount, Number(canvas.dataset.webgpuSceneInstanceCount));
       assert.match(canvas.dataset.sceneRenderSpatialHash || '', /^[0-9a-f]{8}$/);
       assert.match(canvas.dataset.phase7RenderDataKey || '', /^[a-z0-9-]+:\d+:\d+:\d+:[0-9a-f]{8}$/);
@@ -2161,6 +2402,7 @@ test('solver registry delegates executable operator steps to solver modules', ()
 
   assert.equal(typeof advectionSolver.step, 'function');
   assert.equal(operator.step, advectionSolver.step);
+  assert.equal(registry.operatorFor('particle_deposition').step, depositionSolver.step);
 });
 
 test('primitive retrieval uses catalog retrievability policy without hardcoded exclusions', () => {
@@ -2169,7 +2411,7 @@ test('primitive retrieval uses catalog retrievability policy without hardcoded e
     .some((primitive) => primitive.id === 'energy-ledger'));
 
   const catalogSource = runtimeSourceFromFile(
-    path.join(__dirname, '..', 'public', 'pipeline', 'phase-05-simulation', 'simulatte-physics-catalog.js')
+    path.join(__dirname, '..', 'public', 'blank', 'pipeline', 'phase-05-simulation', 'simulatte-physics-catalog.js')
   );
   assert.doesNotMatch(catalogSource, /primitive\.id !== 'energy-ledger'/);
   assert.match(catalogSource, /\.filter\(\(primitive\) => isRetrievablePrimitive\(primitive\)\)/);

@@ -8,10 +8,10 @@ import { fileURLToPath } from 'node:url';
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
 const require = createRequire(import.meta.url);
-const missionApi = require('../../public/autonomy/mission/mission-compiler.js');
-const worldApi = require('../../public/autonomy/world/world-model.js');
-const routePlanner = require('../../public/autonomy/world/route-planner.js');
-const featureRetrieval = require('../../public/autonomy/runtime/feature-retrieval.js');
+const missionApi = require('../../public/mission/mission-compiler.js');
+const worldApi = require('../../public/world/world-model.js');
+const routePlanner = require('../../public/world/route-planner.js');
+const featureRetrieval = require('../../public/runtime/feature-retrieval.js');
 const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json');
 
 function main() {
@@ -21,7 +21,7 @@ function main() {
     embodiment: 'public/data/autonomy/embodiments/delivery-bike-v1.json',
     policy: 'public/data/autonomy/policies/bet-selector-v1.json',
     corpus: 'tools/samer/autonomy/public-navigation-missions-v1.json',
-    runtime: 'public/autonomy/runtime/feature-retrieval.js',
+    runtime: 'public/runtime/feature-retrieval.js',
   };
   const world = readJson(files.world);
   const featureCatalog = readJson(files.featureCatalog);

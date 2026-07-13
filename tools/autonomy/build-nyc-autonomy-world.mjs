@@ -10,7 +10,7 @@ import { compileFeatureCatalog, compileOccurrenceCatalog } from './compile-auton
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
 const require = createRequire(import.meta.url);
-const contracts = require('../../public/autonomy/contracts/contract-validator.js');
+const contracts = require('../../public/contracts/contract-validator.js');
 const routingPolicy = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/autonomy/policies/bet-selector-v1.json'), 'utf8'));
 
 const SNAPSHOT_DATE = '2026-07-13';
@@ -345,15 +345,20 @@ function compileBikeNetwork(collection, project) {
   collection.features.forEach((feature) => {
     if (!feature || feature.properties?.status !== 'Current' || feature.geometry?.type !== 'MultiLineString') return;
     feature.geometry.coordinates.forEach((coordinates, partIndex) => {
-      const cleaned = cleanLine(coordinates.map(project));
+      const cleaned = cleanCoordinatePairs(coordinates, project);
       if (cleaned.length < 2) return;
-      rows.push({ properties: feature.properties, partIndex, geometry: cleaned });
+      rows.push({
+        properties: feature.properties,
+        partIndex,
+        geometry: cleaned.map((row) => row.position),
+        geometryWgs84: cleaned.map((row) => row.wgs84),
+      });
     });
   });
   rows.sort((left, right) => sourceLineKey(left).localeCompare(sourceLineKey(right)));
   const endpoints = rows.flatMap((row, rowIndex) => [
-    { rowIndex, side: 'from', point: row.geometry[0] },
-    { rowIndex, side: 'to', point: row.geometry.at(-1) },
+    { rowIndex, side: 'from', point: row.geometry[0], wgs84: row.geometryWgs84[0] },
+    { rowIndex, side: 'to', point: row.geometry.at(-1), wgs84: row.geometryWgs84.at(-1) },
   ]);
   const groups = clusterEndpoints(endpoints, 3);
   const nodeByEndpoint = new Map();
@@ -362,9 +367,14 @@ function compileBikeNetwork(collection, project) {
       x: round(group.reduce((sum, row) => sum + row.point.x, 0) / group.length),
       y: round(group.reduce((sum, row) => sum + row.point.y, 0) / group.length),
     };
-    const id = `bike-node-${shortHash(`${position.x.toFixed(3)},${position.y.toFixed(3)}`, 12)}`;
+    const positionWgs84 = {
+      longitude: roundCoordinate(group.reduce((sum, row) => sum + row.wgs84.longitude, 0) / group.length),
+      latitude: roundCoordinate(group.reduce((sum, row) => sum + row.wgs84.latitude, 0) / group.length),
+    };
+    const globalKey = `${SOURCE_CONTRACTS.bike.id}:${SNAPSHOT_DATE}:${positionWgs84.longitude.toFixed(7)},${positionWgs84.latitude.toFixed(7)}`;
+    const id = `bike-node-${shortHash(globalKey, 12)}`;
     const streets = [...new Set(group.map((endpoint) => rows[endpoint.rowIndex].properties.street).filter(Boolean))].sort();
-    const node = { id, label: streets.slice(0, 2).join(' / ') || id, kind: 'intersection', position };
+    const node = { id, label: streets.slice(0, 2).join(' / ') || id, kind: 'intersection', position, positionWgs84 };
     group.forEach((endpoint) => nodeByEndpoint.set(`${endpoint.rowIndex}:${endpoint.side}`, node));
     return node;
   });
@@ -377,9 +387,9 @@ function compileBikeNetwork(collection, project) {
     const laneType = laneTypeFor(properties);
     const forward = Boolean(properties.ft_facilit || properties.ft2facilit) || properties.bikedir === '2';
     const reverse = Boolean(properties.tf_facilit || properties.tf2facilit) || properties.bikedir === '2';
-    const sourceKey = `${properties.segmentid || 'none'}:${properties.bikeid || 'none'}:${row.partIndex}:${sourceLineKey(row)}`;
-    if (forward) segments.push(networkSegment(sourceKey, 'ft', row.geometry, from, to, laneType, properties));
-    if (reverse) segments.push(networkSegment(sourceKey, 'tf', [...row.geometry].reverse(), to, from, laneType, properties));
+    const sourceKey = `${SOURCE_CONTRACTS.bike.id}:${SNAPSHOT_DATE}:${properties.segmentid || 'none'}:${properties.bikeid || 'none'}:${row.partIndex}:${sourceLineKey(row)}`;
+    if (forward) segments.push(networkSegment(sourceKey, 'ft', row.geometry, row.geometryWgs84, from, to, laneType, properties));
+    if (reverse) segments.push(networkSegment(sourceKey, 'tf', [...row.geometry].reverse(), [...row.geometryWgs84].reverse(), to, from, laneType, properties));
   });
   const uniqueSegments = [...new Map(segments.map((row) => [row.id, row])).values()];
   const nodesById = new Map(nodes.map((row) => [row.id, row]));
@@ -408,7 +418,7 @@ function clusterEndpoints(endpoints, toleranceM) {
   return [...groups.values()].sort((left, right) => endpointKey(left[0]).localeCompare(endpointKey(right[0])));
 }
 
-function networkSegment(sourceKey, direction, sourceGeometry, from, to, laneType, properties) {
+function networkSegment(sourceKey, direction, sourceGeometry, sourceGeometryWgs84, from, to, laneType, properties) {
   const geometry = sourceGeometry.map((point) => ({ ...point }));
   geometry[0] = { ...from.position };
   geometry[geometry.length - 1] = { ...to.position };
@@ -431,6 +441,8 @@ function networkSegment(sourceKey, direction, sourceGeometry, from, to, laneType
       facilityClass: properties.facilitycl || null,
       facility: direction === 'ft' ? properties.ft_facilit || properties.ft2facilit : properties.tf_facilit || properties.tf2facilit,
       direction,
+      sourceRevision: SNAPSHOT_DATE,
+      geometryWgs84Sha256: sha256(Buffer.from(JSON.stringify(sourceGeometryWgs84))),
     },
   };
 }
@@ -754,6 +766,13 @@ function cleanLine(points) {
   return points.filter((point, index) => index === 0 || distance(point, points[index - 1]) > 0.001);
 }
 
+function cleanCoordinatePairs(coordinates, project) {
+  return coordinates.map(([longitude, latitude]) => ({
+    position: project([longitude, latitude]),
+    wgs84: { longitude: roundCoordinate(longitude), latitude: roundCoordinate(latitude) },
+  })).filter((row, index, rows) => index === 0 || distance(row.position, rows[index - 1].position) > 0.001);
+}
+
 function pointLineDistance(point, start, end) {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
@@ -820,11 +839,11 @@ function polygonArea(points) {
 }
 
 function sourceLineKey(row) {
-  return `${row.properties.segmentid || ''}:${row.properties.bikeid || ''}:${row.partIndex}:${row.geometry.map((point) => `${point.x.toFixed(3)},${point.y.toFixed(3)}`).join(';')}`;
+  return `${row.properties.segmentid || ''}:${row.properties.bikeid || ''}:${row.partIndex}:${row.geometryWgs84.map((point) => `${point.longitude.toFixed(7)},${point.latitude.toFixed(7)}`).join(';')}`;
 }
 
 function endpointKey(row) {
-  return `${row.point.x.toFixed(6)},${row.point.y.toFixed(6)}:${row.rowIndex}:${row.side}`;
+  return `${row.wgs84.longitude.toFixed(7)},${row.wgs84.latitude.toFixed(7)}:${row.rowIndex}:${row.side}`;
 }
 
 function distance(left, right) {
@@ -837,6 +856,10 @@ function clamp(value, minimum, maximum) {
 
 function round(value) {
   return Number(Number(value).toFixed(6));
+}
+
+function roundCoordinate(value) {
+  return Number(Number(value).toFixed(7));
 }
 
 function hash32(value) {

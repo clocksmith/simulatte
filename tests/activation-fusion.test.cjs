@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const lab = require('../public/pipeline/phase-05-simulation/simulatte-physics-model.js');
+const lab = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
 
 const INJECTED_PRIMITIVES = [
   { id: 'dog', label: 'dog', source: 'prompt-explicit', score: 0.9, modelRerankScore: 0.9, lexicalScore: 1 },

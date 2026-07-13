@@ -3,7 +3,9 @@
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fsimulatte.world&label=live)](https://simulatte.world)
 [![License: not declared](https://img.shields.io/badge/license-not%20declared-lightgrey.svg)](#license)
 
-[Open Simulatte](https://simulatte.world)
+[Open Simulatte Autonomy](https://simulatte.world)
+
+[Open the prompt-to-pixels compiler](https://simulatte.world/blank/)
 
 Simulatte compiles natural-language prompts into inspectable, moving world
 models in the browser. The prompt is source code. The compiler preserves the
@@ -17,9 +19,9 @@ world. Unsupported meaning remains explicit in the receipts.
 
 ## Autonomous delivery-bike runtime
 
-[Open Simulatte Autonomy](https://simulatte.world/autonomy/)
+[Open Simulatte Autonomy](https://simulatte.world/)
 
-`public/autonomy/` is a separate browser subsystem for continuous embodied
+The root `public/` modules are the browser subsystem for continuous embodied
 decisions. It compiles a known-label delivery mission, observes a synthetic
 corridor, proposes action bets, predicts each outcome, applies hard safety
 gates, selects one eligible action, executes the reference dynamics, settles
@@ -40,7 +42,7 @@ a physical-world autonomy claim.
 | Visible | WebGPU consumes the compiled scene packet. Scene Proof settles whether required objects and processes reached the pixels. |
 
 The mandatory rules live in [STYLE_GUIDE.md](STYLE_GUIDE.md). The
-[pipeline contract](public/pipeline/README.md) owns phase authority, inputs, and
+[pipeline contract](public/blank/pipeline/README.md) owns phase authority, inputs, and
 outputs.
 
 ## Eight-phase compiler
@@ -50,14 +52,14 @@ context.
 
 | Phase | Question | Output |
 | --- | --- | --- |
-| [1. Runtime](public/pipeline/phase-01-runtime/) | Are the required models, indexes, caches, and providers proven? | Runtime readiness and model, index, reranker, provider, and cache receipts. |
-| [2. Language](public/pipeline/phase-02-language/) | What did the prompt say? | Tokens, spans, clauses, predicates, quantities, negation, relations, and query plans. |
-| [3. Retrieval](public/pipeline/phase-03-retrieval/) | What evidence activates each prompt obligation? | Ranked candidates, reranker provenance, activation weights, conflicts, negative evidence, and coverage. |
-| [4. Grounded intent](public/pipeline/phase-04-grounded-intent/) | What world meaning does the compiler accept? | Grounded world graph, rejected evidence, assumptions, alternatives, and unsupported concepts. |
-| [5. Simulation](public/pipeline/phase-05-simulation/) | What executable physics follows from that world? | PhysicsIR, solver graph, RenderIR, state channels, controls, and readouts. |
-| [6. Visual](public/pipeline/phase-06-visual/) | What scene represents the simulation? | VisualIR, render instances, camera, lights, passes, graphics atoms, and scene packet. |
-| [7. Render](public/pipeline/phase-07-render/) | What did WebGPU draw? | Pixels, frame state, identity receipts, and timing receipts. |
-| [8. Scene Proof](public/pipeline/phase-08-scene-proof/) | Which composition obligations reached the render? | Settled obligations, verdict, explicit losses, and not-proven receipts. |
+| [1. Runtime](public/blank/pipeline/phase-01-runtime/) | Are the required models, indexes, caches, and providers proven? | Runtime readiness and model, index, reranker, provider, and cache receipts. |
+| [2. Language](public/blank/pipeline/phase-02-language/) | What did the prompt say? | Tokens, spans, clauses, predicates, quantities, negation, relations, and query plans. |
+| [3. Retrieval](public/blank/pipeline/phase-03-retrieval/) | What evidence activates each prompt obligation? | Ranked candidates, reranker provenance, activation weights, conflicts, negative evidence, and coverage. |
+| [4. Grounded intent](public/blank/pipeline/phase-04-grounded-intent/) | What world meaning does the compiler accept? | Grounded world graph, rejected evidence, assumptions, alternatives, and unsupported concepts. |
+| [5. Simulation](public/blank/pipeline/phase-05-simulation/) | What executable physics follows from that world? | PhysicsIR, solver graph, RenderIR, state channels, controls, and readouts. |
+| [6. Visual](public/blank/pipeline/phase-06-visual/) | What scene represents the simulation? | VisualIR, render instances, camera, lights, passes, graphics atoms, and scene packet. |
+| [7. Render](public/blank/pipeline/phase-07-render/) | What did WebGPU draw? | Pixels, frame state, identity receipts, and timing receipts. |
+| [8. Scene Proof](public/blank/pipeline/phase-08-scene-proof/) | Which composition obligations reached the render? | Settled obligations, verdict, explicit losses, and not-proven receipts. |
 
 ```text
 prompt -> evidence -> grounded world -> simulation -> visual program
@@ -104,12 +106,12 @@ obligations explain what the render represented and what it lost.
 
 | Reader | Entry points |
 | --- | --- |
-| Users | [Live application](https://simulatte.world) |
-| UI contributors | [Browser app](public/app/) and [simulation host](public/app/simulation/) |
-| Pipeline contributors | [Pipeline contract](public/pipeline/README.md) and [style guide](STYLE_GUIDE.md) |
+| Users | [Autonomy](https://simulatte.world) and [prompt-to-pixels compiler](https://simulatte.world/blank/) |
+| UI contributors | [Compiler browser app](public/blank/app/) and [simulation host](public/blank/app/simulation/) |
+| Pipeline contributors | [Pipeline contract](public/blank/pipeline/README.md) and [style guide](STYLE_GUIDE.md) |
 | Runtime and catalog maintainers | [Model-runtime lock](public/data/simulatte-embedder/model-runtime-lock.json), [data contracts](public/data/), and [vendored Doppler](public/vendor/doppler/) |
 | Evidence and deploy operators | [Repository commands](package.json) and [deployment runbook](docs/deployment.md) |
-| Autonomy contributors | [Autonomy design](docs/autonomy/README.md), [browser runtime](public/autonomy/), and [SAME-R executor](tools/samer/autonomy/) |
+| Autonomy contributors | [Autonomy design](docs/autonomy/README.md), [browser runtime](public/), and [SAME-R executor](tools/samer/autonomy/) |
 
 ## Deployment
 

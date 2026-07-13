@@ -4,9 +4,9 @@ const path = require('node:path');
 const test = require('node:test');
 const { pathToFileURL } = require('node:url');
 
-const lab = require('../public/app/simulation/simulation-lab.js');
-require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
-const constructionSearch = require('../public/app/prompt/prompt-controller-construction-search.js');
+const lab = require('../public/blank/app/simulation/simulation-lab.js');
+require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+const constructionSearch = require('../public/blank/app/prompt/prompt-controller-construction-search.js');
 const root = path.resolve(__dirname, '..');
 const goldSetPath = path.join(root, 'tools/samer/simulatte-public-gold-v1.json');
 const contractPath = path.join(root, 'tools/samer/simulatte-construction-contract.json');

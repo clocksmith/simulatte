@@ -110,13 +110,16 @@
       ],
       "requires": [
         [
-          "heat",
-          "thermal",
+          "heat_transfer",
+          "thermal_gradient",
           "temperature",
           "cool",
           "cools",
           "cooled",
           "cooling",
+          "heating",
+          "heat",
+          "thermal",
           "lava",
           "steam"
         ]
@@ -194,7 +197,6 @@
       "requires": [
         [
           "flow",
-          "fluid",
           "water",
           "river",
           "ocean",
@@ -210,6 +212,8 @@
           "channel",
           "channels",
           "droplet",
+          "release",
+          "meniscus",
           "surge",
           "tidal",
           "brackish",
@@ -290,8 +294,10 @@
           "strain",
           "fracture",
           "crack",
+          "collision",
           "impact",
           "load",
+          "buckling",
           "constraint",
           "constraints",
           "bond",
@@ -361,6 +367,8 @@
           "controller",
           "feedback",
           "sensor",
+          "throttle",
+          "stabilize",
           "regulate",
           "loop"
         ]
@@ -423,6 +431,8 @@
           "orbital",
           "planet",
           "moon",
+          "asteroid",
+          "rocket",
           "space"
         ]
       ],
@@ -481,11 +491,13 @@
       "requires": [
         [
           "magnetic",
+          "magnet",
+          "current",
+          "coil",
           "charge",
           "electric",
           "voltage",
-          "coil",
-          "current"
+          "plasma"
         ]
       ],
       "excludes": [],
@@ -552,9 +564,12 @@
           "shadows",
           "laser",
           "lens",
+          "prism",
+          "mirror",
           "photon",
           "caustic",
-          "refraction"
+          "refraction",
+          "interference"
         ]
       ],
       "excludes": [
@@ -626,7 +641,10 @@
           "wire-loop",
           "surface tension",
           "iridescent",
-          "interference"
+          "iridescence",
+          "interference",
+          "bubble",
+          "bubbles"
         ]
       ],
       "excludes": [],
@@ -687,6 +705,9 @@
           "qubit",
           "quantum",
           "microwave",
+          "resonator",
+          "phase",
+          "interference",
           "superconducting"
         ]
       ],
@@ -822,7 +843,21 @@
         "mycelium",
         "membrane",
         "microbe",
+        "microbiome",
+        "microbiota",
+        "bacteria",
+        "colony",
+        "colonies",
+        "intestinal",
+        "immune",
+        "metabolite",
+        "metabolites",
         "yeast",
+        "ferment",
+        "fermentation",
+        "sourdough",
+        "dough",
+        "gluten",
         "compost",
         "greenhouse",
         "nutrient",
@@ -861,7 +896,21 @@
           "mycelium",
           "membrane",
           "microbe",
+          "microbiome",
+          "microbiota",
+          "bacteria",
+          "colony",
+          "colonies",
+          "intestinal",
+          "immune",
+          "metabolite",
+          "metabolites",
           "yeast",
+          "ferment",
+          "fermentation",
+          "sourdough",
+          "dough",
+          "gluten",
           "compost",
           "greenhouse",
           "nutrient",
@@ -1045,6 +1094,9 @@
           "acidity",
           "crystal",
           "concentration",
+          "electrolyte",
+          "solvent",
+          "catalyst",
           "microfluidic",
           "droplet",
           "dose",
@@ -1112,7 +1164,9 @@
           "traffic",
           "route",
           "packet",
-          "parcel"
+          "server",
+          "parcel",
+          "zoning"
         ]
       ],
       "excludes": [
@@ -1194,7 +1248,9 @@
           "grain",
           "sand",
           "soil",
+          "avalanche",
           "terrain",
+          "slope",
           "mountain",
           "mountains",
           "mountaint",
@@ -1202,11 +1258,12 @@
           "dust",
           "silo",
           "explodes",
+          "explosion",
           "powder",
+          "aerosol",
           "granular",
           "bead",
           "beads",
-          "avalanche",
           "sieve",
           "boulder",
           "boulders"
@@ -1277,7 +1334,9 @@
           "fjord",
           "sea ice",
           "cryosphere",
-          "meltwater"
+          "meltwater",
+          "internal ocean wave",
+          "thermocline"
         ]
       ],
       "excludes": [],
@@ -1347,7 +1406,11 @@
           "friction",
           "centripetal",
           "carve",
-          "trajectory"
+          "carves",
+          "arc",
+          "trajectory",
+          "wheel",
+          "contact"
         ]
       ],
       "excludes": [],
@@ -1409,6 +1472,8 @@
           "readout",
           "instrument",
           "probe",
+          "phototube",
+          "resonator",
           "meter"
         ]
       ],
@@ -1474,7 +1539,9 @@
           "muon tracks",
           "detector slice",
           "calorimeter",
-          "beamline"
+          "beamline",
+          "collision plume",
+          "track curvature"
         ]
       ],
       "excludes": [],
@@ -1542,9 +1609,12 @@
           "flame",
           "fuel",
           "smoke",
+          "ember",
+          "ash",
           "burn",
           "explodes",
           "explosion",
+          "dust",
           "soot"
         ]
       ],
@@ -1593,21 +1663,47 @@
       "matchTerms": [
         "phase",
         "melt",
+        "melts",
+        "melting",
         "freeze",
+        "freezes",
+        "freezing",
         "crust",
         "vaporize",
+        "vaporizes",
+        "vaporizing",
         "condense",
+        "condenses",
+        "condensing",
         "boil",
-        "solidify"
+        "boils",
+        "boiling",
+        "solidify",
+        "solidifies",
+        "solidifying"
       ],
       "requires": [
         [
           "phase",
           "melt",
+          "melts",
+          "melting",
           "freeze",
+          "freezes",
+          "freezing",
           "crust",
           "vaporize",
-          "boil"
+          "vaporizes",
+          "vaporizing",
+          "condense",
+          "condenses",
+          "condensing",
+          "boil",
+          "boils",
+          "boiling",
+          "solidify",
+          "solidifies",
+          "solidifying"
         ]
       ],
       "excludes": [],
@@ -1669,7 +1765,8 @@
           "servo",
           "workcell",
           "manipulator",
-          "pick and place"
+          "pick and place",
+          "contact force"
         ]
       ],
       "excludes": [

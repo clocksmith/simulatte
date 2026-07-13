@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const lab = require('../public/app/simulation/simulation-lab.js');
+const lab = require('../public/blank/app/simulation/simulation-lab.js');
 
 function compile(prompt) {
   return lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });

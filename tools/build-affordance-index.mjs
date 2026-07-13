@@ -191,7 +191,7 @@ function canonicalOperatorType(value, operatorTypes) {
 }
 
 function addSemanticFeatures(index) {
-  const ragApi = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
+  const ragApi = require('../public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
   const featureDim = Number(ragApi.FEATURE_DIM || 384);
   const packed = new Float32Array(index.documents.length * featureDim);
   index.documents = index.documents.map((doc, order) => {

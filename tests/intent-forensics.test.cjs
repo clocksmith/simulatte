@@ -1,8 +1,8 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const lab = require('../public/app/simulation/simulation-lab.js');
-const forensics = require('../public/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
+const lab = require('../public/blank/app/simulation/simulation-lab.js');
+const forensics = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
 
 test('intent forensics emits retrieval-grounded causal brief', () => {
   const brief = forensics.buildIntentForensics({

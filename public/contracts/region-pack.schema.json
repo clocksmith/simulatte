@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy region pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "contentVersion", "cityId", "worldId", "boundsWgs84", "neighborIds", "nodes", "segments", "signals", "actors", "disruptions", "renderGeometry", "featureCards", "featureIndex", "seams", "counts", "provenance"],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyRegionPack.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "contentVersion": { "$ref": "#/$defs/id" },
+    "cityId": { "$ref": "#/$defs/id" },
+    "worldId": { "$ref": "#/$defs/id" },
+    "boundsWgs84": { "$ref": "#/$defs/boundsWgs84" },
+    "neighborIds": { "$ref": "#/$defs/ids" },
+    "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sourceRow" } },
+    "segments": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+    "signals": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+    "actors": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+    "disruptions": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+    "renderGeometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["land", "streets", "buildings", "bikeFacilities"],
+      "properties": {
+        "land": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+        "streets": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+        "buildings": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+        "bikeFacilities": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } }
+      }
+    },
+    "featureCards": { "type": "array", "items": { "$ref": "#/$defs/sourceRow" } },
+    "featureIndex": { "$ref": "#/$defs/featureIndex" },
+    "seams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "nodeId", "peerPackIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "nodeId": { "$ref": "#/$defs/id" },
+          "peerPackIds": { "$ref": "#/$defs/nonEmptyIds" }
+        }
+      }
+    },
+    "counts": { "$ref": "#/$defs/packCounts" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceKind", "worldSha256", "featureCatalogSha256", "buildConfigId", "assignmentMethod", "claimBoundary"],
+      "properties": {
+        "sourceKind": { "$ref": "#/$defs/id" },
+        "worldSha256": { "$ref": "#/$defs/sha256" },
+        "featureCatalogSha256": { "$ref": "#/$defs/sha256" },
+        "buildConfigId": { "$ref": "#/$defs/id" },
+        "assignmentMethod": { "$ref": "#/$defs/id" },
+        "claimBoundary": { "$ref": "#/$defs/id" }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "ids": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "nonEmptyIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "sourceRow": {
+      "description": "An unchanged row owned by the world or feature-catalog contract.",
+      "type": "object",
+      "required": ["id"],
+      "properties": { "id": { "$ref": "#/$defs/id" } },
+      "additionalProperties": true
+    },
+    "boundsWgs84": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["south", "west", "north", "east", "includeEast"],
+      "properties": {
+        "south": { "type": "number", "minimum": -90, "maximum": 90 },
+        "west": { "type": "number", "minimum": -180, "maximum": 180 },
+        "north": { "type": "number", "minimum": -90, "maximum": 90 },
+        "east": { "type": "number", "minimum": -180, "maximum": 180 },
+        "includeEast": { "type": "boolean" }
+      }
+    },
+    "featureIndexMap": {
+      "type": "object",
+      "additionalProperties": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+    },
+    "featureIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokenToCardIds", "kindToCardIds"],
+      "properties": {
+        "tokenToCardIds": { "$ref": "#/$defs/featureIndexMap" },
+        "kindToCardIds": { "$ref": "#/$defs/featureIndexMap" }
+      }
+    },
+    "packCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "segments", "signals", "actors", "disruptions", "streets", "buildings", "bikeFacilities", "featureCards", "seams"],
+      "properties": {
+        "nodes": { "type": "integer", "minimum": 0 },
+        "segments": { "type": "integer", "minimum": 0 },
+        "signals": { "type": "integer", "minimum": 0 },
+        "actors": { "type": "integer", "minimum": 0 },
+        "disruptions": { "type": "integer", "minimum": 0 },
+        "streets": { "type": "integer", "minimum": 0 },
+        "buildings": { "type": "integer", "minimum": 0 },
+        "bikeFacilities": { "type": "integer", "minimum": 0 },
+        "featureCards": { "type": "integer", "minimum": 0 },
+        "seams": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -133,7 +133,7 @@ function parseArgs(argv) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  const lab = require(path.join(ROOT, 'public', 'app', 'simulation', 'simulation-lab.js'));
+  const lab = require(path.join(ROOT, 'public', 'blank', 'app', 'simulation', 'simulation-lab.js'));
   const prompts = await buildPromptRows(options);
   const liveRows = options.liveReport ? await readLiveReport(options.liveReport) : new Map();
   const rows = prompts.map((row, index) => scorePrompt(row, index + 1, lab, liveRows, options));
@@ -510,9 +510,9 @@ function scoreRuntime(context, compileError) {
   const detail = {
     compileError,
     hasSpec: Boolean(context.spec),
-    hasWorker: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'workers', 'simulatte-pipeline-worker.js')),
-    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'app', 'prompt', 'prompt-controller.js')),
-    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'pipeline', 'phase-07-render', 'simulatte-webgpu-renderer.js')),
+    hasWorker: fsSync.existsSync(path.join(ROOT, 'public', 'blank', 'app', 'workers', 'simulatte-pipeline-worker.js')),
+    hasRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'blank', 'app', 'prompt', 'prompt-controller.js')),
+    hasWebGpuRenderer: fsSync.existsSync(path.join(ROOT, 'public', 'blank', 'pipeline', 'phase-07-render', 'simulatte-webgpu-renderer.js')),
     phaseSchemas: context.phaseSchemas || {},
   };
   if (!compileError && context.spec) score += 18;
@@ -793,7 +793,7 @@ function moduleFamilySource(dir, prefix) {
 }
 
 function scoreWebGpu(context, liveResult) {
-  const webgpuDir = path.join(ROOT, 'public', 'pipeline', 'phase-07-render');
+  const webgpuDir = path.join(ROOT, 'public', 'blank', 'pipeline', 'phase-07-render');
   const webgpuSource = [
     'simulatte-webgpu-renderer-dependencies.js',
     'simulatte-webgpu-renderer-constants.js',
@@ -944,7 +944,7 @@ function scoreWebGpu(context, liveResult) {
 
 function scoreSceneProof(context, liveResult) {
   const sceneProofSource = moduleFamilySource(
-    path.join(ROOT, 'public', 'pipeline', 'phase-08-scene-proof'),
+    path.join(ROOT, 'public', 'blank', 'pipeline', 'phase-08-scene-proof'),
     'simulatte-scene-proof'
   );
   const ledger = context.visualCompile && context.visualCompile.compositionLedger || null;
