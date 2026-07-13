@@ -443,7 +443,10 @@
       /\b(market|parcel|parcels|zoning|queue|traffic|server|rack|racks|data center|service graph|warehouse)\b/.test(direct);
     if (!networkLike) return { ok: true, reason: '' };
     if (/fluid-advection/.test(id)) {
-      return directHas(/\b(water|river|wind|airflow|coolant|microfluidic|droplet|droplets|pump|channel|meniscus|fluid|swim|swims|swimming|underwater|pool)\b/)
+      const solverHasAdvection = solverRequirementEvidence(context)
+        .some((row) => /\badvection\b/.test(normalizeText(row.text)));
+      return directHas(/\b(water|river|wind|airflow|coolant|microfluidic|droplet|droplets|pump|channel|meniscus|fluid|swim|swims|swimming|underwater|pool)\b/) ||
+        solverHasAdvection && directHas(/\b(flow|flows|cooling)\b/)
         ? { ok: true, reason: '' }
         : { ok: false, reason: 'scene-gate:no-direct-fluid-evidence' };
     }

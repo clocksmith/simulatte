@@ -22,13 +22,17 @@
   with (scope) {
     function slotNeedsModelConstructionEvidence(slot = {}) {
       const role = String(slot.slotRole || '');
-      return /^(actor|object|part|environment)$/.test(role);
+      const semanticClass = String(slot.semanticClass || '').toLowerCase();
+      if (/^(?:control-process|control-state|growth-process|visual-effect)$/.test(semanticClass)) return false;
+      return /^(actor|concept|object|part|environment)$/.test(role);
     }
 
     function slotNeedsModelRetrievalEvidence(slot = {}) {
       const role = String(slot.slotRole || '');
-      if (/^(actor|object|part|environment|medium)$/.test(role)) return true;
-      return role === 'relation' && !slot.spatialRelation && slot.required !== false;
+      if (/^(actor|concept|object|part|environment|medium)$/.test(role)) return true;
+      if (role !== 'relation' || slot.required === false) return false;
+      if (slot.modelEvidenceRequired === false) return false;
+      return !slot.spatialRelation;
     }
 
     function slotUsesPromptOwnedLocalEvidence(slot = {}) {
@@ -44,7 +48,7 @@
         .replace(/^[a-z]+:/, '').replace(/[_:]+/g, ' '));
       const id = `prompt.${role}.${target.replace(/\s+/g, '-')}`;
       const semanticType = ({
-        actor: 'entity', object: 'entity', part: 'part', environment: 'environment', medium: 'medium',
+        actor: 'entity', concept: 'entity', object: 'entity', part: 'part', environment: 'environment', medium: 'medium',
         action: 'action', relation: 'relation', visual: 'visual',
       })[role] || 'entity';
       const candidate = {
@@ -141,11 +145,15 @@
         ...directBasisIds,
       ]);
       const bases = groundingIds.map((id) => groundingById.get(id)).filter(Boolean);
-      const partHints = uniqueStrings([
+      if (!constructionCandidateCanOwnPhysicalShape(card, row, candidateId, bases)) return null;
+      const sourcePartHints = uniqueStrings([
         ...(card && card.partHints || []),
         ...(row.partHints || []),
+      ]);
+      const basisPartHints = uniqueStrings([
         ...bases.flatMap((basis) => basis.parts || []),
       ]);
+      const partHints = uniqueStrings([...sourcePartHints, ...basisPartHints]);
       const shapeHints = uniqueStrings([
         ...(card && card.shapeHints || []),
         ...(row.shapeHints || []),
@@ -177,6 +185,10 @@
         ...(card && card.scaleHints || []),
         ...(row.scaleHints || []),
       ]);
+      const primitiveHints = uniqueStrings([
+        ...(row.primitiveHints || []),
+        ...bases.flatMap((basis) => basis.primitives || []),
+      ]);
       if (!card && !partHints.length && !shapeHints.length && !materialHints.length &&
           !affordanceHints.length && !relationHints.length) return null;
       return {
@@ -187,15 +199,34 @@
         sourceLabel: card && card.labels && card.labels[0] || row.label || '',
         classHints,
         partHints,
+        sourcePartHints,
+        basisPartHints,
         shapeHints,
         materialHints,
         behaviorHints,
         affordanceHints,
         relationHints,
         scaleHints,
+        primitiveHints,
         groundingIds,
         basisIds: bases.map((basis) => basis.id),
       };
+    }
+
+    function constructionCandidateCanOwnPhysicalShape(card = null, row = {}, candidateId = '', bases = []) {
+      const canonicalId = String(row.canonicalId || candidateId || '').toLowerCase();
+      if (/^(?:affordance|concept|event|operator|process|relation|scene|shape|visual)[._-]/.test(canonicalId)) {
+        return false;
+      }
+      const type = String(card && card.type || row.semanticType || row.cardType || row.type || '')
+        .toLowerCase().replace(/_/g, '-');
+      if (/^(?:affordance|behavior|concept|event|operator|process|relation|scene|shape|visual|universe-row)$/.test(type)) {
+        return false;
+      }
+      if (/^(?:artifact|assembly|body|celestial|construction-topology|entity|entity-class|environment|infrastructure|instrument|machine|organism|structure|vehicle)$/.test(type)) {
+        return true;
+      }
+      return bases.length > 0 && /^(?:primitive|grounding-basis)$/.test(type);
     }
 
     function annotateConstructionCandidate(slot = {}, row = {}) {
@@ -227,7 +258,7 @@
     }
 
     function constructionCandidatesForSlot(slot = {}, rows = [], maximum = 3) {
-      return (rows || []).filter((row) => (
+      const ranked = (rows || []).filter((row) => (
         row.constructionEvidence === true && row.construction && constructionRoleRank(slot, row) <= 1
       ))
         .sort((a, b) => (
@@ -235,7 +266,31 @@
           Number(b.modelRerankEvaluated === true) - Number(a.modelRerankEvaluated === true) ||
           Number(a.modelRerankRank ?? Number.MAX_SAFE_INTEGER) - Number(b.modelRerankRank ?? Number.MAX_SAFE_INTEGER) ||
           Number(b.score || 0) - Number(a.score || 0)
-        )).slice(0, Math.max(0, Number(maximum || 0)));
+        ));
+      // Exact prompt-owned construction cards define the candidate family. Keep
+      // embedding neighbours only when the index has no literal construction;
+      // otherwise a retry can drift from an excavator to an unrelated celestial
+      // topology merely because both were close in embedding space.
+      const literal = ranked.filter((row) => row.literalSlotMatch === true);
+      return (literal.length ? literal : ranked).slice(0, Math.max(0, Number(maximum || 0)));
+    }
+
+    function reserveConstructionTopologyCandidates(slot = {}, rows = [], maximum = 0) {
+      const limit = Math.max(0, Number(maximum || 0));
+      if (!limit || !slotNeedsModelConstructionEvidence(slot)) return rows.slice(0, limit);
+      if (rows.some((row) => row.literalSlotMatch === true)) return rows.slice(0, limit);
+      const isTopology = (row) => String(
+        row.construction && row.construction.sourceType || row.type || ''
+      ) === 'construction-topology';
+      const reserve = rows.filter(isTopology).slice(0, Math.min(2, limit));
+      if (!reserve.length) return rows.slice(0, limit);
+      const reservedIds = new Set(reserve.map((row) => row.candidateId || row.id));
+      const primary = rows.filter((row) => !reservedIds.has(row.candidateId || row.id))
+        .slice(0, limit - reserve.length);
+      return [...primary, ...reserve.map((row) => ({
+        ...row,
+        retrievalReservation: 'construction-topology',
+      }))];
     }
 
     function constructionRoleRank(slot = {}, row = {}) {
@@ -244,12 +299,12 @@
       const role = String(slot.slotRole || 'object');
       let rank = 3;
       if (role === 'actor' && type === 'entity') rank = 1;
-      if (role === 'object' && /^(entity|artifact|assembly|entity_class)$/.test(type)) rank = 1;
+      if (/^(concept|object)$/.test(role) && /^(entity|artifact|assembly|entity_class)$/.test(type)) rank = 1;
       if (role === 'environment' && /^(environment|celestial|entity_class)$/.test(type)) rank = 1;
       if (role === 'medium' && /^(material|grounding-basis)$/.test(type)) rank = 1;
-      if (type === 'construction-topology' && /^(actor|object|part|environment)$/.test(role)) rank = 1;
+      if (type === 'construction-topology' && /^(actor|concept|object|part|environment)$/.test(role)) rank = 1;
       if (/^(relation|event|process|affordance)$/.test(type)) rank = 4;
-      return row.literalSlotMatch === true && rank === 1 ? 0 : rank;
+      return row.literalSlotMatch === true && rank < 4 ? 0 : rank;
     }
 
     function exactConstructionCandidate(slot = {}, rows = []) {
@@ -258,8 +313,78 @@
         constructionRoleRank(slot, row) === 0 &&
         row.constructionEvidence === true &&
         row.modelEvaluated === true &&
-        (row.construction && row.construction.partHints || []).length > 0
+        row.construction && row.construction.schema === 'simulatte.constructionEvidence.v1'
       )) || null;
+    }
+
+    function promptVectorExactConstructionCandidates(slot = {}, runtime = {}, vector = null, config = {}, options = {}) {
+      if (!vector || !slotNeedsModelConstructionEvidence(slot) ||
+          !slotAllowsCandidateType(slot, 'surface-card')) return [];
+      const cardMax = slotCandidateBudget(slot, 'surfaceCard', config.perSlotCardMax);
+      if (cardMax <= 0) return [];
+      const rows = rankSurfaceCardsForSlot(
+        runtime.cardIndex, slot, vector, { ...config, perSlotCardMax: cardMax }, options
+      );
+      return constructionCandidatesForSlot(slot, rows, 3).filter((row) => (
+        row.literalSlotMatch === true && row.modelEvaluated === true
+      ));
+    }
+
+    function promptVectorConstructionSlotRow(slot = {}, rows = [], vector = null, config = {}) {
+      const candidates = rows.slice().sort(slotCandidateSort);
+      return {
+        schema: 'simulatte.phase3ModelSlotRetrievalRow.v1',
+        slotId: slot.slotId || '',
+        slotRole: slot.slotRole || '',
+        entryId: slot.entryId || '',
+        required: slot.required !== false,
+        queryText: 'prompt embedding reused for exact construction',
+        vectorHash: embeddingVectorHash(vector),
+        primitiveRankBackend: 'prompt-embedding-surface-card-index',
+        rerankerMode: 'not-run-exact-prompt-embedding-construction',
+        rerankerModelReady: false,
+        candidates,
+        acceptedCandidates: candidates.slice(0, config.perSlotAcceptedMax),
+        constructionCandidates: constructionCandidatesForSlot(slot, candidates, 3),
+        supportOnlyCandidates: [],
+        receipt: {
+          schema: 'simulatte.phase3SlotRerankReceipt.v1',
+          rerankerMode: 'not-run-exact-prompt-embedding-construction',
+          modelReady: false,
+          modelStatus: 'not-run',
+          skipReason: 'exact-construction-scored-by-prompt-embedding',
+          candidateInputCount: 0,
+          candidateOutputCount: 0,
+          localCandidateCount: candidates.length,
+        },
+      };
+    }
+
+    function slotRerankSummary(bySlot = []) {
+      const sum = (field) => bySlot.reduce(
+        (total, row) => total + Number(row.receipt && row.receipt[field] || 0), 0
+      );
+      const paths = [...new Set(bySlot.flatMap(
+        (row) => row.receipt && row.receipt.scoringPaths || []
+      ))].sort();
+      const prefixCounts = bySlot.map(
+        (row) => Number(row.receipt && row.receipt.minimumPrefixTokenCount || 0)
+      ).filter((count) => count > 0);
+      return {
+        rerankCandidateInputCount: sum('candidateInputCount'),
+        rerankCandidateOutputCount: sum('candidateOutputCount'),
+        rerankScoringPaths: paths,
+        selectedTokenLogitCount: sum('selectedTokenLogitCount'),
+        prefixKvReuseCount: sum('prefixKvReuseCount'),
+        prefixStateReuseCount: sum('prefixStateReuseCount'),
+        selectedTokenExecutionCount: sum('selectedTokenExecutionCount'),
+        scoreCacheHitCount: sum('scoreCacheHitCount'),
+        totalExecutionDurationMs: Number(sum('totalExecutionDurationMs').toFixed(3)),
+        maximumExecutionDurationMs: Number(Math.max(0, ...bySlot.map(
+          (row) => Number(row.receipt && row.receipt.maximumExecutionDurationMs || 0)
+        )).toFixed(3)),
+        minimumPrefixTokenCount: prefixCounts.length ? Math.min(...prefixCounts) : 0,
+      };
     }
 
     Object.assign(scope, {
@@ -272,7 +397,11 @@
       annotateConstructionCandidate,
       constructionUniverseMatches,
       constructionCandidatesForSlot,
+      reserveConstructionTopologyCandidates,
       exactConstructionCandidate,
+      promptVectorExactConstructionCandidates,
+      promptVectorConstructionSlotRow,
+      slotRerankSummary,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

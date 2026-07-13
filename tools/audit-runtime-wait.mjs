@@ -4,6 +4,7 @@ export async function waitForCondition(label, check, timeoutMs, options = {}) {
   const stallTimeoutMs = Number(options.stallTimeoutMs || 0);
   const pollIntervalMs = Number(options.pollIntervalMs || 120);
   const progressSignature = options.progressSignature || conditionProgressSignature;
+  const describeLast = options.describeLast;
   if (extendOnProgress && (!Number.isFinite(stallTimeoutMs) || stallTimeoutMs <= 0)) {
     throw new Error(`Waiting for ${label} requires a positive stallTimeoutMs when progress extension is enabled`);
   }
@@ -27,7 +28,8 @@ export async function waitForCondition(label, check, timeoutMs, options = {}) {
     }
     await delay(pollIntervalMs);
   }
-  throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(last)}`);
+  const detail = typeof describeLast === 'function' ? describeLast(last) : last;
+  throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(detail)}`);
 }
 
 export async function withDeadline(label, task, timeoutMs, options = {}) {

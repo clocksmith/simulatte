@@ -45,7 +45,8 @@
         shapeHints: row.shapeHints || [], construction: row.construction || null,
         constructionEvidence: row.constructionEvidence === true,
         modelEvaluated: row.modelEvaluated === true,
-        modelScore: Number.isFinite(Number(row.modelScore)) ? Number(row.modelScore) : null,
+        modelScore: row.modelScore != null && Number.isFinite(Number(row.modelScore))
+          ? Number(row.modelScore) : null,
         sceneHints: row.sceneHints || [], indexName: row.indexName || '', rankSignals: row.rankSignals || null,
         confidence: clamp01(Number(row.score || 0.42)), evidence: row.evidence || ['universe-index'],
       });

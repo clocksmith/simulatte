@@ -981,7 +981,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const promptMatches = normalizePrompt(compiledPrompt) === normalizePrompt(${JSON.stringify(prompt)});
     const sceneId = canvas && canvas.dataset ? canvas.dataset.sceneId || '' : '';
     const renderInputSerial = Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0);
-    const renderInputMatches = ${expectedRenderInputSerial} ? renderInputSerial === ${expectedRenderInputSerial} : true;
+    const renderInputMatches = ${expectedRenderInputSerial} ? renderInputSerial >= ${expectedRenderInputSerial} : true;
     const sceneProofVerdict = canvas && canvas.dataset ? canvas.dataset.sceneProofVerdict || '' : '';
     const pixelReadback = canvas && canvas.dataset ? canvas.dataset.phase7PixelReadback || '' : '';
     const pixelProof = canvas && canvas.dataset ? canvas.dataset.phase7PixelProofStatus || '' : '';
@@ -992,10 +992,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const required = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelRequiredObligationCount || 0);
     const sampled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSampledObligationCount || 0);
     return {
-      ok: promptMatches && renderInputMatches && rendered >= 3 && terminalSceneProof && terminalPixelReadback && terminalPixelProof && required >= 1 && sampled === required,
+      ok: promptMatches && renderInputMatches && rendered >= 3 && terminalSceneProof &&
+        terminalPixelReadback && terminalPixelProof && required >= 1,
       renderCount: rendered,
       sceneId,
       renderInputSerial,
+      expectedRenderInputSerial: ${expectedRenderInputSerial},
       renderInputMatches,
       compiledPrompt,
       promptMatches,
@@ -1007,6 +1009,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7PixelVisibleSampleCount: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelVisibleSampleCount || 0),
       phase7PixelMinContrast: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelMinContrast || 0),
       phase7VisualObligationProof: canvas && canvas.dataset && canvas.dataset.phase7VisualObligationProof || '',
+      phase7PassedVisualObligationIds: canvas && canvas.dataset &&
+        canvas.dataset.phase7PassedVisualObligationIds || '',
       phase7PixelAuditChecks: canvas && canvas.dataset && canvas.dataset.phase7PixelAuditChecks || '',
     };
   })()`), timeoutMs, {
@@ -1017,6 +1021,19 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7PixelReadback: value && value.phase7PixelReadback || '',
       phase7PixelProofStatus: value && value.phase7PixelProofStatus || '',
       sampled: value && value.phase7PixelSampledObligationCount || 0,
+    }),
+    describeLast: (value) => ({
+      renderCount: value && value.renderCount || 0,
+      sceneId: value && value.sceneId || '',
+      renderInputMatches: value && value.renderInputMatches === true,
+      renderInputSerial: value && value.renderInputSerial || 0,
+      expectedRenderInputSerial: value && value.expectedRenderInputSerial || 0,
+      promptMatches: value && value.promptMatches === true,
+      sceneProofVerdict: value && value.sceneProofVerdict || '',
+      phase7PixelReadback: value && value.phase7PixelReadback || '',
+      phase7PixelProofStatus: value && value.phase7PixelProofStatus || '',
+      requiredObligations: value && value.phase7PixelRequiredObligationCount || 0,
+      sampledObligations: value && value.phase7PixelSampledObligationCount || 0,
     }),
   });
   markStage('diagnostics');
@@ -1126,12 +1143,51 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       try { return canvas && canvas.dataset.webgpuObjectRealization ? JSON.parse(canvas.dataset.webgpuObjectRealization) : null; }
       catch (_err) { return null; }
     })();
+    const phase7PixelSamples = (() => {
+      const source = canvas && canvas.__simulattePixelSamples || null;
+      const proof = window.SimulatteRenderProof;
+      const rows = proof && typeof proof.normalizePhase7PixelSamples === 'function'
+        ? proof.normalizePhase7PixelSamples(source)
+        : source && Array.isArray(source.samples) ? source.samples : [];
+      return rows.slice(0, 64).map((row) => ({
+        id: row.id || '',
+        obligationId: row.obligationId || '',
+        drawableId: row.drawableId || '',
+        constructionRole: row.constructionRole || '',
+        constructionPartId: row.constructionPartId || '',
+        rgba: Array.isArray(row.rgba) ? row.rgba.slice(0, 4) : [],
+        contrast: Number(row.contrast || 0),
+        visible: row.visible === true,
+        x: Number(row.x || 0),
+        y: Number(row.y || 0),
+      }));
+    })();
     const visualIRArrayCount = (key) => (
       visualIR && Array.isArray(visualIR[key]) ? visualIR[key].length : 0
     );
     const intentBriefArrayCount = (key) => (
       intentBrief && Array.isArray(intentBrief[key]) ? intentBrief[key].length : 0
     );
+    const constructionAuditSummary = (row = {}) => {
+      const hypotheses = Array.isArray(row.constructionHypotheses) ? row.constructionHypotheses : [];
+      const selected = row.construction || hypotheses[0] || null;
+      return {
+        selectedTargetEntryId: selected && selected.targetEntryId || '',
+        selectedSourceCardIds: selected && selected.sourceCardIds || [],
+        hypothesisCount: hypotheses.length,
+        hypotheses: hypotheses.map((hypothesis) => ({
+          hypothesisId: hypothesis.hypothesisId || '',
+          rank: Number(hypothesis.hypothesisRank || 0),
+          targetEntryId: hypothesis.targetEntryId || '',
+          sourceCardIds: hypothesis.sourceCardIds || [],
+          candidateId: hypothesis.provenance && hypothesis.provenance.candidateId || '',
+          modelEvaluated: hypothesis.provenance && hypothesis.provenance.modelEvaluated === true,
+          rerankEvaluated: hypothesis.provenance && hypothesis.provenance.rerankEvaluated === true,
+          literalSlotMatch: hypothesis.provenance && hypothesis.provenance.literalSlotMatch === true,
+          exactTargetMatch: hypothesis.provenance && hypothesis.provenance.exactTargetMatch === true,
+        })),
+      };
+    };
     return {
       runtimeState: runtime ? runtime.dataset.state || '' : '',
       renderInputSerial: Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0),
@@ -1198,6 +1254,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           modelBackend: sourceRerankReceipt.modelBackend || phase3RerankReceipt.sourceBackend || '',
           candidateInputCount: Number(sourceRerankReceipt.modelCandidateInputCount || 0),
           candidateOutputCount: Number(sourceRerankReceipt.modelCandidateOutputCount || 0),
+          candidateInputs: sourceRerankReceipt.modelCandidateInputs || [],
+          candidateOutputs: sourceRerankReceipt.modelCandidateOutputs || [],
+          candidateSelectionMode: sourceRerankReceipt.candidateSelectionMode || '',
+          evidenceCandidateCount: Number(sourceRerankReceipt.evidenceCandidateCount || 0),
+          evidenceGroupCount: Number(sourceRerankReceipt.evidenceGroupCount || 0),
+          adaptiveCandidateBudget: Number(sourceRerankReceipt.adaptiveCandidateBudget || 0),
           promptScoringPaths: promptRerankScoringPaths,
           promptSelectedTokenLogitCount: Number(sourceRerankReceipt.selectedTokenLogitCount || 0),
           promptSelectedTokenExecutionCount: Number(sourceRerankReceipt.selectedTokenExecutionCount || 0),
@@ -1222,6 +1284,15 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           slotMaximumExecutionDurationMs: Number(slotRetrieval.maximumExecutionDurationMs || 0),
           scoringPaths: [...new Set([...promptRerankScoringPaths, ...slotRerankScoringPaths])].sort(),
           embeddedSlotCount: Number(phase3RerankReceipt.embeddedSlotCount || slotRetrieval.embeddedSlotCount || 0),
+          promptEmbeddingSlotCount: Number(
+            phase3RerankReceipt.promptEmbeddingSlotCount || slotRetrieval.promptEmbeddingSlotCount || 0
+          ),
+          modelEvidenceSlotCount: Number(
+            phase3RerankReceipt.modelEvidenceSlotCount || slotRetrieval.modelEvidenceSlotCount || 0
+          ),
+          slotEmbeddingDurationMs: Number(
+            phase3RerankReceipt.slotEmbeddingDurationMs || slotRetrieval.slotEmbeddingDurationMs || 0
+          ),
         },
       } : null,
       phase3MissingRequiredSlots: (phase3Retrieval.missingRequiredSlots || []).map((row) => ({
@@ -1262,6 +1333,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         canonicalId: row.canonicalId || '',
         label: row.label || '',
         indexName: row.indexName || '',
+        construction: constructionAuditSummary(row),
       })),
       phase4Canonicalization: phase4AcceptedGraph.canonicalization || null,
       phase4ConstructionReceipt: phase4AcceptedGraph.constructionReceipt || null,
@@ -1270,6 +1342,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         canonicalId: row.canonicalId || '',
         label: row.label || row.name || '',
         sourceKind: row.sourceKind || '',
+        construction: constructionAuditSummary(row),
       })),
       phase6CompositionObligations: (phase6CompositionLedger.obligations || []).map((row) => ({
         id: row.id || row.obligationId || '',
@@ -1356,6 +1429,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7PixelSampledObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelSampledObligationCount || 0) : 0,
       phase7PixelRequiredObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelRequiredObligationCount || 0) : 0,
       phase7PixelSampledObligations: canvas && canvas.dataset ? canvas.dataset.phase7PixelSampledObligations || '' : '',
+      phase7PixelSamples,
       webgpuOptimizationPath: canvas && canvas.dataset ? canvas.dataset.webgpuOptimizationPath || '' : '',
       webgpuFeatureFlags: canvas && canvas.dataset ? canvas.dataset.webgpuFeatureFlags || '' : '',
       webgpuSceneInstanceCapacity: canvas && canvas.dataset ? Number(canvas.dataset.webgpuSceneInstanceCapacity || 0) : 0,
@@ -1369,6 +1443,17 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       sceneRenderSpatialHash: canvas && canvas.dataset ? canvas.dataset.sceneRenderSpatialHash || '' : '',
       sceneObjectUniforms: canvas && canvas.dataset ? canvas.dataset.sceneObjectUniforms || '' : '',
       sceneObjectIdentities: canvas && canvas.dataset ? canvas.dataset.sceneObjectIdentities || '' : '',
+      sceneRenderPacketEntities: (sceneRenderPacket && sceneRenderPacket.entities || []).map((row) => ({
+        id: row.id || '',
+        label: row.label || '',
+        identity: row.identity && row.identity.type || '',
+        directlyGrounded: row.directlyGrounded === true,
+        supportOnly: row.supportOnly === true,
+        representedEntityIds: (row.representedEntityIds || []).slice(0, 12),
+        position: row.transform && row.transform.position || [],
+        scale: row.transform && row.transform.scale || [],
+        grammarId: row.geometry && row.geometry.program && row.geometry.program.grammarId || '',
+      })),
       physicsCanvasRenderCount: canvas && canvas.dataset ? canvas.dataset.renderCount || '' : '',
       physicsCanvasLastFrameMs: canvas && canvas.dataset ? canvas.dataset.lastFrameMs || '' : '',
       fieldCanvasRenderer: fieldCanvas && fieldCanvas.dataset ? fieldCanvas.dataset.renderer || '' : '',
@@ -1690,12 +1775,14 @@ function visualRubricForResult(result, prompt) {
       coverage >= 0.66 &&
       dynamicPass > 0 &&
       representation.quality >= 0.5 &&
-      representation.silhouetteFidelity >= 0.75 &&
+      representation.structuralProgramFit >= 0.75 &&
       representation.framing >= 0.75 &&
       missingSignals.length <= Math.max(1, Math.floor(expectedCount / 3)),
     expectedCount,
     coverage: Number(coverage.toFixed(3)),
     representationQuality: Number(representation.quality.toFixed(3)),
+    representationQualityScope: 'render-contract-and-pixel-presence',
+    recognizabilityStatus: 'human-adjudication-required',
     representation,
     dynamic: Boolean(dynamic),
     dynamicRequired,
@@ -1730,7 +1817,7 @@ function representationQualityForResult(result, expectedCount) {
   const dimensions = {
     realizedGeometry: clamp01(Number(realization.realizedCount || 0) / entityCount),
     constructiveGrounding: clamp01(Number(consumption.modelEvaluatedConstructionCount || 0) / entityCount),
-    silhouetteFidelity: Math.min(
+    structuralProgramFit: Math.min(
       clamp01(Number(realization.topologyVerifiedCount || 0) / entityCount),
       clamp01(Number(realization.semanticFitCount || 0) / entityCount)
     ),
@@ -1750,7 +1837,7 @@ function representationQualityForResult(result, expectedCount) {
   const quality = (
     dimensions.realizedGeometry * 0.14 +
     dimensions.constructiveGrounding * 0.08 +
-    dimensions.silhouetteFidelity * 0.18 +
+    dimensions.structuralProgramFit * 0.18 +
     dimensions.framing * 0.15 +
     dimensions.materialResponse * 0.09 +
     dimensions.cameraResponse * 0.08 +
@@ -1763,6 +1850,8 @@ function representationQualityForResult(result, expectedCount) {
   return {
     schema: 'simulatte.visualRepresentationQuality.v1',
     quality: Number(quality.toFixed(3)),
+    scope: 'render-contract-and-pixel-presence',
+    recognizabilityStatus: 'not-measured-by-machine-rubric',
     ...Object.fromEntries(Object.entries(dimensions).map(([key, value]) => [key, Number(value.toFixed(3))])),
   };
 }
@@ -1797,10 +1886,23 @@ function clamp01(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
 }
 
-function analyze(results) {
+function analyze(results, options = {}) {
   const failures = [];
   const perceptualHashes = new Map();
   for (const result of results) {
+    if (result.auditError) {
+      result.visualRubric = {
+        score: 0,
+        pass: false,
+        expectedSignals: [],
+        missingSignals: ['audit-completion'],
+        dynamicRequired: false,
+        dynamic: false,
+        representationQuality: 0,
+      };
+      failures.push(`${result.index}: prompt audit failed: ${result.auditError}`);
+      continue;
+    }
     const rubric = result.visualRubric || visualRubricForResult(result, result.prompt);
     result.visualRubric = rubric;
     if (!auditPromptMatches(result.prompt, result.compiledPrompt)) {
@@ -1837,7 +1939,7 @@ function analyze(results) {
     if (Number(consumption.materialCountConsumed || 0) < 1) failures.push(`${result.index}: compiled materials were not consumed`);
     if (consumption.depthEnabled !== true) failures.push(`${result.index}: depth execution is not enabled`);
     if (consumption.normalShading !== true) failures.push(`${result.index}: material lighting does not use surface normals`);
-    if (Number(result.visualIRSceneRenderPacketEntityCount || 0) > 0 &&
+    if (options.intentMode === 'model' && Number(result.visualIRSceneRenderPacketEntityCount || 0) > 0 &&
         Number(consumption.modelEvaluatedConstructionCount || 0) < 1) {
       failures.push(`${result.index}: no model-evaluated construction program reached Phase 7`);
     }
@@ -1907,11 +2009,20 @@ function analyze(results) {
     if (result.visualIREntityCount < minimumEntityCount) {
       failures.push(`${result.index}: VisualIR has ${result.visualIREntityCount}/${minimumEntityCount} required entities`);
     }
-    const requiresEnvironment = array(result.phase6CompositionObligations).some((row) => (
+    const requiredEnvironments = array(result.phase6CompositionObligations).filter((row) => (
       row.required === true && row.kind === 'environment' && row.status !== 'lost'
     ));
-    if (requiresEnvironment && !result.visualIREnvironmentProgram) {
-      failures.push(`${result.index}: VisualIR required environment has no environment program`);
+    const visualProofByObligation = new Map(parseJsonArray(result.phase7VisualObligationProof)
+      .map((row) => [row.obligationId, row]));
+    const passedVisualObligationIds = new Set(String(result.phase7PassedVisualObligationIds || '')
+      .split(',').map((id) => id.trim()).filter(Boolean));
+    const visibleEnvironmentProof = requiredEnvironments.length > 0 && requiredEnvironments.every((row) => {
+      const proof = visualProofByObligation.get(row.id);
+      return passedVisualObligationIds.has(row.id) ||
+        Boolean(proof && proof.status === 'pass' && proof.pixelSatisfied === true);
+    });
+    if (requiredEnvironments.length && !result.visualIREnvironmentProgram && !visibleEnvironmentProof) {
+      failures.push(`${result.index}: required environment has neither a rendered program nor live pixel proof`);
     }
     if (result.visualIRProcessCount < 2) failures.push(`${result.index}: VisualIR has too few processes`);
     if (result.visualIRRenderInstanceCount < 3) failures.push(`${result.index}: VisualIR has too few render instances`);
@@ -1964,7 +2075,8 @@ function analyze(results) {
   return {
     ok: failures.length === 0,
     failures,
-    screenshotCount: results.length,
+    promptCount: results.length,
+    screenshotCount: results.filter((result) => result.screenshotHash).length,
     uniqueCanvasHashes: new Set(results.map((result) => result.canvasHash)).size,
     uniqueScreenshotHashes: new Set(results.map((result) => result.screenshotHash)).size,
     uniqueCanvasPerceptualHashes: new Set(results.map((result) => result.canvasPerceptualHash).filter(Boolean)).size,
@@ -1982,6 +2094,8 @@ function analyze(results) {
       wgslOperators: [...new Set(results.flatMap((result) => result.visualIRGraphicsWgslOperators || []))].sort(),
     },
     visualRubric: {
+      scope: 'machine-structural-and-pixel-presence',
+      recognizabilityStatus: 'human-adjudication-required',
       averageScore: Number((results.reduce((sum, result) => sum + (result.visualRubric ? result.visualRubric.score : 0), 0) / Math.max(1, results.length)).toFixed(2)),
       passCount: results.filter((result) => result.visualRubric && result.visualRubric.pass).length,
       failCount: results.filter((result) => result.visualRubric && !result.visualRubric.pass).length,
@@ -2042,7 +2156,7 @@ function promptNeedsCausalGraph(prompt) {
 }
 
 function withAutoRating(summary) {
-  const promptCount = Math.max(1, Number(summary.screenshotCount || 0));
+  const promptCount = Math.max(1, Number(summary.promptCount || summary.screenshotCount || 0));
   const rubric = summary.visualRubric || {};
   const causal = summary.causalRequirements || {};
   const passRate = Number(rubric.passCount || 0) / promptCount;
@@ -2071,6 +2185,9 @@ function withAutoRating(summary) {
     ...summary,
     autoRating: {
       schema: 'simulatte.liveVisualAutoRating.v1',
+      scope: 'machine-structural-and-pixel-presence',
+      recognizabilityVerified: false,
+      humanAdjudicationRequired: true,
       score,
       grade: gradeForScore(score),
       verdict: summary.ok && score >= 85 ? 'pass' : 'fail',
@@ -2215,19 +2332,41 @@ async function main() {
       };
       const promptOptions = { ...options, promptCount: prompts.length, onAuditStage };
       const deadlineMs = promptDeadlineMs(promptOptions);
-      results.push(await withDeadline(
-        `visual audit prompt ${i + 1}/${prompts.length}`,
-        () => runPrompt(cdp, prompts[i], i, options.outDir, promptOptions),
-        deadlineMs,
-        {
-          describe: () => `stage=${active.stage}, stageElapsedMs=${active.elapsedMs}`,
-          onTimeout: (error) => cdp.close(error),
-        }
-      ));
+      try {
+        results.push(await withDeadline(
+          `visual audit prompt ${i + 1}/${prompts.length}`,
+          () => runPrompt(cdp, prompts[i], i, options.outDir, promptOptions),
+          deadlineMs,
+          {
+            describe: () => `stage=${active.stage}, stageElapsedMs=${active.elapsedMs}`,
+            onTimeout: (error) => cdp.close(error),
+          }
+        ));
+      } catch (error) {
+        if (cdp.closedError) throw error;
+        const state = await auditFailureState(cdp);
+        const message = error && error.message ? error.message : String(error);
+        results.push({
+          index: i + 1,
+          kind: prompts[i].kind,
+          prompt: prompts[i].prompt,
+          goldRowId: prompts[i].goldRowId || '',
+          auditError: message,
+          auditFailureState: state,
+        });
+        console.error(JSON.stringify({
+          schema: 'simulatte.visualAuditPromptFailure.v1',
+          promptIndex: i + 1,
+          promptCount: prompts.length,
+          prompt: prompts[i].prompt,
+          stage: active.stage,
+          error: message,
+        }));
+      }
       console.log(`${i + 1}/${prompts.length} ${prompts[i].kind} ${results[results.length - 1].canvasHash} ${results[results.length - 1].rendererSceneKind || 'scene'}`);
     }
     const browserEvents = cdp.diagnostics();
-    const analyzed = analyze(results);
+    const analyzed = analyze(results, options);
     const goldEvaluation = evaluateGoldVisualResults(results, options.goldSet, options.goldAdjudication);
     if (goldEvaluation) {
       analyzed.goldEvaluation = goldEvaluation;

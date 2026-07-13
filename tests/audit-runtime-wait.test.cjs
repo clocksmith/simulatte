@@ -46,6 +46,22 @@ test('model readiness fails when only elapsed display text changes', async () =>
   assert.ok(call > 1);
 });
 
+test('waitForCondition uses a compact caller-owned timeout description', async () => {
+  const { waitForCondition } = await import('../tools/audit-runtime-wait.mjs');
+  await assert.rejects(() => waitForCondition('pixel proof', async () => ({
+    ok: false,
+    status: 'fail',
+    phase7VisualObligationProof: 'x'.repeat(8000),
+  }), 5, {
+    pollIntervalMs: 1,
+    describeLast: (value) => ({ status: value.status }),
+  }), (error) => {
+    assert.match(error.message, /pixel proof: \{"status":"fail"\}/);
+    assert.doesNotMatch(error.message, /xxxxxxxx/);
+    return true;
+  });
+});
+
 test('audit prompt identity ignores presentation whitespace but rejects stale artifacts', async () => {
   const { auditPromptMatches } = await import('../tools/audit-runtime-wait.mjs');
 

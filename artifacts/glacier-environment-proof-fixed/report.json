@@ -1,0 +1,2078 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-13T17:48:53.171Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "live-url",
+  "url": "http://127.0.0.1:4173/index.html?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-gciIdo",
+  "profilePersistent": false,
+  "promptDeadlineMs": 120000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 633,
+      "chunkCount": 5,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:54718/devtools/browser/d94e6633-25cc-4276-828a-c6b0a9febe97\nTrying to load the allocator multiple times. This is *not* supported.\n[34895:30614277:0713/134852.841102:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[34895:30614277:0713/134852.841325:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[34895:30614277:0713/134852.841670:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": false,
+    "failures": [
+      "1: no model-evaluated construction program reached Phase 7",
+      "1: required environment has neither a rendered program nor live pixel proof"
+    ],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 1,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 1,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 1,
+      "bitMargin": 1,
+      "maxTemporalBits": 0,
+      "maxTemporalDistance": 0,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": 1,
+      "recommendedHashFloor": 0.0156,
+      "calibrated": false
+    },
+    "sceneKinds": [
+      "ocean-cryosphere"
+    ],
+    "visualIRSceneKinds": [
+      "ocean-cryosphere"
+    ],
+    "visualIRCameras": [
+      "aerial-map-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 50,
+      "mappingIds": [
+        "visual.operator.cryosphere-surface.v1",
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.phase-transition.v1",
+        "visual.operator.stress-fracture.v1"
+      ],
+      "uniformSlots": [
+        "constraint",
+        "density",
+        "fluid",
+        "motion",
+        "phase",
+        "stress",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomConstraintPads",
+        "atomFluidRibbons",
+        "atomLatentHeatBand",
+        "atomPhaseBoundary",
+        "atomStressCracks",
+        "atomVectorFlow"
+      ]
+    },
+    "visualRubric": {
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityStatus": "human-adjudication-required",
+      "averageScore": 95,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.92
+    },
+    "intentBriefs": {
+      "totalEvidence": 78,
+      "totalCausalEdges": 0,
+      "totalAffordances": 1,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 37,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 1,
+      "totalAssumptions": 7,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityVerified": false,
+      "humanAdjudicationRequired": true,
+      "score": 89,
+      "grade": "B",
+      "verdict": "fail",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 2,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.92,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "goldRowId": "",
+      "prompt": "glacier calving into fjord with sea ice waves",
+      "screenshot": "01-custom-glacier-calving-into-fjord-with-sea-ice-waves.png",
+      "screenshotHash": "0eb43e301028697f96d636529a2b1541e4d74cb1fac9be7a72b7e21ea27cfee7",
+      "auditTiming": {
+        "schema": "simulatte.visualAuditTiming.v1",
+        "durationMs": 3234,
+        "stages": [
+          {
+            "id": "configure",
+            "durationMs": 0
+          },
+          {
+            "id": "runtime-wait",
+            "durationMs": 623
+          },
+          {
+            "id": "scene-proof",
+            "durationMs": 653
+          },
+          {
+            "id": "diagnostics",
+            "durationMs": 7
+          },
+          {
+            "id": "viewport-screenshot",
+            "durationMs": 144
+          },
+          {
+            "id": "temporal-canvas-capture",
+            "durationMs": 980
+          },
+          {
+            "id": "frozen-canvas-capture",
+            "durationMs": 823
+          },
+          {
+            "id": "analyze",
+            "durationMs": 4
+          },
+          {
+            "id": "complete",
+            "durationMs": 0
+          }
+        ]
+      },
+      "runtimeState": "ready",
+      "renderInputSerial": 1,
+      "compiledPrompt": "glacier calving into fjord with sea ice waves",
+      "compiledSourcePromptHash": "fnv1a:012a20fd",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "blank",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v2",
+        "timestamp": "2026-07-13T17:48:49.601Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "render.blank",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "taskProgress": 100,
+        "overallProgress": 100,
+        "sourceProgress": 100,
+        "progressBasis": "terminal",
+        "progressEstimated": false,
+        "taskKey": "render.blank",
+        "taskElapsedMs": 0,
+        "taskExpectedDurationMs": 100,
+        "taskRemainingMs": 100,
+        "runElapsedMs": 0,
+        "runExpectedDurationMs": 24000,
+        "runRemainingMs": 24000,
+        "line": "Ready 100%",
+        "displayLine": "Ready 100%",
+        "label": "Ready",
+        "subline": "",
+        "byteText": "",
+        "sourceText": "",
+        "byteProgress": "",
+        "activity": "ready",
+        "heartbeat": false,
+        "silenceMs": 0,
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "",
+        "timing": {
+          "timestamp": "2026-07-13T17:48:49.601Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "queueWaitMs": 0,
+          "schedulerLagMs": 0,
+          "handlerDurationMs": 0,
+          "timing": "",
+          "traceId": ""
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null,
+        "loaderReceipt": {
+          "schema": "simulatte.loaderPhaseReceipt.v2",
+          "id": "loader-1",
+          "runId": "",
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8
+        }
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T17:48:49.599Z",
+          "source": "",
+          "state": "idle",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "runtime.start",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 0,
+          "taskProgress": 0,
+          "overallProgress": 0,
+          "sourceProgress": 0,
+          "progressBasis": "elapsed-time-forecast",
+          "progressEstimated": true,
+          "taskKey": "",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 1200,
+          "taskRemainingMs": 1200,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "",
+          "displayLine": "",
+          "label": "",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "",
+          "detail": "",
+          "backend": "",
+          "timing": {},
+          "model": {},
+          "resource": {},
+          "embeddings": {},
+          "promptRuntime": null,
+          "loaderReceipt": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T17:48:49.601Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "render.blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 100,
+          "taskRemainingMs": 100,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "ready",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-13T17:48:49.601Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": ""
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8
+          }
+        }
+      ],
+      "runtimeProgressLogs": [
+        {
+          "schema": "simulatte.runtimeProgressLog.v2",
+          "sequence": 1,
+          "timestamp": "2026-07-13T17:48:49.601Z",
+          "timestampMs": 1783964929601,
+          "runId": "",
+          "state": "ready",
+          "blocking": false,
+          "phase": {
+            "step": 8,
+            "id": "webgpu-ready",
+            "label": "WebGPU ready",
+            "weight": 7,
+            "stagePrefixes": [
+              null,
+              null,
+              null
+            ]
+          },
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "source": "",
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "line": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "message": "Ready",
+          "detail": "Ready",
+          "transitionMs": 0,
+          "runElapsedMs": 0,
+          "taskTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 100,
+            "estimatedRemainingMs": 100
+          },
+          "runTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 24000,
+            "estimatedRemainingMs": 24000,
+            "basis": "observed-duration-forecast"
+          },
+          "throughputBytesPerSecond": 0,
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0,
+            "cacheMode": "",
+            "cacheWorker": "",
+            "bytesPerSecond": 0,
+            "eta": "",
+            "operationId": 0,
+            "queueDepth": 0,
+            "cacheBackends": ""
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0,
+            "cacheMissCount": 0,
+            "batchEmbedding": false
+          },
+          "reranker": {
+            "slotId": "",
+            "candidateId": "",
+            "completed": 0,
+            "total": 0,
+            "candidateCount": 0,
+            "scoreCacheHit": false,
+            "promptTokenCount": 0,
+            "prefixTokenCount": 0,
+            "prefixStateReused": false,
+            "executionDurationMs": 0
+          },
+          "timing": {
+            "timestamp": "2026-07-13T17:48:49.601Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8,
+            "label": "Ready",
+            "subline": "",
+            "status": "complete",
+            "state": "ready",
+            "blocking": false,
+            "indeterminate": false,
+            "startedAt": "2026-07-13T17:48:49.601Z",
+            "updatedAt": "2026-07-13T17:48:49.601Z",
+            "completedAt": "2026-07-13T17:48:49.601Z",
+            "durationMs": 0,
+            "taskKey": "render.blank",
+            "progressBasis": "terminal",
+            "progressEstimated": false,
+            "expectedDurationMs": 100,
+            "percentStart": 0,
+            "percentEnd": 100
+          }
+        }
+      ],
+      "runtimePerformanceLogs": [
+        {
+          "schema": "simulatte.runtimeProgressPerformance.v1",
+          "timestamp": "2026-07-13T17:48:49.605Z",
+          "kind": "observer-flush",
+          "durationMs": 0.4,
+          "runId": "",
+          "stage": "render.blank",
+          "observerCount": 5
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "modelExecutionReceipt": null,
+      "phase3MissingRequiredSlots": [],
+      "phase3SlotEvidence": [
+        {
+          "slotId": "slot.object.glacier",
+          "entryId": "entity:glacier",
+          "status": "preserved",
+          "acceptedCount": 3,
+          "acceptedCandidateIds": [
+            "prompt.object.glacier",
+            "environment.glacier",
+            "surface-glacier-1"
+          ]
+        },
+        {
+          "slotId": "slot.object.sea_ice",
+          "entryId": "entity:sea-ice",
+          "status": "preserved",
+          "acceptedCount": 4,
+          "acceptedCandidateIds": [
+            "prompt.object.sea-ice",
+            "entity.sea-ice",
+            "surface-sea-ice-1",
+            "open-sea-ice-1"
+          ]
+        },
+        {
+          "slotId": "slot.object.waves",
+          "entryId": "entity:waves",
+          "status": "preserved",
+          "acceptedCount": 4,
+          "acceptedCandidateIds": [
+            "prompt.object.waves",
+            "entity.ocean-wave",
+            "surface-waves-1",
+            "open-waves-2"
+          ]
+        },
+        {
+          "slotId": "slot.action.calving",
+          "entryId": "action:calving",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.action.calving"
+          ]
+        },
+        {
+          "slotId": "slot.action.flow",
+          "entryId": "action:flow",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.action.flow",
+            "action:flow"
+          ]
+        },
+        {
+          "slotId": "slot.environment.fjord",
+          "entryId": "environment:fjord",
+          "status": "preserved",
+          "acceptedCount": 3,
+          "acceptedCandidateIds": [
+            "prompt.environment.fjord",
+            "environment.fjord",
+            "surface-fjord-1"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-glacier_flow_environment-fjord",
+          "entryId": "relation:entity-glacier:flow:environment-fjord",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-glacier-flow-environment-fjord"
+          ]
+        },
+        {
+          "slotId": "slot.relation.spatial_entity-glacier_into_environment-fjord",
+          "entryId": "relation:spatial:entity-glacier:into:environment-fjord",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.spatial-entity-glacier-into-environment-fjord"
+          ]
+        }
+      ],
+      "phase3SlotCandidates": [
+        {
+          "slotId": "slot.object.glacier",
+          "slotRole": "object",
+          "required": true,
+          "candidates": [
+            {
+              "id": "environment.glacier",
+              "type": "surface-card",
+              "score": 0.97,
+              "embeddingScore": 0,
+              "lexicalScore": 0.97,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        },
+        {
+          "slotId": "slot.object.sea_ice",
+          "slotRole": "object",
+          "required": true,
+          "candidates": [
+            {
+              "id": "entity.sea-ice",
+              "type": "surface-card",
+              "score": 0.97,
+              "embeddingScore": 0,
+              "lexicalScore": 0.97,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        },
+        {
+          "slotId": "slot.object.waves",
+          "slotRole": "object",
+          "required": true,
+          "candidates": [
+            {
+              "id": "entity.ocean-wave",
+              "type": "surface-card",
+              "score": 0.97,
+              "embeddingScore": 0,
+              "lexicalScore": 0.97,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        },
+        {
+          "slotId": "slot.environment.fjord",
+          "slotRole": "environment",
+          "required": true,
+          "candidates": [
+            {
+              "id": "environment.fjord",
+              "type": "surface-card",
+              "score": 0.97,
+              "embeddingScore": 0,
+              "lexicalScore": 0.97,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        }
+      ],
+      "phase4AcceptedNodeIdentities": [
+        {
+          "id": "prompt-body-glacier",
+          "canonicalId": "prompt.body.glacier",
+          "label": "Glacier",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "entity:glacier",
+            "selectedSourceCardIds": [
+              "environment.glacier"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.glacier:1",
+                "rank": 1,
+                "targetEntryId": "entity:glacier",
+                "sourceCardIds": [
+                  "environment.glacier"
+                ],
+                "candidateId": "environment.glacier",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-environment-fjord",
+          "canonicalId": "prompt.environment.fjord",
+          "label": "Fjord",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "environment:fjord",
+            "selectedSourceCardIds": [
+              "environment.fjord"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.environment.fjord:1",
+                "rank": 1,
+                "targetEntryId": "environment:fjord",
+                "sourceCardIds": [
+                  "environment.fjord"
+                ],
+                "candidateId": "environment.fjord",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-body-sea-ice",
+          "canonicalId": "prompt.body.sea-ice",
+          "label": "Sea Ice",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "entity:sea-ice",
+            "selectedSourceCardIds": [
+              "entity.sea-ice"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.sea_ice:1",
+                "rank": 1,
+                "targetEntryId": "entity:sea-ice",
+                "sourceCardIds": [
+                  "entity.sea-ice"
+                ],
+                "candidateId": "entity.sea-ice",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-body-waves",
+          "canonicalId": "prompt.body.waves",
+          "label": "Waves",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "entity:waves",
+            "selectedSourceCardIds": [
+              "entity.ocean-wave"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.waves:1",
+                "rank": 1,
+                "targetEntryId": "entity:waves",
+                "sourceCardIds": [
+                  "entity.ocean-wave"
+                ],
+                "candidateId": "entity.ocean-wave",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        }
+      ],
+      "phase4Canonicalization": {
+        "schema": "simulatte.groundedGraphCanonicalization.v1",
+        "inputNodeCount": 12,
+        "canonicalNodeCount": 4,
+        "mergedNodeCount": 8,
+        "nodeIdCollisionCount": 0,
+        "unresolvedDuplicateNodeIdCount": 0,
+        "duplicateConceptCount": 0
+      },
+      "phase4ConstructionReceipt": {
+        "schema": "simulatte.constructionAttachmentReceipt.v1",
+        "slotCount": 8,
+        "attachedCount": 4,
+        "modelEvaluatedCount": 0,
+        "rerankEvaluatedCount": 0
+      },
+      "phase5EntityIdentities": [
+        {
+          "id": "prompt-body-glacier",
+          "canonicalId": "prompt.body.glacier",
+          "label": "Glacier",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "entity:glacier",
+            "selectedSourceCardIds": [
+              "environment.glacier"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.glacier:1",
+                "rank": 1,
+                "targetEntryId": "entity:glacier",
+                "sourceCardIds": [
+                  "environment.glacier"
+                ],
+                "candidateId": "environment.glacier",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-environment-fjord",
+          "canonicalId": "prompt.environment.fjord",
+          "label": "Fjord",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "environment:fjord",
+            "selectedSourceCardIds": [
+              "environment.fjord"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.environment.fjord:1",
+                "rank": 1,
+                "targetEntryId": "environment:fjord",
+                "sourceCardIds": [
+                  "environment.fjord"
+                ],
+                "candidateId": "environment.fjord",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-body-sea-ice",
+          "canonicalId": "prompt.body.sea-ice",
+          "label": "Sea Ice",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "entity:sea-ice",
+            "selectedSourceCardIds": [
+              "entity.sea-ice"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.sea_ice:1",
+                "rank": 1,
+                "targetEntryId": "entity:sea-ice",
+                "sourceCardIds": [
+                  "entity.sea-ice"
+                ],
+                "candidateId": "entity.sea-ice",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-body-waves",
+          "canonicalId": "prompt.body.waves",
+          "label": "Waves",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "entity:waves",
+            "selectedSourceCardIds": [
+              "entity.ocean-wave"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.waves:1",
+                "rank": 1,
+                "targetEntryId": "entity:waves",
+                "sourceCardIds": [
+                  "entity.ocean-wave"
+                ],
+                "candidateId": "entity.ocean-wave",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        }
+      ],
+      "phase6CompositionObligations": [
+        {
+          "id": "entity:glacier",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-glacier-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-glacier-1"
+          ]
+        },
+        {
+          "id": "entity:sea-ice",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:ice",
+            "phase6:render-instance:instance:geometry:geometry-ice"
+          ]
+        },
+        {
+          "id": "entity:waves",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-waves-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-waves-1"
+          ]
+        },
+        {
+          "id": "action:calving",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-fjord-1",
+            "phase6:entity:surface-glacier-1"
+          ]
+        },
+        {
+          "id": "action:flow",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-fjord-1",
+            "phase6:entity:surface-glacier-1"
+          ]
+        },
+        {
+          "id": "environment:fjord",
+          "kind": "environment",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-fjord-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-fjord-1"
+          ]
+        },
+        {
+          "id": "relation:entity-glacier:flow:environment-fjord",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-glacier-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-glacier-1",
+            "phase6:entity:surface-fjord-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-fjord-1"
+          ]
+        },
+        {
+          "id": "relation:spatial:entity-glacier:into:environment-fjord",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-glacier-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-glacier-1",
+            "phase6:entity:surface-fjord-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-fjord-1",
+            "layout-relation:relation:spatial:entity-glacier:into:environment-fjord"
+          ]
+        },
+        {
+          "id": "visual:compiled-scene-packet",
+          "kind": "visual",
+          "target": "sea ice",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:render-instance:instance:geometry:geometry-ice"
+          ]
+        },
+        {
+          "id": "visual:construction:ice:topology",
+          "kind": "visual",
+          "target": "sea-ice",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:ice:part:field",
+          "kind": "visual",
+          "target": "sea-ice",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:ice:part:path",
+          "kind": "visual",
+          "target": "sea-ice",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:ice:part:detail",
+          "kind": "visual",
+          "target": "sea-ice",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:ice:part:core",
+          "kind": "visual",
+          "target": "sea-ice",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-fjord-1:topology",
+          "kind": "visual",
+          "target": "fjord",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-fjord-1:part:field",
+          "kind": "visual",
+          "target": "fjord",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-fjord-1:part:path",
+          "kind": "visual",
+          "target": "fjord",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-fjord-1:part:detail",
+          "kind": "visual",
+          "target": "fjord",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-fjord-1:part:core",
+          "kind": "visual",
+          "target": "fjord",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-fjord-1:part:opening",
+          "kind": "visual",
+          "target": "fjord",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-glacier-1:topology",
+          "kind": "visual",
+          "target": "glacier",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-glacier-1:part:field",
+          "kind": "visual",
+          "target": "glacier",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-glacier-1:part:path",
+          "kind": "visual",
+          "target": "glacier",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-glacier-1:part:detail",
+          "kind": "visual",
+          "target": "glacier",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-glacier-1:part:core",
+          "kind": "visual",
+          "target": "glacier",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-waves-1:topology",
+          "kind": "visual",
+          "target": "waves",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-waves-1:part:field",
+          "kind": "visual",
+          "target": "waves",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-waves-1:part:path",
+          "kind": "visual",
+          "target": "waves",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-waves-1:part:detail",
+          "kind": "visual",
+          "target": "waves",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-waves-1:part:core",
+          "kind": "visual",
+          "target": "waves",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.natural-environment.balanced"
+          ]
+        }
+      ],
+      "sceneRenderPacketIdentities": [
+        {
+          "id": "ice",
+          "label": "sea ice",
+          "type": "sea-ice",
+          "sourceLabel": "sea ice",
+          "layerSlot": "material-surface",
+          "animationKind": "state-pulse",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.constructive.natural-environment.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 10,
+          "propertyBindings": []
+        },
+        {
+          "id": "surface-fjord-1",
+          "label": "fjord",
+          "type": "fjord",
+          "sourceLabel": "fjord",
+          "layerSlot": "water-volume",
+          "animationKind": "streamline-advection",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.constructive.natural-environment.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 11,
+          "propertyBindings": []
+        },
+        {
+          "id": "surface-glacier-1",
+          "label": "glacier",
+          "type": "glacier",
+          "sourceLabel": "glacier",
+          "layerSlot": "material-surface",
+          "animationKind": "streamline-advection",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.constructive.natural-environment.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 10,
+          "propertyBindings": []
+        },
+        {
+          "id": "surface-waves-1",
+          "label": "waves",
+          "type": "waves",
+          "sourceLabel": "waves",
+          "layerSlot": "water-volume",
+          "animationKind": "streamline-advection",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.constructive.natural-environment.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 10,
+          "propertyBindings": []
+        }
+      ],
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "ocean-cryosphere",
+      "physicsCanvasSceneId": "27",
+      "physicsCanvasSceneMix": "thermal:1.00,phase:0.85,water:0.85,optical:0.58",
+      "physicsCanvasSceneMixSlots": "4",
+      "phase7Input": "simulatte.renderExecutionInput.v1",
+      "phase7RenderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase7SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+      "phase7Output": "simulatte.phase7.output.v2",
+      "phase7OutputInput": "simulatte.phase6.output.v2",
+      "phase8Output": "simulatte.phase8.output.v2",
+      "sceneProofVerdict": "pass",
+      "sceneProofError": "",
+      "sceneProofLostCount": "0",
+      "sceneProofNotProvenCount": "0",
+      "sceneProofRequiredLostIds": "[]",
+      "sceneProofRequiredNotProvenIds": "[]",
+      "sceneProofRequiredFailures": "[]",
+      "phase7RenderData": "simulatte.phase7.compactRenderData.v1",
+      "phase7RenderDataKey": "ocean-cryosphere:4:9:24:a58f796c",
+      "phase7RenderPath": "depth-lit-storage-object-parts-with-uniform-fallback",
+      "phase7RendererConsumption": {
+        "schema": "simulatte.phase7RendererConsumption.v1",
+        "cameraConfigured": true,
+        "sourceLightCount": 2,
+        "sourceMaterialCount": 4,
+        "cameraConsumed": true,
+        "lightCountConsumed": 2,
+        "materialCountConsumed": 4,
+        "objectPartCount": 41,
+        "depthConfigured": true,
+        "depthEnabled": true,
+        "normalShading": true,
+        "perspectiveEnabled": true,
+        "constructionProgramCount": 4,
+        "modelEvaluatedConstructionCount": 0
+      },
+      "webgpuObjectRealization": {
+        "schema": "simulatte.objectRenderRealizationSummary.v1",
+        "entityCount": 4,
+        "realizedCount": 4,
+        "literalCount": 4,
+        "constructionProgramCount": 4,
+        "modelEvaluatedConstructionCount": 0,
+        "topologyVerifiedCount": 4,
+        "semanticFitCount": 4,
+        "readableCount": 4,
+        "projectedArea": 0.58327,
+        "framingPass": true,
+        "framing": {
+          "schema": "simulatte.sceneFramingReceipt.v1",
+          "method": "group-bounds-fit",
+          "sourceBounds": [
+            0.21,
+            0.3,
+            0.65824,
+            0.44
+          ],
+          "framedBounds": [
+            0.1,
+            0.21262,
+            0.8,
+            0.53476
+          ],
+          "targetBounds": [
+            0.1,
+            0.12,
+            0.8,
+            0.72
+          ],
+          "scaleFactor": 1.21536,
+          "projectedArea": 0.58328,
+          "minimumProjectedArea": 0.16,
+          "centerOffset": 0,
+          "entityCount": 4,
+          "readableCount": 4,
+          "pass": true
+        },
+        "unprovenEntityIds": [],
+        "rows": [
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "ice",
+            "identityType": "sea-ice",
+            "identityLabels": [
+              "ice",
+              "sea ice",
+              "sea ice",
+              "sea ice",
+              "sea-ice"
+            ],
+            "grammarId": "object-grammar.constructive.natural-environment.balanced",
+            "renderArchetype": "plate_field",
+            "literal": true,
+            "partCount": 10,
+            "primitiveCount": 3,
+            "projectedArea": 0.06877,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "surface-fjord-1",
+            "identityType": "fjord",
+            "identityLabels": [
+              "surface-fjord-1",
+              "fjord",
+              "fjord",
+              "fjord",
+              "fjord"
+            ],
+            "grammarId": "object-grammar.constructive.natural-environment.balanced",
+            "renderArchetype": "basin",
+            "literal": true,
+            "partCount": 11,
+            "primitiveCount": 3,
+            "projectedArea": 0.37696,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "surface-glacier-1",
+            "identityType": "glacier",
+            "identityLabels": [
+              "surface-glacier-1",
+              "glacier",
+              "glacier",
+              "glacier",
+              "glacier"
+            ],
+            "grammarId": "object-grammar.constructive.natural-environment.balanced",
+            "renderArchetype": "ice_mass",
+            "literal": true,
+            "partCount": 10,
+            "primitiveCount": 3,
+            "projectedArea": 0.06877,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "surface-waves-1",
+            "identityType": "waves",
+            "identityLabels": [
+              "surface-waves-1",
+              "waves",
+              "waves",
+              "waves",
+              "waves"
+            ],
+            "grammarId": "object-grammar.constructive.natural-environment.balanced",
+            "renderArchetype": "wavefront",
+            "literal": true,
+            "partCount": 10,
+            "primitiveCount": 3,
+            "projectedArea": 0.06877,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          }
+        ]
+      },
+      "phase7CameraConsumed": true,
+      "phase7LightCountConsumed": 2,
+      "phase7MaterialCountConsumed": 4,
+      "phase7DepthEnabled": true,
+      "phase7NormalShading": true,
+      "phase7ConstructionProgramCount": 4,
+      "phase7ModelEvaluatedConstructionCount": 0,
+      "phase7InputVisualObligationCount": 28,
+      "phase7PixelReadback": "pass",
+      "phase7PixelReadbackMessage": "",
+      "phase7PixelReadbackPlan": "none",
+      "phase7LivePixelSamplesRequired": "true",
+      "phase7RequiredVisualObligationCount": 28,
+      "phase7PixelProofStatus": "pass",
+      "phase7PixelSampleCount": 52,
+      "phase7PixelVisibleSampleCount": 52,
+      "phase7PixelMinContrast": 0.502,
+      "phase7PixelSampledObligationCount": 28,
+      "phase7PixelRequiredObligationCount": 28,
+      "phase7PixelSampledObligations": "entity:glacier,entity:sea-ice,entity:waves,action:calving,action:flow,environment:fjord,visual:compiled-scene-packet,visual:construction:ice:topology,visual:construction:ice:part:field,visual:construction:ice:part:path,visual:construction:ice:part:detail,visual:construction:ice:part:core,visual:construction:surface-fjord-1:topology,visual:construction:surface-fjord-1:part:field,visual:construction:surface-fjord-1:part:path,visual:construction:surface-fjord-1:part:detail,visual:construction:surface-fjord-1:part:core,visual:construction:surface-fjord-1:part:opening,visual:construction:surface-glacier-1:topology,visual:construction:surface-glacier-1:part:field,visual:construction:surface-glacier-1:part:path,visual:construction:surface-glacier-1:part:detail,visual:construction:surface-glacier-1:part:core,visual:construction:surface-waves-1:topology,visual:construction:surface-waves-1:part:field,visual:construction:surface-waves-1:part:path,visual:construction:surface-waves-1:part:detail,visual:construction:surface-waves-1:part:core",
+      "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+      "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+      "webgpuSceneInstanceCapacity": 32,
+      "webgpuSceneInstanceCount": 32,
+      "webgpuStorageBytes": 20480,
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v2",
+        "phase4": "simulatte.phase4.output.v2",
+        "phase5": "simulatte.phase5.output.v2",
+        "phase6": "simulatte.phase6.output.v2",
+        "phase7": "simulatte.phase7.output.v2"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:4;fields:9;effects:24;layers:material-surface+water-volume+field-sheet+thermal-field+optical-field+process-pulse+phase-boundary+causal-affordance;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 4,
+      "sceneRenderFieldCount": 9,
+      "sceneRenderEffectCount": 24,
+      "sceneRenderSpatialHash": "a58f796c",
+      "sceneObjectUniforms": "0:fjord:water-volume@0.45,0.48;1:waves:water-volume@0.75,0.48;2:sea ice:material-surface@0.32,0.40;3:glacier:material-surface@0.70,0.43;4:atom-process:meltwater-mixing:water-volume@0.50,0.50;5:atom-process:phase-front:thermal-field@0.50,0.50;6:atom-process:latent-heat-exchange:thermal-field@0.50,0.50;7:motion:phase-boundary:phase-boundary@0.50,0.50",
+      "sceneObjectIdentities": "0:fjord:object:water-volume:@0.45,0.48;1:waves:object:water-volume:@0.75,0.48;2:sea ice:object:material-surface:@0.32,0.40;3:glacier:object:material-surface:@0.70,0.43;4:atom-process:meltwater-mixing:process:water-volume:@0.50,0.50;5:atom-process:phase-front:process:thermal-field:@0.50,0.50;6:atom-process:latent-heat-exchange:process:thermal-field:@0.50,0.50;7:motion:phase-boundary:process:phase-boundary:@0.50,0.50",
+      "physicsCanvasRenderCount": "41",
+      "physicsCanvasLastFrameMs": "0.000",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 84.316,
+      "lumaStd": 28.179,
+      "coloredRatio": 0.9885,
+      "canvasHash": "9b019ac9",
+      "specId": "glacier-calving-into-fjord-sea-ice-mrjinq1d",
+      "templateId": "custom-world",
+      "rendererSceneKind": "ocean-cryosphere",
+      "visualIRSceneKind": "ocean-cryosphere",
+      "visualIRCamera": "aerial-map-depth",
+      "visualIREntityCount": 4,
+      "visualIRMaterialCount": 13,
+      "visualIRFieldCount": 9,
+      "visualIRProcessCount": 19,
+      "visualIROperatorCount": 9,
+      "visualIRRenderInstanceCount": 48,
+      "visualIRRejectedRowCount": 14,
+      "visualIRReceiptCount": 13,
+      "visualIRCausalAffordanceCount": 1,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIREnvironmentProgram": "",
+      "visualIRSceneRenderPacketEntityCount": 4,
+      "visualIRSceneRenderPacketFieldCount": 9,
+      "visualIRSceneRenderPacketEffectCount": 24,
+      "phase6VisualObligationCount": 28,
+      "phase6VisualObligationIds": [
+        "entity:glacier",
+        "entity:sea-ice",
+        "entity:waves",
+        "action:calving",
+        "action:flow",
+        "environment:fjord",
+        "visual:compiled-scene-packet",
+        "visual:construction:ice:topology",
+        "visual:construction:ice:part:field",
+        "visual:construction:ice:part:path",
+        "visual:construction:ice:part:detail",
+        "visual:construction:ice:part:core",
+        "visual:construction:surface-fjord-1:topology",
+        "visual:construction:surface-fjord-1:part:field",
+        "visual:construction:surface-fjord-1:part:path",
+        "visual:construction:surface-fjord-1:part:detail",
+        "visual:construction:surface-fjord-1:part:core",
+        "visual:construction:surface-fjord-1:part:opening",
+        "visual:construction:surface-glacier-1:topology",
+        "visual:construction:surface-glacier-1:part:field",
+        "visual:construction:surface-glacier-1:part:path",
+        "visual:construction:surface-glacier-1:part:detail",
+        "visual:construction:surface-glacier-1:part:core",
+        "visual:construction:surface-waves-1:topology",
+        "visual:construction:surface-waves-1:part:field",
+        "visual:construction:surface-waves-1:part:path",
+        "visual:construction:surface-waves-1:part:detail",
+        "visual:construction:surface-waves-1:part:core"
+      ],
+      "visualIRSceneRenderPacketLayers": [
+        "material-surface",
+        "water-volume",
+        "field-sheet",
+        "thermal-field",
+        "optical-field",
+        "process-pulse",
+        "phase-boundary",
+        "causal-affordance"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "sea ice",
+        "fjord",
+        "glacier",
+        "waves"
+      ],
+      "visualIRAcceptedRenderInstances": 48,
+      "visualIRRenderInstanceSlots": [
+        "material-surface",
+        "water-volume",
+        "material-surface",
+        "water-volume",
+        "field-sheet",
+        "field-sheet",
+        "field-sheet",
+        "field-sheet",
+        "field-sheet",
+        "field-sheet",
+        "field-sheet",
+        "field-sheet",
+        "thermal-field",
+        "optical-field",
+        "process-pulse",
+        "process-pulse",
+        "phase-boundary",
+        "process-pulse",
+        "field-sheet",
+        "field-sheet",
+        "phase-boundary",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "water",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "wave-source",
+          "sourceKind": "catalog",
+          "reason": "field evidence is rendered by the compiled field program"
+        },
+        {
+          "id": "fluid-advection",
+          "sourceKind": "catalog",
+          "reason": "field evidence is rendered by the compiled field program"
+        },
+        {
+          "id": "terrain-patch",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.granular-erosion.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.acoustic-wave.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.biological-growth.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 50,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.cryosphere-surface.v1",
+        "visual.operator.fluid-advection.v1",
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.phase-transition.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "fluid",
+        "stress",
+        "phase",
+        "motion",
+        "density",
+        "constraint",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "fluid": 1,
+        "stress": 0.929,
+        "phase": 1,
+        "motion": 0.92,
+        "density": 0.84,
+        "constraint": 0.854,
+        "surface": 0.78
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomPhaseBoundary",
+        "atomFluidRibbons",
+        "atomStressCracks",
+        "atomVectorFlow",
+        "atomConstraintPads",
+        "atomLatentHeatBand"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "entity glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "catalog-candidate",
+          "text": "entity glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "process calving",
+          "slots": []
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "environment fjord",
+          "slots": []
+        },
+        {
+          "id": "activation.0054",
+          "kind": "catalog-candidate",
+          "text": "environment fjord",
+          "slots": []
+        },
+        {
+          "id": "activation.0061",
+          "kind": "catalog-candidate",
+          "text": "entity sea ice",
+          "slots": []
+        },
+        {
+          "id": "activation.0068",
+          "kind": "catalog-candidate",
+          "text": "entity sea ice",
+          "slots": []
+        },
+        {
+          "id": "activation.0073",
+          "kind": "catalog-candidate",
+          "text": "entity sea ice",
+          "slots": []
+        },
+        {
+          "id": "activation.0077",
+          "kind": "catalog-candidate",
+          "text": "entity waves",
+          "slots": []
+        },
+        {
+          "id": "activation.0086",
+          "kind": "catalog-candidate",
+          "text": "entity waves",
+          "slots": []
+        },
+        {
+          "id": "activation.0087",
+          "kind": "catalog-candidate",
+          "text": "entity waves",
+          "slots": []
+        },
+        {
+          "id": "activation.0089",
+          "kind": "catalog-candidate",
+          "text": "subject glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0095",
+          "kind": "causal-candidate",
+          "text": "subject glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0096",
+          "kind": "causal-candidate",
+          "text": "subject glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0099",
+          "kind": "catalog-candidate",
+          "text": "subject glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0107",
+          "kind": "catalog-candidate",
+          "text": "predicate calving",
+          "slots": []
+        },
+        {
+          "id": "activation.0124",
+          "kind": "catalog-candidate",
+          "text": "object fjord",
+          "slots": []
+        },
+        {
+          "id": "activation.0125",
+          "kind": "causal-candidate",
+          "text": "object fjord",
+          "slots": []
+        },
+        {
+          "id": "activation.0126",
+          "kind": "causal-candidate",
+          "text": "object fjord",
+          "slots": []
+        },
+        {
+          "id": "activation.0128",
+          "kind": "catalog-candidate",
+          "text": "object fjord",
+          "slots": []
+        },
+        {
+          "id": "activation.0007",
+          "kind": "causal-candidate",
+          "text": "entity glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "causal-candidate",
+          "text": "entity glacier",
+          "slots": []
+        },
+        {
+          "id": "activation.0051",
+          "kind": "causal-candidate",
+          "text": "environment fjord",
+          "slots": []
+        },
+        {
+          "id": "activation.0052",
+          "kind": "causal-candidate",
+          "text": "environment fjord",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 78,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 7,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 37,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 1,
+      "physicalReceiptAssumptionCount": 7,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 1,
+      "previewLength": 88200,
+      "ok": true,
+      "renderCount": 41,
+      "sceneId": "27",
+      "renderInputMatches": true,
+      "promptMatches": true,
+      "phase7VisualObligationProof": "[{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:glacier\",\"target\":\"glacier\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:glacier:surface-fjord-1:1\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:sea-ice\",\"target\":\"sea ice\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:sea-ice:surface-fjord-1:2\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:waves\",\"target\":\"waves\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:waves:surface-waves-1:3\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"action:calving\",\"target\":\"calving\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:action:calving:process:causal-glacier-calving-3d:4\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"st",
+      "phase7PixelAuditChecks": "[{\"id\":\"scene-packet-drawables\",\"actual\":37,\"expectedMin\":1,\"pass\":true},{\"id\":\"draw-count\",\"actual\":32,\"expectedMin\":1,\"pass\":true},{\"id\":\"scene-instance-count\",\"actual\":32,\"expectedMin\":1,\"pass\":true},{\"id\":\"canvas-pixels\",\"actual\":1497600,\"expectedMin\":1,\"pass\":true},{\"id\":\"visual-obligation-failures\",\"actual\":0,\"expectedMax\":0,\"pass\":true},{\"id\":\"live-pixel-sample-count\",\"actual\":52,\"expectedMin\":3,\"pass\":true},{\"id\":\"literal-object-realization\",\"actual\":4,\"expectedMin\":4,\"pass\":true},{\"id\":\"live-pixel-contrast\",\"actual\":0.502,\"expectedMin\":0.035,\"pass\":true},{\"id\":\"visual-obligation-pixel-samples\",\"actual\":28,\"expectedMin\":28,\"pass\":true}]",
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-glacier-calving-into-fjord-with-sea-ice-waves.canvas.png",
+      "canvasScreenshotLater": "01-custom-glacier-calving-into-fjord-with-sea-ice-waves.canvas-late.png",
+      "canvasScreenshotHash": "b96331e7f0eeaad0f740bb277d7d6141f1ea0f3b8246952ec373d179b7a5d55a",
+      "canvasScreenshotLaterHash": "ce13c40e91f1008d169e34fab2072d327cfb0f607c940b9aaed700f0abb792f2",
+      "canvasPerceptualHash": "0f0f0f45570f0f0f",
+      "canvasPerceptualHashLater": "0f0f0f45530f0f0f",
+      "canvasDiversityScreenshot": "01-custom-glacier-calving-into-fjord-with-sea-ice-waves.canvas-diversity.png",
+      "canvasDiversityScreenshotLater": "01-custom-glacier-calving-into-fjord-with-sea-ice-waves.canvas-diversity-late.png",
+      "canvasDiversityPerceptualHash": "0f0f0f434b0f0f0f",
+      "canvasDiversityPerceptualHashLater": "0f0f0f434b0f0f0f",
+      "canvasDiversityHashKind": "audit:visual-clean-canvas-dhash-64",
+      "canvasDiversityFrameStable": true,
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 28.179,
+      "canvasScreenshotColoredRatio": 0.9885,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasScreenshotNearWhiteRatio": 0,
+      "canvasScreenshotStrongEdgeRatio": 0.0432,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.061,
+      "canvasFrameLumaStdDelta": 0.02,
+      "canvasFrameColoredRatioDelta": 0.0003,
+      "canvasFrameMeanAbsolutePixelDelta": 1.3475,
+      "canvasFrameChangedPixelRatio": 0.06139,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 95,
+        "pass": true,
+        "expectedCount": 0,
+        "coverage": 1,
+        "representationQuality": 0.92,
+        "representationQualityScope": "render-contract-and-pixel-presence",
+        "recognizabilityStatus": "human-adjudication-required",
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.92,
+          "scope": "render-contract-and-pixel-presence",
+          "recognizabilityStatus": "not-measured-by-machine-rubric",
+          "realizedGeometry": 1,
+          "constructiveGrounding": 0,
+          "structuralProgramFit": 1,
+          "framing": 1,
+          "materialResponse": 1,
+          "cameraResponse": 1,
+          "lightResponse": 1,
+          "depthResponse": 1,
+          "spatialRelations": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicRequired": true,
+        "dynamicPass": true,
+        "dynamicMagnitude": 1,
+        "atomRichness": 1,
+        "contrast": 0.561,
+        "color": 1,
+        "expectedSignals": [],
+        "matchedSignals": [],
+        "missingSignals": []
+      }
+    }
+  ]
+}

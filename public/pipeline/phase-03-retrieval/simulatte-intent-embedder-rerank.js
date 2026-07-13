@@ -530,6 +530,7 @@
         priors,
         semanticRag,
         dopplerIntent,
+        slotRetrieval,
         runtime,
         universeMatches,
         provider,
@@ -571,6 +572,7 @@
             priors: local.priors,
             semanticRag,
             dopplerIntent,
+            slotRetrieval,
             universeMatches,
             runtime,
             phaseLabel,
@@ -619,6 +621,24 @@
               modelBackend: capability.backend,
               modelCandidateInputCount: input.candidates.length,
               modelCandidateOutputCount: modelRows.length,
+              candidateSelectionMode: input.selection.mode,
+              evidenceCandidateCount: input.selection.evidenceCandidateCount,
+              evidenceGroupCount: input.selection.evidenceGroupCount,
+              adaptiveCandidateBudget: input.selection.candidateBudget,
+              modelCandidateInputs: input.candidates.map((row) => ({
+                primitiveId: row.primitiveId,
+                order: row.order,
+                layer: row.layer,
+                localScore: row.score,
+                lexicalScore: row.lexicalScore,
+              })),
+              modelCandidateOutputs: modelRows.map((row) => ({
+                primitiveId: row.primitiveId,
+                rank: row.rank,
+                score: row.score,
+                scoringPath: row.scoringPath,
+                executionDurationMs: row.executionDurationMs,
+              })),
               ...rerankExecutionSummary(modelRows),
               top: rows.slice(0, 12).map((row) => row.primitiveId),
             },
@@ -646,19 +666,27 @@
         priors,
         semanticRag,
         dopplerIntent,
+        slotRetrieval,
         universeMatches,
         runtime,
         phaseLabel,
       }) {
         const config = rerankerConfig(runtime);
         const limit = config.maxCandidatesPerCall;
-        const selectedPriors = (priors || []).slice(0, limit);
+        const selection = selectEvidenceBackedRerankPriors(priors, slotRetrieval, limit);
+        const selectedPriors = selection.priors;
         return {
           schema: 'simulatte.intentRerankInput.v1',
           phase: 3,
           phaseId: 'retrieval',
           stage: phaseLabel || 'span-refined',
           reranker: rerankerId(runtime),
+          selection: {
+            mode: selection.mode,
+            evidenceCandidateCount: selection.evidenceCandidateCount,
+            evidenceGroupCount: selection.evidenceGroupCount,
+            candidateBudget: selection.candidateBudget,
+          },
           prompt: String(promptText || ''),
           candidates: selectedPriors.map((prior, order) => ({
             primitiveId: prior.primitiveId,
@@ -699,6 +727,45 @@
         };
       }
 
+    function selectEvidenceBackedRerankPriors(priors = [], slotRetrieval = null, limit = 0) {
+      const maximum = Math.max(0, Number(limit || 0));
+      const byId = new Map(priors.map((row) => [row.primitiveId, row]));
+      const groups = (slotRetrieval && slotRetrieval.bySlot || []).map((slot) => uniqueStrings(
+        (slot.constructionCandidates || []).flatMap((candidate) => (
+          candidate.construction && candidate.construction.primitiveHints || []
+        ))
+      ).filter((id) => byId.has(id))).filter((group) => group.length);
+      const candidateBudget = groups.length
+        ? Math.min(maximum, Math.max(4, groups.length * 2))
+        : maximum;
+      const evidenceIds = [];
+      const seen = new Set();
+      const depth = Math.max(0, ...groups.map((group) => group.length));
+      for (let index = 0; index < depth && evidenceIds.length < candidateBudget; index += 1) {
+        for (const group of groups) {
+          const id = group[index];
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          evidenceIds.push(id);
+          if (evidenceIds.length >= candidateBudget) break;
+        }
+      }
+      const selected = evidenceIds.map((id) => byId.get(id));
+      for (const prior of priors) {
+        if (selected.length >= candidateBudget) break;
+        if (seen.has(prior.primitiveId)) continue;
+        seen.add(prior.primitiveId);
+        selected.push(prior);
+      }
+      return {
+        priors: selected,
+        mode: evidenceIds.length ? 'construction-evidence-round-robin' : 'local-score-top-k',
+        evidenceCandidateCount: evidenceIds.length,
+        evidenceGroupCount: groups.length,
+        candidateBudget,
+      };
+    }
+
     Object.assign(scope, {
       cloneJsonValue,
       resolveDopplerApi,
@@ -721,6 +788,7 @@
       analyzeDopplerIntent,
       rerankIntentPriors,
       buildRerankInput,
+      selectEvidenceBackedRerankPriors,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

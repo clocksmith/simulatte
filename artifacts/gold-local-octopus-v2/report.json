@@ -1,0 +1,1497 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-13T16:22:39.945Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:60705/index.html?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-penUdf",
+  "profilePersistent": false,
+  "promptDeadlineMs": 48000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 98,
+      "chunkCount": 1,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:60706/devtools/browser/0e98046e-5c7a-4289-a5ac-4e1384fa1032\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": false,
+    "failures": [
+      "1: no model-evaluated construction program reached Phase 7"
+    ],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 1,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 1,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 1,
+      "bitMargin": 1,
+      "maxTemporalBits": 0,
+      "maxTemporalDistance": 0,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": 1,
+      "recommendedHashFloor": 0.0156,
+      "calibrated": false
+    },
+    "sceneKinds": [
+      "watershed"
+    ],
+    "visualIRSceneKinds": [
+      "watershed"
+    ],
+    "visualIRCameras": [
+      "topographic-cutaway-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 14,
+      "mappingIds": [
+        "visual.operator.instrument-readout.v1"
+      ],
+      "uniformSlots": [
+        "instrument",
+        "measurement",
+        "signal"
+      ],
+      "wgslOperators": [
+        "atomInstrumentReadout",
+        "atomMeasurementBands"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 95,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.92
+    },
+    "intentBriefs": {
+      "totalEvidence": 74,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 13,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 14,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 93,
+      "grade": "B",
+      "verdict": "fail",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 1,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.92,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "goldRowId": "",
+      "prompt": "an octopus holding a teapot",
+      "screenshot": "01-custom-an-octopus-holding-a-teapot.png",
+      "screenshotHash": "04fcf55d3ffd869c644b6c8703156f93dfde790b47dc4cae250535a1be2c07f2",
+      "auditTiming": {
+        "schema": "simulatte.visualAuditTiming.v1",
+        "durationMs": 2264,
+        "stages": [
+          {
+            "id": "configure",
+            "durationMs": 1
+          },
+          {
+            "id": "runtime-wait",
+            "durationMs": 554
+          },
+          {
+            "id": "scene-proof",
+            "durationMs": 244
+          },
+          {
+            "id": "diagnostics",
+            "durationMs": 4
+          },
+          {
+            "id": "viewport-screenshot",
+            "durationMs": 128
+          },
+          {
+            "id": "temporal-canvas-capture",
+            "durationMs": 524
+          },
+          {
+            "id": "frozen-canvas-capture",
+            "durationMs": 799
+          },
+          {
+            "id": "analyze",
+            "durationMs": 9
+          },
+          {
+            "id": "complete",
+            "durationMs": 1
+          }
+        ]
+      },
+      "runtimeState": "ready",
+      "renderInputSerial": 1,
+      "compiledPrompt": "an octopus holding a teapot",
+      "compiledSourcePromptHash": "fnv1a:83ebbf0c",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "blank",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v2",
+        "timestamp": "2026-07-13T16:22:37.279Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "render.blank",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "taskProgress": 100,
+        "overallProgress": 100,
+        "sourceProgress": 100,
+        "progressBasis": "terminal",
+        "progressEstimated": false,
+        "taskKey": "render.blank",
+        "taskElapsedMs": 0,
+        "taskExpectedDurationMs": 100,
+        "taskRemainingMs": 100,
+        "runElapsedMs": 0,
+        "runExpectedDurationMs": 24000,
+        "runRemainingMs": 24000,
+        "line": "Ready 100%",
+        "displayLine": "Ready 100%",
+        "label": "Ready",
+        "subline": "",
+        "byteText": "",
+        "sourceText": "",
+        "byteProgress": "",
+        "activity": "ready",
+        "heartbeat": false,
+        "silenceMs": 0,
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "",
+        "timing": {
+          "timestamp": "2026-07-13T16:22:37.279Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "queueWaitMs": 0,
+          "schedulerLagMs": 0,
+          "handlerDurationMs": 0,
+          "timing": "",
+          "traceId": ""
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null,
+        "loaderReceipt": {
+          "schema": "simulatte.loaderPhaseReceipt.v2",
+          "id": "loader-1",
+          "runId": "",
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8
+        }
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T16:22:37.277Z",
+          "source": "",
+          "state": "idle",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "runtime.start",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 0,
+          "taskProgress": 0,
+          "overallProgress": 0,
+          "sourceProgress": 0,
+          "progressBasis": "elapsed-time-forecast",
+          "progressEstimated": true,
+          "taskKey": "",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 1200,
+          "taskRemainingMs": 1200,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "",
+          "displayLine": "",
+          "label": "",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "",
+          "detail": "",
+          "backend": "",
+          "timing": {},
+          "model": {},
+          "resource": {},
+          "embeddings": {},
+          "promptRuntime": null,
+          "loaderReceipt": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T16:22:37.279Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "render.blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 100,
+          "taskRemainingMs": 100,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "ready",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-13T16:22:37.279Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": ""
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8
+          }
+        }
+      ],
+      "runtimeProgressLogs": [
+        {
+          "schema": "simulatte.runtimeProgressLog.v2",
+          "sequence": 1,
+          "timestamp": "2026-07-13T16:22:37.279Z",
+          "timestampMs": 1783959757279,
+          "runId": "",
+          "state": "ready",
+          "blocking": false,
+          "phase": {
+            "step": 8,
+            "id": "webgpu-ready",
+            "label": "WebGPU ready",
+            "weight": 7,
+            "stagePrefixes": [
+              null,
+              null,
+              null
+            ]
+          },
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "source": "",
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "line": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "message": "Ready",
+          "detail": "Ready",
+          "transitionMs": 0,
+          "runElapsedMs": 0,
+          "taskTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 100,
+            "estimatedRemainingMs": 100
+          },
+          "runTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 24000,
+            "estimatedRemainingMs": 24000,
+            "basis": "observed-duration-forecast"
+          },
+          "throughputBytesPerSecond": 0,
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0,
+            "cacheMode": "",
+            "cacheWorker": "",
+            "bytesPerSecond": 0,
+            "eta": "",
+            "operationId": 0,
+            "queueDepth": 0,
+            "cacheBackends": ""
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0,
+            "cacheMissCount": 0,
+            "batchEmbedding": false
+          },
+          "reranker": {
+            "slotId": "",
+            "candidateId": "",
+            "completed": 0,
+            "total": 0,
+            "candidateCount": 0,
+            "scoreCacheHit": false,
+            "promptTokenCount": 0,
+            "prefixTokenCount": 0,
+            "prefixStateReused": false,
+            "executionDurationMs": 0
+          },
+          "timing": {
+            "timestamp": "2026-07-13T16:22:37.279Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8,
+            "label": "Ready",
+            "subline": "",
+            "status": "complete",
+            "state": "ready",
+            "blocking": false,
+            "indeterminate": false,
+            "startedAt": "2026-07-13T16:22:37.279Z",
+            "updatedAt": "2026-07-13T16:22:37.279Z",
+            "completedAt": "2026-07-13T16:22:37.279Z",
+            "durationMs": 0,
+            "taskKey": "render.blank",
+            "progressBasis": "terminal",
+            "progressEstimated": false,
+            "expectedDurationMs": 100,
+            "percentStart": 0,
+            "percentEnd": 100
+          }
+        }
+      ],
+      "runtimePerformanceLogs": [
+        {
+          "schema": "simulatte.runtimeProgressPerformance.v1",
+          "timestamp": "2026-07-13T16:22:37.281Z",
+          "kind": "observer-flush",
+          "durationMs": 0.4,
+          "runId": "",
+          "stage": "render.blank",
+          "observerCount": 5
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "modelExecutionReceipt": null,
+      "phase3MissingRequiredSlots": [],
+      "phase3SlotEvidence": [
+        {
+          "slotId": "slot.concept.octopus",
+          "entryId": "concept:octopus",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "construction.cephalopod",
+            "entity.octopus"
+          ]
+        },
+        {
+          "slotId": "slot.concept.teapot",
+          "entryId": "concept:teapot",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "artifact.kettle"
+          ]
+        },
+        {
+          "slotId": "slot.action.holding",
+          "entryId": "action:holding",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.action.holding",
+            "action:holding"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-octopus_holding_entity-teapot",
+          "entryId": "relation:entity-octopus:holding:entity-teapot",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-octopus-holding-entity-teapot"
+          ]
+        }
+      ],
+      "phase3SlotCandidates": [
+        {
+          "slotId": "slot.concept.octopus",
+          "slotRole": "concept",
+          "required": false,
+          "candidates": [
+            {
+              "id": "construction.cephalopod",
+              "type": "surface-card",
+              "score": 1,
+              "embeddingScore": 0,
+              "lexicalScore": 1,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            },
+            {
+              "id": "entity.octopus",
+              "type": "surface-card",
+              "score": 0.963,
+              "embeddingScore": 0,
+              "lexicalScore": 0.963,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        },
+        {
+          "slotId": "slot.concept.teapot",
+          "slotRole": "concept",
+          "required": false,
+          "candidates": [
+            {
+              "id": "artifact.kettle",
+              "type": "surface-card",
+              "score": 0.963,
+              "embeddingScore": 0,
+              "lexicalScore": 0.963,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        }
+      ],
+      "phase4AcceptedNodeIdentities": [
+        {
+          "id": "semantic-surface-octopus-1",
+          "canonicalId": "semantic.surface-octopus-1",
+          "label": "Octopus",
+          "indexName": "semantic-rag"
+        },
+        {
+          "id": "artifact-kettle",
+          "canonicalId": "artifact.kettle",
+          "label": "Teapot",
+          "indexName": "semantic-rag-surface"
+        }
+      ],
+      "phase4Canonicalization": {
+        "schema": "simulatte.groundedGraphCanonicalization.v1",
+        "inputNodeCount": 4,
+        "canonicalNodeCount": 2,
+        "mergedNodeCount": 2,
+        "nodeIdCollisionCount": 0,
+        "unresolvedDuplicateNodeIdCount": 0,
+        "duplicateConceptCount": 0
+      },
+      "phase4ConstructionReceipt": {
+        "schema": "simulatte.constructionAttachmentReceipt.v1",
+        "slotCount": 4,
+        "attachedCount": 2,
+        "modelEvaluatedCount": 0,
+        "rerankEvaluatedCount": 0
+      },
+      "phase5EntityIdentities": [
+        {
+          "id": "semantic-surface-octopus-1",
+          "canonicalId": "semantic.surface-octopus-1",
+          "label": "Octopus",
+          "sourceKind": ""
+        },
+        {
+          "id": "artifact-kettle",
+          "canonicalId": "artifact.kettle",
+          "label": "Teapot",
+          "sourceKind": ""
+        }
+      ],
+      "phase6CompositionObligations": [
+        {
+          "id": "concept:octopus",
+          "kind": "concept",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-octopus-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-octopus-1"
+          ]
+        },
+        {
+          "id": "concept:teapot",
+          "kind": "concept",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:artifact-kettle",
+            "phase6:render-instance:instance:geometry:geometry-artifact-kettle"
+          ]
+        },
+        {
+          "id": "action:holding",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-octopus-1",
+            "phase6:entity:artifact-kettle"
+          ]
+        },
+        {
+          "id": "relation:entity-octopus:holding:entity-teapot",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-octopus-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-octopus-1",
+            "phase6:entity:artifact-kettle",
+            "phase6:render-instance:instance:geometry:geometry-artifact-kettle"
+          ]
+        },
+        {
+          "id": "visual:prompt-pose-octopus-grasp-hold",
+          "kind": "visual",
+          "target": "Octopus",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "pose:grasp-hold"
+          ]
+        },
+        {
+          "id": "visual:compiled-scene-packet",
+          "kind": "visual",
+          "target": "teapot",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:render-instance:instance:geometry:geometry-artifact-kettle"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-octopus-1:topology",
+          "kind": "visual",
+          "target": "octopus",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.cephalopod.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-octopus-1:part:core",
+          "kind": "visual",
+          "target": "octopus",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.cephalopod.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-octopus-1:part:appendage",
+          "kind": "visual",
+          "target": "octopus",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.cephalopod.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:surface-octopus-1:part:sensor",
+          "kind": "visual",
+          "target": "octopus",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.cephalopod.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:artifact-kettle:topology",
+          "kind": "visual",
+          "target": "teapot",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.container.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:artifact-kettle:part:core",
+          "kind": "visual",
+          "target": "teapot",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.container.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:artifact-kettle:part:opening",
+          "kind": "visual",
+          "target": "teapot",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.container.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:artifact-kettle:part:appendage",
+          "kind": "visual",
+          "target": "teapot",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.container.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:artifact-kettle:part:detail",
+          "kind": "visual",
+          "target": "teapot",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.container.balanced"
+          ]
+        }
+      ],
+      "sceneRenderPacketIdentities": [
+        {
+          "id": "surface-octopus-1",
+          "label": "octopus",
+          "type": "octopus",
+          "sourceLabel": "octopus",
+          "layerSlot": "biological-agent",
+          "animationKind": "hold-pose",
+          "animationSpeed": 0.22,
+          "grammarId": "object-grammar.constructive.cephalopod.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 11,
+          "propertyBindings": []
+        },
+        {
+          "id": "artifact-kettle",
+          "label": "teapot",
+          "type": "teapot",
+          "sourceLabel": "teapot",
+          "layerSlot": "material-surface",
+          "animationKind": "streamline-advection",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.constructive.container.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 5,
+          "propertyBindings": []
+        }
+      ],
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "watershed",
+      "physicsCanvasSceneId": "2",
+      "physicsCanvasSceneMix": "chemical:1.00,instrument:0.85,biological:0.61,water:0.49",
+      "physicsCanvasSceneMixSlots": "4",
+      "phase7Input": "simulatte.renderExecutionInput.v1",
+      "phase7RenderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase7SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+      "phase7Output": "simulatte.phase7.output.v2",
+      "phase7OutputInput": "simulatte.phase6.output.v2",
+      "phase8Output": "simulatte.phase8.output.v2",
+      "sceneProofVerdict": "pass",
+      "sceneProofError": "",
+      "sceneProofLostCount": "0",
+      "sceneProofNotProvenCount": "0",
+      "sceneProofRequiredLostIds": "[]",
+      "sceneProofRequiredNotProvenIds": "[]",
+      "sceneProofRequiredFailures": "[]",
+      "phase7RenderData": "simulatte.phase7.compactRenderData.v1",
+      "phase7RenderDataKey": "watershed:2:4:20:0ce414cf",
+      "phase7RenderPath": "depth-lit-storage-object-parts-with-uniform-fallback",
+      "phase7RendererConsumption": {
+        "schema": "simulatte.phase7RendererConsumption.v1",
+        "cameraConfigured": true,
+        "sourceLightCount": 2,
+        "sourceMaterialCount": 2,
+        "cameraConsumed": true,
+        "lightCountConsumed": 2,
+        "materialCountConsumed": 2,
+        "objectPartCount": 16,
+        "depthConfigured": true,
+        "depthEnabled": true,
+        "normalShading": true,
+        "perspectiveEnabled": true,
+        "constructionProgramCount": 2,
+        "modelEvaluatedConstructionCount": 0
+      },
+      "webgpuObjectRealization": {
+        "schema": "simulatte.objectRenderRealizationSummary.v1",
+        "entityCount": 2,
+        "realizedCount": 2,
+        "literalCount": 2,
+        "constructionProgramCount": 2,
+        "modelEvaluatedConstructionCount": 0,
+        "topologyVerifiedCount": 2,
+        "semanticFitCount": 2,
+        "readableCount": 2,
+        "projectedArea": 0.17472,
+        "framingPass": true,
+        "framing": {
+          "schema": "simulatte.sceneFramingReceipt.v1",
+          "method": "group-bounds-fit",
+          "sourceBounds": [
+            0.36121,
+            0.1655,
+            0.36337,
+            0.58481
+          ],
+          "framedBounds": [
+            0.27632,
+            0.12,
+            0.44737,
+            0.72
+          ],
+          "targetBounds": [
+            0.1,
+            0.12,
+            0.8,
+            0.72
+          ],
+          "scaleFactor": 1.23117,
+          "projectedArea": 0.17472,
+          "minimumProjectedArea": 0.09,
+          "centerOffset": 0.00001,
+          "entityCount": 2,
+          "readableCount": 2,
+          "pass": true
+        },
+        "unprovenEntityIds": [],
+        "rows": [
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "surface-octopus-1",
+            "identityType": "octopus",
+            "identityLabels": [
+              "surface-octopus-1",
+              "octopus",
+              "octopus",
+              "octopus",
+              "octopus"
+            ],
+            "grammarId": "object-grammar.constructive.cephalopod.balanced",
+            "renderArchetype": "cephalopod",
+            "literal": true,
+            "partCount": 11,
+            "primitiveCount": 2,
+            "projectedArea": 0.07286,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "artifact-kettle",
+            "identityType": "teapot",
+            "identityLabels": [
+              "artifact-kettle",
+              "teapot",
+              "teapot",
+              "teapot",
+              "teapot"
+            ],
+            "grammarId": "object-grammar.constructive.container.balanced",
+            "renderArchetype": "vessel",
+            "literal": true,
+            "partCount": 5,
+            "primitiveCount": 2,
+            "projectedArea": 0.10186,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          }
+        ]
+      },
+      "phase7CameraConsumed": true,
+      "phase7LightCountConsumed": 2,
+      "phase7MaterialCountConsumed": 2,
+      "phase7DepthEnabled": true,
+      "phase7NormalShading": true,
+      "phase7ConstructionProgramCount": 2,
+      "phase7ModelEvaluatedConstructionCount": 0,
+      "phase7InputVisualObligationCount": 12,
+      "phase7PixelReadback": "pass",
+      "phase7PixelReadbackMessage": "",
+      "phase7PixelReadbackPlan": "none",
+      "phase7LivePixelSamplesRequired": "true",
+      "phase7RequiredVisualObligationCount": 12,
+      "phase7PixelProofStatus": "pass",
+      "phase7PixelSampleCount": 21,
+      "phase7PixelVisibleSampleCount": 21,
+      "phase7PixelMinContrast": 0.4941,
+      "phase7PixelSampledObligationCount": 12,
+      "phase7PixelRequiredObligationCount": 12,
+      "phase7PixelSampledObligations": "action:holding,visual:prompt-pose-octopus-grasp-hold,visual:compiled-scene-packet,visual:construction:surface-octopus-1:topology,visual:construction:surface-octopus-1:part:core,visual:construction:surface-octopus-1:part:appendage,visual:construction:surface-octopus-1:part:sensor,visual:construction:artifact-kettle:topology,visual:construction:artifact-kettle:part:core,visual:construction:artifact-kettle:part:opening,visual:construction:artifact-kettle:part:appendage,visual:construction:artifact-kettle:part:detail",
+      "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+      "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+      "webgpuSceneInstanceCapacity": 32,
+      "webgpuSceneInstanceCount": 26,
+      "webgpuStorageBytes": 20480,
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v2",
+        "phase4": "simulatte.phase4.output.v2",
+        "phase5": "simulatte.phase5.output.v2",
+        "phase6": "simulatte.phase6.output.v2",
+        "phase7": "simulatte.phase7.output.v2"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:2;fields:4;effects:20;layers:biological-agent+material-surface+field-sheet+readout-panel+process-pulse+chemical-front;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 2,
+      "sceneRenderFieldCount": 4,
+      "sceneRenderEffectCount": 20,
+      "sceneRenderSpatialHash": "0ce414cf",
+      "sceneObjectUniforms": "0:octopus:biological-agent@0.57,0.72;1:teapot:material-surface@0.45,0.27;2:atom-process:measurement-sampling:readout-panel@0.50,0.50;3:motion:measurement-sampling:readout-panel@0.50,0.50;4:atom-process:readout-integration:readout-panel@0.50,0.50;5:motion:readout-integration:readout-panel@0.50,0.50;6:motion:atom:measurement-pulses:readout-panel@0.50,0.50;7:atom-field:measurement-sample-field:readout-panel@0.50,0.50",
+      "sceneObjectIdentities": "0:octopus:object:biological-agent:@0.57,0.72;1:teapot:object:material-surface:@0.45,0.27;2:atom-process:measurement-sampling:process:readout-panel:@0.50,0.50;3:motion:measurement-sampling:process:readout-panel:@0.50,0.50;4:atom-process:readout-integration:process:readout-panel:@0.50,0.50;5:motion:readout-integration:process:readout-panel:@0.50,0.50;6:motion:atom:measurement-pulses:process:readout-panel:@0.50,0.50;7:atom-field:measurement-sample-field:field:readout-panel:@0.50,0.50",
+      "physicsCanvasRenderCount": "17",
+      "physicsCanvasLastFrameMs": "0.100",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 85.231,
+      "lumaStd": 26.977,
+      "coloredRatio": 0.9986,
+      "canvasHash": "3983f99e",
+      "specId": "octopus-holding-teapot-mrjfkv2j",
+      "templateId": "custom-world",
+      "rendererSceneKind": "watershed",
+      "visualIRSceneKind": "watershed",
+      "visualIRCamera": "topographic-cutaway-depth",
+      "visualIREntityCount": 2,
+      "visualIRMaterialCount": 4,
+      "visualIRFieldCount": 4,
+      "visualIRProcessCount": 9,
+      "visualIROperatorCount": 8,
+      "visualIRRenderInstanceCount": 30,
+      "visualIRRejectedRowCount": 11,
+      "visualIRReceiptCount": 13,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIREnvironmentProgram": "",
+      "visualIRSceneRenderPacketEntityCount": 2,
+      "visualIRSceneRenderPacketFieldCount": 4,
+      "visualIRSceneRenderPacketEffectCount": 20,
+      "phase6VisualObligationCount": 12,
+      "phase6VisualObligationIds": [
+        "action:holding",
+        "visual:prompt-pose-octopus-grasp-hold",
+        "visual:compiled-scene-packet",
+        "visual:construction:surface-octopus-1:topology",
+        "visual:construction:surface-octopus-1:part:core",
+        "visual:construction:surface-octopus-1:part:appendage",
+        "visual:construction:surface-octopus-1:part:sensor",
+        "visual:construction:artifact-kettle:topology",
+        "visual:construction:artifact-kettle:part:core",
+        "visual:construction:artifact-kettle:part:opening",
+        "visual:construction:artifact-kettle:part:appendage",
+        "visual:construction:artifact-kettle:part:detail"
+      ],
+      "visualIRSceneRenderPacketLayers": [
+        "biological-agent",
+        "material-surface",
+        "field-sheet",
+        "readout-panel",
+        "process-pulse",
+        "chemical-front"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "octopus",
+        "teapot"
+      ],
+      "visualIRAcceptedRenderInstances": 30,
+      "visualIRRenderInstanceSlots": [
+        "material-surface",
+        "biological-agent",
+        "field-sheet",
+        "field-sheet",
+        "readout-panel",
+        "readout-panel",
+        "process-pulse",
+        "chemical-front",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "detector-geometry",
+        "detector-geometry",
+        "detector-geometry",
+        "material-surface",
+        "process-pulse",
+        "chemical-front",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "water",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.biological-growth.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fluid-advection.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 14,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "instrument",
+        "measurement",
+        "signal"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "instrument": 0.243,
+        "measurement": 0.223,
+        "signal": 0.204
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomInstrumentReadout",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0004",
+          "kind": "catalog-candidate",
+          "text": "term octopus",
+          "slots": []
+        },
+        {
+          "id": "activation.0005",
+          "kind": "catalog-candidate",
+          "text": "process holding",
+          "slots": []
+        },
+        {
+          "id": "activation.0011",
+          "kind": "catalog-candidate",
+          "text": "term teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0014",
+          "kind": "causal-candidate",
+          "text": "subject octopus",
+          "slots": []
+        },
+        {
+          "id": "activation.0016",
+          "kind": "catalog-candidate",
+          "text": "subject octopus",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "predicate holding",
+          "slots": []
+        },
+        {
+          "id": "activation.0018",
+          "kind": "causal-candidate",
+          "text": "predicate holding",
+          "slots": []
+        },
+        {
+          "id": "activation.0022",
+          "kind": "causal-candidate",
+          "text": "object teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "object teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0002",
+          "kind": "causal-candidate",
+          "text": "term octopus",
+          "slots": []
+        },
+        {
+          "id": "activation.0006",
+          "kind": "causal-candidate",
+          "text": "process holding",
+          "slots": []
+        },
+        {
+          "id": "activation.0010",
+          "kind": "causal-candidate",
+          "text": "term teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0026",
+          "kind": "causal-candidate",
+          "text": "predicate frame octopus holding teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0025",
+          "kind": "catalog-candidate",
+          "text": "predicate frame octopus holding teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "catalog-candidate",
+          "text": "predicate frame octopus holding teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0028",
+          "kind": "catalog-candidate",
+          "text": "predicate frame octopus holding teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0013",
+          "kind": "catalog-candidate",
+          "text": "subject octopus",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "catalog-candidate",
+          "text": "object teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "term octopus",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "term teapot",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "predicate holding",
+          "slots": []
+        },
+        {
+          "id": "activation.0020",
+          "kind": "catalog-candidate",
+          "text": "predicate holding",
+          "slots": []
+        },
+        {
+          "id": "activation.0015",
+          "kind": "catalog-candidate",
+          "text": "subject octopus",
+          "slots": []
+        },
+        {
+          "id": "activation.0024",
+          "kind": "catalog-candidate",
+          "text": "object teapot",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 74,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 14,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 13,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 14,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 68789,
+      "ok": true,
+      "renderCount": 17,
+      "sceneId": "2",
+      "renderInputMatches": true,
+      "promptMatches": true,
+      "phase7VisualObligationProof": "[{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"action:holding\",\"target\":\"holding\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:action:holding:surface-octopus-1:1\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:prompt-pose-octopus-grasp-hold\",\"target\":\"Octopus\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:visual:prompt-pose-octopus-grasp-hold:surface-octopus-1:2\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:compiled-scene-packet\",\"target\":\"teapot\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:visual:compiled-scene-packet:artifact-kettle:3\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:construction:surface-octopus-1:topology\",\"target\":\"octopus\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sam",
+      "phase7PixelAuditChecks": "[{\"id\":\"scene-packet-drawables\",\"actual\":26,\"expectedMin\":1,\"pass\":true},{\"id\":\"draw-count\",\"actual\":26,\"expectedMin\":1,\"pass\":true},{\"id\":\"scene-instance-count\",\"actual\":26,\"expectedMin\":1,\"pass\":true},{\"id\":\"canvas-pixels\",\"actual\":1497600,\"expectedMin\":1,\"pass\":true},{\"id\":\"visual-obligation-failures\",\"actual\":0,\"expectedMax\":0,\"pass\":true},{\"id\":\"live-pixel-sample-count\",\"actual\":21,\"expectedMin\":3,\"pass\":true},{\"id\":\"literal-object-realization\",\"actual\":0,\"expectedMin\":0,\"pass\":true},{\"id\":\"live-pixel-contrast\",\"actual\":0.4941,\"expectedMin\":0.035,\"pass\":true},{\"id\":\"visual-obligation-pixel-samples\",\"actual\":12,\"expectedMin\":12,\"pass\":true}]",
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-an-octopus-holding-a-teapot.canvas.png",
+      "canvasScreenshotLater": "01-custom-an-octopus-holding-a-teapot.canvas-late.png",
+      "canvasScreenshotHash": "14a11f3c3a14a6e3300ae33d39385597407ef07f477ec0cf1c98ea49588091fd",
+      "canvasScreenshotLaterHash": "97f18d73fa9a380302e9980cf8e49f7b1444bfcf1fb872db59876a749beeea96",
+      "canvasPerceptualHash": "0f0f272703170707",
+      "canvasPerceptualHashLater": "0f0f272f03170707",
+      "canvasDiversityScreenshot": "01-custom-an-octopus-holding-a-teapot.canvas-diversity.png",
+      "canvasDiversityScreenshotLater": "01-custom-an-octopus-holding-a-teapot.canvas-diversity-late.png",
+      "canvasDiversityPerceptualHash": "0f0f273703170707",
+      "canvasDiversityPerceptualHashLater": "0f0f273703170707",
+      "canvasDiversityHashKind": "audit:visual-clean-canvas-dhash-64",
+      "canvasDiversityFrameStable": true,
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 26.977,
+      "canvasScreenshotColoredRatio": 0.9986,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasScreenshotNearWhiteRatio": 0,
+      "canvasScreenshotStrongEdgeRatio": 0.0464,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.023,
+      "canvasFrameLumaStdDelta": 0.088,
+      "canvasFrameColoredRatioDelta": 0.0015,
+      "canvasFrameMeanAbsolutePixelDelta": 0.3683,
+      "canvasFrameChangedPixelRatio": 0.01556,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 95,
+        "pass": true,
+        "expectedCount": 0,
+        "coverage": 1,
+        "representationQuality": 0.92,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.92,
+          "realizedGeometry": 1,
+          "constructiveGrounding": 0,
+          "silhouetteFidelity": 1,
+          "framing": 1,
+          "materialResponse": 1,
+          "cameraResponse": 1,
+          "lightResponse": 1,
+          "depthResponse": 1,
+          "spatialRelations": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicRequired": false,
+        "dynamicPass": true,
+        "dynamicMagnitude": 0.389,
+        "atomRichness": 1,
+        "contrast": 0.527,
+        "color": 1,
+        "expectedSignals": [],
+        "matchedSignals": [],
+        "missingSignals": []
+      }
+    }
+  ]
+}

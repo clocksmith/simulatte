@@ -2329,7 +2329,8 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
     pkg.scripts['check:model-lock'],
     'npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development'
   );
-  assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && node tools/check-deploy-surface.mjs');
+  assert.equal(pkg.scripts['check:autonomy'], 'node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check');
+  assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && node tools/check-deploy-surface.mjs && npm run check:autonomy');
   assert.match(deployCheck, /public\/vendor\/doppler/);
   assert.match(deployCheck, /readModelRuntimeLock/);
   assert.match(modelLockUtils, /model-runtime-lock\.json/);
@@ -2354,6 +2355,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.ok(noCacheSources.has('/'));
   assert.ok(noCacheSources.has('/index.html'));
   assert.ok(noCacheSources.has('/app/**'));
+  assert.ok(noCacheSources.has('/autonomy/**'));
   assert.ok(noCacheSources.has('/pipeline/**'));
   assert.ok(noCacheSources.has('/workers/**'));
   assert.equal(noCacheSources.has('/simulatte-model-cache-sw.js'), false);
@@ -2563,6 +2565,14 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(cardIndex.embeddingDim, 1024);
   assert.ok(cardIndex.documents.length >= 650);
   assert.ok(cardIndex.documents.some((row) => row.cardId === 'parcel'));
+  for (const cardId of [
+    'construction.rail-vehicle',
+    'construction.rail-signal-array',
+    'construction.railway-platform',
+    'construction.data-center-facility',
+  ]) {
+    assert.ok(cardIndex.documents.some((row) => row.cardId === cardId), `${cardId} should be embedded`);
+  }
   assert.equal(cardPackedBytes.byteLength, cardIndex.documents.length * cardIndex.embeddingDim * 4);
   assert.match(surfaceIndexBuilder, /function reusableIndexVectors/);
   assert.match(surfaceIndexBuilder, /previous\.document\.textHash\?\.hex !== document\.textHash\?\.hex/);

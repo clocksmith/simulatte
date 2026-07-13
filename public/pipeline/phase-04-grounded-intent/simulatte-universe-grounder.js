@@ -385,6 +385,7 @@
       });
     }
     matches.sort((a, b) => (
+      Number(candidateLabels(b).includes(text)) - Number(candidateLabels(a).includes(text)) ||
       Number(b.identityEvidence === true) - Number(a.identityEvidence === true) ||
       Number(b.confidence || 0) - Number(a.confidence || 0)
     ));

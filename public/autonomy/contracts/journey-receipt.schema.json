@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy journey receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "mission", "identities", "terminalState", "trace", "verification", "integrity"],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyJourneyReceipt.v1" },
+    "mission": { "type": "object" },
+    "identities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId"],
+      "properties": {
+        "worldId": { "type": "string" },
+        "worldContentVersion": { "type": "string" },
+        "embodimentId": { "type": "string" },
+        "policyId": { "type": "string" }
+      }
+    },
+    "terminalState": { "enum": ["completed", "failed", "budget_exhausted", "active"] },
+    "trace": { "type": "array", "items": { "type": "object" } },
+    "verification": { "type": "object" },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "terminalHash", "entryCount"],
+      "properties": {
+        "algorithm": { "const": "sha256-canonical-json-chain-v1" },
+        "terminalHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "entryCount": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

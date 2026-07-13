@@ -2,7 +2,7 @@
   const scope = root.__SimulattePhysicsModelRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
-    const TERM_FALLBACK_ENTITY_MAX = 6;
+    const TERM_FALLBACK_CONCEPT_MAX = 6;
 
     function phaseOutputSchema(phase) {
         return PHASE_OUTPUT_SCHEMAS[Number(phase)] || `simulatte.phase${Number(phase) || 0}.output.v1`;
@@ -379,20 +379,19 @@
     	    const spans = Array.isArray(languageGraph.spans) ? languageGraph.spans : [];
     	    const predicates = Array.isArray(languageGraph.predicates) ? languageGraph.predicates : [];
     	    const relations = sceneRelationsFromLanguageGraph(languageGraph);
-    	    const termFallbackEntities = spans
+        const termFallbackConcepts = spans
     	      .filter((span) => span.kind === 'term' && !sceneSpanHasKnownRole(span))
-    	      .slice(0, TERM_FALLBACK_ENTITY_MAX)
+	      .slice(0, TERM_FALLBACK_CONCEPT_MAX)
     	      .map((span) => ({
-    	        ...sceneEntryForSpan(span, 'entity', languageGraph),
+	        ...sceneEntryForSpan(span, 'concept', languageGraph),
     	        semanticClass: 'term',
-    	        source: 'term-fallback',
+	        source: 'term-concept-fallback',
     	        required: false,
     	      }));
 	    const entities = uniqueById([
 	      ...spans
           .filter((span) => span.kind === 'entity' && span.semanticRole !== 'part')
 	        .map((span) => sceneEntryForSpan(span, 'entity', languageGraph)),
-        ...termFallbackEntities,
       ]);
       const parts = uniqueById(spans
         .filter((span) => span.kind === 'entity' && span.semanticRole === 'part')
@@ -435,7 +434,7 @@
     	    const attributes = spans
     	      .filter((span) => span.kind === 'modifier')
     	      .map((span) => sceneEntryForSpan(span, 'attribute', languageGraph));
-    	    const promotedTermSpanIds = new Set(termFallbackEntities.flatMap((entry) => entry.sourceSpanIds || []));
+        const promotedTermSpanIds = new Set(termFallbackConcepts.flatMap((entry) => entry.sourceSpanIds || []));
     	    const unsupportedSpans = spans.filter((span) => (
     	      span.kind === 'term' && !sceneSpanHasKnownRole(span) && !promotedTermSpanIds.has(span.id)
     	    ));
@@ -446,6 +445,7 @@
     	      tokens: arrayClone(languageGraph.tokens),
     	      spans: arrayClone(spans),
       entities,
+      concepts: termFallbackConcepts,
       parts,
     	      actions,
     	      attributes,
@@ -461,6 +461,7 @@
     	      })),
     	      summary: {
         entityCount: entities.length,
+        conceptCount: termFallbackConcepts.length,
         partCount: parts.length,
     	        actionCount: actions.length,
     	        environmentCount: environments.length,
@@ -645,6 +646,10 @@
         if (entry.negated === true) continue;
         addSlot(sceneQuerySlotForEntry(entry, entry.semanticClass === 'biological-agent' ? 'actor' : 'object'));
       }
+      for (const entry of sceneLanguageGraph.concepts || []) {
+        if (entry.negated === true) continue;
+        addSlot(sceneQuerySlotForEntry(entry, 'concept'));
+      }
       for (const entry of sceneLanguageGraph.parts || []) {
         if (entry.negated === true) continue;
         addSlot(sceneQuerySlotForEntry(entry, 'part'));
@@ -661,9 +666,10 @@
     	      if (entry.negated === true) continue;
     	      addSlot(sceneQuerySlotForEntry(entry, 'medium'));
     	    }
-    	    for (const relation of sceneLanguageGraph.relations || []) {
+	    for (const relation of sceneLanguageGraph.relations || []) {
 	      if (actionById.get(relation.to) && actionById.get(relation.to).negated === true) continue;
-    	      addSlot({
+	      const hasTypedLocalEvidence = sceneRelationHasTypedLocalEvidence(relation);
+	      addSlot({
     	        schema: 'simulatte.sceneQuerySlot.v1',
     	        slotId: `slot.relation.${relation.id.replace(/^relation:/, '').replace(/:/g, '_')}`,
     	        slotRole: 'relation',
@@ -672,6 +678,8 @@
 	        predicate: relation.predicate || '',
 	        process: relation.process || '',
 	        spatialRelation: relation.spatialRelation || '',
+	        modelEvidenceRequired: !hasTypedLocalEvidence,
+	        localEvidenceReason: hasTypedLocalEvidence ? 'phase2-typed-relation' : '',
 	        participants: [relation.from, relation.to, relation.target].filter(Boolean),
     	        required: relation.required !== false,
     	        sourceSpanIds: relation.sourceSpanIds || [],
@@ -682,8 +690,8 @@
     	        }],
     	        budgets: { primitive: 4, surfaceCard: 4, universe: 8, support: 2 },
     	        allowedCandidateTypes: ['relation', 'operator', 'primitive', 'surface-card', 'universe-row'],
-    	      });
-    	    }
+	      });
+	    }
     	    const visualTargets = uniqueList((sceneLanguageGraph.actions || [])
     	      .filter((entry) => entry.negated !== true)
     	      .flatMap((entry) => typeof visualSlotTargetsForAction === 'function' ? visualSlotTargetsForAction(entry) : []));
@@ -709,7 +717,13 @@
     	        requiredSlotCount: uniqueById(slots).filter((slot) => slot.required !== false).length,
     	      },
     	    };
-    	  }
+	    }
+
+    function sceneRelationHasTypedLocalEvidence(relation = {}) {
+      const typedSemantics = relation.process || relation.spatialRelation || relation.predicate;
+      const sourceEvidence = (relation.sourceSpanIds || []).length || (relation.evidenceIds || []).length;
+      return Boolean(typedSemantics && sourceEvidence);
+    }
 
 	    function sceneQuerySlotForEntry(entry = {}, role = 'object') {
     	    const label = entry.label || entry.id || '';
@@ -746,6 +760,7 @@
     	    const entries = uniqueById([
     	      ...(phase1Ledger && phase1Ledger.entries || []),
       ...(sceneLanguageGraph.entities || []),
+      ...(sceneLanguageGraph.concepts || []),
       ...(sceneLanguageGraph.parts || []),
     	      ...(sceneLanguageGraph.actions || []),
     	      ...(sceneLanguageGraph.environments || []),
@@ -761,7 +776,8 @@
     	    const obligations = uniqueById((queryPlan.slots || []).map((slot) => ({
     	      id: slot.entryId || slot.slotId,
     	      kind: slot.slotRole === 'actor' ? 'entity' : slot.slotRole,
-      ownedByPhase: slot.slotRole === 'visual' || slot.slotRole === 'part' ? 6 : slot.slotRole === 'relation' ? 4 : 3,
+	      ownedByPhase: slot.slotRole === 'visual' || slot.slotRole === 'part' ? 6 :
+            slot.slotRole === 'relation' || slot.slotRole === 'concept' ? 4 : 3,
     	      sourceRelationId: Array.isArray(slot.relationIds) ? slot.relationIds[0] || '' : '',
     	      required: slot.required !== false,
     	      mustPreserveIds: uniqueList([

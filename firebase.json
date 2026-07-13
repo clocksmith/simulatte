@@ -37,6 +37,24 @@
         ]
       },
       {
+        "source": "/autonomy/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/data/autonomy/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=300"
+          }
+        ]
+      },
+      {
         "source": "/pipeline/**",
         "headers": [
           {

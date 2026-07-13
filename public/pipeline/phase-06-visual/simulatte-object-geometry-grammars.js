@@ -177,9 +177,10 @@
       ]),
       airplane: grammar('airplane', [0.28, 0.15], 18, [
         part('fuselage', 'capsule', [0, 0], [0.9, 0.18], '#d5dde2'),
-        part('wing-left', 'triangle', [-0.02, 0.13], [0.58, 0.36], '#8998a4', 0.08),
-        part('wing-right', 'triangle', [-0.02, -0.13], [0.58, 0.36], '#a8b5bd', 3.22),
-        part('tail', 'triangle', [-0.38, -0.12], [0.28, 0.26], '#60717e', -0.12),
+        part('wing-left', 'capsule', [-0.03, -0.15], [0.48, 0.14], '#8998a4', 1.57),
+        part('wing-right', 'capsule', [-0.03, 0.15], [0.48, 0.14], '#a8b5bd', 1.57),
+        part('tail-left', 'capsule', [-0.37, -0.08], [0.23, 0.08], '#60717e', 1.57),
+        part('tail-right', 'capsule', [-0.37, 0.08], [0.23, 0.08], '#60717e', 1.57),
         part('cockpit', 'ellipse', [0.32, -0.02], [0.2, 0.12], '#4f93b3'),
       ]),
       bridge: grammar('bridge', [0.34, 0.18], 8, [
@@ -194,6 +195,33 @@
         part('lane-left', 'capsule', [-0.25, 0], [0.28, 0.035], '#f3d66d', -0.08),
         part('lane-center', 'capsule', [0.08, 0], [0.28, 0.035], '#f3d66d', -0.08),
         part('lane-right', 'capsule', [0.4, 0], [0.18, 0.035], '#f3d66d', -0.08),
+      ]),
+      train: grammar('train', [0.38, 0.17], 23, [
+        part('locomotive', 'rounded-box', [0.27, -0.03], [0.4, 0.45], '#bf3d36'),
+        part('cab', 'rounded-box', [0.32, -0.24], [0.27, 0.22], '#d8dde0'),
+        part('car-front', 'rounded-box', [-0.1, -0.01], [0.34, 0.4], '#657f99'),
+        part('car-back', 'rounded-box', [-0.42, -0.01], [0.25, 0.4], '#58728b'),
+        part('window-front', 'rounded-box', [-0.1, -0.1], [0.22, 0.13], '#8ed6e7'),
+        part('window-back', 'rounded-box', [-0.42, -0.1], [0.15, 0.13], '#8ed6e7'),
+        part('wheel-front', 'ring', [0.29, 0.26], [0.17, 0.17], '#20262b'),
+        part('wheel-mid', 'ring', [-0.08, 0.26], [0.17, 0.17], '#20262b'),
+        part('wheel-back', 'ring', [-0.4, 0.26], [0.17, 0.17], '#20262b'),
+        part('rail', 'capsule', [0, 0.36], [0.98, 0.05], '#495158'),
+      ]),
+      'rail-signal': grammar('rail-signal', [0.17, 0.3], 24, [
+        part('post', 'capsule', [0, 0.12], [0.1, 0.78], '#59636b'),
+        part('signal-case', 'rounded-box', [0, -0.25], [0.34, 0.46], '#242d33'),
+        part('signal-red', 'ellipse', [0, -0.35], [0.13, 0.13], '#e54f45'),
+        part('signal-green', 'ellipse', [0, -0.17], [0.13, 0.13], '#55cf83'),
+        part('base', 'rounded-box', [0, 0.46], [0.42, 0.12], '#69747c'),
+      ]),
+      'railway-platform': grammar('railway-platform', [0.42, 0.18], 10, [
+        part('platform', 'rounded-box', [0, 0.12], [0.96, 0.24], '#a3a19a'),
+        part('track-near', 'capsule', [0, 0.35], [0.98, 0.05], '#3f474d'),
+        part('track-far', 'capsule', [0, 0.45], [0.98, 0.05], '#3f474d'),
+        part('canopy', 'rounded-box', [0, -0.32], [0.72, 0.13], '#668397'),
+        part('support-left', 'capsule', [-0.28, -0.08], [0.07, 0.48], '#596873'),
+        part('support-right', 'capsule', [0.28, -0.08], [0.07, 0.48], '#596873'),
       ]),
       river: grammar('river', [0.4, 0.2], 3, [
         part('channel', 'wave', [0, 0], [0.96, 0.62], '#3f91ad', -0.08, 0.9),
@@ -325,6 +353,17 @@
         part('server-mid', 'rounded-box', [0, 0], [0.62, 0.16], '#4d6576'),
         part('server-low', 'rounded-box', [0, 0.27], [0.62, 0.16], '#415968'),
         part('status-light', 'ellipse', [0.23, -0.27], [0.06, 0.06], '#67d69a'),
+      ]),
+      'data-center': grammar('data-center', [0.36, 0.32], 12, [
+        part('facility', 'rounded-box', [0, 0], [0.94, 0.86], '#65717c'),
+        part('rack-left', 'rounded-box', [-0.29, -0.02], [0.23, 0.66], '#26343f'),
+        part('rack-center', 'rounded-box', [0, -0.02], [0.23, 0.66], '#314451'),
+        part('rack-right', 'rounded-box', [0.29, -0.02], [0.23, 0.66], '#26343f'),
+        part('cooling-aisle-left', 'capsule', [-0.145, 0.02], [0.05, 0.7], '#65c2d3', 1.57, 0.72),
+        part('cooling-aisle-right', 'capsule', [0.145, 0.02], [0.05, 0.7], '#65c2d3', 1.57, 0.72),
+        part('status-left', 'ellipse', [-0.29, -0.25], [0.05, 0.05], '#67d69a'),
+        part('status-center', 'ellipse', [0, -0.25], [0.05, 0.05], '#f1c75b'),
+        part('status-right', 'ellipse', [0.29, -0.25], [0.05, 0.05], '#67d69a'),
       ]),
       instrument: grammar('instrument', [0.22, 0.17], 26, [
         part('case', 'rounded-box', [0, 0], [0.92, 0.76], '#344252'),
@@ -558,9 +597,9 @@
           source: 'phase6-data-owned-part-graph',
           sourcePrimitive: geometry.primitive || entity.shape || '',
           constructionReceipt,
-          selectionRole: candidate.key === selectedKey && selectedKey !== identityType
+          selectionRole: candidate.key === selectedKey && selectedKey !== semanticIdentityType
             ? 'prompt-specialized'
-            : candidate.key === identityType ? 'identity-catalog'
+            : candidate.key === semanticIdentityType ? 'identity-catalog'
               : candidate.key === categoryKey ? 'category-catalog' : 'related-catalog',
         }));
       if (semanticArchetype) catalogPrograms.push(objectGeometryProgram(semanticArchetype, {
@@ -652,6 +691,8 @@
         rerankEvaluated: provenance.some((row) => row.rerankEvaluated === true),
         literalSlotMatch: provenance.some((row) => row.literalSlotMatch === true),
         exactTargetMatch: provenance.some((row) => row.exactTargetMatch === true),
+        targetIdentityBound: provenance.some((row) => row.targetIdentityBound === true),
+        targetEntryId: construction.targetEntryId || '',
         candidateIds: provenance.map((row) => row.candidateId).filter(Boolean),
       };
     }
@@ -689,6 +730,8 @@
     function objectGeometryIdentityType(identity = {}, geometry = {}, entity = {}) {
       const direct = String(identity.type || '').toLowerCase();
       if (OBJECT_GEOMETRY_GRAMMARS[direct]) return direct;
+      const semanticVisualArchetype = String(identity.visualArchetype || entity.visualArchetype || '').toLowerCase();
+      if (SEMANTIC_LAYER_GEOMETRY_GRAMMARS[semanticVisualArchetype]) return direct || semanticVisualArchetype;
       const constructionArchetype = objectGeometryConstructionArchetype(entity.construction || {});
       if (constructionArchetype) return constructionArchetype;
       const text = [
@@ -741,12 +784,25 @@
       return match ? match[0] : '';
     }
 
-    function scenePacketReadableTransform(transform = {}, program = {}) {
+    function scenePacketReadableTransform(transform = {}, program = {}, entity = {}) {
       const position = Array.isArray(transform.position) ? transform.position.slice() : [0.5, 0.5, 0];
       const scale = Array.isArray(transform.scale) ? transform.scale.slice() : [0.16, 0.14, 1];
       const minScale = Array.isArray(program.minScale) ? program.minScale : [0.16, 0.14];
       scale[0] = Math.max(Number(scale[0] || 0), Number(minScale[0] || 0));
       scale[1] = Math.max(Number(scale[1] || 0), Number(minScale[1] || 0));
+      const relationRoles = new Set(entity.layoutRelationRoles || []);
+      if (relationRoles.has('through:source')) {
+        scale[0] = Math.min(scale[0], 0.15);
+        scale[1] = Math.min(scale[1], 0.13);
+      }
+      if (relationRoles.has('through:target')) {
+        scale[0] = Math.max(scale[0], 0.22);
+        scale[1] = Math.max(scale[1], 0.18);
+      }
+      if (entity.supportOnly === true) {
+        scale[0] = Math.min(scale[0], 0.15);
+        scale[1] = Math.min(scale[1], 0.13);
+      }
       position[0] = clamp(Number(position[0] || 0.5), scale[0] * 0.52, 1 - scale[0] * 0.52);
       position[1] = clamp(Number(position[1] || 0.5), scale[1] * 0.52, 1 - scale[1] * 0.52);
       return { ...transform, position, scale };

@@ -10,6 +10,68 @@
 - Follow [STYLE_GUIDE.md](STYLE_GUIDE.md) for Simulatte phase contracts,
   browser runtime style, receipt design, rendering boundaries, tests, and docs.
 
+## Core Product Responsibilities
+
+Simulatte owns the complete natural-language-to-pixels path. Treat all of these as
+release responsibilities:
+
+- Human intent fidelity: preserve prompt entities, counts, attributes, part bindings,
+  materials, relations, poses, environments, actions, and negation through every phase.
+- Correctness and accuracy: accept, reject, and rank evidence honestly. Never fabricate
+  model work, provenance, construction support, or visual proof.
+- Visual quality: required prompt obligations must be recognizable in rendered pixels.
+  Fields present only in JavaScript objects do not prove visible output.
+- Data quality: lexicons, indexes, construction cards, manifests, schemas, hashes,
+  provenance, and evaluation sets are product-owned contracts with coverage checks.
+- Performance and efficiency: measure and reduce prompt latency, model work, memory,
+  candidate volume, cache misses, graph work, render cost, and main-thread blocking
+  without weakening semantic or visual results.
+
+A faster path is not an improvement when it performs less required work, loses prompt
+evidence, lowers retrieval recall, changes output correctness, or reduces visible
+obligation coverage.
+
+## Prompt-To-Pixel Win Condition
+
+- Extract a machine-checkable obligation ledger from the user's language.
+- Preserve each required obligation through the exact eight phase boundaries.
+- Settle obligations against actual render receipts and pixels in Phase 8.
+- Surface unsupported concepts and failed visual obligations instead of drawing a
+  plausible substitute and calling it complete.
+- Use human review for recognizability and perceptual quality where machine checks are
+  insufficient. Bind that verdict to the prompt, build, scene packet, and screenshot.
+
+## Algorithm And Model Contract
+
+- Debug and optimize the named phase boundary using its actual input, output, timing,
+  candidate counts, cache state, and receipts.
+- Deduplicate equivalent retrieval queries while preserving their source-span mapping.
+- Batch independent embedding work when the provider supports batching. Do not reload
+  tokenizers or model handles for work that can reuse a proven compatible handle.
+- Retrieve for high recall, apply typed filters only when they cannot remove a valid
+  answer, and rerank the smallest candidate set justified by measured ranking quality.
+- Key caches by every behavior-changing identity, including model, dtype, dimensions,
+  index content hash, normalized query, ranking policy, and construction policy.
+- Record retrieval depth, candidates before and after each filter, recall-sensitive
+  metrics, reranker work, latency, memory, cache mode, and model reuse.
+- Canonicalize one semantic node per prompt concept before graph composition. Preserve
+  typed edges instead of inventing adjacency relations.
+- Use indexed maps and sets for stable lookups, bounded deterministic search for
+  construction selection, and typed constraint solvers for spatial composition.
+- Use inverted indexes for token retrieval and bounded top-k selection when measured
+  input sizes make repeated catalog scans or full sorts materially more expensive.
+- State input bounds and expected complexity for graph or search code whose cost grows
+  with prompts, candidates, entities, edges, parts, or construction attempts.
+- Heuristics may break ties or prune proven-impossible candidates. They must not
+  override stronger prompt evidence, model evidence, exact counts, or typed relations.
+- Gate behavior-changing heuristics against an appropriate control lane on the same
+  inputs. Keep the heuristic only when receipts show a relevant accuracy, quality, or
+  performance gain without weakening another release responsibility.
+- Choose concurrency from measured device capacity and memory use. GPU resources from
+  one device must never be reused with another device.
+- Benchmark cold load, warm cache, model reuse, retrieval, reranking, graph compile,
+  VisualIR compile, first frame, and settled Phase 8 proof as separate costs.
+
 ## Routing Rules
 
 - Primary editable surface: `public/`.

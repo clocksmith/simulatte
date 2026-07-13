@@ -15,6 +15,21 @@ The visible simulation is product truth. Prompt-specific entities, relations,
 materials, motion, fields, and causal processes must appear in the moving
 world. Unsupported meaning remains explicit in the receipts.
 
+## Autonomous delivery-bike runtime
+
+[Open Simulatte Autonomy](https://simulatte.world/autonomy/)
+
+`public/autonomy/` is a separate browser subsystem for continuous embodied
+decisions. It compiles a known-label delivery mission, observes a synthetic
+corridor, proposes action bets, predicts each outcome, applies hard safety
+gates, selects one eligible action, executes the reference dynamics, settles
+the prediction, and repeats until delivery or a surfaced failure.
+
+The autonomy runtime does not extend or reorder the eight-phase compiler.
+`tools/samer/autonomy/` compares action-selection approaches across matched
+public scenarios. Public diagnostic results cannot promote a policy or support
+a physical-world autonomy claim.
+
 ## Product contract
 
 | Guarantee | Contract |
@@ -94,6 +109,7 @@ obligations explain what the render represented and what it lost.
 | Pipeline contributors | [Pipeline contract](public/pipeline/README.md) and [style guide](STYLE_GUIDE.md) |
 | Runtime and catalog maintainers | [Model-runtime lock](public/data/simulatte-embedder/model-runtime-lock.json), [data contracts](public/data/), and [vendored Doppler](public/vendor/doppler/) |
 | Evidence and deploy operators | [Repository commands](package.json) and [deployment runbook](docs/deployment.md) |
+| Autonomy contributors | [Autonomy design](docs/autonomy/README.md), [browser runtime](public/autonomy/), and [SAME-R executor](tools/samer/autonomy/) |
 
 ## Deployment
 

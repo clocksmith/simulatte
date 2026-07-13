@@ -22,6 +22,11 @@
           return 'mechanical';
         }
         if (directScene === 'mechanical' &&
+          /^(?:biology|evolution-ecology|agro-waste-loop|watershed)$/.test(sceneHint) &&
+          hasDirectMechanicalRigSignal(promptText)) return 'mechanical';
+        if (directScene === 'biology' && sceneHint === 'watershed' &&
+          !hasDirectSwimmingSignal(promptText) && !hasDirectTerrainSignal(promptText)) return 'biology';
+        if (directScene === 'mechanical' &&
           (hasDirectBuiltEnvironmentSignal(promptText) || hasDirectMechanicalRigSignal(promptText)) &&
           !/\b(magnet|magnetic|ferrofluid|coil|stator|flux|dipole)\b/.test(promptText) &&
           ['', 'biology', 'city', 'literal-composite', 'magnetic-machine', 'watershed'].includes(sceneHint)) return 'mechanical';
@@ -57,6 +62,7 @@
         if (hasDirectThermalSignal(promptText)) return 'thermal-plume';
         if (hasDirectSwimmingSignal(promptText)) return 'watershed';
         if (hasThinFilmSignal(promptText)) return 'thin-film';
+        if (hasDirectAcousticSignal(promptText)) return 'acoustic';
         if (hasDirectTerrainSignal(text)) return 'watershed';
         if (hasDirectMechanicalRigSignal(promptText)) return 'mechanical';
         if (hasDirectBuiltEnvironmentSignal(promptText)) return 'mechanical';
@@ -183,8 +189,8 @@
       }
 
     function hasDirectSwimmingSignal(text = '') {
-        return /\b(swim|swims|swimming|swam|underwater|water|pool|pond|lake|river)\b/.test(text) &&
-          (hasDirectAnimalOrPlantSignal(text) || /\b(swim|swims|swimming|swam|underwater)\b/.test(text));
+        return /\b(swim|swims|swimming|swam|underwater|submarine|submersible|water|pool|pond|lake|river)\b/.test(text) &&
+          (hasDirectAnimalOrPlantSignal(text) || /\b(swim|swims|swimming|swam|underwater|submarine|submersible)\b/.test(text));
       }
 
     function hasDirectTerrainSignal(text = '') {
@@ -200,11 +206,15 @@
       }
 
     function hasDirectAnimalOrPlantSignal(text = '') {
-        return /\b(dog|dogs|cat|cats|mouse|mice|gerbil|gerbils|hamster|hamsters|animal|animals|mammal|mammals|bird|birds|fish|flower|flowers|tree|trees|plant|plants|leaf|leaves|root|roots|grass|forest)\b/.test(text);
+        return /\b(dog|dogs|cat|cats|mouse|mice|gerbil|gerbils|hamster|hamsters|animal|animals|mammal|mammals|bird|birds|fish|octopus|squid|person|people|human|humans|flower|flowers|tree|trees|plant|plants|leaf|leaves|root|roots|grass|forest)\b/.test(text);
       }
 
     function hasDirectMechanicalRigSignal(text = '') {
-        return /\b(hamster wheel|running wheel|wheel crashing|bicycle|airplane|aircraft|crash|crashes|crashing|collision|collide|impact|fracture|projectile|gear|rotor|motor)\b/.test(text);
+        return /\b(hamster wheel|running wheel|wheel crashing|bicycle|airplane|aircraft|excavator|crane|bulldozer|loader|tractor|robot|robotic|machine|crash|crashes|crashing|collision|collide|impact|fracture|projectile|gear|rotor|motor)\b/.test(text);
+      }
+
+    function hasDirectAcousticSignal(text = '') {
+        return /\b(violin|viola|cello|guitar|harp|piano|drum|speaker|sound|acoustic|resonance|resonator)\b/.test(text);
       }
 
     function hasDirectBuiltEnvironmentSignal(text = '') {

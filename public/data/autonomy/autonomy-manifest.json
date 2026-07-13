@@ -1,0 +1,32 @@
+{
+  "schema": "simulatte.autonomyDataManifest.v1",
+  "id": "simulatte-autonomy-delivery-bike-v1",
+  "contentVersion": "autonomy-delivery-bike-v1",
+  "defaultMissionText": "Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.",
+  "world": {
+    "id": "nyc-training-corridor-v1",
+    "path": "./worlds/nyc-training-corridor-v1.json",
+    "sha256": "7e8d4dd4b370b46fa2c0d142a8e6d896810644bfd10811422c1f9063bcdf078e"
+  },
+  "embodiment": {
+    "id": "delivery-bike-v1",
+    "path": "./embodiments/delivery-bike-v1.json",
+    "sha256": "c83a1e902a99d7a89fafdd4c07a58bb2ba129307525e91a7b40777b5cab18e6d"
+  },
+  "policy": {
+    "id": "bet-selector-v1",
+    "path": "./policies/bet-selector-v1.json",
+    "sha256": "4601d2978cd2d183d473c827145a53572dab3ab5bcefd059912da96bb22ec137"
+  },
+  "featureCatalog": {
+    "id": "autonomy-feature-cards-v1",
+    "path": "./feature-cards-v1.json",
+    "sha256": "8d6adfdda7815f02aa620d241016a9689644964b3a1cdc4faa82d8c0d02da451"
+  },
+  "runtime": {
+    "entryPath": "/autonomy/",
+    "controllerSchema": "simulatte.autonomyController.v1",
+    "receiptSchema": "simulatte.autonomyJourneyReceipt.v1"
+  },
+  "claimBoundary": "This manifest governs one delivery-bike simulation over a synthetic NYC-labeled corridor. It does not claim physical-world driving capability or current NYC map fidelity."
+}

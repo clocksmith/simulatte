@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy bet settlement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "betId", "missionId", "tick", "prediction", "observed", "errors", "verdict", "scoreDelta"],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyBetSettlement.v1" },
+    "betId": { "type": "string" },
+    "missionId": { "type": "string" },
+    "tick": { "type": "integer", "minimum": 0 },
+    "prediction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["progressDeltaM", "endSpeedMps", "minimumClearanceM"],
+      "properties": {
+        "progressDeltaM": { "type": "number", "minimum": 0 },
+        "endSpeedMps": { "type": "number", "minimum": 0 },
+        "minimumClearanceM": { "type": "number", "minimum": 0 }
+      }
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["progressDeltaM", "endSpeedMps", "minimumClearanceM"],
+      "properties": {
+        "progressDeltaM": { "type": "number", "minimum": 0 },
+        "endSpeedMps": { "type": "number", "minimum": 0 },
+        "minimumClearanceM": { "type": "number", "minimum": 0 }
+      }
+    },
+    "errors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["progressM", "speedMps", "clearanceM"],
+      "properties": {
+        "progressM": { "type": "number", "minimum": 0 },
+        "speedMps": { "type": "number", "minimum": 0 },
+        "clearanceM": { "type": "number", "minimum": 0 }
+      }
+    },
+    "verdict": { "enum": ["won", "lost", "void"] },
+    "scoreDelta": { "type": "number" }
+  }
+}

@@ -14,8 +14,10 @@
         visualArchetype: object.visualArchetype || '',
         shapeHints: object.shapeHints || [],
         construction: object.construction || object.geometry && object.geometry.construction || null,
-        constructionHypotheses: object.constructionHypotheses ||
-          object.geometry && object.geometry.constructionHypotheses || [],
+        constructionHypotheses: mergeConstructionEvidenceRows(
+          object.constructionHypotheses,
+          object.geometry && object.geometry.constructionHypotheses
+        ),
         constructionProvenance: object.constructionProvenance || [],
         constructionApproachId: constructionApproach.id || CONSTRUCTION_APPROACH_IDS.targeted,
         constructionApproachSeed: Number(constructionApproach.seed || 0),
@@ -36,6 +38,7 @@
         shape: object.shape || 'body',
         visualRegime: object.visualRegime || 'generic',
         pose: object.pose || {},
+        layoutRelationRoles: (object.layoutRelationRoles || []).slice(),
         semanticRef: object.semanticRef || '',
         physicalRef: object.physicalRef || '',
         sourceGraphId: object.visualSourceGraphId || object.id || '',
@@ -50,6 +53,18 @@
         supportOnly: object.visualSupportOnly === true,
         evidence: visualEvidenceForObject(object, text),
       };
+    }
+
+    function mergeConstructionEvidenceRows(...groups) {
+      const seen = new Set();
+      return groups.flatMap((rows) => Array.isArray(rows) ? rows : []).filter((row) => {
+        const key = row && (row.hypothesisId || JSON.stringify([
+          row.sourceCardIds || [], row.basisIds || [], row.partHints || [],
+        ]));
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     }
 
     function visualEntityKind(object, text) {
@@ -112,9 +127,10 @@
       if (/person|human|people/.test(value)) return 'person';
       if (/tree|plant|flower/.test(value)) return 'plant';
       if (/water|river|lake|ocean|road/.test(value)) return value === 'road' ? 'surface' : 'medium';
-      if (/building|bridge|castle|shelf|server-rack|stairwell/.test(value)) return 'structure';
+      if (/building|bridge|castle|data-center|rail-signal|railway-platform|shelf|server-rack|stairwell|warehouse/.test(value)) return 'structure';
+      if (/queue|network|node|packet|route/.test(value)) return 'network';
       if (/robot|conveyor/.test(value)) return 'machine';
-      if (/bicycle|car|airplane|boat|vehicle/.test(value)) return 'vehicle';
+      if (/bicycle|car|airplane|boat|train|vehicle/.test(value)) return 'vehicle';
       if (/sofa|chair|table|lamp/.test(value)) return 'furniture';
       if (/phone|laptop|television|book|cup|parcel/.test(value)) return 'artifact';
       if (/galaxy|planet|star|black-hole/.test(value)) return 'celestial';
@@ -131,6 +147,7 @@
 
     Object.assign(scope, {
       visualEntityForObject,
+      mergeConstructionEvidenceRows,
       visualEntityKind,
       visualEntityRole,
       visualEvidenceForObject,

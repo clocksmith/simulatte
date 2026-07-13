@@ -1,0 +1,1635 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-13T16:22:40.119Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:60702/index.html?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-vRac8t",
+  "profilePersistent": false,
+  "promptDeadlineMs": 48000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 168,
+      "chunkCount": 2,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:60703/devtools/browser/620b72ce-f437-4f5e-89d4-570cdd5c3824\nTrying to load the allocator multiple times. This is *not* supported.\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": false,
+    "failures": [
+      "1: no model-evaluated construction program reached Phase 7",
+      "1: Phase 7 pixel proof status is fail",
+      "1: Scene Proof verdict is fail: visual:prompt-property-stool-material-wood (visual pixel proof failed)"
+    ],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 1,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 1,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 1,
+      "bitMargin": 1,
+      "maxTemporalBits": 0,
+      "maxTemporalDistance": 0,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": 1,
+      "recommendedHashFloor": 0.0156,
+      "calibrated": false
+    },
+    "sceneKinds": [
+      "thermal-plume"
+    ],
+    "visualIRSceneKinds": [
+      "thermal-plume"
+    ],
+    "visualIRCameras": [
+      "instrumented-lab-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 14,
+      "mappingIds": [
+        "visual.operator.instrument-readout.v1"
+      ],
+      "uniformSlots": [
+        "instrument",
+        "measurement",
+        "signal"
+      ],
+      "wgslOperators": [
+        "atomInstrumentReadout",
+        "atomMeasurementBands"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 97,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.92
+    },
+    "intentBriefs": {
+      "totalEvidence": 74,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 14,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 12,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 87,
+      "grade": "B",
+      "verdict": "fail",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 3,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.92,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "goldRowId": "",
+      "prompt": "purple violin on a wooden stool",
+      "screenshot": "01-custom-purple-violin-on-a-wooden-stool.png",
+      "screenshotHash": "2d4e42337ee48aa169e3bd6380466cc9e52fded814c123f7c6bff735684839d2",
+      "auditTiming": {
+        "schema": "simulatte.visualAuditTiming.v1",
+        "durationMs": 2444,
+        "stages": [
+          {
+            "id": "configure",
+            "durationMs": 1
+          },
+          {
+            "id": "runtime-wait",
+            "durationMs": 570
+          },
+          {
+            "id": "scene-proof",
+            "durationMs": 244
+          },
+          {
+            "id": "diagnostics",
+            "durationMs": 5
+          },
+          {
+            "id": "viewport-screenshot",
+            "durationMs": 152
+          },
+          {
+            "id": "temporal-canvas-capture",
+            "durationMs": 570
+          },
+          {
+            "id": "frozen-canvas-capture",
+            "durationMs": 896
+          },
+          {
+            "id": "analyze",
+            "durationMs": 6
+          },
+          {
+            "id": "complete",
+            "durationMs": 0
+          }
+        ]
+      },
+      "runtimeState": "ready",
+      "renderInputSerial": 1,
+      "compiledPrompt": "purple violin on a wooden stool",
+      "compiledSourcePromptHash": "fnv1a:3ab3fe27",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "blank",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v2",
+        "timestamp": "2026-07-13T16:22:37.233Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "render.blank",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "taskProgress": 100,
+        "overallProgress": 100,
+        "sourceProgress": 100,
+        "progressBasis": "terminal",
+        "progressEstimated": false,
+        "taskKey": "render.blank",
+        "taskElapsedMs": 0,
+        "taskExpectedDurationMs": 100,
+        "taskRemainingMs": 100,
+        "runElapsedMs": 0,
+        "runExpectedDurationMs": 24000,
+        "runRemainingMs": 24000,
+        "line": "Ready 100%",
+        "displayLine": "Ready 100%",
+        "label": "Ready",
+        "subline": "",
+        "byteText": "",
+        "sourceText": "",
+        "byteProgress": "",
+        "activity": "ready",
+        "heartbeat": false,
+        "silenceMs": 0,
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "",
+        "timing": {
+          "timestamp": "2026-07-13T16:22:37.233Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "queueWaitMs": 0,
+          "schedulerLagMs": 0,
+          "handlerDurationMs": 0,
+          "timing": "",
+          "traceId": ""
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null,
+        "loaderReceipt": {
+          "schema": "simulatte.loaderPhaseReceipt.v2",
+          "id": "loader-1",
+          "runId": "",
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8
+        }
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T16:22:37.231Z",
+          "source": "",
+          "state": "idle",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "runtime.start",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 0,
+          "taskProgress": 0,
+          "overallProgress": 0,
+          "sourceProgress": 0,
+          "progressBasis": "elapsed-time-forecast",
+          "progressEstimated": true,
+          "taskKey": "",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 1200,
+          "taskRemainingMs": 1200,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "",
+          "displayLine": "",
+          "label": "",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "",
+          "detail": "",
+          "backend": "",
+          "timing": {},
+          "model": {},
+          "resource": {},
+          "embeddings": {},
+          "promptRuntime": null,
+          "loaderReceipt": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T16:22:37.233Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "render.blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 100,
+          "taskRemainingMs": 100,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "ready",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-13T16:22:37.233Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": ""
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8
+          }
+        }
+      ],
+      "runtimeProgressLogs": [
+        {
+          "schema": "simulatte.runtimeProgressLog.v2",
+          "sequence": 1,
+          "timestamp": "2026-07-13T16:22:37.233Z",
+          "timestampMs": 1783959757233,
+          "runId": "",
+          "state": "ready",
+          "blocking": false,
+          "phase": {
+            "step": 8,
+            "id": "webgpu-ready",
+            "label": "WebGPU ready",
+            "weight": 7,
+            "stagePrefixes": [
+              null,
+              null,
+              null
+            ]
+          },
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "source": "",
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "line": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "message": "Ready",
+          "detail": "Ready",
+          "transitionMs": 0,
+          "runElapsedMs": 0,
+          "taskTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 100,
+            "estimatedRemainingMs": 100
+          },
+          "runTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 24000,
+            "estimatedRemainingMs": 24000,
+            "basis": "observed-duration-forecast"
+          },
+          "throughputBytesPerSecond": 0,
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0,
+            "cacheMode": "",
+            "cacheWorker": "",
+            "bytesPerSecond": 0,
+            "eta": "",
+            "operationId": 0,
+            "queueDepth": 0,
+            "cacheBackends": ""
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0,
+            "cacheMissCount": 0,
+            "batchEmbedding": false
+          },
+          "reranker": {
+            "slotId": "",
+            "candidateId": "",
+            "completed": 0,
+            "total": 0,
+            "candidateCount": 0,
+            "scoreCacheHit": false,
+            "promptTokenCount": 0,
+            "prefixTokenCount": 0,
+            "prefixStateReused": false,
+            "executionDurationMs": 0
+          },
+          "timing": {
+            "timestamp": "2026-07-13T16:22:37.233Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8,
+            "label": "Ready",
+            "subline": "",
+            "status": "complete",
+            "state": "ready",
+            "blocking": false,
+            "indeterminate": false,
+            "startedAt": "2026-07-13T16:22:37.233Z",
+            "updatedAt": "2026-07-13T16:22:37.233Z",
+            "completedAt": "2026-07-13T16:22:37.233Z",
+            "durationMs": 0,
+            "taskKey": "render.blank",
+            "progressBasis": "terminal",
+            "progressEstimated": false,
+            "expectedDurationMs": 100,
+            "percentStart": 0,
+            "percentEnd": 100
+          }
+        }
+      ],
+      "runtimePerformanceLogs": [
+        {
+          "schema": "simulatte.runtimeProgressPerformance.v1",
+          "timestamp": "2026-07-13T16:22:37.235Z",
+          "kind": "observer-flush",
+          "durationMs": 0.4,
+          "runId": "",
+          "stage": "render.blank",
+          "observerCount": 5
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "modelExecutionReceipt": null,
+      "phase3MissingRequiredSlots": [],
+      "phase3SlotEvidence": [
+        {
+          "slotId": "slot.concept.violin",
+          "entryId": "concept:violin",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "construction.resonant-instrument",
+            "artifact.musical-instrument"
+          ]
+        },
+        {
+          "slotId": "slot.concept.stool",
+          "entryId": "concept:stool",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "construction.supported-surface",
+            "artifact.chair"
+          ]
+        },
+        {
+          "slotId": "slot.action.spatial_constraint",
+          "entryId": "action:spatial-constraint",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.action.spatial-constraint",
+            "action:spatial_constraint"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-violin_spatial-constraint_entity-stool",
+          "entryId": "relation:entity-violin:spatial-constraint:entity-stool",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-violin-spatial-constraint-entity-stool"
+          ]
+        },
+        {
+          "slotId": "slot.relation.spatial_entity-violin_on_entity-stool",
+          "entryId": "relation:spatial:entity-violin:on:entity-stool",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.spatial-entity-violin-on-entity-stool"
+          ]
+        }
+      ],
+      "phase3SlotCandidates": [
+        {
+          "slotId": "slot.concept.violin",
+          "slotRole": "concept",
+          "required": false,
+          "candidates": [
+            {
+              "id": "construction.resonant-instrument",
+              "type": "surface-card",
+              "score": 1,
+              "embeddingScore": 0,
+              "lexicalScore": 1,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            },
+            {
+              "id": "artifact.musical-instrument",
+              "type": "surface-card",
+              "score": 0.963,
+              "embeddingScore": 0,
+              "lexicalScore": 0.963,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        },
+        {
+          "slotId": "slot.concept.stool",
+          "slotRole": "concept",
+          "required": false,
+          "candidates": [
+            {
+              "id": "construction.supported-surface",
+              "type": "surface-card",
+              "score": 1,
+              "embeddingScore": 0,
+              "lexicalScore": 1,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            },
+            {
+              "id": "artifact.chair",
+              "type": "surface-card",
+              "score": 0.963,
+              "embeddingScore": 0,
+              "lexicalScore": 0.963,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        }
+      ],
+      "phase4AcceptedNodeIdentities": [
+        {
+          "id": "construction-resonant-instrument",
+          "canonicalId": "construction.resonant-instrument",
+          "label": "Violin",
+          "indexName": "semantic-rag-surface"
+        },
+        {
+          "id": "construction-supported-surface",
+          "canonicalId": "construction.supported-surface",
+          "label": "Stool",
+          "indexName": "semantic-rag-surface"
+        }
+      ],
+      "phase4Canonicalization": {
+        "schema": "simulatte.groundedGraphCanonicalization.v1",
+        "inputNodeCount": 2,
+        "canonicalNodeCount": 2,
+        "mergedNodeCount": 0,
+        "nodeIdCollisionCount": 0,
+        "unresolvedDuplicateNodeIdCount": 0,
+        "duplicateConceptCount": 0
+      },
+      "phase4ConstructionReceipt": {
+        "schema": "simulatte.constructionAttachmentReceipt.v1",
+        "slotCount": 5,
+        "attachedCount": 2,
+        "modelEvaluatedCount": 0,
+        "rerankEvaluatedCount": 0
+      },
+      "phase5EntityIdentities": [
+        {
+          "id": "construction-resonant-instrument",
+          "canonicalId": "construction.resonant-instrument",
+          "label": "Violin",
+          "sourceKind": ""
+        },
+        {
+          "id": "construction-supported-surface",
+          "canonicalId": "construction.supported-surface",
+          "label": "Stool",
+          "sourceKind": ""
+        }
+      ],
+      "phase6CompositionObligations": [
+        {
+          "id": "concept:violin",
+          "kind": "concept",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:construction-resonant-instrument",
+            "phase6:render-instance:instance:geometry:geometry-construction-resonant-instrument"
+          ]
+        },
+        {
+          "id": "concept:stool",
+          "kind": "concept",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:construction-supported-surface",
+            "phase6:render-instance:instance:geometry:geometry-construction-supported-surface"
+          ]
+        },
+        {
+          "id": "action:spatial-constraint",
+          "kind": "action",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:construction-resonant-instrument",
+            "phase6:entity:construction-supported-surface",
+            "phase6:render-instance:instance:geometry:geometry-construction-resonant-instrument",
+            "phase6:render-instance:instance:geometry:geometry-construction-supported-surface"
+          ]
+        },
+        {
+          "id": "relation:entity-violin:spatial-constraint:entity-stool",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:construction-resonant-instrument",
+            "phase6:render-instance:instance:geometry:geometry-construction-resonant-instrument",
+            "phase6:entity:construction-supported-surface",
+            "phase6:render-instance:instance:geometry:geometry-construction-supported-surface",
+            "layout-relation:relation:spatial:entity-violin:on:entity-stool",
+            "relation-source:relation:entity-violin:spatial-constraint:entity-stool"
+          ]
+        },
+        {
+          "id": "relation:spatial:entity-violin:on:entity-stool",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:construction-resonant-instrument",
+            "phase6:render-instance:instance:geometry:geometry-construction-resonant-instrument",
+            "phase6:entity:construction-supported-surface",
+            "phase6:render-instance:instance:geometry:geometry-construction-supported-surface",
+            "layout-relation:relation:spatial:entity-violin:on:entity-stool"
+          ]
+        },
+        {
+          "id": "visual:prompt-property-violin-color-#8055b8",
+          "kind": "visual",
+          "target": "Violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "property:violin:color:#8055b8"
+          ]
+        },
+        {
+          "id": "visual:prompt-property-stool-material-wood",
+          "kind": "visual",
+          "target": "Stool",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "property:stool:material:wood"
+          ]
+        },
+        {
+          "id": "visual:compiled-scene-packet",
+          "kind": "visual",
+          "target": "violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:render-instance:instance:geometry:geometry-construction-resonant-instrument"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-resonant-instrument:topology",
+          "kind": "visual",
+          "target": "violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.resonant-instrument.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-resonant-instrument:part:core",
+          "kind": "visual",
+          "target": "violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.resonant-instrument.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-resonant-instrument:part:appendage",
+          "kind": "visual",
+          "target": "violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.resonant-instrument.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-resonant-instrument:part:path",
+          "kind": "visual",
+          "target": "violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.resonant-instrument.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-resonant-instrument:part:support",
+          "kind": "visual",
+          "target": "violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.resonant-instrument.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-resonant-instrument:part:detail",
+          "kind": "visual",
+          "target": "violin",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.resonant-instrument.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-supported-surface:topology",
+          "kind": "visual",
+          "target": "chair",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.supported-surface.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-supported-surface:part:core",
+          "kind": "visual",
+          "target": "chair",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.supported-surface.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-supported-surface:part:support",
+          "kind": "visual",
+          "target": "chair",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.supported-surface.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-supported-surface:part:opening",
+          "kind": "visual",
+          "target": "chair",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.supported-surface.balanced"
+          ]
+        },
+        {
+          "id": "visual:construction:construction-supported-surface:part:detail",
+          "kind": "visual",
+          "target": "chair",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "geometry-program:object-grammar.constructive.supported-surface.balanced"
+          ]
+        }
+      ],
+      "sceneRenderPacketIdentities": [
+        {
+          "id": "construction-resonant-instrument",
+          "label": "violin",
+          "type": "violin",
+          "sourceLabel": "violin",
+          "layerSlot": "detector-geometry",
+          "animationKind": "static-pose",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.constructive.resonant-instrument.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 10,
+          "propertyBindings": [
+            {
+              "schema": "simulatte.promptGeometryBinding.v1",
+              "entityId": "construction-resonant-instrument",
+              "partId": "",
+              "propertyKind": "color",
+              "value": "#8055b8",
+              "matchedPartIds": [
+                "2-core-1",
+                "2-core-2",
+                "1-appendage-1",
+                "4-path-1",
+                "4-path-2",
+                "4-path-3",
+                "4-path-4",
+                "1-support-1",
+                "2-detail-1",
+                "2-detail-2"
+              ],
+              "status": "bound"
+            }
+          ]
+        },
+        {
+          "id": "construction-supported-surface",
+          "label": "stool",
+          "type": "chair",
+          "sourceLabel": "stool",
+          "layerSlot": "material-surface",
+          "animationKind": "static-pose",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.constructive.supported-surface.balanced",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 8,
+          "propertyBindings": [
+            {
+              "schema": "simulatte.promptGeometryBinding.v1",
+              "entityId": "construction-supported-surface",
+              "partId": "",
+              "propertyKind": "material",
+              "value": "wood",
+              "matchedPartIds": [
+                "1-core-1",
+                "4-support-1",
+                "4-support-2",
+                "4-support-3",
+                "4-support-4",
+                "1-opening-1",
+                "2-detail-1",
+                "2-detail-2"
+              ],
+              "status": "bound"
+            }
+          ]
+        }
+      ],
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "thermal-plume",
+      "physicsCanvasSceneId": "0",
+      "physicsCanvasSceneMix": "thermal:1.00,instrument:0.85",
+      "physicsCanvasSceneMixSlots": "2",
+      "phase7Input": "simulatte.renderExecutionInput.v1",
+      "phase7RenderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase7SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+      "phase7Output": "simulatte.phase7.output.v2",
+      "phase7OutputInput": "simulatte.phase6.output.v2",
+      "phase8Output": "simulatte.phase8.output.v2",
+      "sceneProofVerdict": "fail",
+      "sceneProofError": "",
+      "sceneProofLostCount": "1",
+      "sceneProofNotProvenCount": "1",
+      "sceneProofRequiredLostIds": "[\"visual:prompt-property-stool-material-wood\"]",
+      "sceneProofRequiredNotProvenIds": "[]",
+      "sceneProofRequiredFailures": "[{\"schema\":\"simulatte.sceneProofObligation.v1\",\"obligationId\":\"visual:prompt-property-stool-material-wood\",\"kind\":\"visual\",\"target\":\"Stool\",\"required\":true,\"sourceStatus\":\"preserved\",\"evidence\":[\"visualObligationProof\"],\"status\":\"lost\",\"reason\":\"visual pixel proof failed\"}]",
+      "phase7RenderData": "simulatte.phase7.compactRenderData.v1",
+      "phase7RenderDataKey": "thermal-plume:2:3:20:04e0fbc0",
+      "phase7RenderPath": "depth-lit-storage-object-parts-with-uniform-fallback",
+      "phase7RendererConsumption": {
+        "schema": "simulatte.phase7RendererConsumption.v1",
+        "cameraConfigured": true,
+        "sourceLightCount": 2,
+        "sourceMaterialCount": 2,
+        "cameraConsumed": true,
+        "lightCountConsumed": 2,
+        "materialCountConsumed": 2,
+        "objectPartCount": 18,
+        "depthConfigured": true,
+        "depthEnabled": true,
+        "normalShading": true,
+        "perspectiveEnabled": true,
+        "constructionProgramCount": 2,
+        "modelEvaluatedConstructionCount": 0
+      },
+      "webgpuObjectRealization": {
+        "schema": "simulatte.objectRenderRealizationSummary.v1",
+        "entityCount": 2,
+        "realizedCount": 2,
+        "literalCount": 2,
+        "constructionProgramCount": 2,
+        "modelEvaluatedConstructionCount": 0,
+        "topologyVerifiedCount": 2,
+        "semanticFitCount": 2,
+        "readableCount": 2,
+        "projectedArea": 0.28782,
+        "framingPass": true,
+        "framing": {
+          "schema": "simulatte.sceneFramingReceipt.v1",
+          "method": "group-bounds-fit",
+          "sourceBounds": [
+            0.05614,
+            0.0886,
+            0.31354,
+            0.492
+          ],
+          "framedBounds": [
+            0.27058,
+            0.12,
+            0.45884,
+            0.72
+          ],
+          "targetBounds": [
+            0.1,
+            0.12,
+            0.8,
+            0.72
+          ],
+          "scaleFactor": 1.46341,
+          "projectedArea": 0.28783,
+          "minimumProjectedArea": 0.09,
+          "centerOffset": 0,
+          "entityCount": 2,
+          "readableCount": 2,
+          "pass": true
+        },
+        "unprovenEntityIds": [],
+        "rows": [
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "construction-resonant-instrument",
+            "identityType": "violin",
+            "identityLabels": [
+              "construction-resonant-instrument",
+              "violin",
+              "violin",
+              "violin",
+              "violin"
+            ],
+            "grammarId": "object-grammar.constructive.resonant-instrument.balanced",
+            "renderArchetype": "resonant-instrument",
+            "literal": true,
+            "partCount": 10,
+            "primitiveCount": 3,
+            "projectedArea": 0.14391,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "construction-supported-surface",
+            "identityType": "chair",
+            "identityLabels": [
+              "construction-supported-surface",
+              "stool",
+              "stool",
+              "stool",
+              "chair"
+            ],
+            "grammarId": "object-grammar.constructive.supported-surface.balanced",
+            "renderArchetype": "supported-surface",
+            "literal": true,
+            "partCount": 8,
+            "primitiveCount": 3,
+            "projectedArea": 0.14391,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          }
+        ]
+      },
+      "phase7CameraConsumed": true,
+      "phase7LightCountConsumed": 2,
+      "phase7MaterialCountConsumed": 2,
+      "phase7DepthEnabled": true,
+      "phase7NormalShading": true,
+      "phase7ConstructionProgramCount": 2,
+      "phase7ModelEvaluatedConstructionCount": 0,
+      "phase7InputVisualObligationCount": 14,
+      "phase7PixelReadback": "pass",
+      "phase7PixelReadbackMessage": "",
+      "phase7PixelReadbackPlan": "none",
+      "phase7LivePixelSamplesRequired": "true",
+      "phase7RequiredVisualObligationCount": 14,
+      "phase7PixelProofStatus": "fail",
+      "phase7PixelSampleCount": 23,
+      "phase7PixelVisibleSampleCount": 23,
+      "phase7PixelMinContrast": 0.7255,
+      "phase7PixelSampledObligationCount": 14,
+      "phase7PixelRequiredObligationCount": 14,
+      "phase7PixelSampledObligations": "visual:prompt-property-violin-color-#8055b8,visual:prompt-property-stool-material-wood,visual:compiled-scene-packet,visual:construction:construction-resonant-instrument:topology,visual:construction:construction-resonant-instrument:part:core,visual:construction:construction-resonant-instrument:part:appendage,visual:construction:construction-resonant-instrument:part:path,visual:construction:construction-resonant-instrument:part:support,visual:construction:construction-resonant-instrument:part:detail,visual:construction:construction-supported-surface:topology,visual:construction:construction-supported-surface:part:core,visual:construction:construction-supported-surface:part:support,visual:construction:construction-supported-surface:part:opening,visual:construction:construction-supported-surface:part:detail",
+      "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+      "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+      "webgpuSceneInstanceCapacity": 32,
+      "webgpuSceneInstanceCount": 25,
+      "webgpuStorageBytes": 20480,
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v2",
+        "phase4": "simulatte.phase4.output.v2",
+        "phase5": "simulatte.phase5.output.v2",
+        "phase6": "simulatte.phase6.output.v2",
+        "phase7": "simulatte.phase7.output.v2"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:2;fields:3;effects:20;layers:detector-geometry+material-surface+thermal-field+readout-panel+process-pulse;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 2,
+      "sceneRenderFieldCount": 3,
+      "sceneRenderEffectCount": 20,
+      "sceneRenderSpatialHash": "04e0fbc0",
+      "sceneObjectUniforms": "0:violin:detector-geometry@0.48,0.30;1:stool:material-surface@0.52,0.66;2:atom-process:measurement-sampling:readout-panel@0.50,0.50;3:motion:measurement-sampling:readout-panel@0.50,0.50;4:atom-process:readout-integration:readout-panel@0.50,0.50;5:motion:readout-integration:readout-panel@0.50,0.50;6:motion:atom:measurement-pulses:readout-panel@0.50,0.50;7:motion:particle-advection:thermal-field@0.50,0.50",
+      "sceneObjectIdentities": "0:violin:object:detector-geometry:@0.48,0.30;1:stool:furniture:material-surface:@0.52,0.66;2:atom-process:measurement-sampling:process:readout-panel:@0.50,0.50;3:motion:measurement-sampling:process:readout-panel:@0.50,0.50;4:atom-process:readout-integration:process:readout-panel:@0.50,0.50;5:motion:readout-integration:process:readout-panel:@0.50,0.50;6:motion:atom:measurement-pulses:process:readout-panel:@0.50,0.50;7:motion:particle-advection:process:thermal-field:@0.50,0.50",
+      "physicsCanvasRenderCount": "17",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 96.544,
+      "lumaStd": 33.488,
+      "coloredRatio": 1,
+      "canvasHash": "51ad92de",
+      "specId": "purple-violin-on-wooden-stool-mrjfkv2q",
+      "templateId": "custom-world",
+      "rendererSceneKind": "thermal-plume",
+      "visualIRSceneKind": "thermal-plume",
+      "visualIRCamera": "instrumented-lab-depth",
+      "visualIREntityCount": 2,
+      "visualIRMaterialCount": 4,
+      "visualIRFieldCount": 3,
+      "visualIRProcessCount": 9,
+      "visualIROperatorCount": 8,
+      "visualIRRenderInstanceCount": 29,
+      "visualIRRejectedRowCount": 12,
+      "visualIRReceiptCount": 13,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIREnvironmentProgram": "",
+      "visualIRSceneRenderPacketEntityCount": 2,
+      "visualIRSceneRenderPacketFieldCount": 3,
+      "visualIRSceneRenderPacketEffectCount": 20,
+      "phase6VisualObligationCount": 14,
+      "phase6VisualObligationIds": [
+        "visual:prompt-property-violin-color-#8055b8",
+        "visual:prompt-property-stool-material-wood",
+        "visual:compiled-scene-packet",
+        "visual:construction:construction-resonant-instrument:topology",
+        "visual:construction:construction-resonant-instrument:part:core",
+        "visual:construction:construction-resonant-instrument:part:appendage",
+        "visual:construction:construction-resonant-instrument:part:path",
+        "visual:construction:construction-resonant-instrument:part:support",
+        "visual:construction:construction-resonant-instrument:part:detail",
+        "visual:construction:construction-supported-surface:topology",
+        "visual:construction:construction-supported-surface:part:core",
+        "visual:construction:construction-supported-surface:part:support",
+        "visual:construction:construction-supported-surface:part:opening",
+        "visual:construction:construction-supported-surface:part:detail"
+      ],
+      "visualIRSceneRenderPacketLayers": [
+        "detector-geometry",
+        "material-surface",
+        "thermal-field",
+        "readout-panel",
+        "process-pulse"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "violin",
+        "stool"
+      ],
+      "visualIRAcceptedRenderInstances": 29,
+      "visualIRRenderInstanceSlots": [
+        "detector-geometry",
+        "material-surface",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "detector-geometry",
+        "water-volume",
+        "readout-panel",
+        "material-surface",
+        "process-pulse",
+        "thermal-field",
+        "chemical-front",
+        "chemical-front",
+        "process-pulse",
+        "phase-boundary",
+        "phase-boundary",
+        "readout-panel"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "surface-chair-1",
+          "sourceKind": "semantic-surface-grounder",
+          "reason": "retrieved surface alias duplicates a directly grounded prompt object"
+        },
+        {
+          "id": "surface-guitar-1",
+          "sourceKind": "semantic-surface-grounder",
+          "reason": "retrieved surface alias duplicates a directly grounded prompt object"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "below-minimum:0.5"
+        },
+        {
+          "id": "visual.operator.instrument-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fluid-advection.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 14,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.instrument-readout.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "instrument",
+        "measurement",
+        "signal"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "instrument": 0.243,
+        "measurement": 0.223,
+        "signal": 0.204
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomInstrumentReadout",
+        "atomMeasurementBands"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0010",
+          "kind": "catalog-candidate",
+          "text": "term violin",
+          "slots": []
+        },
+        {
+          "id": "activation.0023",
+          "kind": "catalog-candidate",
+          "text": "term stool",
+          "slots": []
+        },
+        {
+          "id": "activation.0026",
+          "kind": "causal-candidate",
+          "text": "subject violin",
+          "slots": []
+        },
+        {
+          "id": "activation.0027",
+          "kind": "causal-candidate",
+          "text": "subject violin",
+          "slots": []
+        },
+        {
+          "id": "activation.0028",
+          "kind": "catalog-candidate",
+          "text": "subject violin",
+          "slots": []
+        },
+        {
+          "id": "activation.0031",
+          "kind": "catalog-candidate",
+          "text": "predicate spatial constraint",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0032",
+          "kind": "causal-candidate",
+          "text": "predicate spatial constraint",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0038",
+          "kind": "causal-candidate",
+          "text": "object stool",
+          "slots": []
+        },
+        {
+          "id": "activation.0039",
+          "kind": "causal-candidate",
+          "text": "object stool",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "object stool",
+          "slots": []
+        },
+        {
+          "id": "activation.0008",
+          "kind": "causal-candidate",
+          "text": "term violin",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "causal-candidate",
+          "text": "term violin",
+          "slots": []
+        },
+        {
+          "id": "activation.0020",
+          "kind": "causal-candidate",
+          "text": "term stool",
+          "slots": []
+        },
+        {
+          "id": "activation.0021",
+          "kind": "causal-candidate",
+          "text": "term stool",
+          "slots": []
+        },
+        {
+          "id": "activation.0043",
+          "kind": "catalog-candidate",
+          "text": "predicate frame violin spatial constraint stool",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0044",
+          "kind": "causal-candidate",
+          "text": "predicate frame violin spatial constraint stool",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0045",
+          "kind": "causal-candidate",
+          "text": "predicate frame violin spatial constraint stool",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0046",
+          "kind": "catalog-candidate",
+          "text": "predicate frame violin spatial constraint stool",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0047",
+          "kind": "catalog-candidate",
+          "text": "predicate frame violin spatial constraint stool",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0033",
+          "kind": "causal-candidate",
+          "text": "predicate spatial constraint",
+          "slots": [
+            "constraint"
+          ]
+        },
+        {
+          "id": "activation.0018",
+          "kind": "primitive-candidate",
+          "text": "modifier wooden",
+          "slots": []
+        },
+        {
+          "id": "activation.0025",
+          "kind": "catalog-candidate",
+          "text": "subject violin",
+          "slots": []
+        },
+        {
+          "id": "activation.0037",
+          "kind": "catalog-candidate",
+          "text": "object stool",
+          "slots": []
+        },
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "modifier purple",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 74,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 12,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 14,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 12,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 70177,
+      "ok": true,
+      "renderCount": 16,
+      "sceneId": "0",
+      "renderInputMatches": true,
+      "promptMatches": true,
+      "phase7VisualObligationProof": "[{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:prompt-property-violin-color-#8055b8\",\"target\":\"Violin\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:visual:prompt-property-violin-color-#8055b8:construction-resonant-instrument:1\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:prompt-property-stool-material-wood\",\"target\":\"Stool\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":false,\"geometrySatisfied\":true,\"pixelSatisfied\":false,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:visual:prompt-property-stool-material-wood:construction-supported-surface:2\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"fail\",\"pass\":false,\"evidence\":[]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:compiled-scene-packet\",\"target\":\"violin\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:visual:compiled-scene-packet:construction-resonant-instrument:3\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:construction:construction-resonant-instrument:topology\",\"target\":\"violin\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"",
+      "phase7PixelAuditChecks": "[{\"id\":\"scene-packet-drawables\",\"actual\":25,\"expectedMin\":1,\"pass\":true},{\"id\":\"draw-count\",\"actual\":25,\"expectedMin\":1,\"pass\":true},{\"id\":\"scene-instance-count\",\"actual\":25,\"expectedMin\":1,\"pass\":true},{\"id\":\"canvas-pixels\",\"actual\":1497600,\"expectedMin\":1,\"pass\":true},{\"id\":\"visual-obligation-failures\",\"actual\":1,\"expectedMax\":0,\"pass\":false},{\"id\":\"live-pixel-sample-count\",\"actual\":23,\"expectedMin\":3,\"pass\":true},{\"id\":\"literal-object-realization\",\"actual\":0,\"expectedMin\":0,\"pass\":true},{\"id\":\"live-pixel-contrast\",\"actual\":0.7255,\"expectedMin\":0.035,\"pass\":true},{\"id\":\"visual-obligation-pixel-samples\",\"actual\":14,\"expectedMin\":14,\"pass\":true}]",
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-purple-violin-on-a-wooden-stool.canvas.png",
+      "canvasScreenshotLater": "01-custom-purple-violin-on-a-wooden-stool.canvas-late.png",
+      "canvasScreenshotHash": "a6e71b870b053e7f27f76abab27fdb5b62db2d8f84bd561a86a2a8f205e5923c",
+      "canvasScreenshotLaterHash": "70225eca0340de03c9e1566fc4f1fd732a072344fceadab8a006c8b480fc907a",
+      "canvasPerceptualHash": "0f1f2b0f0f330f0f",
+      "canvasPerceptualHashLater": "0f1f2b0f0f330f0f",
+      "canvasDiversityScreenshot": "01-custom-purple-violin-on-a-wooden-stool.canvas-diversity.png",
+      "canvasDiversityScreenshotLater": "01-custom-purple-violin-on-a-wooden-stool.canvas-diversity-late.png",
+      "canvasDiversityPerceptualHash": "0f0f2b0f0f330f0f",
+      "canvasDiversityPerceptualHashLater": "0f0f2b0f0f330f0f",
+      "canvasDiversityHashKind": "audit:visual-clean-canvas-dhash-64",
+      "canvasDiversityFrameStable": true,
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 33.488,
+      "canvasScreenshotColoredRatio": 1,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasScreenshotNearWhiteRatio": 0,
+      "canvasScreenshotStrongEdgeRatio": 0.0269,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.003,
+      "canvasFrameLumaStdDelta": 0.002,
+      "canvasFrameColoredRatioDelta": 0,
+      "canvasFrameMeanAbsolutePixelDelta": 0.038,
+      "canvasFrameChangedPixelRatio": 0,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 97,
+        "pass": true,
+        "expectedCount": 0,
+        "coverage": 1,
+        "representationQuality": 0.92,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.92,
+          "realizedGeometry": 1,
+          "constructiveGrounding": 0,
+          "silhouetteFidelity": 1,
+          "framing": 1,
+          "materialResponse": 1,
+          "cameraResponse": 1,
+          "lightResponse": 1,
+          "depthResponse": 1,
+          "spatialRelations": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": false,
+        "dynamicRequired": false,
+        "dynamicPass": true,
+        "dynamicMagnitude": 0.013,
+        "atomRichness": 1,
+        "contrast": 0.708,
+        "color": 1,
+        "expectedSignals": [],
+        "matchedSignals": [],
+        "missingSignals": []
+      }
+    }
+  ]
+}

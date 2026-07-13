@@ -119,12 +119,33 @@
       if (program.selectionRole === 'identity-catalog') score += 24;
       if (program.selectionRole === 'model-construction') score += 3;
       if (program.constructionReceipt && program.constructionReceipt.rerankEvaluated === true) score += 2;
-      if (program.constructionReceipt && program.constructionReceipt.exactTargetMatch === true) score += 3;
+      if (program.constructionReceipt && program.constructionReceipt.topologyTargetFit === true) score += 3;
+      score += promptConstructionTargetFit(program, entity);
       if (program.unsupportedIdentity === true) score -= 40;
       const primitives = new Set((program.parts || []).map((row) => row.primitive));
       if ((program.parts || []).length <= 1 || primitives.size === 1 && primitives.has('rounded-box')) score -= 24;
       score += Math.min(6, (program.parts || []).length * 0.25);
       return Number(score.toFixed(3));
+    }
+
+    function promptConstructionTargetFit(program = {}, entity = {}) {
+      const target = promptConstructionTarget(entity);
+      if (!target) return 0;
+      const programIdentities = [
+        program.identityType,
+        program.visualArchetype,
+        program.constructionReceipt && program.constructionReceipt.topologyId,
+      ].map(promptSingular).filter(Boolean);
+      const identityMatch = programIdentities.some((identity) => promptPartMatches(identity, target));
+      if (program.selectionRole === 'model-construction' && program.constructionReceipt) {
+        return program.constructionReceipt.topologyTargetFit === true ? 20 : -32;
+      }
+      return identityMatch ? 25 : -24;
+    }
+
+    function promptConstructionTarget(entity = {}) {
+      const construction = entity.construction || (entity.constructionHypotheses || [])[0] || {};
+      return promptSingular(String(construction.targetEntryId || '').replace(/^[a-z]+:/, ''));
     }
 
     function promptConstructionEvidenceCoverage(program = {}, entity = {}) {
@@ -154,8 +175,9 @@
       for (const property of entity.properties || []) {
         if (!property.value) continue;
         if (property.kind === 'color') {
-          for (const part of parts) part.fill = property.value;
-          bindings.push(promptGeometryBinding(entity.id, '', property, parts));
+          const matched = promptEntityColorParts(parts);
+          for (const part of matched) part.fill = property.value;
+          bindings.push(promptGeometryBinding(entity.id, '', property, matched));
         }
         if (property.kind === 'material') {
           const materialStyle = materialVisualValues[property.value] || null;
@@ -163,13 +185,14 @@
             bindings.push(promptGeometryBinding(entity.id, '', property, []));
             continue;
           }
-          for (const part of parts) {
+          const matched = promptEntityMaterialParts(parts, property.value);
+          for (const part of matched) {
             part.fill = materialStyle.color || part.fill;
             part.roughness = materialStyle.roughness;
             part.metallic = materialStyle.metallic;
             part.texture = materialStyle.texture;
           }
-          bindings.push(promptGeometryBinding(entity.id, '', property, parts));
+          bindings.push(promptGeometryBinding(entity.id, '', property, matched));
         }
       }
       for (const scopedPart of entity.partGraph || []) {
@@ -213,6 +236,19 @@
         parts,
         promptPropertyBindings: bindings,
       };
+    }
+
+    function promptEntityColorParts(parts = []) {
+      const primaryRoles = new Set(['core', 'head', 'appendage', 'panel', 'opening']);
+      const matched = parts.filter((part) => primaryRoles.has(String(part.constructionRole || '')));
+      return matched.length ? matched : parts;
+    }
+
+    function promptEntityMaterialParts(parts = [], material = '') {
+      if (material !== 'glass') return parts;
+      const glassRoles = new Set(['core', 'panel', 'opening', 'field']);
+      const matched = parts.filter((part) => glassRoles.has(String(part.constructionRole || '')));
+      return matched.length ? matched : parts;
     }
 
     function promptPosePartRotation(part = {}, index = 0, entity = {}) {
@@ -304,7 +340,7 @@
     }
 
     function mergeConstructionVisualObligations(compositionLedger = null, sceneRenderPacket = {}) {
-      const additions = constructionVisualObligationsForScenePacket(sceneRenderPacket);
+      const additions = constructionVisualObligationsForScenePacket(sceneRenderPacket, compositionLedger);
       if (!additions.length) return compositionLedger;
       const source = compositionLedger || {};
       const byId = new Map((source.obligations || []).map((row) => [row.id, row]));
@@ -343,13 +379,17 @@
       };
     }
 
-    function constructionVisualObligationsForScenePacket(sceneRenderPacket = {}) {
+    function constructionVisualObligationsForScenePacket(sceneRenderPacket = {}, compositionLedger = null) {
       const obligations = [];
       for (const entity of sceneRenderPacket.entities || []) {
         const program = entity.geometry && entity.geometry.program || {};
         const identity = entity.identity && entity.identity.type || program.identityType || entity.label || entity.id;
         const base = promptSafeId(entity.id || identity);
         if (program.unsupportedIdentity === true) {
+          const requiredRows = requiredIdentityObligationsForEntity(entity, compositionLedger);
+          if (compositionLedger && (!requiredRows.length || requiredRows.every((row) => (
+            sceneRenderPacketHasAlternateLiteralIdentity(sceneRenderPacket, entity, row)
+          )))) continue;
           obligations.push(constructionVisualObligation({
             id: `visual:construction:${base}:support`,
             entity,
@@ -399,6 +439,25 @@
         }
       }
       return obligations;
+    }
+
+    function requiredIdentityObligationsForEntity(entity = {}, compositionLedger = null) {
+      return ((compositionLedger && compositionLedger.obligations) || []).filter((row) => (
+        row && row.required === true && ['entity', 'object', 'environment', 'medium'].includes(row.kind) &&
+        promptEntityMatches(entity, {
+          targetIdentity: row.target || String(row.id || row.obligationId || '').replace(/^[a-z]+:/, ''),
+        })
+      ));
+    }
+
+    function sceneRenderPacketHasAlternateLiteralIdentity(sceneRenderPacket = {}, sourceEntity = {}, obligation = {}) {
+      const targetIdentity = obligation.target || String(obligation.id || obligation.obligationId || '')
+        .replace(/^[a-z]+:/, '');
+      return (sceneRenderPacket.entities || []).some((entity) => {
+        const program = entity.geometry && entity.geometry.program || {};
+        return entity !== sourceEntity && program.literal === true && program.unsupportedIdentity !== true &&
+          promptEntityMatches(entity, { targetIdentity });
+      });
     }
 
     function constructionVisualObligation(options = {}) {
@@ -520,7 +579,7 @@
     }
 
     function promptEntityMatches(entity = {}, obligation = {}) {
-      const text = [
+      const identities = [
         entity.id,
         entity.label,
         entity.sourceLabel,
@@ -528,9 +587,13 @@
         entity.visualArchetype,
         entity.semanticRef,
         entity.physicalRef,
-      ].filter(Boolean).join(' ').toLowerCase();
+        entity.identity && entity.identity.type,
+        entity.identity && entity.identity.label,
+        entity.identity && entity.identity.sourceLabel,
+        ...(entity.representedEntityIds || []),
+      ].filter(Boolean);
       const target = promptSingular(obligation.targetIdentity || obligation.target);
-      if (target && new RegExp(`(?:^|[^a-z0-9])${promptEscapeRegExp(target)}(?:[^a-z0-9]|$)`).test(text)) return true;
+      if (target && identities.some((identity) => promptPartMatches(identity, target))) return true;
       return (entity.partGraph || []).some((part) => promptPartMatches(part.semanticClass || part.label, target));
     }
 
@@ -550,12 +613,21 @@
       const transform = row.transform || {};
       const position = (transform.position || [0.5, 0.5, 0]).slice();
       const scale = (transform.scale || [0.16, 0.14, 1]).slice();
-      const spacingX = Math.min(0.12, Number(scale[0] || 0.16) * 0.7);
-      const spacingY = Math.min(0.09, Number(scale[1] || 0.14) * 0.62);
+      const sourceWidth = Number(scale[0] || 0.16);
+      const sourceHeight = Number(scale[1] || 0.14);
+      const groupWidth = Math.min(0.48, Math.max(sourceWidth, sourceWidth * columns * 0.82));
+      const groupHeight = Math.min(0.46, Math.max(sourceHeight, sourceHeight * rows * 0.82));
+      const fit = Math.min(
+        1,
+        groupWidth / Math.max(sourceWidth, sourceWidth * columns * 1.12),
+        groupHeight / Math.max(sourceHeight, sourceHeight * rows * 1.12)
+      );
+      scale[0] = sourceWidth * fit;
+      scale[1] = sourceHeight * fit;
+      const spacingX = Number(scale[0] || 0.16) * 1.12;
+      const spacingY = Number(scale[1] || 0.14) * 1.12;
       position[0] = clamp(Number(position[0] || 0.5) + (column - (columns - 1) / 2) * spacingX, 0.04, 0.96);
       position[1] = clamp(Number(position[1] || 0.5) + (line - (rows - 1) / 2) * spacingY, 0.04, 0.96);
-      scale[0] *= Math.max(0.68, 1 / Math.sqrt(columns));
-      scale[1] *= Math.max(0.68, 1 / Math.sqrt(rows));
       const bounds = scenePacketBounds({ ...transform, position, scale });
       return {
         ...row,

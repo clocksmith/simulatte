@@ -1,0 +1,28 @@
+{
+  "schema": "simulatte.autonomyEmbodiment.v1",
+  "id": "delivery-bike-v1",
+  "contentVersion": "delivery-bike-v1",
+  "label": "Delivery bike",
+  "mode": "delivery_bike",
+  "dimensions": {
+    "lengthM": 1.8,
+    "widthM": 0.65,
+    "collisionRadiusM": 1.2
+  },
+  "dynamics": {
+    "maximumSpeedMps": 7,
+    "normalAccelerationMps2": 1.2,
+    "strongAccelerationMps2": 1.8,
+    "comfortableDecelerationMps2": 2.4,
+    "emergencyDecelerationMps2": 5,
+    "integrationStepSeconds": 1
+  },
+  "requiredCapabilities": [
+    "route_following",
+    "signal_compliance",
+    "pedestrian_yield",
+    "blocked_segment_replan",
+    "delivery_arrival"
+  ],
+  "claimBoundary": "This embodiment is a deterministic browser simulation contract. It is not a controller for a physical bicycle."
+}

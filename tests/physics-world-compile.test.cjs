@@ -652,6 +652,179 @@ test('VisualIR compiles hard natural language into structural render programs', 
   }
 });
 
+test('prototype construction retrieval uses a bounded lexical index with honest receipts', () => {
+  const prompt = 'robot with red eyes and bendable straw arms';
+  const spec = createPrototypeSpec(prompt);
+  const phase2 = spec.intent.phaseArtifacts.phase2.artifact;
+  const retrieval = spec.intent.phaseArtifacts.phase3.artifact.retrievalRerankResult.slotRetrieval;
+  const repeated = semanticRagApi.createPrototypeSlotRetrieval(phase2.queryPlan, prompt);
+  const robotSlot = retrieval.bySlot.find((row) => row.slotId === 'slot.object.robot');
+  const armSlot = retrieval.bySlot.find((row) => row.slotId === 'slot.part.arm');
+  const robotNode = spec.universeGraph.nodes.find((row) => row.semanticClass === 'robot');
+
+  assert.equal(retrieval.mode, 'prototype-lexical-construction-index');
+  assert.equal(retrieval.model, '');
+  assert.equal(retrieval.embeddedSlotCount, 0);
+  assert.equal(retrieval.rerankCallCount, 0);
+  assert.ok(retrieval.indexReceipt.postingVisits < retrieval.indexReceipt.cardCount);
+  assert.ok(retrieval.indexReceipt.scoredCardCount < retrieval.indexReceipt.cardCount);
+  assert.deepEqual(repeated, retrieval, 'the cached index preserves stable candidate order and receipts');
+  assert.equal(robotSlot.candidates[0].candidateId, 'artifact.robot');
+  assert.deepEqual(armSlot.candidates, [], 'single-token arm does not borrow the broader robot-arm family');
+  assert.ok(robotSlot.candidates.every((row) => (
+    row.modelEvaluated === false && row.modelRerankEvaluated === false && row.modelScore === null
+  )));
+  assert.equal(robotSlot.receipt.modelStatus, 'not-run');
+  assert.equal(robotSlot.receipt.skipReason, 'explicit-prototype-lexical-control-lane');
+  assert.ok(robotNode.construction.partHints.includes('revolute joints'));
+  assert.deepEqual(robotNode.constructionProvenance.map((row) => ({
+    modelScore: row.modelScore,
+    modelRerankScore: row.modelRerankScore,
+    modelEvaluated: row.modelEvaluated,
+    rerankEvaluated: row.rerankEvaluated,
+  })), [{
+    modelScore: null,
+    modelRerankScore: null,
+    modelEvaluated: false,
+    rerankEvaluated: false,
+  }], 'Phase 4 preserves unevaluated construction evidence without fabricating model scores');
+});
+
+test('prototype lexical construction matches tokens rather than substrings', () => {
+  const queryPlan = {
+    schema: 'simulatte.sceneQueryPlan.v1',
+    sourcePromptHash: 'fnv1a:test',
+    slots: [{
+      schema: 'simulatte.sceneQuerySlot.v1',
+      slotId: 'slot.object.catalyst',
+      slotRole: 'object',
+      entryId: 'entity:catalyst',
+      sourceLabel: 'catalyst',
+      required: true,
+      queries: [{ kind: 'lexical', text: 'catalyst' }],
+    }],
+  };
+  const retrieval = semanticRagApi.createPrototypeSlotRetrieval(queryPlan, 'catalyst');
+  const candidates = retrieval.bySlot[0].candidates;
+
+  assert.equal(candidates.some((row) => row.candidateId === 'entity.cat'), false);
+  assert.equal(candidates.some((row) => /\bcat\b/.test(row.label)), false);
+});
+
+test('prototype concept slots preserve exact construction graphs for concrete nouns', () => {
+  const cases = [
+    ['violin', 'concept:violin', 'construction.resonant-instrument', 'resonant-instrument', ''],
+    ['violin on stool', 'concept:stool', 'construction.stool', 'stool', ''],
+    ['octopus', 'concept:octopus', 'construction.cephalopod', 'cephalopod', ''],
+    ['teapot', 'concept:teapot', 'construction.teapot', 'teapot', ''],
+  ];
+
+  for (const [prompt, entryId, candidateId, topologyId, establishedGrammarId] of cases) {
+    const spec = createPrototypeSpec(prompt);
+    const retrieval = spec.intent.phaseArtifacts.phase3.artifact.retrievalRerankResult.slotRetrieval;
+    const slot = retrieval.bySlot.find((row) => row.entryId === entryId);
+    assert.ok(slot, `${entryId} has a construction retrieval row`);
+    assert.equal(slot.candidates[0].candidateId, candidateId);
+    assert.equal(slot.candidates[0].literalSlotMatch, true);
+    assert.equal(slot.candidates[0].modelEvaluated, false);
+    assert.equal(slot.candidates[0].modelScore, null);
+    const programs = spec.renderProgram.sceneRenderPacket.entities
+      .map((entity) => entity.geometry && entity.geometry.program)
+      .filter(Boolean);
+    if (topologyId) {
+      const program = programs.find((row) => row.constructionReceipt?.topologyId === topologyId);
+      assert.ok(program, `${entryId} compiles the ${topologyId} construction topology`);
+      assert.equal(program.constructionReceipt.literalSlotMatch, true);
+      assert.equal(program.constructionReceipt.exactTargetMatch, true);
+      assert.equal(program.constructionReceipt.modelEvaluated, false);
+    } else {
+      assert.ok(programs.some((row) => row.grammarId === establishedGrammarId));
+    }
+  }
+});
+
+test('generated relation phrases remain support evidence instead of visible entities', () => {
+  const spec = createPrototypeSpec('yellow excavator beside a glass greenhouse');
+  const retrieval = spec.intent.phaseArtifacts.phase3.artifact.retrievalRerankResult;
+  const relationPrimitive = retrieval.supportPrimitives.find((row) => row.id === 'open-excavator-beside-1');
+  const visibleIds = spec.renderProgram.sceneRenderPacket.entities.map((row) => row.id);
+
+  assert.ok(relationPrimitive);
+  assert.equal(relationPrimitive.supportOnly, true);
+  assert.equal(relationPrimitive.matchKind, 'open-association-support');
+  assert.equal(visibleIds.includes('open-excavator-beside-1'), false);
+  assert.equal(visibleIds.some((id) => id.includes('open-excavator-beside')), false);
+});
+
+test('direct prompt objects outrank inferred scene tags and remain peer-scale beside one another', () => {
+  const violin = createPrototypeSpec('purple violin on a wooden stool');
+  const excavator = createPrototypeSpec('yellow excavator beside a glass greenhouse');
+  const octopus = createPrototypeSpec('an octopus holding a teapot');
+
+  assert.equal(violin.renderProgram.rendererPlan.sceneKind, 'acoustic');
+  assert.equal(excavator.renderProgram.rendererPlan.sceneKind, 'mechanical');
+  assert.equal(octopus.renderProgram.rendererPlan.sceneKind, 'biology');
+
+  const pair = excavator.renderProgram.sceneRenderPacket.entities;
+  const widths = pair.map((row) => row.transform.scale[0]);
+  assert.ok(Math.max(...widths) / Math.min(...widths) < 1.35,
+    'beside prompt entities are not resized from inferred environment tags');
+  const excavatorProgram = pair.find((row) => row.identity.type === 'excavator').geometry.program;
+  const yellowParts = excavatorProgram.parts.filter((part) => part.fill === '#f4d03f');
+  assert.ok(yellowParts.some((part) => part.constructionRole === 'core'));
+  assert.ok(yellowParts.some((part) => part.constructionRole === 'appendage'));
+  assert.ok(excavatorProgram.parts.filter((part) => part.constructionRole === 'path')
+    .every((part) => part.fill !== '#f4d03f'), 'tracks retain material contrast');
+  const boom = excavatorProgram.parts.filter((part) => part.constructionRole === 'appendage');
+  const bucket = excavatorProgram.parts.find((part) => part.constructionRole === 'panel');
+  assert.ok(boom[0].rotation > 0 && boom[1].rotation < 0, 'boom links form an articulated elbow');
+  assert.ok(bucket && bucket.rotation > boom[1].rotation, 'bucket follows the boom endpoint orientation');
+});
+
+test('counted instances remain individually readable and constructive parts stay in local bounds', () => {
+  const counted = createPrototypeSpec('3 dogs playing with 7 people');
+  const entities = counted.renderProgram.sceneRenderPacket.entities;
+  for (const identityType of ['dog', 'person']) {
+    const rows = entities.filter((row) => row.identity.type === identityType);
+    for (let left = 0; left < rows.length; left += 1) {
+      for (let right = left + 1; right < rows.length; right += 1) {
+        const a = rows[left].transform;
+        const b = rows[right].transform;
+        const separated = Math.abs(a.position[0] - b.position[0]) >= (a.scale[0] + b.scale[0]) * 0.5 ||
+          Math.abs(a.position[1] - b.position[1]) >= (a.scale[1] + b.scale[1]) * 0.5;
+        assert.equal(separated, true, `${identityType} instances ${left + 1} and ${right + 1} do not overlap`);
+      }
+    }
+  }
+
+  const excavator = createPrototypeSpec('yellow excavator beside a glass greenhouse')
+    .renderProgram.sceneRenderPacket.entities.find((row) => row.identity.type === 'excavator');
+  for (const part of excavator.geometry.program.parts) {
+    const rotation = Number(part.rotation || 0);
+    const halfWidth = (Math.abs(Math.cos(rotation)) * part.size[0] +
+      Math.abs(Math.sin(rotation)) * part.size[1]) * 0.5;
+    const halfHeight = (Math.abs(Math.sin(rotation)) * part.size[0] +
+      Math.abs(Math.cos(rotation)) * part.size[1]) * 0.5;
+    assert.ok(Math.abs(part.center[0]) + halfWidth <= 0.471);
+    assert.ok(Math.abs(part.center[1]) + halfHeight <= 0.471);
+  }
+});
+
+test('production retrieval never invokes the prototype lexical construction lane', () => {
+  const prompt = 'airplane flying over trees';
+  const phase1 = lab.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true });
+  const phase2 = lab.runPhase2LanguageGraph(phase1);
+  const phase3 = lab.runPhase3Retrieval(phase2, {
+    runtimeReceiptId: 'runtime:production-boundary-test',
+    runtimeMode: 'unproven',
+    retrievalEvidence: { sourcePromptHash: phase2.artifact.queryPlan.sourcePromptHash },
+  });
+  const result = phase3.artifact.retrievalRerankResult;
+
+  assert.equal(result.slotRetrieval, null);
+  assert.equal(result.slotEvidence.flatMap((row) => row.constructionCandidates).length, 0);
+});
+
 test('compiled-artifact visual genomes diversify close and broad worlds', () => {
   const prompts = [
     'fire',

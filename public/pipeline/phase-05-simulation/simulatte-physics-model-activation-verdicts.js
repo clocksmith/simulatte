@@ -159,10 +159,13 @@
     	        source: 'language-graph',
     	      }));
     	    }
-    	    const negatedEntries = [
-    	      ...(sceneLanguageGraph.entities || []),
-    	      ...(sceneLanguageGraph.actions || []),
-    	      ...(sceneLanguageGraph.environments || []),
+	    const negatedEntries = [
+	      ...(sceneLanguageGraph.entities || []),
+	      ...(sceneLanguageGraph.concepts || []),
+	      ...(sceneLanguageGraph.parts || []),
+	      ...(sceneLanguageGraph.actions || []),
+	      ...(sceneLanguageGraph.attributes || []),
+	      ...(sceneLanguageGraph.environments || []),
     	      ...(sceneLanguageGraph.mediums || []),
     	    ].filter((entry) => entry.negated === true);
     	    for (const entry of negatedEntries) {

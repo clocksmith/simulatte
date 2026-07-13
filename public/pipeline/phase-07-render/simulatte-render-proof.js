@@ -222,7 +222,9 @@
       const semanticFit = program.source === 'phase6-data-owned-part-graph' || Boolean(
         program.constructionReceipt && (
           program.constructionReceipt.literalSlotMatch === true ||
-          program.constructionReceipt.exactTargetMatch === true
+          program.constructionReceipt.exactTargetMatch === true ||
+          program.constructionReceipt.targetIdentityBound === true &&
+            program.constructionReceipt.modelEvaluated === true
         )
       );
       const topologyVerified = program.source === 'phase6-data-owned-part-graph'
@@ -239,6 +241,7 @@
           row.identity && row.identity.label,
           row.identity && row.identity.sourceLabel,
           row.identity && row.identity.type,
+          program.constructionReceipt && program.constructionReceipt.targetEntryId,
           ...(row.representedEntityIds || []),
         ].filter(Boolean),
         grammarId: program.grammarId || '',
@@ -402,7 +405,9 @@
       binding.status === 'bound' &&
       binding.propertyKind === obligation.propertyKind &&
       binding.value === obligation.expectedValue &&
-      (!obligation.targetIdentity || proofPhraseMatch(binding.partId || row.identity && row.identity.type, obligation.targetIdentity))
+      (!obligation.targetIdentity ||
+        promptProofEntityMatches(row, obligation.targetIdentity) ||
+        binding.partId && proofPhraseMatch(binding.partId, obligation.targetIdentity))
     ));
   }
 

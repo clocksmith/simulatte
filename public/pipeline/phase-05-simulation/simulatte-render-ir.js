@@ -106,15 +106,17 @@
       .map((edge) => edge.from));
     for (const node of universeGraph.nodes || []) {
       if (materialAttributeNodeIds.has(node.id)) continue;
+      const semanticType = String(node.semanticType || node.type || '').toLowerCase();
       const nodeKeys = identityKeys([
         node.id,
         node.canonicalId,
         node.label,
         ...(node.aliases || []),
       ].filter(Boolean).join(' '));
-      if (nodeKeys.some((key) => represented.has(key))) continue;
+      // Prompt-owned visual effects must survive even when a physical support
+      // node shares a token such as "fire". Token overlap is not realization.
+      if (semanticType !== 'visual-effect' && nodeKeys.some((key) => represented.has(key))) continue;
       if (!node.id || !node.label || node.supportOnly === true) continue;
-      const semanticType = String(node.semanticType || node.type || '').toLowerCase();
       if (/^(event|process|action|observable|operator|property|state)$/.test(semanticType)) {
         continue;
       }
@@ -144,6 +146,10 @@
         construction: node.construction || null,
         constructionHypotheses: (node.constructionHypotheses || []).map((row) => ({ ...row })),
         constructionProvenance: (node.constructionProvenance || []).slice(),
+        properties: (node.properties || []).map((row) => ({ ...row })),
+        partGraph: (node.partGraph || []).map((row) => ({ ...row })),
+        cardinality: node.cardinality || 1,
+        poseHint: node.poseHint ? { ...node.poseHint } : null,
         directlyGrounded: node.directlyGrounded === true || node.indexName === 'prompt-typed-slot',
         glyph: node.shapeHints && node.shapeHints[0] || 'body',
         materialId: node.materialId || '',

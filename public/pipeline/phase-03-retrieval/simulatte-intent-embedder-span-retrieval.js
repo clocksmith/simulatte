@@ -305,13 +305,22 @@
         }
         const started = nowMs();
         const bySlot = [];
-        const modelSlots = slots.filter((slot) => !slotUsesPromptOwnedLocalEvidence(slot));
+        const localSlots = slots.filter(slotUsesPromptOwnedLocalEvidence);
+        const promptConstructionBySlot = new Map(slots.filter((slot) => !slotUsesPromptOwnedLocalEvidence(slot))
+          .map((slot) => [slot.slotId, promptVectorExactConstructionCandidates(
+            slot, runtime, payload.promptVector, config, payload.options
+          )]).filter(([, rows]) => rows.length));
+        const modelSlots = slots.filter((slot) => (
+          !slotUsesPromptOwnedLocalEvidence(slot) && !promptConstructionBySlot.has(slot.slotId)
+        ));
         let rerankCallCount = 0;
         emitRuntimeProgress(payload.progress, payload.traceEnabled, {
           source: 'simulatte-intent-embedder',
           stage: 'slot-retrieval',
           percent: 94.1,
-          message: `Embedding ${modelSlots.length} construction slots; ${slots.length - modelSlots.length} identity-only slots stay local`,
+          message: `${modelSlots.length} unresolved construction slots need embeddings; ` +
+            `${promptConstructionBySlot.size} exact constructions reuse the prompt embedding; ` +
+            `${localSlots.length} typed slots stay local`,
           slotCount: slots.length,
           traceId: payload.traceId || '',
           rankId: payload.rankId || 0,
@@ -323,15 +332,23 @@
           slotId: slot.slotId || '',
           slotRole: slot.slotRole || '',
         }));
+        const slotEmbedStarted = nowMs();
         const batchedSlotQueries = slotRequests.length && typeof provider.embedMany === 'function'
           ? await provider.embedMany(slotRequests)
           : [];
+        const slotEmbeddingDurationMs = slotRequests.length ? elapsedMsSince(slotEmbedStarted) : 0;
         const useBatchedSlotQueries = Array.isArray(batchedSlotQueries) && batchedSlotQueries.length === modelSlots.length;
         let modelSlotIndex = 0;
         for (let i = 0; i < slots.length; i += 1) {
           const slot = slots[i];
           if (slotUsesPromptOwnedLocalEvidence(slot)) {
             bySlot.push(promptOwnedLocalSlotRow(slot, payload.promptText));
+            continue;
+          }
+          if (promptConstructionBySlot.has(slot.slotId)) {
+            bySlot.push(promptVectorConstructionSlotRow(
+              slot, promptConstructionBySlot.get(slot.slotId), payload.promptVector, config
+            ));
             continue;
           }
           const request = slotRequests[modelSlotIndex];
@@ -431,51 +448,12 @@
           config: slotRetrievalReceiptConfig(config),
           slotCount: slots.length,
           embeddedSlotCount: modelSlots.length,
-          localEvidenceSlotCount: slots.length - modelSlots.length,
+          promptEmbeddingSlotCount: promptConstructionBySlot.size,
+          modelEvidenceSlotCount: modelSlots.length + promptConstructionBySlot.size,
+          localEvidenceSlotCount: localSlots.length,
+          slotEmbeddingDurationMs: Number(slotEmbeddingDurationMs.toFixed(3)),
           rerankCallCount,
-          rerankCandidateInputCount: bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.candidateInputCount || 0),
-            0
-          ),
-          rerankCandidateOutputCount: bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.candidateOutputCount || 0),
-            0
-          ),
-          rerankScoringPaths: [...new Set(bySlot.flatMap(
-            (row) => row.receipt && row.receipt.scoringPaths || []
-          ))].sort(),
-          selectedTokenLogitCount: bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.selectedTokenLogitCount || 0),
-            0
-          ),
-          prefixKvReuseCount: bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.prefixKvReuseCount || 0),
-            0
-          ),
-          prefixStateReuseCount: bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.prefixStateReuseCount || 0),
-            0
-          ),
-          selectedTokenExecutionCount: bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.selectedTokenExecutionCount || 0),
-            0
-          ),
-          scoreCacheHitCount: bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.scoreCacheHitCount || 0),
-            0
-          ),
-          totalExecutionDurationMs: Number(bySlot.reduce(
-            (sum, row) => sum + Number(row.receipt && row.receipt.totalExecutionDurationMs || 0),
-            0
-          ).toFixed(3)),
-          maximumExecutionDurationMs: Number(Math.max(0, ...bySlot.map(
-            (row) => Number(row.receipt && row.receipt.maximumExecutionDurationMs || 0)
-          )).toFixed(3)),
-          minimumPrefixTokenCount: bySlot.reduce((minimum, row) => {
-            const count = Number(row.receipt && row.receipt.minimumPrefixTokenCount || 0);
-            if (count <= 0) return minimum;
-            return minimum > 0 ? Math.min(minimum, count) : count;
-          }, 0),
+          ...slotRerankSummary(bySlot),
           durationMs: elapsedMsSince(started),
           bySlot,
           evidenceRows: slotRetrievalEvidenceRows({ bySlot }),
@@ -494,6 +472,10 @@
           config: slotRetrievalReceiptConfig(config || {}),
           slotCount: slots.length,
           embeddedSlotCount: 0,
+          promptEmbeddingSlotCount: 0,
+          modelEvidenceSlotCount: 0,
+          localEvidenceSlotCount: slots.length,
+          slotEmbeddingDurationMs: 0,
           rerankCallCount: 0,
           rerankCandidateInputCount: 0,
           rerankCandidateOutputCount: 0,
@@ -662,12 +644,11 @@
           return candidate;
         }).filter((row) => row.score >= config.surfaceScoreFloor || Number(row.lexicalScore || 0) > 0);
         const exactRows = lexicalRows.filter((row) => slotCandidateLiteralMatch(slot, row));
-        return uniqueSlotCandidates([
+        return reserveConstructionTopologyCandidates(slot, uniqueSlotCandidates([
           ...exactRows.sort(slotCandidateSort),
           ...lexicalRows.sort(slotCandidateSort),
           ...modelRows.sort(slotCandidateSort),
-        ])
-          .slice(0, config.perSlotCardMax);
+        ]), config.perSlotCardMax);
       }
 
     function slotCandidateLiteralMatch(slot = {}, row = {}) {
@@ -818,6 +799,20 @@
               modelBackend: capability.backend,
               candidateInputCount: input.candidates.length,
               candidateOutputCount: modelRows.length,
+              candidateInputs: input.candidates.map((row) => ({
+                candidateId: row.candidateId || row.primitiveId,
+                order: row.order,
+                candidateType: row.candidateType,
+                localScore: row.score,
+                lexicalScore: row.lexicalScore,
+              })),
+              candidateOutputs: modelRows.map((row) => ({
+                candidateId: row.primitiveId,
+                rank: row.rank,
+                score: row.score,
+                scoringPath: row.scoringPath,
+                executionDurationMs: row.executionDurationMs,
+              })),
               ...rerankExecutionSummary(modelRows),
             },
           };

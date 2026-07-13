@@ -27,6 +27,7 @@
     'pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js',
     'pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js',
     'pipeline/phase-03-retrieval/simulatte-semantic-rag-grounding-cards.js',
+    'pipeline/phase-03-retrieval/simulatte-semantic-rag-lexical-construction.js',
     'pipeline/phase-03-retrieval/simulatte-semantic-rag-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-semantic-rag.js'
   );

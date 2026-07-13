@@ -148,6 +148,12 @@
           classHints: ['oscillator_machine'], shapeHints: ['pendulum'], partHints: ['bob', 'rod', 'pivot'],
           materialHints: ['metal', 'wood'], behaviorHints: ['oscillates'], groundingIds: ['ground.pendulum'],
         }),
+        surfaceCard('artifact.robot', 'artifact', ['robot'], 'articulated machine with torso, head, sensor eyes, jointed arms, actuators, and an anchored base', {
+          classHints: ['articulated_machine'], shapeHints: ['linked_rigid_bodies'],
+          partHints: ['torso', 'head', 'sensor eyes', 'jointed arms', 'actuators', 'base'],
+          materialHints: ['metal', 'plastic', 'glass'], behaviorHints: ['actuated_motion'],
+          groundingIds: ['ground.articulated-machine'],
+        }),
         surfaceCard('artifact.robot-arm', 'artifact', ['robot arm', 'robot arms', 'warehouse robot arms', 'manipulator', 'servo arm'], 'jointed machine with rigid links, actuators, constraints, and end effector', {
           classHints: ['articulated_machine'], shapeHints: ['linked_rigid_bodies'], partHints: ['joint', 'link', 'motor'],
           materialHints: ['metal', 'copper'], behaviorHints: ['actuated_motion'], groundingIds: ['ground.articulated-machine'],
@@ -282,6 +288,12 @@
           partHints: ['water basin', 'cliff walls', 'shoreline', 'glacier mouth'],
           materialHints: ['water', 'rock', 'ice'], behaviorHints: ['containment', 'fluid_flow'],
           groundingIds: ['ground.fluid-domain', 'ground.granular-terrain'],
+        }),
+        surfaceCard('environment.tidal-channel', 'environment', ['tidal channels', 'tidal channel', 'estuary channel'], 'branching brackish water channels bounded by sediment banks and mangrove roots', {
+          classHints: ['fluid_channel', 'estuary'], shapeHints: ['branching_flow_path', 'water_channel'],
+          partHints: ['water channel', 'sediment bank', 'branch junction', 'surface ripple'],
+          materialHints: ['brackish', 'water', 'sediment'], behaviorHints: ['fluid_flow', 'tidal_surge', 'sediment_transport'],
+          groundingIds: ['ground.fluid-channel', 'ground.fluid-domain', 'ground.granular-terrain'],
         }),
         surfaceCard('environment.river', 'environment', ['river', 'stream', 'creek'], 'flowing water channel carrying sediment through terrain', {
           classHints: ['fluid_channel'], materialHints: ['water', 'soil', 'rock', 'sand'], behaviorHints: ['fluid_flow', 'erosion'], groundingIds: ['ground.fluid-channel'],

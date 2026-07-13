@@ -407,6 +407,8 @@
         }
 
         encodePixelReadback(encoder, frameTexture) {
+          const packetKey = this.renderData && this.renderData.packetKey || '';
+          if (packetKey && this.pendingPixelReadbackPacketKey === packetKey) return null;
           const plan = phase7PixelReadbackPlan(
             this.renderData,
             this.sceneRenderPacket,
@@ -414,11 +416,20 @@
             this.canvas
           );
           if (!plan || !plan.samples.length) {
-            this.canvas.dataset.phase7PixelReadbackPlan = 'none';
+            this.canvas.dataset.phase7PixelReadbackPlan = plan
+              ? `${plan.status}:0/${plan.requiredSampleCount}`
+              : 'none';
+            if (plan) {
+              this.recordPixelReadbackFailure({
+                serial: this.pixelReadbackSerial += 1,
+                packetKey,
+                plan,
+                buffer: null,
+              }, new Error(`Phase 7 pixel readback plan failed: ${plan.status}`));
+            }
             return null;
           }
-          this.canvas.dataset.phase7PixelReadbackPlan = String(plan.samples.length);
-          if (this.pendingPixelReadbackPacketKey === plan.packetKey) return null;
+          this.canvas.dataset.phase7PixelReadbackPlan = `${plan.samples.length}/${plan.requiredSampleCount}`;
           if (!this.device || typeof this.device.createBuffer !== 'function') return null;
           if (!encoder || typeof encoder.copyTextureToBuffer !== 'function') return null;
           const size = Math.max(PIXEL_READBACK_BYTES_PER_ROW, plan.samples.length * PIXEL_READBACK_BYTES_PER_ROW);
@@ -449,6 +460,8 @@
             buffer,
             bytesPerRow: PIXEL_READBACK_BYTES_PER_ROW,
           };
+          this.renderData.livePixelReadbackAttemptCount =
+            Number(this.renderData.livePixelReadbackAttemptCount || 0) + 1;
           this.pendingPixelReadbackPacketKey = readback.packetKey;
           this.canvas.dataset.phase7PixelReadback = 'pending';
           this.canvas.dataset.phase7PixelReadbackMessage = '';
@@ -459,10 +472,6 @@
         schedulePixelReadback(readback, renderCount, frameMs) {
           if (!readback) return;
           const done = Promise.resolve()
-            .then(() => {
-              const submitted = this.device && this.device.queue && this.device.queue.onSubmittedWorkDone;
-              return typeof submitted === 'function' ? submitted.call(this.device.queue) : null;
-            })
             .then(() => readback.buffer.mapAsync(GPUMapMode.READ))
             .then(() => {
               const mapped = new Uint8Array(readback.buffer.getMappedRange());
@@ -511,6 +520,9 @@
             source: sampleSet.source,
             packetKey: readback.packetKey,
             sampleCount: samples.length,
+            requiredSampleCount: readback.plan.requiredSampleCount,
+            requiredObligationCount: readback.plan.requiredObligationCount,
+            unmatchedObligationIds: readback.plan.unmatchedObligationIds.slice(),
             readbackSerial: readback.serial,
           };
           this.phase7OutputPacketKey = '';
@@ -537,9 +549,14 @@
           this.canvas.dataset.phase7PixelSampledObligations = pixelAudit && pixelAudit.livePixelAudit
             ? pixelAudit.livePixelAudit.sampledObligationIds.join(',')
             : '';
-          this.canvas.dataset.phase7VisualObligationProof = JSON.stringify(
-            this.phase7Output && this.phase7Output.artifact && this.phase7Output.artifact.renderExecution.visualObligationProof || []
-          ).slice(0, 2000);
+          const visualObligationProof = this.phase7Output && this.phase7Output.artifact &&
+            this.phase7Output.artifact.renderExecution.visualObligationProof || [];
+          const visualObligationProofSummary = this.phase7Output && this.phase7Output.artifact &&
+            this.phase7Output.artifact.renderExecution.visualObligationProofSummary || null;
+          this.canvas.dataset.phase7VisualObligationProof = JSON.stringify(visualObligationProof);
+          this.canvas.dataset.phase7PassedVisualObligationIds = visualObligationProofSummary
+            ? visualObligationProofSummary.passedObligationIds.join(',')
+            : '';
           this.canvas.dataset.phase7PixelAuditChecks = JSON.stringify(pixelAudit && pixelAudit.checks || []).slice(0, 2000);
         }
 
@@ -551,9 +568,21 @@
             source: 'webgpu-texture-copy-readback',
             packetKey: readback && readback.packetKey || '',
             sampleCount: readback && readback.plan && readback.plan.samples.length || 0,
+            requiredSampleCount: readback && readback.plan && readback.plan.requiredSampleCount || 0,
+            requiredObligationCount: readback && readback.plan && readback.plan.requiredObligationCount || 0,
+            unmatchedObligationIds: readback && readback.plan && readback.plan.unmatchedObligationIds || [],
             readbackSerial: readback && readback.serial || 0,
             message,
           };
+          const buffer = readback && readback.buffer;
+          if (buffer) {
+            try {
+              if (buffer.mapState === 'mapped' && typeof buffer.unmap === 'function') buffer.unmap();
+              if (typeof buffer.destroy === 'function') buffer.destroy();
+            } catch (_cleanupError) {
+              // The original readback failure remains the authoritative error.
+            }
+          }
           this.errorLog.push(message);
           if (this.renderData) {
             this.renderData.livePixelSamplesStatus = 'fail';
@@ -582,6 +611,7 @@
           this.canvas.dataset.phase7PixelRequiredObligationCount = '0';
           this.canvas.dataset.phase7PixelSampledObligations = '';
           this.canvas.dataset.phase7VisualObligationProof = '';
+          this.canvas.dataset.phase7PassedVisualObligationIds = '';
           this.canvas.dataset.phase7PixelAuditChecks = '';
           this.canvas.dataset.phase7PixelPacketKey = packetKey;
         }
@@ -798,191 +828,12 @@
         return packet;
       }
 
-    function phase7PixelReadbackPlan(renderData = null, sceneRenderPacket = {}, renderExecutionInput = null, canvas = null) {
-        if (!renderData || renderData.requireLivePixelSamples !== true) return null;
-        if (renderData.pixelSamples) return null;
-        if (renderData.livePixelReadbackFailed === true) return null;
-        if (
-          renderData.livePixelSamples &&
-          renderData.livePixelSamples.packetKey === renderData.packetKey &&
-          renderData.livePixelSamplesStatus === 'pass'
-        ) {
-          return null;
-        }
-        const width = Number(canvas && canvas.width || 0);
-        const height = Number(canvas && canvas.height || 0);
-        if (!width || !height) return null;
-        const obligations = phase7RequiredVisualObligations(renderExecutionInput, sceneRenderPacket);
-        const drawables = Array.isArray(renderData.drawables) && renderData.drawables.length
-          ? renderData.drawables
-          : scenePacketUniformDrawables(sceneRenderPacket, renderData.sceneKind || '').slice(0, GPU_SCENE_INSTANCE_CAPACITY);
-        if (!obligations.length || !drawables.length) return null;
-        const samples = [];
-        for (const obligation of obligations) {
-          if (obligation.constraintKind === 'environment' || obligation.targetIdentity === 'sunset') {
-            samples.push(pixelSampleForEnvironmentObligation(obligation, width, height));
-            if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
-            continue;
-          }
-          const expectedSamples = Math.max(1, Math.min(
-            PHASE8_READBACK_SAMPLE_LIMIT - samples.length,
-            Number(obligation.expectedCount || 1)
-          ));
-          const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
-          if (obligation.constraintKind === 'construction-part') {
-            const projectedParts = phase7ProjectedObjectPartPoints(
-              renderData,
-              obligation,
-              Number(renderData.pixelReadbackTimeMs || 0) * 0.001
-            ).slice(0, expectedSamples);
-            const drawable = matched[0];
-            for (const projected of projectedParts) {
-              const sample = drawable && pixelSampleForDrawable(
-                drawable, obligation, width, height, samples.length, drawables.length
-              );
-              if (!sample) continue;
-              applyProjectedPixelSample(sample, projected, width, height, obligation);
-              samples.push(sample);
-              if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
-            }
-            if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
-            continue;
-          }
-          for (const drawable of matched) {
-            const sample = pixelSampleForDrawable(drawable, obligation, width, height, samples.length, drawables.length);
-            const projected = phase7ProjectedObjectPartPoint(
-              renderData,
-              { ...obligation, targetEntityId: drawable.id || obligation.targetEntityId },
-              Number(renderData.pixelReadbackTimeMs || 0) * 0.001
-            );
-            if (sample && projected) applyProjectedPixelSample(sample, projected, width, height, obligation);
-            if (sample) samples.push(sample);
-            if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
-          }
-          if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
-        }
-        if (!samples.length) return null;
-        return {
-          schema: 'simulatte.phase7PixelReadbackPlan.v1',
-          packetKey: renderData.packetKey,
-          canvas: { width, height },
-          sampleCount: samples.length,
-          samples,
-        };
-      }
-
-    function applyProjectedPixelSample(sample, projected, width, height, obligation = {}) {
-        sample.x = clampInt(Math.round(projected.x * (width - 1)), 0, width - 1);
-        sample.y = clampInt(Math.round(projected.y * (height - 1)), 0, height - 1);
-        sample.uv = [Number(projected.x.toFixed(5)), Number(projected.y.toFixed(5))];
-        sample.constructionRole = projected.part && projected.part.constructionRole || '';
-        sample.constructionPartId = projected.part && projected.part.constructionPartId || '';
-        sample.expectedSampleCount = Number(obligation.expectedCount || 1);
-      }
-
-    function phase7RequiredVisualObligationIds(renderExecutionInput = null, sceneRenderPacket = {}) {
-        return phase7RequiredVisualObligations(renderExecutionInput, sceneRenderPacket)
-          .map((row) => row.obligationId || row.id || '')
-          .filter(Boolean);
-      }
-
-    function phase7RequiredVisualObligations(renderExecutionInput = null, sceneRenderPacket = {}) {
-        const direct = renderExecutionInput && Array.isArray(renderExecutionInput.visualObligations)
-          ? renderExecutionInput.visualObligations
-          : [];
-        const ledger = renderExecutionInput && renderExecutionInput.compositionLedger ||
-          sceneRenderPacket && sceneRenderPacket.compositionLedger ||
-          null;
-        const ledgerRows = ledger && Array.isArray(ledger.obligations) ? ledger.obligations : [];
-        const directIds = new Set(direct.map((row) => row && (row.obligationId || row.id)).filter(Boolean));
-        return [
-          ...direct,
-          ...ledgerRows.filter((row) => !directIds.has(row && (row.obligationId || row.id))),
-        ].filter((row) => {
-          const id = row && (row.obligationId || row.id) || '';
-          return row && row.required === true && (directIds.has(id) || (
-          row.kind === 'visual' ||
-          row.kind === 'entity' ||
-          row.kind === 'object' ||
-          row.kind === 'environment' ||
-          row.kind === 'medium' ||
-          row.ownedByPhase === 6 ||
-          /^visual:/.test(id)
-          ));
-        });
-      }
-
-    function drawablesForPixelObligation(drawables = [], obligation = {}) {
-        const obligationText = normalizeForProof([
-          obligation.obligationId,
-          obligation.id,
-          obligation.target,
-          obligation.description,
-        ].filter(Boolean).join(' '));
-        const scored = drawables.map((row, index) => ({
-          row,
-          index,
-          score: pixelObligationDrawableScore(row, obligationText),
-        })).filter((entry) => entry.score > 0);
-        if (!scored.length) {
-          return [];
-        }
-        return scored
-          .sort((a, b) => b.score - a.score || a.index - b.index)
-          .map((entry) => entry.row);
-      }
-
-    function pixelObligationDrawableScore(row = {}, obligationText = '') {
-        const rowText = normalizeForProof(JSON.stringify({
-          id: row.id,
-          label: row.label,
-          layerSlot: row.layerSlot,
-          packetKind: row.packetKind,
-          sourceGraphId: row.sourceGraphId,
-          identity: row.identity,
-          geometry: row.geometry,
-          domain: row.domain,
-          animation: row.animation,
-          material: row.material,
-          renderCodes: row.renderCodes,
-        }));
-        let score = 0;
-        if (/species distinct|species distinct silhouettes/.test(obligationText)) {
-          if (/\bdog\b/.test(rowText)) score += 12;
-          if (/\bcat\b/.test(rowText)) score += 12;
-          if (/biological agent/.test(rowText)) score += 3;
-        }
-        if (/swimming pose|swim/.test(obligationText)) {
-          if (/swim cycle|swimming agent|swim pose/.test(rowText)) score += 12;
-          if (/biological agent/.test(rowText)) score += 2;
-        }
-        if (/wake|ripple/.test(obligationText)) {
-          if (/wake|ripple|flow field/.test(rowText)) score += 12;
-          if (/water volume/.test(rowText)) score += 2;
-        }
-        if (/partial submersion|submersion|waterline/.test(obligationText)) {
-          if (/submersion|waterline/.test(rowText)) score += 12;
-          if (/biological agent|water volume/.test(rowText)) score += 2;
-        }
-        const terms = obligationText.split(/\s+/).filter((term) => term.length > 3);
-        for (const term of terms) {
-          if (rowText.includes(term)) score += 1;
-        }
-        if (row.packetKind === 'entity') score += 0.2;
-        return score;
-      }
-
     Object.assign(scope, {
       makeDefaultWebGpuFeatureReceipt,
       create,
       WebGpuRenderer,
       canvasTextureUsage,
       sceneRenderPacketFromExecutionInput,
-      phase7PixelReadbackPlan,
-      phase7RequiredVisualObligationIds,
-      phase7RequiredVisualObligations,
-      drawablesForPixelObligation,
-      pixelObligationDrawableScore,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

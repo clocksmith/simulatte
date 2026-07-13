@@ -279,7 +279,12 @@
     		    const rankedCards = retrievalEvidence.rankedCards || retrievalEvidence.cardMatches || [];
     		    const rankedUniverseRows = retrievalEvidence.rankedUniverseRows || retrievalEvidence.universeMatches || [];
     		    const semanticRag = retrievalEvidence.semanticRag || null;
-    		    const slotRetrieval = retrievalEvidence.slotRetrieval || null;
+		    const slotRetrieval = retrievalEvidence.slotRetrieval || (
+		      runtimeContext.runtimeMode === 'prototype-fallback' &&
+		      semantic && typeof semantic.createPrototypeSlotRetrieval === 'function'
+		        ? semantic.createPrototypeSlotRetrieval(queryPlan, query)
+		        : null
+		    );
     		    const slotEvidence = phase3SlotEvidence(queryPlan, typedEvidenceBuckets, rankedCards, rankedUniverseRows, slotRetrieval);
     	    const acceptedCandidatesBySlot = phase3AcceptedCandidatesBySlot(slotEvidence);
     	    const supportOnlyCandidates = phase3SupportOnlyCandidates(primitiveCuration, slotEvidence);
@@ -710,6 +715,7 @@
 		        candidateText: row.candidateText || row.label || row.phrase || row.role || row.id || '',
 		        sourceLabel: row.sourceLabel || '',
 		        aliases: row.aliases || [],
+		        labels: row.labels || [],
 		        source: row.source || row.indexName || '',
 		        canonicalId: row.canonicalId || '',
 		        semanticType: row.semanticType || '',
@@ -729,7 +735,10 @@
 		        identityEvidence: row.identityEvidence === true,
 		        modelEvaluated: row.modelEvaluated === true,
 		        modelRerankEvaluated: row.modelRerankEvaluated === true,
-		        modelScore: Number.isFinite(Number(row.modelScore)) ? Number(row.modelScore) : null,
+		        literalSlotMatch: row.literalSlotMatch === true,
+		        rankSignals: row.rankSignals || null,
+		        modelScore: row.modelScore != null && Number.isFinite(Number(row.modelScore))
+		          ? Number(row.modelScore) : null,
 		        vectorHash: row.vectorHash || '',
 		        semanticClass: row.semanticClass || slot.semanticClass || '',
 		        visualArchetype: row.visualArchetype || slot.visualArchetype || '',
@@ -761,6 +770,7 @@
           part: 'part',
           environment: 'environment',
           medium: 'material',
+          concept: 'concept',
           action: 'process',
           relation: 'relation',
         }[role] || 'entity';
@@ -779,9 +789,11 @@
           shapeHints: slot.shapeHints || [],
           source: 'prompt-typed-slot',
           score: 1,
-          supportOnly: false,
+          supportOnly: role === 'concept',
           identityEvidence: /^(?:actor|object|part|environment|medium)$/.test(role),
-          reason: 'typed Phase 2 slot preserves literal prompt identity',
+          reason: role === 'concept'
+            ? 'untyped Phase 2 term remains support-only until retrieval establishes a semantic role'
+            : 'typed Phase 2 slot preserves literal prompt identity',
         };
       }
 

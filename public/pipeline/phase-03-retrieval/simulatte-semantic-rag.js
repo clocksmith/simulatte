@@ -5,6 +5,7 @@
     require('./simulatte-semantic-rag-helpers.js');
     require('./simulatte-semantic-rag-surface-cards.js');
     require('./simulatte-semantic-rag-grounding-cards.js');
+    require('./simulatte-semantic-rag-lexical-construction.js');
     require('./simulatte-semantic-rag-retrieval.js');
   }
   const scope = root.__SimulatteSemanticRagRefactorScope = root.__SimulatteSemanticRagRefactorScope || {};
@@ -20,6 +21,7 @@
     SYNTH_GRAPH_SCHEMA,
     buildPrimitiveProgram,
     buildSemanticFeatureVector,
+    createPrototypeSlotRetrieval,
     createSemanticRag,
   };
   }

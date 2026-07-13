@@ -6,7 +6,7 @@
       'in', 'inside', 'into', 'within', 'on', 'onto', 'at', 'over', 'above', 'under',
       'below', 'beside', 'near', 'outside', 'around', 'behind', 'in-front-of',
       'attached-to', 'against', 'through', 'between',
-      'supports', 'seated-on', 'with',
+      'supports', 'seated-on', 'with', 'holding',
     ]));
 
     function constraintLayoutObjects(objects = [], sceneKind = '', spec = {}, visualGenome = null) {
@@ -39,9 +39,11 @@
             w: Number(state.w.toFixed(5)),
             h: Number(state.h.toFixed(5)),
             rotation: Number(state.rotation.toFixed(5)),
+            ...(Number.isFinite(state.z) ? { z: Number(state.z.toFixed(5)) } : {}),
           },
           evidence,
           layoutConstraints: relationIds,
+          layoutRelationRoles: Array.from(state.relationRoles),
           layoutReceipt: {
             schema: 'simulatte.constraintLayoutReceipt.v1',
             solver: 'typed-spatial-constraints',
@@ -72,10 +74,45 @@
         existing.aliases = uniqueList([...(existing.aliases || []), ...(object.aliases || []), object.sourceLabel, object.role]);
         existing.physicsOperators = uniqueList([...(existing.physicsOperators || []), ...(object.physicsOperators || [])]);
         existing.behavior = existing.behavior || object.behavior || null;
-        existing.construction = existing.construction || object.construction || null;
-        existing.constructionProvenance = existing.constructionProvenance || object.constructionProvenance || [];
+        existing.constructionHypotheses = mergeConstructionEvidenceRows(
+          existing.constructionHypotheses,
+          object.constructionHypotheses,
+          existing.construction ? [existing.construction] : [],
+          object.construction ? [object.construction] : []
+        );
+        existing.construction = preferredConstructionEvidence(
+          existing.constructionHypotheses,
+          existing.construction || object.construction || null
+        );
+        existing.constructionProvenance = mergeConstructionProvenanceRows(
+          existing.constructionProvenance,
+          object.constructionProvenance
+        );
       }
       return output;
+    }
+
+    function mergeConstructionProvenanceRows(...groups) {
+      const seen = new Set();
+      return groups.flatMap((rows) => Array.isArray(rows) ? rows : []).filter((row) => {
+        const key = JSON.stringify([
+          row && row.candidateId || '', row && row.vectorHash || '',
+          (row && row.modelRerankRank) ?? '', row && row.exactTargetMatch === true,
+        ]);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function preferredConstructionEvidence(rows = [], fallback = null) {
+      return rows.slice().sort((a, b) => (
+        Number(b.provenance && b.provenance.exactTargetMatch === true) -
+          Number(a.provenance && a.provenance.exactTargetMatch === true) ||
+        Number(b.provenance && b.provenance.literalSlotMatch === true) -
+          Number(a.provenance && a.provenance.literalSlotMatch === true) ||
+        Number(a.hypothesisRank ?? Number.MAX_SAFE_INTEGER) - Number(b.hypothesisRank ?? Number.MAX_SAFE_INTEGER)
+      ))[0] || fallback;
     }
 
     function canonicalVisualObjectPriority(object = {}) {
@@ -93,7 +130,7 @@
       if (left.physicalRef && right.physicalRef && left.physicalRef === right.physicalRef) return true;
       if (left.semanticRef && right.semanticRef && left.semanticRef === right.semanticRef) {
         if (left.physicalRef && right.physicalRef) return false;
-        return Boolean(left.sourceObject && right.sourceObject && left.sourceObject === right.sourceObject);
+        return true;
       }
       const leftLabel = layoutIdentityTokens(left.sourceLabel || left.label || left.role || '').join(' ');
       const rightLabel = layoutIdentityTokens(right.sourceLabel || right.label || right.role || '').join(' ');
@@ -128,6 +165,8 @@
         w: size[0],
         h: size[1],
         rotation: Number.isFinite(Number(pose.rotation)) ? Number(pose.rotation) : 0,
+        z: pose.z != null && Number.isFinite(Number(pose.z)) ? Number(pose.z) : NaN,
+        relationRoles: new Set(),
         container,
       };
     }
@@ -138,11 +177,19 @@
       const construction = object.construction || {};
       const scaleText = (construction.scaleHints || []).join(' ').toLowerCase();
       const partCount = (construction.partHints || []).length;
-      const scale = /microscopic|tiny|small/.test(scaleText) ? 0.78 : /large|landscape|architectural|orbital/.test(scaleText) ? 1.35 : 1;
-      const complexity = Math.min(1.35, 1 + partCount * 0.025);
+      const scale = /microscopic/.test(scaleText) ? 0.52 : /tiny/.test(scaleText) ? 0.62 :
+        /small/.test(scaleText) ? 0.72 : /large|landscape|architectural|orbital/.test(scaleText) ? 1.28 : 1;
+      const promptOwned = object.directlyGrounded === true ||
+        /^prompt[.-]/.test(String(object.semanticRef || object.physicalRef || ''));
+      const complexity = promptOwned
+        ? Math.min(1.22, 1.06 + partCount * 0.012)
+        : Math.min(0.78, 0.68 + partCount * 0.008);
+      const cardinality = Math.max(1, Math.min(16, Math.floor(Number(object.cardinality || 1))));
+      const columns = Math.ceil(Math.sqrt(cardinality));
+      const rows = Math.ceil(cardinality / columns);
       return [
-        clampLayoutNumber((Number(pose.w || 0.17) || 0.17) * scale * complexity, 0.08, 0.4),
-        clampLayoutNumber((Number(pose.h || 0.13) || 0.13) * scale * complexity, 0.07, 0.38),
+        clampLayoutNumber((Number(pose.w || 0.17) || 0.17) * scale * complexity * (0.14 + columns * 0.86), 0.08, 0.48),
+        clampLayoutNumber((Number(pose.h || 0.13) || 0.13) * scale * complexity * (0.14 + rows * 0.86), 0.07, 0.46),
       ];
     }
 
@@ -151,6 +198,10 @@
         .map((value) => String(value || '').toLowerCase().replace(/_/g, '-'))
         .filter(Boolean));
       const relations = (object.construction && object.construction.relationHints || []).join(' ').toLowerCase();
+      const targetEntryId = String(object.construction && object.construction.targetEntryId || '').toLowerCase();
+      if (/^(?:concept|entity):/.test(targetEntryId) && !/contains|containment|interior|surrounds/.test(relations)) {
+        return false;
+      }
       return ['environment', 'medium', 'field', 'domain', 'interior', 'terrain']
         .some((token) => semanticTokens.has(token)) ||
         /contains|containment|interior|surrounds/.test(relations);
@@ -172,6 +223,8 @@
           spatialRelation = 'near';
         } else if (!spatialRelation && /\b(?:watch|watches|watching|look|looks|looking|observe|observes|observing)\b/.test(predicate)) {
           spatialRelation = 'near';
+        } else if (!spatialRelation && /\b(?:hold|holds|holding|grasp|grasps|grasping|carry|carries|carrying|clutch|clutches|clutching)\b/.test(predicate)) {
+          spatialRelation = 'holding';
         }
         if (relation.process === 'impact' && ['in', 'inside', 'into', 'within'].includes(spatialRelation)) {
           spatialRelation = 'against';
@@ -250,8 +303,8 @@
       let direction = stableLayoutHash(relation.id) % 2 ? 1 : -1;
       if (['in', 'inside', 'into', 'within'].includes(type)) {
         b.container = true;
-        b.w = Math.max(b.w, Math.min(0.78, a.w * 2.8));
-        b.h = Math.max(b.h, Math.min(0.68, a.h * 2.8));
+        b.w = Math.max(b.w, Math.min(0.72, a.w + 0.16));
+        b.h = Math.max(b.h, Math.min(0.62, a.h + 0.14));
         a.x += (b.x + direction * Math.min(0.12, b.w * 0.18) - a.x) * 0.62;
         a.y += (b.y + Math.min(0.08, b.h * 0.14) - a.y) * 0.62;
       } else if (type === 'seated-on') {
@@ -261,7 +314,17 @@
         const offset = (b.w + a.w) * 0.62;
         const minimum = a.w * 0.52 + 0.025;
         const maximum = 0.975 - a.w * 0.52;
-        if (b.x + direction * offset < minimum || b.x + direction * offset > maximum) direction *= -1;
+        if (b.x + direction * offset < minimum || b.x + direction * offset > maximum) {
+          const left = b.w * 0.52 + 0.025;
+          const right = 0.975 - a.w * 0.52;
+          if (direction > 0) {
+            b.x += (left - b.x) * 0.48;
+            a.x += (right - a.x) * 0.58;
+          } else {
+            b.x += ((0.975 - b.w * 0.52) - b.x) * 0.48;
+            a.x += ((a.w * 0.52 + 0.025) - a.x) * 0.58;
+          }
+        }
         a.x += (b.x + direction * offset - a.x) * 0.58;
         a.y += (b.y + Math.min(0.12, b.h * 0.3) - a.y) * 0.44;
       } else if (type === 'on' || type === 'onto' || type === 'at') {
@@ -275,28 +338,58 @@
       } else if (type === 'under' || type === 'below') {
         a.y += (b.y + (a.h + b.h) * 0.72 - a.y) * 0.64;
       } else if (type === 'beside' || type === 'near' || type === 'with') {
-        const spacing = type === 'with' ? 0.34 : type === 'near' ? 0.48 : 0.66;
-        a.x += (b.x + direction * (a.w + b.w) * spacing - a.x) * 0.62;
+        const gap = type === 'with' ? 0.012 : type === 'near' ? 0.015 : 0.035;
+        const availableWidth = 0.95;
+        const requiredWidth = a.w + b.w + gap;
+        if (requiredWidth > availableWidth) {
+          const factor = (availableWidth - gap) / Math.max(0.01, a.w + b.w);
+          a.w *= factor;
+          a.h *= factor;
+          b.w *= factor;
+          b.h *= factor;
+        }
+        const separation = (a.w + b.w) * 0.5 + gap;
+        const midpoint = clampLayoutNumber((a.x + b.x) * 0.5,
+          separation * 0.5 + 0.025, 0.975 - separation * 0.5);
+        const targetA = midpoint + direction * separation * 0.5;
+        const targetB = midpoint - direction * separation * 0.5;
+        a.x += (targetA - a.x) * 0.72;
+        b.x += (targetB - b.x) * 0.72;
         a.y += (b.y - a.y) * 0.38;
+      } else if (type === 'holding') {
+        const offset = Math.max(a.w * 0.32, (a.w + b.w) * 0.5 - Math.min(a.w, b.w) * 0.08);
+        b.x += (a.x + direction * offset - b.x) * 0.76;
+        b.y += (a.y + a.h * 0.08 - b.y) * 0.76;
+        b.z = (Number.isFinite(a.z) ? a.z : 0) - 0.5;
       } else if (type === 'attached-to' || type === 'against') {
-        const offset = (a.w + b.w) * 0.46;
+        const spacing = type === 'against' ? 0.56 : 0.46;
+        const offset = (a.w + b.w) * spacing;
         const preferred = b.x + direction * offset;
         if (preferred < a.w * 0.52 + 0.025 || preferred > 0.975 - a.w * 0.52) direction *= -1;
-        a.x += (b.x + direction * (a.w + b.w) * 0.46 - a.x) * 0.72;
+        a.x += (b.x + direction * offset - a.x) * 0.72;
         a.y += (b.y - a.y) * 0.62;
       } else if (type === 'through') {
+        b.w = Math.max(b.w, Math.min(0.68, a.w * 1.42));
+        b.h = Math.max(b.h, Math.min(0.58, a.h * 1.42));
+        a.w = Math.min(a.w, b.w * 0.62);
+        a.h = Math.min(a.h, b.h * 0.62);
         a.x += (b.x - a.x) * 0.62;
         a.y += (b.y - a.y) * 0.62;
         a.rotation = Math.atan2(b.h, Math.max(0.01, b.w));
+        a.z = (Number.isFinite(b.z) ? b.z : 0) - 0.5;
+        b.z = Number.isFinite(b.z) ? b.z : 0.5;
       } else if (type === 'around') {
         a.x += (b.x + Math.cos(stableLayoutHash(a.object.id) % 628 / 100) * (b.w + a.w) * 0.56 - a.x) * 0.55;
         a.y += (b.y + Math.sin(stableLayoutHash(a.object.id) % 628 / 100) * (b.h + a.h) * 0.56 - a.y) * 0.55;
       } else if (type === 'behind' || type === 'in-front-of') {
         a.x += (b.x + direction * b.w * 0.18 - a.x) * 0.48;
         a.y += (b.y + (type === 'behind' ? -1 : 1) * b.h * 0.2 - a.y) * 0.48;
+        a.z = (Number.isFinite(b.z) ? b.z : 0) + (type === 'behind' ? 0.5 : -0.5);
       }
       applied.get(a.object.id).push(relation.id);
       applied.get(b.object.id).push(relation.id);
+      a.relationRoles.add(`${type}:source`);
+      b.relationRoles.add(`${type}:target`);
     }
 
     function separateUnrelatedObjects(states = [], relations = []) {
@@ -326,7 +419,10 @@
     }
 
     function layoutIdentityTokens(value = '') {
-      const ignored = new Set(['artifact', 'body', 'entity', 'environment', 'medium', 'primitive', 'prompt', 'render', 'surface']);
+      const ignored = new Set([
+        'artifact', 'body', 'component', 'entity', 'environment', 'medium', 'object',
+        'primitive', 'prompt', 'render', 'surface',
+      ]);
       return uniqueList(String(value || '').toLowerCase().split(/[^a-z0-9]+/)
         .filter((token) => (token.length > 2 || /^\d+$/.test(token)) && !ignored.has(token))
         .map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token));
@@ -349,6 +445,7 @@
       SPATIAL_CONSTRAINTS,
       constraintLayoutObjects,
       canonicalVisualObjects,
+      mergeConstructionProvenanceRows,
       visualObjectsShareConcept,
       layoutRelationsForSpec,
       layoutObjectForReference,

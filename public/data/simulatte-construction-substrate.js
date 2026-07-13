@@ -21,31 +21,64 @@
 
   const CONSTRUCTION_TOPOLOGIES = Object.freeze([
     topology('cephalopod', ['ground.swimmer-body'], [
-      node('core', 1), node('appendage', 8), node('sensor', 2),
+      node('core', 1, 'ellipse', [[0.56, 0.48]]),
+      node('appendage', 8, 'capsule', [[0.42, 0.065]]),
+      node('sensor', 2, 'ellipse', [[0.075, 0.075]]),
     ], ['radial:appendage:core:below', 'attach:sensor:core:front'], [
       'octopus', 'squid', 'cephalopod', 'tentacle',
-    ]),
+    ], 'medium'),
     topology('resonant-instrument', ['ground.wave-event'], [
-      node('core', 2), node('appendage', 1), node('path', 4), node('support', 1), node('detail', 2),
-    ], ['stack:core', 'attach:appendage:core:end', 'parallel:path:core', 'attach:support:core:center'], [
+      node('core', 3, ['ellipse', 'rounded-box', 'ellipse'], [[0.42, 0.32], [0.25, 0.24], [0.52, 0.4]]),
+      node('appendage', 1, 'capsule', [[0.48, 0.075]]), node('path', 4, 'capsule', [[0.8, 0.025]]),
+      node('support', 1, 'rounded-box', [[0.22, 0.07]]), node('detail', 2, 'rounded-box', [[0.14, 0.06]]),
+    ], ['stack:core::contour', 'attach:appendage:core:top', 'span:path:core:appendage', 'attach:support:core:center', 'attach:detail:appendage:top'], [
       'resonant body', 'acoustic device', 'musical instrument', 'violin', 'guitar', 'string', 'membrane',
-    ]),
+    ], 'small'),
+    topology('resonant-cavity', ['ground.wave-event', 'ground.electrical-network'], [
+      node('core', 1, 'rounded-box', [[0.68, 0.38]]), node('opening', 2, 'ring', [[0.2, 0.13]]),
+      node('path', 3, 'capsule', [[0.72, 0.035]]), node('sensor', 2, 'ellipse', [[0.1, 0.1]]),
+      node('field', 2, 'ring', [[0.5, 0.28]]),
+    ], ['inside:opening:core', 'network:path:opening', 'attach:sensor:path:ends', 'surround:field:core'], [
+      'resonant cavity', 'microwave resonator', 'electromagnetic resonator', 'coupling port', 'waveguide cavity',
+    ], 'small'),
+    topology('circuit-assembly', ['ground.electrical-network', 'ground.instrumented-bench'], [
+      node('panel', 2, 'rounded-box', [[0.72, 0.52]]), node('path', 6, 'capsule', [[0.52, 0.025]]),
+      node('sensor', 4, 'ring', [[0.11, 0.11]]), node('detail', 4, 'rounded-box', [[0.1, 0.07]]),
+    ], ['stack:panel', 'network:path:sensor', 'grid:sensor:panel', 'attach:detail:path'], [
+      'circuit assembly', 'qubit chip', 'integrated circuit', 'feedline', 'readout chip', 'electronic board',
+    ], 'tiny'),
     topology('architectural-enclosure', ['ground.infrastructure-system'], [
-      node('core', 1), node('panel', 2), node('opening', 5), node('support', 2), node('detail', 2),
-    ], ['attach:panel:core:top', 'grid:opening:core', 'mirror:support:core:below', 'attach:detail:core:front'], [
+      node('core', 1, 'rounded-box', [[0.78, 0.68]]), node('panel', 2, 'triangle', [[0.48, 0.22]]),
+      node('opening', 5, 'rounded-box', [[0.17, 0.16]]), node('support', 2, 'capsule', [[0.68, 0.05]]),
+      node('detail', 2, 'rounded-box', [[0.11, 0.09]]),
+    ], ['attach:panel:core:top', 'grid:opening:core', 'mirror:support:core:sides', 'attach:detail:core:front'], [
       'transparent shell', 'enclosure', 'greenhouse', 'hospital', 'building', 'house', 'warehouse',
       'office', 'school', 'architectural',
-    ]),
+    ], 'large'),
     topology('heavy-equipment', ['ground.lifting-machine', 'ground.articulated-machine'], [
-      node('core', 1), node('head', 1), node('path', 2), node('appendage', 3), node('joint', 3), node('opening', 1),
-    ], ['parallel:path:core', 'attach:head:core:top', 'chain:appendage:core', 'pair:joint:appendage', 'attach:opening:appendage:end'], [
+      node('core', 1, 'rounded-box', [[0.68, 0.36]]), node('head', 1, 'rounded-box', [[0.32, 0.28]]),
+      node('path', 2, 'capsule', [[0.74, 0.15]]), node('appendage', 2, 'capsule', [[0.46, 0.12]]),
+      node('joint', 2, 'ring', [[0.16, 0.16]]), node('panel', 1, 'triangle', [[0.3, 0.26]]),
+    ], ['parallel:path:core:below', 'attach:head:core:top-left', 'chain:appendage:core:boom', 'pair:joint:appendage:ends', 'attach:panel:appendage:end-down'], [
       'excavator', 'crane', 'lifting machine', 'boom cable', 'heavy equipment', 'bucket',
-    ]),
+    ], 'large'),
     topology('layered-object', ['ground.membrane-structure', 'ground.flexible-cable'], [
       node('panel', 5), node('support', 1), node('detail', 2),
     ], ['stack:panel', 'attach:support:panel:side', 'attach:detail:panel:front'], [
       'sheet stack', 'layered material', 'pages', 'cover', 'book',
     ]),
+    topology('folded-surface', ['ground.membrane-structure', 'ground.biological-tissue'], [
+      node('panel', 6, ['capsule', 'ellipse'], [[0.58, 0.12]]), node('path', 4, 'capsule', [[0.46, 0.035]]),
+      node('field', 2, 'ellipse', [[0.68, 0.5]]), node('detail', 5, 'ellipse', [[0.08, 0.08]]),
+    ], ['stack:panel::spread', 'through:path:panel', 'surround:field:panel', 'scatter:detail:panel'], [
+      'folded surface', 'intestinal folds', 'folded membrane', 'villi', 'layered tissue',
+    ]),
+    topology('clustered-colony', ['ground.biological-colony', 'ground.branching-network'], [
+      node('core', 6, 'ellipse', [[0.18, 0.14]]), node('path', 4, 'capsule', [[0.32, 0.025]]),
+      node('field', 2, 'ellipse', [[0.64, 0.48]]), node('sensor', 3, 'ring', [[0.08, 0.08]]),
+    ], ['scatter:core:field', 'network:path:core', 'surround:field:core', 'attach:sensor:core'], [
+      'clustered colony', 'gut microbiome', 'microbiome colonies', 'microbial community', 'cell cluster',
+    ], 'microscopic'),
     topology('quadruped', ['ground.small-mammal-body', 'ground.large-mammal-body'], [
       node('core', 1), node('head', 1), node('support', 4), node('appendage', 1), node('sensor', 2),
     ], ['attach:head:core:end', 'mirror:support:core:below', 'attach:appendage:core:start'], ['mammal', 'quadruped', 'gait', 'fur']),
@@ -76,9 +109,54 @@
     topology('conveyor-machine', ['ground.conveyor', 'ground.machine-line'], [
       node('path', 2), node('joint', 4), node('support', 2), node('sensor', 2), node('detail', 3),
     ], ['parallel:path', 'mirror:joint:path:ends', 'attach:support:path:below'], ['conveyor', 'belt loop', 'machine line']),
+    topology('linear-control-network', ['ground.constrained-vehicle', 'ground.network-system'], [
+      node('path', 3, 'capsule', [[0.78, 0.045]]), node('core', 4, 'rounded-box', [[0.18, 0.12]]),
+      node('sensor', 4, 'ellipse', [[0.09, 0.09]]), node('detail', 3, 'rounded-box', [[0.12, 0.07]]),
+    ], ['parallel:path', 'grid:core:path', 'attach:sensor:core:top', 'attach:detail:path'], [
+      'linear control network', 'railway dispatch', 'dispatch line',
+    ], 'large'),
+    topology('rail-vehicle', ['ground.constrained-vehicle', 'ground.wheeled-vehicle'], [
+      node('core', 3, 'rounded-box', [[0.3, 0.25]]), node('head', 1, 'rounded-box', [[0.28, 0.3]]),
+      node('joint', 8, 'ring', [[0.1, 0.1]]), node('detail', 4, 'rounded-box', [[0.1, 0.08]]),
+    ], ['chain:core', 'attach:head:core:front', 'pair:joint:core:below', 'grid:detail:core'], [
+      'rail vehicle', 'train', 'train agent', 'train agents', 'locomotive', 'railcar', 'train car',
+    ], 'large'),
+    topology('rail-signal-array', ['ground.network-system', 'ground.infrastructure-system'], [
+      node('support', 4, 'capsule', [[0.08, 0.5]]), node('sensor', 8, 'ellipse', [[0.1, 0.1]]),
+      node('detail', 4, 'rounded-box', [[0.13, 0.1]]), node('path', 2, 'capsule', [[0.76, 0.035]]),
+    ], ['grid:support:path', 'pair:sensor:support:top', 'attach:detail:support', 'parallel:path'], [
+      'rail signal array', 'railway signal blocks', 'signal blocks', 'signal block', 'rail signal',
+    ], 'large'),
+    topology('railway-platform', ['ground.infrastructure-system', 'ground.constrained-vehicle'], [
+      node('panel', 3, 'rounded-box', [[0.74, 0.16]]), node('support', 6, 'capsule', [[0.08, 0.34]]),
+      node('path', 2, 'capsule', [[0.78, 0.04]]), node('detail', 4, 'rounded-box', [[0.13, 0.09]]),
+    ], ['parallel:panel', 'mirror:support:panel:below', 'parallel:path:panel', 'attach:detail:panel:top'], [
+      'railway platform', 'railway platforms', 'platform slot', 'platform slots', 'station platform',
+    ], 'large'),
+    topology('corridor-array', ['ground.operations-scene', 'ground.thermal-machine'], [
+      node('core', 4, 'rounded-box', [[0.2, 0.62]]), node('path', 3, 'capsule', [[0.76, 0.06]]),
+      node('field', 2, 'rounded-box', [[0.72, 0.22]]), node('sensor', 3, 'ellipse', [[0.08, 0.08]]),
+    ], ['grid:core', 'parallel:path:core', 'through:field:path', 'attach:sensor:core:front'], [
+      'corridor array', 'cooling aisles', 'server aisle', 'rack corridor', 'data center aisle',
+    ], 'large'),
+    topology('data-center-facility', ['ground.operations-scene', 'ground.thermal-machine', 'ground.infrastructure-system'], [
+      node('core', 5, 'rounded-box', [[0.17, 0.54]]), node('path', 3, 'capsule', [[0.72, 0.055]]),
+      node('field', 2, 'rounded-box', [[0.68, 0.18]]), node('sensor', 5, 'ellipse', [[0.07, 0.07]]),
+      node('detail', 5, 'rounded-box', [[0.1, 0.06]]),
+    ], ['grid:core', 'parallel:path:core', 'through:field:path', 'attach:sensor:core:front', 'grid:detail:core'], [
+      'data center facility', 'edge data center', 'data center', 'server facility', 'compute facility',
+    ], 'large'),
     topology('container', ['ground.container', 'ground.fluid-vessel'], [
       node('core', 1), node('opening', 1), node('appendage', 1), node('detail', 1),
     ], ['inside:opening:core', 'attach:appendage:core:side'], ['container', 'vessel', 'hollow boundary']),
+    topology('stool', ['ground.household-object'], [
+      node('core', 1, 'rounded-box', [[0.78, 0.2]]), node('support', 4, 'capsule', [[0.42, 0.07]]),
+    ], ['mirror:support:core:below'], ['stool'], 'small'),
+    topology('teapot', ['ground.container'], [
+      node('core', 1, 'ellipse', [[0.58, 0.46]]), node('opening', 1, 'ring', [[0.2, 0.12]]),
+      node('appendage', 2, ['capsule', 'ring'], [[0.4, 0.08], [0.3, 0.3]]),
+      node('detail', 1, 'rounded-box', [[0.14, 0.1]]),
+    ], ['attach:opening:core:top', 'mirror:appendage:core:sides', 'attach:detail:opening:top'], ['teapot', 'kettle'], 'small'),
     topology('fluid-system', ['ground.fluid-network', 'ground.thermal-fluid-machine'], [
       node('path', 4), node('joint', 3), node('core', 2), node('sensor', 2),
     ], ['network:path:joint', 'attach:core:path', 'attach:sensor:joint'], ['fluid network', 'connected channels', 'pipe valve pump']),
@@ -97,6 +175,31 @@
     topology('celestial-system', ['ground.celestial-body', 'ground.space-phenomenon'], [
       node('core', 2), node('path', 2), node('field', 2), node('detail', 4),
     ], ['orbit:path:core', 'surround:field:core', 'scatter:detail:field'], ['celestial', 'orbital', 'space phenomenon', 'planet']),
+    topology('ring-system', ['ground.celestial-body', 'ground.space-phenomenon', 'ground.wave-event'], [
+      node('core', 2, 'ellipse', [[0.3, 0.3]]), node('joint', 4, 'ring', [[0.7, 0.42]]),
+      node('path', 4, 'ring', [[0.76, 0.48]]), node('field', 2, 'ring', [[0.86, 0.56]]),
+      node('detail', 6, 'ellipse', [[0.06, 0.06]]),
+    ], ['orbit:path:core', 'surround:joint:core', 'stack:field::contour', 'scatter:detail:field'], [
+      'ring system', 'planetary rings', 'density waves', 'orbital gaps', 'resonant rings', 'ring particles',
+    ], 'astronomical'),
+    topology('porous-matrix', ['ground.material-sample', 'ground.pressure-membrane'], [
+      node('core', 1, 'rounded-box', [[0.78, 0.58]]), node('opening', 8, 'ellipse', [[0.11, 0.09]]),
+      node('path', 4, 'capsule', [[0.28, 0.025]]), node('field', 2, 'ellipse', [[0.7, 0.5]]),
+    ], ['inside:opening:core', 'network:path:opening', 'surround:field:core'], [
+      'porous matrix', 'dough matrix', 'gas bubbles', 'foam cells', 'fermentation bubbles', 'porous material',
+    ]),
+    topology('fiber-network', ['ground.flexible-cable', 'ground.branching-network'], [
+      node('path', 8, 'capsule', [[0.48, 0.025]]), node('joint', 5, 'ellipse', [[0.07, 0.07]]),
+      node('field', 1, 'rounded-box', [[0.72, 0.54]]),
+    ], ['network:path:joint', 'inside:joint:field', 'through:path:field'], [
+      'fiber network', 'gluten strands', 'filament mesh', 'polymer strands', 'woven fibers',
+    ]),
+    topology('particle-cloud', ['ground.material-sample', 'ground.fluid-domain'], [
+      node('detail', 10, 'ellipse', [[0.07, 0.07]]), node('field', 3, 'ellipse', [[0.64, 0.46]]),
+      node('path', 2, 'capsule', [[0.4, 0.025]]),
+    ], ['scatter:detail:field', 'stack:field::contour', 'through:path:field'], [
+      'particle cloud', 'metabolites', 'soot particles', 'suspended matter', 'aerosol', 'molecular exchange',
+    ], 'microscopic'),
     topology('supported-surface', ['ground.household-object', 'ground.material-sample'], [
       node('core', 1), node('support', 4), node('opening', 1), node('detail', 2),
     ], ['mirror:support:core:below', 'attach:opening:core:front', 'attach:detail:core'], ['household object', 'supported surface', 'furniture', 'table', 'chair', 'stool']),
@@ -110,24 +213,30 @@
 
   const CONSTRUCTION_OPERATIONS = Object.freeze([
     'attach', 'chain', 'grid', 'inside', 'mesh', 'mirror', 'network', 'orbit',
-    'pair', 'parallel', 'radial', 'scatter', 'stack', 'surround', 'through',
+    'pair', 'parallel', 'radial', 'scatter', 'span', 'stack', 'surround', 'through',
   ]);
 
   function role(id, terms, primitive) {
     return Object.freeze({ id, terms: Object.freeze(terms), primitive });
   }
 
-  function node(roleId, count) {
-    return Object.freeze({ roleId, count });
+  function node(roleId, count, primitive = '', sizes = []) {
+    return Object.freeze({
+      roleId,
+      count,
+      primitive: Array.isArray(primitive) ? Object.freeze(primitive) : primitive,
+      sizes: Object.freeze(sizes.map((size) => Object.freeze(size))),
+    });
   }
 
-  function topology(id, basisIds, nodes, edges, cues = []) {
+  function topology(id, basisIds, nodes, edges, cues = [], scaleHint = 'medium') {
     return Object.freeze({
       id,
       basisIds: Object.freeze(basisIds),
       nodes: Object.freeze(nodes),
       edges: Object.freeze(edges),
       cues: Object.freeze(cues),
+      scaleHint,
     });
   }
 

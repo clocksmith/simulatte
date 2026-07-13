@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy mission",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "sourceText",
+    "parser",
+    "embodimentId",
+    "task",
+    "originNodeId",
+    "destinationNodeId",
+    "constraints",
+    "obligations",
+    "seed"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyMission.v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "sourceText": { "type": "string", "minLength": 1 },
+    "parser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "version", "claimBoundary", "evidence"],
+      "properties": {
+        "kind": { "const": "deterministic_lexical" },
+        "version": { "const": "simulatte.autonomyMissionParser.v1" },
+        "claimBoundary": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["field", "value", "start", "end"],
+            "properties": {
+              "field": { "enum": ["task", "mode", "origin", "destination", "lanePreference", "pedestrianYield"] },
+              "value": { "type": "string", "minLength": 1 },
+              "start": { "type": "integer", "minimum": 0 },
+              "end": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "embodimentId": { "const": "delivery-bike-v1" },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "payloadId"],
+      "properties": {
+        "type": { "const": "delivery" },
+        "payloadId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "originNodeId": { "type": "string", "minLength": 1 },
+    "destinationNodeId": { "type": "string", "minLength": 1 },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lanePreference", "mustYieldToPedestrians", "mustObeySignals", "maximumSpeedMps"],
+      "properties": {
+        "lanePreference": { "enum": ["protected", "any"] },
+        "mustYieldToPedestrians": { "type": "boolean" },
+        "mustObeySignals": { "type": "boolean" },
+        "maximumSpeedMps": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "obligations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "required"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["arrival", "payload_delivery", "signal_compliance", "pedestrian_yield", "lane_preference"] },
+          "required": { "type": "boolean" }
+        }
+      }
+    },
+    "seed": { "type": "integer", "minimum": 0 }
+  }
+}

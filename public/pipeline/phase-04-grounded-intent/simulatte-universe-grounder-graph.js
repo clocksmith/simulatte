@@ -41,7 +41,9 @@
       groups.set(key, group);
     }
     const canonicalNodes = [];
+    const usedNodeIds = new Set();
     let mergedNodeCount = 0;
+    let nodeIdCollisionCount = 0;
     for (const [key, group] of groups.entries()) {
       const ordered = group.slice().sort((a, b) => (
         Number(Boolean(b.spanId)) - Number(Boolean(a.spanId)) ||
@@ -53,8 +55,18 @@
         primary.directlyGrounded = true;
         primary.spanId = primary.spanId || String(key).split(':')[1] || null;
       }
+      if (usedNodeIds.has(primary.id)) {
+        const ownedSpan = promptSpans.find((span) => span.id === primary.spanId);
+        const baseId = ownedSpan
+          ? `prompt-${ownedSpan.kind}-${normalizedIdentity(ownedSpan.text).replace(/\s+/g, '-')}`
+          : `${primary.id}-canonical`;
+        primary.id = uniqueNodeId(baseId, usedNodeIds);
+        nodeIdCollisionCount += 1;
+      }
+      usedNodeIds.add(primary.id);
       for (const row of ordered) {
         nodeIdMap.set(row.id, primary.id);
+        if (row.spanId) nodeIdMap.set(`span:${row.spanId}`, primary.id);
         if (row === ordered[0]) continue;
         mergeNodeEvidence(primary, row);
         mergedNodeCount += 1;
@@ -70,6 +82,8 @@
         inputNodeCount: nodes.length,
         canonicalNodeCount: canonicalNodes.length,
         mergedNodeCount,
+        nodeIdCollisionCount,
+        unresolvedDuplicateNodeIdCount: canonicalNodes.length - new Set(canonicalNodes.map((node) => node.id)).size,
         duplicateConceptCount: 0,
       },
     };
@@ -79,7 +93,11 @@
     const span = promptSpans.find((row) => row.id === node.spanId);
     if (!span) return;
     node.directlyGrounded = true;
+    node.sourceLabel = span.text || node.sourceLabel || '';
+    node.label = String(span.text || node.label || '').trim().replace(/\s+/g, ' ').replace(/\b[a-z]/g, (value) => value.toUpperCase());
+    if (span.semanticRole === 'visual-effect') node.semanticType = 'visual-effect';
     if (span.kind === 'observable') node.semanticType = 'observable';
+    if (span.kind === 'environment') node.semanticType = 'environment';
     if (span.entityClass && (!node.semanticClass || genericSemanticClass(node.semanticClass))) {
       node.semanticClass = span.entityClass;
     }
@@ -98,7 +116,11 @@
     const nodeId = normalizedIdentity(node.id);
     const component = components.find((row) => {
       const componentId = normalizedIdentity(row.id);
-      return componentId && (componentId === canonical || nodeId.endsWith(componentId));
+      return componentId && (
+        componentId === canonical ||
+        nodeId === componentId ||
+        nodeId === `primitive ${componentId}`
+      );
     });
     if (!component) return '';
     const phraseFor = (row) => normalizedIdentity([row.phrase, row.role].filter(Boolean).join(' '));
@@ -181,16 +203,18 @@
           Number(b.modelRerankEvaluated === true) - Number(a.modelRerankEvaluated === true) ||
           Number(a.modelRerankRank ?? Number.MAX_SAFE_INTEGER) - Number(b.modelRerankRank ?? Number.MAX_SAFE_INTEGER) ||
           Number(b.score || 0) - Number(a.score || 0)
-        ));
+      ));
       if (!candidates.length) continue;
-      const node = nodeForSlot(nodes, slot);
+      const exact = candidates.filter((candidate) => constructionCandidateExactness(candidate, slot) >= 2);
+      const literal = candidates.filter((candidate) => candidate.literalSlotMatch === true);
+      const selected = (exact.length ? exact : literal.length ? literal : candidates).slice(0, 3);
+      const node = nodeForSlot(nodes, slot, selected[0]);
       if (!node) continue;
-      const selected = candidates.slice(0, 3);
       node.constructionHypotheses = selected.map((candidate, index) => ({
         ...mergeConstructionRows([candidate]),
         hypothesisId: `construction:${slot.slotId || node.id}:${index + 1}`,
         hypothesisRank: index + 1,
-        provenance: constructionCandidateProvenance(candidate, slot),
+        provenance: constructionCandidateProvenance(candidate, slot, node),
       }));
       node.construction = node.constructionHypotheses[0];
       node.constructionProvenance = node.constructionHypotheses.map((row) => row.provenance);
@@ -209,7 +233,9 @@
     };
   }
 
-  function constructionCandidateProvenance(candidate = {}, slot = {}) {
+  function constructionCandidateProvenance(candidate = {}, slot = {}, node = null) {
+    const target = normalizedIdentity(String(slot.entryId || '')
+      .replace(/^[a-z]+:/, '').replace(/:\d+$/, ''));
     return {
       candidateId: candidate.candidateId || candidate.id || '',
       source: candidate.source || '',
@@ -220,6 +246,7 @@
       rerankEvaluated: candidate.modelRerankEvaluated === true,
       literalSlotMatch: candidate.literalSlotMatch === true,
       exactTargetMatch: constructionCandidateExactness(candidate, slot) >= 2,
+      targetIdentityBound: Boolean(target && node && nodePrimaryIdentityLabels(node).includes(target)),
       vectorHash: candidate.vectorHash || '',
     };
   }
@@ -236,15 +263,38 @@
     return labels.includes(target) ? 2 : candidate.literalSlotMatch === true ? 1 : 0;
   }
 
-  function nodeForSlot(nodes = [], slot = {}) {
+  function nodeForSlot(nodes = [], slot = {}, selectedCandidate = null) {
     const spanIds = new Set(slot.sourceSpanIds || []);
     const spanOwned = nodes.filter((node) => node.spanId && spanIds.has(node.spanId));
-    if (spanOwned.length === 1) return spanOwned[0];
     const target = normalizedIdentity(String(slot.entryId || '').replace(/^[a-z]+:/, '').replace(/:\d+$/, ''));
-    if (!target) return null;
-    const exact = nodes.filter((node) => nodeIdentityLabels(node).includes(target));
+    const exact = nodes.filter((node) => nodePrimaryIdentityLabels(node).includes(target));
+    const exactSpanOwned = exact.filter((node) => spanOwned.includes(node));
+    if (exactSpanOwned.length === 1) return exactSpanOwned[0];
     if (exact.length === 1) return exact[0];
+    const candidateId = normalizedIdentity(
+      selectedCandidate && (selectedCandidate.candidateId || selectedCandidate.cardId || selectedCandidate.id) || ''
+    );
+    const candidateOwned = candidateId ? nodes.filter((node) => unique([
+      node.id,
+      node.canonicalId,
+      String(node.canonicalId || '').split('.').pop(),
+    ].map(normalizedIdentity)).includes(candidateId)) : [];
+    if (candidateOwned.length === 1) return candidateOwned[0];
+    // A construction query can include material and relation context spans. A
+    // single contextual span is not the slot target: for "glass greenhouse",
+    // attaching the enclosure graph to glass deletes it from the rendered body.
+    if (spanOwned.length === 1 && !target) return spanOwned[0];
     return exact.find((node) => node.directlyGrounded === true) || null;
+  }
+
+  function nodePrimaryIdentityLabels(node = {}) {
+    return unique([
+      node.id,
+      node.canonicalId,
+      String(node.canonicalId || '').split('.').pop(),
+      node.label,
+      node.sourceLabel,
+    ].map(normalizedIdentity));
   }
 
   function mergeConstructionRows(candidates = []) {
@@ -256,6 +306,8 @@
       sourceLabels: unique(rows.map((row) => row.sourceLabel)),
       classHints: unique(rows.flatMap((row) => row.classHints || [])),
       partHints: unique(rows.flatMap((row) => row.partHints || [])),
+      sourcePartHints: unique(rows.flatMap((row) => row.sourcePartHints || [])),
+      basisPartHints: unique(rows.flatMap((row) => row.basisPartHints || [])),
       shapeHints: unique(rows.flatMap((row) => row.shapeHints || [])),
       materialHints: unique(rows.flatMap((row) => row.materialHints || [])),
       behaviorHints: unique(rows.flatMap((row) => row.behaviorHints || [])),
@@ -306,7 +358,8 @@
   function remapSpanNodes(bySpan = new Map(), nodes = [], nodeIdMap = new Map()) {
     const byId = new Map(nodes.map((node) => [node.id, node]));
     for (const [spanId, node] of bySpan.entries()) {
-      bySpan.set(spanId, byId.get(nodeIdMap.get(node.id) || node.id) || node);
+      const canonicalId = nodeIdMap.get(`span:${spanId}`) || nodeIdMap.get(node.id) || node.id;
+      bySpan.set(spanId, byId.get(canonicalId) || node);
     }
     return bySpan;
   }
@@ -315,8 +368,10 @@
     const existingIds = new Set(nodes.map((node) => node.id));
     for (const span of promptParse.spans || []) {
       if (!['entity', 'material', 'environment'].includes(span.kind) || bySpan.has(span.id)) continue;
-      if (!['part', 'lighting-environment'].includes(span.semanticRole || '')) continue;
-      const semanticType = span.kind === 'material' ? 'material' : span.kind;
+      if (!['part', 'lighting-environment', 'visual-effect'].includes(span.semanticRole || '')) continue;
+      const semanticType = span.semanticRole === 'visual-effect'
+        ? 'visual-effect'
+        : span.kind === 'material' ? 'material' : span.kind;
       const canonicalTarget = span.entityClass || span.materialHint || normalizedIdentity(span.text);
       const baseId = `prompt-${span.kind}-${normalizedIdentity(span.text).replace(/\s+/g, '-')}`;
       let id = baseId;
@@ -378,7 +433,7 @@
       }));
     }
     for (const modifier of promptParse.modifiers || []) {
-      if (!['color', 'articulation', 'material', 'emission'].includes(modifier.relation)) continue;
+      if (!['color', 'articulation', 'material', 'emission', 'mechanism'].includes(modifier.relation)) continue;
       const target = bySpan.get(modifier.targetSpanId);
       if (!target) continue;
       const property = {
@@ -524,7 +579,14 @@
   }
 
   function finiteOrNull(value) {
-    return Number.isFinite(Number(value)) ? Number(value) : null;
+    return value != null && Number.isFinite(Number(value)) ? Number(value) : null;
+  }
+
+  function uniqueNodeId(baseId = 'node', usedIds = new Set()) {
+    let id = baseId;
+    let suffix = 2;
+    while (usedIds.has(id)) id = `${baseId}-${suffix++}`;
+    return id;
   }
 
   function unique(values = []) {

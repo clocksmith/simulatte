@@ -529,11 +529,18 @@
           };
         }
         if (promptGrounded) {
+          const readoutSupport = object.directlyGrounded !== true &&
+            /\b(?:measurement|readout|recorder|display|probe|meter)\b/.test(
+              `${phrase} ${object.role || ''} ${object.id || ''}`.toLowerCase()
+            );
           return {
             status: 'accepted',
-            reason: 'source graph row is prompt-grounded visual intent',
+            reason: readoutSupport
+              ? 'derived readout supports prompt-grounded visual intent'
+              : 'source graph row is prompt-grounded visual intent',
             confidence: phraseMatched ? 0.96 : 0.86,
             promptGrounded: true,
+            supportOnly: readoutSupport,
           };
         }
         if (/^embedding-guided-synth-environment/.test(source) && hasPromptGrounded) {

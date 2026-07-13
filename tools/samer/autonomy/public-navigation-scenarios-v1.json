@@ -1,0 +1,63 @@
+{
+  "schema": "simulatte.autonomyScenarioSet.v1",
+  "id": "simulatte-autonomy-public-navigation-v1",
+  "contentVersion": "public-navigation-v1",
+  "population": "public_diagnostic",
+  "rows": [
+    {
+      "id": "protected-signal-crossing",
+      "prompt": "Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.",
+      "worldMutations": [],
+      "expectations": {
+        "requiresCompletion": true,
+        "minimumRouteRevisions": 0,
+        "minimumSignalGates": 1,
+        "minimumPedestrianGates": 1,
+        "maximumSafetyViolations": 0
+      }
+    },
+    {
+      "id": "closure-replan",
+      "prompt": "Deliver the parcel by bike from Canal Depot to East Market and yield to pedestrians.",
+      "worldMutations": [],
+      "expectations": {
+        "requiresCompletion": true,
+        "minimumRouteRevisions": 1,
+        "minimumSignalGates": 1,
+        "minimumPedestrianGates": 1,
+        "maximumSafetyViolations": 0
+      }
+    },
+    {
+      "id": "green-wave-control",
+      "prompt": "Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.",
+      "worldMutations": [
+        { "kind": "signal_phase", "targetId": "signal-center-north", "value": 0 },
+        { "kind": "actor_interval", "targetId": "pedestrian-crossing-1", "value": [90, 106] }
+      ],
+      "expectations": {
+        "requiresCompletion": true,
+        "minimumRouteRevisions": 0,
+        "minimumSignalGates": 0,
+        "minimumPedestrianGates": 0,
+        "maximumSafetyViolations": 0
+      }
+    },
+    {
+      "id": "closure-absent-control",
+      "prompt": "Deliver the parcel by bike from Canal Depot to East Market and yield to pedestrians.",
+      "worldMutations": [
+        { "kind": "disruption_interval", "targetId": "delivery-truck-block-1", "value": [200, 220] },
+        { "kind": "actor_interval", "targetId": "pedestrian-crossing-1", "value": [90, 106] }
+      ],
+      "expectations": {
+        "requiresCompletion": true,
+        "minimumRouteRevisions": 0,
+        "minimumSignalGates": 0,
+        "minimumPedestrianGates": 0,
+        "maximumSafetyViolations": 0
+      }
+    }
+  ],
+  "claimBoundary": "These public diagnostic scenarios support development and regression checks. They cannot promote an autonomy policy."
+}

@@ -69,7 +69,9 @@
     	  }
 
     function phase3RerankReceipt(sourceReceipt = null, queryPlan = {}, slotEvidence = [], missingRequiredSlots = [], slotRetrieval = null) {
-    		    const hasModelSlotRetrieval = slotRetrieval && Number(slotRetrieval.embeddedSlotCount || 0) > 0;
+        const hasModelSlotRetrieval = slotRetrieval && Number(
+          slotRetrieval.modelEvidenceSlotCount || slotRetrieval.embeddedSlotCount || 0
+        ) > 0;
     		    return phaseCarryObject({
     		      schema: 'simulatte.phase3SlotAwareRerankReceipt.v1',
     		      sourceSchema: sourceReceipt && sourceReceipt.schema || '',
@@ -79,6 +81,9 @@
     		      queryPlanSchema: queryPlan.schema || '',
     		      slotRetrievalSchema: slotRetrieval && slotRetrieval.schema || '',
     		      embeddedSlotCount: slotRetrieval && Number(slotRetrieval.embeddedSlotCount || 0) || 0,
+              promptEmbeddingSlotCount: slotRetrieval && Number(slotRetrieval.promptEmbeddingSlotCount || 0) || 0,
+              modelEvidenceSlotCount: slotRetrieval && Number(slotRetrieval.modelEvidenceSlotCount || 0) || 0,
+              slotEmbeddingDurationMs: slotRetrieval && Number(slotRetrieval.slotEmbeddingDurationMs || 0) || 0,
     		      slotRerankCallCount: slotRetrieval && Number(slotRetrieval.rerankCallCount || 0) || 0,
     		      slotRetrievalCandidateCount: slotRetrieval && Number(slotRetrieval.candidateCount || 0) || 0,
     		      slotCount: slotEvidence.length,
@@ -236,19 +241,19 @@
           ...(row.domains || []),
         ].filter(Boolean).join(' '));
         if (source === 'semantic-surface-grounder') {
-          if (phase3RowDirectlyMatchesPrompt(row, prompt, spans)) {
+          if (phase3RowMatchesTypedIdentitySpan(row, spans)) {
             return { role: 'candidate', matchKind: 'literal-surface-card', reason: 'surface card matches prompt span' };
           }
           return { role: 'support', matchKind: 'surface-association-support', reason: 'surface card identity lacks prompt evidence' };
         }
         if (source === 'open-semantic-rag') {
-          if (phase3RowDirectlyMatchesPrompt(row, prompt, spans)) {
+          if (phase3RowMatchesTypedIdentitySpan(row, spans)) {
             return { role: 'candidate', matchKind: 'literal-open-component', reason: 'open semantic component matches prompt span' };
           }
           return { role: 'support', matchKind: 'open-association-support', reason: 'open component identity lacks prompt evidence' };
         }
         if (/^embedding-guided-synth-node/.test(source)) {
-          if (phase3RowDirectlyMatchesPrompt(row, prompt, spans)) {
+          if (phase3RowMatchesTypedIdentitySpan(row, spans)) {
             return { role: 'candidate', matchKind: 'literal-synth-node', reason: 'synthesized node is prompt object' };
           }
           return { role: 'support', matchKind: 'synth-association-support', reason: 'synthesized row identity lacks prompt evidence' };
@@ -275,6 +280,19 @@
           return { role: 'support', matchKind: 'recipe-support', reason: 'unprompted implementation primitive from recipe expansion' };
         }
         return { role: 'support', matchKind: 'nonliteral-support', reason: 'retrieved row lacks direct prompt evidence' };
+      }
+
+    function phase3RowMatchesTypedIdentitySpan(row = {}, spans = []) {
+        const spanTexts = (spans || [])
+          .filter((span) => /^(entity|environment|material|observable|term)$/.test(span.kind || ''))
+          .map((span) => normalizeForEvidence(span.text))
+          .filter(Boolean);
+        const values = [row.phrase, row.label, row.sourceLabel]
+          .map((value) => normalizeForEvidence(value))
+          .filter((value) => value && !phase3GenericPromptMatchValue(value));
+        return values.some((value) => spanTexts.some((spanText) => (
+          phase3PhraseInPrompt(value, spanText) && phase3PhraseInPrompt(spanText, value)
+        )));
       }
 
     function phase3RowDirectlyMatchesPrompt(row = {}, prompt = '', spans = []) {
@@ -891,6 +909,7 @@
       phase3ObligationStatus,
       phase3SpanTextById,
       phase3PrimitiveCandidateDecision,
+      phase3RowMatchesTypedIdentitySpan,
       phase3RowDirectlyMatchesPrompt,
       phase3PhraseInPrompt,
       phase3GenericPromptMatchValue,

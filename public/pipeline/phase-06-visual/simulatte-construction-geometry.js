@@ -23,6 +23,9 @@
       };
       const descriptors = constructionPartDescriptors(construction);
       const materialPalette = constructionMaterialPalette(construction.materialHints || []);
+      const geometryPartHints = construction.sourcePartHints && construction.sourcePartHints.length
+        ? construction.sourcePartHints
+        : construction.partHints || [];
       const graph = constructionGraphForEvidence(construction, descriptors, layoutVariant);
       const graphParts = constructionGraphParts(graph, materialPalette, layoutVariant);
       const topologyParts = graphParts.length ? graphParts : constructionTopologyParts(construction, materialPalette);
@@ -55,17 +58,22 @@
           schema: 'simulatte.constructiveGeometryReceipt.v1',
           sourceCardIds: sourceIds.slice(),
           basisIds: (construction.basisIds || []).slice(),
-          inputPartHintCount: (construction.partHints || []).length,
+          inputPartHintCount: geometryPartHints.length,
           realizedPartCount: parts.length,
           modelEvaluated: provenance.some((row) => row.modelEvaluated === true),
           rerankEvaluated: provenance.some((row) => row.rerankEvaluated === true),
           literalSlotMatch: provenance.some((row) => row.literalSlotMatch === true),
           exactTargetMatch: provenance.some((row) => row.exactTargetMatch === true),
+          targetIdentityBound: provenance.some((row) => row.targetIdentityBound === true),
+          targetEntryId: construction.targetEntryId || '',
           candidateIds: provenance.map((row) => row.candidateId).filter(Boolean),
           hypothesisId: construction.hypothesisId || sourceIds[0] || '',
           topologyId: graph.topologyId,
+          topologySelectionMethod: graph.topologySelectionMethod,
+          topologyTargetCueScore: graph.topologyTargetCueScore,
+          topologyTargetFit: graph.topologyTargetFit,
           layoutVariantId: layoutVariant.id,
-          evidencePartCoverage: constructionEvidencePartCoverage(parts, construction.partHints || []),
+          evidencePartCoverage: constructionEvidencePartCoverage(parts, geometryPartHints),
         },
       };
     }
@@ -98,18 +106,33 @@
         geometry.construction,
       ].filter((row) => row && row.schema === 'simulatte.constructionProgramInput.v1');
       const seen = new Set();
-      return rows.filter((row) => {
+      const uniqueRows = rows.filter((row) => {
         const key = JSON.stringify([
           row.hypothesisId || '', row.sourceCardIds || [], row.basisIds || [], row.partHints || [],
         ]);
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
-      }).slice(0, 3);
+      }).sort((a, b) => (
+        constructionHypothesisPriority(b) - constructionHypothesisPriority(a) ||
+        Number(a.hypothesisRank ?? Number.MAX_SAFE_INTEGER) - Number(b.hypothesisRank ?? Number.MAX_SAFE_INTEGER) ||
+        String(a.hypothesisId || '').localeCompare(String(b.hypothesisId || ''))
+      ));
+      const exactRows = uniqueRows.filter((row) => row.provenance && row.provenance.exactTargetMatch === true);
+      return (exactRows.length ? exactRows : uniqueRows).slice(0, 3);
+    }
+
+    function constructionHypothesisPriority(row = {}) {
+      const provenance = row.provenance || {};
+      return Number(provenance.exactTargetMatch === true) * 16 +
+        Number(provenance.literalSlotMatch === true) * 8 +
+        Number(provenance.rerankEvaluated === true) * 4 +
+        Number(provenance.modelEvaluated === true) * 2;
     }
 
     function constructionGraphForEvidence(construction = {}, descriptors = [], layoutVariant = {}) {
-      const topology = constructionTopologyForEvidence(construction, descriptors);
+      const topologySelection = constructionTopologySelectionForEvidence(construction, descriptors);
+      const topology = topologySelection.topology;
       const requested = new Map();
       for (const descriptor of descriptors) {
         const rows = requested.get(descriptor.role) || [];
@@ -117,30 +140,42 @@
         requested.set(descriptor.role, rows);
       }
       const nodes = [];
-      const appendNodes = (roleId, count, requiredByTopology = false) => {
+      const topologySource = Boolean(constructionTopologyFromSource(construction));
+      const appendNodes = (roleId, count, requiredByTopology = false, topologyNode = null) => {
         const available = requested.get(roleId) || [];
         const total = Math.max(count, available.reduce((sum, row) => sum + Number(row.count || 1), 0));
         for (let index = 0; index < Math.min(12, total); index += 1) {
           const descriptor = constructionDescriptorForRole(available, roleId, index);
+          const topologyPrimitive = Array.isArray(topologyNode && topologyNode.primitive)
+            ? topologyNode.primitive[index % topologyNode.primitive.length]
+            : topologyNode && topologyNode.primitive;
+          const topologySize = topologyNode && topologyNode.sizes && topologyNode.sizes.length
+            ? topologyNode.sizes[index % topologyNode.sizes.length]
+            : null;
           nodes.push({
             id: `${constructionGeometrySafeId(descriptor.id || roleId)}-${index + 1}`,
             role: roleId,
-            primitive: descriptor.primitive || constructionPrimitiveForRole(roleId),
+            primitive: topologyPrimitive || descriptor.primitive || constructionPrimitiveForRole(roleId),
+            size: topologySize ? topologySize.slice() : null,
             sourceHint: descriptor.id || '',
             requiredByTopology,
           });
         }
       };
       if (topology) {
-        for (const row of topology.nodes || []) appendNodes(row.roleId, Number(row.count || 1), true);
+        for (const row of topology.nodes || []) appendNodes(row.roleId, Number(row.count || 1), true, row);
       }
       for (const [roleId, rows] of requested.entries()) {
         if (topology && topology.nodes.some((row) => row.roleId === roleId)) continue;
+        if (topology && topologySource) continue;
         appendNodes(roleId, rows.reduce((sum, row) => sum + Number(row.count || 1), 0), false);
       }
       return {
         schema: 'simulatte.constructionGraph.v1',
         topologyId: topology && topology.id || 'evidence-assembly',
+        topologySelectionMethod: topologySelection.method,
+        topologyTargetCueScore: topologySelection.targetCueScore,
+        topologyTargetFit: topologySelection.targetFit,
         layoutVariantId: layoutVariant.id || 'balanced',
         sourceCardIds: (construction.sourceCardIds || []).slice(),
         basisIds: (construction.basisIds || []).slice(),
@@ -150,8 +185,15 @@
     }
 
     function constructionTopologyForEvidence(construction = {}, descriptors = []) {
+      return constructionTopologySelectionForEvidence(construction, descriptors).topology;
+    }
+
+    function constructionTopologySelectionForEvidence(construction = {}, descriptors = []) {
       const basisIds = new Set([...(construction.basisIds || []), ...(construction.groundingIds || [])]);
       const roles = new Set(descriptors.map((row) => row.role));
+      const targetText = constructionEvidenceText([
+        String(construction.targetEntryId || '').replace(/^[a-z]+:/, ''),
+      ]);
       const sourceText = constructionEvidenceText([
         construction.targetEntryId,
         ...(construction.sourceCardIds || []),
@@ -165,7 +207,7 @@
         ...(construction.behaviorHints || []),
         ...(construction.affordanceHints || []),
       ]);
-      return constructionTopologies.map((row) => {
+      const scored = constructionTopologies.map((row) => {
         const topologyRoles = new Set((row.nodes || []).map((nodeRow) => nodeRow.roleId));
         const roleScore = Array.from(topologyRoles).filter((roleId) => roles.has(roleId)).length /
           Math.max(1, topologyRoles.size);
@@ -173,15 +215,57 @@
         const cueScore = Math.max(0, ...(row.cues || []).map((cue) => (
           constructionEvidenceCueScore(cue, sourceText, evidenceText)
         )));
+        const targetCueScore = Math.max(0, ...(row.cues || []).map((cue) => (
+          constructionEvidenceCueScore(cue, targetText, targetText)
+        )));
         return {
           row,
           score: cueScore * 0.55 + roleScore * 0.27 + basisScore * 0.18,
           cueScore,
+          targetCueScore,
           roleScore,
           basisScore,
         };
-      }).filter((entry) => entry.score >= 0.28)
-        .sort((a, b) => b.score - a.score || a.row.id.localeCompare(b.row.id))[0]?.row || null;
+      });
+      const exactTarget = scored.filter((entry) => entry.targetCueScore >= 1)
+        .sort((a, b) => b.targetCueScore - a.targetCueScore ||
+          constructionLongestMatchingCue(b.row, targetText) - constructionLongestMatchingCue(a.row, targetText) ||
+          a.row.id.localeCompare(b.row.id))[0] || null;
+      if (exactTarget) return constructionTopologySelection(exactTarget, 'exact-target-cue', construction, true);
+      const sourceTopology = constructionTopologyFromSource(construction);
+      if (sourceTopology) {
+        const sourceEntry = scored.find((entry) => entry.row.id === sourceTopology.id) || { row: sourceTopology, targetCueScore: 0 };
+        const reranked = construction.provenance && construction.provenance.rerankEvaluated === true;
+        return constructionTopologySelection(sourceEntry, 'direct-topology-source', construction, reranked);
+      }
+      const selected = scored.filter((entry) => entry.score >= 0.28)
+        .sort((a, b) => b.score - a.score || a.row.id.localeCompare(b.row.id))[0] || null;
+      const reranked = construction.provenance && construction.provenance.rerankEvaluated === true;
+      return constructionTopologySelection(selected, selected ? 'evidence-score' : 'none', construction, reranked);
+    }
+
+    function constructionTopologySelection(entry = null, method = 'none', construction = {}, inferredFit = false) {
+      const targetCueScore = Number(entry && entry.targetCueScore || 0);
+      return {
+        topology: entry && entry.row || null,
+        method,
+        targetCueScore: Number(targetCueScore.toFixed(3)),
+        targetFit: targetCueScore >= 1 || inferredFit === true,
+        sourceCardIds: (construction.sourceCardIds || []).slice(),
+      };
+    }
+
+    function constructionTopologyFromSource(construction = {}) {
+      const ids = (construction.sourceCardIds || []).map((value) => String(value || '').toLowerCase()
+        .replace(/^construction[._-]/, '').replace(/_/g, '-'));
+      return constructionTopologies.find((row) => ids.includes(row.id)) || null;
+    }
+
+    function constructionLongestMatchingCue(topology = {}, targetText = '') {
+      return Math.max(0, ...(topology.cues || []).map((cue) => {
+        const normalized = constructionEvidenceText([cue]);
+        return normalized && ` ${targetText} `.includes(` ${normalized} `) ? normalized.length : 0;
+      }));
     }
 
     function constructionEvidenceText(values = []) {
@@ -227,10 +311,14 @@
       }
       const placements = new Map();
       for (const [roleId, rows] of byRole.entries()) {
-        rows.forEach((nodeRow, index) => placements.set(nodeRow.id, {
-          ...constructionPlacementForRole(roleId, index, rows.length, graph.topologyId, layoutVariant),
-          constraintIds: [],
-        }));
+        rows.forEach((nodeRow, index) => {
+          const placement = constructionPlacementForRole(roleId, index, rows.length, graph.topologyId, layoutVariant);
+          placements.set(nodeRow.id, {
+            ...placement,
+            size: nodeRow.size || placement.size,
+            constraintIds: [],
+          });
+        });
       }
       const constraintReceipts = applyConstructionGraphConstraints(graph, byRole, placements);
       graph.constraints = constraintReceipts;
@@ -252,12 +340,39 @@
           constructionRoleIndex: roleIndex,
           sourceHint: nodeRow.sourceHint || '',
           constructionConstraintIds: (placement.constraintIds || []).slice(),
+          opacity: nodeRow.role === 'opening' ? 0.76 : 1,
         });
       };
       for (const [roleId, rows] of byRole.entries()) {
         rows.forEach((nodeRow, index) => add(nodeRow, placements.get(nodeRow.id), index));
       }
-      return parts;
+      return normalizeConstructionParts(parts);
+    }
+
+    function normalizeConstructionParts(parts = []) {
+      if (!parts.length) return parts;
+      const bounds = parts.map((part) => {
+        const rotation = Number(part.rotation || 0);
+        const width = Number(part.size && part.size[0] || 0.1);
+        const height = Number(part.size && part.size[1] || 0.1);
+        const halfWidth = (Math.abs(Math.cos(rotation)) * width + Math.abs(Math.sin(rotation)) * height) * 0.5;
+        const halfHeight = (Math.abs(Math.sin(rotation)) * width + Math.abs(Math.cos(rotation)) * height) * 0.5;
+        return [part.center[0] - halfWidth, part.center[1] - halfHeight,
+          part.center[0] + halfWidth, part.center[1] + halfHeight];
+      });
+      const left = Math.min(...bounds.map((row) => row[0]));
+      const top = Math.min(...bounds.map((row) => row[1]));
+      const right = Math.max(...bounds.map((row) => row[2]));
+      const bottom = Math.max(...bounds.map((row) => row[3]));
+      const width = Math.max(0.01, right - left);
+      const height = Math.max(0.01, bottom - top);
+      const factor = Math.min(1, 0.94 / width, 0.94 / height);
+      const center = [(left + right) * 0.5, (top + bottom) * 0.5];
+      return parts.map((part) => ({
+        ...part,
+        center: [(part.center[0] - center[0]) * factor, (part.center[1] - center[1]) * factor],
+        size: [part.size[0] * factor, part.size[1] * factor],
+      }));
     }
 
     function applyConstructionGraphConstraints(graph = {}, byRole = new Map(), placements = new Map()) {
@@ -265,9 +380,10 @@
         const [operation, sourceRole = '', targetRole = '', anchor = ''] = String(edge || '').split(':');
         const sources = byRole.get(sourceRole) || [];
         const targets = byRole.get(targetRole) || [];
+        const anchorTargets = byRole.get(anchor) || [];
         const id = `constraint-${index + 1}`;
         const applied = constructionConstraintOperation(
-          operation, sources, targets, anchor, placements, graph.topologyId, id
+          operation, sources, targets, anchor, placements, graph.topologyId, id, anchorTargets
         );
         return {
           id,
@@ -283,20 +399,21 @@
     }
 
     function constructionConstraintOperation(
-      operation = '', sources = [], targets = [], anchor = '', placements = new Map(), topologyId = '', constraintId = ''
+      operation = '', sources = [], targets = [], anchor = '', placements = new Map(), topologyId = '', constraintId = '',
+      anchorTargets = []
     ) {
       if (!sources.length) return false;
-      const target = constructionTargetPlacement(targets, placements);
+      const target = constructionTargetPlacement(targets, placements, anchor);
       const set = (nodeRow, next) => constructionSetPlacement(placements, nodeRow, next, constraintId);
       if (operation === 'attach') {
         sources.forEach((nodeRow, index) => set(nodeRow, constructionAttachedPlacement(
-          placements.get(nodeRow.id), target, anchor, index, sources.length
+          placements.get(nodeRow.id), target, anchor, index, sources.length, nodeRow.role
         )));
         return true;
       }
       if (operation === 'mirror') {
         sources.forEach((nodeRow, index) => set(nodeRow, constructionMirroredPlacement(
-          placements.get(nodeRow.id), target, anchor, index, sources.length
+          placements.get(nodeRow.id), target, anchor, index, sources.length, nodeRow.role
         )));
         return true;
       }
@@ -319,11 +436,28 @@
         return true;
       }
       if (operation === 'chain') {
-        const origin = targets.length ? target.center : [-0.3, 0.26];
+        const targetRotation = Number(target.rotation || 0);
+        let endpoint = targets.length
+          ? [
+              target.center[0] + Math.cos(targetRotation) * target.size[0] * 0.34,
+              target.center[1] - Math.sin(targetRotation) * target.size[0] * 0.34 - target.size[1] * 0.32,
+            ]
+          : [-0.3, 0.26];
         sources.forEach((nodeRow, index) => {
           const current = placements.get(nodeRow.id) || {};
-          const center = [origin[0] + (index + 1) * 0.2, origin[1] - (index + 1) * 0.16];
-          set(nodeRow, { ...current, center, rotation: -0.68 + index * 0.14 });
+          const rotation = anchor === 'boom'
+            ? (index === 0 ? 0.78 : -0.52 - (index - 1) * 0.28)
+            : -0.82 + index * 0.48;
+          const length = Math.max(0.18, Number(current.size && current.size[0] || 0.38) * 0.94);
+          const center = [
+            endpoint[0] + Math.cos(rotation) * length * 0.5,
+            endpoint[1] - Math.sin(rotation) * length * 0.5,
+          ];
+          set(nodeRow, { ...current, center, rotation });
+          endpoint = [
+            center[0] + Math.cos(rotation) * length * 0.5,
+            center[1] - Math.sin(rotation) * length * 0.5,
+          ];
         });
         return true;
       }
@@ -331,9 +465,14 @@
         sources.forEach((nodeRow, index) => {
           const paired = targets[index % Math.max(1, targets.length)];
           const pairedPlacement = paired && placements.get(paired.id) || target;
+          const rotation = Number(pairedPlacement.rotation || 0);
+          const endOffset = anchor === 'ends' ? Number(pairedPlacement.size && pairedPlacement.size[0] || 0) * 0.47 : 0;
           set(nodeRow, {
             ...(placements.get(nodeRow.id) || {}),
-            center: pairedPlacement.center.slice(),
+            center: [
+              pairedPlacement.center[0] + Math.cos(rotation) * endOffset,
+              pairedPlacement.center[1] - Math.sin(rotation) * endOffset,
+            ],
           });
         });
         return true;
@@ -341,20 +480,45 @@
       if (operation === 'parallel') {
         sources.forEach((nodeRow, index) => {
           const current = placements.get(nodeRow.id) || {};
+          const vertical = anchor === 'vertical';
+          const below = anchor === 'below';
           set(nodeRow, {
             ...current,
-            center: [target.center[0], target.center[1] - 0.18 + index * 0.12],
-            size: [Math.max(current.size[0], 0.76), Math.min(current.size[1], 0.07)],
-            rotation: 0,
+            center: vertical
+              ? [target.center[0] - 0.075 + index * 0.05, target.center[1] - 0.04]
+              : [target.center[0], target.center[1] + (below ? 0.25 : -0.18) + index * (below ? 0.08 : 0.12)],
+            size: vertical
+              ? [Math.max(current.size[0], target.size[1] * 1.35), Math.min(current.size[1], 0.025)]
+              : [Math.max(current.size[0], 0.76), Math.min(current.size[1], below ? 0.11 : 0.07)],
+            rotation: vertical ? 1.57 : 0,
           });
         });
         return true;
       }
+      if (operation === 'span' && anchorTargets.length) {
+        const targetPlacements = [...targets, ...anchorTargets].map((row) => placements.get(row.id)).filter(Boolean);
+        const verticalExtent = (row) => {
+          const rotation = Number(row.rotation || 0);
+          return Math.abs(Math.sin(rotation)) * Number(row.size[0] || 0) * 0.5 +
+            Math.abs(Math.cos(rotation)) * Number(row.size[1] || 0) * 0.5;
+        };
+        const top = Math.min(...targetPlacements.map((row) => row.center[1] - verticalExtent(row)));
+        const bottom = Math.max(...targetPlacements.map((row) => row.center[1] + verticalExtent(row)));
+        const centerX = targetPlacements.reduce((sum, row) => sum + row.center[0], 0) / targetPlacements.length;
+        sources.forEach((nodeRow, index) => set(nodeRow, {
+          ...(placements.get(nodeRow.id) || {}),
+          center: [centerX + (index - (sources.length - 1) * 0.5) * 0.05, (top + bottom) * 0.5],
+          size: [Math.max(0.2, bottom - top), 0.025],
+          rotation: 1.57,
+        }));
+        return true;
+      }
       if (operation === 'stack') {
+        const spacing = anchor === 'spread' ? 0.24 : anchor === 'contour' ? 0.13 : 0.11;
         sources.forEach((nodeRow, index) => {
           const current = placements.get(nodeRow.id) || {};
           const centered = index - (sources.length - 1) * 0.5;
-          set(nodeRow, { ...current, center: [target.center[0], target.center[1] + centered * 0.11] });
+          set(nodeRow, { ...current, center: [target.center[0], target.center[1] + centered * spacing] });
         });
         return true;
       }
@@ -404,9 +568,13 @@
       return false;
     }
 
-    function constructionTargetPlacement(targets = [], placements = new Map()) {
+    function constructionTargetPlacement(targets = [], placements = new Map(), anchor = '') {
       const rows = targets.map((row) => placements.get(row.id)).filter(Boolean);
       if (!rows.length) return { center: [0, 0], size: [0.68, 0.54] };
+      if (anchor === 'end' || anchor === 'end-down') return rows[rows.length - 1];
+      if (anchor === 'start') return rows[0];
+      if (anchor === 'top') return rows.slice().sort((a, b) => a.center[1] - b.center[1])[0];
+      if (anchor === 'below') return rows.slice().sort((a, b) => b.center[1] - a.center[1])[0];
       return {
         center: [
           rows.reduce((sum, row) => sum + row.center[0], 0) / rows.length,
@@ -427,18 +595,41 @@
       });
     }
 
-    function constructionAttachedPlacement(current = {}, target = {}, anchor = '', index = 0, count = 1) {
+    function constructionAttachedPlacement(current = {}, target = {}, anchor = '', index = 0, count = 1, role = '') {
       const centered = index - (count - 1) * 0.5;
+      const targetRotation = Number(target.rotation || 0);
+      const longitudinal = Math.max(0.2, Number(target.size && target.size[0] || 0.2) * 0.54) +
+        Math.max(0, Number(current.size && current.size[0] || 0.2) * 0.2);
       const offsets = {
-        start: [-0.38, centered * 0.13], end: [0.38, centered * 0.13],
-        top: [centered * 0.24, -0.34], below: [centered * 0.24, 0.34],
+        start: [-Math.cos(targetRotation) * longitudinal, Math.sin(targetRotation) * longitudinal + centered * 0.13],
+        end: [Math.cos(targetRotation) * longitudinal, -Math.sin(targetRotation) * longitudinal + centered * 0.13],
+        'end-down': [Math.cos(targetRotation) * longitudinal, -Math.sin(targetRotation) * longitudinal + centered * 0.13],
+        top: [centered * 0.24, -constructionVerticalAttachmentOffset(current, target)],
+        'top-left': [-target.size[0] * 0.22 + centered * 0.18, -constructionVerticalAttachmentOffset(current, target)],
+        below: [centered * 0.24, constructionVerticalAttachmentOffset(current, target)],
         front: [centered * 0.15, -0.08], side: [0.36, centered * 0.15], center: [0, 0],
       };
       const offset = offsets[anchor] || [centered * 0.18, 0];
-      return { ...current, center: [target.center[0] + offset[0], target.center[1] + offset[1]] };
+      const vertical = anchor === 'top' && role === 'appendage';
+      return {
+        ...current,
+        center: [target.center[0] + offset[0], target.center[1] + offset[1]],
+        size: current.size,
+        rotation: vertical ? 1.57 : anchor === 'center' ? 0 : anchor === 'end-down' ? targetRotation + 0.9 : current.rotation,
+      };
     }
 
-    function constructionMirroredPlacement(current = {}, target = {}, anchor = '', index = 0, count = 1) {
+    function constructionVerticalAttachmentOffset(current = {}, target = {}) {
+      const verticalExtent = (row) => {
+        const size = row.size || [0.2, 0.2];
+        const rotation = Number(row.rotation || 0);
+        return Math.abs(Math.sin(rotation)) * Number(size[0] || 0) +
+          Math.abs(Math.cos(rotation)) * Number(size[1] || 0);
+      };
+      return Math.max(0.12, verticalExtent(target) * 0.42 + verticalExtent(current) * 0.32);
+    }
+
+    function constructionMirroredPlacement(current = {}, target = {}, anchor = '', index = 0, count = 1, role = '') {
       const unit = count <= 1 ? 0 : (index - (count - 1) * 0.5) / Math.max(1, (count - 1) * 0.5);
       if (anchor === 'below') {
         return { ...current, center: [target.center[0] + unit * 0.36, target.center[1] + 0.31], rotation: 1.57 };
@@ -446,7 +637,11 @@
       if (anchor === 'ends') {
         return { ...current, center: [target.center[0] + unit * 0.39, target.center[1] + 0.2] };
       }
-      return { ...current, center: [target.center[0] + unit * 0.36, target.center[1]], rotation: unit * 0.14 };
+      return {
+        ...current,
+        center: [target.center[0] + unit * 0.36, target.center[1]],
+        rotation: role === 'support' ? 1.57 : unit * 0.14,
+      };
     }
 
     function constructionPlacementForRole(roleId, index, count, topologyId, variant = {}) {
@@ -504,10 +699,10 @@
     }
 
     function constructionPartDescriptors(construction = {}) {
-      const hints = uniqueList([
-        ...(construction.partHints || []),
-        ...(construction.shapeHints || []),
-      ]).slice(0, 20);
+      const sourceHints = construction.sourcePartHints && construction.sourcePartHints.length
+        ? construction.sourcePartHints
+        : construction.partHints || [];
+      const hints = uniqueList(sourceHints).slice(0, 20);
       const descriptors = hints.map((hint) => constructionDescriptor(hint)).filter(Boolean);
       if (!descriptors.some((row) => row.role === 'core')) {
         descriptors.unshift({ id: 'structural-core', role: 'core', primitive: constructionCorePrimitive(construction), count: 1 });
@@ -679,6 +874,8 @@
       const roleId = rule && rule.id || 'detail';
       const primitive = /round|ellipsoid|sphere|soft|organic/.test(text) && roleId === 'core'
         ? 'ellipse'
+        : /handle/.test(text)
+          ? 'ring'
         : /aperture|cavity|lens|eye|camera/.test(text)
           ? 'ring'
           : rule && rule.primitive || 'rounded-box';

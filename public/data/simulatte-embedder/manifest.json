@@ -25,7 +25,7 @@
       "artifact": "./surface-card-index-qwen-v1.json",
       "artifactHash": {
         "alg": "sha256",
-        "hex": "ef7c3d58acb9616b9851c8a2b3b595c22f75946499d563cbf5229eea8d780a32"
+        "hex": "36496cf3be83e886b8d413780f2b07fd4143d42c3e166d88853502ea58cd0e03"
       },
       "documentSchema": "simulatte.surfaceCardEmbeddingIndex.v1",
       "rerank": "mandatory",

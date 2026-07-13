@@ -1,0 +1,22 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAuditFailure.v1",
+  "createdAt": "2026-07-13T17:43:41.057Z",
+  "error": "TypeError: fetch failed\n    at node:internal/deps/undici/undici:13510:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async waitForJson (file:///Users/xyz/deco/simulatte/tools/audit-intent-scene-screenshots.mjs:585:24)\n    at async connectToPage (file:///Users/xyz/deco/simulatte/tools/audit-intent-scene-screenshots.mjs:597:19)\n    at async main (file:///Users/xyz/deco/simulatte/tools/audit-intent-scene-screenshots.mjs:2239:11)",
+  "page": null,
+  "browserEvents": [],
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 520,
+      "chunkCount": 2,
+      "truncated": false,
+      "tail": "[31073:30599825:0713/134331.062076:ERROR:chrome/browser/process_singleton_posix.cc:347] Failed to create /Users/xyz/deco/simulatte/artifacts/model-cache-profile/SingletonLock: File exists (17)\n[31073:30599825:0713/134331.063289:ERROR:chrome/app/chrome_main_delegate.cc:519] Failed to create a ProcessSingleton for your profile directory. This means that running multiple instances would start multiple browser processes rather than opening a new window in the existing process. Aborting now to avoid profile corruption.\n"
+    }
+  }
+}

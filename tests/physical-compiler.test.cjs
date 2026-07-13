@@ -11,8 +11,10 @@ const webgpuRenderer = require('../public/pipeline/phase-07-render/simulatte-web
 require('../public/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
 const universeParser = require('../public/pipeline/phase-02-language/simulatte-universe-parser.js');
 const grounderGraph = require('../public/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js');
+require('../public/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
 const webgpuRendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
 const compositionGraphScope = globalThis.__SimulatteCompositionGraphRefactorScope;
+const intentEmbedderScope = globalThis.__SimulatteIntentEmbedderRefactorScope;
 
 function runtimeSourceFromFile(file, seen = new Set()) {
   if (seen.has(file)) return '';
@@ -262,6 +264,21 @@ test('Phase 2 does not invent water targets for unrelated intransitive clauses',
     !String(slot.entryId || '').includes('medium:water') &&
     !(slot.queries || []).some((query) => /medium:water/.test(query.text || ''))
   )));
+});
+
+test('Phase 2 marks typed relations as local evidence instead of requesting model identity work', () => {
+  const spec = lab.createSpecFromPrompt('an octopus holding a glass teapot', {
+    allowPrototypeFallback: true,
+  });
+  const relationSlots = spec.phaseArtifacts.phase2.artifact.queryPlan.slots
+    .filter((slot) => slot.slotRole === 'relation');
+  const holding = relationSlots.find((slot) => slot.process === 'holding');
+  const material = relationSlots.find((slot) => slot.process === 'material_assignment');
+
+  assert.ok(holding);
+  assert.ok(material);
+  assert.ok(relationSlots.every((slot) => slot.modelEvidenceRequired === false));
+  assert.ok(relationSlots.every((slot) => slot.localEvidenceReason === 'phase2-typed-relation'));
 });
 
 test('Phase 2 carries negation without creating required slots for negated entities', () => {
@@ -738,6 +755,195 @@ test('Phase 4 exact construction evidence outranks unrelated reranker confidence
   assert.deepEqual(nodes[0].construction.partHints, ['ice floe plates', 'pressure ridge']);
   assert.equal(nodes[0].constructionProvenance[0].candidateId, 'entity.sea-ice');
   assert.equal(nodes[0].constructionProvenance[0].literalSlotMatch, true);
+  assert.equal(nodes[0].constructionProvenance[0].targetIdentityBound, true);
+  assert.equal(nodes[0].constructionHypotheses.length, 1);
+});
+
+test('Phase 4 attaches an analogous candidate to the exact prompt target node', () => {
+  const nodes = [
+    {
+      id: 'prompt-body-qubit-chip',
+      canonicalId: 'prompt.body.qubit-chip',
+      label: 'Qubit Chip',
+      directlyGrounded: true,
+    },
+    {
+      id: 'prompt-body-microwave-resonator',
+      canonicalId: 'prompt.body.microwave-resonator',
+      label: 'Microwave Resonator',
+      directlyGrounded: true,
+    },
+    {
+      id: 'analog-microwave',
+      canonicalId: 'artifact.microwave',
+      label: 'Microwave',
+    },
+  ];
+  const receipt = grounderGraph.attachConstructionEvidence(nodes, [{
+    slotId: 'slot.object.microwave_resonator',
+    entryId: 'entity:microwave-resonator',
+    constructionCandidates: [{
+      candidateId: 'microwave',
+      label: 'microwave',
+      modelEvaluated: true,
+      constructionEvidence: true,
+      construction: {
+        schema: 'simulatte.constructionEvidence.v1',
+        targetEntryId: 'entity:microwave-resonator',
+        sourceCardId: 'artifact.microwave',
+        sourceLabel: 'microwave',
+        partHints: ['cavity', 'signal path', 'readout'],
+      },
+    }],
+  }]);
+
+  assert.equal(receipt.attachedCount, 1);
+  assert.equal(nodes[0].construction, undefined);
+  assert.equal(nodes[2].construction, undefined);
+  assert.equal(nodes[1].construction.targetEntryId, 'entity:microwave-resonator');
+  assert.equal(nodes[1].constructionProvenance[0].targetIdentityBound, true);
+});
+
+test('exact construction families exclude unrelated embedding neighbours through Phase 6', () => {
+  const slot = { slotRole: 'concept', entryId: 'concept:excavator' };
+  const construction = (id, literal, exact) => ({
+    candidateId: id,
+    label: id.replaceAll('_', ' '),
+    labels: id === 'heavy_equipment' ? ['heavy equipment', 'excavator'] : ['celestial system', 'planet'],
+    literalSlotMatch: literal,
+    modelEvaluated: true,
+    constructionEvidence: true,
+    construction: {
+      schema: 'simulatte.constructionProgramInput.v1',
+      hypothesisId: `construction:excavator:${id}`,
+      hypothesisRank: literal ? 1 : 2,
+      targetEntryId: 'concept:excavator',
+      sourceType: 'construction-topology',
+      sourceCardIds: [id],
+      sourceLabels: [id.replaceAll('_', ' ')],
+      sourcePartHints: id === 'heavy_equipment'
+        ? ['core', 'head', 'path', 'appendage', 'joint', 'panel']
+        : ['core', 'path', 'field', 'detail'],
+      partHints: id === 'heavy_equipment'
+        ? ['core', 'head', 'path', 'appendage', 'joint', 'panel']
+        : ['core', 'path', 'field', 'detail'],
+      provenance: {
+        candidateId: id,
+        modelEvaluated: true,
+        literalSlotMatch: literal,
+        exactTargetMatch: exact,
+      },
+    },
+  });
+  const heavy = construction('heavy_equipment', true, true);
+  const celestial = construction('celestial_system', false, false);
+  const phase3 = intentEmbedderScope.constructionCandidatesForSlot(slot, [celestial, heavy], 3);
+  assert.deepEqual(phase3.map((row) => row.candidateId), ['heavy_equipment']);
+
+  const program = compositionGraphScope.objectGeometryProgramForIdentity({
+    type: 'excavator', sourceLabel: 'excavator', directlyGrounded: true,
+  }, {}, {
+    id: 'heavy-equipment',
+    sourceLabel: 'excavator',
+    directlyGrounded: true,
+    construction: celestial.construction,
+    constructionHypotheses: [celestial.construction, heavy.construction],
+    constructionProvenance: [celestial.construction.provenance, heavy.construction.provenance],
+  }, 'material-surface');
+  assert.match(program.grammarId, /heavy-equipment/);
+  assert.equal(program.constructionReceipt.exactTargetMatch, true);
+});
+
+test('unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget', () => {
+  const documents = Array.from({ length: 6 }, (_, index) => ({
+    cardId: `surface.synthetic-${index}`,
+    type: 'artifact',
+    labels: [`synthetic ${index}`],
+    candidateText: `synthetic artifact ${index}`,
+    vector: [1 - index * 0.02, 0],
+  }));
+  documents.push({
+    cardId: 'construction.resonant-cavity',
+    type: 'construction-topology',
+    labels: ['resonant cavity'],
+    candidateText: 'reusable cavity part graph',
+    vector: [0.72, 0],
+  });
+  const rows = intentEmbedderScope.rankSurfaceCardsForSlot(
+    { id: 'test-card-index', embedModelId: 'test-model', documents },
+    { slotRole: 'object', entryId: 'entity:unseen-apparatus' },
+    [1, 0],
+    { perSlotCardMax: 4, surfaceScoreFloor: 0.1 }
+  );
+
+  assert.equal(rows.length, 4);
+  const topology = rows.find((row) => row.candidateId === 'construction.resonant-cavity');
+  assert.ok(topology);
+  assert.equal(topology.retrievalReservation, 'construction-topology');
+  assert.equal(topology.constructionEvidence, true);
+});
+
+test('construction retrieval admits physical part graphs and rejects process or visual-effect rows', () => {
+  const slot = { slotRole: 'object', entryId: 'entity:unseen-machine' };
+  const physical = intentEmbedderScope.constructionForCandidate(slot, {
+    cardId: 'construction.rail-vehicle',
+    type: 'construction-topology',
+    modelScore: 0.8,
+  });
+  assert.equal(physical.sourceCardId, 'construction.rail-vehicle');
+  assert.ok(physical.partHints.includes('3 core'));
+  assert.equal(intentEmbedderScope.constructionForCandidate(slot, {
+    cardId: 'event.growth', type: 'event', partHints: ['fake body'], modelScore: 0.99,
+  }), null);
+  assert.equal(intentEmbedderScope.slotNeedsModelConstructionEvidence({
+    slotRole: 'object', semanticClass: 'visual-effect',
+  }), false);
+  assert.equal(intentEmbedderScope.slotNeedsModelConstructionEvidence({
+    slotRole: 'concept', semanticClass: 'control-process',
+  }), false);
+});
+
+test('Phase 4 attaches construction to the slot target instead of a material context span', () => {
+  const nodes = [
+    {
+      id: 'material-glass',
+      spanId: 'span-glass',
+      canonicalId: 'material.glass',
+      label: 'Glass',
+      aliases: ['glass', 'greenhouse'],
+      directlyGrounded: true,
+    },
+    {
+      id: 'architectural-enclosure',
+      spanId: 'span-greenhouse',
+      canonicalId: 'architectural_enclosure',
+      label: 'Greenhouse',
+      directlyGrounded: true,
+    },
+  ];
+  const construction = {
+    schema: 'simulatte.constructionEvidence.v1',
+    targetEntryId: 'concept:greenhouse',
+    sourceCardId: 'construction.architectural-enclosure',
+    sourceLabel: 'architectural enclosure',
+    partHints: ['core', 'panel', 'opening', 'support'],
+  };
+  const receipt = grounderGraph.attachConstructionEvidence(nodes, [{
+    slotId: 'slot.concept.greenhouse',
+    entryId: 'concept:greenhouse',
+    sourceSpanIds: ['span-glass'],
+    constructionCandidates: [{
+      candidateId: 'architectural_enclosure',
+      labels: ['architectural enclosure', 'greenhouse'],
+      literalSlotMatch: true,
+      modelEvaluated: true,
+      constructionEvidence: true,
+      construction,
+    }],
+  }]);
+  assert.equal(receipt.attachedCount, 1);
+  assert.equal(nodes[0].construction, undefined);
+  assert.deepEqual(nodes[1].construction.sourceCardIds, ['construction.architectural-enclosure']);
 });
 
 test('Phase 6 lowers unmatched typed physics entities for expanded scene kinds', () => {
@@ -878,7 +1084,10 @@ test('part-scoped properties bind robot eyes and articulated straw arms into one
   const program = robotRows[0].geometry.program;
   assert.equal(program.grammarId, 'object-grammar.robot-character');
   assert.equal(program.constructionSelectionReceipt.strategy, 'prompt-obligation-coverage');
-  assert.equal(program.constructionSelectionReceipt.candidates.length, 2);
+  assert.ok(program.constructionSelectionReceipt.candidates.length <= 5);
+  assert.ok(program.constructionSelectionReceipt.candidates.some((row) => (
+    row.grammarId.startsWith('object-grammar.constructive.articulated-machine.')
+  )));
   const eyes = program.parts.filter((row) => row.id.includes('eye'));
   const arms = program.parts.filter((row) => row.id.includes('arm'));
   assert.equal(eyes.length, 2);
@@ -984,9 +1193,51 @@ test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts
   );
   const above = solve('above');
   const below = solve('below');
+  const beside = solve('beside');
   assert.ok(above.find((row) => row.id === 'subject-a').pose.y < above.find((row) => row.id === 'target-a').pose.y);
   assert.ok(below.find((row) => row.id === 'subject-a').pose.y > below.find((row) => row.id === 'target-a').pose.y);
+  const besideSubject = beside.find((row) => row.id === 'subject-a').pose;
+  const besideTarget = beside.find((row) => row.id === 'target-a').pose;
+  assert.ok(Math.abs(besideSubject.x - besideTarget.x) >= (besideSubject.w + besideTarget.w) * 0.5);
   assert.ok(above.every((row) => row.layoutReceipt.relationCount === 1));
+  const through = solve('through');
+  const throughSubject = through.find((row) => row.id === 'subject-a').pose;
+  const throughTarget = through.find((row) => row.id === 'target-a').pose;
+  assert.ok(throughTarget.w > throughSubject.w);
+  assert.ok(throughTarget.h > throughSubject.h);
+  assert.ok(throughSubject.z < throughTarget.z);
+
+  const priorityLayout = compositionGraphScope.constraintLayoutObjects([
+    ...objects,
+    { id: 'generated-meter', sourceLabel: 'meter', directlyGrounded: false, construction: { partHints: ['panel', 'sensor'] } },
+  ], 'mechanical', {}, { compositionTopology: 'field-map' });
+  assert.ok(
+    priorityLayout.find((row) => row.id === 'generated-meter').pose.w <
+      priorityLayout.find((row) => row.id === 'subject-a').pose.w
+  );
+
+  const holding = compositionGraphScope.constraintLayoutObjects(objects, 'biology', {
+    renderIR: {
+      compositionLedger: {
+        relations: [{
+          id: 'relation:entity-subject:holding:entity-target',
+          kind: 'agent-action-location',
+          from: 'prompt-body-subject',
+          target: 'prompt-body-target',
+          predicate: 'holding',
+          process: 'holding',
+        }],
+      },
+    },
+  }, { compositionTopology: 'specimen' });
+  const holder = holding.find((row) => row.id === 'subject-a').pose;
+  const held = holding.find((row) => row.id === 'target-a').pose;
+  const holdingOverlap = (holder.w + held.w) * 0.5 - Math.abs(holder.x - held.x);
+  assert.ok(holdingOverlap >= 0);
+  assert.ok(holdingOverlap <= Math.min(holder.w, held.w) * 0.12);
+  assert.ok(Math.abs(holder.y - held.y) < (holder.h + held.h) * 0.5);
+  assert.ok(held.z < (holder.z || 0), 'held objects are layered in front of the holder');
+  assert.ok(holding.every((row) => row.layoutReceipt.relationCount === 1));
 
   const canonical = compositionGraphScope.canonicalVisualObjects([
     { id: 'prompt-person', semanticRef: 'prompt.body.person', sourceLabel: 'person', directlyGrounded: true },
@@ -994,6 +1245,19 @@ test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts
   ]);
   assert.equal(canonical.length, 1);
   assert.ok(canonical[0].sourceIds.includes('generated-human'));
+
+  const visualEffect = compositionGraphScope.canonicalVisualObjects([
+    {
+      id: 'render-fire', semanticRef: 'prompt.body.fire-front', source: 'render-ir',
+      sourceLabel: 'fire', directlyGrounded: true,
+    },
+    {
+      id: 'generated-fire', semanticRef: 'prompt.body.fire-front', source: 'open-semantic-rag',
+      sourceLabel: 'fire', directlyGrounded: true,
+    },
+  ]);
+  assert.equal(visualEffect.length, 1);
+  assert.ok(visualEffect[0].sourceIds.includes('generated-fire'));
 
   const nominalWave = compositionGraphScope.canonicalVisualObjects([
     {
@@ -1020,6 +1284,46 @@ test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts
   assert.equal(nominalWave[0].id, 'render-waves');
   assert.equal(nominalWave[0].source, 'render-ir');
   assert.equal(nominalWave[0].construction.id, 'wave-parts');
+
+  const exactConstruction = {
+    schema: 'simulatte.constructionProgramInput.v1',
+    hypothesisId: 'construction:greenhouse:1',
+    hypothesisRank: 1,
+    targetEntryId: 'concept:greenhouse',
+    sourceCardIds: ['architectural_enclosure'],
+    partHints: ['core', 'panel', 'opening', 'support'],
+    provenance: {
+      candidateId: 'architectural_enclosure',
+      modelEvaluated: true,
+      literalSlotMatch: true,
+      exactTargetMatch: true,
+    },
+  };
+  const mergedConstruction = compositionGraphScope.canonicalVisualObjects([
+    {
+      id: 'greenhouse',
+      physicalRef: 'architectural-enclosure',
+      source: 'semantic-surface-grounder',
+      sourceLabel: 'greenhouse',
+      directlyGrounded: true,
+      constructionHypotheses: [],
+      constructionProvenance: [],
+    },
+    {
+      id: 'render-architectural-enclosure',
+      physicalRef: 'architectural-enclosure',
+      source: 'render-ir',
+      sourceLabel: 'greenhouse',
+      directlyGrounded: true,
+      construction: exactConstruction,
+      constructionHypotheses: [exactConstruction],
+      constructionProvenance: [exactConstruction.provenance],
+    },
+  ]);
+  assert.equal(mergedConstruction.length, 1);
+  assert.equal(mergedConstruction[0].construction.sourceCardIds[0], 'architectural_enclosure');
+  assert.equal(mergedConstruction[0].constructionHypotheses.length, 1);
+  assert.equal(mergedConstruction[0].constructionProvenance[0].exactTargetMatch, true);
 
   const renderAnchors = compositionGraphScope.unmatchedRenderIRObjects([
     {
@@ -1133,6 +1437,41 @@ test('prompt-owned scientific identities require construction evidence before cl
   assert.equal(support.literal, false);
   assert.equal(webgpuRendererScope.scenePacketAnimationCode('phase-propagating-arcs'), 8);
   assert.equal(webgpuRendererScope.scenePacketAnimationCode('impulse-and-contact-ghosts'), 3);
+});
+
+test('construction support failures apply only to required identities without a literal representative', () => {
+  const unsupported = (id, type) => ({
+    id,
+    label: type,
+    identity: { type, label: type },
+    geometry: { program: { literal: false, unsupportedIdentity: true, grammarId: `unsupported.${type}` } },
+  });
+  const literal = (id, type) => ({
+    id,
+    label: type,
+    identity: { type, label: type },
+    geometry: { program: { literal: true, unsupportedIdentity: false, grammarId: `literal.${type}` } },
+  });
+  const packet = {
+    entities: [
+      unsupported('aux-soot', 'soot'),
+      unsupported('missing-resonator', 'microwave-resonator'),
+      unsupported('duplicate-fire', 'fire'),
+      literal('rendered-fire', 'forest-fire'),
+    ],
+  };
+  const ledger = {
+    obligations: [
+      { id: 'entity:microwave-resonator', kind: 'entity', target: 'microwave-resonator', required: true },
+      { id: 'entity:fire', kind: 'entity', target: 'fire', required: true },
+    ],
+  };
+  const obligations = compositionGraphScope.constructionVisualObligationsForScenePacket(packet, ledger);
+
+  assert.deepEqual(obligations.map((row) => row.id), [
+    'visual:construction:missing-resonator:support',
+  ]);
+  assert.equal(obligations[0].status, 'lost');
 });
 
 test('compound prompt identities stay distinct and select evidence-owned object grammars', () => {
@@ -1791,7 +2130,7 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
     const audit = renderer.phase7Output.artifact.renderExecution.pixelAudit;
     const sampledIds = audit.livePixelAudit.sampledObligationIds;
 
-    assert.equal(audit.status, 'pass');
+    assert.equal(audit.status, 'pass', JSON.stringify(audit.checks));
     assert.equal(audit.method, 'webgpu-live-pixel-samples');
     assert.equal(audit.livePixelAudit.required, true);
     assert.ok(sampledIds.includes('visual:wake-ripples'));

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy action bet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "missionId",
+    "tick",
+    "policyId",
+    "action",
+    "horizonTicks",
+    "prediction",
+    "confidence",
+    "scoreStake",
+    "evidence",
+    "status"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyActionBet.v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]*$" },
+    "missionId": { "type": "string" },
+    "tick": { "type": "integer", "minimum": 0 },
+    "policyId": { "type": "string" },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maneuver", "accelerationMps2", "targetSegmentId"],
+      "properties": {
+        "maneuver": { "enum": ["proceed", "accelerate", "yield", "wait", "emergency_stop", "reroute"] },
+        "accelerationMps2": { "type": "number" },
+        "targetSegmentId": { "type": ["string", "null"] }
+      }
+    },
+    "horizonTicks": { "type": "integer", "minimum": 1 },
+    "prediction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["endPosition", "endSpeedMps", "progressDeltaM", "minimumClearanceM", "clearanceIsLowerBound", "willReachNode", "willArrive"],
+      "properties": {
+        "endPosition": { "$ref": "#/$defs/point" },
+        "endSpeedMps": { "type": "number", "minimum": 0 },
+        "progressDeltaM": { "type": "number", "minimum": 0 },
+        "minimumClearanceM": { "type": "number", "minimum": 0 },
+        "clearanceIsLowerBound": { "type": "boolean" },
+        "willReachNode": { "type": "boolean" },
+        "willArrive": { "type": "boolean" }
+      }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "scoreStake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["units", "kind"],
+      "properties": {
+        "units": { "type": "number", "minimum": 0 },
+        "kind": { "const": "nonfinancial_policy_score" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observationTick", "routeRevision", "modelKind"],
+      "properties": {
+        "observationTick": { "type": "integer", "minimum": 0 },
+        "routeRevision": { "type": "integer", "minimum": 0 },
+        "modelKind": { "const": "deterministic_reference_rollout" }
+      }
+    },
+    "status": { "enum": ["proposed", "eligible", "rejected", "selected", "not_executed", "settled"] }
+  },
+  "$defs": {
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "missionId",
+    "tick",
+    "simulatedTimeSeconds",
+    "agent",
+    "route",
+    "signals",
+    "nearbyActors",
+    "blockedSegmentIds",
+    "policyMemory"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyObservation.v1" },
+    "missionId": { "type": "string", "minLength": 1 },
+    "tick": { "type": "integer", "minimum": 0 },
+    "simulatedTimeSeconds": { "type": "number", "minimum": 0 },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "speedMps", "currentNodeId", "currentSegmentId", "segmentProgressM", "status"],
+      "properties": {
+        "position": { "$ref": "#/$defs/point" },
+        "speedMps": { "type": "number", "minimum": 0 },
+        "currentNodeId": { "type": ["string", "null"] },
+        "currentSegmentId": { "type": ["string", "null"] },
+        "segmentProgressM": { "type": "number", "minimum": 0 },
+        "status": { "enum": ["active", "completed", "failed"] }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segmentIds", "cost", "revision", "reason"],
+      "properties": {
+        "segmentIds": { "type": "array", "items": { "type": "string" } },
+        "cost": { "type": "number", "minimum": 0 },
+        "revision": { "type": "integer", "minimum": 0 },
+        "reason": { "enum": ["initial", "continued", "blocked_segment", "route_exhausted", "at_destination"] }
+      }
+    },
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "nodeId", "state"],
+        "properties": {
+          "id": { "type": "string" },
+          "nodeId": { "type": "string" },
+          "state": { "enum": ["green", "red"] }
+        }
+      }
+    },
+    "nearbyActors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "position", "distanceM", "isActive"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "enum": ["pedestrian", "vehicle"] },
+          "position": { "$ref": "#/$defs/point" },
+          "distanceM": { "type": "number", "minimum": 0 },
+          "isActive": { "type": "boolean" }
+        }
+      }
+    },
+    "blockedSegmentIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "policyMemory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["settledBetCount", "wonBetCount", "calibrationByManeuver"],
+      "properties": {
+        "settledBetCount": { "type": "integer", "minimum": 0 },
+        "wonBetCount": { "type": "integer", "minimum": 0 },
+        "calibrationByManeuver": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    }
+  }
+}

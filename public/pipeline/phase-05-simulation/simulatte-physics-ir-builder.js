@@ -34,7 +34,7 @@
             continue;
           }
           const semanticType = String(node.semanticType || node.type || '').toLowerCase();
-          if (node.supportOnly === true || /^(event|process|action|observable|operator|part|property|state)$/.test(semanticType)) {
+          if (node.supportOnly === true || /^(event|process|action|observable|operator|part|property|relation|state|visual-effect)$/.test(semanticType)) {
             receipt.exact.push({
               promptSpan: node.label,
               canonicalId: node.canonicalId,
@@ -208,14 +208,6 @@
       }
 
     function geometryForNode(node) {
-        if (node.construction) {
-          return {
-            kind: 'constructive-program',
-            construction: node.construction,
-            constructionHypotheses: (node.constructionHypotheses || []).map((row) => ({ ...row })),
-            bounds: [0.2, 0.24, 0.28, 0.24],
-          };
-        }
         if (node.directlyGrounded === true && /^(dog|cat)$/.test(String(node.visualArchetype || ''))) {
           return { kind: 'animal-body', joints: 6, bounds: [0.22, 0.34, 0.24, 0.14] };
         }
@@ -224,6 +216,14 @@
             kind: 'semantic-object',
             archetype: node.visualArchetype,
             bounds: [0.32, 0.34, 0.24, 0.2],
+          };
+        }
+        if (node.construction) {
+          return {
+            kind: 'constructive-program',
+            construction: node.construction,
+            constructionHypotheses: (node.constructionHypotheses || []).map((row) => ({ ...row })),
+            bounds: [0.2, 0.24, 0.28, 0.24],
           };
         }
         const text = [
@@ -312,6 +312,7 @@
 
     function inferredDomainKind(entity, node, domains) {
         const semanticType = entity.semanticType || node.semanticType || '';
+        const operatorHints = uniqueList([...(entity.operatorHints || []), ...(node.operatorHints || [])]);
         const text = [
           entity.id,
           entity.label,
@@ -319,6 +320,13 @@
           semanticType,
           ...(domains || []),
         ].filter(Boolean).join(' ').toLowerCase();
+        if (
+          semanticType === 'network' ||
+          (domains || []).some((domain) => domain === 'network' || domain === 'control') ||
+          operatorHints.includes('network_flow')
+        ) {
+          return 'network';
+        }
         if (entity.directlyGrounded === true && entity.visualArchetype &&
           !/^(?:environment|material|medium)$/.test(String(semanticType).toLowerCase())) {
           return 'rigidBody';
@@ -457,7 +465,7 @@
       }
 
     function addEntityOperators(operators, entity, domain, node, params) {
-        if (domain.kind === 'fluid') {
+        if (domain.kind === 'fluid' || hasTag(domain, 'fluid') || hasOperatorHint(domain, 'advection')) {
           addOperator(operators, 'advection', domain, {
             reads: [`flowVelocity:${entity.id}`, `viscosity:${entity.id}`],
             writes: [`flowVelocity:${entity.id}`, `pressure:${entity.id}`],

@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte SAME-R autonomy policy contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "experimentId",
+    "recordedAt",
+    "methodOwner",
+    "domainOwner",
+    "causalContract",
+    "lanes",
+    "matchedOperationDetails",
+    "budget",
+    "saturation",
+    "metrics",
+    "labelAuthority",
+    "promotion"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema": { "const": "simulatte.samerAutonomyContract.v1" },
+    "experimentId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "recordedAt": { "type": "string", "format": "date" },
+    "methodOwner": { "$ref": "#/$defs/owner" },
+    "domainOwner": { "$ref": "#/$defs/owner" },
+    "causalContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intervention", "capability", "population", "hypothesis", "primaryMetric", "blockingGuardrails", "failureInSelection"],
+      "properties": {
+        "intervention": { "const": "action_bet_selection_approach" },
+        "capability": { "const": "continuous_delivery_bike_navigation" },
+        "population": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "kind", "sha256", "visibility", "promotionEligible", "contaminationStatus"],
+          "properties": {
+            "id": { "type": "string" },
+            "kind": { "const": "public_diagnostic" },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "visibility": { "const": "development_visible" },
+            "promotionEligible": { "const": false },
+            "contaminationStatus": { "const": "ineligible_by_design" }
+          }
+        },
+        "hypothesis": { "type": "string", "minLength": 1 },
+        "primaryMetric": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "direction", "formula", "range"],
+          "properties": {
+            "id": { "const": "safetyAdjustedCompletionScore" },
+            "type": { "const": "derived_from_deterministic_trace" },
+            "direction": { "const": "maximize" },
+            "formula": { "const": "scenarioEvaluationPass ? 1 - (tickCount / maximumTicksPerJourney * 0.1) : 0" },
+            "range": {
+              "type": "array",
+              "prefixItems": [{ "const": 0 }, { "const": 1 }],
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "blockingGuardrails": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "failureInSelection": { "type": "string", "minLength": 1 }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "role", "selectionApproach", "seed"],
+        "properties": {
+          "id": { "enum": ["anchor", "targeted", "seeded_control"] },
+          "role": { "enum": ["anchor", "targeted", "control"] },
+          "selectionApproach": { "enum": ["progress_only", "evidence_scored", "seeded_eligible"] },
+          "seed": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "matchedOperationDetails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["worldId", "embodimentId", "basePolicyId", "missionParser", "routePlanner", "rolloutModel", "safetyGate", "modelIdentity", "adapterIdentity", "runtimeSourcePaths", "candidateOrder", "evaluationOrder"],
+      "properties": {
+        "worldId": { "const": "nyc-training-corridor-v1" },
+        "embodimentId": { "const": "delivery-bike-v1" },
+        "basePolicyId": { "const": "bet-selector-v1" },
+        "missionParser": { "const": "simulatte.autonomyMissionParser.v1" },
+        "routePlanner": { "const": "a_star_v1" },
+        "rolloutModel": { "const": "deterministic_reference_rollout" },
+        "safetyGate": { "const": "simulatte.autonomySafetyGateReceipt.v1" },
+        "modelIdentity": { "type": "null" },
+        "adapterIdentity": { "type": "null" },
+        "runtimeSourcePaths": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "candidateOrder": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "emergency_stop" },
+            { "const": "wait" },
+            { "const": "yield" },
+            { "const": "proceed" },
+            { "const": "accelerate" },
+            { "const": "reroute" }
+          ],
+          "minItems": 6,
+          "maxItems": 6
+        },
+        "evaluationOrder": { "const": "scenario_then_lane_then_repetition" }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioSetId", "scenarioCount", "repetitionsPerLane", "maximumTicksPerJourney", "maximumCandidatesPerTick", "maximumRuns"],
+      "properties": {
+        "scenarioSetId": { "type": "string" },
+        "scenarioCount": { "type": "integer", "minimum": 1 },
+        "repetitionsPerLane": { "type": "integer", "minimum": 1 },
+        "maximumTicksPerJourney": { "type": "integer", "minimum": 1 },
+        "maximumCandidatesPerTick": { "type": "integer", "minimum": 1 },
+        "maximumRuns": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "saturation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "rule", "silentExtensionAllowed"],
+      "properties": {
+        "method": { "const": "isSaturated(history, budget)" },
+        "rule": { "type": "string", "minLength": 1 },
+        "silentExtensionAllowed": { "const": false }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "valueType", "authority", "role"],
+        "properties": {
+          "id": { "enum": ["safetyAdjustedCompletionScore", "missionCompletionRate", "requiredObligationPassRate", "safetyViolationCount", "meanTickCount", "betWinRate"] },
+          "valueType": { "enum": ["number", "rate", "count"] },
+          "authority": { "enum": ["machine_adjudicated", "human_adjudicated", "learned_judge"] },
+          "role": { "enum": ["primary", "supporting", "blocking"] }
+        }
+      }
+    },
+    "labelAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "owner", "humanAdjudicationRequiredFor"],
+      "properties": {
+        "kind": { "const": "deterministic_trace_verifier" },
+        "owner": { "const": "public/autonomy/verifier/journey-verifier.js" },
+        "humanAdjudicationRequiredFor": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["physical_plausibility", "street_scene_legibility"] }
+        }
+      }
+    },
+    "promotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["automaticPromotionAllowed", "sealedScenarioSetRequired", "physicalWorldClaimAllowed", "status"],
+      "properties": {
+        "automaticPromotionAllowed": { "const": false },
+        "sealedScenarioSetRequired": { "const": true },
+        "physicalWorldClaimAllowed": { "const": false },
+        "status": { "const": "diagnostic_only" }
+      }
+    }
+  },
+  "$defs": {
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "path"],
+      "properties": {
+        "repository": { "type": "string" },
+        "path": { "type": "string" }
+      }
+    }
+  }
+}

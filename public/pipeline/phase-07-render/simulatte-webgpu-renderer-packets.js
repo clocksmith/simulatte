@@ -268,6 +268,8 @@
       robot: ['base', 'arm', 'joint', 'gripper'], conveyor: ['belt', 'roller'],
       parcel: ['carton', 'top', 'tape', 'label'], galaxy: ['halo', 'spiral', 'core'],
       mountain: ['peak', 'snow'], 'server-rack': ['cabinet', 'server', 'status'],
+      train: ['locomotive', 'car', 'wheel', 'rail'], 'rail-signal': ['post', 'signal', 'base'],
+      'railway-platform': ['platform', 'track', 'canopy', 'support'], 'data-center': ['facility', 'rack', 'cooling', 'status'],
     });
 
     function scenePacketObjectParts(packet = {}) {
@@ -406,12 +408,11 @@
           const scale = row && row.transform && row.transform.scale || [];
           const projectedArea = Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5));
           const topologyVerified = scenePacketObjectTopologyVerified(program);
-          const semanticFit = program.source === 'phase6-data-owned-part-graph' || Boolean(
-            program.constructionReceipt && (
-              program.constructionReceipt.literalSlotMatch === true ||
-              program.constructionReceipt.exactTargetMatch === true
-            )
-          );
+          const semanticFit = program.source === 'phase6-data-owned-part-graph' &&
+            /^(?:category-catalog|identity-catalog|prompt-specialized)$/.test(String(program.selectionRole || '')) ||
+            Boolean(program.constructionReceipt && program.constructionReceipt.topologyTargetFit === true &&
+              program.constructionReceipt.targetIdentityBound === true &&
+              (program.constructionReceipt.modelEvaluated === true || program.constructionReceipt.literalSlotMatch === true));
           const readable = projectedArea >= 0.008;
           return {
             schema: 'simulatte.objectRenderRealization.v1',
@@ -423,6 +424,7 @@
               row.identity && row.identity.label,
               row.identity && row.identity.sourceLabel,
               row.identity && row.identity.type,
+              program.constructionReceipt && program.constructionReceipt.targetEntryId,
               ...(row.representedEntityIds || []),
             ].filter(Boolean),
             grammarId: program.grammarId || '',

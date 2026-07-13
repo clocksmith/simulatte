@@ -547,6 +547,25 @@ test('composition render programs do not collapse into one generic shape vocabul
   assert.ok(!signatures[2].has('flame-front'));
 });
 
+test('nested compound spans retain distinct prompt-owned physical identities', () => {
+  const spec = createPrototypeSpec(
+    'forest fire with wood biomass, flame, smoke, wind field, water, and rock wall'
+  );
+  const forest = spec.universeGraph.nodes.find((node) => node.spanId === 'span2');
+  const fire = spec.universeGraph.nodes.find((node) => node.spanId === 'span3');
+  const ids = spec.universeGraph.nodes.map((node) => node.id);
+
+  assert.equal(forest.label, 'Forest');
+  assert.equal(forest.semanticType, 'environment');
+  assert.equal(fire.label, 'Fire');
+  assert.notEqual(forest.id, fire.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(spec.universeGraph.canonicalization.unresolvedDuplicateNodeIdCount, 0);
+  assert.ok(spec.renderProgram.objects.some((object) => (
+    object.physicalRef === forest.id && object.shape === 'plant-cluster'
+  )));
+});
+
 test('building fire keeps a structural building mixed with fire visuals', () => {
   const fire = lab.createSpecFromPrompt('fire');
   const buildingFire = lab.createSpecFromPrompt('building fire');
@@ -566,6 +585,41 @@ test('building fire keeps a structural building mixed with fire visuals', () => 
   assert.ok(!fireShapes.has('building'));
   assert.ok(buildingFireShapes.has('building'));
   assert.notDeepEqual([...buildingFireShapes].sort(), [...fireShapes].sort());
+});
+
+test('operational, fermentation, and fire prompts keep one real-world grammar per grounded concept', () => {
+  const grammarRows = (prompt) => createPrototypeSpec(prompt).renderProgram.sceneRenderPacket.entities
+    .map((entity) => [entity.identity.type, entity.geometry.coverage.grammarId]);
+  const railway = grammarRows(
+    'railway dispatch conflict resolution across signal blocks with delayed train agents and platform slots'
+  );
+  assert.deepEqual(railway, [
+    ['railway-platforms', 'object-grammar.railway-platform'],
+    ['rail-signal-blocks', 'object-grammar.rail-signal'],
+    ['train', 'object-grammar.train'],
+  ]);
+
+  const dataCenter = grammarRows(
+    'edge data center server racks recirculating heat between cooling aisles under controller limits'
+  );
+  assert.ok(dataCenter.some(([type, grammar]) => type === 'data-center' && grammar === 'object-grammar.data-center'));
+  assert.ok(dataCenter.some(([type, grammar]) => type === 'server-racks' && grammar === 'object-grammar.server-rack'));
+
+  const sourdough = grammarRows(
+    'sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients'
+  );
+  assert.ok(sourdough.some(([type, grammar]) => type === 'gas-bubbles' && grammar === 'object-grammar.semantic-bubble-volume'));
+  assert.ok(sourdough.some(([type, grammar]) => type === 'dough-matrix' && grammar === 'object-grammar.semantic-organic-matrix'));
+  assert.ok(sourdough.every(([, grammar]) => !/instrument/.test(grammar)));
+
+  const forestFire = createPrototypeSpec('forest fire jumps a road under wind shear');
+  const fireEntities = forestFire.renderProgram.sceneRenderPacket.entities
+    .filter((entity) => entity.identity.semanticRef === 'prompt.body.fire-front');
+  const poseObligation = forestFire.renderProgram.visualIR.compositionLedger.obligations
+    .find((row) => row.id === 'visual:prompt-pose-fire-jump-extended');
+  assert.equal(fireEntities.length, 1);
+  assert.equal(fireEntities[0].geometry.coverage.grammarId, 'object-grammar.semantic-thermal-plume');
+  assert.equal(poseObligation.status, 'preserved');
 });
 
 test('render programs keep prompt nouns literal and avoid unrelated scene fields', () => {

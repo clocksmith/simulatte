@@ -1,0 +1,1824 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-13T17:03:48.553Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:56269/index.html?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-IYni31",
+  "profilePersistent": false,
+  "promptDeadlineMs": 45000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 633,
+      "chunkCount": 3,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:56270/devtools/browser/3be5005a-aa3b-486c-ac0f-5172ac6434a4\nTrying to load the allocator multiple times. This is *not* supported.\n[25018:30560726:0713/130348.027576:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[25018:30560726:0713/130348.027612:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[25018:30560726:0713/130348.027626:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": false,
+    "failures": [
+      "1: no model-evaluated construction program reached Phase 7"
+    ],
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 1,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 1,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 1,
+      "bitMargin": 1,
+      "maxTemporalBits": 0,
+      "maxTemporalDistance": 0,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": 1,
+      "recommendedHashFloor": 0.0156,
+      "calibrated": false
+    },
+    "sceneKinds": [
+      "biology"
+    ],
+    "visualIRSceneKinds": [
+      "biology"
+    ],
+    "visualIRCameras": [
+      "dynamic-motion-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 14,
+      "mappingIds": [
+        "visual.operator.biological-growth.v1"
+      ],
+      "uniformSlots": [
+        "biological",
+        "density",
+        "motion",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront"
+      ]
+    },
+    "visualRubric": {
+      "averageScore": 95,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "biological"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.92
+    },
+    "intentBriefs": {
+      "totalEvidence": 73,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 14,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 12,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "score": 93,
+      "grade": "B",
+      "verdict": "fail",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 1,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.92,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "goldRowId": "",
+      "prompt": "3 dogs playing with 7 people",
+      "screenshot": "01-custom-3-dogs-playing-with-7-people.png",
+      "screenshotHash": "8101b0a3c4667b497e693224526e4c849b9dd86af2bbd6f3f2c48e39417d8841",
+      "auditTiming": {
+        "schema": "simulatte.visualAuditTiming.v1",
+        "durationMs": 3182,
+        "stages": [
+          {
+            "id": "configure",
+            "durationMs": 0
+          },
+          {
+            "id": "runtime-wait",
+            "durationMs": 579
+          },
+          {
+            "id": "scene-proof",
+            "durationMs": 652
+          },
+          {
+            "id": "diagnostics",
+            "durationMs": 6
+          },
+          {
+            "id": "viewport-screenshot",
+            "durationMs": 125
+          },
+          {
+            "id": "temporal-canvas-capture",
+            "durationMs": 1036
+          },
+          {
+            "id": "frozen-canvas-capture",
+            "durationMs": 781
+          },
+          {
+            "id": "analyze",
+            "durationMs": 3
+          },
+          {
+            "id": "complete",
+            "durationMs": 0
+          }
+        ]
+      },
+      "runtimeState": "ready",
+      "renderInputSerial": 1,
+      "compiledPrompt": "3 dogs playing with 7 people",
+      "compiledSourcePromptHash": "fnv1a:17cc03a3",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "blank",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v2",
+        "timestamp": "2026-07-13T17:03:44.956Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "render.blank",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "taskProgress": 100,
+        "overallProgress": 100,
+        "sourceProgress": 100,
+        "progressBasis": "terminal",
+        "progressEstimated": false,
+        "taskKey": "render.blank",
+        "taskElapsedMs": 0,
+        "taskExpectedDurationMs": 100,
+        "taskRemainingMs": 100,
+        "runElapsedMs": 0,
+        "runExpectedDurationMs": 24000,
+        "runRemainingMs": 24000,
+        "line": "Ready 100%",
+        "displayLine": "Ready 100%",
+        "label": "Ready",
+        "subline": "",
+        "byteText": "",
+        "sourceText": "",
+        "byteProgress": "",
+        "activity": "ready",
+        "heartbeat": false,
+        "silenceMs": 0,
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "",
+        "timing": {
+          "timestamp": "2026-07-13T17:03:44.956Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "queueWaitMs": 0,
+          "schedulerLagMs": 0,
+          "handlerDurationMs": 0,
+          "timing": "",
+          "traceId": ""
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null,
+        "loaderReceipt": {
+          "schema": "simulatte.loaderPhaseReceipt.v2",
+          "id": "loader-1",
+          "runId": "",
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8
+        }
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T17:03:44.955Z",
+          "source": "",
+          "state": "idle",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "runtime.start",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 0,
+          "taskProgress": 0,
+          "overallProgress": 0,
+          "sourceProgress": 0,
+          "progressBasis": "elapsed-time-forecast",
+          "progressEstimated": true,
+          "taskKey": "",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 1200,
+          "taskRemainingMs": 1200,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "",
+          "displayLine": "",
+          "label": "",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "",
+          "detail": "",
+          "backend": "",
+          "timing": {},
+          "model": {},
+          "resource": {},
+          "embeddings": {},
+          "promptRuntime": null,
+          "loaderReceipt": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T17:03:44.956Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "render.blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 100,
+          "taskRemainingMs": 100,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "ready",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-13T17:03:44.956Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": ""
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8
+          }
+        }
+      ],
+      "runtimeProgressLogs": [
+        {
+          "schema": "simulatte.runtimeProgressLog.v2",
+          "sequence": 1,
+          "timestamp": "2026-07-13T17:03:44.956Z",
+          "timestampMs": 1783962224956,
+          "runId": "",
+          "state": "ready",
+          "blocking": false,
+          "phase": {
+            "step": 8,
+            "id": "webgpu-ready",
+            "label": "WebGPU ready",
+            "weight": 7,
+            "stagePrefixes": [
+              null,
+              null,
+              null
+            ]
+          },
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "source": "",
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "line": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "message": "Ready",
+          "detail": "Ready",
+          "transitionMs": 0,
+          "runElapsedMs": 0,
+          "taskTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 100,
+            "estimatedRemainingMs": 100
+          },
+          "runTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 24000,
+            "estimatedRemainingMs": 24000,
+            "basis": "observed-duration-forecast"
+          },
+          "throughputBytesPerSecond": 0,
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0,
+            "cacheMode": "",
+            "cacheWorker": "",
+            "bytesPerSecond": 0,
+            "eta": "",
+            "operationId": 0,
+            "queueDepth": 0,
+            "cacheBackends": ""
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0,
+            "cacheMissCount": 0,
+            "batchEmbedding": false
+          },
+          "reranker": {
+            "slotId": "",
+            "candidateId": "",
+            "completed": 0,
+            "total": 0,
+            "candidateCount": 0,
+            "scoreCacheHit": false,
+            "promptTokenCount": 0,
+            "prefixTokenCount": 0,
+            "prefixStateReused": false,
+            "executionDurationMs": 0
+          },
+          "timing": {
+            "timestamp": "2026-07-13T17:03:44.956Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8,
+            "label": "Ready",
+            "subline": "",
+            "status": "complete",
+            "state": "ready",
+            "blocking": false,
+            "indeterminate": false,
+            "startedAt": "2026-07-13T17:03:44.956Z",
+            "updatedAt": "2026-07-13T17:03:44.956Z",
+            "completedAt": "2026-07-13T17:03:44.956Z",
+            "durationMs": 0,
+            "taskKey": "render.blank",
+            "progressBasis": "terminal",
+            "progressEstimated": false,
+            "expectedDurationMs": 100,
+            "percentStart": 0,
+            "percentEnd": 100
+          }
+        }
+      ],
+      "runtimePerformanceLogs": [
+        {
+          "schema": "simulatte.runtimeProgressPerformance.v1",
+          "timestamp": "2026-07-13T17:03:44.960Z",
+          "kind": "observer-flush",
+          "durationMs": 0.7,
+          "runId": "",
+          "stage": "render.blank",
+          "observerCount": 5
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "modelExecutionReceipt": null,
+      "phase3MissingRequiredSlots": [],
+      "phase3SlotEvidence": [
+        {
+          "slotId": "slot.actor.dog",
+          "entryId": "entity:dog",
+          "status": "preserved",
+          "acceptedCount": 3,
+          "acceptedCandidateIds": [
+            "prompt.actor.dog",
+            "entity.dog",
+            "surface-dog-1"
+          ]
+        },
+        {
+          "slotId": "slot.object.person",
+          "entryId": "entity:person",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.object.person",
+            "entity.human"
+          ]
+        },
+        {
+          "slotId": "slot.action.playing",
+          "entryId": "action:playing",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.action.playing"
+          ]
+        },
+        {
+          "slotId": "slot.action.motion",
+          "entryId": "action:motion",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.action.motion",
+            "action:motion"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-dog_motion_entity-person",
+          "entryId": "relation:entity-dog:motion:entity-person",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-dog-motion-entity-person"
+          ]
+        },
+        {
+          "slotId": "slot.relation.spatial_entity-dog_with_entity-person",
+          "entryId": "relation:spatial:entity-dog:with:entity-person",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.spatial-entity-dog-with-entity-person"
+          ]
+        }
+      ],
+      "phase3SlotCandidates": [
+        {
+          "slotId": "slot.actor.dog",
+          "slotRole": "actor",
+          "required": true,
+          "candidates": [
+            {
+              "id": "entity.dog",
+              "type": "surface-card",
+              "score": 0.9417,
+              "embeddingScore": 0,
+              "lexicalScore": 0.9417,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        },
+        {
+          "slotId": "slot.object.person",
+          "slotRole": "object",
+          "required": true,
+          "candidates": [
+            {
+              "id": "entity.human",
+              "type": "surface-card",
+              "score": 0.97,
+              "embeddingScore": 0,
+              "lexicalScore": 0.97,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false
+            }
+          ]
+        }
+      ],
+      "phase4AcceptedNodeIdentities": [
+        {
+          "id": "prompt-body-dog",
+          "canonicalId": "prompt.body.dog",
+          "label": "Dog",
+          "indexName": "prompt-typed-slot"
+        },
+        {
+          "id": "prompt-body-person",
+          "canonicalId": "prompt.body.person",
+          "label": "Person",
+          "indexName": "prompt-typed-slot"
+        }
+      ],
+      "phase4Canonicalization": {
+        "schema": "simulatte.groundedGraphCanonicalization.v1",
+        "inputNodeCount": 4,
+        "canonicalNodeCount": 2,
+        "mergedNodeCount": 2,
+        "nodeIdCollisionCount": 0,
+        "unresolvedDuplicateNodeIdCount": 0,
+        "duplicateConceptCount": 0
+      },
+      "phase4ConstructionReceipt": {
+        "schema": "simulatte.constructionAttachmentReceipt.v1",
+        "slotCount": 6,
+        "attachedCount": 2,
+        "modelEvaluatedCount": 0,
+        "rerankEvaluatedCount": 0
+      },
+      "phase5EntityIdentities": [
+        {
+          "id": "prompt-body-dog",
+          "canonicalId": "prompt.body.dog",
+          "label": "Dog",
+          "sourceKind": ""
+        },
+        {
+          "id": "prompt-body-person",
+          "canonicalId": "prompt.body.person",
+          "label": "Person",
+          "sourceKind": ""
+        }
+      ],
+      "phase6CompositionObligations": [
+        {
+          "id": "entity:dog",
+          "kind": "entity",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-dog-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-dog-1",
+            "scene-identity:dog"
+          ]
+        },
+        {
+          "id": "entity:person",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:language-people-span5",
+            "phase6:render-instance:instance:geometry:geometry-language-people-span5"
+          ]
+        },
+        {
+          "id": "action:playing",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-dog-1",
+            "phase6:entity:language-people-span5"
+          ]
+        },
+        {
+          "id": "action:motion",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-dog-1",
+            "phase6:entity:language-people-span5"
+          ]
+        },
+        {
+          "id": "relation:entity-dog:motion:entity-person",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-dog-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-dog-1",
+            "phase6:entity:language-people-span5",
+            "phase6:render-instance:instance:geometry:geometry-language-people-span5",
+            "scene-identity:dog"
+          ]
+        },
+        {
+          "id": "relation:spatial:entity-dog:with:entity-person",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:surface-dog-1",
+            "phase6:render-instance:instance:geometry:geometry-surface-dog-1",
+            "phase6:entity:language-people-span5",
+            "phase6:render-instance:instance:geometry:geometry-language-people-span5",
+            "layout-relation:relation:spatial:entity-dog:with:entity-person",
+            "scene-identity:dog"
+          ]
+        },
+        {
+          "id": "visual:prompt-count-dog-3",
+          "kind": "visual",
+          "target": "Dog",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "cardinality:dog:3",
+            "scene-identity:dog"
+          ]
+        },
+        {
+          "id": "visual:prompt-count-person-7",
+          "kind": "visual",
+          "target": "Person",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "cardinality:person:7"
+          ]
+        },
+        {
+          "id": "visual:prompt-pose-dog-play-interaction",
+          "kind": "visual",
+          "target": "Dog",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "pose:play-interaction",
+            "scene-identity:dog"
+          ]
+        },
+        {
+          "id": "visual:prompt-pose-person-play-interaction",
+          "kind": "visual",
+          "target": "Person",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "pose:play-interaction"
+          ]
+        },
+        {
+          "id": "visual:compiled-scene-packet",
+          "kind": "visual",
+          "target": "people",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:render-instance:instance:geometry:geometry-language-people-span5"
+          ]
+        }
+      ],
+      "sceneRenderPacketIdentities": [
+        {
+          "id": "surface-dog-1:instance:1",
+          "label": "dogs",
+          "type": "dog",
+          "sourceLabel": "dogs",
+          "layerSlot": "biological-agent",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.22,
+          "grammarId": "object-grammar.dog",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 10,
+          "propertyBindings": []
+        },
+        {
+          "id": "surface-dog-1:instance:2",
+          "label": "dogs",
+          "type": "dog",
+          "sourceLabel": "dogs",
+          "layerSlot": "biological-agent",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.22,
+          "grammarId": "object-grammar.dog",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 10,
+          "propertyBindings": []
+        },
+        {
+          "id": "surface-dog-1:instance:3",
+          "label": "dogs",
+          "type": "dog",
+          "sourceLabel": "dogs",
+          "layerSlot": "biological-agent",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.22,
+          "grammarId": "object-grammar.dog",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 10,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-people-span5:instance:1",
+          "label": "people",
+          "type": "person",
+          "sourceLabel": "people",
+          "layerSlot": "material-surface",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.person",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-people-span5:instance:2",
+          "label": "people",
+          "type": "person",
+          "sourceLabel": "people",
+          "layerSlot": "material-surface",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.person",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-people-span5:instance:3",
+          "label": "people",
+          "type": "person",
+          "sourceLabel": "people",
+          "layerSlot": "material-surface",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.person",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-people-span5:instance:4",
+          "label": "people",
+          "type": "person",
+          "sourceLabel": "people",
+          "layerSlot": "material-surface",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.person",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-people-span5:instance:5",
+          "label": "people",
+          "type": "person",
+          "sourceLabel": "people",
+          "layerSlot": "material-surface",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.person",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-people-span5:instance:6",
+          "label": "people",
+          "type": "person",
+          "sourceLabel": "people",
+          "layerSlot": "material-surface",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.person",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-people-span5:instance:7",
+          "label": "people",
+          "type": "person",
+          "sourceLabel": "people",
+          "layerSlot": "material-surface",
+          "animationKind": "play-loop",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.person",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        }
+      ],
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "biology",
+      "physicsCanvasSceneId": "7",
+      "physicsCanvasSceneMix": "biological:1.00,chemical:0.85",
+      "physicsCanvasSceneMixSlots": "2",
+      "phase7Input": "simulatte.renderExecutionInput.v1",
+      "phase7RenderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase7SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+      "phase7Output": "simulatte.phase7.output.v2",
+      "phase7OutputInput": "simulatte.phase6.output.v2",
+      "phase8Output": "simulatte.phase8.output.v2",
+      "sceneProofVerdict": "pass",
+      "sceneProofError": "",
+      "sceneProofLostCount": "0",
+      "sceneProofNotProvenCount": "0",
+      "sceneProofRequiredLostIds": "[]",
+      "sceneProofRequiredNotProvenIds": "[]",
+      "sceneProofRequiredFailures": "[]",
+      "phase7RenderData": "simulatte.phase7.compactRenderData.v1",
+      "phase7RenderDataKey": "biology:10:3:14:fccc6cce",
+      "phase7RenderPath": "depth-lit-storage-object-parts-with-uniform-fallback",
+      "phase7RendererConsumption": {
+        "schema": "simulatte.phase7RendererConsumption.v1",
+        "cameraConfigured": true,
+        "sourceLightCount": 2,
+        "sourceMaterialCount": 10,
+        "cameraConsumed": true,
+        "lightCountConsumed": 2,
+        "materialCountConsumed": 10,
+        "objectPartCount": 79,
+        "depthConfigured": true,
+        "depthEnabled": true,
+        "normalShading": true,
+        "perspectiveEnabled": true,
+        "constructionProgramCount": 10,
+        "modelEvaluatedConstructionCount": 0
+      },
+      "webgpuObjectRealization": {
+        "schema": "simulatte.objectRenderRealizationSummary.v1",
+        "entityCount": 10,
+        "realizedCount": 10,
+        "literalCount": 10,
+        "constructionProgramCount": 10,
+        "modelEvaluatedConstructionCount": 0,
+        "topologyVerifiedCount": 10,
+        "semanticFitCount": 10,
+        "readableCount": 10,
+        "projectedArea": 0.23949,
+        "framingPass": false,
+        "framing": {
+          "schema": "simulatte.sceneFramingReceipt.v1",
+          "method": "group-bounds-fit",
+          "sourceBounds": [
+            0,
+            0.10397,
+            0.74762,
+            0.44357
+          ],
+          "framedBounds": [
+            0.04929,
+            0.24268,
+            0.85071,
+            0.47465
+          ],
+          "targetBounds": [
+            0.1,
+            0.12,
+            0.8,
+            0.72
+          ],
+          "scaleFactor": 1.07006,
+          "projectedArea": 0.23949,
+          "minimumProjectedArea": 0.16,
+          "centerOffset": 0.02536,
+          "entityCount": 10,
+          "readableCount": 10,
+          "pass": false
+        },
+        "unprovenEntityIds": [],
+        "rows": [
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "surface-dog-1:instance:1",
+            "identityType": "dog",
+            "identityLabels": [
+              "surface-dog-1:instance:1",
+              "dogs",
+              "dogs",
+              "dogs",
+              "dog",
+              "surface-dog-1"
+            ],
+            "grammarId": "object-grammar.dog",
+            "renderArchetype": "dog",
+            "literal": true,
+            "partCount": 10,
+            "primitiveCount": 2,
+            "projectedArea": 0.03286,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "surface-dog-1:instance:2",
+            "identityType": "dog",
+            "identityLabels": [
+              "surface-dog-1:instance:2",
+              "dogs",
+              "dogs",
+              "dogs",
+              "dog",
+              "surface-dog-1"
+            ],
+            "grammarId": "object-grammar.dog",
+            "renderArchetype": "dog",
+            "literal": true,
+            "partCount": 10,
+            "primitiveCount": 2,
+            "projectedArea": 0.03286,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "surface-dog-1:instance:3",
+            "identityType": "dog",
+            "identityLabels": [
+              "surface-dog-1:instance:3",
+              "dogs",
+              "dogs",
+              "dogs",
+              "dog",
+              "surface-dog-1"
+            ],
+            "grammarId": "object-grammar.dog",
+            "renderArchetype": "dog",
+            "literal": true,
+            "partCount": 10,
+            "primitiveCount": 2,
+            "projectedArea": 0.03286,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-people-span5:instance:1",
+            "identityType": "person",
+            "identityLabels": [
+              "language-people-span5:instance:1",
+              "people",
+              "people",
+              "people",
+              "person",
+              "language-people-span5"
+            ],
+            "grammarId": "object-grammar.person",
+            "renderArchetype": "person",
+            "literal": true,
+            "partCount": 7,
+            "primitiveCount": 3,
+            "projectedArea": 0.02013,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-people-span5:instance:2",
+            "identityType": "person",
+            "identityLabels": [
+              "language-people-span5:instance:2",
+              "people",
+              "people",
+              "people",
+              "person",
+              "language-people-span5"
+            ],
+            "grammarId": "object-grammar.person",
+            "renderArchetype": "person",
+            "literal": true,
+            "partCount": 7,
+            "primitiveCount": 3,
+            "projectedArea": 0.02013,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-people-span5:instance:3",
+            "identityType": "person",
+            "identityLabels": [
+              "language-people-span5:instance:3",
+              "people",
+              "people",
+              "people",
+              "person",
+              "language-people-span5"
+            ],
+            "grammarId": "object-grammar.person",
+            "renderArchetype": "person",
+            "literal": true,
+            "partCount": 7,
+            "primitiveCount": 3,
+            "projectedArea": 0.02013,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-people-span5:instance:4",
+            "identityType": "person",
+            "identityLabels": [
+              "language-people-span5:instance:4",
+              "people",
+              "people",
+              "people",
+              "person",
+              "language-people-span5"
+            ],
+            "grammarId": "object-grammar.person",
+            "renderArchetype": "person",
+            "literal": true,
+            "partCount": 7,
+            "primitiveCount": 3,
+            "projectedArea": 0.02013,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-people-span5:instance:5",
+            "identityType": "person",
+            "identityLabels": [
+              "language-people-span5:instance:5",
+              "people",
+              "people",
+              "people",
+              "person",
+              "language-people-span5"
+            ],
+            "grammarId": "object-grammar.person",
+            "renderArchetype": "person",
+            "literal": true,
+            "partCount": 7,
+            "primitiveCount": 3,
+            "projectedArea": 0.02013,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-people-span5:instance:6",
+            "identityType": "person",
+            "identityLabels": [
+              "language-people-span5:instance:6",
+              "people",
+              "people",
+              "people",
+              "person",
+              "language-people-span5"
+            ],
+            "grammarId": "object-grammar.person",
+            "renderArchetype": "person",
+            "literal": true,
+            "partCount": 7,
+            "primitiveCount": 3,
+            "projectedArea": 0.02013,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-people-span5:instance:7",
+            "identityType": "person",
+            "identityLabels": [
+              "language-people-span5:instance:7",
+              "people",
+              "people",
+              "people",
+              "person",
+              "language-people-span5"
+            ],
+            "grammarId": "object-grammar.person",
+            "renderArchetype": "person",
+            "literal": true,
+            "partCount": 7,
+            "primitiveCount": 3,
+            "projectedArea": 0.02013,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          }
+        ]
+      },
+      "phase7CameraConsumed": true,
+      "phase7LightCountConsumed": 2,
+      "phase7MaterialCountConsumed": 10,
+      "phase7DepthEnabled": true,
+      "phase7NormalShading": true,
+      "phase7ConstructionProgramCount": 10,
+      "phase7ModelEvaluatedConstructionCount": 0,
+      "phase7InputVisualObligationCount": 9,
+      "phase7PixelReadback": "pass",
+      "phase7PixelReadbackMessage": "",
+      "phase7PixelReadbackPlan": "none",
+      "phase7LivePixelSamplesRequired": "true",
+      "phase7RequiredVisualObligationCount": 9,
+      "phase7PixelProofStatus": "pass",
+      "phase7PixelSampleCount": 17,
+      "phase7PixelVisibleSampleCount": 17,
+      "phase7PixelMinContrast": 0.7686,
+      "phase7PixelSampledObligationCount": 9,
+      "phase7PixelRequiredObligationCount": 9,
+      "phase7PixelSampledObligations": "entity:dog,entity:person,action:playing,action:motion,visual:prompt-count-dog-3,visual:prompt-count-person-7,visual:prompt-pose-dog-play-interaction,visual:prompt-pose-person-play-interaction,visual:compiled-scene-packet",
+      "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+      "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+      "webgpuSceneInstanceCapacity": 32,
+      "webgpuSceneInstanceCount": 27,
+      "webgpuStorageBytes": 20480,
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v2",
+        "phase4": "simulatte.phase4.output.v2",
+        "phase5": "simulatte.phase5.output.v2",
+        "phase6": "simulatte.phase6.output.v2",
+        "phase7": "simulatte.phase7.output.v2"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:10;fields:3;effects:14;layers:biological-agent+material-surface+process-pulse+chemical-front;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 10,
+      "sceneRenderFieldCount": 3,
+      "sceneRenderEffectCount": 14,
+      "sceneRenderSpatialHash": "fccc6cce",
+      "sceneObjectUniforms": "0:dogs:biological-agent@0.16,0.40;1:dogs:biological-agent@0.42,0.40;2:dogs:biological-agent@0.16,0.56;3:people:material-surface@0.52,0.32;4:people:material-surface@0.68,0.32;5:people:material-surface@0.83,0.32;6:people:material-surface@0.52,0.48;7:people:material-surface@0.68,0.48",
+      "sceneObjectIdentities": "0:dogs:animal:biological-agent:@0.16,0.40;1:dogs:animal:biological-agent:@0.42,0.40;2:dogs:animal:biological-agent:@0.16,0.56;3:people:person:material-surface:@0.52,0.32;4:people:person:material-surface:@0.68,0.32;5:people:person:material-surface:@0.83,0.32;6:people:person:material-surface:@0.52,0.48;7:people:person:material-surface:@0.68,0.48",
+      "physicsCanvasRenderCount": "41",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 83.524,
+      "lumaStd": 26.872,
+      "coloredRatio": 0.999,
+      "canvasHash": "dfdc2ac5",
+      "specId": "3-dogs-playing-7-people-mrjh1r5x",
+      "templateId": "custom-world",
+      "rendererSceneKind": "biology",
+      "visualIRSceneKind": "biology",
+      "visualIRCamera": "dynamic-motion-depth",
+      "visualIREntityCount": 2,
+      "visualIRMaterialCount": 4,
+      "visualIRFieldCount": 3,
+      "visualIRProcessCount": 6,
+      "visualIROperatorCount": 7,
+      "visualIRRenderInstanceCount": 23,
+      "visualIRRejectedRowCount": 14,
+      "visualIRReceiptCount": 13,
+      "visualIRCausalAffordanceCount": 0,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIREnvironmentProgram": "",
+      "visualIRSceneRenderPacketEntityCount": 10,
+      "visualIRSceneRenderPacketFieldCount": 3,
+      "visualIRSceneRenderPacketEffectCount": 14,
+      "phase6VisualObligationCount": 9,
+      "phase6VisualObligationIds": [
+        "entity:dog",
+        "entity:person",
+        "action:playing",
+        "action:motion",
+        "visual:prompt-count-dog-3",
+        "visual:prompt-count-person-7",
+        "visual:prompt-pose-dog-play-interaction",
+        "visual:prompt-pose-person-play-interaction",
+        "visual:compiled-scene-packet"
+      ],
+      "visualIRSceneRenderPacketLayers": [
+        "biological-agent",
+        "material-surface",
+        "process-pulse",
+        "chemical-front"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "dogs",
+        "people"
+      ],
+      "visualIRAcceptedRenderInstances": 23,
+      "visualIRRenderInstanceSlots": [
+        "material-surface",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent",
+        "material-surface",
+        "biological-agent",
+        "field-sheet",
+        "chemical-front",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "process-pulse",
+        "chemical-front",
+        "process-pulse",
+        "biological-agent",
+        "biological-agent",
+        "biological-agent"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "biomass",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "membrane",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "diffusion",
+          "sourceKind": "catalog",
+          "reason": "field evidence is rendered by the compiled field program"
+        },
+        {
+          "id": "growth-decay",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.phase-transition.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fluid-advection.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.stress-fracture.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.thin-film-interference.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 14,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.biological-growth.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "biological",
+        "motion",
+        "density",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "biological": 1,
+        "motion": 0.84,
+        "density": 0.92,
+        "surface": 0.76
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomBiologicalBranches",
+        "atomDensityFront"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0015",
+          "kind": "catalog-candidate",
+          "text": "entity dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "process playing",
+          "slots": []
+        },
+        {
+          "id": "activation.0047",
+          "kind": "catalog-candidate",
+          "text": "subject dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0051",
+          "kind": "catalog-candidate",
+          "text": "predicate playing",
+          "slots": []
+        },
+        {
+          "id": "activation.0064",
+          "kind": "catalog-candidate",
+          "text": "object people",
+          "slots": []
+        },
+        {
+          "id": "activation.0040",
+          "kind": "catalog-candidate",
+          "text": "entity people",
+          "slots": []
+        },
+        {
+          "id": "activation.0067",
+          "kind": "catalog-candidate",
+          "text": "predicate frame dogs playing people",
+          "slots": []
+        },
+        {
+          "id": "activation.0071",
+          "kind": "catalog-candidate",
+          "text": "predicate frame dogs playing people",
+          "slots": []
+        },
+        {
+          "id": "activation.0065",
+          "kind": "catalog-candidate",
+          "text": "predicate frame dogs playing people",
+          "slots": []
+        },
+        {
+          "id": "activation.0041",
+          "kind": "catalog-candidate",
+          "text": "subject dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0009",
+          "kind": "catalog-candidate",
+          "text": "entity dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0072",
+          "kind": "catalog-candidate",
+          "text": "predicate frame dogs playing people",
+          "slots": []
+        },
+        {
+          "id": "activation.0049",
+          "kind": "catalog-candidate",
+          "text": "predicate playing",
+          "slots": []
+        },
+        {
+          "id": "activation.0050",
+          "kind": "catalog-candidate",
+          "text": "predicate playing",
+          "slots": []
+        },
+        {
+          "id": "activation.0052",
+          "kind": "catalog-candidate",
+          "text": "predicate playing",
+          "slots": []
+        },
+        {
+          "id": "activation.0053",
+          "kind": "causal-candidate",
+          "text": "predicate playing",
+          "slots": []
+        },
+        {
+          "id": "activation.0054",
+          "kind": "causal-candidate",
+          "text": "predicate playing",
+          "slots": []
+        },
+        {
+          "id": "activation.0066",
+          "kind": "catalog-candidate",
+          "text": "predicate frame dogs playing people",
+          "slots": []
+        },
+        {
+          "id": "activation.0069",
+          "kind": "causal-candidate",
+          "text": "predicate frame dogs playing people",
+          "slots": []
+        },
+        {
+          "id": "activation.0070",
+          "kind": "causal-candidate",
+          "text": "predicate frame dogs playing people",
+          "slots": []
+        },
+        {
+          "id": "activation.0042",
+          "kind": "catalog-candidate",
+          "text": "subject dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0043",
+          "kind": "catalog-candidate",
+          "text": "subject dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0044",
+          "kind": "catalog-candidate",
+          "text": "subject dogs",
+          "slots": []
+        },
+        {
+          "id": "activation.0045",
+          "kind": "causal-candidate",
+          "text": "subject dogs",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 73,
+      "intentBriefCausalEdgeCount": 0,
+      "intentBriefAssumptionCount": 12,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 14,
+      "physicalReceiptCausalEdgeCount": 0,
+      "physicalReceiptCausalAffordanceCount": 0,
+      "physicalReceiptAssumptionCount": 12,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 0,
+      "previewLength": 73381,
+      "ok": true,
+      "renderCount": 41,
+      "sceneId": "7",
+      "renderInputMatches": true,
+      "promptMatches": true,
+      "phase7VisualObligationProof": "[{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:dog\",\"target\":\"dog\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:dog:surface-dog-1:instance:1:1\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:person\",\"target\":\"person\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:person:language-people-span5:instance:1:2\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"action:playing\",\"target\":\"playing\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:action:playing:surface-dog-1:instance:1:3\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"action:motion\",\"target\":\"motion\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:action:motion:motion:growth-diffusion:4\"],\"evidence\":[\"webgpu-texture-copy-re",
+      "phase7PixelAuditChecks": "[{\"id\":\"scene-packet-drawables\",\"actual\":27,\"expectedMin\":1,\"pass\":true},{\"id\":\"draw-count\",\"actual\":27,\"expectedMin\":1,\"pass\":true},{\"id\":\"scene-instance-count\",\"actual\":27,\"expectedMin\":1,\"pass\":true},{\"id\":\"canvas-pixels\",\"actual\":1497600,\"expectedMin\":1,\"pass\":true},{\"id\":\"visual-obligation-failures\",\"actual\":0,\"expectedMax\":0,\"pass\":true},{\"id\":\"live-pixel-sample-count\",\"actual\":17,\"expectedMin\":3,\"pass\":true},{\"id\":\"literal-object-realization\",\"actual\":2,\"expectedMin\":2,\"pass\":true},{\"id\":\"live-pixel-contrast\",\"actual\":0.7686,\"expectedMin\":0.035,\"pass\":true},{\"id\":\"visual-obligation-pixel-samples\",\"actual\":9,\"expectedMin\":9,\"pass\":true}]",
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-3-dogs-playing-with-7-people.canvas.png",
+      "canvasScreenshotLater": "01-custom-3-dogs-playing-with-7-people.canvas-late.png",
+      "canvasScreenshotHash": "24be16641bc8e9076a99f760b3aaed37c2baaeec1d884da832eec096699a4640",
+      "canvasScreenshotLaterHash": "ee35b6c83de66798d24460f73528f677e59b4b9c94700670d12ff4213c4b947c",
+      "canvasPerceptualHash": "0f0f17a3c30f0707",
+      "canvasPerceptualHashLater": "0f0f17a3c30f0707",
+      "canvasDiversityScreenshot": "01-custom-3-dogs-playing-with-7-people.canvas-diversity.png",
+      "canvasDiversityScreenshotLater": "01-custom-3-dogs-playing-with-7-people.canvas-diversity-late.png",
+      "canvasDiversityPerceptualHash": "0f0f17b3830f0707",
+      "canvasDiversityPerceptualHashLater": "0f0f17b3830f0707",
+      "canvasDiversityHashKind": "audit:visual-clean-canvas-dhash-64",
+      "canvasDiversityFrameStable": true,
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 26.872,
+      "canvasScreenshotColoredRatio": 0.999,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasScreenshotNearWhiteRatio": 0,
+      "canvasScreenshotStrongEdgeRatio": 0.0536,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.031,
+      "canvasFrameLumaStdDelta": 0.03,
+      "canvasFrameColoredRatioDelta": 0.0007,
+      "canvasFrameMeanAbsolutePixelDelta": 0.1966,
+      "canvasFrameChangedPixelRatio": 0.00792,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 95,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 0.92,
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.92,
+          "realizedGeometry": 1,
+          "constructiveGrounding": 0,
+          "silhouetteFidelity": 1,
+          "framing": 1,
+          "materialResponse": 1,
+          "cameraResponse": 1,
+          "lightResponse": 1,
+          "depthResponse": 1,
+          "spatialRelations": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicRequired": false,
+        "dynamicPass": true,
+        "dynamicMagnitude": 0.198,
+        "atomRichness": 1,
+        "contrast": 0.524,
+        "color": 1,
+        "expectedSignals": [
+          "biological"
+        ],
+        "matchedSignals": [
+          {
+            "id": "biological",
+            "strength": 1,
+            "slotHits": [
+              "biological",
+              "density",
+              "surface"
+            ],
+            "mappingHits": [
+              "visual.operator.biological-growth.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

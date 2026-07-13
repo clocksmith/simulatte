@@ -20,6 +20,7 @@ const MODEL_BASE_URL = MODEL_DIR ? '' : EMBEDDING_MODEL.defaultModelBaseUrl.repl
 const OUT_PATH = process.env.SIMULATTE_SURFACE_CARD_INDEX_OUT
   ? path.resolve(process.env.SIMULATTE_SURFACE_CARD_INDEX_OUT)
   : path.join(ROOT, 'public/data/simulatte-embedder/surface-card-index-qwen-v1.json');
+const EMBEDDER_MANIFEST_PATH = path.join(ROOT, 'public/data/simulatte-embedder/manifest.json');
 const INDEX_ID = process.env.SIMULATTE_SURFACE_CARD_INDEX_ID
   || 'simulatte-surface-card-qwen-3-embedding-0-6b-index-v1';
 const CHILD_MODE = process.env.SIMULATTE_SURFACE_CARD_CHILD === '1';
@@ -113,7 +114,11 @@ function expectedEmbeddingDim(manifest) {
 
 async function loadInputs() {
   const graphSynthesis = require('../public/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
-  const cards = graphSynthesis.createSurfaceCardDocuments();
+  const semanticRag = require('../public/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
+  const cards = unifiedSurfaceCardDocuments(
+    graphSynthesis.createSurfaceCardDocuments(),
+    semanticRag.SEMANTIC_SURFACE_CARDS || []
+  );
   if (!cards.length) throw new Error('No Simulatte surface cards found');
 
   const { manifestText, manifest } = await loadModelManifest();
@@ -147,6 +152,31 @@ async function loadInputs() {
   };
 }
 
+function unifiedSurfaceCardDocuments(graphDocuments = [], semanticCards = []) {
+  const byId = new Map();
+  for (const document of graphDocuments) byId.set(document.cardId, document);
+  for (const card of semanticCards) {
+    if (!card || !card.id || byId.has(card.id)) continue;
+    byId.set(card.id, {
+      cardId: card.id,
+      type: card.type || '',
+      labels: card.labels || [],
+      text: card.description || '',
+      grounding: {
+        classes: card.classHints || [],
+        parts: card.partHints || [],
+        shapes: card.shapeHints || [],
+        materials: card.materialHints || [],
+        behaviors: card.behaviorHints || [],
+        constraints: card.relationHints || [],
+        ports: card.affordanceHints || [],
+        primitiveIds: card.groundingIds || [],
+      },
+    });
+  }
+  return Array.from(byId.values()).map((document, order) => ({ ...document, order }));
+}
+
 async function main() {
   const inputs = await loadInputs();
   if (CHILD_MODE) {
@@ -161,9 +191,13 @@ async function main() {
 async function writeChildChunk({ manifest, documents }) {
   const offset = Number(process.env.SIMULATTE_SURFACE_CARD_OFFSET || 0);
   const limit = Number(process.env.SIMULATTE_SURFACE_CARD_LIMIT || CHUNK_SIZE);
+  const documentIndexes = parseDocumentIndexes(process.env.SIMULATTE_SURFACE_CARD_INDEXES, documents.length);
   const outPath = process.env.SIMULATTE_SURFACE_CARD_CHUNK_OUT;
   if (!outPath) throw new Error('SIMULATTE_SURFACE_CARD_CHUNK_OUT is required in child mode');
-  const chunkDocuments = documents.slice(offset, offset + limit);
+  const selectedIndexes = documentIndexes.length
+    ? documentIndexes
+    : documents.slice(offset, offset + limit).map((_, index) => offset + index);
+  const chunkDocuments = selectedIndexes.map((index) => documents[index]);
   if (!chunkDocuments.length) throw new Error(`No surface cards in chunk offset=${offset} limit=${limit}`);
 
   const gpu = await bootstrapNodeWebGPU();
@@ -186,7 +220,7 @@ async function writeChildChunk({ manifest, documents }) {
       model,
       manifest,
       chunkDocuments,
-      `surface cards (${offset}-${offset + chunkDocuments.length - 1})`
+      `surface cards (${selectedIndexes[0]}-${selectedIndexes[selectedIndexes.length - 1]})`
     );
 
     const packed = new Float32Array(vectors.length * embeddingDim);
@@ -194,6 +228,7 @@ async function writeChildChunk({ manifest, documents }) {
     const packedBytes = Buffer.from(packed.buffer, packed.byteOffset, packed.byteLength);
     await fs.writeFile(outPath, `${stableStringify({
       offset,
+      documentIndexes: selectedIndexes,
       documentCount: chunkDocuments.length,
       embeddingDim,
       documents: chunkDocuments,
@@ -244,9 +279,9 @@ async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash 
   try {
     const reusable = await reusableIndexVectors(documents, embedModelHash);
     const chunks = [];
-    for (const [offset, limit] of missingDocumentRanges(reusable.vectors)) {
-      const chunkPath = path.join(chunkDir, `surface-cards-${offset}.json`);
-      await runChildChunk(offset, limit, chunkPath);
+    for (const indexes of missingDocumentIndexChunks(reusable.vectors)) {
+      const chunkPath = path.join(chunkDir, `surface-cards-${indexes[0]}.json`);
+      await runChildChunk(indexes, chunkPath);
       chunks.push(JSON.parse(await fs.readFile(chunkPath, 'utf8')));
     }
     const embeddingDim = Number(reusable.embeddingDim || chunks[0] && chunks[0].embeddingDim || 0);
@@ -264,7 +299,18 @@ async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash 
       if (vectors.length !== chunkDocuments.length * embeddingDim) {
         throw new Error(`Surface-card chunk byte length mismatch at offset ${chunk.offset}`);
       }
-      packed.set(vectors, Number(chunk.offset) * embeddingDim);
+      const documentIndexes = Array.isArray(chunk.documentIndexes) && chunk.documentIndexes.length
+        ? chunk.documentIndexes
+        : chunkDocuments.map((_, index) => Number(chunk.offset) + index);
+      if (documentIndexes.length !== chunkDocuments.length) {
+        throw new Error(`Surface-card chunk index count mismatch at offset ${chunk.offset}`);
+      }
+      documentIndexes.forEach((documentIndex, index) => {
+        packed.set(
+          vectors.subarray(index * embeddingDim, (index + 1) * embeddingDim),
+          Number(documentIndex) * embeddingDim
+        );
+      });
     }
     const missingAfterBuild = missingDocumentRanges(documents.map((_, index) => (
       packed.subarray(index * embeddingDim, (index + 1) * embeddingDim).some((value) => value !== 0)
@@ -290,8 +336,12 @@ async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash 
     };
     index.indexHash = indexHash(index);
 
+    const indexText = `${stableStringify(index)}\n`;
     await fs.mkdir(path.dirname(OUT_PATH), { recursive: true });
-    await fs.writeFile(OUT_PATH, `${stableStringify(index)}\n`);
+    await fs.writeFile(OUT_PATH, indexText);
+    if (OUT_PATH === path.join(ROOT, 'public/data/simulatte-embedder/surface-card-index-qwen-v1.json')) {
+      await syncEmbedderManifestCardIndexHash(indexText);
+    }
     console.log(`wrote ${OUT_PATH}`);
     console.log(JSON.stringify({
       documents: documents.length,
@@ -301,11 +351,23 @@ async function buildWithChildChunks({ graphSynthesis, documents, embedModelHash 
       indexHash: index.indexHash,
       reusedVectors: reusable.reusedCount,
       embeddedVectors: documents.length - reusable.reusedCount,
+      embeddingChunks: chunks.length,
       bytes: Buffer.byteLength(stableStringify(index)),
     }, null, 2));
   } finally {
     await fs.rm(chunkDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+async function syncEmbedderManifestCardIndexHash(indexText) {
+  const manifest = JSON.parse(await fs.readFile(EMBEDDER_MANIFEST_PATH, 'utf8'));
+  const cards = manifest.retrieval && manifest.retrieval.cards;
+  if (!cards || cards.artifact !== './surface-card-index-qwen-v1.json') {
+    throw new Error('Embedder manifest does not own ./surface-card-index-qwen-v1.json');
+  }
+  cards.artifactHash = { alg: 'sha256', hex: sha256HexText(indexText) };
+  await fs.writeFile(EMBEDDER_MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
+  console.log(`synced ${EMBEDDER_MANIFEST_PATH} retrieval.cards.artifactHash`);
 }
 
 async function reusableIndexVectors(documents, embedModelHash) {
@@ -349,21 +411,48 @@ function missingDocumentRanges(vectors = []) {
   return ranges;
 }
 
+function missingDocumentIndexChunks(vectors = []) {
+  const missing = vectors.map((vector, index) => vector ? -1 : index).filter((index) => index >= 0);
+  const chunks = [];
+  for (let index = 0; index < missing.length; index += CHUNK_SIZE) {
+    chunks.push(missing.slice(index, index + CHUNK_SIZE));
+  }
+  return chunks;
+}
+
+function parseDocumentIndexes(value = '', documentCount = 0) {
+  if (!value) return [];
+  let parsed;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error('SIMULATTE_SURFACE_CARD_INDEXES must be a JSON array');
+  }
+  if (!Array.isArray(parsed) || parsed.some((index) => (
+    !Number.isInteger(index) || index < 0 || index >= documentCount
+  ))) {
+    throw new Error('SIMULATTE_SURFACE_CARD_INDEXES contains an invalid document index');
+  }
+  return [...new Set(parsed)];
+}
+
 function base64ToFloat32(base64) {
   const bytes = Buffer.from(String(base64 || ''), 'base64');
   return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
 }
 
-function runChildChunk(offset, limit, chunkPath) {
+function runChildChunk(indexes, chunkPath) {
   return new Promise((resolve, reject) => {
-    console.log(`building surface-card chunk offset=${offset} limit=${limit}`);
+    const offset = indexes[0];
+    console.log(`building surface-card chunk documents=${indexes.length} first=${offset}`);
     const child = spawn(process.execPath, [new URL(import.meta.url).pathname], {
       cwd: ROOT,
       env: {
         ...process.env,
         SIMULATTE_SURFACE_CARD_CHILD: '1',
         SIMULATTE_SURFACE_CARD_OFFSET: String(offset),
-        SIMULATTE_SURFACE_CARD_LIMIT: String(limit),
+        SIMULATTE_SURFACE_CARD_LIMIT: String(indexes.length),
+        SIMULATTE_SURFACE_CARD_INDEXES: JSON.stringify(indexes),
         SIMULATTE_SURFACE_CARD_CHUNK_OUT: chunkPath,
       },
       stdio: 'inherit',
@@ -374,7 +463,7 @@ function runChildChunk(offset, limit, chunkPath) {
         resolve();
         return;
       }
-      reject(new Error(`surface-card chunk offset=${offset} failed with ${signal || code}`));
+      reject(new Error(`surface-card chunk first=${offset} failed with ${signal || code}`));
     });
   });
 }

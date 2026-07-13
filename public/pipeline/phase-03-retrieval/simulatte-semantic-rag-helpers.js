@@ -394,6 +394,7 @@
             shapeHints: [topology.id],
             partHints: (topology.nodes || []).map((row) => `${row.count} ${row.roleId}`),
             relationHints: (topology.edges || []).slice(),
+            scaleHints: topology.scaleHint ? [topology.scaleHint] : [],
             groundingIds: (topology.basisIds || []).slice(),
           }
         ));

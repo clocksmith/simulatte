@@ -204,3 +204,32 @@
 203. JavaScript source files have a strict 999-line limit.
 204. Split any JavaScript file before it reaches 1,000 lines.
 205. This guide is mandatory for Simulatte edits and supplements `AGENTS.md`.
+206. The product win condition is faithful natural language compiled into recognizable, obligation-proven pixels.
+207. Preserve required entities, counts, attributes, part bindings, materials, relations, poses, actions, environments, and negation from Phase 2 through Phase 8.
+208. Intermediate object fields, packet fields, camera names, light names, or receipt claims do not prove visual success unless Phase 7 consumes them and Phase 8 settles them.
+209. Treat semantic accuracy, visual obligation coverage, output correctness, data integrity, latency, memory, and main-thread responsiveness as release gates.
+210. A performance result is invalid when the faster path performs less required work or reduces retrieval recall, ranking quality, graph correctness, or visible obligation coverage.
+211. Measure the named phase before optimizing it and retain comparable before-and-after receipts.
+212. Normalize and deduplicate equivalent embedding queries while preserving source-span and slot ownership.
+213. Batch independent embeddings when the provider supports batching and report requested, submitted, cached, and returned vector counts.
+214. Embed immutable index rows during index generation, not repeatedly during prompt execution.
+215. Embedding cache keys must include model identity, dtype, dimensions, index content identity, normalized input, and behavior-changing policy.
+216. Retrieval should maximize measured recall at a bounded top-k before precision-oriented reranking.
+217. Typed or lexical filters may remove impossible candidates; they must not silently remove candidates that the model lane could validly select.
+218. Rerank the smallest candidate set supported by recall and ranking evaluations, not an arbitrary convenient cutoff.
+219. Reranking receipts must report input count, output count, batch shape, token counts, prefix reuse, execution duration, model identity, and skip reason.
+220. Stable candidate ordering and deterministic tie-breaking are required before and after model reranking.
+221. Reuse tokenizer, model, index, prefix state, and device resources only when their full compatibility identity matches.
+222. Never use buffers, bind groups, pipelines, caches, or prefix state created by a different GPU device or incompatible model session.
+223. Choose serial, batched, or parallel model work from measured device memory, queue behavior, and end-to-end latency.
+224. Report cold load, warm cache, model reuse, embedding, retrieval, reranking, grounding, graph compile, VisualIR compile, first frame, and Phase 8 settlement separately.
+225. Canonicalize one semantic node per prompt concept before graph composition and retain provenance for every merged row.
+226. Use typed prompt relations and explicit constraints; array adjacency is not evidence for a graph edge.
+227. Prefer indexed maps, sets, and precomputed ownership tables over repeated full scans when inputs have stable identities.
+228. Complexity-sensitive graph, lookup, constraint, and search code must name its input bounds and remain deterministic at those bounds.
+229. Construction search must be bounded, retain rejected-candidate evidence, and score candidates against prompt obligations rather than probe-family identity.
+230. Heuristics may break ties or prune proven-impossible work; they must not override exact prompt counts, typed relations, stronger evidence, or surfaced unsupported content.
+231. Lexicons, indexes, construction cards, manifests, schemas, and evaluation rows need canonical owners, content hashes, coverage audits, and synchronization checks.
+232. Gold evaluations must bind each prompt to expected entities, counts, properties, relations, poses, environments, and a human-visible verdict.
+233. Human visual review receipts must bind the verdict to the prompt, build identity, scene packet identity, screenshot identity, and reviewer action.
+234. Optimization is complete only when the same required work passes correctness, semantic, visual, performance, and resource gates.

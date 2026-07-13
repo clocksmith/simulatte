@@ -99,6 +99,19 @@ test('Phase 5 does not leak negated retrieval rows into the Phase 6 input', () =
   assert.ok(packet.entities.length > 0);
 });
 
+test('negated concepts and parts become Phase 4 negative evidence', () => {
+  const spec = compile('robot without arms or quantum hardware');
+  const phase4 = spec.phaseArtifacts.phase4.artifact.groundedIntent;
+  const negativeLabels = phase4.negativeEvidence
+    .filter((row) => row.kind === 'negated-entry')
+    .map((row) => row.label);
+  const componentText = JSON.stringify(phase4.components).toLowerCase();
+
+  assert.ok(negativeLabels.includes('arms'));
+  assert.ok(negativeLabels.includes('quantum'));
+  assert.doesNotMatch(componentText, /open-(?:arm|quantum)|prompt-derived [^:]+ primitive: (?:arm|quantum)/);
+});
+
 test('topology evidence becomes a visible graphics atom', () => {
   const molding = compile('injection molding line cools plastic through steel tooling');
   const lava = compile('lava spins a turbine near an ice castle wall');

@@ -1,0 +1,157 @@
+{
+  "schema": "simulatte.autonomyWorld.v1",
+  "id": "nyc-training-corridor-v1",
+  "contentVersion": "synthetic-corridor-v1",
+  "label": "NYC delivery training corridor",
+  "coordinateSystem": {
+    "kind": "local_cartesian_meters",
+    "originLabel": "synthetic training origin",
+    "bounds": { "minimumX": 0, "minimumY": 0, "maximumX": 330, "maximumY": 230 }
+  },
+  "provenance": {
+    "sourceKind": "synthetic_fixture",
+    "sourceId": "simulatte-autonomy-synthetic-corridor-v1",
+    "snapshotDate": "2026-07-13",
+    "claimBoundary": "Street labels evoke an NYC delivery task, but geometry, signals, actors, and disruptions are synthetic and make no claim about current NYC streets."
+  },
+  "nodes": [
+    { "id": "node-canal-depot", "label": "Canal Depot", "kind": "depot", "position": { "x": 20, "y": 190 } },
+    { "id": "node-west", "label": "West Junction", "kind": "intersection", "position": { "x": 80, "y": 190 } },
+    { "id": "node-center", "label": "Center Junction", "kind": "intersection", "position": { "x": 160, "y": 190 } },
+    { "id": "node-east", "label": "East Junction", "kind": "intersection", "position": { "x": 240, "y": 190 } },
+    { "id": "node-east-market", "label": "East Market", "kind": "delivery", "position": { "x": 310, "y": 190 } },
+    { "id": "node-west-north", "label": "Hudson Greenway South", "kind": "intersection", "position": { "x": 80, "y": 100 } },
+    { "id": "node-center-north", "label": "Hudson Greenway Center", "kind": "signalized_intersection", "position": { "x": 160, "y": 100 } },
+    { "id": "node-east-north", "label": "Hudson Greenway East", "kind": "intersection", "position": { "x": 240, "y": 100 } }
+  ],
+  "segments": [
+    {
+      "id": "segment-depot-west",
+      "fromNodeId": "node-canal-depot",
+      "toNodeId": "node-west",
+      "geometry": [{ "x": 20, "y": 190 }, { "x": 80, "y": 190 }],
+      "lengthM": 60,
+      "laneType": "connector",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 6,
+      "riskScore": 0.15,
+      "cardIds": ["street.connector"]
+    },
+    {
+      "id": "segment-west-center",
+      "fromNodeId": "node-west",
+      "toNodeId": "node-center",
+      "geometry": [{ "x": 80, "y": 190 }, { "x": 160, "y": 190 }],
+      "lengthM": 80,
+      "laneType": "shared",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 6,
+      "riskScore": 0.55,
+      "cardIds": ["street.shared-lane"]
+    },
+    {
+      "id": "segment-center-east",
+      "fromNodeId": "node-center",
+      "toNodeId": "node-east",
+      "geometry": [{ "x": 160, "y": 190 }, { "x": 240, "y": 190 }],
+      "lengthM": 80,
+      "laneType": "shared",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 6,
+      "riskScore": 0.5,
+      "cardIds": ["street.shared-lane"]
+    },
+    {
+      "id": "segment-east-market",
+      "fromNodeId": "node-east",
+      "toNodeId": "node-east-market",
+      "geometry": [{ "x": 240, "y": 190 }, { "x": 310, "y": 190 }],
+      "lengthM": 70,
+      "laneType": "connector",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 5,
+      "riskScore": 0.12,
+      "cardIds": ["street.connector", "scenario.delivery-arrival"]
+    },
+    {
+      "id": "segment-west-greenway",
+      "fromNodeId": "node-west",
+      "toNodeId": "node-west-north",
+      "geometry": [{ "x": 80, "y": 190 }, { "x": 80, "y": 100 }],
+      "lengthM": 90,
+      "laneType": "protected",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 7,
+      "riskScore": 0.08,
+      "cardIds": ["street.protected-lane"]
+    },
+    {
+      "id": "segment-greenway-west-center",
+      "fromNodeId": "node-west-north",
+      "toNodeId": "node-center-north",
+      "geometry": [{ "x": 80, "y": 100 }, { "x": 160, "y": 100 }],
+      "lengthM": 80,
+      "laneType": "protected",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 7,
+      "riskScore": 0.04,
+      "cardIds": ["street.protected-lane"]
+    },
+    {
+      "id": "segment-greenway-center-east",
+      "fromNodeId": "node-center-north",
+      "toNodeId": "node-east-north",
+      "geometry": [{ "x": 160, "y": 100 }, { "x": 240, "y": 100 }],
+      "lengthM": 80,
+      "laneType": "protected",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 7,
+      "riskScore": 0.04,
+      "cardIds": ["street.protected-lane", "behavior.pedestrian-yield"]
+    },
+    {
+      "id": "segment-greenway-east",
+      "fromNodeId": "node-east-north",
+      "toNodeId": "node-east",
+      "geometry": [{ "x": 240, "y": 100 }, { "x": 240, "y": 190 }],
+      "lengthM": 90,
+      "laneType": "protected",
+      "allowedModes": ["delivery_bike"],
+      "speedLimitMps": 7,
+      "riskScore": 0.08,
+      "cardIds": ["street.protected-lane"]
+    }
+  ],
+  "signals": [
+    {
+      "id": "signal-center-north",
+      "nodeId": "node-center-north",
+      "controlledOutgoingSegmentIds": ["segment-greenway-center-east"],
+      "cycleTicks": 12,
+      "greenTickCount": 6,
+      "phaseOffsetTicks": 5,
+      "cardIds": ["behavior.signal-compliance"]
+    }
+  ],
+  "actors": [
+    {
+      "id": "pedestrian-crossing-1",
+      "type": "pedestrian",
+      "activeFromTick": 42,
+      "activeUntilTick": 58,
+      "path": [{ "x": 200, "y": 70 }, { "x": 200, "y": 130 }],
+      "radiusM": 0.6,
+      "cardIds": ["behavior.pedestrian-yield"]
+    }
+  ],
+  "disruptions": [
+    {
+      "id": "delivery-truck-block-1",
+      "type": "blocked_segment",
+      "segmentId": "segment-west-center",
+      "activeFromTick": 8,
+      "activeUntilTick": 120,
+      "cardIds": ["behavior.blocked-segment-replan"]
+    }
+  ]
+}

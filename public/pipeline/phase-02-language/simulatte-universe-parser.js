@@ -143,6 +143,7 @@
       const covered = out.some((row) => (
         row.kind !== 'process' &&
         span.kind !== 'process' &&
+        row.preserveNestedSemanticSpans !== true &&
         row.start <= span.start &&
         row.end >= span.end &&
         row.text !== span.text

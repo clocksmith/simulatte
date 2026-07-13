@@ -1,0 +1,66 @@
+{
+  "schema": "simulatte.autonomyPolicy.v1",
+  "id": "bet-selector-v1",
+  "contentVersion": "bet-selector-v1",
+  "label": "Evidence-scored delivery policy",
+  "selection": {
+    "approach": "evidence_scored",
+    "seed": 17
+  },
+  "candidateManeuvers": [
+    "emergency_stop",
+    "wait",
+    "yield",
+    "proceed",
+    "accelerate",
+    "reroute"
+  ],
+  "rollout": {
+    "modelKind": "deterministic_reference_rollout",
+    "horizonTicks": 1,
+    "integrationStepSeconds": 1
+  },
+  "route": {
+    "algorithm": "a_star_v1",
+    "travelWeight": 1,
+    "riskWeight": 4,
+    "unprotectedPreferencePenalty": 24,
+    "blockedSegmentsAreIneligible": true,
+    "deterministicTieBreak": "segment_id_ascending"
+  },
+  "safety": {
+    "minimumPedestrianClearanceM": 5,
+    "nearbyActorRadiusM": 32,
+    "lookaheadTicks": 3,
+    "requiresSignalCompliance": true,
+    "requiresModeEligibility": true,
+    "requiresNetworkContainment": true,
+    "maximumSpeedToleranceMps": 0.000001
+  },
+  "utility": {
+    "progressWeight": 5,
+    "clearanceWeight": 0.04,
+    "confidenceWeight": 2,
+    "arrivalBonus": 120,
+    "waitPenalty": 0,
+    "emergencyStopPenalty": 1.5,
+    "rerouteBonus": 2,
+    "strongAccelerationPenalty": 0.2
+  },
+  "confidence": {
+    "priorWins": 1,
+    "priorTrials": 2,
+    "minimum": 0.2,
+    "maximum": 0.99
+  },
+  "settlement": {
+    "progressToleranceM": 0.000001,
+    "speedToleranceMps": 0.000001,
+    "clearanceToleranceM": 0.000001
+  },
+  "runtime": {
+    "maximumTicks": 180,
+    "maximumCandidatesPerTick": 6
+  },
+  "claimBoundary": "The policy chooses among deterministic reference actions after hard safety gates. It does not establish physical-world autonomy."
+}

@@ -99,7 +99,7 @@
           renderInstanceLayerSlot('geometry', geometry || {}, entity, null, sceneKind);
         const identity = scenePacketEntityIdentity(entity, geometry, layerSlot);
         const geometryProgram = objectGeometryProgramForIdentity(identity, geometry || {}, entity, layerSlot);
-        const transform = scenePacketReadableTransform(initialTransform, geometryProgram);
+        const transform = scenePacketReadableTransform(initialTransform, geometryProgram, entity);
         const animation = scenePacketAnimation({
           layerSlot,
           entity,
@@ -136,6 +136,15 @@
           physicalRef: entity.physicalRef || '',
           sourceGraphId: entity.sourceGraphId || entity.sourceObject || entity.id || '',
           sourceIds: entity.sourceIds || [],
+          directlyGrounded: entity.directlyGrounded === true,
+          supportOnly: entity.supportOnly === true,
+          representedEntityIds: uniqueList([
+            ...(entity.representedEntityIds || []),
+            ...(entity.sourceIds || []),
+            entity.sourceGraphId,
+            entity.sourceObject,
+            geometryProgram.constructionReceipt && geometryProgram.constructionReceipt.targetEntryId,
+          ].filter(Boolean)),
           cardinality: Number(entity.cardinality || 1),
           visualTraits: entity.visualTraits || {},
           stateBindings: entity.stateBindings || {},
@@ -323,10 +332,10 @@
           const sourceLabel = String(entity.sourceLabel || entity.label || entity.role || '').trim();
           const semanticClass = String(entity.semanticClass || '').trim().toLowerCase();
           const visualArchetype = String(entity.visualArchetype || '').trim().toLowerCase();
-          const generic = /^(?:body|entity|environment|material|medium|object|term)$/;
+          const generic = /^(?:agent|biological-agent|body|containing-environment|entity|environment|fluid-medium|material|medium|object|part|term|visual-effect)$/;
           const sourceType = sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-          const type = scenePacketPromptIdentityType(sourceLabel) || sourceType ||
-            (!generic.test(semanticClass) ? semanticClass : '') || visualArchetype;
+          const type = scenePacketPromptIdentityType(sourceLabel) ||
+            (!generic.test(semanticClass) ? semanticClass : '') || sourceType || visualArchetype;
           if (type) {
             return {
               type,
@@ -563,6 +572,7 @@
       }
 
     function scenePacketTransform(pose = {}, index = 0, total = 1, sceneKind = '') {
+        const explicitDepth = pose.z != null && Number.isFinite(Number(pose.z)) ? Number(pose.z) : null;
         if (Array.isArray(pose.points) && pose.points.length) {
           const points = pose.points.map((point) => [
             scenePacketClamp01(point && point[0], 0.5),
@@ -570,7 +580,8 @@
           ]);
           const bounds = pointsBounds(points);
           return {
-            position: [bounds[0] + bounds[2] * 0.5, bounds[1] + bounds[3] * 0.5, scenePacketDepth(index, total)],
+            position: [bounds[0] + bounds[2] * 0.5, bounds[1] + bounds[3] * 0.5,
+              explicitDepth == null ? scenePacketDepth(index, total) : explicitDepth],
             rotation: [0, 0, Number(pose.rotation || 0)],
             scale: [Math.max(bounds[2], 0.08), Math.max(bounds[3], 0.06), 1],
             anchor: [0.5, 0.5],
@@ -583,7 +594,7 @@
         const w = scenePacketSize(pose.w || pose.width || pose.r && pose.r * 2, fallback.w);
         const h = scenePacketSize(pose.h || pose.height || pose.r && pose.r * 2, fallback.h);
         return {
-          position: [x, y, scenePacketDepth(index, total)],
+          position: [x, y, explicitDepth == null ? scenePacketDepth(index, total) : explicitDepth],
           rotation: [0, 0, Number(pose.rotation || pose.angle || 0)],
           scale: [w, h, 1],
           anchor: [0.5, 0.5],
@@ -635,8 +646,10 @@
         const row = material || {};
         const baseMaterialId = row.materialId || row.id || entity && entity.material || 'matte';
         const constructionMaterials = entity && entity.construction && entity.construction.materialHints || [];
-        const constructionMaterial = constructionMaterials.find((id) => id === baseMaterialId) ||
-          constructionMaterials[0] || '';
+        const resolvedMaterial = row.materialId || row.id || '';
+        const constructionMaterial = resolvedMaterial ? '' : (
+          constructionMaterials.find((id) => id === baseMaterialId) || constructionMaterials[0] || ''
+        );
         const materialId = constructionMaterial || baseMaterialId;
         const materialFamily = constructionMaterial
           ? materialFamilyForVisualMaterial(constructionMaterial, entity && entity.visualRegime)
