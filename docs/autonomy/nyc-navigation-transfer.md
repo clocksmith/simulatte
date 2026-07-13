@@ -57,6 +57,12 @@ ranking on 40 mission/query judgments. MRR moves from 0.900 to 0.925 while
 Recall@5 remains 1.000. The receipt supports retaining those weights only on
 that public diagnostic population.
 
+Two non-active worlds preserve bounded development evidence.
+`lower-manhattan-delivery-bike-v1` is the prior frozen open-data compiler
+artifact. `nyc-training-corridor-v1` is a small synthetic contract fixture for
+route, signal, actor, and disruption tests. Neither backs the hosted default
+mission or expands the active world's geographic claim.
+
 ## Doctrine gaps and roadmap
 
 1. **External sealed promotion set.** The 20 checked-in missions cannot become
@@ -69,7 +75,11 @@ that public diagnostic population.
 3. **Embedding lane, control-armed.** When an embedding/rerank model lane is
    added, it competes against the existing lexical lane on the same missions
    under the same receipt schema. The lexical lane is permanent as the
-   control arm, not scaffolding to delete.
+   control arm, not scaffolding to delete. First revise the public diagnostic
+   population with adjacent parallel streets, similar names, wrong-mode
+   facilities, and off-corridor lookalikes. Recall@5 at 1.000 is a saturated
+   non-regression floor, not evidence that the current weights discriminate
+   hard negatives.
 4. **Behavior-realism benchmark gate.** No realism claim (traffic, actor
    density, signal timing) until simulated flows compare against real counts
    (DOT ATR, TLC records) on the same corridor. Until then the manifest's
