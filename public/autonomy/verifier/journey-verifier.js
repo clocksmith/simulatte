@@ -9,6 +9,11 @@
     const enteredSegmentIds = ticks.map((row) => row.transition && row.transition.enteredSegmentId).filter(Boolean);
     const enteredSegments = enteredSegmentIds.map((id) => worldModel.segment(id));
     const sharedSegments = enteredSegments.filter((row) => row.laneType === 'shared').map((row) => row.id);
+    const protectedSegments = enteredSegments.filter((row) => row.laneType === 'protected').map((row) => row.id);
+    const routePreferenceReceipts = ticks.map((row) => row.observation && row.observation.route).filter(Boolean);
+    const protectedPreferenceApplied = mission.constraints.lanePreference !== 'protected' || routePreferenceReceipts.every((route) =>
+      route.algorithm === 'a_star_v1' && route.costBreakdown.weights.unprotectedPreferencePenalty > 0
+    );
     const settlements = ticks.map((row) => row.settlement).filter(Boolean);
     const requiredByKind = new Map(mission.obligations.map((row) => [row.kind, row.required]));
     const obligations = [
@@ -27,9 +32,12 @@
         violationCount: violations.filter((row) => row.kind === 'pedestrian_clearance').length,
         minimumObservedClearanceM: minimumClearance(ticks),
       }),
-      obligation('lane_preference', mission.constraints.lanePreference !== 'protected' || sharedSegments.length === 0, requiredByKind.get('lane_preference'), {
+      obligation('lane_preference', protectedPreferenceApplied, requiredByKind.get('lane_preference'), {
         lanePreference: mission.constraints.lanePreference,
+        interpretation: 'preference_weight_applied_to_route_search',
+        protectedSegmentIds: protectedSegments,
         sharedSegmentIds: sharedSegments,
+        routeReceiptCount: routePreferenceReceipts.length,
       }),
     ];
     const requiredFailures = obligations.filter((row) => row.required && !row.pass);
@@ -59,7 +67,7 @@
         lostBetCount: settlements.filter((row) => row.verdict === 'lost').length,
         minimumPedestrianClearanceM: minimumClearance(ticks),
       },
-      claimBoundary: 'This verification settles deterministic synthetic-world trace obligations only. It does not establish physical-world autonomy.',
+      claimBoundary: 'This verification settles deterministic trace obligations against the named world artifact. It does not establish physical-world autonomy or live traffic knowledge.',
     };
   }
 

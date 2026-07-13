@@ -13,7 +13,7 @@
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
     const manifest = await fetchJson(resolvedManifestUrl, fetchImpl);
     contracts.validateManifest(manifest.value);
-    const refs = await Promise.all(['world', 'embodiment', 'policy', 'featureCatalog'].map(async (key) => {
+    const refs = await Promise.all(['world', 'embodiment', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence'].map(async (key) => {
       const reference = manifest.value[key];
       const url = new URL(reference.path, resolvedManifestUrl).toString();
       const loaded = await fetchJson(url, fetchImpl);
@@ -38,6 +38,13 @@
     const loaded = Object.fromEntries(refs);
     contracts.validateFeatureCatalog(loaded.featureCatalog.value);
     contracts.validateWorld(loaded.world.value, loaded.featureCatalog.value);
+    contracts.validateOccurrenceCatalog(loaded.occurrenceCatalog.value, loaded.world.value);
+    contracts.validateRerankerEvidence(loaded.rerankerEvidence.value, loaded.featureCatalog.value, {
+      world: loaded.world.sha256,
+      featureCatalog: loaded.featureCatalog.sha256,
+      embodiment: loaded.embodiment.sha256,
+      policy: loaded.policy.sha256,
+    });
     contracts.validateEmbodiment(loaded.embodiment.value);
     contracts.validatePolicy(loaded.policy.value);
     return {
@@ -47,6 +54,8 @@
       embodiment: loaded.embodiment.value,
       policy: loaded.policy.value,
       featureCatalog: loaded.featureCatalog.value,
+      occurrenceCatalog: loaded.occurrenceCatalog.value,
+      rerankerEvidence: loaded.rerankerEvidence.value,
       receipt: {
         schema: 'simulatte.autonomyDataLoadReceipt.v1',
         manifestUrl: resolvedManifestUrl,

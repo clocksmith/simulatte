@@ -5,7 +5,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyBetSelector() {
   function selectActionBet(gatedRows, policy) {
     const approach = policy.selection.approach;
-    const scored = gatedRows.map((row) => ({ ...row, utility: row.gate.accepted ? utilityForApproach(row.bet, policy, approach) : null }));
+    const scored = gatedRows.map((row) => {
+      const utilityBreakdown = row.gate.accepted ? utilityComponents(row.bet, policy, approach) : null;
+      return { ...row, utility: utilityBreakdown ? utilityBreakdown.total : null, utilityBreakdown };
+    });
     const eligible = scored.filter((row) => row.gate.accepted);
     if (!eligible.length) {
       const error = new Error('no_safe_action: all proposed action bets failed a hard safety gate');
@@ -46,10 +49,7 @@
   }
 
   function utilityForApproach(bet, policy, approach) {
-    if (approach === 'progress_only') {
-      return Number((bet.prediction.progressDeltaM + (bet.prediction.willArrive ? policy.utility.arrivalBonus : 0)).toFixed(9));
-    }
-    return utility(bet, policy);
+    return utilityComponents(bet, policy, approach).total;
   }
 
   function hash32(value) {
@@ -62,17 +62,39 @@
   }
 
   function utility(bet, policy) {
-    const weights = policy.utility;
-    let score = bet.prediction.progressDeltaM * weights.progressWeight;
-    score += bet.prediction.minimumClearanceM * weights.clearanceWeight;
-    score += bet.confidence * weights.confidenceWeight;
-    if (bet.prediction.willArrive) score += weights.arrivalBonus;
-    if (bet.action.maneuver === 'wait') score -= weights.waitPenalty;
-    if (bet.action.maneuver === 'emergency_stop') score -= weights.emergencyStopPenalty;
-    if (bet.action.maneuver === 'reroute') score += weights.rerouteBonus;
-    if (bet.action.maneuver === 'accelerate') score -= weights.strongAccelerationPenalty;
-    return Number(score.toFixed(9));
+    return utilityComponents(bet, policy, 'evidence_scored').total;
   }
 
-  return { selectActionBet, chooseEligible, utilityForApproach, utility, hash32 };
+  function utilityComponents(bet, policy, approach = 'evidence_scored') {
+    const weights = policy.utility;
+    if (approach === 'progress_only') {
+      const progress = bet.prediction.progressDeltaM;
+      const arrival = bet.prediction.willArrive ? weights.arrivalBonus : 0;
+      return { progress: round(progress), clearance: 0, confidence: 0, arrival: round(arrival), maneuver: 0, total: round(progress + arrival), formula: 'progressDeltaM + arrivalBonus' };
+    }
+    const progress = bet.prediction.progressDeltaM * weights.progressWeight;
+    const clearance = bet.prediction.minimumClearanceM * weights.clearanceWeight;
+    const confidence = bet.confidence * weights.confidenceWeight;
+    const arrival = bet.prediction.willArrive ? weights.arrivalBonus : 0;
+    let maneuver = 0;
+    if (bet.action.maneuver === 'wait') maneuver -= weights.waitPenalty;
+    if (bet.action.maneuver === 'emergency_stop') maneuver -= weights.emergencyStopPenalty;
+    if (bet.action.maneuver === 'reroute') maneuver += weights.rerouteBonus;
+    if (bet.action.maneuver === 'accelerate') maneuver -= weights.strongAccelerationPenalty;
+    return {
+      progress: round(progress),
+      clearance: round(clearance),
+      confidence: round(confidence),
+      arrival: round(arrival),
+      maneuver: round(maneuver),
+      total: round(progress + clearance + confidence + arrival + maneuver),
+      formula: 'progress * weight + clearance * weight + confidence * weight + arrival bonus + maneuver adjustment',
+    };
+  }
+
+  function round(value) {
+    return Number(value.toFixed(9));
+  }
+
+  return { selectActionBet, chooseEligible, utilityForApproach, utilityComponents, utility, hash32 };
 });

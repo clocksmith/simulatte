@@ -13,6 +13,8 @@
     "signals",
     "nearbyActors",
     "blockedSegmentIds",
+    "featureRetrieval",
+    "occurrenceReceipt",
     "policyMemory"
   ],
   "properties": {
@@ -36,10 +38,36 @@
     "route": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["segmentIds", "cost", "revision", "reason"],
+      "required": ["segmentIds", "cost", "algorithm", "visitedNodeCount", "visitedNodeIds", "evaluatedSegmentCount", "costBreakdown", "revision", "reason"],
       "properties": {
         "segmentIds": { "type": "array", "items": { "type": "string" } },
         "cost": { "type": "number", "minimum": 0 },
+        "algorithm": { "const": "a_star_v1" },
+        "visitedNodeCount": { "type": "integer", "minimum": 0 },
+        "visitedNodeIds": { "type": "array", "items": { "type": "string" } },
+        "evaluatedSegmentCount": { "type": "integer", "minimum": 0 },
+        "costBreakdown": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["travel", "risk", "preference", "total", "formula", "weights"],
+          "properties": {
+            "travel": { "type": "number", "minimum": 0 },
+            "risk": { "type": "number", "minimum": 0 },
+            "preference": { "type": "number", "minimum": 0 },
+            "total": { "type": "number", "minimum": 0 },
+            "formula": { "type": "string", "minLength": 1 },
+            "weights": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["travelWeight", "riskWeight", "unprotectedPreferencePenalty"],
+              "properties": {
+                "travelWeight": { "type": "number" },
+                "riskWeight": { "type": "number" },
+                "unprotectedPreferencePenalty": { "type": "number" }
+              }
+            }
+          }
+        },
         "revision": { "type": "integer", "minimum": 0 },
         "reason": { "enum": ["initial", "continued", "blocked_segment", "route_exhausted", "at_destination"] }
       }
@@ -73,6 +101,43 @@
       }
     },
     "blockedSegmentIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "featureRetrieval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "method", "reranker", "queryRows", "retrievedRows", "rerankedRows", "selectedCardIds", "counts", "scoreFormula", "deterministicTieBreak"],
+      "properties": {
+        "schema": { "const": "simulatte.autonomyFeatureRetrieval.v1" },
+        "method": { "const": "deterministic_lexical_inverted_scan_v1" },
+        "reranker": { "const": "typed_evidence_reranker_v1" },
+        "queryRows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/queryRow" } },
+        "retrievedRows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/rankedCard" } },
+        "rerankedRows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/rerankedCard" } },
+        "selectedCardIds": { "type": "array", "minItems": 1, "items": { "type": "string" }, "uniqueItems": true },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["queryCount", "catalogCount", "indexCandidateCount", "lookedUpTokenCount", "skippedPostingCount", "retrievedCount", "rerankedCount", "selectedCount"],
+          "properties": {
+            "queryCount": { "type": "integer", "minimum": 1 },
+            "catalogCount": { "type": "integer", "minimum": 1 },
+            "indexCandidateCount": { "type": "integer", "minimum": 1 },
+            "lookedUpTokenCount": { "type": "integer", "minimum": 1 },
+            "skippedPostingCount": { "type": "integer", "minimum": 0 },
+            "retrievedCount": { "type": "integer", "minimum": 1 },
+            "rerankedCount": { "type": "integer", "minimum": 1 },
+            "selectedCount": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "scoreFormula": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["retrieval", "rerank"],
+          "properties": { "retrieval": { "type": "string" }, "rerank": { "type": "string" } }
+        },
+        "deterministicTieBreak": { "const": "card_id_ascending" }
+      }
+    },
+    "occurrenceReceipt": { "$ref": "#/$defs/occurrenceReceipt" },
     "policyMemory": {
       "type": "object",
       "additionalProperties": false,
@@ -85,6 +150,72 @@
     }
   },
   "$defs": {
+    "queryRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "tokens", "kinds", "referencedCardIds", "constraints"],
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "tokens": { "type": "array", "items": { "type": "string" } },
+        "kinds": { "type": "array", "items": { "type": "string" } },
+        "referencedCardIds": { "type": "array", "items": { "type": "string" } },
+        "constraints": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "rankedCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cardId", "label", "kind", "matchedQueryIds", "matchedTokens", "lexicalScore", "referenceScore", "kindScore", "constraintScore", "retrievalScore"],
+      "properties": {
+        "cardId": { "type": "string" }, "label": { "type": "string" }, "kind": { "type": "string" },
+        "matchedQueryIds": { "type": "array", "items": { "type": "string" } },
+        "matchedTokens": { "type": "array", "items": { "type": "string" } },
+        "lexicalScore": { "type": "number" }, "referenceScore": { "type": "number" },
+        "kindScore": { "type": "number" }, "constraintScore": { "type": "number" }, "retrievalScore": { "type": "number" }
+      }
+    },
+    "rerankedCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cardId", "label", "kind", "matchedQueryIds", "matchedTokens", "lexicalScore", "referenceScore", "kindScore", "constraintScore", "retrievalScore", "rerankScore"],
+      "properties": {
+        "cardId": { "type": "string" }, "label": { "type": "string" }, "kind": { "type": "string" },
+        "matchedQueryIds": { "type": "array", "items": { "type": "string" } },
+        "matchedTokens": { "type": "array", "items": { "type": "string" } },
+        "lexicalScore": { "type": "number" }, "referenceScore": { "type": "number" },
+        "kindScore": { "type": "number" }, "constraintScore": { "type": "number" },
+        "retrievalScore": { "type": "number" }, "rerankScore": { "type": "number" }
+      }
+    },
+    "occurrenceReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "catalogId", "tick", "eventCount", "activePatternIds", "evaluations", "effects", "conflicts", "resolutionRule"],
+      "properties": {
+        "schema": { "const": "simulatte.autonomyOccurrenceReceipt.v1" },
+        "catalogId": { "type": ["string", "null"] },
+        "tick": { "type": "integer", "minimum": 0 },
+        "eventCount": { "type": "integer", "minimum": 0 },
+        "activePatternIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "evaluations": { "type": "array", "items": { "type": "object" } },
+        "effects": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["signalStates", "actorStates", "activeActorIds", "controlledActorIds", "blockedSegmentIds", "annotations"],
+          "properties": {
+            "signalStates": { "type": "array", "items": { "type": "object" } },
+            "actorStates": { "type": "array", "items": { "type": "object" } },
+            "activeActorIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+            "controlledActorIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+            "blockedSegmentIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+            "annotations": { "type": "array", "items": { "type": "object" } }
+          }
+        },
+        "conflicts": { "type": "array", "items": { "type": "object" } },
+        "resolutionRule": { "type": "string" }
+      }
+    },
     "point": {
       "type": "object",
       "additionalProperties": false,

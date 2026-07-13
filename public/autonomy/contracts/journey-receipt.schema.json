@@ -3,19 +3,36 @@
   "title": "Simulatte autonomy journey receipt",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "mission", "identities", "terminalState", "trace", "verification", "integrity"],
+  "required": ["schema", "mission", "identities", "events", "terminalState", "trace", "verification", "integrity"],
   "properties": {
     "schema": { "const": "simulatte.autonomyJourneyReceipt.v1" },
     "mission": { "type": "object" },
     "identities": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId"],
+      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId"],
       "properties": {
         "worldId": { "type": "string" },
         "worldContentVersion": { "type": "string" },
         "embodimentId": { "type": "string" },
-        "policyId": { "type": "string" }
+        "policyId": { "type": "string" },
+        "occurrenceCatalogId": { "type": ["string", "null"] }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["schema", "id", "tick", "kind", "sourceId", "evidence"],
+        "properties": {
+          "schema": { "const": "simulatte.autonomyEvent.v1" },
+          "id": { "type": "string" },
+          "tick": { "type": "integer", "minimum": 0 },
+          "kind": { "type": "string" },
+          "sourceId": { "type": ["string", "null"] },
+          "evidence": { "type": ["object", "null"] }
+        }
       }
     },
     "terminalState": { "enum": ["completed", "failed", "budget_exhausted", "active"] },

@@ -16,6 +16,9 @@ const worldApi = require('../public/autonomy/world/world-model.js');
 const routePlanner = require('../public/autonomy/world/route-planner.js');
 const controllerApi = require('../public/autonomy/runtime/autonomy-controller.js');
 const dataLoader = require('../public/autonomy/runtime/data-loader.js');
+const featureRetrieval = require('../public/autonomy/runtime/feature-retrieval.js');
+const occurrenceApi = require('../public/autonomy/runtime/occurrence-engine.js');
+const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
@@ -26,12 +29,28 @@ function hashFile(file) {
 }
 
 function assets() {
+  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
   return {
-    manifest: readJson('public/data/autonomy/autonomy-manifest.json'),
+    manifest: { ...manifest, defaultMissionText: SYNTHETIC_MISSION },
     world: readJson('public/data/autonomy/worlds/nyc-training-corridor-v1.json'),
     featureCatalog: readJson('public/data/autonomy/feature-cards-v1.json'),
     embodiment: readJson('public/data/autonomy/embodiments/delivery-bike-v1.json'),
     policy: readJson('public/data/autonomy/policies/bet-selector-v1.json'),
+    occurrenceCatalog: null,
+    rerankerEvidence: null,
+  };
+}
+
+function governedAssets() {
+  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
+  return {
+    manifest,
+    world: readJson(`public/data/autonomy/${manifest.world.path.replace(/^\.\//, '')}`),
+    featureCatalog: readJson('public/data/autonomy/feature-cards-v1.json'),
+    embodiment: readJson('public/data/autonomy/embodiments/delivery-bike-v1.json'),
+    policy: readJson('public/data/autonomy/policies/bet-selector-v1.json'),
+    occurrenceCatalog: readJson(`public/data/autonomy/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
+    rerankerEvidence: readJson(`public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
   };
 }
 
@@ -43,6 +62,7 @@ function makeController(rows = assets(), mission = compileDefaultMission(rows), 
   return controllerApi.createAutonomyController({
     world: rows.world,
     featureCatalog: rows.featureCatalog,
+    occurrenceCatalog: rows.occurrenceCatalog,
     embodiment: rows.embodiment,
     policy: rows.policy,
     mission,
@@ -67,20 +87,27 @@ function jsFiles(directory) {
 }
 
 test('autonomy manifest pins and validates every governed asset', () => {
-  const rows = assets();
+  const rows = governedAssets();
   contracts.validateManifest(rows.manifest);
   contracts.validateFeatureCatalog(rows.featureCatalog);
   contracts.validateWorld(rows.world, rows.featureCatalog);
   contracts.validateEmbodiment(rows.embodiment);
   contracts.validatePolicy(rows.policy);
-  for (const key of ['world', 'embodiment', 'policy', 'featureCatalog']) {
+  contracts.validateOccurrenceCatalog(rows.occurrenceCatalog, rows.world);
+  contracts.validateRerankerEvidence(rows.rerankerEvidence, rows.featureCatalog);
+  for (const key of ['world', 'embodiment', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence']) {
     const reference = rows.manifest[key];
     const file = path.resolve(dataDir, reference.path);
     assert.equal(hashFile(file), reference.sha256, `${key} raw bytes should match the manifest`);
     assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).id, reference.id);
   }
-  assert.equal(rows.world.provenance.sourceKind, 'synthetic_fixture');
-  assert.match(rows.world.provenance.claimBoundary, /synthetic/i);
+  assert.equal(rows.world.provenance.sourceKind, 'compiled_open_data_snapshot');
+  assert.match(rows.world.provenance.claimBoundary, /frozen sources/i);
+  assert.equal(rows.world.renderGeometry.schema, 'simulatte.autonomyRenderGeometry.v1');
+  assert.ok(rows.world.renderGeometry.buildings.length > 1500);
+  assert.ok(rows.world.renderGeometry.streets.length > 2000);
+  assert.match(rows.world.provenance.sources.bike.rawSha256, /^[a-f0-9]{64}$/);
+  assert.equal(rows.world.scenario.liveConditionsUsed, false);
 });
 
 test('mission compiler grounds known labels to source intervals and fails closed', () => {
@@ -191,6 +218,86 @@ test('identical missions produce identical trace hashes', async () => {
   assert.deepEqual(firstReceipt.verification.metrics, secondReceipt.verification.metrics);
 });
 
+test('feature retrieval recalls referenced cards, reranks typed evidence, and excludes an absent closure', async () => {
+  const rows = assets();
+  const controller = makeController(rows);
+  await controller.step();
+  const journey = await controller.journeyReceipt();
+  const retrieval = tickPayloads(journey)[0].observation.featureRetrieval;
+  assert.equal(retrieval.schema, 'simulatte.autonomyFeatureRetrieval.v1');
+  assert.ok(retrieval.queryRows.some((row) => row.id === 'route-segment'));
+  const routeQuery = retrieval.queryRows.find((row) => row.id === 'route-segment');
+  assert.ok(routeQuery.referencedCardIds.every((id) => retrieval.selectedCardIds.includes(id)));
+  assert.ok(retrieval.selectedCardIds.includes('scenario.delivery-arrival'));
+  assert.ok(!retrieval.retrievedRows.some((row) => row.cardId === 'behavior.blocked-segment-replan'));
+  assert.ok(!retrieval.retrievedRows.some((row) => row.cardId.startsWith('network.')));
+  assert.ok(retrieval.counts.indexCandidateCount < retrieval.counts.catalogCount);
+  const direct = featureRetrieval.retrieveAndRerankFeatures({
+    featureCatalog: rows.featureCatalog,
+    mission: compileDefaultMission(rows),
+    state: controller.snapshot().state,
+    route: controller.snapshot().route,
+    worldModel: controller.worldModel,
+  });
+  assert.deepEqual(direct, featureRetrieval.retrieveAndRerankFeatures({
+    featureCatalog: rows.featureCatalog,
+    mission: compileDefaultMission(rows),
+    state: controller.snapshot().state,
+    route: controller.snapshot().route,
+    worldModel: controller.worldModel,
+  }));
+});
+
+test('occurrence plugins apply time and event effects with target validation', () => {
+  const rows = governedAssets();
+  contracts.validateOccurrenceCatalog(rows.occurrenceCatalog, rows.world);
+  const engine = occurrenceApi.createOccurrenceEngine(rows.occurrenceCatalog);
+  const initial = engine.evaluate({
+    tick: 0,
+    events: [occurrenceApi.eventRow({ tick: 0, kind: 'mission_started', sourceId: 'test-mission' })],
+  });
+  assert.equal(initial.effects.signalStates[0].state, 'red');
+  assert.equal(initial.effects.activeActorIds.length, 0);
+  const triggerNodeId = rows.world.scenario.eventActorTriggerNodeId;
+  const triggered = engine.evaluate({
+    tick: 500,
+    events: [occurrenceApi.eventRow({ tick: 500, kind: 'node_reached', sourceId: triggerNodeId })],
+  });
+  assert.ok(triggered.activePatternIds.includes('pedestrian-crossing-node-event'));
+  assert.ok(triggered.effects.activeActorIds.includes('assumed-pedestrian-route-2'));
+  const invalid = structuredClone(rows.occurrenceCatalog);
+  invalid.patterns.find((row) => row.effect.type === 'actor_active').effect.targetId = 'missing-actor';
+  assert.throws(() => contracts.validateOccurrenceCatalog(invalid, rows.world), /known world actor ID/);
+});
+
+test('public missions stay diagnostic and reranker weights retain measured evidence', () => {
+  const corpus = readJson('tools/samer/autonomy/public-navigation-missions-v1.json');
+  const evidence = readJson('public/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json');
+  assert.equal(corpus.missions.length, 20);
+  assert.equal(corpus.population, 'public_diagnostic');
+  assert.equal(corpus.promotionEligible, false);
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(corpus.missions)).digest('hex'), corpus.construction.rowsSha256);
+  assert.equal(evidence.population.promotionEligible, false);
+  assert.equal(evidence.accepted, true);
+  assert.ok(evidence.challenger.meanReciprocalRank > evidence.control.meanReciprocalRank);
+  assert.ok(evidence.challenger.recallAt5 >= evidence.control.recallAt5);
+});
+
+test('governed Villages to Williamsburg journey completes with real geometry and assumed occurrences separated', async () => {
+  const rows = governedAssets();
+  const controller = makeController(rows);
+  await controller.run();
+  const receipt = await controller.journeyReceipt();
+  assert.equal(receipt.terminalState, 'completed');
+  assert.equal(receipt.verification.pass, true);
+  assert.equal(receipt.verification.requiredFailureIds.length, 0);
+  assert.ok(receipt.verification.metrics.distanceTraveledM > 6000);
+  assert.ok(tickPayloads(receipt).some((tick) => selectedBet(tick).bet.action.maneuver === 'wait'));
+  assert.ok(tickPayloads(receipt).some((tick) => selectedBet(tick).bet.action.maneuver === 'yield'));
+  assert.ok(receipt.events.some((row) => row.kind === 'node_reached' && row.sourceId === rows.world.scenario.eventActorTriggerNodeId));
+  assert.ok(tickPayloads(receipt).some((tick) => tick.observation.occurrenceReceipt.activePatternIds.includes('pedestrian-crossing-node-event')));
+});
+
 test('receipt verification rejects a changed tick payload', async () => {
   const controller = makeController();
   await controller.run(4);
@@ -233,7 +340,7 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     return { ok: fs.existsSync(file), status: fs.existsSync(file) ? 200 : 404, text: async () => fs.readFileSync(file, 'utf8') };
   };
   const loaded = await dataLoader.loadAutonomyData('http://localhost/data/autonomy/autonomy-manifest.json', fetchFiles);
-  assert.equal(loaded.world.id, 'nyc-training-corridor-v1');
+  assert.equal(loaded.world.id, 'villages-williamsburg-delivery-bike-v1');
   assert.equal(loaded.receipt.assets.policy.sha256, loaded.manifest.policy.sha256);
 
   const tampered = async (url) => {
@@ -263,7 +370,7 @@ test('autonomy browser surface loads every declared module and stays independent
 });
 
 test('autonomy schemas are restrictive and SAME-R declares one intervention', async () => {
-  for (const name of ['mission', 'observation', 'action-bet', 'settlement', 'journey-receipt']) {
+  for (const name of ['mission', 'observation', 'occurrence-receipt', 'action-bet', 'settlement', 'journey-receipt']) {
     const schema = readJson(`public/autonomy/contracts/${name}.schema.json`);
     assert.equal(schema.additionalProperties, false);
     assert.ok(schema.required.length > 0);
@@ -276,7 +383,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(contract.matchedOperationDetails.evaluationOrder, 'scenario_then_lane_then_repetition');
   assert.equal(contract.matchedOperationDetails.modelIdentity, null);
   assert.equal(contract.matchedOperationDetails.adapterIdentity, null);
-  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 14);
+  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 16);
   assert.deepEqual(contract.causalContract.blockingGuardrails, [
     'zero_safety_violations',
     'all_required_obligations_pass',
@@ -291,7 +398,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(scenarios.population, 'public_diagnostic');
   const runner = await import(pathToFileURL(path.join(root, 'tools/samer/autonomy/run-policy-trial.mjs')));
   const sourceIdentity = runner.hashRuntimeSources(contract.matchedOperationDetails.runtimeSourcePaths);
-  assert.equal(sourceIdentity.files.length, 14);
+  assert.equal(sourceIdentity.files.length, 16);
   assert.match(sourceIdentity.aggregateSha256, /^[a-f0-9]{64}$/);
   assert.ok(sourceIdentity.files.every((row) => /^[a-f0-9]{64}$/.test(row.sha256)));
   assert.equal(runner.isSaturated([], contract.budget), false);

@@ -184,7 +184,7 @@ async function runBrowserSmoke(options) {
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-autonomy-browser-'));
   const chrome = spawn(chromePath, [
     '--headless=new',
-    '--disable-gpu',
+    '--enable-unsafe-webgpu',
     '--disable-background-networking',
     '--no-first-run',
     '--no-default-browser-check',
@@ -230,10 +230,19 @@ async function runBrowserSmoke(options) {
     const screenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
     const result = evaluated.result.value;
     const pass = result.state === 'completed'
+      && result.rendererBackend === 'webgpu'
+      && result.rendererFrames > 0
+      && result.staticVertexCount > 10000
+      && result.retrievalRows > 0
+      && result.rerankRows > 0
+      && result.occurrenceRows > 0
+      && result.rerankerProof.includes('0.900')
+      && result.gateRows === 7
       && result.traceRows > 0
       && result.selectedRows === 1
       && result.editInvalidatedController
       && result.missionLockedDuringRun
+      && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
       && failedResponses.length === 0;
@@ -280,7 +289,7 @@ async function stopChild(child) {
 
 function browserJourneyExpression() {
   return `(async () => {
-    const waitFor = async (predicate, limit = 30000) => {
+    const waitFor = async (predicate, limit = 60000) => {
       const started = performance.now();
       while (!predicate()) {
         if (performance.now() - started > limit) throw new Error('autonomy browser condition timeout');
@@ -308,12 +317,23 @@ function browserJourneyExpression() {
       betRows: document.querySelectorAll('.bet-row').length,
       selectedRows: document.querySelectorAll('.bet-row.is-selected').length,
       rejectedRows: document.querySelectorAll('.bet-row.is-rejected').length,
+      gateRows: document.querySelectorAll('.gate-row').length,
+      retrievalRows: document.querySelectorAll('#retrieval-candidates > span').length,
+      rerankRows: document.querySelectorAll('#rerank-candidates > span').length,
+      occurrenceRows: document.querySelectorAll('#occurrence-patterns > span').length,
+      rerankerProof: document.getElementById('reranker-proof').textContent,
       editInvalidatedController,
       missionLockedDuringRun,
+      rendererBackend: document.getElementById('autonomy-canvas').dataset.rendererBackend || null,
+      adapterName: document.getElementById('autonomy-canvas').dataset.adapterName || null,
+      rendererFrames: Number(document.getElementById('autonomy-canvas').dataset.frameCount || 0),
+      staticVertexCount: Number(document.getElementById('autonomy-canvas').dataset.staticVertexCount || 0),
+      dynamicVertexCount: Number(document.getElementById('autonomy-canvas').dataset.dynamicVertexCount || 0),
       canvasWidth: document.getElementById('autonomy-canvas').width,
       canvasHeight: document.getElementById('autonomy-canvas').height,
       viewportWidth: window.innerWidth,
       documentWidth: document.documentElement.scrollWidth,
+      scrollY: window.scrollY,
       hasHorizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
     };
   })()`;

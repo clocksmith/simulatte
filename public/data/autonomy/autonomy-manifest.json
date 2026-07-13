@@ -1,12 +1,12 @@
 {
   "schema": "simulatte.autonomyDataManifest.v1",
   "id": "simulatte-autonomy-delivery-bike-v1",
-  "contentVersion": "autonomy-delivery-bike-v1",
-  "defaultMissionText": "Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.",
+  "contentVersion": "autonomy-villages-williamsburg-webgpu-v1",
+  "defaultMissionText": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
   "world": {
-    "id": "nyc-training-corridor-v1",
-    "path": "./worlds/nyc-training-corridor-v1.json",
-    "sha256": "7e8d4dd4b370b46fa2c0d142a8e6d896810644bfd10811422c1f9063bcdf078e"
+    "id": "villages-williamsburg-delivery-bike-v1",
+    "path": "./worlds/villages-williamsburg-delivery-bike-v1.json",
+    "sha256": "ea428e97820d0ac47657bf518232be9a60c78d7d73f6e85ca409e9e571c5d7d1"
   },
   "embodiment": {
     "id": "delivery-bike-v1",
@@ -16,17 +16,27 @@
   "policy": {
     "id": "bet-selector-v1",
     "path": "./policies/bet-selector-v1.json",
-    "sha256": "4601d2978cd2d183d473c827145a53572dab3ab5bcefd059912da96bb22ec137"
+    "sha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c"
   },
   "featureCatalog": {
     "id": "autonomy-feature-cards-v1",
     "path": "./feature-cards-v1.json",
-    "sha256": "8d6adfdda7815f02aa620d241016a9689644964b3a1cdc4faa82d8c0d02da451"
+    "sha256": "396465a00fddb2968c024473e54d5b9b2aee16da3dd15df811a1f127aaf4cf37"
+  },
+  "occurrenceCatalog": {
+    "id": "nyc-replay-patterns-v1",
+    "path": "./patterns/nyc-replay-patterns-v1.json",
+    "sha256": "fa377586ef17c9bb7bb19d8936a73462b677a4ab38b5027dc963b331db1f355c"
+  },
+  "rerankerEvidence": {
+    "id": "feature-reranker-public-diagnostic-v1",
+    "path": "./evidence/feature-reranker-public-diagnostic-v1.json",
+    "sha256": "1f2fa0253116a8b83775ed4e89cc89d0d2d157d404640bc483e152cbe6559868"
   },
   "runtime": {
     "entryPath": "/autonomy/",
     "controllerSchema": "simulatte.autonomyController.v1",
     "receiptSchema": "simulatte.autonomyJourneyReceipt.v1"
   },
-  "claimBoundary": "This manifest governs one delivery-bike simulation over a synthetic NYC-labeled corridor. It does not claim physical-world driving capability or current NYC map fidelity."
+  "claimBoundary": "This manifest governs one delivery-bike simulation over frozen Villages and North Brooklyn geometry. It does not claim live conditions, physical-world driving capability, or control of a real vehicle."
 }

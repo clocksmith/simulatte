@@ -20,6 +20,8 @@ const EXPECTED_RUNTIME_SOURCE_PATHS = Object.freeze([
   'public/autonomy/world/world-model.js',
   'public/autonomy/world/route-planner.js',
   'public/autonomy/runtime/canonical-receipts.js',
+  'public/autonomy/runtime/feature-retrieval.js',
+  'public/autonomy/runtime/occurrence-engine.js',
   'public/autonomy/runtime/observation-builder.js',
   'public/autonomy/runtime/reference-dynamics.js',
   'public/autonomy/runtime/bet-proposer.js',

@@ -1,0 +1,67 @@
+{
+  "schema": "simulatte.autonomyFeatureCatalog.v1",
+  "id": "autonomy-feature-card-types-v1",
+  "contentVersion": "autonomy-feature-card-types-v1",
+  "provenance": {
+    "sourceKind": "hand_authored_behavior_contract",
+    "snapshotDate": "2026-07-13"
+  },
+  "cards": [
+    {
+      "id": "street.connector",
+      "kind": "street_segment",
+      "label": "Delivery connector",
+      "searchTerms": ["connector", "bike route", "network entry", "network exit"],
+      "constraints": ["mode_eligible", "speed_limited", "network_contained"],
+      "validationObligations": ["endpoints_exist", "geometry_has_two_points", "positive_length"]
+    },
+    {
+      "id": "street.shared-lane",
+      "kind": "street_segment",
+      "label": "Shared traffic lane",
+      "searchTerms": ["shared", "conventional", "curbside", "traffic lane", "bike lane"],
+      "constraints": ["mode_eligible", "speed_limited", "yield_required"],
+      "validationObligations": ["endpoints_exist", "geometry_has_two_points", "positive_length"]
+    },
+    {
+      "id": "street.protected-lane",
+      "kind": "street_segment",
+      "label": "Protected bike lane",
+      "searchTerms": ["protected", "greenway", "separated", "bike lane", "low risk"],
+      "constraints": ["mode_eligible", "speed_limited", "pedestrian_clearance"],
+      "validationObligations": ["endpoints_exist", "geometry_has_two_points", "positive_length"]
+    },
+    {
+      "id": "behavior.signal-compliance",
+      "kind": "behavior",
+      "label": "Signal compliance",
+      "searchTerms": ["signal", "red", "green", "stop", "entry"],
+      "constraints": ["red_blocks_entry", "green_allows_entry"],
+      "validationObligations": ["signal_cycle_valid", "outgoing_segment_exists"]
+    },
+    {
+      "id": "behavior.pedestrian-yield",
+      "kind": "behavior",
+      "label": "Pedestrian clearance",
+      "searchTerms": ["pedestrian", "yield", "clearance", "crossing"],
+      "constraints": ["minimum_clearance_hard_gate"],
+      "validationObligations": ["actor_path_valid", "active_interval_valid"]
+    },
+    {
+      "id": "behavior.blocked-segment-replan",
+      "kind": "behavior",
+      "label": "Blocked segment replan",
+      "searchTerms": ["blocked", "closure", "replan", "reroute", "network"],
+      "constraints": ["blocked_segment_ineligible", "route_revision_receipted"],
+      "validationObligations": ["segment_exists", "active_interval_valid"]
+    },
+    {
+      "id": "scenario.delivery-arrival",
+      "kind": "scenario",
+      "label": "Parcel delivery arrival",
+      "searchTerms": ["delivery", "arrival", "destination", "parcel", "payload"],
+      "constraints": ["destination_reached", "payload_retained"],
+      "validationObligations": ["destination_node_exists", "arrival_receipt_required"]
+    }
+  ]
+}

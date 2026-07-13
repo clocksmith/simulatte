@@ -9,6 +9,8 @@
     "samer:autonomy": "node tools/samer/autonomy/run-policy-trial.mjs",
     "samer:autonomy:check": "node tools/samer/autonomy/run-policy-trial.mjs --check",
     "check:autonomy": "node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check",
+    "build:autonomy:data": "node tools/autonomy/build-nyc-autonomy-world.mjs && node tools/autonomy/build-public-navigation-missions.mjs",
+    "eval:autonomy:reranker": "node tools/autonomy/evaluate-feature-reranker.mjs",
     "audit:autonomy:browser": "node tools/autonomy/run-browser-smoke.mjs",
     "train": "node tools/train.mjs",
     "serve": "node tools/serve-local.mjs",

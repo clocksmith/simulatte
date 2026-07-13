@@ -5,6 +5,8 @@ Owner contracts:
 - `public/data/autonomy/autonomy-manifest.json`
 - `public/autonomy/contracts/*.schema.json`
 - `public/data/autonomy/policies/bet-selector-v1.json`
+- `public/data/autonomy/patterns/nyc-replay-patterns-v1.json`
+- `public/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json`
 - `tools/samer/autonomy/autonomy-policy-contract.json`
 
 ## Product goal
@@ -30,8 +32,8 @@ The autonomy system is a sibling of the prompt-to-pixels pipeline.
 | --- | --- |
 | `public/pipeline/` | Existing eight-phase natural-language-to-pixels compiler |
 | `public/autonomy/` | Online mission, observation, action-bet, safety, execution, settlement, and verification runtime |
-| `public/data/autonomy/` | Governed world, embodiment, policy, feature cards, and asset hashes |
-| `tools/autonomy/` | Data validation and GeoJSON normalization |
+| `public/data/autonomy/` | Governed world, embodiment, policy, occurrences, feature cards, evidence, and asset hashes |
+| `tools/autonomy/` | Source acquisition, world compilation, mission construction, evaluation, and data validation |
 | `tools/samer/autonomy/` | Matched policy experiments across journeys |
 | `tests/autonomy.test.cjs` | Autonomy contract, runtime, replay, browser, and data tests |
 
@@ -100,15 +102,50 @@ not select the least unsafe action.
 
 ## World and renderer
 
-`nyc-training-corridor-v1` is a synthetic fixture with NYC-oriented labels. It
-contains a protected route, shared route, signal, pedestrian crossing, and
-delivery-truck closure. Its provenance explicitly rejects claims about current
-NYC geometry or traffic.
+`villages-williamsburg-delivery-bike-v1` is the governed browser world. It
+covers named nodes from West Village and Union Square through East Village,
+the Williamsburg Bridge corridor, North Williamsburg, McCarren Park, and
+Greenpoint. Its manifest pins the compiled world by SHA-256. The world retains
+frozen source receipts for NYC bike routes, NYC building footprints, NYC
+borough geometry, and OpenStreetMap streets.
 
-The current execution path is CPU reference dynamics with a Canvas 2D
-inspection view. The trace is the behavioral evidence. Canvas pixels help a
-reviewer inspect it but do not prove safety or mission completion. No WebGPU
-performance claim is made.
+The artifact contains 2,422 bike nodes, 3,654 directed bike edges, 6,589 OSM
+street ways, and 8,500 retained building footprints from 26,990 source
+footprints. The building LOD receipt says that it is not full coverage.
+
+The browser renderer requires WebGPU and fails closed when the adapter,
+device, shader, or render geometry is unavailable. It draws source-bound
+streets, bike facilities, building footprints and heights, the selected route,
+the driven trace, actors, signals, prediction geometry, and the agent. The
+reference dynamics remain on CPU. A browser receipt records the adapter,
+backend, frame count, vertex counts, world identity, and visible feature
+counts. Rendered pixels aid inspection but do not prove physical safety.
+
+`nyc-training-corridor-v1` remains a small synthetic test fixture. It does not
+back the hosted default mission.
+
+## Occurrence pipeline
+
+`runtime/occurrence-engine.js` owns the pluggable occurrence registry. The
+default catalog uses three plugins:
+
+| Plugin | Trigger |
+| --- | --- |
+| `time.periodic-phase.v1` | Repeating ordered tick phases |
+| `time.window.v1` | Inclusive deterministic tick interval |
+| `event.window.v1` | Window opened by a typed simulation event |
+
+Effects can set a signal state, activate an actor, block a segment, or attach
+an annotation. The controller evaluates occurrences before route planning and
+observation for the same tick. Conflicts resolve by descending priority and
+then pattern ID, with winner and rejected pattern IDs in the receipt. Unknown
+plugins and unknown world targets fail closed.
+
+The checked-in signal and pedestrian patterns are authored scenario facts.
+Their provenance says `isObservedHistory: false`. Historical data must enter
+through a separate compiler that records source artifact, snapshot, spatial
+join, time transform, and missing-data behavior before it can set that field
+to true.
 
 ## Receipt chain
 
@@ -141,12 +178,20 @@ public diagnostic evidence. The report hashes each runtime source file and
 records the execution environment and invocation. The runner blocks promotion
 because no sealed population or physical-world evidence is supplied.
 
+The separate 20-mission public diagnostic set covers named endpoints,
+constraints, obligations, and route controls for the expanded world. It is
+checked into the repository and therefore cannot authorize promotion. The
+typed reranker receipt records MRR 0.900 to 0.925 with Recall@5 unchanged at
+1.000 on 40 exposed mission/query judgments.
+
 ## Commands
 
 ```bash
 npm run serve
 npm run serve:static
 npm run check:autonomy
+npm run build:autonomy:data
+npm run eval:autonomy:reranker
 npm run audit:autonomy:browser
 node tools/autonomy/run-browser-smoke.mjs --viewport 390x844 --check
 node tools/autonomy/run-browser-smoke.mjs --url https://simulatte.world/autonomy/ --check
@@ -159,7 +204,9 @@ Open `http://localhost:4173/autonomy/` when using `npm run serve:static`.
 
 ## Claim boundary
 
-The implemented evidence supports deterministic delivery-bike behavior in the
-checked-in synthetic world. It does not establish current NYC map fidelity,
-physical bicycle control, robotaxi safety, public-road readiness, or policy
+The implemented evidence supports deterministic delivery-bike behavior over
+the pinned Villages and North Brooklyn map artifact in the named browser
+runtime. Frozen geometry provenance does not make authored traffic live or
+historical. The evidence does not establish physical bicycle control,
+robotaxi safety, public-road readiness, realistic traffic, or policy
 promotion.

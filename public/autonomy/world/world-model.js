@@ -11,6 +11,11 @@
     outgoingByNodeId.forEach((rows) => rows.sort((left, right) => left.id.localeCompare(right.id)));
     const signalsByNodeId = new Map();
     world.signals.forEach((signal) => signalsByNodeId.set(signal.nodeId, signal));
+    let runtimeEffects = null;
+
+    function applyRuntimeEffects(effects) {
+      runtimeEffects = effects ? structuredClone(effects) : null;
+    }
 
     function node(id) {
       const row = nodesById.get(id);
@@ -29,13 +34,15 @@
     }
 
     function blockedSegmentIds(tick) {
-      return world.disruptions
+      const embedded = world.disruptions
         .filter((row) => row.type === 'blocked_segment' && tick >= row.activeFromTick && tick <= row.activeUntilTick)
-        .map((row) => row.segmentId)
-        .sort();
+        .map((row) => row.segmentId);
+      return [...new Set([...embedded, ...(runtimeEffects?.blockedSegmentIds || [])])].sort();
     }
 
     function signalState(signal, tick) {
+      const override = runtimeEffects?.signalStates?.find((row) => row.signalId === signal.id);
+      if (override) return override.state;
       const phase = modulo(tick + signal.phaseOffsetTicks, signal.cycleTicks);
       return phase < signal.greenTickCount ? 'green' : 'red';
     }
@@ -55,9 +62,15 @@
     }
 
     function actorAtTick(actor, tick) {
-      const isActive = tick >= actor.activeFromTick && tick <= actor.activeUntilTick;
+      const isControlled = runtimeEffects?.controlledActorIds?.includes(actor.id);
+      const controlledState = runtimeEffects?.actorStates?.find((row) => row.actorId === actor.id);
+      const isActive = isControlled
+        ? runtimeEffects.activeActorIds.includes(actor.id)
+        : tick >= actor.activeFromTick && tick <= actor.activeUntilTick;
       const span = Math.max(1, actor.activeUntilTick - actor.activeFromTick);
-      const ratio = clamp((tick - actor.activeFromTick) / span, 0, 1);
+      const ratio = isControlled && Number.isFinite(controlledState?.progress)
+        ? controlledState.progress
+        : clamp((tick - actor.activeFromTick) / span, 0, 1);
       return {
         id: actor.id,
         type: actor.type,
@@ -125,6 +138,8 @@
       minimumActorClearance,
       positionAlongSegment,
       agentPosition,
+      applyRuntimeEffects,
+      runtimeEffects: () => structuredClone(runtimeEffects),
     };
   }
 

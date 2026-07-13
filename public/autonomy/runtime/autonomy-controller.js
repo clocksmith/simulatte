@@ -11,6 +11,9 @@
   const observations = typeof module === 'object' && module.exports
     ? require('./observation-builder.js')
     : root.SimulatteAutonomyObservationBuilder;
+  const occurrences = typeof module === 'object' && module.exports
+    ? require('./occurrence-engine.js')
+    : root.SimulatteAutonomyOccurrences;
   const proposer = typeof module === 'object' && module.exports
     ? require('./bet-proposer.js')
     : root.SimulatteAutonomyBetProposer;
@@ -32,7 +35,7 @@
   const verifier = typeof module === 'object' && module.exports
     ? require('../verifier/journey-verifier.js')
     : root.SimulatteAutonomyJourneyVerifier;
-  const api = factory(contracts, worldApi, routePlanner, observations, proposer, safety, selector, dynamics, settlementApi, receipts, verifier);
+  const api = factory(contracts, worldApi, routePlanner, observations, occurrences, proposer, safety, selector, dynamics, settlementApi, receipts, verifier);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyController = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createControllerModule(
@@ -40,6 +43,7 @@
   worldApi,
   routePlanner,
   observations,
+  occurrences,
   proposer,
   safety,
   selector,
@@ -48,9 +52,10 @@
   receipts,
   verifier
 ) {
-  function createAutonomyController({ world, featureCatalog, embodiment, policy, mission, onTick = null }) {
+  function createAutonomyController({ world, featureCatalog, occurrenceCatalog = null, embodiment, policy, mission, onTick = null }) {
     contracts.validateFeatureCatalog(featureCatalog);
     contracts.validateWorld(world, featureCatalog);
+    if (occurrenceCatalog) contracts.validateOccurrenceCatalog(occurrenceCatalog, world);
     contracts.validateEmbodiment(embodiment);
     contracts.validatePolicy(policy);
     contracts.validateMission(mission, world, embodiment);
@@ -58,6 +63,10 @@
     const policyMemory = observations.createPolicyMemory(policy);
     const receiptChain = receipts.createReceiptChain();
     const state = initialState(mission, worldModel);
+    const occurrenceEngine = occurrenceCatalog ? occurrences.createOccurrenceEngine(occurrenceCatalog) : null;
+    const eventHistory = [occurrences.eventRow({ tick: 0, kind: 'mission_started', sourceId: mission.id })];
+    let occurrenceReceipt = evaluateOccurrences(occurrenceEngine, state.tick, eventHistory);
+    worldModel.applyRuntimeEffects(occurrenceReceipt.effects);
     let activeRoute = null;
 
     async function step() {
@@ -73,8 +82,10 @@
       }
 
       try {
+        occurrenceReceipt = evaluateOccurrences(occurrenceEngine, state.tick, eventHistory);
+        worldModel.applyRuntimeEffects(occurrenceReceipt.effects);
         activeRoute = ensureRoute({ state, activeRoute, worldModel, mission, embodiment, policy });
-        const observation = observations.buildObservation({ mission, state, route: activeRoute, worldModel, policyMemory, policy });
+        const observation = observations.buildObservation({ mission, state, route: activeRoute, worldModel, policyMemory, policy, featureCatalog, occurrenceReceipt });
         const proposals = proposer.proposeActionBets({ mission, observation, state, route: activeRoute, worldModel, embodiment, policy, policyMemory });
         const gatedRows = safety.gateActionBets({ proposals, state, route: activeRoute, worldModel, embodiment, mission, policy });
         const selection = selector.selectActionBet(gatedRows, policy);
@@ -102,7 +113,9 @@
           activeRoute = { ...activeRoute, segmentIds: activeRoute.segmentIds.slice(1) };
         }
         if (transition.willArrive) completeMission(state);
-        const tickReceipt = buildTickReceipt({ tick, observation, route: activeRoute, selection, transition, settlement, violations, state });
+        const emittedEvents = transitionEvents({ transition, observation, mission, state });
+        eventHistory.push(...emittedEvents);
+        const tickReceipt = buildTickReceipt({ tick, observation, route: activeRoute, selection, transition, settlement, violations, state, emittedEvents });
         if (state.currentSegmentId) state.routeReason = 'continued';
         const entry = await receipts.appendReceiptEntry(receiptChain, tickReceipt);
         if (typeof onTick === 'function') onTick({ entry, snapshot: snapshot() });
@@ -139,6 +152,8 @@
         state,
         route: activeRoute,
         policyMemory,
+        occurrenceReceipt,
+        eventCount: eventHistory.length,
         traceEntryCount: receiptChain.entries.length,
         terminalHash: receiptChain.terminalHash,
       });
@@ -157,7 +172,9 @@
           worldContentVersion: world.contentVersion,
           embodimentId: embodiment.id,
           policyId: policy.id,
+          occurrenceCatalogId: occurrenceCatalog ? occurrenceCatalog.id : null,
         },
+        events: structuredClone(eventHistory),
         terminalState: state.terminalReason || state.status,
         trace: structuredClone(receiptChain.entries),
         verification,
@@ -255,7 +272,7 @@
     return violations;
   }
 
-  function buildTickReceipt({ tick, observation, route, selection, transition, settlement, violations, state }) {
+  function buildTickReceipt({ tick, observation, route, selection, transition, settlement, violations, state, emittedEvents }) {
     return {
       schema: 'simulatte.autonomyTickReceipt.v1',
       tick,
@@ -266,7 +283,7 @@
         revision: observation.route.revision,
         reason: observation.route.reason,
       },
-      bets: selection.rows.map((row) => ({ bet: row.bet, gate: row.gate, utility: row.utility })),
+      bets: selection.rows.map((row) => ({ bet: row.bet, gate: row.gate, utility: row.utility, utilityBreakdown: row.utilityBreakdown })),
       selectedBetId: selection.selectedBetId,
       transition: {
         schema: transition.schema,
@@ -281,6 +298,7 @@
         willArrive: transition.willArrive,
       },
       settlement,
+      emittedEvents,
       violations,
       stateAfter: {
         tick: state.tick,
@@ -301,7 +319,50 @@
   }
 
   function emptyRoute() {
-    return { schema: 'simulatte.autonomyRoutePlan.v1', algorithm: 'a_star_v1', segmentIds: [], cost: 0, visitedNodeIds: [], evaluatedSegmentCount: 0, deterministicTieBreak: 'segment_id_ascending' };
+    return {
+      schema: 'simulatte.autonomyRoutePlan.v1',
+      algorithm: 'a_star_v1',
+      segmentIds: [],
+      cost: 0,
+      visitedNodeIds: [],
+      evaluatedSegmentCount: 0,
+      costBreakdown: {
+        travel: 0,
+        risk: 0,
+        preference: 0,
+        total: 0,
+        formula: 'travel + risk + preference',
+        weights: { travelWeight: 0, riskWeight: 0, unprotectedPreferencePenalty: 0 },
+      },
+      deterministicTieBreak: 'segment_id_ascending',
+    };
+  }
+
+  function evaluateOccurrences(engine, tick, events) {
+    if (engine) return engine.evaluate({ tick, events });
+    return {
+      schema: 'simulatte.autonomyOccurrenceReceipt.v1',
+      catalogId: null,
+      tick,
+      eventCount: events.length,
+      activePatternIds: [],
+      evaluations: [],
+      effects: { signalStates: [], actorStates: [], activeActorIds: [], controlledActorIds: [], blockedSegmentIds: [], annotations: [] },
+      conflicts: [],
+      resolutionRule: 'no_occurrence_catalog',
+    };
+  }
+
+  function transitionEvents({ transition, observation, mission, state }) {
+    const rows = [];
+    const tick = state.tick;
+    if (transition.enteredSegmentId) rows.push(['segment_entered', transition.enteredSegmentId, { routeRevision: observation.route.revision }]);
+    if (transition.reachedNodeId) rows.push(['node_reached', transition.reachedNodeId, { enteredSegmentId: transition.enteredSegmentId }]);
+    if (['blocked_segment', 'route_exhausted'].includes(observation.route.reason)) {
+      rows.push(['route_revised', transition.enteredSegmentId || state.currentSegmentId, { reason: observation.route.reason, revision: observation.route.revision }]);
+    }
+    if (transition.willArrive) rows.push(['mission_completed', mission.id, { destinationNodeId: mission.destinationNodeId }]);
+    return rows.map(([kind, sourceId, evidence], sequence) => occurrences.eventRow({ tick, kind, sourceId, evidence, sequence }));
   }
 
   function sameRows(left, right) {
@@ -312,5 +373,5 @@
     return { schema: 'simulatte.autonomyViolation.v1', kind, evidence };
   }
 
-  return { createAutonomyController, initialState, ensureRoute, transitionViolations };
+  return { createAutonomyController, evaluateOccurrences, initialState, ensureRoute, transitionEvents, transitionViolations };
 });

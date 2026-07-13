@@ -5,6 +5,9 @@ artifacts/simulatte-pipeline-audit/live-score/
 artifacts/simulatte-pipeline-audit/runs/*/
 artifacts/samer/
 artifacts/samer-gold-*/
+tools/autonomy/data-sources/*/osm-api-tiles/
+tools/autonomy/data-sources/*/street-tiles/
+tools/autonomy/data-sources/*/nyc-manhattan-boundary.geojson.gz
 
 # Local credentials, dependencies, and browser state.
 .env

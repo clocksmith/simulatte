@@ -1,0 +1,101 @@
+{
+  "claimBoundary": "These patterns drive deterministic authored occurrences. They are not claims about live or historical NYC signal timing, pedestrian presence, or disruptions.",
+  "contentVersion": "nyc-replay-patterns-villages-williamsburg-delivery-bike-2026-07-13",
+  "id": "nyc-replay-patterns-v1",
+  "patterns": [
+    {
+      "effect": {
+        "targetId": "assumed-signal-route-1",
+        "type": "signal_state",
+        "valueSource": "phase"
+      },
+      "id": "route-signal-cycle",
+      "pluginId": "time.periodic-phase.v1",
+      "priority": 100,
+      "provenance": {
+        "isObservedHistory": false,
+        "kind": "simulation_assumption",
+        "source": "scenario authoring"
+      },
+      "trigger": {
+        "phaseOffsetTicks": 7,
+        "phases": [
+          {
+            "durationTicks": 6,
+            "id": "green",
+            "value": "green"
+          },
+          {
+            "durationTicks": 6,
+            "id": "red",
+            "value": "red"
+          }
+        ]
+      }
+    },
+    {
+      "effect": {
+        "targetId": "assumed-pedestrian-route-1",
+        "type": "actor_active",
+        "value": true
+      },
+      "id": "pedestrian-crossing-time-window",
+      "pluginId": "time.window.v1",
+      "priority": 80,
+      "provenance": {
+        "isObservedHistory": false,
+        "kind": "simulation_assumption",
+        "source": "scenario authoring"
+      },
+      "trigger": {
+        "endTickInclusive": 592,
+        "startTick": 560
+      }
+    },
+    {
+      "effect": {
+        "targetId": "assumed-pedestrian-route-2",
+        "type": "actor_active",
+        "value": true
+      },
+      "id": "pedestrian-crossing-node-event",
+      "pluginId": "event.window.v1",
+      "priority": 70,
+      "provenance": {
+        "isObservedHistory": false,
+        "kind": "simulation_assumption",
+        "source": "scenario authoring"
+      },
+      "trigger": {
+        "delayTicks": 0,
+        "durationTicks": 18,
+        "eventKind": "node_reached",
+        "occurrenceIndex": 0,
+        "sourceId": "bike-node-513d9c88859f"
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "description": "Repeating ordered phases",
+      "id": "time.periodic-phase.v1",
+      "triggerKind": "time"
+    },
+    {
+      "description": "Inclusive deterministic tick window",
+      "id": "time.window.v1",
+      "triggerKind": "time"
+    },
+    {
+      "description": "Window opened by a typed simulation event",
+      "id": "event.window.v1",
+      "triggerKind": "event"
+    }
+  ],
+  "resolution": {
+    "conflictBehavior": "highest_priority_wins_with_receipt",
+    "rule": "priority_descending_then_pattern_id_ascending",
+    "unknownPluginBehavior": "fail_closed"
+  },
+  "schema": "simulatte.autonomyOccurrenceCatalog.v1"
+}

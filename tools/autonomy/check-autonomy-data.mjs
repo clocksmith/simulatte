@@ -68,10 +68,19 @@ function main() {
   const world = resolveReference(manifest, 'world');
   const embodiment = resolveReference(manifest, 'embodiment');
   const policy = resolveReference(manifest, 'policy');
+  const occurrenceCatalog = resolveReference(manifest, 'occurrenceCatalog');
+  const rerankerEvidence = resolveReference(manifest, 'rerankerEvidence');
   contracts.validateFeatureCatalog(featureCatalog);
   contracts.validateWorld(world, featureCatalog);
   contracts.validateEmbodiment(embodiment);
   contracts.validatePolicy(policy);
+  contracts.validateOccurrenceCatalog(occurrenceCatalog, world);
+  contracts.validateRerankerEvidence(rerankerEvidence, featureCatalog, {
+    world: manifest.world.sha256,
+    featureCatalog: manifest.featureCatalog.sha256,
+    embodiment: manifest.embodiment.sha256,
+    policy: manifest.policy.sha256,
+  });
   publicAutonomyJavaScript().forEach((file) => {
     const lineCount = fs.readFileSync(file, 'utf8').split(/\r?\n/).length;
     if (lineCount > 999) throw new Error(`${path.relative(ROOT, file)} has ${lineCount} lines; maximum is 999`);

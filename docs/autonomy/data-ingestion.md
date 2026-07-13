@@ -4,14 +4,43 @@ Owner contracts:
 
 - `public/data/autonomy/autonomy-manifest.json`
 - `public/data/autonomy/feature-cards-v1.json`
+- `public/data/autonomy/patterns/nyc-replay-patterns-v1.json`
+- `tools/autonomy/build-nyc-autonomy-world.mjs`
 - `tools/autonomy/compile-geojson-tile.mjs`
 - `tools/autonomy/check-autonomy-data.mjs`
 
 ## Checked-in data
 
-The checked-in corridor is synthetic. The manifest pins raw-file SHA-256 values
-for the world, embodiment, policy, and feature-card catalog. Browser loading and
-the repository data check both reject identity or hash drift.
+The hosted default is `villages-williamsburg-delivery-bike-v1`. It is compiled
+from frozen NYC DOT bike routes, NYC building footprints, NYC borough
+boundaries, and OpenStreetMap highway snapshots. Each source receipt records
+authority, license, request, snapshot date, raw byte count, and SHA-256.
+
+The manifest separately pins raw-file SHA-256 values for the world,
+embodiment, policy, feature catalog, occurrence catalog, and reranker evidence.
+Browser loading and the repository data check both reject identity or hash
+drift. `nyc-training-corridor-v1` remains a synthetic unit-test fixture.
+
+## Governed NYC compilation
+
+The main compiler owns the Villages and North Brooklyn tile:
+
+```bash
+npm run build:autonomy:data
+npm run eval:autonomy:reranker
+```
+
+`build-nyc-autonomy-world.mjs` reads the four canonical compressed snapshots
+under `tools/autonomy/data-sources/villages-williamsburg-2026-07-13/`. One run
+emits synchronized world, feature-catalog, inverted-index, and occurrence
+artifacts. It labels ten mission-groundable places, compiles the directed bike
+network, produces the default policy-cost route, places authored scenario
+actors on that route, and writes time and event patterns against the generated
+IDs.
+
+The renderer retains 8,500 source building footprints chosen by route and
+named-focus proximity, height, and area. Its LOD receipt records 26,990 source
+footprints, the retained and omitted counts, and `fullCoverageClaim: false`.
 
 ## GeoJSON normalization
 
@@ -53,11 +82,14 @@ source snapshots and entry gates before the world can claim them.
 - every manifest path stays under `public/`;
 - every pinned SHA-256 matches raw bytes;
 - referenced IDs match loaded artifacts;
+- occurrence plugins and effect targets exist;
+- reranker evidence binds the same world, catalog, embodiment, and policy;
 - node and segment IDs are unique;
 - every segment endpoint exists;
 - mode, geometry, length, speed, signal, actor, disruption, and feature-card references validate;
 - the browser entry lists only existing scripts;
 - autonomy JavaScript stays below the repository line ceiling;
+- the 20-row public diagnostic corpus retains its row hash;
 - the public SAME-R contract and deterministic repetitions execute.
 
 A newly compiled tile is not active until its exact hash and identity are added

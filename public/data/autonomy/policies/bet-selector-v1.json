@@ -59,7 +59,7 @@
     "clearanceToleranceM": 0.000001
   },
   "runtime": {
-    "maximumTicks": 180,
+    "maximumTicks": 1600,
     "maximumCandidatesPerTick": 6
   },
   "claimBoundary": "The policy chooses among deterministic reference actions after hard safety gates. It does not establish physical-world autonomy."

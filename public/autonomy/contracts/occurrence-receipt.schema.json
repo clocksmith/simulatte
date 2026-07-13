@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte autonomy occurrence receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "catalogId", "tick", "eventCount", "activePatternIds", "evaluations", "effects", "conflicts", "resolutionRule"],
+  "properties": {
+    "schema": { "const": "simulatte.autonomyOccurrenceReceipt.v1" },
+    "catalogId": { "type": ["string", "null"] },
+    "tick": { "type": "integer", "minimum": 0 },
+    "eventCount": { "type": "integer", "minimum": 0 },
+    "activePatternIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["patternId", "pluginId", "priority", "active", "phase", "triggerEvidence", "effect"],
+        "properties": {
+          "patternId": { "type": "string" },
+          "pluginId": { "type": "string" },
+          "priority": { "type": "integer" },
+          "active": { "type": "boolean" },
+          "phase": { "type": ["string", "null"] },
+          "triggerEvidence": { "type": ["object", "null"] },
+          "effect": { "anyOf": [{ "$ref": "#/$defs/effect" }, { "type": "null" }] }
+        }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signalStates", "actorStates", "activeActorIds", "controlledActorIds", "blockedSegmentIds", "annotations"],
+      "properties": {
+        "signalStates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["signalId", "state", "patternId"],
+            "properties": {
+              "signalId": { "type": "string" },
+              "state": { "enum": ["green", "red"] },
+              "patternId": { "type": "string" }
+            }
+          }
+        },
+        "actorStates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["actorId", "progress", "patternId"],
+            "properties": {
+              "actorId": { "type": "string" },
+              "progress": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "patternId": { "type": "string" }
+            }
+          }
+        },
+        "activeActorIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "controlledActorIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "blockedSegmentIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "annotations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "metadata"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "metadata": { "type": ["object", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "winnerPatternId", "rejectedPatternId"],
+        "properties": {
+          "key": { "type": "string" },
+          "winnerPatternId": { "type": "string" },
+          "rejectedPatternId": { "type": "string" }
+        }
+      }
+    },
+    "resolutionRule": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "targetId", "value", "progress", "metadata"],
+      "properties": {
+        "type": { "enum": ["signal_state", "actor_active", "blocked_segment", "annotation"] },
+        "targetId": { "type": ["string", "null"] },
+        "value": {},
+        "progress": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "metadata": { "type": ["object", "null"] }
+      }
+    }
+  }
+}

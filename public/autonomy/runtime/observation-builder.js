@@ -2,11 +2,14 @@
   const contracts = typeof module === 'object' && module.exports
     ? require('../contracts/contract-validator.js')
     : root.SimulatteAutonomyContracts;
-  const api = factory(contracts);
+  const retrieval = typeof module === 'object' && module.exports
+    ? require('./feature-retrieval.js')
+    : root.SimulatteAutonomyFeatureRetrieval;
+  const api = factory(contracts, retrieval);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyObservationBuilder = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyObservationBuilder(contracts) {
-  function buildObservation({ mission, state, route, worldModel, policyMemory, policy }) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyObservationBuilder(contracts, retrieval) {
+  function buildObservation({ mission, state, route, worldModel, policyMemory, policy, featureCatalog, occurrenceReceipt }) {
     const position = worldModel.agentPosition(state);
     const nearbyActors = worldModel.nearbyActors(position, state.tick, policy.safety.nearbyActorRadiusM).map((actor) => ({
       id: actor.id,
@@ -31,12 +34,19 @@
       route: {
         segmentIds: [...route.segmentIds],
         cost: round(route.cost),
+        algorithm: route.algorithm,
+        visitedNodeCount: route.visitedNodeIds.length,
+        visitedNodeIds: boundedIdentities(route.visitedNodeIds, 24),
+        evaluatedSegmentCount: route.evaluatedSegmentCount,
+        costBreakdown: structuredClone(route.costBreakdown),
         revision: state.routeRevision,
         reason: state.routeReason,
       },
       signals: worldModel.signalRows(state.tick),
       nearbyActors,
       blockedSegmentIds: worldModel.blockedSegmentIds(state.tick),
+      featureRetrieval: retrieval.retrieveAndRerankFeatures({ featureCatalog, mission, state, route, worldModel }),
+      occurrenceReceipt: structuredClone(occurrenceReceipt),
       policyMemory: structuredClone(policyMemory),
     };
     return contracts.validateObservation(observation);
@@ -62,5 +72,11 @@
     return Number(value.toFixed(9));
   }
 
-  return { buildObservation, createPolicyMemory, round, roundPoint };
+  function boundedIdentities(rows, maximum) {
+    if (rows.length <= maximum) return [...rows];
+    const head = Math.floor(maximum / 2);
+    return [...rows.slice(0, head), ...rows.slice(-head)];
+  }
+
+  return { boundedIdentities, buildObservation, createPolicyMemory, round, roundPoint };
 });
