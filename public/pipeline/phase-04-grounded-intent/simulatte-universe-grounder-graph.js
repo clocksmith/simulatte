@@ -278,6 +278,181 @@
     return bySpan;
   }
 
+  function materializeTypedPromptNodes(nodes = [], bySpan = new Map(), promptParse = {}) {
+    const existingIds = new Set(nodes.map((node) => node.id));
+    for (const span of promptParse.spans || []) {
+      if (!['entity', 'material', 'environment'].includes(span.kind) || bySpan.has(span.id)) continue;
+      if (!span.entityClass && !span.materialHint && !span.visualArchetype && !span.semanticRole) continue;
+      const semanticType = span.kind === 'material' ? 'material' : span.kind;
+      const canonicalTarget = span.entityClass || span.materialHint || normalizedIdentity(span.text);
+      const baseId = `prompt-${span.kind}-${normalizedIdentity(span.text).replace(/\s+/g, '-')}`;
+      let id = baseId;
+      let suffix = 2;
+      while (existingIds.has(id)) id = `${baseId}-${suffix++}`;
+      const node = {
+        id,
+        spanId: span.id,
+        semanticType,
+        semanticClass: span.entityClass || span.semanticRole || '',
+        visualArchetype: span.visualArchetype || '',
+        canonicalId: `prompt.${span.kind}.${canonicalTarget.replace(/\s+/g, '_')}`,
+        label: span.text,
+        aliases: [span.text],
+        confidence: 0.76,
+        domains: semanticType === 'material' ? ['solid'] : [],
+        materialId: span.materialHint || '',
+        materialIds: span.materialHint ? [span.materialHint] : [],
+        operatorHints: [],
+        operatorTypes: [],
+        primitiveHints: [],
+        conceptIds: [],
+        shapeHints: span.visualArchetype ? [span.visualArchetype] : [],
+        sceneHints: [],
+        evidence: ['parser-lexicon'],
+        directlyGrounded: true,
+      };
+      nodes.push(node);
+      bySpan.set(span.id, node);
+      existingIds.add(id);
+    }
+  }
+
+  function applyPromptSemanticContracts(nodes = [], bySpan = new Map(), promptParse = {}) {
+    const obligations = [];
+    const environmentPrograms = [];
+    const edges = [];
+    const propertiesBySpan = new Map();
+    const materialByPartSpan = new Map();
+    for (const clause of promptParse.clauses || []) {
+      if (clause.process !== 'material_assignment') continue;
+      const materialNode = bySpan.get(clause.subjectSpanId);
+      if (materialNode) materialByPartSpan.set(clause.objectSpanId, materialNode.materialId || materialNode.label);
+    }
+    for (const modifier of promptParse.modifiers || []) {
+      if (!['color', 'articulation', 'material', 'emission'].includes(modifier.relation)) continue;
+      const target = bySpan.get(modifier.targetSpanId);
+      if (!target) continue;
+      const property = {
+        schema: 'simulatte.groundedProperty.v1',
+        kind: modifier.relation,
+        value: modifier.value || '',
+        sourceSpanIds: [modifier.targetSpanId, modifier.modifierSpanId].filter(Boolean),
+      };
+      target.properties = uniquePropertyRows([...(target.properties || []), property]);
+      propertiesBySpan.set(modifier.targetSpanId, target.properties);
+      obligations.push(promptVisualObligation('property', target, {
+        propertyKind: property.kind,
+        expectedValue: property.value,
+      }));
+    }
+    for (const quantity of promptParse.quantities || []) {
+      const target = bySpan.get(quantity.targetSpanId);
+      if (!target) continue;
+      target.cardinality = Math.max(1, Math.min(32, Math.floor(Number(quantity.value || 1))));
+      obligations.push(promptVisualObligation('count', target, { expectedCount: target.cardinality }));
+    }
+    for (const clause of promptParse.clauses || []) {
+      const subject = bySpan.get(clause.subjectSpanId);
+      const object = bySpan.get(clause.objectSpanId);
+      if (clause.process === 'part_composition' && subject && object) {
+        object.semanticType = 'part';
+        object.supportOnly = true;
+        const explicitMaterial = materialByPartSpan.get(clause.objectSpanId) || '';
+        const part = {
+          id: object.id,
+          label: object.label,
+          semanticClass: object.semanticClass || normalizedIdentity(object.label),
+          visualArchetype: object.visualArchetype || '',
+          materialId: explicitMaterial || object.materialId || '',
+          properties: propertiesBySpan.get(clause.objectSpanId) || object.properties || [],
+          sourceNodeId: object.id,
+        };
+        subject.partGraph = uniqueParts([...(subject.partGraph || []), part]);
+        if (explicitMaterial) {
+          obligations.push(promptVisualObligation('property', object, {
+            propertyKind: 'material',
+            expectedValue: part.materialId,
+          }));
+        }
+        edges.push({
+          id: `edge-prompt-part-${edges.length + 1}`,
+          type: 'hasPart',
+          from: subject.id,
+          to: object.id,
+          processId: 'part_composition',
+          predicate: 'has-part',
+          confidence: Math.min(Number(subject.confidence || 0), Number(object.confidence || 0), 0.82),
+          evidence: ['explicit-part-language'],
+        });
+      }
+      if (subject && clause.poseHint) {
+        subject.poseHint = {
+          schema: 'simulatte.groundedPoseHint.v1',
+          action: clause.predicate || clause.process || '',
+          pose: clause.poseHint,
+          sourceSpanIds: [clause.subjectSpanId, clause.verbSpanId].filter(Boolean),
+        };
+        obligations.push(promptVisualObligation('pose', subject, { expectedPose: clause.poseHint }));
+      }
+    }
+    for (const span of promptParse.spans || []) {
+      if (!span.environmentProgram) continue;
+      const node = bySpan.get(span.id);
+      if (!node) continue;
+      const color = (node.properties || []).find((row) => row.kind === 'color');
+      node.environmentProgram = {
+        schema: 'simulatte.environmentProgram.v1',
+        ...span.environmentProgram,
+        color: color && color.value || '',
+        sourceNodeId: node.id,
+        sourceSpanIds: [span.id, ...(color && color.sourceSpanIds || [])],
+      };
+      node.supportOnly = true;
+      environmentPrograms.push(node.environmentProgram);
+      obligations.push(promptVisualObligation('environment', node, {
+        expectedProgram: node.environmentProgram.kind,
+        expectedValue: node.environmentProgram.color,
+      }));
+    }
+    return { edges, obligations: uniqueObligations(obligations), environmentPrograms };
+  }
+
+  function promptVisualObligation(kind, node = {}, expected = {}) {
+    const suffix = [kind, normalizedIdentity(node.label), ...Object.values(expected)].filter(Boolean)
+      .join('-').replace(/[^a-z0-9#]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
+    return {
+      id: `visual:prompt-${suffix}`,
+      kind: 'visual',
+      ownedByPhase: 6,
+      target: node.label || node.id || '',
+      targetNodeId: node.id || '',
+      targetIdentity: node.semanticClass || normalizedIdentity(node.label),
+      constraintKind: kind,
+      required: true,
+      status: 'pending',
+      phase: 4,
+      ...expected,
+    };
+  }
+
+  function uniqueParts(rows = []) {
+    const byId = new Map();
+    for (const row of rows) byId.set(row.id || row.label, row);
+    return Array.from(byId.values());
+  }
+
+  function uniquePropertyRows(rows = []) {
+    const byKey = new Map();
+    for (const row of rows) byKey.set(`${row.kind}:${row.value}`, row);
+    return Array.from(byKey.values());
+  }
+
+  function uniqueObligations(rows = []) {
+    const byId = new Map();
+    for (const row of rows) byId.set(row.id, row);
+    return Array.from(byId.values());
+  }
+
   function normalizedIdentity(value = '') {
     return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
       .split(/\s+/).map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token).join(' ');
@@ -297,5 +472,7 @@
     attachConstructionEvidence,
     edgeRowsForClauses,
     remapSpanNodes,
+    materializeTypedPromptNodes,
+    applyPromptSemanticContracts,
   };
 });

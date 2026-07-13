@@ -16,6 +16,7 @@
   }
   const ENTITY_PHRASES = LANGUAGE_LEXICON.entityPhrases || [];
   const PROCESS_PHRASES = LANGUAGE_LEXICON.processPhrases || [];
+  const ACTION_POSE_LEXICON = LANGUAGE_LEXICON.actionPoseLexicon || [];
   const MODIFIER_PHRASES = LANGUAGE_LEXICON.modifierPhrases || [];
   const OBSERVABLE_PHRASES = LANGUAGE_LEXICON.observablePhrases || [];
   const TERM_STOPWORDS = new Set(LANGUAGE_LEXICON.termStopwords || []);
@@ -34,15 +35,21 @@
     const spans = [];
     addPhraseSpans(spans, lower, ENTITY_PHRASES, tokenRows);
     addPhraseSpans(spans, lower, PROCESS_PHRASES.map((text) => [text, 'process']), tokenRows);
-    addPhraseSpans(spans, lower, MODIFIER_PHRASES.map(([text]) => [text, 'modifier']), tokenRows);
+    addPhraseSpans(spans, lower, MODIFIER_PHRASES.map(([text, relation, metadata]) => [
+      text,
+      'modifier',
+      { modifierRelation: relation, ...(metadata || {}) },
+    ]), tokenRows);
     addPhraseSpans(spans, lower, OBSERVABLE_PHRASES.map((text) => [text, 'observable']), tokenRows);
     const recognized = resolveEntityProcessCollisions(dedupeSpans(spans), lower);
+    addQuantitySpans(recognized, tokenRows);
     addUnmatchedTermSpans(recognized, tokenRows);
     const compact = recognized
       .sort((a, b) => a.start - b.start || b.end - a.end)
       .map((span, index) => ({ ...span, id: `span${index + 1}` }));
     const clauses = buildClauses(compact, lower);
     const modifiers = buildModifiers(compact);
+    const quantities = buildQuantities(compact);
     return {
       schema: PROMPT_PARSE_SCHEMA,
       prompt,
@@ -50,7 +57,29 @@
       spans: compact,
       clauses,
       modifiers,
+      quantities,
     };
+  }
+
+  function addQuantitySpans(spans, tokens) {
+    const covered = new Set(spans.flatMap((span) => {
+      const indexes = [];
+      for (let index = span.tokenStart; index <= span.tokenEnd; index += 1) indexes.push(index);
+      return indexes;
+    }));
+    for (let index = 0; index < tokens.length; index += 1) {
+      const token = tokens[index];
+      if (covered.has(index) || !/^\d+$/.test(token.text)) continue;
+      spans.push({
+        text: token.text,
+        kind: 'quantity',
+        value: Number(token.text),
+        start: token.start,
+        end: token.end,
+        tokenStart: index,
+        tokenEnd: index,
+      });
+    }
   }
 
   function tokenize(prompt) {
@@ -191,6 +220,7 @@
           implicitObject: '',
           prepositions,
           voice: 'passive',
+          poseHint: poseHintForAction(verb.text),
         });
         continue;
       }
@@ -221,6 +251,7 @@
           causalAffordance: causalAffordanceFor(subject, process, after, prepositions, objectRole),
           implicitObject,
           prepositions,
+          poseHint: poseHintForAction(verb.text),
         });
       }
     }
@@ -233,6 +264,7 @@
       if (!alreadyExpressed) clauses.push(spatial);
     }
     for (const materialClause of materialClausesForEntities(entities, lower)) clauses.push(materialClause);
+    for (const partClause of partClausesForEntities(entities, lower)) clauses.push(partClause);
     const seen = new Set();
     return clauses.filter((clause) => {
       const key = [clause.subjectSpanId, clause.objectSpanId, clause.spatialRelation,
@@ -308,6 +340,32 @@
         implicitObject: '',
         prepositions: [],
         relationSource: 'compound-material-language',
+      });
+    }
+    return clauses;
+  }
+
+  function partClausesForEntities(entities = [], lower = '') {
+    const owners = entities.filter((span) => span.semanticRole !== 'part');
+    const parts = entities.filter((span) => span.semanticRole === 'part');
+    const clauses = [];
+    for (const partSpan of parts) {
+      const owner = owners.filter((span) => span.end <= partSpan.start).sort((a, b) => b.end - a.end)
+        .find((span) => /\bwith\b/.test(lower.slice(span.end, partSpan.start)));
+      if (!owner) continue;
+      clauses.push({
+        subjectSpanId: owner.id,
+        verbSpanId: null,
+        objectSpanId: partSpan.id,
+        process: 'part_composition',
+        predicate: 'has-part',
+        subjectRole: semanticRoleForSpan(owner, 'entity'),
+        objectRole: 'part',
+        spatialRelation: '',
+        causalAffordance: 'part-ownership',
+        implicitObject: '',
+        prepositions: ['with'],
+        relationSource: 'explicit-part-language',
       });
     }
     return clauses;
@@ -449,6 +507,12 @@
     return value || 'interact';
   }
 
+  function poseHintForAction(text = '') {
+    const value = String(text || '').toLowerCase();
+    const row = ACTION_POSE_LEXICON.find((entry) => (entry.phrases || []).includes(value));
+    return row ? row.pose : '';
+  }
+
   function semanticRoleForSpan(span = {}, fallback = '') {
     if (span.semanticRole) return span.semanticRole;
     const text = String(span.text || '').toLowerCase();
@@ -532,16 +596,42 @@
     const modifiers = spans.filter((span) => span.kind === 'modifier');
     return modifiers
       .map((modifier, index) => {
-        const target = nearestSpan(modifier, targets);
+        const relation = modifier.modifierRelation || modifierRelation(modifier.text);
+        const target = modifierTarget(modifier, targets, relation);
         if (!target) return null;
         return {
           id: `modifier${index + 1}`,
           targetSpanId: target.id,
           modifierSpanId: modifier.id,
-          relation: modifierRelation(modifier.text),
+          relation,
+          value: modifier.propertyValue || modifier.text,
         };
       })
       .filter(Boolean);
+  }
+
+  function modifierTarget(modifier, targets, relation) {
+    if (relation === 'color' || relation === 'articulation') {
+      const following = targets.filter((span) => (
+        span.start >= modifier.end && span.kind !== 'material'
+      )).sort((a, b) => a.start - b.start)[0];
+      if (following) return following;
+    }
+    return nearestSpan(modifier, targets);
+  }
+
+  function buildQuantities(spans) {
+    const targets = spans.filter((span) => ['entity', 'environment', 'term'].includes(span.kind));
+    return spans.filter((span) => span.kind === 'quantity').map((quantity, index) => {
+      const target = targets.filter((span) => span.start >= quantity.end).sort((a, b) => a.start - b.start)[0];
+      return {
+        id: `quantity${index + 1}`,
+        quantitySpanId: quantity.id,
+        targetSpanId: target && target.id || '',
+        value: Math.max(1, Math.floor(Number(quantity.value || quantity.text || 1))),
+        unit: 'instances',
+      };
+    }).filter((row) => row.targetSpanId);
   }
 
   function nearestSpan(source, spans) {

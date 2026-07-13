@@ -18,6 +18,19 @@
   ]);
 
   const ENTITY_PHRASES = Object.freeze([
+    ['sunset', 'environment', {
+      entityClass: 'sunset',
+      semanticRole: 'lighting-environment',
+      visualArchetype: 'sky',
+      environmentProgram: { kind: 'sunset', lightDirection: [-0.62, -0.3, 0.72], intensity: 1.08 },
+    }],
+    ['birds', 'entity', { semanticRole: 'biological-agent', entityClass: 'bird', visualArchetype: 'bird' }],
+    ['robot', 'entity', { semanticRole: 'agent', entityClass: 'robot', visualArchetype: 'robot' }],
+    ['eyes', 'entity', { semanticRole: 'part', entityClass: 'eye', visualArchetype: 'eye' }],
+    ['eye', 'entity', { semanticRole: 'part', entityClass: 'eye', visualArchetype: 'eye' }],
+    ['arms', 'entity', { semanticRole: 'part', entityClass: 'arm', visualArchetype: 'articulated-arm' }],
+    ['arm', 'entity', { semanticRole: 'part', entityClass: 'arm', visualArchetype: 'articulated-arm' }],
+    ['straw', 'material', { materialHint: 'straw' }],
     ['neutrino detector', 'entity'], ['particle detector', 'entity'],
     ['particle collider', 'entity', { entityClass: 'particle-collider', visualArchetype: 'instrument' }], ['underground water tank', 'entity'],
     ['water tank', 'entity'],
@@ -195,6 +208,18 @@
     'supports', 'support', 'supporting', 'leaks', 'leak', 'leaking',
   ]);
 
+  const ACTION_POSE_LEXICON = Object.freeze([
+    { pose: 'flight-extended', phrases: ['fly', 'flies', 'flying'] },
+    { pose: 'seated', phrases: ['sit', 'sits', 'sitting'] },
+    { pose: 'swim-stroke', phrases: ['swim', 'swims', 'swimming', 'swam'] },
+    { pose: 'running-stride', phrases: ['run', 'runs', 'running'] },
+    { pose: 'jump-extended', phrases: ['jump', 'jumps', 'jumping'] },
+  ]);
+
+  const MATERIAL_VISUAL_VALUES = Object.freeze({
+    straw: Object.freeze({ color: '#d8bd72', roughness: 0.82, texture: 'fibrous' }),
+  });
+
   // Phase 5 consumes this same vocabulary to select a physical behavior bundle.
   // Keep process semantics data-owned so new language cannot silently create a
   // second, unsynchronized keyword taxonomy downstream.
@@ -218,6 +243,21 @@
   ]);
 
   const MODIFIER_PHRASES = Object.freeze([
+    ['red', 'color', { propertyValue: '#ef3340' }],
+    ['black', 'color', { propertyValue: '#111318' }],
+    ['orange', 'color', { propertyValue: '#f47b20' }],
+    ['yellow', 'color', { propertyValue: '#f4d03f' }],
+    ['green', 'color', { propertyValue: '#2fa866' }],
+    ['blue', 'color', { propertyValue: '#3688d8' }],
+    ['purple', 'color', { propertyValue: '#8055b8' }],
+    ['pink', 'color', { propertyValue: '#e96f9d' }],
+    ['white', 'color', { propertyValue: '#f2f2ed' }],
+    ['gray', 'color', { propertyValue: '#737b84' }],
+    ['grey', 'color', { propertyValue: '#737b84' }],
+    ['brown', 'color', { propertyValue: '#8a5a34' }],
+    ['bendable', 'articulation', { propertyValue: 'segmented-flexible' }],
+    ['flexible', 'articulation', { propertyValue: 'segmented-flexible' }],
+    ['rigid', 'articulation', { propertyValue: 'rigid' }],
     ['hot', 'temperature'], ['cold', 'temperature'], ['molten', 'phase'],
     ['viscous', 'material'], ['brittle', 'material'], ['elastic', 'material'],
     ['fast', 'rate'], ['slow', 'rate'], ['glowing', 'emission'],
@@ -312,6 +352,8 @@
     entityPhrases: ENTITY_PHRASES,
     processPhrases: PROCESS_PHRASES,
     behaviorProcessLexicon: BEHAVIOR_PROCESS_LEXICON,
+    actionPoseLexicon: ACTION_POSE_LEXICON,
+    materialVisualValues: MATERIAL_VISUAL_VALUES,
     modifierPhrases: MODIFIER_PHRASES,
     observablePhrases: OBSERVABLE_PHRASES,
     coveragePhrases: COVERAGE_PHRASES,
@@ -324,6 +366,8 @@
     ENTITY_PHRASES,
     PROCESS_PHRASES,
     BEHAVIOR_PROCESS_LEXICON,
+    ACTION_POSE_LEXICON,
+    MATERIAL_VISUAL_VALUES,
     MODIFIER_PHRASES,
     OBSERVABLE_PHRASES,
     COVERAGE_PHRASES,

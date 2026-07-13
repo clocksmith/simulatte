@@ -21,6 +21,7 @@
         const receipt = emptyReceipt();
         const domainByNode = new Map();
         const materialAssignments = materialAssignmentsForGraph(universeGraph);
+        const environmentPrograms = (universeGraph.environmentPrograms || []).map((row) => ({ ...row }));
 
         for (const node of universeGraph.nodes || []) {
           if (materialAssignments.sourceNodeIds.has(node.id)) {
@@ -33,7 +34,7 @@
             continue;
           }
           const semanticType = String(node.semanticType || node.type || '').toLowerCase();
-          if (/^(event|process|action|observable|operator|property|state)$/.test(semanticType)) {
+          if (node.supportOnly === true || /^(event|process|action|observable|operator|part|property|state)$/.test(semanticType)) {
             receipt.exact.push({
               promptSpan: node.label,
               canonicalId: node.canonicalId,
@@ -105,6 +106,8 @@
           boundaryConditions,
           controls,
           readouts,
+          environmentPrograms,
+          promptVisualObligations: (universeGraph.promptVisualObligations || []).map((row) => ({ ...row })),
           receipt,
           typedEvidenceBuckets: universeGraph.typedEvidenceBuckets || null,
           compositionLedger: lowerCompositionLedgerForPhysics(universeGraph.compositionLedger, behaviorRelations),
@@ -182,6 +185,13 @@
           shapeHints: node.shapeHints || [],
           construction: node.construction || null,
           constructionProvenance: node.constructionProvenance || [],
+          properties: (node.properties || []).map((row) => ({ ...row })),
+          partGraph: (node.partGraph || []).map((row) => ({
+            ...row,
+            properties: (row.properties || []).map((property) => ({ ...property })),
+          })),
+          cardinality: Number.isFinite(Number(node.cardinality)) ? Number(node.cardinality) : 1,
+          poseHint: node.poseHint ? { ...node.poseHint } : null,
           directlyGrounded: node.directlyGrounded === true || node.indexName === 'prompt-typed-slot',
           materialId: materialOverride || node.materialId || materialFromDomains([
             ...(node.domains || []),

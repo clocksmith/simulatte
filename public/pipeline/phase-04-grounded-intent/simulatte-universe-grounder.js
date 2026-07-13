@@ -13,7 +13,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseGrounderApi(catalog = {}, graph = {}) {
   const UNIVERSE_GRAPH_SCHEMA = 'simulatte.universeGraph.v1';
   const { clamp01 = (value) => Math.max(0, Math.min(1, value)), slugify = defaultSlugify } = catalog;
-  const { canonicalizeGroundedNodes, attachConstructionEvidence, edgeRowsForClauses, remapSpanNodes } = graph;
+  const { canonicalizeGroundedNodes, attachConstructionEvidence, edgeRowsForClauses, remapSpanNodes,
+    materializeTypedPromptNodes, applyPromptSemanticContracts } = graph;
 
   const CONCEPTS = Object.freeze({
     lava: concept('material.lava', 'fluid', ['fluid', 'thermal', 'phase'], 'lava', ['advection', 'heat_source']),
@@ -106,14 +107,13 @@
     support: 'supports',
     leak: 'fluidForce',
     material_assignment: 'materialOf',
+    part_composition: 'hasPart',
     coexists: 'adjacent',
   });
   const ABSTRACT_UNSUPPORTED_TERMS = new Set(['soul']);
-
   function concept(canonicalId, semanticType, domains, materialId, operatorHints) {
     return { canonicalId, semanticType, domains, materialId, operatorHints };
   }
-
   function groundUniverseGraph(input = {}) {
     const promptParse = input.promptParse || {};
     const spanRows = Array.isArray(promptParse.spans) ? promptParse.spans : [];
@@ -125,7 +125,6 @@
     const seen = new Map();
     const candidateRows = candidateRowsForInput(input);
     const intentBrief = input.intentBrief || null;
-
     for (const span of spanRows) {
       if (!['entity', 'material', 'environment', 'observable'].includes(span.kind)) continue;
       const row = bestCandidateForSpan(span, candidateRows);
@@ -174,13 +173,16 @@
     addComponentNodes(nodes, seen, input, rejected);
     addPromptIdentityCandidateNodes(nodes, seen, candidateRows, input, rejected);
     addUniverseCandidateNodes(nodes, seen, candidateRows, input);
+    materializeTypedPromptNodes(nodes, bySpan, promptParse);
     const canonicalization = canonicalizeGroundedNodes(nodes, input);
     nodes.splice(0, nodes.length, ...canonicalization.nodes);
     remapSpanNodes(bySpan, nodes, canonicalization.nodeIdMap);
     const constructionReceipt = attachConstructionEvidence(nodes, input.slotEvidence || []);
+    const promptSemantics = applyPromptSemanticContracts(nodes, bySpan, promptParse);
     const promptEdges = edgeRowsForClauses(promptParse.clauses || [], bySpan, PROCESS_TO_EDGE);
     const edges = uniqueEdgeRows([
       ...promptEdges,
+      ...promptSemantics.edges,
       ...edgeRowsForIntentBrief(intentBrief, nodes),
     ]);
     const observables = spanRows
@@ -212,6 +214,8 @@
       rejected,
       canonicalization: canonicalization.receipt,
       constructionReceipt,
+      promptVisualObligations: promptSemantics.obligations,
+      environmentPrograms: promptSemantics.environmentPrograms,
       intentBrief: intentBrief ? {
         schema: intentBrief.schema || '',
         evidenceCount: (intentBrief.retrievedEvidence || []).length,
@@ -272,7 +276,6 @@
       },
     };
   }
-
   function candidateRowsForInput(input) {
     const rows = [];
     for (const component of input.components || []) {
@@ -986,7 +989,6 @@
   }
 
   function unique(values) { return [...new Set((values || []).filter(Boolean))]; }
-
   function defaultSlugify(value) { return String(value || 'item').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'; }
 
   return {

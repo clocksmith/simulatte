@@ -15,6 +15,7 @@
     function runPhase4GroundedIntent(phase3Output, runtimeContext = {}) {
         assertPhaseEnvelope(phase3Output, 3, 'Phase 4 input');
         const activationCloud = phase3Output.artifact && phase3Output.artifact.activationCloud || {};
+        const languageGraph = phase3Output.artifact && phase3Output.artifact.languageGraph || {};
         const groundingEvidence = activationCloud.groundingEvidence || {};
         const languageEvidence = activationCloud.languageEvidence || groundingEvidence.languageEvidence || {};
         const candidateEvidence = activationCloud.candidateEvidence || [];
@@ -46,8 +47,9 @@
     	      languageEvidence,
     	      candidateEvidence,
     	      intentBrief,
-    	      groundedInterpretation,
-    	    });
+	    	      groundedInterpretation,
+	    	      languageGraph,
+	    	    });
     	    const rejectedGraph = rejectedGraphFromGrounding(acceptedGraph, groundingEvidence, groundedInterpretation);
     	    const compositionLedger = advanceCompositionLedger(
     	      activationCloud.compositionLedger ||
@@ -259,9 +261,10 @@
         candidateEvidence = [],
         intentBrief = {},
         groundedInterpretation = {},
+        languageGraph = {},
       } = {}) {
         if (!groundUniverseGraph) return null;
-        const promptParse = promptParseFromLanguageEvidence(languageEvidence);
+        const promptParse = promptParseFromLanguageGraph(languageGraph) || promptParseFromLanguageEvidence(languageEvidence);
         if (!promptParse) return null;
         const universeCandidateEvidence = candidateEvidenceFromUniverseGraphCandidates(
           groundingEvidence.universeGraphCandidates || null
@@ -424,6 +427,22 @@
           spans,
           clauses: languageEvidence.clauses || [],
           modifiers: [],
+        };
+      }
+
+    function promptParseFromLanguageGraph(languageGraph = {}) {
+        if (!languageGraph || languageGraph.schema !== 'simulatte.languageGraph.v1') return null;
+        const prompt = String(languageGraph.sourceText || '');
+        const spans = Array.isArray(languageGraph.spans) ? languageGraph.spans.map((row) => ({ ...row })) : [];
+        if (!prompt && !spans.length) return null;
+        return {
+          schema: PROMPT_PARSE_SCHEMA || 'simulatte.promptParse.v1',
+          prompt,
+          tokens: Array.isArray(languageGraph.tokens) ? languageGraph.tokens.map((row) => ({ ...row })) : [],
+          spans,
+          clauses: Array.isArray(languageGraph.clauses) ? languageGraph.clauses.map((row) => ({ ...row })) : [],
+          modifiers: Array.isArray(languageGraph.modifiers) ? languageGraph.modifiers.map((row) => ({ ...row })) : [],
+          quantities: Array.isArray(languageGraph.quantities) ? languageGraph.quantities.map((row) => ({ ...row })) : [],
         };
       }
 
@@ -922,6 +941,7 @@
       groundedIntentAcceptedGraph,
       candidateEvidenceFromUniverseGraphCandidates,
       promptParseFromLanguageEvidence,
+      promptParseFromLanguageGraph,
       rejectedGraphFromGrounding,
       visualAffordancesFromIntentBrief,
       provenanceByNodeRows,

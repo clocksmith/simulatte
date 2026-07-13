@@ -108,6 +108,7 @@
           spans: [],
           clauses: [],
           modifiers: [],
+          quantities: [],
         };
       }
 
@@ -143,7 +144,7 @@
             causalAffordance: clause.causalAffordance || '',
             implicitObject: clause.implicitObject || '',
           })),
-          quantities: tokens.filter((token) => /^(?:\d+(?:\.\d+)?|\.\d+)$/.test(String(token.text || ''))),
+          quantities: Array.isArray(promptParse.quantities) ? promptParse.quantities.map((row) => ({ ...row })) : [],
           negations: spans.filter((span) => span.kind === 'negation').concat(
             tokens.filter((token) => NEGATION_RE.test(String(token.text || '').toLowerCase()))
           ),

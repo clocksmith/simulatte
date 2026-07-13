@@ -1358,7 +1358,8 @@ test('Phase 3 model-ranks construction while keeping local identity receipts tru
     const phase6 = lab.runPhase6VisualCompile(phase5);
     const entities = phase6.artifact.visualCompile.sceneRenderPacket.entities;
     assert.equal(entities.length, 3);
-    assert.ok(entities.every((row) => row.geometry.program.source === 'phase3-model-construction-evidence'));
+    assert.ok(entities.every((row) => row.geometry.program.source === 'phase6-data-owned-part-graph'));
+    assert.ok(entities.every((row) => row.geometry.program.constructionReceipt.modelEvaluated === true));
     assert.ok(entities.find((row) => row.identity.type === 'dog').geometry.program.parts.some((row) => row.id === 'tail'));
     assert.equal(entities.find((row) => row.identity.type === 'lake').material.id, 'water');
   });

@@ -6,7 +6,7 @@
       'in', 'inside', 'into', 'within', 'on', 'onto', 'at', 'over', 'above', 'under',
       'below', 'beside', 'near', 'outside', 'around', 'behind', 'in-front-of',
       'attached-to', 'against', 'through', 'between',
-      'supports',
+      'supports', 'seated-on',
     ]));
 
     function constraintLayoutObjects(objects = [], sceneKind = '', spec = {}, visualGenome = null) {
@@ -164,6 +164,15 @@
         let spatialRelation = normalizeSpatialConstraint(
           relation.spatialRelation || relation.predicate || relation.relation || relation.kind
         );
+        const predicate = String(relation.predicate || '').toLowerCase();
+        if (/\b(?:sit|sits|sitting|sat|seated)\b/.test(predicate) &&
+          ['in', 'inside', 'on', 'at'].includes(spatialRelation)) {
+          spatialRelation = 'seated-on';
+        } else if (spatialRelation === 'at') {
+          spatialRelation = 'near';
+        } else if (!spatialRelation && /\b(?:watch|watches|watching|look|looks|looking|observe|observes|observing)\b/.test(predicate)) {
+          spatialRelation = 'near';
+        }
         if (relation.process === 'impact' && ['in', 'inside', 'into', 'within'].includes(spatialRelation)) {
           spatialRelation = 'against';
         }
@@ -245,8 +254,15 @@
         b.h = Math.max(b.h, Math.min(0.68, a.h * 2.8));
         a.x += (b.x + direction * Math.min(0.12, b.w * 0.18) - a.x) * 0.62;
         a.y += (b.y + Math.min(0.08, b.h * 0.14) - a.y) * 0.62;
+      } else if (type === 'seated-on') {
+        a.x += (b.x - a.x) * 0.76;
+        a.y += (b.y - b.h * 0.08 - a.h * 0.16 - a.y) * 0.76;
       } else if (type === 'outside') {
-        a.x += (b.x + direction * (b.w + a.w) * 0.62 - a.x) * 0.58;
+        const offset = (b.w + a.w) * 0.62;
+        const minimum = a.w * 0.52 + 0.025;
+        const maximum = 0.975 - a.w * 0.52;
+        if (b.x + direction * offset < minimum || b.x + direction * offset > maximum) direction *= -1;
+        a.x += (b.x + direction * offset - a.x) * 0.58;
         a.y += (b.y + Math.min(0.12, b.h * 0.3) - a.y) * 0.44;
       } else if (type === 'on' || type === 'onto' || type === 'at') {
         a.x += (b.x + direction * b.w * 0.12 - a.x) * 0.52;

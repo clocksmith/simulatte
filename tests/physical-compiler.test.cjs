@@ -822,8 +822,28 @@ test('common-world and celestial nouns survive grounding as literal object geome
     assert.equal(renderData.objectPartData.length, 256 * 20);
     if (identities.includes('person')) {
       const person = packet.entities.find((row) => row.identity.type === 'person');
+      const personObject = spec.renderProgram.objects.find((row) => row.id === 'prompt-body-person');
+      const chairObject = spec.renderProgram.objects.find((row) => row.id === 'chair-a');
+      const tableObject = spec.renderProgram.objects.find((row) => row.id === 'table-a');
+      const treeObject = spec.renderProgram.objects.find((row) => row.id === 'prompt-body-tree');
+      const buildingObject = spec.renderProgram.objects.find((row) => row.id === 'language-building-span7');
+      const compositionRelations = spec.compositionGraph.relations.map((relation) => (
+        `${relation.from}:${relation.channel}:${relation.to}`
+      ));
       assert.equal(person.geometry.program.pose, 'sitting');
       assert.equal(person.geometry.program.grammarId, 'object-grammar.person-sitting');
+      assert.ok(personObject.layoutConstraints.includes('relation:entity-person:measurement:entity-television'));
+      assert.ok(chairObject.pose.w < 0.2, 'sitting does not inflate a chair into a containment volume');
+      assert.ok(Math.abs(personObject.pose.x - chairObject.pose.x) < 0.12);
+      assert.ok(Math.abs(personObject.pose.y - chairObject.pose.y) < 0.08);
+      assert.ok(Math.abs(chairObject.pose.y - tableObject.pose.y) < 0.08);
+      assert.ok(Math.abs(chairObject.pose.x - tableObject.pose.x) < 0.24);
+      assert.ok(Math.abs(treeObject.pose.x - buildingObject.pose.x) >=
+        (treeObject.pose.w + buildingObject.pose.w) * 0.5);
+      assert.ok(compositionRelations.includes('human-a:in:chair-a'));
+      assert.ok(compositionRelations.includes('human-a:watching:screen-a'));
+      assert.ok(compositionRelations.includes('chair-a:at:table-a'));
+      assert.ok(compositionRelations.includes('screen-a:inside:language-building-span7'));
     }
     if (identities.includes('galaxy')) {
       assert.ok(!packet.entities.some((row) => row.identity.type === 'instrument'));
@@ -1017,6 +1037,11 @@ test('scene framing makes literal objects readable without changing relation geo
   const dogPacket = lab.createSpecFromPrompt('dogs', { allowPrototypeFallback: true })
     .renderProgram.sceneRenderPacket;
   const dog = dogPacket.entities.find((row) => row.identity.type === 'dog');
+  const dogParts = new Map(dog.geometry.program.parts.map((part) => [part.id, part]));
+  const flowerPacket = lab.createSpecFromPrompt('flowers', { allowPrototypeFallback: true })
+    .renderProgram.sceneRenderPacket;
+  const flower = flowerPacket.entities.find((row) => row.identity.type === 'flower');
+  const flowerParts = new Map(flower.geometry.program.parts.map((part) => [part.id, part]));
   const warehousePacket = lab.createSpecFromPrompt(
     'warehouse robot arms sort parcels on conveyor belts',
     { allowPrototypeFallback: true }
@@ -1028,7 +1053,16 @@ test('scene framing makes literal objects readable without changing relation geo
   assert.ok(dog.transform.scale[0] * dog.transform.scale[1] >= 0.12);
   assert.ok(Math.abs(dog.transform.position[0] - 0.5) <= 0.01);
   assert.ok(Math.abs(dog.transform.position[1] - 0.48) <= 0.01);
+  assert.equal(dog.transform.rotation[2], 0);
+  assert.ok(Math.abs(dogParts.get('front-leg').rotation) <= 0.1);
+  assert.ok(Math.abs(dogParts.get('back-leg').rotation) <= 0.1);
+  assert.ok(dogParts.has('nose'));
+  assert.equal(flowerParts.get('stem').rotation, 0);
+  assert.equal([...flowerParts.keys()].filter((id) => id.startsWith('petal')).length, 5);
+  assert.ok(flowerParts.has('leaf-left'));
+  assert.ok(flowerParts.has('leaf-right'));
   assert.equal(dogPacket.receipts.framing.pass, true);
+  assert.equal(flowerPacket.receipts.framing.pass, true);
   assert.equal(warehousePacket.receipts.framing.pass, true);
   assert.ok(parcel.transform.position[0] >= conveyor.geometry.bounds[0]);
   assert.ok(parcel.transform.position[0] <= conveyor.geometry.bounds[0] + conveyor.geometry.bounds[2]);

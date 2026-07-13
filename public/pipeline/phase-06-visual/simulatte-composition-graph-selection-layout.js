@@ -15,7 +15,7 @@
         const nodes = selected.map((component, index) => (
           compositionNode(component, index, selected.length, spec, contract, priors)
         ));
-        const relations = compositionRelations(nodes, graph);
+        const relations = compositionRelations(nodes, graph, universeGraph, spec);
         const operators = (graph.operators || []).map((operator) => ({
           id: operator.id,
           inputs: operator.inputs || [],
@@ -349,17 +349,99 @@
         return nodes.find((node) => node.id === id) || null;
       }
 
-    function compositionRelations(nodes, graph) {
+    function compositionRelations(nodes, graph, universeGraph = {}, spec = {}) {
         const valid = new Set(nodes.map((node) => node.primitiveId));
-        const fromGraph = (graph.edges || [])
+        const ledger = spec.renderIR && spec.renderIR.compositionLedger ||
+          spec.physicsIR && spec.physicsIR.compositionLedger || {};
+        const evidenceEdges = [
+          ...(universeGraph.edges || []),
+          ...(ledger.relations || []).map((relation) => ({
+            ...relation,
+            type: relation.spatialRelation || relation.predicate || relation.kind,
+            to: relation.kind === 'spatial-constraint' ? relation.to : relation.target || relation.to,
+          })),
+        ];
+        const promptRelations = evidenceEdges.map((edge) => {
+          const fromNode = compositionNodeForRelationReference(nodes, universeGraph, edge.from, spec);
+          const toNode = compositionNodeForRelationReference(nodes, universeGraph, edge.to, spec);
+          if (!fromNode || !toNode || fromNode === toNode) return null;
+          return {
+            from: fromNode.primitiveId,
+            to: toNode.primitiveId,
+            channel: edge.spatialRelation || edge.type || edge.kind,
+            predicate: edge.predicate || '',
+            sourceRelationId: edge.id || '',
+            strength: Number.isFinite(Number(edge.confidence)) ? Number(edge.confidence) : 0.64,
+          };
+        }).filter(Boolean);
+        const contractRelations = (graph.edges || [])
           .filter((edge) => valid.has(edge.from) && valid.has(edge.to) && (edge.channel || edge.kind || edge.type))
           .map((edge) => ({
             from: edge.from,
             to: edge.to,
             channel: edge.channel || edge.kind || edge.type,
+            predicate: edge.predicate || '',
+            sourceRelationId: edge.id || '',
             strength: Number.isFinite(Number(edge.weight)) ? Number(edge.weight) : 0.64,
           }));
-        return fromGraph.slice(0, 42);
+        const unique = new Map();
+        for (const relation of [...promptRelations, ...contractRelations]) {
+          const key = `${relation.from}:${relation.to}:${relation.channel}`;
+          if (!unique.has(key)) unique.set(key, relation);
+        }
+        return Array.from(unique.values()).slice(0, 42);
+      }
+
+    function compositionNodeForRelationReference(nodes = [], universeGraph = {}, reference = '', spec = {}) {
+        const source = (universeGraph.nodes || []).find((node) => (
+          node.id === reference || node.canonicalId === reference || node.primitiveId === reference
+        ));
+        const referenceTokens = relationIdentityTokens(reference);
+        const renderRows = [
+          ...((spec.renderIR && spec.renderIR.objects) || []),
+          ...((spec.renderIR && spec.renderIR.fields) || []),
+        ].filter((row) => {
+          const tokens = relationIdentityTokens([
+            row.id, row.semanticRef, row.physicalRef, row.label, row.role,
+          ].filter(Boolean).join(' '));
+          return referenceTokens.some((token) => tokens.includes(token));
+        });
+        const sourceTokens = relationIdentityTokens([
+          reference,
+          source && source.id,
+          source && source.canonicalId,
+          source && source.primitiveId,
+          source && source.label,
+          ...((source && source.aliases) || []),
+          ...((source && source.shapeHints) || []),
+          ...renderRows.flatMap((row) => [
+            row.id, row.semanticRef, row.physicalRef, row.label, row.role, ...(row.aliases || []),
+          ]),
+        ].filter(Boolean).join(' '));
+        if (!sourceTokens.length) return null;
+        return nodes.map((node) => {
+          const candidateTokens = relationIdentityTokens([
+            node.primitiveId,
+            node.role,
+            node.phrase,
+            node.assembly,
+            ...(node.domains || []),
+          ].filter(Boolean).join(' '));
+          const score = sourceTokens.reduce((sum, token) => sum + Number(candidateTokens.includes(token)), 0);
+          return { node, score };
+        }).filter((row) => row.score > 0)
+          .sort((a, b) => b.score - a.score || String(a.node.primitiveId).localeCompare(String(b.node.primitiveId)))[0]?.node || null;
+      }
+
+    function relationIdentityTokens(value = '') {
+        const ignored = new Set([
+          'assembly', 'body', 'component', 'entity', 'environment', 'material', 'primitive',
+          'prompt', 'semantic', 'surface', 'generated', 'synth',
+          'an', 'and', 'at', 'in', 'is', 'of', 'on', 'the', 'to', 'with',
+        ]);
+        return uniqueList(String(value || '').toLowerCase().split(/[^a-z0-9]+/)
+          .filter((token) => token.length > 1 && !ignored.has(token))
+          .map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token));
       }
 
     function placementFor(component, index, total, spec, contract) {
@@ -391,7 +473,10 @@
         const radius = 0.16 + (index % 5) * 0.038 + phase * 0.02;
         return {
           anchor: clampAnchor([0.52 + Math.cos(angle) * radius, 0.52 + Math.sin(angle) * radius]),
-          rotation: angle + Math.PI / 2,
+          // Radial position is a composition choice, not orientation evidence.
+          // Tangential rotation made literal objects such as dogs and flowers
+          // inherit arbitrary component-index angles and render on their side.
+          rotation: 0,
           scale: 1,
           layer: index,
         };
@@ -653,6 +738,10 @@
           shapeHints: object.shapeHints || [],
           construction: object.construction || object.geometry && object.geometry.construction || null,
           constructionProvenance: object.constructionProvenance || [],
+          properties: object.properties || [],
+          partGraph: object.partGraph || [],
+          cardinality: object.cardinality || 1,
+          poseHint: object.poseHint || null,
           directlyGrounded: object.directlyGrounded === true,
           domainTags: object.domainTags || [],
           evidence: object.evidence || [],
@@ -779,6 +868,10 @@
           shapeHints: binding.shapeHints || object.shapeHints || [],
           construction: binding.construction || object.construction || null,
           constructionProvenance: binding.constructionProvenance || object.constructionProvenance || [],
+          properties: binding.properties || object.properties || [],
+          partGraph: binding.partGraph || object.partGraph || [],
+          cardinality: binding.cardinality || object.cardinality || 1,
+          poseHint: binding.poseHint || object.poseHint || null,
           directlyGrounded: binding.directlyGrounded === true || object.directlyGrounded === true,
           domainTags: binding.domainTags || object.domainTags || [],
           evidence: uniqueList([...(object.evidence || []), ...(binding.evidence || [])]),

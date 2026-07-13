@@ -15,6 +15,13 @@
         shapeHints: object.shapeHints || [],
         construction: object.construction || object.geometry && object.geometry.construction || null,
         constructionProvenance: object.constructionProvenance || [],
+        properties: (object.properties || []).map((row) => ({ ...row })),
+        partGraph: (object.partGraph || []).map((row) => ({
+          ...row,
+          properties: (row.properties || []).map((property) => ({ ...property })),
+        })),
+        cardinality: Number.isFinite(Number(object.cardinality)) ? Number(object.cardinality) : 1,
+        poseHint: object.poseHint ? { ...object.poseHint } : null,
         directlyGrounded: object.directlyGrounded === true,
         domainTags: object.domainTags || [],
         kind: visualEntityKind(object, text),
@@ -76,7 +83,7 @@
     function scenePacketPromptIdentityType(sourceLabel = '') {
       const text = String(sourceLabel || '').trim().toLowerCase();
       const row = [
-        ['dog', /\bdogs?\b/], ['cat', /\bcats?\b/],
+        ['dog', /\bdogs?\b/], ['cat', /\bcats?\b/], ['robot', /\brobots?\b/], ['castle', /\bcastles?\b/],
         ['black-hole', /\bblack[- ]hole\b|event[- ]horizon/], ['television', /\b(tv|television)\b/],
         ['person', /\b(person|people|human)\b/], ['chair', /\b(chair|stool|seat)\b/],
         ['table', /\b(table|desk|bench)\b/], ['building', /\b(building|house|apartment)\b/],
@@ -99,7 +106,7 @@
       if (/person|human|people/.test(value)) return 'person';
       if (/tree|plant|flower/.test(value)) return 'plant';
       if (/water|river|lake|ocean|road/.test(value)) return value === 'road' ? 'surface' : 'medium';
-      if (/building|bridge|shelf|server-rack|stairwell/.test(value)) return 'structure';
+      if (/building|bridge|castle|shelf|server-rack|stairwell/.test(value)) return 'structure';
       if (/robot|conveyor/.test(value)) return 'machine';
       if (/bicycle|car|airplane|boat|vehicle/.test(value)) return 'vehicle';
       if (/sofa|chair|table|lamp/.test(value)) return 'furniture';

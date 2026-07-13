@@ -11,18 +11,19 @@
         part('muzzle', 'ellipse', [0.45, 0.01], [0.19, 0.17], '#d5aa72'),
         part('ear-left', 'capsule', [0.23, -0.31], [0.12, 0.27], '#4a2a1b', -0.35),
         part('ear-right', 'capsule', [0.37, -0.3], [0.11, 0.26], '#4a2a1b', 0.24),
-        part('front-leg', 'capsule', [0.16, 0.3], [0.11, 0.34], '#7b4728', 1.3),
-        part('back-leg', 'capsule', [-0.27, 0.29], [0.11, 0.36], '#7b4728', 1.82),
+        part('front-leg', 'capsule', [0.16, 0.3], [0.11, 0.34], '#7b4728', -0.08),
+        part('back-leg', 'capsule', [-0.27, 0.29], [0.11, 0.36], '#7b4728', 0.08),
         part('tail', 'capsule', [-0.43, -0.06], [0.37, 0.1], '#7b4728', -0.34),
         part('eye', 'ellipse', [0.39, -0.12], [0.045, 0.055], '#17110d'),
+        part('nose', 'ellipse', [0.53, 0.01], [0.055, 0.065], '#20140e'),
       ]),
       cat: grammar('cat', [0.19, 0.115], 33, [
         part('body', 'ellipse', [-0.08, 0.03], [0.59, 0.43], '#c8a46b'),
         part('head', 'ellipse', [0.31, -0.08], [0.29, 0.37], '#d8b87d'),
         part('ear-left', 'triangle', [0.23, -0.34], [0.15, 0.25], '#9a774a'),
         part('ear-right', 'triangle', [0.39, -0.34], [0.15, 0.25], '#9a774a'),
-        part('front-leg', 'capsule', [0.15, 0.3], [0.08, 0.34], '#aa8656', 1.35),
-        part('back-leg', 'capsule', [-0.28, 0.29], [0.08, 0.34], '#aa8656', 1.78),
+        part('front-leg', 'capsule', [0.15, 0.3], [0.08, 0.34], '#aa8656', -0.06),
+        part('back-leg', 'capsule', [-0.28, 0.29], [0.08, 0.34], '#aa8656', 0.06),
         part('tail', 'capsule', [-0.43, -0.11], [0.43, 0.075], '#aa8656', -0.58),
         part('eye-left', 'ellipse', [0.27, -0.1], [0.04, 0.055], '#14221a'),
         part('eye-right', 'ellipse', [0.37, -0.1], [0.04, 0.055], '#14221a'),
@@ -30,18 +31,18 @@
       animal: grammar('animal', [0.2, 0.12], 30, [
         part('body', 'ellipse', [-0.08, 0.02], [0.64, 0.48], '#9f7650'),
         part('head', 'ellipse', [0.32, -0.08], [0.3, 0.38], '#b88a5d'),
-        part('front-leg', 'capsule', [0.15, 0.3], [0.1, 0.34], '#79543a', 1.4),
-        part('back-leg', 'capsule', [-0.3, 0.3], [0.1, 0.34], '#79543a', 1.72),
+        part('front-leg', 'capsule', [0.15, 0.3], [0.1, 0.34], '#79543a', -0.06),
+        part('back-leg', 'capsule', [-0.3, 0.3], [0.1, 0.34], '#79543a', 0.06),
         part('tail', 'capsule', [-0.44, -0.06], [0.34, 0.09], '#79543a', -0.4),
       ]),
       person: grammar('person', [0.13, 0.29], 34, [
         part('head', 'ellipse', [0, -0.36], [0.25, 0.2], '#d7a06f'),
         part('hair', 'ellipse', [0, -0.43], [0.25, 0.11], '#33251f'),
         part('torso', 'rounded-box', [0, -0.06], [0.34, 0.42], '#356ea8'),
-        part('left-arm', 'capsule', [-0.23, -0.03], [0.12, 0.42], '#d7a06f', 1.82),
-        part('right-arm', 'capsule', [0.23, -0.03], [0.12, 0.42], '#d7a06f', 1.32),
-        part('left-leg', 'capsule', [-0.11, 0.31], [0.14, 0.45], '#26384f', 1.5),
-        part('right-leg', 'capsule', [0.11, 0.31], [0.14, 0.45], '#26384f', 1.64),
+        part('left-arm', 'capsule', [-0.23, -0.03], [0.12, 0.42], '#d7a06f', -0.24),
+        part('right-arm', 'capsule', [0.23, -0.03], [0.12, 0.42], '#d7a06f', 0.24),
+        part('left-leg', 'capsule', [-0.11, 0.31], [0.14, 0.45], '#26384f', -0.04),
+        part('right-leg', 'capsule', [0.11, 0.31], [0.14, 0.45], '#26384f', 0.04),
       ]),
       'person-sitting': grammar('person-sitting', [0.13, 0.25], 34, [
         part('head', 'ellipse', [0, -0.34], [0.25, 0.2], '#d7a06f'),
@@ -51,8 +52,8 @@
         part('right-arm', 'capsule', [0.21, -0.01], [0.11, 0.38], '#d7a06f', -0.45),
         part('left-thigh', 'capsule', [-0.14, 0.2], [0.36, 0.1], '#26384f'),
         part('right-thigh', 'capsule', [0.14, 0.2], [0.36, 0.1], '#26384f'),
-        part('left-shin', 'capsule', [-0.27, 0.36], [0.1, 0.32], '#26384f', 1.57),
-        part('right-shin', 'capsule', [0.27, 0.36], [0.1, 0.32], '#26384f', 1.57),
+        part('left-shin', 'capsule', [-0.27, 0.36], [0.1, 0.32], '#26384f'),
+        part('right-shin', 'capsule', [0.27, 0.36], [0.1, 0.32], '#26384f'),
       ]),
       tree: grammar('tree', [0.2, 0.36], 12, [
         part('trunk', 'rounded-box', [0, 0.22], [0.18, 0.56], '#6d4024'),
@@ -63,17 +64,21 @@
         part('crown-top', 'ellipse', [0, -0.39], [0.5, 0.44], '#43a45c'),
       ]),
       plant: grammar('plant', [0.16, 0.28], 15, [
-        part('stem', 'capsule', [0, 0.18], [0.09, 0.58], '#397347', 1.57),
+        part('stem', 'capsule', [0, 0.02], [0.09, 0.88], '#397347'),
         part('leaf-left', 'ellipse', [-0.18, 0.02], [0.35, 0.18], '#55a95c', -0.48),
         part('leaf-right', 'ellipse', [0.18, -0.1], [0.35, 0.18], '#63bb68', 0.48),
         part('crown', 'ellipse', [0, -0.33], [0.5, 0.34], '#48a756'),
       ]),
       flower: grammar('flower', [0.14, 0.25], 16, [
-        part('stem', 'capsule', [0, 0.22], [0.07, 0.55], '#43844b', 1.57),
+        part('stem', 'capsule', [0, 0], [0.07, 0.9], '#43844b'),
         part('petal-left', 'ellipse', [-0.17, -0.29], [0.3, 0.22], '#e96f9d', -0.55),
         part('petal-right', 'ellipse', [0.17, -0.29], [0.3, 0.22], '#ef83aa', 0.55),
         part('petal-top', 'ellipse', [0, -0.41], [0.27, 0.25], '#f294b8'),
+        part('petal-low-left', 'ellipse', [-0.12, -0.17], [0.27, 0.22], '#dd5f91', 0.55),
+        part('petal-low-right', 'ellipse', [0.12, -0.17], [0.27, 0.22], '#e976a2', -0.55),
         part('center', 'ellipse', [0, -0.29], [0.18, 0.16], '#f6c746'),
+        part('leaf-left', 'ellipse', [-0.11, 0.12], [0.25, 0.1], '#4f9a56', -0.48),
+        part('leaf-right', 'ellipse', [0.11, 0.18], [0.25, 0.1], '#5aab60', 0.48),
       ]),
       building: grammar('building', [0.32, 0.48], 3, [
         part('shell', 'rounded-box', [0, 0.08], [0.82, 0.82], '#9aa6b2'),
@@ -166,7 +171,7 @@
       ]),
       lamp: grammar('lamp', [0.13, 0.28], 24, [
         part('base', 'ellipse', [0, 0.4], [0.5, 0.14], '#58616a'),
-        part('stem', 'capsule', [0, 0.06], [0.08, 0.65], '#707b84', 1.57),
+        part('stem', 'capsule', [0, -0.02], [0.08, 0.9], '#707b84'),
         part('shade', 'triangle', [0, -0.3], [0.62, 0.42], '#d7b45d'),
         part('bulb', 'ellipse', [0, -0.25], [0.18, 0.18], '#fff2b0'),
       ]),
@@ -215,6 +220,15 @@
         part('beak', 'triangle', [0.48, -0.1], [0.2, 0.15], '#e3a338', 1.57),
         part('tail', 'triangle', [-0.4, 0.04], [0.3, 0.3], '#294f6c', -1.57),
       ]),
+      'bird-flying': grammar('bird-flying', [0.2, 0.12], 29, [
+        part('body', 'ellipse', [0, 0.04], [0.5, 0.38], '#5b83a3'),
+        part('head', 'ellipse', [0.3, -0.02], [0.25, 0.25], '#739ab7'),
+        part('wing-left', 'triangle', [-0.13, -0.26], [0.66, 0.48], '#315f83', -0.18),
+        part('wing-right', 'triangle', [-0.08, 0.28], [0.66, 0.48], '#3d7095', 3.32),
+        part('beak', 'triangle', [0.47, -0.01], [0.18, 0.13], '#e3a338', 1.57),
+        part('tail-top', 'triangle', [-0.4, -0.04], [0.28, 0.22], '#294f6c', -1.35),
+        part('tail-low', 'triangle', [-0.4, 0.13], [0.28, 0.22], '#294f6c', -1.78),
+      ]),
       fish: grammar('fish', [0.2, 0.11], 29, [
         part('body', 'ellipse', [-0.05, 0], [0.7, 0.55], '#3e92af'),
         part('tail', 'triangle', [-0.46, 0], [0.42, 0.48], '#2f758f', -1.57),
@@ -225,8 +239,8 @@
         part('body', 'ellipse', [-0.05, 0], [0.7, 0.48], '#8a5a38'),
         part('neck', 'capsule', [0.27, -0.18], [0.42, 0.16], '#9b6842', 1.0),
         part('head', 'ellipse', [0.4, -0.3], [0.3, 0.22], '#a06c45'),
-        part('front-leg', 'capsule', [0.2, 0.31], [0.1, 0.5], '#704329', 1.57),
-        part('back-leg', 'capsule', [-0.28, 0.31], [0.1, 0.5], '#704329', 1.57),
+        part('front-leg', 'capsule', [0.2, 0.31], [0.1, 0.5], '#704329', -0.05),
+        part('back-leg', 'capsule', [-0.28, 0.31], [0.1, 0.5], '#704329', 0.05),
         part('tail', 'capsule', [-0.44, -0.02], [0.4, 0.08], '#4f3021', -0.7),
       ]),
       book: grammar('book', [0.18, 0.14], 21, [
@@ -265,6 +279,31 @@
         part('arm-upper', 'capsule', [0.22, -0.2], [0.48, 0.13], '#bac5ce', 0.46),
         part('gripper-left', 'capsule', [0.43, -0.25], [0.22, 0.08], '#404a54', 0.82),
         part('gripper-right', 'capsule', [0.43, -0.11], [0.22, 0.08], '#404a54', -0.82),
+      ]),
+      'robot-character': grammar('robot-character', [0.2, 0.27], 28, [
+        part('torso', 'rounded-box', [0, 0.02], [0.42, 0.46], '#778591'),
+        part('head', 'rounded-box', [0, -0.29], [0.34, 0.27], '#aeb8c2'),
+        part('eye-left', 'ellipse', [-0.08, -0.3], [0.065, 0.065], '#64d5e7'),
+        part('eye-right', 'ellipse', [0.08, -0.3], [0.065, 0.065], '#64d5e7'),
+        part('left-arm-upper', 'capsule', [-0.28, -0.02], [0.28, 0.07], '#9aa9b3', -0.72),
+        part('left-arm-lower', 'capsule', [-0.4, 0.12], [0.28, 0.07], '#9aa9b3', -1.12),
+        part('left-arm-hand', 'ellipse', [-0.46, 0.25], [0.1, 0.1], '#65717e'),
+        part('right-arm-upper', 'capsule', [0.28, -0.02], [0.28, 0.07], '#9aa9b3', 0.72),
+        part('right-arm-lower', 'capsule', [0.4, 0.12], [0.28, 0.07], '#9aa9b3', 1.12),
+        part('right-arm-hand', 'ellipse', [0.46, 0.25], [0.1, 0.1], '#65717e'),
+        part('left-leg', 'capsule', [-0.11, 0.34], [0.12, 0.34], '#596773', -0.06),
+        part('right-leg', 'capsule', [0.11, 0.34], [0.12, 0.34], '#596773', 0.06),
+      ]),
+      castle: grammar('castle', [0.32, 0.32], 6, [
+        part('keep', 'rounded-box', [0, 0.08], [0.46, 0.7], '#5f6670'),
+        part('left-tower', 'rounded-box', [-0.34, 0.06], [0.28, 0.78], '#555d67'),
+        part('right-tower', 'rounded-box', [0.34, 0.06], [0.28, 0.78], '#555d67'),
+        part('left-battlement', 'rounded-box', [-0.34, -0.37], [0.34, 0.14], '#444b54'),
+        part('keep-battlement', 'rounded-box', [0, -0.31], [0.52, 0.14], '#4b535c'),
+        part('right-battlement', 'rounded-box', [0.34, -0.37], [0.34, 0.14], '#444b54'),
+        part('gate', 'rounded-box', [0, 0.32], [0.18, 0.32], '#252b31'),
+        part('window-left', 'rounded-box', [-0.34, -0.06], [0.07, 0.13], '#d89845'),
+        part('window-right', 'rounded-box', [0.34, -0.06], [0.07, 0.13], '#d89845'),
       ]),
       conveyor: grammar('conveyor', [0.32, 0.16], 20, [
         part('belt', 'rounded-box', [0, 0], [0.96, 0.36], '#3f4d56'),
@@ -490,31 +529,34 @@
         ...(entity.behavior && entity.behavior.sourceEvidence || []),
       ]
         .filter(Boolean).join(' ').toLowerCase();
-      const pose = identityType === 'person' && /\b(sit|sits|sitting|seated)\b/.test(evidenceText)
+      const pose = entity.poseHint && entity.poseHint.pose || (identityType === 'person' && /\b(sit|sits|sitting|seated)\b/.test(evidenceText)
         ? 'sitting'
-        : '';
+        : '');
       const visualArchetype = String(identity.visualArchetype || '').toLowerCase();
-      const selectedKey = pose === 'sitting'
+      const promptKey = promptGeometryGrammarKey(identityType, entity, pose);
+      const selectedKey = promptKey || pose === 'sitting'
         ? 'person-sitting'
         : OBJECT_GEOMETRY_GRAMMARS[visualArchetype] ? visualArchetype : identityType;
-      const explicit = OBJECT_GEOMETRY_GRAMMARS[selectedKey] || null;
+      const candidateKeys = uniqueList([promptKey, selectedKey, visualArchetype, identityType]);
+      const explicitCandidates = candidateKeys.map((key) => OBJECT_GEOMETRY_GRAMMARS[key]).filter(Boolean);
+      const explicit = explicitCandidates[0] || null;
       const constructionReceipt = objectGeometryConstructionReceipt(entity);
       if (explicit) {
-        return objectGeometryProgram(explicit, {
+        return selectPromptGeometryProgram(explicitCandidates.map((candidate) => objectGeometryProgram(candidate, {
           identityType: semanticIdentityType,
-          visualArchetype: selectedKey,
+          visualArchetype: candidate.id,
           pose,
           source: 'phase6-data-owned-part-graph',
           sourcePrimitive: geometry.primitive || entity.shape || '',
           constructionReceipt,
-        });
+        })), entity);
       }
       const constructed = constructionGeometryProgramForEntity(
         { ...identity, type: semanticIdentityType, visualArchetype: visualArchetype || identityType },
         geometry,
         entity
       );
-      if (constructed) return constructed;
+      if (constructed) return applyPromptGeometryContracts(constructed, entity);
       const semantic = !explicit && promptIdentityCanOwnSemanticGeometry(identity, entity)
         ? semanticGeometryGrammarForLayer(layerSlot)
         : null;
@@ -522,7 +564,7 @@
       const semanticGrammarId = semantic
         ? `object-grammar.semantic.${semantic.id}.${objectGeometrySafeId(identityType)}`
         : '';
-      return {
+      return applyPromptGeometryContracts({
         schema: OBJECT_GEOMETRY_PROGRAM_SCHEMA,
         grammarId: semanticGrammarId || `object-grammar.${selected.id}`,
         identityType,
@@ -534,7 +576,7 @@
         parts: selected.parts.map((row, order) => ({ ...row, center: row.center.slice(), size: row.size.slice(), order })),
         source: semantic ? 'phase6-semantic-layer-geometry-grammar' : 'phase6-object-geometry-grammar',
         sourcePrimitive: geometry.primitive || entity.shape || '',
-      };
+      }, entity);
     }
 
     function objectGeometryProgram(selected, options = {}) {

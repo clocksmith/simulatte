@@ -38,6 +38,13 @@
         shapeHints: (entity.shapeHints || []).slice(),
         construction: entity.construction || null,
         constructionProvenance: (entity.constructionProvenance || []).slice(),
+        properties: (entity.properties || []).map((row) => ({ ...row })),
+        partGraph: (entity.partGraph || []).map((row) => ({
+          ...row,
+          properties: (row.properties || []).map((property) => ({ ...property })),
+        })),
+        cardinality: Number.isFinite(Number(entity.cardinality)) ? Number(entity.cardinality) : 1,
+        poseHint: entity.poseHint ? { ...entity.poseHint } : null,
         directlyGrounded: entity.directlyGrounded === true,
         glyph,
         materialId: entity.materialId,
@@ -68,7 +75,14 @@
       readouts: readoutBindings(physicsIR, solverGraph),
       receipt: physicsIR.receipt || null,
       typedEvidenceBuckets: physicsIR.typedEvidenceBuckets || universeGraph.typedEvidenceBuckets || null,
-      compositionLedger: physicsIR.compositionLedger || universeGraph.compositionLedger || null,
+      compositionLedger: renderCompositionLedger(
+        physicsIR.compositionLedger || universeGraph.compositionLedger || null,
+        physicsIR.promptVisualObligations || universeGraph.promptVisualObligations || []
+      ),
+      environmentPrograms: (physicsIR.environmentPrograms || universeGraph.environmentPrograms || [])
+        .map((row) => ({ ...row })),
+      promptVisualObligations: (physicsIR.promptVisualObligations || universeGraph.promptVisualObligations || [])
+        .map((row) => ({ ...row })),
       behaviorRelations: physicsIR.behaviorRelations || [],
       sceneHint,
       provenance: {
@@ -156,6 +170,22 @@
       .split(/[^a-z0-9]+/)
       .filter((token) => token.length > 2 && !ignored.has(token))
       .map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token);
+  }
+
+  function renderCompositionLedger(ledger = null, promptVisualObligations = []) {
+    if (!ledger || typeof ledger !== 'object') return ledger;
+    const byId = new Map((ledger.obligations || []).map((row) => [row.id, row]));
+    for (const row of promptVisualObligations || []) byId.set(row.id, { ...row });
+    const obligations = Array.from(byId.values());
+    return {
+      ...ledger,
+      obligations,
+      summary: {
+        ...(ledger.summary || {}),
+        obligationCount: obligations.length,
+        requiredCount: obligations.filter((row) => row.required === true).length,
+      },
+    };
   }
 
   function stateBindingsForEntity(entity, domain, solverGraph) {
