@@ -12,6 +12,11 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 import { captureChildProcessOutput } from './audit-process-log.mjs';
 import { auditPromptMatches, waitForCondition, withDeadline } from './audit-runtime-wait.mjs';
+import {
+  evaluateGoldVisualResults,
+  loadGoldAdjudication,
+  loadGoldSet,
+} from './samer/gold-visual-evaluator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -127,6 +132,8 @@ function parseArgs(argv) {
     profileDir: '',
     keepProfile: false,
     localPort: 4173,
+    goldSetPath: '',
+    goldAdjudicationPath: '',
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -139,6 +146,8 @@ function parseArgs(argv) {
     else if (key === '--eighty') options.eighty = Math.max(0, Number(readValue() || 0));
     else if (key === '--seed') options.seed = Number(readValue() || options.seed);
     else if (key === '--out') options.outDir = path.resolve(readValue() || options.outDir);
+    else if (key === '--gold-set') options.goldSetPath = path.resolve(readValue() || '');
+    else if (key === '--gold-adjudication') options.goldAdjudicationPath = path.resolve(readValue() || '');
     else if (key === '--width') options.width = Math.max(640, Number(readValue() || options.width));
     else if (key === '--height') options.height = Math.max(480, Number(readValue() || options.height));
     else if (key === '--timeout-ms') options.timeoutMs = Math.max(1000, Number(readValue() || options.timeoutMs));
@@ -162,7 +171,7 @@ function parseArgs(argv) {
       options.intentMode = mode === 'model' ? 'model' : 'local';
     }
     else if (key === '--help') {
-      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--timeout-ms N] [--prompt-timeout-ms N] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
+      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--gold-set PATH] [--gold-adjudication PATH] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--timeout-ms N] [--prompt-timeout-ms N] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
       process.exit(0);
     }
   }
@@ -194,6 +203,9 @@ function buildAuditPrompts(options) {
   }
   for (const prompt of options.prompts.filter(Boolean)) {
     prompts.push({ kind: 'custom', prompt });
+  }
+  for (const row of options.goldSet && options.goldSet.rows || []) {
+    prompts.push({ kind: 'gold', prompt: row.prompt, goldRowId: row.id });
   }
   for (let i = 0; i < options.four; i += 1) {
     prompts.push({ kind: 'random-4gram', prompt: randomGram(4, rng) });
@@ -1604,6 +1616,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   return {
     index: index + 1,
     kind: entry.kind,
+    goldRowId: entry.goldRowId || '',
     prompt,
     screenshot: file,
     screenshotHash: sha256Hex(bytes),
@@ -2155,6 +2168,10 @@ function auditPageUrl(options, port) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  options.goldSet = options.goldSetPath ? loadGoldSet(options.goldSetPath) : null;
+  options.goldAdjudication = options.goldAdjudicationPath
+    ? loadGoldAdjudication(options.goldAdjudicationPath)
+    : null;
   const chromePath = await resolveChrome();
   const prompts = buildAuditPrompts(options);
   if (!prompts.length) throw new Error('No audit prompts selected');
@@ -2206,6 +2223,19 @@ async function main() {
     }
     const browserEvents = cdp.diagnostics();
     const analyzed = analyze(results);
+    const goldEvaluation = evaluateGoldVisualResults(results, options.goldSet, options.goldAdjudication);
+    if (goldEvaluation) {
+      analyzed.goldEvaluation = goldEvaluation;
+      for (const row of goldEvaluation.rows) {
+        for (const failure of row.machine.failures) {
+          analyzed.failures.push(`gold ${row.goldRowId}: ${failure.id}: ${failure.reason}`);
+        }
+        for (const failure of row.human.failures) {
+          analyzed.failures.push(`gold ${row.goldRowId}: ${failure}`);
+        }
+      }
+      analyzed.ok = analyzed.failures.length === 0;
+    }
     const gpuValidationFailures = webGpuValidationFailures(browserEvents);
     if (gpuValidationFailures.length > 0) {
       analyzed.ok = false;
@@ -2227,6 +2257,7 @@ async function main() {
         curated: prompts.filter((prompt) => prompt.kind === 'curated').length,
         broad: prompts.filter((prompt) => prompt.kind === 'broad').length,
         custom: prompts.filter((prompt) => prompt.kind === 'custom').length,
+        gold: prompts.filter((prompt) => prompt.kind === 'gold').length,
         random4gram: prompts.filter((prompt) => prompt.kind === 'random-4gram').length,
         random80gram: prompts.filter((prompt) => prompt.kind === 'random-80gram').length,
       },

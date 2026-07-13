@@ -11,6 +11,7 @@
     require('./simulatte-prompt-visual-contracts.js');
     require('./simulatte-object-geometry-grammars.js');
     require('./simulatte-scene-framing.js');
+    require('./simulatte-scene-animation.js');
     require('./simulatte-composition-graph-scene-packet.js');
     require('./simulatte-composition-graph-visual-genome.js');
     require('./simulatte-composition-graph-programs.js');

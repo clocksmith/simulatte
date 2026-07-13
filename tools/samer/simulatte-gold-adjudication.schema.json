@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte gold screenshot adjudication",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "goldSetId", "rows"],
+  "properties": {
+    "schema": { "const": "simulatte.goldVisualAdjudication.v1" },
+    "goldSetId": { "type": "string" },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["goldRowId", "screenshotSha256", "reviewer", "reviewedAt", "verdict", "rules"],
+        "properties": {
+          "goldRowId": { "type": "string" },
+          "screenshotSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "reviewer": { "type": "string", "minLength": 1 },
+          "reviewedAt": { "type": "string", "format": "date-time" },
+          "verdict": { "enum": ["pass", "fail"] },
+          "rules": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "pass"],
+              "properties": {
+                "id": { "type": "string" },
+                "pass": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

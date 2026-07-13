@@ -261,7 +261,7 @@
     });
     const OBJECT_GRAMMAR_PART_REQUIREMENTS = Object.freeze({
       dog: ['body', 'head', 'leg', 'tail'], cat: ['body', 'head', 'leg', 'tail'],
-      animal: ['body', 'head', 'leg'], person: ['head', 'torso', 'arm', 'thigh'],
+      animal: ['body', 'head', 'leg'], person: ['head', 'torso', 'arm', ['leg', 'thigh']],
       tree: ['trunk', 'branch', 'crown'], flower: ['stem', 'petal', 'center'],
       building: ['shell', 'roof', 'door', 'window'], table: ['top', 'leg'],
       chair: ['back', 'seat', 'leg'], television: ['frame', 'screen', 'stand'],
@@ -460,7 +460,9 @@
         const ids = parts.map((part) => String(part.id || '').toLowerCase());
         const grammar = String(program.grammarId || '').replace(/^object-grammar\./, '').replace(/-sitting$/, '');
         const required = OBJECT_GRAMMAR_PART_REQUIREMENTS[grammar];
-        if (required) return required.every((token) => ids.some((id) => id.includes(token)));
+        if (required) return required.every((token) => (
+          (Array.isArray(token) ? token : [token]).some((candidate) => ids.some((id) => id.includes(candidate)))
+        ));
         if (program.source === 'phase6-data-owned-part-graph') return parts.length >= 2;
         return Boolean(program.constructionReceipt) && parts.length >= 3 &&
           new Set(parts.map((part) => part.primitive).filter(Boolean)).size >= 2;

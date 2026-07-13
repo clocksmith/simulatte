@@ -557,7 +557,7 @@
 	      }
 	    for (const relation of languageGraph.relations || []) {
 	      if (!relation.relation || relation.relation === 'performs') continue;
-	      if (!/^(?:in|inside|into|within|on|onto|at|over|above|under|below|beside|near|outside|around|behind|in-front-of|attached-to|against|through|between|supports)$/.test(String(relation.relation))) continue;
+	      if (!/^(?:in|inside|into|within|on|onto|at|over|above|under|below|beside|near|outside|around|behind|in-front-of|attached-to|against|through|between|supports|with)$/.test(String(relation.relation))) continue;
 	      const subject = sceneSpanById(languageGraph, relation.sourceSpanId);
 	      const object = sceneSpanById(languageGraph, relation.targetSpanId);
 	      if (!subject || !object || sceneSpanIsNegated(languageGraph, subject) || sceneSpanIsNegated(languageGraph, object)) continue;

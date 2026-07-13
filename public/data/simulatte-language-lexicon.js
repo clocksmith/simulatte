@@ -202,6 +202,7 @@
     'readout', 'readouts', 'crash', 'crashes', 'crashing',
     'crosses', 'cross', 'crossing', 'watches', 'watch', 'watching',
     'sits', 'sit', 'sitting', 'orbits', 'orbit', 'orbiting',
+    'plays', 'play', 'playing',
     'focuses', 'focus', 'focusing', 'cooling', 'powered', 'powering',
     'bends', 'bend', 'bending', 'fracturing', 'collision',
     'reduces', 'reduce', 'reducing',
@@ -214,6 +215,7 @@
     { pose: 'swim-stroke', phrases: ['swim', 'swims', 'swimming', 'swam'] },
     { pose: 'running-stride', phrases: ['run', 'runs', 'running'] },
     { pose: 'jump-extended', phrases: ['jump', 'jumps', 'jumping'] },
+    { pose: 'play-interaction', phrases: ['play', 'plays', 'playing'] },
   ]);
 
   const MATERIAL_VISUAL_VALUES = Object.freeze({
@@ -236,7 +238,7 @@
     { process: 'phase_transition', phrases: ['freeze', 'freezing', 'melt', 'melting', 'phase', 'ice'] },
     { process: 'network_flow', phrases: ['network', 'queue', 'dispatch', 'signal', 'train', 'platform', 'server', 'packet', 'parcel', 'traffic', 'zoning', 'allocation', 'resolve', 'resolution', 'conflict'] },
     { process: 'oscillation', phrases: ['wave', 'waves', 'resonance', 'orbital', 'orbit', 'ring', 'moon', 'oscillate', 'oscillates', 'oscillation'] },
-    { process: 'motion', phrases: ['motion', 'run', 'runs', 'fly', 'flies', 'cross', 'crosses', 'crossing', 'sit', 'sits', 'sitting'] },
+    { process: 'motion', phrases: ['motion', 'run', 'runs', 'fly', 'flies', 'cross', 'crosses', 'crossing', 'sit', 'sits', 'sitting', 'play', 'plays', 'playing'] },
     { process: 'support', phrases: ['support', 'supports', 'supporting'] },
     { process: 'leak', phrases: ['leak', 'leaks', 'leaking', 'spill', 'seep', 'drip'] },
     { process: 'coexists', phrases: ['coexists', 'adjacent'] },

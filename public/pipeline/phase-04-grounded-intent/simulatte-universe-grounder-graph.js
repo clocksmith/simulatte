@@ -393,6 +393,15 @@
           sourceSpanIds: [clause.subjectSpanId, clause.verbSpanId].filter(Boolean),
         };
         obligations.push(promptVisualObligation('pose', subject, { expectedPose: clause.poseHint }));
+        if (object && (clause.prepositions || []).includes('with')) {
+          object.poseHint = {
+            schema: 'simulatte.groundedPoseHint.v1',
+            action: clause.predicate || clause.process || '',
+            pose: clause.poseHint,
+            sourceSpanIds: [clause.objectSpanId, clause.verbSpanId].filter(Boolean),
+          };
+          obligations.push(promptVisualObligation('pose', object, { expectedPose: clause.poseHint }));
+        }
       }
     }
     for (const span of promptParse.spans || []) {

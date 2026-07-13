@@ -3,6 +3,8 @@ artifacts/pipeline-live-local-audit*/
 artifacts/simulatte-pipeline-audit/live-webgpu/
 artifacts/simulatte-pipeline-audit/live-score/
 artifacts/simulatte-pipeline-audit/runs/*/
+artifacts/samer/
+artifacts/samer-gold-*/
 
 # Local credentials, dependencies, and browser state.
 .env

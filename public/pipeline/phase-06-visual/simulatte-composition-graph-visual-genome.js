@@ -128,6 +128,7 @@
           case 'fermentation-rise': return 6;
           case 'plume-rise': return 7;
           case 'orbital-drift': return 8;
+          case 'play-loop': return 9;
           case 'flight-path': return 10;
           case 'static-pose': return 0.5;
           default: return value ? scenePacketStableCode(value, 9, 64) : 0.5;

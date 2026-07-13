@@ -625,7 +625,7 @@
           this.canvas.dataset.webgpuObjectPartCapacity = String(GPU_OBJECT_PART_CAPACITY);
           this.canvas.dataset.webgpuObjectPartCount = String(renderData.objectPartCount);
           this.canvas.dataset.webgpuObjectParts = renderData.objectPartSummary;
-          this.canvas.dataset.webgpuObjectRealization = JSON.stringify(renderData.objectRealization).slice(0, 4000);
+          this.canvas.dataset.webgpuObjectRealization = JSON.stringify(renderData.objectRealization);
           this.canvas.dataset.webgpuStorageBytes = String(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES);
           this.canvas.dataset.phase7RendererConsumption = JSON.stringify(this.rendererConsumption || {});
           this.canvas.dataset.phase7CameraConsumed = this.rendererConsumption && this.rendererConsumption.cameraConsumed ? 'true' : 'false';

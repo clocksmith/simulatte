@@ -2,7 +2,7 @@
   const scope = root.__SimulatteCompositionGraphRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
-    function visualEntityForObject(object, index, sceneKind) {
+    function visualEntityForObject(object, index, sceneKind, constructionApproach = {}) {
       const text = renderObjectText(object);
       return {
         id: object.id || `entity-${index + 1}`,
@@ -15,6 +15,8 @@
         shapeHints: object.shapeHints || [],
         construction: object.construction || object.geometry && object.geometry.construction || null,
         constructionProvenance: object.constructionProvenance || [],
+        constructionApproachId: constructionApproach.id || CONSTRUCTION_APPROACH_IDS.targeted,
+        constructionApproachSeed: Number(constructionApproach.seed || 0),
         properties: (object.properties || []).map((row) => ({ ...row })),
         partGraph: (object.partGraph || []).map((row) => ({
           ...row,

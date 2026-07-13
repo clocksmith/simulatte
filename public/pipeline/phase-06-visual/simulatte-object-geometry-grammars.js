@@ -537,18 +537,24 @@
       const selectedKey = promptKey || (/^(?:seated|sitting)$/.test(pose)
         ? 'person-sitting'
         : OBJECT_GEOMETRY_GRAMMARS[visualArchetype] ? visualArchetype : identityType);
-      const candidateKeys = uniqueList([promptKey, selectedKey, visualArchetype, identityType]);
-      const explicitCandidates = candidateKeys.map((key) => OBJECT_GEOMETRY_GRAMMARS[key]).filter(Boolean);
+      const categoryKey = objectGeometryCategoryGrammarKey(identityType);
+      const candidateKeys = uniqueList([promptKey, selectedKey, visualArchetype, identityType, categoryKey]);
+      const explicitCandidates = candidateKeys.map((key) => ({ key, grammar: OBJECT_GEOMETRY_GRAMMARS[key] }))
+        .filter((row) => Boolean(row.grammar));
       const explicit = explicitCandidates[0] || null;
       const constructionReceipt = objectGeometryConstructionReceipt(entity);
       if (explicit) {
-        return selectPromptGeometryProgram(explicitCandidates.map((candidate) => objectGeometryProgram(candidate, {
+        return selectPromptGeometryProgram(explicitCandidates.map((candidate) => objectGeometryProgram(candidate.grammar, {
           identityType: semanticIdentityType,
-          visualArchetype: candidate.id,
+          visualArchetype: candidate.grammar.id,
           pose,
           source: 'phase6-data-owned-part-graph',
           sourcePrimitive: geometry.primitive || entity.shape || '',
           constructionReceipt,
+          selectionRole: candidate.key === promptKey && promptKey !== identityType
+            ? 'prompt-specialized'
+            : candidate.key === identityType ? 'identity-catalog'
+              : candidate.key === categoryKey ? 'category-catalog' : 'related-catalog',
         })), entity);
       }
       const constructed = constructionGeometryProgramForEntity(
@@ -598,6 +604,7 @@
         source: options.source || 'phase6-data-owned-part-graph',
         sourcePrimitive: options.sourcePrimitive || '',
         constructionReceipt: options.constructionReceipt || null,
+        selectionRole: options.selectionRole || 'related-catalog',
       };
     }
 
@@ -616,6 +623,15 @@
         exactTargetMatch: provenance.some((row) => row.exactTargetMatch === true),
         candidateIds: provenance.map((row) => row.candidateId).filter(Boolean),
       };
+    }
+
+    function objectGeometryCategoryGrammarKey(identityType = '') {
+      const type = String(identityType || '').toLowerCase();
+      if (/^(?:dog|cat|bird|fish|horse)$/.test(type)) return 'animal';
+      if (/^(?:tree|flower)$/.test(type)) return 'plant';
+      if (/^(?:building|bridge|castle|stairwell)$/.test(type)) return 'structure';
+      if (/^(?:airplane|bicycle|boat|car)$/.test(type)) return 'object';
+      return '';
     }
 
     function semanticGeometryGrammarForLayer(layerSlot = '') {

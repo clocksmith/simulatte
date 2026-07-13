@@ -65,7 +65,7 @@
     'pushes', 'radiates', 'reflects', 'refracts', 'rotates', 'routes',
     'scatters', 'shears', 'shields', 'splits', 'spreads', 'stabilizes',
     'stretches', 'supports', 'throttles', 'transfers', 'transforms', 'traps',
-    'vaporizes', 'warms'
+    'vaporizes', 'warms', 'play', 'plays', 'playing'
   ];
 
   const STOP_WORDS = new Set([

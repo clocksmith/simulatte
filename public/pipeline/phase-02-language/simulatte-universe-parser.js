@@ -494,7 +494,7 @@
     if (/split/.test(value)) return 'split';
     if (/join/.test(value)) return 'join';
     if (/eat/.test(value)) return 'consume';
-    if (/run|jump|bounce|fly|cross|sit/.test(value)) return 'motion';
+    if (/run|jump|bounce|fly|cross|sit|play/.test(value)) return 'motion';
     if (/watch|observ/.test(value)) return 'measurement';
     if (/focus/.test(value)) return 'measurement';
     if (/power/.test(value)) return 'motion';
@@ -554,6 +554,7 @@
     if (prepositions.includes('against')) return 'against';
     if (prepositions.includes('between')) return 'between';
     if (prepositions.includes('at')) return 'at';
+    if (prepositions.includes('with')) return 'with';
     return '';
   }
 

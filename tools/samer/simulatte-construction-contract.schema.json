@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte SAME-R construction trial contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "experimentId",
+    "recordedAt",
+    "methodOwner",
+    "domainOwner",
+    "inputBoundary",
+    "lanes",
+    "budget",
+    "evaluator",
+    "promotion"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema": { "const": "simulatte.samerConstructionContract.v1" },
+    "experimentId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "recordedAt": { "type": "string", "format": "date" },
+    "methodOwner": { "$ref": "#/$defs/owner" },
+    "domainOwner": { "$ref": "#/$defs/owner" },
+    "inputBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "approachPath"],
+      "properties": {
+        "schema": { "const": "simulatte.phase5.output.v2" },
+        "approachPath": { "const": "artifact.simulationCompile.renderIR.constructionApproach" }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "role", "approachId", "seed"],
+        "properties": {
+          "id": { "enum": ["anchor", "targeted", "construction_control"] },
+          "role": { "enum": ["anchor", "targeted", "control"] },
+          "approachId": { "enum": ["category-catalog", "prompt-obligation-coverage", "deterministic-control"] },
+          "seed": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxCandidatesPerEntity", "promptSetId", "recompilesPerLane"],
+      "properties": {
+        "maxCandidatesPerEntity": { "const": 5 },
+        "promptSetId": { "const": "simulatte-public-gold-v1" },
+        "recompilesPerLane": { "const": 2 }
+      }
+    },
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "primaryMetric", "blockingGuardrails"],
+      "properties": {
+        "id": { "const": "simulatte.phase6-construction-structure-evaluator.v1" },
+        "primaryMetric": { "const": "goldObligationPassRate" },
+        "blockingGuardrails": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "promotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sealedPromptSetRequired", "livePixelsRequired", "humanAdjudicationRequired"],
+      "properties": {
+        "sealedPromptSetRequired": { "const": true },
+        "livePixelsRequired": { "const": true },
+        "humanAdjudicationRequired": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "path"],
+      "properties": {
+        "repository": { "type": "string" },
+        "path": { "type": "string" }
+      }
+    }
+  }
+}

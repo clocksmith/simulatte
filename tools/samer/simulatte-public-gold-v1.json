@@ -1,0 +1,66 @@
+{
+  "schema": "simulatte.promptGoldSet.v1",
+  "id": "simulatte-public-gold-v1",
+  "purpose": "Public diagnostic construction set. It is not a sealed promotion holdout.",
+  "rows": [
+    {
+      "id": "cats-in-galaxy",
+      "prompt": "5 cats in a galaxy",
+      "entities": [
+        { "type": "cat", "count": 5 },
+        { "type": "galaxy", "count": 1 }
+      ],
+      "relations": [
+        { "subjectType": "cat", "kind": "inside", "objectType": "galaxy" }
+      ],
+      "poses": [],
+      "blockingVisualRules": ["recognizable-cats", "recognizable-galaxy", "not-generic-box-only"]
+    },
+    {
+      "id": "airplane-over-trees",
+      "prompt": "airplane flying over trees",
+      "entities": [
+        { "type": "airplane", "count": 1 },
+        { "type": "tree", "minimumCount": 1 }
+      ],
+      "relations": [
+        { "subjectType": "airplane", "kind": "above", "objectType": "tree" }
+      ],
+      "poses": [
+        { "type": "airplane", "pose": "flight" },
+        { "type": "tree", "pose": "static" }
+      ],
+      "blockingVisualRules": ["recognizable-airplane", "recognizable-trees", "airplane-above-trees", "not-generic-box-only"]
+    },
+    {
+      "id": "dogs-playing-with-people",
+      "prompt": "3 dogs playing with 7 people",
+      "entities": [
+        { "type": "dog", "count": 3 },
+        { "type": "person", "count": 7 }
+      ],
+      "relations": [
+        { "subjectType": "dog", "kind": "with", "objectType": "person" }
+      ],
+      "poses": [
+        { "type": "dog", "pose": "play-interaction" },
+        { "type": "person", "pose": "play-interaction" }
+      ],
+      "blockingVisualRules": ["recognizable-dogs", "recognizable-people", "visible-play-interaction", "not-generic-box-only"]
+    }
+  ],
+  "promotionHoldout": {
+    "sealed": true,
+    "promptTextIncluded": false,
+    "requiredFamilies": [
+      "animals",
+      "people",
+      "vehicles",
+      "structures",
+      "furniture",
+      "tools",
+      "environments",
+      "unseen-composites"
+    ]
+  }
+}

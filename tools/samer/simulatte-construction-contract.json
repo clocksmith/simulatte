@@ -1,0 +1,60 @@
+{
+  "$schema": "./simulatte-construction-contract.schema.json",
+  "schema": "simulatte.samerConstructionContract.v1",
+  "experimentId": "simulatte-open-world-construction-v1",
+  "recordedAt": "2026-07-12",
+  "methodOwner": {
+    "repository": "clocksmith/gamma",
+    "path": "projects/samer/domains/simulatte/README.md"
+  },
+  "domainOwner": {
+    "repository": "clocksmith/simulatte",
+    "path": "tools/samer"
+  },
+  "inputBoundary": {
+    "schema": "simulatte.phase5.output.v2",
+    "approachPath": "artifact.simulationCompile.renderIR.constructionApproach"
+  },
+  "lanes": [
+    {
+      "id": "anchor",
+      "role": "anchor",
+      "approachId": "category-catalog",
+      "seed": 17
+    },
+    {
+      "id": "targeted",
+      "role": "targeted",
+      "approachId": "prompt-obligation-coverage",
+      "seed": 17
+    },
+    {
+      "id": "construction_control",
+      "role": "control",
+      "approachId": "deterministic-control",
+      "seed": 17
+    }
+  ],
+  "budget": {
+    "maxCandidatesPerEntity": 5,
+    "promptSetId": "simulatte-public-gold-v1",
+    "recompilesPerLane": 2
+  },
+  "evaluator": {
+    "id": "simulatte.phase6-construction-structure-evaluator.v1",
+    "primaryMetric": "goldObligationPassRate",
+    "blockingGuardrails": [
+      "exact-phase5-input",
+      "equal-candidate-sets",
+      "deterministic-recompile",
+      "no-required-obligation-loss",
+      "no-generic-only-gold-entity",
+      "receipt-strategy-match"
+    ]
+  },
+  "promotion": {
+    "sealedPromptSetRequired": true,
+    "livePixelsRequired": true,
+    "humanAdjudicationRequired": true
+  }
+}

@@ -6,7 +6,7 @@
       'in', 'inside', 'into', 'within', 'on', 'onto', 'at', 'over', 'above', 'under',
       'below', 'beside', 'near', 'outside', 'around', 'behind', 'in-front-of',
       'attached-to', 'against', 'through', 'between',
-      'supports', 'seated-on',
+      'supports', 'seated-on', 'with',
     ]));
 
     function constraintLayoutObjects(objects = [], sceneKind = '', spec = {}, visualGenome = null) {
@@ -274,8 +274,9 @@
         a.y += (b.y - (a.h + b.h) * 0.72 - a.y) * 0.64;
       } else if (type === 'under' || type === 'below') {
         a.y += (b.y + (a.h + b.h) * 0.72 - a.y) * 0.64;
-      } else if (type === 'beside' || type === 'near') {
-        a.x += (b.x + direction * (a.w + b.w) * (type === 'near' ? 0.48 : 0.66) - a.x) * 0.62;
+      } else if (type === 'beside' || type === 'near' || type === 'with') {
+        const spacing = type === 'with' ? 0.34 : type === 'near' ? 0.48 : 0.66;
+        a.x += (b.x + direction * (a.w + b.w) * spacing - a.x) * 0.62;
         a.y += (b.y - a.y) * 0.38;
       } else if (type === 'attached-to' || type === 'against') {
         const offset = (a.w + b.w) * 0.46;

@@ -525,6 +525,7 @@
         const baseVisualGenome = rendererPlan && rendererPlan.visualGenome || {};
         const environmentPrograms = spec && spec.renderIR && spec.renderIR.environmentPrograms || [];
         const visualGenome = applyPromptEnvironmentVisualGenome(baseVisualGenome, environmentPrograms);
+        const constructionApproach = spec && spec.renderIR && spec.renderIR.constructionApproach || {};
         const recipe = rendererPlan && rendererPlan.visualRecipe || null;
         const semantic = visualGenome.semanticVisuals || {};
         const causalAffordances = causalAffordancesFromSpec(spec, sceneKind);
@@ -540,7 +541,7 @@
           recipe,
         });
         const baseVisualEntities = filterPromptPartSupportEntities(
-          (objects || []).map((object, index) => visualEntityForObject(object, index, sceneKind)),
+          (objects || []).map((object, index) => visualEntityForObject(object, index, sceneKind, constructionApproach)),
           spec && spec.renderIR && spec.renderIR.objects || []
         );
         const swimmingVisualLowering = lowerSwimmingVisualObligations(spec, baseVisualEntities, sceneKind);

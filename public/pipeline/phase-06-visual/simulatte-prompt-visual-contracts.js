@@ -7,6 +7,12 @@
   const languageLexicon = lexiconApi.LANGUAGE_LEXICON || {};
   const materialVisualValues = languageLexicon.materialVisualValues || {};
   with (scope) {
+    const CONSTRUCTION_APPROACH_IDS = Object.freeze({
+      anchor: 'category-catalog',
+      targeted: 'prompt-obligation-coverage',
+      control: 'deterministic-control',
+    });
+
     function promptGeometryGrammarKey(identityType = '', entity = {}, pose = '') {
       const type = String(identityType || '').toLowerCase();
       const parts = entity.partGraph || [];
@@ -19,28 +25,67 @@
     }
 
     function selectPromptGeometryProgram(candidates = [], entity = {}) {
+      const approach = promptConstructionApproach(entity);
       const hasPromptContracts = (entity.partGraph || []).length > 0 || (entity.properties || []).length > 0 ||
         Boolean(entity.poseHint && entity.poseHint.pose);
-      const scored = candidates.map((program, index) => ({
-        program,
-        index,
-        score: hasPromptContracts ? promptGeometryCandidateScore(program, entity) : -index,
-      })).sort((a, b) => b.score - a.score || a.index - b.index);
+      const scored = candidates.map((program, index) => {
+        const obligationScore = hasPromptContracts ? promptGeometryCandidateScore(program, entity) : -index;
+        return {
+          program,
+          index,
+          obligationScore,
+          score: promptConstructionCandidateScore(program, entity, approach, index, obligationScore),
+        };
+      }).sort((a, b) => b.score - a.score || a.index - b.index);
       const selected = scored[0] && scored[0].program || candidates[0] || null;
       if (!selected) return null;
       const applied = applyPromptGeometryContracts(selected, entity);
       return {
         ...applied,
         constructionSelectionReceipt: {
-          schema: 'simulatte.constructionSelectionReceipt.v1',
-          strategy: 'prompt-obligation-coverage',
+          schema: 'simulatte.constructionSelectionReceipt.v2',
+          strategy: approach.id,
+          seed: approach.seed,
           selectedGrammarId: applied.grammarId || '',
           candidates: scored.map((row) => ({
             grammarId: row.program.grammarId || '',
             score: row.score,
+            obligationScore: row.obligationScore,
           })),
         },
       };
+    }
+
+    function promptConstructionApproach(entity = {}) {
+      const requested = String(entity.constructionApproachId || CONSTRUCTION_APPROACH_IDS.targeted);
+      const known = Object.values(CONSTRUCTION_APPROACH_IDS).includes(requested);
+      if (!known) {
+        throw new Error(`Phase 6 construction approach expected one of ${Object.values(CONSTRUCTION_APPROACH_IDS).join(', ')}, received ${requested}`);
+      }
+      const seed = Number(entity.constructionApproachSeed || 0);
+      if (!Number.isInteger(seed) || seed < 0) {
+        throw new Error(`Phase 6 construction approach seed expected a non-negative integer, received ${entity.constructionApproachSeed}`);
+      }
+      return { id: requested, seed };
+    }
+
+    function promptConstructionCandidateScore(program, entity, approach, index, obligationScore) {
+      if (approach.id === CONSTRUCTION_APPROACH_IDS.targeted) return obligationScore;
+      if (approach.id === CONSTRUCTION_APPROACH_IDS.anchor) {
+        return program.selectionRole === 'category-catalog' ? 3 :
+          program.selectionRole === 'identity-catalog' ? 2 : program.selectionRole === 'prompt-specialized' ? 0 : 1;
+      }
+      return promptConstructionControlScore(program, entity, approach.seed, index);
+    }
+
+    function promptConstructionControlScore(program = {}, entity = {}, seed = 0, index = 0) {
+      const text = `${seed}:${entity.id || entity.sourceObject || 'entity'}:${program.grammarId || index}`;
+      let hash = 2166136261;
+      for (let offset = 0; offset < text.length; offset += 1) {
+        hash ^= text.charCodeAt(offset);
+        hash = Math.imul(hash, 16777619);
+      }
+      return Number(((hash >>> 0) / 4294967295).toFixed(9));
     }
 
     function promptGeometryCandidateScore(program = {}, entity = {}) {
@@ -57,10 +102,11 @@
     }
 
     function applyPromptGeometryContracts(program = {}, entity = {}) {
-      const parts = (program.parts || []).map((row) => ({
+      const parts = (program.parts || []).map((row, index) => ({
         ...row,
         center: (row.center || []).slice(),
         size: (row.size || []).slice(),
+        rotation: promptPosePartRotation(row, index, entity),
       }));
       const bindings = [];
       for (const property of entity.properties || []) {
@@ -109,6 +155,13 @@
         parts,
         promptPropertyBindings: bindings,
       };
+    }
+
+    function promptPosePartRotation(part = {}, index = 0, entity = {}) {
+      const base = Number(part.rotation || 0);
+      const pose = String(entity.poseHint && entity.poseHint.pose || '');
+      if (pose !== 'play-interaction' || !/arm|leg|tail|hand|foot/.test(String(part.id || ''))) return base;
+      return Number((base + (index % 2 ? 0.32 : -0.32)).toFixed(3));
     }
 
     function promptGeometryBinding(entityId, partId, property = {}, matched = []) {
@@ -351,6 +404,7 @@
     }
 
     Object.assign(scope, {
+      CONSTRUCTION_APPROACH_IDS,
       promptGeometryGrammarKey,
       selectPromptGeometryProgram,
       applyPromptGeometryContracts,
