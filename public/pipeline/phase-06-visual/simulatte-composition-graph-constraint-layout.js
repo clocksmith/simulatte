@@ -74,6 +74,7 @@
         existing.aliases = uniqueList([...(existing.aliases || []), ...(object.aliases || []), object.sourceLabel, object.role]);
         existing.physicsOperators = uniqueList([...(existing.physicsOperators || []), ...(object.physicsOperators || [])]);
         existing.behavior = existing.behavior || object.behavior || null;
+        mergeSpecificVisualFields(existing, object);
         existing.constructionHypotheses = mergeConstructionEvidenceRows(
           existing.constructionHypotheses,
           object.constructionHypotheses,
@@ -90,6 +91,24 @@
         );
       }
       return output;
+    }
+
+    function mergeSpecificVisualFields(target, source) {
+      const genericShape = /^(?:|body|object|semantic-object|constructed-object)$/;
+      const genericMaterial = /^(?:|material|metal|generic)$/;
+      const genericRegime = /^(?:|generic|material|mechanical)$/;
+      if (genericShape.test(String(target.shape || '')) && !genericShape.test(String(source.shape || ''))) {
+        target.shape = source.shape;
+      }
+      if (genericMaterial.test(String(target.material || '')) && !genericMaterial.test(String(source.material || ''))) {
+        target.material = source.material;
+      }
+      if (genericRegime.test(String(target.visualRegime || '')) && !genericRegime.test(String(source.visualRegime || ''))) {
+        target.visualRegime = source.visualRegime;
+      }
+      for (const field of ['visualArchetype', 'semanticClass', 'properties', 'partGraph', 'cardinality', 'poseHint']) {
+        if (target[field] == null || target[field] === '') target[field] = source[field];
+      }
     }
 
     function mergeConstructionProvenanceRows(...groups) {

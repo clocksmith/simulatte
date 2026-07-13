@@ -588,6 +588,7 @@
           return /\bprism\b/.test(directShapeText) ? 'prism' : 'lens';
         }
         if (/\b(photon|light[-_ ]?source|radiation|optics)\b/.test(directShapeText)) return 'field-envelope';
+        if (/\b(?:fire|flame|combust|wildfire)\b/.test(directShapeText)) return 'flame-front';
         const ownIdentity = [
           component && component.id,
           component && component.type,

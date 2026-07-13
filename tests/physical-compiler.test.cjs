@@ -1251,15 +1251,18 @@ test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts
   const visualEffect = compositionGraphScope.canonicalVisualObjects([
     {
       id: 'render-fire', semanticRef: 'prompt.body.fire-front', source: 'render-ir',
-      sourceLabel: 'fire', directlyGrounded: true,
+      sourceLabel: 'fire', directlyGrounded: true, shape: 'body', material: 'metal', visualRegime: 'material',
     },
     {
       id: 'generated-fire', semanticRef: 'prompt.body.fire-front', source: 'open-semantic-rag',
-      sourceLabel: 'fire', directlyGrounded: true,
+      sourceLabel: 'fire', directlyGrounded: true, shape: 'flame-front', material: 'fire', visualRegime: 'thermal',
     },
   ]);
   assert.equal(visualEffect.length, 1);
   assert.ok(visualEffect[0].sourceIds.includes('generated-fire'));
+  assert.equal(visualEffect[0].shape, 'flame-front');
+  assert.equal(visualEffect[0].material, 'fire');
+  assert.equal(visualEffect[0].visualRegime, 'thermal');
 
   const nominalWave = compositionGraphScope.canonicalVisualObjects([
     {

@@ -27,8 +27,11 @@
     function selectPromptGeometryProgram(candidates = [], entity = {}) {
       const approach = promptConstructionApproach(entity);
       const rejected = new Set(approach.rejectedGrammarIds);
+      const construction = entity.construction || (entity.constructionHypotheses || [])[0] || {};
       const hasPromptContracts = (entity.partGraph || []).length > 0 || (entity.properties || []).length > 0 ||
-        Boolean(entity.poseHint && entity.poseHint.pose);
+        Boolean(entity.poseHint && entity.poseHint.pose) || Boolean(
+          construction.targetEntryId && construction.provenance && construction.provenance.exactTargetMatch === true
+        );
       const scored = candidates.map((program, index) => {
         const obligationScore = hasPromptContracts ? promptGeometryCandidateScore(program, entity) : -index;
         return {
