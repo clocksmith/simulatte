@@ -852,6 +852,8 @@ test('exact construction families exclude unrelated embedding neighbours through
   }, 'material-surface');
   assert.match(program.grammarId, /heavy-equipment/);
   assert.equal(program.constructionReceipt.exactTargetMatch, true);
+  assert.equal(program.constructionReceipt.topologySelectionMethod, 'exact-target-cue');
+  assert.equal(program.constructionReceipt.topologyTargetFit, true);
 });
 
 test('unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget', () => {
