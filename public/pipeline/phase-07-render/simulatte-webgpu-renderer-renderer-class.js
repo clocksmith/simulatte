@@ -27,6 +27,7 @@
           this.context = context;
           this.canvas.dataset.renderer = 'webgpu-required';
           this.maxDpr = Number(options.maxDpr || 2);
+          this.onSceneProof = typeof options.onSceneProof === 'function' ? options.onSceneProof : null;
           this.quality = 1;
           this.ready = false;
           this.status = 'initializing WebGPU renderer';
@@ -401,6 +402,7 @@
             this.canvas.dataset.sceneProofRequiredNotProvenIds = '[]';
             this.canvas.dataset.sceneProofRequiredFailures = '[]';
           }
+          notifyRendererSceneProof(this);
           return this.phase8Output;
         }
 
@@ -552,9 +554,12 @@
             message,
           };
           this.errorLog.push(message);
+          if (this.renderData) this.renderData.livePixelSamplesStatus = 'fail';
           this.canvas.dataset.phase7PixelReadback = 'fail';
           this.canvas.dataset.phase7PixelReadbackMessage = message;
           this.canvas.dataset.phase7PixelProofStatus = 'fail';
+          this.phase7OutputPacketKey = '';
+          this.refreshPhase7Output(this.renderCount, this.lastFrameMs);
         }
 
         resetPixelReadbackForPacket(packetKey = '') {
@@ -792,6 +797,7 @@
     function phase7PixelReadbackPlan(renderData = null, sceneRenderPacket = {}, renderExecutionInput = null, canvas = null) {
         if (!renderData || renderData.requireLivePixelSamples !== true) return null;
         if (renderData.pixelSamples) return null;
+        if (renderData.livePixelSamplesStatus === 'fail') return null;
         if (
           renderData.livePixelSamples &&
           renderData.livePixelSamples.packetKey === renderData.packetKey &&
@@ -814,19 +820,38 @@
             if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
             continue;
           }
-          const matched = drawablesForPixelObligation(drawables, obligation).slice(0, 2);
+          const expectedSamples = Math.max(1, Math.min(
+            PHASE8_READBACK_SAMPLE_LIMIT - samples.length,
+            Number(obligation.expectedCount || 1)
+          ));
+          const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
+          if (obligation.constraintKind === 'construction-part') {
+            const projectedParts = phase7ProjectedObjectPartPoints(
+              renderData,
+              obligation,
+              Number(renderData.pixelReadbackTimeMs || 0) * 0.001
+            ).slice(0, expectedSamples);
+            const drawable = matched[0];
+            for (const projected of projectedParts) {
+              const sample = drawable && pixelSampleForDrawable(
+                drawable, obligation, width, height, samples.length, drawables.length
+              );
+              if (!sample) continue;
+              applyProjectedPixelSample(sample, projected, width, height, obligation);
+              samples.push(sample);
+              if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
+            }
+            if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
+            continue;
+          }
           for (const drawable of matched) {
             const sample = pixelSampleForDrawable(drawable, obligation, width, height, samples.length, drawables.length);
             const projected = phase7ProjectedObjectPartPoint(
               renderData,
-              obligation,
+              { ...obligation, targetEntityId: drawable.id || obligation.targetEntityId },
               Number(renderData.pixelReadbackTimeMs || 0) * 0.001
             );
-            if (sample && projected) {
-              sample.x = clampInt(Math.round(projected.x * (width - 1)), 0, width - 1);
-              sample.y = clampInt(Math.round(projected.y * (height - 1)), 0, height - 1);
-              sample.uv = [Number(projected.x.toFixed(5)), Number(projected.y.toFixed(5))];
-            }
+            if (sample && projected) applyProjectedPixelSample(sample, projected, width, height, obligation);
             if (sample) samples.push(sample);
             if (samples.length >= PHASE8_READBACK_SAMPLE_LIMIT) break;
           }
@@ -842,41 +867,13 @@
         };
       }
 
-    function phase7ProjectedObjectPartPoint(renderData = {}, obligation = {}, time = 0) {
-        const target = normalizeForProof(obligation.targetIdentity || obligation.target || '');
-        if (!target) return null;
-        const candidates = (renderData.objectParts || []).filter((part) => (
-          normalizeForProof(part.id).includes(target) ||
-          normalizeForProof(part.identityType).includes(target)
-        )).sort((a, b) => (
-          Number(b.size && b.size[0] || 0) * Number(b.size && b.size[1] || 0) -
-          Number(a.size && a.size[0] || 0) * Number(a.size && a.size[1] || 0)
-        ));
-        const part = candidates[0];
-        if (!part) return null;
-        const camera = renderData.cameraState || {};
-        const zoom = Number(camera.zoom || 1);
-        const depth = Number(part.depth || 0.5);
-        let x = (Number(part.center && part.center[0] || 0.5) * 2 - 1) * zoom;
-        let y = (1 - Number(part.center && part.center[1] || 0.5) * 2) * zoom;
-        x += (Number(camera.focalDepth || 0.5) - depth) * Number(camera.tilt || 0);
-        const phase = Math.fround(Number(part.variantCode || 0)) * 6.28318;
-        const motion = Number(part.animationCode || 0);
-        if (motion > 0.75) {
-          if (motion < 1.5) { x += Math.sin(time * 1.4 + phase) * 0.07; y += Math.cos(time * 2.1 + phase) * 0.028; }
-          else if (motion < 2.5) { x += Math.sin(time * 0.9 + phase) * 0.045; y += Math.cos(time * 1.3 + phase) * 0.018; }
-          else if (motion < 3.5) { x += Math.sin(time * 1.6 + phase) * 0.032; y += Math.cos(time * 1.1 + phase) * 0.014; }
-          else if (motion < 4.5) y += Math.sin(time * 1.2 + phase) * 0.01;
-          else if (motion < 5.5) x += ((time * 0.035 + Math.fround(Number(part.variantCode || 0))) % 1) * 0.02 - 0.01;
-          else if (motion < 6.5) y += Math.sin(time * 0.72 + phase) * 0.024;
-          else if (motion < 7.5) { x += Math.sin(time * 0.74 + phase) * 0.012; y += Math.sin(time * 1.05 + phase) * 0.028; }
-          else if (motion < 8.5) { x += Math.cos(time * 0.42 + phase) * 0.026; y += Math.sin(time * 0.42 + phase) * 0.026; }
-          else if (motion > 9.5 && motion < 10.5) { x += Math.cos(time * 0.72 + phase) * 0.065; y += Math.sin(time * 1.14 + phase) * 0.022; }
-          else y += Math.sin(time * 0.5 + phase) * 0.004;
-        }
-        if (Math.abs(Number(part.semanticCode || 0) - 16) < 0.5) x += Math.sin(time * 0.7 + phase) * 0.012;
-        if (Math.abs(Number(part.semanticCode || 0) - 23) < 0.5) { x += Math.cos(time * 0.38 + phase) * 0.022; y += Math.sin(time * 0.38 + phase) * 0.022; }
-        return { x: clamp01((x + 1) * 0.5), y: clamp01((1 - y) * 0.5) };
+    function applyProjectedPixelSample(sample, projected, width, height, obligation = {}) {
+        sample.x = clampInt(Math.round(projected.x * (width - 1)), 0, width - 1);
+        sample.y = clampInt(Math.round(projected.y * (height - 1)), 0, height - 1);
+        sample.uv = [Number(projected.x.toFixed(5)), Number(projected.y.toFixed(5))];
+        sample.constructionRole = projected.part && projected.part.constructionRole || '';
+        sample.constructionPartId = projected.part && projected.part.constructionPartId || '';
+        sample.expectedSampleCount = Number(obligation.expectedCount || 1);
       }
 
     function phase7RequiredVisualObligationIds(renderExecutionInput = null, sceneRenderPacket = {}) {

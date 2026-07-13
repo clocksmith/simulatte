@@ -157,6 +157,11 @@
     if (!primary.semanticClass && row.semanticClass) primary.semanticClass = row.semanticClass;
     if (!primary.visualArchetype && row.visualArchetype) primary.visualArchetype = row.visualArchetype;
     if (!primary.construction && row.construction) primary.construction = row.construction;
+    primary.constructionHypotheses = uniqueConstructionHypotheses([
+      ...(primary.constructionHypotheses || []),
+      ...(row.constructionHypotheses || []),
+      row.construction,
+    ].filter(Boolean));
   }
 
   function attachConstructionEvidence(nodes = [], slotEvidence = []) {
@@ -174,8 +179,13 @@
       if (!candidates.length) continue;
       const node = nodeForSlot(nodes, slot);
       if (!node) continue;
-      const selected = candidates.slice(0, 1);
-      node.construction = mergeConstructionRows(selected);
+      const selected = candidates.slice(0, 3);
+      node.constructionHypotheses = selected.map((candidate, index) => ({
+        ...mergeConstructionRows([candidate]),
+        hypothesisId: `construction:${slot.slotId || node.id}:${index + 1}`,
+        hypothesisRank: index + 1,
+      }));
+      node.construction = node.constructionHypotheses[0];
       node.constructionProvenance = selected.map((candidate) => ({
         candidateId: candidate.candidateId || candidate.id || '',
         source: candidate.source || '',
@@ -244,6 +254,18 @@
       groundingIds: unique(rows.flatMap((row) => row.groundingIds || [])),
       basisIds: unique(rows.flatMap((row) => row.basisIds || [])),
     };
+  }
+
+  function uniqueConstructionHypotheses(rows = []) {
+    const seen = new Set();
+    return rows.filter((row) => {
+      const key = JSON.stringify([
+        row.hypothesisId || '', row.sourceCardIds || [], row.basisIds || [], row.partHints || [],
+      ]);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 3);
   }
 
   function edgeRowsForClauses(clauses = [], bySpan = new Map(), processToEdge = {}) {
@@ -322,11 +344,27 @@
     const environmentPrograms = [];
     const edges = [];
     const propertiesBySpan = new Map();
-    const materialByPartSpan = new Map();
+    const materialByTargetSpan = new Map();
     for (const clause of promptParse.clauses || []) {
       if (clause.process !== 'material_assignment') continue;
       const materialNode = bySpan.get(clause.subjectSpanId);
-      if (materialNode) materialByPartSpan.set(clause.objectSpanId, materialNode.materialId || materialNode.label);
+      const target = bySpan.get(clause.objectSpanId);
+      if (!materialNode || !target) continue;
+      const materialId = materialNode.materialId || normalizedIdentity(materialNode.label);
+      materialByTargetSpan.set(clause.objectSpanId, materialId);
+      materialNode.supportOnly = true;
+      const property = {
+        schema: 'simulatte.groundedProperty.v1',
+        kind: 'material',
+        value: materialId,
+        sourceSpanIds: [clause.subjectSpanId, clause.objectSpanId].filter(Boolean),
+      };
+      target.properties = uniquePropertyRows([...(target.properties || []), property]);
+      propertiesBySpan.set(clause.objectSpanId, target.properties);
+      obligations.push(promptVisualObligation('property', target, {
+        propertyKind: 'material',
+        expectedValue: materialId,
+      }));
     }
     for (const modifier of promptParse.modifiers || []) {
       if (!['color', 'articulation', 'material', 'emission'].includes(modifier.relation)) continue;
@@ -357,7 +395,7 @@
       if (clause.process === 'part_composition' && subject && object) {
         object.semanticType = 'part';
         object.supportOnly = true;
-        const explicitMaterial = materialByPartSpan.get(clause.objectSpanId) || '';
+        const explicitMaterial = materialByTargetSpan.get(clause.objectSpanId) || '';
         const part = {
           id: object.id,
           label: object.label,
@@ -435,7 +473,9 @@
       ownedByPhase: 6,
       target: node.label || node.id || '',
       targetNodeId: node.id || '',
-      targetIdentity: node.semanticClass || normalizedIdentity(node.label),
+      targetIdentity: /^(?:body|entity|environment|material|medium|object|term)$/.test(String(node.semanticClass || ''))
+        ? normalizedIdentity(node.label)
+        : node.semanticClass || normalizedIdentity(node.label),
       constraintKind: kind,
       required: true,
       status: 'pending',
@@ -464,7 +504,8 @@
 
   function normalizedIdentity(value = '') {
     return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-      .split(/\s+/).map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token).join(' ');
+      .split(/\s+/).map((token) => token.length > 3 && token.endsWith('s') && !/(?:ss|us|is)$/.test(token)
+        ? token.slice(0, -1) : token).join(' ');
   }
 
   function finiteOrNull(value) {

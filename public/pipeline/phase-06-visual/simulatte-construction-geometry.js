@@ -1,19 +1,31 @@
 (function attachSimulatteConstructionGeometry(root) {
   const scope = root.__SimulatteCompositionGraphRefactorScope;
   if (!scope || scope.missingDependency) return;
+  const substrateApi = typeof module === 'object' && module.exports
+    ? require('../../data/simulatte-construction-substrate.js')
+    : root.SimulatteConstructionSubstrate || {};
+  const constructionPartRoles = substrateApi.CONSTRUCTION_PART_ROLES || [];
+  const constructionTopologies = substrateApi.CONSTRUCTION_TOPOLOGIES || [];
+  const constructionLayoutVariants = substrateApi.CONSTRUCTION_LAYOUT_VARIANTS || [];
   with (scope) {
     const CONSTRUCTION_GEOMETRY_SCHEMA = 'simulatte.constructiveGeometryProgram.v1';
+    const CONSTRUCTION_CANDIDATE_LIMIT = 5;
     const NUMBER_WORDS = Object.freeze({
       one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8,
       nine: 9, ten: 10, eleven: 11, twelve: 12, sixteen: 16,
     });
 
-    function constructionGeometryProgramForEntity(identity = {}, geometry = {}, entity = {}) {
-      const construction = entity.construction || geometry.construction || null;
+    function constructionGeometryProgramForEntity(identity = {}, geometry = {}, entity = {}, options = {}) {
+      const construction = options.construction || entity.construction || geometry.construction || null;
       if (!construction || construction.schema !== 'simulatte.constructionProgramInput.v1') return null;
+      const layoutVariant = options.layoutVariant || constructionLayoutVariants[0] || {
+        id: 'balanced', spread: 1, aspect: 1, radialStep: 0.72,
+      };
       const descriptors = constructionPartDescriptors(construction);
       const materialPalette = constructionMaterialPalette(construction.materialHints || []);
-      const topologyParts = constructionTopologyParts(construction, materialPalette);
+      const graph = constructionGraphForEvidence(construction, descriptors, layoutVariant);
+      const graphParts = constructionGraphParts(graph, materialPalette, layoutVariant);
+      const topologyParts = graphParts.length ? graphParts : constructionTopologyParts(construction, materialPalette);
       const parts = topologyParts.length ? topologyParts : constructionParts(descriptors, materialPalette);
       if (!parts.length) return null;
       const sourceIds = construction.sourceCardIds || [];
@@ -23,7 +35,9 @@
       return {
         schema: 'simulatte.objectGeometryProgram.v1',
         constructionSchema: CONSTRUCTION_GEOMETRY_SCHEMA,
-        grammarId: `object-grammar.constructive.${constructionGeometrySafeId(sourceIds[0] || identityType)}`,
+        grammarId: `object-grammar.constructive.${constructionGeometrySafeId(
+          graph.topologyId || sourceIds[0] || identityType
+        )}.${constructionGeometrySafeId(layoutVariant.id)}`,
         identityType,
         visualArchetype: (construction.shapeHints || [])[0] || 'constructed-object',
         pose: '',
@@ -33,6 +47,8 @@
         parts,
         source: 'phase3-model-construction-evidence',
         sourcePrimitive: geometry.primitive || entity.shape || '',
+        selectionRole: 'model-construction',
+        constructionGraph: graph,
         constructionReceipt: {
           schema: 'simulatte.constructiveGeometryReceipt.v1',
           sourceCardIds: sourceIds.slice(),
@@ -44,8 +60,445 @@
           literalSlotMatch: provenance.some((row) => row.literalSlotMatch === true),
           exactTargetMatch: provenance.some((row) => row.exactTargetMatch === true),
           candidateIds: provenance.map((row) => row.candidateId).filter(Boolean),
+          hypothesisId: construction.hypothesisId || sourceIds[0] || '',
+          topologyId: graph.topologyId,
+          layoutVariantId: layoutVariant.id,
+          evidencePartCoverage: constructionEvidencePartCoverage(parts, construction.partHints || []),
         },
       };
+    }
+
+    function constructionGeometryCandidatesForEntity(identity = {}, geometry = {}, entity = {}) {
+      const hypotheses = constructionEvidenceHypotheses(entity, geometry);
+      const variants = constructionLayoutVariants.length ? constructionLayoutVariants : [
+        { id: 'balanced', spread: 1, aspect: 1, radialStep: 0.72 },
+      ];
+      const candidates = [];
+      for (let hypothesisIndex = 0; hypothesisIndex < hypotheses.length; hypothesisIndex += 1) {
+        const hypothesis = hypotheses[hypothesisIndex];
+        const variantCount = hypothesisIndex === 0 ? Math.min(3, variants.length) : 1;
+        for (let variantIndex = 0; variantIndex < variantCount; variantIndex += 1) {
+          const program = constructionGeometryProgramForEntity(identity, geometry, entity, {
+            construction: hypothesis,
+            layoutVariant: variants[variantIndex],
+          });
+          if (program) candidates.push(program);
+          if (candidates.length >= CONSTRUCTION_CANDIDATE_LIMIT) return candidates;
+        }
+      }
+      return candidates;
+    }
+
+    function constructionEvidenceHypotheses(entity = {}, geometry = {}) {
+      const rows = [
+        ...(entity.constructionHypotheses || []),
+        entity.construction,
+        geometry.construction,
+      ].filter((row) => row && row.schema === 'simulatte.constructionProgramInput.v1');
+      const seen = new Set();
+      return rows.filter((row) => {
+        const key = JSON.stringify([
+          row.hypothesisId || '', row.sourceCardIds || [], row.basisIds || [], row.partHints || [],
+        ]);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 3);
+    }
+
+    function constructionGraphForEvidence(construction = {}, descriptors = [], layoutVariant = {}) {
+      const topology = constructionTopologyForEvidence(construction, descriptors);
+      const requested = new Map();
+      for (const descriptor of descriptors) {
+        const rows = requested.get(descriptor.role) || [];
+        rows.push(descriptor);
+        requested.set(descriptor.role, rows);
+      }
+      const nodes = [];
+      const appendNodes = (roleId, count, requiredByTopology = false) => {
+        const available = requested.get(roleId) || [];
+        const total = Math.max(count, available.reduce((sum, row) => sum + Number(row.count || 1), 0));
+        for (let index = 0; index < Math.min(12, total); index += 1) {
+          const descriptor = constructionDescriptorForRole(available, roleId, index);
+          nodes.push({
+            id: `${constructionGeometrySafeId(descriptor.id || roleId)}-${index + 1}`,
+            role: roleId,
+            primitive: descriptor.primitive || constructionPrimitiveForRole(roleId),
+            sourceHint: descriptor.id || '',
+            requiredByTopology,
+          });
+        }
+      };
+      if (topology) {
+        for (const row of topology.nodes || []) appendNodes(row.roleId, Number(row.count || 1), true);
+      }
+      for (const [roleId, rows] of requested.entries()) {
+        if (topology && topology.nodes.some((row) => row.roleId === roleId)) continue;
+        appendNodes(roleId, rows.reduce((sum, row) => sum + Number(row.count || 1), 0), false);
+      }
+      return {
+        schema: 'simulatte.constructionGraph.v1',
+        topologyId: topology && topology.id || 'evidence-assembly',
+        layoutVariantId: layoutVariant.id || 'balanced',
+        sourceCardIds: (construction.sourceCardIds || []).slice(),
+        basisIds: (construction.basisIds || []).slice(),
+        nodes: nodes.slice(0, 28),
+        edges: topology ? (topology.edges || []).slice() : constructionInferredEdges(nodes),
+      };
+    }
+
+    function constructionTopologyForEvidence(construction = {}, descriptors = []) {
+      const basisIds = new Set([...(construction.basisIds || []), ...(construction.groundingIds || [])]);
+      const roles = new Set(descriptors.map((row) => row.role));
+      const sourceText = constructionEvidenceText([
+        construction.targetEntryId,
+        ...(construction.sourceCardIds || []),
+        ...(construction.sourceLabels || []),
+      ]);
+      const evidenceText = constructionEvidenceText([
+        sourceText,
+        ...(construction.classHints || []),
+        ...(construction.shapeHints || []),
+        ...(construction.partHints || []),
+        ...(construction.behaviorHints || []),
+        ...(construction.affordanceHints || []),
+      ]);
+      return constructionTopologies.map((row) => {
+        const topologyRoles = new Set((row.nodes || []).map((nodeRow) => nodeRow.roleId));
+        const roleScore = Array.from(topologyRoles).filter((roleId) => roles.has(roleId)).length /
+          Math.max(1, topologyRoles.size);
+        const basisScore = row.basisIds.some((id) => basisIds.has(id)) ? 1 : 0;
+        const cueScore = Math.max(0, ...(row.cues || []).map((cue) => (
+          constructionEvidenceCueScore(cue, sourceText, evidenceText)
+        )));
+        return {
+          row,
+          score: cueScore * 0.55 + roleScore * 0.27 + basisScore * 0.18,
+          cueScore,
+          roleScore,
+          basisScore,
+        };
+      }).filter((entry) => entry.score >= 0.28)
+        .sort((a, b) => b.score - a.score || a.row.id.localeCompare(b.row.id))[0]?.row || null;
+    }
+
+    function constructionEvidenceText(values = []) {
+      return values.filter(Boolean).join(' ').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+
+    function constructionEvidenceCueScore(cue = '', sourceText = '', evidenceText = '') {
+      const normalized = constructionEvidenceText([cue]);
+      if (!normalized) return 0;
+      if (` ${sourceText} `.includes(` ${normalized} `)) return 1.2;
+      if (` ${evidenceText} `.includes(` ${normalized} `)) return 1;
+      const tokens = normalized.split(' ');
+      const evidenceTokens = new Set(evidenceText.split(' '));
+      return tokens.filter((token) => evidenceTokens.has(token)).length / Math.max(2, tokens.length) * 0.72;
+    }
+
+    function constructionDescriptorForRole(rows = [], roleId = '', index = 0) {
+      let offset = index;
+      for (const row of rows) {
+        const count = Math.max(1, Number(row.count || 1));
+        if (offset < count) return row;
+        offset -= count;
+      }
+      return { id: roleId, role: roleId, primitive: constructionPrimitiveForRole(roleId), count: 1 };
+    }
+
+    function constructionPrimitiveForRole(roleId = '') {
+      return constructionPartRoles.find((row) => row.id === roleId)?.primitive || 'rounded-box';
+    }
+
+    function constructionInferredEdges(nodes = []) {
+      const core = nodes.find((row) => row.role === 'core') || nodes[0];
+      if (!core) return [];
+      return nodes.filter((row) => row !== core).map((row) => `attach:${row.role}:${core.role}`);
+    }
+
+    function constructionGraphParts(graph = {}, palette = [], layoutVariant = {}) {
+      const byRole = new Map();
+      for (const nodeRow of graph.nodes || []) {
+        const rows = byRole.get(nodeRow.role) || [];
+        rows.push(nodeRow);
+        byRole.set(nodeRow.role, rows);
+      }
+      const placements = new Map();
+      for (const [roleId, rows] of byRole.entries()) {
+        rows.forEach((nodeRow, index) => placements.set(nodeRow.id, {
+          ...constructionPlacementForRole(roleId, index, rows.length, graph.topologyId, layoutVariant),
+          constraintIds: [],
+        }));
+      }
+      const constraintReceipts = applyConstructionGraphConstraints(graph, byRole, placements);
+      graph.constraints = constraintReceipts;
+      const parts = [];
+      const spread = Number(layoutVariant.spread || 1);
+      const aspect = Number(layoutVariant.aspect || 1);
+      const add = (nodeRow, placement, roleIndex) => {
+        parts.push({
+          ...constructionGeometryPart(
+            nodeRow.id,
+            nodeRow.primitive,
+            [placement.center[0] * spread, placement.center[1] * aspect],
+            placement.size,
+            palette[parts.length % Math.max(1, palette.length)],
+            placement.rotation || 0
+          ),
+          order: parts.length,
+          constructionRole: nodeRow.role,
+          constructionRoleIndex: roleIndex,
+          sourceHint: nodeRow.sourceHint || '',
+          constructionConstraintIds: (placement.constraintIds || []).slice(),
+        });
+      };
+      for (const [roleId, rows] of byRole.entries()) {
+        rows.forEach((nodeRow, index) => add(nodeRow, placements.get(nodeRow.id), index));
+      }
+      return parts;
+    }
+
+    function applyConstructionGraphConstraints(graph = {}, byRole = new Map(), placements = new Map()) {
+      return (graph.edges || []).map((edge, index) => {
+        const [operation, sourceRole = '', targetRole = '', anchor = ''] = String(edge || '').split(':');
+        const sources = byRole.get(sourceRole) || [];
+        const targets = byRole.get(targetRole) || [];
+        const id = `constraint-${index + 1}`;
+        const applied = constructionConstraintOperation(
+          operation, sources, targets, anchor, placements, graph.topologyId, id
+        );
+        return {
+          id,
+          operation,
+          sourceRole,
+          targetRole,
+          anchor,
+          sourceNodeIds: sources.map((row) => row.id),
+          targetNodeIds: targets.map((row) => row.id),
+          applied,
+        };
+      });
+    }
+
+    function constructionConstraintOperation(
+      operation = '', sources = [], targets = [], anchor = '', placements = new Map(), topologyId = '', constraintId = ''
+    ) {
+      if (!sources.length) return false;
+      const target = constructionTargetPlacement(targets, placements);
+      const set = (nodeRow, next) => constructionSetPlacement(placements, nodeRow, next, constraintId);
+      if (operation === 'attach') {
+        sources.forEach((nodeRow, index) => set(nodeRow, constructionAttachedPlacement(
+          placements.get(nodeRow.id), target, anchor, index, sources.length
+        )));
+        return true;
+      }
+      if (operation === 'mirror') {
+        sources.forEach((nodeRow, index) => set(nodeRow, constructionMirroredPlacement(
+          placements.get(nodeRow.id), target, anchor, index, sources.length
+        )));
+        return true;
+      }
+      if (operation === 'radial' || operation === 'orbit' || operation === 'surround') {
+        const radius = operation === 'surround' ? 0.12 : operation === 'orbit' ? 0.36 : 0.3;
+        sources.forEach((nodeRow, index) => {
+          const span = anchor === 'below' ? Math.PI * 0.72 : Math.PI * 2;
+          const start = anchor === 'below' ? Math.PI * 0.14 : -Math.PI * 0.5;
+          const angle = start + span * index / Math.max(1, sources.length - (anchor === 'below' ? 1 : 0));
+          const current = placements.get(nodeRow.id) || {};
+          set(nodeRow, {
+            ...current,
+            center: [target.center[0] + Math.cos(angle) * radius, target.center[1] + Math.sin(angle) * radius],
+            rotation: operation === 'orbit' ? angle + Math.PI * 0.5 : angle,
+            size: operation === 'surround'
+              ? [Math.max(current.size[0], 0.72 - index * 0.06), Math.max(current.size[1], 0.48 - index * 0.04)]
+              : current.size,
+          });
+        });
+        return true;
+      }
+      if (operation === 'chain') {
+        const origin = targets.length ? target.center : [-0.3, 0.26];
+        sources.forEach((nodeRow, index) => {
+          const current = placements.get(nodeRow.id) || {};
+          const center = [origin[0] + (index + 1) * 0.2, origin[1] - (index + 1) * 0.16];
+          set(nodeRow, { ...current, center, rotation: -0.68 + index * 0.14 });
+        });
+        return true;
+      }
+      if (operation === 'pair') {
+        sources.forEach((nodeRow, index) => {
+          const paired = targets[index % Math.max(1, targets.length)];
+          const pairedPlacement = paired && placements.get(paired.id) || target;
+          set(nodeRow, {
+            ...(placements.get(nodeRow.id) || {}),
+            center: pairedPlacement.center.slice(),
+          });
+        });
+        return true;
+      }
+      if (operation === 'parallel') {
+        sources.forEach((nodeRow, index) => {
+          const current = placements.get(nodeRow.id) || {};
+          set(nodeRow, {
+            ...current,
+            center: [target.center[0], target.center[1] - 0.18 + index * 0.12],
+            size: [Math.max(current.size[0], 0.76), Math.min(current.size[1], 0.07)],
+            rotation: 0,
+          });
+        });
+        return true;
+      }
+      if (operation === 'stack') {
+        sources.forEach((nodeRow, index) => {
+          const current = placements.get(nodeRow.id) || {};
+          const centered = index - (sources.length - 1) * 0.5;
+          set(nodeRow, { ...current, center: [target.center[0], target.center[1] + centered * 0.11] });
+        });
+        return true;
+      }
+      if (operation === 'grid' || operation === 'network' || operation === 'scatter') {
+        const columns = Math.max(2, Math.ceil(Math.sqrt(sources.length)));
+        sources.forEach((nodeRow, index) => {
+          const row = Math.floor(index / columns);
+          const column = index % columns;
+          const jitter = operation === 'scatter' ? ((index * 0.61803398875) % 1 - 0.5) * 0.08 : 0;
+          set(nodeRow, {
+            ...(placements.get(nodeRow.id) || {}),
+            center: [
+              target.center[0] + (column - (columns - 1) * 0.5) * 0.2 + jitter,
+              target.center[1] + (row - (Math.ceil(sources.length / columns) - 1) * 0.5) * 0.17 - jitter,
+            ],
+          });
+        });
+        return true;
+      }
+      if (operation === 'inside') {
+        sources.forEach((nodeRow, index) => set(nodeRow, {
+          ...(placements.get(nodeRow.id) || {}),
+          center: [target.center[0] + (index - (sources.length - 1) * 0.5) * 0.08, target.center[1]],
+          size: [Math.min(0.26, target.size[0] * 0.42), Math.min(0.3, target.size[1] * 0.52)],
+        }));
+        return true;
+      }
+      if (operation === 'mesh') {
+        sources.forEach((nodeRow, index) => {
+          const angle = index * Math.PI * 2 / Math.max(1, sources.length);
+          set(nodeRow, {
+            ...(placements.get(nodeRow.id) || {}),
+            center: [target.center[0] + Math.cos(angle) * 0.22, target.center[1] + Math.sin(angle) * 0.18],
+          });
+        });
+        return true;
+      }
+      if (operation === 'through') {
+        sources.forEach((nodeRow, index) => set(nodeRow, {
+          ...(placements.get(nodeRow.id) || {}),
+          center: [target.center[0], target.center[1] + (index - (sources.length - 1) * 0.5) * 0.13],
+          size: [Math.max(0.76, target.size[0]), 0.055],
+          rotation: index % 2 ? 0.12 : -0.12,
+        }));
+        return true;
+      }
+      return false;
+    }
+
+    function constructionTargetPlacement(targets = [], placements = new Map()) {
+      const rows = targets.map((row) => placements.get(row.id)).filter(Boolean);
+      if (!rows.length) return { center: [0, 0], size: [0.68, 0.54] };
+      return {
+        center: [
+          rows.reduce((sum, row) => sum + row.center[0], 0) / rows.length,
+          rows.reduce((sum, row) => sum + row.center[1], 0) / rows.length,
+        ],
+        size: [Math.max(...rows.map((row) => row.size[0])), Math.max(...rows.map((row) => row.size[1]))],
+      };
+    }
+
+    function constructionSetPlacement(placements, nodeRow, next = {}, constraintId = '') {
+      const current = placements.get(nodeRow.id) || { center: [0, 0], size: [0.2, 0.2], rotation: 0, constraintIds: [] };
+      placements.set(nodeRow.id, {
+        ...current,
+        ...next,
+        center: (next.center || current.center).slice(),
+        size: (next.size || current.size).slice(),
+        constraintIds: uniqueList([...(current.constraintIds || []), constraintId]),
+      });
+    }
+
+    function constructionAttachedPlacement(current = {}, target = {}, anchor = '', index = 0, count = 1) {
+      const centered = index - (count - 1) * 0.5;
+      const offsets = {
+        start: [-0.38, centered * 0.13], end: [0.38, centered * 0.13],
+        top: [centered * 0.24, -0.34], below: [centered * 0.24, 0.34],
+        front: [centered * 0.15, -0.08], side: [0.36, centered * 0.15], center: [0, 0],
+      };
+      const offset = offsets[anchor] || [centered * 0.18, 0];
+      return { ...current, center: [target.center[0] + offset[0], target.center[1] + offset[1]] };
+    }
+
+    function constructionMirroredPlacement(current = {}, target = {}, anchor = '', index = 0, count = 1) {
+      const unit = count <= 1 ? 0 : (index - (count - 1) * 0.5) / Math.max(1, (count - 1) * 0.5);
+      if (anchor === 'below') {
+        return { ...current, center: [target.center[0] + unit * 0.36, target.center[1] + 0.31], rotation: 1.57 };
+      }
+      if (anchor === 'ends') {
+        return { ...current, center: [target.center[0] + unit * 0.39, target.center[1] + 0.2] };
+      }
+      return { ...current, center: [target.center[0] + unit * 0.36, target.center[1]], rotation: unit * 0.14 };
+    }
+
+    function constructionPlacementForRole(roleId, index, count, topologyId, variant = {}) {
+      const centered = index - (count - 1) / 2;
+      const unit = count <= 1 ? 0 : centered / Math.max(1, (count - 1) / 2);
+      const angle = index * 2.399963 + Number(variant.radialStep || 0.72);
+      if (roleId === 'core') {
+        return { center: [centered * 0.22, 0], size: [count > 1 ? 0.46 : 0.68, 0.54], rotation: 0 };
+      }
+      if (roleId === 'head') return { center: [0.34, -0.13 + centered * 0.15], size: [0.3, 0.3], rotation: 0 };
+      if (roleId === 'support') {
+        const x = count <= 2 ? unit * 0.27 : unit * 0.38;
+        const y = /branching/.test(topologyId) ? 0.2 - index * 0.08 : 0.31;
+        return { center: [x, y], size: [0.38, 0.1], rotation: 1.57 + unit * 0.08 };
+      }
+      if (roleId === 'appendage') {
+        if (/articulated-machine/.test(topologyId)) {
+          return { center: [-0.22 + index * 0.24, 0.22 - index * 0.2], size: [0.42, 0.09], rotation: -0.82 + index * 0.52 };
+        }
+        return { center: [Math.cos(angle) * 0.34, Math.sin(angle) * 0.27], size: [0.4, 0.085], rotation: angle };
+      }
+      if (roleId === 'joint') {
+        if (/wheeled|conveyor/.test(topologyId)) {
+          return { center: [unit * 0.36, 0.3 - Math.floor(index / 2) * 0.08], size: [0.2, 0.2], rotation: 0 };
+        }
+        return { center: [Math.cos(angle) * 0.29, Math.sin(angle) * 0.24], size: [0.18, 0.18], rotation: 0 };
+      }
+      if (roleId === 'panel') {
+        return { center: [unit * 0.31, -0.1 + Math.floor(index / 2) * 0.2], size: [0.4, 0.27], rotation: unit * 0.22 };
+      }
+      if (roleId === 'sensor') {
+        return { center: [0.23 + centered * 0.13, -0.22 + Math.abs(centered) * 0.025], size: [0.1, 0.1], rotation: 0 };
+      }
+      if (roleId === 'opening') return { center: [centered * 0.2, 0.14], size: [0.2, 0.25], rotation: 0 };
+      if (roleId === 'path') return { center: [0, -0.24 + index * 0.17], size: [0.82, 0.055], rotation: index % 2 ? 0.08 : -0.08 };
+      if (roleId === 'field') {
+        return { center: [Math.cos(angle) * 0.16, Math.sin(angle) * 0.13], size: [0.72 - index * 0.08, 0.52 - index * 0.05], rotation: angle * 0.1 };
+      }
+      return { center: [Math.cos(angle) * 0.27, Math.sin(angle) * 0.22], size: [0.15, 0.14], rotation: angle * 0.16 };
+    }
+
+    function constructionEvidencePartCoverage(parts = [], hints = []) {
+      if (!hints.length) return 1;
+      const realized = new Set(parts.flatMap((part) => [
+        constructionGeometrySafeId(part.id),
+        constructionGeometrySafeId(part.constructionRole),
+        constructionGeometrySafeId(part.sourceHint),
+      ]).filter(Boolean));
+      const matched = hints.filter((hint) => {
+        const descriptor = constructionDescriptor(hint);
+        const terms = [constructionGeometrySafeId(hint), descriptor && descriptor.role].filter(Boolean);
+        return terms.some((term) => Array.from(realized).some((value) => value.includes(term) || term.includes(value)));
+      }).length;
+      return Number((matched / hints.length).toFixed(4));
     }
 
     function constructionPartDescriptors(construction = {}) {
@@ -218,28 +671,17 @@
       const text = String(hint || '').toLowerCase().trim();
       if (!text) return null;
       const count = constructionPartCount(text);
-      if (/body|core|torso|case|shell|container|hull|frame|mass|volume/.test(text)) {
-        return { id: text, role: 'core', primitive: /round|ellipsoid|sphere|soft|organic/.test(text) ? 'ellipse' : 'rounded-box', count: 1 };
-      }
-      if (/leg|foot|feet|support|pillar|pier|column|stand|root/.test(text)) {
-        return { id: text, role: 'support', primitive: /pillar|pier|column|stand/.test(text) ? 'rounded-box' : 'capsule', count: Math.max(2, count) };
-      }
-      if (/arm|limb|branch|cable|pipe|tail|neck|strand|rod|beam|spoke/.test(text)) {
-        return { id: text, role: 'appendage', primitive: 'capsule', count: Math.max(1, count) };
-      }
-      if (/wheel|ring|orbit|joint|bearing|loop/.test(text)) {
-        return { id: text, role: 'joint', primitive: 'ring', count: Math.max(1, count) };
-      }
-      if (/wing|leaf|fin|blade|petal|panel|deck|roof|screen|surface|plane/.test(text)) {
-        return { id: text, role: 'panel', primitive: /wing|leaf|fin|blade|petal/.test(text) ? 'triangle' : 'rounded-box', count: Math.max(1, count) };
-      }
-      if (/head|sensor|eye|lens|camera|antenna|node|knob|light/.test(text)) {
-        return { id: text, role: 'sensor', primitive: /lens|eye|camera/.test(text) ? 'ring' : 'ellipse', count: Math.max(1, count) };
-      }
-      if (/door|window|opening|aperture|mouth|cavity|interior/.test(text)) {
-        return { id: text, role: 'opening', primitive: /aperture|cavity/.test(text) ? 'ring' : 'rounded-box', count: Math.max(1, count) };
-      }
-      return { id: text, role: 'detail', primitive: /line|track|path|vein/.test(text) ? 'capsule' : 'ellipse', count: Math.max(1, count) };
+      const rule = constructionPartRoles.find((row) => [row.id, ...row.terms].some((term) => (
+        new RegExp(`(?:^|[^a-z0-9])${constructionEscapeRegExp(term)}(?:[^a-z0-9]|$)`).test(text)
+      ))) || constructionPartRoles.find((row) => row.id === 'detail');
+      const roleId = rule && rule.id || 'detail';
+      const primitive = /round|ellipsoid|sphere|soft|organic/.test(text) && roleId === 'core'
+        ? 'ellipse'
+        : /aperture|cavity|lens|eye|camera/.test(text)
+          ? 'ring'
+          : rule && rule.primitive || 'rounded-box';
+      const minimumCount = roleId === 'support' && /leg|foot|feet/.test(text) ? 2 : 1;
+      return { id: text, role: roleId, primitive, count: Math.max(minimumCount, count) };
     }
 
     function constructionParts(descriptors = [], palette = []) {
@@ -334,11 +776,17 @@
       return String(value || 'constructed-object').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'constructed-object';
     }
 
+    function constructionEscapeRegExp(value = '') {
+      return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     Object.assign(scope, {
       CONSTRUCTION_GEOMETRY_SCHEMA,
       constructionGeometryProgramForEntity,
+      constructionGeometryCandidatesForEntity,
       constructionPartDescriptors,
       constructionTopologyParts,
+      constructionGraphForEvidence,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

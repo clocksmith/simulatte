@@ -184,6 +184,7 @@
           aliases: node.aliases || [],
           shapeHints: node.shapeHints || [],
           construction: node.construction || null,
+          constructionHypotheses: (node.constructionHypotheses || []).map((row) => ({ ...row })),
           constructionProvenance: node.constructionProvenance || [],
           properties: (node.properties || []).map((row) => ({ ...row })),
           partGraph: (node.partGraph || []).map((row) => ({
@@ -211,6 +212,7 @@
           return {
             kind: 'constructive-program',
             construction: node.construction,
+            constructionHypotheses: (node.constructionHypotheses || []).map((row) => ({ ...row })),
             bounds: [0.2, 0.24, 0.28, 0.24],
           };
         }

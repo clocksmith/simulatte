@@ -159,9 +159,11 @@ function evaluateGoldRow(goldRow, phase6, lane) {
       minimumCount: minimumCount || null,
       actualCount: matching.length,
     }));
-    const specific = matching.filter((entity) => (
-      entity.geometry && entity.geometry.program && entity.geometry.program.grammarId !== 'object-grammar.object'
-    ));
+    const specific = matching.filter((entity) => {
+      const program = entity.geometry && entity.geometry.program || {};
+      return program.grammarId !== 'object-grammar.object' && program.literal === true &&
+        program.unsupportedIdentity !== true;
+    });
     obligations.push(obligation(`entity:${expected.type}:specific-geometry`, specific.length === matching.length && matching.length > 0, {
       grammarIds: matching.map((entity) => entity.geometry && entity.geometry.program && entity.geometry.program.grammarId || ''),
     }));
@@ -179,6 +181,21 @@ function evaluateGoldRow(goldRow, phase6, lane) {
     obligations.push(obligation(`pose:${expected.type}:${expected.pose}`, posePass, {
       animationKinds: matching.map((entity) => entity.animation && entity.animation.kind || ''),
       programPoses: matching.map((entity) => entity.geometry && entity.geometry.program && entity.geometry.program.pose || ''),
+    }));
+  }
+  for (const expected of goldRow.properties || []) {
+    const matching = entities.filter((entity) => entity.identity && entity.identity.type === expected.type);
+    const bindings = matching.flatMap((entity) => (
+      entity.geometry && entity.geometry.program && entity.geometry.program.promptPropertyBindings || []
+    ));
+    const propertyPass = bindings.some((binding) => (
+      binding.propertyKind === expected.kind && binding.value === expected.value &&
+      binding.status === 'bound' && (binding.matchedPartIds || []).length > 0
+    ));
+    obligations.push(obligation(`property:${expected.type}:${expected.kind}:${expected.value}`, propertyPass, {
+      matchingBindings: bindings.filter((binding) => (
+        binding.propertyKind === expected.kind && binding.value === expected.value
+      )),
     }));
   }
   const selections = selectionRows(packet);

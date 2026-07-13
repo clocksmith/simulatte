@@ -5,8 +5,14 @@
     function createBrowserLab(root = document) {
         const canvas = root.getElementById('physics-canvas');
         if (!canvas) return null;
+        let handleSceneProofReport = null;
         const webGpuRenderer = root.defaultView && root.defaultView.SimulatteWebGpuRenderer && canvas
-          ? root.defaultView.SimulatteWebGpuRenderer.create(canvas, { maxDpr: 1.5 })
+          ? root.defaultView.SimulatteWebGpuRenderer.create(canvas, {
+            maxDpr: 1.5,
+            onSceneProof: (report) => {
+              if (handleSceneProofReport) handleSceneProofReport(report);
+            },
+          })
           : null;
         let simulationVisible = false;
         const loadingCanvas = root.getElementById('loading-canvas');
@@ -69,8 +75,88 @@
         let paused = false;
         let buildSerial = 0;
         let compileSerial = 0;
+        let constructionRetryPending = false;
         let activePromptRuntimeReceipt = null;
         const pipelineCompiler = createPipelineCompiler(root);
+
+        handleSceneProofReport = (report) => {
+          if (!report || report.final !== true || !trainingRun.runId || !trainingRun.prompt) return;
+          const search = trainingRun.constructionSearch || createConstructionSearchState({ buildSerial });
+          trainingRun.constructionSearch = search;
+          const decision = observeConstructionSceneProof(report, spec, search);
+          syncConstructionSearchDataset(canvas, decision);
+          if (decision.action === 'duplicate' || decision.action === 'wait' || decision.action === 'ignore') return;
+          if (decision.action === 'accept') {
+            publishRuntime({
+              state: 'ready',
+              blocking: false,
+              stage: 'construction-proof',
+              percent: 100,
+              message: 'Scene obligations proven',
+              detail: `${search.attempts.length} construction attempt${search.attempts.length === 1 ? '' : 's'} receipted`,
+              canvasLoading: false,
+            });
+            return;
+          }
+          if (decision.action !== 'retry' || constructionRetryPending) {
+            publishRuntime({
+              state: 'ready',
+              blocking: false,
+              stage: 'construction-proof',
+              percent: 100,
+              message: 'Scene obligations not proven',
+              detail: decision.reason || search.terminalReason || 'construction search stopped',
+              canvasLoading: false,
+            });
+            return;
+          }
+          constructionRetryPending = true;
+          const retrySerial = buildSerial;
+          publishRuntime({
+            state: 'active',
+            blocking: false,
+            stage: 'construction-search',
+            taskPercent: 0,
+            progressScope: 'task',
+            percent: 99,
+            message: `Trying construction ${decision.nextApproach.attempt + 1}`,
+            detail: `rejected ${decision.nextApproach.rejectedGrammarIds.join(', ')}`,
+            canvasLoading: false,
+          });
+          Promise.resolve().then(() => {
+            if (retrySerial !== buildSerial || trainingRun.serial !== retrySerial) return;
+            const nextSpec = constructionSearchSpec(spec, decision.nextApproach);
+            setSpec(nextSpec, { visible: true });
+            publishRuntime({
+              state: 'ready',
+              blocking: false,
+              stage: 'construction-search',
+              percent: 100,
+              message: 'Construction candidate rendered',
+              detail: `attempt ${decision.nextApproach.attempt + 1} awaiting screenshot proof`,
+              canvasLoading: false,
+            });
+          }).catch((error) => {
+            search.status = 'failed';
+            search.terminalReason = error && error.message ? error.message : String(error || 'construction retry failed');
+            syncConstructionSearchDataset(canvas, {
+              ...decision,
+              action: 'error',
+              reason: search.terminalReason,
+            });
+            publishRuntime({
+              state: 'error',
+              blocking: false,
+              stage: 'construction-search',
+              percent: 100,
+              message: 'Construction search failed',
+              detail: search.terminalReason,
+              canvasLoading: false,
+            });
+          }).finally(() => {
+            constructionRetryPending = false;
+          });
+        };
 
         const refreshRenderExecutionInput = () => {
           const phase6Output = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 || null;
@@ -130,6 +216,7 @@
           const params = paramsOverride || readPromptParams(promptInput, {});
           const serial = buildSerial + 1;
           buildSerial = serial;
+          constructionRetryPending = false;
           beginTrainingRun(trainingRun, prompt, params, serial);
           if (!String(prompt || '').trim()) {
             publishRuntime({

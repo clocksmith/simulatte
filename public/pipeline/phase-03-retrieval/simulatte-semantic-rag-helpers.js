@@ -382,6 +382,23 @@
         ]);
       }
 
+    function constructionTopologySurfaceCards() {
+        const topologies = constructionSubstrate.CONSTRUCTION_TOPOLOGIES || [];
+        return topologies.map((topology) => surfaceCard(
+          `construction.${topology.id}`,
+          'construction-topology',
+          uniqueList([topology.id.replace(/-/g, ' '), ...(topology.cues || [])]),
+          `reusable part graph with ${(topology.nodes || []).reduce((sum, row) => sum + Number(row.count || 0), 0)} typed parts and ${(topology.edges || []).length} spatial constraints`,
+          {
+            classHints: ['construction_topology', topology.id],
+            shapeHints: [topology.id],
+            partHints: (topology.nodes || []).map((row) => `${row.count} ${row.roleId}`),
+            relationHints: (topology.edges || []).slice(),
+            groundingIds: (topology.basisIds || []).slice(),
+          }
+        ));
+      }
+
     function surfacePack(namespace, type, entries, shared) {
         return entries.map((entry) => {
           const labels = Array.isArray(entry) ? entry : [entry];
@@ -821,6 +838,7 @@
       surfaceCard,
       basisCard,
       universeSurfaceCards,
+      constructionTopologySurfaceCards,
       surfacePack,
       uniqueSurfaceCards,
       primitiveDoc,

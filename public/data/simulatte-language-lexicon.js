@@ -114,7 +114,10 @@
     ['queue', 'entity'], ['packet', 'entity'], ['market', 'entity'],
     ['network', 'entity'], ['feedback', 'entity'], ['shock', 'entity'],
     ['sand', 'material'], ['rock', 'material'], ['basalt', 'material'],
-    ['magnetized metal', 'material'], ['metal', 'material'], ['wood', 'material'],
+    ['magnetized metal', 'material'], ['metal', 'material'], ['steel', 'material'],
+    ['wood', 'material'], ['concrete', 'material'], ['brick', 'material'],
+    ['plastic', 'material'], ['ceramic', 'material'], ['fabric', 'material'],
+    ['rubber', 'material'], ['fur', 'material'],
     ['air', 'material'], ['sediment', 'material'], ['rain', 'entity'], ['quartz', 'material'],
     ['cathedral', 'entity'], ['jellyfish', 'entity'], ['entropy', 'observable'],
     ['soul', 'entity'], ['mangrove roots', 'entity', { entityClass: 'mangrove-roots', visualArchetype: 'tree' }],
@@ -207,6 +210,7 @@
     'bends', 'bend', 'bending', 'fracturing', 'collision',
     'reduces', 'reduce', 'reducing',
     'supports', 'support', 'supporting', 'leaks', 'leak', 'leaking',
+    'holds', 'hold', 'holding', 'carries', 'carry', 'carrying',
   ]);
 
   const ACTION_POSE_LEXICON = Object.freeze([
@@ -216,10 +220,27 @@
     { pose: 'running-stride', phrases: ['run', 'runs', 'running'] },
     { pose: 'jump-extended', phrases: ['jump', 'jumps', 'jumping'] },
     { pose: 'play-interaction', phrases: ['play', 'plays', 'playing'] },
+    { pose: 'grasp-hold', phrases: ['hold', 'holds', 'holding', 'carry', 'carries', 'carrying'] },
   ]);
 
   const MATERIAL_VISUAL_VALUES = Object.freeze({
     straw: Object.freeze({ color: '#d8bd72', roughness: 0.82, metallic: 0.04, texture: 'fibrous' }),
+    wood: Object.freeze({ color: '#8a5a34', roughness: 0.74, metallic: 0.02, texture: 'grain' }),
+    metal: Object.freeze({ color: '#87949d', roughness: 0.28, metallic: 0.9, texture: 'brushed' }),
+    steel: Object.freeze({ color: '#77838c', roughness: 0.24, metallic: 0.94, texture: 'brushed' }),
+    glass: Object.freeze({ color: '#8ed2df', roughness: 0.08, metallic: 0.02, texture: 'transparent' }),
+    rock: Object.freeze({ color: '#756f68', roughness: 0.9, metallic: 0.01, texture: 'granular' }),
+    stone: Object.freeze({ color: '#817a72', roughness: 0.86, metallic: 0.01, texture: 'granular' }),
+    concrete: Object.freeze({ color: '#92908a', roughness: 0.92, metallic: 0.01, texture: 'aggregate' }),
+    brick: Object.freeze({ color: '#a4543c', roughness: 0.9, metallic: 0.01, texture: 'masonry' }),
+    plastic: Object.freeze({ color: '#738da1', roughness: 0.46, metallic: 0.01, texture: 'smooth' }),
+    ceramic: Object.freeze({ color: '#d8d4c8', roughness: 0.2, metallic: 0.01, texture: 'glazed' }),
+    fabric: Object.freeze({ color: '#8f7184', roughness: 0.96, metallic: 0, texture: 'woven' }),
+    rubber: Object.freeze({ color: '#30353a', roughness: 0.8, metallic: 0, texture: 'matte' }),
+    fur: Object.freeze({ color: '#a77b52', roughness: 0.98, metallic: 0, texture: 'fibrous' }),
+    water: Object.freeze({ color: '#3e9bc4', roughness: 0.12, metallic: 0.02, texture: 'fluid' }),
+    brass: Object.freeze({ color: '#b88a35', roughness: 0.3, metallic: 0.82, texture: 'brushed' }),
+    gold: Object.freeze({ color: '#d8ad35', roughness: 0.22, metallic: 0.96, texture: 'polished' }),
   });
 
   // Phase 5 consumes this same vocabulary to select a physical behavior bundle.
@@ -238,7 +259,7 @@
     { process: 'phase_transition', phrases: ['freeze', 'freezing', 'melt', 'melting', 'phase', 'ice'] },
     { process: 'network_flow', phrases: ['network', 'queue', 'dispatch', 'signal', 'train', 'platform', 'server', 'packet', 'parcel', 'traffic', 'zoning', 'allocation', 'resolve', 'resolution', 'conflict'] },
     { process: 'oscillation', phrases: ['wave', 'waves', 'resonance', 'orbital', 'orbit', 'ring', 'moon', 'oscillate', 'oscillates', 'oscillation'] },
-    { process: 'motion', phrases: ['motion', 'run', 'runs', 'fly', 'flies', 'cross', 'crosses', 'crossing', 'sit', 'sits', 'sitting', 'play', 'plays', 'playing'] },
+    { process: 'motion', phrases: ['motion', 'run', 'runs', 'fly', 'flies', 'cross', 'crosses', 'crossing', 'sit', 'sits', 'sitting', 'play', 'plays', 'playing', 'hold', 'holds', 'holding', 'carry', 'carries', 'carrying'] },
     { process: 'support', phrases: ['support', 'supports', 'supporting'] },
     { process: 'leak', phrases: ['leak', 'leaks', 'leaking', 'spill', 'seep', 'drip'] },
     { process: 'coexists', phrases: ['coexists', 'adjacent'] },
@@ -260,6 +281,12 @@
     ['bendable', 'articulation', { propertyValue: 'segmented-flexible' }],
     ['flexible', 'articulation', { propertyValue: 'segmented-flexible' }],
     ['rigid', 'articulation', { propertyValue: 'rigid' }],
+    ['wooden', 'material', { propertyValue: 'wood' }],
+    ['metallic', 'material', { propertyValue: 'metal' }],
+    ['glassy', 'material', { propertyValue: 'glass' }],
+    ['stony', 'material', { propertyValue: 'stone' }],
+    ['rubbery', 'material', { propertyValue: 'rubber' }],
+    ['ceramic-coated', 'material', { propertyValue: 'ceramic' }],
     ['hot', 'temperature'], ['cold', 'temperature'], ['molten', 'phase'],
     ['viscous', 'material'], ['brittle', 'material'], ['elastic', 'material'],
     ['fast', 'rate'], ['slow', 'rate'], ['glowing', 'emission'],

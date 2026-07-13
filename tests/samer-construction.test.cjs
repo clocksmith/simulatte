@@ -6,6 +6,7 @@ const { pathToFileURL } = require('node:url');
 
 const lab = require('../public/app/simulation/simulation-lab.js');
 require('../public/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+const constructionSearch = require('../public/app/prompt/prompt-controller-construction-search.js');
 const root = path.resolve(__dirname, '..');
 const goldSetPath = path.join(root, 'tools/samer/simulatte-public-gold-v1.json');
 const contractPath = path.join(root, 'tools/samer/simulatte-construction-contract.json');
@@ -31,6 +32,9 @@ test('public gold set binds simple prompts to counts relations poses and visual 
     '5 cats in a galaxy',
     'airplane flying over trees',
     '3 dogs playing with 7 people',
+    'purple violin on a wooden stool',
+    'yellow excavator beside a glass greenhouse',
+    'an octopus holding a teapot',
   ]);
   assert.ok(goldSet.rows.every((row) => row.entities.length && row.blockingVisualRules.length));
   assert.ok(goldSet.rows.some((row) => row.relations.length));
@@ -55,6 +59,72 @@ test('construction approaches use the same candidates and emit strategy receipts
   assert.equal(byLane.anchor.constructionSelectionReceipt.strategy, 'category-catalog');
   assert.equal(byLane.targeted.constructionSelectionReceipt.strategy, 'prompt-obligation-coverage');
   assert.equal(byLane.construction_control.constructionSelectionReceipt.strategy, 'deterministic-control');
+});
+
+test('failed screenshot obligations reject a grammar and deterministically compile the next candidate', () => {
+  const spec = lab.createSpecFromPrompt('5 cats in a galaxy', { allowPrototypeFallback: true });
+  const packet = packetForPhase6(spec.phaseArtifacts.phase6);
+  const firstCat = packet.entities.find((row) => row.identity.type === 'cat');
+  const firstGrammar = firstCat.geometry.program.grammarId;
+  const ledger = structuredClone(spec.phaseArtifacts.phase6.artifact.compositionLedger);
+  const entityObligation = ledger.obligations.find((row) => row.id === 'entity:cat');
+  entityObligation.status = 'lost';
+  const phase8Output = {
+    artifact: {
+      sceneProof: {
+        verdict: 'fail',
+        evidence: { pixelAuditStatus: 'fail' },
+        settledObligations: [{ obligationId: 'entity:cat', status: 'lost', required: true }],
+      },
+      compositionLedger: ledger,
+    },
+  };
+  const searchState = constructionSearch.createConstructionSearchState();
+  const decision = constructionSearch.observeConstructionSceneProof({
+    final: true,
+    packetKey: 'cat:first',
+    phase8Output,
+    sceneRenderPacket: packet,
+  }, spec, searchState);
+
+  assert.equal(decision.action, 'retry');
+  assert.deepEqual(decision.nextApproach.rejectedGrammarIds, [firstGrammar]);
+  const next = lab.normalizeSpec(constructionSearch.constructionSearchSpec(spec, decision.nextApproach));
+  const nextCat = packetForPhase6(next.phaseArtifacts.phase6).entities.find((row) => row.identity.type === 'cat');
+  const receipt = nextCat.geometry.program.constructionSelectionReceipt;
+  assert.notEqual(nextCat.geometry.program.grammarId, firstGrammar);
+  assert.equal(receipt.schema, 'simulatte.constructionSelectionReceipt.v3');
+  assert.equal(receipt.attempt, 1);
+  assert.equal(receipt.candidates.find((row) => row.grammarId === firstGrammar).status, 'rejected');
+  assert.equal(constructionSearch.observeConstructionSceneProof({
+    final: true,
+    packetKey: 'cat:first',
+    phase8Output,
+    sceneRenderPacket: packet,
+  }, spec, searchState).action, 'duplicate');
+});
+
+test('renderer scene proof reports only become final after required pixel evidence settles', () => {
+  const reports = [];
+  const renderer = {
+    phase7Output: { schema: 'simulatte.phase7.output.v2' },
+    phase8Output: { schema: 'simulatte.phase8.output.v2' },
+    sceneRenderPacket: { schema: 'simulatte.sceneRenderPacket.v1' },
+    renderData: { packetKey: 'proof:one', requireLivePixelSamples: true },
+    lastPixelReadbackReceipt: null,
+    canvas: { dataset: {} },
+    onSceneProof: (report) => reports.push(report),
+  };
+  const notify = globalThis.__SimulatteWebGpuRendererRefactorScope.notifyRendererSceneProof;
+  assert.equal(notify(renderer).final, false);
+  renderer.renderData.livePixelSamples = {
+    schema: 'simulatte.phase7PixelSampleSet.v1',
+    source: 'test-pixel-samples',
+    packetKey: 'proof:one',
+    samples: [],
+  };
+  assert.equal(notify(renderer).final, true);
+  assert.deepEqual(reports.map((row) => row.final), [false, true]);
 });
 
 test('playing with creates a shared pose and relation while flight stays on the airplane', () => {
@@ -109,10 +179,21 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
       Array.from({ length: entity.count || entity.minimumCount || 1 }, () => ({
         type: entity.type,
         grammarId: `object-grammar.${entity.type}`,
+        literal: true,
+        unsupportedIdentity: false,
+        propertyBindings: row.properties && row.properties.filter((property) => property.type === entity.type)
+          .map((property) => ({
+            propertyKind: property.kind,
+            value: property.value,
+            status: 'bound',
+            matchedPartIds: ['body'],
+          })) || [],
         animationKind: row.poses.find((pose) => pose.type === entity.type)?.pose === 'flight'
           ? 'flight-path'
           : row.poses.find((pose) => pose.type === entity.type)?.pose === 'play-interaction'
-            ? 'play-loop' : 'static-pose',
+            ? 'play-loop'
+            : row.poses.find((pose) => pose.type === entity.type)?.pose === 'grasp-hold'
+              ? 'hold-pose' : 'static-pose',
       }))
     )),
     phase6CompositionObligations: row.relations.map((relation) => ({
@@ -123,7 +204,7 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     sceneProofVerdict: 'pass',
   }));
   const withoutHuman = evaluator.evaluateGoldVisualResults(results, goldSet, null);
-  assert.equal(withoutHuman.machinePassCount, 3);
+  assert.equal(withoutHuman.machinePassCount, 6);
   assert.equal(withoutHuman.humanPassCount, 0);
   assert.equal(withoutHuman.pass, false);
 
@@ -140,7 +221,7 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     })),
   };
   const withHuman = evaluator.evaluateGoldVisualResults(results, goldSet, adjudication);
-  assert.equal(withHuman.machinePassCount, 3);
-  assert.equal(withHuman.humanPassCount, 3);
+  assert.equal(withHuman.machinePassCount, 6);
+  assert.equal(withHuman.humanPassCount, 6);
   assert.equal(withHuman.pass, true);
 });

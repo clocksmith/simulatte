@@ -26,6 +26,7 @@
 
     function selectPromptGeometryProgram(candidates = [], entity = {}) {
       const approach = promptConstructionApproach(entity);
+      const rejected = new Set(approach.rejectedGrammarIds);
       const hasPromptContracts = (entity.partGraph || []).length > 0 || (entity.properties || []).length > 0 ||
         Boolean(entity.poseHint && entity.poseHint.pose);
       const scored = candidates.map((program, index) => {
@@ -34,23 +35,32 @@
           program,
           index,
           obligationScore,
+          rejected: rejected.has(String(program.grammarId || '')),
           score: promptConstructionCandidateScore(program, entity, approach, index, obligationScore),
         };
       }).sort((a, b) => b.score - a.score || a.index - b.index);
-      const selected = scored[0] && scored[0].program || candidates[0] || null;
+      const selectedRow = scored.find((row) => !row.rejected) || scored[0] || null;
+      const searchExhausted = scored.length > 0 && scored.every((row) => row.rejected);
+      const selected = selectedRow && selectedRow.program || candidates[0] || null;
       if (!selected) return null;
       const applied = applyPromptGeometryContracts(selected, entity);
       return {
         ...applied,
         constructionSelectionReceipt: {
-          schema: 'simulatte.constructionSelectionReceipt.v2',
+          schema: 'simulatte.constructionSelectionReceipt.v3',
           strategy: approach.id,
           seed: approach.seed,
+          attempt: approach.attempt,
+          rejectedGrammarIds: approach.rejectedGrammarIds.slice(),
+          searchExhausted,
           selectedGrammarId: applied.grammarId || '',
           candidates: scored.map((row) => ({
             grammarId: row.program.grammarId || '',
             score: row.score,
             obligationScore: row.obligationScore,
+            status: row === selectedRow
+              ? searchExhausted ? 'selected-after-exhaustion' : 'selected'
+              : row.rejected ? 'rejected' : 'eligible',
           })),
         },
       };
@@ -66,7 +76,13 @@
       if (!Number.isInteger(seed) || seed < 0) {
         throw new Error(`Phase 6 construction approach seed expected a non-negative integer, received ${entity.constructionApproachSeed}`);
       }
-      return { id: requested, seed };
+      const attempt = Number(entity.constructionApproachAttempt || 0);
+      if (!Number.isInteger(attempt) || attempt < 0) {
+        throw new Error(`Phase 6 construction approach attempt expected a non-negative integer, received ${entity.constructionApproachAttempt}`);
+      }
+      const rejectedGrammarIds = uniqueList(entity.constructionApproachRejectedGrammarIds || [])
+        .map((value) => String(value || '').trim()).filter(Boolean).slice(0, 64);
+      return { id: requested, seed, attempt, rejectedGrammarIds };
     }
 
     function promptConstructionCandidateScore(program, entity, approach, index, obligationScore) {
@@ -97,8 +113,32 @@
       }
       const pose = entity.poseHint && entity.poseHint.pose || '';
       if (pose) score += String(program.grammarId || '').includes(promptPoseGrammarToken(pose)) ? 12 : -8;
+      const constructionCoverage = promptConstructionEvidenceCoverage(program, entity);
+      score += constructionCoverage * 18;
+      if (program.selectionRole === 'model-construction') score += 3;
+      if (program.constructionReceipt && program.constructionReceipt.rerankEvaluated === true) score += 2;
+      if (program.constructionReceipt && program.constructionReceipt.exactTargetMatch === true) score += 3;
+      if (program.unsupportedIdentity === true) score -= 40;
+      const primitives = new Set((program.parts || []).map((row) => row.primitive));
+      if ((program.parts || []).length <= 1 || primitives.size === 1 && primitives.has('rounded-box')) score -= 24;
       score += Math.min(6, (program.parts || []).length * 0.25);
       return Number(score.toFixed(3));
+    }
+
+    function promptConstructionEvidenceCoverage(program = {}, entity = {}) {
+      const construction = entity.construction || {};
+      const hints = construction.partHints || [];
+      const receipted = Number(program.constructionReceipt && program.constructionReceipt.evidencePartCoverage);
+      if (Number.isFinite(receipted)) return clamp(receipted, 0, 1);
+      if (!hints.length) return 0;
+      const partTerms = (program.parts || []).flatMap((row) => [
+        row.id, row.constructionRole, row.sourceHint,
+      ]).map(promptSingular).filter(Boolean);
+      const matched = hints.filter((hint) => {
+        const target = promptSingular(hint);
+        return partTerms.some((term) => promptPartMatches(term, target));
+      }).length;
+      return matched / hints.length;
     }
 
     function applyPromptGeometryContracts(program = {}, entity = {}) {
@@ -110,9 +150,25 @@
       }));
       const bindings = [];
       for (const property of entity.properties || []) {
-        if (property.kind !== 'color' || !property.value) continue;
-        for (const part of parts) part.fill = property.value;
-        bindings.push(promptGeometryBinding(entity.id, '', property));
+        if (!property.value) continue;
+        if (property.kind === 'color') {
+          for (const part of parts) part.fill = property.value;
+          bindings.push(promptGeometryBinding(entity.id, '', property, parts));
+        }
+        if (property.kind === 'material') {
+          const materialStyle = materialVisualValues[property.value] || null;
+          if (!materialStyle) {
+            bindings.push(promptGeometryBinding(entity.id, '', property, []));
+            continue;
+          }
+          for (const part of parts) {
+            part.fill = materialStyle.color || part.fill;
+            part.roughness = materialStyle.roughness;
+            part.metallic = materialStyle.metallic;
+            part.texture = materialStyle.texture;
+          }
+          bindings.push(promptGeometryBinding(entity.id, '', property, parts));
+        }
       }
       for (const scopedPart of entity.partGraph || []) {
         const target = promptSingular(scopedPart.semanticClass || scopedPart.label);
@@ -160,8 +216,14 @@
     function promptPosePartRotation(part = {}, index = 0, entity = {}) {
       const base = Number(part.rotation || 0);
       const pose = String(entity.poseHint && entity.poseHint.pose || '');
-      if (pose !== 'play-interaction' || !/arm|leg|tail|hand|foot/.test(String(part.id || ''))) return base;
-      return Number((base + (index % 2 ? 0.32 : -0.32)).toFixed(3));
+      const partId = String(part.id || part.constructionRole || '');
+      if (pose === 'play-interaction' && /arm|leg|tail|hand|foot|appendage/.test(partId)) {
+        return Number((base + (index % 2 ? 0.32 : -0.32)).toFixed(3));
+      }
+      if (pose === 'grasp-hold' && /arm|tentacle|hand|appendage|gripper/.test(partId)) {
+        return Number((base + (index % 2 ? -0.48 : 0.48)).toFixed(3));
+      }
+      return base;
     }
 
     function promptGeometryBinding(entityId, partId, property = {}, matched = []) {
@@ -239,6 +301,135 @@
       return result;
     }
 
+    function mergeConstructionVisualObligations(compositionLedger = null, sceneRenderPacket = {}) {
+      const additions = constructionVisualObligationsForScenePacket(sceneRenderPacket);
+      if (!additions.length) return compositionLedger;
+      const source = compositionLedger || {};
+      const byId = new Map((source.obligations || []).map((row) => [row.id, row]));
+      for (const row of additions) byId.set(row.id, row);
+      const obligations = Array.from(byId.values());
+      const lost = additions.filter((row) => row.status === 'lost');
+      return {
+        ...source,
+        obligations,
+        phaseDeltas: [
+          ...(source.phaseDeltas || []),
+          ...additions.map((row) => ({
+            phase: 6,
+            entryId: row.id,
+            operation: row.status === 'lost' ? 'lost' : 'preserved',
+            receiptId: 'phase6-construction-visual-contract',
+          })),
+        ],
+        losses: [
+          ...(source.losses || []),
+          ...lost.map((row) => ({
+            id: `loss:phase6:${row.id}`,
+            phase: 6,
+            entryId: row.id,
+            reason: 'prompt identity has no evidence-backed construction graph',
+            sourceReceiptId: 'phase6-construction-visual-contract',
+            nextRequiredAction: 'select a model-ranked construction hypothesis with visible parts',
+          })),
+        ],
+        summary: {
+          obligationCount: obligations.length,
+          preservedCount: obligations.filter((row) => row.status === 'preserved').length,
+          loweredCount: obligations.filter((row) => row.status === 'lowered').length,
+          failedCount: obligations.filter((row) => row.status === 'lost' || row.status === 'failed').length,
+        },
+      };
+    }
+
+    function constructionVisualObligationsForScenePacket(sceneRenderPacket = {}) {
+      const obligations = [];
+      for (const entity of sceneRenderPacket.entities || []) {
+        const program = entity.geometry && entity.geometry.program || {};
+        const identity = entity.identity && entity.identity.type || program.identityType || entity.label || entity.id;
+        const base = promptSafeId(entity.id || identity);
+        if (program.unsupportedIdentity === true) {
+          obligations.push(constructionVisualObligation({
+            id: `visual:construction:${base}:support`,
+            entity,
+            identity,
+            constraintKind: 'construction-support',
+            status: 'lost',
+            expectedLiteral: true,
+            selectedGrammarId: program.grammarId || '',
+          }));
+          continue;
+        }
+        const graph = program.constructionGraph || null;
+        if (!graph || program.selectionRole !== 'model-construction') continue;
+        const parts = program.parts || [];
+        const receipt = program.constructionReceipt || {};
+        obligations.push(constructionVisualObligation({
+          id: `visual:construction:${base}:topology`,
+          entity,
+          identity,
+          constraintKind: 'construction-topology',
+          status: graph.topologyId && parts.length ? 'preserved' : 'lost',
+          expectedTopology: graph.topologyId || '',
+          expectedConstraintCount: (graph.edges || []).length,
+          selectedGrammarId: program.grammarId || '',
+          modelEvaluated: receipt.modelEvaluated === true,
+          rerankEvaluated: receipt.rerankEvaluated === true,
+        }));
+        const byRole = new Map();
+        for (const part of parts) {
+          const role = String(part.constructionRole || '').trim();
+          if (!role) continue;
+          byRole.set(role, (byRole.get(role) || 0) + 1);
+        }
+        for (const [role, count] of Array.from(byRole.entries()).slice(0, 8)) {
+          obligations.push(constructionVisualObligation({
+            id: `visual:construction:${base}:part:${promptSafeId(role)}`,
+            entity,
+            identity,
+            constraintKind: 'construction-part',
+            status: count > 0 ? 'preserved' : 'lost',
+            expectedPartRole: role,
+            expectedCount: count,
+            selectedGrammarId: program.grammarId || '',
+            modelEvaluated: receipt.modelEvaluated === true,
+            rerankEvaluated: receipt.rerankEvaluated === true,
+          }));
+        }
+      }
+      return obligations;
+    }
+
+    function constructionVisualObligation(options = {}) {
+      return {
+        schema: 'simulatte.constructionVisualObligation.v1',
+        id: options.id,
+        kind: 'visual',
+        ownedByPhase: 6,
+        required: true,
+        phase: 6,
+        status: options.status,
+        target: options.identity,
+        targetIdentity: options.identity,
+        targetEntityId: options.entity.id || '',
+        constraintKind: options.constraintKind,
+        expectedLiteral: options.expectedLiteral === true,
+        expectedTopology: options.expectedTopology || '',
+        expectedConstraintCount: Number(options.expectedConstraintCount || 0),
+        expectedPartRole: options.expectedPartRole || '',
+        expectedCount: Number(options.expectedCount || 0),
+        selectedGrammarId: options.selectedGrammarId || '',
+        modelEvaluated: options.modelEvaluated === true,
+        rerankEvaluated: options.rerankEvaluated === true,
+        visualEvidence: options.status === 'preserved'
+          ? [`geometry-program:${options.selectedGrammarId}`]
+          : [],
+      };
+    }
+
+    function promptSafeId(value = '') {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+
     function settlePromptPartGraphObligation(obligation = {}, entities = []) {
       const id = String(obligation.id || '');
       const partTarget = obligation.kind === 'part' ? id.replace(/^part:/, '') :
@@ -246,7 +437,12 @@
       const materialTarget = (id.match(/relation:medium-([^:]+):material-assignment:/) || [])[1] || '';
       const parts = entities.flatMap((entity) => entity.partGraph || []);
       const matches = parts.filter((part) => promptPartMatches(part.semanticClass || part.label, partTarget));
-      const satisfied = matches.length > 0 && (!materialTarget || matches.some((part) => (
+      const directEntityMaterial = materialTarget && entities.some((entity) => (
+        promptEntityMatches(entity, { targetIdentity: partTarget }) && (entity.properties || []).some((property) => (
+          property.kind === 'material' && promptPartMatches(property.value, materialTarget)
+        ))
+      ));
+      const satisfied = Boolean(directEntityMaterial) || matches.length > 0 && (!materialTarget || matches.some((part) => (
         promptPartMatches(part.materialId, materialTarget)
       )));
       const evidence = satisfied ? [materialTarget
@@ -384,7 +580,8 @@
 
     function promptSingular(value = '') {
       const normalized = String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      return normalized.length > 3 && normalized.endsWith('s') ? normalized.slice(0, -1) : normalized;
+      return normalized.length > 3 && normalized.endsWith('s') && !/(?:ss|us|is)$/.test(normalized)
+        ? normalized.slice(0, -1) : normalized;
     }
 
     function promptPoseGrammarToken(pose = '') {
@@ -411,6 +608,8 @@
       applyPromptEnvironmentVisualGenome,
       applyPromptEnvironmentLighting,
       promptVisualObligationSettlements,
+      mergeConstructionVisualObligations,
+      constructionVisualObligationsForScenePacket,
       filterPromptPartSupportEntities,
       expandPromptCardinalityPackets,
     });

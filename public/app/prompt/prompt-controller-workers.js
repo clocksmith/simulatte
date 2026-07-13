@@ -103,6 +103,7 @@
           startedAt: '',
           phase: null,
           artifacts: {},
+          constructionSearch: createConstructionSearchState(),
         };
       }
 
@@ -114,6 +115,7 @@
         run.serial = Number(serial || 0);
         run.startedAt = new Date().toISOString();
         run.artifacts = {};
+        run.constructionSearch = createConstructionSearchState({ buildSerial: serial });
         storeTrainingArtifact(run, 1, 'prompt-runtime', 'Prompt runtime', {
           input: { prompt: run.prompt },
           output: { params: run.params },
@@ -304,6 +306,7 @@
             sceneKind: spec.renderProgram && spec.renderProgram.rendererPlan &&
               spec.renderProgram.rendererPlan.sceneKind,
           }, 12),
+          constructionSearch: compactObject(run.constructionSearch || createConstructionSearchState(), 64),
           artifacts: { ...run.artifacts },
         };
       }

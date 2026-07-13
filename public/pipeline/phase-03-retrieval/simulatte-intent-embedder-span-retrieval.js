@@ -893,9 +893,11 @@
       }
 
     function slotRerankSkipReason(slot = {}, candidates = [], constructionMode = false) {
-        if (constructionMode) {
-          return exactConstructionCandidate(slot, candidates) ? 'exact-model-indexed-construction' : '';
-        }
+      if (constructionMode) {
+          return constructionCandidatesForSlot(slot, candidates, 3).length < 2
+            ? 'single-construction-hypothesis'
+            : '';
+      }
         if (slot && slot.required === false) return 'optional-slot-local-evidence';
         if ((candidates || []).some((candidate) => candidate.literalSlotMatch === true)) {
           return 'literal-slot-identity';

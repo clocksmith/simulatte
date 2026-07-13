@@ -37,6 +37,7 @@
         visualArchetype: entity.visualArchetype || '',
         shapeHints: (entity.shapeHints || []).slice(),
         construction: entity.construction || null,
+        constructionHypotheses: (entity.constructionHypotheses || []).map((row) => ({ ...row })),
         constructionProvenance: (entity.constructionProvenance || []).slice(),
         properties: (entity.properties || []).map((row) => ({ ...row })),
         partGraph: (entity.partGraph || []).map((row) => ({
@@ -141,6 +142,7 @@
         visualArchetype: node.visualArchetype || '',
         shapeHints: (node.shapeHints || []).slice(),
         construction: node.construction || null,
+        constructionHypotheses: (node.constructionHypotheses || []).map((row) => ({ ...row })),
         constructionProvenance: (node.constructionProvenance || []).slice(),
         directlyGrounded: node.directlyGrounded === true || node.indexName === 'prompt-typed-slot',
         glyph: node.shapeHints && node.shapeHints[0] || 'body',

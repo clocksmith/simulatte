@@ -2,6 +2,7 @@
   if (typeof module === 'object' && module.exports) {
     require('./prompt-controller-dependencies.js');
     require('./prompt-controller-model-bindings.js');
+    require('./prompt-controller-construction-search.js');
     require('./prompt-controller-lab-controller.js');
     require('./prompt-controller-workers.js');
     require('./prompt-controller-training.js');

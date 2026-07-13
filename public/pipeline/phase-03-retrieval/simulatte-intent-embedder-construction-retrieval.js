@@ -247,6 +247,7 @@
       if (role === 'object' && /^(entity|artifact|assembly|entity_class)$/.test(type)) rank = 1;
       if (role === 'environment' && /^(environment|celestial|entity_class)$/.test(type)) rank = 1;
       if (role === 'medium' && /^(material|grounding-basis)$/.test(type)) rank = 1;
+      if (type === 'construction-topology' && /^(actor|object|part|environment)$/.test(role)) rank = 1;
       if (/^(relation|event|process|affordance)$/.test(type)) rank = 4;
       return row.literalSlotMatch === true && rank === 1 ? 0 : rank;
     }

@@ -75,6 +75,30 @@ test('scene proof fails closed when a required entity never rendered', () => {
   assert.ok(phase8.artifact.compositionLedger.losses.some((row) => row.entryId === dogRow.obligationId));
 });
 
+test('scene proof fails a required identity when its live pixel obligation fails', () => {
+  const phase7 = renderedPhase7('dogs and cats swimming in a lake');
+  const visual = phase7.artifact.renderExecution.visualObligationProof || [];
+  const tampered = {
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        visualObligationProof: [
+          ...visual.filter((row) => row.obligationId !== 'entity:dog'),
+          { obligationId: 'entity:dog', status: 'fail', required: true },
+        ],
+      },
+    },
+  };
+  const proof = lab.runPhase8SceneProof(tampered).artifact.sceneProof;
+  const dog = proof.settledObligations.find((row) => row.obligationId === 'entity:dog');
+
+  assert.equal(dog.status, 'lost');
+  assert.equal(dog.reason, 'required identity failed live pixel proof');
+  assert.equal(proof.verdict, 'fail');
+});
+
 test('scene proof identity settlement requires whole-word identity evidence', () => {
   const phase7 = renderedPhase7('dogs and cats swimming in a lake');
   const summary = phase7.artifact.renderExecution.packetIdentitySummary || [];

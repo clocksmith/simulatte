@@ -579,7 +579,7 @@
           motionRows,
           sceneKind
         );
-        const compositionLedger = visualCompositionLedgerForSpec(spec, visualEntities, renderInstances, processRows, fieldRows);
+        const baseCompositionLedger = visualCompositionLedgerForSpec(spec, visualEntities, renderInstances, processRows, fieldRows);
         const operators = visualOperatorsForIR(
           visualEntities,
           materialRows,
@@ -611,9 +611,11 @@
           motion: motionRows,
           renderInstances,
           graphicsAtoms,
-          compositionLedger,
+          compositionLedger: baseCompositionLedger,
           visualGenome,
         });
+        const compositionLedger = mergeConstructionVisualObligations(baseCompositionLedger, sceneRenderPacket);
+        sceneRenderPacket.compositionLedger = compositionLedger;
         assertScenePacketIdentityPreserved(sceneRenderPacket);
         return {
           schema: VISUAL_IR_SCHEMA,

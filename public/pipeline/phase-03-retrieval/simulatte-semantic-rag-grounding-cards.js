@@ -468,6 +468,7 @@
         surfaceCard('relation.pushes', 'relation', ['pushes', 'pulls', 'drives', 'powers'], 'force or energy relation where source drives target motion', {
           relationHints: ['drives'], groundingIds: ['ground.force-coupling'],
         }),
+        ...constructionTopologySurfaceCards(),
         ...UNIVERSE_SURFACE_CARDS,
       ]);
 

@@ -1288,6 +1288,11 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         animationKind: row.animation && row.animation.kind || '',
         animationSpeed: Number(row.animation && row.animation.speed || 0),
         grammarId: row.geometry && row.geometry.program && row.geometry.program.grammarId || '',
+        literal: row.geometry && row.geometry.program && row.geometry.program.literal === true,
+        unsupportedIdentity: row.geometry && row.geometry.program && row.geometry.program.unsupportedIdentity === true,
+        partCount: row.geometry && row.geometry.program && Array.isArray(row.geometry.program.parts)
+          ? row.geometry.program.parts.length : 0,
+        propertyBindings: row.geometry && row.geometry.program && row.geometry.program.promptPropertyBindings || [],
       })),
       canvasWidth: width,
       canvasHeight: height,

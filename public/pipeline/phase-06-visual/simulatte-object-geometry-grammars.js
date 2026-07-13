@@ -417,6 +417,13 @@
         part('track-a', 'capsule', [-0.12, -0.08], [0.76, 0.05], '#e9cc68', 0.34),
         part('track-b', 'capsule', [0.08, 0.12], [0.68, 0.045], '#eb7f6d', -0.42),
       ]),
+      'particle-track': grammar('particle-track', [0.28, 0.2], 28, [
+        part('beam-path', 'capsule', [0, 0], [0.9, 0.07], '#65c8df', -0.18),
+        part('curved-track', 'wave', [0.04, -0.04], [0.82, 0.42], '#e8c85f', -0.08),
+        part('collision-vertex', 'star', [-0.26, 0.08], [0.2, 0.2], '#f28f66'),
+        part('detector-hit-left', 'ellipse', [-0.42, 0.17], [0.12, 0.12], '#7ed6b2'),
+        part('detector-hit-right', 'ellipse', [0.4, -0.18], [0.12, 0.12], '#7ed6b2'),
+      ]),
       'detector-geometry': grammar('semantic-detector', [0.25, 0.2], 27, [
         part('detector-shell', 'rounded-box', [0, 0], [0.9, 0.78], '#384c61'),
         part('detector-ring', 'ring', [0, -0.03], [0.58, 0.58], '#71c5d4'),
@@ -543,8 +550,8 @@
         .filter((row) => Boolean(row.grammar));
       const explicit = explicitCandidates[0] || null;
       const constructionReceipt = objectGeometryConstructionReceipt(entity);
-      if (explicit) {
-        return selectPromptGeometryProgram(explicitCandidates.map((candidate) => objectGeometryProgram(candidate.grammar, {
+      const semanticArchetype = SEMANTIC_LAYER_GEOMETRY_GRAMMARS[visualArchetype] || null;
+      const catalogPrograms = explicitCandidates.map((candidate) => objectGeometryProgram(candidate.grammar, {
           identityType: semanticIdentityType,
           visualArchetype: candidate.grammar.id,
           pose,
@@ -555,14 +562,25 @@
             ? 'prompt-specialized'
             : candidate.key === identityType ? 'identity-catalog'
               : candidate.key === categoryKey ? 'category-catalog' : 'related-catalog',
-        })), entity);
-      }
-      const constructed = constructionGeometryProgramForEntity(
+        }));
+      if (semanticArchetype) catalogPrograms.push(objectGeometryProgram(semanticArchetype, {
+        identityType: semanticIdentityType,
+        visualArchetype,
+        pose,
+        source: 'phase6-data-owned-part-graph',
+        sourcePrimitive: geometry.primitive || entity.shape || '',
+        constructionReceipt,
+        selectionRole: 'identity-catalog',
+      }));
+      const constructedPrograms = constructionGeometryCandidatesForEntity(
         { ...identity, type: semanticIdentityType, visualArchetype: visualArchetype || identityType },
         geometry,
         entity
       );
-      if (constructed) return applyPromptGeometryContracts(constructed, entity);
+      const constructionCandidates = uniqueGeometryPrograms([...catalogPrograms, ...constructedPrograms]);
+      if (constructionCandidates.length) {
+        return selectPromptGeometryProgram(constructionCandidates, entity);
+      }
       const semantic = !explicit && promptIdentityCanOwnSemanticGeometry(identity, entity)
         ? semanticGeometryGrammarForLayer(layerSlot)
         : null;
@@ -576,13 +594,24 @@
         identityType,
         visualArchetype: visualArchetype || selectedKey,
         pose,
-        literal: selected.literal === true && Boolean(explicit || semantic),
+        literal: false,
         minScale: selected.minScale.slice(),
         zOrder: selected.zOrder,
         parts: selected.parts.map((row, order) => ({ ...row, center: row.center.slice(), size: row.size.slice(), order })),
-        source: semantic ? 'phase6-semantic-layer-geometry-grammar' : 'phase6-object-geometry-grammar',
+        source: semantic ? 'phase6-unsupported-semantic-placeholder' : 'phase6-unsupported-object-placeholder',
         sourcePrimitive: geometry.primitive || entity.shape || '',
+        unsupportedIdentity: true,
       }, entity);
+    }
+
+    function uniqueGeometryPrograms(programs = []) {
+      const seen = new Set();
+      return programs.filter((program) => {
+        const key = program.grammarId || JSON.stringify((program.parts || []).map((row) => row.id));
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     }
 
     function objectGeometryProgram(selected, options = {}) {

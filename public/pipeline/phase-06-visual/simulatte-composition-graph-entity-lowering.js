@@ -14,9 +14,13 @@
         visualArchetype: object.visualArchetype || '',
         shapeHints: object.shapeHints || [],
         construction: object.construction || object.geometry && object.geometry.construction || null,
+        constructionHypotheses: object.constructionHypotheses ||
+          object.geometry && object.geometry.constructionHypotheses || [],
         constructionProvenance: object.constructionProvenance || [],
         constructionApproachId: constructionApproach.id || CONSTRUCTION_APPROACH_IDS.targeted,
         constructionApproachSeed: Number(constructionApproach.seed || 0),
+        constructionApproachAttempt: Number(constructionApproach.attempt || 0),
+        constructionApproachRejectedGrammarIds: (constructionApproach.rejectedGrammarIds || []).slice(0, 64),
         properties: (object.properties || []).map((row) => ({ ...row })),
         partGraph: (object.partGraph || []).map((row) => ({
           ...row,

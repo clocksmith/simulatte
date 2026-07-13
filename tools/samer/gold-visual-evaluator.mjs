@@ -62,8 +62,10 @@ function evaluateMachineGoldRow(result, goldRow) {
     if (expected.minimumCount != null && matches.length < Number(expected.minimumCount)) {
       failures.push(failure(`entity:${expected.type}:minimum-count`, `expected at least ${expected.minimumCount}, received ${matches.length}`));
     }
-    if (matches.length && matches.every((row) => row.grammarId === 'object-grammar.object')) {
-      failures.push(failure(`entity:${expected.type}:specific-geometry`, 'only generic object grammar reached Phase 7'));
+    if (matches.length && matches.every((row) => (
+      row.grammarId === 'object-grammar.object' || row.literal !== true || row.unsupportedIdentity === true
+    ))) {
+      failures.push(failure(`entity:${expected.type}:specific-geometry`, 'no supported literal geometry reached Phase 7'));
     }
   }
   const relations = result.phase6CompositionObligations || [];
@@ -76,6 +78,19 @@ function evaluateMachineGoldRow(result, goldRow) {
     const matches = identities.filter((row) => row.type === expected.type);
     if (!matches.length || !matches.every((row) => poseMatches(row.animationKind, expected.pose))) {
       failures.push(failure(`pose:${expected.type}:${expected.pose}`, `animation kinds were ${matches.map((row) => row.animationKind || 'missing').join(', ') || 'missing'}`));
+    }
+  }
+  for (const expected of goldRow.properties || []) {
+    const matches = identities.filter((row) => row.type === expected.type);
+    const bound = matches.some((row) => (row.propertyBindings || []).some((binding) => (
+      binding.propertyKind === expected.kind && binding.value === expected.value &&
+      binding.status === 'bound' && (binding.matchedPartIds || []).length > 0
+    )));
+    if (!bound) {
+      failures.push(failure(
+        `property:${expected.type}:${expected.kind}:${expected.value}`,
+        'property did not bind to visible geometry parts'
+      ));
     }
   }
   if (result.phase7PixelProofStatus !== 'pass') {
@@ -121,6 +136,7 @@ function poseMatches(animationKind, expectedPose) {
   if (expectedPose === 'static') return value === 'static-pose';
   if (expectedPose === 'flight') return value === 'flight-path';
   if (expectedPose === 'play-interaction') return value === 'play-loop';
+  if (expectedPose === 'grasp-hold') return value === 'hold-pose';
   return value.includes(expectedPose);
 }
 

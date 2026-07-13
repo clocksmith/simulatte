@@ -197,9 +197,11 @@
   }
 
   function buildClauses(spans, lower) {
-    const entities = spans.filter((span) => (
+    const clauseEntities = spans.filter((span) => (
       span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment' || span.kind === 'term'
     ));
+    const attributiveMaterials = attributiveMaterialSpanIds(clauseEntities, lower);
+    const entities = clauseEntities.filter((span) => !attributiveMaterials.has(span.id));
     const processes = spans.filter((span) => span.kind === 'process');
     const clauses = [];
     for (const verb of processes) {
@@ -263,7 +265,7 @@
       ));
       if (!alreadyExpressed) clauses.push(spatial);
     }
-    for (const materialClause of materialClausesForEntities(entities, lower)) clauses.push(materialClause);
+    for (const materialClause of materialClausesForEntities(clauseEntities, lower)) clauses.push(materialClause);
     for (const partClause of partClausesForEntities(entities, lower)) clauses.push(partClause);
     const seen = new Set();
     return clauses.filter((clause) => {
@@ -273,6 +275,19 @@
       seen.add(key);
       return true;
     }).map((clause, index) => ({ id: `clause${index + 1}`, ...clause }));
+  }
+
+  function attributiveMaterialSpanIds(entities = [], lower = '') {
+    const ordered = entities.slice().sort((a, b) => a.start - b.start);
+    const ids = new Set();
+    for (let index = 0; index < ordered.length - 1; index += 1) {
+      const material = ordered[index];
+      const object = ordered[index + 1];
+      if (material.kind !== 'material' || !['entity', 'environment', 'term'].includes(object.kind)) continue;
+      const bridge = lower.slice(material.end, object.start);
+      if (/^\s*(?:(?:a|an|the)\s+)?$/.test(bridge)) ids.add(material.id);
+    }
+    return ids;
   }
 
   function spatialClausesForEntities(entities = [], processes = [], lower = '') {
@@ -324,7 +339,7 @@
     for (let index = 0; index < ordered.length - 1; index += 1) {
       const material = ordered[index];
       const object = ordered[index + 1];
-      if (material.kind !== 'material' || !['entity', 'term'].includes(object.kind)) continue;
+      if (material.kind !== 'material' || !['entity', 'environment', 'term'].includes(object.kind)) continue;
       const bridge = lower.slice(material.end, object.start);
       if (!/^\s*(?:(?:a|an|the)\s+)?$/.test(bridge)) continue;
       clauses.push({
@@ -612,7 +627,7 @@
   }
 
   function modifierTarget(modifier, targets, relation) {
-    if (relation === 'color' || relation === 'articulation') {
+    if (relation === 'color' || relation === 'articulation' || relation === 'material') {
       const following = targets.filter((span) => (
         span.start >= modifier.end && span.kind !== 'material'
       )).sort((a, b) => a.start - b.start)[0];

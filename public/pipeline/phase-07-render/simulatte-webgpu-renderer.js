@@ -2,6 +2,8 @@
   if (typeof module === 'object' && module.exports) {
     require('./simulatte-webgpu-renderer-dependencies.js');
     require('./simulatte-webgpu-renderer-constants.js');
+    require('./simulatte-webgpu-renderer-pixel-plan.js');
+    require('./simulatte-webgpu-renderer-scene-proof-observer.js');
     require('./simulatte-webgpu-renderer-renderer-class.js');
     require('./simulatte-webgpu-renderer-packets.js');
     require('./simulatte-webgpu-renderer-pixel-proof.js');

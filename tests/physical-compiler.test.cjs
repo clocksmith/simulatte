@@ -1080,8 +1080,8 @@ test('prompt-owned identities override an incorrect network render layer', () =>
   }), 'material-surface');
 });
 
-test('prompt-owned scientific identities use literal semantic layer geometry', () => {
-  const program = compositionGraphScope.objectGeometryProgramForIdentity({
+test('prompt-owned scientific identities require construction evidence before claiming literal geometry', () => {
+  const placeholder = compositionGraphScope.objectGeometryProgramForIdentity({
     type: 'particle-collider',
     sourceLabel: 'particle collider',
     directlyGrounded: true,
@@ -1091,12 +1091,44 @@ test('prompt-owned scientific identities use literal semantic layer geometry', (
     semanticClass: 'instrument',
     semanticRef: 'prompt.body.particle-collider',
   }, 'track-line');
+  const program = compositionGraphScope.objectGeometryProgramForIdentity({
+    type: 'particle-collider',
+    sourceLabel: 'particle collider',
+    directlyGrounded: true,
+  }, { primitive: 'track-line' }, {
+    id: 'prompt-object-particle-collider',
+    directlyGrounded: true,
+    semanticClass: 'instrument',
+    semanticRef: 'prompt.body.particle-collider',
+    constructionHypotheses: [{
+      schema: 'simulatte.constructionProgramInput.v1',
+      hypothesisId: 'construction:particle-collider:1',
+      targetEntryId: 'object:particle-collider',
+      sourceCardIds: ['particle-collider'],
+      sourceLabels: ['particle collider'],
+      basisIds: ['ground.instrumented-bench'],
+      partHints: ['detector shell', 'beam path', 'sensor array', 'readout panel'],
+      shapeHints: ['instrument'],
+      materialHints: ['metal'],
+    }],
+    constructionProvenance: [{
+      candidateId: 'particle-collider',
+      modelEvaluated: true,
+      rerankEvaluated: true,
+      exactTargetMatch: true,
+    }],
+  }, 'track-line');
   const support = compositionGraphScope.objectGeometryProgramForIdentity({ type: 'helper' }, {}, {
     id: 'solver-helper',
   }, 'material-surface');
 
+  assert.equal(placeholder.literal, false);
+  assert.equal(placeholder.unsupportedIdentity, true);
   assert.equal(program.literal, true);
-  assert.match(program.grammarId, /^object-grammar\.semantic\.semantic-track-apparatus\.particle-collider$/);
+  assert.match(program.grammarId, /^object-grammar\.constructive\./);
+  assert.equal(program.selectionRole, 'model-construction');
+  assert.equal(program.constructionReceipt.modelEvaluated, true);
+  assert.equal(program.constructionReceipt.rerankEvaluated, true);
   assert.ok(program.parts.length >= 3);
   assert.equal(support.literal, false);
   assert.equal(webgpuRendererScope.scenePacketAnimationCode('phase-propagating-arcs'), 8);
@@ -1170,7 +1202,7 @@ test('scene framing makes literal objects readable without changing relation geo
 });
 
 test('phase envelopes enforce neighboring pipeline handoffs', () => {
-  const spec = lab.createSpecFromPrompt('graph nodes route water sensors through a pump controller', {
+  const spec = lab.createSpecFromPrompt('dogs and cats swimming in a lake', {
     allowPrototypeFallback: true,
   });
   const phases = spec.phaseArtifacts;
@@ -1187,7 +1219,7 @@ test('phase envelopes enforce neighboring pipeline handoffs', () => {
     assert.ok(Array.isArray(output.receipts));
   }
 
-  assert.equal(phases.phase2.artifact.languageGraph.sourceText, 'graph nodes route water sensors through a pump controller');
+  assert.equal(phases.phase2.artifact.languageGraph.sourceText, 'dogs and cats swimming in a lake');
   assert.equal(phases.phase3.artifact.retrievalRerankResult.query, phases.phase2.artifact.languageGraph.sourceText);
   assert.ok(!('rankedPrimitives' in phases.phase4.artifact.groundedIntent));
   assert.equal(phases.phase5.artifact.simulationCompile.physicsIR.schema, 'simulatte.physicalIR.v1');

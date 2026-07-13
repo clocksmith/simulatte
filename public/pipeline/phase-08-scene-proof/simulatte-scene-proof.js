@@ -179,6 +179,15 @@
       return { ...base, status: 'not-proven', reason: 'no rendered part proof row for obligation' };
     }
     if (row.kind === 'entity' || row.kind === 'object' || row.kind === 'environment' || row.kind === 'medium') {
+      const visualProof = context.visualProofByObligation.get(obligationId);
+      if (base.required && visualProof && visualProof.status === 'fail') {
+        return {
+          ...base,
+          status: 'lost',
+          reason: 'required identity failed live pixel proof',
+          evidence: ['visualObligationProof'],
+        };
+      }
       if (carriedFailure) {
         return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
       }

@@ -5,16 +5,20 @@
   const graph = typeof module === 'object' && module.exports
     ? require('./simulatte-universe-grounder-graph.js')
     : root.SimulatteUniverseGrounderGraph;
-  const api = factory(catalog || {}, graph || {});
+  const candidates = typeof module === 'object' && module.exports
+    ? require('./simulatte-universe-grounder-candidates.js')
+    : root.SimulatteUniverseGrounderCandidates;
+  const api = factory(catalog || {}, graph || {}, candidates || {});
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteUniverseGrounder = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseGrounderApi(catalog = {}, graph = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseGrounderApi(catalog = {}, graph = {}, candidates = {}) {
   const UNIVERSE_GRAPH_SCHEMA = 'simulatte.universeGraph.v1';
   const { clamp01 = (value) => Math.max(0, Math.min(1, value)), slugify = defaultSlugify } = catalog;
   const { canonicalizeGroundedNodes, attachConstructionEvidence, edgeRowsForClauses, remapSpanNodes,
     materializeTypedPromptNodes, applyPromptSemanticContracts } = graph;
+  const { candidateRowsForInput = () => [] } = candidates;
 
   const CONCEPTS = Object.freeze({
     lava: concept('material.lava', 'fluid', ['fluid', 'thermal', 'phase'], 'lava', ['advection', 'heat_source']),
@@ -123,10 +127,10 @@
     const rejected = [];
     const bySpan = new Map();
     const seen = new Map();
-    const candidateRows = candidateRowsForInput(input);
+    const candidateRows = candidateRowsForInput(input, operatorHintsForDomains);
     const intentBrief = input.intentBrief || null;
     for (const span of spanRows) {
-      if (!['entity', 'material', 'environment', 'observable'].includes(span.kind)) continue;
+      if (!['entity', 'material', 'environment', 'observable', 'term'].includes(span.kind)) continue;
       const row = bestCandidateForSpan(span, candidateRows);
       candidates.push({ spanId: span.id, span: span.text, candidates: row.matches });
       if (!row.best || row.best.confidence < 0.34) {
@@ -276,98 +280,6 @@
       },
     };
   }
-  function candidateRowsForInput(input) {
-    const rows = [];
-    for (const component of input.components || []) {
-      rows.push({
-        label: component.role || component.phrase || component.id,
-        canonicalId: `primitive.${component.id}`,
-        semanticType: component.type || 'body',
-        domains: component.domains || [],
-        materialId: component.material || '',
-        materialIds: component.material ? [component.material] : [],
-        operatorHints: operatorHintsForDomains(component.domains || []),
-        operatorTypes: operatorHintsForDomains(component.domains || []),
-        primitiveHints: component.id ? [component.id] : [],
-        conceptIds: [`primitive.${component.id}`],
-        shapeHints: [],
-        sceneHints: [],
-        indexName: 'components',
-        confidence: clamp01(Number(component.score || 0.46)),
-        evidence: ['intent-component'],
-      });
-    }
-    const rag = input.semanticRag && input.semanticRag.openComponents || [];
-    for (const row of rag) {
-      rows.push({
-        label: row.phrase || row.role || row.id,
-        canonicalId: `semantic.${row.id}`,
-        semanticType: row.type || 'component',
-        domains: row.domains || [],
-        materialId: row.material || '',
-        materialIds: row.material ? [row.material] : [],
-        operatorHints: operatorHintsForDomains(row.domains || []),
-        operatorTypes: operatorHintsForDomains(row.domains || []),
-        primitiveHints: row.id ? [row.id] : [],
-        conceptIds: row.id ? [`semantic.${row.id}`] : [],
-        shapeHints: [],
-        sceneHints: [],
-        indexName: 'semantic-rag',
-        confidence: clamp01(Number(row.score || 0.38)),
-        evidence: ['semantic-rag'],
-      });
-    }
-    for (const row of input.universeMatches && input.universeMatches.candidates || []) {
-      if (!row || !row.label) continue;
-      rows.push({
-        label: row.label,
-        aliases: row.aliases || [],
-        canonicalId: row.canonicalId || `universe.${row.id}`,
-        semanticType: row.semanticType || 'concept',
-        domains: row.domains || [],
-        materialId: row.materialId || '',
-        materialIds: row.materialIds || (row.materialId ? [row.materialId] : []),
-        operatorHints: row.operatorHints || row.operatorTypes || [],
-        operatorTypes: row.operatorTypes || row.operatorHints || [],
-        primitiveHints: row.primitiveHints || [],
-        conceptIds: row.conceptIds || (row.canonicalId ? [row.canonicalId] : []),
-        shapeHints: row.shapeHints || [],
-        construction: row.construction || null,
-        constructionEvidence: row.constructionEvidence === true,
-        modelEvaluated: row.modelEvaluated === true,
-        modelScore: Number.isFinite(Number(row.modelScore)) ? Number(row.modelScore) : null,
-        sceneHints: row.sceneHints || [],
-        indexName: row.indexName || '',
-        rankSignals: row.rankSignals || null,
-        confidence: clamp01(Number(row.score || 0.42)),
-        evidence: row.evidence || ['universe-index'],
-      });
-    }
-    for (const row of input.intentBrief && input.intentBrief.retrievedEvidence || []) {
-      if (!row || !row.label) continue;
-      rows.push({
-        id: row.id || row.label,
-        label: row.label,
-        aliases: row.aliases || [],
-        canonicalId: row.canonicalId || row.id || `intent.${row.label}`,
-        semanticType: row.semanticType || row.indexName || 'intentEvidence',
-        domains: row.domains || [],
-        materialId: row.materialId || '',
-        materialIds: row.materialIds || (row.materialId ? [row.materialId] : []),
-        operatorHints: row.operatorHints || row.operatorTypes || [],
-        operatorTypes: row.operatorTypes || row.operatorHints || [],
-        primitiveHints: row.primitiveHints || [],
-        conceptIds: row.conceptIds || [],
-        shapeHints: row.shapeHints || [],
-        sceneHints: row.sceneHints || [],
-        indexName: row.indexName || row.source || 'intent-brief',
-        confidence: clamp01(Number(row.score || row.confidence || 0.42)),
-        evidence: row.evidence || [row.id || row.label],
-      });
-    }
-    return rows;
-  }
-
   function edgeRowsForIntentBrief(intentBrief, nodes) {
     const edges = [];
     if (!intentBrief || !Array.isArray(intentBrief.causalGraph)) return edges;
@@ -477,7 +389,7 @@
       Number(b.confidence || 0) - Number(a.confidence || 0)
     ));
     const best = matches[0] || null;
-    const typedSpan = ['entity', 'material', 'environment'].includes(span.kind || '');
+    const typedSpan = ['entity', 'material', 'environment', 'term'].includes(span.kind || '');
     if (best && typedSpan && best.identityEvidence !== true) {
       return { best: null, matches: matches.slice(0, 5) };
     }
@@ -647,7 +559,7 @@
   function addPromptIdentityCandidateNodes(nodes, seen, candidateRows, input, rejected) {
     const prompt = String(input.prompt || input.promptParse && input.promptParse.prompt || '').toLowerCase();
     const promptIdentityTokens = new Set((input.promptParse && input.promptParse.spans || [])
-      .filter((span) => ['entity', 'environment', 'material', 'observable'].includes(span.kind))
+      .filter((span) => ['entity', 'environment', 'material', 'observable', 'term'].includes(span.kind))
       .flatMap((span) => surfaceIdentityTokens(span.text || '')));
     const rows = (candidateRows || [])
       .filter((row) => row && String(row.indexName || '') === 'semantic-surface-grounder')

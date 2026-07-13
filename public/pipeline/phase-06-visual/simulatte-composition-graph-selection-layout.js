@@ -737,6 +737,8 @@
           visualArchetype: object.visualArchetype || '',
           shapeHints: object.shapeHints || [],
           construction: object.construction || object.geometry && object.geometry.construction || null,
+          constructionHypotheses: object.constructionHypotheses ||
+            object.geometry && object.geometry.constructionHypotheses || [],
           constructionProvenance: object.constructionProvenance || [],
           properties: object.properties || [],
           partGraph: object.partGraph || [],
@@ -867,6 +869,7 @@
           visualArchetype: binding.visualArchetype || object.visualArchetype || '',
           shapeHints: binding.shapeHints || object.shapeHints || [],
           construction: binding.construction || object.construction || null,
+          constructionHypotheses: binding.constructionHypotheses || object.constructionHypotheses || [],
           constructionProvenance: binding.constructionProvenance || object.constructionProvenance || [],
           properties: binding.properties || object.properties || [],
           partGraph: binding.partGraph || object.partGraph || [],

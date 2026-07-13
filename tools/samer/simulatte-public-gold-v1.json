@@ -47,6 +47,56 @@
         { "type": "person", "pose": "play-interaction" }
       ],
       "blockingVisualRules": ["recognizable-dogs", "recognizable-people", "visible-play-interaction", "not-generic-box-only"]
+    },
+    {
+      "id": "purple-violin-on-wooden-stool",
+      "prompt": "purple violin on a wooden stool",
+      "entities": [
+        { "type": "violin", "count": 1 },
+        { "type": "chair", "count": 1 }
+      ],
+      "relations": [
+        { "subjectType": "violin", "kind": "on", "objectType": "stool" }
+      ],
+      "poses": [],
+      "properties": [
+        { "type": "violin", "kind": "color", "value": "#8055b8" },
+        { "type": "chair", "kind": "material", "value": "wood" }
+      ],
+      "blockingVisualRules": ["recognizable-violin", "recognizable-stool", "purple-violin", "wooden-stool", "violin-on-stool", "not-generic-box-only"]
+    },
+    {
+      "id": "excavator-beside-greenhouse",
+      "prompt": "yellow excavator beside a glass greenhouse",
+      "entities": [
+        { "type": "excavator", "count": 1 },
+        { "type": "greenhouse", "count": 1 }
+      ],
+      "relations": [
+        { "subjectType": "excavator", "kind": "beside", "objectType": "greenhouse" }
+      ],
+      "poses": [],
+      "properties": [
+        { "type": "excavator", "kind": "color", "value": "#f4d03f" },
+        { "type": "greenhouse", "kind": "material", "value": "glass" }
+      ],
+      "blockingVisualRules": ["recognizable-excavator", "recognizable-greenhouse", "yellow-excavator", "glass-greenhouse", "side-by-side-layout", "not-generic-box-only"]
+    },
+    {
+      "id": "octopus-holding-teapot",
+      "prompt": "an octopus holding a teapot",
+      "entities": [
+        { "type": "octopus", "count": 1 },
+        { "type": "teapot", "count": 1 }
+      ],
+      "relations": [
+        { "subjectType": "octopus", "kind": "holding", "objectType": "teapot" }
+      ],
+      "poses": [
+        { "type": "octopus", "pose": "grasp-hold" }
+      ],
+      "properties": [],
+      "blockingVisualRules": ["recognizable-octopus", "recognizable-teapot", "visible-grasp", "not-generic-box-only"]
     }
   ],
   "promotionHoldout": {

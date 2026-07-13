@@ -25,6 +25,7 @@
       const stateBinding = 'simulation-time';
       if (staticPromptObject) kind = 'static-pose';
       else if (pose === 'play-interaction') kind = 'play-loop';
+      else if (pose === 'grasp-hold') kind = 'hold-pose';
       else if (/swim[-_ ]?cycle|swimming[-_ ]?pose|swim[-_ ]?stroke|fluid_locomotion/.test(value)) kind = 'swim-cycle';
       else if (/biological-agent/.test(value) && /water|swim|fluid|watershed|ocean/.test(value)) kind = 'swim-cycle';
       else if (pose === 'flight-extended' || actionOwnedByEntity && /action:(?:fly|flies|flying)\b/.test(behaviorEvidence)) kind = 'flight-path';

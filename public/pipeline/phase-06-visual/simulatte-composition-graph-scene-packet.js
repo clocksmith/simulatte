@@ -325,8 +325,8 @@
           const visualArchetype = String(entity.visualArchetype || '').trim().toLowerCase();
           const generic = /^(?:body|entity|environment|material|medium|object|term)$/;
           const sourceType = sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-          const type = scenePacketPromptIdentityType(sourceLabel) || (!generic.test(semanticClass) ? semanticClass : '') ||
-            sourceType || visualArchetype;
+          const type = scenePacketPromptIdentityType(sourceLabel) || sourceType ||
+            (!generic.test(semanticClass) ? semanticClass : '') || visualArchetype;
           if (type) {
             return {
               type,

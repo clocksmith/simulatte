@@ -56,15 +56,19 @@
       : identityList.length;
     return obligations.map((row) => {
       const target = normalizeForProof(row.target || row.obligationId || row.id || '');
+      const constructionPacketSatisfied = constructionVisualObligationPacketSatisfied(row, sceneRenderPacket);
       const promptPacketSatisfied = promptVisualObligationPacketSatisfied(row, sceneRenderPacket);
-      const packetSatisfied = promptPacketSatisfied == null ? visualObligationPacketSatisfied(
+      const packetSatisfied = constructionPacketSatisfied != null ? constructionPacketSatisfied :
+        promptPacketSatisfied == null ? visualObligationPacketSatisfied(
         target,
         packetText,
         distinctEntityIdentityCount
       ) : promptPacketSatisfied;
       const geometrySatisfied = visualObligationGeometrySatisfied(target, objectRealization, row, sceneRenderPacket);
+      const pixelProof = visualObligationPixelProof(row, renderData);
+      const pixelSatisfied = rendered && packetSatisfied && geometrySatisfied && pixelProof.satisfied;
       const sourceStatus = row.status || '';
-      const status = rendered && packetSatisfied && geometrySatisfied && !phase7FailureStatus(sourceStatus)
+      const status = pixelSatisfied && !phase7FailureStatus(sourceStatus)
         ? 'pass'
         : rendered ? 'fail' : 'not-proven';
       return {
@@ -75,11 +79,12 @@
         phase6Status: sourceStatus,
         packetSatisfied,
         geometrySatisfied,
-        pixelSatisfied: rendered && packetSatisfied && geometrySatisfied,
+        pixelSatisfied,
+        pixelProof,
         status,
         pass: status === 'pass',
-        evidence: packetSatisfied && geometrySatisfied
-          ? ['sceneRenderPacket', 'objectGeometryProgram', ...(rendered ? ['webgpu-frame'] : [])]
+        evidence: packetSatisfied && geometrySatisfied && pixelProof.satisfied
+          ? ['sceneRenderPacket', 'objectGeometryProgram', ...(rendered ? ['webgpu-frame'] : []), ...pixelProof.evidence]
           : [],
       };
     });
@@ -259,6 +264,8 @@
 
   function visualObligationGeometrySatisfied(target = '', realization = {}, obligation = {}, sceneRenderPacket = {}) {
     const rows = realization && Array.isArray(realization.rows) ? realization.rows : [];
+    const constructionSatisfied = constructionVisualObligationGeometrySatisfied(obligation, rows, sceneRenderPacket);
+    if (constructionSatisfied != null) return constructionSatisfied;
     if (/^visual:prompt-/.test(String(obligation.obligationId || obligation.id || ''))) {
       return promptVisualObligationGeometrySatisfied(obligation, rows, sceneRenderPacket);
     }
@@ -271,6 +278,68 @@
       return rows.some((row) => row.realized && ['dog', 'cat', 'animal'].includes(row.identityType));
     }
     return true;
+  }
+
+  function constructionVisualObligationPacketSatisfied(obligation = {}, sceneRenderPacket = {}) {
+    if (!/^construction-/.test(String(obligation.constraintKind || ''))) return null;
+    const entity = constructionObligationEntity(obligation, sceneRenderPacket);
+    const program = entity && entity.geometry && entity.geometry.program || {};
+    if (obligation.constraintKind === 'construction-support') {
+      return program.literal === true && program.unsupportedIdentity !== true;
+    }
+    if (obligation.constraintKind === 'construction-topology') {
+      const graph = program.constructionGraph || {};
+      const constraints = graph.constraints || [];
+      const expectedConstraints = Number(obligation.expectedConstraintCount || 0);
+      return program.selectionRole === 'model-construction' &&
+        graph.topologyId === obligation.expectedTopology &&
+        (!expectedConstraints || constraints.filter((row) => row.applied === true).length >= expectedConstraints);
+    }
+    if (obligation.constraintKind === 'construction-part') {
+      return (program.parts || []).filter((part) => (
+        normalizeForProof(part.constructionRole) === normalizeForProof(obligation.expectedPartRole)
+      )).length >= Number(obligation.expectedCount || 1);
+    }
+    return false;
+  }
+
+  function constructionVisualObligationGeometrySatisfied(obligation = {}, rows = [], sceneRenderPacket = {}) {
+    const packetSatisfied = constructionVisualObligationPacketSatisfied(obligation, sceneRenderPacket);
+    if (packetSatisfied == null) return null;
+    if (!packetSatisfied) return false;
+    const entity = constructionObligationEntity(obligation, sceneRenderPacket);
+    const realization = rows.find((row) => row.entityId === (entity && entity.id));
+    if (!realization || realization.readable !== true) return false;
+    if (obligation.constraintKind === 'construction-support') return realization.realized === true;
+    return realization.literal === true && realization.topologyVerified === true;
+  }
+
+  function constructionObligationEntity(obligation = {}, sceneRenderPacket = {}) {
+    const entities = sceneRenderPacket.entities || [];
+    const targetId = String(obligation.targetEntityId || '');
+    return entities.find((row) => row.id === targetId || row.id.startsWith(`${targetId}:instance:`)) ||
+      entities.find((row) => promptProofEntityMatches(row, obligation.targetIdentity || obligation.target)) || null;
+  }
+
+  function visualObligationPixelProof(obligation = {}, renderData = null) {
+    const required = Boolean(renderData && renderData.requireLivePixelSamples);
+    if (!required) return { required: false, satisfied: true, expectedCount: 0, visibleCount: 0, evidence: [] };
+    const obligationId = obligation.obligationId || obligation.id || '';
+    const rows = normalizePhase7PixelSamples(
+      renderData && (renderData.pixelSamples || renderData.livePixelSamples) || null
+    ).filter((row) => row.obligationId === obligationId);
+    const visible = rows.filter((row) => row.visible === true && row.colorSatisfied !== false);
+    const expectedCount = obligation.constraintKind === 'construction-part'
+      ? Math.max(1, Number(obligation.expectedCount || 1))
+      : 1;
+    return {
+      required: true,
+      satisfied: visible.length >= expectedCount,
+      expectedCount,
+      visibleCount: visible.length,
+      sampleIds: rows.map((row) => row.id),
+      evidence: visible.length >= expectedCount ? ['webgpu-texture-copy-readback'] : [],
+    };
   }
 
   function promptVisualObligationPacketSatisfied(obligation = {}, sceneRenderPacket = {}) {
@@ -458,6 +527,9 @@
         contrast,
         constraintKind: row && row.constraintKind || '',
         expectedValue: row && row.expectedValue || '',
+        constructionRole: row && row.constructionRole || '',
+        constructionPartId: row && row.constructionPartId || '',
+        expectedSampleCount: Math.max(1, Number(row && row.expectedSampleCount || 1)),
         colorSatisfied: promptPixelColorSatisfied(rgba, row && row.expectedValue),
         visible: row && row.visible === false ? false : rgba[3] >= 8 && contrast >= 0.02,
       };
@@ -474,6 +546,13 @@
     const sampledRequiredIds = new Set(samples
       .filter((row) => row.visible === true && row.colorSatisfied !== false && row.obligationId && requiredIds.includes(row.obligationId))
       .map((row) => row.obligationId));
+    const constructionCountsSatisfied = Array.from(new Set(samples
+      .filter((row) => row.constraintKind === 'construction-part' && row.obligationId)
+      .map((row) => row.obligationId))).every((id) => {
+      const rows = samples.filter((row) => row.obligationId === id);
+      const expected = Math.max(1, ...rows.map((row) => Number(row.expectedSampleCount || 1)));
+      return rows.filter((row) => row.visible === true && row.colorSatisfied !== false).length >= expected;
+    });
     const minVisibleSampleCount = required
       ? Math.max(1, Math.min(3, drawableCount || 1, samples.length || 1))
       : 0;
@@ -481,8 +560,8 @@
     const minContrastValue = visibleSamples.length
       ? Math.min(...visibleSamples.map((row) => Number(row.contrast || 0)))
       : 0;
-    const obligationsSampled = !required || requiredIds.length === 0 ||
-      requiredIds.every((id) => sampledRequiredIds.has(id));
+    const obligationsSampled = (!required || requiredIds.length === 0 ||
+      requiredIds.every((id) => sampledRequiredIds.has(id))) && constructionCountsSatisfied;
     return {
       schema: 'simulatte.phase7LivePixelAudit.v1',
       required,
@@ -492,6 +571,7 @@
       sampledRequiredObligationCount: sampledRequiredIds.size,
       requiredObligationCount: requiredIds.length,
       obligationsSampled,
+      constructionCountsSatisfied,
       sampledObligationIds: Array.from(sampledRequiredIds),
       thresholds: { minVisibleSampleCount, minContrast },
       status: visibleSamples.length >= minVisibleSampleCount &&
@@ -604,6 +684,9 @@
     visualObligationGeometrySatisfied,
     auditLiteralObjectRealization,
     promptVisualObligationPacketSatisfied,
+    constructionVisualObligationPacketSatisfied,
+    constructionVisualObligationGeometrySatisfied,
+    visualObligationPixelProof,
     promptPixelColorSatisfied,
   });
 });

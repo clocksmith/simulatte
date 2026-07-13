@@ -21,6 +21,7 @@
     'pipeline/phase-05-simulation/simulatte-physics-catalog.js'
   );
   const semanticRag = group(
+    'data/simulatte-construction-substrate.js',
     'pipeline/phase-03-retrieval/simulatte-semantic-rag-dependencies.js',
     'pipeline/phase-03-retrieval/simulatte-semantic-rag-constants.js',
     'pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js',
@@ -62,6 +63,7 @@
     'data/simulatte-language-lexicon.js',
     'pipeline/phase-02-language/simulatte-universe-parser.js',
     'pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js',
+    'pipeline/phase-04-grounded-intent/simulatte-universe-grounder-candidates.js',
     'pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js'
   );
   const physicsIr = group(
@@ -152,6 +154,8 @@
   const webGpuRenderer = group(
     'pipeline/phase-07-render/simulatte-webgpu-renderer-dependencies.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-constants.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js',
@@ -182,6 +186,7 @@
   const prompt = group(
     'app/prompt/prompt-controller-dependencies.js',
     'app/prompt/prompt-controller-model-bindings.js',
+    'app/prompt/prompt-controller-construction-search.js',
     'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller-workers.js',
     'app/prompt/prompt-controller-training.js',
