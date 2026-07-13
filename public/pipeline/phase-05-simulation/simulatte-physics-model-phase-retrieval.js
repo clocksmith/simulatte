@@ -758,6 +758,7 @@
         const semanticType = {
           actor: 'body',
           object: 'body',
+          part: 'part',
           environment: 'environment',
           medium: 'material',
           action: 'process',
@@ -779,19 +780,19 @@
           source: 'prompt-typed-slot',
           score: 1,
           supportOnly: false,
-          identityEvidence: /^(?:actor|object|environment|medium)$/.test(role),
+          identityEvidence: /^(?:actor|object|part|environment|medium)$/.test(role),
           reason: 'typed Phase 2 slot preserves literal prompt identity',
         };
       }
 
     function phase3RowsForSlot(slot = {}, buckets = {}, rankedCards = [], rankedUniverseRows = []) {
-    	    const role = slot.slotRole || '';
-    	    const entryId = String(slot.entryId || '');
-    	    if (role === 'actor' || role === 'object') return phase3FilterRowsForEntry(buckets.literalPromptObjects || [], entryId);
-    	    if (role === 'action') return phase3FilterRowsForEntry(buckets.actionEvidence || [], entryId);
-    	    if (role === 'environment') return phase3FilterRowsForEntry(buckets.environmentEvidence || [], entryId);
-    	    if (role === 'medium') return phase3FilterRowsForEntry(buckets.materialMediumEvidence || [], entryId);
-    	    if (role === 'relation') {
+      const role = slot.slotRole || '';
+      const entryId = String(slot.entryId || '');
+      if (role === 'actor' || role === 'object' || role === 'part') return phase3FilterRowsForEntry(buckets.literalPromptObjects || [], entryId);
+      if (role === 'action') return phase3FilterRowsForEntry(buckets.actionEvidence || [], entryId);
+      if (role === 'environment') return phase3FilterRowsForEntry(buckets.environmentEvidence || [], entryId);
+      if (role === 'medium') return phase3FilterRowsForEntry(buckets.materialMediumEvidence || [], entryId);
+      if (role === 'relation') {
     	      return phase3FilterRowsForEntry([
     	        ...(buckets.relationEvidence || []),
     	        ...(buckets.actionEvidence || []),

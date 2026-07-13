@@ -22,12 +22,12 @@
   with (scope) {
     function slotNeedsModelConstructionEvidence(slot = {}) {
       const role = String(slot.slotRole || '');
-      return /^(actor|object|environment)$/.test(role);
+      return /^(actor|object|part|environment)$/.test(role);
     }
 
     function slotNeedsModelRetrievalEvidence(slot = {}) {
       const role = String(slot.slotRole || '');
-      if (/^(actor|object|environment|medium)$/.test(role)) return true;
+      if (/^(actor|object|part|environment|medium)$/.test(role)) return true;
       return role === 'relation' && !slot.spatialRelation && slot.required !== false;
     }
 
@@ -44,7 +44,7 @@
         .replace(/^[a-z]+:/, '').replace(/[_:]+/g, ' '));
       const id = `prompt.${role}.${target.replace(/\s+/g, '-')}`;
       const semanticType = ({
-        actor: 'entity', object: 'entity', environment: 'environment', medium: 'medium',
+        actor: 'entity', object: 'entity', part: 'part', environment: 'environment', medium: 'medium',
         action: 'action', relation: 'relation', visual: 'visual',
       })[role] || 'entity';
       const candidate = {

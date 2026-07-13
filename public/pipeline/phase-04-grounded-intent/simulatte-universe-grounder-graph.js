@@ -282,7 +282,7 @@
     const existingIds = new Set(nodes.map((node) => node.id));
     for (const span of promptParse.spans || []) {
       if (!['entity', 'material', 'environment'].includes(span.kind) || bySpan.has(span.id)) continue;
-      if (!span.entityClass && !span.materialHint && !span.visualArchetype && !span.semanticRole) continue;
+      if (!['part', 'lighting-environment'].includes(span.semanticRole || '')) continue;
       const semanticType = span.kind === 'material' ? 'material' : span.kind;
       const canonicalTarget = span.entityClass || span.materialHint || normalizedIdentity(span.text);
       const baseId = `prompt-${span.kind}-${normalizedIdentity(span.text).replace(/\s+/g, '-')}`;

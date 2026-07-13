@@ -210,14 +210,14 @@
 
   const ACTION_POSE_LEXICON = Object.freeze([
     { pose: 'flight-extended', phrases: ['fly', 'flies', 'flying'] },
-    { pose: 'seated', phrases: ['sit', 'sits', 'sitting'] },
+    { pose: 'sitting', phrases: ['sit', 'sits', 'sitting'] },
     { pose: 'swim-stroke', phrases: ['swim', 'swims', 'swimming', 'swam'] },
     { pose: 'running-stride', phrases: ['run', 'runs', 'running'] },
     { pose: 'jump-extended', phrases: ['jump', 'jumps', 'jumping'] },
   ]);
 
   const MATERIAL_VISUAL_VALUES = Object.freeze({
-    straw: Object.freeze({ color: '#d8bd72', roughness: 0.82, texture: 'fibrous' }),
+    straw: Object.freeze({ color: '#d8bd72', roughness: 0.82, metallic: 0.04, texture: 'fibrous' }),
   });
 
   // Phase 5 consumes this same vocabulary to select a physical behavior bundle.

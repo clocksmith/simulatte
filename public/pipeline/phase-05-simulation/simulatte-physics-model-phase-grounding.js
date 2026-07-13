@@ -264,6 +264,7 @@
         languageGraph = {},
       } = {}) {
         if (!groundUniverseGraph) return null;
+        if (!groundingEvidence || !Object.keys(groundingEvidence).length) return null;
         const promptParse = promptParseFromLanguageGraph(languageGraph) || promptParseFromLanguageEvidence(languageEvidence);
         if (!promptParse) return null;
         const universeCandidateEvidence = candidateEvidenceFromUniverseGraphCandidates(
@@ -774,20 +775,21 @@
     	  }
 
     function visualObligationsFromLedger(compositionLedger = null) {
-    	    return (compositionLedger && compositionLedger.obligations || [])
+      return (compositionLedger && compositionLedger.obligations || [])
               .filter((row) => row.kind !== 'relation' && !/^action:coexists/.test(String(row.id || '')) && (row.kind === 'visual' || row.ownedByPhase === 6 || (
                 row.required === true && Array.isArray(row.visualEvidence) && row.visualEvidence.length > 0
               )))
-    	      .map((row) => phaseCarryObject({
-    	        schema: 'simulatte.visualObligationReceipt.v1',
-    	        obligationId: row.id || '',
+        .map((row) => phaseCarryObject({
+          ...row,
+          schema: 'simulatte.visualObligationReceipt.v1',
+          obligationId: row.id || '',
                 target: visualObligationTargetFromLedger(row),
                 sourceKind: row.kind || '',
-    	        status: row.status || '',
-    	        evidence: row.visualEvidence || [],
-    	        required: row.required === true,
-    	      }));
-    	  }
+          status: row.status || '',
+          evidence: row.visualEvidence || [],
+          required: row.required === true,
+        }));
+    }
 
     function visualObligationTargetFromLedger(row = {}) {
             const explicit = String(row.target || '').trim();
@@ -902,9 +904,10 @@
     	          schema: RENDER_EXECUTION_SCHEMA,
     	          renderExecutionInputSchema: renderExecutionInput.schema,
     	          sceneRenderPacketSchema: sceneRenderPacket.schema || '',
-    		          rendered: frameReceipt.rendered === true,
-		          packetIdentitySummary: scenePacketIdentitySummary(sceneRenderPacket),
-		          objectRealization,
+		          rendered: frameReceipt.rendered === true,
+	          packetIdentitySummary: scenePacketIdentitySummary(sceneRenderPacket),
+	          environmentProgram: sceneRenderPacket.environmentProgram || null,
+	          objectRealization,
     		          visualObligationProof,
     		          visualObligationProofSummary,
     		          shaderPath: frameReceipt.shaderPath || frameReceipt.renderPath || '',

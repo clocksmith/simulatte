@@ -701,7 +701,7 @@
         const instancesByProcess = renderInstanceLookup(renderInstances, 'processId');
         const processById = new Map(processes.map((row) => [row.id, row]));
         const motionByProcess = new Map(motion.map((row) => [row.processId, row]));
-        const rawPacketEntities = entities
+        const rawPacketEntities = expandPromptCardinalityPackets(entities
           .map((entity, index) => scenePacketEntity({
             entity,
             geometry: geometryByEntity.get(entity.id),
@@ -713,7 +713,7 @@
             total: entities.length,
           }))
           .filter(Boolean)
-          .slice(0, 32);
+        ).slice(0, 32);
         const sceneFraming = frameScenePacketEntities(rawPacketEntities);
         const packetEntities = sceneFraming.entities;
         const packetFields = fields
@@ -771,6 +771,7 @@
             coordinateSystem: 'normalized-canvas',
           },
           lights: scenePacketLights(context.lighting, sceneKind),
+          environmentProgram: context.lighting && context.lighting.environmentProgram || null,
           entities: packetEntities,
           fields: packetFields,
           effects: packetEffects,

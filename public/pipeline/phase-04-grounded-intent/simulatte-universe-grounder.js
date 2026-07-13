@@ -990,7 +990,6 @@
 
   function unique(values) { return [...new Set((values || []).filter(Boolean))]; }
   function defaultSlugify(value) { return String(value || 'item').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'; }
-
   return {
     UNIVERSE_GRAPH_SCHEMA,
     CONCEPTS,

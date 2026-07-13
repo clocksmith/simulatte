@@ -116,6 +116,7 @@
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-materials.js',
     'pipeline/phase-06-visual/simulatte-construction-geometry.js',
+    'pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js',
     'pipeline/phase-06-visual/simulatte-object-geometry-grammars.js',
     'pipeline/phase-06-visual/simulatte-scene-framing.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js',

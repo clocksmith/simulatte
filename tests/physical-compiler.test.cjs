@@ -859,6 +859,106 @@ test('common-world and celestial nouns survive grounding as literal object geome
   }
 });
 
+test('part-scoped properties bind robot eyes and articulated straw arms into one object graph', () => {
+  const spec = lab.createSpecFromPrompt('robot with red eyes and bendable straw arms', {
+    allowPrototypeFallback: true,
+  });
+  const robotNode = spec.universeGraph.nodes.find((row) => row.semanticClass === 'robot');
+  const eyePart = robotNode.partGraph.find((row) => row.semanticClass === 'eye');
+  const armPart = robotNode.partGraph.find((row) => row.semanticClass === 'arm');
+  const packet = spec.renderProgram.sceneRenderPacket;
+  const robotRows = packet.entities.filter((row) => row.identity.type === 'robot');
+
+  assert.ok(robotNode);
+  assert.equal(spec.physicsIR.entities.length, 1, 'owned parts do not become separate physics objects');
+  assert.equal(eyePart.properties.find((row) => row.kind === 'color').value, '#ef3340');
+  assert.equal(armPart.materialId, 'straw');
+  assert.equal(armPart.properties.find((row) => row.kind === 'articulation').value, 'segmented-flexible');
+  assert.equal(robotRows.length, 1, 'owned parts do not leak into separate packet entities');
+  const program = robotRows[0].geometry.program;
+  assert.equal(program.grammarId, 'object-grammar.robot-character');
+  assert.equal(program.constructionSelectionReceipt.strategy, 'prompt-obligation-coverage');
+  assert.equal(program.constructionSelectionReceipt.candidates.length, 2);
+  const eyes = program.parts.filter((row) => row.id.includes('eye'));
+  const arms = program.parts.filter((row) => row.id.includes('arm'));
+  assert.equal(eyes.length, 2);
+  assert.ok(eyes.every((row) => row.fill === '#ef3340' && row.emissive === 0.82));
+  assert.ok(arms.length >= 4);
+  assert.ok(arms.every((row) => (
+    row.fill === '#d8bd72' && row.texture === 'fibrous' &&
+    row.articulation === 'segmented-flexible'
+  )));
+  const objectParts = webgpuRendererScope.scenePacketObjectParts(packet);
+  assert.ok(objectParts.filter((row) => row.id.includes(':eye-'))
+    .every((row) => row.emissive === 0.82 && row.metallic === 0.04));
+  assert.ok(objectParts.filter((row) => row.id.includes('-arm-'))
+    .every((row) => row.roughness === 0.82 && row.metallic === 0.04));
+  const promptObligations = spec.renderProgram.visualIR.compositionLedger.obligations
+    .filter((row) => row.id.startsWith('visual:prompt-'));
+  assert.ok(promptObligations.length >= 3);
+  assert.ok(promptObligations.every((row) => row.status === 'preserved'));
+  const phase7 = lab.runPhase7RenderExecution(lab.createRenderExecutionInput(spec), null, null, {
+    rendered: true,
+    renderCount: 1,
+    drawCount: objectParts.length,
+  });
+  assert.ok(phase7.artifact.renderExecution.visualObligationProof
+    .filter((row) => row.obligationId.startsWith('visual:prompt-'))
+    .every((row) => row.status === 'pass'));
+});
+
+test('cardinality pose spatial color and environment contracts lower into one rendered scene', () => {
+  const spec = lab.createSpecFromPrompt('4 birds flying over a black castle with orange sunset', {
+    allowPrototypeFallback: true,
+  });
+  const packet = spec.renderProgram.sceneRenderPacket;
+  const birds = packet.entities.filter((row) => row.identity.type === 'bird');
+  const castle = packet.entities.find((row) => row.identity.type === 'castle');
+  const birdQuantity = spec.promptParse.quantities.find((row) => row.targetSpanId);
+
+  assert.equal(birdQuantity.value, 4);
+  assert.equal(spec.physicsIR.entities.find((row) => row.semanticClass === 'bird').cardinality, 4);
+  assert.equal(birds.length, 4);
+  assert.deepEqual(birds.map((row) => row.cardinalityReceipt.instanceIndex), [1, 2, 3, 4]);
+  assert.ok(birds.every((row) => row.cardinalityReceipt.instanceCount === 4));
+  assert.ok(birds.every((row) => row.geometry.program.grammarId === 'object-grammar.bird-flying'));
+  assert.ok(birds.every((row) => row.geometry.program.pose === 'flight-extended'));
+  assert.ok(birds.every((row) => (
+    row.geometry.program.parts.some((part) => part.id === 'wing-left') &&
+    row.geometry.program.parts.some((part) => part.id === 'wing-right')
+  )));
+  assert.ok(birds.every((row) => row.transform.position[1] < castle.transform.position[1]));
+  assert.equal(castle.geometry.program.grammarId, 'object-grammar.castle');
+  assert.ok(castle.geometry.program.parts.every((row) => row.fill === '#111318'));
+  assert.equal(packet.environmentProgram.kind, 'sunset');
+  assert.equal(packet.environmentProgram.color, '#f47b20');
+  assert.equal(packet.lights[0].id, 'sunset-key');
+  assert.deepEqual(packet.lights[0].direction, [-0.62, -0.3, 0.72]);
+  const promptObligations = spec.renderProgram.visualIR.compositionLedger.obligations
+    .filter((row) => row.id.startsWith('visual:prompt-'));
+  assert.ok(promptObligations.some((row) => row.constraintKind === 'count' && row.expectedCount === 4));
+  assert.ok(promptObligations.some((row) => row.constraintKind === 'environment'));
+  assert.ok(promptObligations.every((row) => row.status === 'preserved'));
+  assert.equal(
+    spec.renderProgram.visualIR.compositionLedger.obligations.find((row) => row.id === 'environment:sunset').status,
+    'preserved'
+  );
+  const phase7 = lab.runPhase7RenderExecution(lab.createRenderExecutionInput(spec), null, null, {
+    rendered: true,
+    renderCount: 1,
+    drawCount: webgpuRendererScope.scenePacketObjectParts(packet).length,
+  });
+  assert.ok(phase7.artifact.renderExecution.visualObligationProof
+    .filter((row) => row.obligationId.startsWith('visual:prompt-'))
+    .every((row) => row.status === 'pass'));
+  assert.equal(phase7.artifact.renderExecution.environmentProgram.kind, 'sunset');
+  assert.equal(phase7.artifact.renderExecution.pixelAudit.literalRealization.status, 'pass');
+  assert.equal(globalThis.SimulatteSceneProof.settleSceneProof(phase7).artifact.sceneProof.verdict, 'pass');
+  assert.equal(webgpuRendererScope.promptPixelColorSatisfied([220, 58, 56, 255], '#ef3340'), true);
+  assert.equal(webgpuRendererScope.promptPixelColorSatisfied([20, 21, 25, 255], '#111318'), true);
+  assert.equal(webgpuRendererScope.promptPixelColorSatisfied([230, 112, 34, 255], '#f47b20'), true);
+});
+
 test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts', () => {
   const objects = [
     { id: 'subject-a', semanticRef: 'prompt.body.subject', sourceLabel: 'subject', directlyGrounded: true },
@@ -1548,8 +1648,8 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
         draw: () => {},
         end: () => {},
       }),
-      copyTextureToBuffer: (_source, destination) => {
-        copyCalls.push(destination);
+      copyTextureToBuffer: (source, destination) => {
+        copyCalls.push({ ...destination, origin: source.origin });
         destination.buffer.data.set(readbackRgba, destination.offset || 0);
       },
       finish: () => ({}),
@@ -1587,7 +1687,7 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
   Object.defineProperty(globalThis, 'navigator', {
     value: {
       gpu: {
-        getPreferredCanvasFormat: () => 'rgba8unorm',
+        getPreferredCanvasFormat: () => 'bgra8unorm',
         requestAdapter: async () => ({
           features: new Set(),
           requestDevice: async () => fakeDevice,
@@ -1648,8 +1748,12 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
     assert.equal(canvas.dataset.phase7PixelReadback, 'pass');
     assert.equal(canvas.dataset.phase7PixelProofStatus, 'fail');
     assert.equal(renderer.renderData.livePixelSamplesStatus, 'fail');
+    assert.equal(
+      copyCalls[0].origin.y,
+      renderer.renderData.livePixelSamples.samples[0].y
+    );
 
-    readbackRgba = [44, 134, 218, 255];
+    readbackRgba = [218, 134, 44, 255];
     assert.equal(renderer.render(renderExecutionInput, 32), true);
     await renderer.pendingPixelReadbackPromise;
     const audit = renderer.phase7Output.artifact.renderExecution.pixelAudit;
@@ -1663,6 +1767,7 @@ test('WebGPU phase 8 reads back obligation pixels from the rendered texture', as
     assert.equal(canvas.dataset.phase7PixelReadback, 'pass');
     assert.equal(canvas.dataset.phase7PixelProofStatus, 'pass');
     assert.equal(renderer.lastPixelReadbackReceipt.status, 'pass');
+    assert.deepEqual(renderer.renderData.livePixelSamples.samples[0].rgba, [44, 134, 218, 255]);
     assert.equal(renderer.phase8Output.artifact.sceneProof.verdict, 'pass');
   } finally {
     restore('navigator', previousNavigator);

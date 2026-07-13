@@ -136,6 +136,7 @@
           physicalRef: entity.physicalRef || '',
           sourceGraphId: entity.sourceGraphId || entity.sourceObject || entity.id || '',
           sourceIds: entity.sourceIds || [],
+          cardinality: Number(entity.cardinality || 1),
           visualTraits: entity.visualTraits || {},
           stateBindings: entity.stateBindings || {},
           layerSlot,
@@ -852,6 +853,7 @@
       }
 
     function scenePacketLights(lighting = {}, sceneKind = '') {
+        if (Array.isArray(lighting.lights) && lighting.lights.length) return lighting.lights.map((row) => ({ ...row }));
         const atmosphere = String(lighting.atmosphere || sceneKind || '').toLowerCase();
         const warm = /thermal|fire|lava|hazard/.test(atmosphere);
         const cool = /water|ice|cryosphere|instrument|network/.test(atmosphere);

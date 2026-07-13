@@ -111,6 +111,7 @@
         const bucketRowsBySlotRole = {
           actor: buckets.literalPromptObjects || [],
           object: buckets.literalPromptObjects || [],
+          part: buckets.literalPromptObjects || [],
           action: buckets.actionEvidence || [],
           environment: buckets.environmentEvidence || [],
           medium: buckets.materialMediumEvidence || [],
@@ -118,6 +119,7 @@
         const slotKindByRole = {
           actor: 'entity',
           object: 'entity',
+          part: 'part',
           action: 'action',
           environment: 'environment',
           medium: 'medium',

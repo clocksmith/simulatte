@@ -522,7 +522,9 @@
       }
 
     function visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind) {
-        const visualGenome = rendererPlan && rendererPlan.visualGenome || {};
+        const baseVisualGenome = rendererPlan && rendererPlan.visualGenome || {};
+        const environmentPrograms = spec && spec.renderIR && spec.renderIR.environmentPrograms || [];
+        const visualGenome = applyPromptEnvironmentVisualGenome(baseVisualGenome, environmentPrograms);
         const recipe = rendererPlan && rendererPlan.visualRecipe || null;
         const semantic = visualGenome.semanticVisuals || {};
         const causalAffordances = causalAffordancesFromSpec(spec, sceneKind);
@@ -537,7 +539,10 @@
           visualGenome,
           recipe,
         });
-        const baseVisualEntities = (objects || []).map((object, index) => visualEntityForObject(object, index, sceneKind));
+        const baseVisualEntities = filterPromptPartSupportEntities(
+          (objects || []).map((object, index) => visualEntityForObject(object, index, sceneKind)),
+          spec && spec.renderIR && spec.renderIR.objects || []
+        );
         const swimmingVisualLowering = lowerSwimmingVisualObligations(spec, baseVisualEntities, sceneKind);
         const visualEntities = swimmingVisualLowering.entities;
         const materialRows = uniqueVisualRows([
@@ -589,7 +594,10 @@
           ...visualCameraForScene(sceneKind, recipe, visualEntities, visualGenome),
           atoms: graphicsAtoms.camera,
         };
-        const lighting = visualLightingForScene(sceneKind, recipe, visualGenome);
+        const lighting = applyPromptEnvironmentLighting(
+          visualLightingForScene(sceneKind, recipe, visualGenome),
+          environmentPrograms
+        );
         const sceneRenderPacket = sceneRenderPacketForVisualIR({
           sceneKind,
           camera,

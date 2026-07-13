@@ -8,6 +8,7 @@
     require('./simulatte-composition-graph-visual-ir.js');
     require('./simulatte-composition-graph-materials.js');
     require('./simulatte-construction-geometry.js');
+    require('./simulatte-prompt-visual-contracts.js');
     require('./simulatte-object-geometry-grammars.js');
     require('./simulatte-scene-framing.js');
     require('./simulatte-composition-graph-scene-packet.js');

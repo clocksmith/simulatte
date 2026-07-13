@@ -806,7 +806,7 @@
 
     function slotQueryTerms(value = '') {
         const stop = new Set([
-          'actor', 'object', 'action', 'environment', 'medium',
+          'actor', 'object', 'part', 'action', 'environment', 'medium',
           'relation', 'visual', 'slot', 'required',
         ]);
         return uniqueStrings(fallbackFeatureTokens(String(value || '').replace(/\b[a-z]+:/gi, ' '))

@@ -3,7 +3,7 @@
   if (!scope || scope.missingDependency) return;
   with (scope) {
     function pixelSampleForDrawable(row = {}, obligation = {}, width = 0, height = 0, index = 0, total = 1) {
-        const point = phase7DrawableSamplePoint(row, index, total);
+        const point = phase7DrawableSamplePoint(row, index, total, obligation);
         if (!point) return null;
         const x = clampInt(Math.round(point.x * (width - 1)), 0, Math.max(0, width - 1));
         const y = clampInt(Math.round(point.y * (height - 1)), 0, Math.max(0, height - 1));
@@ -20,13 +20,17 @@
           y,
           uv: [Number(point.x.toFixed(5)), Number(point.y.toFixed(5))],
           backgroundRgba: [250, 250, 255, 255],
+          constraintKind: obligation.constraintKind || '',
+          expectedValue: obligation.expectedValue || '',
         };
       }
 
-    function phase7DrawableSamplePoint(row = {}, index = 0, total = 1) {
+    function phase7DrawableSamplePoint(row = {}, index = 0, total = 1, obligation = {}) {
         const program = row.geometry && row.geometry.program || null;
         if (program && Array.isArray(program.parts) && program.parts.length) {
-          const part = program.parts.slice().sort((a, b) => (
+          const target = String(obligation.targetIdentity || obligation.target || '').toLowerCase();
+          const targeted = program.parts.filter((part) => target && String(part.id || '').toLowerCase().includes(target));
+          const part = (targeted.length ? targeted : program.parts).slice().sort((a, b) => (
             Number(b.size && b.size[0] || 0) * Number(b.size && b.size[1] || 0) -
             Number(a.size && a.size[0] || 0) * Number(a.size && a.size[1] || 0)
           ))[0];
@@ -64,6 +68,25 @@
         }
         const transform = scenePacketDrawableTransform(row, index, total);
         return { x: clamp01(transform.x), y: clamp01(transform.y) };
+      }
+
+    function pixelSampleForEnvironmentObligation(obligation = {}, width = 0, height = 0) {
+        const obligationId = obligation.obligationId || obligation.id || '';
+        return {
+          schema: 'simulatte.phase7PixelSample.v1',
+          id: `gpu:${obligationId}:background`,
+          source: 'webgpu-texture-copy-readback',
+          obligationId,
+          label: obligation.target || 'environment',
+          drawableId: 'background',
+          layerSlot: 'background',
+          x: clampInt(Math.round(width * 0.82), 0, Math.max(0, width - 1)),
+          y: clampInt(Math.round(height * 0.18), 0, Math.max(0, height - 1)),
+          uv: [0.82, 0.18],
+          backgroundRgba: [250, 250, 255, 255],
+          constraintKind: obligation.constraintKind || '',
+          expectedValue: obligation.expectedValue || '',
+        };
       }
 
     function phase7OutputEnvelope(
@@ -107,6 +130,7 @@
     		          optimization,
     		          rendered: true,
 	          packetIdentitySummary: scenePacketIdentitySummary(sceneRenderPacket),
+	          environmentProgram: sceneRenderPacket && sceneRenderPacket.environmentProgram || null,
 		          objectRealization: renderData && renderData.objectRealization || objectRealizationForScenePacket(sceneRenderPacket),
 		          rendererConsumption: renderData && renderData.rendererConsumption || null,
     		          visualObligationProof,
@@ -280,11 +304,12 @@
               variantCode: Number(row.renderCodes && row.renderCodes.variantCode || scenePacketVariantCode(row)),
               zOrder: Number(program.zOrder || 0) + Number(sourcePart.order || 0) * 0.001,
               depth: scenePacketObjectDepth(row, program, sourcePart),
-              roughness: clamp01(Number(row.material && row.material.roughness != null
-                ? row.material.roughness : 0.56)),
-              metallic: clamp01(Number(row.material && row.material.metallic || 0)),
-              emissive: clamp01(Number(row.material && row.material.emissiveStrength ||
-                (row.material && row.material.emissive === true ? 0.42 : 0))),
+              roughness: clamp01(Number(sourcePart.roughness != null ? sourcePart.roughness :
+                row.material && row.material.roughness != null ? row.material.roughness : 0.56)),
+              metallic: clamp01(Number(sourcePart.metallic != null ? sourcePart.metallic :
+                row.material && row.material.metallic || 0)),
+              emissive: clamp01(Number(sourcePart.emissive != null ? sourcePart.emissive :
+                row.material && row.material.emissiveStrength || (row.material && row.material.emissive === true ? 0.42 : 0))),
               literal: program.literal === true,
             });
             if (parts.length >= GPU_OBJECT_PART_CAPACITY) return parts;
@@ -910,6 +935,7 @@
 
     Object.assign(scope, {
       pixelSampleForDrawable,
+      pixelSampleForEnvironmentObligation,
       phase7DrawableSamplePoint,
       phase7OutputEnvelope,
       emptySceneRenderPacket,

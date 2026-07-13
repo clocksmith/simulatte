@@ -297,6 +297,9 @@
           wakeRows,
           submersionRows,
           genericEvidenceByObligation,
+          promptVisualSettlements: promptVisualObligationSettlements(
+            sourceObligations, entities, spec.renderIR && spec.renderIR.environmentPrograms || []
+          ),
         };
         const obligations = sourceObligations.map((row) => {
           const status = visualObligationStatus(row, facts);
@@ -351,6 +354,8 @@
     	  }
 
     function visualObligationStatus(row = {}, facts = {}) {
+        const promptSettlement = facts.promptVisualSettlements && facts.promptVisualSettlements[row.id];
+        if (promptSettlement) return promptSettlement.status;
         if (genericVisualEvidenceForObligation(row, facts).length) return 'preserved';
         if (row.id === 'entity:dog') return facts.hasDog ? 'preserved' : 'lost';
         if (row.id === 'entity:cat') return facts.hasCat ? 'preserved' : 'lost';
@@ -367,7 +372,8 @@
       }
 
     function visualObligationEvidence(row = {}, facts = {}) {
-        const evidence = genericVisualEvidenceForObligation(row, facts).slice();
+        const promptSettlement = facts.promptVisualSettlements && facts.promptVisualSettlements[row.id];
+        const evidence = promptSettlement ? promptSettlement.evidence.slice() : genericVisualEvidenceForObligation(row, facts).slice();
         if (/dog/.test(row.id) && facts.hasDog) evidence.push('scene-identity:dog');
         if (/cat/.test(row.id) && facts.hasCat) evidence.push('scene-identity:cat');
         if (/species-distinct/.test(row.id) && facts.hasDog && facts.hasCat) {

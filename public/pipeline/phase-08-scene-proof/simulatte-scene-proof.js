@@ -37,6 +37,7 @@
       passedVisualTargets,
       sourceObligations: sourceLedger.obligations || [],
       objectRealizationRows,
+      environmentProgram: renderExecution.environmentProgram || null,
     }));
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
@@ -167,11 +168,32 @@
       }
       return { ...base, status: 'not-proven', reason: 'no visual pixel proof row for obligation' };
     }
+    if (row.kind === 'part') {
+      const proof = context.visualProofByObligation.get(obligationId);
+      if (proof && proof.status === 'pass' && !carriedFailure) {
+        return { ...base, status: 'preserved', reason: 'part proven in rendered object graph', evidence: ['visualObligationProof'] };
+      }
+      if (proof && proof.status === 'fail' || carriedFailure) {
+        return { ...base, status: 'lost', reason: 'rendered object graph did not prove required part' };
+      }
+      return { ...base, status: 'not-proven', reason: 'no rendered part proof row for obligation' };
+    }
     if (row.kind === 'entity' || row.kind === 'object' || row.kind === 'environment' || row.kind === 'medium') {
       if (carriedFailure) {
         return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
       }
       const identityTarget = normalizeProofText(target);
+      if (row.kind === 'environment' && proofPhraseMatch(
+        context.environmentProgram && context.environmentProgram.kind,
+        identityTarget
+      )) {
+        return {
+          ...base,
+          status: 'preserved',
+          reason: 'environment has a rendered environment program',
+          evidence: ['environmentProgram'],
+        };
+      }
       if (identityTarget && hasIdentityEvidence(context.identities, identityTarget)) {
         const realization = objectRealizationForTarget(context.objectRealizationRows, identityTarget);
         if (realization && realization.realized === true && Number(realization.projectedArea || 0) >= 0.002) {
@@ -196,6 +218,12 @@
       };
     }
     if (row.kind === 'relation') {
+      const partGraphEvidence = (row.visualEvidence || []).find((value) => (
+        /^(?:part-binding|material-binding):/.test(String(value || ''))
+      ));
+      if (partGraphEvidence && !carriedFailure) {
+        return { ...base, status: 'preserved', reason: 'relation proven by rendered part graph', evidence: [partGraphEvidence] };
+      }
       if (carriedFailure) {
         return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
       }

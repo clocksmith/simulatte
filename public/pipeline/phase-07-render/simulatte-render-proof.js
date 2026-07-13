@@ -56,12 +56,13 @@
       : identityList.length;
     return obligations.map((row) => {
       const target = normalizeForProof(row.target || row.obligationId || row.id || '');
-      const packetSatisfied = visualObligationPacketSatisfied(
+      const promptPacketSatisfied = promptVisualObligationPacketSatisfied(row, sceneRenderPacket);
+      const packetSatisfied = promptPacketSatisfied == null ? visualObligationPacketSatisfied(
         target,
         packetText,
         distinctEntityIdentityCount
-      );
-      const geometrySatisfied = visualObligationGeometrySatisfied(target, objectRealization);
+      ) : promptPacketSatisfied;
+      const geometrySatisfied = visualObligationGeometrySatisfied(target, objectRealization, row, sceneRenderPacket);
       const sourceStatus = row.status || '';
       const status = rendered && packetSatisfied && geometrySatisfied && !phase7FailureStatus(sourceStatus)
         ? 'pass'
@@ -256,8 +257,11 @@
     };
   }
 
-  function visualObligationGeometrySatisfied(target = '', realization = {}) {
+  function visualObligationGeometrySatisfied(target = '', realization = {}, obligation = {}, sceneRenderPacket = {}) {
     const rows = realization && Array.isArray(realization.rows) ? realization.rows : [];
+    if (/^visual:prompt-/.test(String(obligation.obligationId || obligation.id || ''))) {
+      return promptVisualObligationGeometrySatisfied(obligation, rows, sceneRenderPacket);
+    }
     if (/compiled scene packet/.test(target)) return rows.some((row) => row.realized);
     if (/species distinct|species-distinct/.test(target)) {
       return new Set(rows.filter((row) => row.realized && ['dog', 'cat', 'animal'].includes(row.identityType))
@@ -269,6 +273,85 @@
     return true;
   }
 
+  function promptVisualObligationPacketSatisfied(obligation = {}, sceneRenderPacket = {}) {
+    if (!/^visual:prompt-/.test(String(obligation.obligationId || obligation.id || ''))) return null;
+    const entities = sceneRenderPacket.entities || [];
+    const matching = entities.filter((row) => promptProofEntityMatches(row, obligation.targetIdentity || obligation.target));
+    if (obligation.constraintKind === 'count') {
+      return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => (
+        row.cardinalityReceipt && Number(row.cardinalityReceipt.instanceCount) === Number(obligation.expectedCount)
+      ));
+    }
+    if (obligation.constraintKind === 'pose') {
+      return matching.some((row) => (
+        row.geometry && row.geometry.program && row.geometry.program.pose === obligation.expectedPose
+      ));
+    }
+    if (obligation.constraintKind === 'environment') {
+      const program = sceneRenderPacket.environmentProgram || {};
+      return program.kind === obligation.expectedProgram &&
+        (!obligation.expectedValue || program.color === obligation.expectedValue) &&
+        (sceneRenderPacket.lights || []).length > 0;
+    }
+    if (obligation.constraintKind === 'property') {
+      if (obligation.targetIdentity === 'sunset') {
+        return sceneRenderPacket.environmentProgram &&
+          sceneRenderPacket.environmentProgram.color === obligation.expectedValue;
+      }
+      return entities.some((row) => promptProofPropertyBindingMatches(row, obligation));
+    }
+    return false;
+  }
+
+  function promptVisualObligationGeometrySatisfied(obligation = {}, rows = [], sceneRenderPacket = {}) {
+    if (obligation.constraintKind === 'environment') {
+      return Boolean(sceneRenderPacket.environmentProgram && (sceneRenderPacket.lights || []).length);
+    }
+    if (obligation.constraintKind === 'property' && obligation.targetIdentity === 'sunset') {
+      return Boolean(sceneRenderPacket.environmentProgram);
+    }
+    const matching = rows.filter((row) => promptProofRealizationMatches(row, obligation.targetIdentity || obligation.target));
+    if (obligation.constraintKind === 'count') {
+      return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => row.realized === true);
+    }
+    if (obligation.constraintKind === 'pose') {
+      return matching.some((row) => row.realized === true) && (sceneRenderPacket.entities || []).some((row) => (
+        promptProofEntityMatches(row, obligation.targetIdentity || obligation.target) &&
+        row.geometry && row.geometry.program && row.geometry.program.pose === obligation.expectedPose
+      ));
+    }
+    if (obligation.constraintKind === 'property') {
+      return matching.some((row) => row.realized === true) ||
+        (sceneRenderPacket.entities || []).some((row) => promptProofPropertyBindingMatches(row, obligation));
+    }
+    return matching.some((row) => row.realized === true);
+  }
+
+  function promptProofPropertyBindingMatches(row = {}, obligation = {}) {
+    const bindings = row.geometry && row.geometry.program && row.geometry.program.promptPropertyBindings || [];
+    return bindings.some((binding) => (
+      binding.status === 'bound' &&
+      binding.propertyKind === obligation.propertyKind &&
+      binding.value === obligation.expectedValue &&
+      (!obligation.targetIdentity || proofPhraseMatch(binding.partId || row.identity && row.identity.type, obligation.targetIdentity))
+    ));
+  }
+
+  function promptProofEntityMatches(row = {}, target = '') {
+    return [
+      row.identity && row.identity.type,
+      row.identity && row.identity.label,
+      row.identity && row.identity.sourceLabel,
+      row.label,
+      ...(row.representedEntityIds || []),
+    ].filter(Boolean).some((value) => proofPhraseMatch(value, target));
+  }
+
+  function promptProofRealizationMatches(row = {}, target = '') {
+    return [row.identityType, ...(row.identityLabels || [])].filter(Boolean)
+      .some((value) => proofPhraseMatch(value, target));
+  }
+
   function auditLiteralObjectRealization(sceneRenderPacket = {}, renderData = null) {
     const realization = renderData && renderData.objectRealization ||
       objectRealizationForScenePacket(sceneRenderPacket);
@@ -278,6 +361,19 @@
       ['entity', 'object', 'environment', 'medium'].includes(row.kind));
     const settled = obligations.map((obligation) => {
       const target = normalizeForProof(obligation.target || obligation.obligationId || obligation.id || '');
+      if (obligation.kind === 'environment') {
+        const program = sceneRenderPacket.environmentProgram || {};
+        const realized = proofPhraseMatch(program.kind, target);
+        if (realized) {
+          return {
+            obligationId: obligation.obligationId || obligation.id || '',
+            target: obligation.target || target,
+            realized: true,
+            entityIds: ['environmentProgram'],
+            grammarIds: [`environment-program.${program.kind}`],
+          };
+        }
+      }
       const matches = rows.filter((row) => [row.identityType, ...(row.identityLabels || [])]
         .some((value) => proofPhraseMatch(value, target)));
       const realized = matches.some((row) => row.realized && Number(row.projectedArea || 0) >= 0.008);
@@ -360,6 +456,9 @@
         rgba,
         alpha: rgba[3],
         contrast,
+        constraintKind: row && row.constraintKind || '',
+        expectedValue: row && row.expectedValue || '',
+        colorSatisfied: promptPixelColorSatisfied(rgba, row && row.expectedValue),
         visible: row && row.visible === false ? false : rgba[3] >= 8 && contrast >= 0.02,
       };
     });
@@ -371,9 +470,9 @@
     const requiredIds = options.proofSummary && Array.isArray(
       options.proofSummary.requiredObligationIds
     ) ? options.proofSummary.requiredObligationIds : [];
-    const visibleSamples = samples.filter((row) => row.visible === true);
+    const visibleSamples = samples.filter((row) => row.visible === true && row.colorSatisfied !== false);
     const sampledRequiredIds = new Set(samples
-      .filter((row) => row.visible === true && row.obligationId && requiredIds.includes(row.obligationId))
+      .filter((row) => row.visible === true && row.colorSatisfied !== false && row.obligationId && requiredIds.includes(row.obligationId))
       .map((row) => row.obligationId));
     const minVisibleSampleCount = required
       ? Math.max(1, Math.min(3, drawableCount || 1, samples.length || 1))
@@ -410,6 +509,31 @@
       clampByte(row[2]),
       clampByte(row[3] == null ? 255 : row[3]),
     ];
+  }
+
+  function promptPixelColorSatisfied(rgba = [], expectedValue = '') {
+    if (!/^#[a-f0-9]{6}$/i.test(String(expectedValue || ''))) return true;
+    const expected = [1, 3, 5].map((end) => parseInt(expectedValue.slice(end, end + 2), 16));
+    const actual = rgba.slice(0, 3).map(clampByte);
+    const expectedMax = Math.max(...expected);
+    if (expectedMax < 48) return Math.max(...actual) < 96;
+    const expectedHue = rgbHue(expected);
+    const actualHue = rgbHue(actual);
+    const distance = Math.min(Math.abs(expectedHue - actualHue), 360 - Math.abs(expectedHue - actualHue));
+    const saturation = Math.max(...actual) - Math.min(...actual);
+    return distance <= 58 && saturation >= 24;
+  }
+
+  function rgbHue(rgb = []) {
+    const [red, green, blue] = rgb.map((value) => clampByte(value) / 255);
+    const max = Math.max(red, green, blue);
+    const min = Math.min(red, green, blue);
+    const delta = max - min;
+    if (!delta) return 0;
+    const lane = max === red ? ((green - blue) / delta) % 6 : max === green
+      ? (blue - red) / delta + 2
+      : (red - green) / delta + 4;
+    return (lane * 60 + 360) % 360;
   }
 
   function rgbaContrast(rgba = [], background = null) {
@@ -479,5 +603,7 @@
     objectRealizationForScenePacket,
     visualObligationGeometrySatisfied,
     auditLiteralObjectRealization,
+    promptVisualObligationPacketSatisfied,
+    promptPixelColorSatisfied,
   });
 });

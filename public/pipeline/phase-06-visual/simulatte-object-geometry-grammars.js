@@ -534,9 +534,9 @@
         : '');
       const visualArchetype = String(identity.visualArchetype || '').toLowerCase();
       const promptKey = promptGeometryGrammarKey(identityType, entity, pose);
-      const selectedKey = promptKey || pose === 'sitting'
+      const selectedKey = promptKey || (/^(?:seated|sitting)$/.test(pose)
         ? 'person-sitting'
-        : OBJECT_GEOMETRY_GRAMMARS[visualArchetype] ? visualArchetype : identityType;
+        : OBJECT_GEOMETRY_GRAMMARS[visualArchetype] ? visualArchetype : identityType);
       const candidateKeys = uniqueList([promptKey, selectedKey, visualArchetype, identityType]);
       const explicitCandidates = candidateKeys.map((key) => OBJECT_GEOMETRY_GRAMMARS[key]).filter(Boolean);
       const explicit = explicitCandidates[0] || null;

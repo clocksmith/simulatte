@@ -83,7 +83,7 @@
     function scenePacketPromptIdentityType(sourceLabel = '') {
       const text = String(sourceLabel || '').trim().toLowerCase();
       const row = [
-        ['dog', /\bdogs?\b/], ['cat', /\bcats?\b/], ['robot', /\brobots?\b/], ['castle', /\bcastles?\b/],
+        ['dog', /\bdogs?\b/], ['cat', /\bcats?\b/], ['castle', /\bcastles?\b/],
         ['black-hole', /\bblack[- ]hole\b|event[- ]horizon/], ['television', /\b(tv|television)\b/],
         ['person', /\b(person|people|human)\b/], ['chair', /\b(chair|stool|seat)\b/],
         ['table', /\b(table|desk|bench)\b/], ['building', /\b(building|house|apartment)\b/],

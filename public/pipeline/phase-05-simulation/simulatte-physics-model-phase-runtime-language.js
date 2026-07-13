@@ -388,12 +388,15 @@
     	        source: 'term-fallback',
     	        required: false,
     	      }));
-    	    const entities = uniqueById([
-    	      ...spans
-    	        .filter((span) => span.kind === 'entity')
-    	        .map((span) => sceneEntryForSpan(span, 'entity', languageGraph)),
-    	      ...termFallbackEntities,
-    	    ]);
+	    const entities = uniqueById([
+	      ...spans
+          .filter((span) => span.kind === 'entity' && span.semanticRole !== 'part')
+	        .map((span) => sceneEntryForSpan(span, 'entity', languageGraph)),
+        ...termFallbackEntities,
+      ]);
+      const parts = uniqueById(spans
+        .filter((span) => span.kind === 'entity' && span.semanticRole === 'part')
+        .map((span) => sceneEntryForSpan(span, 'part', languageGraph)));
     	    const actions = uniqueById([
     	      ...spans.filter((span) => span.kind === 'process').map((span) => sceneEntryForSpan(span, 'action', languageGraph)),
     	      ...predicates.filter((predicate) => predicate.process).map((predicate) => ({
@@ -442,7 +445,8 @@
     	      sourcePromptHash: stableTextHash(languageGraph.sourceText || ''),
     	      tokens: arrayClone(languageGraph.tokens),
     	      spans: arrayClone(spans),
-    	      entities,
+      entities,
+      parts,
     	      actions,
     	      attributes,
     	      quantities: arrayClone(languageGraph.quantities),
@@ -456,7 +460,8 @@
     	        reason: 'no typed scene role',
     	      })),
     	      summary: {
-    	        entityCount: entities.length,
+        entityCount: entities.length,
+        partCount: parts.length,
     	        actionCount: actions.length,
     	        environmentCount: environments.length,
     	        mediumCount: mediums.length,
@@ -586,8 +591,8 @@
 	  }
 
 	function sceneNodeIdForSpan(languageGraph = {}, span = {}) {
-	  const kind = span.kind === 'environment' ? 'environment' :
-	    span.kind === 'material' ? 'medium' : 'entity';
+		  const kind = span.kind === 'environment' ? 'environment' : span.kind === 'material' ? 'medium' :
+		    span.semanticRole === 'part' ? 'part' : 'entity';
 	  return sceneEntryIdForSpan(span, kind, languageGraph);
 	}
 
@@ -636,10 +641,14 @@
     	    const slots = [];
     	    const addSlot = (slot) => slots.push(phaseCarryObject(slot));
 	    const actionById = new Map((sceneLanguageGraph.actions || []).map((entry) => [entry.id, entry]));
-    	    for (const entry of sceneLanguageGraph.entities || []) {
-    	      if (entry.negated === true) continue;
-    	      addSlot(sceneQuerySlotForEntry(entry, entry.semanticClass === 'biological-agent' ? 'actor' : 'object'));
-    	    }
+      for (const entry of sceneLanguageGraph.entities || []) {
+        if (entry.negated === true) continue;
+        addSlot(sceneQuerySlotForEntry(entry, entry.semanticClass === 'biological-agent' ? 'actor' : 'object'));
+      }
+      for (const entry of sceneLanguageGraph.parts || []) {
+        if (entry.negated === true) continue;
+        addSlot(sceneQuerySlotForEntry(entry, 'part'));
+      }
     	    for (const entry of sceneLanguageGraph.actions || []) {
     	      if (entry.negated === true) continue;
     	      addSlot(sceneQuerySlotForEntry(entry, 'action'));
@@ -716,10 +725,13 @@
 	      visualArchetype: entry.visualArchetype || '',
 	      shapeHints: entry.shapeHints || [],
     	      sourceSpanIds: entry.sourceSpanIds || [],
-    	      queries: [
-    	        { kind: 'embedding', text: `${label} ${entry.semanticClass || ''}`.trim() },
-    	        { kind: 'lexical', text: label },
-    	      ],
+      queries: role === 'part' ? [
+        { kind: 'embedding', text: `constructive part ${label} ${entry.semanticClass || ''} geometry attachment articulation material`.trim() },
+        { kind: 'lexical', text: label },
+      ] : [
+        { kind: 'embedding', text: `${label} ${entry.semanticClass || ''}`.trim() },
+        { kind: 'lexical', text: label },
+      ],
     	      budgets: {
     	        primitive: role === 'actor' || role === 'object' ? 4 : 3,
     	        surfaceCard: role === 'actor' ? 6 : 4,
@@ -733,7 +745,8 @@
     function phase2CompositionLedger(sceneLanguageGraph = {}, queryPlan = {}, phase1Ledger = null) {
     	    const entries = uniqueById([
     	      ...(phase1Ledger && phase1Ledger.entries || []),
-    	      ...(sceneLanguageGraph.entities || []),
+      ...(sceneLanguageGraph.entities || []),
+      ...(sceneLanguageGraph.parts || []),
     	      ...(sceneLanguageGraph.actions || []),
     	      ...(sceneLanguageGraph.environments || []),
     	      ...(sceneLanguageGraph.mediums || []),
@@ -748,7 +761,7 @@
     	    const obligations = uniqueById((queryPlan.slots || []).map((slot) => ({
     	      id: slot.entryId || slot.slotId,
     	      kind: slot.slotRole === 'actor' ? 'entity' : slot.slotRole,
-    	      ownedByPhase: slot.slotRole === 'visual' ? 6 : slot.slotRole === 'relation' ? 4 : 3,
+      ownedByPhase: slot.slotRole === 'visual' || slot.slotRole === 'part' ? 6 : slot.slotRole === 'relation' ? 4 : 3,
     	      sourceRelationId: Array.isArray(slot.relationIds) ? slot.relationIds[0] || '' : '',
     	      required: slot.required !== false,
     	      mustPreserveIds: uniqueList([

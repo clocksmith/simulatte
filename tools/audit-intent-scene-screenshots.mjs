@@ -1387,6 +1387,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       visualIRCausalAffordanceCount: visualIRArrayCount('causalAffordances'),
       visualIRSceneRenderPacketSchema: sceneRenderPacket && sceneRenderPacket.schema || '',
       visualIRSceneRenderPacketCompiler: sceneRenderPacket && sceneRenderPacket.compiler || '',
+      visualIREnvironmentProgram: sceneRenderPacket && sceneRenderPacket.environmentProgram &&
+        sceneRenderPacket.environmentProgram.kind || '',
       visualIRSceneRenderPacketEntityCount: sceneRenderPacket && Array.isArray(sceneRenderPacket.entities)
         ? sceneRenderPacket.entities.length
         : 0,
@@ -1881,11 +1883,17 @@ function analyze(results) {
     }
     if (result.visualIROperatorCount < 5) failures.push(`${result.index}: VisualIR has too few operators`);
     const requiredEntityCount = array(result.phase6CompositionObligations).filter((row) => (
-      row.required === true && ['entity', 'object', 'environment'].includes(row.kind) && row.status !== 'lost'
+      row.required === true && ['entity', 'object'].includes(row.kind) && row.status !== 'lost'
     )).length;
     const minimumEntityCount = Math.max(1, requiredEntityCount);
     if (result.visualIREntityCount < minimumEntityCount) {
       failures.push(`${result.index}: VisualIR has ${result.visualIREntityCount}/${minimumEntityCount} required entities`);
+    }
+    const requiresEnvironment = array(result.phase6CompositionObligations).some((row) => (
+      row.required === true && row.kind === 'environment' && row.status !== 'lost'
+    ));
+    if (requiresEnvironment && !result.visualIREnvironmentProgram) {
+      failures.push(`${result.index}: VisualIR required environment has no environment program`);
     }
     if (result.visualIRProcessCount < 2) failures.push(`${result.index}: VisualIR has too few processes`);
     if (result.visualIRRenderInstanceCount < 3) failures.push(`${result.index}: VisualIR has too few render instances`);
