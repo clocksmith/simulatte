@@ -80,7 +80,9 @@
     if (!span) return;
     node.directlyGrounded = true;
     if (span.kind === 'observable') node.semanticType = 'observable';
-    if (span.entityClass) node.semanticClass = span.entityClass;
+    if (span.entityClass && (!node.semanticClass || genericSemanticClass(node.semanticClass))) {
+      node.semanticClass = span.entityClass;
+    }
     if (span.visualArchetype) {
       node.visualArchetype = span.visualArchetype;
       node.shapeHints = unique([span.visualArchetype, ...(node.shapeHints || [])]);
@@ -154,8 +156,12 @@
     primary.confidence = Math.max(Number(primary.confidence || 0), Number(row.confidence || 0));
     primary.directlyGrounded = primary.directlyGrounded === true || row.directlyGrounded === true;
     if (!primary.materialId && row.materialId) primary.materialId = row.materialId;
-    if (!primary.semanticClass && row.semanticClass) primary.semanticClass = row.semanticClass;
-    if (!primary.visualArchetype && row.visualArchetype) primary.visualArchetype = row.visualArchetype;
+    if ((!primary.semanticClass || genericSemanticClass(primary.semanticClass)) && row.semanticClass) {
+      primary.semanticClass = row.semanticClass;
+    }
+    if ((!primary.visualArchetype || genericSemanticClass(primary.visualArchetype)) && row.visualArchetype) {
+      primary.visualArchetype = row.visualArchetype;
+    }
     if (!primary.construction && row.construction) primary.construction = row.construction;
     primary.constructionHypotheses = uniqueConstructionHypotheses([
       ...(primary.constructionHypotheses || []),
@@ -184,20 +190,10 @@
         ...mergeConstructionRows([candidate]),
         hypothesisId: `construction:${slot.slotId || node.id}:${index + 1}`,
         hypothesisRank: index + 1,
+        provenance: constructionCandidateProvenance(candidate, slot),
       }));
       node.construction = node.constructionHypotheses[0];
-      node.constructionProvenance = selected.map((candidate) => ({
-        candidateId: candidate.candidateId || candidate.id || '',
-        source: candidate.source || '',
-        modelScore: finiteOrNull(candidate.modelScore),
-        modelRerankScore: finiteOrNull(candidate.modelRerankScore),
-        modelRerankRank: finiteOrNull(candidate.modelRerankRank),
-        modelEvaluated: candidate.modelEvaluated === true,
-        rerankEvaluated: candidate.modelRerankEvaluated === true,
-        literalSlotMatch: candidate.literalSlotMatch === true,
-        exactTargetMatch: constructionCandidateExactness(candidate, slot) >= 2,
-        vectorHash: candidate.vectorHash || '',
-      }));
+      node.constructionProvenance = node.constructionHypotheses.map((row) => row.provenance);
       attachedCount += 1;
     }
     return {
@@ -210,6 +206,21 @@
       rerankEvaluatedCount: nodes.filter((node) => (
         (node.constructionProvenance || []).some((row) => row.rerankEvaluated)
       )).length,
+    };
+  }
+
+  function constructionCandidateProvenance(candidate = {}, slot = {}) {
+    return {
+      candidateId: candidate.candidateId || candidate.id || '',
+      source: candidate.source || '',
+      modelScore: finiteOrNull(candidate.modelScore),
+      modelRerankScore: finiteOrNull(candidate.modelRerankScore),
+      modelRerankRank: finiteOrNull(candidate.modelRerankRank),
+      modelEvaluated: candidate.modelEvaluated === true,
+      rerankEvaluated: candidate.modelRerankEvaluated === true,
+      literalSlotMatch: candidate.literalSlotMatch === true,
+      exactTargetMatch: constructionCandidateExactness(candidate, slot) >= 2,
+      vectorHash: candidate.vectorHash || '',
     };
   }
 
@@ -506,6 +517,10 @@
     return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
       .split(/\s+/).map((token) => token.length > 3 && token.endsWith('s') && !/(?:ss|us|is)$/.test(token)
         ? token.slice(0, -1) : token).join(' ');
+  }
+
+  function genericSemanticClass(value = '') {
+    return /^(?:body|entity|environment|material|medium|object|term)$/.test(String(value || ''));
   }
 
   function finiteOrNull(value) {

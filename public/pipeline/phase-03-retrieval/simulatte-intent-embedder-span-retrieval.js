@@ -894,9 +894,10 @@
 
     function slotRerankSkipReason(slot = {}, candidates = [], constructionMode = false) {
       if (constructionMode) {
-          return constructionCandidatesForSlot(slot, candidates, 3).length < 2
-            ? 'single-construction-hypothesis'
-            : '';
+          if (exactConstructionCandidate(slot, candidates)) {
+            return 'exact-model-indexed-construction';
+          }
+          return constructionCandidatesForSlot(slot, candidates, 3).length ? '' : 'no-construction-hypothesis';
       }
         if (slot && slot.required === false) return 'optional-slot-local-evidence';
         if ((candidates || []).some((candidate) => candidate.literalSlotMatch === true)) {

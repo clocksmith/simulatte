@@ -29,7 +29,9 @@
       const parts = topologyParts.length ? topologyParts : constructionParts(descriptors, materialPalette);
       if (!parts.length) return null;
       const sourceIds = construction.sourceCardIds || [];
-      const provenance = entity.constructionProvenance || [];
+      const provenance = construction.provenance
+        ? [construction.provenance]
+        : entity.constructionProvenance || [];
       const identityType = String(identity.type || construction.targetEntryId || 'constructed-object')
         .replace(/^[a-z]+:/, '');
       return {

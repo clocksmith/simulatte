@@ -709,7 +709,9 @@
       }
 
     function stableSurfaceMatches(matches, maxNodes) {
-        const nodeMatches = matches.filter((match) => !['relation', 'event'].includes(match.card.type));
+        const nodeMatches = matches.filter((match) => (
+          !['relation', 'event', 'construction-topology'].includes(match.card.type)
+        ));
         const directIds = new Set(nodeMatches
           .filter((match) => match.source === 'direct-surface-label')
           .map((match) => match.card.id));
@@ -731,7 +733,7 @@
       }
 
     function shouldUseRetrievedSurfaceNode(doc, directMatches) {
-        if (['relation', 'event'].includes(doc.type)) return false;
+        if (['relation', 'event', 'construction-topology'].includes(doc.type)) return false;
         if (directMatches.some((match) => match.card.id === doc.cardId)) return false;
         const curation = doc.curation || doc.card && doc.card.curation || cardCuration(doc.cardId, doc.type, doc.labels, {});
         const floor = curation.generic ? 0.42 : 0.31;

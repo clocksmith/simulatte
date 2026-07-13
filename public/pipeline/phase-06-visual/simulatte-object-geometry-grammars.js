@@ -558,7 +558,7 @@
           source: 'phase6-data-owned-part-graph',
           sourcePrimitive: geometry.primitive || entity.shape || '',
           constructionReceipt,
-          selectionRole: candidate.key === promptKey && promptKey !== identityType
+          selectionRole: candidate.key === selectedKey && selectedKey !== identityType
             ? 'prompt-specialized'
             : candidate.key === identityType ? 'identity-catalog'
               : candidate.key === categoryKey ? 'category-catalog' : 'related-catalog',
@@ -639,7 +639,9 @@
 
     function objectGeometryConstructionReceipt(entity = {}) {
       const construction = entity.construction || {};
-      const provenance = entity.constructionProvenance || [];
+      const provenance = construction.provenance
+        ? [construction.provenance]
+        : entity.constructionProvenance || [];
       if (!construction.schema && !provenance.length) return null;
       return {
         schema: 'simulatte.constructiveGeometryReceipt.v1',

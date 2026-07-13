@@ -115,6 +115,8 @@
       if (pose) score += String(program.grammarId || '').includes(promptPoseGrammarToken(pose)) ? 12 : -8;
       const constructionCoverage = promptConstructionEvidenceCoverage(program, entity);
       score += constructionCoverage * 18;
+      if (program.selectionRole === 'prompt-specialized') score += 28;
+      if (program.selectionRole === 'identity-catalog') score += 24;
       if (program.selectionRole === 'model-construction') score += 3;
       if (program.constructionReceipt && program.constructionReceipt.rerankEvaluated === true) score += 2;
       if (program.constructionReceipt && program.constructionReceipt.exactTargetMatch === true) score += 3;

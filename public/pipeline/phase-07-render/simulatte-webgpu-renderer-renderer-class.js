@@ -503,6 +503,7 @@
             samples,
           };
           this.renderData.livePixelSamples = sampleSet;
+          this.renderData.livePixelReadbackFailed = false;
           this.canvas.__simulattePixelSamples = sampleSet;
           this.lastPixelReadbackReceipt = {
             schema: 'simulatte.phase7PixelReadbackReceipt.v1',
@@ -554,7 +555,10 @@
             message,
           };
           this.errorLog.push(message);
-          if (this.renderData) this.renderData.livePixelSamplesStatus = 'fail';
+          if (this.renderData) {
+            this.renderData.livePixelSamplesStatus = 'fail';
+            this.renderData.livePixelReadbackFailed = true;
+          }
           this.canvas.dataset.phase7PixelReadback = 'fail';
           this.canvas.dataset.phase7PixelReadbackMessage = message;
           this.canvas.dataset.phase7PixelProofStatus = 'fail';
@@ -797,7 +801,7 @@
     function phase7PixelReadbackPlan(renderData = null, sceneRenderPacket = {}, renderExecutionInput = null, canvas = null) {
         if (!renderData || renderData.requireLivePixelSamples !== true) return null;
         if (renderData.pixelSamples) return null;
-        if (renderData.livePixelSamplesStatus === 'fail') return null;
+        if (renderData.livePixelReadbackFailed === true) return null;
         if (
           renderData.livePixelSamples &&
           renderData.livePixelSamples.packetKey === renderData.packetKey &&

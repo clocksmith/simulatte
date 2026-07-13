@@ -397,10 +397,10 @@
   }
 
   function rowIdentityMatchesSpan(row, text) {
-    const spanTokens = new Set(identityTokens(text));
-    if (!spanTokens.size) return false;
+    const spanTokens = identityTokens(text);
+    if (!spanTokens.length) return false;
     const rowTokens = identityTokensForRow(row);
-    return Array.from(spanTokens).every((token) => rowTokens.includes(token));
+    return spanTokens.every((token) => rowTokens.some((candidate) => identityTokenEquivalent(token, candidate)));
   }
 
   function identityTokensForRow(row = {}) {
@@ -418,7 +418,24 @@
       .toLowerCase()
       .split(/[^a-z0-9]+/)
       .filter((token) => token && !/^\d+$/.test(token))
-      .map((token) => (token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token));
+      .map((token) => (token.length > 3 && token.endsWith('s') && !/(?:ss|us|is)$/.test(token)
+        ? token.slice(0, -1) : token));
+  }
+
+  function identityTokenEquivalent(left = '', right = '') {
+    if (left === right) return true;
+    if (left.length < 5 || right.length < 5 || left.slice(0, 3) !== right.slice(0, 3)) return false;
+    if (Math.abs(left.length - right.length) > 1) return false;
+    let edits = 0;
+    for (let a = 0, b = 0; a < left.length || b < right.length;) {
+      if (left[a] === right[b]) { a += 1; b += 1; continue; }
+      edits += 1;
+      if (edits > 1) return false;
+      if (left.length > right.length) a += 1;
+      else if (right.length > left.length) b += 1;
+      else { a += 1; b += 1; }
+    }
+    return true;
   }
 
   function addComponentNodes(nodes, seen, input, rejected) {
@@ -447,8 +464,9 @@
         prompt.includes(lower) || promptIncludesAny(prompt, [component.id, component.phrase, component.role])
       );
       const isPromptExplicit = source === 'prompt-explicit';
+      const promptTokens = identityTokens(prompt);
       const identityMentioned = prompt && identityTokens(component.id).some((token) => (
-        new RegExp(`\\b${token}(?:s|es)?\\b`).test(prompt)
+        promptTokens.some((promptToken) => identityTokenEquivalent(token, promptToken))
       ));
       const generatedIdentityOk = (isSynthesis || isOpenSemantic) && directlyMentioned && identityMentioned;
       const highConfidence = Number(component.score || 0) >= 0.78 && directlyMentioned;
@@ -471,6 +489,8 @@
         id,
         spanId: null,
         semanticType: component.type || 'body',
+        semanticClass: componentSemanticIdentity(component),
+        visualArchetype: componentSemanticIdentity(component),
         canonicalId: `primitive.${component.id}`,
         label: labelFromSpan(label),
         aliases: unique([component.id, label, component.phrase].filter(Boolean)),
@@ -489,6 +509,13 @@
       });
       added += 1;
     }
+  }
+
+  function componentSemanticIdentity(component = {}) {
+    const explicit = component.synthesis && (component.synthesis.environmentId || component.synthesis.cardId) || '';
+    if (explicit) return String(explicit).split('.').pop().replace(/_/g, '-');
+    const match = String(component.id || '').match(/^surface-(.+?)-\d+$/);
+    return match ? match[1] : '';
   }
 
   function surfaceIdentityTokens(value = '') {
@@ -574,8 +601,8 @@
         row.label,
         ...(row.aliases || []),
       ].filter(Boolean).join(' '));
-      const directlyMentioned = identity.some((token) => promptIdentityTokens.has(token) &&
-        new RegExp(`\\b${token}(?:s|es)?\\b`).test(prompt));
+      const directlyMentioned = identity.some((token) => Array.from(promptIdentityTokens)
+        .some((promptToken) => identityTokenEquivalent(token, promptToken)));
       if (!directlyMentioned) {
         rejected.push({ label: row.label || row.id, reason: 'surface candidate identity lacks prompt evidence' });
         continue;
@@ -602,8 +629,8 @@
         id,
         spanId: null,
         semanticType,
-        semanticClass: row.semanticClass || '',
-        visualArchetype: row.visualArchetype || (row.shapeHints || [])[0] || '',
+        semanticClass: row.semanticClass || surfaceCandidateIdentity(row),
+        visualArchetype: row.visualArchetype || (row.shapeHints || [])[0] || surfaceCandidateIdentity(row),
         canonicalId,
         label: labelFromSpan(row.label || row.id),
         sourceLabel: row.sourceLabel || row.label || '',
@@ -625,6 +652,12 @@
       });
       added += 1;
     }
+  }
+
+  function surfaceCandidateIdentity(row = {}) {
+    const ref = String(row.id || row.canonicalId || '');
+    const match = ref.match(/(?:^|[.-])surface[-.]([a-z0-9-]+?)(?:-\d+)?$/);
+    return match ? match[1] : '';
   }
 
   function addUniverseCandidateNodes(nodes, seen, candidateRows, input) {
