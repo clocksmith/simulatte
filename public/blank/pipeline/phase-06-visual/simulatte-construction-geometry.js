@@ -140,10 +140,10 @@
         requested.set(descriptor.role, rows);
       }
       const nodes = [];
-      const topologySource = Boolean(constructionTopologyFromSource(construction));
+      const topologyOwnsParts = Boolean(topology && (constructionTopologyFromSource(construction) || topologySelection.targetFit));
       const appendNodes = (roleId, count, requiredByTopology = false, topologyNode = null) => {
         const available = requested.get(roleId) || [];
-        const total = Math.max(count, available.reduce((sum, row) => sum + Number(row.count || 1), 0));
+        const total = requiredByTopology && topologyOwnsParts ? count : Math.max(count, available.reduce((sum, row) => sum + Number(row.count || 1), 0));
         for (let index = 0; index < Math.min(12, total); index += 1) {
           const descriptor = constructionDescriptorForRole(available, roleId, index);
           const topologyPrimitive = Array.isArray(topologyNode && topologyNode.primitive)
@@ -152,12 +152,13 @@
           const topologySize = topologyNode && topologyNode.sizes && topologyNode.sizes.length
             ? topologyNode.sizes[index % topologyNode.sizes.length]
             : null;
+          const topologyPartId = topologyNode && topologyNode.partIds && topologyNode.partIds[index];
           nodes.push({
-            id: `${constructionGeometrySafeId(descriptor.id || roleId)}-${index + 1}`,
+            id: topologyPartId || `${constructionGeometrySafeId(descriptor.id || roleId)}-${index + 1}`,
             role: roleId,
             primitive: topologyPrimitive || descriptor.primitive || constructionPrimitiveForRole(roleId),
             size: topologySize ? topologySize.slice() : null,
-            sourceHint: descriptor.id || '',
+            sourceHint: topologyPartId || descriptor.id || '',
             requiredByTopology,
           });
         }
@@ -167,7 +168,7 @@
       }
       for (const [roleId, rows] of requested.entries()) {
         if (topology && topology.nodes.some((row) => row.roleId === roleId)) continue;
-        if (topology && topologySource) continue;
+        if (topologyOwnsParts) continue;
         appendNodes(roleId, rows.reduce((sum, row) => sum + Number(row.count || 1), 0), false);
       }
       return {
@@ -449,7 +450,7 @@
           const rotation = anchor === 'boom'
             ? (index === 0 ? 0.78 : -0.52 - (index - 1) * 0.28)
             : -0.82 + index * 0.48;
-          const length = Math.max(0.18, Number(current.size && current.size[0] || 0.38) * 0.94);
+          const length = Math.max(0.18, Number(current.size && current.size[0] || 0.38));
           const center = [
             endpoint[0] + Math.cos(rotation) * length * 0.5,
             endpoint[1] - Math.sin(rotation) * length * 0.5,
@@ -467,7 +468,7 @@
           const paired = targets[index % Math.max(1, targets.length)];
           const pairedPlacement = paired && placements.get(paired.id) || target;
           const rotation = Number(pairedPlacement.rotation || 0);
-          const endOffset = anchor === 'ends' ? Number(pairedPlacement.size && pairedPlacement.size[0] || 0) * 0.47 : 0;
+          const endOffset = /^(?:ends|chain-ends)$/.test(anchor) ? Number(pairedPlacement.size && pairedPlacement.size[0] || 0) * (anchor === 'chain-ends' ? 0.5 : 0.47) : 0;
           set(nodeRow, {
             ...(placements.get(nodeRow.id) || {}),
             center: [
@@ -508,8 +509,8 @@
         const centerX = targetPlacements.reduce((sum, row) => sum + row.center[0], 0) / targetPlacements.length;
         sources.forEach((nodeRow, index) => set(nodeRow, {
           ...(placements.get(nodeRow.id) || {}),
-          center: [centerX + (index - (sources.length - 1) * 0.5) * 0.05, (top + bottom) * 0.5],
-          size: [Math.max(0.2, bottom - top), 0.025],
+          center: [centerX + (index - (sources.length - 1) * 0.5) * 0.012, (top + bottom) * 0.5],
+          size: [Math.max(0.2, bottom - top), 0.008],
           rotation: 1.57,
         }));
         return true;
@@ -605,7 +606,7 @@
         start: [-Math.cos(targetRotation) * longitudinal, Math.sin(targetRotation) * longitudinal + centered * 0.13],
         end: [Math.cos(targetRotation) * longitudinal, -Math.sin(targetRotation) * longitudinal + centered * 0.13],
         'end-down': [Math.cos(targetRotation) * longitudinal, -Math.sin(targetRotation) * longitudinal + centered * 0.13],
-        top: [centered * 0.24, -constructionVerticalAttachmentOffset(current, target)],
+        top: [centered * 0.24, -constructionVerticalAttachmentOffset(current, target)], 'top-close': [centered * 0.1, -constructionVerticalAttachmentOffset(current, target) * 0.72],
         'top-left': [-target.size[0] * 0.22 + centered * 0.18, -constructionVerticalAttachmentOffset(current, target)],
         below: [centered * 0.24, constructionVerticalAttachmentOffset(current, target)],
         front: [centered * 0.15, -0.08], side: [0.36, centered * 0.15], center: [0, 0],
@@ -637,6 +638,11 @@
       }
       if (anchor === 'ends') {
         return { ...current, center: [target.center[0] + unit * 0.39, target.center[1] + 0.2] };
+      }
+      if (anchor === 'outer-sides' || anchor === 'inner-sides') {
+        const radius = anchor === 'outer-sides'
+          ? target.size[0] * 0.55 + current.size[0] * 0.65 : target.size[0] * 0.27;
+        return { ...current, center: [target.center[0] + unit * radius, target.center[1]], rotation: (anchor === 'inner-sides' ? 1.57 : 0) + unit * 0.12 };
       }
       return {
         ...current,

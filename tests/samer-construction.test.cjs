@@ -215,10 +215,18 @@ test('playing with creates a shared pose and relation while flight stays on the 
   assert.ok(octopus.animation.speed > 0 && octopus.animation.amplitude > 0);
   assert.ok(teapot.transform.scale[0] <= octopus.transform.scale[0] * 0.6);
   assert.ok(teapot.transform.scale[1] <= octopus.transform.scale[1] * 0.6);
-  const octopusParts = globalThis.__SimulatteWebGpuRendererRefactorScope.scenePacketObjectParts(holdPacket)
-    .filter((row) => row.entityId === octopus.id);
+  const renderedHoldParts = globalThis.__SimulatteWebGpuRendererRefactorScope.scenePacketObjectParts(holdPacket);
+  const octopusParts = renderedHoldParts.filter((row) => row.entityId === octopus.id);
   const coreDepth = octopusParts.find((row) => row.constructionRole === 'core').depth;
-  assert.ok(octopusParts.filter((row) => row.constructionRole === 'appendage')
+  const grasp = holdPacket.receipts.framing.graspContacts[0];
+  const graspDepth = renderedHoldParts.find((row) => (
+    row.entityId === teapot.id && row.constructionPartId === grasp.targetPartId
+  )).depth;
+  assert.ok(octopusParts.filter((row) => grasp.sourcePartIds.includes(row.constructionPartId))
+    .every((row) => row.depth < graspDepth));
+  assert.ok(octopusParts.filter((row) => (
+    row.constructionRole === 'appendage' && !grasp.sourcePartIds.includes(row.constructionPartId)
+  ))
     .every((row) => row.depth > coreDepth));
   assert.ok(octopusParts.filter((row) => row.constructionRole === 'sensor')
     .every((row) => row.depth < coreDepth));
@@ -282,6 +290,12 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
       id: `relation:spatial:entity-${relation.subjectType}:${relation.kind}:entity-${relation.objectType}`,
       status: 'preserved',
     })),
+    phase7VisualObligationProof: JSON.stringify(row.relations.map((relation) => ({
+      obligationId: `relation:spatial:entity-${relation.subjectType}:${relation.kind}:entity-${relation.objectType}`,
+      status: 'pass',
+      geometrySatisfied: true,
+      pixelSatisfied: true,
+    }))),
     phase7PixelProofStatus: 'pass',
     sceneProofVerdict: 'pass',
   }));
@@ -333,6 +347,13 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     const evaluation = evaluator.evaluateGoldVisualResults(mismatchResults, goldSet, adjudication);
     assert.equal(evaluation.rows[0].machine.pass, false, `${field} mismatch must fail machine proof`);
   }
+  const missingRelationPixels = structuredClone(results);
+  missingRelationPixels[0].phase7VisualObligationProof = '[]';
+  assert.equal(
+    evaluator.evaluateGoldVisualResults(missingRelationPixels, goldSet, adjudication).rows[0].machine.pass,
+    false,
+    'Phase 6 relation metadata cannot substitute for final projected pixel proof'
+  );
 
   assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
     copy.rows.push(structuredClone(copy.rows[0]));

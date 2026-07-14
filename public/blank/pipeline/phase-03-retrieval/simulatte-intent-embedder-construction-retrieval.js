@@ -23,7 +23,7 @@
     function slotNeedsModelConstructionEvidence(slot = {}) {
       const role = String(slot.slotRole || '');
       const semanticClass = String(slot.semanticClass || '').toLowerCase();
-      if (/^(?:control-process|control-state|growth-process|visual-effect)$/.test(semanticClass)) return false;
+      if (/(?:^|-)(?:process|state|field|medium|effect|signal)$/.test(semanticClass)) return false;
       return /^(actor|concept|object|part|environment)$/.test(role);
     }
 
@@ -206,6 +206,7 @@
       ]);
       if (!card && !partHints.length && !shapeHints.length && !materialHints.length &&
           !affordanceHints.length && !relationHints.length) return null;
+      const targetIdentity = constructionTargetIdentity(slot, row, card);
       return {
         schema: 'simulatte.constructionEvidence.v1',
         targetEntryId: slot.entryId || '',
@@ -225,6 +226,41 @@
         primitiveHints,
         groundingIds,
         basisIds: bases.map((basis) => basis.id),
+        ...targetIdentity,
+      };
+    }
+
+    function constructionTargetIdentity(slot = {}, row = {}, card = null) {
+      const targetIdentity = evidenceTerm(
+        String(slot.entryId || '').replace(/^[a-z]+:/, ' ').replace(/[-_]+/g, ' ')
+      );
+      const targetTokens = uniqueStrings(fallbackFeatureTokens(
+        String(slot.entryId || '').replace(/^[a-z]+:/, ' ').replace(/[-_]+/g, ' ')
+      ));
+      const primaryIdentities = uniqueStrings([
+        row.label,
+        card && card.labels && card.labels[0],
+        String(row.candidateId || '').split('.').pop(),
+        String(card && card.id || '').split('.').pop(),
+      ].map(evidenceTerm));
+      const identityTokens = new Set(fallbackFeatureTokens([
+        row.candidateId,
+        row.cardId,
+        row.canonicalId,
+        row.label,
+        ...(row.labels || []),
+        card && card.id,
+        ...(card && card.labels || []),
+      ].filter(Boolean).join(' ')));
+      const targetTokenMatches = targetTokens.filter((token) => identityTokens.has(token));
+      return {
+        targetTokenMatches,
+        targetTokenMatchCount: targetTokenMatches.length,
+        targetTokenCoverage: Number((
+          targetTokenMatches.length / Math.max(1, targetTokens.length)
+        ).toFixed(4)),
+        targetIdentityExact: primaryIdentities.includes(targetIdentity),
+        targetIdentityBound: targetTokenMatches.length > 0,
       };
     }
 
@@ -277,7 +313,10 @@
         row.constructionEvidence === true && row.construction && constructionRoleRank(slot, row) <= 1
       ))
         .sort((a, b) => (
+          Number(b.construction.targetIdentityExact === true) - Number(a.construction.targetIdentityExact === true) ||
           constructionRoleRank(slot, a) - constructionRoleRank(slot, b) ||
+          Number(b.construction.targetIdentityBound === true) - Number(a.construction.targetIdentityBound === true) ||
+          Number(b.construction.targetTokenCoverage || 0) - Number(a.construction.targetTokenCoverage || 0) ||
           Number(b.modelRerankEvaluated === true) - Number(a.modelRerankEvaluated === true) ||
           Number(a.modelRerankRank ?? Number.MAX_SAFE_INTEGER) - Number(b.modelRerankRank ?? Number.MAX_SAFE_INTEGER) ||
           Number(b.score || 0) - Number(a.score || 0)
@@ -286,8 +325,17 @@
       // embedding neighbours only when the index has no literal construction;
       // otherwise a retry can drift from an excavator to an unrelated celestial
       // topology merely because both were close in embedding space.
+      const exact = ranked.filter((row) => row.construction.targetIdentityExact === true);
       const literal = ranked.filter((row) => row.literalSlotMatch === true);
-      return (literal.length ? literal : ranked).slice(0, Math.max(0, Number(maximum || 0)));
+      const targetBound = ranked.filter((row) => row.construction.targetIdentityBound === true);
+      const familyRows = exact.length ? exact : literal.length ? literal : targetBound.length ? targetBound : ranked;
+      const seenFamilies = new Set();
+      return familyRows.filter((row) => {
+        const family = row.construction.sourceCardId || row.candidateId || row.id || '';
+        if (!family || seenFamilies.has(family)) return false;
+        seenFamilies.add(family);
+        return true;
+      }).slice(0, Math.max(0, Number(maximum || 0)));
     }
 
     function reserveConstructionTopologyCandidates(slot = {}, rows = [], maximum = 0) {
@@ -400,6 +448,9 @@
         prefixStateReuseCount: sum('prefixStateReuseCount'),
         selectedTokenExecutionCount: sum('selectedTokenExecutionCount'),
         scoreCacheHitCount: sum('scoreCacheHitCount'),
+        prefixPreparationDurationMs: Number(sum('prefixPreparationDurationMs').toFixed(3)),
+        rerankCallDurationMs: Number(sum('rerankCallDurationMs').toFixed(3)),
+        unattributedRerankDurationMs: Number(sum('unattributedRerankDurationMs').toFixed(3)),
         totalExecutionDurationMs: Number(sum('totalExecutionDurationMs').toFixed(3)),
         maximumExecutionDurationMs: Number(Math.max(0, ...bySlot.map(
           (row) => Number(row.receipt && row.receipt.maximumExecutionDurationMs || 0)
@@ -417,6 +468,7 @@
       promptOwnedLocalSlotRow,
       constructionQueryText,
       constructionForCandidate,
+      constructionTargetIdentity,
       annotateConstructionCandidate,
       constructionUniverseMatches,
       constructionCandidatesForSlot,

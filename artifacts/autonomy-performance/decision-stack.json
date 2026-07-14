@@ -1,0 +1,968 @@
+{
+  "schema": "simulatte.autonomyDecisionStackBenchmark.v1",
+  "generatedAt": "2026-07-14T12:05:33.430Z",
+  "host": {
+    "platform": "darwin",
+    "release": "25.3.0",
+    "arch": "arm64",
+    "cpuModel": "Apple M3",
+    "logicalCpuCount": 8,
+    "totalMemoryBytes": 25769803776,
+    "node": "v22.20.0"
+  },
+  "identities": {
+    "commit": "487735067832c5c9e2d3bbefb4bad928c2925177",
+    "corpus": {
+      "path": "tools/samer/autonomy/public-navigation-missions-v1.json",
+      "sha256": "dd02ce2dbd602d1748827bbbecaddf4445c96b985b4d48ab93fccd0cf906be12"
+    },
+    "world": {
+      "id": "nyc-core-autonomy-v1",
+      "path": "public/data/autonomy/worlds/nyc-core-autonomy-v1.json",
+      "sha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
+    },
+    "policy": {
+      "id": "bet-selector-v1",
+      "path": "public/data/autonomy/policies/bet-selector-v1.json",
+      "sha256": "133579888a7db259c85b7f379ba51e2327d57943f82061e56832914d4137e377"
+    },
+    "compiler": {
+      "path": "public/mission/mission-compiler.js",
+      "sha256": "50fee0cd85656869ab7a76e30bac553e0faeb2291e1d0583c24fb902c238263d"
+    },
+    "router": {
+      "path": "public/world/route-planner.js",
+      "sha256": "eb836b33f4ebe5c0b63df3c042c2eec3f66b290a66dbf5a2cb5dfbc5e7f8def9"
+    },
+    "controller": {
+      "path": "public/runtime/autonomy-controller.js",
+      "sha256": "db0832fde09bad0b966f1490407a40818563a8aabc15b933b4cad5823b9a2a1c"
+    }
+  },
+  "workload": {
+    "missionCount": 20,
+    "compileAndRouteRepetitions": 10,
+    "totalCompileAndRouteOperations": 200,
+    "controllerMissionSelection": "minimum_median_max_route_segment_count",
+    "controllerRepetitions": 1
+  },
+  "accuracy": {
+    "missionExact": 20,
+    "routeExact": 20,
+    "total": 20,
+    "rows": [
+      {
+        "missionId": "public-mission-01",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 7220.116811,
+          "segmentCount": 95,
+          "protectedSegmentCount": 86,
+          "sharedSegmentCount": 9,
+          "firstSegmentId": "bike-30ee92829e72-tf",
+          "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+          "evaluatedSegmentCount": 2039,
+          "visitedNodeCount": 1298
+        }
+      },
+      {
+        "missionId": "public-mission-02",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 1715.457479,
+          "segmentCount": 24,
+          "protectedSegmentCount": 12,
+          "sharedSegmentCount": 12,
+          "firstSegmentId": "bike-5bc633d32761-tf",
+          "lastSegmentId": "bike-c698e8b137d0-ft",
+          "evaluatedSegmentCount": 196,
+          "visitedNodeCount": 141
+        }
+      },
+      {
+        "missionId": "public-mission-03",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 2138.734453,
+          "segmentCount": 22,
+          "protectedSegmentCount": 13,
+          "sharedSegmentCount": 9,
+          "firstSegmentId": "bike-30ee92829e72-tf",
+          "lastSegmentId": "bike-793260e61f7c-tf",
+          "evaluatedSegmentCount": 324,
+          "visitedNodeCount": 240
+        }
+      },
+      {
+        "missionId": "public-mission-04",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 1473.07519,
+          "segmentCount": 20,
+          "protectedSegmentCount": 11,
+          "sharedSegmentCount": 9,
+          "firstSegmentId": "bike-bc5707edfa14-ft",
+          "lastSegmentId": "bike-c698e8b137d0-ft",
+          "evaluatedSegmentCount": 63,
+          "visitedNodeCount": 42
+        }
+      },
+      {
+        "missionId": "public-mission-05",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 1528.993856,
+          "segmentCount": 19,
+          "protectedSegmentCount": 13,
+          "sharedSegmentCount": 6,
+          "firstSegmentId": "bike-30ee92829e72-tf",
+          "lastSegmentId": "bike-87ae7cb7e384-tf",
+          "evaluatedSegmentCount": 149,
+          "visitedNodeCount": 100
+        }
+      },
+      {
+        "missionId": "public-mission-06",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 3051.531997,
+          "segmentCount": 37,
+          "protectedSegmentCount": 25,
+          "sharedSegmentCount": 12,
+          "firstSegmentId": "bike-2824173a7a8e-ft",
+          "lastSegmentId": "bike-87ae7cb7e384-tf",
+          "evaluatedSegmentCount": 261,
+          "visitedNodeCount": 184
+        }
+      },
+      {
+        "missionId": "public-mission-07",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 2159.554698,
+          "segmentCount": 21,
+          "protectedSegmentCount": 15,
+          "sharedSegmentCount": 6,
+          "firstSegmentId": "bike-bc5707edfa14-ft",
+          "lastSegmentId": "bike-789adb0b13f3-tf",
+          "evaluatedSegmentCount": 127,
+          "visitedNodeCount": 83
+        }
+      },
+      {
+        "missionId": "public-mission-08",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 1550.517746,
+          "segmentCount": 21,
+          "protectedSegmentCount": 11,
+          "sharedSegmentCount": 10,
+          "firstSegmentId": "bike-525b89419eaa-ft",
+          "lastSegmentId": "bike-c698e8b137d0-ft",
+          "evaluatedSegmentCount": 69,
+          "visitedNodeCount": 44
+        }
+      },
+      {
+        "missionId": "public-mission-09",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 1606.436412,
+          "segmentCount": 20,
+          "protectedSegmentCount": 13,
+          "sharedSegmentCount": 7,
+          "firstSegmentId": "bike-30ee92829e72-tf",
+          "lastSegmentId": "bike-f9cd8f0bd2bd-tf",
+          "evaluatedSegmentCount": 195,
+          "visitedNodeCount": 132
+        }
+      },
+      {
+        "missionId": "public-mission-10",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 2642.561146,
+          "segmentCount": 30,
+          "protectedSegmentCount": 23,
+          "sharedSegmentCount": 7,
+          "firstSegmentId": "bike-bb2677d5568d-ft",
+          "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+          "evaluatedSegmentCount": 542,
+          "visitedNodeCount": 301
+        }
+      },
+      {
+        "missionId": "public-mission-11",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 2168.157075,
+          "segmentCount": 25,
+          "protectedSegmentCount": 18,
+          "sharedSegmentCount": 7,
+          "firstSegmentId": "bike-cadb6da5d98d-ft",
+          "lastSegmentId": "bike-396223911d7b-tf",
+          "evaluatedSegmentCount": 91,
+          "visitedNodeCount": 53
+        }
+      },
+      {
+        "missionId": "public-mission-12",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 1219.677502,
+          "segmentCount": 14,
+          "protectedSegmentCount": 0,
+          "sharedSegmentCount": 14,
+          "firstSegmentId": "bike-e2c1b08cca63-tf",
+          "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+          "evaluatedSegmentCount": 76,
+          "visitedNodeCount": 44
+        }
+      },
+      {
+        "missionId": "public-mission-13",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 745.206483,
+          "segmentCount": 8,
+          "protectedSegmentCount": 0,
+          "sharedSegmentCount": 8,
+          "firstSegmentId": "bike-cadb6da5d98d-ft",
+          "lastSegmentId": "bike-1ec711b01827-ft",
+          "evaluatedSegmentCount": 32,
+          "visitedNodeCount": 22
+        }
+      },
+      {
+        "missionId": "public-mission-14",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 2206.81106,
+          "segmentCount": 21,
+          "protectedSegmentCount": 13,
+          "sharedSegmentCount": 8,
+          "firstSegmentId": "bike-21a25ccf6628-ft",
+          "lastSegmentId": "bike-7767019a7a63-ft",
+          "evaluatedSegmentCount": 116,
+          "visitedNodeCount": 66
+        }
+      },
+      {
+        "missionId": "public-mission-15",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 1158.943244,
+          "segmentCount": 8,
+          "protectedSegmentCount": 0,
+          "sharedSegmentCount": 8,
+          "firstSegmentId": "bike-6925b5ebf41e-ft",
+          "lastSegmentId": "bike-6e65707f4ed8-ft",
+          "evaluatedSegmentCount": 135,
+          "visitedNodeCount": 75
+        }
+      },
+      {
+        "missionId": "public-mission-16",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 2277.344119,
+          "segmentCount": 27,
+          "protectedSegmentCount": 13,
+          "sharedSegmentCount": 14,
+          "firstSegmentId": "bike-cadb6da5d98d-ft",
+          "lastSegmentId": "bike-7767019a7a63-ft",
+          "evaluatedSegmentCount": 138,
+          "visitedNodeCount": 81
+        }
+      },
+      {
+        "missionId": "public-mission-17",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 2205.335439,
+          "segmentCount": 23,
+          "protectedSegmentCount": 14,
+          "sharedSegmentCount": 9,
+          "firstSegmentId": "bike-dc4df7aa5145-tf",
+          "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+          "evaluatedSegmentCount": 289,
+          "visitedNodeCount": 162
+        }
+      },
+      {
+        "missionId": "public-mission-18",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 5855.294637,
+          "segmentCount": 81,
+          "protectedSegmentCount": 71,
+          "sharedSegmentCount": 10,
+          "firstSegmentId": "bike-30ee92829e72-tf",
+          "lastSegmentId": "bike-761e776351e6-tf",
+          "evaluatedSegmentCount": 1723,
+          "visitedNodeCount": 1090
+        }
+      },
+      {
+        "missionId": "public-mission-19",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 5148.827321,
+          "segmentCount": 92,
+          "protectedSegmentCount": 76,
+          "sharedSegmentCount": 16,
+          "firstSegmentId": "bike-f8a15271364c-ft",
+          "lastSegmentId": "bike-c698e8b137d0-ft",
+          "evaluatedSegmentCount": 1516,
+          "visitedNodeCount": 879
+        }
+      },
+      {
+        "missionId": "public-mission-20",
+        "mission": {
+          "pass": true,
+          "checks": {
+            "originNodeId": true,
+            "destinationNodeId": true,
+            "constraints": true,
+            "requiredObligationIds": true
+          }
+        },
+        "route": {
+          "pass": true,
+          "checks": {
+            "algorithm": true,
+            "distanceM": true,
+            "segmentCount": true,
+            "protectedSegmentCount": true,
+            "sharedSegmentCount": true,
+            "firstSegmentId": true,
+            "lastSegmentId": true
+          }
+        },
+        "measuredRoute": {
+          "algorithm": "a_star_v1",
+          "distanceM": 7095.851366,
+          "segmentCount": 127,
+          "protectedSegmentCount": 86,
+          "sharedSegmentCount": 41,
+          "firstSegmentId": "bike-55dee1ed7c4d-tf",
+          "lastSegmentId": "bike-7767019a7a63-ft",
+          "evaluatedSegmentCount": 2243,
+          "visitedNodeCount": 1468
+        }
+      }
+    ]
+  },
+  "performance": {
+    "missionCompileLatencyMs": {
+      "count": 200,
+      "min": 23.9572,
+      "p50": 26.8751,
+      "p95": 28.8085,
+      "p99": 31.2363,
+      "max": 48.8407,
+      "mean": 27.0501
+    },
+    "routePlanLatencyMs": {
+      "count": 200,
+      "min": 3.042,
+      "p50": 3.8517,
+      "p95": 6.717,
+      "p99": 7.1999,
+      "max": 7.3971,
+      "mean": 4.2967
+    },
+    "controller": {
+      "selectedMissionIds": [
+        "public-mission-13",
+        "public-mission-17",
+        "public-mission-20"
+      ],
+      "repetitions": 1,
+      "journeyCount": 3,
+      "completedAndVerified": 0,
+      "totalTicks": 1802,
+      "stepLatencyMs": {
+        "count": 1802,
+        "min": 0.996,
+        "p50": 1.997,
+        "p95": 6.8211,
+        "p99": 8.3444,
+        "max": 16.5785,
+        "mean": 2.4646
+      },
+      "journeys": [
+        {
+          "missionId": "public-mission-13",
+          "repetition": 0,
+          "terminalState": "completed",
+          "verificationPass": true,
+          "tickCount": 143,
+          "traceEntryCount": 143,
+          "durationMs": 380.5117
+        },
+        {
+          "missionId": "public-mission-17",
+          "repetition": 0,
+          "terminalState": "completed",
+          "verificationPass": true,
+          "tickCount": 395,
+          "traceEntryCount": 395,
+          "durationMs": 1030.0229
+        },
+        {
+          "missionId": "public-mission-20",
+          "repetition": 0,
+          "terminalState": "completed",
+          "verificationPass": true,
+          "tickCount": 1264,
+          "traceEntryCount": 1264,
+          "durationMs": 4281.5849
+        }
+      ]
+    }
+  },
+  "efficiency": {
+    "evaluatedSegments": {
+      "count": 20,
+      "min": 32,
+      "p50": 149,
+      "p95": 2039,
+      "p99": 2243,
+      "max": 2243,
+      "mean": 516.2
+    },
+    "visitedNodes": {
+      "count": 20,
+      "min": 22,
+      "p50": 100,
+      "p95": 1298,
+      "p99": 1468,
+      "max": 1468,
+      "mean": 325.25
+    },
+    "rows": [
+      {
+        "missionId": "public-mission-01",
+        "segmentCount": 95,
+        "evaluatedSegmentCount": 2039,
+        "visitedNodeCount": 1298
+      },
+      {
+        "missionId": "public-mission-02",
+        "segmentCount": 24,
+        "evaluatedSegmentCount": 196,
+        "visitedNodeCount": 141
+      },
+      {
+        "missionId": "public-mission-03",
+        "segmentCount": 22,
+        "evaluatedSegmentCount": 324,
+        "visitedNodeCount": 240
+      },
+      {
+        "missionId": "public-mission-04",
+        "segmentCount": 20,
+        "evaluatedSegmentCount": 63,
+        "visitedNodeCount": 42
+      },
+      {
+        "missionId": "public-mission-05",
+        "segmentCount": 19,
+        "evaluatedSegmentCount": 149,
+        "visitedNodeCount": 100
+      },
+      {
+        "missionId": "public-mission-06",
+        "segmentCount": 37,
+        "evaluatedSegmentCount": 261,
+        "visitedNodeCount": 184
+      },
+      {
+        "missionId": "public-mission-07",
+        "segmentCount": 21,
+        "evaluatedSegmentCount": 127,
+        "visitedNodeCount": 83
+      },
+      {
+        "missionId": "public-mission-08",
+        "segmentCount": 21,
+        "evaluatedSegmentCount": 69,
+        "visitedNodeCount": 44
+      },
+      {
+        "missionId": "public-mission-09",
+        "segmentCount": 20,
+        "evaluatedSegmentCount": 195,
+        "visitedNodeCount": 132
+      },
+      {
+        "missionId": "public-mission-10",
+        "segmentCount": 30,
+        "evaluatedSegmentCount": 542,
+        "visitedNodeCount": 301
+      },
+      {
+        "missionId": "public-mission-11",
+        "segmentCount": 25,
+        "evaluatedSegmentCount": 91,
+        "visitedNodeCount": 53
+      },
+      {
+        "missionId": "public-mission-12",
+        "segmentCount": 14,
+        "evaluatedSegmentCount": 76,
+        "visitedNodeCount": 44
+      },
+      {
+        "missionId": "public-mission-13",
+        "segmentCount": 8,
+        "evaluatedSegmentCount": 32,
+        "visitedNodeCount": 22
+      },
+      {
+        "missionId": "public-mission-14",
+        "segmentCount": 21,
+        "evaluatedSegmentCount": 116,
+        "visitedNodeCount": 66
+      },
+      {
+        "missionId": "public-mission-15",
+        "segmentCount": 8,
+        "evaluatedSegmentCount": 135,
+        "visitedNodeCount": 75
+      },
+      {
+        "missionId": "public-mission-16",
+        "segmentCount": 27,
+        "evaluatedSegmentCount": 138,
+        "visitedNodeCount": 81
+      },
+      {
+        "missionId": "public-mission-17",
+        "segmentCount": 23,
+        "evaluatedSegmentCount": 289,
+        "visitedNodeCount": 162
+      },
+      {
+        "missionId": "public-mission-18",
+        "segmentCount": 81,
+        "evaluatedSegmentCount": 1723,
+        "visitedNodeCount": 1090
+      },
+      {
+        "missionId": "public-mission-19",
+        "segmentCount": 92,
+        "evaluatedSegmentCount": 1516,
+        "visitedNodeCount": 879
+      },
+      {
+        "missionId": "public-mission-20",
+        "segmentCount": 127,
+        "evaluatedSegmentCount": 2243,
+        "visitedNodeCount": 1468
+      }
+    ]
+  },
+  "claimBoundary": "This diagnostic measures deterministic compiler, A* routing, and reference-controller behavior on the exposed 20-mission public corpus on the named host. It is not a sealed promotion result, a live-traffic claim, or physical-world autonomy evidence."
+}

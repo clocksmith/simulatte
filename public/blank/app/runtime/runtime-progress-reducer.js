@@ -61,6 +61,7 @@
           promptTokenCount: numericMetric(event.promptTokenCount),
           prefixTokenCount: numericMetric(event.prefixTokenCount),
           prefixStateReused: event.prefixStateReused === true,
+          prefixPreparationDurationMs: numericMetric(event.prefixPreparationDurationMs),
           executionDurationMs: numericMetric(event.executionDurationMs),
         }, 12);
       }

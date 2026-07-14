@@ -31,7 +31,7 @@
       const hasPromptContracts = (entity.partGraph || []).length > 0 || (entity.properties || []).length > 0 ||
         Boolean(entity.poseHint && entity.poseHint.pose) || Boolean(
           construction.provenance && construction.provenance.exactTargetMatch === true &&
-          promptConstructionSourceNamesTarget(construction)
+          (construction.provenance.targetIdentityBound === true || promptConstructionSourceNamesTarget(construction))
         );
       const scored = candidates.map((program, index) => {
         const obligationScore = hasPromptContracts ? promptGeometryCandidateScore(program, entity) : -index;
@@ -42,7 +42,10 @@
           rejected: rejected.has(String(program.grammarId || '')),
           score: promptConstructionCandidateScore(program, entity, approach, index, obligationScore),
         };
-      }).sort((a, b) => b.score - a.score || a.index - b.index);
+      }).sort((a, b) => b.score - a.score ||
+        Number(b.program.selectionRole === 'model-construction' && b.program.constructionReceipt?.topologyTargetFit === true) -
+        Number(a.program.selectionRole === 'model-construction' && a.program.constructionReceipt?.topologyTargetFit === true) ||
+        a.index - b.index);
       const selectedRow = scored.find((row) => !row.rejected) || scored[0] || null;
       const searchExhausted = scored.length > 0 && scored.every((row) => row.rejected);
       const selected = selectedRow && selectedRow.program || candidates[0] || null;
@@ -60,8 +63,10 @@
           selectedGrammarId: applied.grammarId || '',
           candidates: scored.map((row) => ({
             grammarId: row.program.grammarId || '',
+            selectionRole: row.program.selectionRole || '',
             score: row.score,
             obligationScore: row.obligationScore,
+            targetFitScore: promptConstructionTargetFit(row.program, entity),
             status: row === selectedRow
               ? searchExhausted ? 'selected-after-exhaustion' : 'selected'
               : row.rejected ? 'rejected' : 'eligible',
@@ -126,8 +131,7 @@
       if (program.constructionReceipt && program.constructionReceipt.topologyTargetFit === true) score += 3;
       score += promptConstructionTargetFit(program, entity);
       if (program.unsupportedIdentity === true) score -= 40;
-      const primitives = new Set((program.parts || []).map((row) => row.primitive));
-      if ((program.parts || []).length <= 1 || primitives.size === 1 && primitives.has('rounded-box')) score -= 24;
+      if ((program.parts || []).length <= 1) score -= 24;
       score += Math.min(6, (program.parts || []).length * 0.25);
       return Number(score.toFixed(3));
     }
@@ -139,6 +143,7 @@
         program.identityType,
         program.visualArchetype,
         program.constructionReceipt && program.constructionReceipt.topologyId,
+        String(program.grammarId || '').replace(/^object-grammar[.]/, ''),
       ].map(promptSingular).filter(Boolean);
       const identityMatch = programIdentities.some((identity) => promptPartMatches(identity, target));
       if (program.selectionRole === 'model-construction' && program.constructionReceipt) {
@@ -250,7 +255,7 @@
     }
 
     function promptEntityColorParts(parts = []) {
-      const primaryRoles = new Set(['core', 'head', 'appendage', 'panel', 'opening']);
+      const primaryRoles = new Set(['core', 'head', 'appendage', 'panel']);
       const matched = parts.filter((part) => primaryRoles.has(String(part.constructionRole || '')));
       return matched.length ? matched : parts;
     }

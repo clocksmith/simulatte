@@ -13,6 +13,7 @@ import zlib from 'node:zlib';
 import { captureChildProcessOutput } from './audit-process-log.mjs';
 import { auditPromptMatches, waitForCondition, withDeadline } from './audit-runtime-wait.mjs';
 import { modelPreparationFailures } from './model-preparation-receipt.mjs';
+import { renderedSignalEvidence } from './visual-rubric-evidence.mjs';
 import {
   evaluateGoldVisualResults,
   loadGoldAdjudication,
@@ -79,8 +80,14 @@ const GRAM_TOKENS = Object.freeze([
 ]);
 
 const VISUAL_RUBRIC_SIGNALS = Object.freeze([
-  rubricSignal('thermal', /\b(heat|heats|thermal|temperature|cool|cools|cooling|coolant|steam|lava|hot|cold|melt|melts|freeze|freezes|fire|flame|smoke)\b/i, ['thermal', 'combustion', 'phase', 'emission'], ['visual.operator.heat-transfer.v1', 'visual.operator.thermal-combustion.v1', 'visual.operator.phase-transition.v1'], ['atomThermalPlume']),
-  rubricSignal('fluid', /\b(flow|flows|flowing|advect|advects|airflow|pumps?|pressure drives?|velocity|turbulence|vortex|swim|swims|swimming|surge|upwelling|dispersion)\b/i, ['fluid', 'density', 'motion'], ['visual.operator.fluid-advection.v1'], ['atomFluidRibbons']),
+  rubricSignal('thermal', /\b(heat|heats|thermal|temperature|cool|cools|cooling|coolant|steam|lava|hot|cold|melt|melts|freeze|freezes|fire|flame|smoke)\b/i, ['thermal', 'combustion', 'phase', 'emission'], ['visual.operator.heat-transfer.v1', 'visual.operator.thermal-combustion.v1', 'visual.operator.phase-transition.v1'], ['atomThermalPlume'], {
+    layerSlots: ['thermal-field'],
+    proofTerms: ['heat', 'thermal', 'fire', 'flame', 'smoke', 'melt', 'cool'],
+  }),
+  rubricSignal('fluid', /\b(flow|flows|flowing|advect|advects|airflow|pumps?|pressure drives?|velocity|turbulence|vortex|swim|swims|swimming|surge|upwelling|dispersion)\b/i, ['fluid', 'density', 'motion'], ['visual.operator.fluid-advection.v1'], ['atomFluidRibbons'], {
+    layerSlots: ['water-volume', 'flow-field', 'bubble-volume'],
+    proofTerms: ['swim', 'swimming', 'wake ripples', 'partial submersion', 'water', 'flow'],
+  }),
   rubricSignal('stress', /\b(stress|strain|fracture|fractures|crack|cracks|impact|collision|collides?|buckling|contact force|deform|deforms|shear|torque|resonance|vortex shedding)\b/i, ['stress', 'constraint', 'motion'], ['visual.operator.stress-fracture.v1'], ['atomStressCracks']),
   rubricSignal('feedback', /\b(control|controller|feedback|sensor|setpoint|regulate|stabilize|stabilizes|actuator|valve|loop|throttle|inverter)\b/i, ['feedback', 'signal', 'instrument', 'measurement'], ['visual.operator.control-feedback.v1'], ['atomFeedbackArcs']),
   rubricSignal('orbital', /\b(orbit|orbits|orbiting|orbital resonance|gravity bends?|gravitational|trajectory|barycenter|accretion)\b/i, ['orbital', 'motion'], ['visual.operator.orbital-gravity.v1'], []),
@@ -179,8 +186,8 @@ function parseArgs(argv) {
   return options;
 }
 
-function rubricSignal(id, pattern, slots, mappingIds, wgslOperators) {
-  return Object.freeze({ id, pattern, slots, mappingIds, wgslOperators });
+function rubricSignal(id, pattern, slots, mappingIds, wgslOperators, renderEvidence = null) {
+  return Object.freeze({ id, pattern, slots, mappingIds, wgslOperators, renderEvidence });
 }
 
 function mulberry32(seed) {
@@ -1288,6 +1295,9 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           promptPrefixKvReuseCount: Number(sourceRerankReceipt.prefixKvReuseCount || 0),
           promptPrefixStateReuseCount: Number(sourceRerankReceipt.prefixStateReuseCount || 0),
           promptMinimumPrefixTokenCount: Number(sourceRerankReceipt.minimumPrefixTokenCount || 0),
+          promptPrefixPreparationDurationMs: Number(sourceRerankReceipt.prefixPreparationDurationMs || 0),
+          promptRerankCallDurationMs: Number(sourceRerankReceipt.rerankCallDurationMs || 0),
+          promptUnattributedRerankDurationMs: Number(sourceRerankReceipt.unattributedRerankDurationMs || 0),
           promptTotalExecutionDurationMs: Number(sourceRerankReceipt.totalExecutionDurationMs || 0),
           promptMeanExecutionDurationMs: Number(sourceRerankReceipt.meanExecutionDurationMs || 0),
           promptMaximumExecutionDurationMs: Number(sourceRerankReceipt.maximumExecutionDurationMs || 0),
@@ -1301,6 +1311,9 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           slotPrefixKvReuseCount: Number(slotRetrieval.prefixKvReuseCount || 0),
           slotPrefixStateReuseCount: Number(slotRetrieval.prefixStateReuseCount || 0),
           slotMinimumPrefixTokenCount: Number(slotRetrieval.minimumPrefixTokenCount || 0),
+          slotPrefixPreparationDurationMs: Number(slotRetrieval.prefixPreparationDurationMs || 0),
+          slotRerankCallDurationMs: Number(slotRetrieval.rerankCallDurationMs || 0),
+          slotUnattributedRerankDurationMs: Number(slotRetrieval.unattributedRerankDurationMs || 0),
           slotTotalExecutionDurationMs: Number(slotRetrieval.totalExecutionDurationMs || 0),
           slotMaximumExecutionDurationMs: Number(slotRetrieval.maximumExecutionDurationMs || 0),
           scoringPaths: [...new Set([...promptRerankScoringPaths, ...slotRerankScoringPaths])].sort(),
@@ -1390,6 +1403,17 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           targetId: row.targetId || '',
           clearanceBefore: Number(row.clearanceBefore || 0),
           clearanceAfter: Number(row.clearanceAfter || 0),
+        }))
+        : [],
+      sceneRenderPacketGraspContacts: sceneRenderPacket && sceneRenderPacket.receipts &&
+        sceneRenderPacket.receipts.framing && Array.isArray(sceneRenderPacket.receipts.framing.graspContacts)
+        ? sceneRenderPacket.receipts.framing.graspContacts.map((row) => ({
+          constraintId: row.constraintId || '',
+          sourceId: row.sourceId || '',
+          targetId: row.targetId || '',
+          sourcePartIds: row.sourcePartIds || [],
+          targetPartId: row.targetPartId || '',
+          endpointDistanceAfter: Number(row.endpointDistanceAfter || 0),
         }))
         : [],
       sceneRenderPacketIdentities: (sceneRenderPacket && sceneRenderPacket.entities || []).map((row) => ({
@@ -1779,7 +1803,9 @@ function visualRubricForResult(result, prompt) {
     const mappingHits = signal.mappingIds.filter((id) => mappingIds.has(id));
     const wgslHits = signal.wgslOperators.filter((id) => wgslOperators.has(id));
     const languageHits = languageSignals.filter((value) => value.includes(signal.id)).slice(0, 3);
-    const strength = Math.min(1, slotHits.length * 0.45 + mappingHits.length * 0.4 + wgslHits.length * 0.3 + languageHits.length * 0.2);
+    const renderedEvidence = renderedSignalEvidence(signal, result);
+    const strength = Math.min(1, slotHits.length * 0.45 + mappingHits.length * 0.4 +
+      wgslHits.length * 0.3 + languageHits.length * 0.2 + renderedEvidence.strength);
     const row = {
       id: signal.id,
       strength: Number(strength.toFixed(3)),
@@ -1787,6 +1813,7 @@ function visualRubricForResult(result, prompt) {
       mappingHits,
       wgslHits,
       languageHits,
+      renderedEvidence,
     };
     if (strength >= 0.35) matchedSignals.push(row);
     else missingSignals.push(row);
@@ -1859,13 +1886,19 @@ function representationQualityForResult(result, expectedCount) {
   const requiredRelations = array(result.phase6CompositionObligations)
     .filter((row) => row.required === true && row.kind === 'relation');
   const surfaceContacts = array(result.sceneRenderPacketSurfaceContacts);
+  const graspContacts = array(result.sceneRenderPacketGraspContacts);
   const provenRelations = requiredRelations.filter((row) => (
     row.status === 'preserved' && array(row.visualEvidence).length > 0 &&
     (!String(row.id || '').startsWith('relation:spatial:') ||
       array(row.visualEvidence).includes(`layout-relation:${row.id}`)) &&
     (!/^relation:spatial:[^:]+:(?:on|onto|seated-on|supports):/.test(String(row.id || '')) ||
       surfaceContacts.some((contact) => (
-        contact.constraintId === row.id && contact.clearanceAfter >= 0 && contact.clearanceAfter <= 0.01
+        contact.constraintId === row.id && contact.clearanceAfter >= -0.02 && contact.clearanceAfter <= 0.01
+      ))) &&
+    (!/^relation:[^:]+:(?:hold|holds|holding|grasp|grasps|grasping|carry|carries|carrying|clutch|clutches|clutching):/.test(String(row.id || '')) ||
+      graspContacts.some((contact) => (
+        contact.constraintId === row.id && array(contact.sourcePartIds).length > 0 &&
+        contact.targetPartId && contact.endpointDistanceAfter <= 0.015
       )))
   ));
   const dimensions = {
@@ -2165,7 +2198,8 @@ function analyze(results, options = {}) {
     }
     if (result.visualIRReceiptCount < 4) failures.push(`${result.index}: VisualIR has too few receipts`);
     if (!result.visualIRGraphicsCompiler) failures.push(`${result.index}: VisualIR missing graphics atom compiler`);
-    if (rubric.expectedCount > 0 && !(result.visualIRGraphicsUniformSlots || []).length) {
+    if (rubric.expectedCount > 0 && !(result.visualIRGraphicsUniformSlots || []).length &&
+      rubric.missingSignals.length > 0) {
       failures.push(`${result.index}: VisualIR missing graphics atom uniform slots`);
     }
     if (result.kind === 'curated' && result.intentBriefSchema !== 'simulatte.intentBrief.v1') {

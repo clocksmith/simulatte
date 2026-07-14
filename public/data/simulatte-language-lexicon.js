@@ -95,6 +95,10 @@
     ['readout', 'observable'], ['castle wall', 'entity'], ['black hole', 'entity'],
     ['solar panel', 'entity'], ['blade array', 'entity'],
     ['dry pine', 'entity', { materialHint: 'wood', semanticRole: 'fuel-material' }],
+    ['heat', 'observable', {
+      entityClass: 'thermal-field', semanticRole: 'thermal-process', visualArchetype: 'thermal-field',
+      domains: ['thermal'], operatorTypes: ['heat_transfer'], processQualifier: true,
+    }],
     ['thermal plume', 'environment', { entityClass: 'thermal-plume', visualArchetype: 'cloud' }],
     ['cooling fins', 'entity', { entityClass: 'cooling-fin', visualArchetype: 'structure' }],
     ['cooling fin', 'entity', { entityClass: 'cooling-fin', visualArchetype: 'structure' }],
@@ -177,7 +181,9 @@
     ['wind shear', 'environment', {
       semanticRole: 'fluid-medium', entityClass: 'wind-field', visualArchetype: 'field-sheet',
     }],
-    ['wind', 'entity'], ['building masses', 'entity'],
+    ['wind', 'entity'], ['building masses', 'entity', {
+      entityClass: 'building', visualArchetype: 'building', containerFamily: 'building',
+    }],
     ['building', 'entity', { entityClass: 'building', visualArchetype: 'building', containerFamily: 'building' }],
     ['structure', 'entity'], ['room', 'entity'],
     ['warehouse robot arms', 'entity', { entityClass: 'warehouse-robot-arms', visualArchetype: 'robot' }],
@@ -223,7 +229,8 @@
     ['prism', 'entity'], ['mirror', 'entity'], ['tower', 'entity'],
     ['bridge', 'entity', { entityClass: 'bridge', visualArchetype: 'bridge' }], ['cable', 'entity'], ['cables', 'entity'],
     ['wave', 'entity'], ['waves', 'entity'], ['density waves', 'entity'],
-    ['city zoning', 'entity'], ['city', 'environment'], ['traffic', 'entity'],
+    ['city zoning', 'entity', { semanticRole: 'control-process' }],
+    ['city', 'environment'], ['traffic', 'entity'],
     ['queue network', 'entity', {
       entityClass: 'queue-network', visualArchetype: 'node-graph',
       domains: ['network'], operatorTypes: ['network_flow'],
@@ -362,7 +369,10 @@
     ['glacier', 'entity'], ['fjord', 'environment'], ['sea ice', 'entity'],
     ['forest fire', 'observable', {
       preserveNestedSemanticSpans: true, semanticRole: 'combustion-process',
-    }], ['forest', 'environment', { entityClass: 'forest', visualArchetype: 'tree' }],
+    }], ['forest', 'environment', {
+      entityClass: 'forest', visualArchetype: 'tree', materialHint: 'biomass',
+      semanticRole: 'fuel-environment', domains: ['biological', 'combustion'],
+    }],
     ['road', 'entity', { entityClass: 'road', visualArchetype: 'road' }],
     ['floor lamp', 'entity', { entityClass: 'lamp', visualArchetype: 'lamp' }],
     ['bicycle', 'entity', { entityClass: 'bicycle', visualArchetype: 'bicycle' }],

@@ -545,10 +545,10 @@
       waveCoupling: 'oscillation',
       growthCoupling: 'growth',
       diffusion: 'diffusion',
-      networkFlow: 'exchange',
+      networkFlow: 'network_flow',
       orbitalGravity: 'oscillation',
       torqueTransfer: 'rotate',
-      controlLoop: 'exchange',
+      controlLoop: 'network_flow',
       measurement: 'measurement',
     };
     return map[type] || 'interact';

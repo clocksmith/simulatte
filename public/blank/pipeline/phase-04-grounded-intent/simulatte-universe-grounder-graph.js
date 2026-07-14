@@ -51,6 +51,8 @@
     for (const [key, group] of groups.entries()) {
       const ordered = group.slice().sort((a, b) => (
         Number(a.supportOnly === true) - Number(b.supportOnly === true) ||
+        Number(/^prompt[.]/.test(String(b.canonicalId || ''))) -
+          Number(/^prompt[.]/.test(String(a.canonicalId || ''))) ||
         Number(Boolean(b.spanId)) - Number(Boolean(a.spanId)) ||
         Number(b.directlyGrounded === true) - Number(a.directlyGrounded === true) ||
         Number(b.confidence || 0) - Number(a.confidence || 0)
@@ -374,7 +376,10 @@
         spatialRelation,
         prepositions: clause.prepositions || [],
         confidence: Math.min(Number(from.confidence || 0), Number(to.confidence || 0), 0.82),
-        evidence: [clause.relationSource || 'prompt-clause'],
+        evidence: unique([
+          clause.relationSource || 'prompt-clause',
+          clause.processQualifierSpanId ? `prompt-process-qualifier:${clause.processQualifierSpanId}` : '',
+        ]),
       });
     }
     return edges;
@@ -406,7 +411,13 @@
     const spanById = new Map((promptParse.spans || []).map((span) => [span.id, span]));
     const promptOwned = (node) => node && node.directlyGrounded === true && Boolean(spanById.get(node.spanId));
     const fireNodes = nodes.filter((node) => promptOwned(node) && groundedFireEvidence(node, spanById.get(node.spanId)));
-    const fuelNodes = nodes.filter((node) => promptOwned(node) && groundedFuelEvidence(node, spanById.get(node.spanId)));
+    const fuelCandidates = nodes.filter((node) => (
+      promptOwned(node) && groundedFuelEvidence(node, spanById.get(node.spanId))
+    ));
+    const explicitFuelNodes = fuelCandidates.filter((node) => (
+      spanById.get(node.spanId).semanticRole === 'fuel-material'
+    ));
+    const fuelNodes = explicitFuelNodes.length ? explicitFuelNodes : fuelCandidates;
     if (!fireNodes.length || !fuelNodes.length) return [];
     const sceneFire = fireNodes.find((candidate) => (
       spanById.get(candidate.spanId).semanticRole === 'combustion-process'
@@ -610,8 +621,9 @@
   }
 
   function groundedFuelEvidence(node = {}, span = {}) {
-    void node;
-    return span.semanticRole === 'fuel-material';
+    if (span.semanticRole === 'fuel-material') return true;
+    return span.semanticRole === 'fuel-environment' &&
+      ['biomass', 'wood'].includes(String(node.materialId || span.materialHint || ''));
   }
 
   function remapSpanNodes(bySpan = new Map(), nodes = [], nodeIdMap = new Map()) {
@@ -712,7 +724,11 @@
       const target = bySpan.get(quantity.targetSpanId);
       if (!target) continue;
       target.cardinality = Math.max(1, Math.min(32, Math.floor(Number(quantity.value || 1))));
-      obligations.push(promptVisualObligation('count', target, { expectedCount: target.cardinality }));
+      obligations.push(promptVisualObligation('count', target, {
+        expectedCount: target.cardinality,
+        countMode: quantity.mode || 'exact',
+        countSource: quantity.source || 'explicit-quantity',
+      }));
     }
     for (const clause of promptParse.clauses || []) {
       const subject = bySpan.get(clause.subjectSpanId);

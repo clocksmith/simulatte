@@ -2,6 +2,8 @@
   const scope = root.__SimulatteIntentEmbedderRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
+    const universeSearchTermCache = new WeakMap();
+    const surfaceCardScoreCache = new WeakMap();
     function slotRetrievalEvidenceRows(slotRetrieval = {}) {
         const rows = [];
         for (const slot of slotRetrieval && slotRetrieval.bySlot || []) {
@@ -196,10 +198,13 @@
         if (!cardIndex) return [];
         const maxCards = Number.isFinite(options.maxCards) ? options.maxCards : 48;
         const minCardScore = Number.isFinite(options.minCardScore) ? options.minCardScore : 0.22;
-        return cardIndex.documents
-          .map((doc) => {
-            const score = clamp01(dot(queryVector, doc.vector));
-            return {
+        const top = [];
+        const scores = surfaceCardScores(cardIndex, queryVector);
+        for (let index = 0; index < cardIndex.documents.length; index += 1) {
+            const doc = cardIndex.documents[index];
+            const score = scores[index];
+            if (score < minCardScore) continue;
+            pushBoundedRank(top, {
               cardId: doc.cardId,
               type: doc.type || '',
               labels: Array.isArray(doc.labels) ? doc.labels.slice(0, 5) : [],
@@ -209,11 +214,17 @@
               source: `${modelSlug(cardIndex.embedModelId)}-surface-card-index`,
               indexId: cardIndex.id,
               textHash: doc.textHash || null,
-            };
-          })
-          .filter((match) => match.score >= minCardScore)
-          .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId))
-          .slice(0, maxCards);
+            }, maxCards);
+        }
+        return top.sort(compareRankRows);
+      }
+
+    function surfaceCardScores(cardIndex, queryVector) {
+        const cached = surfaceCardScoreCache.get(queryVector);
+        if (cached && cached.cardIndex === cardIndex) return cached.scores;
+        const scores = Float32Array.from(cardIndex.documents, (doc) => clamp01(dot(queryVector, doc.vector)));
+        surfaceCardScoreCache.set(queryVector, { cardIndex, scores });
+        return scores;
       }
 
     function rankUniverseIndexes(universe, promptText, queryVector, options = {}) {
@@ -227,20 +238,28 @@
         const maxUniverse = Number.isFinite(options.maxUniverse) ? options.maxUniverse : 36;
         const minUniverseScore = Number.isFinite(options.minUniverseScore) ? options.minUniverseScore : 0.16;
         const tokens = promptTokens(promptText);
+        const tokenText = ` ${tokens.join(' ')} `;
         if (!tokens.length && !queryVector) return empty;
         const featureQueries = new Map();
         const byIndex = {};
         const candidates = [];
         for (const [indexName, index] of Object.entries(universe.indexes || {})) {
           const featureQuery = featureQueryForIndex(index, promptText, featureQueries);
-          const rows = (index.documents || [])
-            .map((doc) => universeCandidateForDocument(doc, indexName, tokens, {
-              featureQuery,
-              queryVector,
-            }))
-            .filter((row) => row.score >= minUniverseScore || row.lexicalScore > 0)
-            .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-            .slice(0, Math.max(4, Math.floor(maxUniverse / 2)));
+          const top = [];
+          const limit = Math.max(4, Math.floor(maxUniverse / 2));
+          for (const doc of index.documents || []) {
+            const metrics = universeDocumentMetrics(doc, tokens, { featureQuery, queryVector, tokenText });
+            if (metrics.score < minUniverseScore && metrics.lexicalScore <= 0) continue;
+            pushBoundedRank(top, {
+              id: doc.id || `${indexName}:${doc.label || 'candidate'}`,
+              score: Number(metrics.score.toFixed(4)),
+              doc,
+              metrics,
+            }, limit);
+          }
+          const rows = top.sort(compareRankRows).map((row) => (
+            universeCandidateForDocument(row.doc, indexName, tokens, { metrics: row.metrics })
+          ));
           byIndex[indexName] = rows;
           candidates.push(...rows);
         }
@@ -261,14 +280,48 @@
       }
 
     function universeCandidateForDocument(doc, indexName, tokens, ranking = {}) {
-        const labels = universeLabels(doc).map((value) => String(value).toLowerCase());
-        const haystackWords = new Set(labels.join(' ').split(/[^a-z0-9]+/).filter(Boolean));
+        const metrics = ranking.metrics || universeDocumentMetrics(doc, tokens, ranking);
+        const { lexicalScore, modelScore, featureScore, semanticScore, score, phraseHit, tokenHits } = metrics;
+        const operatorHints = uniqueStrings([
+          ...(doc.operatorHints || []),
+          ...(doc.operatorTypes || []),
+          ...(doc.operators || []),
+          doc.operatorType,
+          doc.process,
+          doc.edgeType,
+        ]);
+        const materialIds = uniqueStrings([...(doc.materialIds || []), doc.materialId]);
+        const conceptIds = uniqueStrings([...(doc.conceptIds || []), ...(doc.concepts || []), doc.canonicalId]);
+        return {
+          id: doc.id || `${indexName}:${doc.label || 'candidate'}`, indexName,
+          label: doc.label || doc.id || '', aliases: Array.isArray(doc.aliases) ? doc.aliases.slice(0, 6) : [],
+          canonicalId: doc.canonicalId || doc.id || '', semanticType: doc.semanticType || indexName.replace(/s$/, ''),
+          domains: doc.domains || [], materialId: doc.materialId || '', materialIds, operatorHints,
+          operatorTypes: operatorHints, primitiveHints: uniqueStrings(doc.primitiveHints || []), conceptIds,
+          shapeHints: uniqueStrings([...(doc.shapeHints || []), ...(doc.shapeIds || [])]),
+          sceneHints: uniqueStrings(doc.sceneHints || []), process: doc.process || '', edgeType: doc.edgeType || '',
+          shapeKind: doc.shapeKind || '', sceneKind: doc.sceneKind || '', candidateText: doc.candidateText || '',
+          score: Number(score.toFixed(4)), lexicalScore: Number(lexicalScore.toFixed(4)),
+          semanticScore: Number(semanticScore.toFixed(4)), modelScore: Number(modelScore.toFixed(4)),
+          featureScore: Number(featureScore.toFixed(4)), evidence: ['universe-index', indexName],
+          rankSignals: { featureScore: Number(featureScore.toFixed(4)), lexicalScore: Number(lexicalScore.toFixed(4)),
+            modelScore: Number(modelScore.toFixed(4)), phraseHit, tokenHits },
+        };
+      }
+
+    function universeDocumentMetrics(doc, tokens, ranking = {}) {
+        let search = universeSearchTermCache.get(doc);
+        if (!search) {
+          const labels = universeLabels(doc).map((value) => String(value).toLowerCase());
+          search = { labels, words: new Set(labels.join(' ').split(/[^a-z0-9]+/).filter(Boolean)) };
+          universeSearchTermCache.set(doc, search);
+        }
         const tokenHits = [];
         for (const token of tokens) {
-          if (token.length > 2 && haystackWords.has(token)) tokenHits.push(token);
+          if (token.length > 2 && search.words.has(token)) tokenHits.push(token);
         }
-        const tokenText = ` ${tokens.join(' ')} `;
-        const phraseHit = labels.some((label) => {
+        const tokenText = ranking.tokenText || ` ${tokens.join(' ')} `;
+        const phraseHit = search.labels.some((label) => {
           const phrase = label.replace(/[^a-z0-9]+/g, ' ').trim();
           return phrase.length > 2 && tokenText.includes(` ${phrase} `);
         });
@@ -281,58 +334,35 @@
           : 0;
         const semanticScore = Math.max(modelScore, featureScore);
         const score = clamp01(Math.max(lexicalScore, semanticScore * 0.88 + lexicalScore * 0.18));
-        const operatorHints = uniqueStrings([
-          ...(doc.operatorHints || []),
-          ...(doc.operatorTypes || []),
-          ...(doc.operators || []),
-          doc.operatorType,
-          doc.process,
-          doc.edgeType,
-        ]);
-        const materialIds = uniqueStrings([
-          ...(doc.materialIds || []),
-          doc.materialId,
-        ]);
-        const conceptIds = uniqueStrings([
-          ...(doc.conceptIds || []),
-          ...(doc.concepts || []),
-          doc.canonicalId,
-        ]);
-        return {
-          id: doc.id || `${indexName}:${doc.label || 'candidate'}`,
-          indexName,
-          label: doc.label || doc.id || '',
-          aliases: Array.isArray(doc.aliases) ? doc.aliases.slice(0, 6) : [],
-          canonicalId: doc.canonicalId || doc.id || '',
-          semanticType: doc.semanticType || indexName.replace(/s$/, ''),
-          domains: doc.domains || [],
-          materialId: doc.materialId || '',
-          materialIds,
-          operatorHints,
-          operatorTypes: operatorHints,
-          primitiveHints: uniqueStrings(doc.primitiveHints || []),
-          conceptIds,
-          shapeHints: uniqueStrings([...(doc.shapeHints || []), ...(doc.shapeIds || [])]),
-          sceneHints: uniqueStrings(doc.sceneHints || []),
-          process: doc.process || '',
-          edgeType: doc.edgeType || '',
-          shapeKind: doc.shapeKind || '',
-          sceneKind: doc.sceneKind || '',
-          candidateText: doc.candidateText || '',
-          score: Number(score.toFixed(4)),
-          lexicalScore: Number(lexicalScore.toFixed(4)),
-          semanticScore: Number(semanticScore.toFixed(4)),
-          modelScore: Number(modelScore.toFixed(4)),
-          featureScore: Number(featureScore.toFixed(4)),
-          evidence: ['universe-index', indexName],
-          rankSignals: {
-            featureScore: Number(featureScore.toFixed(4)),
-            lexicalScore: Number(lexicalScore.toFixed(4)),
-            modelScore: Number(modelScore.toFixed(4)),
-            phraseHit,
-            tokenHits,
-          },
-        };
+        return { lexicalScore, modelScore, featureScore, semanticScore, score, phraseHit, tokenHits };
+      }
+
+    function compareRankRows(a, b) {
+        return b.score - a.score || String(a.cardId || a.id).localeCompare(String(b.cardId || b.id));
+      }
+
+    function pushBoundedRank(heap, row, limit) {
+        if (heap.length < limit) {
+          heap.push(row);
+          for (let i = heap.length - 1; i > 0;) {
+            const parent = (i - 1) >> 1;
+            if (compareRankRows(heap[i], heap[parent]) <= 0) break;
+            [heap[i], heap[parent]] = [heap[parent], heap[i]];
+            i = parent;
+          }
+          return;
+        }
+        if (compareRankRows(row, heap[0]) >= 0) return;
+        heap[0] = row;
+        for (let i = 0;;) {
+          const left = i * 2 + 1;
+          if (left >= heap.length) break;
+          const right = left + 1;
+          const worse = right < heap.length && compareRankRows(heap[right], heap[left]) > 0 ? right : left;
+          if (compareRankRows(heap[worse], heap[i]) <= 0) break;
+          [heap[i], heap[worse]] = [heap[worse], heap[i]];
+          i = worse;
+        }
       }
 
     function universeLabels(doc) {
@@ -878,6 +908,7 @@
       resolveLanguageEvidenceApi,
       normalizeSpanText,
       rankSurfaceCards,
+      surfaceCardScores,
       rankUniverseIndexes,
       featureQueryForIndex,
       universeCandidateForDocument,

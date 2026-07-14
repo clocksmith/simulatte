@@ -649,7 +649,7 @@
           constructionReceipt,
           selectionRole: candidate.key === selectedKey && selectedKey !== semanticIdentityType
             ? 'prompt-specialized'
-            : candidate.key === semanticIdentityType ? 'identity-catalog'
+            : candidate.key === identityType ? 'identity-catalog'
               : candidate.key === categoryKey ? 'category-catalog' : 'related-catalog',
         }));
       if (semanticArchetype) catalogPrograms.push(objectGeometryProgram(semanticArchetype, {

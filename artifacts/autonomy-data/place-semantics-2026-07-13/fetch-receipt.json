@@ -1,0 +1,330 @@
+{
+  "schema": "simulatte.autonomyDataFetchReceipt.v1",
+  "plan": {
+    "schema": "simulatte.autonomyDataFetchPlan.v1",
+    "catalog": {
+      "id": "nyc-autonomy-source-catalog-v1",
+      "sha256": "c89274437f91547d54cc4202320b24e340a49599eea45e208605c76de1132df8",
+      "path": "tools/autonomy/source-catalog-v1.json"
+    },
+    "mode": "snapshot_refresh",
+    "snapshotDate": "2026-07-13",
+    "bounds": {
+      "south": 40.705,
+      "west": -74.015,
+      "north": 40.745,
+      "east": -73.94
+    },
+    "sourceIds": [
+      "wikipedia-nyc-place-descriptions"
+    ],
+    "requests": [
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-east-village.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=East+Village%2C+Manhattan&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-east-village.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "east-village",
+        "pageTitle": "East Village, Manhattan",
+        "placeLabels": [
+          "East Village"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-greenpoint.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=Greenpoint%2C+Brooklyn&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-greenpoint.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "greenpoint",
+        "pageTitle": "Greenpoint, Brooklyn",
+        "placeLabels": [
+          "Greenpoint"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-mccarren-park.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=McCarren+Park&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-mccarren-park.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "mccarren-park",
+        "pageTitle": "McCarren Park",
+        "placeLabels": [
+          "McCarren Park"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-williamsburg.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=Williamsburg%2C+Brooklyn&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-williamsburg.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "williamsburg",
+        "pageTitle": "Williamsburg, Brooklyn",
+        "placeLabels": [
+          "North Williamsburg",
+          "Williamsburg Waterfront"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-union-square.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=Union+Square%2C+Manhattan&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-union-square.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "union-square",
+        "pageTitle": "Union Square, Manhattan",
+        "placeLabels": [
+          "Union Square"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-washington-square.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=Washington+Square+Park&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-washington-square.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "washington-square",
+        "pageTitle": "Washington Square Park",
+        "placeLabels": [
+          "Washington Square"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-west-village.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=West+Village&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-west-village.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "west-village",
+        "pageTitle": "West Village",
+        "placeLabels": [
+          "West Village"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-williamsburg-bridge.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=Williamsburg+Bridge&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-williamsburg-bridge.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "williamsburg-bridge",
+        "pageTitle": "Williamsburg Bridge",
+        "placeLabels": [
+          "Williamsburg Bridge"
+        ]
+      },
+      {
+        "id": "wikipedia-nyc-place-descriptions:wikipedia-tompkins-square.json",
+        "sourceId": "wikipedia-nyc-place-descriptions",
+        "group": "place-semantics",
+        "dataClass": "public_semantic_context",
+        "authority": "Wikipedia contributors through the MediaWiki API",
+        "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+        "transport": "mediawiki_json",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=extracts%7Crevisions&explaintext=1&exintro=1&rvprop=ids%7Ctimestamp&titles=Tompkins+Square+Park&format=json&formatversion=2&maxlag=5&origin=*",
+        "output": "wikipedia-tompkins-square.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "place_descriptor_candidate"
+        ],
+        "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry.",
+        "documentId": "tompkins-square",
+        "pageTitle": "Tompkins Square Park",
+        "placeLabels": [
+          "Tompkins Square"
+        ]
+      }
+    ],
+    "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact.",
+    "planSha256": "b07f202613d8067c7e204d131aaf754f3cc4d580aadafb71d72df37381d66990"
+  },
+  "command": [
+    "node",
+    "tools/autonomy/manage-autonomy-data.mjs",
+    "fetch",
+    "--group",
+    "place-semantics",
+    "--snapshot-date",
+    "2026-07-13",
+    "--out",
+    "artifacts/autonomy-data/place-semantics-2026-07-13"
+  ],
+  "files": [
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-east-village.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-east-village.json",
+      "byteCount": 1621,
+      "sha256": "c5cc62c0f31db139d4fb03e72c5dae6d8c07ef51cb61127ffa959b8e97965037",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-greenpoint.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-greenpoint.json",
+      "byteCount": 2038,
+      "sha256": "80a2f7ea98cd4406325a1e733c368eb24a98712a014467b32e3ac9b13d96030b",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-mccarren-park.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-mccarren-park.json",
+      "byteCount": 1430,
+      "sha256": "a23f906fa092417785ab10807ce144ebbbb35c4d942bdd1ada0f5d2562128385",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-williamsburg.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-williamsburg.json",
+      "byteCount": 2847,
+      "sha256": "5324d298729296b496f13f37f709def011432cb27efacd48299fad6574a9e639",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-union-square.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-union-square.json",
+      "byteCount": 2017,
+      "sha256": "5c5a4ddfd52ddfe7ab322ad9a245c1e8534ec61fdecee4b97598e64173799db3",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-washington-square.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-washington-square.json",
+      "byteCount": 968,
+      "sha256": "c216c2f441666514db12afb7a8ccce76ca4327cf610d00d94470a6f3624fe7d1",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-west-village.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-west-village.json",
+      "byteCount": 898,
+      "sha256": "01d4f6b9e1edc4df71d304aa63800048fed2e979d6d8df58a696fe49603c8b6e",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-williamsburg-bridge.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-williamsburg-bridge.json",
+      "byteCount": 1809,
+      "sha256": "b1138edaf89bf5c11af8c6b56788618cd3570444f731d1f9cea636073a7b2b59",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "wikipedia-nyc-place-descriptions:wikipedia-tompkins-square.json",
+      "sourceId": "wikipedia-nyc-place-descriptions",
+      "output": "wikipedia-tompkins-square.json",
+      "byteCount": 626,
+      "sha256": "a1e49c34ce38e49d3ec7e8fe997ced4bb3a223cca85b34afd6ca609c1b6235d7",
+      "contentType": "application/json; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    }
+  ],
+  "activation": "staged_not_active",
+  "claimBoundary": "Successful fetching proves byte capture and identity only. No fetched source is routable, simulated, or hosted until its compiler and entry gates pass."
+}

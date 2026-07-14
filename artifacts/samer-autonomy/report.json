@@ -1,0 +1,2302 @@
+{
+  "schema": "simulatte.samerAutonomyReport.v1",
+  "id": "policy-arena-public-diagnostic-v1",
+  "contentVersion": "2026-07-13",
+  "experimentId": "simulatte-autonomy-action-selection-v1",
+  "contractHash": "f1b763b8af6d78eb92798784c3e77a04059cc0547eef47dffbf1cbace3a73ab0",
+  "scenarioSetHash": "1fd49c1d6f3fb14206f866493bde0c1207dc8da1a26053f1417f81a31fc4e410",
+  "inputs": {
+    "worldHash": "c03caee65a04140f361c154c4478386240ecc653a59912fc32001ade2d2d5d45",
+    "featureCatalogHash": "15fc155c8bc66051984a8ddeca358ef04fc9876d8e47dcced0675aeadcdcf043",
+    "embodimentHash": "27419ce686731bc5bd61bdfa120f2a442d4d2a10ce0825c6e7406abd3e30e7d2",
+    "basePolicyHash": "0956e228e16b7b01c12e9e7e1878b82e782825ffdcf4d6890d9a926c0817ff1f",
+    "runtimeSourceIdentity": {
+      "algorithm": "sha256_raw_bytes",
+      "files": [
+        {
+          "path": "public/contracts/contract-validator.js",
+          "sha256": "65afe51e91d8bc7a83ffcfe218f3148fbccc559b4fe1bf3e84d0cf233336ee12"
+        },
+        {
+          "path": "public/contracts/data-contract-validator.js",
+          "sha256": "3249e03d79d7c2db7d530bd1f94076879defab95ce1f4e194b74c65d9799073d"
+        },
+        {
+          "path": "public/mission/capability-matrix.js",
+          "sha256": "8418b1aa861fa50d1c8418e03ef34a45058d251254862aec0715ceafd98b2570"
+        },
+        {
+          "path": "public/mission/mission-compiler.js",
+          "sha256": "50fee0cd85656869ab7a76e30bac553e0faeb2291e1d0583c24fb902c238263d"
+        },
+        {
+          "path": "public/world/ambient-actors.js",
+          "sha256": "8c59b2919dfcac81487b207ba8526e2114028ed29b2c58564ec8334fcb711bdf"
+        },
+        {
+          "path": "public/world/world-model.js",
+          "sha256": "5870d1117239a3b9342db20b8576ce32aaf2d1ec124af8c28cd73a205b1db0b8"
+        },
+        {
+          "path": "public/world/route-planner.js",
+          "sha256": "eb836b33f4ebe5c0b63df3c042c2eec3f66b290a66dbf5a2cb5dfbc5e7f8def9"
+        },
+        {
+          "path": "public/world/region-pack-merger.js",
+          "sha256": "842028dcd01cc1e93a975678102580a5590590de7c3eb67bff71c4ac382b9173"
+        },
+        {
+          "path": "public/runtime/canonical-receipts.js",
+          "sha256": "aa4c0345e5063e6200d6478f46dd7476cdba875ed12d1a945b6c1fafee9c6064"
+        },
+        {
+          "path": "public/runtime/feature-retrieval.js",
+          "sha256": "5d74ea7d68398d7b2ad25bc71e1200382d20f04a51c9ee54daf89bed5d169616"
+        },
+        {
+          "path": "public/runtime/occurrence-engine.js",
+          "sha256": "d53af9042bd2945741c151c7d322c3db6d3a2f13648c2e2dfcf8298ff24f1b91"
+        },
+        {
+          "path": "public/runtime/observation-builder.js",
+          "sha256": "de15f7566e1685c8bd65646d1bf2d6b902f6b71f3104124065cbc0c1b389f599"
+        },
+        {
+          "path": "public/runtime/reference-dynamics.js",
+          "sha256": "79eec3553638b334c8fefc8c5addf93606fbab8c4f3252e36830057837d55733"
+        },
+        {
+          "path": "public/runtime/bet-proposer.js",
+          "sha256": "3814751d504e0da3155da82556a4c92659ca04d4242e867fcc86b5e47486f75f"
+        },
+        {
+          "path": "public/runtime/safety-gate.js",
+          "sha256": "db088f67829e480fe93be57b5956a7cdf272893a8481ffab6b0a57b1905bc870"
+        },
+        {
+          "path": "public/runtime/bet-selector.js",
+          "sha256": "bf464b62c56174b9c38aef1f557b49cf59d40524f5d016f50b88639758b27c85"
+        },
+        {
+          "path": "public/runtime/bet-settlement.js",
+          "sha256": "fc4c273d7c4e3853ccd0680a54356d6e36ca40019995ff3894cfe0da18ea1c0e"
+        },
+        {
+          "path": "public/runtime/autonomy-controller.js",
+          "sha256": "db0832fde09bad0b966f1490407a40818563a8aabc15b933b4cad5823b9a2a1c"
+        },
+        {
+          "path": "public/verifier/journey-verifier.js",
+          "sha256": "2c084ee12b15e62467cdbdad802226c0785f310fb73501abfc9a0f42ee93c050"
+        },
+        {
+          "path": "tools/samer/autonomy/run-policy-trial.mjs",
+          "sha256": "a3a7a10f03c43d48d2daa7a6f31024cbdfa4fea136e2a3e857ff7c55a129cb8a"
+        }
+      ],
+      "aggregateSha256": "39824f3366d0eaa4238925b1a8d09cc035338599c85a89d01ca717ad311d60b5"
+    }
+  },
+  "execution": {
+    "order": "scenario_then_lane_then_repetition",
+    "sequence": [
+      {
+        "scenarioId": "protected-signal-crossing",
+        "laneId": "anchor",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "protected-signal-crossing",
+        "laneId": "anchor",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "protected-signal-crossing",
+        "laneId": "targeted",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "protected-signal-crossing",
+        "laneId": "targeted",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "protected-signal-crossing",
+        "laneId": "seeded_control",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "protected-signal-crossing",
+        "laneId": "seeded_control",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "closure-replan",
+        "laneId": "anchor",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "closure-replan",
+        "laneId": "anchor",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "closure-replan",
+        "laneId": "targeted",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "closure-replan",
+        "laneId": "targeted",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "closure-replan",
+        "laneId": "seeded_control",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "closure-replan",
+        "laneId": "seeded_control",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "green-wave-control",
+        "laneId": "anchor",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "green-wave-control",
+        "laneId": "anchor",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "green-wave-control",
+        "laneId": "targeted",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "green-wave-control",
+        "laneId": "targeted",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "green-wave-control",
+        "laneId": "seeded_control",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "green-wave-control",
+        "laneId": "seeded_control",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "closure-absent-control",
+        "laneId": "anchor",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "closure-absent-control",
+        "laneId": "anchor",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "closure-absent-control",
+        "laneId": "targeted",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "closure-absent-control",
+        "laneId": "targeted",
+        "repetition": 1
+      },
+      {
+        "scenarioId": "closure-absent-control",
+        "laneId": "seeded_control",
+        "repetition": 0
+      },
+      {
+        "scenarioId": "closure-absent-control",
+        "laneId": "seeded_control",
+        "repetition": 1
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "anchor",
+      "role": "anchor",
+      "selectionApproach": "progress_only",
+      "seed": 17,
+      "runs": [
+        {
+          "scenarioId": "protected-signal-crossing",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "fc29998c9b7c91f4cc27254eddedbf85dc2dfb007d583ce1aaff6b64728cd734",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "protected-signal-crossing",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 4
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "fc29998c9b7c91f4cc27254eddedbf85dc2dfb007d583ce1aaff6b64728cd734"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 4,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "protected-signal-crossing",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "fc29998c9b7c91f4cc27254eddedbf85dc2dfb007d583ce1aaff6b64728cd734",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "protected-signal-crossing",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 4
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "fc29998c9b7c91f4cc27254eddedbf85dc2dfb007d583ce1aaff6b64728cd734"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 4,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-replan",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "40803b5ffce600010ae2d473940c96161f6687750a55775e2cac8f4460406c93",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-replan",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 1
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 4
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "40803b5ffce600010ae2d473940c96161f6687750a55775e2cac8f4460406c93"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 4,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-replan",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "40803b5ffce600010ae2d473940c96161f6687750a55775e2cac8f4460406c93",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-replan",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 1
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 4
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "40803b5ffce600010ae2d473940c96161f6687750a55775e2cac8f4460406c93"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 4,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "green-wave-control",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "972ebd6d6f22632db08373fd77f37526f8e35fe0af07446df79c5bf1aa7dbc7c",
+          "tickCount": 82,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "green-wave-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "972ebd6d6f22632db08373fd77f37526f8e35fe0af07446df79c5bf1aa7dbc7c"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.954444444,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 82,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "green-wave-control",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "972ebd6d6f22632db08373fd77f37526f8e35fe0af07446df79c5bf1aa7dbc7c",
+          "tickCount": 82,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "green-wave-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "972ebd6d6f22632db08373fd77f37526f8e35fe0af07446df79c5bf1aa7dbc7c"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.954444444,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 82,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-absent-control",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "b01e0b88b45840d52bec591b794c48880e331964dd76b333b5158e855b43c24c",
+          "tickCount": 55,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-absent-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "b01e0b88b45840d52bec591b794c48880e331964dd76b333b5158e855b43c24c"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.969444444,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 55,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-absent-control",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "b01e0b88b45840d52bec591b794c48880e331964dd76b333b5158e855b43c24c",
+          "tickCount": 55,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-absent-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "b01e0b88b45840d52bec591b794c48880e331964dd76b333b5158e855b43c24c"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.969444444,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 55,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        }
+      ],
+      "guardrails": {
+        "pass": true,
+        "checks": [
+          {
+            "id": "zero_safety_violations",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "all_required_obligations_pass",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "receipt_chain_verified",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "deterministic_repetitions",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "declared_budget_saturated",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "scenario_expectations",
+            "pass": true,
+            "evidence": {}
+          }
+        ]
+      },
+      "metrics": {
+        "safetyAdjustedCompletionScore": 0.95625,
+        "missionCompletionRate": 1,
+        "requiredObligationPassRate": 1,
+        "safetyViolationCount": 0,
+        "meanTickCount": 78.75,
+        "betWinRate": 1
+      }
+    },
+    {
+      "id": "targeted",
+      "role": "targeted",
+      "selectionApproach": "evidence_scored",
+      "seed": 17,
+      "runs": [
+        {
+          "scenarioId": "protected-signal-crossing",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "4b213ea35ad4f102c466b04c5395cd2c3aa2c36d74a9af925e1f2da11f05acb1",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "protected-signal-crossing",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 6
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "4b213ea35ad4f102c466b04c5395cd2c3aa2c36d74a9af925e1f2da11f05acb1"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 6,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "protected-signal-crossing",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "4b213ea35ad4f102c466b04c5395cd2c3aa2c36d74a9af925e1f2da11f05acb1",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "protected-signal-crossing",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 6
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "4b213ea35ad4f102c466b04c5395cd2c3aa2c36d74a9af925e1f2da11f05acb1"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 6,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-replan",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "3ac7cc65486d23561414f02faa5d5551ee02519e35e81c53c4c3e9c36f966620",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-replan",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 1
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 6
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "3ac7cc65486d23561414f02faa5d5551ee02519e35e81c53c4c3e9c36f966620"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 6,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-replan",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "3ac7cc65486d23561414f02faa5d5551ee02519e35e81c53c4c3e9c36f966620",
+          "tickCount": 89,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-replan",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 1
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 6
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 2
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "3ac7cc65486d23561414f02faa5d5551ee02519e35e81c53c4c3e9c36f966620"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.950555556,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 89,
+              "betWinRate": 1,
+              "signalGateCount": 6,
+              "pedestrianGateCount": 2
+            }
+          }
+        },
+        {
+          "scenarioId": "green-wave-control",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "02f06c4062333d4bf7cbbe69da142dad9aa0cacd4a8a5cc24634d00fea3fb15d",
+          "tickCount": 79,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "green-wave-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "02f06c4062333d4bf7cbbe69da142dad9aa0cacd4a8a5cc24634d00fea3fb15d"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.956111111,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 79,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "green-wave-control",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "02f06c4062333d4bf7cbbe69da142dad9aa0cacd4a8a5cc24634d00fea3fb15d",
+          "tickCount": 79,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "green-wave-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "02f06c4062333d4bf7cbbe69da142dad9aa0cacd4a8a5cc24634d00fea3fb15d"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.956111111,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 79,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-absent-control",
+          "repetition": 0,
+          "terminalState": "completed",
+          "terminalHash": "cac1dd2c228228491ccf3e818965d1f6a74eeede316eb78a3dc2890616593c2b",
+          "tickCount": 57,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-absent-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "cac1dd2c228228491ccf3e818965d1f6a74eeede316eb78a3dc2890616593c2b"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.968333333,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 57,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-absent-control",
+          "repetition": 1,
+          "terminalState": "completed",
+          "terminalHash": "cac1dd2c228228491ccf3e818965d1f6a74eeede316eb78a3dc2890616593c2b",
+          "tickCount": 57,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-absent-control",
+            "pass": true,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": true,
+                "evidence": {
+                  "terminalState": "completed"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": true,
+                "evidence": {
+                  "failedIds": []
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "cac1dd2c228228491ccf3e818965d1f6a74eeede316eb78a3dc2890616593c2b"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0.968333333,
+              "completed": true,
+              "requiredObligationPassRate": 1,
+              "safetyViolationCount": 0,
+              "tickCount": 57,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        }
+      ],
+      "guardrails": {
+        "pass": true,
+        "checks": [
+          {
+            "id": "zero_safety_violations",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "all_required_obligations_pass",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "receipt_chain_verified",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "deterministic_repetitions",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "declared_budget_saturated",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "scenario_expectations",
+            "pass": true,
+            "evidence": {}
+          }
+        ]
+      },
+      "metrics": {
+        "safetyAdjustedCompletionScore": 0.956388889,
+        "missionCompletionRate": 1,
+        "requiredObligationPassRate": 1,
+        "safetyViolationCount": 0,
+        "meanTickCount": 78.5,
+        "betWinRate": 1
+      }
+    },
+    {
+      "id": "seeded_control",
+      "role": "control",
+      "selectionApproach": "seeded_eligible",
+      "seed": 73,
+      "runs": [
+        {
+          "scenarioId": "protected-signal-crossing",
+          "repetition": 0,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "f44e1deef1ee5514f5e5543be482ce2ca1c438ee9af2a9f6fd1c1ef9c291a4f9",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "protected-signal-crossing",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": false,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": false,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "f44e1deef1ee5514f5e5543be482ce2ca1c438ee9af2a9f6fd1c1ef9c291a4f9"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.6,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "protected-signal-crossing",
+          "repetition": 1,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "f44e1deef1ee5514f5e5543be482ce2ca1c438ee9af2a9f6fd1c1ef9c291a4f9",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "protected-signal-crossing",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": false,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": false,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "f44e1deef1ee5514f5e5543be482ce2ca1c438ee9af2a9f6fd1c1ef9c291a4f9"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.6,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-replan",
+          "repetition": 0,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "2527a0fe549cf1dc30b25f85bb4c2c1d1ea27af0117838d92e1a0a09b8368301",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-replan",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 1
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 6
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": false,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "2527a0fe549cf1dc30b25f85bb4c2c1d1ea27af0117838d92e1a0a09b8368301"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.5,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 6,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-replan",
+          "repetition": 1,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "2527a0fe549cf1dc30b25f85bb4c2c1d1ea27af0117838d92e1a0a09b8368301",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-replan",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 1
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 6
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": false,
+                "evidence": {
+                  "expectedMinimum": 1,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "2527a0fe549cf1dc30b25f85bb4c2c1d1ea27af0117838d92e1a0a09b8368301"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.5,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 6,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "green-wave-control",
+          "repetition": 0,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "b5074a1cff94f2cc6060ca53195bfd46689490968e1f619c73e60cf03bdc4cc9",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "green-wave-control",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "b5074a1cff94f2cc6060ca53195bfd46689490968e1f619c73e60cf03bdc4cc9"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.6,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "green-wave-control",
+          "repetition": 1,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "b5074a1cff94f2cc6060ca53195bfd46689490968e1f619c73e60cf03bdc4cc9",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "green-wave-control",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "b5074a1cff94f2cc6060ca53195bfd46689490968e1f619c73e60cf03bdc4cc9"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.6,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-absent-control",
+          "repetition": 0,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "d10a519208f451302b0f5284a791c3d737df53f392dde782f5b39031405802f5",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-absent-control",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "d10a519208f451302b0f5284a791c3d737df53f392dde782f5b39031405802f5"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.5,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        },
+        {
+          "scenarioId": "closure-absent-control",
+          "repetition": 1,
+          "terminalState": "budget_exhausted",
+          "terminalHash": "d10a519208f451302b0f5284a791c3d737df53f392dde782f5b39031405802f5",
+          "tickCount": 180,
+          "saturated": true,
+          "evaluation": {
+            "schema": "simulatte.autonomyScenarioEvaluation.v1",
+            "scenarioId": "closure-absent-control",
+            "pass": false,
+            "checks": [
+              {
+                "id": "completion",
+                "pass": false,
+                "evidence": {
+                  "terminalState": "budget_exhausted"
+                }
+              },
+              {
+                "id": "route_revisions",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "signal_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "pedestrian_gates",
+                "pass": true,
+                "evidence": {
+                  "expectedMinimum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "safety_violations",
+                "pass": true,
+                "evidence": {
+                  "expectedMaximum": 0,
+                  "actual": 0
+                }
+              },
+              {
+                "id": "required_obligations",
+                "pass": false,
+                "evidence": {
+                  "failedIds": [
+                    "obligation-arrival",
+                    "obligation-payload-delivery"
+                  ]
+                }
+              },
+              {
+                "id": "integrity",
+                "pass": true,
+                "evidence": {
+                  "terminalHash": "d10a519208f451302b0f5284a791c3d737df53f392dde782f5b39031405802f5"
+                }
+              }
+            ],
+            "metrics": {
+              "safetyAdjustedCompletionScore": 0,
+              "completed": false,
+              "requiredObligationPassRate": 0.5,
+              "safetyViolationCount": 0,
+              "tickCount": 180,
+              "betWinRate": 1,
+              "signalGateCount": 0,
+              "pedestrianGateCount": 0
+            }
+          }
+        }
+      ],
+      "guardrails": {
+        "pass": false,
+        "checks": [
+          {
+            "id": "zero_safety_violations",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "all_required_obligations_pass",
+            "pass": false,
+            "evidence": {}
+          },
+          {
+            "id": "receipt_chain_verified",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "deterministic_repetitions",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "declared_budget_saturated",
+            "pass": true,
+            "evidence": {}
+          },
+          {
+            "id": "scenario_expectations",
+            "pass": false,
+            "evidence": {}
+          }
+        ]
+      },
+      "metrics": {
+        "safetyAdjustedCompletionScore": 0,
+        "missionCompletionRate": 0,
+        "requiredObligationPassRate": 0.55,
+        "safetyViolationCount": 0,
+        "meanTickCount": 180,
+        "betWinRate": 1
+      }
+    }
+  ],
+  "diagnosticSelection": {
+    "status": "diagnostic_leader_only",
+    "laneId": "targeted",
+    "primaryMetric": 0.956388889
+  },
+  "promotion": {
+    "status": "blocked",
+    "reasons": [
+      "public_diagnostic_population",
+      "sealed_scenario_set_missing",
+      "physical_world_evidence_missing"
+    ]
+  },
+  "claimBoundary": "This report compares deterministic browser policies on public synthetic scenarios. It does not promote a policy or establish physical-world autonomy.",
+  "executionEnvironment": {
+    "nodeVersion": "v22.20.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "invocation": {
+    "executable": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+    "cwd": "/Users/xyz/deco/simulatte",
+    "argv": [
+      "/Users/xyz/deco/simulatte/tools/samer/autonomy/run-policy-trial.mjs"
+    ]
+  }
+}

@@ -51,7 +51,7 @@
     "check:model-lock": "npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development",
     "check:deploy": "npm run check:model-lock && node tools/check-deploy-surface.mjs && npm run check:autonomy",
     "benchmark:universe": "node tools/benchmark-semantic-coverage.mjs",
-    "benchmark:reranker-frontier": "node tools/benchmark-reranker-frontier.mjs",
+    "benchmark:reranker-frontier": "node tools/benchmark-reranker-frontier.mjs --report artifacts/simulatte-pipeline-audit/live-webgpu/report.json --out artifacts/simulatte-pipeline-audit/reranker-frontier/report.json",
     "firebase:whoami": "firebase login:list && firebase use",
     "firebase:check": "firebase login:list && firebase use && firebase hosting:sites:list --project simulatte-world",
     "firebase:check:d4da": "firebase --account \"$SIMULATTE_FIREBASE_D4DA_ACCOUNT\" hosting:sites:list --project simulatte-world",

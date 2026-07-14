@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const pkg = require('../package.json');
 
 function auditReport() {
   return {
@@ -85,5 +86,12 @@ test('reranker frontier fails closed when input and output identities cannot joi
   assert.throws(
     () => benchmarkRerankerFrontier(report),
     /mismatched inputs and outputs/
+  );
+});
+
+test('reranker frontier package command owns the canonical live report and receipt path', () => {
+  assert.equal(
+    pkg.scripts['benchmark:reranker-frontier'],
+    'node tools/benchmark-reranker-frontier.mjs --report artifacts/simulatte-pipeline-audit/live-webgpu/report.json --out artifacts/simulatte-pipeline-audit/reranker-frontier/report.json'
   );
 });

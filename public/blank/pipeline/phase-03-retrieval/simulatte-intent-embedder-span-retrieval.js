@@ -496,6 +496,9 @@
           prefixStateReuseCount: 0,
           selectedTokenExecutionCount: 0,
           scoreCacheHitCount: 0,
+          prefixPreparationDurationMs: 0,
+          rerankCallDurationMs: 0,
+          unattributedRerankDurationMs: 0,
           totalExecutionDurationMs: 0,
           maximumExecutionDurationMs: 0,
           minimumPrefixTokenCount: 0,
@@ -620,50 +623,48 @@
 
     function rankSurfaceCardsForSlot(cardIndex, slot = {}, vector = null, config = {}, options = {}) {
         if (!cardIndex) return [];
-        const modelRows = rankSurfaceCards(cardIndex, vector, {
-          ...options,
-          maxCards: Math.max(config.perSlotCardMax || 0, 12),
-          minCardScore: config.surfaceScoreFloor,
-        }).map((row) => slotSurfaceCandidate(slot, row));
-        const lexicalRows = (cardIndex.documents || []).map((doc) => {
-          const modelScore = vector && doc.vector ? clamp01(dot(vector, doc.vector)) : 0;
-          const lexicalScore = slotLexicalScore(slot, [
-            doc.cardId,
-            doc.type,
-            doc.candidateText,
-            ...(doc.labels || []),
-          ].filter(Boolean).join(' '));
+        const scores = vector ? surfaceCardScores(cardIndex, vector) : [];
+        const lexicalRows = [], modelOnlyRows = [];
+        for (let index = 0; index < (cardIndex.documents || []).length; index += 1) {
+          const doc = cardIndex.documents[index];
+          const modelScore = Number(scores[index] || 0);
+          const lexicalText = [doc.cardId, doc.type, doc.candidateText, ...(doc.labels || [])]
+            .filter(Boolean).join(' ');
+          const lexicalScore = slotLexicalScore(slot, lexicalText);
           const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
           const score = clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
           const candidate = slotSurfaceCandidate(slot, {
-            cardId: doc.cardId,
-            type: doc.type || '',
+            cardId: doc.cardId, type: doc.type || '',
             labels: Array.isArray(doc.labels) ? doc.labels.slice(0, 5) : [],
-            score: Number(score.toFixed(4)),
-            modelScore: Number(modelScore.toFixed(4)),
-            lexicalScore: Number(lexicalScore.toFixed(4)),
-            semanticScore: Number(modelScore.toFixed(4)),
+            score: Number(score.toFixed(4)), modelScore: Number(modelScore.toFixed(4)),
+            lexicalScore: Number(lexicalScore.toFixed(4)), semanticScore: Number(modelScore.toFixed(4)),
             source: `${modelSlug(cardIndex.embedModelId)}-surface-card-slot-index`,
-            indexId: cardIndex.id,
-            textHash: doc.textHash || null,
+            indexId: cardIndex.id, textHash: doc.textHash || null,
             candidateText: doc.candidateText || '',
           });
           if (slotCandidateLiteralMatch(slot, candidate)) {
             candidate.literalSlotMatch = true;
             candidate.score = Math.max(Number(candidate.score || 0), 0.99);
           }
-          return candidate;
-        }).filter((row) => row.score >= config.surfaceScoreFloor || Number(row.lexicalScore || 0) > 0);
+          if (candidate.score >= config.surfaceScoreFloor || candidate.lexicalScore > 0) {
+            lexicalRows.push(candidate);
+          } else if (modelScore >= config.surfaceScoreFloor) {
+            modelOnlyRows.push(slotSurfaceCandidate(slot, {
+              ...candidate,
+              score: Number(modelScore.toFixed(4)),
+              lexicalScore: 0,
+            }));
+          }
+        }
         const exactRows = lexicalRows.filter((row) => slotCandidateLiteralMatch(slot, row));
         return reserveConstructionTopologyCandidates(slot, uniqueSlotCandidates([
           ...exactRows.sort(slotCandidateSort),
           ...lexicalRows.sort(slotCandidateSort),
-          ...modelRows.sort(slotCandidateSort),
+          ...modelOnlyRows.sort(slotCandidateSort),
         ]), config.perSlotCardMax);
       }
-
     function slotCandidateLiteralMatch(slot = {}, row = {}) {
-        const target = normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, ''));
+        const target = normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, '').replace(/[-_]+/g, ' '));
         if (!target) return false;
         const targetTokens = fallbackFeatureTokens(target);
         const tokens = new Set(fallbackFeatureTokens(normalizeSpanText([
@@ -672,7 +673,7 @@
           row.id,
           row.label,
           ...(row.labels || []),
-        ].filter(Boolean).join(' '))));
+        ].filter(Boolean).join(' ').replace(/[-_]+/g, ' '))));
         return targetTokens.length > 0 && targetTokens.every((token) => tokens.has(token));
       }
 
@@ -790,6 +791,7 @@
             promptTokenCount: row.promptTokenCount || 0,
             prefixTokenCount: row.prefixTokenCount || 0,
             prefixStateReused: row.prefixStateReused === true,
+            prefixPreparationDurationMs: row.prefixPreparationDurationMs || 0,
             executionDurationMs: row.executionDurationMs || 0,
           });
           input.onProgress({ completed: 0, total: input.candidates.length });
@@ -903,7 +905,11 @@
           if (exactConstructionCandidate(slot, candidates)) {
             return 'exact-model-indexed-construction';
           }
-          return constructionCandidatesForSlot(slot, candidates, 3).length ? '' : 'no-construction-hypothesis';
+          const constructionRows = constructionCandidatesForSlot(slot, candidates, 3);
+          if (constructionRows.length === 1 && constructionRows[0].construction.targetIdentityBound === true) {
+            return 'data-owned-target-construction';
+          }
+          return constructionRows.length ? '' : 'no-construction-hypothesis';
       }
         if (slot && slot.required === false) return 'optional-slot-local-evidence';
         if ((candidates || []).some((candidate) => candidate.literalSlotMatch === true)) {

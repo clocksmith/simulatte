@@ -1,0 +1,71 @@
+{
+  "schema": "simulatte.autonomyDataFetchReceipt.v1",
+  "plan": {
+    "schema": "simulatte.autonomyDataFetchPlan.v1",
+    "catalog": {
+      "id": "nyc-autonomy-source-catalog-v1",
+      "sha256": "bcf4ed6b0ec295774e8642a84b4c07f99913e481ff5ff0ff5e5d37ba1062e3ab",
+      "path": "tools/autonomy/source-catalog-v1.json"
+    },
+    "mode": "snapshot_refresh",
+    "snapshotDate": "2026-07-13",
+    "bounds": {
+      "south": 40.705,
+      "west": -74.015,
+      "north": 40.745,
+      "east": -73.94
+    },
+    "sourceIds": [
+      "nyc-pedestrian-ramps"
+    ],
+    "requests": [
+      {
+        "id": "nyc-pedestrian-ramps:nyc-pedestrian-ramps.geojson",
+        "sourceId": "nyc-pedestrian-ramps",
+        "group": "pedestrian-topology",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of Transportation",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_geojson",
+        "url": "https://data.cityofnewyork.us/resource/ufzp-rrqu.geojson?$limit=50000&$select=the_geom,rampid,cornerid,ramp_onstr,stname1,stname2,curb_reveal,ramp_running_slope_total,ramp_cross_slope,dws_conditions,obstacles_ramp,obstacles_landing,geocyclora&$where=within_box(the_geom, 40.745, -74.015, 40.705, -73.94)",
+        "output": "nyc-pedestrian-ramps.geojson",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "pedestrian_ramp_measurement_candidate",
+          "accessibility_route_audit_candidate"
+        ],
+        "entryGate": "Bind every measurement to RampID and capture date. Apply declared simulation thresholds only; never relabel the source rows as ADA compliance determinations."
+      }
+    ],
+    "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact.",
+    "planSha256": "3ccfd6987552d1db203dfb1b92cfdbf7453b9fc7589bca505b274868237c02a6"
+  },
+  "command": [
+    "node",
+    "tools/autonomy/manage-autonomy-data.mjs",
+    "fetch",
+    "--source",
+    "nyc-pedestrian-ramps",
+    "--snapshot-date",
+    "2026-07-13",
+    "--bounds",
+    "40.705,-74.015,40.745,-73.94",
+    "--out",
+    "artifacts/autonomy-data/pedestrian-ramps-2026-07-13"
+  ],
+  "files": [
+    {
+      "requestId": "nyc-pedestrian-ramps:nyc-pedestrian-ramps.geojson",
+      "sourceId": "nyc-pedestrian-ramps",
+      "output": "nyc-pedestrian-ramps.geojson",
+      "byteCount": 5090038,
+      "sha256": "7005f4cb79218d0ad07e1ebd1b8c27b8fba9c371e42d0c36507fa6d6f237b2e6",
+      "contentType": "application/vnd.geo+json; charset=UTF-8",
+      "etag": "\"aG90ZWwuNDgwNzNfMl81MkNubERmT242c0oxNjBJT0phWlp6d3BBOXlXVQ---gziotVr1U1_Eqj1-Qd0IoRieXs0wsV--gzip--gzip\"",
+      "lastModified": "Wed, 27 Oct 2021 15:27:48 GMT"
+    }
+  ],
+  "activation": "staged_not_active",
+  "claimBoundary": "Successful fetching proves byte capture and identity only. No fetched source is routable, simulated, or hosted until its compiler and entry gates pass."
+}

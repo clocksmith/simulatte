@@ -50,12 +50,14 @@ function coverageRowsFromBuilder(name) {
 test('visual card package exposes source-authored universe-representative cards', () => {
   const manifest = readJson(manifestPath);
   const index = readJson(indexPath);
+  const operatorAtlas = readJson(visualOperatorAtlasPath);
 
   assert.equal(manifest.schema, 'simulatte.visualCardManifest.v1');
   assert.equal(manifest.indexes.visualCards.artifact, './visual-card-index-v1.json');
   assert.equal(manifest.indexes.visualOperatorAtlas.artifact, './visual-operator-atlas-v1.json');
-  assert.equal(manifest.indexes.visualOperatorAtlas.documentCount, 22);
-  assert.equal(manifest.coverage.visualOperatorMappings, 22);
+  assert.equal(manifest.indexes.visualOperatorAtlas.documentCount, operatorAtlas.mappings.length);
+  assert.equal(manifest.coverage.visualOperatorMappings, operatorAtlas.mappings.length);
+  assert.ok(operatorAtlas.mappings.length >= 22);
   assert.ok(manifest.indexes.visualCards.documentCount >= 900);
   assert.ok(manifest.coverage.scenes >= 760);
   assert.ok(manifest.coverage.materials >= 760);

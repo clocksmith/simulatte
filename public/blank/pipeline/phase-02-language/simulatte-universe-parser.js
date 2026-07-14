@@ -356,7 +356,8 @@
       );
       if (!subjects.length && !after) continue;
       const prepositions = nearbyPrepositions(lower, verb.end, after ? after.start : verb.end + 24);
-      const process = normalizeProcess(verb.text);
+      const processQualifier = processQualifierForVerb(spans, verb, after);
+      const process = processQualifier && processQualifier.operatorTypes[0] || normalizeProcess(verb.text);
       for (const subject of subjects.length ? subjects : [null]) {
         const objectRole = after
           ? semanticRoleForObject(after, prepositions)
@@ -369,6 +370,7 @@
           verbSpanId: verb.id,
           objectSpanId: after ? after.id : null,
           process,
+          processQualifierSpanId: processQualifier && processQualifier.id || '',
           predicate: verb.text,
           subjectRole: subject ? semanticRoleForSpan(subject, 'agent') : '',
           objectRole,
@@ -714,6 +716,17 @@
     return value || 'interact';
   }
 
+  function processQualifierForVerb(spans = [], verb = {}, object = null) {
+    if (!object) return null;
+    return spans
+      .filter((span) => (
+        span.processQualifier === true &&
+        Array.isArray(span.operatorTypes) && span.operatorTypes.length > 0 &&
+        span.start >= verb.end && span.end <= object.start
+      ))
+      .sort((a, b) => a.start - b.start || b.end - a.end)[0] || null;
+  }
+
   function poseHintForAction(text = '') {
     const value = String(text || '').toLowerCase();
     const row = ACTION_POSE_LEXICON.find((entry) => (entry.phrases || []).includes(value));
@@ -830,7 +843,7 @@
 
   function buildQuantities(spans) {
     const targets = spans.filter((span) => ['entity', 'environment', 'term'].includes(span.kind));
-    return spans.filter((span) => span.kind === 'quantity').map((quantity, index) => {
+    const explicit = spans.filter((span) => span.kind === 'quantity').map((quantity, index) => {
       const target = targets.filter((span) => span.start >= quantity.end).sort((a, b) => a.start - b.start)[0];
       return {
         id: `quantity${index + 1}`,
@@ -840,6 +853,38 @@
         unit: 'instances',
       };
     }).filter((row) => row.targetSpanId);
+    const explicitlyCounted = new Set(explicit.map((row) => row.targetSpanId));
+    const pluralMinimums = targets.filter((target) => (
+      !explicitlyCounted.has(target.id) && promptSpanUsesPluralSurface(target)
+    )).map((target, index) => ({
+      id: `quantity-plural-${index + 1}`,
+      quantitySpanId: '',
+      targetSpanId: target.id,
+      value: 2,
+      unit: 'instances',
+      mode: 'minimum',
+      source: 'plural-surface',
+      inferred: true,
+    }));
+    return [...explicit, ...pluralMinimums];
+  }
+
+  function promptSpanUsesPluralSurface(span = {}) {
+    if (!['entity', 'environment'].includes(span.kind) || span.semanticRole === 'part') return false;
+    const surface = String(span.text || '').toLowerCase().trim().split(/\s+/).pop() || '';
+    const canonical = String(span.entityClass || span.visualArchetype || '')
+      .toLowerCase().trim().split(/\s+/).pop() || '';
+    if (!surface || !canonical || surface === canonical) return false;
+    const irregular = { children: 'child', geese: 'goose', men: 'man', mice: 'mouse', people: 'person', women: 'woman' };
+    if (irregular[surface] === canonical) return true;
+    const forms = new Set([
+      `${canonical}s`,
+      `${canonical}es`,
+      canonical.endsWith('y') ? `${canonical.slice(0, -1)}ies` : '',
+      canonical.endsWith('f') ? `${canonical.slice(0, -1)}ves` : '',
+      canonical.endsWith('fe') ? `${canonical.slice(0, -2)}ves` : '',
+    ].filter(Boolean));
+    return forms.has(surface);
   }
 
   function nearestSpan(source, spans) {

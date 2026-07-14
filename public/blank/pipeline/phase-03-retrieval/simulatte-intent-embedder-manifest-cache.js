@@ -421,16 +421,15 @@
             .filter((prior) => !nonRetrievableIds.has(prior.primitiveId))
             .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
           const languageEvidence = spanLanguageEvidence(promptText, options);
-          const previewRag = createRag(promptText, candidates, basePriors, runtime.index, queryVector, options);
           const activeRerankProvider = await this.resolveRerankProvider(runtime, provider, options);
-          const previewRerank = rerankPriors(basePriors, previewRag, null, runtime, universeMatches);
+          const previewRerank = rerankPriors(basePriors, null, null, runtime, universeMatches);
           const previewSpanRetrieval = emptySpanRetrieval([], spanConfigFor(runtime, options, this.spanLevelEmbedding), 'prompt-preview');
           const previewEvidenceRows = buildIntentEvidenceRows({
             basePriors,
             cardMatches,
             universeMatches,
             spanRetrieval: previewSpanRetrieval,
-            semanticRag: previewRag,
+            semanticRag: null,
             dopplerIntent: null,
           });
           emitIntentPreview(options, {
@@ -442,7 +441,7 @@
             universeMatches,
             spanRetrieval: previewSpanRetrieval,
             rerank: previewRerank.receipt,
-            semanticRag: previewRag,
+            semanticRag: null,
             dopplerIntent: null,
             evidenceRows: previewEvidenceRows,
             retrievalPhase: 'prompt-preview',

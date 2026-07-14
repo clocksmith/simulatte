@@ -1,0 +1,404 @@
+{
+  "schema": "simulatte.autonomyBrowserSmoke.v6",
+  "pass": true,
+  "targetUrl": "http://127.0.0.1:53698/",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "browser": {
+    "product": "Chrome/150.0.7871.115",
+    "protocolVersion": "1.3",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+  },
+  "result": {
+    "runtime": "Loop complete: 1524.0 m | 2 full lap(s) | 442.0 s",
+    "state": "completed",
+    "tick": 442,
+    "distance": "1524 m",
+    "decision": "Accelerate",
+    "settlement": "won",
+    "calibration": "442 / 442",
+    "traceRows": 48,
+    "betRows": 4,
+    "selectedRows": 1,
+    "rejectedRows": 0,
+    "gateRows": 7,
+    "retrievalRows": 9,
+    "rerankRows": 5,
+    "occurrenceRows": 1,
+    "retrievalLaneLabel": "Lexical + typed rules · 13185 cards · 374 found · 5 selected",
+    "rerankerProof": "Public diagnostic · MRR 0.725 → 0.750 · Δ +0.025",
+    "runtimeLog": {
+      "eventCount": 33,
+      "eventNames": [
+        "app.boot.started",
+        "data.load.started",
+        "data.asset.fetch.completed",
+        "data.manifest.received",
+        "data.manifest.validated",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.load.ready",
+        "mission.compiled",
+        "renderer.ready",
+        "mission.example.selected",
+        "mission.compiled",
+        "journey.started",
+        "retrieval.lane.executed",
+        "journey.terminal"
+      ],
+      "requiredEventsPresent": true,
+      "manifestMissionExampleCount": 15,
+      "manifestCacheMode": "no-cache",
+      "embeddingExecuted": false,
+      "neuralRerankerExecuted": false,
+      "failureCount": 0
+    },
+    "shuffle": {
+      "changed": true,
+      "originalMission": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
+      "shuffledMission": "Drive from Union Square to North Williamsburg.",
+      "startLabel": "Start"
+    },
+    "copy": {
+      "removedLabelsAbsent": true,
+      "blankLink": {
+        "href": "/blank/",
+        "label": "Blank"
+      }
+    },
+    "camera": {
+      "regionTargetCount": 3,
+      "placeTargetCount": 20,
+      "modeProbes": [
+        {
+          "mode": "top",
+          "began": true,
+          "noSnap": true,
+          "progressed": true,
+          "settled": true,
+          "moved": true
+        },
+        {
+          "mode": "follow",
+          "began": true,
+          "noSnap": true,
+          "progressed": true,
+          "settled": true,
+          "moved": true
+        },
+        {
+          "mode": "bird",
+          "began": true,
+          "noSnap": true,
+          "progressed": true,
+          "settled": true,
+          "moved": true
+        }
+      ],
+      "regionFocus": {
+        "targetId": "region:north-brooklyn-v1",
+        "began": true,
+        "noSnap": true,
+        "progressed": true,
+        "settled": true,
+        "moved": true
+      },
+      "panWorked": true,
+      "orbitWorked": true,
+      "zoomWorked": true,
+      "followZoomWorked": true,
+      "followZoomBefore": 62,
+      "followZoomAfter": 48.771,
+      "returnedToRoute": true,
+      "startedInFollow": true,
+      "minimap": {
+        "visible": true,
+        "projection": "orthographic_top_north_up",
+        "radiusM": 420,
+        "frameCount": 75
+      }
+    },
+    "editInvalidatedController": true,
+    "missionLockedDuringRun": true,
+    "rendererBackend": "webgpu",
+    "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+    "actorMeshKinds": "pedestrian,bicycle,scooter,car",
+    "materialModel": "metallic_roughness_vertex_v1",
+    "ambientActorCount": 13,
+    "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+    "adapterName": "metal-3",
+    "rendererFrames": 1628,
+    "staticVertexCount": 547548,
+    "dynamicVertexCount": 47469,
+    "canvasWidth": 370,
+    "canvasHeight": 520,
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "scrollY": 0,
+    "hasHorizontalOverflow": false
+  },
+  "actorView": {
+    "mode": "follow",
+    "transition": "settled",
+    "followDistance": 5,
+    "dynamicVertexCount": 47469,
+    "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+    "ambientActorCount": 13,
+    "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+    "minimapVisible": true,
+    "minimapFrameCount": 1387
+  },
+  "errors": [],
+  "failedResponses": [],
+  "requests": [
+    {
+      "pathname": "/index.html",
+      "status": 200
+    },
+    {
+      "pathname": "/styles.css",
+      "status": 200
+    },
+    {
+      "pathname": "/contracts/data-contract-validator.js",
+      "status": 200
+    },
+    {
+      "pathname": "/contracts/contract-validator.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/canonical-receipts.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/region-pack-merger.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/data-loader.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/runtime-log.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/neural-place-resolution-core.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/neural-place-resolver.js",
+      "status": 200
+    },
+    {
+      "pathname": "/mission/capability-matrix.js",
+      "status": 200
+    },
+    {
+      "pathname": "/mission/mission-compiler.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/ambient-actors.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/world-model.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/route-planner.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/accessibility-audit.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/feature-retrieval.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/occurrence-engine.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/observation-builder.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/reference-dynamics.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/bet-proposer.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/safety-gate.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/bet-selector.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/bet-settlement.js",
+      "status": 200
+    },
+    {
+      "pathname": "/verifier/journey-verifier.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/autonomy-controller.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/journey-ledger.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/counterfactual-runner.js",
+      "status": 200
+    },
+    {
+      "pathname": "/app/webgpu-math.js",
+      "status": 200
+    },
+    {
+      "pathname": "/app/webgpu-actor-geometry.js",
+      "status": 200
+    },
+    {
+      "pathname": "/app/webgpu-geometry.js",
+      "status": 200
+    },
+    {
+      "pathname": "/app/camera-controller.js",
+      "status": 200
+    },
+    {
+      "pathname": "/app/webgpu-renderer.js",
+      "status": 200
+    },
+    {
+      "pathname": "/app/trace-view.js",
+      "status": 200
+    },
+    {
+      "pathname": "/app/main.js",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/autonomy-manifest.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/policies/bet-selector-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/patterns/nyc-replay-patterns-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/regions/nyc-core-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/place-embedding-index-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte-embedder/model-runtime-lock.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/accessibility-index-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/route-amenity-index-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/safety-history-index-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/curricula/nyc-routing-foundations-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/world-snapshot-registry-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/evidence/policy-arena-public-diagnostic-v1/report.json",
+      "status": 200
+    },
+    {
+      "pathname": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/embodiments/delivery-bike-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/embodiments/pedestrian-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/embodiments/scooter-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/embodiments/car-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/regions/packs/manhattan-villages-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/regions/packs/east-river-crossing-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/regions/packs/north-brooklyn-v1.json",
+      "status": 200
+    }
+  ],
+  "claimBoundary": "This smoke proves the checked-in static browser journey executed in the named browser. It does not establish physical-world autonomy."
+}

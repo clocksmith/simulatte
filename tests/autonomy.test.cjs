@@ -1101,6 +1101,18 @@ test('neural place matching filters candidates by the active embodiment graph an
   assert.equal(rows.policyArenaEvidence.promotion.status, 'blocked');
 });
 
+test('neural place evaluation binds the vendored Doppler runtime named by its receipt', () => {
+  const source = fs.readFileSync(path.join(root, 'tools/autonomy/neural-place-resolver-challenger.mjs'), 'utf8');
+  const evidence = readJson('public/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json');
+  const lock = readJson('public/data/simulatte-embedder/model-runtime-lock.json');
+  const runtimePath = 'public/vendor/doppler/src/index.js';
+  assert.match(source, /from '\.\.\/\.\.\/public\/vendor\/doppler\/src\/index\.js'/);
+  assert.doesNotMatch(source, /from '\.\.\/\.\.\/\.\.\/doppler\/src\/index\.js'/);
+  assert.equal(evidence.identities.challengerAssets.dopplerRuntime.path, runtimePath);
+  assert.equal(evidence.identities.challengerAssets.dopplerRuntime.gitSha, lock.doppler.development.gitSha);
+  assert.equal(evidence.identities.challengerAssets.dopplerRuntime.sha256, hashFile(path.join(root, runtimePath)));
+});
+
 test('agent stops with a failure receipt when every candidate fails safety', async () => {
   const rows = assets();
   rows.policy.safety.minimumPedestrianClearanceM = 33;

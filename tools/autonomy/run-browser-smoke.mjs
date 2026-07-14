@@ -245,6 +245,10 @@ async function runBrowserSmoke(options) {
       && result.ambientActorCount === 13
       && result.ambientActorKinds === 'pedestrian,bicycle,scooter,car'
       && result.rendererFrames > 0
+      && result.smoothness.rafFrameCount >= 120
+      && result.smoothness.frameIntervalMs.p95 <= 20
+      && result.smoothness.over33msRatio <= 0.01
+      && result.smoothness.longTaskCount === 0
       && result.staticVertexCount > 10000
       && result.retrievalRows > 0
       && result.rerankRows > 0
@@ -299,7 +303,7 @@ async function runBrowserSmoke(options) {
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v6',
+      schema: 'simulatte.autonomyBrowserSmoke.v7',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -387,6 +391,22 @@ function browserJourneyExpression() {
       }
     };
     await waitFor(() => document.getElementById('runtime-status').dataset.kind === 'ready', 'runtime-ready');
+    const rafIntervals = [];
+    const longTasks = [];
+    let lastRafTimestamp = null;
+    let sampleRaf = true;
+    const sampleFrame = (timestamp) => {
+      if (lastRafTimestamp !== null) rafIntervals.push(timestamp - lastRafTimestamp);
+      lastRafTimestamp = timestamp;
+      if (sampleRaf) requestAnimationFrame(sampleFrame);
+    };
+    requestAnimationFrame(sampleFrame);
+    const longTaskObserver = typeof PerformanceObserver === 'function'
+      ? new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) longTasks.push({ startTime: entry.startTime, duration: entry.duration });
+      })
+      : null;
+    try { longTaskObserver?.observe({ type: 'longtask', buffered: true }); } catch { /* Long Tasks API is optional. */ }
     const canvas = document.getElementById('autonomy-canvas');
     const minimap = document.getElementById('follow-minimap');
     const focusSelect = document.getElementById('camera-focus');
@@ -542,6 +562,19 @@ function browserJourneyExpression() {
     };
     await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    sampleRaf = false;
+    longTaskObserver?.disconnect();
+    const sortedFrameIntervals = [...rafIntervals].sort((left, right) => left - right);
+    const percentile = (fraction) => sortedFrameIntervals[Math.min(sortedFrameIntervals.length - 1, Math.max(0, Math.ceil(sortedFrameIntervals.length * fraction) - 1))] || null;
+    const roundMetric = (value) => Number.isFinite(value) ? Number(value.toFixed(4)) : null;
+    const frameDistribution = {
+      min: roundMetric(sortedFrameIntervals[0]),
+      p50: roundMetric(percentile(0.5)),
+      p95: roundMetric(percentile(0.95)),
+      p99: roundMetric(percentile(0.99)),
+      max: roundMetric(sortedFrameIntervals.at(-1)),
+      mean: roundMetric(rafIntervals.reduce((sum, value) => sum + value, 0) / Math.max(1, rafIntervals.length)),
+    };
     const runtimeEvents = window.__simulatteAutonomyRuntimeEvents || [];
     const runtimeEventNames = runtimeEvents.map((row) => row.event);
     const manifestEvent = runtimeEvents.find((row) => row.event === 'data.manifest.received');
@@ -613,6 +646,16 @@ function browserJourneyExpression() {
       ambientActorKinds: document.getElementById('autonomy-canvas').dataset.ambientActorKinds || null,
       adapterName: document.getElementById('autonomy-canvas').dataset.adapterName || null,
       rendererFrames: Number(document.getElementById('autonomy-canvas').dataset.frameCount || 0),
+      smoothness: {
+        rafFrameCount: rafIntervals.length,
+        frameIntervalMs: frameDistribution,
+        over20msCount: rafIntervals.filter((value) => value > 20).length,
+        over33msCount: rafIntervals.filter((value) => value > 33.34).length,
+        over33msRatio: roundMetric(rafIntervals.filter((value) => value > 33.34).length / Math.max(1, rafIntervals.length)),
+        longTaskCount: longTasks.length,
+        longTaskTotalMs: roundMetric(longTasks.reduce((sum, row) => sum + row.duration, 0)),
+        longestTaskMs: roundMetric(Math.max(0, ...longTasks.map((row) => row.duration))),
+      },
       staticVertexCount: Number(document.getElementById('autonomy-canvas').dataset.staticVertexCount || 0),
       dynamicVertexCount: Number(document.getElementById('autonomy-canvas').dataset.dynamicVertexCount || 0),
       canvasWidth: document.getElementById('autonomy-canvas').width,

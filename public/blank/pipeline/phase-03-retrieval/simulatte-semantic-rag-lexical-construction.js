@@ -124,7 +124,13 @@
         if (score.exactLabel) exactLabelHitCount += 1;
         insertConstructionTopK(top, constructionCandidate(slot, doc.card, score, index), MAX_SLOT_CANDIDATES);
       }
-      return { candidates: top, postingVisits, scoredCardCount, exactLabelHitCount };
+      const primaryExact = top.filter((row) => row.construction.targetIdentityExact === true);
+      return {
+        candidates: primaryExact.length ? primaryExact : top,
+        postingVisits,
+        scoredCardCount,
+        exactLabelHitCount,
+      };
     }
 
     function constructionSlotQuery(slot, index) {
@@ -162,6 +168,7 @@
       const targetCoverage = targetWeight > 0 ? labelTargetWeight / targetWeight : 0;
       const queryCoverage = queryWeight > 0 ? documentQueryWeight / queryWeight : 0;
       const isTopology = doc.card.type === 'construction-topology';
+      const primaryLabelExact = query.targetPhrases.includes(doc.normalizedLabels[0] || '');
       if (!exactLabel && targetCoverage < 0.72) return null;
       const score = Math.min(1,
         (exactLabel ? 0.58 : 0) +
@@ -174,6 +181,7 @@
       return {
         score: Number(score.toFixed(4)),
         exactLabel,
+        primaryLabelExact,
         targetCoverage: Number(targetCoverage.toFixed(4)),
         queryCoverage: Number(queryCoverage.toFixed(4)),
         roleFit: Number(roleFit.toFixed(4)),
@@ -221,6 +229,8 @@
         scaleHints: uniqueConstructionStrings(card.scaleHints || []),
         groundingIds,
         basisIds: bases.map((basis) => basis.id),
+        targetIdentityExact: score.primaryLabelExact === true,
+        targetIdentityBound: score.exactLabel === true || score.targetCoverage > 0,
       };
       return {
         id: card.id,
@@ -246,6 +256,7 @@
         construction,
         rankSignals: {
           exactLabel: score.exactLabel,
+          primaryLabelExact: score.primaryLabelExact,
           targetCoverage: score.targetCoverage,
           queryCoverage: score.queryCoverage,
           roleFit: score.roleFit,

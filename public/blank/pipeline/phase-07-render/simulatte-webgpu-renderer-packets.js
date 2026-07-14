@@ -331,7 +331,8 @@
 
     function scenePacketObjectDepth(row = {}, program = {}, part = {}) {
         const position = row.transform && Array.isArray(row.transform.position) ? row.transform.position : [];
-        const explicit = Number(position[2]);
+        const partDepthPosition = Number(part.interactionDepthPosition);
+        const explicit = Number.isFinite(partDepthPosition) ? partDepthPosition : Number(position[2]);
         const roleBias = Number(OBJECT_PART_DEPTH_BIAS[String(part.constructionRole || '')] || 0);
         if (Number.isFinite(explicit) && Math.abs(explicit) > 0.0001) {
           return clamp(explicit * 0.25 + 0.5 + roleBias, 0.04, 0.94);
@@ -351,16 +352,21 @@
         const dy = Number(localCenter[1] || 0) * Number(scale[1] || 0.14);
         const cosine = Math.cos(parentRotation);
         const sine = Math.sin(parentRotation);
+        const localRotation = Number(part.rotation || 0);
+        const localCosine = Math.cos(localRotation);
+        const localSine = Math.sin(localRotation);
+        const scaleX = Number(scale[0] || 0.16);
+        const scaleY = Number(scale[1] || 0.14);
         return {
           center: [
             clamp01(Number(position[0] || 0.5) + dx * cosine - dy * sine),
             clamp01(Number(position[1] || 0.5) + dx * sine + dy * cosine),
           ],
           size: [
-            Math.max(0.004, Number(localSize[0] || 0.8) * Number(scale[0] || 0.16)),
-            Math.max(0.004, Number(localSize[1] || 0.7) * Number(scale[1] || 0.14)),
+            Math.max(0.004, Number(localSize[0] || 0.8) * Math.hypot(localCosine * scaleX, localSine * scaleY)),
+            Math.max(0.004, Number(localSize[1] || 0.7) * Math.hypot(localSine * scaleX, localCosine * scaleY)),
           ],
-          rotation: parentRotation + Number(part.rotation || 0),
+          rotation: parentRotation + Math.atan2(localSine * scaleY, localCosine * scaleX),
         };
       }
 

@@ -392,7 +392,9 @@
           {
             classHints: ['construction_topology', topology.id],
             shapeHints: [topology.id],
-            partHints: (topology.nodes || []).map((row) => `${row.count} ${row.roleId}`),
+            partHints: (topology.nodes || []).flatMap((row) => [
+              `${row.count} ${row.roleId}`, ...(row.partIds || []),
+            ]),
             relationHints: (topology.edges || []).slice(),
             scaleHints: topology.scaleHint ? [topology.scaleHint] : [],
             groundingIds: (topology.basisIds || []).slice(),

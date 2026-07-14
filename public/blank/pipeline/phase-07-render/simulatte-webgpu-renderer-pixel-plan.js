@@ -79,7 +79,7 @@
       const obligations = phase7RequiredVisualObligations(renderExecutionInput, sceneRenderPacket);
       if (!obligations.length) return null;
       const requiredSampleCount = obligations.reduce((total, obligation) => (
-        total + Math.max(1, Number(obligation.expectedCount || 1))
+        total + phase7ObligationPixelSampleCount(obligation)
       ), 0);
       if (requiredSampleCount > PHASE7_PIXEL_READBACK_SAMPLE_LIMIT) {
         return phase7UnrenderablePixelPlan(
@@ -97,7 +97,7 @@
       const samples = [];
       const unmatchedObligationIds = [];
       for (const obligation of obligations) {
-        const expectedSamples = Math.max(1, Number(obligation.expectedCount || 1));
+        const expectedSamples = phase7ObligationPixelSampleCount(obligation);
         const before = samples.length;
         if (obligation.constraintKind === 'environment' || obligation.targetIdentity === 'sunset') {
           samples.push(pixelSampleForEnvironmentObligation(obligation, width, height));
@@ -138,6 +138,10 @@
       width,
       height
     ) {
+      if (phase7VisualRelationObligation(obligation)) {
+        appendRelationPixelSamples(samples, drawables, renderData, obligation, width, height);
+        return;
+      }
       const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
       if (obligation.constraintKind === 'construction-part') {
         const projectedParts = phase7ProjectedObjectPartPoints(
@@ -207,7 +211,7 @@
       sample.uv = [Number(projected.x.toFixed(5)), Number(projected.y.toFixed(5))];
       sample.constructionRole = projected.part && projected.part.constructionRole || '';
       sample.constructionPartId = projected.part && projected.part.constructionPartId || '';
-      sample.expectedSampleCount = Number(obligation.expectedCount || 1);
+      sample.expectedSampleCount = phase7ObligationPixelSampleCount(obligation);
     }
 
     function phase7RequiredVisualObligationIds(renderExecutionInput = null, sceneRenderPacket = {}) {
@@ -236,10 +240,65 @@
           row.kind === 'object' ||
           row.kind === 'environment' ||
           row.kind === 'medium' ||
+          phase7VisualRelationObligation(row) ||
           row.ownedByPhase === 6 ||
           /^visual:/.test(id)
         ));
       });
+    }
+
+    function phase7ObligationPixelSampleCount(obligation = {}) {
+      return phase7VisualRelationObligation(obligation)
+        ? 2
+        : Math.max(1, Number(obligation.expectedCount || 1));
+    }
+
+    function phase7VisualRelationObligation(obligation = {}) {
+      const id = String(obligation.obligationId || obligation.id || '');
+      return obligation.required === true && obligation.kind === 'relation' && (
+        /^relation:spatial:/.test(id) ||
+        /^relation:[^:]+:(?:hold|holds|holding|grasp|grasps|grasping|carry|carries|carrying|clutch|clutches|clutching):/.test(id)
+      );
+    }
+
+    function phase7VisualRelationIdentities(obligation = {}) {
+      const id = String(obligation.obligationId || obligation.id || '');
+      const match = id.match(/:(?:entity|environment|medium)-([^:]+):[^:]+:(?:entity|environment|medium)-([^:]+)$/);
+      return match ? [normalizeForProof(match[1]), normalizeForProof(match[2])] : [];
+    }
+
+    function appendRelationPixelSamples(samples, drawables, renderData, obligation, width, height) {
+      for (const identity of phase7VisualRelationIdentities(obligation)) {
+        const drawable = drawables.find((row) => pixelDrawableMatchesIdentity(row, identity));
+        if (!drawable) continue;
+        const sample = pixelSampleForDrawable(
+          drawable,
+          obligation,
+          width,
+          height,
+          samples.length,
+          drawables.length
+        );
+        const projected = phase7ProjectedObjectPartPoint(
+          renderData,
+          { ...obligation, targetEntityId: drawable.id || '', targetIdentity: identity },
+          Number(renderData.pixelReadbackTimeMs || 0) * 0.001
+        );
+        if (sample && projected) applyProjectedPixelSample(sample, projected, width, height, obligation);
+        if (sample) samples.push(sample);
+      }
+    }
+
+    function pixelDrawableMatchesIdentity(row = {}, identity = '') {
+      const values = [
+        row.id,
+        row.label,
+        row.identity && row.identity.type,
+        row.identity && row.identity.label,
+        row.identity && row.identity.sourceLabel,
+        ...(row.representedEntityIds || []),
+      ].map(normalizeForProof).filter(Boolean);
+      return values.some((value) => value === identity || value.includes(identity) || identity.includes(value));
     }
 
     function drawablesForPixelObligation(drawables = [], obligation = {}) {
@@ -319,6 +378,9 @@
       phase7PixelReadbackPlan,
       phase7RequiredVisualObligationIds,
       phase7RequiredVisualObligations,
+      phase7ObligationPixelSampleCount,
+      phase7VisualRelationObligation,
+      phase7VisualRelationIdentities,
       drawablesForPixelObligation,
       pixelObligationDrawableScore,
     });

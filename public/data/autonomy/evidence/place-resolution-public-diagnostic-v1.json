@@ -5,6 +5,11 @@
   "id": "place-resolution-public-diagnostic-v1",
   "identities": {
     "challengerAssets": {
+      "dopplerRuntime": {
+        "gitSha": "cf1a9a38b26f25363ffc297a07877dd46fdd01cb",
+        "path": "public/vendor/doppler/src/index.js",
+        "sha256": "c88f12c5f3e0cbadfd4555d8ec9d6e8851aeae0e7c52e10a30ef9a420771f1c9"
+      },
       "model": {
         "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
         "manifestSha256": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979",
@@ -32,7 +37,7 @@
     },
     "challengerModule": {
       "path": "tools/autonomy/neural-place-resolver-challenger.mjs",
-      "sha256": "be6e61f95518b0a14ac3dfc560aa5a2dfb0aba56599410ff0b3adf113134eca9"
+      "sha256": "176542de0fa485d2ed5402e78435d73dc9160f84eb4ab6597cb4733023544318"
     },
     "compiler": {
       "path": "public/mission/mission-compiler.js",

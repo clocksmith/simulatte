@@ -1,0 +1,1675 @@
+{
+  "schema": "simulatte.autonomyDataFetchReceipt.v1",
+  "plan": {
+    "schema": "simulatte.autonomyDataFetchPlan.v1",
+    "catalog": {
+      "id": "nyc-autonomy-source-catalog-v1",
+      "sha256": "5e5a849bd2363ae174c42f226b3be970e680c766fbdc77379e68e271b0566647",
+      "path": "tools/autonomy/source-catalog-v1.json"
+    },
+    "mode": "snapshot_refresh",
+    "snapshotDate": "2026-07-13",
+    "bounds": {
+      "south": 40.705,
+      "west": -74.015,
+      "north": 40.745,
+      "east": -73.94
+    },
+    "sourceIds": [
+      "openstreetmap-highways"
+    ],
+    "requests": [
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-01.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.015,40.705,-74.005625,40.711666666666666",
+        "output": "osm-highways-tile-01.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -74.015,
+          "east": -74.005625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-02.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.005625,40.705,-73.99625,40.711666666666666",
+        "output": "osm-highways-tile-02.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -74.005625,
+          "east": -73.99625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-03.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.99625,40.705,-73.986875,40.711666666666666",
+        "output": "osm-highways-tile-03.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -73.99625,
+          "east": -73.986875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-04.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.986875,40.705,-73.97749999999999,40.711666666666666",
+        "output": "osm-highways-tile-04.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -73.986875,
+          "east": -73.97749999999999
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-05.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.97749999999999,40.705,-73.968125,40.711666666666666",
+        "output": "osm-highways-tile-05.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -73.97749999999999,
+          "east": -73.968125
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-06.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.968125,40.705,-73.95875,40.711666666666666",
+        "output": "osm-highways-tile-06.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -73.968125,
+          "east": -73.95875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-07.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.95875,40.705,-73.949375,40.711666666666666",
+        "output": "osm-highways-tile-07.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -73.95875,
+          "east": -73.949375
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-08.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.949375,40.705,-73.94,40.711666666666666",
+        "output": "osm-highways-tile-08.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.705,
+          "north": 40.711666666666666,
+          "west": -73.949375,
+          "east": -73.94
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-09.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.015,40.711666666666666,-74.005625,40.718333333333334",
+        "output": "osm-highways-tile-09.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -74.015,
+          "east": -74.005625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-10.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.005625,40.711666666666666,-73.99625,40.718333333333334",
+        "output": "osm-highways-tile-10.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -74.005625,
+          "east": -73.99625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-11.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.99625,40.711666666666666,-73.986875,40.718333333333334",
+        "output": "osm-highways-tile-11.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -73.99625,
+          "east": -73.986875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-12.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.986875,40.711666666666666,-73.97749999999999,40.718333333333334",
+        "output": "osm-highways-tile-12.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -73.986875,
+          "east": -73.97749999999999
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-13.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.97749999999999,40.711666666666666,-73.968125,40.718333333333334",
+        "output": "osm-highways-tile-13.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -73.97749999999999,
+          "east": -73.968125
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-14.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.968125,40.711666666666666,-73.95875,40.718333333333334",
+        "output": "osm-highways-tile-14.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -73.968125,
+          "east": -73.95875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-15.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.95875,40.711666666666666,-73.949375,40.718333333333334",
+        "output": "osm-highways-tile-15.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -73.95875,
+          "east": -73.949375
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-16.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.949375,40.711666666666666,-73.94,40.718333333333334",
+        "output": "osm-highways-tile-16.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.711666666666666,
+          "north": 40.718333333333334,
+          "west": -73.949375,
+          "east": -73.94
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-17.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.015,40.718333333333334,-74.005625,40.724999999999994",
+        "output": "osm-highways-tile-17.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -74.015,
+          "east": -74.005625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-18.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.005625,40.718333333333334,-73.99625,40.724999999999994",
+        "output": "osm-highways-tile-18.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -74.005625,
+          "east": -73.99625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-19.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.99625,40.718333333333334,-73.986875,40.724999999999994",
+        "output": "osm-highways-tile-19.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -73.99625,
+          "east": -73.986875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-20.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.986875,40.718333333333334,-73.97749999999999,40.724999999999994",
+        "output": "osm-highways-tile-20.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -73.986875,
+          "east": -73.97749999999999
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-21.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.97749999999999,40.718333333333334,-73.968125,40.724999999999994",
+        "output": "osm-highways-tile-21.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -73.97749999999999,
+          "east": -73.968125
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-22.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.968125,40.718333333333334,-73.95875,40.724999999999994",
+        "output": "osm-highways-tile-22.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -73.968125,
+          "east": -73.95875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-23.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.95875,40.718333333333334,-73.949375,40.724999999999994",
+        "output": "osm-highways-tile-23.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -73.95875,
+          "east": -73.949375
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-24.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.949375,40.718333333333334,-73.94,40.724999999999994",
+        "output": "osm-highways-tile-24.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.718333333333334,
+          "north": 40.724999999999994,
+          "west": -73.949375,
+          "east": -73.94
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-25.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.015,40.724999999999994,-74.005625,40.73166666666666",
+        "output": "osm-highways-tile-25.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -74.015,
+          "east": -74.005625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-26.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.005625,40.724999999999994,-73.99625,40.73166666666666",
+        "output": "osm-highways-tile-26.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -74.005625,
+          "east": -73.99625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-27.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.99625,40.724999999999994,-73.986875,40.73166666666666",
+        "output": "osm-highways-tile-27.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -73.99625,
+          "east": -73.986875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-28.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.986875,40.724999999999994,-73.97749999999999,40.73166666666666",
+        "output": "osm-highways-tile-28.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -73.986875,
+          "east": -73.97749999999999
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-29.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.97749999999999,40.724999999999994,-73.968125,40.73166666666666",
+        "output": "osm-highways-tile-29.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -73.97749999999999,
+          "east": -73.968125
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-30.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.968125,40.724999999999994,-73.95875,40.73166666666666",
+        "output": "osm-highways-tile-30.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -73.968125,
+          "east": -73.95875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-31.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.95875,40.724999999999994,-73.949375,40.73166666666666",
+        "output": "osm-highways-tile-31.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -73.95875,
+          "east": -73.949375
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-32.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.949375,40.724999999999994,-73.94,40.73166666666666",
+        "output": "osm-highways-tile-32.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.724999999999994,
+          "north": 40.73166666666666,
+          "west": -73.949375,
+          "east": -73.94
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-33.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.015,40.73166666666666,-74.005625,40.73833333333333",
+        "output": "osm-highways-tile-33.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -74.015,
+          "east": -74.005625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-34.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.005625,40.73166666666666,-73.99625,40.73833333333333",
+        "output": "osm-highways-tile-34.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -74.005625,
+          "east": -73.99625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-35.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.99625,40.73166666666666,-73.986875,40.73833333333333",
+        "output": "osm-highways-tile-35.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -73.99625,
+          "east": -73.986875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-36.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.986875,40.73166666666666,-73.97749999999999,40.73833333333333",
+        "output": "osm-highways-tile-36.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -73.986875,
+          "east": -73.97749999999999
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-37.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.97749999999999,40.73166666666666,-73.968125,40.73833333333333",
+        "output": "osm-highways-tile-37.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -73.97749999999999,
+          "east": -73.968125
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-38.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.968125,40.73166666666666,-73.95875,40.73833333333333",
+        "output": "osm-highways-tile-38.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -73.968125,
+          "east": -73.95875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-39.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.95875,40.73166666666666,-73.949375,40.73833333333333",
+        "output": "osm-highways-tile-39.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -73.95875,
+          "east": -73.949375
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-40.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.949375,40.73166666666666,-73.94,40.73833333333333",
+        "output": "osm-highways-tile-40.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73166666666666,
+          "north": 40.73833333333333,
+          "west": -73.949375,
+          "east": -73.94
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-41.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.015,40.73833333333333,-74.005625,40.745",
+        "output": "osm-highways-tile-41.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -74.015,
+          "east": -74.005625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-42.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-74.005625,40.73833333333333,-73.99625,40.745",
+        "output": "osm-highways-tile-42.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -74.005625,
+          "east": -73.99625
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-43.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.99625,40.73833333333333,-73.986875,40.745",
+        "output": "osm-highways-tile-43.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -73.99625,
+          "east": -73.986875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-44.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.986875,40.73833333333333,-73.97749999999999,40.745",
+        "output": "osm-highways-tile-44.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -73.986875,
+          "east": -73.97749999999999
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-45.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.97749999999999,40.73833333333333,-73.968125,40.745",
+        "output": "osm-highways-tile-45.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -73.97749999999999,
+          "east": -73.968125
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-46.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.968125,40.73833333333333,-73.95875,40.745",
+        "output": "osm-highways-tile-46.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -73.968125,
+          "east": -73.95875
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-47.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.95875,40.73833333333333,-73.949375,40.745",
+        "output": "osm-highways-tile-47.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -73.95875,
+          "east": -73.949375
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      },
+      {
+        "id": "openstreetmap-highways:osm-highways-tile-48.osm",
+        "sourceId": "openstreetmap-highways",
+        "group": "world-core",
+        "dataClass": "community_map_fact",
+        "authority": "OpenStreetMap contributors",
+        "license": "ODbL 1.0",
+        "transport": "osm_bbox_grid",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.949375,40.73833333333333,-73.94,40.745",
+        "output": "osm-highways-tile-48.osm",
+        "period": null,
+        "bounds": {
+          "south": 40.73833333333333,
+          "north": 40.745,
+          "west": -73.949375,
+          "east": -73.94
+        },
+        "capabilities": [
+          "street_render_geometry",
+          "pedestrian_graph_candidate",
+          "road_graph_candidate"
+        ],
+        "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+      }
+    ],
+    "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact.",
+    "planSha256": "bb26301004d1f7d7e992e2c7ffd97672ff1cb5360505318fd16fa22c1d94f095"
+  },
+  "command": [
+    "node",
+    "tools/autonomy/manage-autonomy-data.mjs",
+    "fetch",
+    "--source",
+    "openstreetmap-highways",
+    "--snapshot-date",
+    "2026-07-13",
+    "--bounds",
+    "40.705,-74.015,40.745,-73.94",
+    "--out",
+    "artifacts/autonomy-data/osm-routing-2026-07-13"
+  ],
+  "files": [
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-01.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-01.osm",
+      "byteCount": 9185052,
+      "sha256": "61d298efb5ae00fe95f177fe70fd393f3c516756bb393504d0efc4447d4a0f76",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-02.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-02.osm",
+      "byteCount": 4915084,
+      "sha256": "e46326cbe6b9db3abc17b31fad8284142b0b32134a435d0fdbbf8269ea1f7208",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-03.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-03.osm",
+      "byteCount": 2345863,
+      "sha256": "5e2cf4830cda066e5f66403549d8fbfb860b8a827b177032037381758e8831b4",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-04.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-04.osm",
+      "byteCount": 1723312,
+      "sha256": "cf9279ea9a7584b0baedea1db6065d46c8317cb21f72da4687494f0c389e8f33",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-05.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-05.osm",
+      "byteCount": 669093,
+      "sha256": "6771a721eed6bf6fa01a8c1f225fa0ba155d03d29398f79822634129cc0ac097",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-06.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-06.osm",
+      "byteCount": 2886666,
+      "sha256": "3d7566822cfa7bebef1f5afd207acc1aec2dbc2eda271385015631a74393f2e2",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-07.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-07.osm",
+      "byteCount": 3272105,
+      "sha256": "88f37507f4c2f6dd8000ea3ce8f141bb6cc819b5fef28364aa883350d0ffb1d3",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-08.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-08.osm",
+      "byteCount": 2849535,
+      "sha256": "c337c5c98dd45385028b9be75688d7576ffed12851c5d3bc1724009686b75eac",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-09.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-09.osm",
+      "byteCount": 7481609,
+      "sha256": "f98f5fa3962e89ce32cea369448fe7bdf0f700b557d95240f61adae0ced1ff14",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-10.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-10.osm",
+      "byteCount": 7412404,
+      "sha256": "da6678164535f8840460169e210966161c7557e2f84294fb8e2352ad08e6925c",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-11.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-11.osm",
+      "byteCount": 4802871,
+      "sha256": "204778f10b3d28ece51905d0152ba760d24699c6fa4b9d24ebdc071a61871c7a",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-12.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-12.osm",
+      "byteCount": 2674080,
+      "sha256": "c54855902a0ab28d2df503bcfb7bbf4c717a155e9bea2add515894cbb2214c9f",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-13.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-13.osm",
+      "byteCount": 1157709,
+      "sha256": "aaf2fa7b33e0d5094703dfdb6a05bd41d4a4292da858dd3be920ab29682d4d05",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-14.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-14.osm",
+      "byteCount": 2650986,
+      "sha256": "7d3d434ceea3132009244e6f195c5c0dfa311a172f8c112c50430d8b7f2b2511",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-15.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-15.osm",
+      "byteCount": 3062363,
+      "sha256": "9f1ce6f9cf2563e42ee17cc129cb9f5f7769295e870e24a0e4974dc5a8e2fa20",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-16.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-16.osm",
+      "byteCount": 3665111,
+      "sha256": "6e256de2bf18a61b898a395c54e25a783faee2507335104e37769979c5c35101",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-17.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-17.osm",
+      "byteCount": 3947030,
+      "sha256": "348b4d68b34d3795f11cc7b8bd3cff7e25979d5c06f9eabcb148e4a5a7eb696f",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-18.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-18.osm",
+      "byteCount": 4512428,
+      "sha256": "46dd593ff8ea25bfca70846e10c5cdc9e9596b7d8e0611188785d0dba27a95be",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-19.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-19.osm",
+      "byteCount": 4558564,
+      "sha256": "dbbbf6dfb714f62888d52b6c8e2455a94bc8c0ee0f369e30b256c4fc3c907e9d",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-20.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-20.osm",
+      "byteCount": 3106442,
+      "sha256": "16b785c94b245a8a1a1bdfe2b233dcee5f5d020834e7180d722bd6dd71832fcb",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-21.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-21.osm",
+      "byteCount": 1423567,
+      "sha256": "f2d34cb2244760e52bdb2e5d00d50fe33486600f42e2f5902d70fe480bf85f7b",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-22.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-22.osm",
+      "byteCount": 1396695,
+      "sha256": "03eec8bbf4213ca78e806dd0d2fb738577ef1a4fdcea3354db7c7f1cc25920db",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-23.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-23.osm",
+      "byteCount": 2626825,
+      "sha256": "e33025bd20873b7a1c122487b8d7d238fa0b2abfa4072431d0b1036fdbad0b3f",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-24.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-24.osm",
+      "byteCount": 3484252,
+      "sha256": "91ef5420065a43ca6bdfd30fcc45d85d0a8d978c0977bcfddb1feb0ab58cc5ca",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-25.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-25.osm",
+      "byteCount": 2084990,
+      "sha256": "1f8bc4e3202130868ffc856af674681caef2662548d5708e887dea979709a893",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-26.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-26.osm",
+      "byteCount": 5038183,
+      "sha256": "713b0e49e66737ad245a91c0de70d47895fec94910e7701ebceaba3a04acab18",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-27.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-27.osm",
+      "byteCount": 4547030,
+      "sha256": "4f60edb9a3e352eeae998721baef1c00ae2a46f972d2fc07605617b071e1e61f",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-28.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-28.osm",
+      "byteCount": 4168904,
+      "sha256": "beaddb83012c0e833a6886e85d9485e50da72977e16d6034ee6776ffa733ff44",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-29.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-29.osm",
+      "byteCount": 2444136,
+      "sha256": "73fcc9c8e981ecb263b87a6f2ceae07ed94000276e0d445f54edebcd704938da",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-30.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-30.osm",
+      "byteCount": 591200,
+      "sha256": "7c9e51cb9dddb275ce7b6d7a0eddefd078eff23d5d3d1b283b4d8e22e4fb6d67",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-31.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-31.osm",
+      "byteCount": 3318811,
+      "sha256": "5531a01dad61781a4f8f87f6f53261aad7edd68d381509d84ab871fec75dcdd5",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-32.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-32.osm",
+      "byteCount": 2349997,
+      "sha256": "eab5899c3c7698669c5f92cad1648eced445b34985ee4df6d7e38d9f6fd62dc3",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-33.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-33.osm",
+      "byteCount": 2235547,
+      "sha256": "973bcb0b1db15bbec8fe1384d25f1802c20adb5816ea34eea57a9ee728e0e410",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-34.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-34.osm",
+      "byteCount": 4884430,
+      "sha256": "7faa070ee4d37f37e03e7f14e49c79e615a0b583ec619ecf249fafd82f8f7b28",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-35.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-35.osm",
+      "byteCount": 3991105,
+      "sha256": "58221aa34bd389d3854f30a6946f9894d05a98d2f6c77dab0b3694eef551831a",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-36.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-36.osm",
+      "byteCount": 4434852,
+      "sha256": "bb5363923f5f4d1ad666ef9caa9583fcfaefe8ff581e1c414a9dd17fc2d10ba4",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-37.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-37.osm",
+      "byteCount": 2229887,
+      "sha256": "9ca745ee56e2b1c9bb50b4c7c5fd3a1445dd464a0c189175990c652d7cbb67a5",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-38.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-38.osm",
+      "byteCount": 904482,
+      "sha256": "e5a10eb0492b6416814f6effc4a01b587df8cdf83b65ad259a2e519da0016ccb",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-39.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-39.osm",
+      "byteCount": 2501189,
+      "sha256": "3d7f064b58d1d2ac5c0f5c739c497ac0796af26549c0abc38b89d56035e15e5e",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-40.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-40.osm",
+      "byteCount": 1313011,
+      "sha256": "ba8f585736be60fbf5e70081d3fe69a7261fd659178b537c328508a478c46d94",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-41.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-41.osm",
+      "byteCount": 2234562,
+      "sha256": "dd3457dba12458e69df7abcb9bcfead01947dfabeb883ad614f3f9e2dc097431",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-42.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-42.osm",
+      "byteCount": 3626567,
+      "sha256": "cceecacddb26e9edd60a67cf2f3759d83586a7085200d386f87646d4572711f9",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-43.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-43.osm",
+      "byteCount": 4241766,
+      "sha256": "f51a700da53b47a9a1a5284748db09c7a92b4397ab41c5c14d01d23e1f017b3a",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-44.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-44.osm",
+      "byteCount": 4272485,
+      "sha256": "2652eb2f91bda2c99db9d62af4d3ea9064d33508077fddcfbb350532a0b4b457",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-45.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-45.osm",
+      "byteCount": 7501050,
+      "sha256": "02c4425db370ecc0f5b486c50fddffa3cf03914cf0d6c584367dcff47ac02e35",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-46.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-46.osm",
+      "byteCount": 1600030,
+      "sha256": "46e6bf3b4395cc194de54b897a87fcce26548fcd35dcbd250d605395607c6ce1",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-47.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-47.osm",
+      "byteCount": 8867011,
+      "sha256": "4e2b44cfbb8024471f88847cb04ad193c357dae088b185efcf014c22ca7b5446",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "requestId": "openstreetmap-highways:osm-highways-tile-48.osm",
+      "sourceId": "openstreetmap-highways",
+      "output": "osm-highways-tile-48.osm",
+      "byteCount": 7777812,
+      "sha256": "07426cebbdb9ce72382fe5222f6a1c73b0a85c6f0f154caabca8110d3f79b9ac",
+      "contentType": "application/xml; charset=utf-8",
+      "etag": null,
+      "lastModified": null
+    }
+  ],
+  "activation": "staged_not_active",
+  "claimBoundary": "Successful fetching proves byte capture and identity only. No fetched source is routable, simulated, or hosted until its compiler and entry gates pass."
+}

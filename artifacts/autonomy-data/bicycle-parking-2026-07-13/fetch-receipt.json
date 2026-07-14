@@ -1,0 +1,68 @@
+{
+  "schema": "simulatte.autonomyDataFetchReceipt.v1",
+  "plan": {
+    "schema": "simulatte.autonomyDataFetchPlan.v1",
+    "catalog": {
+      "id": "nyc-autonomy-source-catalog-v1",
+      "sha256": "b4336d4666c721c68c58ea12e18f967d33c8538a2e178dd1ae4a431674408701",
+      "path": "tools/autonomy/source-catalog-v1.json"
+    },
+    "mode": "snapshot_refresh",
+    "snapshotDate": "2026-07-13",
+    "bounds": {
+      "south": 40.705,
+      "west": -74.015,
+      "north": 40.745,
+      "east": -73.94
+    },
+    "sourceIds": [
+      "nyc-bicycle-parking"
+    ],
+    "requests": [
+      {
+        "id": "nyc-bicycle-parking:nyc-bicycle-parking.geojson",
+        "sourceId": "nyc-bicycle-parking",
+        "group": "route-amenities",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of Transportation",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_geojson",
+        "url": "https://data.cityofnewyork.us/resource/592z-n7dk.geojson?$limit=50000&$select=the_geom,site_id,group_id,program,ifoaddress,onstreet,fromstreet,tostreet,racktype,date_inst,latitude,longitude&$where=within_box(the_geom, 40.745, -74.015, 40.705, -73.94)",
+        "output": "nyc-bicycle-parking.geojson",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "bicycle_parking_proximity_candidate"
+        ],
+        "entryGate": "Retain site identity, rack type, installation date, and source snapshot. A listed rack is a proximity fact, not a live capacity or availability claim."
+      }
+    ],
+    "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact.",
+    "planSha256": "81aed1471047916c25cb64ae9d3689dab6a16853b49a8e5b0ba0975bf5a3a8b0"
+  },
+  "command": [
+    "node",
+    "tools/autonomy/manage-autonomy-data.mjs",
+    "fetch",
+    "--group",
+    "route-amenities",
+    "--snapshot-date",
+    "2026-07-13",
+    "--out",
+    "artifacts/autonomy-data/bicycle-parking-2026-07-13"
+  ],
+  "files": [
+    {
+      "requestId": "nyc-bicycle-parking:nyc-bicycle-parking.geojson",
+      "sourceId": "nyc-bicycle-parking",
+      "output": "nyc-bicycle-parking.geojson",
+      "byteCount": 3663232,
+      "sha256": "70776c9f65e5ced8241e542463f25c4110bbf319644e913a5a62884de7ed247c",
+      "contentType": "application/vnd.geo+json; charset=UTF-8",
+      "etag": "\"aW5kaWEuNDkzMzZfNV8xNzhrdG5ycWltR3k2eFdUMnVyaEQwT2kyNFpDa0k---gzipi03MMdxMMUFmS2E3EHmtzWMn5Sg--gzip--gzip\"",
+      "lastModified": "Fri, 10 Jul 2026 18:27:13 GMT"
+    }
+  ],
+  "activation": "staged_not_active",
+  "claimBoundary": "Successful fetching proves byte capture and identity only. No fetched source is routable, simulated, or hosted until its compiler and entry gates pass."
+}

@@ -63,9 +63,12 @@
       return {
         backend,
         async rerank(input) {
+          const rerankStarted = nowMs();
           const rows = rerankRequestRows(input, runtime, config, scoringConfig);
           const scored = [];
+          let prefixPreparationDurationMs = 0;
           try {
+            const prefixStarted = nowMs();
             const prefix = await prepareRerankPrefix(
               rows,
               handle,
@@ -74,6 +77,7 @@
               scoringConfig,
               activePrefix
             );
+            prefixPreparationDurationMs = elapsedMsSince(prefixStarted);
             activePrefix = prefix;
             for (let i = 0; i < rows.length; i += 1) {
               const row = rows[i];
@@ -86,6 +90,7 @@
                   documentIndex: row.documentIndex,
                   scoreCacheHit: true,
                   executionDurationMs: 0,
+                  prefixPreparationDurationMs,
                 });
                 emitRerankProgress(input, row, i + 1, rows.length, {
                   ...rerankProgressDetails(cachedScore, elapsedMsSince(executionStarted)),
@@ -127,6 +132,7 @@
                 prefixStateReused: prefix ? prefix.cacheHit : false,
               });
               scoredRow.executionDurationMs = elapsedMsSince(executionStarted);
+              scoredRow.prefixPreparationDurationMs = prefixPreparationDurationMs;
               scoredRow.scoreCacheHit = false;
               writeRerankScoreCache(scoreCache, row.prompt, scoredRow, config.scoreCacheMaxEntries);
               scored.push(scoredRow);
@@ -140,7 +146,12 @@
             await resetRerankerHandle(handle, selectedRuntime.target, config);
             throw error;
           }
-          return rankedRerankRows(scored);
+          const rerankCallDurationMs = elapsedMsSince(rerankStarted);
+          return rankedRerankRows(scored).map((row) => ({
+            ...row,
+            prefixPreparationDurationMs,
+            rerankCallDurationMs,
+          }));
         },
       };
     }
@@ -211,6 +222,7 @@
       return {
         backend,
         async rerank(input) {
+          const rerankStarted = nowMs();
           const rows = rerankRequestRows(input, runtime, config, scoringConfig);
           const scored = [];
           for (let i = 0; i < rows.length; i += 1) {
@@ -238,7 +250,12 @@
               scoreCacheHit: false,
             });
           }
-          return rankedRerankRows(scored);
+          const rerankCallDurationMs = elapsedMsSince(rerankStarted);
+          return rankedRerankRows(scored).map((row) => ({
+            ...row,
+            prefixPreparationDurationMs: 0,
+            rerankCallDurationMs,
+          }));
         },
       };
     }
@@ -330,6 +347,8 @@
         .map((row) => Number(row.executionDurationMs || 0))
         .filter((value) => Number.isFinite(value) && value >= 0);
       const totalExecutionDurationMs = executionDurations.reduce((sum, value) => sum + value, 0);
+      const prefixPreparationDurationMs = maximumSharedDuration(rows, 'prefixPreparationDurationMs');
+      const rerankCallDurationMs = maximumSharedDuration(rows, 'rerankCallDurationMs');
       return {
         scoringPaths,
         selectedTokenLogitCount,
@@ -337,6 +356,12 @@
         prefixKvReuseCount: prefixRows.length,
         prefixStateReuseCount: prefixRows.filter((row) => row.prefixStateReused === true).length,
         scoreCacheHitCount,
+        prefixPreparationDurationMs,
+        rerankCallDurationMs,
+        unattributedRerankDurationMs: Number(Math.max(
+          0,
+          rerankCallDurationMs - prefixPreparationDurationMs - totalExecutionDurationMs
+        ).toFixed(3)),
         totalExecutionDurationMs: Number(totalExecutionDurationMs.toFixed(3)),
         meanExecutionDurationMs: executionDurations.length
           ? Number((totalExecutionDurationMs / executionDurations.length).toFixed(3))
@@ -349,6 +374,12 @@
       };
     }
 
+    function maximumSharedDuration(rows, field) {
+      const values = rows.map((row) => Number(row && row[field] || 0))
+        .filter((value) => Number.isFinite(value) && value >= 0);
+      return values.length ? Number(Math.max(...values).toFixed(3)) : 0;
+    }
+
     function emitRerankProgress(input, row, completed, total, details = {}) {
       if (typeof input.onProgress !== 'function') return;
       input.onProgress({ completed, total, candidateId: row.primitiveId, ...details });
@@ -359,6 +390,7 @@
         promptTokenCount: Number(row.promptTokenCount || 0),
         prefixTokenCount: Number(row.prefixTokenCount || 0),
         prefixStateReused: row.prefixStateReused === true,
+        prefixPreparationDurationMs: Number(Number(row.prefixPreparationDurationMs || 0).toFixed(3)),
         executionDurationMs: Number(Number(executionDurationMs || 0).toFixed(3)),
       };
     }

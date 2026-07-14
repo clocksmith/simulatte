@@ -47,6 +47,8 @@
             prefixTokenCount: Number(row && row.prefixTokenCount || 0),
             prefixStateReused: row && row.prefixStateReused === true,
             scoreCacheHit: row && row.scoreCacheHit === true,
+            prefixPreparationDurationMs: Number(row && row.prefixPreparationDurationMs || 0),
+            rerankCallDurationMs: Number(row && row.rerankCallDurationMs || 0),
             executionDurationMs: Number(row && row.executionDurationMs || 0),
           };
         }).filter((row) => row.primitiveId);

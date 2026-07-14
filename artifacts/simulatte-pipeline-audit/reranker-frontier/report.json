@@ -1,0 +1,836 @@
+{
+  "schema": "simulatte.rerankerFrontierBenchmark.v1",
+  "source": {
+    "path": "artifacts/simulatte-pipeline-audit/live-webgpu/report.json",
+    "sha256": "926404ba6e15f88297d111a1774d0c1751e6eb6c4c870faa1d0df7be8c90bbd7",
+    "reportSchema": "simulatte.intentSceneScreenshotAudit.v1",
+    "reportCreatedAt": "2026-07-14T08:20:33.225Z",
+    "intentMode": "model"
+  },
+  "model": {
+    "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "manifestHash": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e",
+    "runtimeLockNumber": 6
+  },
+  "promptCount": 20,
+  "fullCandidateCount": 52,
+  "fullExecutionDurationMs": 20399.6,
+  "selectionModes": {
+    "construction-evidence-round-robin": 20
+  },
+  "frontiers": [
+    {
+      "k": 1,
+      "promptCount": 20,
+      "evaluatedCandidateCount": 20,
+      "candidateReductionCount": 32,
+      "candidateReductionRate": 0.615385,
+      "estimatedExecutionDurationMs": 8538.8,
+      "estimatedDurationSavingsMs": 11860.8,
+      "estimatedDurationSavingsRate": 0.581423,
+      "fullWinnerRetentionCount": 11,
+      "fullWinnerRetentionRate": 0.55,
+      "changedPromptCount": 9,
+      "changedPrompts": [
+        {
+          "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+          "fullWinner": "queue",
+          "frontierWinner": "sensor",
+          "fullWinnerInputOrder": 3,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling",
+          "fullWinner": "fabric",
+          "frontierWinner": "bacteria",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "city zoning shadow allocation between building masses with sunlight volumes and pedestrian comfort",
+          "fullWinner": "soft-body",
+          "frontierWinner": "rigid-body",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients",
+          "fullWinner": "fabric",
+          "frontierWinner": "metal",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "protein folding with bond constraints and energy minimization",
+          "fullWinner": "gel",
+          "frontierWinner": "protein",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "qubit chip phase readout through microwave resonator",
+          "fullWinner": "wave-source",
+          "frontierWinner": "graph-network",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "phase study in a generic lab with no qubits or quantum hardware",
+          "fullWinner": "controller",
+          "frontierWinner": "sensor",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "glacier calving into fjord with sea ice waves",
+          "fullWinner": "water",
+          "frontierWinner": "ice",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "forest fire jumps a road under wind shear",
+          "fullWinner": "wood",
+          "frontierWinner": "concrete",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        }
+      ]
+    },
+    {
+      "k": 2,
+      "promptCount": 20,
+      "evaluatedCandidateCount": 40,
+      "candidateReductionCount": 12,
+      "candidateReductionRate": 0.230769,
+      "estimatedExecutionDurationMs": 16066,
+      "estimatedDurationSavingsMs": 4333.6,
+      "estimatedDurationSavingsRate": 0.212436,
+      "fullWinnerRetentionCount": 19,
+      "fullWinnerRetentionRate": 0.95,
+      "changedPromptCount": 1,
+      "changedPrompts": [
+        {
+          "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+          "fullWinner": "queue",
+          "frontierWinner": "sensor",
+          "fullWinnerInputOrder": 3,
+          "selectionMode": "construction-evidence-round-robin"
+        }
+      ]
+    },
+    {
+      "k": 3,
+      "promptCount": 20,
+      "evaluatedCandidateCount": 48,
+      "candidateReductionCount": 4,
+      "candidateReductionRate": 0.076923,
+      "estimatedExecutionDurationMs": 19044.8,
+      "estimatedDurationSavingsMs": 1354.8,
+      "estimatedDurationSavingsRate": 0.066413,
+      "fullWinnerRetentionCount": 19,
+      "fullWinnerRetentionRate": 0.95,
+      "changedPromptCount": 1,
+      "changedPrompts": [
+        {
+          "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+          "fullWinner": "queue",
+          "frontierWinner": "sensor",
+          "fullWinnerInputOrder": 3,
+          "selectionMode": "construction-evidence-round-robin"
+        }
+      ]
+    },
+    {
+      "k": 4,
+      "promptCount": 20,
+      "evaluatedCandidateCount": 51,
+      "candidateReductionCount": 1,
+      "candidateReductionRate": 0.019231,
+      "estimatedExecutionDurationMs": 20049.8,
+      "estimatedDurationSavingsMs": 349.8,
+      "estimatedDurationSavingsRate": 0.017147,
+      "fullWinnerRetentionCount": 20,
+      "fullWinnerRetentionRate": 1,
+      "changedPromptCount": 0,
+      "changedPrompts": []
+    },
+    {
+      "k": 5,
+      "promptCount": 20,
+      "evaluatedCandidateCount": 52,
+      "candidateReductionCount": 0,
+      "candidateReductionRate": 0,
+      "estimatedExecutionDurationMs": 20399.6,
+      "estimatedDurationSavingsMs": 0,
+      "estimatedDurationSavingsRate": 0,
+      "fullWinnerRetentionCount": 20,
+      "fullWinnerRetentionRate": 1,
+      "changedPromptCount": 0,
+      "changedPrompts": []
+    }
+  ],
+  "promotionEligible": false,
+  "promotionBlockers": [
+    "winner retention compares against the observed full-K model winner, not labeled semantic relevance",
+    "replay does not recompile Phases 4 through 8 or compare visible obligation coverage"
+  ],
+  "rows": [
+    {
+      "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 5,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "queue",
+      "fullWinnerInputOrder": 3,
+      "executionDurationMs": 1720,
+      "candidates": [
+        {
+          "primitiveId": "sensor",
+          "inputOrder": 0,
+          "modelRank": 2,
+          "modelScore": 0.958302,
+          "localScore": 0.537,
+          "executionDurationMs": 360.5
+        },
+        {
+          "primitiveId": "graph-network",
+          "inputOrder": 1,
+          "modelRank": 4,
+          "modelScore": 0.93589,
+          "localScore": 0.5056,
+          "executionDurationMs": 352.5
+        },
+        {
+          "primitiveId": "controller",
+          "inputOrder": 2,
+          "modelRank": 3,
+          "modelScore": 0.953968,
+          "localScore": 0.5305,
+          "executionDurationMs": 328.8
+        },
+        {
+          "primitiveId": "queue",
+          "inputOrder": 3,
+          "modelRank": 0,
+          "modelScore": 0.969594,
+          "localScore": 0.5138,
+          "executionDurationMs": 328.4
+        },
+        {
+          "primitiveId": "data-recorder",
+          "inputOrder": 4,
+          "modelRank": 1,
+          "modelScore": 0.960804,
+          "localScore": 0.5244,
+          "executionDurationMs": 349.8
+        }
+      ]
+    },
+    {
+      "prompt": "mangrove roots buffering storm surge while sediment settles in brackish tidal channels",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "graph-network",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 821.2,
+      "candidates": [
+        {
+          "primitiveId": "graph-network",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.938811,
+          "localScore": 0.4726,
+          "executionDurationMs": 374.9
+        },
+        {
+          "primitiveId": "water",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.936811,
+          "localScore": 0.4726,
+          "executionDurationMs": 446.3
+        }
+      ]
+    },
+    {
+      "prompt": "gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "fabric",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 829.6,
+      "candidates": [
+        {
+          "primitiveId": "bacteria",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.925048,
+          "localScore": 0.5502,
+          "executionDurationMs": 481.7
+        },
+        {
+          "primitiveId": "fabric",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.933168,
+          "localScore": 0.4119,
+          "executionDurationMs": 347.9
+        }
+      ]
+    },
+    {
+      "prompt": "railway dispatch conflict resolution across signal blocks with delayed train agents and platform slots",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 3,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "graph-network",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 1052.1,
+      "candidates": [
+        {
+          "primitiveId": "graph-network",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.938446,
+          "localScore": 0.5354,
+          "executionDurationMs": 377.1
+        },
+        {
+          "primitiveId": "wheel",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.933243,
+          "localScore": 0.4695,
+          "executionDurationMs": 333.7
+        },
+        {
+          "primitiveId": "concrete",
+          "inputOrder": 2,
+          "modelRank": 2,
+          "modelScore": 0.912122,
+          "localScore": 0.4842,
+          "executionDurationMs": 341.3
+        }
+      ]
+    },
+    {
+      "prompt": "edge data center server racks recirculating heat between cooling aisles under controller limits",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 3,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "concrete",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 1159.5,
+      "candidates": [
+        {
+          "primitiveId": "concrete",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.959716,
+          "localScore": 0.5237,
+          "executionDurationMs": 372.5
+        },
+        {
+          "primitiveId": "graph-network",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.95913,
+          "localScore": 0.5221,
+          "executionDurationMs": 347.5
+        },
+        {
+          "primitiveId": "metal",
+          "inputOrder": 2,
+          "modelRank": 2,
+          "modelScore": 0.958547,
+          "localScore": 0.5151,
+          "executionDurationMs": 439.5
+        }
+      ]
+    },
+    {
+      "prompt": "city zoning shadow allocation between building masses with sunlight volumes and pedestrian comfort",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "soft-body",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 948,
+      "candidates": [
+        {
+          "primitiveId": "rigid-body",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.93961,
+          "localScore": 0.4943,
+          "executionDurationMs": 487.8
+        },
+        {
+          "primitiveId": "soft-body",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.94388,
+          "localScore": 0.4271,
+          "executionDurationMs": 460.2
+        }
+      ]
+    },
+    {
+      "prompt": "planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 4,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "gravity",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 1743.3,
+      "candidates": [
+        {
+          "primitiveId": "gravity",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.952813,
+          "localScore": 0.496,
+          "executionDurationMs": 480
+        },
+        {
+          "primitiveId": "radiation",
+          "inputOrder": 1,
+          "modelRank": 3,
+          "modelScore": 0.918177,
+          "localScore": 0.6027,
+          "executionDurationMs": 445.6
+        },
+        {
+          "primitiveId": "rigid-body",
+          "inputOrder": 2,
+          "modelRank": 1,
+          "modelScore": 0.945636,
+          "localScore": 0.5965,
+          "executionDurationMs": 473.3
+        },
+        {
+          "primitiveId": "rock",
+          "inputOrder": 3,
+          "modelRank": 2,
+          "modelScore": 0.942327,
+          "localScore": 0.5959,
+          "executionDurationMs": 344.4
+        }
+      ]
+    },
+    {
+      "prompt": "sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 3,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "fabric",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 1180.4,
+      "candidates": [
+        {
+          "primitiveId": "metal",
+          "inputOrder": 0,
+          "modelRank": 2,
+          "modelScore": 0.939633,
+          "localScore": 0.4077,
+          "executionDurationMs": 478.3
+        },
+        {
+          "primitiveId": "fabric",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.945844,
+          "localScore": 0.4261,
+          "executionDurationMs": 352.7
+        },
+        {
+          "primitiveId": "rock",
+          "inputOrder": 2,
+          "modelRank": 1,
+          "modelScore": 0.942531,
+          "localScore": 0.5827,
+          "executionDurationMs": 349.4
+        }
+      ]
+    },
+    {
+      "prompt": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "rigid-body",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 866.5,
+      "candidates": [
+        {
+          "primitiveId": "rigid-body",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.947703,
+          "localScore": 0.472,
+          "executionDurationMs": 499.6
+        },
+        {
+          "primitiveId": "collision",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.931955,
+          "localScore": 0.4913,
+          "executionDurationMs": 366.9
+        }
+      ]
+    },
+    {
+      "prompt": "warehouse robot arms sort parcels on conveyor belts",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 3,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "rigid-body",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 1194.4,
+      "candidates": [
+        {
+          "primitiveId": "rigid-body",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.971842,
+          "localScore": 0.4618,
+          "executionDurationMs": 469.3
+        },
+        {
+          "primitiveId": "metal",
+          "inputOrder": 1,
+          "modelRank": 2,
+          "modelScore": 0.888696,
+          "localScore": 0.4482,
+          "executionDurationMs": 412.1
+        },
+        {
+          "primitiveId": "rubber",
+          "inputOrder": 2,
+          "modelRank": 1,
+          "modelScore": 0.948888,
+          "localScore": 0.4664,
+          "executionDurationMs": 313
+        }
+      ]
+    },
+    {
+      "prompt": "protein folding with bond constraints and energy minimization",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "gel",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 791.9,
+      "candidates": [
+        {
+          "primitiveId": "protein",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.958417,
+          "localScore": 0.738,
+          "executionDurationMs": 445.2
+        },
+        {
+          "primitiveId": "gel",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.969001,
+          "localScore": 0.4564,
+          "executionDurationMs": 346.7
+        }
+      ]
+    },
+    {
+      "prompt": "robot gripper twists a protein sample holder without molecular folding",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "rigid-body",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 833.7,
+      "candidates": [
+        {
+          "primitiveId": "rigid-body",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.969647,
+          "localScore": 0.4675,
+          "executionDurationMs": 477.4
+        },
+        {
+          "primitiveId": "collision",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.944243,
+          "localScore": 0.4736,
+          "executionDurationMs": 356.3
+        }
+      ]
+    },
+    {
+      "prompt": "qubit chip phase readout through microwave resonator",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "wave-source",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 703.2,
+      "candidates": [
+        {
+          "primitiveId": "graph-network",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.935915,
+          "localScore": 0.3877,
+          "executionDurationMs": 370.2
+        },
+        {
+          "primitiveId": "wave-source",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.939437,
+          "localScore": 0.4723,
+          "executionDurationMs": 333
+        }
+      ]
+    },
+    {
+      "prompt": "phase study in a generic lab with no qubits or quantum hardware",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "controller",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 691.7,
+      "candidates": [
+        {
+          "primitiveId": "sensor",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.957517,
+          "localScore": 0.5509,
+          "executionDurationMs": 371.8
+        },
+        {
+          "primitiveId": "controller",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.964127,
+          "localScore": 0.5538,
+          "executionDurationMs": 319.9
+        }
+      ]
+    },
+    {
+      "prompt": "glacier calving into fjord with sea ice waves",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 4,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "water",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 1563.6,
+      "candidates": [
+        {
+          "primitiveId": "ice",
+          "inputOrder": 0,
+          "modelRank": 3,
+          "modelScore": 0.92934,
+          "localScore": 0.7188,
+          "executionDurationMs": 376.3
+        },
+        {
+          "primitiveId": "water",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.962331,
+          "localScore": 0.4839,
+          "executionDurationMs": 437.9
+        },
+        {
+          "primitiveId": "terrain-patch",
+          "inputOrder": 2,
+          "modelRank": 2,
+          "modelScore": 0.954559,
+          "localScore": 0.4605,
+          "executionDurationMs": 417.2
+        },
+        {
+          "primitiveId": "air",
+          "inputOrder": 3,
+          "modelRank": 1,
+          "modelScore": 0.957919,
+          "localScore": 0.5848,
+          "executionDurationMs": 332.2
+        }
+      ]
+    },
+    {
+      "prompt": "forest fire jumps a road under wind shear",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 3,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "wood",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 1082,
+      "candidates": [
+        {
+          "primitiveId": "concrete",
+          "inputOrder": 0,
+          "modelRank": 2,
+          "modelScore": 0.900847,
+          "localScore": 0.582,
+          "executionDurationMs": 357.1
+        },
+        {
+          "primitiveId": "wood",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.966082,
+          "localScore": 0.607,
+          "executionDurationMs": 408.6
+        },
+        {
+          "primitiveId": "air",
+          "inputOrder": 2,
+          "modelRank": 1,
+          "modelScore": 0.929734,
+          "localScore": 0.6069,
+          "executionDurationMs": 316.3
+        }
+      ]
+    },
+    {
+      "prompt": "dogs",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "soft-body",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 767.1,
+      "candidates": [
+        {
+          "primitiveId": "soft-body",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.940292,
+          "localScore": 0.3659,
+          "executionDurationMs": 446.5
+        },
+        {
+          "primitiveId": "collision",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.828678,
+          "localScore": 0.3646,
+          "executionDurationMs": 320.6
+        }
+      ]
+    },
+    {
+      "prompt": "flowers",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "wood",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 810.9,
+      "candidates": [
+        {
+          "primitiveId": "wood",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.955012,
+          "localScore": 0.5011,
+          "executionDurationMs": 415.8
+        },
+        {
+          "primitiveId": "leaf",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.93832,
+          "localScore": 0.5195,
+          "executionDurationMs": 395.1
+        }
+      ]
+    },
+    {
+      "prompt": "trees and mountaints",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "wood",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 844.1,
+      "candidates": [
+        {
+          "primitiveId": "wood",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.952813,
+          "localScore": 0.5345,
+          "executionDurationMs": 434.1
+        },
+        {
+          "primitiveId": "leaf",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.943724,
+          "localScore": 0.4846,
+          "executionDurationMs": 410
+        }
+      ]
+    },
+    {
+      "prompt": "dogs and cats swimming",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "soft-body",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 796.4,
+      "candidates": [
+        {
+          "primitiveId": "soft-body",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.970108,
+          "localScore": 0.437,
+          "executionDurationMs": 462.7
+        },
+        {
+          "primitiveId": "collision",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.92762,
+          "localScore": 0.4387,
+          "executionDurationMs": 333.7
+        }
+      ]
+    }
+  ]
+}

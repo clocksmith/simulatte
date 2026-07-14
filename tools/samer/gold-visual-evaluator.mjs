@@ -104,9 +104,19 @@ function evaluateMachineGoldRow(result, goldRow) {
     }
   }
   const relations = result.phase6CompositionObligations || [];
+  const phase7Proof = parseProofRows(result.phase7VisualObligationProof);
   for (const expected of goldRow.relations || []) {
     if (!relations.some((row) => row.status === 'preserved' && relationMatches(row.id, expected))) {
       failures.push(failure(`relation:${expected.subjectType}:${expected.kind}:${expected.objectType}`, 'required relation did not reach Phase 6 as preserved'));
+    }
+    if (!phase7Proof.some((row) => (
+      relationMatches(row.obligationId || row.id, expected) && row.status === 'pass' &&
+      row.geometrySatisfied === true && row.pixelSatisfied === true
+    ))) {
+      failures.push(failure(
+        `relation:${expected.subjectType}:${expected.kind}:${expected.objectType}:pixels`,
+        'required relation was not proven against final projected geometry and live pixels'
+      ));
     }
   }
   for (const expected of goldRow.poses || []) {
@@ -227,6 +237,16 @@ function poseMatches(animationKind, expectedPose) {
   if (expectedPose === 'play-interaction') return value === 'play-loop';
   if (expectedPose === 'grasp-hold') return value === 'hold-pose';
   return value.includes(expectedPose);
+}
+
+function parseProofRows(value) {
+  if (Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(String(value || '[]'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function failure(id, reason) {

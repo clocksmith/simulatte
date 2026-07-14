@@ -3,8 +3,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { doppler } from '../../../doppler/src/index.js';
-import { bootstrapNodeWebGPU } from '../../../doppler/src/tooling/node-webgpu.js';
+import { doppler } from '../../public/vendor/doppler/src/index.js';
+import { bootstrapNodeWebGPU } from '../../public/vendor/doppler/src/tooling/node-webgpu.js';
 import { lockedEmbeddingModel, modelRuntimeLockHash, readModelRuntimeLock } from '../model-runtime-lock-utils.mjs';
 
 const require = createRequire(import.meta.url);
@@ -13,6 +13,7 @@ const missionApi = require('../../public/mission/mission-compiler.js');
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
 const INDEX_PATH = path.join(ROOT, 'public/data/autonomy/place-embedding-index-v1.json');
+const DOPPLER_ENTRY_PATH = path.join(ROOT, 'public/vendor/doppler/src/index.js');
 
 export async function createResolver({ world, embodiment }) {
   const lock = readModelRuntimeLock();
@@ -104,6 +105,11 @@ export async function createResolver({ world, embodiment }) {
         id: lock.id,
         number: lock.number,
         sha256: modelRuntimeLockHash(),
+      },
+      dopplerRuntime: {
+        path: 'public/vendor/doppler/src/index.js',
+        gitSha: lock.doppler.development.gitSha,
+        sha256: crypto.createHash('sha256').update(await fs.readFile(DOPPLER_ENTRY_PATH)).digest('hex'),
       },
       model: {
         id: modelLock.id,

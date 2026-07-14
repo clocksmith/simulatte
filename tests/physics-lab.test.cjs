@@ -786,8 +786,50 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
   assert.ok(executionSummary.totalExecutionDurationMs >= 0);
   assert.ok(executionSummary.meanExecutionDurationMs >= 0);
   assert.ok(executionSummary.maximumExecutionDurationMs >= 0);
+  assert.ok(executionSummary.prefixPreparationDurationMs >= 0);
+  assert.ok(executionSummary.rerankCallDurationMs >= executionSummary.totalExecutionDurationMs);
+  assert.ok(executionSummary.unattributedRerankDurationMs >= 0);
+  assert.ok(normalized.every((row) => row.rerankCallDurationMs >= row.executionDurationMs));
   assert.equal(scope.rerankExecutionSummary(scope.normalizeRerankerRows(reusedRows)).prefixStateReuseCount, 2);
   assert.equal(scope.rerankExecutionSummary(scope.normalizeRerankerRows(cachedRows)).scoreCacheHitCount, 2);
+});
+
+test('bounded retrieval heaps preserve full-sort surface and universe ranking', () => {
+  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const query = Float32Array.from([0.8, 0.4, 0.2, 0.1]);
+  const surfaceDocuments = Array.from({ length: 17 }, (_, index) => ({
+    cardId: `card-${String(index).padStart(2, '0')}`,
+    vector: Float32Array.from([index / 20, (17 - index) / 20, index % 3 / 4, 0.1]),
+  }));
+  const surfaceIndex = { id: 'surface-fixture', embedModelId: 'fixture', documents: surfaceDocuments };
+  const expectedSurface = surfaceDocuments.map((doc) => {
+    const score = scope.clamp01(scope.dot(query, doc.vector));
+    return { cardId: doc.cardId, score: Number(score.toFixed(4)) };
+  }).filter((row) => row.score >= 0.22)
+    .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId)).slice(0, 5);
+  const actualSurface = scope.rankSurfaceCards(surfaceIndex, query, { maxCards: 5, minCardScore: 0.22 });
+  assert.deepEqual(actualSurface.map(({ cardId, score }) => ({ cardId, score })), expectedSurface);
+
+  const universeDocuments = Array.from({ length: 23 }, (_, index) => ({
+    id: `concept-${String(index).padStart(2, '0')}`,
+    label: index % 5 === 0 ? `airplane concept ${index}` : `unrelated concept ${index}`,
+    featureVector: Float32Array.from([index / 24, (23 - index) / 24, index % 4 / 4, 0.25]),
+  }));
+  const universeIndex = { featureDim: 4, documents: universeDocuments };
+  const prompt = 'airplane over trees';
+  const tokens = scope.promptTokens(prompt);
+  const ranking = {
+    featureQuery: scope.featureQueryForIndex(universeIndex, prompt, new Map()),
+    queryVector: query,
+  };
+  const expectedUniverse = universeDocuments.map((doc) => (
+    scope.universeCandidateForDocument(doc, 'concepts', tokens, ranking)
+  )).filter((row) => row.score >= 0.16 || row.lexicalScore > 0)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).slice(0, 4);
+  const actualUniverse = scope.rankUniverseIndexes({ id: 'universe-fixture', indexes: {
+    concepts: universeIndex,
+  } }, prompt, query, { maxUniverse: 8, minUniverseScore: 0.16 });
+  assert.deepEqual(actualUniverse.byIndex.concepts, expectedUniverse);
 });
 
 test('required selected-token reranking fails closed on an incomplete Doppler handle', () => {
@@ -1575,7 +1617,9 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
     const phase5 = lab.runPhase5SimulationCompile(phase4);
     const phase6 = lab.runPhase6VisualCompile(phase5);
     const entities = phase6.artifact.visualCompile.sceneRenderPacket.entities;
-    assert.equal(entities.length, 3);
+    assert.equal(entities.length, 5);
+    assert.equal(entities.filter((row) => row.identity.type === 'dog').length, 2);
+    assert.equal(entities.filter((row) => row.identity.type === 'cat').length, 2);
     assert.ok(entities.find((row) => row.identity.type === 'dog').geometry.program.parts.some((row) => row.id === 'tail'));
     assert.equal(entities.find((row) => row.identity.type === 'lake').material.id, 'water');
 

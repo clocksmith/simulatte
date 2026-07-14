@@ -19,7 +19,7 @@
         for (const relation of relations) applySpatialConstraint(relation, states, applied);
         separateUnrelatedObjects(states, relations);
         states.forEach(clampLayoutState);
-        enforceHardContainment(relations);
+        enforceHardSpatialRelations(relations);
         states.forEach(clampLayoutState);
       }
       return states.map((state) => {
@@ -476,8 +476,15 @@
       b.relationRoles.add(`${type}:target`);
     }
 
-    function enforceHardContainment(relations = []) {
+    function enforceHardSpatialRelations(relations = []) {
       for (const relation of relations) {
+        if (relation.spatialRelation === 'seated-on') {
+          const seated = relation.from;
+          const support = relation.to;
+          seated.x = support.x;
+          seated.y = support.y - support.h * 0.08 - seated.h * 0.16;
+          continue;
+        }
         let inner = null;
         let outer = null;
         if (['in', 'inside', 'into', 'within'].includes(relation.spatialRelation)) {

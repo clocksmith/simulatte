@@ -596,6 +596,7 @@
               promptTokenCount: row.promptTokenCount || 0,
               prefixTokenCount: row.prefixTokenCount || 0,
               prefixStateReused: row.prefixStateReused === true,
+              prefixPreparationDurationMs: row.prefixPreparationDurationMs || 0,
               executionDurationMs: row.executionDurationMs || 0,
             });
             input.onProgress({ completed: 0, total: input.candidates.length });

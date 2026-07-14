@@ -535,7 +535,10 @@
       }
 
     function combustionFuelDomain(a, b) {
-        return [a, b].find((domain) => domain && hasTag(domain, 'fuel-material'));
+        return [a, b].find((domain) => domain && (
+          hasTag(domain, 'fuel-material') || hasTag(domain, 'fuel-environment') ||
+          ['biomass', 'wood', 'fuel'].includes(String(domain.materialId || ''))
+        ));
       }
 
     function fluidDomain(a, b) { return [a, b].find((domain) => domain && domain.kind === 'fluid'); }

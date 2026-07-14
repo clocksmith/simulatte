@@ -21,7 +21,7 @@
       "prompt": "airplane flying over trees",
       "entities": [
         { "type": "airplane", "count": 1 },
-        { "type": "tree", "minimumCount": 1 }
+        { "type": "tree", "minimumCount": 2 }
       ],
       "relations": [
         { "subjectType": "airplane", "kind": "above", "objectType": "tree" }

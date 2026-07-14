@@ -759,7 +759,7 @@ test('prototype concrete noun slots preserve exact construction graphs for synta
   const cases = [
     ['violin on stool', 'entity:violin', 'construction.resonant-instrument', 'resonant-instrument', ''],
     ['violin on stool', 'entity:stool', 'construction.stool', 'stool', ''],
-    ['octopus holding teapot', 'entity:octopus', 'construction.cephalopod', 'cephalopod', ''],
+    ['octopus holding teapot', 'entity:octopus', 'entity.octopus', 'cephalopod', ''],
     ['octopus holding teapot', 'entity:teapot', 'construction.teapot', 'teapot', ''],
   ];
 
@@ -818,8 +818,20 @@ test('direct prompt objects outrank inferred scene tags and remain peer-scale be
     row.sourceId === 'prompt-body-violin' && row.targetId === 'prompt-body-stool'
   ));
   assert.ok(violinContact, 'the on relation compiles a realized surface-contact receipt');
-  assert.ok(violinContact.clearanceAfter >= 0 && violinContact.clearanceAfter <= 0.005,
-    'visible violin geometry rests on the visible stool surface with minimal clearance');
+  assert.ok(violinContact.clearanceAfter >= -0.005 && violinContact.clearanceAfter <= -0.003,
+    'visible violin geometry rests inside the visible stool edge without a rasterized gap');
+  assert.equal(violinContact.contactInset, 0.004);
+  const violinProgram = violinPacket.entities.find((row) => row.identity.type === 'violin').geometry.program;
+  const violinParts = new Map(violinProgram.parts.map((part) => [part.id, part]));
+  assert.ok(['upper-bout', 'waist', 'lower-bout', 'neck', 'bridge', 'soundhole-left', 'soundhole-right']
+    .every((partId) => violinParts.has(partId)), 'the instrument topology names its recognizable silhouette parts');
+  assert.equal(violinProgram.parts.filter((part) => /^string-\d+$/.test(part.id)).length, 4);
+  assert.ok(violinParts.get('upper-bout').center[1] < violinParts.get('lower-bout').center[1]);
+  assert.ok(violinParts.get('upper-bout').size[0] < violinParts.get('lower-bout').size[0]);
+  assert.ok(violinParts.get('neck').center[1] < violinParts.get('upper-bout').center[1]);
+  const stoolProgram = violinPacket.entities.find((row) => row.label === 'stool').geometry.program;
+  assert.ok(stoolProgram.parts.some((part) => part.id === 'seat'));
+  assert.equal(stoolProgram.parts.filter((part) => /^leg-\d+$/.test(part.id)).length, 4);
 
   const pair = excavator.renderProgram.sceneRenderPacket.entities;
   const widths = pair.map((row) => row.transform.scale[0]);
@@ -835,6 +847,28 @@ test('direct prompt objects outrank inferred scene tags and remain peer-scale be
   const bucket = excavatorProgram.parts.find((part) => part.constructionRole === 'panel');
   assert.ok(boom[0].rotation > 0 && boom[1].rotation < 0, 'boom links form an articulated elbow');
   assert.ok(bucket && bucket.rotation > boom[1].rotation, 'bucket follows the boom endpoint orientation');
+
+  const octopusPacket = octopus.renderProgram.sceneRenderPacket;
+  const grasp = octopusPacket.receipts.framing.graspContacts.find((row) => (
+    row.constraintId === 'relation:entity-octopus:holding:entity-teapot'
+  ));
+  assert.ok(grasp, 'holding compiles a visible part-to-part grasp receipt');
+  assert.equal(grasp.targetPartId, 'handle');
+  assert.equal(grasp.sourcePartIds.length, 2);
+  assert.ok(grasp.endpointDistanceAfter <= 0.005);
+  const teapotProgram = octopusPacket.entities.find((row) => row.identity.type === 'teapot').geometry.program;
+  const teapotParts = new Map(teapotProgram.parts.map((part) => [part.id, part]));
+  const potBody = teapotParts.get('pot-body');
+  const spout = teapotParts.get('spout');
+  const handle = teapotParts.get('handle');
+  assert.ok(spout.center[0] + spout.size[0] * 0.5 < potBody.center[0] + potBody.size[0] * 0.5);
+  assert.ok(spout.center[0] - spout.size[0] * 0.5 < potBody.center[0] - potBody.size[0] * 0.5);
+  assert.ok(handle.center[0] + handle.size[0] * 0.5 > potBody.center[0] + potBody.size[0] * 0.5);
+  const octopusProgram = octopusPacket.entities.find((row) => row.identity.type === 'octopus').geometry.program;
+  const tentacles = octopusProgram.parts.filter((part) => /^tentacle-\d+$/.test(part.id));
+  assert.equal(tentacles.length, 8);
+  assert.deepEqual(tentacles.filter((part) => part.interactionConstraintIds?.includes(grasp.constraintId))
+    .map((part) => part.id).sort(), grasp.sourcePartIds.slice().sort());
 });
 
 test('counted instances remain individually readable and constructive parts stay in local bounds', () => {

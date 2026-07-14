@@ -21,17 +21,23 @@
 
   const CONSTRUCTION_TOPOLOGIES = Object.freeze([
     topology('cephalopod', ['ground.swimmer-body'], [
-      node('core', 1, 'ellipse', [[0.48, 0.4]]),
-      node('appendage', 8, 'capsule', [[0.38, 0.095]]),
-      node('sensor', 2, 'ellipse', [[0.075, 0.075]]),
+      node('core', 1, 'ellipse', [[0.42, 0.52]], ['mantle']),
+      node('appendage', 8, 'capsule', [[0.38, 0.095]], [
+        'tentacle-1', 'tentacle-2', 'tentacle-3', 'tentacle-4',
+        'tentacle-5', 'tentacle-6', 'tentacle-7', 'tentacle-8',
+      ]),
+      node('sensor', 2, 'ellipse', [[0.075, 0.075]], ['eye-left', 'eye-right']),
     ], ['radial:appendage:core:below', 'attach:sensor:core:front'], [
       'octopus', 'squid', 'cephalopod', 'tentacle',
     ], 'medium'),
     topology('resonant-instrument', ['ground.wave-event'], [
-      node('core', 3, ['ellipse', 'rounded-box', 'ellipse'], [[0.42, 0.32], [0.25, 0.24], [0.52, 0.4]]),
-      node('appendage', 1, 'capsule', [[0.48, 0.075]]), node('path', 4, 'capsule', [[0.8, 0.025]]),
-      node('support', 1, 'rounded-box', [[0.22, 0.07]]), node('detail', 2, 'rounded-box', [[0.14, 0.06]]),
-    ], ['stack:core::contour', 'attach:appendage:core:top', 'span:path:core:appendage', 'attach:support:core:center', 'attach:detail:appendage:top'], [
+      node('core', 3, ['ellipse', 'rounded-box', 'ellipse'], [[0.34, 0.3], [0.2, 0.2], [0.46, 0.4]], ['upper-bout', 'waist', 'lower-bout']),
+      node('appendage', 1, 'capsule', [[0.48, 0.075]], ['neck']),
+      node('path', 4, 'capsule', [[0.8, 0.018]], ['string-1', 'string-2', 'string-3', 'string-4']),
+      node('detail', 1, 'rounded-box', [[0.24, 0.055]], ['bridge']),
+      node('opening', 2, 'capsule', [[0.18, 0.025]], ['soundhole-left', 'soundhole-right']),
+      node('joint', 2, 'rounded-box', [[0.07, 0.03]], ['tuning-peg-left', 'tuning-peg-right']),
+    ], ['stack:core::contour', 'attach:appendage:core:top', 'span:path:core:appendage', 'attach:detail:core:center', 'mirror:opening:core:inner-sides', 'attach:joint:appendage:top-close'], [
       'resonant body', 'acoustic device', 'musical instrument', 'violin', 'guitar', 'string', 'membrane',
     ], 'small'),
     topology('resonant-cavity', ['ground.wave-event', 'ground.electrical-network'], [
@@ -150,13 +156,15 @@
       node('core', 1), node('opening', 1), node('appendage', 1), node('detail', 1),
     ], ['inside:opening:core', 'attach:appendage:core:side'], ['container', 'vessel', 'hollow boundary']),
     topology('stool', ['ground.household-object'], [
-      node('core', 1, 'rounded-box', [[0.78, 0.2]]), node('support', 4, 'capsule', [[0.42, 0.07]]),
+      node('core', 1, 'rounded-box', [[0.78, 0.2]], ['seat']),
+      node('support', 4, 'capsule', [[0.42, 0.07]], ['leg-1', 'leg-2', 'leg-3', 'leg-4']),
     ], ['mirror:support:core:below'], ['stool'], 'small'),
     topology('teapot', ['ground.container'], [
-      node('core', 1, 'ellipse', [[0.58, 0.46]]), node('opening', 1, 'ring', [[0.2, 0.12]]),
-      node('appendage', 2, ['capsule', 'ring'], [[0.4, 0.08], [0.3, 0.3]]),
-      node('detail', 1, 'rounded-box', [[0.14, 0.1]]),
-    ], ['attach:opening:core:top', 'mirror:appendage:core:sides', 'attach:detail:opening:top'], ['teapot', 'kettle'], 'small'),
+      node('core', 1, 'ellipse', [[0.58, 0.46]], ['pot-body']),
+      node('opening', 1, 'ring', [[0.2, 0.12]], ['lid-rim']),
+      node('appendage', 2, ['triangle', 'ring'], [[0.54, 0.16], [0.46, 0.48]], ['spout', 'handle']),
+      node('detail', 1, 'rounded-box', [[0.14, 0.1]], ['lid-knob']),
+    ], ['attach:opening:core:top', 'mirror:appendage:core:outer-sides', 'attach:detail:opening:top'], ['teapot', 'kettle'], 'small'),
     topology('fluid-system', ['ground.fluid-network', 'ground.thermal-fluid-machine'], [
       node('path', 4), node('joint', 3), node('core', 2), node('sensor', 2),
     ], ['network:path:joint', 'attach:core:path', 'attach:sensor:joint'], ['fluid network', 'connected channels', 'pipe valve pump']),
@@ -169,6 +177,31 @@
     topology('natural-environment', ['ground.natural-environment', 'ground.granular-terrain', 'ground.fluid-domain'], [
       node('field', 3), node('path', 2), node('detail', 4),
     ], ['stack:field', 'through:path:field', 'scatter:detail:field'], ['natural environment', 'terrain', 'fluid domain']),
+    topology('ocean-wave', ['ground.wave-event', 'ground.fluid-domain'], [
+      node('field', 3, 'wave', [[0.92, 0.28], [0.82, 0.2], [0.72, 0.14]]),
+      node('path', 2, 'capsule', [[0.78, 0.04]]), node('detail', 4, 'ellipse', [[0.07, 0.04]]),
+    ], ['stack:field::contour', 'parallel:path:field', 'scatter:detail:field'], [
+      'waves', 'wave', 'ocean wave', 'ocean waves', 'wavefront',
+    ], 'large'),
+    topology('sea-ice', ['ground.natural-environment', 'ground.fluid-domain'], [
+      node('panel', 4, 'rounded-box', [[0.42, 0.3], [0.36, 0.27]]),
+      node('path', 3, 'capsule', [[0.54, 0.035]]), node('detail', 3, 'triangle', [[0.12, 0.1]]),
+    ], ['scatter:panel', 'through:path:panel', 'scatter:detail:panel'], [
+      'sea ice', 'sea-ice', 'ice floe', 'ice floes', 'floe field',
+    ], 'large'),
+    topology('fjord', ['ground.natural-environment', 'ground.fluid-domain'], [
+      node('field', 1, 'wave', [[0.82, 0.42]]), node('support', 2, 'triangle', [[0.4, 0.78]]),
+      node('path', 2, 'capsule', [[0.58, 0.05]]), node('detail', 2, 'rounded-box', [[0.22, 0.14]]),
+    ], ['inside:field:support', 'mirror:support:field:sides', 'parallel:path:field', 'attach:detail:support'], [
+      'fjord', 'fjords', 'glacial basin', 'cliff walls',
+    ], 'large'),
+    topology('glacier', ['ground.natural-environment', 'ground.granular-terrain'], [
+      node('core', 3, ['triangle', 'rounded-box'], [[0.7, 0.58], [0.48, 0.3]]),
+      node('path', 3, 'capsule', [[0.46, 0.035]]), node('field', 1, 'wave', [[0.52, 0.12]]),
+      node('detail', 2, 'triangle', [[0.18, 0.2]]),
+    ], ['stack:core::contour', 'through:path:core', 'attach:field:core:below', 'scatter:detail:core'], [
+      'glacier', 'glaciers', 'ice mass', 'ice tongue', 'crevasse',
+    ], 'large'),
     topology('operations-environment', ['ground.operations-scene'], [
       node('core', 3), node('path', 3), node('sensor', 3), node('detail', 4),
     ], ['grid:core', 'network:path:core', 'attach:sensor:core'], ['operations scene', 'service network', 'queue', 'logistics']),
@@ -194,11 +227,18 @@
     ], ['network:path:joint', 'inside:joint:field', 'through:path:field'], [
       'fiber network', 'gluten strands', 'filament mesh', 'polymer strands', 'woven fibers',
     ]),
+    topology('molecular-chain', ['ground.flexible-cable', 'ground.biological-tissue'], [
+      node('path', 8, 'capsule', [[0.24, 0.035]]), node('joint', 7, 'ellipse', [[0.075, 0.075]]),
+      node('detail', 6, 'ring', [[0.1, 0.1]]), node('field', 2, 'ellipse', [[0.68, 0.5]]),
+    ], ['chain:path', 'pair:joint:path:chain-ends', 'pair:detail:joint', 'surround:field:path'], [
+      'molecular chain', 'protein', 'protein folding', 'protein chain', 'amino acid chain', 'polypeptide',
+    ], 'microscopic'),
     topology('particle-cloud', ['ground.material-sample', 'ground.fluid-domain'], [
       node('detail', 10, 'ellipse', [[0.07, 0.07]]), node('field', 3, 'ellipse', [[0.64, 0.46]]),
       node('path', 2, 'capsule', [[0.4, 0.025]]),
     ], ['scatter:detail:field', 'stack:field::contour', 'through:path:field'], [
-      'particle cloud', 'metabolites', 'soot particles', 'suspended matter', 'aerosol', 'molecular exchange',
+      'particle cloud', 'plume', 'collision plume', 'smoke plume', 'thermal plume',
+      'metabolites', 'soot particles', 'suspended matter', 'aerosol', 'molecular exchange',
     ], 'microscopic'),
     topology('supported-surface', ['ground.household-object', 'ground.material-sample'], [
       node('core', 1), node('support', 4), node('opening', 1), node('detail', 2),
@@ -220,12 +260,13 @@
     return Object.freeze({ id, terms: Object.freeze(terms), primitive });
   }
 
-  function node(roleId, count, primitive = '', sizes = []) {
+  function node(roleId, count, primitive = '', sizes = [], partIds = []) {
     return Object.freeze({
       roleId,
       count,
       primitive: Array.isArray(primitive) ? Object.freeze(primitive) : primitive,
       sizes: Object.freeze(sizes.map((size) => Object.freeze(size))),
+      partIds: Object.freeze(partIds),
     });
   }
 
