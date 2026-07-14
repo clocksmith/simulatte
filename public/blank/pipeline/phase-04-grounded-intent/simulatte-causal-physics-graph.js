@@ -22,7 +22,8 @@
     relation('causal.gravity-drives-sediment', ['gravity', 'slope', 'hill'], ['sand', 'sediment', 'soil', 'rock'], 'fluidForce', 'pressure_flow_lite', 'gravity pulls grains through terrain channels'),
     relation('causal.river-erodes-sediment', ['rain', 'river', 'water', 'runoff', 'storm surge', 'surge'], ['soil', 'sand', 'terrain', 'delta', 'basalt', 'sediment', 'shoreline', 'coast'], 'erosion', 'pressure_flow_lite', 'water flow removes and transports surface material'),
     relation('causal.magnet-deflects-ferrofluid', ['magnet', 'magnetic', 'electric', 'field', 'coil'], ['ferrofluid', 'ion', 'electron', 'plasma', 'charge'], 'fieldForce', 'wave_field', 'field gradients deflect charged or magnetized matter'),
-    relation('causal.lens-refracts-beam', ['light', 'laser', 'beam'], ['glass', 'lens', 'prism', 'water'], 'refraction', 'wave_field', 'optical field bends through refractive media'),
+    relation('causal.lens-refracts-beam', ['light', 'laser', 'beam', 'lamp', 'sunlight'], ['lens', 'prism', 'water'], 'refraction', 'wave_field', 'optical field bends through refractive media'),
+    relation('causal.thin-film-forms-interference', ['thin film', 'soap film', 'film thickness'], ['iridescent interference', 'interference', 'iridescence'], 'refraction', 'wave_field', 'path length through a thin film shifts reflected phase and produces iridescent interference'),
     relation('causal.laser-heats-metal', ['laser', 'beam', 'hot spot'], ['metal', 'copper', 'plate', 'steel'], 'heatTransfer', 'heat_transfer', 'focused optical power raises local metal temperature'),
     relation('causal.impact-fractures-glass', ['projectile', 'hammer', 'impact', 'collision', 'crash'], ['glass', 'wall', 'rock', 'metal', 'ice'], 'collision', 'rigid_collision', 'impulse transfers stress and damage'),
     relation('causal.speaker-drives-air-wave', ['speaker', 'piano', 'oscillator', 'vibration'], ['air', 'water', 'bridge', 'membrane'], 'waveCoupling', 'wave_field', 'oscillation launches a pressure or displacement wave'),
@@ -231,20 +232,51 @@
         targetLabel: target.label,
         mechanism: rule.mechanism,
         primitiveHints: primitiveHintsForEvidence(evidenceRows, evidence),
-        evidence: uniqueStrings([...evidence, ...(promptHit ? ['prompt-text'] : [])]),
+        evidence: uniqueStrings([
+          ...evidence, `causal-rule:${rule.id}`, ...(promptHit ? ['prompt-text'] : []),
+        ]),
         confidence: promptHit ? 0.86 : 0.62,
       });
     }
+    const acceptedEdges = uniqueEdges([...edges, ...phaseEdgesFromAcceptedHeat(edges)]);
     return {
       schema: 'simulatte.causalPhysicsGraph.v1',
       nodes,
-      edges: uniqueEdges(edges).slice(0, 32),
+      edges: acceptedEdges.slice(0, 32),
       coverage: {
         candidateNodes: nodes.length,
-        edgeCount: uniqueEdges(edges).length,
+        edgeCount: acceptedEdges.length,
         ruleCount: CAUSAL_RELATION_RULES.length,
       },
     };
+  }
+
+  function phaseEdgesFromAcceptedHeat(edges = []) {
+    return edges.flatMap((edge, index) => {
+      if (edge.operatorType !== 'heat_transfer') return [];
+      const rule = CAUSAL_RELATION_RULES.find((candidate) => (
+        candidate.operatorType === 'phase_transition' &&
+        candidate.sources.includes('heat') && termsHit(edge.targetLabel, candidate.targets)
+      ));
+      if (!rule) return [];
+      return [{
+        id: `${rule.id}.derived.${index + 1}`,
+        ruleId: rule.id,
+        relationType: rule.relationType,
+        processId: processIdForRelation(rule.relationType),
+        operatorType: rule.operatorType,
+        sourceRef: edge.sourceRef,
+        targetRef: edge.targetRef,
+        sourceLabel: edge.sourceLabel,
+        targetLabel: edge.targetLabel,
+        mechanism: rule.mechanism,
+        primitiveHints: edge.primitiveHints || [],
+        evidence: [`causal-rule:${rule.id}`, `causal-edge:${edge.id}`],
+        confidence: Math.min(Number(edge.confidence || 0.66), 0.82),
+        inferred: true,
+        derivedFromEdgeId: edge.id,
+      }];
+    });
   }
 
   function languageEvidenceText(input = {}) {

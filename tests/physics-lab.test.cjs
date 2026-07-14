@@ -1056,11 +1056,12 @@ test('prompt reranking covers construction evidence before unrelated local-score
   }, 8);
 
   assert.equal(selection.mode, 'construction-evidence-round-robin');
-  assert.equal(selection.evidenceCandidateCount, 4);
+  assert.equal(selection.candidateBudgetPolicy, 'one-per-construction-group-minimum-two');
+  assert.equal(selection.evidenceCandidateCount, 2);
   assert.equal(selection.evidenceGroupCount, 2);
-  assert.equal(selection.candidateBudget, 4);
+  assert.equal(selection.candidateBudget, 2);
   assert.deepEqual(selection.priors.map((row) => row.primitiveId), [
-    'soft-body', 'gravity', 'collision', 'radiation',
+    'soft-body', 'gravity',
   ]);
 });
 
@@ -1118,67 +1119,91 @@ test('Phase 1 loads Doppler embedding from the verified cached manifest source',
   });
 });
 
-test('Phase 1 overlaps required Doppler embedding and reranker loads', async () => {
+test('Phase 1 prepares 9-shard and 14-shard sources before serialized Doppler loads', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
     const query = indexedVector(index, 'optics-bench');
+    const sourceRoles = [];
     const loadRoles = [];
-    let embeddingResolved = false;
-    let rerankerStartedBeforeEmbeddingResolved = false;
     let deviceInitCalls = 0;
-    let releaseEmbedding = null;
-    let releaseReranker = null;
-    let resolveBothStarted = null;
-    const bothStarted = new Promise((resolve) => {
-      resolveBothStarted = resolve;
-    });
-    const markStarted = () => {
-      if (loadRoles.length === 2) resolveBothStarted();
+    let activeSourcePreparations = 0;
+    let sourcePreparationOverlap = false;
+    let activeLoads = 0;
+    let modelLoadOverlap = false;
+    let releaseEmbeddingSource;
+    let releaseRerankerSource;
+    let releaseEmbeddingLoad;
+    let embeddingSourceStarted;
+    let rerankerSourceStarted;
+    let embeddingLoadStarted;
+    const embeddingSourceReady = new Promise((resolve) => { embeddingSourceStarted = resolve; });
+    const rerankerSourceReady = new Promise((resolve) => { rerankerSourceStarted = resolve; });
+    const embeddingLoadReady = new Promise((resolve) => { embeddingLoadStarted = resolve; });
+    const storageModule = {
+      async ensureModelCachedSource(modelId, modelBaseUrl, onProgress, options = {}) {
+        const role = modelId === manifest.embedModel.id ? 'embedding' : 'reranker';
+        const shardCount = role === 'embedding' ? 9 : 14;
+        sourceRoles.push(`${role}:${shardCount}`);
+        sourcePreparationOverlap ||= activeSourcePreparations > 0;
+        activeSourcePreparations += 1;
+        const release = await new Promise((resolve) => {
+          if (role === 'embedding') {
+            releaseEmbeddingSource = resolve;
+            embeddingSourceStarted();
+          } else {
+            releaseRerankerSource = resolve;
+            rerankerSourceStarted();
+          }
+        });
+        activeSourcePreparations -= 1;
+        const manifestHash = options.expectedManifestHash.hex || options.expectedManifestHash;
+        onProgress?.({ stage: 'cache-hit', modelId, percent: 100, totalBytes: shardCount });
+        return {
+          cached: true,
+          fromCache: true,
+          cacheState: 'verified-hit',
+          modelId,
+          manifest: { modelId, shards: Array.from({ length: shardCount }, (_, index) => ({ index })) },
+          manifestText: JSON.stringify({ modelId, shardCount }),
+          manifestHash,
+          storageBackend: 'opfs',
+          storageContext: { async close() {} },
+          totalBytes: shardCount,
+          release,
+        };
+      },
+    };
+    const embeddingHandle = {
+      modelId: manifest.embedModel.id,
+      manifest: { manifestHash: manifest.embedModel.manifestHash },
+      async embed(prompt) {
+        return { embedding: probeAwareVector(index, prompt, query) };
+      },
+    };
+    const rerankerHandle = {
+      modelId: manifest.reranker.model.id,
+      manifest: {
+        manifestHash: manifest.reranker.model.manifestHash,
+        inference: { rerank: { trueTokenId: 1, falseTokenId: 0 } },
+      },
+      rerank(input = {}) {
+        return (input.candidates || []).map((candidate, order) => ({
+          primitiveId: candidate.primitiveId,
+          score: Number((1 - order * 0.1).toFixed(6)),
+        }));
+      },
     };
     const dopplerModule = {
       async load(model, options = {}) {
-        const url = String(model && (model.baseUrl || model.url) || '');
-        if (url === manifest.embedModel.defaultModelBaseUrl) {
-          loadRoles.push(`embedding:${options.isolatedLoader === true ? 'isolated' : 'shared'}`);
-          markStarted();
-          return new Promise((resolve) => {
-            releaseEmbedding = () => {
-              embeddingResolved = true;
-              resolve({
-                modelId: manifest.embedModel.id,
-                manifest: { manifestHash: manifest.embedModel.manifestHash },
-                async embed(prompt) {
-                  return { embedding: probeAwareVector(index, prompt, query) };
-                },
-              });
-            };
-          });
+        const role = model.baseUrl === manifest.embedModel.defaultModelBaseUrl ? 'embedding' : 'reranker';
+        loadRoles.push(`${role}:${options.isolatedLoader === true ? 'isolated' : 'shared'}`);
+        modelLoadOverlap ||= activeLoads > 0;
+        activeLoads += 1;
+        if (role === 'embedding') {
+          embeddingLoadStarted();
+          await new Promise((resolve) => { releaseEmbeddingLoad = resolve; });
         }
-        if (url === manifest.reranker.model.defaultModelBaseUrl) {
-          rerankerStartedBeforeEmbeddingResolved = !embeddingResolved;
-          loadRoles.push(`reranker:${options.isolatedLoader === true ? 'isolated' : 'shared'}`);
-          markStarted();
-          return new Promise((resolve) => {
-            releaseReranker = () => resolve({
-              modelId: manifest.reranker.model.id,
-              manifest: {
-                manifestHash: manifest.reranker.model.manifestHash,
-                inference: {
-                  rerank: {
-                    trueTokenId: 1,
-                    falseTokenId: 0,
-                  },
-                },
-              },
-              rerank(input = {}) {
-                return (input.candidates || []).map((candidate, order) => ({
-                  primitiveId: candidate.primitiveId,
-                  score: Number((1 - order * 0.1).toFixed(6)),
-                }));
-              },
-            });
-          });
-        }
-        throw new Error(`unexpected Doppler model URL ${url}`);
+        activeLoads -= 1;
+        return role === 'embedding' ? embeddingHandle : rerankerHandle;
       },
     };
     const embedder = intentEmbedder.create({
@@ -1190,22 +1215,128 @@ test('Phase 1 overlaps required Doppler embedding and reranker loads', async () 
           return { label: 'shared-test-device' };
         },
       },
-      dopplerStorageModule: testDopplerStorageModule(),
+      dopplerStorageModule: storageModule,
     });
 
     const loadPromise = embedder.loadModel();
-    await bothStarted;
-
-    assert.deepEqual(loadRoles.sort(), ['embedding:isolated', 'reranker:isolated']);
-    assert.equal(embeddingResolved, false);
-    assert.equal(rerankerStartedBeforeEmbeddingResolved, true);
-    assert.equal(deviceInitCalls, 1);
-    releaseEmbedding();
-    releaseReranker();
+    await embeddingSourceReady;
+    assert.deepEqual(sourceRoles, ['embedding:9']);
+    assert.deepEqual(loadRoles, []);
+    releaseEmbeddingSource();
+    await rerankerSourceReady;
+    assert.deepEqual(sourceRoles, ['embedding:9', 'reranker:14']);
+    assert.deepEqual(loadRoles, []);
+    releaseRerankerSource();
+    await embeddingLoadReady;
+    assert.deepEqual(loadRoles, ['embedding:isolated']);
+    releaseEmbeddingLoad();
     const runtime = await loadPromise;
 
+    assert.deepEqual(loadRoles, ['embedding:isolated', 'reranker:isolated']);
+    assert.equal(sourcePreparationOverlap, false);
+    assert.equal(modelLoadOverlap, false);
+    assert.equal(deviceInitCalls, 1);
     assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
     assert.equal(runtime.promptRuntimeReceipt.rerankerReady, true);
+    const receipt = runtime.promptRuntimeReceipt.modelPreparation;
+    assert.equal(receipt.policy, 'prepare-all-sources-then-load-embedding-before-reranker');
+    assert.deepEqual(receipt.sourceOrder, ['embedding', 'reranker']);
+    assert.deepEqual(receipt.loadOrder.map((row) => row.role), ['embedding', 'reranker']);
+    assert.ok([...receipt.sourcePreparations, ...receipt.loadOrder].every((row) => row.overlap === false));
+    assert.ok([...receipt.sourcePreparations, ...receipt.loadOrder].every((row) => row.queueWaitMs >= 0));
+  }, { rerankProvider: null });
+});
+
+test('Phase 1 preserves the preparation receipt when the second model source fails', async () => {
+  await withIntentArtifactFetch(async ({ manifest }) => {
+    let loadCalls = 0;
+    let embeddingContextCloseCalls = 0;
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModule: { async load() { loadCalls += 1; } },
+      dopplerDeviceModule: testDopplerDeviceModule(),
+      dopplerStorageModule: {
+        async ensureModelCachedSource(modelId, _modelBaseUrl, _onProgress, options = {}) {
+          if (modelId === manifest.reranker.model.id) throw new Error('reranker source rejected');
+          const manifestHash = options.expectedManifestHash.hex || options.expectedManifestHash;
+          return {
+            cached: true,
+            fromCache: true,
+            cacheState: 'verified-hit',
+            modelId,
+            manifest: { modelId, shards: Array.from({ length: 9 }, (_, index) => ({ index })) },
+            manifestText: JSON.stringify({ modelId, shardCount: 9 }),
+            manifestHash,
+            storageBackend: 'opfs',
+            storageContext: { async close() { embeddingContextCloseCalls += 1; } },
+            totalBytes: 9,
+          };
+        },
+      },
+    });
+
+    let rejectedError = null;
+    await assert.rejects(async () => {
+      try {
+        await embedder.loadModel();
+      } catch (error) {
+        rejectedError = error;
+        throw error;
+      }
+    }, /reranker source rejected/);
+    assert.equal(loadCalls, 0);
+    assert.equal(embeddingContextCloseCalls, 1);
+    const receipt = rejectedError.modelPreparationReceipt || embedder.dopplerModelPreparationReceipt;
+    assert.deepEqual(receipt.sourceOrder, ['embedding', 'reranker']);
+    assert.deepEqual(receipt.sourcePreparations.map((row) => [row.role, row.status]), [
+      ['embedding', 'ready'],
+      ['reranker', 'failed'],
+    ]);
+    assert.deepEqual(receipt.loadOrder, []);
+  }, { rerankProvider: null });
+});
+
+test('Phase 1 closes each prepared model source once when embedding load fails', async () => {
+  await withIntentArtifactFetch(async ({ manifest }) => {
+    const closeCalls = new Map();
+    let loadCalls = 0;
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      dopplerModule: {
+        async load() {
+          loadCalls += 1;
+          throw new Error('embedding load rejected');
+        },
+      },
+      dopplerDeviceModule: testDopplerDeviceModule(),
+      dopplerStorageModule: {
+        async ensureModelCachedSource(modelId, _modelBaseUrl, _onProgress, options = {}) {
+          const shardCount = modelId === manifest.embedModel.id ? 9 : 14;
+          const manifestHash = options.expectedManifestHash.hex || options.expectedManifestHash;
+          return {
+            cached: true,
+            fromCache: true,
+            cacheState: 'verified-hit',
+            modelId,
+            manifest: { modelId, shards: Array.from({ length: shardCount }, (_, index) => ({ index })) },
+            manifestText: JSON.stringify({ modelId, shardCount }),
+            manifestHash,
+            storageBackend: 'opfs',
+            storageContext: {
+              async close() {
+                closeCalls.set(modelId, Number(closeCalls.get(modelId) || 0) + 1);
+              },
+            },
+            totalBytes: shardCount,
+          };
+        },
+      },
+    });
+
+    await assert.rejects(embedder.loadModel(), /embedding load rejected/);
+    assert.equal(loadCalls, 1);
+    assert.equal(closeCalls.get(manifest.embedModel.id), 1);
+    assert.equal(closeCalls.get(manifest.reranker.model.id), 1);
   }, { rerankProvider: null });
 });
 

@@ -11,6 +11,7 @@
       'wave_field',
       'reaction_diffusion',
       'growth_decay',
+      'combustion',
       'network_flow',
       'particle_deposition',
       'fluid_locomotion',

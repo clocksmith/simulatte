@@ -20,6 +20,24 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
     noFallback: true,
     providerReady: true,
     providerBackend: 'doppler-browser-load',
+    cachePrefetch: true,
+    cacheMode: 'opfs',
+    cacheVerified: true,
+    embeddingCacheState: 'verified-hit',
+    rerankerCacheState: 'verified-hit',
+    modelPreparation: {
+      schema: 'simulatte.dopplerModelPreparationReceipt.v1',
+      policy: 'prepare-all-sources-then-load-embedding-before-reranker',
+      sourceOrder: ['embedding', 'reranker'],
+      sourcePreparations: [
+        { role: 'embedding', modelId: 'embed', order: 1, status: 'ready', overlap: false, queueWaitMs: 0, durationMs: 2 },
+        { role: 'reranker', modelId: 'reranker-model', order: 2, status: 'ready', overlap: false, queueWaitMs: 2, durationMs: 3 },
+      ],
+      loadOrder: [
+        { role: 'embedding', modelId: 'embed', order: 1, status: 'ready', overlap: false, queueWaitMs: 0, durationMs: 4 },
+        { role: 'reranker', modelId: 'reranker-model', order: 2, status: 'ready', overlap: false, queueWaitMs: 4, durationMs: 5 },
+      ],
+    },
     modelRuntimeLock: { id: 'runtime-lock', number: 7, artifactHash: 'lock-hash' },
     embeddingModelId: 'embed',
     embeddingModelHash: 'embed-hash',
@@ -93,5 +111,19 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
   assert.throws(
     () => validateVendorInferenceReport(fullLogitFallback, lock, 'lock-hash'),
     /prompt reranking did not exclusively use prefix-selected-token logits/
+  );
+
+  const overlappingLoad = structuredClone(report);
+  overlappingLoad.results[0].modelExecutionReceipt.modelPreparation.loadOrder[1].overlap = true;
+  assert.throws(
+    () => validateVendorInferenceReport(overlappingLoad, lock, 'lock-hash'),
+    /reranker overlapped another model operation/
+  );
+
+  const missingCacheState = structuredClone(report);
+  missingCacheState.results[0].modelExecutionReceipt.rerankerCacheState = '';
+  assert.throws(
+    () => validateVendorInferenceReport(missingCacheState, lock, 'lock-hash'),
+    /cache state is missing/
   );
 });

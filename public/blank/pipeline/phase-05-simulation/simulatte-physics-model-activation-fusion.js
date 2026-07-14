@@ -252,11 +252,14 @@
           }
           return { role: 'support', matchKind: 'open-association-support', reason: 'open component identity lacks prompt evidence' };
         }
-        if (/^embedding-guided-synth-node/.test(source)) {
-          if (phase3RowMatchesTypedIdentitySpan(row, spans)) {
+        if (/^embedding-guided-synth-(?:node|environment)/.test(source)) {
+          if (phase3GeneratedRowMatchesTypedIdentitySpan(row, spans)) {
             return { role: 'candidate', matchKind: 'literal-synth-node', reason: 'synthesized node is prompt object' };
           }
           return { role: 'support', matchKind: 'synth-association-support', reason: 'synthesized row identity lacks prompt evidence' };
+        }
+        if (source === 'embedding-guided-graph-synthesis') {
+          return { role: 'support', matchKind: 'synth-primitive-support', reason: 'synthesized primitive is implementation support' };
         }
         if (source === 'prompt-explicit') {
           return { role: 'candidate', matchKind: 'explicit-primitive', reason: 'primitive id appears in prompt' };
@@ -290,9 +293,21 @@
         const values = [row.phrase, row.label, row.sourceLabel]
           .map((value) => normalizeForEvidence(value))
           .filter((value) => value && !phase3GenericPromptMatchValue(value));
-        return values.some((value) => spanTexts.some((spanText) => (
+      return values.some((value) => spanTexts.some((spanText) => (
           phase3PhraseInPrompt(value, spanText) && phase3PhraseInPrompt(spanText, value)
         )));
+      }
+
+    function phase3GeneratedRowMatchesTypedIdentitySpan(row = {}, spans = []) {
+        const identity = normalizeForEvidence(row.role || row.label || row.id)
+          .replace(/\b(?:a|b|c|\d+)$/, '').trim();
+        if (!identity || phase3GenericPromptMatchValue(identity)) return false;
+        return (spans || [])
+          .filter((span) => /^(entity|environment|material|term)$/.test(span.kind || ''))
+          .map((span) => normalizeForEvidence(span.text))
+          .some((spanText) => (
+            phase3PhraseInPrompt(identity, spanText) && phase3PhraseInPrompt(spanText, identity)
+          ));
       }
 
     function phase3RowDirectlyMatchesPrompt(row = {}, prompt = '', spans = []) {
@@ -910,6 +925,7 @@
       phase3SpanTextById,
       phase3PrimitiveCandidateDecision,
       phase3RowMatchesTypedIdentitySpan,
+      phase3GeneratedRowMatchesTypedIdentitySpan,
       phase3RowDirectlyMatchesPrompt,
       phase3PhraseInPrompt,
       phase3GenericPromptMatchValue,

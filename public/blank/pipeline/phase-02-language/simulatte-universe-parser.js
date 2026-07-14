@@ -17,6 +17,7 @@
   const ENTITY_PHRASES = LANGUAGE_LEXICON.entityPhrases || [];
   const ENTITY_SURFACE_FORMS = new Set(ENTITY_PHRASES.map(([text]) => String(text || '').toLowerCase()));
   const PROCESS_PHRASES = LANGUAGE_LEXICON.processPhrases || [];
+  const BEHAVIOR_PROCESS_LEXICON = LANGUAGE_LEXICON.behaviorProcessLexicon || [];
   const ACTION_POSE_LEXICON = LANGUAGE_LEXICON.actionPoseLexicon || [];
   const MODIFIER_PHRASES = LANGUAGE_LEXICON.modifierPhrases || [];
   const OBSERVABLE_PHRASES = LANGUAGE_LEXICON.observablePhrases || [];
@@ -45,12 +46,12 @@
     const recognized = suppressNestedProcessSpans(resolveEntityProcessCollisions(
       mergeCompatibleOverlappingSpans(dedupeSpans(spans), lower),
       lower
-    ));
+    ), lower);
     addQuantitySpans(recognized, tokenRows);
     addUnmatchedTermSpans(recognized, tokenRows);
     const compact = promoteSyntacticProcessTerms(recognized
       .sort((a, b) => a.start - b.start || b.end - a.end)
-      .map((span, index) => ({ ...span, id: `span${index + 1}` })), tokenRows);
+      .map((span, index) => ({ ...span, id: `span${index + 1}` })), tokenRows, lower);
     const clauses = buildClauses(compact, lower);
     const modifiers = buildModifiers(compact);
     const quantities = buildQuantities(compact);
@@ -200,13 +201,20 @@
 
   function resolveEntityProcessCollisions(spans, lower) {
     const exactCollisions = spans.filter((span) => span.kind === 'process').filter((process) => (
-      spans.some((span) => span.kind === 'entity' && span.start === process.start && span.end === process.end)
+      spans.some((span) => ['entity', 'observable'].includes(span.kind) &&
+        span.start === process.start && span.end === process.end)
     ));
     const verbalKeys = new Set(exactCollisions.filter((process) => {
+      const nonProcess = spans.find((span) => (
+        span.kind !== 'process' && span.start === process.start && span.end === process.end
+      ));
       const prior = spans.filter((span) => (
         ['entity', 'environment'].includes(span.kind) && span.end <= process.start
       )).sort((a, b) => b.end - a.end)[0];
-      if (!prior || lower.slice(prior.end, process.start).trim()) return false;
+      if (!prior) return false;
+      const bridge = lower.slice(prior.end, process.start);
+      if (bridge.trim() && !hasTypedRelationShape(spans, prior, process, lower)) return false;
+      if (nonProcess && nonProcess.kind === 'observable') return true;
       return prior.semanticRole === 'biological-agent' ||
         /^(?:person|people|dog|cat|animal|mammal)$/.test(String(prior.entityClass || ''));
     }).map(spanRangeKey));
@@ -218,15 +226,49 @@
     });
   }
 
-  function suppressNestedProcessSpans(spans = []) {
+  function hasTypedRelationShape(spans = [], subject = {}, process = {}, lower = '') {
+    const intervening = spans.filter((span) => (
+      ['observable', 'modifier'].includes(span.kind) &&
+      span.start >= subject.end && span.end <= process.start
+    )).sort((a, b) => a.start - b.start || a.end - b.end);
+    if (!rangeCoveredBySpans(lower, subject.end, process.start, intervening)) return false;
+    const object = spans.filter((span) => (
+      ['entity', 'environment', 'material'].includes(span.kind) && span.start >= process.end
+    )).sort((a, b) => a.start - b.start || b.end - a.end)[0];
+    return Boolean(object && spatialPrepositionsInText(
+      lower.slice(process.end, object.start)
+    ).length);
+  }
+
+  function rangeCoveredBySpans(text = '', start = 0, end = 0, spans = []) {
+    let cursor = start;
+    for (const span of spans) {
+      if (text.slice(cursor, span.start).trim()) return false;
+      cursor = Math.max(cursor, span.end);
+    }
+    return !text.slice(cursor, end).trim();
+  }
+
+  function suppressNestedProcessSpans(spans = [], lower = '') {
     const typedObjects = spans.filter((span) => (
       ['entity', 'environment', 'material'].includes(span.kind)
     ));
     return spans.filter((span) => (
       span.kind !== 'process' || !typedObjects.some((owner) => (
-        owner.start < span.start && owner.end >= span.end
+        owner.end >= span.end && (
+          owner.start < span.start ||
+          (owner.start === span.start && owner.end > span.end &&
+            !leadingNestedProcessIsVerb(span, owner, typedObjects, lower))
+        )
       ))
     ));
+  }
+
+  function leadingNestedProcessIsVerb(process, owner, typedObjects = [], lower = '') {
+    const prior = typedObjects.filter((span) => (
+      span !== owner && span.end <= process.start
+    )).sort((a, b) => b.end - a.end)[0];
+    return Boolean(prior && !String(lower || '').slice(prior.end, process.start).trim());
   }
 
   function spanRangeKey(span = {}) {
@@ -253,7 +295,7 @@
     }
   }
 
-  function promoteSyntacticProcessTerms(spans, tokens) {
+  function promoteSyntacticProcessTerms(spans, tokens, sourceText = '') {
     const argumentKinds = new Set(['entity', 'environment', 'material', 'term']);
     const ordered = spans.slice().sort((a, b) => a.start - b.start || b.end - a.end);
     return ordered.map((span, index) => {
@@ -266,7 +308,8 @@
       const nearBefore = before && span.tokenStart - before.tokenEnd <= 2;
       const nearAfter = immediateAfter && immediateAfter.tokenStart - span.tokenEnd <= (modifierAfter ? 3 : 2);
       const verbForm = /(?:ing|ed|en|ize|ise|ify|ates?|s)$/.test(token);
-      if (!nearBefore || !nearAfter || !argumentKinds.has(immediateAfter.kind) || !verbForm || singularEntity) {
+      const listSeparatorBeforeObject = /[,;]/.test(String(sourceText).slice(span.end, immediateAfter && immediateAfter.start));
+      if (!nearBefore || !nearAfter || !argumentKinds.has(immediateAfter.kind) || !verbForm || singularEntity || listSeparatorBeforeObject) {
         return span;
       }
       return { ...span, kind: 'process', syntacticPromotion: 'subject-process-object' };
@@ -306,7 +349,7 @@
         continue;
       }
       const inheritedSubject = inheritedAgentiveParticipleSubject(entities, verb, lower, clauses);
-      const subjects = inheritedSubject ? [inheritedSubject] : coordinatedSubjectsForVerb(entities, verb, lower);
+      const subjects = inheritedSubject ? [inheritedSubject] : coordinatedSubjectsForVerb(entities, verb, lower, clauses);
       const after = preferredKnownSpan(
         entities.filter((span) => span.start >= verb.end).sort((a, b) => a.start - b.start)
       );
@@ -550,7 +593,7 @@
     return { patient: before, agent: after };
   }
 
-  function coordinatedSubjectsForVerb(entities, verb, lower) {
+  function coordinatedSubjectsForVerb(entities, verb, lower, clauses = []) {
     const beforeRows = entities
       .filter((span) => span.end <= verb.start)
       .filter((span) => !spanIsNegated(lower, span))
@@ -562,6 +605,7 @@
     const subjects = [nearest];
     for (let index = before.length - 2; index >= 0; index -= 1) {
       const candidate = before[index];
+      if (clauses.some((clause) => clause.objectSpanId === candidate.id)) break;
       const bridge = lower.slice(candidate.end, subjects[0].start);
       if (!isCoordinationBridge(bridge)) break;
       subjects.unshift(candidate);
@@ -637,11 +681,14 @@
 
   function normalizeProcess(text = '') {
     const value = String(text || '').toLowerCase();
+    const canonical = BEHAVIOR_PROCESS_LEXICON.find((row) => (
+      (row.phrases || []).some((phrase) => String(phrase || '').toLowerCase() === value)
+    ));
+    if (canonical && canonical.process) return canonical.process;
     if (/swim|swam/.test(value)) return 'swimming';
     if (/spin|rotate|drive/.test(value)) return 'rotate';
     if (/melt/.test(value)) return 'phase_transition';
     if (/hit|impact|collide|crash|crack|fracture/.test(value)) return 'impact';
-    if (/burn|heat/.test(value)) return 'heat_transfer';
     if (/cool/.test(value)) return 'cooling';
     if (/freez/.test(value)) return 'phase_transition';
     if (/flow|fall|push|carve|erode|pour|sink|float|buffer|settle|calv|bend|reduc/.test(value)) return 'flow';

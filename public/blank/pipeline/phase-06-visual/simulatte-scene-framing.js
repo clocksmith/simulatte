@@ -5,7 +5,10 @@
     const SCENE_FRAME_BOUNDS = Object.freeze([0.1, 0.12, 0.8, 0.72]);
 
     function frameScenePacketEntities(entities = []) {
-      const rows = enforcePacketContainment((entities || []).filter(Boolean));
+      const contactLayout = enforcePacketSurfaceContacts(
+        enforcePacketContainment((entities || []).filter(Boolean))
+      );
+      const rows = contactLayout.entities;
       if (!rows.length) return { entities: [], receipt: emptySceneFramingReceipt() };
       const sourceBounds = sceneEntityGroupBounds(rows);
       const targetCenter = [
@@ -51,6 +54,7 @@
           centerOffset: Number(centerOffset.toFixed(5)),
           entityCount: framed.length,
           readableCount,
+          surfaceContacts: contactLayout.contacts,
           pass: readableCount === framed.length && projectedArea >= minimumArea && centerOffset <= 0.025,
         },
       };
@@ -96,6 +100,60 @@
         );
       }
       return rows;
+    }
+
+    function enforcePacketSurfaceContacts(entities = []) {
+      const rows = entities.slice();
+      const contacts = [];
+      const constraintIds = uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      for (const constraintId of constraintIds) {
+        const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
+        const source = members.find((row) => (row.layoutRelationRoles || []).some((role) => (
+          /^(?:on|onto|seated-on):source$/.test(role) || role === 'supports:target'
+        )));
+        const target = members.find((row) => (row.layoutRelationRoles || []).some((role) => (
+          /^(?:on|onto|seated-on):target$/.test(role) || role === 'supports:source'
+        )));
+        if (!source || !target || source === target) continue;
+        const before = sceneEntityVisibleBounds(source);
+        const support = sceneEntityVisibleBounds(target);
+        const clearanceBefore = support[1] - (before[1] + before[3]);
+        const clearance = 0.004;
+        source.transform.position[1] += clearanceBefore - clearance;
+        const after = sceneEntityVisibleBounds(source);
+        contacts.push({
+          constraintId,
+          sourceId: source.id,
+          targetId: target.id,
+          clearanceBefore: Number(clearanceBefore.toFixed(5)),
+          clearanceAfter: Number((support[1] - (after[1] + after[3])).toFixed(5)),
+        });
+      }
+      return { entities: rows, contacts };
+    }
+
+    function sceneEntityVisibleBounds(entity = {}) {
+      const transform = entity.transform || {};
+      const position = transform.position || [0.5, 0.5, 0];
+      const scale = transform.scale || [0.16, 0.14, 1];
+      const parts = entity.geometry && entity.geometry.program && entity.geometry.program.parts || [];
+      if (!parts.length) return framedSceneEntityBounds(transform);
+      const partBounds = parts.map((part) => {
+        const center = part.center || [0, 0];
+        const size = part.size || [0.1, 0.1];
+        const cosine = Math.abs(Math.cos(Number(part.rotation || 0)));
+        const sine = Math.abs(Math.sin(Number(part.rotation || 0)));
+        const halfWidth = (cosine * Number(size[0] || 0) + sine * Number(size[1] || 0)) * 0.5;
+        const halfHeight = (sine * Number(size[0] || 0) + cosine * Number(size[1] || 0)) * 0.5;
+        return [Number(center[0] || 0) - halfWidth, Number(center[1] || 0) - halfHeight,
+          Number(center[0] || 0) + halfWidth, Number(center[1] || 0) + halfHeight];
+      });
+      const left = Math.min(...partBounds.map((row) => row[0]));
+      const top = Math.min(...partBounds.map((row) => row[1]));
+      const right = Math.max(...partBounds.map((row) => row[2]));
+      const bottom = Math.max(...partBounds.map((row) => row[3]));
+      return [position[0] + left * scale[0], position[1] + top * scale[1],
+        (right - left) * scale[0], (bottom - top) * scale[1]];
     }
 
     function frameSceneEntity(row = {}, sourceCenter = [0.5, 0.5], targetCenter = [0.5, 0.48], factor = 1) {
@@ -162,6 +220,8 @@
       frameScenePacketEntities,
       sceneEntityGroupBounds,
       enforcePacketContainment,
+      enforcePacketSurfaceContacts,
+      sceneEntityVisibleBounds,
     });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window);

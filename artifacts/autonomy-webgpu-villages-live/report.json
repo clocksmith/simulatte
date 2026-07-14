@@ -1,0 +1,49 @@
+{
+  "schema": "simulatte.autonomyBrowserSmoke.v1",
+  "pass": true,
+  "targetUrl": "https://simulatte-world.web.app/autonomy/",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "browser": {
+    "product": "Chrome/149.0.7827.201",
+    "protocolVersion": "1.3",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36"
+  },
+  "result": {
+    "runtime": "Delivered at tick 1225",
+    "state": "completed",
+    "tick": 1225,
+    "distance": "7220.1 m",
+    "decision": "Accelerate",
+    "settlement": "won",
+    "calibration": "1225 / 1225",
+    "traceRows": 48,
+    "betRows": 4,
+    "selectedRows": 1,
+    "rejectedRows": 0,
+    "gateRows": 7,
+    "retrievalRows": 9,
+    "rerankRows": 5,
+    "occurrenceRows": 1,
+    "rerankerProof": "Public diagnostic · MRR 0.900 → 0.925 · Δ +0.025",
+    "editInvalidatedController": true,
+    "missionLockedDuringRun": true,
+    "rendererBackend": "webgpu",
+    "adapterName": "metal-3",
+    "rendererFrames": 3676,
+    "staticVertexCount": 544326,
+    "dynamicVertexCount": 7380,
+    "canvasWidth": 946,
+    "canvasHeight": 760,
+    "viewportWidth": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "hasHorizontalOverflow": false
+  },
+  "errors": [],
+  "failedResponses": [],
+  "requests": [],
+  "claimBoundary": "This smoke proves the checked-in static browser journey executed in the named browser. It does not establish physical-world autonomy."
+}

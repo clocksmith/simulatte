@@ -50,7 +50,7 @@
     ),
     mapping(
       'visual.operator.fluid-advection.v1',
-      ['flow', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'channels', 'droplet', 'release', 'meniscus', 'surge', 'tidal', 'brackish', 'swim', 'swims', 'swimming', 'underwater', 'pool'],
+      ['flow', 'dispersion', 'dispersing', 'water', 'river', 'ocean', 'fjord', 'meltwater', 'wind', 'coolant', 'airflow', 'velocity', 'microfluidic', 'dose', 'pump', 'channel', 'channels', 'droplet', 'release', 'meniscus', 'surge', 'tidal', 'brackish', 'swim', 'swims', 'swimming', 'underwater', 'pool'],
       ['ribbon-streamline', 'transparent-flow-tube', 'particle-tracer-swarm'],
       ['velocity-vector-field', 'pressure-band-field'],
       ['fluid-ripple', 'wet-refractive'],
@@ -299,6 +299,7 @@
       excludes: excludedTermsForMapping(id),
       minimumScore: minimumScoreForMapping(id),
       priority: priorityForMapping(id),
+      operatorTypes: operatorTypesForMapping(id),
       uniformSlots: uniformSlotsForMapping(id),
       wgslOperators: wgslOperatorsForMapping(id),
       geometryAtoms,
@@ -342,6 +343,34 @@
     if (/heat-transfer|fluid-advection|network-flow|phase-transition/.test(id)) return 1.1;
     if (/instrument-readout/.test(id)) return 0.92;
     return 1;
+  }
+
+  function operatorTypesForMapping(id) {
+    const types = {
+      'visual.operator.heat-transfer.v1': ['heat_source', 'heat_transfer'],
+      'visual.operator.fluid-advection.v1': ['advection', 'pressure_flow_lite', 'fluid_locomotion', 'buoyancy', 'drag', 'wake_generation', 'body_water_contact', 'partial_submersion'],
+      'visual.operator.stress-fracture.v1': ['rigid_collision', 'fracture_threshold', 'rotational_torque'],
+      'visual.operator.control-feedback.v1': ['network_flow'],
+      'visual.operator.orbital-gravity.v1': ['wave_field', 'oscillator'],
+      'visual.operator.electromagnetic-field.v1': ['wave_field', 'rotational_torque'],
+      'visual.operator.optical-ray.v1': ['wave_field'],
+      'visual.operator.thin-film-interference.v1': ['wave_field'],
+      'visual.operator.quantum-phase-readout.v1': ['wave_field', 'derive_readout'],
+      'visual.operator.acoustic-wave.v1': ['wave_field', 'oscillator'],
+      'visual.operator.biological-growth.v1': ['growth_decay', 'reaction_diffusion'],
+      'visual.operator.fermentation-matrix.v1': ['growth_decay', 'reaction_diffusion'],
+      'visual.operator.chemical-diffusion.v1': ['reaction_diffusion'],
+      'visual.operator.network-flow.v1': ['network_flow'],
+      'visual.operator.granular-erosion.v1': ['particle_deposition', 'pressure_flow_lite'],
+      'visual.operator.cryosphere-surface.v1': ['phase_transition', 'fracture_threshold', 'advection'],
+      'visual.operator.sport-trajectory.v1': ['rigid_collision', 'rotational_torque'],
+      'visual.operator.instrument-readout.v1': ['derive_readout'],
+      'visual.operator.particle-track-detector.v1': ['derive_readout', 'rigid_collision', 'advection'],
+      'visual.operator.thermal-combustion.v1': ['combustion'],
+      'visual.operator.phase-transition.v1': ['phase_transition'],
+      'visual.operator.robot-contact.v1': ['rotational_torque', 'rigid_collision'],
+    };
+    return Object.freeze(types[id] || []);
   }
 
   function uniformSlotsForMapping(id) {

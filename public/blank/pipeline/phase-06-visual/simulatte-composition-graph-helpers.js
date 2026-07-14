@@ -139,9 +139,7 @@
           : null;
         if (recipe && Array.isArray(recipe.fieldKinds) && recipe.fieldKinds.length) {
           const wanted = new Set(recipe.fieldKinds);
-          const focused = (fields || []).filter((field) => wanted.has(field.kind));
-          if (focused.length) return focused;
-          return recipe.fieldKinds.map((kind, index) => defaultFieldForKind(kind, index, sceneKind));
+          return (fields || []).filter((field) => wanted.has(field.kind));
         }
         const allowed = {
           fire: ['thermal', 'gravity'],
@@ -163,44 +161,7 @@
           generic: ['force-field'],
         };
         const wanted = new Set(allowed[sceneKind] || allowed.generic);
-        const focused = (fields || []).filter((field) => wanted.has(field.kind));
-        if (focused.length) return focused;
-        if (sceneKind === 'optics' || sceneKind === 'thin-film') {
-          return [{ id: 'scene-optical-rays', kind: 'optical-rays', from: [0.12, 0.46], to: [0.88, 0.56], strength: 0.72 }];
-        }
-        if (sceneKind === 'city') {
-          return [{ id: 'scene-network-flow', kind: 'network-flow', strength: 0.72 }];
-        }
-        if (sceneKind === 'fire' || sceneKind === 'thermal-plume') {
-          return [{ id: 'scene-thermal-field', kind: 'thermal', center: [0.5, 0.56], radius: 0.34, strength: 0.72 }];
-        }
-        if (sceneKind === 'magnetic-machine' || sceneKind === 'ferrofluid') {
-          return [{ id: 'scene-dipole-field', kind: 'dipole', center: [0.54, 0.5], radius: 0.32, strength: 0.72 }];
-        }
-        if (sceneKind === 'watershed' || sceneKind === 'granular') {
-          return [{ id: 'scene-gravity-flow', kind: 'gravity', from: [0.16, 0.16], to: [0.78, 0.84], strength: 0.68 }];
-        }
-        return [{ id: 'scene-force-field', kind: 'force-field', center: [0.52, 0.52], radius: 0.32, strength: 0.5 }];
-      }
-
-    function defaultFieldForKind(kind, index, sceneKind) {
-        if (kind === 'network-flow') return { id: `scene-${sceneKind}-network-${index}`, kind, strength: 0.72 };
-        if (kind === 'optical-rays') {
-          return { id: `scene-${sceneKind}-rays-${index}`, kind, from: [0.1, 0.32], to: [0.88, 0.5], strength: 0.68 };
-        }
-        if (kind === 'gravity') {
-          return { id: `scene-${sceneKind}-gravity-${index}`, kind, from: [0.18, 0.16], to: [0.78, 0.84], strength: 0.64 };
-        }
-        if (kind === 'flow') {
-          return { id: `scene-${sceneKind}-flow-${index}`, kind, from: [0.14, 0.72], to: [0.86, 0.44], strength: 0.66 };
-        }
-        if (kind === 'thermal') {
-          return { id: `scene-${sceneKind}-thermal-${index}`, kind, center: [0.52, 0.56], radius: 0.36, strength: 0.68 };
-        }
-        if (kind === 'dipole') {
-          return { id: `scene-${sceneKind}-dipole-${index}`, kind, center: [0.54, 0.5], radius: 0.34, strength: 0.68 };
-        }
-        return { id: `scene-${sceneKind}-field-${index}`, kind, center: [0.52, 0.52], radius: 0.34, strength: 0.58 };
+        return (fields || []).filter((field) => wanted.has(field.kind));
       }
 
     function dominantRegimeForScene(sceneKind, objects) {
@@ -397,19 +358,19 @@
         if (operatorIds.has('radiation')) {
           fields.push({ id: 'radiation-composition-field', kind: 'radiation', from: [0.03, 0.06], to: [0.3, 0.28], strength: (spec.params.irradiance || 780) / 1200 });
         }
-        if (operatorIds.has('combustion') || operatorIds.has('heatTransfer')) {
+        if (operatorIds.has('combustion') || operatorIds.has('heatTransfer') ||
+          operatorIds.has('heat_source') || operatorIds.has('heat_transfer')) {
           fields.push({ id: 'thermal-composition-field', kind: 'thermal', center: [0.46, 0.56], radius: 0.32, strength: spec.params.heatTransfer || 0.5 });
         }
         if (operatorIds.has('refraction')) {
           fields.push({ id: 'optical-composition-field', kind: 'optical-rays', from: [0.16, 0.47], to: [0.84, 0.56], strength: spec.params.lightIntensity || 0.56 });
         }
-        if (operatorIds.has('queueService')) {
+        if (operatorIds.has('queueService') || operatorIds.has('network_flow')) {
           fields.push({ id: 'network-composition-flow', kind: 'network-flow', strength: spec.params.serviceRate || 0.58 });
         }
         if (operatorIds.has('erosion') || operatorIds.has('gravity')) {
           fields.push({ id: 'gravity-composition-flow', kind: 'gravity', from: [0.18, 0.18], to: [0.76, 0.82], strength: spec.params.gravity || 0.18 });
         }
-        if (!fields.length) fields.push({ id: 'combined-composition-field', kind: 'force-field', center: [0.52, 0.52], radius: 0.32, strength: 0.5 });
         return fields;
       }
 
@@ -435,13 +396,20 @@
         const regimes = new Set((objects || []).map((object) => object.visualRegime));
         const families = [];
         if (operatorIds.has('advection') || regimes.has('fluid')) families.push('particle-advection');
-        if (operatorIds.has('heatTransfer') || regimes.has('thermal')) families.push('heat-diffusion');
+        if (operatorIds.has('heatTransfer') || operatorIds.has('heat_source') ||
+          operatorIds.has('heat_transfer') || regimes.has('thermal')) families.push('heat-diffusion');
         if (operatorIds.has('combustion')) families.push('reaction-front');
         if (operatorIds.has('refraction') || regimes.has('optical')) families.push('ray-optics');
         if (operatorIds.has('magnetism') || regimes.has('magnetic')) families.push('magnetic-vector-field');
         if (operatorIds.has('erosion') || regimes.has('granular')) families.push('granular-settling');
-        if (operatorIds.has('growthDecay') || regimes.has('biological') || regimes.has('ecological')) families.push('growth-diffusion');
-        if (operatorIds.has('collision') || regimes.has('mechanical')) families.push('constraint-dynamics');
+        if (operatorIds.has('growthDecay') || operatorIds.has('growth_decay') ||
+          operatorIds.has('reaction_diffusion') || regimes.has('biological') || regimes.has('ecological')) {
+          families.push('growth-diffusion');
+        }
+        if (operatorIds.has('collision') || operatorIds.has('rigid_collision') ||
+          operatorIds.has('fracture_threshold') || operatorIds.has('rotational_torque') ||
+          regimes.has('mechanical')) families.push('constraint-dynamics');
+        if (operatorIds.has('phase_transition')) families.push('phase-boundary');
         if (regimes.has('electrical')) families.push('electric-potential-field');
         if (regimes.has('acoustic')) families.push('wave-equation');
         if (regimes.has('soft')) families.push('membrane-relaxation');
@@ -450,9 +418,80 @@
         return {
           schema: 'simulatte.solverPlan.v1',
           integrator: 'mixed-semi-implicit',
+          operatorIds: Array.from(operatorIds),
           families: uniqueList(families),
           state: uniqueList(families.flatMap(stateTexturesForFamily)),
         };
+      }
+
+    function compositionOperatorsForSpec(spec = {}, legacyGraph = {}) {
+        const physicsOperators = spec.physicsIR && Array.isArray(spec.physicsIR.operators)
+          ? spec.physicsIR.operators
+          : null;
+        const solverSteps = spec.solverGraph && Array.isArray(spec.solverGraph.steps)
+          ? spec.solverGraph.steps
+          : null;
+        const source = physicsOperators !== null ? physicsOperators
+          : solverSteps !== null ? solverSteps
+            : legacyGraph.operators || [];
+        const executableIds = new Set((solverSteps || []).map((row) => row.operatorId).filter(Boolean));
+        return source.map((operator, index) => ({
+          id: operator.type || operator.operatorType || operator.id || `operator-${index + 1}`,
+          sourceOperatorId: operator.id || operator.operatorId || '',
+          inputs: operator.inputs || operator.reads || [],
+          outputs: operator.outputs || operator.writes || [],
+          executable: solverSteps === null || executableIds.has(operator.id || operator.operatorId),
+        }));
+      }
+
+    function solverFamiliesForExecutableSteps(steps = []) {
+        const types = new Set(steps.map((step) => step.operatorType || step.type).filter(Boolean));
+        const families = [];
+        if (['advection', 'pressure_flow_lite', 'fluid_locomotion', 'buoyancy', 'drag',
+          'wake_generation', 'body_water_contact', 'partial_submersion'].some((type) => types.has(type))) {
+          families.push('particle-advection');
+        }
+        if (['heat_source', 'heat_transfer'].some((type) => types.has(type))) families.push('heat-diffusion');
+        if (types.has('combustion')) families.push('reaction-front');
+        if (types.has('phase_transition')) families.push('phase-boundary');
+        if (['growth_decay', 'reaction_diffusion'].some((type) => types.has(type))) families.push('growth-diffusion');
+        if (['rigid_collision', 'fracture_threshold', 'rotational_torque'].some((type) => types.has(type))) {
+          families.push('constraint-dynamics');
+        }
+        if (['wave_field', 'oscillator'].some((type) => types.has(type))) families.push('wave-equation');
+        if (types.has('network_flow')) families.push('network-flow');
+        if (types.has('particle_deposition')) families.push('granular-settling');
+        return uniqueList(families);
+      }
+
+    function solverStateForExecutableSteps(solverGraph = {}, steps = []) {
+        void solverGraph;
+        return uniqueList([
+          ...steps.flatMap((step) => [
+            ...(step.reads || step.inputs || []),
+            ...(step.writes || step.outputs || []),
+          ]),
+        ]);
+      }
+
+    function solverPlanForExecutableGraph(solverGraph = {}) {
+        const steps = Array.isArray(solverGraph.steps) ? solverGraph.steps : [];
+        return {
+          schema: 'simulatte.solverPlan.v1',
+          integrator: 'mixed-semi-implicit',
+          families: solverFamiliesForExecutableSteps(steps),
+          state: solverStateForExecutableSteps(solverGraph, steps),
+          steps: steps.map((step) => step.operatorType),
+          executableSteps: steps.map((step) => step.operatorType),
+        };
+      }
+
+    function executableRenderIRFields(fields = [], solverGraph = {}) {
+        const writtenChannels = new Set((solverGraph.steps || []).flatMap((step) => [
+          ...(step.writes || []),
+          ...(step.outputs || []),
+        ]));
+        return (fields || []).filter((field) => writtenChannels.has(field.channel));
       }
 
     function stateTexturesForFamily(family) {
@@ -802,7 +841,6 @@
       compositionPromptText,
       hasAcousticWaveSignal,
       focusFieldsForScene,
-      defaultFieldForKind,
       dominantRegimeForScene,
       renderPassOrder,
       refineSolverPlanForScene,
@@ -814,8 +852,13 @@
       poseForNode,
       sizeForNode,
       fieldsForComposition,
+      executableRenderIRFields,
       emittersForComposition,
       solverPlanForComposition,
+      compositionOperatorsForSpec,
+      solverFamiliesForExecutableSteps,
+      solverStateForExecutableSteps,
+      solverPlanForExecutableGraph,
       stateTexturesForFamily,
       componentText,
       inferLayer,

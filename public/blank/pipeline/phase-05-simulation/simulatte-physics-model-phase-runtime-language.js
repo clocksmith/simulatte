@@ -379,8 +379,9 @@
     	    const spans = Array.isArray(languageGraph.spans) ? languageGraph.spans : [];
     	    const predicates = Array.isArray(languageGraph.predicates) ? languageGraph.predicates : [];
     	    const relations = sceneRelationsFromLanguageGraph(languageGraph);
+        const participantTermSpanIds = sceneParticipantTermSpanIds(languageGraph, spans);
         const termFallbackConcepts = spans
-    	      .filter((span) => span.kind === 'term' && !sceneSpanHasKnownRole(span))
+	      .filter((span) => span.kind === 'term' && !participantTermSpanIds.has(span.id))
 	      .slice(0, TERM_FALLBACK_CONCEPT_MAX)
     	      .map((span) => ({
 	        ...sceneEntryForSpan(span, 'concept', languageGraph),
@@ -392,6 +393,9 @@
 	      ...spans
           .filter((span) => span.kind === 'entity' && span.semanticRole !== 'part')
 	        .map((span) => sceneEntryForSpan(span, 'entity', languageGraph)),
+        ...spans
+          .filter((span) => participantTermSpanIds.has(span.id))
+          .map((span) => sceneEntryForSpan(span, 'entity', languageGraph)),
       ]);
       const parts = uniqueById(spans
         .filter((span) => span.kind === 'entity' && span.semanticRole === 'part')
@@ -434,9 +438,12 @@
     	    const attributes = spans
     	      .filter((span) => span.kind === 'modifier')
     	      .map((span) => sceneEntryForSpan(span, 'attribute', languageGraph));
-        const promotedTermSpanIds = new Set(termFallbackConcepts.flatMap((entry) => entry.sourceSpanIds || []));
+        const representedTermSpanIds = new Set([
+          ...participantTermSpanIds,
+          ...termFallbackConcepts.flatMap((entry) => entry.sourceSpanIds || []),
+        ]);
     	    const unsupportedSpans = spans.filter((span) => (
-    	      span.kind === 'term' && !sceneSpanHasKnownRole(span) && !promotedTermSpanIds.has(span.id)
+	      span.kind === 'term' && !representedTermSpanIds.has(span.id)
     	    ));
     	    const negations = sceneNegationsFromLanguageGraph(languageGraph);
     	    return {
@@ -470,6 +477,17 @@
     	      },
     	    };
     	  }
+
+    function sceneParticipantTermSpanIds(languageGraph = {}, spans = []) {
+      const termSpanIds = new Set(spans.filter((span) => span.kind === 'term').map((span) => span.id));
+      const participantSpanIds = new Set();
+      for (const row of [...(languageGraph.clauses || []), ...(languageGraph.predicates || [])]) {
+        for (const spanId of [row.subjectSpanId, row.objectSpanId]) {
+          if (termSpanIds.has(spanId)) participantSpanIds.add(spanId);
+        }
+      }
+      return participantSpanIds;
+    }
 
 	    function sceneEntryForSpan(span = {}, fallbackKind = '', languageGraph = {}) {
     	    const kind = fallbackKind === 'action' ? 'action' :

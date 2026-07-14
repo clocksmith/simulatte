@@ -55,7 +55,7 @@ context.
 | [1. Runtime](public/blank/pipeline/phase-01-runtime/) | Are the required models, indexes, caches, and providers proven? | Runtime readiness and model, index, reranker, provider, and cache receipts. |
 | [2. Language](public/blank/pipeline/phase-02-language/) | What did the prompt say? | Tokens, spans, clauses, predicates, quantities, negation, relations, and query plans. |
 | [3. Retrieval](public/blank/pipeline/phase-03-retrieval/) | What evidence activates each prompt obligation? | Ranked candidates, reranker provenance, activation weights, conflicts, negative evidence, and coverage. |
-| [4. Grounded intent](public/blank/pipeline/phase-04-grounded-intent/) | What world meaning does the compiler accept? | Grounded world graph, rejected evidence, assumptions, alternatives, and unsupported concepts. |
+| [4. Grounded intent](public/blank/pipeline/phase-04-grounded-intent/) | What world meaning does the compiler accept? | Grounded world graph, candidate-match scan receipt, rejected evidence, assumptions, alternatives, and unsupported concepts. |
 | [5. Simulation](public/blank/pipeline/phase-05-simulation/) | What executable physics follows from that world? | PhysicsIR, solver graph, RenderIR, state channels, controls, and readouts. |
 | [6. Visual](public/blank/pipeline/phase-06-visual/) | What scene represents the simulation? | VisualIR, render instances, camera, lights, passes, graphics atoms, and scene packet. |
 | [7. Render](public/blank/pipeline/phase-07-render/) | What did WebGPU draw? | Pixels, frame state, identity receipts, and timing receipts. |

@@ -1,0 +1,1479 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-13T22:25:50.035Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "model",
+  "target": "local-public",
+  "url": "http://127.0.0.1:4282/blank/",
+  "profileDir": "/Users/xyz/deco/simulatte/artifacts/model-cache-profile",
+  "profilePersistent": true,
+  "promptDeadlineMs": 240000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 14857,
+      "chunkCount": 70,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:64382/devtools/browser/f4dfdc93-3c04-46a0-bcd5-0bcec0cbb4c2\nTrying to load the allocator multiple times. This is *not* supported.\n[97556:30926832:0713/182416.437950:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[97594:30927327:0713/182432.711047:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake-all --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[97594:30927327:0713/182432.711518:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 2609189, parent pid: 97556\n[97594:30927327:0713/182432.713087:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97594:30927327:0713/182432.713099:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97594:30927327:0713/182432.713245:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[97596:30927332:0713/182432.719615:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[97596:30927332:0713/182432.719971:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 2609189, parent pid: 1\n[97596:30927332:0713/182432.721212:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97596:30927332:0713/182432.721222:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97596:30927332:0713/182432.721281:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[97594:30927327:0713/182432.721646:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[97594:30927327:0713/182432.722140:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[97594:30927327:0713/182432.722199:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[97594:30927327:0713/182432.722263:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[97594:30927327:0713/182432.722275:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)\n[97594:30927327:0713/182432.722282:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)\n[97594:30927327:0713/182432.722308:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)\n[97594:30927327:0713/182432.722355:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[97594:30927341:0713/182432.722563:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`\n[97597:30927345:0713/182432.728270:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[97597:30927345:0713/182432.728722:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 2609189, parent pid: 97594\n[97597:30927345:0713/182432.730091:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97597:30927345:0713/182432.730103:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97597:30927345:0713/182432.730165:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[97599:30927349:0713/182432.736862:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[97599:30927349:0713/182432.737336:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 2609189, parent pid: 1\n[97599:30927349:0713/182432.738787:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97599:30927349:0713/182432.738799:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 35753455616B (33.298GiB) / 494384795648B (460.432GiB)\n[97599:30927349:0713/182432.738881:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[97597:30927345:0713/182432.739327:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[97597:30927345:0713/182432.739925:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[97597:30927345:0713/182432.739993:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[97597:30927345:0713/182432.740063:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[97597:30927345:0713/182432.740074:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)\n[97597:30927345:0713/182432.740081:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)\n[97597:30927345:0713/182432.740106:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)\n[97597:30927345:0713/182432.740153:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[97597:30927345:0713/182432.740283:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run\n[97556:30926832:0713/182441.633511:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[97597:30927345:0713/182449.958450:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0\n[97597:30927345:0713/182449.958697:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[97597:30927345:0713/182449.958712:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake) returned 0.\n[97594:30927341:0713/182450.039341:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0\n[97594:30927341:0713/182450.039403:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/xyz/Library/Application Support/Google/GoogleUpdater/151.0.7910.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`\n[97612:30927580:0713/182450.045882:VERBOSE1:chrome/updater/updater.cc:374] Version: 151.0.7910.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/151.0.7910.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[97612:30927580:0713/182450.046055:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 2609206, parent pid: 97594\n[97612:30927580:0713/182450.047742:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 35752271872B (33.297GiB) / 494384795648B (460.432GiB)\n[97612:30927580:0713/182450.047755:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 35752271872B (33.297GiB) / 494384795648B (460.432GiB)\n[97612:30927580:0713/182450.047802:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[97614:30927584:0713/182450.053681:VERBOSE1:chrome/updater/updater.cc:374] Version: 151.0.7910.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/151.0.7910.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/151.0.7910.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=151.0.7910.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[97614:30927584:0713/182450.053830:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 2609206, parent pid: 1\n[97614:30927584:0713/182450.055273:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 35752271872B (33.297GiB) / 494384795648B (460.432GiB)\n[97614:30927584:0713/182450.055287:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 35752271872B (33.297GiB) / 494384795648B (460.432GiB)\n[97614:30927584:0713/182450.055335:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[97612:30927580:0713/182450.055637:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[97612:30927580:0713/182450.056155:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[97612:30927580:0713/182450.056214:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[97612:30927580:0713/182450.056287:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[97612:30927580:0713/182450.056298:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)\n[97612:30927580:0713/182450.056305:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)\n[97612:30927580:0713/182450.056336:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)\n[97612:30927580:0713/182450.056393:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[97612:30927580:0713/182450.056518:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run\n[97599:30927349:0713/182459.971454:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[97599:30927349:0713/182459.971472:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.\n[97612:30927580:0713/182502.418605:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0\n[97612:30927580:0713/182502.418868:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[97612:30927580:0713/182502.418878:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake) returned 0.\n[97594:30927341:0713/182502.514617:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/xyz/Library/Application Support/Google/GoogleUpdater/151.0.7910.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0\n[97594:30927327:0713/182502.514767:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0\n[97594:30927327:0713/182502.515027:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[97594:30927327:0713/182502.515038:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake-all) returned 0.\n[97614:30927584:0713/182512.434538:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[97614:30927584:0713/182512.434556:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.\n[97596:30927332:0713/182512.435479:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[97596:30927332:0713/182512.435498:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.\n[97556:30926832:0713/182535.460460:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[3809.9ms][Downloader] Shard download failed: Shard 0 HTTP 403: Forbidden",
+          "timestamp": 1783981457890.202,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[3814.7ms][Distribution] All shard delivery sources failed for shard 2: Shard 2 HTTP 403: Forbidden",
+          "timestamp": 1783981457895.17,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[3814.8ms][Downloader] Shard download failed: Shard 2 HTTP 403: Forbidden",
+          "timestamp": 1783981457895.187,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[3814.9ms][Distribution] All shard delivery sources failed for shard 1: Shard 1 HTTP 403: Forbidden",
+          "timestamp": 1783981457895.254,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[3815.0ms][Downloader] Shard download failed: Shard 1 HTTP 403: Forbidden",
+          "timestamp": 1783981457895.303,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[4818.5ms][Distribution] All shard delivery sources failed for shard 5: Shard 5 HTTP 403: Forbidden",
+          "timestamp": 1783981458898.821,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[4818.5ms][Downloader] Shard download failed: Shard 5 HTTP 403: Forbidden",
+          "timestamp": 1783981458898.854,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[4818.7ms][Distribution] All shard delivery sources failed for shard 3: Shard 3 HTTP 403: Forbidden",
+          "timestamp": 1783981458898.949,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[4818.7ms][Downloader] Shard download failed: Shard 3 HTTP 403: Forbidden",
+          "timestamp": 1783981458898.973,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[4818.7ms][Distribution] All shard delivery sources failed for shard 4: Shard 4 HTTP 403: Forbidden",
+          "timestamp": 1783981458899.039,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[4818.7ms][Downloader] Shard download failed: Shard 4 HTTP 403: Forbidden",
+          "timestamp": 1783981458899.063,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5072.6ms][Distribution] All shard delivery sources failed for shard 8: Shard 8 HTTP 403: Forbidden",
+          "timestamp": 1783981459152.987,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5072.8ms][Downloader] Shard download failed: Shard 8 HTTP 403: Forbidden",
+          "timestamp": 1783981459153.025,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5073.0ms][Distribution] All shard delivery sources failed for shard 6: Shard 6 HTTP 403: Forbidden",
+          "timestamp": 1783981459153.391,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5073.0ms][Downloader] Shard download failed: Shard 6 HTTP 403: Forbidden",
+          "timestamp": 1783981459153.4,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5073.0ms][Distribution] All shard delivery sources failed for shard 7: Shard 7 HTTP 403: Forbidden",
+          "timestamp": 1783981459153.407,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5073.0ms][Downloader] Shard download failed: Shard 7 HTTP 403: Forbidden",
+          "timestamp": 1783981459153.414,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5162.5ms][Distribution] All shard delivery sources failed for shard 9: Shard 9 HTTP 403: Forbidden",
+          "timestamp": 1783981459242.867,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5162.6ms][Downloader] Shard download failed: Shard 9 HTTP 403: Forbidden",
+          "timestamp": 1783981459242.905,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5238.2ms][Distribution] All shard delivery sources failed for shard 12: Shard 12 HTTP 403: Forbidden",
+          "timestamp": 1783981459318.578,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5238.3ms][Downloader] Shard download failed: Shard 12 HTTP 403: Forbidden",
+          "timestamp": 1783981459318.611,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5241.6ms][Distribution] All shard delivery sources failed for shard 10: Shard 10 HTTP 403: Forbidden",
+          "timestamp": 1783981459321.935,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5241.6ms][Downloader] Shard download failed: Shard 10 HTTP 403: Forbidden",
+          "timestamp": 1783981459321.971,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5241.7ms][Distribution] All shard delivery sources failed for shard 11: Shard 11 HTTP 403: Forbidden",
+          "timestamp": 1783981459322.042,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5241.7ms][Downloader] Shard download failed: Shard 11 HTTP 403: Forbidden",
+          "timestamp": 1783981459322.065,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5346.8ms][Distribution] All shard delivery sources failed for shard 13: Shard 13 HTTP 403: Forbidden",
+          "timestamp": 1783981459428.207,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5346.9ms][Downloader] Shard download failed: Shard 13 HTTP 403: Forbidden",
+          "timestamp": 1783981459428.239,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5398.0ms][OPFSCache] Import failed: Download incomplete: 14 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 9 HTTP 403: Forbidden; Shard 12 HTTP 403: Forbidden; Shard 10 HTTP 403: Forbidden; Shard 11 HTTP 403: Forbidden; Shard 13 HTTP 403: Forbidden",
+          "timestamp": 1783981459478.321,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "Uncaught (in promise) Error: Persistent model cache failed for \"qwen-3-reranker-0-6b-q4k-ehf16-af32\": Download incomplete: 14 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 9 HTTP 403: Forbidden; Shard 12 HTTP 403: Forbidden; Shard 10 HTTP 403: Forbidden; Shard 11 HTTP 403: Forbidden; Shard 13 HTTP 403: Forbidden",
+          "timestamp": 1783981459478.603,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/tooling/opfs-cache.js",
+          "lineNumber": 476,
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "Uncaught (in promise) Error: Persistent model cache failed for \"qwen-3-reranker-0-6b-q4k-ehf16-af32\": Download incomplete: 14 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 9 HTTP 403: Forbidden; Shard 12 HTTP 403: Forbidden; Shard 10 HTTP 403: Forbidden; Shard 11 HTTP 403: Forbidden; Shard 13 HTTP 403: Forbidden",
+          "timestamp": 1783981459478.636,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/tooling/opfs-cache.js",
+          "lineNumber": 476,
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5524.8ms][Distribution] All shard delivery sources failed for shard 0: Shard 0 HTTP 403: Forbidden",
+          "timestamp": 1783981459605.204,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5524.9ms][Downloader] Shard download failed: Shard 0 HTTP 403: Forbidden",
+          "timestamp": 1783981459605.234,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5531.1ms][Distribution] All shard delivery sources failed for shard 2: Shard 2 HTTP 403: Forbidden",
+          "timestamp": 1783981459611.446,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5531.2ms][Downloader] Shard download failed: Shard 2 HTTP 403: Forbidden",
+          "timestamp": 1783981459611.508,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5541.7ms][Distribution] All shard delivery sources failed for shard 1: Shard 1 HTTP 403: Forbidden",
+          "timestamp": 1783981459621.944,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5541.7ms][Downloader] Shard download failed: Shard 1 HTTP 403: Forbidden",
+          "timestamp": 1783981459621.976,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5630.2ms][Distribution] All shard delivery sources failed for shard 5: Shard 5 HTTP 403: Forbidden",
+          "timestamp": 1783981459711.153,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5630.2ms][Downloader] Shard download failed: Shard 5 HTTP 403: Forbidden",
+          "timestamp": 1783981459711.182,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5644.6ms][Distribution] All shard delivery sources failed for shard 4: Shard 4 HTTP 403: Forbidden",
+          "timestamp": 1783981459724.975,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5644.7ms][Downloader] Shard download failed: Shard 4 HTTP 403: Forbidden",
+          "timestamp": 1783981459725.008,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5652.9ms][Distribution] All shard delivery sources failed for shard 3: Shard 3 HTTP 403: Forbidden",
+          "timestamp": 1783981459733.229,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5653.0ms][Downloader] Shard download failed: Shard 3 HTTP 403: Forbidden",
+          "timestamp": 1783981459733.259,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5724.0ms][Distribution] All shard delivery sources failed for shard 7: Shard 7 HTTP 403: Forbidden",
+          "timestamp": 1783981459804.371,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5724.1ms][Downloader] Shard download failed: Shard 7 HTTP 403: Forbidden",
+          "timestamp": 1783981459804.41,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5724.2ms][Distribution] All shard delivery sources failed for shard 6: Shard 6 HTTP 403: Forbidden",
+          "timestamp": 1783981459804.521,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5724.2ms][Downloader] Shard download failed: Shard 6 HTTP 403: Forbidden",
+          "timestamp": 1783981459804.546,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "warning",
+          "text": "[5733.8ms][Distribution] All shard delivery sources failed for shard 8: Shard 8 HTTP 403: Forbidden",
+          "timestamp": 1783981459814.115,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 105,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "warn",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 105,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5733.8ms][Downloader] Shard download failed: Shard 8 HTTP 403: Forbidden",
+          "timestamp": 1783981459814.149,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "worker",
+          "level": "error",
+          "text": "[5782.7ms][OPFSCache] Import failed: Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden",
+          "timestamp": 1783981459863.1,
+          "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+          "lineNumber": 117,
+          "stackTrace": {
+            "callFrames": [
+              {
+                "functionName": "error",
+                "scriptId": "81",
+                "url": "http://127.0.0.1:4282/vendor/doppler/src/debug/log.js",
+                "lineNumber": 117,
+                "columnNumber": 14
+              }
+            ]
+          },
+          "workerId": "F020C957A8F4CECC32995CAC1A80FAE7"
+        }
+      }
+    },
+    {
+      "method": "Runtime.consoleAPICalled",
+      "params": {
+        "type": "error",
+        "args": [
+          {
+            "type": "string",
+            "value": "[simulatte.intent] model-backed intent failed"
+          },
+          {
+            "type": "object",
+            "subtype": "error",
+            "className": "Error",
+            "description": "Error: Persistent model cache failed for \"qwen-3-embedding-0-6b-q4k-ehf16-af32\": Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden\n    at Worker.<anonymous> (http://127.0.0.1:4282/blank/app/prompt/prompt-controller-lab-controller.js?v=3ce1b18c84bc893492a3618270c6cfa52cf8f79f-8052d4cad8a8:688:31)",
+            "objectId": "3498390066612567892.2.732",
+            "preview": {
+              "type": "object",
+              "subtype": "error",
+              "description": "Error: Persistent model cache failed for \"qwen-3-embedding-0-6b-q4k-ehf16-af32\": Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden\n    at Worker.<anonymous> (http://127.0.0.1:4282/blank/app/prompt/prompt-controller-lab-controller.js?v=3ce1b18c84bc893492a3618270c6cfa52cf8f79f-8052d4cad8a8:688:31)",
+              "overflow": false,
+              "properties": [
+                {
+                  "name": "stack",
+                  "type": "string",
+                  "value": "Error: Persistent model cache failed for \"qwen-3-e…893492a3618270c6cfa52cf8f79f-8052d4cad8a8:688:31)"
+                },
+                {
+                  "name": "message",
+                  "type": "string",
+                  "value": "Persistent model cache failed for \"qwen-3-embeddin… HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden"
+                }
+              ]
+            }
+          }
+        ],
+        "executionContextId": 2,
+        "timestamp": 1783981459863.192,
+        "stackTrace": {
+          "callFrames": [
+            {
+              "functionName": "resolveWithEmbedding",
+              "scriptId": "157",
+              "url": "http://127.0.0.1:4282/blank/app/prompt/prompt-controller-lab-controller.js?v=3ce1b18c84bc893492a3618270c6cfa52cf8f79f-8052d4cad8a8",
+              "lineNumber": 430,
+              "columnNumber": 22
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": false,
+    "failures": [
+      "1: prompt audit failed: Timed out waiting for intent ready for 01-custom-sourdough-fermentation-gas-bubbles-growing-through-a-dough-matrix-with-gluten-st: {\"ok\":false,\"state\":\"error\",\"stageId\":\"error\",\"lastStage\":\"error\",\"pipelineStep\":\"0\",\"progress\":\"determinate\",\"detail\":\"Intent model failed\",\"blocking\":\"false\",\"passive\":\"false\",\"modelId\":\"\",\"cacheMode\":\"\",\"cacheWorker\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"completedBytes\":\"0\",\"totalBytes\":\"0\",\"traceId\":\"\",\"rankId\":\"\",\"providerReady\":\"false\",\"reuse\":\"false\",\"cacheHitCount\":\"0\",\"cacheMissCount\":\"0\",\"message\":\"1.2s estimated remaining\",\"phaseLabel\":\"1.2s estimated remaining\",\"renderer\":\"webgpu\",\"rendererStatus\":\"WebGPU renderer ready\",\"sceneVisible\":false,\"sceneId\":\"\",\"renderInputSerial\":0,\"renderInputAdvanced\":false,\"compiledPrompt\":\"\",\"promptMatches\":false,\"phase6Schema\":\"\",\"compiledSpecName\":\"Blank Construction Plane\",\"disabled\":false,\"runtimeHealth\":{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"source\":\"\",\"state\":\"error\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":0,\"progressBasis\":\"error\",\"progressEstimated\":false,\"taskKey\":\"error\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":1200,\"taskRemainingMs\":1200,\"runElapsedMs\":2022,\"runExpectedDurationMs\":24000,\"runRemainingMs\":21978,\"line\":\"Intent model failed\",\"displayLine\":\"Intent model failed\",\"label\":\"Runtime error\",\"subline\":\"1.2s estimated remaining\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"runtime error\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Intent model failed\",\"detail\":\"Persistent model cache failed for \\\"qwen-3-embedding-0-6b-q4k-ehf16-af32\\\": Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"error\",\"sourceStage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0}},\"runtimeEvents\":[{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.153Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":5,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:reranker-model\",\"taskElapsedMs\":210,\"taskExpectedDurationMs\":45000,\"taskRemainingMs\":44790,\"runElapsedMs\":1312,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22688,\"line\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"displayLine\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"label\":\"Downloading reranker model\",\"subline\":\"OPFS cache - reranker model - 0 B / 895 MB - 210ms elapsed, 45s estimated remaining\",\"byteText\":\"0 B / 895 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading reranker model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 894.85 MB | shard 0/14\",\"detail\":\"0 B / 894.85 MB | shard 0/14\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.153Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"reranker-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":938321920},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.259Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":6,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:reranker-model\",\"taskElapsedMs\":316,\"taskExpectedDurationMs\":45000,\"taskRemainingMs\":44684,\"runElapsedMs\":1418,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22582,\"line\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"displayLine\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"label\":\"Downloading reranker model\",\"subline\":\"OPFS cache - reranker model - 0 B / 895 MB - 316ms elapsed, 45s estimated remaining\",\"byteText\":\"0 B / 895 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading reranker model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 894.85 MB | shard 0/14\",\"detail\":\"0 B / 894.85 MB | shard 0/14\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.259Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"reranker-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":938321920},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.366Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":6,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:reranker-model\",\"taskElapsedMs\":423,\"taskExpectedDurationMs\":45000,\"taskRemainingMs\":44577,\"runElapsedMs\":1525,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22475,\"line\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"displayLine\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"label\":\"Downloading reranker model\",\"subline\":\"OPFS cache - reranker model - 0 B / 895 MB - 423ms elapsed, 45s estimated remaining\",\"byteText\":\"0 B / 895 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading reranker model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 894.85 MB | shard 0/14\",\"detail\":\"0 B / 894.85 MB | shard 0/14\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.366Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"reranker-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":938321920},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.479Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":7,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":2103,\"runElapsedMs\":1638,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22362,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 2.1s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Downloading qwen-3-embedding-0-6b-q4k-ehf16-af32...\",\"detail\":\"Downloading qwen-3-embedding-0-6b-q4k-ehf16-af32...\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.479Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.542Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":7,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":63,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":2040,\"runElapsedMs\":1701,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22299,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 63ms elapsed, 2.0s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 532.60 MB | shard 0/9\",\"detail\":\"0 B / 532.60 MB | shard 0/9\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.542Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.645Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":166,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":1937,\"runElapsedMs\":1804,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22196,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 166ms elapsed, 1.9s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 532.60 MB | shard 0/9\",\"detail\":\"0 B / 532.60 MB | shard 0/9\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.645Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.751Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":272,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":1831,\"runElapsedMs\":1910,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22090,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 272ms elapsed, 1.8s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 532.60 MB | shard 0/9\",\"detail\":\"0 B / 532.60 MB | shard 0/9\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.751Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"source\":\"\",\"state\":\"error\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":0,\"progressBasis\":\"error\",\"progressEstimated\":false,\"taskKey\":\"error\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":1200,\"taskRemainingMs\":1200,\"runElapsedMs\":2022,\"runExpectedDurationMs\":24000,\"runRemainingMs\":21978,\"line\":\"Intent model failed\",\"displayLine\":\"Intent model failed\",\"label\":\"Runtime error\",\"subline\":\"1.2s estimated remaining\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"runtime error\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Intent model failed\",\"detail\":\"Persistent model cache failed for \\\"qwen-3-embedding-0-6b-q4k-ehf16-af32\\\": Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"error\",\"sourceStage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0}}]}"
+    ],
+    "promptCount": 1,
+    "screenshotCount": 0,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 0,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 0,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 0,
+      "bitMargin": 1,
+      "maxTemporalBits": null,
+      "maxTemporalDistance": null,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": null,
+      "recommendedHashFloor": null,
+      "calibrated": false
+    },
+    "sceneKinds": [],
+    "visualIRSceneKinds": [],
+    "visualIRCameras": [],
+    "graphicsAtoms": {
+      "totalAtoms": 0,
+      "mappingIds": [],
+      "uniformSlots": [],
+      "wgslOperators": []
+    },
+    "visualRubric": {
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityStatus": "human-adjudication-required",
+      "averageScore": 0,
+      "passCount": 0,
+      "failCount": 1,
+      "expectedSignals": [],
+      "missingSignals": [
+        "audit-completion"
+      ],
+      "dynamicFailures": [],
+      "representationFailures": [
+        1
+      ],
+      "averageRepresentationQuality": 0
+    },
+    "intentBriefs": {
+      "totalEvidence": 0,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 0,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 0,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityVerified": false,
+      "humanAdjudicationRequired": true,
+      "score": 0,
+      "grade": "F",
+      "verdict": "fail",
+      "promptCount": 1,
+      "passRate": 0,
+      "sceneDiversity": 0,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 0,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 1,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 1,
+      "averageRepresentationQuality": 0,
+      "missingSignals": [
+        "audit-completion"
+      ]
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "sourdough fermentation gas bubbles growing through a dough matrix with gluten strands",
+      "goldRowId": "",
+      "auditError": "Timed out waiting for intent ready for 01-custom-sourdough-fermentation-gas-bubbles-growing-through-a-dough-matrix-with-gluten-st: {\"ok\":false,\"state\":\"error\",\"stageId\":\"error\",\"lastStage\":\"error\",\"pipelineStep\":\"0\",\"progress\":\"determinate\",\"detail\":\"Intent model failed\",\"blocking\":\"false\",\"passive\":\"false\",\"modelId\":\"\",\"cacheMode\":\"\",\"cacheWorker\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"completedBytes\":\"0\",\"totalBytes\":\"0\",\"traceId\":\"\",\"rankId\":\"\",\"providerReady\":\"false\",\"reuse\":\"false\",\"cacheHitCount\":\"0\",\"cacheMissCount\":\"0\",\"message\":\"1.2s estimated remaining\",\"phaseLabel\":\"1.2s estimated remaining\",\"renderer\":\"webgpu\",\"rendererStatus\":\"WebGPU renderer ready\",\"sceneVisible\":false,\"sceneId\":\"\",\"renderInputSerial\":0,\"renderInputAdvanced\":false,\"compiledPrompt\":\"\",\"promptMatches\":false,\"phase6Schema\":\"\",\"compiledSpecName\":\"Blank Construction Plane\",\"disabled\":false,\"runtimeHealth\":{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"source\":\"\",\"state\":\"error\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":0,\"progressBasis\":\"error\",\"progressEstimated\":false,\"taskKey\":\"error\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":1200,\"taskRemainingMs\":1200,\"runElapsedMs\":2022,\"runExpectedDurationMs\":24000,\"runRemainingMs\":21978,\"line\":\"Intent model failed\",\"displayLine\":\"Intent model failed\",\"label\":\"Runtime error\",\"subline\":\"1.2s estimated remaining\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"runtime error\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Intent model failed\",\"detail\":\"Persistent model cache failed for \\\"qwen-3-embedding-0-6b-q4k-ehf16-af32\\\": Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"error\",\"sourceStage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0}},\"runtimeEvents\":[{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.153Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":5,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:reranker-model\",\"taskElapsedMs\":210,\"taskExpectedDurationMs\":45000,\"taskRemainingMs\":44790,\"runElapsedMs\":1312,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22688,\"line\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"displayLine\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"label\":\"Downloading reranker model\",\"subline\":\"OPFS cache - reranker model - 0 B / 895 MB - 210ms elapsed, 45s estimated remaining\",\"byteText\":\"0 B / 895 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading reranker model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 894.85 MB | shard 0/14\",\"detail\":\"0 B / 894.85 MB | shard 0/14\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.153Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"reranker-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":938321920},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.259Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":6,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:reranker-model\",\"taskElapsedMs\":316,\"taskExpectedDurationMs\":45000,\"taskRemainingMs\":44684,\"runElapsedMs\":1418,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22582,\"line\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"displayLine\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"label\":\"Downloading reranker model\",\"subline\":\"OPFS cache - reranker model - 0 B / 895 MB - 316ms elapsed, 45s estimated remaining\",\"byteText\":\"0 B / 895 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading reranker model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 894.85 MB | shard 0/14\",\"detail\":\"0 B / 894.85 MB | shard 0/14\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.259Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"reranker-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":938321920},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.366Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":6,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:reranker-model\",\"taskElapsedMs\":423,\"taskExpectedDurationMs\":45000,\"taskRemainingMs\":44577,\"runElapsedMs\":1525,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22475,\"line\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"displayLine\":\"Downloading reranker model 0% - OPFS cache - 0 B / 895 MB\",\"label\":\"Downloading reranker model\",\"subline\":\"OPFS cache - reranker model - 0 B / 895 MB - 423ms elapsed, 45s estimated remaining\",\"byteText\":\"0 B / 895 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading reranker model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 894.85 MB | shard 0/14\",\"detail\":\"0 B / 894.85 MB | shard 0/14\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.366Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"reranker-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":938321920},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.479Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":7,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":2103,\"runElapsedMs\":1638,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22362,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 2.1s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Downloading qwen-3-embedding-0-6b-q4k-ehf16-af32...\",\"detail\":\"Downloading qwen-3-embedding-0-6b-q4k-ehf16-af32...\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.479Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.542Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":7,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":63,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":2040,\"runElapsedMs\":1701,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22299,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 63ms elapsed, 2.0s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 532.60 MB | shard 0/9\",\"detail\":\"0 B / 532.60 MB | shard 0/9\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.542Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.645Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":166,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":1937,\"runElapsedMs\":1804,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22196,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 166ms elapsed, 1.9s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 532.60 MB | shard 0/9\",\"detail\":\"0 B / 532.60 MB | shard 0/9\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.645Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.751Z\",\"source\":\"doppler\",\"state\":\"active\",\"blocking\":true,\"passive\":false,\"canvasLoading\":true,\"stage\":\"runtime.cache.file\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":42,\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"taskKey\":\"runtime.cache.file:embedding-model\",\"taskElapsedMs\":272,\"taskExpectedDurationMs\":2103,\"taskRemainingMs\":1831,\"runElapsedMs\":1910,\"runExpectedDurationMs\":24000,\"runRemainingMs\":22090,\"line\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"displayLine\":\"Downloading embedding model 0% - OPFS cache - 0 B / 533 MB\",\"label\":\"Downloading embedding model\",\"subline\":\"OPFS cache - embedding model - 0 B / 533 MB - 272ms elapsed, 1.8s estimated remaining\",\"byteText\":\"0 B / 533 MB\",\"sourceText\":\"OPFS cache\",\"byteProgress\":\"known\",\"activity\":\"downloading embedding model\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"0 B / 532.60 MB | shard 0/9\",\"detail\":\"0 B / 532.60 MB | shard 0/9\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.751Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"intent-havehxt\"},\"model\":{\"id\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"baseUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":true,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"embedding-model\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":558475264},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.cache.file\",\"sourceStage\":\"cache-fill\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"source\":\"\",\"state\":\"error\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":0,\"progressBasis\":\"error\",\"progressEstimated\":false,\"taskKey\":\"error\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":1200,\"taskRemainingMs\":1200,\"runElapsedMs\":2022,\"runExpectedDurationMs\":24000,\"runRemainingMs\":21978,\"line\":\"Intent model failed\",\"displayLine\":\"Intent model failed\",\"label\":\"Runtime error\",\"subline\":\"1.2s estimated remaining\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"runtime error\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Intent model failed\",\"detail\":\"Persistent model cache failed for \\\"qwen-3-embedding-0-6b-q4k-ehf16-af32\\\": Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"error\",\"sourceStage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0}}]}",
+      "auditFailureState": {
+        "url": "http://127.0.0.1:4282/blank/",
+        "runtime": {
+          "state": "error",
+          "progress": "determinate",
+          "taskProgress": "0",
+          "overallProgress": "8",
+          "sourceProgress": "0",
+          "progressBasis": "error",
+          "progressEstimated": "false",
+          "taskKey": "error",
+          "taskElapsedMs": "0",
+          "taskRemainingMs": "1200",
+          "loadingVisual": "idle",
+          "stage": "error",
+          "pipelineStep": "0",
+          "detail": "Intent model failed",
+          "displayLine": "Intent model failed",
+          "label": "Runtime error",
+          "subline": "1.2s estimated remaining",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "runtime error",
+          "heartbeat": "false",
+          "silenceMs": "0",
+          "lastStage": "error",
+          "lastMessage": "Intent model failed",
+          "lastLine": "Intent model failed",
+          "lastSource": "",
+          "backend": "",
+          "blocking": "false",
+          "passive": "false",
+          "loaderReceipt": "{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"error\",\"sourceStage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0,\"label\":\"Runtime error\",\"subline\":\"1.2s estimated remaining\",\"status\":\"error\",\"state\":\"error\",\"blocking\":false,\"indeterminate\":false,\"startedAt\":\"2026-07-13T22:24:19.863Z\",\"updatedAt\":\"2026-07-13T22:24:19.863Z\",\"completedAt\":\"2026-07-13T22:24:19.863Z\",\"durationMs\":0,\"taskKey\":\"error\",\"progressBasis\":\"error\",\"progressEstimated\":false,\"expectedDurationMs\":1200,\"percentStart\":0,\"percentEnd\":0,\"overallPercentStart\":8,\"overallPercentEnd\":8,\"sourcePercentStart\":0,\"sourcePercentEnd\":0,\"completedBytes\":0,\"totalBytes\":0,\"byteLength\":0,\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"source\":\"\",\"cacheMode\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"resourceUrl\":\"\",\"modelId\":\"\",\"modelBaseUrl\":\"\",\"eventCount\":1}",
+          "health": "{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"source\":\"\",\"state\":\"error\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0,\"progress\":0,\"taskProgress\":0,\"overallProgress\":8,\"sourceProgress\":0,\"progressBasis\":\"error\",\"progressEstimated\":false,\"taskKey\":\"error\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":1200,\"taskRemainingMs\":1200,\"runElapsedMs\":2022,\"runExpectedDurationMs\":24000,\"runRemainingMs\":21978,\"line\":\"Intent model failed\",\"displayLine\":\"Intent model failed\",\"label\":\"Runtime error\",\"subline\":\"1.2s estimated remaining\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"runtime error\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Intent model failed\",\"detail\":\"Persistent model cache failed for \\\"qwen-3-embedding-0-6b-q4k-ehf16-af32\\\": Download incomplete: 9 shard(s) failed. Errors: Shard 0 HTTP 403: Forbidden; Shard 2 HTTP 403: Forbidden; Shard 1 HTTP 403: Forbidden; Shard 5 HTTP 403: Forbidden; Shard 4 HTTP 403: Forbidden; Shard 3 HTTP 403: Forbidden; Shard 7 HTTP 403: Forbidden; Shard 6 HTTP 403: Forbidden; Shard 8 HTTP 403: Forbidden\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-13T22:24:19.863Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"error\",\"sourceStage\":\"error\",\"phaseId\":\"error\",\"phaseLabel\":\"Runtime error\",\"pipelineStep\":0}}",
+          "loaderPhaseReceipts": "[{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.index.fetch\",\"sourceStage\":\"index-fetch\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"label\":\"Loading embedding indexes\",\"subline\":\"browser cache/network - surface card index - 6 MB - 3ms estimated remaining\",\"status\":\"complete\",\"state\":\"active\",\"blocking\":true,\"indeterminate\":false,\"startedAt\":\"2026-07-13T22:24:17.889Z\",\"updatedAt\":\"2026-07-13T22:24:17.894Z\",\"completedAt\":\"2026-07-13T22:24:17.894Z\",\"durationMs\":5,\"taskKey\":\"runtime.index.fetch:surface-card-index\",\"progressBasis\":\"elapsed-time-forecast\",\"progressEstimated\":true,\"expectedDurationMs\":3,\"percentStart\":0,\"percentEnd\":100,\"overallPercentStart\":0,\"overallPercentEnd\":0,\"sourcePercentStart\":20,\"sourcePercentEnd\":20,\"completedBytes\":6291456,\"totalBytes\":0,\"byteLength\":0,\"byteText\":\"6 MB\",\"sourceText\":\"browser cache/network\",\"byteProgress\":\"unknown-total\",\"source\":\"simulatte-intent-embedder\",\"cacheMode\":\"force-cache\",\"resourceKind\":\"surface-card-index\",\"resourceFile\":\"\",\"resourceUrl\":\"http://127.0.0.1:4282/data/simulatte-embedder/surface-card-index-qwen-v1.json?v=3ce1b18c84bc893492a3618270c6cfa52cf8f79f-8052d4cad8a8\",\"modelId\":\"\",\"modelBaseUrl\":\"\",\"eventCount\":1},{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-65\",\"runId\":\"mrjshynl-1\",\"stage\":\"runtime.index.fetch\",\"sourceStage\":\"index-fetch\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"label\":\"Loading embedding indexes\",\"subline\":\"browser cache/network - universe concepts index - 5.4 MB / 5.4 MB - 3ms\",\"status\":\"complete\",\"state\":\"active\",\"blocking\":true,\"indeterminate\":false,\"startedAt\":\"2026-07-13T22:24:17.894Z\",\"updatedAt\":\"2026-07-13T22:24:17.895Z\",\"completedAt\":\"2026-07-13T22:24:17.895Z\",\"durationMs\":1,\"taskKey\":\"runtime.index.fetch:universe-concepts-index\",\"progressBasis\":\"measured-work\",\"progressEstimated\":false,\"expectedDurationMs\":3,\"percentStart\":0,\"percentEnd\":100,\"overallPercentStart\":0,\"overallPercentEnd\":0,\"sourcePercentStart\":20,\"sourcePercentEnd\":20,\"completedBytes\":5652279,\"totalBytes\":5652279,\"byteLength\":5652279,\"byteText\":\"5.4 MB / 5.4 MB\",\"sourceText\":\"browser cache/network\",\"byteProgress\":\"known\",\"source\":\"simulatte-intent-embedder\",\"cacheMode\":\"force-cache\",\"resourceKind\":\"universe-concepts-index\",\"resourceFile\":\"\",\"resourceUrl\":\"http://127.0.0.1:4282/data/simula",
+          "modelId": "",
+          "modelBaseUrl": "",
+          "cacheMode": "",
+          "cacheWorker": "",
+          "cacheBackends": "",
+          "resourceKind": "",
+          "resourceFile": "",
+          "completedBytes": "0",
+          "totalBytes": "0",
+          "traceId": "",
+          "rankId": "",
+          "reuse": "false",
+          "providerReady": "false",
+          "promptRuntimeReceipt": "",
+          "cacheHitCount": "0",
+          "cacheMissCount": "0",
+          "cachedSpanCount": "0"
+        },
+        "canvas": {
+          "sceneVisible": "false",
+          "renderer": "webgpu",
+          "rendererStatus": "WebGPU renderer ready",
+          "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+          "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+          "auditRequirePixelProof": "true",
+          "auditFreezeFrame": "false"
+        },
+        "labReady": true,
+        "spec": {
+          "name": "Blank Construction Plane",
+          "templateId": "blank-world",
+          "phaseSchemas": {},
+          "phase6SceneKind": "",
+          "phase6RenderPacketSchema": ""
+        }
+      },
+      "visualRubric": {
+        "score": 0,
+        "pass": false,
+        "expectedSignals": [],
+        "missingSignals": [
+          "audit-completion"
+        ],
+        "dynamicRequired": false,
+        "dynamic": false,
+        "representationQuality": 0
+      }
+    }
+  ]
+}

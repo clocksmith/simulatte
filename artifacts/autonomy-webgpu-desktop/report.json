@@ -1,0 +1,159 @@
+{
+  "schema": "simulatte.autonomyBrowserSmoke.v1",
+  "pass": false,
+  "targetUrl": "http://127.0.0.1:58003/autonomy/",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "browser": {
+    "product": "Chrome/149.0.7827.201",
+    "protocolVersion": "1.3",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36"
+  },
+  "result": {
+    "runtime": "Delivered at tick 158",
+    "state": "completed",
+    "tick": 158,
+    "distance": "796.5 m",
+    "decision": "Accelerate",
+    "settlement": "won",
+    "calibration": "158 / 158",
+    "traceRows": 48,
+    "betRows": 4,
+    "selectedRows": 1,
+    "rejectedRows": 0,
+    "gateRows": 7,
+    "retrievalRows": 4,
+    "rerankRows": 4,
+    "editInvalidatedController": true,
+    "missionLockedDuringRun": false,
+    "rendererBackend": "webgpu",
+    "adapterName": "metal-3",
+    "rendererFrames": 945,
+    "staticVertexCount": 135948,
+    "dynamicVertexCount": 1002,
+    "canvasWidth": 946,
+    "canvasHeight": 760,
+    "viewportWidth": 1440,
+    "documentWidth": 1440,
+    "hasHorizontalOverflow": false
+  },
+  "errors": [],
+  "failedResponses": [],
+  "requests": [
+    {
+      "pathname": "/autonomy/index.html",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/styles.css",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/contracts/contract-validator.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/canonical-receipts.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/world/route-planner.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/data-loader.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/feature-retrieval.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/mission/mission-compiler.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/world/world-model.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/observation-builder.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/reference-dynamics.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/bet-proposer.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/safety-gate.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/bet-selector.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/bet-settlement.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/verifier/journey-verifier.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/runtime/autonomy-controller.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/app/webgpu-math.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/app/webgpu-geometry.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/app/webgpu-renderer.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/app/trace-view.js",
+      "status": 200
+    },
+    {
+      "pathname": "/autonomy/app/main.js",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/autonomy-manifest.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/worlds/lower-manhattan-delivery-bike-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/embodiments/delivery-bike-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/policies/bet-selector-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/autonomy/feature-cards-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/favicon.svg",
+      "status": 200
+    }
+  ],
+  "claimBoundary": "This smoke proves the checked-in static browser journey executed in the named browser. It does not establish physical-world autonomy."
+}

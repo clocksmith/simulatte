@@ -1797,6 +1797,9 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /simulatte\.visualRepresentationQuality\.v1/);
   assert.match(tool, /representationFailures/);
   assert.match(tool, /averageRepresentationQuality/);
+  assert.match(tool, /phase4CandidateMatchReceipt/);
+  assert.match(tool, /groundingCandidateMatchReceipt\.v1/);
+  assert.match(tool, /candidate matching did not use one bounded node-candidate scan/);
   assert.match(tool, /canvasFrameLumaMeanDelta/);
   assert.match(tool, /matchedSignals/);
   assert.match(tool, /missingSignals/);

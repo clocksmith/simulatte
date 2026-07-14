@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { modelPreparationFailures } from './model-preparation-receipt.mjs';
 
 function requireValue(condition, message) {
   if (!condition) throw new Error(`vendor inference receipt invalid: ${message}`);
@@ -30,6 +31,8 @@ export function validateVendorInferenceReport(report, modelRuntimeLock, modelRun
   requireValue(execution.schema === 'simulatte.modelExecutionAuditReceipt.v1', 'model execution receipt is missing');
   requireValue(execution.ready === true && execution.providerReady === true, 'embedding provider was not ready');
   requireValue(execution.noFallback === true, 'model execution used a fallback');
+  const preparationFailures = modelPreparationFailures(execution);
+  requireValue(preparationFailures.length === 0, preparationFailures.join('; '));
   requireValue(Boolean(execution.providerBackend), 'embedding backend is missing');
   requireValue(lockReceipt.id === modelRuntimeLock.id, 'runtime lock id differs from the canonical lock');
   requireValue(Number(lockReceipt.number) === Number(modelRuntimeLock.number), 'runtime lock number differs from the canonical lock');

@@ -135,6 +135,52 @@ test('prompt compiles through parse, universe graph, PhysicsIR, solver graph, an
   assert.ok(spec.physicalSpec.stateChannels.some((channel) => channel.startsWith('angularVelocity:')));
 });
 
+test('Phase 4 carries causal rule identity into connected lava heat and ice phase inference', () => {
+  const spec = lab.createSpecFromPrompt('lava spins a turbine near an ice castle wall', {
+    allowPrototypeFallback: true,
+  });
+  const upstream = spec.phaseArtifacts.phase3.artifact.activationCloud.groundingEvidence
+    .universeGraphCandidates.intentBrief.causalGraph;
+  const carried = spec.phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph.intentBrief.causalGraph;
+  const projection = (rows) => rows.map((row) => ({
+    id: row.id,
+    ruleId: row.ruleId,
+    sourceRef: row.sourceRef,
+    targetRef: row.targetRef,
+    evidence: row.evidence,
+    derivedFromEdgeId: row.derivedFromEdgeId || '',
+  }));
+  const inferredEdges = spec.universeGraph.edges.filter((edge) => (
+    edge.provenance?.inferenceMode === 'causal-rule-connected-proximity'
+  ));
+  const heat = inferredEdges.find((edge) => edge.operatorType === 'heat_transfer');
+  const phase = inferredEdges.find((edge) => edge.operatorType === 'phase_transition');
+
+  assert.deepEqual(projection(carried), projection(upstream));
+  assert.equal(inferredEdges.length, 2);
+  assert.deepEqual(heat.provenance.pathEdgeIds, ['edge1', 'edge2', 'edge3']);
+  assert.equal(heat.provenance.causalRuleId, 'causal.lava-heats-rain');
+  assert.equal(heat.provenance.targetEvidenceNodeId, 'material-ice');
+  assert.equal(phase.provenance.causalRuleId, 'causal.heating-melts-ice');
+  assert.equal(phase.provenance.derivedFromEdgeId, 'causal.lava-heats-rain.1');
+  for (const type of ['heat_transfer', 'phase_transition']) {
+    const operator = spec.physicsIR.operators.find((row) => row.type === type);
+    assert.ok(operator);
+    assert.equal(operator.receipt.sourceEdgeId,
+      inferredEdges.find((edge) => edge.operatorType === type).id);
+    assert.equal(operator.receipt.inferenceProvenance.causalRuleId,
+      inferredEdges.find((edge) => edge.operatorType === type).provenance.causalRuleId);
+  }
+
+  const control = lab.createSpecFromPrompt('wooden stool near an ice wall', {
+    allowPrototypeFallback: true,
+  });
+  assert.equal(control.universeGraph.edges.some((edge) => edge.inferred), false);
+  assert.equal(control.physicsIR.operators.some((operator) => (
+    ['heat_transfer', 'phase_transition'].includes(operator.type)
+  )), false);
+});
+
 test('Phase 1 browser gate does not bypass model proof for prompt keywords', () => {
   const hadWindow = Object.prototype.hasOwnProperty.call(globalThis, 'window');
   const previousWindow = globalThis.window;
@@ -282,6 +328,46 @@ test('Phase 2 marks typed relations as local evidence instead of requesting mode
   assert.ok(relationSlots.every((slot) => slot.localEvidenceReason === 'phase2-typed-relation'));
 });
 
+test('Phase 2 promotes only syntactic term participants to required canonical entities', () => {
+  const cases = [
+    ['purple violin on a wooden stool', 'violin', 'stool'],
+    ['yellow excavator beside a glass greenhouse', 'excavator', 'greenhouse'],
+    ['an octopus holding a teapot', 'octopus', 'teapot'],
+  ];
+
+  for (const [prompt, subjectLabel, objectLabel] of cases) {
+    const phase2 = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true })
+      .phaseArtifacts.phase2.artifact;
+    const graph = phase2.sceneLanguageGraph;
+    const participantLabels = [subjectLabel, objectLabel];
+    for (const label of participantLabels) {
+      const span = phase2.languageGraph.spans.find((row) => row.text === label);
+      const identityId = `entity:${label}`;
+      const identities = graph.entities.filter((row) => row.id === identityId);
+      assert.equal(identities.length, 1, `${label} has one canonical entity identity`);
+      assert.equal(identities[0].required, true);
+      assert.deepEqual(identities[0].sourceSpanIds, [span.id]);
+      assert.equal(graph.concepts.some((row) => row.sourceSpanIds.includes(span.id)), false);
+      assert.ok(phase2.queryPlan.slots.some((slot) => (
+        slot.entryId === identityId && slot.slotRole === 'object' && slot.required === true
+      )));
+    }
+    assert.ok(graph.relations.some((relation) => (
+      relation.from === `entity:${subjectLabel}` &&
+      (relation.to === `entity:${objectLabel}` || relation.target === `entity:${objectLabel}`)
+    )), `${prompt} relation uses the same canonical participant identities`);
+  }
+
+  const control = lab.createSpecFromPrompt('quiet amber texture behind atmosphere', {
+    allowPrototypeFallback: true,
+  }).phaseArtifacts.phase2.artifact.sceneLanguageGraph;
+  assert.deepEqual(control.entities.map((row) => row.id), ['entity:texture', 'entity:atmosphere']);
+  assert.deepEqual(control.concepts.map((row) => [row.id, row.required]), [
+    ['concept:quiet', false],
+    ['concept:amber', false],
+  ]);
+});
+
 test('Phase 2 carries negation without creating required slots for negated entities', () => {
   const spec = lab.createSpecFromPrompt('dogs but no cats swimming in a lake', {
     allowPrototypeFallback: true,
@@ -361,6 +447,155 @@ test('Phase 2 extends coordinated negation and promotes syntactic process terms'
   assert.equal(pluralObject.spans.find((span) => span.text === 'turbines').kind, 'entity');
 });
 
+test('Phase 2 keeps comma-delimited fuel nouns out of the process ledger', () => {
+  const prompt = 'forest fire with wood biomass, flame, smoke, wind field, water, and rock wall';
+  const parsed = universeParser.parsePrompt(prompt);
+  const biomass = parsed.spans.find((span) => span.text === 'biomass');
+  const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+  const phase2Ledger = spec.phaseArtifacts.phase2.artifact.compositionLedger;
+  const combustionEdges = spec.universeGraph.edges.filter((edge) => edge.processId === 'combustion');
+
+  assert.equal(biomass.kind, 'material');
+  assert.equal(biomass.semanticRole, 'fuel-material');
+  assert.equal(parsed.spans.some((span) => span.kind === 'process' && span.text === 'biomass'), false);
+  assert.equal(parsed.clauses.some((clause) => clause.process === 'biomass'), false);
+  assert.equal(phase2Ledger.obligations.some((row) => row.id === 'action:biomass'), false);
+  assert.equal(spec.universeGraph.edges.some((edge) => edge.processId === 'biomass'), false);
+  assert.equal(combustionEdges.length, 2);
+  assert.ok(combustionEdges.every((edge) => (
+    edge.type === 'combustion' &&
+    edge.operatorType === 'combustion' &&
+    edge.evidence.includes('phase4-grounded-combustion') &&
+    edge.provenance?.sourcePhase === 4
+  )));
+});
+
+test('Phase 4 activates combustion for each grounded fuel only when prompt-owned fire evidence exists', () => {
+  const positive = lab.createSpecFromPrompt('forest fire with wood biomass and straw', {
+    allowPrototypeFallback: true,
+  });
+  const combustionEdges = positive.universeGraph.edges.filter((edge) => edge.processId === 'combustion');
+  const combustionOperators = positive.physicsIR.operators.filter((operator) => operator.type === 'combustion');
+  const fuelSpanIds = new Set(positive.promptParse.spans
+    .filter((span) => span.semanticRole === 'fuel-material')
+    .map((span) => span.id));
+
+  assert.equal(combustionEdges.length, fuelSpanIds.size);
+  assert.equal(combustionOperators.length, fuelSpanIds.size);
+  assert.deepEqual(new Set(combustionEdges.map((edge) => edge.provenance.fuelNodeId)),
+    new Set(combustionOperators.map((operator) => operator.entityId)));
+
+  for (const prompt of [
+    'forest with wood biomass and straw',
+    'wood biomass sample on a tray',
+    'thermal lava and steam flow through rock',
+    'wooden stool beside a fire',
+    'straw robot in front of a flame',
+  ]) {
+    const control = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    assert.equal(control.universeGraph.edges.some((edge) => edge.processId === 'combustion'), false, prompt);
+    assert.equal(control.physicsIR.operators.some((operator) => operator.type === 'combustion'), false, prompt);
+  }
+
+  for (const prompt of ['wood burns in a fire', 'flame burns straw']) {
+    const explicit = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    const edges = explicit.universeGraph.edges.filter((row) => row.processId === 'combustion');
+    const operators = explicit.physicsIR.operators.filter((row) => row.type === 'combustion');
+    const edge = edges[0];
+    assert.ok(edge, prompt);
+    assert.equal(edges.length, 1, prompt);
+    assert.equal(operators.length, 1, prompt);
+    assert.equal(edge.type, 'combustion', prompt);
+    assert.equal(edge.operatorType, 'combustion', prompt);
+    assert.equal(edge.from, edge.provenance.fuelNodeId, prompt);
+    assert.equal(edge.to, edge.provenance.fireNodeId, prompt);
+    assert.equal(edge.provenance.relationMode, 'explicit-process-clause', prompt);
+    assert.equal(edge.provenance.sourceVerbSpanId,
+      explicit.promptParse.spans.find((span) => /burn/.test(span.text)).id, prompt);
+  }
+});
+
+test('typed flow domains separate queue traffic from coolant transport', () => {
+  const queue = lab.createSpecFromPrompt(
+    'graph of nodes edges and flows through a queue network',
+    { allowPrototypeFallback: true }
+  );
+  const dataCenter = lab.createSpecFromPrompt(
+    'data center cooling loop where hot server racks increase coolant flow and controller throttles fan speed',
+    { allowPrototypeFallback: true }
+  );
+  const airQuality = lab.createSpecFromPrompt(
+    'air quality urban valley particulate dispersion through buildings',
+    { allowPrototypeFallback: true }
+  );
+  const queueProcess = queue.promptParse.spans.find((span) => span.text === 'flows');
+  const queueDomain = queue.physicsIR.domains.find((domain) => /queue-network/.test(domain.entityId));
+  const coolantDomain = dataCenter.physicsIR.domains.find((domain) => /coolant-flow/.test(domain.entityId));
+
+  assert.equal(queue.promptParse.spans.find((span) => span.text === 'nodes').kind, 'entity');
+  assert.equal(queueProcess.kind, 'process');
+  assert.equal(queueDomain.kind, 'network');
+  assert.deepEqual(queue.physicsIR.operators.map((operator) => operator.type), ['network_flow']);
+  assert.ok(queue.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.network-flow.v1'
+  )));
+  assert.equal(coolantDomain.kind, 'fluid');
+  assert.ok(dataCenter.physicsIR.operators.some((operator) => (
+    operator.type === 'advection' && operator.entityId === coolantDomain.entityId
+  )));
+  const networkOperators = dataCenter.physicsIR.operators.filter((operator) => operator.type === 'network_flow');
+  assert.equal(networkOperators.length, 1);
+  assert.equal(networkOperators[0].entityId,
+    dataCenter.physicsIR.domains.find((domain) => /controller/.test(domain.entityId)).entityId);
+  assert.ok(airQuality.physicsIR.operators.some((operator) => operator.type === 'advection'));
+  assert.ok(airQuality.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.fluid-advection.v1'
+  )));
+});
+
+test('typed optical rules activate executable lens and thin-film phase fields without noun shortcuts', () => {
+  const optics = lab.createSpecFromPrompt(
+    'lab bench optics bench with sun lamp, glass lens, mirror, prism, and sensor',
+    { allowPrototypeFallback: true }
+  );
+  const thinFilm = lab.createSpecFromPrompt(
+    'soap thin film with air bubbles in wire loops and iridescent interference',
+    { allowPrototypeFallback: true }
+  );
+  const mappings = (spec) => spec.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+
+  assert.equal(optics.promptParse.spans.some((span) => (
+    span.kind === 'process' && span.text === 'optics'
+  )), false);
+  assert.ok(optics.universeGraph.edges.some((edge) => (
+    edge.operatorType === 'wave_field' && edge.provenance?.causalRuleId === 'causal.lens-refracts-beam'
+  )));
+  assert.ok(optics.physicsIR.operators.some((operator) => operator.type === 'wave_field'));
+  assert.ok(mappings(optics).includes('visual.operator.optical-ray.v1'));
+  assert.ok(thinFilm.universeGraph.edges.some((edge) => (
+    edge.operatorType === 'wave_field' &&
+    edge.provenance?.causalRuleId === 'causal.thin-film-forms-interference'
+  )));
+  assert.ok(thinFilm.physicsIR.operators.some((operator) => operator.type === 'wave_field'));
+  assert.ok(mappings(thinFilm).includes('visual.operator.thin-film-interference.v1'));
+
+  for (const prompt of [
+    'soap bubbles in a wire basket',
+    'soap thin film with air bubbles in wire loops',
+    'wooden bench with a lamp and glass cup',
+    'glass lens and wooden stool',
+  ]) {
+    const control = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    assert.equal(control.physicsIR.operators.some((operator) => operator.type === 'wave_field'), false, prompt);
+    assert.equal(mappings(control).some((id) => (
+      ['visual.operator.optical-ray.v1', 'visual.operator.thin-film-interference.v1'].includes(id)
+    )), false, prompt);
+  }
+  const meltingFilm = lab.createSpecFromPrompt('thin film melts ice', { allowPrototypeFallback: true });
+  assert.ok(meltingFilm.physicsIR.operators.some((operator) => operator.type === 'phase_transition'));
+  assert.equal(mappings(meltingFilm).includes('visual.operator.thin-film-interference.v1'), false);
+});
+
 test('Phase 2 phrase parser matches multi-word entities across whitespace', () => {
   const parsed = universeParser.parsePrompt('neutrino detector inside a water\n   tank');
   const spanTexts = new Set(parsed.spans.map((span) => span.text));
@@ -426,6 +661,21 @@ test('Phase 2 spatial clauses use grounded nouns instead of nearby terms or nomi
     clause.spatialRelation === 'inside'
   )));
 
+  const controlledDataCenter = universeParser.parsePrompt(
+    'edge data center server racks recirculating heat between cooling aisles under control feedback'
+  );
+  assert.ok(controlledDataCenter.spans.some((span) => (
+    span.kind === 'observable' && span.text === 'control feedback'
+  )));
+  assert.equal(controlledDataCenter.spans.some((span) => span.text === 'control'), false);
+  assert.equal(controlledDataCenter.spans.some((span) => (
+    span.kind === 'process' && ['heat', 'cooling'].includes(span.text)
+  )), false);
+  assert.equal(controlledDataCenter.clauses.some((clause) => (
+    clause.spatialRelation === 'under' &&
+    controlledDataCenter.spans.find((span) => span.id === clause.objectSpanId)?.text === 'control'
+  )), false);
+
   const adjacentObjects = universeParser.parsePrompt('dogs cats');
   assert.equal(
     adjacentObjects.clauses.some((clause) => clause.relationSource === 'data-owned-compound-containment'),
@@ -471,6 +721,39 @@ test('Phase 2 keeps an agentive participle attached across spatial furniture phr
   const object = parsed.spans.find((row) => row.id === watching.objectSpanId);
   assert.equal(subject.entityClass, 'person');
   assert.equal(object.entityClass, 'television');
+});
+
+test('Phase 3 treats a synthesized context phrase as support, not object identity', () => {
+  const prompt = 'warehouse fire with smoke';
+  const spans = [{ id: 'span.fire', text: 'fire', kind: 'entity' }];
+  const modelScope = globalThis.__SimulattePhysicsModelRefactorScope;
+  const decision = modelScope.phase3PrimitiveCandidateDecision({
+    id: 'rocket-a',
+    role: 'rocket',
+    phrase: 'fire',
+    source: 'embedding-guided-synth-node',
+    score: 0.99,
+    type: 'assembly',
+  }, prompt, spans, [], []);
+  const primitiveDecision = modelScope.phase3PrimitiveCandidateDecision({
+    id: 'rigid-body',
+    role: 'rigid body',
+    phrase: 'rocket',
+    source: 'embedding-guided-graph-synthesis',
+    score: 0.99,
+    type: 'physics',
+  }, 'rocket launch', [{ id: 'span.rocket', text: 'rocket', kind: 'entity' }], [], []);
+
+  assert.deepEqual(decision, {
+    role: 'support',
+    matchKind: 'synth-association-support',
+    reason: 'synthesized row identity lacks prompt evidence',
+  });
+  assert.deepEqual(primitiveDecision, {
+    role: 'support',
+    matchKind: 'synth-primitive-support',
+    reason: 'synthesized primitive is implementation support',
+  });
 });
 
 test('Phase 3 separates literal swimming retrieval from generic support physics', () => {
@@ -572,6 +855,28 @@ test('qubit readout grounds the typed instrument relation without phase-change o
   assert.ok(operatorTypes.includes('derive_readout'));
   assert.equal(operatorTypes.includes('phase_transition'), false);
   assert.equal(operatorTypes.includes('heat_source'), false);
+});
+
+test('Phase 6 applies accepted orbital process motion to every affected prompt entity', () => {
+  const spec = lab.createSpecFromPrompt(
+    'planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps',
+    { allowPrototypeFallback: true }
+  );
+  const packet = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+  const entitiesByLabel = new Map(packet.entities.map((row) => [row.label, row]));
+
+  for (const label of [
+    'planetary rings',
+    'shepherd moon',
+    'ice boulders',
+    'density waves',
+    'orbital gaps',
+  ]) {
+    const entity = entitiesByLabel.get(label);
+    assert.ok(entity, `missing planetary render entity ${label}`);
+    assert.match(entity.animation.kind, /^(?:phase-propagating-arcs|orbital-drift)$/);
+    assert.ok(entity.animation.affects.includes(entity.id));
+  }
 });
 
 test('Phase 3 strips Phase 4 conclusion fields from retrieval evidence side channels', () => {
@@ -1990,6 +2295,45 @@ test('solver graph evolves typed finite channels for coupled lava turbine ice pr
   assert.ok(state.solverState.channels[angularKey] > startAngular);
   assert.ok(state.solverState.channels[iceKey] >= startIce);
   assert.ok(state.solverState.summary.motion > 0);
+});
+
+test('combustion solver consumes bounded fuel and conserves product plus smoke mass', () => {
+  const spec = lab.createSpecFromPrompt('forest fire with wood biomass and straw', {
+    allowPrototypeFallback: true,
+  });
+  const steps = spec.solverGraph.steps.filter((step) => step.operatorType === 'combustion');
+  let state = lab.createSimulationState(spec);
+  const before = structuredClone(state.solverState.channels);
+
+  assert.equal(steps.length, 3);
+  assert.ok(spec.compositionGraph.operators.every((operator) => operator.id === 'combustion'));
+  assert.ok(spec.renderProgram.solverPlan.families.includes('reaction-front'));
+  assert.ok(spec.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.thermal-combustion.v1'
+  )));
+
+  for (let index = 0; index < 40; index += 1) state = lab.stepSimulation(state, spec, 0.016);
+  for (const step of steps) {
+    const receipt = step.receipt;
+    const fuelId = receipt.consumedChannels[0];
+    const productId = receipt.producedChannels.find((id) => id.startsWith('product:'));
+    const smokeId = receipt.producedChannels.find((id) => id.startsWith('smoke:'));
+    const temperatureId = receipt.producedChannels.find((id) => id.startsWith('temperature:'));
+    const afterFuel = state.solverState.channels[fuelId];
+    const afterProduct = state.solverState.channels[productId];
+    const afterSmoke = state.solverState.channels[smokeId];
+    const fuelLoss = before[fuelId] - afterFuel;
+    const productGain = afterProduct - before[productId];
+    const smokeGain = afterSmoke - before[smokeId];
+
+    assert.equal(receipt.schema, 'simulatte.solverChannelReceipt.v1');
+    assert.match(receipt.sourceEdgeId, /^grounded-combustion:/);
+    assert.ok(receipt.evidence.includes('phase4-grounded-combustion'));
+    assert.ok([afterFuel, afterProduct, afterSmoke].every((value) => value >= 0 && value <= 1));
+    assert.ok(state.solverState.channels[temperatureId] >= before[temperatureId]);
+    assert.ok(fuelLoss > 0 && productGain > 0 && smokeGain > 0);
+    assert.ok(Math.abs(fuelLoss - productGain - smokeGain) < 1e-10);
+  }
 });
 
 test('unsupported and unresolved concepts are preserved in validation receipt', () => {

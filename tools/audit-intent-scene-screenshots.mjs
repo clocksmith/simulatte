@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 import { captureChildProcessOutput } from './audit-process-log.mjs';
 import { auditPromptMatches, waitForCondition, withDeadline } from './audit-runtime-wait.mjs';
+import { modelPreparationFailures } from './model-preparation-receipt.mjs';
 import {
   evaluateGoldVisualResults,
   loadGoldAdjudication,
@@ -1229,6 +1230,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         noFallback: promptRuntimeReceipt.noFallback === true,
         providerReady: promptRuntimeReceipt.providerReady === true,
         providerBackend: promptRuntimeReceipt.providerBackend || '',
+        cachePrefetch: promptRuntimeReceipt.cachePrefetch === true,
+        cacheMode: promptRuntimeReceipt.cacheMode || '',
+        cacheVerified: promptRuntimeReceipt.cacheVerified === true,
+        embeddingCacheState: promptRuntimeReceipt.embeddingCacheState || '',
+        rerankerCacheState: promptRuntimeReceipt.rerankerCacheState || '',
+        modelPreparation: promptRuntimeReceipt.modelPreparation || null,
         modelRuntimeLock: promptRuntimeReceipt.modelRuntimeLock || null,
         embeddingModelId: promptRuntimeReceipt.modelId || '',
         embeddingModelHash: promptRuntimeReceipt.modelHash || '',
@@ -1260,6 +1267,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
           candidateInputs: sourceRerankReceipt.modelCandidateInputs || [],
           candidateOutputs: sourceRerankReceipt.modelCandidateOutputs || [],
           candidateSelectionMode: sourceRerankReceipt.candidateSelectionMode || '',
+          candidateBudgetPolicy: sourceRerankReceipt.candidateBudgetPolicy || '',
           evidenceCandidateCount: Number(sourceRerankReceipt.evidenceCandidateCount || 0),
           evidenceGroupCount: Number(sourceRerankReceipt.evidenceGroupCount || 0),
           adaptiveCandidateBudget: Number(sourceRerankReceipt.adaptiveCandidateBudget || 0),
@@ -1346,6 +1354,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       })),
       phase4Canonicalization: phase4AcceptedGraph.canonicalization || null,
       phase4ConstructionReceipt: phase4AcceptedGraph.constructionReceipt || null,
+      phase4CandidateMatchReceipt: phase4AcceptedGraph.candidateMatchReceipt || null,
       phase5EntityIdentities: (phase5PhysicsIR.entities || []).map((row) => ({
         id: row.id || '',
         canonicalId: row.canonicalId || '',
@@ -1363,6 +1372,16 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         status: row.status || '',
         visualEvidence: row.visualEvidence || [],
       })),
+      sceneRenderPacketSurfaceContacts: sceneRenderPacket && sceneRenderPacket.receipts &&
+        sceneRenderPacket.receipts.framing && Array.isArray(sceneRenderPacket.receipts.framing.surfaceContacts)
+        ? sceneRenderPacket.receipts.framing.surfaceContacts.map((row) => ({
+          constraintId: row.constraintId || '',
+          sourceId: row.sourceId || '',
+          targetId: row.targetId || '',
+          clearanceBefore: Number(row.clearanceBefore || 0),
+          clearanceAfter: Number(row.clearanceAfter || 0),
+        }))
+        : [],
       sceneRenderPacketIdentities: (sceneRenderPacket && sceneRenderPacket.entities || []).map((row) => ({
         id: row.id || '',
         label: row.label || '',
@@ -1820,10 +1839,15 @@ function representationQualityForResult(result, expectedCount) {
   const entityCount = Math.max(1, Number(realization.entityCount || result.visualIRSceneRenderPacketEntityCount || 0));
   const requiredRelations = array(result.phase6CompositionObligations)
     .filter((row) => row.required === true && row.kind === 'relation');
+  const surfaceContacts = array(result.sceneRenderPacketSurfaceContacts);
   const provenRelations = requiredRelations.filter((row) => (
     row.status === 'preserved' && array(row.visualEvidence).length > 0 &&
     (!String(row.id || '').startsWith('relation:spatial:') ||
-      array(row.visualEvidence).includes(`layout-relation:${row.id}`))
+      array(row.visualEvidence).includes(`layout-relation:${row.id}`)) &&
+    (!/^relation:spatial:[^:]+:(?:on|onto|seated-on|supports):/.test(String(row.id || '')) ||
+      surfaceContacts.some((contact) => (
+        contact.constraintId === row.id && contact.clearanceAfter >= 0 && contact.clearanceAfter <= 0.01
+      )))
   ));
   const dimensions = {
     realizedGeometry: clamp01(Number(realization.realizedCount || 0) / entityCount),
@@ -1954,6 +1978,26 @@ function analyze(results, options = {}) {
     if (!auditPromptMatches(result.prompt, result.compiledPrompt)) {
       failures.push(`${result.index}: compiled prompt does not match submitted prompt`);
     }
+    if (options.intentMode === 'model') {
+      for (const failure of modelPreparationFailures(result.modelExecutionReceipt)) {
+        failures.push(`${result.index}: ${failure}`);
+      }
+    }
+    const matchReceipt = result.phase4CandidateMatchReceipt || {};
+    const expectedPairEvaluations = Number(matchReceipt.nodeCount || 0) *
+      Number(matchReceipt.candidateRowCount || 0);
+    if (matchReceipt.schema !== 'simulatte.groundingCandidateMatchReceipt.v1' ||
+        matchReceipt.policy !== 'exact-identity-or-unqualified-label-overlap') {
+      failures.push(`${result.index}: Phase 4 candidate-match receipt is missing or uses an unknown policy`);
+    }
+    if (Number(matchReceipt.nodeCount || 0) !== array(result.phase4AcceptedNodeIdentities).length) {
+      failures.push(`${result.index}: Phase 4 candidate-match node count does not match accepted identities`);
+    }
+    if (Number(matchReceipt.pairEvaluationCount || 0) !== expectedPairEvaluations ||
+        Number(matchReceipt.matchedRowCount || 0) > expectedPairEvaluations ||
+        Number(matchReceipt.scanPasses || 0) !== 1) {
+      failures.push(`${result.index}: Phase 4 candidate matching did not use one bounded node-candidate scan`);
+    }
     if (result.runtimeState !== 'ready') failures.push(`${result.index}: runtime not ready`);
     if (!result.canvasWidth || !result.canvasHeight) failures.push(`${result.index}: missing canvas`);
     const phase7Input = result.phase7RenderExecutionInput || result.phase7Input || result.renderExecutionInput || '';
@@ -1994,6 +2038,17 @@ function analyze(results, options = {}) {
       failures.push(`${result.index}: model-evaluated construction evidence did not reach Phase 7`);
     }
     for (const slot of array(result.phase3SlotCandidates)) {
+      if (slot.skipReason === 'exact-construction-scored-by-prompt-embedding') {
+        const construction = array(slot.candidates).filter((candidate) => candidate.constructionEvidence === true);
+        if (!construction.length || construction.some((candidate) => (
+          candidate.modelEvaluated !== true || candidate.literalSlotMatch !== true
+        ))) {
+          failures.push(`${result.index}: exact construction slot ${slot.slotId} lacks literal prompt-embedding evidence`);
+        }
+        if (construction.some((candidate) => candidate.rerankEvaluated === true)) {
+          failures.push(`${result.index}: exact construction slot ${slot.slotId} ran a redundant slot reranker`);
+        }
+      }
       for (const candidate of array(slot.candidates)) {
         if (candidate.type === 'prompt-literal' && candidate.modelEvaluated !== true &&
             Number(candidate.embeddingScore || 0) !== 0) {

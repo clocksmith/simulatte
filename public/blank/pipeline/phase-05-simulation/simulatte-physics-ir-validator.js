@@ -10,6 +10,7 @@
   const OPERATOR_CONTRACTS = Object.freeze({
     heat_source: contract([], ['temperature'], ['thermal']),
     heat_transfer: contract(['temperature'], ['temperature'], ['thermal']),
+    combustion: contract(['fuel', 'temperature'], ['fuel', 'temperature', 'product', 'smoke'], ['thermal', 'field', 'solid', 'rigidBody']),
     advection: contract(['flowVelocity'], ['flowVelocity'], ['fluid']),
     diffusion: contract([], [], ['field']),
     phase_transition: contract(['temperature', 'liquidFraction'], ['liquidFraction'], ['phase']),

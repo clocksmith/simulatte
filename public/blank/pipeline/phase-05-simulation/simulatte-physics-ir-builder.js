@@ -50,7 +50,6 @@
           domains.push(domain);
           domainByNode.set(node.id, domain);
           addBaseFields(stateFields, entity, domain, params);
-          addEntityOperators(operators, entity, domain, node, params);
           if (domain.kind === 'rigidBody') rigidBodies.push(rigidBodyForEntity(entity, domain));
           if (domain.kind === 'particleSet') particles.push(particleSetForEntity(entity, domain));
           boundaryConditions.push(boundaryForDomain(domain));
@@ -86,8 +85,15 @@
             behaviorRelations
           );
         }
-        addImplicitCouplings(couplings, operators, domains, params, receipt);
-        addFallbackIfNeeded(entities, domains, stateFields, operators, boundaryConditions, prompt, params, receipt);
+        if (!entities.length) {
+          receipt.unsupported.push({
+            promptSpan: prompt || 'empty prompt',
+            reason: 'grounded graph has no executable physical entities',
+            fallback: 'none',
+          });
+        }
+        const retainedStateFields = executableStateFields(stateFields, operators, universeGraph.observables || []);
+        stateFields.splice(0, stateFields.length, ...retainedStateFields);
         addIntentBriefReceipt(receipt, intentBrief);
 
         const readouts = readoutsForIR(stateFields, operators, universeGraph.observables || []);
@@ -116,6 +122,22 @@
             universeGraph: universeGraph.schema || '',
           },
         };
+      }
+
+    function executableStateFields(fields = [], operators = [], observables = []) {
+        const channelIds = new Set((operators || []).flatMap((operator) => [
+          ...(operator.inputs || operator.reads || []),
+          ...(operator.outputs || operator.writes || []),
+        ]));
+        const observableChannels = new Set((observables || []).flatMap((row) => [
+          row.channel,
+          row.stateBinding,
+          row.fieldId,
+        ]).filter(Boolean));
+        return (fields || []).filter((field) => (
+          channelIds.has(field.id) || observableChannels.has(field.id) ||
+          observableChannels.has(field.name)
+        ));
       }
 
     function emptyReceipt() {
@@ -179,6 +201,7 @@
           label: node.label || node.canonicalId,
           sourceLabel: node.sourceLabel || (node.aliases || [])[0] || node.label || node.canonicalId,
           semanticType: node.semanticType || 'body',
+          semanticRole: node.semanticRole || '',
           semanticClass: node.semanticClass || '',
           visualArchetype: node.visualArchetype || '',
           aliases: node.aliases || [],
@@ -327,6 +350,12 @@
         ) {
           return 'network';
         }
+        if (
+          entity.semanticRole === 'fluid-medium' ||
+          (domains || []).includes('fluid')
+        ) {
+          return 'fluid';
+        }
         if (entity.directlyGrounded === true && entity.visualArchetype &&
           !/^(?:environment|material|medium)$/.test(String(semanticType).toLowerCase())) {
           return 'rigidBody';
@@ -359,6 +388,7 @@
           !/\b(heat|heated|heating|thermal|temperature|cooling|coolant|fire|flame|smoke|steam)\b/.test(identityText);
         return uniqueList([
           entity.semanticType,
+          entity.semanticRole,
           ...(domains || []).filter((domain) => !(opticalOnlyLight && domain === 'thermal')),
           ...(operatorHints || []).filter((hint) => !(opticalOnlyLight && hint === 'heat_transfer')),
         ].filter(Boolean));
@@ -464,88 +494,27 @@
         });
       }
 
-    function addEntityOperators(operators, entity, domain, node, params) {
-        if (domain.kind === 'fluid' || hasTag(domain, 'fluid') || hasOperatorHint(domain, 'advection')) {
-          addOperator(operators, 'advection', domain, {
-            reads: [`flowVelocity:${entity.id}`, `viscosity:${entity.id}`],
-            writes: [`flowVelocity:${entity.id}`, `pressure:${entity.id}`],
-            params: { rate: clamp(Number(params.flowRate ?? params.windSpeed ?? 0.55), 0, 2) },
-          });
-        }
-        if (hasTag(domain, 'thermal') || ['lava', 'fire'].includes(entity.materialId)) {
-          addOperator(operators, 'heat_source', domain, {
-            reads: [`temperature:${entity.id}`],
-            writes: [`temperature:${entity.id}`],
-            params: { strength: materialHeatStrength(entity.materialId, params) },
-          });
-        }
-        if (domain.kind === 'network') {
-          addOperator(operators, 'network_flow', domain, {
-            reads: [`backlog:${entity.id}`, `throughput:${entity.id}`, `signalDelay:${entity.id}`],
-            writes: [`backlog:${entity.id}`, `throughput:${entity.id}`],
-            params: { demand: clamp01(Number(params.marketDemand || params.queueBacklog || 0.52)) },
-          });
-        }
-        if (hasTag(domain, 'wave') || hasTag(domain, 'oscillator')) {
-          addOperator(operators, hasTag(domain, 'wave') ? 'wave_field' : 'oscillator', domain, {
-            reads: [`phase:${entity.id}`, `amplitude:${entity.id}`],
-            writes: [`phase:${entity.id}`, `amplitude:${entity.id}`],
-            params: { frequency: clamp(Number(params.soundFrequency || 0.7), 0.05, 4) },
-          });
-        }
-        if (
-          hasTag(domain, 'growth') ||
-          hasTag(domain, 'biological') ||
-          hasTag(domain, 'protein') ||
-          hasOperatorHint(domain, 'growth_decay')
-        ) {
-          addOperator(operators, 'growth_decay', domain, {
-            reads: [`density:${entity.id}`, `nutrient:${entity.id}`],
-            writes: [`density:${entity.id}`, `nutrient:${entity.id}`],
-            params: { rate: clamp01(Number(params.populationGrowth || 0.32)) },
-          });
-        }
-        if (
-          hasTag(domain, 'reaction') ||
-          hasTag(domain, 'chemical') ||
-          hasTag(domain, 'fermentation') ||
-          hasOperatorHint(domain, 'reaction_diffusion')
-        ) {
-          addOperator(operators, 'reaction_diffusion', domain, {
-            reads: [`reactionProgress:${entity.id}`],
-            writes: [`reactionProgress:${entity.id}`],
-            params: { rate: clamp01(Number(params.catalyst || params.combustibility || 0.46)) },
-          });
-        }
-        if (
-          hasTag(domain, 'constraint') ||
-          hasTag(domain, 'atomic') ||
-          hasTag(domain, 'protein') ||
-          /\b(bond|constraint)\b/i.test(entity.label || entity.canonicalId || '')
-        ) {
-          addOperator(operators, 'fracture_threshold', domain, {
-            reads: [`stress:${entity.id}`, `damage:${entity.id}`],
-            writes: [`damage:${entity.id}`],
-            params: { threshold: clamp(Number(params.bondStrength || 0.58), 0.05, 1.4) },
-          });
-        }
-        if (/\b(robot|robotic|gripper|servo|workcell|manipulator|twist)\b/i.test(entity.label || entity.canonicalId || '')) {
-          addOperator(operators, 'rotational_torque', domain, {
-            reads: [`angle:${entity.id}`, `angularVelocity:${entity.id}`, `torque:${entity.id}`],
-            writes: [`angularVelocity:${entity.id}`, `angle:${entity.id}`, `torque:${entity.id}`],
-            params: { coupling: clamp(Number(params.fieldStrength || 0.62), 0.05, 2) },
-          });
-        }
-        if (node && node.semanticType === 'observable' && !node.operatorHints.length) {
-          addOperator(operators, 'derive_readout', domain, { reads: [], writes: [], params: { label: node.label } });
-        }
-      }
-
     function addCouplingsFromEdges(couplings, operators, fields, domainByNode, edges, params, receipt, behaviorRelations) {
         for (const edge of edges || []) {
           const from = domainByNode.get(edge.from);
           const to = domainByNode.get(edge.to);
-          if (!from || !to) continue;
+          if (!from || !to) {
+            if (
+              typeof addBehaviorBundleFromPartialEdge === 'function' &&
+              addBehaviorBundleFromPartialEdge(
+                couplings,
+                operators,
+                fields,
+                from,
+                to,
+                edge,
+                params,
+                receipt,
+                behaviorRelations
+              )
+            ) continue;
+            continue;
+          }
           if (isSwimmingEdge(edge, from, to)) {
             addSwimmingBehaviorFromEdge(couplings, operators, fields, from, to, edge, params, receipt, behaviorRelations);
             continue;
@@ -694,44 +663,6 @@
         return addOperator(operators, type, agentDomain, configs[type] || { reads: [], writes: [], params: {} });
       }
 
-    function addImplicitCouplings(couplings, operators, domains, params, receipt) {
-        const fluids = domains.filter((domain) => domain.kind === 'fluid');
-        const rotors = domains.filter((domain) => isRotationalDomain(domain));
-        const thermal = domains.filter((domain) => hasTag(domain, 'thermal') || ['lava', 'fire'].includes(domain.materialId));
-        const phaseTargets = domains.filter((domain) => (
-          (hasTag(domain, 'phase') || domain.materialId === 'ice') &&
-          !['lava', 'fire'].includes(domain.materialId)
-        ));
-        const fractureTargets = domains.filter((domain) => hasTag(domain, 'fracture'));
-        for (const fluid of fluids) {
-          for (const rotor of rotors) {
-            const op = addCouplingOperator(operators, 'rotational_torque', fluid, rotor, params, { type: 'fluidForce' });
-            couplings.push({ from: fluid.id, to: rotor.id, type: 'fluidForce', operatorId: op.id });
-          }
-        }
-        for (const source of thermal) {
-          for (const target of domains) {
-            if (source.id === target.id || !hasFieldTarget(target, 'temperature')) continue;
-            const op = addCouplingOperator(operators, 'heat_transfer', source, target, params, { type: 'heatTransfer' });
-            couplings.push({ from: source.id, to: target.id, type: 'heatTransfer', operatorId: op.id });
-          }
-        }
-        for (const target of phaseTargets) {
-          const op = addCouplingOperator(operators, 'phase_transition', target, target, params, { type: 'phaseChange' });
-          couplings.push({ from: target.id, to: target.id, type: 'phaseChange', operatorId: op.id });
-        }
-        for (const target of fractureTargets) {
-          const op = addCouplingOperator(operators, 'fracture_threshold', target, target, params, { type: 'fracture' });
-          couplings.push({ from: target.id, to: target.id, type: 'fracture', operatorId: op.id });
-        }
-        if (domains.some((domain) => /soul|entropy/.test(domain.entityId))) {
-          receipt.approximate.push({
-            promptSpan: 'abstract thermodynamic phrase',
-            reason: 'compiled to observable field and readout channels',
-          });
-        }
-      }
-
     function couplingOperator(edgeType, from, to) {
         if (
           (edgeType === 'fluidForce' || edgeType === 'torqueTransfer') &&
@@ -770,17 +701,23 @@
           });
         }
         if (type === 'heat_transfer') {
+          const reads = [`temperature:${fromEntity}`, `temperature:${toEntity}`];
+          const writes = [`temperature:${toEntity}`];
           return addOperator(operators, type, to, {
-            reads: [`temperature:${fromEntity}`, `temperature:${toEntity}`],
-            writes: [`temperature:${toEntity}`],
+            reads,
+            writes,
             params: { rate: clamp(Number(params.heatTransfer || 0.48), 0.02, 2) },
+            receipt: inferredChannelReceipt(edge, type, reads, writes),
           });
         }
         if (type === 'phase_transition') {
+          const reads = [`temperature:${toEntity}`, `liquidFraction:${toEntity}`];
+          const writes = [`liquidFraction:${toEntity}`];
           return addOperator(operators, type, to, {
-            reads: [`temperature:${toEntity}`, `liquidFraction:${toEntity}`],
-            writes: [`liquidFraction:${toEntity}`],
+            reads,
+            writes,
             params: { threshold: materialMeltPoint(to.materialId), rate: clamp(Number(params.latentHeat || 0.45), 0.05, 2) },
+            receipt: inferredChannelReceipt(edge, type, reads, writes),
           });
         }
         if (type === 'rigid_collision') {
@@ -818,33 +755,17 @@
         });
       }
 
-    function addFallbackIfNeeded(entities, domains, fields, operators, boundaries, prompt, params, receipt) {
-        if (entities.length) return;
-        const node = {
-          id: 'prompt-field',
-          canonicalId: 'field.prompt',
-          label: prompt || 'Prompt Field',
-          semanticType: 'field',
-          materialId: '',
-          domains: ['field'],
-          confidence: 0.32,
+    function inferredChannelReceipt(edge = {}, operatorType = '', reads = [], writes = []) {
+        if (!edge.inferred || !edge.provenance) return null;
+        return {
+          schema: 'simulatte.solverChannelReceipt.v1',
+          operatorType,
+          sourceEdgeId: edge.id || '',
+          evidence: edge.evidence || [],
+          consumedChannels: reads,
+          producedChannels: writes,
+          inferenceProvenance: { ...edge.provenance },
         };
-        const entity = entityForNode(node);
-        const domain = domainForEntity(entity, node, 0);
-        entities.push(entity);
-        domains.push(domain);
-        addField(fields, domain, 'amplitude', 'scalar', 'ratio', clamp01(Number(params.fieldStrength || 0.4)));
-        addField(fields, domain, 'phase', 'scalar', 'rad', 0);
-        addOperator(operators, 'oscillator', domain, {
-          reads: [`phase:${entity.id}`, `amplitude:${entity.id}`],
-          writes: [`phase:${entity.id}`, `amplitude:${entity.id}`],
-          params: { frequency: 0.42 },
-        });
-        boundaries.push(boundaryForDomain(domain));
-        receipt.approximate.push({
-          promptSpan: prompt || 'blank prompt',
-          reason: 'compiled to generic oscillator field',
-        });
       }
 
     function addOperator(operators, type, domain, detail) {
@@ -865,6 +786,7 @@
           writes,
           params: detail.params || {},
           stage: stageForOperator(type),
+          receipt: detail.receipt || null,
         };
         operators.push(operator);
         return operator;
@@ -902,6 +824,7 @@
       buildPhysicsIR,
       emptyReceipt,
       addIntentBriefReceipt,
+      executableStateFields,
       entityForNode,
       geometryForNode,
       domainForEntity,
@@ -910,17 +833,14 @@
       preferredDomainKind,
       addBaseFields,
       addField,
-      addEntityOperators,
       addCouplingsFromEdges,
       isSwimmingEdge,
       addSwimmingBehaviorFromEdge,
       ensureSwimmingFields,
       ensureWaterFields,
       addSwimmingOperator,
-      addImplicitCouplings,
       couplingOperator,
       addCouplingOperator,
-      addFallbackIfNeeded,
       addOperator,
       rigidBodyForEntity,
       particleSetForEntity,

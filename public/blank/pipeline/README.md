@@ -21,8 +21,8 @@ Each phase answers one question and owns one authority.
 | --- | --- | --- |
 | `phase-01-runtime/` | Is the runtime proven? | Proves required models, indexes, cache, and providers are ready. |
 | `phase-02-language/` | What did the prompt literally say? | Turns prompt text into tokens, spans, clauses, relations, and query plans. |
-| `phase-03-retrieval/` | What evidence exists and how strongly does it activate obligations? | Embedding retrieval, mandatory rerank, and activation fusion with coverage, conflicts, and negative evidence as separate receipted sections. |
-| `phase-04-grounded-intent/` | What world meaning do we commit to? | Chooses the accepted world graph, assumptions, and unsupported concepts. |
+| `phase-03-retrieval/` | What evidence exists and how strongly does it activate obligations? | Embedding retrieval, bounded mandatory rerank, and activation fusion with candidate-budget, coverage, conflict, and negative-evidence receipts. |
+| `phase-04-grounded-intent/` | What world meaning do we commit to? | Chooses the accepted world graph and records candidate pairs, matches, assumptions, and unsupported concepts. |
 | `phase-05-simulation/` | What executable physics do we compile? | Compiles grounded intent into PhysicsIR, solver graph, and RenderIR. |
 | `phase-06-visual/` | What visual scene do we compile? | Compiles simulation output into VisualIR, render instances, and scene packets. |
 | `phase-07-render/` | What actually rendered? | Executes the compiled render input and draws pixels with WebGPU. |
@@ -42,6 +42,7 @@ Each phase answers one question and owns one authority.
 ## Main Files
 
 - `phase-03-retrieval/simulatte-intent-embedder.js`: embedding and reranking retrieval.
+- `phase-04-grounded-intent/simulatte-universe-grounder.js`: accepted identity graph and candidate-match receipt.
 - `phase-05-simulation/simulatte-physics-model.js`: phase orchestration and compile path.
 - `phase-06-visual/simulatte-composition-graph.js`: VisualIR and scene packet compiler.
 - `phase-07-render/simulatte-webgpu-renderer.js`: WebGPU renderer.

@@ -100,6 +100,14 @@
     if (!span) return;
     node.directlyGrounded = node.supportOnly !== true;
     node.sourceLabel = span.text || node.sourceLabel || '';
+    node.semanticRole = span.semanticRole || node.semanticRole || '';
+    node.domains = unique([...(span.domains || []), ...(node.domains || [])]);
+    node.operatorHints = unique([
+      ...(span.operatorTypes || span.operatorHints || []), ...(node.operatorHints || []),
+    ]);
+    node.operatorTypes = unique([
+      ...(span.operatorTypes || span.operatorHints || []), ...(node.operatorTypes || []),
+    ]);
     node.label = String(span.text || node.label || '').trim().replace(/\s+/g, ' ').replace(/\b[a-z]/g, (value) => value.toUpperCase());
     if (span.semanticRole === 'visual-effect') node.semanticType = 'visual-effect';
     if (span.kind === 'observable') node.semanticType = 'observable';
@@ -184,6 +192,7 @@
     primary.confidence = Math.max(Number(primary.confidence || 0), Number(row.confidence || 0));
     primary.directlyGrounded = primary.directlyGrounded === true || row.directlyGrounded === true;
     if (!primary.materialId && row.materialId) primary.materialId = row.materialId;
+    if (!primary.semanticRole && row.semanticRole) primary.semanticRole = row.semanticRole;
     if ((!primary.semanticClass || genericSemanticClass(primary.semanticClass)) && row.semanticClass) {
       primary.semanticClass = row.semanticClass;
     }
@@ -344,6 +353,12 @@
       const to = bySpan.get(clause.objectSpanId) || null;
       if (!from || !to || from.id === to.id) continue;
       const spatialRelation = String(clause.spatialRelation || '');
+      const fuel = groundedFuelEvidence(from, from) ? from : groundedFuelEvidence(to, to) ? to : null;
+      const fire = groundedFireEvidence(from, from) ? from : groundedFireEvidence(to, to) ? to : null;
+      if (clause.process === 'combustion' && fuel && fire) {
+        edges.push(explicitCombustionEdge(clause, fuel, fire, spatialRelation, edges.length));
+        continue;
+      }
       const type = SPATIAL_EDGE_TYPES[spatialRelation] || processToEdge[clause.process] || 'interaction';
       edges.push({
         id: `edge${edges.length + 1}`,
@@ -359,6 +374,187 @@
       });
     }
     return edges;
+  }
+
+  function explicitCombustionEdge(clause, fuel, fire, spatialRelation, index) {
+    return {
+      id: `edge${index + 1}`,
+      type: 'combustion',
+      from: fuel.id,
+      to: fire.id,
+      processId: 'combustion',
+      predicate: clause.predicate || 'combustion',
+      operatorType: 'combustion',
+      spatialRelation,
+      prepositions: clause.prepositions || [],
+      confidence: Math.min(Number(fire.confidence || 0), Number(fuel.confidence || 0), 0.9),
+      evidence: ['prompt-clause', 'phase4-grounded-combustion'],
+      provenance: {
+        schema: 'simulatte.groundedEdgeProvenance.v1', sourcePhase: 4,
+        fireNodeId: fire.id, fuelNodeId: fuel.id,
+        sourceSpanIds: [fire.spanId, fuel.spanId],
+        relationMode: 'explicit-process-clause', sourceVerbSpanId: clause.verbSpanId || '',
+      },
+    };
+  }
+
+  function combustionEdgesForGroundedEvidence(nodes = [], promptParse = {}) {
+    const spanById = new Map((promptParse.spans || []).map((span) => [span.id, span]));
+    const promptOwned = (node) => node && node.directlyGrounded === true && Boolean(spanById.get(node.spanId));
+    const fireNodes = nodes.filter((node) => promptOwned(node) && groundedFireEvidence(node, spanById.get(node.spanId)));
+    const fuelNodes = nodes.filter((node) => promptOwned(node) && groundedFuelEvidence(node, spanById.get(node.spanId)));
+    if (!fireNodes.length || !fuelNodes.length) return [];
+    const sceneFire = fireNodes.find((candidate) => (
+      spanById.get(candidate.spanId).semanticRole === 'combustion-process'
+    ));
+    if (!sceneFire) return [];
+    return fuelNodes.flatMap((fuel) => {
+      const fire = sceneFire;
+      return [{
+        id: `grounded-combustion:${fuel.id}:${fire.id}`,
+        type: 'combustion',
+        from: fuel.id,
+        to: fire.id,
+        processId: 'combustion',
+        predicate: 'combustion',
+        operatorType: 'combustion',
+        spatialRelation: '',
+        prepositions: [],
+        confidence: Math.min(Number(fire.confidence || 0), Number(fuel.confidence || 0), 0.9),
+        evidence: [
+          'phase4-grounded-combustion',
+          `prompt-span:${fire.spanId}`,
+          `prompt-span:${fuel.spanId}`,
+        ],
+        provenance: {
+          schema: 'simulatte.groundedEdgeProvenance.v1',
+          sourcePhase: 4,
+          fireNodeId: fire.id,
+          fuelNodeId: fuel.id,
+          sourceSpanIds: [fire.spanId, fuel.spanId],
+          relationMode: 'combustion-process-scope',
+          sourceVerbSpanId: '',
+        },
+      }];
+    });
+  }
+
+  function edgeRowsForIntentBrief(intentBrief = {}, nodes = [], promptEdges = []) {
+    if (!Array.isArray(intentBrief.causalGraph)) return [];
+    return intentBrief.causalGraph.flatMap((causalEdge, index) => {
+      const from = nodeForCausalRef(nodes, causalEdge.sourceRef, causalEdge.sourceLabel);
+      const to = nodeForCausalRef(nodes, causalEdge.targetRef, causalEdge.targetLabel);
+      if (!from || !to || from.id === to.id) return [];
+      const direct = directCausalPromptEdge(promptEdges, from.id, to.id, causalEdge);
+      const path = direct ? [direct] : connectedProximityPath(promptEdges, from.id, to.id);
+      if (thermalInference(causalEdge) && !path.length) return [];
+      const target = materialAssignmentTarget(nodes, promptEdges, to) || to;
+      const pathEdgeIds = path.map((edge) => edge.id);
+      const inferenceMode = direct
+        ? 'direct-causal-clause'
+        : path.length ? 'causal-rule-connected-proximity' : 'causal-rule-typed-evidence';
+      return [{
+        id: `intent-${causalEdge.id || index + 1}`,
+        type: causalEdge.relationType || causalEdge.type || 'interaction',
+        from: from.id,
+        to: target.id,
+        processId: causalEdge.processId || causalEdge.operatorType || 'interact',
+        prepositions: [],
+        confidence: Math.max(0, Math.min(1, Number(causalEdge.confidence || 0.66))),
+        evidence: unique([
+          ...(causalEdge.evidence || []), `causal-edge:${causalEdge.id || index + 1}`,
+          ...pathEdgeIds.map((id) => `prompt-edge:${id}`),
+        ]),
+        operatorType: causalEdge.operatorType || '',
+        mechanism: causalEdge.mechanism || '',
+        inferred: !direct,
+        provenance: {
+          schema: 'simulatte.groundedEdgeProvenance.v1', sourcePhase: 4,
+          inferenceMode,
+          causalRuleId: causalEdge.ruleId || '', causalEdgeId: causalEdge.id || '',
+          derivedFromEdgeId: causalEdge.derivedFromEdgeId || '',
+          sourceRef: causalEdge.sourceRef || '', targetRef: causalEdge.targetRef || '',
+          sourceNodeId: from.id, targetNodeId: target.id,
+          targetEvidenceNodeId: to.id, pathEdgeIds,
+        },
+      }];
+    });
+  }
+
+  function materialAssignmentTarget(nodes = [], edges = [], materialNode = {}) {
+    const assignment = edges.find((edge) => edge.type === 'materialOf' && edge.from === materialNode.id);
+    return assignment && nodes.find((node) => node.id === assignment.to) || null;
+  }
+
+  function nodeForCausalRef(nodes = [], ref = '', label = '') {
+    const refText = normalizedIdentity(ref);
+    const spanNode = (nodes || []).find((node) => node.spanId === ref || `span:${node.spanId}` === ref);
+    if (spanNode) return spanNode;
+    const identityNode = (nodes || []).find((node) => normalizedIdentity([
+      node.id, node.canonicalId, ...(node.aliases || []),
+    ].join(' ')).includes(refText));
+    if (refText && identityNode) return identityNode;
+    const ranked = (nodes || []).map((node) => {
+      const text = normalizedIdentity([
+        node.id, node.canonicalId, node.label, ...(node.aliases || []),
+      ].join(' '));
+      const refTerms = unique(refText.split(/\s+/).filter((term) => term.length > 2));
+      const labelTerms = unique(normalizedIdentity(label).split(/\s+/).filter((term) => term.length > 2));
+      const refScore = refTerms.reduce((sum, term) => sum + Number(text.includes(term)), 0);
+      const labelScore = labelTerms.reduce((sum, term) => sum + Number(text.includes(term)), 0);
+      return { node, score: refScore * 3 + labelScore };
+    }).sort((a, b) => b.score - a.score || Number(b.node.directlyGrounded) - Number(a.node.directlyGrounded));
+    return ranked[0] && ranked[0].score > 0 ? ranked[0].node : null;
+  }
+
+  function directCausalPromptEdge(edges = [], fromId = '', toId = '', causalEdge = {}) {
+    return edges.find((edge) => (
+      edge.from === fromId && edge.to === toId &&
+      [edge.processId, edge.operatorType, edge.type].includes(
+        causalEdge.processId || causalEdge.operatorType || causalEdge.relationType
+      )
+    ));
+  }
+
+  function thermalInference(edge = {}) {
+    return ['heat_transfer', 'phase_transition'].includes(edge.operatorType || edge.processId);
+  }
+
+  function connectedProximityPath(edges = [], fromId = '', toId = '') {
+    const adjacency = new Map();
+    for (const edge of edges) {
+      if (!adjacency.has(edge.from)) adjacency.set(edge.from, []);
+      if (!adjacency.has(edge.to)) adjacency.set(edge.to, []);
+      adjacency.get(edge.from).push({ nodeId: edge.to, edge });
+      adjacency.get(edge.to).push({ nodeId: edge.from, edge });
+    }
+    const queue = [{ nodeId: fromId, path: [] }];
+    const visited = new Set([fromId]);
+    while (queue.length) {
+      const current = queue.shift();
+      if (current.nodeId === toId && current.path.some((edge) => (
+        edge.type === 'near' || edge.spatialRelation === 'near'
+      ))) return current.path;
+      if (current.path.length >= 3) continue;
+      for (const next of adjacency.get(current.nodeId) || []) {
+        if (visited.has(next.nodeId)) continue;
+        visited.add(next.nodeId);
+        queue.push({ nodeId: next.nodeId, path: [...current.path, next.edge] });
+      }
+    }
+    return [];
+  }
+
+  function groundedFireEvidence(node = {}, span = {}) {
+    return span.semanticRole === 'combustion-process' || (
+      span.semanticRole === 'visual-effect' &&
+      ['fire-front', 'flame-front'].includes(String(node.semanticClass || span.entityClass || ''))
+    );
+  }
+
+  function groundedFuelEvidence(node = {}, span = {}) {
+    void node;
+    return span.semanticRole === 'fuel-material';
   }
 
   function remapSpanNodes(bySpan = new Map(), nodes = [], nodeIdMap = new Map()) {
@@ -393,11 +589,11 @@
         label: span.text,
         aliases: [span.text],
         confidence: 0.76,
-        domains: semanticType === 'material' ? ['solid'] : [],
+        domains: unique([...(span.domains || []), ...(semanticType === 'material' ? ['solid'] : [])]),
         materialId: span.materialHint || '',
         materialIds: span.materialHint ? [span.materialHint] : [],
-        operatorHints: [],
-        operatorTypes: [],
+        operatorHints: unique([...(span.operatorTypes || span.operatorHints || [])]),
+        operatorTypes: unique([...(span.operatorTypes || span.operatorHints || [])]),
         primitiveHints: [],
         conceptIds: [],
         shapeHints: span.visualArchetype ? [span.visualArchetype] : [],
@@ -604,8 +800,10 @@
     canonicalizeGroundedNodes,
     attachConstructionEvidence,
     edgeRowsForClauses,
+    combustionEdgesForGroundedEvidence,
     remapSpanNodes,
     materializeTypedPromptNodes,
     applyPromptSemanticContracts,
+    edgeRowsForIntentBrief,
   };
 });

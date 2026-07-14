@@ -4,6 +4,7 @@
   with (scope) {
     const storageApiPromises = new Map();
     const deviceApiPromises = new Map();
+    const sourceClosePromises = new WeakMap();
 
     async function resolveDopplerStorageApi(options = {}) {
       const direct = options.dopplerStorageModule || null;
@@ -156,6 +157,114 @@
       return settled.value;
     }
 
+    function prepareDopplerModelSources(owner, runtime, models = {}, options = {}) {
+      if (owner.dopplerSourcePreparationPromise) return owner.dopplerSourcePreparationPromise;
+      const roles = ['embedding', 'reranker'].filter((role) => models[role]);
+      const started = nowMs();
+      owner.dopplerModelPreparationReceipt = {
+        schema: 'simulatte.dopplerModelPreparationReceipt.v1',
+        policy: 'prepare-all-sources-then-load-embedding-before-reranker',
+        sourceOrder: [],
+        sourcePreparations: [],
+        loadOrder: [],
+      };
+      owner.dopplerSourcePreparationPromise = (async () => {
+        const sources = {};
+        owner.dopplerPreparedModelSources = sources;
+        for (const [index, role] of roles.entries()) {
+          const queuedAt = nowMs();
+          const roleOptions = options[role] || {};
+          const receipt = owner.dopplerModelPreparationReceipt;
+          receipt.sourceOrder.push(role);
+          const row = {
+            role,
+            modelId: models[role].id || '',
+            order: index + 1,
+            queueWaitMs: Math.max(0, queuedAt - started),
+            durationMs: 0,
+            overlap: Number(owner.dopplerActiveSourcePreparations || 0) > 0,
+            status: 'active',
+          };
+          receipt.sourcePreparations.push(row);
+          owner.dopplerActiveSourcePreparations = Number(owner.dopplerActiveSourcePreparations || 0) + 1;
+          try {
+            sources[role] = await takeDopplerCachedModelSource(
+              owner, role, runtime, models[role], roleOptions
+            );
+            row.status = 'ready';
+          } catch (error) {
+            row.status = 'failed';
+            row.error = error instanceof Error ? error.message : String(error);
+            if (error && typeof error === 'object') error.modelPreparationReceipt = receipt;
+            throw error;
+          } finally {
+            row.durationMs = elapsedMsSince(queuedAt);
+            owner.dopplerActiveSourcePreparations -= 1;
+          }
+          if (role === 'embedding') owner.embeddingCacheReceipt = sources[role].receipt;
+          if (role === 'reranker') owner.rerankerCacheReceipt = sources[role].receipt;
+        }
+        return sources;
+      })().catch((error) => {
+        owner.dopplerSourcePreparationPromise = null;
+        throw error;
+      });
+      return owner.dopplerSourcePreparationPromise;
+    }
+
+    function preparedDopplerModelSource(owner, role) {
+      const source = owner && owner.dopplerPreparedModelSources && owner.dopplerPreparedModelSources[role];
+      if (!source) throw new Error(`Doppler ${role} load started before the model-source preparation barrier`);
+      return source;
+    }
+
+    function scheduleDopplerModelLoad(owner, role, modelId, load) {
+      const queuedAt = nowMs();
+      const previous = owner.dopplerModelLoadQueue || Promise.resolve();
+      const task = previous.catch(() => {}).then(async () => {
+        const started = nowMs();
+        const loadOrder = owner.dopplerModelPreparationReceipt.loadOrder;
+        const row = {
+          role,
+          modelId: modelId || '',
+          order: loadOrder.length + 1,
+          queueWaitMs: Math.max(0, started - queuedAt),
+          durationMs: 0,
+          overlap: Number(owner.dopplerActiveModelLoads || 0) > 0,
+          status: 'active',
+        };
+        loadOrder.push(row);
+        owner.dopplerActiveModelLoads = Number(owner.dopplerActiveModelLoads || 0) + 1;
+        try {
+          const value = await load();
+          row.status = 'ready';
+          return value;
+        } catch (error) {
+          row.status = 'failed';
+          row.error = error instanceof Error ? error.message : String(error);
+          throw error;
+        } finally {
+          row.durationMs = elapsedMsSince(started);
+          owner.dopplerActiveModelLoads -= 1;
+        }
+      });
+      owner.dopplerModelLoadQueue = task.then(() => undefined, () => undefined);
+      return task;
+    }
+
+    function resetDopplerModelPreparation(owner) {
+      owner.dopplerSourcePreparationPromise = null;
+      owner.dopplerPreparedModelSources = null;
+      owner.dopplerModelLoadQueue = null;
+      owner.dopplerActiveSourcePreparations = 0;
+      owner.dopplerActiveModelLoads = 0;
+    }
+
+    async function closePreparedDopplerModelSources(owner) {
+      const sources = Object.values(owner.dopplerPreparedModelSources || {});
+      await Promise.allSettled(sources.map((source) => closeDopplerCachedSource(source)));
+    }
+
     function emitDopplerCacheProgress(event = {}, context = {}) {
       const range = context.progressRange || { start: 20, end: 42 };
       const fraction = Math.max(0, Math.min(1, Number(event.percent || 0) / 100));
@@ -194,13 +303,17 @@
     }
 
     async function closeDopplerCachedSource(cachedSource) {
-      const close = cachedSource && cachedSource.storageContext && cachedSource.storageContext.close;
+      const storageContext = cachedSource && cachedSource.storageContext;
+      const close = storageContext && storageContext.close;
       if (typeof close !== 'function') return;
-      try {
-        await close.call(cachedSource.storageContext);
-      } catch (_error) {
-        // Preserve the model-load failure that caused this cleanup path.
+      let closePromise = sourceClosePromises.get(storageContext);
+      if (!closePromise) {
+        closePromise = Promise.resolve()
+          .then(() => close.call(storageContext))
+          .catch(() => undefined);
+        sourceClosePromises.set(storageContext, closePromise);
       }
+      await closePromise;
     }
 
     async function disposeFailedDopplerLoad(handle, cachedSource) {
@@ -221,6 +334,11 @@
       prepareDopplerCachedModelSource,
       prefetchDopplerCachedModelSource,
       takeDopplerCachedModelSource,
+      prepareDopplerModelSources,
+      preparedDopplerModelSource,
+      scheduleDopplerModelLoad,
+      resetDopplerModelPreparation,
+      closePreparedDopplerModelSources,
       emitDopplerCacheProgress,
       closeDopplerCachedSource,
       disposeFailedDopplerLoad,

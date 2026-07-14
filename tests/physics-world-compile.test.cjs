@@ -711,12 +711,12 @@ test('prototype lexical construction matches tokens rather than substrings', () 
   assert.equal(candidates.some((row) => /\bcat\b/.test(row.label)), false);
 });
 
-test('prototype concept slots preserve exact construction graphs for concrete nouns', () => {
+test('prototype concrete noun slots preserve exact construction graphs for syntactic participants', () => {
   const cases = [
-    ['violin', 'concept:violin', 'construction.resonant-instrument', 'resonant-instrument', ''],
-    ['violin on stool', 'concept:stool', 'construction.stool', 'stool', ''],
-    ['octopus', 'concept:octopus', 'construction.cephalopod', 'cephalopod', ''],
-    ['teapot', 'concept:teapot', 'construction.teapot', 'teapot', ''],
+    ['violin on stool', 'entity:violin', 'construction.resonant-instrument', 'resonant-instrument', ''],
+    ['violin on stool', 'entity:stool', 'construction.stool', 'stool', ''],
+    ['octopus holding teapot', 'entity:octopus', 'construction.cephalopod', 'cephalopod', ''],
+    ['octopus holding teapot', 'entity:teapot', 'construction.teapot', 'teapot', ''],
   ];
 
   for (const [prompt, entryId, candidateId, topologyId, establishedGrammarId] of cases) {
@@ -764,6 +764,18 @@ test('direct prompt objects outrank inferred scene tags and remain peer-scale be
   assert.equal(violin.renderProgram.rendererPlan.sceneKind, 'acoustic');
   assert.equal(excavator.renderProgram.rendererPlan.sceneKind, 'mechanical');
   assert.equal(octopus.renderProgram.rendererPlan.sceneKind, 'biology');
+
+  const violinPacket = violin.renderProgram.sceneRenderPacket;
+  assert.equal(violinPacket.fields.length, 0, 'static object relations do not invent state fields');
+  assert.equal(violinPacket.effects.length, 0, 'static object relations do not invent process effects');
+  assert.equal(violin.renderProgram.visualIR.graphicsAtoms.mappings.length, 0,
+    'an instrument identity alone does not invent a measurement readout');
+  const violinContact = violinPacket.receipts.framing.surfaceContacts.find((row) => (
+    row.sourceId === 'prompt-body-violin' && row.targetId === 'prompt-body-stool'
+  ));
+  assert.ok(violinContact, 'the on relation compiles a realized surface-contact receipt');
+  assert.ok(violinContact.clearanceAfter >= 0 && violinContact.clearanceAfter <= 0.005,
+    'visible violin geometry rests on the visible stool surface with minimal clearance');
 
   const pair = excavator.renderProgram.sceneRenderPacket.entities;
   const widths = pair.map((row) => row.transform.scale[0]);

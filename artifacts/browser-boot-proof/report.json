@@ -1,0 +1,2243 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-13T22:04:48.572Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "local",
+  "target": "local-public",
+  "url": "http://127.0.0.1:58824/blank/?auditNoInitial=1",
+  "profileDir": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/simulatte-chrome-profile-EBaQpu",
+  "profilePersistent": false,
+  "promptDeadlineMs": 120000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 633,
+      "chunkCount": 5,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:58825/devtools/browser/737ff5de-512d-46f6-a54d-62b2c86bdf3a\nTrying to load the allocator multiple times. This is *not* supported.\n[95435:30907305:0713/180448.373401:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[95435:30907305:0713/180448.373505:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[95435:30907305:0713/180448.373651:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [
+    {
+      "method": "Log.entryAdded",
+      "params": {
+        "entry": {
+          "source": "network",
+          "level": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "timestamp": 1783980284934.381,
+          "url": "http://127.0.0.1:58824/blank/favicon.svg",
+          "networkRequestId": "95444.327"
+        }
+      }
+    }
+  ],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": true,
+    "failures": [],
+    "promptCount": 1,
+    "screenshotCount": 1,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 1,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 1,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 1,
+      "bitMargin": 1,
+      "maxTemporalBits": 0,
+      "maxTemporalDistance": 0,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": 1,
+      "recommendedHashFloor": 0.0156,
+      "calibrated": false
+    },
+    "sceneKinds": [
+      "fire"
+    ],
+    "visualIRSceneKinds": [
+      "fire"
+    ],
+    "visualIRCameras": [
+      "network-map-depth"
+    ],
+    "graphicsAtoms": {
+      "totalAtoms": 51,
+      "mappingIds": [
+        "visual.operator.network-flow.v1",
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.thermal-combustion.v1"
+      ],
+      "uniformSlots": [
+        "combustion",
+        "constraint",
+        "density",
+        "emission",
+        "instrument",
+        "measurement",
+        "motion",
+        "network",
+        "signal",
+        "stress",
+        "surface",
+        "thermal"
+      ],
+      "wgslOperators": [
+        "atomCombustionFront",
+        "atomConstraintPads",
+        "atomFeedbackArcs",
+        "atomInstrumentReadout",
+        "atomNetworkPressure",
+        "atomPacketPulses",
+        "atomQuantumFringes",
+        "atomSootColumn",
+        "atomStressCracks"
+      ]
+    },
+    "visualRubric": {
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityStatus": "human-adjudication-required",
+      "averageScore": 99,
+      "passCount": 1,
+      "failCount": 0,
+      "expectedSignals": [
+        "thermal"
+      ],
+      "missingSignals": [],
+      "dynamicFailures": [],
+      "representationFailures": [],
+      "averageRepresentationQuality": 0.92
+    },
+    "intentBriefs": {
+      "totalEvidence": 76,
+      "totalCausalEdges": 4,
+      "totalAffordances": 4,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 45,
+      "totalCausalEdges": 4,
+      "totalCausalAffordances": 4,
+      "totalAssumptions": 11,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 0,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [
+      "custom-world"
+    ],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityVerified": false,
+      "humanAdjudicationRequired": true,
+      "score": 98,
+      "grade": "A",
+      "verdict": "pass",
+      "promptCount": 1,
+      "passRate": 1,
+      "sceneDiversity": 1,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 1,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 0,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 0,
+      "averageRepresentationQuality": 0.92,
+      "missingSignals": []
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "goldRowId": "",
+      "prompt": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
+      "screenshot": "01-custom-warehouse-fire-with-smoke-in-concrete-stairwell-and-renderer-layers-soot.png",
+      "screenshotHash": "e95d379b613b0600f3e0a0b73e4c5b526be3af0a32519d6b6302f12b54b24836",
+      "auditTiming": {
+        "schema": "simulatte.visualAuditTiming.v1",
+        "durationMs": 3301,
+        "stages": [
+          {
+            "id": "configure",
+            "durationMs": 0
+          },
+          {
+            "id": "runtime-wait",
+            "durationMs": 689
+          },
+          {
+            "id": "scene-proof",
+            "durationMs": 654
+          },
+          {
+            "id": "diagnostics",
+            "durationMs": 6
+          },
+          {
+            "id": "viewport-screenshot",
+            "durationMs": 147
+          },
+          {
+            "id": "temporal-canvas-capture",
+            "durationMs": 983
+          },
+          {
+            "id": "frozen-canvas-capture",
+            "durationMs": 819
+          },
+          {
+            "id": "analyze",
+            "durationMs": 3
+          },
+          {
+            "id": "complete",
+            "durationMs": 0
+          }
+        ]
+      },
+      "runtimeState": "ready",
+      "renderInputSerial": 1,
+      "compiledPrompt": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
+      "compiledSourcePromptHash": "fnv1a:edf63521",
+      "runtimeStage": "webgpu-ready",
+      "runtimeLastStage": "blank",
+      "runtimePipelineStep": "8",
+      "runtimeBlocking": "false",
+      "runtimePassive": "false",
+      "runtimeDetail": "Ready 100%",
+      "runtimeMessage": "Ready",
+      "runtimeHealth": {
+        "schema": "simulatte.intentRuntimeHealth.v2",
+        "timestamp": "2026-07-13T22:04:44.925Z",
+        "source": "",
+        "state": "ready",
+        "blocking": false,
+        "passive": false,
+        "canvasLoading": false,
+        "stage": "render.blank",
+        "phaseId": "webgpu-ready",
+        "phaseLabel": "WebGPU ready",
+        "pipelineStep": 8,
+        "progress": 100,
+        "taskProgress": 100,
+        "overallProgress": 100,
+        "sourceProgress": 100,
+        "progressBasis": "terminal",
+        "progressEstimated": false,
+        "taskKey": "render.blank",
+        "taskElapsedMs": 0,
+        "taskExpectedDurationMs": 100,
+        "taskRemainingMs": 100,
+        "runElapsedMs": 0,
+        "runExpectedDurationMs": 24000,
+        "runRemainingMs": 24000,
+        "line": "Ready 100%",
+        "displayLine": "Ready 100%",
+        "label": "Ready",
+        "subline": "",
+        "byteText": "",
+        "sourceText": "",
+        "byteProgress": "",
+        "activity": "ready",
+        "heartbeat": false,
+        "silenceMs": 0,
+        "message": "Ready",
+        "detail": "Ready",
+        "backend": "",
+        "timing": {
+          "timestamp": "2026-07-13T22:04:44.925Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "queueWaitMs": 0,
+          "schedulerLagMs": 0,
+          "handlerDurationMs": 0,
+          "timing": "",
+          "traceId": ""
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0
+        },
+        "promptRuntime": null,
+        "loaderReceipt": {
+          "schema": "simulatte.loaderPhaseReceipt.v2",
+          "id": "loader-1",
+          "runId": "",
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8
+        }
+      },
+      "runtimeEvents": [
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T22:04:44.923Z",
+          "source": "",
+          "state": "idle",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "runtime.start",
+          "phaseId": "prompt-runtime",
+          "phaseLabel": "Prompt runtime",
+          "pipelineStep": 1,
+          "progress": 0,
+          "taskProgress": 0,
+          "overallProgress": 0,
+          "sourceProgress": 0,
+          "progressBasis": "elapsed-time-forecast",
+          "progressEstimated": true,
+          "taskKey": "",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 1200,
+          "taskRemainingMs": 1200,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "",
+          "displayLine": "",
+          "label": "",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "",
+          "detail": "",
+          "backend": "",
+          "timing": {},
+          "model": {},
+          "resource": {},
+          "embeddings": {},
+          "promptRuntime": null,
+          "loaderReceipt": null
+        },
+        {
+          "schema": "simulatte.intentRuntimeHealth.v2",
+          "timestamp": "2026-07-13T22:04:44.925Z",
+          "source": "",
+          "state": "ready",
+          "blocking": false,
+          "passive": false,
+          "canvasLoading": false,
+          "stage": "render.blank",
+          "phaseId": "webgpu-ready",
+          "phaseLabel": "WebGPU ready",
+          "pipelineStep": 8,
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "taskElapsedMs": 0,
+          "taskExpectedDurationMs": 100,
+          "taskRemainingMs": 100,
+          "runElapsedMs": 0,
+          "runExpectedDurationMs": 24000,
+          "runRemainingMs": 24000,
+          "line": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "ready",
+          "heartbeat": false,
+          "silenceMs": 0,
+          "message": "Ready",
+          "detail": "Ready",
+          "backend": "",
+          "timing": {
+            "timestamp": "2026-07-13T22:04:44.925Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": ""
+          },
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0
+          },
+          "promptRuntime": null,
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8
+          }
+        }
+      ],
+      "runtimeProgressLogs": [
+        {
+          "schema": "simulatte.runtimeProgressLog.v2",
+          "sequence": 1,
+          "timestamp": "2026-07-13T22:04:44.925Z",
+          "timestampMs": 1783980284925,
+          "runId": "",
+          "state": "ready",
+          "blocking": false,
+          "phase": {
+            "step": 8,
+            "id": "webgpu-ready",
+            "label": "WebGPU ready",
+            "weight": 7,
+            "stagePrefixes": [
+              null,
+              null,
+              null
+            ]
+          },
+          "stage": "render.blank",
+          "sourceStage": "blank",
+          "source": "",
+          "progress": 100,
+          "taskProgress": 100,
+          "overallProgress": 100,
+          "sourceProgress": 100,
+          "progressBasis": "terminal",
+          "progressEstimated": false,
+          "taskKey": "render.blank",
+          "line": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "message": "Ready",
+          "detail": "Ready",
+          "transitionMs": 0,
+          "runElapsedMs": 0,
+          "taskTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 100,
+            "estimatedRemainingMs": 100
+          },
+          "runTiming": {
+            "elapsedMs": 0,
+            "expectedDurationMs": 24000,
+            "estimatedRemainingMs": 24000,
+            "basis": "observed-duration-forecast"
+          },
+          "throughputBytesPerSecond": 0,
+          "model": {
+            "id": "",
+            "baseUrl": "",
+            "artifactMode": "",
+            "sourceSizeBytes": 0,
+            "cachePrefetch": false,
+            "cacheSkipReason": ""
+          },
+          "resource": {
+            "kind": "",
+            "url": "",
+            "file": "",
+            "fileKind": "",
+            "status": 0,
+            "byteLength": 0,
+            "completedBytes": 0,
+            "totalBytes": 0,
+            "cacheMode": "",
+            "cacheWorker": "",
+            "bytesPerSecond": 0,
+            "eta": "",
+            "operationId": 0,
+            "queueDepth": 0,
+            "cacheBackends": ""
+          },
+          "embeddings": {
+            "promptChars": 0,
+            "embeddingDim": 0,
+            "candidateCount": 0,
+            "rankBackend": "",
+            "spanCount": 0,
+            "embeddedSpanCount": 0,
+            "cachedSpanCount": 0,
+            "cacheHitCount": 0,
+            "cacheMissCount": 0,
+            "batchEmbedding": false
+          },
+          "reranker": {
+            "slotId": "",
+            "candidateId": "",
+            "completed": 0,
+            "total": 0,
+            "candidateCount": 0,
+            "scoreCacheHit": false,
+            "promptTokenCount": 0,
+            "prefixTokenCount": 0,
+            "prefixStateReused": false,
+            "executionDurationMs": 0
+          },
+          "timing": {
+            "timestamp": "2026-07-13T22:04:44.925Z",
+            "durationMs": 0,
+            "elapsedMs": 0,
+            "queueWaitMs": 0,
+            "schedulerLagMs": 0,
+            "handlerDurationMs": 0,
+            "timing": "",
+            "traceId": "",
+            "rankId": 0,
+            "reuse": false,
+            "providerReady": false
+          },
+          "loaderReceipt": {
+            "schema": "simulatte.loaderPhaseReceipt.v2",
+            "id": "loader-1",
+            "runId": "",
+            "stage": "render.blank",
+            "sourceStage": "blank",
+            "phaseId": "webgpu-ready",
+            "phaseLabel": "WebGPU ready",
+            "pipelineStep": 8,
+            "label": "Ready",
+            "subline": "",
+            "status": "complete",
+            "state": "ready",
+            "blocking": false,
+            "indeterminate": false,
+            "startedAt": "2026-07-13T22:04:44.925Z",
+            "updatedAt": "2026-07-13T22:04:44.925Z",
+            "completedAt": "2026-07-13T22:04:44.925Z",
+            "durationMs": 0,
+            "taskKey": "render.blank",
+            "progressBasis": "terminal",
+            "progressEstimated": false,
+            "expectedDurationMs": 100,
+            "percentStart": 0,
+            "percentEnd": 100
+          }
+        }
+      ],
+      "runtimePerformanceLogs": [
+        {
+          "schema": "simulatte.runtimeProgressPerformance.v1",
+          "timestamp": "2026-07-13T22:04:44.928Z",
+          "kind": "observer-flush",
+          "durationMs": 0.4,
+          "runId": "",
+          "stage": "render.blank",
+          "observerCount": 5
+        }
+      ],
+      "runtimeModelId": "",
+      "runtimeCacheMode": "",
+      "runtimeCacheWorker": "",
+      "runtimeCacheBackends": "",
+      "runtimeResourceKind": "",
+      "runtimeResourceFile": "",
+      "runtimeCompletedBytes": 0,
+      "runtimeTotalBytes": 0,
+      "runtimeTraceId": "",
+      "runtimeRankId": "",
+      "runtimeReuse": "false",
+      "runtimeProviderReady": "false",
+      "runtimeCacheHitCount": 0,
+      "runtimeCacheMissCount": 0,
+      "runtimeCachedSpanCount": 0,
+      "modelExecutionReceipt": null,
+      "phase3MissingRequiredSlots": [],
+      "phase3SlotEvidence": [
+        {
+          "slotId": "slot.object.warehouse",
+          "entryId": "entity:warehouse",
+          "status": "preserved",
+          "acceptedCount": 4,
+          "acceptedCandidateIds": [
+            "construction.architectural-enclosure",
+            "prompt.object.warehouse",
+            "surface-warehouse-1",
+            "warehouse"
+          ]
+        },
+        {
+          "slotId": "slot.object.fire_front",
+          "entryId": "entity:fire-front",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.object.fire-front"
+          ]
+        },
+        {
+          "slotId": "slot.object.smoke_cloud",
+          "entryId": "entity:smoke-cloud",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.object.smoke-cloud",
+            "smoke"
+          ]
+        },
+        {
+          "slotId": "slot.object.concrete_stairwell",
+          "entryId": "entity:concrete-stairwell",
+          "status": "preserved",
+          "acceptedCount": 3,
+          "acceptedCandidateIds": [
+            "prompt.object.concrete-stairwell",
+            "concrete",
+            "open-concrete-stairwell-3"
+          ]
+        },
+        {
+          "slotId": "slot.concept.renderer",
+          "entryId": "concept:renderer",
+          "status": "pending",
+          "acceptedCount": 0,
+          "acceptedCandidateIds": []
+        },
+        {
+          "slotId": "slot.action.layers",
+          "entryId": "action:layers",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.action.layers",
+            "action:layers"
+          ]
+        },
+        {
+          "slotId": "slot.action.spatial_constraint",
+          "entryId": "action:spatial-constraint",
+          "status": "preserved",
+          "acceptedCount": 2,
+          "acceptedCandidateIds": [
+            "prompt.action.spatial-constraint",
+            "action:spatial_constraint"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-concrete-stairwell_layers_medium-soot-deposit",
+          "entryId": "relation:entity-concrete-stairwell:layers:medium-soot-deposit",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-concrete-stairwell-layers-medium-soot-deposit"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-fire-front_spatial-constraint_entity-smoke-cloud",
+          "entryId": "relation:entity-fire-front:spatial-constraint:entity-smoke-cloud",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-fire-front-spatial-constraint-entity-smoke-cloud"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-smoke-cloud_spatial-constraint_entity-concrete-stairwell",
+          "entryId": "relation:entity-smoke-cloud:spatial-constraint:entity-concrete-stairwell",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-smoke-cloud-spatial-constraint-entity-concrete-stairwell"
+          ]
+        },
+        {
+          "slotId": "slot.relation.entity-concrete-stairwell_spatial-constraint_entity-warehouse",
+          "entryId": "relation:entity-concrete-stairwell:spatial-constraint:entity-warehouse",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.entity-concrete-stairwell-spatial-constraint-entity-warehouse"
+          ]
+        },
+        {
+          "slotId": "slot.relation.spatial_entity-fire-front_with_entity-smoke-cloud",
+          "entryId": "relation:spatial:entity-fire-front:with:entity-smoke-cloud",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.spatial-entity-fire-front-with-entity-smoke-cloud"
+          ]
+        },
+        {
+          "slotId": "slot.relation.spatial_entity-smoke-cloud_in_entity-concrete-stairwell",
+          "entryId": "relation:spatial:entity-smoke-cloud:in:entity-concrete-stairwell",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.spatial-entity-smoke-cloud-in-entity-concrete-stairwell"
+          ]
+        },
+        {
+          "slotId": "slot.relation.spatial_entity-concrete-stairwell_inside_entity-warehouse",
+          "entryId": "relation:spatial:entity-concrete-stairwell:inside:entity-warehouse",
+          "status": "preserved",
+          "acceptedCount": 1,
+          "acceptedCandidateIds": [
+            "prompt.relation.spatial-entity-concrete-stairwell-inside-entity-warehouse"
+          ]
+        }
+      ],
+      "phase3SlotCandidates": [
+        {
+          "slotId": "slot.object.warehouse",
+          "slotRole": "object",
+          "required": true,
+          "skipReason": "explicit-prototype-lexical-control-lane",
+          "localGeometryGrammarId": "",
+          "candidates": [
+            {
+              "id": "construction.architectural-enclosure",
+              "type": "surface-card",
+              "score": 1,
+              "embeddingScore": 0,
+              "lexicalScore": 1,
+              "rerankScore": 0,
+              "rerankRank": 0,
+              "rerankRankScore": 0,
+              "rerankBandScore": 0,
+              "rerankEvaluated": false,
+              "modelEvaluated": false,
+              "constructionEvidence": true,
+              "literalSlotMatch": true,
+              "supportOnly": false,
+              "localGeometryGrammarId": ""
+            }
+          ]
+        },
+        {
+          "slotId": "slot.object.fire_front",
+          "slotRole": "object",
+          "required": true,
+          "skipReason": "explicit-prototype-lexical-control-lane",
+          "localGeometryGrammarId": "",
+          "candidates": []
+        },
+        {
+          "slotId": "slot.object.smoke_cloud",
+          "slotRole": "object",
+          "required": true,
+          "skipReason": "explicit-prototype-lexical-control-lane",
+          "localGeometryGrammarId": "",
+          "candidates": []
+        },
+        {
+          "slotId": "slot.object.concrete_stairwell",
+          "slotRole": "object",
+          "required": true,
+          "skipReason": "explicit-prototype-lexical-control-lane",
+          "localGeometryGrammarId": "",
+          "candidates": []
+        }
+      ],
+      "phase4AcceptedNodeIdentities": [
+        {
+          "id": "prompt-body-warehouse",
+          "canonicalId": "prompt.body.warehouse",
+          "label": "Warehouse",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "entity:warehouse",
+            "selectedSourceCardIds": [
+              "construction.architectural-enclosure"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.warehouse:1",
+                "rank": 1,
+                "targetEntryId": "entity:warehouse",
+                "sourceCardIds": [
+                  "construction.architectural-enclosure"
+                ],
+                "candidateId": "construction.architectural-enclosure",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-body-fire-front",
+          "canonicalId": "prompt.body.fire-front",
+          "label": "Fire",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        },
+        {
+          "id": "prompt-body-smoke-cloud",
+          "canonicalId": "prompt.body.smoke-cloud",
+          "label": "Smoke",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        },
+        {
+          "id": "prompt-body-concrete-stairwell",
+          "canonicalId": "prompt.body.concrete-stairwell",
+          "label": "Concrete Stairwell",
+          "indexName": "prompt-typed-slot",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        },
+        {
+          "id": "primitive-language-soot-span7",
+          "canonicalId": "primitive.language-soot-span7",
+          "label": "Soot",
+          "indexName": "components",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        },
+        {
+          "id": "primitive-concrete",
+          "canonicalId": "primitive.concrete",
+          "label": "Concrete Material",
+          "indexName": "components",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        }
+      ],
+      "phase4Canonicalization": {
+        "schema": "simulatte.groundedGraphCanonicalization.v1",
+        "inputNodeCount": 13,
+        "canonicalNodeCount": 6,
+        "mergedNodeCount": 7,
+        "nodeIdCollisionCount": 0,
+        "unresolvedDuplicateNodeIdCount": 0,
+        "duplicateConceptCount": 0
+      },
+      "phase4ConstructionReceipt": {
+        "schema": "simulatte.constructionAttachmentReceipt.v1",
+        "slotCount": 14,
+        "attachedCount": 1,
+        "modelEvaluatedCount": 0,
+        "rerankEvaluatedCount": 0
+      },
+      "phase5EntityIdentities": [
+        {
+          "id": "prompt-body-warehouse",
+          "canonicalId": "prompt.body.warehouse",
+          "label": "Warehouse",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "entity:warehouse",
+            "selectedSourceCardIds": [
+              "construction.architectural-enclosure"
+            ],
+            "hypothesisCount": 1,
+            "hypotheses": [
+              {
+                "hypothesisId": "construction:slot.object.warehouse:1",
+                "rank": 1,
+                "targetEntryId": "entity:warehouse",
+                "sourceCardIds": [
+                  "construction.architectural-enclosure"
+                ],
+                "candidateId": "construction.architectural-enclosure",
+                "modelEvaluated": false,
+                "rerankEvaluated": false,
+                "literalSlotMatch": true,
+                "exactTargetMatch": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "prompt-body-smoke-cloud",
+          "canonicalId": "prompt.body.smoke-cloud",
+          "label": "Smoke",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        },
+        {
+          "id": "prompt-body-concrete-stairwell",
+          "canonicalId": "prompt.body.concrete-stairwell",
+          "label": "Concrete Stairwell",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        },
+        {
+          "id": "primitive-language-soot-span7",
+          "canonicalId": "primitive.language-soot-span7",
+          "label": "Soot",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        },
+        {
+          "id": "primitive-concrete",
+          "canonicalId": "primitive.concrete",
+          "label": "Concrete Material",
+          "sourceKind": "",
+          "construction": {
+            "selectedTargetEntryId": "",
+            "selectedSourceCardIds": [],
+            "hypothesisCount": 0,
+            "hypotheses": []
+          }
+        }
+      ],
+      "phase6CompositionObligations": [
+        {
+          "id": "entity:warehouse",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:warehouse",
+            "phase6:render-instance:instance:geometry:geometry-warehouse"
+          ]
+        },
+        {
+          "id": "entity:fire-front",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:render:prompt-body-fire-front",
+            "phase6:render-instance:instance:geometry:geometry-render-prompt-body-fire-front"
+          ]
+        },
+        {
+          "id": "entity:smoke-cloud",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:smoke",
+            "phase6:render-instance:instance:geometry:geometry-smoke"
+          ]
+        },
+        {
+          "id": "entity:concrete-stairwell",
+          "kind": "object",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:open-concrete-stairwell-3",
+            "phase6:render-instance:instance:geometry:geometry-open-concrete-stairwell-3"
+          ]
+        },
+        {
+          "id": "concept:renderer",
+          "kind": "concept",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": []
+        },
+        {
+          "id": "action:layers",
+          "kind": "action",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:smoke",
+            "phase6:entity:open-concrete-stairwell-3"
+          ]
+        },
+        {
+          "id": "action:spatial-constraint",
+          "kind": "action",
+          "target": "",
+          "required": false,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:render:prompt-body-fire-front",
+            "phase6:entity:warehouse",
+            "phase6:entity:smoke",
+            "phase6:entity:open-concrete-stairwell-3",
+            "phase6:entity:language-soot-span7",
+            "phase6:render-instance:instance:geometry:geometry-language-soot-span7",
+            "phase6:render-instance:instance:geometry:geometry-open-concrete-stairwell-3",
+            "phase6:render-instance:instance:geometry:geometry-render-prompt-body-fire-front",
+            "phase6:render-instance:instance:geometry:geometry-smoke",
+            "phase6:render-instance:instance:geometry:geometry-warehouse"
+          ]
+        },
+        {
+          "id": "relation:entity-concrete-stairwell:layers:medium-soot-deposit",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:open-concrete-stairwell-3",
+            "phase6:render-instance:instance:geometry:geometry-open-concrete-stairwell-3",
+            "phase6:entity:smoke",
+            "phase6:entity:language-soot-span7",
+            "phase6:render-instance:instance:geometry:geometry-language-soot-span7"
+          ]
+        },
+        {
+          "id": "relation:entity-fire-front:spatial-constraint:entity-smoke-cloud",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:render:prompt-body-fire-front",
+            "phase6:render-instance:instance:geometry:geometry-render-prompt-body-fire-front",
+            "phase6:entity:smoke",
+            "phase6:render-instance:instance:geometry:geometry-smoke",
+            "layout-relation:relation:spatial:entity-fire-front:with:entity-smoke-cloud",
+            "relation-source:relation:entity-fire-front:spatial-constraint:entity-smoke-cloud"
+          ]
+        },
+        {
+          "id": "relation:entity-smoke-cloud:spatial-constraint:entity-concrete-stairwell",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:smoke",
+            "phase6:render-instance:instance:geometry:geometry-smoke",
+            "phase6:entity:open-concrete-stairwell-3",
+            "phase6:render-instance:instance:geometry:geometry-open-concrete-stairwell-3",
+            "layout-relation:relation:spatial:entity-smoke-cloud:in:entity-concrete-stairwell",
+            "relation-source:relation:entity-smoke-cloud:spatial-constraint:entity-concrete-stairwell"
+          ]
+        },
+        {
+          "id": "relation:entity-concrete-stairwell:spatial-constraint:entity-warehouse",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:open-concrete-stairwell-3",
+            "phase6:render-instance:instance:geometry:geometry-open-concrete-stairwell-3",
+            "phase6:entity:warehouse",
+            "phase6:render-instance:instance:geometry:geometry-warehouse",
+            "layout-relation:relation:spatial:entity-concrete-stairwell:inside:entity-warehouse",
+            "relation-source:relation:entity-concrete-stairwell:spatial-constraint:entity-warehouse"
+          ]
+        },
+        {
+          "id": "relation:spatial:entity-fire-front:with:entity-smoke-cloud",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:render:prompt-body-fire-front",
+            "phase6:render-instance:instance:geometry:geometry-render-prompt-body-fire-front",
+            "phase6:entity:smoke",
+            "phase6:render-instance:instance:geometry:geometry-smoke",
+            "layout-relation:relation:spatial:entity-fire-front:with:entity-smoke-cloud"
+          ]
+        },
+        {
+          "id": "relation:spatial:entity-smoke-cloud:in:entity-concrete-stairwell",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:smoke",
+            "phase6:render-instance:instance:geometry:geometry-smoke",
+            "phase6:entity:open-concrete-stairwell-3",
+            "phase6:render-instance:instance:geometry:geometry-open-concrete-stairwell-3",
+            "layout-relation:relation:spatial:entity-smoke-cloud:in:entity-concrete-stairwell"
+          ]
+        },
+        {
+          "id": "relation:spatial:entity-concrete-stairwell:inside:entity-warehouse",
+          "kind": "relation",
+          "target": "",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:entity:open-concrete-stairwell-3",
+            "phase6:render-instance:instance:geometry:geometry-open-concrete-stairwell-3",
+            "phase6:entity:warehouse",
+            "phase6:render-instance:instance:geometry:geometry-warehouse",
+            "layout-relation:relation:spatial:entity-concrete-stairwell:inside:entity-warehouse"
+          ]
+        },
+        {
+          "id": "visual:compiled-scene-packet",
+          "kind": "visual",
+          "target": "soot",
+          "required": true,
+          "status": "preserved",
+          "visualEvidence": [
+            "phase6:render-instance:instance:geometry:geometry-language-soot-span7"
+          ]
+        }
+      ],
+      "sceneRenderPacketIdentities": [
+        {
+          "id": "render:prompt-body-fire-front",
+          "label": "Fire",
+          "type": "fire-front",
+          "sourceLabel": "Fire",
+          "layerSlot": "thermal-field",
+          "animationKind": "static-pose",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.fire-front",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 7,
+          "propertyBindings": []
+        },
+        {
+          "id": "warehouse",
+          "label": "warehouse",
+          "type": "warehouse",
+          "sourceLabel": "warehouse",
+          "layerSlot": "network-flow",
+          "animationKind": "static-pose",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.warehouse",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 9,
+          "propertyBindings": []
+        },
+        {
+          "id": "smoke",
+          "label": "smoke",
+          "type": "smoke-cloud",
+          "sourceLabel": "smoke",
+          "layerSlot": "material-surface",
+          "animationKind": "rising-plume-and-isobands",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.smoke-cloud",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 5,
+          "propertyBindings": []
+        },
+        {
+          "id": "open-concrete-stairwell-3",
+          "label": "concrete stairwell",
+          "type": "concrete-stairwell",
+          "sourceLabel": "concrete stairwell",
+          "layerSlot": "material-surface",
+          "animationKind": "streamline-advection",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.stairwell",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 5,
+          "propertyBindings": []
+        },
+        {
+          "id": "language-soot-span7",
+          "label": "soot",
+          "type": "soot-deposit",
+          "sourceLabel": "soot",
+          "layerSlot": "thermal-field",
+          "animationKind": "static-pose",
+          "animationSpeed": 0.34,
+          "grammarId": "object-grammar.soot-deposit",
+          "literal": true,
+          "unsupportedIdentity": false,
+          "partCount": 5,
+          "propertyBindings": []
+        }
+      ],
+      "canvasWidth": 1440,
+      "canvasHeight": 1040,
+      "physicsCanvasRenderer": "webgpu",
+      "physicsCanvasRendererStatus": "WebGPU renderer ready",
+      "physicsCanvasSceneKind": "fire",
+      "physicsCanvasSceneId": "33",
+      "physicsCanvasSceneMix": "thermal:1.00,network:0.85,instrument:0.61",
+      "physicsCanvasSceneMixSlots": "3",
+      "phase7Input": "simulatte.renderExecutionInput.v1",
+      "phase7RenderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "renderExecutionInput": "simulatte.renderExecutionInput.v1",
+      "phase7SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+      "phase7Output": "simulatte.phase7.output.v2",
+      "phase7OutputInput": "simulatte.phase6.output.v2",
+      "phase8Output": "simulatte.phase8.output.v2",
+      "sceneProofVerdict": "pass",
+      "sceneProofError": "",
+      "sceneProofLostCount": "0",
+      "sceneProofNotProvenCount": "1",
+      "sceneProofRequiredLostIds": "[]",
+      "sceneProofRequiredNotProvenIds": "[]",
+      "sceneProofRequiredFailures": "[]",
+      "phase7RenderData": "simulatte.phase7.compactRenderData.v1",
+      "phase7RenderDataKey": "fire:5:9:24:71c032c5",
+      "phase7RenderPath": "depth-lit-storage-object-parts-with-uniform-fallback",
+      "phase7RendererConsumption": {
+        "schema": "simulatte.phase7RendererConsumption.v1",
+        "cameraConfigured": true,
+        "sourceLightCount": 2,
+        "sourceMaterialCount": 5,
+        "cameraConsumed": true,
+        "lightCountConsumed": 2,
+        "materialCountConsumed": 5,
+        "objectPartCount": 31,
+        "depthConfigured": true,
+        "depthEnabled": true,
+        "normalShading": true,
+        "perspectiveEnabled": true,
+        "constructionProgramCount": 1,
+        "modelEvaluatedConstructionCount": 0
+      },
+      "webgpuObjectRealization": {
+        "schema": "simulatte.objectRenderRealizationSummary.v1",
+        "entityCount": 5,
+        "realizedCount": 5,
+        "literalCount": 5,
+        "constructionProgramCount": 1,
+        "modelEvaluatedConstructionCount": 0,
+        "topologyVerifiedCount": 5,
+        "semanticFitCount": 5,
+        "readableCount": 5,
+        "projectedArea": 0.97816,
+        "framingPass": true,
+        "framing": {
+          "schema": "simulatte.sceneFramingReceipt.v1",
+          "method": "group-bounds-fit",
+          "sourceBounds": [
+            0.10224,
+            0.47089,
+            0.48407,
+            0.43509
+          ],
+          "framedBounds": [
+            0.14905,
+            0.16456,
+            0.7019,
+            0.63088
+          ],
+          "targetBounds": [
+            0.1,
+            0.12,
+            0.8,
+            0.72
+          ],
+          "scaleFactor": 1.45,
+          "projectedArea": 0.97817,
+          "minimumProjectedArea": 0.16,
+          "centerOffset": 0,
+          "entityCount": 5,
+          "readableCount": 5,
+          "pass": true
+        },
+        "unprovenEntityIds": [],
+        "rows": [
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "render:prompt-body-fire-front",
+            "identityType": "fire-front",
+            "identityLabels": [
+              "render:prompt-body-fire-front",
+              "Fire",
+              "Fire",
+              "Fire",
+              "fire-front",
+              "render:prompt-body-fire-front",
+              "prompt.body.fire-front",
+              "open-fire-1",
+              "fire-front"
+            ],
+            "grammarId": "object-grammar.fire-front",
+            "renderArchetype": "fire-front",
+            "literal": true,
+            "partCount": 7,
+            "submittedPartCount": 7,
+            "submitted": true,
+            "primitiveCount": 2,
+            "projectedArea": 0.12951,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": false,
+            "modelEvaluatedConstruction": null,
+            "rerankEvaluatedConstruction": null
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "warehouse",
+            "identityType": "warehouse",
+            "identityLabels": [
+              "warehouse",
+              "warehouse",
+              "warehouse",
+              "warehouse",
+              "warehouse",
+              "entity:warehouse",
+              "warehouse",
+              "prompt.body.warehouse",
+              "prompt-body-warehouse",
+              "surface-warehouse-1",
+              "environment-warehouse",
+              "entity:warehouse"
+            ],
+            "grammarId": "object-grammar.warehouse",
+            "renderArchetype": "warehouse",
+            "literal": true,
+            "partCount": 9,
+            "submittedPartCount": 9,
+            "submitted": true,
+            "primitiveCount": 3,
+            "projectedArea": 0.41007,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": true,
+            "modelEvaluatedConstruction": false,
+            "rerankEvaluatedConstruction": false
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "smoke",
+            "identityType": "smoke-cloud",
+            "identityLabels": [
+              "smoke",
+              "smoke",
+              "smoke",
+              "smoke",
+              "smoke-cloud",
+              "smoke",
+              "prompt.body.smoke-cloud",
+              "prompt-body-smoke-cloud",
+              "open-smoke-2"
+            ],
+            "grammarId": "object-grammar.smoke-cloud",
+            "renderArchetype": "smoke-cloud",
+            "literal": true,
+            "partCount": 5,
+            "submittedPartCount": 5,
+            "submitted": true,
+            "primitiveCount": 2,
+            "projectedArea": 0.11564,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": false,
+            "modelEvaluatedConstruction": null,
+            "rerankEvaluatedConstruction": null
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "open-concrete-stairwell-3",
+            "identityType": "concrete-stairwell",
+            "identityLabels": [
+              "open-concrete-stairwell-3",
+              "concrete stairwell",
+              "concrete stairwell",
+              "concrete stairwell",
+              "concrete-stairwell",
+              "open-concrete-stairwell-3",
+              "prompt.body.concrete-stairwell",
+              "prompt-body-concrete-stairwell"
+            ],
+            "grammarId": "object-grammar.stairwell",
+            "renderArchetype": "stairwell",
+            "literal": true,
+            "partCount": 5,
+            "submittedPartCount": 5,
+            "submitted": true,
+            "primitiveCount": 2,
+            "projectedArea": 0.2523,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": false,
+            "modelEvaluatedConstruction": null,
+            "rerankEvaluatedConstruction": null
+          },
+          {
+            "schema": "simulatte.objectRenderRealization.v1",
+            "entityId": "language-soot-span7",
+            "identityType": "soot-deposit",
+            "identityLabels": [
+              "language-soot-span7",
+              "soot",
+              "soot",
+              "soot",
+              "soot-deposit",
+              "language-soot-span7",
+              "primitive.language-soot-span7",
+              "primitive-language-soot-span7"
+            ],
+            "grammarId": "object-grammar.soot-deposit",
+            "renderArchetype": "soot-deposit",
+            "literal": true,
+            "partCount": 5,
+            "submittedPartCount": 5,
+            "submitted": true,
+            "primitiveCount": 3,
+            "projectedArea": 0.07064,
+            "topologyVerified": true,
+            "semanticFit": true,
+            "readable": true,
+            "realized": true,
+            "constructionSource": false,
+            "modelEvaluatedConstruction": null,
+            "rerankEvaluatedConstruction": null
+          }
+        ]
+      },
+      "phase7CameraConsumed": true,
+      "phase7LightCountConsumed": 2,
+      "phase7MaterialCountConsumed": 5,
+      "phase7DepthEnabled": true,
+      "phase7NormalShading": true,
+      "phase7ConstructionProgramCount": 1,
+      "phase7ModelEvaluatedConstructionCount": 0,
+      "phase7InputVisualObligationCount": 6,
+      "phase7PixelReadback": "pass",
+      "phase7PixelReadbackMessage": "",
+      "phase7PixelReadbackPlan": "none",
+      "phase7LivePixelSamplesRequired": "true",
+      "phase7RequiredVisualObligationCount": 6,
+      "phase7PixelProofStatus": "pass",
+      "phase7PixelSampleCount": 6,
+      "phase7PixelVisibleSampleCount": 6,
+      "phase7PixelMinContrast": 0.4588,
+      "phase7PixelSampledObligationCount": 6,
+      "phase7PixelRequiredObligationCount": 6,
+      "phase7PixelSampledObligations": "entity:warehouse,entity:fire-front,entity:smoke-cloud,entity:concrete-stairwell,action:layers,visual:compiled-scene-packet",
+      "phase7PixelSamples": [
+        {
+          "id": "gpu:entity:warehouse:warehouse:1",
+          "obligationId": "entity:warehouse",
+          "drawableId": "warehouse",
+          "constructionRole": "",
+          "constructionPartId": "industrial-shell",
+          "rgba": [
+            57,
+            53,
+            45,
+            255
+          ],
+          "contrast": 0.8235,
+          "visible": true,
+          "x": 742,
+          "y": 562
+        },
+        {
+          "id": "gpu:entity:fire-front:render:prompt-body-fire-front:2",
+          "obligationId": "entity:fire-front",
+          "drawableId": "render:prompt-body-fire-front",
+          "constructionRole": "",
+          "constructionPartId": "flame-center",
+          "rgba": [
+            240,
+            158,
+            57,
+            255
+          ],
+          "contrast": 0.7765,
+          "visible": true,
+          "x": 472,
+          "y": 560
+        },
+        {
+          "id": "gpu:entity:smoke-cloud:smoke:3",
+          "obligationId": "entity:smoke-cloud",
+          "drawableId": "smoke",
+          "constructionRole": "",
+          "constructionPartId": "soot-core",
+          "rgba": [
+            93,
+            87,
+            76,
+            255
+          ],
+          "contrast": 0.702,
+          "visible": true,
+          "x": 840,
+          "y": 597
+        },
+        {
+          "id": "gpu:entity:concrete-stairwell:open-concrete-stairwell-3:4",
+          "obligationId": "entity:concrete-stairwell",
+          "drawableId": "open-concrete-stairwell-3",
+          "constructionRole": "",
+          "constructionPartId": "wall",
+          "rgba": [
+            171,
+            161,
+            138,
+            255
+          ],
+          "contrast": 0.4588,
+          "visible": true,
+          "x": 901,
+          "y": 493
+        },
+        {
+          "id": "gpu:action:layers:warehouse:5",
+          "obligationId": "action:layers",
+          "drawableId": "warehouse",
+          "constructionRole": "",
+          "constructionPartId": "",
+          "rgba": [
+            67,
+            62,
+            54,
+            255
+          ],
+          "contrast": 0.7882,
+          "visible": true,
+          "x": 745,
+          "y": 567
+        },
+        {
+          "id": "gpu:visual:compiled-scene-packet:language-soot-span7:6",
+          "obligationId": "visual:compiled-scene-packet",
+          "drawableId": "language-soot-span7",
+          "constructionRole": "",
+          "constructionPartId": "deposit-band",
+          "rgba": [
+            70,
+            66,
+            58,
+            255
+          ],
+          "contrast": 0.7725,
+          "visible": true,
+          "x": 919,
+          "y": 598
+        }
+      ],
+      "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+      "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+      "webgpuSceneInstanceCapacity": 256,
+      "webgpuSceneInstanceCount": 31,
+      "webgpuStorageBytes": 20480,
+      "phaseArtifactSchemas": {
+        "phase1": "simulatte.phase1.output.v1",
+        "phase2": "simulatte.phase2.output.v1",
+        "phase3": "simulatte.phase3.output.v2",
+        "phase4": "simulatte.phase4.output.v2",
+        "phase5": "simulatte.phase5.output.v2",
+        "phase6": "simulatte.phase6.output.v2",
+        "phase7": "simulatte.phase7.output.v2"
+      },
+      "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:5;fields:9;effects:24;layers:thermal-field+network-flow+material-surface+track-line+field-sheet+process-pulse+causal-affordance;passes:background+fields+entities+effects",
+      "sceneRenderEntityCount": 5,
+      "sceneRenderFieldCount": 9,
+      "sceneRenderEffectCount": 24,
+      "sceneRenderSpatialHash": "71c032c5",
+      "sceneObjectUniforms": "0:warehouse:network-flow@0.52,0.47;1:Fire:thermal-field@0.31,0.59;2:soot:thermal-field@0.65,0.58;3:smoke:material-surface@0.60,0.59;4:concrete stairwell:material-surface@0.62,0.47;5:atom-process:routing-flow:network-flow@0.50,0.50;6:motion:network-flow:network-flow@0.50,0.50;7:process:network-flow:network-flow@0.50,0.50",
+      "sceneObjectIdentities": "0:warehouse:structure:network-flow:@0.52,0.47;1:Fire:object:thermal-field:@0.31,0.59;2:soot:object:thermal-field:@0.65,0.58;3:smoke:object:material-surface:@0.60,0.59;4:concrete stairwell:structure:material-surface:@0.62,0.47;5:atom-process:routing-flow:process:network-flow:@0.50,0.50;6:motion:network-flow:process:network-flow:@0.50,0.50;7:process:network-flow:process:network-flow:@0.50,0.50",
+      "sceneRenderPacketEntities": [
+        {
+          "id": "render:prompt-body-fire-front",
+          "label": "Fire",
+          "identity": "fire-front",
+          "directlyGrounded": true,
+          "supportOnly": false,
+          "representedEntityIds": [
+            "render:prompt-body-fire-front",
+            "prompt.body.fire-front",
+            "open-fire-1",
+            "fire-front"
+          ],
+          "position": [
+            0.30854925,
+            0.5924402500000001,
+            0
+          ],
+          "scale": [
+            0.319,
+            0.406,
+            1
+          ],
+          "grammarId": "object-grammar.fire-front"
+        },
+        {
+          "id": "warehouse",
+          "label": "warehouse",
+          "identity": "warehouse",
+          "directlyGrounded": true,
+          "supportOnly": false,
+          "representedEntityIds": [
+            "warehouse",
+            "prompt.body.warehouse",
+            "prompt-body-warehouse",
+            "surface-warehouse-1",
+            "environment-warehouse",
+            "entity:warehouse"
+          ],
+          "position": [
+            0.5174507500000001,
+            0.4719597500000001,
+            0.5
+          ],
+          "scale": [
+            0.667,
+            0.6148,
+            1
+          ],
+          "grammarId": "object-grammar.warehouse"
+        },
+        {
+          "id": "smoke",
+          "label": "smoke",
+          "identity": "smoke-cloud",
+          "directlyGrounded": true,
+          "supportOnly": false,
+          "representedEntityIds": [
+            "smoke",
+            "prompt.body.smoke-cloud",
+            "prompt-body-smoke-cloud",
+            "open-smoke-2"
+          ],
+          "position": [
+            0.59720075,
+            0.5850597500000001,
+            -0.5
+          ],
+          "scale": [
+            0.3625,
+            0.319,
+            1
+          ],
+          "grammarId": "object-grammar.smoke-cloud"
+        },
+        {
+          "id": "open-concrete-stairwell-3",
+          "label": "concrete stairwell",
+          "identity": "concrete-stairwell",
+          "directlyGrounded": true,
+          "supportOnly": false,
+          "representedEntityIds": [
+            "open-concrete-stairwell-3",
+            "prompt.body.concrete-stairwell",
+            "prompt-body-concrete-stairwell"
+          ],
+          "position": [
+            0.61605075,
+            0.4719597500000001,
+            0
+          ],
+          "scale": [
+            0.435,
+            0.58,
+            1
+          ],
+          "grammarId": "object-grammar.stairwell"
+        },
+        {
+          "id": "language-soot-span7",
+          "label": "soot",
+          "identity": "soot-deposit",
+          "directlyGrounded": true,
+          "supportOnly": false,
+          "representedEntityIds": [
+            "language-soot-span7",
+            "primitive.language-soot-span7",
+            "primitive-language-soot-span7"
+          ],
+          "position": [
+            0.65441775,
+            0.57547525,
+            -0.75
+          ],
+          "scale": [
+            0.348,
+            0.203,
+            1
+          ],
+          "grammarId": "object-grammar.soot-deposit"
+        }
+      ],
+      "physicsCanvasRenderCount": "41",
+      "physicsCanvasLastFrameMs": "0.200",
+      "fieldCanvasRenderer": "",
+      "fieldCanvasRendererStatus": "",
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1040
+      },
+      "sampleCount": 7200,
+      "sampleSource": "canvas-screenshot",
+      "lumaMean": 121.968,
+      "lumaStd": 45.375,
+      "coloredRatio": 0.9753,
+      "canvasHash": "67776450",
+      "specId": "warehouse-fire-smoke-in-concrete-stairwell-mrjrsubx",
+      "templateId": "custom-world",
+      "rendererSceneKind": "fire",
+      "visualIRSceneKind": "fire",
+      "visualIRCamera": "network-map-depth",
+      "visualIREntityCount": 5,
+      "visualIRMaterialCount": 23,
+      "visualIRFieldCount": 9,
+      "visualIRProcessCount": 19,
+      "visualIROperatorCount": 11,
+      "visualIRRenderInstanceCount": 48,
+      "visualIRRejectedRowCount": 17,
+      "visualIRReceiptCount": 13,
+      "visualIRCausalAffordanceCount": 4,
+      "visualIRSceneRenderPacketSchema": "simulatte.sceneRenderPacket.v1",
+      "visualIRSceneRenderPacketCompiler": "simulatte.visual-ir.scene-render-packet.compiler.v1",
+      "visualIREnvironmentProgram": "",
+      "visualIRSceneRenderPacketEntityCount": 5,
+      "visualIRSceneRenderPacketFieldCount": 9,
+      "visualIRSceneRenderPacketEffectCount": 24,
+      "phase6VisualObligationCount": 6,
+      "phase6VisualObligationIds": [
+        "entity:warehouse",
+        "entity:fire-front",
+        "entity:smoke-cloud",
+        "entity:concrete-stairwell",
+        "action:layers",
+        "visual:compiled-scene-packet"
+      ],
+      "visualIRSceneRenderPacketLayers": [
+        "thermal-field",
+        "network-flow",
+        "material-surface",
+        "track-line",
+        "field-sheet",
+        "process-pulse",
+        "causal-affordance"
+      ],
+      "visualIRSceneRenderPacketIdentities": [
+        "Fire",
+        "warehouse",
+        "smoke",
+        "concrete stairwell",
+        "soot"
+      ],
+      "visualIRAcceptedRenderInstances": 48,
+      "visualIRRenderInstanceSlots": [
+        "thermal-field",
+        "material-surface",
+        "thermal-field",
+        "material-surface",
+        "network-flow",
+        "thermal-field",
+        "thermal-field",
+        "water-volume",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "track-line",
+        "field-sheet",
+        "field-sheet",
+        "field-sheet",
+        "network-flow",
+        "field-sheet",
+        "process-pulse",
+        "thermal-field",
+        "thermal-field",
+        "thermal-field",
+        "network-flow",
+        "process-pulse"
+      ],
+      "visualIRRejectedRows": [
+        {
+          "id": "concrete",
+          "sourceKind": "prompt-explicit",
+          "reason": "scene-compatible support is not source-linked to prompt visual intent"
+        },
+        {
+          "id": "air",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "fire-plasma",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "fuel",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "heat-transfer",
+          "sourceKind": "catalog",
+          "reason": "field evidence is rendered by the compiled field program"
+        },
+        {
+          "id": "wood",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "flame",
+          "sourceKind": "catalog",
+          "reason": "catalog solver support kept out of visual evidence"
+        },
+        {
+          "id": "visual.operator.heat-transfer.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.fluid-advection.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "scene-gate:no-direct-fluid-evidence"
+        },
+        {
+          "id": "visual.operator.chemical-diffusion.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.quantum-phase-readout.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.phase-transition.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.control-feedback.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.orbital-gravity.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.electromagnetic-field.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        },
+        {
+          "id": "visual.operator.optical-ray.v1",
+          "sourceKind": "graphics-atom",
+          "reason": "missing-required-language-evidence"
+        }
+      ],
+      "visualIRGraphicsAtomCount": 51,
+      "visualIRGraphicsMappingIds": [
+        "visual.operator.thermal-combustion.v1",
+        "visual.operator.particle-track-detector.v1",
+        "visual.operator.stress-fracture.v1",
+        "visual.operator.network-flow.v1"
+      ],
+      "visualIRGraphicsCompiler": "simulatte.visualOperatorCompiler.v1",
+      "visualIRGraphicsUniformSlots": [
+        "thermal",
+        "stress",
+        "network",
+        "instrument",
+        "combustion",
+        "measurement",
+        "motion",
+        "density",
+        "emission",
+        "constraint",
+        "signal",
+        "surface"
+      ],
+      "visualIRGraphicsUniformValues": {
+        "thermal": 0.92,
+        "stress": 0.457,
+        "network": 0.44,
+        "instrument": 0.556,
+        "combustion": 1,
+        "measurement": 0.512,
+        "motion": 0.378,
+        "density": 0.76,
+        "emission": 0.84,
+        "constraint": 0.421,
+        "signal": 0.467,
+        "surface": 0.384
+      },
+      "visualIRGraphicsWgslOperators": [
+        "atomCombustionFront",
+        "atomSootColumn",
+        "atomInstrumentReadout",
+        "atomQuantumFringes",
+        "atomFeedbackArcs",
+        "atomStressCracks",
+        "atomConstraintPads",
+        "atomNetworkPressure",
+        "atomPacketPulses"
+      ],
+      "visualIRGraphicsLanguageSignals": [
+        {
+          "id": "activation.0001",
+          "kind": "catalog-candidate",
+          "text": "entity warehouse",
+          "slots": []
+        },
+        {
+          "id": "activation.0017",
+          "kind": "catalog-candidate",
+          "text": "entity warehouse",
+          "slots": []
+        },
+        {
+          "id": "activation.0019",
+          "kind": "catalog-candidate",
+          "text": "entity warehouse",
+          "slots": []
+        },
+        {
+          "id": "activation.0036",
+          "kind": "catalog-candidate",
+          "text": "entity fire",
+          "slots": []
+        },
+        {
+          "id": "activation.0057",
+          "kind": "catalog-candidate",
+          "text": "entity smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0059",
+          "kind": "catalog-candidate",
+          "text": "entity smoke",
+          "slots": []
+        },
+        {
+          "id": "activation.0069",
+          "kind": "catalog-candidate",
+          "text": "entity concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0085",
+          "kind": "catalog-candidate",
+          "text": "entity concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0112",
+          "kind": "catalog-candidate",
+          "text": "process layers",
+          "slots": []
+        },
+        {
+          "id": "activation.0153",
+          "kind": "catalog-candidate",
+          "text": "subject concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0156",
+          "kind": "causal-candidate",
+          "text": "subject concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0158",
+          "kind": "causal-candidate",
+          "text": "subject concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0159",
+          "kind": "causal-candidate",
+          "text": "subject concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0161",
+          "kind": "causal-candidate",
+          "text": "subject concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0162",
+          "kind": "causal-candidate",
+          "text": "subject concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0169",
+          "kind": "catalog-candidate",
+          "text": "subject concrete stairwell",
+          "slots": []
+        },
+        {
+          "id": "activation.0175",
+          "kind": "catalog-candidate",
+          "text": "predicate layers",
+          "slots": []
+        },
+        {
+          "id": "activation.0177",
+          "kind": "causal-candidate",
+          "text": "predicate layers",
+          "slots": []
+        },
+        {
+          "id": "activation.0198",
+          "kind": "causal-candidate",
+          "text": "object soot",
+          "slots": []
+        },
+        {
+          "id": "activation.0212",
+          "kind": "catalog-candidate",
+          "text": "object soot",
+          "slots": []
+        },
+        {
+          "id": "activation.0235",
+          "kind": "catalog-candidate",
+          "text": "subject fire",
+          "slots": []
+        },
+        {
+          "id": "activation.0241",
+          "kind": "causal-candidate",
+          "text": "subject fire",
+          "slots": []
+        },
+        {
+          "id": "activation.0244",
+          "kind": "causal-candidate",
+          "text": "subject fire",
+          "slots": []
+        },
+        {
+          "id": "activation.0248",
+          "kind": "catalog-candidate",
+          "text": "subject fire",
+          "slots": []
+        }
+      ],
+      "intentBriefSchema": "simulatte.intentBrief.v1",
+      "intentBriefEvidenceCount": 76,
+      "intentBriefCausalEdgeCount": 4,
+      "intentBriefAssumptionCount": 11,
+      "intentBriefUnsupportedCount": 0,
+      "intentBriefDegradedCount": 0,
+      "physicalReceiptIntentEvidenceCount": 45,
+      "physicalReceiptCausalEdgeCount": 4,
+      "physicalReceiptCausalAffordanceCount": 4,
+      "physicalReceiptAssumptionCount": 11,
+      "physicalReceiptUnsupportedCount": 0,
+      "physicalReceiptDegradedCount": 0,
+      "intentBriefAffordanceCount": 4,
+      "previewLength": 97482,
+      "ok": true,
+      "renderCount": 41,
+      "sceneId": "33",
+      "expectedRenderInputSerial": 0,
+      "renderInputMatches": true,
+      "promptMatches": true,
+      "phase7VisualObligationProof": "[{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:warehouse\",\"target\":\"warehouse\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:warehouse:warehouse:1\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:fire-front\",\"target\":\"fire front\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:fire-front:render:prompt-body-fire-front:2\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:smoke-cloud\",\"target\":\"smoke cloud\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:smoke-cloud:smoke:3\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"entity:concrete-stairwell\",\"target\":\"concrete stairwell\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:entity:concrete-stairwell:open-concrete-stairwell-3:4\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"action:layers\",\"target\":\"layers\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:action:layers:warehouse:5\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]},{\"schema\":\"simulatte.phase7VisualObligationProof.v1\",\"obligationId\":\"visual:compiled-scene-packet\",\"target\":\"soot\",\"required\":true,\"phase6Status\":\"preserved\",\"packetSatisfied\":true,\"geometrySatisfied\":true,\"pixelSatisfied\":true,\"pixelProof\":{\"required\":true,\"satisfied\":true,\"expectedCount\":1,\"visibleCount\":1,\"sampleIds\":[\"gpu:visual:compiled-scene-packet:language-soot-span7:6\"],\"evidence\":[\"webgpu-texture-copy-readback\"]},\"status\":\"pass\",\"pass\":true,\"evidence\":[\"sceneRenderPacket\",\"objectGeometryProgram\",\"webgpu-frame\",\"webgpu-texture-copy-readback\"]}]",
+      "phase7PassedVisualObligationIds": "entity:warehouse,entity:fire-front,entity:smoke-cloud,entity:concrete-stairwell,action:layers,visual:compiled-scene-packet",
+      "phase7PixelAuditChecks": "[{\"id\":\"scene-packet-drawables\",\"actual\":38,\"expectedMin\":1,\"pass\":true},{\"id\":\"draw-count\",\"actual\":32,\"expectedMin\":1,\"pass\":true},{\"id\":\"scene-instance-count\",\"actual\":31,\"expectedMin\":1,\"pass\":true},{\"id\":\"canvas-pixels\",\"actual\":1497600,\"expectedMin\":1,\"pass\":true},{\"id\":\"visual-obligation-failures\",\"actual\":0,\"expectedMax\":0,\"pass\":true},{\"id\":\"live-pixel-sample-count\",\"actual\":6,\"expectedMin\":3,\"pass\":true},{\"id\":\"literal-object-realization\",\"actual\":4,\"expectedMin\":4,\"pass\":true},{\"id\":\"live-pixel-contrast\",\"actual\":0.4588,\"expectedMin\":0.035,\"pass\":true},{\"id\":\"visual-obligation-pixel-samples\",\"actual\":6,\"expectedMin\":6,\"pass\":true}]",
+      "readableCanvasSampleCount": 0,
+      "canvasScreenshot": "01-custom-warehouse-fire-with-smoke-in-concrete-stairwell-and-renderer-layers-soot.canvas.png",
+      "canvasScreenshotLater": "01-custom-warehouse-fire-with-smoke-in-concrete-stairwell-and-renderer-layers-soot.canvas-late.png",
+      "canvasScreenshotHash": "970ba4376b67170c0927525e741afcb70afc0555c31db22601cee4e4d9119d98",
+      "canvasScreenshotLaterHash": "2ff8bb133c14f60bf1cb81ec248b7a174466dd93304b3ab702b261aba87ea3ad",
+      "canvasPerceptualHash": "0f0f554715330f0f",
+      "canvasPerceptualHashLater": "0f0f554711330f0f",
+      "canvasDiversityScreenshot": "01-custom-warehouse-fire-with-smoke-in-concrete-stairwell-and-renderer-layers-soot.canvas-diversity.png",
+      "canvasDiversityScreenshotLater": "01-custom-warehouse-fire-with-smoke-in-concrete-stairwell-and-renderer-layers-soot.canvas-diversity-late.png",
+      "canvasDiversityPerceptualHash": "0f0f55431d3b0f0f",
+      "canvasDiversityPerceptualHashLater": "0f0f55431d3b0f0f",
+      "canvasDiversityHashKind": "audit:visual-clean-canvas-dhash-64",
+      "canvasDiversityFrameStable": true,
+      "canvasFrameHashChanged": true,
+      "canvasScreenshotWidth": 1440,
+      "canvasScreenshotHeight": 1040,
+      "canvasScreenshotLumaStd": 45.375,
+      "canvasScreenshotColoredRatio": 0.9753,
+      "canvasScreenshotSampleCount": 7200,
+      "canvasScreenshotNearWhiteRatio": 0,
+      "canvasScreenshotStrongEdgeRatio": 0.0667,
+      "canvasFrameSampleHashChanged": true,
+      "canvasFrameLumaMeanDelta": 0.094,
+      "canvasFrameLumaStdDelta": 0.024,
+      "canvasFrameColoredRatioDelta": 0.0001,
+      "canvasFrameMeanAbsolutePixelDelta": 0.4128,
+      "canvasFrameChangedPixelRatio": 0.01972,
+      "visualRubric": {
+        "schema": "simulatte.visualPromptRubric.v1",
+        "score": 99,
+        "pass": true,
+        "expectedCount": 1,
+        "coverage": 1,
+        "representationQuality": 0.92,
+        "representationQualityScope": "render-contract-and-pixel-presence",
+        "recognizabilityStatus": "human-adjudication-required",
+        "representation": {
+          "schema": "simulatte.visualRepresentationQuality.v1",
+          "quality": 0.92,
+          "scope": "render-contract-and-pixel-presence",
+          "recognizabilityStatus": "not-measured-by-machine-rubric",
+          "realizedGeometry": 1,
+          "constructiveGrounding": 0,
+          "structuralProgramFit": 1,
+          "framing": 1,
+          "materialResponse": 1,
+          "cameraResponse": 1,
+          "lightResponse": 1,
+          "depthResponse": 1,
+          "spatialRelations": 1,
+          "sceneSpecificity": 1,
+          "promptBinding": 1
+        },
+        "dynamic": true,
+        "dynamicRequired": false,
+        "dynamicPass": true,
+        "dynamicMagnitude": 0.493,
+        "atomRichness": 1,
+        "contrast": 1,
+        "color": 1,
+        "expectedSignals": [
+          "thermal"
+        ],
+        "matchedSignals": [
+          {
+            "id": "thermal",
+            "strength": 1,
+            "slotHits": [
+              "thermal",
+              "combustion",
+              "emission"
+            ],
+            "mappingHits": [
+              "visual.operator.thermal-combustion.v1"
+            ],
+            "wgslHits": [],
+            "languageHits": []
+          }
+        ],
+        "missingSignals": []
+      }
+    }
+  ]
+}

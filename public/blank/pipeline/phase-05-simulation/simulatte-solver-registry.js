@@ -42,6 +42,7 @@
   const SOLVER_OPERATORS = Object.freeze({
     heat_source: solver('thermal-source', ['heat_source'], ['temperature'], ['temperature'], 0.05, moduleStep('thermal')),
     heat_transfer: solver('thermal-transfer', ['heat_transfer'], ['temperature'], ['temperature'], 0.05, moduleStep('thermal')),
+    combustion: solver('combustion', ['combustion'], ['fuel', 'temperature'], ['fuel', 'temperature', 'product', 'smoke'], 0.05, moduleStep('thermal')),
     advection: solver('advection-lite', ['advection'], ['flowVelocity'], ['flowVelocity', 'pressure'], 0.05, moduleStep('advection')),
     diffusion: solver('scalar-diffusion', ['diffusion'], [], [], 0.05, stepDiffusion),
     phase_transition: solver('phase-transition', ['phase_transition'], ['temperature'], ['liquidFraction'], 0.05, moduleStep('thermal')),

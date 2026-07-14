@@ -72,7 +72,7 @@
         if (name === 'angle') return [0, TAU];
         if (name === 'flowVelocity' || name === 'velocity' || name === 'force' || name === 'strokeForce' || name === 'buoyancy') return [-4, 4];
         if (name === 'swimPhase') return [0, TAU];
-        if (['damage', 'liquidFraction', 'density', 'nutrient', 'reactionProgress', 'backlog', 'throughput', 'drag', 'submersion', 'wake'].includes(name)) {
+        if (['damage', 'liquidFraction', 'density', 'nutrient', 'reactionProgress', 'backlog', 'throughput', 'drag', 'submersion', 'wake', 'fuel', 'product', 'smoke'].includes(name)) {
           return [0, 1];
         }
         return [0, 1.5];

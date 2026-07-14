@@ -174,9 +174,9 @@
         const families = uniqueList([
           ...((solverPlan && solverPlan.families) || []),
           ...semanticRowsFromPlan(semantic, 'processes').map((row) => row.family),
-        ]).filter((family) => sceneAllowsProcessFamily(sceneKind, family));
-        const source = families.length ? families : ['coupled-state'];
-        const rows = source.slice(0, 12).map((family, index) => ({
+        ]).filter((family) => sceneAllowsProcessFamily(sceneKind, family))
+          .filter((family) => visualProcessHasExecutionEvidence(family, solverPlan));
+        const rows = families.slice(0, 12).map((family, index) => ({
           id: `process:${family}`,
           family,
           operator: visualOperatorForProcessFamily(family, sceneKind),
@@ -207,6 +207,29 @@
           });
         }
         return rows.slice(0, 20);
+      }
+
+    function visualProcessHasExecutionEvidence(family = '', solverPlan = {}) {
+        const execution = uniqueList([
+          ...(solverPlan.steps || []),
+          ...(solverPlan.executableSteps || []),
+        ]).join(' ').toLowerCase().replace(/[_-]/g, ' ');
+        if (!execution) return false;
+        const rules = {
+          'particle-advection': /advection|flow|fluid|pressure/,
+          'heat-diffusion': /heat|thermal|temperature/,
+          'reaction-front': /combust|reaction|burn/,
+          'growth-diffusion': /growth|diffusion|nutrient|population/,
+          'constraint-dynamics': /collision|constraint|contact|impact|friction/,
+          'phase-boundary': /phase|melt|freeze|latent/,
+          resonate: /wave|acoustic|resonan|oscillat/,
+          levitate: /levitat|acoustic|pressure wave/,
+          flow: /advection|flow|fluid|pressure/,
+          burn: /combust|reaction|burn|thermal/,
+          melt: /phase|melt|thermal|heat/,
+        };
+        const rule = rules[family] || new RegExp(String(family).replace(/[-_]+/g, '|'));
+        return rule.test(execution);
       }
 
     function sceneAllowsProcessFamily(sceneKind, family) {
@@ -812,6 +835,7 @@
       visualEncodingForField,
       visualFieldGeometry,
       visualProcessesForPlan,
+      visualProcessHasExecutionEvidence,
       sceneAllowsProcessFamily,
       causalAffordanceProcessFamily,
       affectedEntitiesForAffordance,

@@ -358,6 +358,7 @@
           embeddingCacheState: embeddingCache && embeddingCache.state || '',
           rerankerCacheState: rerankerCache && rerankerCache.state || '',
           cachedModelBytes: cacheReceipts.reduce((sum, receipt) => sum + Number(receipt.totalBytes || 0), 0),
+          modelPreparation: details.modelPreparation || null,
           embeddingProbe: probe.ok === true,
           probeEmbeddingDim: probe.embeddingDim || 0,
           probeCount: probe.probeCount || 0,
@@ -622,6 +623,7 @@
               modelCandidateInputCount: input.candidates.length,
               modelCandidateOutputCount: modelRows.length,
               candidateSelectionMode: input.selection.mode,
+              candidateBudgetPolicy: input.selection.candidateBudgetPolicy,
               evidenceCandidateCount: input.selection.evidenceCandidateCount,
               evidenceGroupCount: input.selection.evidenceGroupCount,
               adaptiveCandidateBudget: input.selection.candidateBudget,
@@ -683,6 +685,7 @@
           reranker: rerankerId(runtime),
           selection: {
             mode: selection.mode,
+            candidateBudgetPolicy: selection.candidateBudgetPolicy,
             evidenceCandidateCount: selection.evidenceCandidateCount,
             evidenceGroupCount: selection.evidenceGroupCount,
             candidateBudget: selection.candidateBudget,
@@ -736,7 +739,7 @@
         ))
       ).filter((id) => byId.has(id))).filter((group) => group.length);
       const candidateBudget = groups.length
-        ? Math.min(maximum, Math.max(4, groups.length * 2))
+        ? Math.min(maximum, Math.max(2, groups.length))
         : maximum;
       const evidenceIds = [];
       const seen = new Set();
@@ -760,6 +763,9 @@
       return {
         priors: selected,
         mode: evidenceIds.length ? 'construction-evidence-round-robin' : 'local-score-top-k',
+        candidateBudgetPolicy: evidenceIds.length
+          ? 'one-per-construction-group-minimum-two'
+          : 'model-lock-decision-frontier',
         evidenceCandidateCount: evidenceIds.length,
         evidenceGroupCount: groups.length,
         candidateBudget,

@@ -16,11 +16,7 @@
           compositionNode(component, index, selected.length, spec, contract, priors)
         ));
         const relations = compositionRelations(nodes, graph, universeGraph, spec);
-        const operators = (graph.operators || []).map((operator) => ({
-          id: operator.id,
-          inputs: operator.inputs || [],
-          outputs: operator.outputs || [],
-        }));
+        const operators = compositionOperatorsForSpec(spec, graph);
         return {
           schema: COMPOSITION_SCHEMA,
           graphId: `${spec.id || 'sim'}-cg`,
@@ -352,15 +348,15 @@
     function compositionRelations(nodes, graph, universeGraph = {}, spec = {}) {
         const valid = new Set(nodes.map((node) => node.primitiveId));
         const ledger = spec.renderIR && spec.renderIR.compositionLedger ||
-          spec.physicsIR && spec.physicsIR.compositionLedger || {};
-        const evidenceEdges = [
-          ...(universeGraph.edges || []),
-          ...(ledger.relations || []).map((relation) => ({
+          spec.physicsIR && spec.physicsIR.compositionLedger || null;
+        const hasAuthoritativeLedger = Boolean(ledger && Array.isArray(ledger.relations));
+        const evidenceEdges = hasAuthoritativeLedger
+          ? ledger.relations.map((relation) => ({
             ...relation,
             type: relation.spatialRelation || relation.predicate || relation.kind,
             to: relation.kind === 'spatial-constraint' ? relation.to : relation.target || relation.to,
-          })),
-        ];
+          }))
+          : universeGraph.edges || [];
         const promptRelations = evidenceEdges.map((edge) => {
           const fromNode = compositionNodeForRelationReference(nodes, universeGraph, edge.from, spec);
           const toNode = compositionNodeForRelationReference(nodes, universeGraph, edge.to, spec);
@@ -374,7 +370,7 @@
             strength: Number.isFinite(Number(edge.confidence)) ? Number(edge.confidence) : 0.64,
           };
         }).filter(Boolean);
-        const contractRelations = (graph.edges || [])
+        const contractRelations = (hasAuthoritativeLedger ? [] : graph.edges || [])
           .filter((edge) => valid.has(edge.from) && valid.has(edge.to) && (edge.channel || edge.kind || edge.type))
           .map((edge) => ({
             from: edge.from,
@@ -513,17 +509,16 @@
           ...relation,
           reason: relation.channel,
         }));
-        const rawFields = fieldsForComposition(graph, spec);
-        const sceneKind = resolveSceneKind(graph, initialObjects, rawFields, spec);
-        const fields = focusFieldsForScene(rawFields, sceneKind);
-        const layoutSolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, initialObjects), sceneKind);
+        const fields = [];
+        const sceneKind = resolveSceneKind(graph, initialObjects, fields, spec);
+        const layoutSolverPlan = solverPlanForExecutableGraph(spec.solverGraph || {});
         const layoutGenome = visualGenomeForComposition(graph, initialObjects, fields, layoutSolverPlan, spec, sceneKind);
         const laidOutObjects = layoutObjectsForScene(prioritizeObjectsForScene(initialObjects, sceneKind), sceneKind, spec, layoutGenome);
         const objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
         const objects = objectLedger.accepted;
         const visualRegimes = uniqueList(objects.map((object) => object.visualRegime));
         const emitters = emittersForComposition(graph);
-        const solverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, laidOutObjects), sceneKind);
+        const solverPlan = layoutSolverPlan;
         const rendererPlan = {
           ...rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind),
           visualObjectLedger: objectLedger.summary,
@@ -763,9 +758,17 @@
           .map((node) => renderObjectForNode(node, spec))
           .map((object) => bindRenderIRToObject(object, bindingByText));
         const sceneKind = sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec);
+        const irFields = executableRenderIRFields(renderIR.fields, solverGraph).map((field) => ({
+          id: field.id,
+          kind: fieldKindForRenderIRField(field, sceneKind),
+          channel: field.channel,
+          stateBinding: field.channel,
+          domainId: field.domainId,
+          strength: 0.7,
+        }));
         const irContext = unmatchedRenderIRObjects(graphObjects, irObjects, sceneKind);
-        const layoutFields = focusFieldsForScene(fieldsForComposition(graph, spec), sceneKind);
-        const layoutSolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, graphObjects), sceneKind);
+        const layoutFields = focusFieldsForScene(uniqueFieldsByKind(irFields), sceneKind);
+        const layoutSolverPlan = solverPlanForExecutableGraph(solverGraph);
         const layoutGenome = visualGenomeForComposition(graph, graphObjects, layoutFields, layoutSolverPlan, spec, sceneKind);
         const groundedObjects = canonicalVisualObjects(uniqueObjectsById([
           ...graphObjects,
@@ -779,32 +782,8 @@
         ), graphObjects, spec, sceneKind);
         const objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
         const objects = objectLedger.accepted;
-        const irFields = (renderIR.fields || []).map((field) => ({
-          id: field.id,
-          kind: fieldKindForRenderIRField(field, sceneKind),
-          channel: field.channel,
-          stateBinding: field.channel,
-          domainId: field.domainId,
-          strength: 0.7,
-        }));
-        const legacyFields = fieldsForComposition(graph, spec);
-        const fields = focusFieldsForScene(uniqueFieldsByKind([...irFields, ...legacyFields]), sceneKind);
-        const legacySolverPlan = refineSolverPlanForScene(solverPlanForComposition(graph, laidOutObjects), sceneKind);
-        const solverSteps = solverGraphStepsForScene((solverGraph && solverGraph.steps) || [], sceneKind);
-        const solverPlan = {
-          schema: 'simulatte.solverPlan.v1',
-          integrator: legacySolverPlan.integrator || 'mixed-semi-implicit',
-          families: uniqueList([
-            ...((legacySolverPlan && legacySolverPlan.families) || []),
-            ...(solverSteps.map((step) => step.solverId)),
-          ]),
-          state: uniqueList([
-            ...((legacySolverPlan && legacySolverPlan.state) || []),
-            ...Object.keys(solverGraph.channels || {}),
-          ]),
-          steps: solverSteps.map((step) => step.operatorType),
-          executableSteps: solverSteps.map((step) => step.operatorType),
-        };
+        const fields = layoutFields;
+        const solverPlan = layoutSolverPlan;
         const rendererPlan = {
           ...rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind),
           visualObjectLedger: objectLedger.summary,

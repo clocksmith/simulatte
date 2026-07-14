@@ -44,7 +44,7 @@
     const entries = (atlas.VISUAL_OPERATOR_MAPPINGS || [])
       .map((row, index) => scoreMapping(row, index, text, normalized, context));
     const accepted = selectDiverseMappings(entries, 10);
-    const source = accepted.length ? accepted.map(compiledMapping) : [fallbackMapping(context)];
+    const source = accepted.map(compiledMapping);
     const topologyAtoms = compositionTopologyAtoms(context);
     const uniforms = compileAtomUniforms(source);
     return {
@@ -114,6 +114,7 @@
     const directRequirements = passesRequires(row.requires || [], directRequirementEvidence(context));
     const solverRequirements = passesRequires(row.requires || [], solverRequirementEvidence(context));
     const requireResult = directRequirements.ok ? directRequirements : solverRequirements;
+    const hasActivityEvidence = mappingHasActivityEvidence(row, context);
     const blockedTerms = termsMatched(row.excludes || [], text, normalized);
     const sceneGate = sceneAcceptsMapping(context, row);
     let score = 0;
@@ -130,7 +131,10 @@
     const minimum = Number(row.minimumScore || 0.5);
     let accepted = true;
     let rejectionReason = '';
-    if (!requireResult.ok) {
+    if (!hasActivityEvidence) {
+      accepted = false;
+      rejectionReason = 'missing-executable-or-causal-evidence';
+    } else if (!requireResult.ok) {
       accepted = false;
       rejectionReason = 'missing-required-language-evidence';
     } else if (blockedTerms.length) {
@@ -155,6 +159,14 @@
     };
   }
 
+  function mappingHasActivityEvidence(row = {}, context = {}) {
+    const executableTypes = new Set([
+      ...((context.solverPlan && context.solverPlan.steps) || []),
+      ...((context.solverPlan && context.solverPlan.executableSteps) || []),
+    ].map(solverStepText));
+    return (row.operatorTypes || []).some((type) => executableTypes.has(type));
+  }
+
   function solverRequirementEvidence(context = {}) {
     return uniqueStrings([
       ...((context.solverPlan && context.solverPlan.steps) || []).map(solverStepText),
@@ -169,6 +181,7 @@
       matchedTerms: entry.matchedTerms,
       requiredGroups: entry.requiredGroups,
       uniformSlots: entry.row.uniformSlots || [],
+      operatorTypes: entry.row.operatorTypes || [],
       wgslOperators: entry.row.wgslOperators || [],
       receiptText: entry.row.receiptText,
     };
@@ -197,23 +210,6 @@
 
   function primaryUniformSlot(row) {
     return row && row.uniformSlots && row.uniformSlots[0] || '';
-  }
-
-  function fallbackMapping(context) {
-    const text = String(context.sceneKind || 'compiled').toLowerCase();
-    const row = (atlas.VISUAL_OPERATOR_MAPPINGS || [])
-      .find((item) => item.id === 'visual.operator.instrument-readout.v1') ||
-      (atlas.VISUAL_OPERATOR_MAPPINGS || [])[0] ||
-      {};
-    return {
-      id: row.id || 'visual.operator.instrument-readout.v1',
-      score: 0.34,
-      matchedTerms: text ? [text] : [],
-      requiredGroups: [],
-      uniformSlots: row.uniformSlots || ['instrument', 'measurement', 'signal'],
-      wgslOperators: row.wgslOperators || ['atomInstrumentReadout'],
-      receiptText: row.receiptText || 'Fallback graphics basis records compiled state with probes.',
-    };
   }
 
   function atomsForCategory(matched, key, category) {
@@ -399,6 +395,10 @@
     if (/robot-contact/.test(id)) {
       const robotScene = directHas(/\b(robot|robotic|gripper|servo|workcell|manipulator)\b|\bpick\s+and\s+place\b/);
       if (!robotScene) return { ok: false, reason: 'scene-gate:no-direct-robotics-evidence' };
+    }
+    if (/quantum-phase-readout/.test(id)) {
+      const quantumScene = directHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/);
+      if (!quantumScene) return { ok: false, reason: 'scene-gate:no-direct-quantum-evidence' };
     }
     const watershedLike = /watershed|restoration water|ocean cryosphere|weather atmosphere|hazard atmosphere/.test(scene) ||
       /\b(watershed|river|rain|erosion|erodes|sediment|terrain|mountain|delta|aquifer|storm surge|glacier|ocean)\b/.test(direct);

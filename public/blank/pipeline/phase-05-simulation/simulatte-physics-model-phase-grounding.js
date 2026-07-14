@@ -176,7 +176,8 @@
           retrievedEvidence: Array.isArray(carried.retrievedEvidence) && carried.retrievedEvidence.length
             ? carried.retrievedEvidence
             : candidateEvidence,
-    	      activationRows: activationCloud.weightedActivations || [],
+          causalGraph: carried.causalGraph && carried.causalGraph.length ? carried.causalGraph : graphIntentBrief.causalGraph || [],
+          activationRows: activationCloud.weightedActivations || [],
     	      activationSummary: carried.activationSummary || activationCloud.summary || {},
     	      coverageGaps: carried.coverageGaps || activationCloud.conflicts || [],
     	      alternatives: carried.alternatives || activationCloud.rejectedMatches || [],
@@ -623,7 +624,6 @@
       growth: Object.freeze(['growth_decay']),
       growing: Object.freeze(['growth_decay', 'reaction_diffusion']),
       fermentation: Object.freeze(['growth_decay', 'reaction_diffusion']),
-      motion: Object.freeze(['rigid_collision']),
       network_flow: Object.freeze(['network_flow']),
       'network-flow': Object.freeze(['network_flow']),
     });

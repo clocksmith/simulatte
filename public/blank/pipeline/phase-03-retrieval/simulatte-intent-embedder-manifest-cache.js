@@ -85,6 +85,8 @@
                 };
                 const hasInjectedEmbedding = options.embedProvider || this.embedProvider ||
                   options.dopplerModelHandle || this.dopplerModelHandle || globalModelHandle();
+                const hasInjectedReranker = options.rerankProvider || options.rerankerProvider || this.rerankProvider ||
+                  typeof globalThis !== 'undefined' && (globalThis.SimulatteDopplerReranker || globalThis.DopplerReranker);
                 const runtimeConfig = manifest.runtime || {};
                 if (!hasInjectedEmbedding && !this.dopplerApiPromise && runtimeConfig.moduleUrl) {
                   this.dopplerApiPromise = resolveDopplerApi({
@@ -94,22 +96,24 @@
                   });
                   this.dopplerApiPromise.catch(() => { this.dopplerApiPromise = null; });
                 }
-                if (!hasInjectedEmbedding && manifest.embedModel) {
-                  prefetchDopplerCachedModelSource(this, 'embedding', prefetchRuntime, manifest.embedModel, {
-                    ...prefetchOptions,
-                    progressRange: EMBEDDING_CACHE_PROGRESS,
-                    resourceKind: 'embedding-model',
-                  });
-                }
                 const eagerReranker = rerankerConfig(manifest);
-                if (!hasInjectedEmbedding && eagerReranker.enabled && eagerReranker.required && eagerReranker.model &&
-                  !options.rerankProvider && !options.rerankerProvider && !this.rerankProvider) {
-                  prefetchDopplerCachedModelSource(this, 'reranker', prefetchRuntime, eagerReranker.model, {
-                    ...prefetchOptions,
-                    progressRange: RERANKER_CACHE_PROGRESS,
-                    resourceKind: 'reranker-model',
-                  });
-                }
+                const sourceModels = {
+                  embedding: !hasInjectedEmbedding ? manifest.embedModel : null,
+                  reranker: !hasInjectedReranker && eagerReranker.enabled && eagerReranker.required
+                    ? eagerReranker.model : null,
+                };
+                const sourcePreparation = sourceModels.embedding || sourceModels.reranker
+                  ? prepareDopplerModelSources(this, prefetchRuntime, sourceModels, {
+                    embedding: { ...prefetchOptions, progressRange: EMBEDDING_CACHE_PROGRESS, resourceKind: 'embedding-model' },
+                    reranker: { ...prefetchOptions, progressRange: RERANKER_CACHE_PROGRESS, resourceKind: 'reranker-model' },
+                  })
+                  : null;
+                const devicePreparation = sourcePreparation ? this.ensureDopplerDevice(prefetchRuntime, options) : null;
+                const preparationBarrier = sourcePreparation
+                  ? Promise.all([sourcePreparation, devicePreparation]).then(
+                    () => ({ error: null }), (error) => ({ error })
+                  )
+                  : null;
                 const retrieval = manifest.retrieval || {};
                 const indexUrl = retrieval.artifact;
                 if (!indexUrl) throw new Error('intent manifest missing retrieval artifact');
@@ -149,6 +153,8 @@
                     : Promise.resolve(null),
                 ]);
                 const runtime = normalizeModelBackedRuntime(manifest, index, cardIndex, universe);
+                const preparation = preparationBarrier ? await preparationBarrier : null;
+                if (preparation && preparation.error) throw preparation.error;
                 emitLoadProgress('indexes', 16, 'Embedding indexes ready', {
                   timing: 'end',
                   durationMs: elapsedMsSince(indexesStarted),
@@ -162,20 +168,14 @@
                   onProgress: progress,
                   traceEmbeddings: trace,
                 };
-                const providerPromise = this.resolveEmbedProvider(runtime, providerOptions);
-                const eagerRerankProviderPromise = this.shouldStartPhase1RerankerLoad(runtime, options)
-                  ? this.resolveRerankProvider(runtime, null, providerOptions)
-                  : null;
-                const provider = await providerPromise;
+                const provider = await this.resolveEmbedProvider(runtime, providerOptions);
                 const probe = await verifyPromptRuntimeProvider(runtime, provider, {
                   progress,
                   trace,
                   traceId: this.traceId,
                   nowIso: options.nowIso,
                 });
-                const rerankProvider = eagerRerankProviderPromise
-                  ? await eagerRerankProviderPromise
-                  : await this.resolveRerankProvider(runtime, provider, providerOptions);
+                const rerankProvider = await this.resolveRerankProvider(runtime, provider, providerOptions);
                 const rerankerProbe = await verifyPromptRuntimeReranker(runtime, provider, {
                   progress,
                   trace,
@@ -194,6 +194,7 @@
                   rerankerProbe,
                   embeddingCache: this.embeddingCacheReceipt,
                   rerankerCache: this.rerankerCacheReceipt,
+                  modelPreparation: this.dopplerModelPreparationReceipt,
                 });
                 runtime.promptRuntimeReranker = rerankerProbe;
                 runtime.promptRuntimeReceipt = receipt;
@@ -696,18 +697,8 @@
           if (!runtimeConfig) {
             throw new Error('model-backed intent manifest missing Doppler runtimeConfig');
           }
-          const [cachedSource] = await Promise.all([
-            takeDopplerCachedModelSource(this, 'embedding', runtime, model, {
-              dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
-              progress,
-              trace,
-              traceId: this.traceId,
-              progressRange: EMBEDDING_CACHE_PROGRESS,
-              resourceKind: 'embedding-model',
-            }),
-            this.ensureDopplerDevice(runtime, options),
-          ]);
-          this.embeddingCacheReceipt = cachedSource.receipt;
+          await this.ensureDopplerDevice(runtime, options);
+          const cachedSource = preparedDopplerModelSource(this, 'embedding');
           const dopplerStarted = nowMs();
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -740,7 +731,9 @@
           };
           let handle;
           try {
-            handle = await load(cachedSource.modelSource, loadOptions);
+            handle = await scheduleDopplerModelLoad(
+              this, 'embedding', model.id, () => load(cachedSource.modelSource, loadOptions)
+            );
             assertPinnedModelHandle(handle, model, 'embedding', modelBaseUrl);
           } catch (error) {
             await disposeFailedDopplerLoad(handle, cachedSource);
@@ -845,18 +838,8 @@
           }
           const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error(`intent reranker ${config.id} requires model.defaultModelBaseUrl`);
-          const [cachedSource] = await Promise.all([
-            takeDopplerCachedModelSource(this, 'reranker', runtime, model, {
-              dopplerStorageModule: options.dopplerStorageModule || this.dopplerStorageModule,
-              progress,
-              trace,
-              traceId: this.traceId,
-              progressRange: RERANKER_CACHE_PROGRESS,
-              resourceKind: 'reranker-model',
-            }),
-            this.ensureDopplerDevice(runtime, options),
-          ]);
-          this.rerankerCacheReceipt = cachedSource.receipt;
+          await this.ensureDopplerDevice(runtime, options);
+          const cachedSource = preparedDopplerModelSource(this, 'reranker');
           const started = nowMs();
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -890,7 +873,9 @@
           if (config.runtimeConfig) loadOptions.runtimeConfig = cloneJsonValue(config.runtimeConfig);
           let handle;
           try {
-            handle = await load(cachedSource.modelSource, loadOptions);
+            handle = await scheduleDopplerModelLoad(
+              this, 'reranker', model.id, () => load(cachedSource.modelSource, loadOptions)
+            );
             assertPinnedModelHandle(handle, model, 'reranker', modelBaseUrl);
           } catch (error) {
             await disposeFailedDopplerLoad(handle, cachedSource);
@@ -928,6 +913,8 @@
           await Promise.allSettled(handles.map((handle) => (
             typeof handle.unload === 'function' ? handle.unload() : Promise.resolve()
           )));
+          await closePreparedDopplerModelSources(this);
+          resetDopplerModelPreparation(this);
         }
 
         createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl) {

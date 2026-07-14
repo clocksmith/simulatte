@@ -9,6 +9,20 @@
         return true;
       }
 
+    function addBehaviorBundleFromPartialEdge(couplings, operators, fields, from, to, edge, params, receipt, behaviorRelations) {
+        const process = behaviorProcessForText(behaviorText(edge, from, to));
+        if (process === 'combustion') {
+          const fuel = combustionFuelDomain(from, to);
+          if (!fuel) return false;
+          addBehaviorBundle(couplings, operators, fields, fuel, fuel, 'combustion', edge, params, receipt, behaviorRelations);
+          return true;
+        }
+        const target = from || to;
+        if (edge.operatorType !== 'wave_field' || !edge.provenance?.causalRuleId || !target) return false;
+        addBehaviorBundle(couplings, operators, fields, target, target, 'oscillation', edge, params, receipt, behaviorRelations);
+        return true;
+      }
+
     function addBehaviorBundlesFromLedger(couplings, operators, fields, domains, ledger, prompt, params, receipt, behaviorRelations) {
         if (!ledger || !Array.isArray(ledger.obligations)) return;
         const relationById = new Map((ledger.relations || []).map((row) => [row.id, row]));
@@ -72,6 +86,10 @@
           add('rigid_collision', movingDomain(from, to), impactDomain(from, to));
           add('fracture_threshold', impactDomain(from, to), impactDomain(from, to));
         } else if (process === 'flow') {
+          const network = networkDomain(from, to);
+          if (network) {
+            add('network_flow', network, network);
+          } else {
           const flow = fluidDomain(from, to) || to;
           ensureFlowFields(fields, flow, params);
           opRows.push(addOperator(operators, 'advection', flow, {
@@ -80,6 +98,20 @@
             params: { rate: clamp(Number(params.flowRate ?? params.windSpeed ?? 0.55), 0, 2) },
           }));
           add('pressure_flow_lite', flow, flow);
+          }
+        } else if (process === 'increase') {
+          const network = networkDomain(from, to);
+          const fluid = fluidDomain(from, to);
+          if (network && !fluid) add('network_flow', network, network);
+          else if (fluid) {
+            ensureFlowFields(fields, fluid, params);
+            opRows.push(addOperator(operators, 'advection', fluid, {
+              reads: [`flowVelocity:${fluid.entityId}`, `viscosity:${fluid.entityId}`],
+              writes: [`flowVelocity:${fluid.entityId}`, `pressure:${fluid.entityId}`],
+              params: { rate: clamp(Number(params.flowRate ?? params.windSpeed ?? 0.55), 0, 2) },
+            }));
+            add('pressure_flow_lite', fluid, fluid);
+          }
         } else if (process === 'leak') {
           const leakDomain = from;
           ensureFlowFields(fields, leakDomain, params);
@@ -88,6 +120,9 @@
           const target = biologicalDomain(from, to) || to;
           add('growth_decay', target, target);
           add('reaction_diffusion', target, target);
+        } else if (process === 'combustion') {
+          const fuel = combustionFuelDomain(from, to);
+          if (fuel) add('combustion', fuel, fuel);
         } else if (process === 'diffusion') add('reaction_diffusion', to, to);
         else if (process === 'deposition') add('particle_deposition', from, to);
         else if (process === 'heat_transfer' || process === 'cooling') add('heat_transfer', from, to);
@@ -97,18 +132,6 @@
         } else if (process === 'network_flow') add('network_flow', networkDomain(from, to) || to, networkDomain(from, to) || to);
         else if (process === 'oscillation' || process === 'orbital') add('wave_field', waveDomain(from, to) || to, waveDomain(from, to) || to);
         else if (process === 'measurement') add('derive_readout', from, to);
-        else if (process === 'motion') {
-          const flow = fluidDomain(from, to);
-          if (flow) {
-            ensureFlowFields(fields, flow, params);
-            opRows.push(addOperator(operators, 'advection', flow, {
-              reads: [`flowVelocity:${flow.entityId}`, `viscosity:${flow.entityId}`],
-              writes: [`flowVelocity:${flow.entityId}`, `pressure:${flow.entityId}`],
-              params: { rate: clamp(Number(params.windSpeed ?? params.flowRate ?? 0.58), 0, 2) },
-            }));
-          }
-          add('rigid_collision', movingDomain(from, to), impactDomain(from, to));
-        }
         const operatorTypes = unique(opRows.map((op) => op.type));
         if (!operatorTypes.length) return;
         behaviorRelations.push({
@@ -136,8 +159,32 @@
         });
       }
 
-    function addBehaviorOperator(operators, type, from, to, params) {
+    function addBehaviorOperator(operators, type, from, to, params, source = {}) {
         const id = to.entityId;
+        if (type === 'combustion') {
+          const fuelChannel = `fuel:${id}`;
+          const temperatureChannel = `temperature:${id}`;
+          const productChannel = `product:${id}`;
+          const smokeChannel = `smoke:${id}`;
+          return addOperator(operators, type, to, {
+            reads: [fuelChannel, temperatureChannel],
+            writes: [fuelChannel, temperatureChannel, productChannel, smokeChannel],
+            params: {
+              rate: clamp(Number(params.reactionRate ?? params.combustibility ?? 0.48), 0.02, 2),
+              ignitionThreshold: clamp(Number(params.ignitionThreshold ?? 0.32), 0, 1.5),
+              heatYield: clamp(Number(params.heatYield ?? 0.7), 0, 2),
+              smokeFraction: clamp01(Number(params.smokeFraction ?? 0.3)),
+            },
+            receipt: {
+              schema: 'simulatte.solverChannelReceipt.v1',
+              operatorType: 'combustion',
+              sourceEdgeId: source.id || '',
+              evidence: source.evidence || [],
+              consumedChannels: [fuelChannel],
+              producedChannels: [productChannel, smokeChannel, temperatureChannel],
+            },
+          });
+        }
         if (type === 'growth_decay') {
           return addOperator(operators, type, to, {
             reads: [`density:${id}`, `nutrient:${id}`],
@@ -175,6 +222,10 @@
           languageLexicon.BEHAVIOR_PROCESS_LEXICON ||
           languageLexicon.LANGUAGE_LEXICON && languageLexicon.LANGUAGE_LEXICON.behaviorProcessLexicon
         ) || [];
+        const exact = lexicon.find((row) => (
+          String(row && row.process || '').toLowerCase().replace(/[_-]+/g, ' ') === value
+        ));
+        if (exact) return exact.process || '';
         for (const row of lexicon) {
           const phrases = Array.isArray(row && row.phrases) ? row.phrases : [];
           if (phrases.some((phrase) => behaviorPhraseInText(phrase, value))) return row.process || '';
@@ -203,8 +254,12 @@
       }
 
     function bestDomainForText(domains, text, process) {
-        const value = String(text || '').toLowerCase();
-        return (domains || []).find((domain) => domainMatches(domain, value)) || bestTargetDomain(domains, process);
+        const value = String(text || '').toLowerCase().replace(/[_-]+/g, ' ');
+        const ranked = (domains || []).map((domain) => ({
+          domain,
+          score: domainMatchScore(domain, value),
+        })).sort((a, b) => b.score - a.score || a.domain.order - b.domain.order);
+        return ranked[0] && ranked[0].score > 0 ? ranked[0].domain : bestTargetDomain(domains, process);
       }
 
     function bestTargetDomain(domains, process) {
@@ -215,9 +270,10 @@
         return (domains || []).find((domain) => domain.kind === 'rigidBody') || (domains || [])[0];
       }
 
-    function domainMatches(domain, text) {
+    function domainMatchScore(domain, text) {
         const value = `${domain.entityId || ''} ${domain.materialId || ''} ${(domain.tags || []).join(' ')}`.toLowerCase().replace(/[_-]+/g, ' ');
-        return text && text.split(/\s+/).some((term) => term.length > 2 && value.includes(term));
+        const terms = unique(String(text || '').split(/\s+/).filter((term) => term.length > 2));
+        return terms.reduce((score, term) => score + Number(value.includes(term)), 0);
       }
 
     function ensureBehaviorFields(fields, type, from, to, params) {
@@ -233,6 +289,16 @@
           addField(fields, to, 'debris', 'scalar', 'ratio', 0);
         }
         if (type === 'pressure_flow_lite') ensureFlowFields(fields, to, params);
+        if (type === 'combustion') {
+          const ignitionThreshold = clamp(Number(params.ignitionThreshold ?? 0.32), 0, 1.5);
+          addField(fields, to, 'fuel', 'scalar', 'ratio', clamp01(Number(params.combustibility ?? 0.72)));
+          addField(fields, to, 'temperature', 'scalar', 'K', Math.max(
+            materialTemperature(to.materialId, params),
+            ignitionThreshold + 0.08
+          ));
+          addField(fields, to, 'product', 'scalar', 'ratio', 0);
+          addField(fields, to, 'smoke', 'scalar', 'ratio', 0);
+        }
         if (type === 'growth_decay' || type === 'reaction_diffusion') {
           addField(fields, to, 'density', 'scalar', 'ratio', 0.28);
           addField(fields, to, 'nutrient', 'scalar', 'ratio', 0.62);
@@ -280,6 +346,10 @@
         return [edge.processId, edge.type, edge.relation, edge.causalAffordance].filter(Boolean).join(' ');
       }
 
+    function combustionFuelDomain(a, b) {
+        return [a, b].find((domain) => domain && hasTag(domain, 'fuel-material'));
+      }
+
     function fluidDomain(a, b) { return [a, b].find((domain) => domain && domain.kind === 'fluid'); }
     function networkDomain(a, b) { return [a, b].find((domain) => domain && domain.kind === 'network'); }
     function waveDomain(a, b) { return [a, b].find((domain) => domain && (hasTag(domain, 'wave') || domain.kind === 'field')); }
@@ -290,6 +360,7 @@
 
     Object.assign(scope, {
       addBehaviorBundleFromEdge,
+      addBehaviorBundleFromPartialEdge,
       addBehaviorBundlesFromLedger,
       addBehaviorBundle,
       behaviorProcessForText,

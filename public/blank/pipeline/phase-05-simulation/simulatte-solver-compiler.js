@@ -59,6 +59,7 @@
         inputs: operator.inputs || operator.reads || [],
         outputs: operator.outputs || operator.writes || [],
         params: { ...(operator.params || {}) },
+        receipt: operator.receipt ? { ...operator.receipt } : null,
         stableDt: solver.stableDt || 0.05,
       });
     }

@@ -4,9 +4,11 @@
   with (scope) {
     function scenePacketAnimation({ layerSlot, entity = null, field = null, process = null, motion = null, text = '', index = 0 }) {
       const value = `${layerSlot || ''} ${text || ''}`.toLowerCase();
+      const behaviorProcesses = ((entity && entity.behavior && entity.behavior.processes) || [])
+        .map((processName) => String(processName).toLowerCase());
       const behaviorEvidence = [
         ...((entity && entity.behavior && entity.behavior.sourceEvidence) || []),
-        ...((entity && entity.behavior && entity.behavior.processes) || []),
+        ...behaviorProcesses,
       ].join(' ').toLowerCase();
       const behaviorRoles = (entity && entity.behavior && entity.behavior.roles || [])
         .map((role) => String(role).toLowerCase());
@@ -18,8 +20,12 @@
       const naturallyDynamicMedium = promptOwnedLayer
         ? /water-volume|flow-field/.test(promptOwnedLayer)
         : /water-volume|watershed|ocean|river|fluid/.test(value);
-      const explicitMotionBehavior = Boolean(pose) || actionOwnedByEntity &&
-        /action:(?!coexists\b)[a-z0-9-]+|swim|fluid_locomotion|flow|orbit|fly|flight|run|play|rotate|spin|fall|grow|pulse|crash|collid/.test(behaviorEvidence);
+      const atlasMotionKind = scenePacketAtlasMotionKind(motion, process);
+      const responsiveBehavior = behaviorRoles.includes('medium') &&
+        /oscillation|wave|flow|advection|rotation|growth|fracture|collision/.test(behaviorProcesses.join(' '));
+      const explicitMotionBehavior = Boolean(pose) || responsiveBehavior ||
+        scenePacketMotionHasGroundedOwnership(motion) || actionOwnedByEntity &&
+          /action:(?!coexists\b)[a-z0-9-]+|swim|fluid_locomotion|flow|orbit|fly|flight|run|play|rotate|spin|fall|grow|pulse|crash|collid/.test(behaviorEvidence);
       const staticPromptObject = promptIdentity && !naturallyDynamicMedium && !explicitMotionBehavior;
       let kind = 'state-pulse';
       const stateBinding = 'simulation-time';
@@ -29,7 +35,7 @@
       else if (/swim[-_ ]?cycle|swimming[-_ ]?pose|swim[-_ ]?stroke|fluid_locomotion/.test(value)) kind = 'swim-cycle';
       else if (/biological-agent/.test(value) && /water|swim|fluid|watershed|ocean/.test(value)) kind = 'swim-cycle';
       else if (pose === 'flight-extended' || actionOwnedByEntity && /action:(?:fly|flies|flying)\b/.test(behaviorEvidence)) kind = 'flight-path';
-      else if (scenePacketAtlasMotionKind(motion, process)) kind = scenePacketAtlasMotionKind(motion, process);
+      else if (atlasMotionKind) kind = atlasMotionKind;
       else if (/water-volume|flow-field|fluid|advection|streamline|ripple|velocity/.test(value)) kind = 'flow-ripple';
       else if (/detector|track-line|particle/.test(value)) kind = 'particle-track';
       else if (/readout|measurement|telemetry/.test(value)) kind = 'readout-pulse';
@@ -54,6 +60,12 @@
           motion && motion.processId,
         ].filter(Boolean)),
       };
+    }
+
+    function scenePacketMotionHasGroundedOwnership(motion = null) {
+      return Boolean(motion && (motion.evidence || []).some((entry) => (
+        /^causal-affordance:|^prompt-(?:clause|relation):/.test(String(entry || ''))
+      )));
     }
 
     function scenePacketAtlasMotionKind(motion = null, process = null) {

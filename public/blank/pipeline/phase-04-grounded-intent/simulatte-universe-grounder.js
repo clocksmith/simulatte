@@ -17,7 +17,8 @@
   const UNIVERSE_GRAPH_SCHEMA = 'simulatte.universeGraph.v1';
   const { clamp01 = (value) => Math.max(0, Math.min(1, value)), slugify = defaultSlugify } = catalog;
   const { canonicalizeGroundedNodes, attachConstructionEvidence, edgeRowsForClauses, remapSpanNodes,
-    materializeTypedPromptNodes, applyPromptSemanticContracts } = graph;
+    materializeTypedPromptNodes, applyPromptSemanticContracts, combustionEdgesForGroundedEvidence,
+    edgeRowsForIntentBrief } = graph;
   const { candidateRowsForInput = () => [] } = candidates;
 
   const CONCEPTS = Object.freeze({
@@ -115,6 +116,10 @@
     coexists: 'adjacent',
   });
   const ABSTRACT_UNSUPPORTED_TERMS = new Set(['soul']);
+  const IDENTITY_QUALIFIER_TOKENS = new Set([
+    'artifact', 'assembly', 'body', 'component', 'derived', 'entity', 'environment',
+    'generated', 'generic', 'material', 'open', 'primitive', 'prompt', 'semantic',
+  ]);
   function concept(canonicalId, semanticType, domains, materialId, operatorHints) {
     return { canonicalId, semanticType, domains, materialId, operatorHints };
   }
@@ -188,14 +193,16 @@
     const edges = uniqueEdgeRows([
       ...promptEdges,
       ...promptSemantics.edges,
-      ...edgeRowsForIntentBrief(intentBrief, nodes),
+      ...combustionEdgesForGroundedEvidence(nodes, promptParse),
+      ...edgeRowsForIntentBrief(intentBrief, nodes, promptEdges),
     ]);
     const observables = spanRows
       .filter((span) => span.kind === 'observable')
       .map((span) => ({ spanId: span.id, label: span.text, channel: observableChannel(span.text) }));
     const semanticGraph = buildSemanticGraph(nodes, edges);
-    const affordanceGraph = buildAffordanceGraph(nodes, candidateRows);
-    const primitiveMapping = buildPrimitiveMapping(nodes, candidateRows);
+    const candidateRowsByNode = indexCandidateRowsByNode(nodes, candidateRows);
+    const affordanceGraph = buildAffordanceGraph(nodes, candidateRowsByNode);
+    const primitiveMapping = buildPrimitiveMapping(nodes, candidateRowsByNode);
     const unsupported = mergeUnsupportedRows(
       buildUnsupportedRows(nodes, primitiveMapping, unresolved),
       unsupportedRowsFromIntentBrief(intentBrief)
@@ -209,6 +216,15 @@
       semanticGraph,
       affordanceGraph,
       primitiveMapping,
+      candidateMatchReceipt: {
+        schema: 'simulatte.groundingCandidateMatchReceipt.v1',
+        policy: 'exact-identity-or-unqualified-label-overlap',
+        nodeCount: nodes.length,
+        candidateRowCount: candidateRows.length,
+        pairEvaluationCount: nodes.length * candidateRows.length,
+        matchedRowCount: [...candidateRowsByNode.values()].reduce((sum, rows) => sum + rows.length, 0),
+        scanPasses: 1,
+      },
       environments: nodes.filter((node) => node.semanticType === 'environment'),
       observables,
       visualAffordances: intentBrief && intentBrief.visualIntent && Array.isArray(intentBrief.visualIntent.affordances)
@@ -281,38 +297,6 @@
       },
     };
   }
-  function edgeRowsForIntentBrief(intentBrief, nodes) {
-    const edges = [];
-    if (!intentBrief || !Array.isArray(intentBrief.causalGraph)) return edges;
-    for (const edge of intentBrief.causalGraph) {
-      const from = nodeForCausalRef(nodes, edge.sourceRef, edge.sourceLabel);
-      const to = nodeForCausalRef(nodes, edge.targetRef, edge.targetLabel);
-      if (!from || !to || from.id === to.id) continue;
-      edges.push({
-        id: `intent-${edge.id || edges.length + 1}`,
-        type: edge.relationType || edge.type || 'interaction',
-        from: from.id,
-        to: to.id,
-        processId: edge.processId || edge.operatorType || 'interact',
-        prepositions: [],
-        confidence: clamp01(Number(edge.confidence || 0.66)),
-        evidence: edge.evidence || ['intent-brief'],
-        operatorType: edge.operatorType || '',
-        mechanism: edge.mechanism || '',
-      });
-    }
-    return edges;
-  }
-
-  function nodeForCausalRef(nodes, ref, label) {
-    const refText = String(ref || '').toLowerCase();
-    const labelText = String(label || '').toLowerCase();
-    return (nodes || []).find((node) => {
-      const text = [node.id, node.canonicalId, node.label, ...(node.aliases || [])].join(' ').toLowerCase();
-      return refText && text.includes(refText) || labelText && (text.includes(labelText) || labelText.includes(String(node.label || '').toLowerCase()));
-    }) || null;
-  }
-
   function uniqueEdgeRows(edges) {
     const seen = new Set();
     return (edges || []).filter((edge) => {
@@ -460,9 +444,9 @@
         continue;
       }
       const source = String(component.source || '');
-      const fillsGroundingGap = nodes.length < 2;
       const isSynthesis = /^embedding-guided-synth/.test(source);
       const isOpenSemantic = source === 'open-semantic-rag' || source === 'semantic-surface-grounder';
+      const fillsGroundingGap = nodes.length < 2 && !isSynthesis && !isOpenSemantic;
       const directlyMentioned = prompt && (
         prompt.includes(lower) || promptIncludesAny(prompt, [component.id, component.phrase, component.role])
       );
@@ -472,7 +456,8 @@
         promptTokens.some((promptToken) => identityTokenEquivalent(token, promptToken))
       ));
       const generatedIdentityOk = (isSynthesis || isOpenSemantic) && directlyMentioned && identityMentioned;
-      const highConfidence = Number(component.score || 0) >= 0.78 && directlyMentioned;
+      const highConfidence = Number(component.score || 0) >= 0.78 && directlyMentioned &&
+        (!(isSynthesis || isOpenSemantic) || identityMentioned);
       if (!fillsGroundingGap && !highConfidence && !generatedIdentityOk &&
         !(isPromptExplicit && directlyMentioned)) {
         if (isSynthesis || isOpenSemantic) {
@@ -732,11 +717,11 @@
     };
   }
 
-  function buildAffordanceGraph(nodes, candidateRows) {
+  function buildAffordanceGraph(nodes, candidateRowsByNode) {
     const graphNodes = [];
     const graphEdges = [];
     for (const node of nodes || []) {
-      const rows = rowsForNode(node, candidateRows);
+      const rows = candidateRowsByNode.get(node.id) || [];
       const operatorTypes = unique([
         ...(node.operatorTypes || []),
         ...(node.operatorHints || []),
@@ -794,9 +779,9 @@
     };
   }
 
-  function buildPrimitiveMapping(nodes, candidateRows) {
+  function buildPrimitiveMapping(nodes, candidateRowsByNode) {
     const rows = (nodes || []).map((node) => {
-      const matches = rowsForNode(node, candidateRows);
+      const matches = candidateRowsByNode.get(node.id) || [];
       const primitiveHints = unique([
         ...(node.primitiveHints || []),
         ...matches.flatMap((row) => row.primitiveHints || []),
@@ -857,20 +842,22 @@
   }
 
   function rowsForNode(node, candidateRows) {
-    const nodeLabels = candidateLabels(node);
-    const nodeKeys = new Set([
-      node.canonicalId,
-      ...(node.conceptIds || []),
-      ...nodeLabels,
-    ].filter(Boolean).map((value) => String(value).toLowerCase()));
+    const nodeKeys = new Set(candidateLabels(node));
+    const nodeLabels = identityLabels(node);
     return (candidateRows || []).filter((row) => {
-      const rowConcepts = [row.canonicalId, ...(row.conceptIds || [])]
-        .filter(Boolean)
-        .map((value) => String(value).toLowerCase());
-      if (rowConcepts.some((value) => nodeKeys.has(value))) return true;
-      const labels = candidateLabels(row);
-      return labels.some((label) => nodeKeys.has(label)) || labels.some((label) => labelOverlap(label, nodeLabels) >= 0.6);
+      const rowKeys = candidateLabels(row);
+      if (rowKeys.some((value) => nodeKeys.has(value))) return true;
+      return identityLabels(row).some((label) => labelOverlap(label, nodeLabels) >= 0.6);
     });
+  }
+
+  function indexCandidateRowsByNode(nodes, candidateRows) {
+    return new Map((nodes || []).map((node) => [node.id, rowsForNode(node, candidateRows)]));
+  }
+
+  function identityLabels(row) {
+    return unique([row.sourceLabel, row.label, ...(row.aliases || [])])
+      .map((value) => String(value).toLowerCase()).filter(Boolean);
   }
 
   function candidateLabels(row) {
@@ -898,7 +885,8 @@
   }
 
   function tokenSet(text) {
-    return new Set(String(text || '').toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length > 2));
+    return new Set(String(text || '').toLowerCase().split(/[^a-z0-9]+/)
+      .filter((token) => token.length > 2 && !IDENTITY_QUALIFIER_TOKENS.has(token)));
   }
 
   function universeRowCanMaterialize(row) {

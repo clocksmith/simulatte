@@ -565,12 +565,25 @@
     function motionForEntity(entity, processById, motionByProcess) {
         if (!entity) return null;
         const id = entity.id;
+        const candidates = [];
         for (const process of processById.values()) {
           if (Array.isArray(process.affects) && process.affects.includes(id)) {
-            return motionByProcess.get(process.id) || null;
+            const motion = motionByProcess.get(process.id);
+            if (motion) candidates.push(motion);
           }
         }
-        return null;
+        return candidates.sort((left, right) => (
+          motionOwnershipPriority(right) - motionOwnershipPriority(left) ||
+          Number(right.confidence || 0) - Number(left.confidence || 0) ||
+          String(left.id || '').localeCompare(String(right.id || ''))
+        ))[0] || null;
+      }
+
+    function motionOwnershipPriority(motion = {}) {
+        const evidence = (motion.evidence || []).join(' ');
+        if (/causal-affordance:|prompt-(?:clause|relation):/.test(evidence)) return 3;
+        if (/graphics-atom:/.test(evidence)) return 2;
+        return 1;
       }
 
     function scenePacketTransform(pose = {}, index = 0, total = 1, sceneKind = '') {
