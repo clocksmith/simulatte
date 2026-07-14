@@ -8,14 +8,34 @@
   const regions = typeof module === 'object' && module.exports
     ? require('../world/region-pack-merger.js')
     : root.SimulatteAutonomyRegionPacks;
-  const api = factory(contracts, receipts, regions);
+  const runtimeLog = typeof module === 'object' && module.exports
+    ? require('./runtime-log.js')
+    : root.SimulatteAutonomyRuntimeLog;
+  const api = factory(contracts, receipts, regions, runtimeLog);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyDataLoader = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyDataLoader(contracts, receipts, regions) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyDataLoader(contracts, receipts, regions, runtimeLog) {
   async function loadAutonomyData(manifestUrl = '../data/autonomy/autonomy-manifest.json', fetchImpl = fetch) {
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
+    runtimeLog.info('data.load.started', {
+      manifestUrl: resolvedManifestUrl,
+      cacheMode: 'no-cache',
+    });
     const manifest = await fetchJson(resolvedManifestUrl, fetchImpl);
+    runtimeLog.info('data.manifest.received', {
+      url: resolvedManifestUrl,
+      schema: manifest.value?.schema || null,
+      id: manifest.value?.id || null,
+      keys: manifest.value && typeof manifest.value === 'object' ? Object.keys(manifest.value).sort() : [],
+      missionExampleCount: Array.isArray(manifest.value?.missionExamples) ? manifest.value.missionExamples.length : null,
+      response: manifest.response,
+    });
     contracts.validateManifest(manifest.value);
+    runtimeLog.info('data.manifest.validated', {
+      id: manifest.value.id,
+      schema: manifest.value.schema,
+      missionExampleCount: manifest.value.missionExamples.length,
+    });
     const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'];
     const refs = await Promise.all(directKeys.map(async (key) => [key, await loadReference(manifest.value[key], resolvedManifestUrl, key, fetchImpl)]));
     const loaded = Object.fromEntries(refs);
@@ -48,7 +68,7 @@
     });
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
-    return {
+    const result = {
       schema: 'simulatte.autonomyLoadedData.v2',
       manifest: manifest.value,
       world: composition.world,
@@ -75,6 +95,21 @@
         claimBoundary: manifest.value.claimBoundary,
       },
     };
+    runtimeLog.info('data.load.ready', {
+      manifestId: manifest.value.id,
+      worldId: composition.world.id,
+      worldSha256: worldHash,
+      featureCatalogId: composition.featureCatalog.id,
+      featureCatalogSha256: featureCatalogHash,
+      embodimentIds: result.embodiments.map((row) => row.id),
+      regionPackIds: result.regionPacks.map((row) => row.id),
+      counts: {
+        nodes: composition.world.nodes.length,
+        segments: composition.world.segments.length,
+        featureCards: composition.featureCatalog.cards.length,
+      },
+    });
+    return result;
   }
 
   async function loadReference(reference, baseUrl, key, fetchImpl) {
@@ -112,16 +147,45 @@
   }
 
   async function fetchJson(url, fetchImpl) {
-    const response = await fetchImpl(url);
+    let response;
+    try {
+      response = await fetchImpl(url, { cache: 'no-cache' });
+    } catch (error) {
+      runtimeLog.error('data.asset.fetch.failed', {
+        url,
+        cacheMode: 'no-cache',
+        error: runtimeLog.serializeError(error),
+      });
+      throw loadError('asset_fetch_failed', `${url} request failed: ${error.message}`, {
+        url,
+        status: null,
+        cause: runtimeLog.serializeError(error),
+      });
+    }
+    const responseMetadata = {
+      status: response?.status || null,
+      ok: Boolean(response?.ok),
+      cacheMode: 'no-cache',
+      cacheControl: responseHeader(response, 'cache-control'),
+      etag: responseHeader(response, 'etag'),
+      contentLength: responseHeader(response, 'content-length'),
+    };
+    runtimeLog.info('data.asset.fetch.completed', { url, ...responseMetadata });
     if (!response || !response.ok) {
-      throw loadError('asset_fetch_failed', `${url} expected HTTP success, received ${response && response.status || 'no response'}`, { url, status: response && response.status || null });
+      throw loadError('asset_fetch_failed', `${url} expected HTTP success, received ${response && response.status || 'no response'}`, { url, status: response && response.status || null, response: responseMetadata });
     }
     const text = await response.text();
     try {
-      return { text, value: JSON.parse(text) };
+      return { text, value: JSON.parse(text), response: responseMetadata };
     } catch (error) {
       throw loadError('asset_json_invalid', `${url} expected valid JSON, received ${error.message}`, { url });
     }
+  }
+
+  function responseHeader(response, name) {
+    return response?.headers && typeof response.headers.get === 'function'
+      ? response.headers.get(name)
+      : null;
   }
 
   function documentBase() {

@@ -111,11 +111,23 @@
     "featureRetrieval": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema", "method", "reranker", "queryRows", "retrievedRows", "rerankedRows", "selectedCardIds", "counts", "scoreFormula", "deterministicTieBreak"],
+      "required": ["schema", "method", "reranker", "modelExecution", "queryRows", "retrievedRows", "rerankedRows", "selectedCardIds", "counts", "scoreFormula", "deterministicTieBreak"],
       "properties": {
-        "schema": { "const": "simulatte.autonomyFeatureRetrieval.v1" },
+        "schema": { "const": "simulatte.autonomyFeatureRetrieval.v2" },
         "method": { "const": "deterministic_lexical_inverted_scan_v1" },
         "reranker": { "const": "typed_evidence_reranker_v1" },
+        "modelExecution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["embedding", "neuralReranker", "sharedModelRegistryPath", "registryScope", "claimBoundary"],
+          "properties": {
+            "embedding": { "$ref": "#/$defs/modelExecutionRow" },
+            "neuralReranker": { "$ref": "#/$defs/modelExecutionRow" },
+            "sharedModelRegistryPath": { "const": "/data/simulatte-embedder/model-runtime-lock.json" },
+            "registryScope": { "const": "blank_compiler_only" },
+            "claimBoundary": { "type": "string", "minLength": 40 }
+          }
+        },
         "queryRows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/queryRow" } },
         "retrievedRows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/rankedCard" } },
         "rerankedRows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/rerankedCard" } },
@@ -157,6 +169,15 @@
     }
   },
   "$defs": {
+    "modelExecutionRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executed", "modelId"],
+      "properties": {
+        "executed": { "const": false },
+        "modelId": { "type": "null" }
+      }
+    },
     "queryRow": {
       "type": "object",
       "additionalProperties": false,

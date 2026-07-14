@@ -874,9 +874,21 @@
     requireArray(observation.blockedSegmentIds, contract, '$.blockedSegmentIds');
     requireObject(observation.policyMemory, contract, '$.policyMemory');
     const retrieval = requireObject(observation.featureRetrieval, contract, '$.featureRetrieval');
-    if (retrieval.schema !== 'simulatte.autonomyFeatureRetrieval.v1') {
-      throw new AutonomyContractError(contract, '$.featureRetrieval.schema', 'simulatte.autonomyFeatureRetrieval.v1', retrieval.schema);
+    if (retrieval.schema !== 'simulatte.autonomyFeatureRetrieval.v2') {
+      throw new AutonomyContractError(contract, '$.featureRetrieval.schema', 'simulatte.autonomyFeatureRetrieval.v2', retrieval.schema);
     }
+    requireExactValue(retrieval.method, 'deterministic_lexical_inverted_scan_v1', contract, '$.featureRetrieval.method');
+    requireExactValue(retrieval.reranker, 'typed_evidence_reranker_v1', contract, '$.featureRetrieval.reranker');
+    const modelExecution = requireObject(retrieval.modelExecution, contract, '$.featureRetrieval.modelExecution');
+    const embeddingExecution = requireObject(modelExecution.embedding, contract, '$.featureRetrieval.modelExecution.embedding');
+    const rerankerExecution = requireObject(modelExecution.neuralReranker, contract, '$.featureRetrieval.modelExecution.neuralReranker');
+    requireExactValue(embeddingExecution.executed, false, contract, '$.featureRetrieval.modelExecution.embedding.executed');
+    requireExactValue(embeddingExecution.modelId, null, contract, '$.featureRetrieval.modelExecution.embedding.modelId');
+    requireExactValue(rerankerExecution.executed, false, contract, '$.featureRetrieval.modelExecution.neuralReranker.executed');
+    requireExactValue(rerankerExecution.modelId, null, contract, '$.featureRetrieval.modelExecution.neuralReranker.modelId');
+    requireExactValue(modelExecution.sharedModelRegistryPath, '/data/simulatte-embedder/model-runtime-lock.json', contract, '$.featureRetrieval.modelExecution.sharedModelRegistryPath');
+    requireExactValue(modelExecution.registryScope, 'blank_compiler_only', contract, '$.featureRetrieval.modelExecution.registryScope');
+    requireString(modelExecution.claimBoundary, contract, '$.featureRetrieval.modelExecution.claimBoundary');
     requireArray(retrieval.queryRows, contract, '$.featureRetrieval.queryRows', 1);
     requireArray(retrieval.retrievedRows, contract, '$.featureRetrieval.retrievedRows', 1);
     requireArray(retrieval.rerankedRows, contract, '$.featureRetrieval.rerankedRows', 1);

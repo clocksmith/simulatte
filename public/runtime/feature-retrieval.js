@@ -24,9 +24,16 @@
     })).sort((left, right) => right.rerankScore - left.rerankScore || left.cardId.localeCompare(right.cardId));
     const selected = reranked.slice(0, MAX_SELECTED_CARDS);
     return {
-      schema: 'simulatte.autonomyFeatureRetrieval.v1',
+      schema: 'simulatte.autonomyFeatureRetrieval.v2',
       method: 'deterministic_lexical_inverted_scan_v1',
       reranker: 'typed_evidence_reranker_v1',
+      modelExecution: {
+        embedding: { executed: false, modelId: null },
+        neuralReranker: { executed: false, modelId: null },
+        sharedModelRegistryPath: '/data/simulatte-embedder/model-runtime-lock.json',
+        registryScope: 'blank_compiler_only',
+        claimBoundary: 'This navigation decision used lexical retrieval and typed deterministic reranking. It did not execute an embedding model or neural reranker.',
+      },
       queryRows: queries,
       retrievedRows: retrieved,
       rerankedRows: reranked,

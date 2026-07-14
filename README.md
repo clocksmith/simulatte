@@ -65,6 +65,15 @@ until eligible embodiments and roadway graphs are registered.
 | [`public/contracts/`](public/contracts/) | Schemas and contract validator |
 | [`public/data/autonomy/`](public/data/autonomy/) | Worlds, feature cards, embodiments, policies, evidence receipts |
 
+Simulatte navigation currently executes a deterministic lexical retrieval
+control lane and typed deterministic reranker. It does **not** load a neural
+embedding or reranking model. The pinned Qwen 3 Embedding 0.6B and Qwen 3
+Reranker 0.6B artifacts in
+[`model-runtime-lock.json`](public/data/simulatte-embedder/model-runtime-lock.json)
+are used by Blank's compiler pipeline. A future navigation model lane must
+bring its own compatible feature-card index and beat the current control on a
+frozen population before it can replace this lane.
+
 `tools/samer/autonomy/` compares action-selection approaches across matched
 public scenarios. Public diagnostic results cannot promote a policy or
 support a physical-world autonomy claim. Design docs live in

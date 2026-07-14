@@ -4,13 +4,26 @@
     root.SimulatteAutonomyMission,
     root.SimulatteAutonomyController,
     root.SimulatteAutonomyCanvas,
-    root.SimulatteAutonomyTraceView
+    root.SimulatteAutonomyTraceView,
+    root.SimulatteAutonomyRuntimeLog
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog) {
+  const log = runtimeLog || {
+    info: () => null,
+    warn: () => null,
+    error: () => null,
+    serializeError: (error) => ({ name: error?.name || 'Error', message: error?.message || String(error) }),
+  };
+
   async function start() {
     const elements = collectElements();
+    log.info('app.boot.started', {
+      build: document.querySelector('meta[name="simulatte-build"]')?.content || null,
+      location: window.location.href,
+      userAgent: navigator.userAgent,
+    });
     setRuntimeStatus(elements, 'Loading governed assets', 'loading');
     let data;
     try {
@@ -22,14 +35,26 @@
     elements.missionInput.value = data.manifest.defaultMissionText;
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
     let controller = null;
+    let activeMission = null;
     let renderer = null;
     let isRunning = false;
     let frameRequest = null;
     let lastStepAt = 0;
+    let retrievalLaneLogged = false;
+    let terminalJourneyLogged = false;
     const stepIntervalMs = 18;
 
     async function buildController({ keepMissionLocked = false } = {}) {
       const mission = missionApi.compileMission(elements.missionInput.value, data.world, data.embodiments);
+      activeMission = mission;
+      log.info('mission.compiled', {
+        missionId: mission.id,
+        sourceText: elements.missionInput.value,
+        embodimentId: mission.embodimentId,
+        task: mission.task,
+        constraints: mission.constraints,
+        grounding: mission.grounding,
+      });
       const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
       if (!embodiment) throw new Error(`Mission selected unavailable embodiment ${mission.embodimentId}`);
       const nextController = controllerApi.createAutonomyController({
@@ -44,6 +69,29 @@
           renderer.render(snapshot, entry.payload);
           traceView.renderTick(entry, snapshot);
           setRuntimeStatus(elements, runtimeLabel(snapshot.state), snapshot.state.status);
+          const retrieval = entry.payload?.observation?.featureRetrieval;
+          if (!retrievalLaneLogged && retrieval) {
+            retrievalLaneLogged = true;
+            log.info('retrieval.lane.executed', {
+              missionId: mission.id,
+              method: retrieval.method,
+              reranker: retrieval.reranker,
+              modelExecution: retrieval.modelExecution,
+              counts: retrieval.counts,
+            });
+          }
+          if (!terminalJourneyLogged && snapshot.state.status !== 'active') {
+            terminalJourneyLogged = true;
+            log.info('journey.terminal', {
+              missionId: mission.id,
+              status: snapshot.state.status,
+              terminalReason: snapshot.state.terminalReason || null,
+              tick: snapshot.state.tick,
+              distanceTraveledM: snapshot.state.distanceTraveledM,
+              simulatedTimeSeconds: snapshot.state.simulatedTimeSeconds,
+              completedLaps: snapshot.state.completedLaps,
+            });
+          }
           if (snapshot.state.status !== 'active') stopLoop();
         },
       });
@@ -58,8 +106,18 @@
           },
         });
         wireCameraControls(elements, renderer);
+        const renderReceipt = renderer.receipt();
+        log.info('renderer.ready', {
+          backend: renderReceipt.backend,
+          adapter: renderReceipt.adapter,
+          buildingCount: renderReceipt.buildingCount,
+          staticVertexCount: renderReceipt.staticVertexCount,
+          ambientTraffic: renderReceipt.ambientTraffic,
+        });
       }
       controller = nextController;
+      retrievalLaneLogged = false;
+      terminalJourneyLogged = false;
       renderer.reset();
       const snapshot = controller.snapshot();
       renderer.render(snapshot);
@@ -87,6 +145,13 @@
       isRunning = true;
       updateButtons(elements, true, true);
       setRuntimeStatus(elements, 'Executing continuous action bets', 'active');
+      const snapshot = controller.snapshot();
+      log.info('journey.started', {
+        missionId: activeMission.id,
+        embodimentId: activeMission.embodimentId,
+        taskType: snapshot.state.taskType,
+        cameraMode: 'follow',
+      });
       frameRequest = requestAnimationFrame(tickFrame);
     }
 
@@ -108,6 +173,10 @@
     elements.shuffleButton.addEventListener('click', () => {
       if (isRunning) return;
       elements.missionInput.value = nextMissionExample(data.manifest.missionExamples, elements.missionInput.value);
+      log.info('mission.example.selected', {
+        sourceText: elements.missionInput.value,
+        exampleCount: data.manifest.missionExamples.length,
+      });
       elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
     elements.pauseButton.addEventListener('click', () => {
@@ -136,6 +205,11 @@
       const receipt = await controller.journeyReceipt();
       receipt.rendering = renderer.receipt();
       receipt.dataLoad = structuredClone(data.receipt);
+      log.info('journey.receipt.exported', {
+        missionId: receipt.mission.id,
+        terminalHash: receipt.integrity.terminalHash,
+        traceEntryCount: receipt.trace.length,
+      });
       downloadJson(`simulatte-autonomy-${receipt.mission.id}.json`, receipt);
     });
     elements.missionInput.addEventListener('input', () => {
@@ -234,6 +308,7 @@
   }
 
   function failRuntime(elements, error) {
+    log.error('runtime.failed', log.serializeError(error));
     setRuntimeStatus(elements, error.message, 'error');
     elements.startButton.disabled = true;
     elements.stepButton.disabled = true;

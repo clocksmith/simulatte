@@ -251,6 +251,14 @@ async function runBrowserSmoke(options) {
       && result.occurrenceRows > 0
       && result.rerankerProof.includes('MRR')
       && result.rerankerProof.includes('→')
+      && result.retrievalLaneLabel.startsWith('Lexical + typed rules')
+      && result.runtimeLog.eventCount >= 8
+      && result.runtimeLog.requiredEventsPresent
+      && result.runtimeLog.manifestMissionExampleCount >= 4
+      && result.runtimeLog.manifestCacheMode === 'no-cache'
+      && result.runtimeLog.embeddingExecuted === false
+      && result.runtimeLog.neuralRerankerExecuted === false
+      && result.runtimeLog.failureCount === 0
       && result.gateRows === 7
       && result.traceRows > 0
       && result.selectedRows === 1
@@ -289,7 +297,7 @@ async function runBrowserSmoke(options) {
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v5',
+      schema: 'simulatte.autonomyBrowserSmoke.v6',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -525,6 +533,22 @@ function browserJourneyExpression() {
     };
     await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const runtimeEvents = window.__simulatteAutonomyRuntimeEvents || [];
+    const runtimeEventNames = runtimeEvents.map((row) => row.event);
+    const manifestEvent = runtimeEvents.find((row) => row.event === 'data.manifest.received');
+    const retrievalEvent = runtimeEvents.find((row) => row.event === 'retrieval.lane.executed');
+    const requiredRuntimeEvents = [
+      'app.boot.started',
+      'data.load.started',
+      'data.manifest.received',
+      'data.manifest.validated',
+      'data.load.ready',
+      'mission.compiled',
+      'renderer.ready',
+      'journey.started',
+      'retrieval.lane.executed',
+      'journey.terminal',
+    ];
     return {
       runtime: document.getElementById('runtime-status').textContent,
       state: document.getElementById('metric-state').textContent,
@@ -541,7 +565,18 @@ function browserJourneyExpression() {
       retrievalRows: document.querySelectorAll('#retrieval-candidates > span').length,
       rerankRows: document.querySelectorAll('#rerank-candidates > span').length,
       occurrenceRows: document.querySelectorAll('#occurrence-patterns > span').length,
+      retrievalLaneLabel: document.getElementById('retrieval-stats').textContent,
       rerankerProof: document.getElementById('reranker-proof').textContent,
+      runtimeLog: {
+        eventCount: runtimeEvents.length,
+        eventNames: runtimeEventNames,
+        requiredEventsPresent: requiredRuntimeEvents.every((event) => runtimeEventNames.includes(event)),
+        manifestMissionExampleCount: manifestEvent?.details?.missionExampleCount ?? null,
+        manifestCacheMode: manifestEvent?.details?.response?.cacheMode ?? null,
+        embeddingExecuted: retrievalEvent?.details?.modelExecution?.embedding?.executed ?? null,
+        neuralRerankerExecuted: retrievalEvent?.details?.modelExecution?.neuralReranker?.executed ?? null,
+        failureCount: runtimeEvents.filter((row) => row.level === 'error').length,
+      },
       shuffle,
       copy,
       camera: {

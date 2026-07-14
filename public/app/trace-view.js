@@ -79,7 +79,8 @@
   }
 
   function renderRetrieval(elements, retrieval) {
-    elements.retrievalStats.textContent = `${retrieval.counts.catalogCount} cards · ${retrieval.counts.retrievedCount} found · ${retrieval.counts.selectedCount} selected`;
+    elements.retrievalStats.textContent = `Lexical + typed rules · ${retrieval.counts.catalogCount} cards · ${retrieval.counts.retrievedCount} found · ${retrieval.counts.selectedCount} selected`;
+    elements.retrievalStats.title = retrieval.modelExecution.claimBoundary;
     elements.retrievalQuery.replaceChildren(...retrieval.queryRows.map((row) => textToken(row.text, 'query-token')));
     const visibleRetrieved = retrieval.retrievedRows.slice(0, 8).map((row) => textToken(`${row.label} ${format(row.retrievalScore, 0)}`, 'candidate-token'));
     if (retrieval.retrievedRows.length > visibleRetrieved.length) {

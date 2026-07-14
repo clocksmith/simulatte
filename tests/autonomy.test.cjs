@@ -19,6 +19,7 @@ const worldApi = require('../public/world/world-model.js');
 const routePlanner = require('../public/world/route-planner.js');
 const controllerApi = require('../public/runtime/autonomy-controller.js');
 const dataLoader = require('../public/runtime/data-loader.js');
+const runtimeLog = require('../public/runtime/runtime-log.js');
 const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
 const regionApi = require('../public/world/region-pack-merger.js');
@@ -780,7 +781,14 @@ test('feature retrieval recalls referenced cards, reranks typed evidence, and ex
   await controller.step();
   const journey = await controller.journeyReceipt();
   const retrieval = tickPayloads(journey)[0].observation.featureRetrieval;
-  assert.equal(retrieval.schema, 'simulatte.autonomyFeatureRetrieval.v1');
+  assert.equal(retrieval.schema, 'simulatte.autonomyFeatureRetrieval.v2');
+  assert.deepEqual(retrieval.modelExecution, {
+    embedding: { executed: false, modelId: null },
+    neuralReranker: { executed: false, modelId: null },
+    sharedModelRegistryPath: '/data/simulatte-embedder/model-runtime-lock.json',
+    registryScope: 'blank_compiler_only',
+    claimBoundary: 'This navigation decision used lexical retrieval and typed deterministic reranking. It did not execute an embedding model or neural reranker.',
+  });
   assert.ok(retrieval.queryRows.some((row) => row.id === 'route-segment'));
   const routeQuery = retrieval.queryRows.find((row) => row.id === 'route-segment');
   assert.ok(routeQuery.referencedCardIds.every((id) => retrieval.selectedCardIds.includes(id)));
@@ -891,7 +899,9 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     const pathname = new URL(url).pathname;
     return path.join(publicDir, pathname.replace(/^\//, ''));
   };
-  const fetchFiles = async (url) => {
+  const requests = [];
+  const fetchFiles = async (url, options) => {
+    requests.push({ url, options });
     const file = fileForUrl(url);
     return { ok: fs.existsSync(file), status: fs.existsSync(file) ? 200 : 404, text: async () => fs.readFileSync(file, 'utf8') };
   };
@@ -904,6 +914,24 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.equal(loaded.regionComposition.seamNodeIds.length, 27);
   assert.equal(loaded.regionRegistry.id, loaded.manifest.regionRegistry.id);
   assert.equal(loaded.regionPacks.length, 3);
+  assert.ok(requests.length > 8);
+  assert.ok(requests.every((row) => row.options?.cache === 'no-cache'));
+
+  const staleManifest = structuredClone(loaded.manifest);
+  delete staleManifest.missionExamples;
+  let staleManifestWouldHaveBeenServed = false;
+  const cacheSensitiveFetch = async (url, options) => {
+    const file = fileForUrl(url);
+    const isManifest = url.endsWith('/autonomy-manifest.json');
+    if (isManifest && options?.cache !== 'no-cache') {
+      staleManifestWouldHaveBeenServed = true;
+      return { ok: true, status: 200, text: async () => JSON.stringify(staleManifest) };
+    }
+    return { ok: true, status: 200, text: async () => fs.readFileSync(file, 'utf8') };
+  };
+  const revalidated = await dataLoader.loadAutonomyData('http://localhost/data/autonomy/autonomy-manifest.json', cacheSensitiveFetch);
+  assert.equal(revalidated.manifest.missionExamples.length, loaded.manifest.missionExamples.length);
+  assert.equal(staleManifestWouldHaveBeenServed, false);
 
   const tampered = async (url) => {
     const file = fileForUrl(url);
@@ -933,6 +961,7 @@ test('autonomy browser surface loads every declared module and stays independent
   const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
     .map((match) => match[1].replace(/\?v=.*$/, ''));
   assert.ok(scripts.length >= 15);
+  assert.ok(scripts.indexOf('./runtime/runtime-log.js') < scripts.indexOf('./runtime/data-loader.js'));
   assert.ok(scripts.indexOf('./world/region-pack-merger.js') < scripts.indexOf('./runtime/data-loader.js'));
   scripts.forEach((source) => assert.ok(fs.existsSync(path.resolve(autonomyDir, source)), `${source} should exist`));
   assert.match(html, /id="autonomy-canvas"/);
@@ -951,6 +980,26 @@ test('autonomy browser surface loads every declared module and stays independent
   for (const file of autonomySourceDirs.flatMap(jsFiles)) {
     assert.ok(fs.readFileSync(file, 'utf8').split(/\r?\n/).length <= 999, `${path.relative(root, file)} should remain below 1,000 lines`);
   }
+});
+
+test('autonomy runtime logs bounded structured events and deployment revalidates governed data', () => {
+  let time = 100;
+  const rows = [];
+  const logger = runtimeLog.createRuntimeLogger({
+    clock: () => time,
+    sink: { info: (label, row) => rows.push({ label, row }) },
+  });
+  time = 125.5;
+  const event = logger.info('test.boundary', { artifactId: 'manifest-v3' });
+  assert.equal(event.schema, 'simulatte.autonomyRuntimeEvent.v1');
+  assert.equal(event.sequence, 1);
+  assert.equal(event.elapsedMs, 25.5);
+  assert.deepEqual(event.details, { artifactId: 'manifest-v3' });
+  assert.equal(rows[0].label, '[Simulatte] test.boundary');
+
+  const firebase = readJson('firebase.json');
+  const autonomyDataHeaders = firebase.hosting.headers.find((row) => row.source === '/data/autonomy/**');
+  assert.deepEqual(autonomyDataHeaders.headers, [{ key: 'Cache-Control', value: 'no-cache' }]);
 });
 
 test('autonomy schemas are restrictive and SAME-R declares one intervention', async () => {
