@@ -13,6 +13,7 @@
     stateVariables: ['stress', 'damage', 'temperature'],
     supportedInteractions: ['fracture', 'heatDamage', 'impactDamage'],
     stableDt: 0.05,
+    integrator: Object.freeze({ scheme: 'explicit_euler_v1', order: 1, symplectic: false, stableDt: 0.05, cfl: 0.9, stateContract: ['stress', 'damage', 'temperature'] }),
     step,
   };
 

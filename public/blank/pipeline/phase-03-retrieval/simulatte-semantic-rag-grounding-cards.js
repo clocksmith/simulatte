@@ -140,6 +140,11 @@
           classHints: ['lifting_machine'], shapeHints: ['boom_cable'], partHints: ['pulley', 'cable', 'load'],
           materialHints: ['metal'], behaviorHints: ['lifts', 'tension'], groundingIds: ['ground.lifting-machine'],
         }),
+        surfaceCard('artifact.excavator', 'artifact', ['excavator', 'digger', 'backhoe'], 'tracked construction vehicle with cab, articulated boom, stick, bucket, hydraulic joints, and ground contact', {
+          classHints: ['wheeled_vehicle', 'articulated_machine'], shapeHints: ['tracked_chassis', 'jointed_boom'],
+          partHints: ['track', 'chassis', 'cab', 'boom', 'stick', 'bucket'], materialHints: ['metal', 'glass', 'rubber'],
+          behaviorHints: ['jointed_motion', 'digging'], groundingIds: ['ground.wheeled-vehicle', 'ground.articulated-machine', 'ground.lifting-machine'],
+        }),
         surfaceCard('artifact.gearbox', 'artifact', ['gearbox', 'gear train', 'clockwork'], 'interlocking rotating gears with teeth, torque transfer, and constraints', {
           classHints: ['rotating_mechanism'], shapeHints: ['gear_train'], partHints: ['gear', 'axle', 'housing'],
           materialHints: ['metal'], behaviorHints: ['torque_transfer'], groundingIds: ['ground.gear-train'],
@@ -458,6 +463,9 @@
         surfaceCard('event.queue', 'event', ['queue', 'waiting line', 'backlog', 'traffic jam'], 'arrival and service process with inventory, delay, throughput, and loss', {
           eventHints: ['queueing'], groundingIds: ['ground.network-system'],
         }),
+        surfaceCard('event.play-interaction', 'event', ['playing', 'play interaction', 'playing together'], 'articulated bodies move together through reciprocal approach, contact, chase, and pose changes', {
+          eventHints: ['play_interaction'], groundingIds: ['ground.articulated-body', 'ground.collision-event'],
+        }),
         surfaceCard('event.wave', 'event', ['wave', 'sound wave', 'vibration', 'resonance'], 'oscillatory disturbance with amplitude, frequency, damping, and propagation', {
           eventHints: ['wave'], groundingIds: ['ground.wave-event'],
         }),
@@ -467,6 +475,21 @@
 
         surfaceCard('relation.inside', 'relation', ['inside', 'in', 'within', 'contained in'], 'containment relation between object and enclosure or apparatus', {
           relationHints: ['inside'], groundingIds: ['ground.containment'],
+        }),
+        surfaceCard('relation.above', 'relation', ['above', 'over', 'higher than'], 'vertical ordering relation where the subject stays visibly higher than the reference object', {
+          relationHints: ['above'], groundingIds: ['ground.path-coupling'],
+        }),
+        surfaceCard('relation.beside', 'relation', ['beside', 'next to', 'alongside'], 'side-by-side spatial relation with separate silhouettes and a shared ground plane', {
+          relationHints: ['beside'], groundingIds: ['ground.path-coupling'],
+        }),
+        surfaceCard('relation.on', 'relation', ['on', 'atop', 'resting on', 'supported by'], 'contact and support relation where one object rests visibly on another surface', {
+          relationHints: ['on', 'support_contact'], groundingIds: ['ground.mechanical-joint'],
+        }),
+        surfaceCard('relation.with', 'relation', ['with', 'together with', 'interacting with'], 'co-interaction relation preserving both participants and their shared action', {
+          relationHints: ['with', 'co_interaction'], groundingIds: ['ground.path-coupling'],
+        }),
+        surfaceCard('relation.holds', 'relation', ['holding', 'holds', 'grasping', 'carrying'], 'grasp relation joining an articulated limb or tool to a distinct held object', {
+          relationHints: ['holding', 'grasp_contact'], groundingIds: ['ground.mechanical-joint', 'ground.force-coupling'],
         }),
         surfaceCard('relation.attached', 'relation', ['attached to', 'connected to', 'hinged to', 'mounted on'], 'constraint relation between parts, joints, supports, or ports', {
           relationHints: ['attached_to'], groundingIds: ['ground.mechanical-joint'],

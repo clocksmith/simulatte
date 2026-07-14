@@ -23,77 +23,77 @@
       "id": "surface-card-embeddings",
       "path": "public/data/simulatte-embedder/surface-card-index-qwen-v1.json",
       "itemKey": "documents",
-      "expectedCount": 1400,
+      "expectedCount": 1410,
       "kind": "embedding-index"
     },
     {
       "id": "universe-concepts",
       "path": "public/data/simulatte-universe/concept-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 1890,
+      "expectedCount": 2004,
       "kind": "semantic-index"
     },
     {
       "id": "universe-synonyms",
       "path": "public/data/simulatte-universe/synonym-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 4356,
+      "expectedCount": 4888,
       "kind": "semantic-index"
     },
     {
       "id": "universe-analogs",
       "path": "public/data/simulatte-universe/physical-analog-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 1863,
+      "expectedCount": 1977,
       "kind": "semantic-index"
     },
     {
       "id": "universe-affordances",
       "path": "public/data/simulatte-universe/affordance-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 1184,
+      "expectedCount": 1231,
       "kind": "semantic-index"
     },
     {
       "id": "universe-shapes",
       "path": "public/data/simulatte-universe/shape-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 459,
+      "expectedCount": 520,
       "kind": "semantic-index"
     },
     {
       "id": "universe-operators",
       "path": "public/data/simulatte-universe/operator-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 397,
+      "expectedCount": 518,
       "kind": "semantic-index"
     },
     {
       "id": "universe-scenes",
       "path": "public/data/simulatte-universe/scene-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 331,
+      "expectedCount": 332,
       "kind": "semantic-index"
     },
     {
       "id": "universe-processes",
       "path": "public/data/simulatte-universe/process-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 224,
+      "expectedCount": 337,
       "kind": "semantic-index"
     },
     {
       "id": "universe-relations",
       "path": "public/data/simulatte-universe/relation-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 211,
+      "expectedCount": 333,
       "kind": "semantic-index"
     },
     {
       "id": "universe-materials",
       "path": "public/data/simulatte-universe/material-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 214,
+      "expectedCount": 217,
       "kind": "semantic-index"
     },
     {

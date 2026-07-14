@@ -581,6 +581,11 @@
         const seed = Number.isFinite(Number(overrides.seed))
           ? Number(overrides.seed)
           : seedFromString(spec.id || spec.name || '');
+        const remixIdentity = seedFromString([
+          spec.id,
+          seed,
+          overrides.name || '',
+        ].join(':'));
         let keyIndex = 0;
         for (const [key, , min, max] of controlsForSpec(spec)) {
           const span = Number(max) - Number(min);
@@ -591,7 +596,7 @@
         return createSpec(spec.templateId, {
           ...spec,
           ...overrides,
-          id: overrides.id || `${slugify(spec.name)}-remix-${Date.now().toString(36)}`,
+          id: overrides.id || `${slugify(overrides.name || spec.name)}-remix-${remixIdentity.toString(36)}`,
           name: overrides.name || `${spec.name} Remix`,
           modules: overrides.modules || spec.modules,
           objects: overrides.objects || spec.objects,

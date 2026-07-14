@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.vendorInferenceLaneReceipt.v1",
-  "createdAt": "2026-07-14T15:52:19.546Z",
+  "createdAt": "2026-07-14T17:23:36.430Z",
   "status": "pass",
   "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
   "modelRuntimeLock": {
@@ -38,7 +38,7 @@
     ],
     "promptSelectedTokenLogitCount": 5,
     "promptPrefixKvReuseCount": 5,
-    "promptPrefixStateReuseCount": 0,
+    "promptPrefixStateReuseCount": 4,
     "promptEmbeddingSlotCount": 5,
     "modelEvidenceSlotCount": 5,
     "slotSelectionMode": "exact-model-embedding",

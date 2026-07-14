@@ -357,10 +357,20 @@
     const rows = normalizePhase7PixelSamples(
       renderData && (renderData.pixelSamples || renderData.livePixelSamples) || null
     ).filter((row) => row.obligationId === obligationId);
-    const visible = rows.filter((row) => row.visible === true && row.colorSatisfied !== false);
+    const expectedDrawableIds = obligation.sourceKind === 'action'
+      ? Array.from(new Set([...(obligation.evidence || []), ...(obligation.visualEvidence || [])]
+        .map((value) => String(value || '').match(/^phase6:entity:(.+)$/))
+        .filter(Boolean).map((match) => normalizeForProof(match[1]))))
+      : [];
+    const visible = rows.filter((row) => row.visible === true && row.colorSatisfied !== false && (
+      !expectedDrawableIds.length || expectedDrawableIds.some((id) => {
+        const drawableId = normalizeForProof(row.drawableId || '');
+        return drawableId === id || drawableId.startsWith(`${id} instance`);
+      })
+    ));
     const expectedCount = visualRelationObligation(obligation)
       ? 2
-      : obligation.constraintKind === 'construction-part'
+      : obligation.constraintKind === 'construction-part' || obligation.constraintKind === 'count'
       ? Math.max(1, Number(obligation.expectedCount || 1))
       : 1;
     return {
@@ -369,6 +379,8 @@
       expectedCount,
       visibleCount: visible.length,
       sampleIds: rows.map((row) => row.id),
+      expectedDrawableIds,
+      sampledDrawableIds: rows.map((row) => row.drawableId).filter(Boolean),
       evidence: visible.length >= expectedCount ? ['webgpu-texture-copy-readback'] : [],
     };
   }

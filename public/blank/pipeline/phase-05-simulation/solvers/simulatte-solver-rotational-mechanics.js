@@ -13,6 +13,7 @@
     stateVariables: ['angularVelocity', 'angle', 'angularMomentum', 'torque'],
     supportedInteractions: ['fluidForce', 'torqueTransfer', 'trajectoryCurvature'],
     stableDt: 0.05,
+    integrator: Object.freeze({ scheme: 'semi_implicit_euler_v1', order: 1, symplectic: true, stableDt: 0.05, cfl: 0.9, stateContract: ['angularVelocity', 'angle'] }),
     step,
   };
 

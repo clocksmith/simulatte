@@ -24,24 +24,20 @@
           primitiveRankBackend: config.primitiveRankBackend || 'cpu',
         };
       }
-
     function normalizeStringList(value) {
         if (!Array.isArray(value)) return [];
         return uniqueStrings(value.map((item) => String(item || '').trim()).filter(Boolean));
       }
-
     function boundedInteger(value, min, max, fallback) {
         const parsed = Math.floor(Number(value));
         if (!Number.isFinite(parsed)) return fallback;
         return Math.max(min, Math.min(max, parsed));
       }
-
     function boundedNumber(value, min, max, fallback) {
         const parsed = Number(value);
         if (!Number.isFinite(parsed)) return fallback;
         return Math.max(min, Math.min(max, parsed));
       }
-
     async function embedSpanQueries(payload = {}) {
         const provider = payload.provider;
         const spans = payload.spans || [];
@@ -152,7 +148,6 @@
         });
         return rows;
       }
-
     async function embedSpanBatch(provider, requestRows) {
         if (!provider || !requestRows.length) return null;
         if (typeof provider.embedBatch === 'function') {
@@ -163,7 +158,6 @@
         }
         return null;
       }
-
     async function safeSpanGpuRank(rankGpu, vector) {
         if (typeof rankGpu !== 'function') return null;
         try {
@@ -172,14 +166,12 @@
           return null;
         }
       }
-
     function emitIntentPreview(options, result) {
         if (!options || typeof options.onPreview !== 'function') return;
         try {
           options.onPreview(result);
         } catch (_err) {}
       }
-
     async function rankPromptSpans(payload = {}) {
         const runtime = payload.runtime;
         const provider = payload.provider;
@@ -497,6 +489,9 @@
           selectedTokenExecutionCount: 0,
           scoreCacheHitCount: 0,
           prefixPreparationDurationMs: 0,
+          prefixTokenizationDurationMs: 0,
+          prefixResetDurationMs: 0,
+          prefixPrimingDurationMs: 0,
           rerankCallDurationMs: 0,
           unattributedRerankDurationMs: 0,
           totalExecutionDurationMs: 0,
@@ -792,6 +787,9 @@
             prefixTokenCount: row.prefixTokenCount || 0,
             prefixStateReused: row.prefixStateReused === true,
             prefixPreparationDurationMs: row.prefixPreparationDurationMs || 0,
+            prefixTokenizationDurationMs: row.prefixTokenizationDurationMs || 0,
+            prefixResetDurationMs: row.prefixResetDurationMs || 0,
+            prefixPrimingDurationMs: row.prefixPrimingDurationMs || 0,
             executionDurationMs: row.executionDurationMs || 0,
           });
           input.onProgress({ completed: 0, total: input.candidates.length });

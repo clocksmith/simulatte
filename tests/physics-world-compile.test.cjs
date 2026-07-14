@@ -174,15 +174,20 @@ test('blank keywords inside real prompts do not select blank intent', () => {
 
 test('simulation specs export, import, and remix with lineage', () => {
   const spec = lab.createSpecFromPrompt('make a fluid vortex tank with turbulence and pressure');
+  const matchingSpec = lab.createSpecFromPrompt('make a fluid vortex tank with turbulence and pressure');
   const restored = lab.deserializeSpec(lab.serializeSpec(spec));
   const remix = lab.remixSpec(restored, { name: 'Fluid Vortex Remix' });
+  const matchingRemix = lab.remixSpec(restored, { name: 'Fluid Vortex Remix' });
 
   assert.equal(restored.templateId, 'custom-world');
   assert.ok(restored.modules.includes('fluid'));
   assert.equal(restored.name, spec.name);
+  assert.equal(matchingSpec.id, spec.id);
   assert.equal(remix.templateId, 'custom-world');
   assert.equal(remix.remixOf, restored.id);
   assert.equal(remix.name, 'Fluid Vortex Remix');
+  assert.equal(matchingRemix.id, remix.id);
+  assert.deepEqual(matchingRemix.params, remix.params);
 });
 
 test('builder composes hybrid worlds from multiple physical domains', () => {

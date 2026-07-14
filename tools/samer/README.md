@@ -23,9 +23,17 @@ The public gold set binds each prompt to entity counts, spatial relations,
 poses, and blocking visual rules. Structural evaluation cannot settle the
 visual rules. Promotion also requires matched live screenshots, human
 adjudication, and a sealed prompt set. Each human receipt binds the gold row,
-exact prompt and hash, page build, canonical full Phase 6 packet hash,
-screenshot hash, reviewer, and allowed blocking rules. The generated report
-states missing proof instead of treating internal receipts as pixel proof.
+exact prompt and hash, page build, canonical full Phase 6 packet hash, and the
+SHA-256 of the exact canvas crop the reviewer opened. It also preserves the
+reviewer, allowed blocking rules, and review note. The generated report states
+missing proof instead of treating internal receipts as pixel proof.
+
+Verify an existing capture and its adjudication without recapturing an animated
+frame:
+
+```bash
+npm run check:gold:adjudication
+```
 
 Owner files:
 
@@ -35,5 +43,6 @@ Owner files:
 - `run-construction-trial.mjs`: materialization, execution, and receipt writer.
 - `gold-visual-evaluator.mjs`: packet, pixel, Scene Proof, and hash-bound human
   adjudication gate.
+- `verify-gold-adjudication.mjs`: immutable canvas-byte and adjudication check.
 - `simulatte-gold-adjudication.schema.json`: human screenshot receipt contract.
 - Gamma `projects/samer/domains/simulatte/README.md`: outer-method profile.

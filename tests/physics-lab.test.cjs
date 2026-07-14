@@ -658,6 +658,7 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
   let snapshotScoreCount = 0;
   let snapshotDestroyCount = 0;
   let sequenceLength = 0;
+  const scoredInputLengths = [];
   const progressRows = [];
   const handle = {
     manifest: {
@@ -700,6 +701,7 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
         assert.deepEqual(tokenIds, [1, 0]);
         const suffix = String.fromCharCode(...options.inputIds);
         const relevant = suffix.includes('optical match');
+        scoredInputLengths.push(options.inputIds.length);
         sequenceLength += options.inputIds.length;
         prefixScoreCount += 1;
         return {
@@ -750,16 +752,18 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
   assert.equal(rows[0].primitiveId, 'positive');
   assert.equal(rows[0].scoringPath, 'prefix-selected-token-logits');
   assert.ok(rows.every((row) => row.prefixTokenCount > 0));
-  assert.ok(rows.every((row) => row.prefixStateReused === false));
+  assert.equal(rows.filter((row) => row.prefixStateReused === false).length, 1);
+  assert.equal(rows.filter((row) => row.prefixStateReused === true).length, 1);
   assert.ok(reusedRows.every((row) => row.prefixStateReused === true));
   assert.ok(cachedRows.every((row) => row.scoreCacheHit === true));
-  assert.equal(prefixCount, 1);
+  assert.equal(prefixCount, 0);
   assert.equal(prefixScoreCount, 4);
   assert.equal(snapshotScoreCount, 0);
-  assert.equal(snapshotDestroyCount, 1);
+  assert.equal(snapshotDestroyCount, 0);
   assert.equal(prefixResetCount, 4);
   assert.equal(resetCount, 1);
   assert.ok(sequenceLength > 0);
+  assert.ok(scoredInputLengths[0] > scoredInputLengths[1]);
   assert.deepEqual(progressRows.map((row) => row.completed), [1, 2, 1, 2, 1, 2]);
   const normalized = scope.normalizeRerankerRows(rows);
   assert.ok(normalized.every((row) => row.scoringPath === 'prefix-selected-token-logits'));
@@ -778,7 +782,7 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
     selectedTokenLogitCount: 2,
     selectedTokenExecutionCount: 2,
     prefixKvReuseCount: 2,
-    prefixStateReuseCount: 0,
+    prefixStateReuseCount: 1,
     scoreCacheHitCount: 0,
     minimumPrefixTokenCount: rows[0].prefixTokenCount,
     maximumPrefixTokenCount: rows[0].prefixTokenCount,
@@ -787,6 +791,9 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
   assert.ok(executionSummary.meanExecutionDurationMs >= 0);
   assert.ok(executionSummary.maximumExecutionDurationMs >= 0);
   assert.ok(executionSummary.prefixPreparationDurationMs >= 0);
+  assert.ok(executionSummary.prefixTokenizationDurationMs >= 0);
+  assert.ok(executionSummary.prefixResetDurationMs >= 0);
+  assert.ok(executionSummary.prefixPrimingDurationMs >= 0);
   assert.ok(executionSummary.rerankCallDurationMs >= executionSummary.totalExecutionDurationMs);
   assert.ok(executionSummary.unattributedRerankDurationMs >= 0);
   assert.ok(normalized.every((row) => row.rerankCallDurationMs >= row.executionDurationMs));

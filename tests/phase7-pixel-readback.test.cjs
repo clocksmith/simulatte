@@ -76,6 +76,46 @@ test('Phase 7 samples the exact target entity before token-similar drawables', (
   assert.equal(ranked[0].id, 'open-microwave-resonator-2');
 });
 
+test('Phase 7 action proof samples the relation owner instead of a nearby object', () => {
+  const spec = lab.createSpecFromPrompt('airplane flying over trees', { allowPrototypeFallback: true });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
+  const renderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  renderData.requireLivePixelSamples = true;
+  const actions = input.visualObligations.filter((row) => ['action:flying', 'action:motion'].includes(row.obligationId));
+  assert.ok(actions.every((row) => row.evidence.includes('phase6:entity:prompt-body-airplane')));
+  assert.ok(actions.every((row) => row.evidence.every((id) => !id.includes('tree'))));
+  const plan = rendererScope.phase7PixelReadbackPlan(renderData, input.sceneRenderPacket, input, { width: 640, height: 360 });
+  for (const action of actions) {
+    const samples = plan.samples.filter((row) => row.obligationId === action.obligationId);
+    assert.equal(samples.length, 1);
+    assert.equal(samples[0].drawableId, 'prompt-body-airplane');
+  }
+  const proofApi = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const flying = actions.find((row) => row.obligationId === 'action:flying');
+  const wrong = proofApi.renderObligationProof(input.sceneRenderPacket, [flying], null, true, {
+    ...renderData,
+    pixelSamples: { samples: [{ obligationId: flying.obligationId, drawableId: 'surface-tree-1:instance:1', rgba: [80, 160, 220, 255] }] },
+  })[0];
+  assert.equal(wrong.pixelProof.visibleCount, 0);
+  assert.equal(wrong.status, 'fail');
+});
+
+test('Phase 7 count proof requires every declared visible instance', () => {
+  const spec = lab.createSpecFromPrompt('5 cats in a galaxy', { allowPrototypeFallback: true });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
+  const renderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  const count = input.visualObligations.find((row) => row.constraintKind === 'count' && row.targetIdentity === 'cat');
+  const proofApi = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const proof = proofApi.renderObligationProof(input.sceneRenderPacket, [count], null, true, {
+    ...renderData,
+    requireLivePixelSamples: true,
+    pixelSamples: { samples: [{ obligationId: count.obligationId, drawableId: 'surface-cat-1:instance:1', rgba: [80, 160, 220, 255] }] },
+  })[0];
+  assert.equal(proof.pixelProof.expectedCount, 5);
+  assert.equal(proof.pixelProof.visibleCount, 1);
+  assert.equal(proof.status, 'fail');
+});
+
 test('Phase 7 reports readback capacity overflow instead of truncating proof', () => {
   const { input, packet, renderData } = glacierReadbackFixture();
   const visualObligations = Array.from({ length: 400 }, (_, index) => ({

@@ -13,6 +13,7 @@
     stateVariables: ['phase', 'amplitude'],
     supportedInteractions: ['waveCoupling', 'resonance'],
     stableDt: 0.05,
+    integrator: Object.freeze({ scheme: 'explicit_euler_v1', order: 1, symplectic: false, stableDt: 0.05, cfl: 0.9, stateContract: ['phase', 'amplitude'] }),
     step,
   };
 

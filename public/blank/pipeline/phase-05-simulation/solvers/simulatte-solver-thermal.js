@@ -13,6 +13,7 @@
     stateVariables: ['temperature', 'liquidFraction', 'fuel', 'product', 'smoke'],
     supportedInteractions: ['heatTransfer', 'cooling', 'melting', 'combustion'],
     stableDt: 0.05,
+    integrator: Object.freeze({ scheme: 'explicit_euler_v1', order: 1, symplectic: false, stableDt: 0.05, cfl: 0.9, stateContract: ['temperature', 'liquidFraction', 'fuel', 'product', 'smoke'] }),
     step,
   };
 

@@ -62,8 +62,11 @@
           prefixTokenCount: numericMetric(event.prefixTokenCount),
           prefixStateReused: event.prefixStateReused === true,
           prefixPreparationDurationMs: numericMetric(event.prefixPreparationDurationMs),
+          prefixTokenizationDurationMs: numericMetric(event.prefixTokenizationDurationMs),
+          prefixResetDurationMs: numericMetric(event.prefixResetDurationMs),
+          prefixPrimingDurationMs: numericMetric(event.prefixPrimingDurationMs),
           executionDurationMs: numericMetric(event.executionDurationMs),
-        }, 12);
+        }, 16);
       }
 
     function timingReceipt(event = {}) {

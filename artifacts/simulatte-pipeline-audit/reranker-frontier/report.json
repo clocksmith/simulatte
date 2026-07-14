@@ -2,9 +2,9 @@
   "schema": "simulatte.rerankerFrontierBenchmark.v1",
   "source": {
     "path": "artifacts/simulatte-pipeline-audit/live-webgpu/report.json",
-    "sha256": "2795a8f7a66043ba805b768397f5526116770588fa2384a0e8c85d7269ff08a6",
+    "sha256": "c4866f65d208566e0520bd9fe0eb059ec5b8fcfe0a956e35d2ca00f3f32fa248",
     "reportSchema": "simulatte.intentSceneScreenshotAudit.v1",
-    "reportCreatedAt": "2026-07-14T15:22:13.003Z",
+    "reportCreatedAt": "2026-07-14T16:56:43.405Z",
     "intentMode": "model"
   },
   "model": {
@@ -14,7 +14,7 @@
   },
   "promptCount": 20,
   "fullCandidateCount": 51,
-  "fullExecutionDurationMs": 19029.8,
+  "fullExecutionDurationMs": 30432.3,
   "selectionModes": {
     "construction-evidence-round-robin": 20
   },
@@ -25,9 +25,9 @@
       "evaluatedCandidateCount": 20,
       "candidateReductionCount": 31,
       "candidateReductionRate": 0.607843,
-      "estimatedExecutionDurationMs": 7902.4,
-      "estimatedDurationSavingsMs": 11127.4,
-      "estimatedDurationSavingsRate": 0.584736,
+      "estimatedExecutionDurationMs": 19384.9,
+      "estimatedDurationSavingsMs": 11047.4,
+      "estimatedDurationSavingsRate": 0.363016,
       "fullWinnerRetentionCount": 9,
       "fullWinnerRetentionRate": 0.45,
       "changedPromptCount": 11,
@@ -117,9 +117,9 @@
       "evaluatedCandidateCount": 40,
       "candidateReductionCount": 11,
       "candidateReductionRate": 0.215686,
-      "estimatedExecutionDurationMs": 15182.5,
-      "estimatedDurationSavingsMs": 3847.3,
-      "estimatedDurationSavingsRate": 0.202172,
+      "estimatedExecutionDurationMs": 26618.7,
+      "estimatedDurationSavingsMs": 3813.6,
+      "estimatedDurationSavingsRate": 0.125314,
       "fullWinnerRetentionCount": 19,
       "fullWinnerRetentionRate": 0.95,
       "changedPromptCount": 1,
@@ -139,9 +139,9 @@
       "evaluatedCandidateCount": 47,
       "candidateReductionCount": 4,
       "candidateReductionRate": 0.078431,
-      "estimatedExecutionDurationMs": 17689.1,
-      "estimatedDurationSavingsMs": 1340.7,
-      "estimatedDurationSavingsRate": 0.070453,
+      "estimatedExecutionDurationMs": 29102.5,
+      "estimatedDurationSavingsMs": 1329.8,
+      "estimatedDurationSavingsRate": 0.043697,
       "fullWinnerRetentionCount": 19,
       "fullWinnerRetentionRate": 0.95,
       "changedPromptCount": 1,
@@ -161,9 +161,9 @@
       "evaluatedCandidateCount": 50,
       "candidateReductionCount": 1,
       "candidateReductionRate": 0.019608,
-      "estimatedExecutionDurationMs": 18680,
-      "estimatedDurationSavingsMs": 349.8,
-      "estimatedDurationSavingsRate": 0.018382,
+      "estimatedExecutionDurationMs": 30083,
+      "estimatedDurationSavingsMs": 349.3,
+      "estimatedDurationSavingsRate": 0.011478,
       "fullWinnerRetentionCount": 20,
       "fullWinnerRetentionRate": 1,
       "changedPromptCount": 0,
@@ -175,7 +175,7 @@
       "evaluatedCandidateCount": 51,
       "candidateReductionCount": 0,
       "candidateReductionRate": 0,
-      "estimatedExecutionDurationMs": 19029.8,
+      "estimatedExecutionDurationMs": 30432.3,
       "estimatedDurationSavingsMs": 0,
       "estimatedDurationSavingsRate": 0,
       "fullWinnerRetentionCount": 20,
@@ -198,7 +198,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "metal",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 1814,
+      "executionDurationMs": 2486.9,
       "candidates": [
         {
           "primitiveId": "sensor",
@@ -206,15 +206,15 @@
           "modelRank": 4,
           "modelScore": 0.972224,
           "localScore": 0.2195,
-          "executionDurationMs": 357.6
+          "executionDurationMs": 1043.9
         },
         {
           "primitiveId": "metal",
           "inputOrder": 1,
           "modelRank": 0,
           "modelScore": 0.999675,
-          "localScore": 0.3049,
-          "executionDurationMs": 434.1
+          "localScore": 0.3124,
+          "executionDurationMs": 430.4
         },
         {
           "primitiveId": "controller",
@@ -222,23 +222,23 @@
           "modelRank": 2,
           "modelScore": 0.983484,
           "localScore": 0.2334,
-          "executionDurationMs": 329.2
+          "executionDurationMs": 325.8
         },
         {
           "primitiveId": "rock",
           "inputOrder": 3,
           "modelRank": 1,
           "modelScore": 0.992377,
-          "localScore": 0.2268,
-          "executionDurationMs": 343.3
+          "localScore": 0.2343,
+          "executionDurationMs": 337.5
         },
         {
           "primitiveId": "data-recorder",
           "inputOrder": 4,
           "modelRank": 3,
           "modelScore": 0.980214,
-          "localScore": 0.2233,
-          "executionDurationMs": 349.8
+          "localScore": 0.2308,
+          "executionDurationMs": 349.3
         }
       ]
     },
@@ -250,23 +250,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "water",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 792.9,
+      "executionDurationMs": 1445,
       "candidates": [
         {
           "primitiveId": "graph-network",
           "inputOrder": 0,
           "modelRank": 1,
           "modelScore": 0.907314,
-          "localScore": 0.1925,
-          "executionDurationMs": 366.5
+          "localScore": 0.2025,
+          "executionDurationMs": 1023
         },
         {
           "primitiveId": "water",
           "inputOrder": 1,
           "modelRank": 0,
           "modelScore": 0.993337,
-          "localScore": 0.2586,
-          "executionDurationMs": 426.4
+          "localScore": 0.2886,
+          "executionDurationMs": 422
         }
       ]
     },
@@ -278,23 +278,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "bacteria",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 782.8,
+      "executionDurationMs": 1372.6,
       "candidates": [
         {
           "primitiveId": "bacteria",
           "inputOrder": 0,
           "modelRank": 0,
           "modelScore": 0.999999,
-          "localScore": 0.2253,
-          "executionDurationMs": 456.7
+          "localScore": 0.3084,
+          "executionDurationMs": 1051.9
         },
         {
           "primitiveId": "fabric",
           "inputOrder": 1,
           "modelRank": 1,
           "modelScore": 0.955743,
-          "localScore": 0.1817,
-          "executionDurationMs": 326.1
+          "localScore": 0.2648,
+          "executionDurationMs": 320.7
         }
       ]
     },
@@ -306,7 +306,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "graph-network",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 1010.7,
+      "executionDurationMs": 1627.1,
       "candidates": [
         {
           "primitiveId": "graph-network",
@@ -314,23 +314,23 @@
           "modelRank": 0,
           "modelScore": 0.995544,
           "localScore": 0.261,
-          "executionDurationMs": 361.9
+          "executionDurationMs": 988.7
         },
         {
           "primitiveId": "wheel",
           "inputOrder": 1,
           "modelRank": 1,
           "modelScore": 0.973059,
-          "localScore": 0.1996,
-          "executionDurationMs": 321.9
+          "localScore": 0.2082,
+          "executionDurationMs": 313.4
         },
         {
           "primitiveId": "concrete",
           "inputOrder": 2,
           "modelRank": 2,
           "modelScore": 0.933867,
-          "localScore": 0.2247,
-          "executionDurationMs": 326.9
+          "localScore": 0.2419,
+          "executionDurationMs": 325
         }
       ]
     },
@@ -342,31 +342,31 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "graph-network",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 1127.1,
+      "executionDurationMs": 1764.5,
       "candidates": [
         {
           "primitiveId": "concrete",
           "inputOrder": 0,
           "modelRank": 2,
           "modelScore": 0.98567,
-          "localScore": 0.2383,
-          "executionDurationMs": 360.5
+          "localScore": 0.2568,
+          "executionDurationMs": 1009
         },
         {
           "primitiveId": "graph-network",
           "inputOrder": 1,
           "modelRank": 0,
           "modelScore": 0.998783,
-          "localScore": 0.293,
-          "executionDurationMs": 342.2
+          "localScore": 0.3257,
+          "executionDurationMs": 338.6
         },
         {
           "primitiveId": "metal",
           "inputOrder": 2,
           "modelRank": 1,
           "modelScore": 0.986334,
-          "localScore": 0.2909,
-          "executionDurationMs": 424.4
+          "localScore": 0.3236,
+          "executionDurationMs": 416.9
         }
       ]
     },
@@ -378,7 +378,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "metal",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 770.7,
+      "executionDurationMs": 1403.8,
       "candidates": [
         {
           "primitiveId": "concrete",
@@ -386,7 +386,7 @@
           "modelRank": 1,
           "modelScore": 0.951767,
           "localScore": 0.2359,
-          "executionDurationMs": 358.2
+          "executionDurationMs": 995.9
         },
         {
           "primitiveId": "metal",
@@ -394,7 +394,7 @@
           "modelRank": 0,
           "modelScore": 0.980864,
           "localScore": 0.1844,
-          "executionDurationMs": 412.5
+          "executionDurationMs": 407.9
         }
       ]
     },
@@ -406,39 +406,39 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "rock",
       "fullWinnerInputOrder": 3,
-      "executionDurationMs": 1652.6,
+      "executionDurationMs": 2263.8,
       "candidates": [
         {
           "primitiveId": "gravity",
           "inputOrder": 0,
           "modelRank": 1,
           "modelScore": 0.999686,
-          "localScore": 0.2175,
-          "executionDurationMs": 448.9
+          "localScore": 0.2517,
+          "executionDurationMs": 1065.4
         },
         {
           "primitiveId": "radiation",
           "inputOrder": 1,
           "modelRank": 3,
           "modelScore": 0.98762,
-          "localScore": 0.2171,
-          "executionDurationMs": 421.1
+          "localScore": 0.2514,
+          "executionDurationMs": 419
         },
         {
           "primitiveId": "rigid-body",
           "inputOrder": 2,
           "modelRank": 2,
           "modelScore": 0.994871,
-          "localScore": 0.2711,
-          "executionDurationMs": 452.9
+          "localScore": 0.3054,
+          "executionDurationMs": 449.3
         },
         {
           "primitiveId": "rock",
           "inputOrder": 3,
           "modelRank": 0,
           "modelScore": 0.999952,
-          "localScore": 0.3096,
-          "executionDurationMs": 329.7
+          "localScore": 0.3439,
+          "executionDurationMs": 330.1
         }
       ]
     },
@@ -450,31 +450,31 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "metal",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 1118.3,
+      "executionDurationMs": 1754.3,
       "candidates": [
         {
           "primitiveId": "metal",
           "inputOrder": 0,
           "modelRank": 0,
           "modelScore": 0.962699,
-          "localScore": 0.1279,
-          "executionDurationMs": 450
+          "localScore": 0.2183,
+          "executionDurationMs": 1088.7
         },
         {
           "primitiveId": "fabric",
           "inputOrder": 1,
           "modelRank": 2,
           "modelScore": 0.901948,
-          "localScore": 0.2146,
-          "executionDurationMs": 334.5
+          "localScore": 0.289,
+          "executionDurationMs": 333.7
         },
         {
           "primitiveId": "rock",
           "inputOrder": 2,
           "modelRank": 1,
           "modelScore": 0.944755,
-          "localScore": 0.2682,
-          "executionDurationMs": 333.8
+          "localScore": 0.3002,
+          "executionDurationMs": 331.9
         }
       ]
     },
@@ -486,7 +486,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "graph-network",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 770.5,
+      "executionDurationMs": 1389.7,
       "candidates": [
         {
           "primitiveId": "graph-network",
@@ -494,7 +494,7 @@
           "modelRank": 0,
           "modelScore": 0.963501,
           "localScore": 0.1987,
-          "executionDurationMs": 361.6
+          "executionDurationMs": 979.1
         },
         {
           "primitiveId": "metal",
@@ -502,7 +502,7 @@
           "modelRank": 1,
           "modelScore": 0.955795,
           "localScore": 0.2011,
-          "executionDurationMs": 408.9
+          "executionDurationMs": 410.6
         }
       ]
     },
@@ -514,31 +514,31 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "rigid-body",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 1140.1,
+      "executionDurationMs": 1665.2,
       "candidates": [
         {
           "primitiveId": "rigid-body",
           "inputOrder": 0,
           "modelRank": 0,
           "modelScore": 0.973636,
-          "localScore": 0.2377,
-          "executionDurationMs": 446.1
+          "localScore": 0.2677,
+          "executionDurationMs": 975.4
         },
         {
           "primitiveId": "metal",
           "inputOrder": 1,
           "modelRank": 1,
           "modelScore": 0.927112,
-          "localScore": 0.2309,
-          "executionDurationMs": 392.6
+          "localScore": 0.2609,
+          "executionDurationMs": 390.2
         },
         {
           "primitiveId": "rubber",
           "inputOrder": 2,
           "modelRank": 2,
           "modelScore": 0.889039,
-          "localScore": 0.2393,
-          "executionDurationMs": 301.4
+          "localScore": 0.2543,
+          "executionDurationMs": 299.6
         }
       ]
     },
@@ -550,23 +550,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "fabric",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 646,
+      "executionDurationMs": 1197.1,
       "candidates": [
         {
           "primitiveId": "fabric",
           "inputOrder": 0,
           "modelRank": 0,
           "modelScore": 0.957694,
-          "localScore": 0.1943,
-          "executionDurationMs": 342.6
+          "localScore": 0.2747,
+          "executionDurationMs": 896.9
         },
         {
           "primitiveId": "rubber",
           "inputOrder": 1,
           "modelRank": 1,
           "modelScore": 0.902957,
-          "localScore": 0.223,
-          "executionDurationMs": 303.4
+          "localScore": 0.238,
+          "executionDurationMs": 300.2
         }
       ]
     },
@@ -578,7 +578,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "rigid-body",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 805.7,
+      "executionDurationMs": 1389.7,
       "candidates": [
         {
           "primitiveId": "rigid-body",
@@ -586,15 +586,15 @@
           "modelRank": 0,
           "modelScore": 0.997539,
           "localScore": 0.2278,
-          "executionDurationMs": 460.3
+          "executionDurationMs": 1041.8
         },
         {
           "primitiveId": "collision",
           "inputOrder": 1,
           "modelRank": 1,
           "modelScore": 0.985529,
-          "localScore": 0.2276,
-          "executionDurationMs": 345.4
+          "localScore": 0.2396,
+          "executionDurationMs": 347.9
         }
       ]
     },
@@ -606,23 +606,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "wave-source",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 675.2,
+      "executionDurationMs": 1243.1,
       "candidates": [
         {
           "primitiveId": "graph-network",
           "inputOrder": 0,
           "modelRank": 1,
           "modelScore": 0.96886,
-          "localScore": 0.1392,
-          "executionDurationMs": 356.9
+          "localScore": 0.241,
+          "executionDurationMs": 931.1
         },
         {
           "primitiveId": "wave-source",
           "inputOrder": 1,
           "modelRank": 0,
           "modelScore": 0.988271,
-          "localScore": 0.2185,
-          "executionDurationMs": 318.3
+          "localScore": 0.2356,
+          "executionDurationMs": 312
         }
       ]
     },
@@ -634,7 +634,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "sensor",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 653,
+      "executionDurationMs": 1253.9,
       "candidates": [
         {
           "primitiveId": "sensor",
@@ -642,7 +642,7 @@
           "modelRank": 0,
           "modelScore": 0.987648,
           "localScore": 0.2094,
-          "executionDurationMs": 340.7
+          "executionDurationMs": 942.7
         },
         {
           "primitiveId": "controller",
@@ -650,7 +650,7 @@
           "modelRank": 1,
           "modelScore": 0.982691,
           "localScore": 0.2144,
-          "executionDurationMs": 312.3
+          "executionDurationMs": 311.2
         }
       ]
     },
@@ -662,7 +662,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "water",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 1487.3,
+      "executionDurationMs": 2008.7,
       "candidates": [
         {
           "primitiveId": "terrain-patch",
@@ -670,31 +670,31 @@
           "modelRank": 3,
           "modelScore": 0.905588,
           "localScore": 0.2354,
-          "executionDurationMs": 427.4
+          "executionDurationMs": 957.7
         },
         {
           "primitiveId": "water",
           "inputOrder": 1,
           "modelRank": 0,
           "modelScore": 0.964636,
-          "localScore": 0.2715,
-          "executionDurationMs": 404
+          "localScore": 0.2865,
+          "executionDurationMs": 402.8
         },
         {
           "primitiveId": "soil",
           "inputOrder": 2,
           "modelRank": 1,
           "modelScore": 0.93481,
-          "localScore": 0.2061,
-          "executionDurationMs": 338
+          "localScore": 0.2211,
+          "executionDurationMs": 335.3
         },
         {
           "primitiveId": "air",
           "inputOrder": 3,
           "modelRank": 2,
           "modelScore": 0.91045,
-          "localScore": 0.2185,
-          "executionDurationMs": 317.9
+          "localScore": 0.2335,
+          "executionDurationMs": 312.9
         }
       ]
     },
@@ -706,7 +706,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "wood",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 730.4,
+      "executionDurationMs": 1261.8,
       "candidates": [
         {
           "primitiveId": "concrete",
@@ -714,7 +714,7 @@
           "modelRank": 1,
           "modelScore": 0.927108,
           "localScore": 0.1999,
-          "executionDurationMs": 337.7
+          "executionDurationMs": 871.9
         },
         {
           "primitiveId": "wood",
@@ -722,7 +722,7 @@
           "modelRank": 0,
           "modelScore": 0.992827,
           "localScore": 0.2983,
-          "executionDurationMs": 392.7
+          "executionDurationMs": 389.9
         }
       ]
     },
@@ -734,7 +734,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "collision",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 739.6,
+      "executionDurationMs": 1184.3,
       "candidates": [
         {
           "primitiveId": "soft-body",
@@ -742,7 +742,7 @@
           "modelRank": 1,
           "modelScore": 0.978817,
           "localScore": 0.1213,
-          "executionDurationMs": 427.2
+          "executionDurationMs": 876.8
         },
         {
           "primitiveId": "collision",
@@ -750,7 +750,7 @@
           "modelRank": 0,
           "modelScore": 0.979793,
           "localScore": 0.131,
-          "executionDurationMs": 312.4
+          "executionDurationMs": 307.5
         }
       ]
     },
@@ -762,23 +762,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "leaf",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 766.2,
+      "executionDurationMs": 1185.5,
       "candidates": [
         {
           "primitiveId": "wood",
           "inputOrder": 0,
           "modelRank": 1,
           "modelScore": 0.994569,
-          "localScore": 0.199,
-          "executionDurationMs": 395
+          "localScore": 0.1764,
+          "executionDurationMs": 813.1
         },
         {
           "primitiveId": "leaf",
           "inputOrder": 1,
           "modelRank": 0,
           "modelScore": 0.999978,
-          "localScore": 0.261,
-          "executionDurationMs": 371.2
+          "localScore": 0.2384,
+          "executionDurationMs": 372.4
         }
       ]
     },
@@ -790,7 +790,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "wood",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 794.9,
+      "executionDurationMs": 1276.8,
       "candidates": [
         {
           "primitiveId": "wood",
@@ -798,7 +798,7 @@
           "modelRank": 0,
           "modelScore": 0.967896,
           "localScore": 0.2464,
-          "executionDurationMs": 408.7
+          "executionDurationMs": 890.1
         },
         {
           "primitiveId": "leaf",
@@ -806,7 +806,7 @@
           "modelRank": 1,
           "modelScore": 0.95244,
           "localScore": 0.192,
-          "executionDurationMs": 386.2
+          "executionDurationMs": 386.7
         }
       ]
     },
@@ -818,7 +818,7 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "collision",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 751.8,
+      "executionDurationMs": 1258.5,
       "candidates": [
         {
           "primitiveId": "soft-body",
@@ -826,7 +826,7 @@
           "modelRank": 1,
           "modelScore": 0.735336,
           "localScore": 0.2035,
-          "executionDurationMs": 437.9
+          "executionDurationMs": 941.8
         },
         {
           "primitiveId": "collision",
@@ -834,7 +834,7 @@
           "modelRank": 0,
           "modelScore": 0.753175,
           "localScore": 0.2028,
-          "executionDurationMs": 313.9
+          "executionDurationMs": 316.7
         }
       ]
     }

@@ -2667,16 +2667,17 @@ test('Phase 7 live pixel proof gates required visual obligation samples', () => 
   assert.ok(requiredIds.includes('visual:wake-ripples'));
   assert.ok(requiredIds.includes('visual:partial-submersion'));
 
-  const requiredProofs = missingSamples.artifact.renderExecution.visualObligationProof
-    .filter((row) => row.required === true);
-  const pixelSamples = requiredProofs.flatMap((proof, index) => Array.from({
-    length: Math.max(1, Number(proof.pixelProof && proof.pixelProof.expectedCount || 1)),
-  }, (_, sampleIndex) => ({
-    id: `pixel:${proof.obligationId}:${sampleIndex + 1}`,
-    obligationId: proof.obligationId,
+  const readbackPlan = webgpuRendererScope.phase7PixelReadbackPlan(
+    { ...compiledRenderData, requireLivePixelSamples: true },
+    renderExecutionInput.sceneRenderPacket,
+    renderExecutionInput,
+    canvas
+  );
+  const pixelSamples = readbackPlan.samples.map((sample, index) => ({
+    ...sample,
     rgba: [40 + index * 10, 130, 220, 255],
     backgroundRgba: [0, 0, 0, 255],
-  })));
+  }));
   const proven = lab.runPhase7RenderExecution(renderExecutionInput, null, canvas, {
     ...compiledRenderData,
     rendered: true,
@@ -3167,6 +3168,196 @@ test('solver registry delegates executable operator steps to solver modules', ()
   assert.equal(typeof advectionSolver.step, 'function');
   assert.equal(operator.step, advectionSolver.step);
   assert.equal(registry.operatorFor('particle_deposition').step, depositionSolver.step);
+});
+
+test('solver integrator contracts are explicit, validated, and carried into compiled steps', () => {
+  const registry = solverRegistry.createSolverRegistry();
+  const operators = Object.values(registry.operators);
+
+  assert.equal(operators.length, 23);
+  assert.ok(operators.every((row) => solverRegistry.validateIntegrator(row.integrator)));
+  assert.ok(operators.some((row) => row.integrator.scheme === 'semi_implicit_euler_v1'));
+  assert.ok(operators.some((row) => row.integrator.scheme === 'explicit_euler_v1'));
+  assert.throws(() => solverRegistry.validateIntegrator({
+    scheme: 'rk4_v1',
+    stableDt: 0.05,
+    cfl: 0.9,
+    stateContract: ['value'],
+  }), /Unknown integrator scheme/);
+  assert.throws(() => solverRegistry.createSolverRegistry({
+    invalid_test_operator: { id: 'invalid-test', step() {} },
+  }), /missing integrator metadata/);
+
+  const spec = lab.createSpecFromPrompt('lava spins a turbine', { allowPrototypeFallback: true });
+  assert.ok(spec.solverGraph.steps.length > 0);
+  assert.ok(spec.solverGraph.steps.every((step) => (
+    step.integrator && step.stableDt === step.integrator.stableDt
+  )));
+});
+
+test('solver stepping covers the full requested dt with stable deterministic substeps', () => {
+  const calls = [];
+  const graph = {
+    schema: 'simulatte.solverGraph.v1',
+    channels: { value: 0 },
+    channelMetadata: { value: { name: 'value', domainId: 'test' } },
+    steps: [{
+      operatorType: 'test',
+      stage: 'fields',
+      stableDt: 0.05,
+      integrator: {
+        scheme: 'explicit_euler_v1',
+        order: 1,
+        symplectic: false,
+        stableDt: 0.05,
+        cfl: 0.9,
+        stateContract: ['value'],
+      },
+    }],
+    schedule: ['fields'],
+    readouts: [],
+  };
+  const registry = {
+    stepOperator({ channels, dt }) {
+      calls.push(dt);
+      channels.value += dt;
+    },
+  };
+  const stepped = solverCompiler.stepSolverState(
+    solverCompiler.createSolverState(graph),
+    graph,
+    0.12,
+    registry
+  );
+
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every((dt) => Math.abs(dt - 0.04) < 1e-12));
+  assert.ok(Math.abs(stepped.channels.value - 0.12) < 1e-12);
+  assert.equal(stepped.integratorState.lastSubstepCount, 3);
+  assert.equal(stepped.t, 0.12);
+});
+
+test('energy discrepancy bands require an explicit complete accounting contract', () => {
+  const closedGraph = {
+    channels: { 'velocity:body': { x: 1, y: 0 }, 'mass:body': 2 },
+    channelMetadata: {
+      'velocity:body': { name: 'velocity', domainId: 'body' },
+      'mass:body': { name: 'mass', domainId: 'body' },
+    },
+    steps: [],
+    schedule: [],
+    readouts: [],
+    energyFlows: [],
+    energyAccounting: { complete: true, closed: true },
+  };
+  const initial = solverCompiler.createSolverState(closedGraph);
+  const stable = solverCompiler.stepSolverState(initial, closedGraph, 0.05);
+  assert.equal(stable.energyLedger.schema, 'simulatte.energyLedger.v1');
+  assert.equal(stable.energyLedger.E, 1);
+  assert.equal(stable.energyLedger.dE_cum, 0);
+  assert.equal(stable.energyLedger.band, 'accept');
+
+  const unaccounted = solverCompiler.createSolverState({ ...closedGraph, energyAccounting: null });
+  assert.equal(unaccounted.energyLedger.accountingComplete, false);
+  assert.equal(unaccounted.energyLedger.band, 'unmeasured');
+
+  const openGraph = {
+    ...closedGraph,
+    channels: { 'velocity:body': { x: 0, y: 0 }, 'mass:body': 1 },
+    steps: [{
+      operatorType: 'impulse',
+      stage: 'sources',
+      stableDt: 0.05,
+      integrator: { scheme: 'explicit_euler_v1', stableDt: 0.05, cfl: 0.9, symplectic: false },
+    }],
+    schedule: ['sources'],
+    energyFlows: [{ kind: 'input', amount: 0.5 }],
+    energyAccounting: { complete: true, closed: false },
+  };
+  const impulseRegistry = {
+    stepOperator({ channels }) {
+      channels['velocity:body'] = { x: 1, y: 0 };
+    },
+  };
+  const energized = solverCompiler.stepSolverState(
+    solverCompiler.createSolverState(openGraph),
+    openGraph,
+    0.05,
+    impulseRegistry
+  );
+  assert.equal(energized.energyLedger.E, 0.5);
+  assert.equal(energized.energyLedger.W_in, 0.5);
+  assert.equal(energized.energyLedger.dE_step, 0);
+  assert.equal(energized.energyLedger.band, 'accept');
+});
+
+test('solver checkpoints preserve typed state and refuse tampering or cross-spec restore', () => {
+  const graph = {
+    schema: 'simulatte.solverGraph.v1',
+    channels: { field: new Float32Array([0.1, 0.2, 0.3, 0.4]) },
+    channelMetadata: { field: { name: 'field', type: 'grid', domainId: 'grid' } },
+    steps: [],
+    schedule: [],
+    readouts: [],
+  };
+  const spec = { schema: 'simulatte.simulationSpec.v1', id: 'grid-a', params: { seed: 7 }, solverGraph: graph };
+  const state = solverCompiler.createSolverState(graph);
+  state.frame = 4;
+  state.t = 0.2;
+  const checkpoint = solverCompiler.createSolverCheckpoint({ spec, solverGraph: graph, state, rngSeed: 7 });
+  const serialized = solverCompiler.serializeSolverCheckpoint(checkpoint);
+  const decoded = solverCompiler.deserializeSolverCheckpoint(serialized);
+  const restored = solverCompiler.restoreSolverCheckpoint(decoded, { spec, solverGraph: graph });
+  const roundTrip = solverCompiler.createSolverCheckpoint({ spec, solverGraph: graph, state: restored, rngSeed: 7 });
+
+  assert.equal(checkpoint.schema, 'simulatte.checkpoint.v1');
+  assert.equal(roundTrip.contentHash, checkpoint.contentHash);
+  assert.ok(restored.channels.field instanceof Float32Array);
+  assert.deepEqual(Array.from(restored.channels.field), Array.from(state.channels.field));
+  assert.throws(() => solverCompiler.restoreSolverCheckpoint(
+    { ...decoded, frame: decoded.frame + 1 },
+    { spec, solverGraph: graph }
+  ), /contentHash mismatch/);
+  assert.throws(() => solverCompiler.restoreSolverCheckpoint(
+    decoded,
+    { spec: { ...spec, id: 'grid-b' }, solverGraph: graph }
+  ), /specHash mismatch/);
+});
+
+test('grid boundaries conserve coupled transfer, honor ghosts, and fail closed on CFL violations', () => {
+  const coupled = solverCompiler.applyGridBoundaryFlux({
+    kind: 'coupled',
+    fieldA: new Float32Array([1, 0.5]),
+    widthA: 1,
+    heightA: 2,
+    fieldB: new Float32Array([0, 0, 0]),
+    widthB: 1,
+    heightB: 3,
+    velocity: 1,
+    dt: 0.1,
+    dx: 1,
+    cfl: 0.9,
+    physicalRange: [0, 2],
+  });
+  const beforeMass = (1 + 0.5) / 2;
+  const afterMass = Array.from(coupled.fieldA).reduce((sum, value) => sum + value, 0) / 2 +
+    Array.from(coupled.fieldB).reduce((sum, value) => sum + value, 0) / 3;
+  assert.ok(Math.abs(beforeMass - afterMass) < 1e-7);
+  assert.equal(coupled.receipt.conserved, true);
+
+  const reflected = solverCompiler.applyGridBoundaryFlux({
+    kind: 'reflective', fieldA: [1, 2, 3, 4], width: 2, height: 2, dt: 0.1, velocity: 2,
+  });
+  assert.deepEqual(reflected.fieldA, [1, 2, 3, 4]);
+  const ghosts = solverCompiler.buildGridGhostLayer([1, 2, 3, 4], 2, 2, {
+    kind: 'periodic', ghostWidth: 1,
+  });
+  assert.equal(ghosts.width, 4);
+  assert.equal(ghosts.height, 4);
+  assert.equal(ghosts.field[0], 4);
+  assert.throws(() => solverCompiler.applyGridBoundaryFlux({
+    kind: 'absorbing', fieldA: [1], width: 1, height: 1, dt: 1, dx: 1, cfl: 0.5, velocity: 1,
+  }), /CFL exceeded/);
 });
 
 test('primitive retrieval uses catalog retrievability policy without hardcoded exclusions', () => {

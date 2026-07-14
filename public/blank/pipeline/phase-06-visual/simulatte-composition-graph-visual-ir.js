@@ -498,9 +498,15 @@
             ? uniqueList([...subject, ...process, ...object])
             : [];
         }
-        return row.kind === 'action'
-          ? visualEvidenceForLedgerAction(visualObligationTarget(row), rows, sourceEntries)
-          : visualEvidenceForTarget(visualObligationTarget(row), rows);
+        if (row.kind === 'action') {
+          const target = visualObligationTarget(row);
+          const owner = sourceRelations.find((relation) => relation.to === row.id ||
+            [relation.predicate, relation.process].some((value) =>
+              normalizeVisualEvidenceText(value) === normalizeVisualEvidenceText(target)));
+          const owned = owner && visualEvidenceForTarget(String(owner.from || '').replace(/^[a-z]+:/, ''), rows);
+          return owned && owned.length ? owned : visualEvidenceForLedgerAction(target, rows, sourceEntries);
+        }
+        return visualEvidenceForTarget(visualObligationTarget(row), rows);
       }
 
     function visualEvidenceForLedgerAction(target = '', rows = [], sourceEntries = []) {

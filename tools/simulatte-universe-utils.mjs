@@ -4,6 +4,8 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { modelRuntimeLockReference } from './model-runtime-lock-utils.mjs';
 
+const SHORT_RELATION_TOKENS = new Set(['at', 'by', 'in', 'of', 'on', 'to']);
+
 const require = createRequire(import.meta.url);
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -472,14 +474,17 @@ function scoreUniverseDocument(indexName, doc, tokens) {
     ...(doc.aliases || []),
     ...(doc.domains || []),
   ].filter(Boolean).map((value) => String(value).toLowerCase());
-  const haystack = labels.join(' ');
+  const queryTokens = tokens.map(stemCoverageToken);
+  const labelTokenRows = labels.map((label) => promptTokens(label).map(stemCoverageToken));
+  const labelTokens = new Set(labelTokenRows.flat());
   let hits = 0;
-  for (const token of tokens) {
-    if (token.length > 2 && haystack.includes(token)) hits += 1;
+  for (const token of queryTokens) {
+    if ((token.length > 2 || SHORT_RELATION_TOKENS.has(token)) && labelTokens.has(token)) hits += 1;
   }
-  const promptText = tokens.join(' ');
-  const phraseHit = labels.some((label) => label.length > 4 && promptText.includes(label));
-  const score = Math.max(0, Math.min(1, hits / Math.max(2, tokens.length) + (phraseHit ? 0.42 : 0)));
+  const phraseHit = labelTokenRows.some((labelTokensRow) => (
+    labelTokensRow.length > 0 && containsTokenSequence(queryTokens, labelTokensRow)
+  ));
+  const score = Math.max(0, Math.min(1, hits / Math.max(2, queryTokens.length) + (phraseHit ? 0.42 : 0)));
   return {
     id: doc.id,
     indexName,
@@ -490,4 +495,19 @@ function scoreUniverseDocument(indexName, doc, tokens) {
 
 function promptTokens(prompt) {
   return String(prompt || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+}
+
+function containsTokenSequence(tokens, sequence) {
+  if (sequence.length > tokens.length) return false;
+  for (let start = 0; start <= tokens.length - sequence.length; start += 1) {
+    if (sequence.every((token, offset) => token === tokens[start + offset])) return true;
+  }
+  return false;
+}
+
+function stemCoverageToken(token) {
+  if (token.endsWith('ies') && token.length > 4) return `${token.slice(0, -3)}y`;
+  if (token.endsWith('ing') && token.length > 5) return token.slice(0, -3).replace(/(.)\1$/, '$1');
+  if (token.endsWith('s') && !token.endsWith('ss') && token.length > 3) return token.slice(0, -1);
+  return token;
 }

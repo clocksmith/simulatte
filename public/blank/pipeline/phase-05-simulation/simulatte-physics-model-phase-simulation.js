@@ -22,9 +22,10 @@
         const controls = (overrides.controls || template.controls || []).map(normalizeControl);
         const modules = uniqueList(overrides.modules || template.modules || []);
         const objects = normalizeObjects(overrides.objects, template.objects || []);
+        const params = normalizeParams(template, overrides.params, controls);
         const spec = {
           schema: 'simulatte.simulationSpec.v1',
-          id: overrides.id || `${slugify(name)}-${Date.now().toString(36)}`,
+          id: overrides.id || deterministicSpecId(template.id, name, modules, objects, params),
           templateId: template.id,
           name,
           kind: template.kind,
@@ -32,7 +33,7 @@
           modules,
           objects,
           controls,
-          params: normalizeParams(template, overrides.params, controls),
+          params,
           intent: overrides.intent || null,
           contract: overrides.contract || (
             overrides.intent && overrides.intent.resolution
@@ -93,6 +94,16 @@
         );
         normalizedSimulationSpecs.add(spec);
         return spec;
+      }
+
+    function deterministicSpecId(templateId, name, modules, objects, params) {
+        const source = JSON.stringify({ templateId, name, modules, objects, params });
+        let hash = 2166136261;
+        for (let index = 0; index < source.length; index += 1) {
+          hash ^= source.charCodeAt(index);
+          hash = Math.imul(hash, 16777619);
+        }
+        return `${slugify(name)}-${(hash >>> 0).toString(36)}`;
       }
 
     function refineRenderProgramSceneKind(renderProgram, spec) {
@@ -244,7 +255,7 @@
         if (normalizedSimulationSpecs.has(raw)) return raw;
         const template = templateById(raw.templateId);
         return createSpec(template.id, {
-          id: raw.id || `${template.id}-${Date.now().toString(36)}`,
+          id: raw.id || '',
           name: raw.name || template.name,
           description: raw.description || template.description,
           modules: raw.modules || template.modules || [],

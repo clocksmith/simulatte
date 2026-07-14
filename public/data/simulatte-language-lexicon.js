@@ -610,7 +610,8 @@
     'patient agents', 'pigment film', 'radio dishes', 'rider agents',
     'root tissue', 'seed', 'shell', 'silicone elastomer', 'slate',
     'soft tissue', 'thin film', 'wool', 'sample', 'sampling', 'materials',
-    'materials lab', 'materials studio',
+    'materials lab', 'materials studio', 'with', 'attach', 'appendage', 'core',
+    'side', 'light',
   ]);
 
   const LANGUAGE_LEXICON = Object.freeze({

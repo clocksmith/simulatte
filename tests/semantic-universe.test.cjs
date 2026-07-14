@@ -91,19 +91,28 @@ test('semantic universe builders exist and preserve the required index shape', (
   assert.match(affordanceBuilder, /unsupportedPolicy: 'preserve-semantic-node'/);
 });
 
-test('semantic coverage benchmark reports explicit coverage and misses', () => {
-  const output = runTool('benchmark-semantic-coverage.mjs', [
-    'laser heats ferrofluid lens over copper coil',
-    'warehouse robots jam around a leaking battery pallet',
-  ]);
+test('semantic coverage benchmark uses gold obligations, excludes prompt copies, and bills indexes', () => {
+  const output = runTool('benchmark-semantic-coverage.mjs');
   const report = JSON.parse(output);
 
-  assert.equal(report.schema, 'simulatte.semanticCoverageBenchmark.v1');
-  assert.equal(report.promptCount, 2);
-  assert.equal(report.meanCoverage, 1);
-  assert.ok(report.rows[0].matchedIndexes.includes('concepts'));
-  assert.ok(report.rows[0].matchedIndexes.includes('affordances'));
-  assert.equal(report.rows[1].missingTokens.length, 0);
+  assert.equal(report.schema, 'simulatte.semanticCoverageBenchmark.v2');
+  assert.equal(report.promptSource.id, 'simulatte-public-gold-v1');
+  assert.equal(report.promptCount, 6);
+  assert.equal(report.exactPromptMatchCount, 0);
+  assert.ok(report.meanGoldObligationCoverage > 0);
+  assert.equal(report.indexBill.vectors.primitives.ownerCoverage, 1);
+  assert.equal(report.indexBill.vectors.surfaceCards.ownerCoverage, 1);
+  assert.equal(report.indexBill.embeddingModel.suitability, 'dedicated-embedding-model');
+  assert.equal(report.indexBill.englishCoverage.status, 'not-measured');
   assert.ok(report.rows.every((row) => Array.isArray(row.topMatches)));
   assert.ok(report.rows.every((row) => Array.isArray(row.missingTokens)));
+  assert.ok(report.rows.every((row) => Array.isArray(row.obligations)));
+
+  const copiedPromptReport = JSON.parse(runTool('benchmark-semantic-coverage.mjs', [
+    'laser heats ferrofluid lens over copper coil',
+  ]));
+  assert.ok(copiedPromptReport.exactPromptMatchCount > 0);
+  assert.ok(copiedPromptReport.rows[0].topMatches.every(
+    (row) => row.label.toLowerCase() !== 'laser heats ferrofluid lens over copper coil'
+  ));
 });

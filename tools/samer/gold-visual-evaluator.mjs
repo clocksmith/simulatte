@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 
-const GOLD_ADJUDICATION_SCHEMA = 'simulatte.goldVisualAdjudication.v2';
+const GOLD_ADJUDICATION_SCHEMA = 'simulatte.goldVisualAdjudication.v3';
 
 export function loadGoldSet(file) {
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -86,7 +86,10 @@ function evaluateMachineGoldRow(result, goldRow) {
     failures.push(failure('scene-render-packet-sha256', 'audit result is missing the full Phase 6 packet hash'));
   }
   if (!isSha256(result.screenshotHash)) {
-    failures.push(failure('screenshot-sha256', 'audit result is missing the screenshot hash'));
+    failures.push(failure('page-screenshot-sha256', 'audit result is missing the full-page screenshot hash'));
+  }
+  if (!result.canvasScreenshot || !isSha256(result.canvasScreenshotHash)) {
+    failures.push(failure('canvas-screenshot-sha256', 'audit result is missing the reviewed canvas crop and hash'));
   }
   const identities = result.sceneRenderPacketIdentities || [];
   for (const expected of goldRow.entities || []) {
@@ -166,12 +169,16 @@ function evaluateHumanGoldRow(result, goldRow, adjudication) {
       adjudication.sceneRenderPacketSha256 !== result.sceneRenderPacketSha256) {
     failures.push('adjudication render packet hash does not match the captured Phase 6 packet');
   }
-  if (adjudication.screenshotSha256 !== result.screenshotHash) {
-    failures.push('adjudication screenshot hash does not match captured screenshot');
+  if (adjudication.screenshotKind !== 'canvas-crop') {
+    failures.push('adjudication screenshot kind must be canvas-crop');
+  }
+  if (adjudication.screenshotSha256 !== result.canvasScreenshotHash) {
+    failures.push('adjudication screenshot hash does not match the captured canvas crop');
   }
   if (!adjudication.reviewer || !adjudication.reviewedAt) {
     failures.push('reviewer and reviewedAt are required');
   }
+  if (!String(adjudication.note || '').trim()) failures.push('review note is required');
   const rules = new Map((adjudication.rules || []).map((row) => [row.id, row.pass === true]));
   for (const rule of goldRow.blockingVisualRules || []) {
     if (rules.get(rule) !== true) failures.push(`blocking visual rule failed or missing: ${rule}`);
@@ -185,7 +192,9 @@ function evaluateHumanGoldRow(result, goldRow, adjudication) {
     sceneRenderPacketSha256: adjudication.sceneRenderPacketSha256,
     reviewer: adjudication.reviewer,
     reviewedAt: adjudication.reviewedAt,
+    screenshotKind: adjudication.screenshotKind,
     screenshotSha256: adjudication.screenshotSha256,
+    note: adjudication.note,
   });
 }
 

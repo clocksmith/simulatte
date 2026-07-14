@@ -32,17 +32,21 @@ const compilerDir = join(publicDir, 'blank');
 const pipelineDir = join(compilerDir, 'pipeline');
 const appDir = join(compilerDir, 'app');
 const workersDir = join(appDir, 'workers');
-const solversDir = join(pipelineDir, 'phase-05-simulation', 'solvers');
+const simulationDir = join(pipelineDir, 'phase-05-simulation');
+const solversDir = join(simulationDir, 'solvers');
 
 // Determinism-critical modules: the compute path from prompt → executable state.
 const CRITICAL = [
-  join(pipelineDir, 'phase-05-simulation', 'simulatte-physics-model.js'),
-  join(pipelineDir, 'phase-05-simulation', 'simulatte-physics-ir.js'),
-  join(pipelineDir, 'phase-05-simulation', 'simulatte-physics-ir-validator.js'),
-  join(pipelineDir, 'phase-05-simulation', 'simulatte-solver-compiler.js'),
-  join(pipelineDir, 'phase-05-simulation', 'simulatte-solver-registry.js'),
+  join(simulationDir, 'simulatte-physics-model.js'),
+  join(simulationDir, 'simulatte-physics-model-phase-simulation.js'),
+  join(simulationDir, 'simulatte-physics-model-spec-api.js'),
+  join(simulationDir, 'simulatte-physics-model-state-solvers.js'),
+  join(simulationDir, 'simulatte-physics-ir.js'),
+  join(simulationDir, 'simulatte-physics-ir-validator.js'),
+  join(simulationDir, 'simulatte-solver-compiler.js'),
+  join(simulationDir, 'simulatte-solver-registry.js'),
   join(pipelineDir, 'phase-06-visual', 'simulatte-composition-graph.js'),
-  join(pipelineDir, 'phase-05-simulation', 'simulatte-render-ir.js'),
+  join(simulationDir, 'simulatte-render-ir.js'),
 ];
 
 // Non-deterministic / non-reproducible call signatures. Each entry is a label

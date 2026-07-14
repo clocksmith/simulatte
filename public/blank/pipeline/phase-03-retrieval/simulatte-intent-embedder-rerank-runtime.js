@@ -37,7 +37,6 @@
       return {
         target,
         tokenizeText: target.tokenizeText,
-        prefillKV: target.prefillKV || target.prefillKVOnly,
         resetToSeqLen: target.resetToSeqLen,
         prefillWithTokenLogits: target.prefillWithTokenLogits,
         prefillWithTokenLogitsFromKV: target.prefillWithTokenLogitsFromKV,
@@ -48,7 +47,6 @@
       if (execution.prefixKvReuse !== 'required') return;
       const missing = [
         ['tokenizeText', runtime.tokenizeText],
-        ['prefillKV', runtime.prefillKV],
         ['resetToSeqLen', runtime.resetToSeqLen],
       ].filter((row) => typeof row[1] !== 'function').map((row) => row[0]);
       if (missing.length) {
@@ -67,6 +65,8 @@
           const rows = rerankRequestRows(input, runtime, config, scoringConfig);
           const scored = [];
           let prefixPreparationDurationMs = 0;
+          let prefixTokenizationDurationMs = 0;
+          let prefixResetDurationMs = 0;
           try {
             const prefixStarted = nowMs();
             const prefix = await prepareRerankPrefix(
@@ -78,6 +78,8 @@
               activePrefix
             );
             prefixPreparationDurationMs = elapsedMsSince(prefixStarted);
+            prefixTokenizationDurationMs = Number(prefix && prefix.tokenizationDurationMs || 0);
+            prefixResetDurationMs = Number(prefix && prefix.resetDurationMs || 0);
             activePrefix = prefix;
             for (let i = 0; i < rows.length; i += 1) {
               const row = rows[i];
@@ -91,6 +93,9 @@
                   scoreCacheHit: true,
                   executionDurationMs: 0,
                   prefixPreparationDurationMs,
+                  prefixTokenizationDurationMs,
+                  prefixResetDurationMs,
+                  prefixPrimingDurationMs: 0,
                 });
                 emitRerankProgress(input, row, i + 1, rows.length, {
                   ...rerankProgressDetails(cachedScore, elapsedMsSince(executionStarted)),
@@ -99,16 +104,26 @@
                 continue;
               }
               let result;
+              let prefixStateReused = false;
+              let prefixPrimingDurationMs = 0;
               if (prefix) {
+                prefixStateReused = prefix.primed === true;
                 try {
+                  const inputIds = prefixStateReused
+                    ? row.tokenIds.slice(prefix.length)
+                    : row.tokenIds;
                   result = await selectedRuntime.prefillWithTokenLogits.call(
                     selectedRuntime.target,
                     '',
                     prefix.tokenIds,
-                    { useChatTemplate: false, inputIds: row.tokenIds.slice(prefix.length) }
+                    { useChatTemplate: false, inputIds }
                   );
                 } finally {
                   selectedRuntime.resetToSeqLen.call(selectedRuntime.target, prefix.length);
+                }
+                if (!prefixStateReused) {
+                  prefix.primed = true;
+                  prefixPrimingDurationMs = elapsedMsSince(executionStarted);
                 }
               } else {
                 await resetRerankerHandle(handle, selectedRuntime.target, config);
@@ -129,10 +144,13 @@
                 scoringPath: prefix ? 'prefix-selected-token-logits' : 'selected-token-logits',
                 promptTokenCount: prefix ? row.tokenIds.length : Number(result && result.tokens && result.tokens.length || 0),
                 prefixTokenCount: prefix ? prefix.length : 0,
-                prefixStateReused: prefix ? prefix.cacheHit : false,
+                prefixStateReused,
               });
               scoredRow.executionDurationMs = elapsedMsSince(executionStarted);
               scoredRow.prefixPreparationDurationMs = prefixPreparationDurationMs;
+              scoredRow.prefixTokenizationDurationMs = prefixTokenizationDurationMs;
+              scoredRow.prefixResetDurationMs = prefixResetDurationMs;
+              scoredRow.prefixPrimingDurationMs = prefixPrimingDurationMs;
               scoredRow.scoreCacheHit = false;
               writeRerankScoreCache(scoreCache, row.prompt, scoredRow, config.scoreCacheMaxEntries);
               scored.push(scoredRow);
@@ -150,6 +168,8 @@
           return rankedRerankRows(scored).map((row) => ({
             ...row,
             prefixPreparationDurationMs,
+            prefixTokenizationDurationMs,
+            prefixResetDurationMs,
             rerankCallDurationMs,
           }));
         },
@@ -158,6 +178,7 @@
 
     async function prepareRerankPrefix(rows, handle, runtime, config, scoringConfig, activePrefix = null) {
       if (rows.length < 2 || typeof runtime.tokenizeText !== 'function') return null;
+      const tokenizationStarted = nowMs();
       const tokenRows = rows.map((row) => {
         const tokens = runtime.tokenizeText.call(runtime.target, row.prompt);
         if (!Array.isArray(tokens) || !tokens.length) {
@@ -179,19 +200,21 @@
       const tokenIds = [scoringConfig.trueTokenId, scoringConfig.falseTokenId];
       const prefixTokens = tokenRows[0].slice(0, length);
       const key = prefixTokens.join(',');
-      if (activePrefix && activePrefix.key === key && activePrefix.length === length) {
-        return { ...activePrefix, tokenIds, cacheHit: true };
+      const tokenizationDurationMs = elapsedMsSince(tokenizationStarted);
+      if (activePrefix && activePrefix.key === key && activePrefix.length === length && activePrefix.primed) {
+        return { ...activePrefix, tokenIds, cacheHit: true, tokenizationDurationMs, resetDurationMs: 0 };
       }
+      const resetStarted = nowMs();
       await resetRerankerHandle(handle, runtime.target, config);
-      const snapshot = await runtime.prefillKV.call(runtime.target, '', {
-        useChatTemplate: false,
-        inputIds: prefixTokens,
-      });
-      if (!snapshot || !snapshot.cache || Number(snapshot.seqLen) !== length) {
-        throw new Error(`Doppler reranker ${config.id} prefix-KV snapshot is invalid`);
-      }
-      if (typeof snapshot.cache.destroy === 'function') snapshot.cache.destroy();
-      return { key, length, tokenIds, cacheHit: false };
+      return {
+        key,
+        length,
+        tokenIds,
+        cacheHit: false,
+        primed: false,
+        tokenizationDurationMs,
+        resetDurationMs: elapsedMsSince(resetStarted),
+      };
     }
 
     function longestCommonTokenPrefix(rows) {
@@ -254,6 +277,8 @@
           return rankedRerankRows(scored).map((row) => ({
             ...row,
             prefixPreparationDurationMs: 0,
+            prefixTokenizationDurationMs: 0,
+            prefixResetDurationMs: 0,
             rerankCallDurationMs,
           }));
         },
@@ -348,6 +373,9 @@
         .filter((value) => Number.isFinite(value) && value >= 0);
       const totalExecutionDurationMs = executionDurations.reduce((sum, value) => sum + value, 0);
       const prefixPreparationDurationMs = maximumSharedDuration(rows, 'prefixPreparationDurationMs');
+      const prefixTokenizationDurationMs = maximumSharedDuration(rows, 'prefixTokenizationDurationMs');
+      const prefixResetDurationMs = maximumSharedDuration(rows, 'prefixResetDurationMs');
+      const prefixPrimingDurationMs = maximumSharedDuration(rows, 'prefixPrimingDurationMs');
       const rerankCallDurationMs = maximumSharedDuration(rows, 'rerankCallDurationMs');
       return {
         scoringPaths,
@@ -357,6 +385,9 @@
         prefixStateReuseCount: prefixRows.filter((row) => row.prefixStateReused === true).length,
         scoreCacheHitCount,
         prefixPreparationDurationMs,
+        prefixTokenizationDurationMs,
+        prefixResetDurationMs,
+        prefixPrimingDurationMs,
         rerankCallDurationMs,
         unattributedRerankDurationMs: Number(Math.max(
           0,
@@ -391,6 +422,9 @@
         prefixTokenCount: Number(row.prefixTokenCount || 0),
         prefixStateReused: row.prefixStateReused === true,
         prefixPreparationDurationMs: Number(Number(row.prefixPreparationDurationMs || 0).toFixed(3)),
+        prefixTokenizationDurationMs: Number(Number(row.prefixTokenizationDurationMs || 0).toFixed(3)),
+        prefixResetDurationMs: Number(Number(row.prefixResetDurationMs || 0).toFixed(3)),
+        prefixPrimingDurationMs: Number(Number(row.prefixPrimingDurationMs || 0).toFixed(3)),
         executionDurationMs: Number(Number(executionDurationMs || 0).toFixed(3)),
       };
     }

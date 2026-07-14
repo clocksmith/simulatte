@@ -1352,6 +1352,10 @@ test('runtime progress logs detailed reranker updates even when the visible line
     completed: 2,
     promptTokenCount: 91,
     prefixTokenCount: 70,
+    prefixPreparationDurationMs: 2.75,
+    prefixTokenizationDurationMs: 2.5,
+    prefixResetDurationMs: 0.25,
+    prefixPrimingDurationMs: 720.5,
     executionDurationMs: 779.25,
   });
 
@@ -1361,6 +1365,10 @@ test('runtime progress logs detailed reranker updates even when the visible line
   assert.equal(consoleRows[1][1].detail, 'Reranking scene slot 2/8 candidate 2/2');
   assert.equal(consoleRows[1][1].reranker.candidateId, 'caterpillar');
   assert.equal(consoleRows[1][1].reranker.completed, 2);
+  assert.equal(consoleRows[1][1].reranker.prefixPreparationDurationMs, 2.75);
+  assert.equal(consoleRows[1][1].reranker.prefixTokenizationDurationMs, 2.5);
+  assert.equal(consoleRows[1][1].reranker.prefixResetDurationMs, 0.25);
+  assert.equal(consoleRows[1][1].reranker.prefixPrimingDurationMs, 720.5);
   assert.equal(consoleRows[1][1].reranker.executionDurationMs, 779.25);
 });
 

@@ -320,16 +320,6 @@
             visualArchetype: entity.visualArchetype || promptType,
           };
         }
-        const compiledShape = String(entity.shape || '').toLowerCase();
-        if (COMPILED_SHAPE_IDENTITIES[compiledShape]) {
-          const [type, category] = COMPILED_SHAPE_IDENTITIES[compiledShape];
-          return {
-            type,
-            category,
-            label: entity.sourceLabel || entity.label || type,
-            visualArchetype: entity.visualArchetype || type,
-          };
-        }
         if (entity.directlyGrounded === true) {
           const sourceLabel = String(entity.sourceLabel || entity.label || entity.role || '').trim();
           const semanticClass = String(entity.semanticClass || '').trim().toLowerCase();
@@ -346,6 +336,16 @@
               visualArchetype: visualArchetype || type,
             };
           }
+        }
+        const compiledShape = String(entity.shape || '').toLowerCase();
+        if (COMPILED_SHAPE_IDENTITIES[compiledShape]) {
+          const [type, category] = COMPILED_SHAPE_IDENTITIES[compiledShape];
+          return {
+            type,
+            category,
+            label: entity.sourceLabel || entity.label || type,
+            visualArchetype: entity.visualArchetype || type,
+          };
         }
         const text = [
           entity.id,

@@ -1,0 +1,18 @@
+{
+  "schema": "simulatte.sealedPopulationCommitment.v1",
+  "id": "sealed-place-population-v1",
+  "createdAt": "2026-07-14T17:36:43.839Z",
+  "populationSha256": "10f7e261ebeab91b6642e3502ff8fd14b0f56b76acad2dfc0517bd8db9a66051",
+  "rowCount": 45,
+  "kindCounts": {
+    "typo_within": 10,
+    "typo_beyond": 20,
+    "case_variant": 6,
+    "ambiguous": 3,
+    "out_of_world": 6
+  },
+  "generatorSha256": "dfb44454a2f82f65532b8c5b79b18099d7f84bc782d8f2b9b3494a1d6113bf5d",
+  "worldSha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001",
+  "custody": "Move tools/samer/autonomy/sealed/ off the evaluation host. The directory is gitignored. Opening is one-time via evaluate-place-resolution --corpus <path> --sealed-open, which appends to the openings log.",
+  "openings": []
+}

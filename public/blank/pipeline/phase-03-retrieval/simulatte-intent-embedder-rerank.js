@@ -597,6 +597,9 @@
               prefixTokenCount: row.prefixTokenCount || 0,
               prefixStateReused: row.prefixStateReused === true,
               prefixPreparationDurationMs: row.prefixPreparationDurationMs || 0,
+              prefixTokenizationDurationMs: row.prefixTokenizationDurationMs || 0,
+              prefixResetDurationMs: row.prefixResetDurationMs || 0,
+              prefixPrimingDurationMs: row.prefixPrimingDurationMs || 0,
               executionDurationMs: row.executionDurationMs || 0,
             });
             input.onProgress({ completed: 0, total: input.candidates.length });

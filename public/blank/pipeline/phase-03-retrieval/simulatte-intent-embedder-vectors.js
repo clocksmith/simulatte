@@ -48,6 +48,9 @@
             prefixStateReused: row && row.prefixStateReused === true,
             scoreCacheHit: row && row.scoreCacheHit === true,
             prefixPreparationDurationMs: Number(row && row.prefixPreparationDurationMs || 0),
+            prefixTokenizationDurationMs: Number(row && row.prefixTokenizationDurationMs || 0),
+            prefixResetDurationMs: Number(row && row.prefixResetDurationMs || 0),
+            prefixPrimingDurationMs: Number(row && row.prefixPrimingDurationMs || 0),
             rerankCallDurationMs: Number(row && row.rerankCallDurationMs || 0),
             executionDurationMs: Number(row && row.executionDurationMs || 0),
           };

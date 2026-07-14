@@ -322,6 +322,15 @@
       const targetIdentity = normalizeForProof(obligation.targetIdentity || obligation.target || '');
       const rowId = normalizeForProof(row.id || '');
       const representedIds = (row.representedEntityIds || []).map(normalizeForProof);
+      const actionOwnerIds = obligation.sourceKind === 'action'
+        ? Array.from(new Set([...(obligation.evidence || []), ...(obligation.visualEvidence || [])]
+          .map((value) => String(value || '').match(/^phase6:entity:(.+)$/))
+          .filter(Boolean).map((match) => normalizeForProof(match[1]))))
+        : [];
+      const actionOwnerMatch = actionOwnerIds.some((id) => (
+        rowId === id || rowId.startsWith(`${id} instance`) || representedIds.includes(id)
+      ));
+      if (actionOwnerIds.length && !actionOwnerMatch) return 0;
       const identityValues = [
         row.label,
         row.identity && row.identity.label,
@@ -343,6 +352,7 @@
         renderCodes: row.renderCodes,
       }));
       let score = 0;
+      if (actionOwnerMatch) score += 120;
       if (targetEntityId && rowId === targetEntityId) score += 100;
       if (targetEntityId && representedIds.includes(targetEntityId)) score += 60;
       if (targetIdentity && rowId === targetIdentity) score += 40;

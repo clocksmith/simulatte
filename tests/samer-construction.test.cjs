@@ -268,6 +268,8 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     buildId: 'test-build-identity',
     sceneRenderPacketSha256: packetHash(row),
     screenshotHash: String(index + 1).padStart(64, '0'),
+    canvasScreenshot: `${row.id}.canvas.png`,
+    canvasScreenshotHash: promptHash(`canvas:${row.id}`),
     sceneRenderPacketIdentities: row.entities.flatMap((entity) => (
       Array.from({ length: entity.count || entity.minimumCount || 1 }, () => ({
         type: entity.type,
@@ -308,7 +310,7 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
   assert.equal(withoutHuman.pass, false);
 
   const adjudication = {
-    schema: 'simulatte.goldVisualAdjudication.v2',
+    schema: 'simulatte.goldVisualAdjudication.v3',
     goldSetId: goldSet.id,
     rows: goldSet.rows.map((row, index) => ({
       goldRowId: row.id,
@@ -316,9 +318,11 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
       promptSha256: promptHash(row.prompt),
       buildId: 'test-build-identity',
       sceneRenderPacketSha256: packetHash(row),
-      screenshotSha256: String(index + 1).padStart(64, '0'),
+      screenshotKind: 'canvas-crop',
+      screenshotSha256: promptHash(`canvas:${row.id}`),
       reviewer: 'test-reviewer',
       reviewedAt: '2026-07-12T00:00:00.000Z',
+      note: 'Passes the blocking visual rules; quality observations remain recorded.',
       verdict: 'pass',
       rules: row.blockingVisualRules.map((id) => ({ id, pass: true })),
     })),
@@ -339,12 +343,21 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     ['buildId', 'different-build'],
     ['sceneRenderPacketSha256', 'e'.repeat(64)],
     ['screenshotSha256', 'd'.repeat(64)],
+    ['screenshotKind', 'full-page'],
+    ['note', ''],
   ]) {
     const mismatch = changed((copy) => { copy.rows[0][field] = value; });
     const evaluation = evaluator.evaluateGoldVisualResults(results, goldSet, mismatch);
     assert.equal(evaluation.rows[0].human.pass, false, `${field} mismatch must fail human proof`);
   }
-  for (const field of ['prompt', 'compiledPrompt', 'promptSha256', 'buildId', 'sceneRenderPacketSha256']) {
+  for (const field of [
+    'prompt',
+    'compiledPrompt',
+    'promptSha256',
+    'buildId',
+    'sceneRenderPacketSha256',
+    'canvasScreenshotHash',
+  ]) {
     const mismatchResults = structuredClone(results);
     mismatchResults[0][field] = '';
     const evaluation = evaluator.evaluateGoldVisualResults(mismatchResults, goldSet, adjudication);
@@ -374,6 +387,6 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     copy.rows[0].rules.push({ id: 'rule.unknown', pass: true });
   })), /unknown rule/);
   assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
-    copy.schema = 'simulatte.goldVisualAdjudication.v1';
-  })), /goldVisualAdjudication[.]v2/);
+    copy.schema = 'simulatte.goldVisualAdjudication.v2';
+  })), /goldVisualAdjudication[.]v3/);
 });

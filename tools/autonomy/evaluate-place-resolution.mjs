@@ -47,7 +47,7 @@ const EXPECTED_CONTROL_REFUSAL_CODES = Object.freeze([
 ]);
 
 function parseArgs(argv) {
-  const options = { challenger: '', check: false, output: OUTPUT };
+  const options = { challenger: '', check: false, output: OUTPUT, corpus: '', sealedOpen: false };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--challenger') {
       options.challenger = String(argv[index + 1] || '');
@@ -57,22 +57,52 @@ function parseArgs(argv) {
     } else if (argv[index] === '--out') {
       options.output = path.resolve(ROOT, String(argv[index + 1] || ''));
       index += 1;
+    } else if (argv[index] === '--corpus') {
+      options.corpus = String(argv[index + 1] || '');
+      index += 1;
+    } else if (argv[index] === '--sealed-open') {
+      options.sealedOpen = true;
     } else {
       throw new Error(`unknown argument: ${argv[index]}`);
     }
   }
   if (!options.output) throw new Error('--out expected a path');
+  if (options.sealedOpen && !options.corpus) throw new Error('--sealed-open requires --corpus <sealed population path>');
   return options;
+}
+
+// One-authorized-opening protocol for sealed populations. Verifies the
+// population against its committed SHA-256, refuses a second opening, and
+// appends the opening receipt to the commitment file after the run.
+function openSealedPopulation(corpusPath) {
+  const commitmentPath = path.join(ROOT, 'tools/samer/autonomy/sealed-place-population-v1.commitment.json');
+  const commitment = JSON.parse(fs.readFileSync(commitmentPath, 'utf8'));
+  const raw = fs.readFileSync(path.resolve(ROOT, corpusPath), 'utf8');
+  const sha = crypto.createHash('sha256').update(raw).digest('hex');
+  if (sha !== commitment.populationSha256) {
+    throw new Error(`sealed population SHA-256 mismatch: expected ${commitment.populationSha256}, received ${sha}`);
+  }
+  if (commitment.openings.length > 0) {
+    throw new Error(`sealed population already opened at ${commitment.openings[0].openedAt}; promotion evidence allows one opening`);
+  }
+  return {
+    commitment,
+    recordOpening(summary) {
+      commitment.openings.push({ openedAt: new Date().toISOString(), populationSha256: sha, summary });
+      fs.writeFileSync(commitmentPath, `${JSON.stringify(commitment, null, 2)}\n`);
+    },
+  };
 }
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const files = {
-    corpus: 'tools/samer/autonomy/place-resolution-probes-v1.json',
+    corpus: options.corpus || 'tools/samer/autonomy/place-resolution-probes-v1.json',
     world: 'public/data/autonomy/worlds/nyc-core-autonomy-v1.json',
     embodiment: 'public/data/autonomy/embodiments/delivery-bike-v1.json',
     compiler: 'public/mission/mission-compiler.js',
   };
+  const sealed = options.sealedOpen ? openSealedPopulation(files.corpus) : null;
   const corpus = readJson(files.corpus);
   const world = readJson(files.world);
   const embodiment = readJson(files.embodiment);
@@ -159,6 +189,14 @@ async function main() {
     fs.writeFileSync(options.output, serialized);
   }
   const summary = lanes.challenger;
+  if (sealed) {
+    sealed.recordOpening({
+      lane: summary?.resolverId || lanes.control.resolverId,
+      correct: (summary || lanes.control).metrics.correct,
+      probeCount: corpus.probes.length,
+      accepted,
+    });
+  }
   console.log(`PLACE-RESOLUTION check=${options.check ? 'pass' : 'write'} accepted=${accepted} lane=${summary.resolverId} correct=${summary.metrics.correct}/${corpus.probes.length} winnable=${summary.metrics.winnableResolved}/${summary.metrics.winnableTotal} violations=${summary.guardrails.mustRefuseViolations} output=${path.relative(ROOT, options.output)}`);
   if (!accepted) process.exitCode = 1;
 }

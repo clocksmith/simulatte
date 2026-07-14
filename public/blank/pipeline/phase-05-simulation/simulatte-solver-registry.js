@@ -23,6 +23,10 @@
   root.SimulatteSolverRegistry = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSolverRegistryApi(root = {}, solverModules = {}) {
   const SOLVER_REGISTRY_SCHEMA = 'simulatte.solverRegistry.v1';
+  const INTEGRATOR_SCHEMES = Object.freeze({
+    explicit_euler_v1: Object.freeze({ order: 1, symplectic: false }),
+    semi_implicit_euler_v1: Object.freeze({ order: 1, symplectic: true }),
+  });
   const moduleApi = {
     advection: solverModules.advection || root.SimulatteAdvectionSolver,
     constraints: solverModules.constraints || root.SimulatteConstraintSolver,
@@ -66,15 +70,57 @@
   });
 
   function solver(id, operatorTypes, requiredFields, producedFields, stableDt, step) {
+    const module = Object.values(moduleApi).find((candidate) => candidate && candidate.step === step);
+    const integrator = normalizeIntegrator(
+      module && module.integrator,
+      [...new Set([...requiredFields, ...producedFields])].length
+        ? [...new Set([...requiredFields, ...producedFields])]
+        : ['scalar'],
+      stableDt
+    );
     return {
       id,
       operatorTypes,
       requiredFields,
       producedFields,
-      stableDt,
+      stableDt: integrator.stableDt,
+      integrator,
       createState: () => ({}),
       step,
     };
+  }
+
+  function normalizeIntegrator(value, stateContract = [], stableDt = 0.05) {
+    const row = value && typeof value === 'object' ? value : {};
+    const scheme = String(row.scheme || 'explicit_euler_v1');
+    const definition = INTEGRATOR_SCHEMES[scheme];
+    if (!definition) throw new Error(`Unsupported solver integrator scheme: ${scheme}`);
+    const normalized = {
+      scheme,
+      order: Number(row.order || definition.order),
+      symplectic: row.symplectic === undefined ? definition.symplectic : row.symplectic === true,
+      stableDt: Number(row.stableDt || stableDt),
+      cfl: Number(row.cfl || 0.9),
+      stateContract: [...new Set((row.stateContract || stateContract).map(String).filter(Boolean))],
+    };
+    validateIntegrator(normalized);
+    return Object.freeze(normalized);
+  }
+
+  function validateIntegrator(integrator = {}) {
+    const definition = INTEGRATOR_SCHEMES[integrator.scheme];
+    if (!definition) throw new Error(`Unknown integrator scheme: ${integrator.scheme || '(missing)'}`);
+    if (!(Number(integrator.stableDt) > 0)) throw new Error('Integrator stableDt must be positive');
+    if (!(Number(integrator.cfl) > 0 && Number(integrator.cfl) <= 1)) {
+      throw new Error('Integrator cfl must be in (0, 1]');
+    }
+    if (!Array.isArray(integrator.stateContract) || integrator.stateContract.length === 0) {
+      throw new Error('Integrator stateContract must name at least one channel family');
+    }
+    if (Number(integrator.order) !== definition.order || Boolean(integrator.symplectic) !== definition.symplectic) {
+      throw new Error(`Integrator metadata disagrees with ${integrator.scheme}`);
+    }
+    return true;
   }
 
   function moduleStep(name) {
@@ -92,9 +138,14 @@
   }
 
   function createSolverRegistry(extraOperators = {}) {
+    const operators = { ...SOLVER_OPERATORS, ...extraOperators };
+    for (const [operatorType, row] of Object.entries(operators)) {
+      if (!row || !row.integrator) throw new Error(`Solver ${operatorType} is missing integrator metadata`);
+      validateIntegrator(row.integrator);
+    }
     return {
       schema: SOLVER_REGISTRY_SCHEMA,
-      operators: { ...SOLVER_OPERATORS, ...extraOperators },
+      operators,
       operatorFor(type) {
         return this.operators[type] || null;
       },
@@ -219,7 +270,9 @@
 
   return {
     SOLVER_REGISTRY_SCHEMA,
+    INTEGRATOR_SCHEMES,
     SOLVER_OPERATORS,
     createSolverRegistry,
+    validateIntegrator,
   };
 });

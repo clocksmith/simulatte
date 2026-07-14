@@ -18,3 +18,4 @@ firebase-debug.log
 node_modules/
 artifacts/model-cache-profile/
 artifacts/simulatte-train/*.log
+tools/samer/autonomy/sealed/
