@@ -49,7 +49,7 @@
     "worldId": "nyc-training-corridor-v1",
     "embodimentId": "delivery-bike-v1",
     "basePolicyId": "bet-selector-v1",
-    "missionParser": "simulatte.autonomyMissionParser.v1",
+    "missionParser": "simulatte.autonomyMissionParser.v2",
     "routePlanner": "a_star_v1",
     "rolloutModel": "deterministic_reference_rollout",
     "safetyGate": "simulatte.autonomySafetyGateReceipt.v1",

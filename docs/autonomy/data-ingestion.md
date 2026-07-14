@@ -13,13 +13,14 @@ Owner contracts:
 
 ## Checked-in data
 
-The hosted default is `villages-williamsburg-delivery-bike-v1`. It is compiled
+The hosted default is `nyc-core-autonomy-v1`. It is compiled
 from frozen NYC DOT bike routes, NYC building footprints, NYC borough
-boundaries, and OpenStreetMap highway snapshots. Each source receipt records
-authority, license, request, snapshot date, raw byte count, and SHA-256.
+boundaries, OpenStreetMap highway snapshots, and NYC Parks property geometry
+for Union Square Park (`M089`). Each source receipt records authority, license,
+request, snapshot date, raw byte count, and SHA-256.
 
 The manifest separately pins raw-file SHA-256 values for the world,
-embodiment, policy, feature catalog, occurrence catalog, and reranker evidence.
+embodiments, policy, feature catalog, occurrence catalog, and reranker evidence.
 Browser loading and the repository data check both reject identity or hash
 drift. `nyc-training-corridor-v1` remains a synthetic unit-test fixture.
 
@@ -38,13 +39,24 @@ npm run build:autonomy:data
 npm run eval:autonomy:reranker
 ```
 
-`build-nyc-autonomy-world.mjs` reads the four canonical compressed snapshots
+`build-nyc-autonomy-world.mjs` reads the five canonical compressed snapshots
 under `tools/autonomy/data-sources/villages-williamsburg-2026-07-13/`. One run
 emits synchronized world, feature-catalog, inverted-index, and occurrence
 artifacts. It labels ten mission-groundable places, compiles the directed bike
 network, produces the default policy-cost route, places authored scenario
 actors on that route, and writes time and event patterns against the generated
-IDs.
+IDs. The Parks compiler selects the largest projected exterior member from
+the official two-member `M089` MultiPolygon under a named deterministic rule.
+It hashes both the full source geometry and selected ring, emits the closed
+pedestrian circuit, and labels it as a property boundary rather than a
+surveyed sidewalk.
+
+Refresh only the official park snapshot without changing the other frozen
+sources:
+
+```bash
+node tools/autonomy/build-nyc-autonomy-world.mjs --refresh-parks
+```
 
 `build-region-packs.mjs` can compile another region registry without changing
 the hosted manifest. Activation is a separate operation:
@@ -80,7 +92,7 @@ coordinate frames.
 The next NYC source order is:
 
 1. LION topology and turn restrictions plus DOT bike facilities for graph authority.
-2. Planimetric sidewalks and crosswalks for pedestrian legality and source geometry.
+2. Planimetric sidewalks and crosswalks for general pedestrian legality and source geometry; the current Union Square control is deliberately limited to the property boundary.
 3. Signal locations, speed limits, curb regulations, and elevation for control and cost contracts.
 4. Dated TLC, Citi Bike, DOT count, 311, and weather snapshots for occurrence priors.
 
@@ -136,10 +148,12 @@ source snapshots and entry gates before the world can claim them.
 - the requested pack set, seam set, peer set, and composed counts match exactly;
 - referenced IDs match loaded artifacts;
 - occurrence plugins and effect targets exist;
-- reranker evidence binds the same world, catalog, embodiment, and policy;
+- reranker evidence binds the same world, catalog, default embodiment, and policy;
+- every registered embodiment is identity- and hash-pinned and the declared default exists;
 - node and segment IDs are unique;
 - every segment endpoint exists;
 - mode, geometry, length, speed, signal, actor, disruption, and feature-card references validate;
+- every declared circuit closes in exact node/segment order, uses mode-eligible segments, and reproduces its declared length and source hashes;
 - the browser entry lists only existing scripts;
 - autonomy JavaScript stays below the repository line ceiling;
 - the 20-row public diagnostic corpus retains its row hash;

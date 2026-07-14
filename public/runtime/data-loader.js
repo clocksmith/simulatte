@@ -16,9 +16,15 @@
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
     const manifest = await fetchJson(resolvedManifestUrl, fetchImpl);
     contracts.validateManifest(manifest.value);
-    const directKeys = ['embodiment', 'policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'];
+    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'];
     const refs = await Promise.all(directKeys.map(async (key) => [key, await loadReference(manifest.value[key], resolvedManifestUrl, key, fetchImpl)]));
     const loaded = Object.fromEntries(refs);
+    const embodimentRows = await Promise.all(manifest.value.embodiments.map(async (reference) => ({
+      reference,
+      loaded: await loadReference(reference, resolvedManifestUrl, `embodiment:${reference.id}`, fetchImpl),
+    })));
+    const defaultEmbodimentRow = embodimentRows.find((row) => row.reference.id === manifest.value.defaultEmbodimentId);
+    if (!defaultEmbodimentRow) throw loadError('default_embodiment_missing', `Default embodiment ${manifest.value.defaultEmbodimentId} was not loaded`, { defaultEmbodimentId: manifest.value.defaultEmbodimentId });
     const registry = loaded.regionRegistry.value;
     contracts.validateRegionRegistry(registry);
     const packRows = await Promise.all(registry.packs.map(async (reference) => {
@@ -37,16 +43,17 @@
     contracts.validateRerankerEvidence(loaded.rerankerEvidence.value, composition.featureCatalog, {
       world: worldHash,
       featureCatalog: featureCatalogHash,
-      embodiment: loaded.embodiment.sha256,
+      embodiment: defaultEmbodimentRow.loaded.sha256,
       policy: loaded.policy.sha256,
     });
-    contracts.validateEmbodiment(loaded.embodiment.value);
+    embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
     return {
-      schema: 'simulatte.autonomyLoadedData.v1',
+      schema: 'simulatte.autonomyLoadedData.v2',
       manifest: manifest.value,
       world: composition.world,
-      embodiment: loaded.embodiment.value,
+      embodiments: embodimentRows.map((row) => row.loaded.value),
+      defaultEmbodiment: defaultEmbodimentRow.loaded.value,
       policy: loaded.policy.value,
       featureCatalog: composition.featureCatalog,
       occurrenceCatalog: loaded.occurrenceCatalog.value,
@@ -55,10 +62,11 @@
       regionPacks: packRows.map((row) => row.value),
       regionComposition: composition.receipt,
       receipt: {
-        schema: 'simulatte.autonomyDataLoadReceipt.v1',
+        schema: 'simulatte.autonomyDataLoadReceipt.v2',
         manifestUrl: resolvedManifestUrl,
         assets: {
           ...Object.fromEntries(refs.map(([key, row]) => [key, assetReceipt(row)])),
+          embodiments: embodimentRows.map((row) => assetReceipt(row.loaded)),
           world: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition' },
           featureCatalog: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: 'verified_region_composition' },
         },

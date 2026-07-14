@@ -232,7 +232,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function receipt() {
       return {
-        schema: 'simulatte.autonomyWebGpuRenderReceipt.v2',
+        schema: 'simulatte.autonomyWebGpuRenderReceipt.v3',
         backend: 'webgpu',
         adapter: adapterInfo,
         format,
@@ -244,12 +244,15 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         worldId: worldModel.world.id,
         buildingCount: worldModel.world.renderGeometry.buildings.length,
         streetCount: worldModel.world.renderGeometry.streets.length,
+        parkCount: worldModel.world.renderGeometry.parks.length,
+        circuitCount: worldModel.world.circuits.length,
         bikeFacilityCount: worldModel.world.renderGeometry.bikeFacilities.length,
         camera: {
           mode: state.mode,
           focusId: state.focusId,
           transitionState: state.transition ? 'active' : 'settled',
           targetCount: state.targets.length,
+          followDistanceM: Number(state.followDistance.toFixed(3)),
         },
       };
     }
@@ -320,6 +323,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.dataset.cameraTransitionProgress = pose.transitionProgress.toFixed(3);
     canvas.dataset.cameraEye = vector(pose.eye);
     canvas.dataset.cameraTarget = vector(pose.target);
+    canvas.dataset.cameraFollowDistance = pose.followDistance.toFixed(3);
   }
 
   function writeUniforms(device, buffer, camera, canvas, seconds) {
@@ -357,6 +361,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.addEventListener('contextmenu', (event) => event.preventDefault());
     canvas.addEventListener('wheel', (event) => {
       event.preventDefault();
+      canvas.dataset.cameraInteraction = 'zoom';
       cameraController.zoomCamera(state, event.deltaY);
     }, { passive: false });
   }

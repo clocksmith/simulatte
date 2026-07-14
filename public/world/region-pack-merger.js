@@ -23,6 +23,7 @@
     const actorMerge = mergeRows('actors', ordered, registry.sharedWorldRows.actors || []);
     const disruptionMerge = mergeRows('disruptions', ordered, registry.sharedWorldRows.disruptions || []);
     const landMerge = mergeRenderRows('land', ordered, registry.sharedWorldRows.renderGeometry.land || []);
+    const parkMerge = mergeRenderRows('parks', ordered, registry.sharedWorldRows.renderGeometry.parks || []);
     const streetMerge = mergeRenderRows('streets', ordered, registry.sharedWorldRows.renderGeometry.streets || []);
     const buildingMerge = mergeRenderRows('buildings', ordered, registry.sharedWorldRows.renderGeometry.buildings || []);
     const facilityMerge = mergeRenderRows('bikeFacilities', ordered, registry.sharedWorldRows.renderGeometry.bikeFacilities || []);
@@ -37,6 +38,7 @@
       renderGeometry: {
         ...structuredClone(registry.worldTemplate.renderGeometry),
         land: landMerge.rows,
+        parks: parkMerge.rows,
         streets: streetMerge.rows,
         buildings: buildingMerge.rows,
         bikeFacilities: facilityMerge.rows,
@@ -163,6 +165,7 @@
       actors: world.actors.length,
       disruptions: world.disruptions.length,
       land: world.renderGeometry.land.length,
+      parks: world.renderGeometry.parks.length,
       streets: world.renderGeometry.streets.length,
       buildings: world.renderGeometry.buildings.length,
       bikeFacilities: world.renderGeometry.bikeFacilities.length,

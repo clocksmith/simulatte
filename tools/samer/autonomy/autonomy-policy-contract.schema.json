@@ -91,7 +91,7 @@
         "worldId": { "const": "nyc-training-corridor-v1" },
         "embodimentId": { "const": "delivery-bike-v1" },
         "basePolicyId": { "const": "bet-selector-v1" },
-        "missionParser": { "const": "simulatte.autonomyMissionParser.v1" },
+        "missionParser": { "const": "simulatte.autonomyMissionParser.v2" },
         "routePlanner": { "const": "a_star_v1" },
         "rolloutModel": { "const": "deterministic_reference_rollout" },
         "safetyGate": { "const": "simulatte.autonomySafetyGateReceipt.v1" },

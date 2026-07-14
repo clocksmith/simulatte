@@ -33,7 +33,10 @@
     if (next.currentSegmentId) {
       const segment = worldModel.segment(next.currentSegmentId);
       const remainingM = Math.max(0, segment.lengthM - next.segmentProgressM);
-      progressDeltaM = Math.min(remainingM, travelM);
+      const remainingMissionM = mission.task.type === 'loop_distance'
+        ? Math.max(0, mission.task.targetDistanceM - before.distanceTraveledM)
+        : Infinity;
+      progressDeltaM = Math.min(remainingM, travelM, remainingMissionM);
       next.segmentProgressM += progressDeltaM;
       next.distanceTraveledM += progressDeltaM;
       if (next.segmentProgressM >= segment.lengthM - 1e-9) {
@@ -55,13 +58,17 @@
       embodiment.dimensions.collisionRadiusM,
       policy.safety.nearbyActorRadiusM
     );
-    const willArrive = next.currentNodeId === mission.destinationNodeId && !next.currentSegmentId;
-    if (willArrive) {
+    const willArrive = mission.task.type === 'delivery' && next.currentNodeId === mission.destinationNodeId && !next.currentSegmentId;
+    const reachedDistance = mission.task.type === 'loop_distance' && next.distanceTraveledM >= mission.task.targetDistanceM - 1e-9;
+    const willComplete = willArrive || reachedDistance;
+    const completionReason = willArrive ? 'destination_reached' : reachedDistance ? 'distance_target_reached' : null;
+    if (willComplete) {
       next.status = 'completed';
-      next.payloadStatus = 'delivered';
+      next.speedMps = 0;
+      if (willArrive) next.payloadStatus = 'delivered';
     }
     return {
-      schema: 'simulatte.autonomyTransition.v1',
+      schema: 'simulatte.autonomyTransition.v2',
       state: next,
       startPosition: roundPoint(startPosition),
       endPosition: roundPoint(endPosition),
@@ -74,6 +81,8 @@
       reachedNodeId,
       willReachNode: Boolean(reachedNodeId),
       willArrive,
+      willComplete,
+      completionReason,
     };
   }
 

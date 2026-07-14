@@ -1,7 +1,7 @@
 # NYC navigation transfer: Simulatte concepts to governed autonomy
 
 How the Simulatte pipeline doctrine maps onto the NYC walking, cycling, and
-driving simulator, what `villages-williamsburg-delivery-bike-v1` realizes,
+driving simulator, what `nyc-core-autonomy-v1` realizes,
 and which doctrine pieces remain open.
 Companion to [README.md](./README.md) (product goal, decision loop, receipt
 chain) and [data-ingestion.md](./data-ingestion.md).
@@ -24,8 +24,8 @@ obligations.
 
 | Simulatte concept | Autonomy realization |
 | --- | --- |
-| Prompt to obligation extraction | Mission contract (`mission.schema.json`): mode, origin, destination, and constraints typed before execution |
-| Construction-card index + retrieval/rerank | 12,991 compiled feature cards plus a bounded inverted index through `feature-retrieval.js` |
+| Prompt to obligation extraction | Mission contract (`mission.schema.json`): delivery endpoints or a grounded closed circuit, embodiment, distance/unit conversion, and constraints typed before execution |
+| Construction-card index + retrieval/rerank | 13,062 compiled feature cards plus a bounded inverted index through `feature-retrieval.js` |
 | Lexical control lane before model lanes | `method: deterministic_lexical_inverted_scan_v1`; no embedding lane exists, so no model score is fabricated |
 | Typed spatial constraints | Directed segment graph, bike-facility typing, signals; safety gate as the hard-constraint compiler |
 | Anchor grounding, fail closed | Geo-grounded nodes/segments with SHA-256-pinned world; missing grounding is a gate failure, not a fallback |
@@ -37,12 +37,13 @@ obligations.
 
 ## What the current world realizes
 
-`villages-williamsburg-delivery-bike-v1` is SHA-256 pinned in
+`nyc-core-autonomy-v1` is SHA-256 pinned in
 `autonomy-manifest.json`. It covers West Village, Washington Square, Union
 Square, East Village, Tompkins Square, the Williamsburg Bridge corridor,
 Williamsburg waterfront, North Williamsburg, McCarren Park, and Greenpoint.
-The compiled artifact contains 2,422 bike nodes, 3,654 directed bike edges,
-6,589 OSM street ways, and a deterministic 8,500-footprint rendering LOD
+The compiled artifact contains 2,491 multimodal nodes, 3,723 directed edges,
+6,589 OSM street ways, one official-source Union Square property-boundary
+circuit, and a deterministic 8,500-footprint rendering LOD
 from 26,990 source buildings. Per-source receipts retain authority, license,
 query, snapshot date, and raw SHA-256.
 
@@ -62,7 +63,7 @@ gold endpoints, constraints, obligations, and route controls. It is exposed
 regression evidence, not a contamination-secure promotion holdout.
 
 The checked-in reranker receipt compares the declared weights against lexical
-ranking on 40 mission/query judgments. MRR moves from 0.900 to 0.925 while
+ranking on 40 mission/query judgments. MRR moves from 0.725 to 0.750 while
 Recall@5 remains 1.000. The receipt supports retaining those weights only on
 that public diagnostic population.
 
@@ -119,7 +120,13 @@ by default so a second city cannot replace the hosted city accidentally.
 
 ## Mode expansion order
 
-Delivery bike (current) to pedestrian (sidewalk/crosswalk graph, social-force
-actors) to driving (lane-level graph, turn restrictions, signal phases).
-Each mode is a new constraint vocabulary over the same mission, bet, gate,
-and settlement loop, not a new pipeline.
+Delivery bike and the bounded pedestrian circuit are current. General
+pedestrian navigation still requires a sidewalk/crosswalk graph and
+social-force actors; scooter and car navigation require mode-eligible graphs,
+and driving further requires lane-level turn restrictions and signal phases.
+All modes share observation, action bets, dynamics integration, safety gates,
+selection, settlement, receipts, renderer, camera, and SAME-R evaluation.
+Embodiment data, task grammar, graph eligibility, and legal constraints vary;
+they do not create separate pipelines. The current runner control proves the
+shared multimodal contract and exact loop settlement, not general pedestrian
+navigation.

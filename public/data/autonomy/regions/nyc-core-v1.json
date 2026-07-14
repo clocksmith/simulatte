@@ -20,14 +20,15 @@
       "bikeFacilities": 2738,
       "buildings": 8500,
       "disruptions": 0,
-      "featureCards": 12991,
+      "featureCards": 13062,
       "land": 12,
-      "nodes": 2422,
-      "segments": 3654,
+      "nodes": 2491,
+      "parks": 1,
+      "segments": 3723,
       "signals": 1,
       "streets": 6589
     },
-    "featureCatalogSha256": "598cb9771cbe30e691482bc7380c3db0c915fbdf230e42ea6a52818ad7f63ef4",
+    "featureCatalogSha256": "16d05573eb74830f70587435612abb0c1c62b8f897ac9f4aa32c371e81bbd72c",
     "id": "nyc-core-default-composition-v1",
     "seamNodeIds": [
       "bike-node-187c7facb939",
@@ -58,11 +59,11 @@
       "bike-node-f6ec25169c13",
       "bike-node-fdcb8f82b099"
     ],
-    "worldSha256": "04361791f51e9c2a3275daffa2aec8c00de8e1cbe5cd7ab464d508fe004dfb00"
+    "worldSha256": "c5b78f235978b8b3c791f2f8cf21c43d41a8523b8aa5e039201887af5564c714"
   },
-  "contentVersion": "nyc-core-regions-2026-07-13",
+  "contentVersion": "nyc-core-regions-multimodal-2026-07-13",
   "featureCatalogTemplate": {
-    "contentVersion": "autonomy-feature-cards-villages-williamsburg-delivery-bike-2026-07-13",
+    "contentVersion": "autonomy-feature-cards-nyc-core-autonomy-2026-07-13",
     "id": "autonomy-feature-cards-v1",
     "index": {
       "method": "deterministic_token_inverted_index_v1",
@@ -75,7 +76,7 @@
       "compiler": "tools/autonomy/build-nyc-autonomy-world.mjs",
       "snapshotDate": "2026-07-13",
       "sourceKind": "compiled_world_feature_catalog",
-      "worldId": "villages-williamsburg-delivery-bike-v1"
+      "worldId": "nyc-core-autonomy-v1"
     },
     "rerankerPolicy": {
       "control": "lexical_overlap_plus_exact_reference",
@@ -112,10 +113,11 @@
         "bikeFacilities": 1502,
         "buildings": 3129,
         "disruptions": 0,
-        "featureCards": 7214,
-        "nodes": 1322,
+        "featureCards": 7283,
+        "nodes": 1391,
+        "parks": 1,
         "seams": 26,
-        "segments": 1878,
+        "segments": 1947,
         "signals": 1,
         "streets": 3833
       },
@@ -124,7 +126,7 @@
         "east-river-crossing-v1"
       ],
       "path": "./packs/manhattan-villages-v1.json",
-      "sha256": "c67f8f8a12e818f3281105b348894623207c82bdb46d2e61125e83785c01c7fa"
+      "sha256": "fd4bc2ec69deda3b14e288b846c770dd92b622b2e97c68a9fd086bda33dd8d9e"
     },
     {
       "boundsWgs84": {
@@ -141,6 +143,7 @@
         "disruptions": 0,
         "featureCards": 2244,
         "nodes": 514,
+        "parks": 0,
         "seams": 27,
         "segments": 789,
         "signals": 0,
@@ -152,7 +155,7 @@
         "north-brooklyn-v1"
       ],
       "path": "./packs/east-river-crossing-v1.json",
-      "sha256": "b4df39c76944c80edc07e825850a1ee3aa82f1ae2c4bed1422888d090b3325b4"
+      "sha256": "7eacc8352b87c82ca941db55d258986d85a5930c5251f34dd93e72dc891bbf2b"
     },
     {
       "boundsWgs84": {
@@ -169,6 +172,7 @@
         "disruptions": 0,
         "featureCards": 3526,
         "nodes": 613,
+        "parks": 0,
         "seams": 1,
         "segments": 987,
         "signals": 0,
@@ -179,7 +183,7 @@
         "east-river-crossing-v1"
       ],
       "path": "./packs/north-brooklyn-v1.json",
-      "sha256": "e60f5f70ed07b8001fa807163b37a0495c4a22ba84fe66a3b5f35e08da90f91a"
+      "sha256": "dba73db4e5a9f65fcd4491562fba43373ca5c2eb16a0c9db121123af606f84dd"
     }
   ],
   "placeIndex": [
@@ -363,6 +367,34 @@
       },
       {
         "constraints": [
+          "closed_circuit",
+          "exact_distance_settlement",
+          "lap_accounting"
+        ],
+        "id": "scenario.loop-distance",
+        "kind": "scenario",
+        "label": "Perimeter distance loop",
+        "provenance": {
+          "sourceId": "scenario.loop-distance",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "run",
+          "walk",
+          "loop",
+          "laps",
+          "distance target",
+          "park perimeter"
+        ],
+        "validationObligations": [
+          "circuit_exists",
+          "distance_conversion_receipted",
+          "boundary_segments_receipted",
+          "final_settlement_required"
+        ]
+      },
+      {
+        "constraints": [
           "mode_eligible",
           "speed_limited",
           "network_contained"
@@ -384,6 +416,33 @@
           "endpoints_exist",
           "geometry_has_two_points",
           "positive_length"
+        ]
+      },
+      {
+        "constraints": [
+          "mode_eligible",
+          "boundary_contained",
+          "closed_circuit"
+        ],
+        "id": "street.pedestrian-perimeter",
+        "kind": "street_segment",
+        "label": "Pedestrian park perimeter",
+        "provenance": {
+          "sourceId": "street.pedestrian-perimeter",
+          "sourceKind": "hand_authored_behavior_contract"
+        },
+        "searchTerms": [
+          "pedestrian",
+          "runner",
+          "walker",
+          "park perimeter",
+          "closed circuit"
+        ],
+        "validationObligations": [
+          "endpoints_exist",
+          "geometry_has_two_points",
+          "positive_length",
+          "source_boundary_present"
         ]
       },
       {
@@ -447,15 +506,20 @@
           "behavior.signal-compliance"
         ],
         "scenario": [
-          "scenario.delivery-arrival"
+          "scenario.delivery-arrival",
+          "scenario.loop-distance"
         ],
         "street_segment": [
           "street.connector",
+          "street.pedestrian-perimeter",
           "street.protected-lane",
           "street.shared-lane"
         ]
       },
       "tokenToCardIds": {
+        "accounting": [
+          "scenario.loop-distance"
+        ],
         "allows": [
           "behavior.signal-compliance"
         ],
@@ -468,9 +532,20 @@
         "blocks": [
           "behavior.signal-compliance"
         ],
+        "boundary": [
+          "street.pedestrian-perimeter"
+        ],
+        "circuit": [
+          "scenario.loop-distance",
+          "street.pedestrian-perimeter"
+        ],
         "clearance": [
           "behavior.pedestrian-yield",
           "street.protected-lane"
+        ],
+        "closed": [
+          "scenario.loop-distance",
+          "street.pedestrian-perimeter"
         ],
         "closure": [
           "behavior.blocked-segment-replan"
@@ -482,7 +557,8 @@
           "street.connector"
         ],
         "contained": [
-          "street.connector"
+          "street.connector",
+          "street.pedestrian-perimeter"
         ],
         "conventional": [
           "street.shared-lane"
@@ -500,14 +576,21 @@
         "destination": [
           "scenario.delivery-arrival"
         ],
+        "distance": [
+          "scenario.loop-distance"
+        ],
         "eligible": [
           "street.connector",
+          "street.pedestrian-perimeter",
           "street.protected-lane",
           "street.shared-lane"
         ],
         "entry": [
           "behavior.signal-compliance",
           "street.connector"
+        ],
+        "exact": [
+          "scenario.loop-distance"
         ],
         "exit": [
           "street.connector"
@@ -531,10 +614,19 @@
           "street.protected-lane",
           "street.shared-lane"
         ],
+        "lap": [
+          "scenario.loop-distance"
+        ],
+        "laps": [
+          "scenario.loop-distance"
+        ],
         "limited": [
           "street.connector",
           "street.protected-lane",
           "street.shared-lane"
+        ],
+        "loop": [
+          "scenario.loop-distance"
         ],
         "low": [
           "street.protected-lane"
@@ -549,12 +641,21 @@
         "parcel": [
           "scenario.delivery-arrival"
         ],
+        "park": [
+          "scenario.loop-distance",
+          "street.pedestrian-perimeter"
+        ],
         "payload": [
           "scenario.delivery-arrival"
         ],
         "pedestrian": [
           "behavior.pedestrian-yield",
+          "street.pedestrian-perimeter",
           "street.protected-lane"
+        ],
+        "perimeter": [
+          "scenario.loop-distance",
+          "street.pedestrian-perimeter"
         ],
         "protected": [
           "street.protected-lane"
@@ -586,8 +687,17 @@
         "risk": [
           "street.protected-lane"
         ],
+        "run": [
+          "scenario.loop-distance"
+        ],
+        "runner": [
+          "street.pedestrian-perimeter"
+        ],
         "separated": [
           "street.protected-lane"
+        ],
+        "settlement": [
+          "scenario.loop-distance"
         ],
         "shared": [
           "street.shared-lane"
@@ -603,8 +713,17 @@
         "stop": [
           "behavior.signal-compliance"
         ],
+        "target": [
+          "scenario.loop-distance"
+        ],
         "traffic": [
           "street.shared-lane"
+        ],
+        "walk": [
+          "scenario.loop-distance"
+        ],
+        "walker": [
+          "street.pedestrian-perimeter"
         ],
         "yield": [
           "behavior.pedestrian-yield",
@@ -2970,13 +3089,182 @@
           ]
         }
       ],
+      "parks": [],
       "streets": []
     },
     "segments": [],
     "signals": []
   },
   "worldTemplate": {
-    "contentVersion": "villages-williamsburg-delivery-bike-2026-07-13",
+    "circuits": [
+      {
+        "aliases": [
+          "Union Square",
+          "Union Square Park"
+        ],
+        "direction": "clockwise",
+        "id": "union-square-park-perimeter-v1",
+        "label": "Union Square Park",
+        "lengthM": 649.45053,
+        "mode": "pedestrian",
+        "nodeIds": [
+          "ped-node-e9cde2753590",
+          "ped-node-765fc3b95982",
+          "ped-node-36e53fbaab45",
+          "ped-node-9217a04e1a59",
+          "ped-node-64b4bcc84608",
+          "ped-node-95a278e0329e",
+          "ped-node-f25b6b55a491",
+          "ped-node-2b50fb7fd0a0",
+          "ped-node-0bd593b93428",
+          "ped-node-b156c881a027",
+          "ped-node-cbe20b897897",
+          "ped-node-9b18d068057e",
+          "ped-node-3e1bd601289b",
+          "ped-node-ac6b50fff2cc",
+          "ped-node-6442d1e18317",
+          "ped-node-50667d7dc9f9",
+          "ped-node-230e67a081d2",
+          "ped-node-51fa1c7994f8",
+          "ped-node-cb1e3a285378",
+          "ped-node-b6b6a13df91a",
+          "ped-node-234f5e688089",
+          "ped-node-218b080504cb",
+          "ped-node-58fa31d0d68d",
+          "ped-node-86ccad9dd1c8",
+          "ped-node-8126c1128c41",
+          "ped-node-4f739e939ac1",
+          "ped-node-e75ed10b33ec",
+          "ped-node-f4e53ecdda50",
+          "ped-node-b02bcead25d7",
+          "ped-node-6efbe8e3446e",
+          "ped-node-d9c24b9cb066",
+          "ped-node-0ca863d20a29",
+          "ped-node-a054b3cac96e",
+          "ped-node-c4174efb899c",
+          "ped-node-982434e1b7ef",
+          "ped-node-25e9dca7fa3e",
+          "ped-node-9f2724af8860",
+          "ped-node-78f5e6b62ed9",
+          "ped-node-5bb399014d00",
+          "ped-node-92f0be1f275b",
+          "ped-node-9a01af332ed2",
+          "ped-node-69fdd21f8b0b",
+          "ped-node-80788ed4ee2b",
+          "ped-node-e38d8db98d69",
+          "ped-node-0727e552342f",
+          "ped-node-898f242b7d86",
+          "ped-node-fa4045c1a65b",
+          "ped-node-6c8b83b7b6cc",
+          "ped-node-f159f7261a21",
+          "ped-node-480cfcfed323",
+          "ped-node-3d86b461de82",
+          "ped-node-5eda3d0ac8c9",
+          "ped-node-469d2e60739c",
+          "ped-node-ec6c4cd68b7a",
+          "ped-node-5995b95f7f14",
+          "ped-node-5f829941dd7b",
+          "ped-node-513a85fa3233",
+          "ped-node-04dc59d24964",
+          "ped-node-7b102fd81b3c",
+          "ped-node-8243251307e0",
+          "ped-node-85ebb33c26b8",
+          "ped-node-0bc7578239ca",
+          "ped-node-a9d238c647d6",
+          "ped-node-77d736a5b4b4",
+          "ped-node-741bd2c5e3db",
+          "ped-node-5490ee63270d",
+          "ped-node-4bdeabf990bc",
+          "ped-node-447f8875c505",
+          "ped-node-fedd1cc4b851"
+        ],
+        "segmentIds": [
+          "ped-21bedba64175-cw",
+          "ped-d5c768ccbe64-cw",
+          "ped-9c8000d8e190-cw",
+          "ped-aa26dd63647d-cw",
+          "ped-da3a81b0a00e-cw",
+          "ped-748fa7acdb69-cw",
+          "ped-4199ce1a9de4-cw",
+          "ped-177238881d8a-cw",
+          "ped-fd57453b7e20-cw",
+          "ped-a0c2fdffc51f-cw",
+          "ped-6ab4c66e358f-cw",
+          "ped-4569af9dabdd-cw",
+          "ped-51075f9bac0d-cw",
+          "ped-9de2a7885dad-cw",
+          "ped-d0bfa09ef1f2-cw",
+          "ped-04ccaf5fe6f3-cw",
+          "ped-0d2977567bdd-cw",
+          "ped-ca00865cb780-cw",
+          "ped-1db1a8e52453-cw",
+          "ped-b15c6afd67d4-cw",
+          "ped-61c5f2087ac5-cw",
+          "ped-9d659e61e074-cw",
+          "ped-111ca6eb3532-cw",
+          "ped-3731670ef85d-cw",
+          "ped-7eeca9feade6-cw",
+          "ped-418f9aea59ab-cw",
+          "ped-c24e87483b95-cw",
+          "ped-c4c45175611b-cw",
+          "ped-197e487658c1-cw",
+          "ped-1ffd67818888-cw",
+          "ped-ad2964c3c15e-cw",
+          "ped-cc3ab963db94-cw",
+          "ped-25cc9bbd058d-cw",
+          "ped-048342532e27-cw",
+          "ped-df00f8477efe-cw",
+          "ped-0b7f34bbdf54-cw",
+          "ped-b48469f01e29-cw",
+          "ped-7e4bb85c6673-cw",
+          "ped-b2794a5cf35a-cw",
+          "ped-497f1335a3bb-cw",
+          "ped-97ad3c7e670d-cw",
+          "ped-d47612254d09-cw",
+          "ped-2ce9a811ca57-cw",
+          "ped-95a30d6963c0-cw",
+          "ped-25c89d3c66de-cw",
+          "ped-68f3d1f0becc-cw",
+          "ped-7306ca127475-cw",
+          "ped-49c3f3833afa-cw",
+          "ped-14bd13072f6e-cw",
+          "ped-8a7cf4feb74b-cw",
+          "ped-f1f535fca7ff-cw",
+          "ped-9b43f44e3f14-cw",
+          "ped-496acca62ab2-cw",
+          "ped-0e061c36223b-cw",
+          "ped-95f3ffaeae9a-cw",
+          "ped-e68f1a7c3577-cw",
+          "ped-b071a7a7c38a-cw",
+          "ped-6cda76a8553d-cw",
+          "ped-79906484f8d6-cw",
+          "ped-b75cd2e73012-cw",
+          "ped-d6370173a02d-cw",
+          "ped-282699b7dc98-cw",
+          "ped-f03d46972a2c-cw",
+          "ped-e63af0f8c0f2-cw",
+          "ped-d8bef74db659-cw",
+          "ped-f814883f699e-cw",
+          "ped-69cd534d094d-cw",
+          "ped-e33c6b3c0c91-cw",
+          "ped-7a307f0cd8e0-cw"
+        ],
+        "source": {
+          "boundaryKind": "nyc_parks_property_boundary",
+          "claimBoundary": "The circuit follows the largest exterior member of the frozen NYC Parks property geometry. It does not claim a surveyed sidewalk centerline, current access condition, or obstacle-free physical route.",
+          "datasetId": "nyc-parks-properties",
+          "geometryWgs84Sha256": "8adf6c6ff18eefaf0fd1260659d5373b319f7ab5078f2d7470c4ad4b27ec8df3",
+          "memberCount": 2,
+          "propertyId": "M089",
+          "selectedMemberIndex": 0,
+          "selectedRingWgs84Sha256": "73539f141f5cccfff7abea5479ac34a0219c64b33155c29c5c28b4d48f58c895",
+          "selectionMethod": "largest_projected_exterior_ring_area_v1",
+          "sourceRevision": "2026-07-13",
+          "surfaceClaim": "park_property_boundary_not_surveyed_sidewalk"
+        }
+      }
+    ],
+    "contentVersion": "nyc-core-autonomy-2026-07-13",
     "coordinateSystem": {
       "bounds": {
         "maximumX": 3755.417108,
@@ -2991,14 +3279,14 @@
         "longitude": -73.978
       }
     },
-    "id": "villages-williamsburg-delivery-bike-v1",
-    "label": "Villages to North Brooklyn delivery-bike world",
+    "id": "nyc-core-autonomy-v1",
+    "label": "NYC core multimodal autonomy world",
     "provenance": {
-      "claimBoundary": "The street, bike, building, and land geometry is compiled from the named frozen sources. Traffic actors, signal timing, routing risk, simulated speed, and action outcomes are bounded simulation assumptions, not live conditions or physical autonomy evidence.",
+      "claimBoundary": "The street, bike, park-property, building, and land geometry is compiled from the named frozen sources. Park boundaries are not surveyed sidewalk centerlines. Traffic actors, signal timing, routing risk, simulated speed, and action outcomes are bounded simulation assumptions, not live conditions or physical autonomy evidence.",
       "compiler": "tools/autonomy/build-nyc-autonomy-world.mjs",
       "endpointSnapToleranceM": 3,
       "snapshotDate": "2026-07-13",
-      "sourceId": "simulatte-villages-williamsburg-open-data-tile-v1",
+      "sourceId": "simulatte-nyc-core-open-data-tile-v1",
       "sourceKind": "compiled_open_data_snapshot",
       "sources": {
         "bike": {
@@ -3031,6 +3319,16 @@
           "snapshotDate": "2026-07-13",
           "url": "https://data.cityofnewyork.us/resource/gthc-hcne.geojson"
         },
+        "parks": {
+          "authority": "NYC Department of Parks and Recreation",
+          "id": "nyc-parks-properties",
+          "license": "NYC Open Data Terms of Use",
+          "query": "$limit=10&$where=gispropnum='M089'",
+          "rawByteCount": 8993,
+          "rawSha256": "53cb9353182e12c5d67fc2cff1df98238ca9bcffd4bd4f8179f607d616e7f03d",
+          "snapshotDate": "2026-07-13",
+          "url": "https://data.cityofnewyork.us/resource/enfh-gkve.geojson"
+        },
         "streets": {
           "authority": "OpenStreetMap contributors",
           "id": "openstreetmap-highways",
@@ -3053,7 +3351,7 @@
         "schema": "simulatte.autonomyBuildingLodReceipt.v1",
         "sourceFeatureCount": 26990
       },
-      "claimBoundary": "Building footprints, roof heights, bike facilities, streets, and land geometry preserve the frozen source snapshots. Render colors, widths, lighting, traffic actors, and signal timing are simulation presentation or policy assumptions.",
+      "claimBoundary": "Building footprints, roof heights, bike facilities, park-property boundaries, streets, and land geometry preserve the frozen source snapshots. Park boundaries are not surveyed sidewalk centerlines. Render colors, widths, lighting, traffic actors, and signal timing are simulation presentation or policy assumptions.",
       "coordinateSystem": "local_cartesian_meters",
       "schema": "simulatte.autonomyRenderGeometry.v1"
     },

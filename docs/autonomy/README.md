@@ -11,9 +11,9 @@ Owner contracts:
 
 ## Product goal
 
-Simulatte Autonomy runs one governed delivery-bike agent in a browser
-simulation. The simulator is the execution and evaluation substrate. The
-product behavior is the repeated decision loop:
+Simulatte Autonomy runs governed bicycle-delivery and pedestrian-loop agents
+in a browser simulation. The simulator is the execution and evaluation
+substrate. The product behavior is the repeated decision loop:
 
 ```text
 mission -> observe -> propose action bets -> predict -> safety gate
@@ -22,7 +22,8 @@ mission -> observe -> propose action bets -> predict -> safety gate
 
 A generated route is not autonomy proof. A qualifying journey needs repeated
 closed-loop decisions, validated state transitions, hard-gate compliance,
-settled predictions, terminal delivery, and a verified receipt chain.
+settled predictions, task-specific terminal evidence, and a verified receipt
+chain.
 
 ## Repository boundary
 
@@ -41,24 +42,35 @@ Autonomy does not add a ninth compiler phase. Code may become shared only when
 both subsystems consume the same contract without importing each other's
 internal state.
 
-## Governed embodiment
+## Governed embodiments
 
-The current embodiment is `delivery-bike-v1`. Its manifest owns dimensions,
-collision radius, acceleration, deceleration, integration step, and maximum
-speed. The browser does not infer those values.
+The manifest loads `delivery-bike-v1` and `pedestrian-v1`. Each owns its
+dimensions, collision radius, acceleration, deceleration, integration step,
+maximum speed, task eligibility, network mode, and render profile. The mission
+compiler selects the embodiment by task and kind; the browser does not infer
+or share dynamics values across modes.
 
-Walker, scooter, car-delivery, and robotaxi embodiments are unimplemented.
-They require their own dynamics, legal constraints, action vocabulary,
-scenario population, guardrails, and promotion receipts. The delivery-bike
-journey does not speak for them.
+Observation, action proposals, reference dynamics integration, safety gates,
+selection, settlement, receipt chaining, renderer, camera, and SAME-R
+evaluation are one shared engine. Pedestrian, bicycle, future scooter, and
+future car agents vary through embodiment data, task grammar, allowed graph
+modes, and legal constraints. The pedestrian control currently supports a
+runner/walker on one closed circuit, not a general sidewalk graph. Scooter,
+car-delivery, and robotaxi artifacts remain unimplemented; neither current
+journey speaks for them.
 
 ## Mission compiler
 
-`mission/mission-compiler.js` implements a deterministic known-label control
-lane. It accepts an explicit delivery term, bike mode, `from` node, and `to`
-node. It records source intervals for each accepted term. Unknown places,
-missing modes, unsupported tasks, and equal origin/destination pairs fail
-closed.
+`mission/mission-compiler.js` implements a deterministic grounded control
+lane. Delivery missions require an explicit delivery term, an embodiment mode,
+`from` node, and `to` node. Loop-distance missions require a run/walk term, a
+loop relation, a declared circuit, and a numeric distance with units. Feet,
+meters, kilometers, and miles convert to meters inside the mission receipt. A
+bounded edit-distance matcher can correct a misspelled declared circuit or
+`perimeter`; it cannot create a new place. Every accepted term retains its
+exact source interval, correction distance, grounded identity, and canonical
+value. Unknown places, unloaded embodiments, unsupported tasks, and invalid
+distances fail closed.
 
 The parser is a control lane, not a general natural-language model claim. A
 model parser must beat it on a frozen intent population while preserving the
@@ -90,7 +102,7 @@ failed gate.
 | Gate | Blocking condition |
 | --- | --- |
 | Network containment | Transition has neither a valid node nor segment |
-| Mode eligibility | Delivery bike enters a segment that excludes its mode |
+| Mode eligibility | Agent enters a segment that excludes its embodiment mode |
 | Segment closure | Candidate enters an active blocked segment |
 | Signal compliance | Candidate enters a controlled segment on red |
 | Speed | Predicted speed exceeds segment, mission, or embodiment limit |
@@ -102,24 +114,33 @@ not select the least unsafe action.
 
 ## World and renderer
 
-`villages-williamsburg-delivery-bike-v1` is the governed browser world. It
+`nyc-core-autonomy-v1` is the governed browser world. It
 covers named nodes from West Village and Union Square through East Village,
 the Williamsburg Bridge corridor, North Williamsburg, McCarren Park, and
 Greenpoint. Its manifest pins the compiled world by SHA-256. The world retains
 frozen source receipts for NYC bike routes, NYC building footprints, NYC
-borough geometry, and OpenStreetMap streets.
+borough geometry, OpenStreetMap streets, and the NYC Parks Union Square Park
+property geometry.
 
-The artifact contains 2,422 bike nodes, 3,654 directed bike edges, 6,589 OSM
-street ways, and 8,500 retained building footprints from 26,990 source
-footprints. The building LOD receipt says that it is not full coverage.
+The artifact contains 2,491 multimodal nodes, 3,723 directed segments, 6,589
+OSM street ways, one 69-segment pedestrian circuit, and 8,500 retained
+building footprints from 26,990 source footprints. The park circuit follows
+the largest exterior member of property `M089`; the full source geometry and
+selected ring are separately hashed. It is a property-boundary simulation
+path, not a surveyed sidewalk centerline or an access/obstacle claim. The
+building LOD receipt says that it is not full coverage.
 
 The browser renderer requires WebGPU and fails closed when the adapter,
 device, shader, or render geometry is unavailable. It draws source-bound
-streets, bike facilities, building footprints and heights, the selected route,
-the driven trace, actors, signals, prediction geometry, and the agent. The
-reference dynamics remain on CPU. A browser receipt records the adapter,
-backend, frame count, vertex counts, world identity, and visible feature
-counts. Rendered pixels aid inspection but do not prove physical safety.
+streets, bike facilities, park fill and perimeter, building footprints and
+heights, the selected route, the traveled trace, actors, signals, prediction
+geometry, and a task-specific bicycle or runner marker. Follow, bird, and top
+camera changes interpolate; bird/top pan, orbit where applicable, and mouse
+wheel zoom work, including adjustable Follow distance. The reference dynamics
+remain on CPU. A browser receipt records the adapter, backend, frame count,
+vertex counts, world identity, park/circuit counts, visible feature counts,
+and Follow distance. Rendered pixels aid inspection but do not prove physical
+safety.
 
 `nyc-training-corridor-v1` remains a small synthetic test fixture. It does not
 back the hosted default mission.
@@ -157,6 +178,10 @@ The journey verifier settles:
 
 - destination arrival;
 - payload delivery;
+- exact loop-distance conversion and terminal distance;
+- closed-circuit segment order;
+- one boundary-bound receipt per completed lap;
+- full-lap and final-partial distance accounting;
 - signal compliance;
 - pedestrian clearance;
 - protected-lane preference when required;
@@ -181,8 +206,10 @@ because no sealed population or physical-world evidence is supplied.
 The separate 20-mission public diagnostic set covers named endpoints,
 constraints, obligations, and route controls for the expanded world. It is
 checked into the repository and therefore cannot authorize promotion. The
-typed reranker receipt records MRR 0.900 to 0.925 with Recall@5 unchanged at
-1.000 on 40 exposed mission/query judgments.
+typed reranker receipt records MRR 0.725 to 0.750 with Recall@5 unchanged at
+1.000 on 40 exposed mission/query judgments after adding the pedestrian
+catalog. This population remains saturated at Recall@5 and supports retention
+only on the exposed diagnostic rows.
 
 ## Commands
 
@@ -206,9 +233,12 @@ the root Autonomy runtime.
 
 ## Claim boundary
 
-The implemented evidence supports deterministic delivery-bike behavior over
-the pinned Villages and North Brooklyn map artifact in the named browser
-runtime. Frozen geometry provenance does not make authored traffic live or
-historical. The evidence does not establish physical bicycle control,
-robotaxi safety, public-road readiness, realistic traffic, or policy
-promotion.
+The implemented evidence supports deterministic delivery-bike behavior and a
+pedestrian loop-distance control over the pinned Villages and North Brooklyn
+map artifact in the named browser runtime. For the exact 5,000-foot Union
+Square mission, the receipt binds the 0.3048 conversion, source boundary,
+ordered segments, full laps, partial lap, and exact 1,524-meter settlement.
+Frozen geometry provenance does not make authored traffic live or historical,
+and a park property boundary is not a surveyed sidewalk. The evidence does
+not establish physical bicycle or pedestrian control, robotaxi safety,
+public-road readiness, realistic traffic, or policy promotion.

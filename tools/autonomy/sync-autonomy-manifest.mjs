@@ -9,12 +9,13 @@ const ROOT = path.resolve(TOOL_DIR, '../..');
 const DATA_DIR = path.join(ROOT, 'public/data/autonomy');
 const MANIFEST_PATH = path.join(DATA_DIR, 'autonomy-manifest.json');
 const REFERENCE_KEYS = Object.freeze([
-  'world', 'featureCatalog', 'embodiment', 'policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry',
+  'world', 'featureCatalog', 'policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry',
 ]);
 
 function main() {
   const manifest = readJson(MANIFEST_PATH);
   REFERENCE_KEYS.forEach((key) => syncReference(manifest, key));
+  manifest.embodiments.forEach((reference) => syncReferenceValue(reference, `embodiment:${reference.id}`));
   const registry = readJson(resolvePath(manifest.regionRegistry.path));
   if (registry.composition.worldSha256 !== manifest.world.sha256) {
     throw new Error(`Region registry world SHA-256 ${registry.composition.worldSha256} does not match manifest ${manifest.world.sha256}`);
@@ -23,11 +24,15 @@ function main() {
     throw new Error(`Region registry feature SHA-256 ${registry.composition.featureCatalogSha256} does not match manifest ${manifest.featureCatalog.sha256}`);
   }
   fs.writeFileSync(MANIFEST_PATH, artifactText(manifest));
-  console.log(`AUTONOMY-MANIFEST id=${manifest.id} refs=${REFERENCE_KEYS.length} registry=${registry.id} status=synchronized`);
+  console.log(`AUTONOMY-MANIFEST id=${manifest.id} refs=${REFERENCE_KEYS.length + manifest.embodiments.length} registry=${registry.id} status=synchronized`);
 }
 
 function syncReference(manifest, key) {
   const reference = manifest[key];
+  syncReferenceValue(reference, key);
+}
+
+function syncReferenceValue(reference, key) {
   if (!reference || !reference.path) throw new Error(`Manifest ${key} reference expected path`);
   const file = resolvePath(reference.path);
   if (!fs.existsSync(file)) throw new Error(`Manifest ${key} file missing at ${file}`);

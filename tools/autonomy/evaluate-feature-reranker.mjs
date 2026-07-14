@@ -16,7 +16,7 @@ const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/feature-reranker-p
 
 function main() {
   const files = {
-    world: 'public/data/autonomy/worlds/villages-williamsburg-delivery-bike-v1.json',
+    world: 'public/data/autonomy/worlds/nyc-core-autonomy-v1.json',
     featureCatalog: 'public/data/autonomy/feature-cards-v1.json',
     embodiment: 'public/data/autonomy/embodiments/delivery-bike-v1.json',
     policy: 'public/data/autonomy/policies/bet-selector-v1.json',

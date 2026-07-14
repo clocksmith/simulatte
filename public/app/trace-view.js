@@ -11,7 +11,7 @@
     }
     function renderTick(entry, snapshot) {
       const receipt = entry.payload;
-      if (receipt.schema !== 'simulatte.autonomyTickReceipt.v1') {
+      if (receipt.schema !== 'simulatte.autonomyTickReceipt.v2') {
         renderFailure(receipt);
         return;
       }
@@ -38,7 +38,7 @@
       elements.betList.replaceChildren();
       elements.gateList.replaceChildren();
       elements.traceList.replaceChildren();
-      elements.routeStats.textContent = 'A* not run';
+      elements.routeStats.textContent = 'Route not planned';
       elements.routeFormula.textContent = 'cost = travel + risk + preference';
       elements.routeComponents.replaceChildren();
       elements.retrievalQuery.textContent = 'Waiting for observation';
@@ -66,7 +66,8 @@
 
   function renderRoute(elements, route) {
     const components = route.costBreakdown;
-    elements.routeStats.textContent = `${route.visitedNodeCount} nodes · ${route.evaluatedSegmentCount} edges`;
+    const method = route.algorithm === 'declared_closed_circuit_v1' ? 'declared circuit' : 'A*';
+    elements.routeStats.textContent = `${method} · ${route.visitedNodeCount} nodes · ${route.evaluatedSegmentCount} edges`;
     elements.routeFormula.textContent = components.formula;
     elements.routeComponents.replaceChildren(
       metricToken('travel', components.travel),
@@ -151,7 +152,10 @@
     setText(elements.metricTick, state.tick);
     setText(elements.metricSpeed, `${format(state.speedMps, 1)} m/s`);
     setText(elements.metricDistance, `${format(state.distanceTraveledM, 1)} m`);
-    setText(elements.metricRoute, snapshot.route ? `${snapshot.route.segmentIds.length} edges` : 'unplanned');
+    const routeMetric = state.taskType === 'loop_distance'
+      ? `${state.completedLaps} laps · ${snapshot.route?.segmentIds.length || 0} edges`
+      : snapshot.route ? `${snapshot.route.segmentIds.length} edges` : 'unplanned';
+    setText(elements.metricRoute, routeMetric);
     setText(elements.metricBet, selected ? label(selected.bet.action.maneuver) : 'none');
     setText(elements.metricSettlement, receipt ? receipt.settlement.verdict : 'none');
     setText(elements.metricCalibration, `${snapshot.policyMemory.wonBetCount} / ${snapshot.policyMemory.settledBetCount}`);

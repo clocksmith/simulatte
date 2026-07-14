@@ -39,7 +39,9 @@ function main() {
   const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
   const worldPath = path.resolve(ROOT, 'public/data/autonomy', manifest.world.path);
   const policyPath = path.resolve(ROOT, 'public/data/autonomy', manifest.policy.path);
-  const embodimentPath = path.resolve(ROOT, 'public/data/autonomy', manifest.embodiment.path);
+  const embodimentReference = manifest.embodiments.find((row) => row.id === manifest.defaultEmbodimentId);
+  if (!embodimentReference) throw new Error(`Default embodiment ${manifest.defaultEmbodimentId} is not registered`);
+  const embodimentPath = path.resolve(ROOT, 'public/data/autonomy', embodimentReference.path);
   const world = readJson(path.relative(ROOT, worldPath));
   const policy = readJson(path.relative(ROOT, policyPath));
   const embodiment = readJson(path.relative(ROOT, embodimentPath));

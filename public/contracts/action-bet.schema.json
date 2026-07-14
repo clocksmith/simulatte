@@ -18,7 +18,7 @@
     "status"
   ],
   "properties": {
-    "schema": { "const": "simulatte.autonomyActionBet.v1" },
+    "schema": { "const": "simulatte.autonomyActionBet.v2" },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]*$" },
     "missionId": { "type": "string" },
     "tick": { "type": "integer", "minimum": 0 },
@@ -37,7 +37,7 @@
     "prediction": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["endPosition", "endSpeedMps", "progressDeltaM", "minimumClearanceM", "clearanceIsLowerBound", "willReachNode", "willArrive"],
+      "required": ["endPosition", "endSpeedMps", "progressDeltaM", "minimumClearanceM", "clearanceIsLowerBound", "willReachNode", "willArrive", "willComplete", "completionReason"],
       "properties": {
         "endPosition": { "$ref": "#/$defs/point" },
         "endSpeedMps": { "type": "number", "minimum": 0 },
@@ -45,7 +45,9 @@
         "minimumClearanceM": { "type": "number", "minimum": 0 },
         "clearanceIsLowerBound": { "type": "boolean" },
         "willReachNode": { "type": "boolean" },
-        "willArrive": { "type": "boolean" }
+        "willArrive": { "type": "boolean" },
+        "willComplete": { "type": "boolean" },
+        "completionReason": { "enum": ["destination_reached", "distance_target_reached", null] }
       }
     },
     "confidence": { "type": "number", "minimum": 0, "maximum": 1 },

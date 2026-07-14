@@ -3,14 +3,14 @@
   "title": "Simulatte autonomy journey receipt",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "mission", "identities", "events", "terminalState", "trace", "verification", "integrity"],
+  "required": ["schema", "mission", "identities", "events", "terminalState", "finalState", "settlement", "trace", "verification", "integrity"],
   "properties": {
-    "schema": { "const": "simulatte.autonomyJourneyReceipt.v1" },
+    "schema": { "const": "simulatte.autonomyJourneyReceipt.v2" },
     "mission": { "type": "object" },
     "identities": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId", "regionRegistryId", "regionCompositionId", "regionPackIds"],
+      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId", "regionRegistryId", "regionCompositionId", "regionPackIds", "circuitId", "boundaryGeometrySha256"],
       "properties": {
         "worldId": { "type": "string" },
         "worldContentVersion": { "type": "string" },
@@ -19,7 +19,9 @@
         "occurrenceCatalogId": { "type": ["string", "null"] },
         "regionRegistryId": { "type": ["string", "null"] },
         "regionCompositionId": { "type": ["string", "null"] },
-        "regionPackIds": { "type": "array", "items": { "type": "string" } }
+        "regionPackIds": { "type": "array", "items": { "type": "string" } },
+        "circuitId": { "type": ["string", "null"] },
+        "boundaryGeometrySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
       }
     },
     "events": {
@@ -38,7 +40,27 @@
         }
       }
     },
-    "terminalState": { "enum": ["completed", "failed", "budget_exhausted", "active"] },
+    "terminalState": { "type": "string", "minLength": 1 },
+    "finalState": { "type": "object" },
+    "settlement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "taskType", "completionReason", "targetDistanceM", "actualDistanceM", "distanceErrorM", "exactDistanceSettlement", "completedLaps", "finalPartialDistanceM", "finalSegmentId", "finalSegmentProgressM", "boundaryGeometrySha256"],
+      "properties": {
+        "schema": { "const": "simulatte.autonomyJourneySettlement.v1" },
+        "taskType": { "enum": ["delivery", "loop_distance"] },
+        "completionReason": { "type": "string", "minLength": 1 },
+        "targetDistanceM": { "type": ["number", "null"], "minimum": 0 },
+        "actualDistanceM": { "type": "number", "minimum": 0 },
+        "distanceErrorM": { "type": ["number", "null"] },
+        "exactDistanceSettlement": { "type": "boolean" },
+        "completedLaps": { "type": "integer", "minimum": 0 },
+        "finalPartialDistanceM": { "type": ["number", "null"], "minimum": 0 },
+        "finalSegmentId": { "type": ["string", "null"] },
+        "finalSegmentProgressM": { "type": "number", "minimum": 0 },
+        "boundaryGeometrySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
     "trace": { "type": "array", "items": { "type": "object" } },
     "verification": { "type": "object" },
     "integrity": {

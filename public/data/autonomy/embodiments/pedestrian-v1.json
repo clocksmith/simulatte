@@ -1,0 +1,30 @@
+{
+  "schema": "simulatte.autonomyEmbodiment.v2",
+  "id": "pedestrian-v1",
+  "contentVersion": "pedestrian-v1",
+  "mode": "pedestrian",
+  "label": "Runner or walker",
+  "kind": "pedestrian",
+  "renderProfile": "runner",
+  "supportedTaskTypes": ["loop_distance"],
+  "dimensions": {
+    "lengthM": 0.55,
+    "widthM": 0.45,
+    "collisionRadiusM": 0.45
+  },
+  "dynamics": {
+    "maximumSpeedMps": 4.5,
+    "normalAccelerationMps2": 0.8,
+    "strongAccelerationMps2": 1.2,
+    "comfortableDecelerationMps2": 1.8,
+    "emergencyDecelerationMps2": 3.5,
+    "integrationStepSeconds": 1
+  },
+  "requiredCapabilities": [
+    "pedestrian_network_traversal",
+    "closed_circuit_repetition",
+    "distance_goal_settlement",
+    "pedestrian_clearance"
+  ],
+  "claimBoundary": "This embodiment is a deterministic browser simulation contract for walking and running. It is not a controller for a physical person or robot."
+}

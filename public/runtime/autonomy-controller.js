@@ -63,6 +63,8 @@
     const policyMemory = observations.createPolicyMemory(policy);
     const receiptChain = receipts.createReceiptChain();
     const state = initialState(mission, worldModel);
+    state.embodimentKind = embodiment.kind;
+    state.renderProfile = embodiment.renderProfile;
     const occurrenceEngine = occurrenceCatalog ? occurrences.createOccurrenceEngine(occurrenceCatalog) : null;
     const eventHistory = [occurrences.eventRow({ tick: 0, kind: 'mission_started', sourceId: mission.id })];
     let occurrenceReceipt = evaluateOccurrences(occurrenceEngine, state.tick, eventHistory);
@@ -76,8 +78,8 @@
         state.terminalReason = 'budget_exhausted';
         return snapshot();
       }
-      if (state.currentNodeId === mission.destinationNodeId && !state.currentSegmentId) {
-        completeMission(state);
+      if (missionIsComplete(state, mission)) {
+        completeMission(state, mission);
         return snapshot();
       }
 
@@ -89,6 +91,7 @@
         const proposals = proposer.proposeActionBets({ mission, observation, state, route: activeRoute, worldModel, embodiment, policy, policyMemory });
         const gatedRows = safety.gateActionBets({ proposals, state, route: activeRoute, worldModel, embodiment, mission, policy });
         const selection = selector.selectActionBet(gatedRows, policy);
+        const beforeState = structuredClone(state);
         const transition = dynamics.simulateAction({
           state,
           action: selection.selected.bet.action,
@@ -98,9 +101,10 @@
           policy,
         });
         const settlement = settlementApi.settleSelectedBet(selection.selected.bet, transition, policy, policyMemory);
-        const violations = transitionViolations(selection.selected, transition, state, worldModel, embodiment, mission, policy);
+        const violations = transitionViolations(selection.selected, transition, beforeState, worldModel, embodiment, mission, policy);
         const tick = state.tick;
         Object.assign(state, transition.state);
+        const lapCompleted = recordCircuitProgress(state, beforeState, transition, mission);
         if (violations.length) {
           state.status = 'failed';
           state.terminalReason = 'safety_violation';
@@ -112,10 +116,10 @@
         if (transition.reachedNodeId && !transition.enteredSegmentId && state.currentNodeId) {
           activeRoute = { ...activeRoute, segmentIds: activeRoute.segmentIds.slice(1) };
         }
-        if (transition.willArrive) completeMission(state);
-        const emittedEvents = transitionEvents({ transition, observation, mission, state });
+        if (transition.willComplete) completeMission(state, mission);
+        const emittedEvents = transitionEvents({ transition, observation, mission, state, lapCompleted });
         eventHistory.push(...emittedEvents);
-        const tickReceipt = buildTickReceipt({ tick, observation, route: activeRoute, selection, transition, settlement, violations, state, emittedEvents });
+        const tickReceipt = buildTickReceipt({ tick, observation, route: activeRoute, selection, transition, settlement, violations, state, emittedEvents, lapCompleted });
         if (state.currentSegmentId) state.routeReason = 'continued';
         const entry = await receipts.appendReceiptEntry(receiptChain, tickReceipt);
         if (typeof onTick === 'function') onTick({ entry, snapshot: snapshot() });
@@ -148,7 +152,7 @@
 
     function snapshot() {
       return structuredClone({
-        schema: 'simulatte.autonomyControllerSnapshot.v1',
+        schema: 'simulatte.autonomyControllerSnapshot.v2',
         state,
         route: activeRoute,
         policyMemory,
@@ -165,7 +169,7 @@
       verification.integrityPass = integrityCheck.pass;
       verification.pass = verification.pass && integrityCheck.pass;
       return {
-        schema: 'simulatte.autonomyJourneyReceipt.v1',
+        schema: 'simulatte.autonomyJourneyReceipt.v2',
         mission: structuredClone(mission),
         identities: {
           worldId: world.id,
@@ -176,9 +180,13 @@
           regionRegistryId: regionComposition ? regionComposition.registryId : null,
           regionCompositionId: regionComposition ? regionComposition.id : null,
           regionPackIds: regionComposition ? [...regionComposition.packIds] : [],
+          circuitId: mission.task.type === 'loop_distance' ? mission.task.circuitId : null,
+          boundaryGeometrySha256: mission.grounding?.source?.geometryWgs84Sha256 || null,
         },
         events: structuredClone(eventHistory),
         terminalState: state.terminalReason || state.status,
+        finalState: structuredClone(state),
+        settlement: buildJourneySettlement(mission, state),
         trace: structuredClone(receiptChain.entries),
         verification,
         integrity: {
@@ -201,7 +209,11 @@
 
   function initialState(mission, worldModel) {
     return {
-      schema: 'simulatte.autonomyAgentState.v1',
+      schema: 'simulatte.autonomyAgentState.v2',
+      embodimentId: mission.embodimentId,
+      embodimentKind: null,
+      renderProfile: null,
+      taskType: mission.task.type,
       tick: 0,
       simulatedTimeSeconds: 0,
       currentNodeId: mission.originNodeId,
@@ -211,8 +223,11 @@
       position: { ...worldModel.node(mission.originNodeId).position },
       status: 'active',
       terminalReason: null,
-      payloadStatus: 'loaded',
+      payloadStatus: mission.task.type === 'delivery' ? 'loaded' : 'not_applicable',
       distanceTraveledM: 0,
+      completedLaps: 0,
+      circuitSegmentsCompleted: 0,
+      lastCompletedLapDistanceM: null,
       routeRevision: 0,
       routeReason: 'initial',
       violations: [],
@@ -221,6 +236,23 @@
 
   function ensureRoute({ state, activeRoute, worldModel, mission, embodiment, policy }) {
     if (state.currentSegmentId && activeRoute) return activeRoute;
+    if (mission.task.type === 'loop_distance') {
+      if (state.distanceTraveledM >= mission.task.targetDistanceM - 1e-9) {
+        state.routeReason = 'distance_target_reached';
+        return emptyRoute('declared_closed_circuit_v1');
+      }
+      const planned = routePlanner.planCircuitRoute({
+        worldModel,
+        circuitId: mission.task.circuitId,
+        currentNodeId: state.currentNodeId,
+        mode: embodiment.mode,
+        tick: state.tick,
+        mission,
+        policy,
+      });
+      state.routeReason = !activeRoute ? 'initial' : activeRoute.segmentIds.length ? 'continued' : 'lap_restart';
+      return planned;
+    }
     if (state.currentNodeId === mission.destinationNodeId) {
       state.routeReason = 'at_destination';
       return emptyRoute();
@@ -275,9 +307,9 @@
     return violations;
   }
 
-  function buildTickReceipt({ tick, observation, route, selection, transition, settlement, violations, state, emittedEvents }) {
+  function buildTickReceipt({ tick, observation, route, selection, transition, settlement, violations, state, emittedEvents, lapCompleted }) {
     return {
-      schema: 'simulatte.autonomyTickReceipt.v1',
+      schema: 'simulatte.autonomyTickReceipt.v2',
       tick,
       observation,
       route: {
@@ -299,7 +331,10 @@
         enteredSegmentId: transition.enteredSegmentId,
         reachedNodeId: transition.reachedNodeId,
         willArrive: transition.willArrive,
+        willComplete: transition.willComplete,
+        completionReason: transition.completionReason,
       },
+      lapCompleted,
       settlement,
       emittedEvents,
       violations,
@@ -311,20 +346,45 @@
         position: { ...state.position },
         speedMps: state.speedMps,
         payloadStatus: state.payloadStatus,
+        distanceTraveledM: state.distanceTraveledM,
+        completedLaps: state.completedLaps,
+        circuitSegmentsCompleted: state.circuitSegmentsCompleted,
       },
     };
   }
 
-  function completeMission(state) {
+  function completeMission(state, mission) {
     state.status = 'completed';
     state.terminalReason = 'completed';
-    state.payloadStatus = 'delivered';
+    state.speedMps = 0;
+    if (mission.task.type === 'delivery') state.payloadStatus = 'delivered';
   }
 
-  function emptyRoute() {
+  function buildJourneySettlement(mission, state) {
+    const targetDistanceM = mission.task.type === 'loop_distance' ? mission.task.targetDistanceM : null;
+    const distanceErrorM = targetDistanceM === null ? null : Number((state.distanceTraveledM - targetDistanceM).toFixed(9));
     return {
-      schema: 'simulatte.autonomyRoutePlan.v1',
-      algorithm: 'a_star_v1',
+      schema: 'simulatte.autonomyJourneySettlement.v1',
+      taskType: mission.task.type,
+      completionReason: state.status === 'completed'
+        ? mission.task.type === 'loop_distance' ? 'distance_target_reached' : 'destination_reached'
+        : state.terminalReason || state.status,
+      targetDistanceM,
+      actualDistanceM: state.distanceTraveledM,
+      distanceErrorM,
+      exactDistanceSettlement: distanceErrorM === 0,
+      completedLaps: state.completedLaps,
+      finalPartialDistanceM: mission.grounding?.finalPartialDistanceM ?? null,
+      finalSegmentId: state.currentSegmentId,
+      finalSegmentProgressM: state.segmentProgressM,
+      boundaryGeometrySha256: mission.grounding?.source?.geometryWgs84Sha256 || null,
+    };
+  }
+
+  function emptyRoute(algorithm = 'a_star_v1') {
+    return {
+      schema: 'simulatte.autonomyRoutePlan.v2',
+      algorithm,
       segmentIds: [],
       cost: 0,
       visitedNodeIds: [],
@@ -337,7 +397,7 @@
         formula: 'travel + risk + preference',
         weights: { travelWeight: 0, riskWeight: 0, unprotectedPreferencePenalty: 0 },
       },
-      deterministicTieBreak: 'segment_id_ascending',
+      deterministicTieBreak: algorithm === 'a_star_v1' ? 'segment_id_ascending' : 'declared_circuit_order',
     };
   }
 
@@ -356,7 +416,7 @@
     };
   }
 
-  function transitionEvents({ transition, observation, mission, state }) {
+  function transitionEvents({ transition, observation, mission, state, lapCompleted = null }) {
     const rows = [];
     const tick = state.tick;
     if (transition.enteredSegmentId) rows.push(['segment_entered', transition.enteredSegmentId, { routeRevision: observation.route.revision }]);
@@ -364,7 +424,13 @@
     if (['blocked_segment', 'route_exhausted'].includes(observation.route.reason)) {
       rows.push(['route_revised', transition.enteredSegmentId || state.currentSegmentId, { reason: observation.route.reason, revision: observation.route.revision }]);
     }
-    if (transition.willArrive) rows.push(['mission_completed', mission.id, { destinationNodeId: mission.destinationNodeId }]);
+    if (lapCompleted) rows.push(['lap_completed', mission.task.circuitId, structuredClone(lapCompleted)]);
+    if (transition.willComplete) rows.push(['mission_completed', mission.id, {
+      completionReason: transition.completionReason,
+      destinationNodeId: mission.destinationNodeId,
+      targetDistanceM: mission.task.targetDistanceM || null,
+      distanceTraveledM: state.distanceTraveledM,
+    }]);
     return rows.map(([kind, sourceId, evidence], sequence) => occurrences.eventRow({ tick, kind, sourceId, evidence, sequence }));
   }
 
@@ -376,5 +442,32 @@
     return { schema: 'simulatte.autonomyViolation.v1', kind, evidence };
   }
 
-  return { createAutonomyController, evaluateOccurrences, initialState, ensureRoute, transitionEvents, transitionViolations };
+  function missionIsComplete(state, mission) {
+    if (mission.task.type === 'loop_distance') return state.distanceTraveledM >= mission.task.targetDistanceM - 1e-9;
+    return state.currentNodeId === mission.destinationNodeId && !state.currentSegmentId;
+  }
+
+  function recordCircuitProgress(state, beforeState, transition, mission) {
+    if (mission.task.type !== 'loop_distance' || !transition.reachedNodeId) return null;
+    const traversedSegmentId = beforeState.currentSegmentId || transition.enteredSegmentId;
+    const expectedSegmentId = mission.grounding.segmentIds[state.circuitSegmentsCompleted];
+    if (traversedSegmentId !== expectedSegmentId) return null;
+    state.circuitSegmentsCompleted += 1;
+    if (state.circuitSegmentsCompleted < mission.grounding.segmentIds.length) return null;
+    state.completedLaps += 1;
+    state.circuitSegmentsCompleted = 0;
+    state.lastCompletedLapDistanceM = mission.grounding.circuitLengthM;
+    return {
+      schema: 'simulatte.autonomyLapReceipt.v1',
+      circuitId: mission.task.circuitId,
+      lapNumber: state.completedLaps,
+      circuitLengthM: mission.grounding.circuitLengthM,
+      lapDistanceM: mission.grounding.circuitLengthM,
+      cumulativeDistanceM: state.distanceTraveledM,
+      segmentIds: [...mission.grounding.segmentIds],
+      boundaryGeometrySha256: mission.grounding.source.geometryWgs84Sha256,
+    };
+  }
+
+  return { createAutonomyController, evaluateOccurrences, initialState, ensureRoute, missionIsComplete, recordCircuitProgress, transitionEvents, transitionViolations };
 });

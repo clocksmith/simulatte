@@ -1,11 +1,11 @@
 {
   "schema": "simulatte.autonomyRegionBuildConfig.v1",
   "id": "nyc-core-region-build-v1",
-  "contentVersion": "nyc-core-regions-2026-07-13",
+  "contentVersion": "nyc-core-regions-multimodal-2026-07-13",
   "registry": {
     "id": "nyc-core-region-registry-v1",
     "compositionId": "nyc-core-default-composition-v1",
-    "manifestContentVersion": "autonomy-nyc-region-packs-v1"
+    "manifestContentVersion": "autonomy-nyc-multimodal-v1"
   },
   "city": {
     "id": "new-york-city-v1",

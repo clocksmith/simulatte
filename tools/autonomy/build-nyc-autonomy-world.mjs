@@ -6,6 +6,7 @@ import zlib from 'node:zlib';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { compileFeatureCatalog, compileOccurrenceCatalog } from './compile-autonomy-catalogs.mjs';
+import { compileParkNetwork } from './compile-park-network.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -30,7 +31,7 @@ const LANDMARKS = Object.freeze([
 ]);
 const DEFAULT_ROUTE = Object.freeze({ originLabel: 'Union Square', destinationLabel: 'North Williamsburg' });
 const SOURCE_DIR = path.join(ROOT, 'tools/autonomy/data-sources/villages-williamsburg-2026-07-13');
-const DEFAULT_OUTPUT = path.join(ROOT, 'public/data/autonomy/worlds/villages-williamsburg-delivery-bike-v1.json');
+const DEFAULT_OUTPUT = path.join(ROOT, 'public/data/autonomy/worlds/nyc-core-autonomy-v1.json');
 const DEFAULT_FEATURE_OUTPUT = path.join(ROOT, 'public/data/autonomy/feature-cards-v1.json');
 const DEFAULT_OCCURRENCE_OUTPUT = path.join(ROOT, 'public/data/autonomy/patterns/nyc-replay-patterns-v1.json');
 const SOURCE_FILES = Object.freeze({
@@ -38,6 +39,7 @@ const SOURCE_FILES = Object.freeze({
   buildings: 'nyc-building-footprints.geojson.gz',
   land: 'nyc-borough-boundaries.geojson.gz',
   streets: 'osm-highways.json.gz',
+  parks: 'nyc-parks-union-square.geojson.gz',
 });
 const SOURCE_CONTRACTS = Object.freeze({
   bike: {
@@ -68,14 +70,22 @@ const SOURCE_CONTRACTS = Object.freeze({
     url: 'https://api.openstreetmap.org/api/0.6/map',
     query: 'deterministic_3_by_4_bbox_subtiles; OSM map responses filtered to governed highway classes',
   },
+  parks: {
+    id: 'nyc-parks-properties',
+    authority: 'NYC Department of Parks and Recreation',
+    license: 'NYC Open Data Terms of Use',
+    url: 'https://data.cityofnewyork.us/resource/enfh-gkve.geojson',
+    query: "$limit=10&$where=gispropnum='M089'",
+  },
 });
 
 function parseArgs(argv) {
-  const options = { output: DEFAULT_OUTPUT, featureOutput: DEFAULT_FEATURE_OUTPUT, occurrenceOutput: DEFAULT_OCCURRENCE_OUTPUT, refresh: false, imports: {} };
+  const options = { output: DEFAULT_OUTPUT, featureOutput: DEFAULT_FEATURE_OUTPUT, occurrenceOutput: DEFAULT_OCCURRENCE_OUTPUT, refresh: false, refreshParks: false, imports: {} };
   for (let index = 0; index < argv.length; index += 1) {
     const [key, inline] = argv[index].split('=');
     const value = () => inline ?? argv[++index];
     if (key === '--refresh') options.refresh = true;
+    else if (key === '--refresh-parks') options.refreshParks = true;
     else if (key === '--output') options.output = path.resolve(value());
     else if (key === '--feature-output') options.featureOutput = path.resolve(value());
     else if (key === '--occurrence-output') options.occurrenceOutput = path.resolve(value());
@@ -83,8 +93,9 @@ function parseArgs(argv) {
     else if (key === '--buildings') options.imports.buildings = path.resolve(value());
     else if (key === '--land') options.imports.land = path.resolve(value());
     else if (key === '--streets') options.imports.streets = path.resolve(value());
+    else if (key === '--parks') options.imports.parks = path.resolve(value());
     else if (key === '--help') {
-      console.log('usage: node tools/autonomy/build-nyc-autonomy-world.mjs [--refresh] [--bike FILE --buildings FILE --land FILE --streets FILE] [--output FILE] [--feature-output FILE] [--occurrence-output FILE]');
+      console.log('usage: node tools/autonomy/build-nyc-autonomy-world.mjs [--refresh|--refresh-parks] [--bike FILE --buildings FILE --land FILE --streets FILE --parks FILE] [--output FILE] [--feature-output FILE] [--occurrence-output FILE]');
       process.exit(0);
     } else throw new Error(`Unknown argument: ${argv[index]}`);
   }
@@ -95,6 +106,7 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (Object.keys(options.imports).length) stageImports(options.imports);
   if (options.refresh) await refreshSources();
+  else if (options.refreshParks) await refreshParkSource();
   const snapshots = loadSnapshots();
   const world = compileWorld(snapshots);
   const featureCatalog = compileFeatureCatalog(world, { snapshotDate: SNAPSHOT_DATE });
@@ -156,6 +168,19 @@ async function refreshSources() {
   };
   const bytes = Buffer.from(`${JSON.stringify(merged)}\n`);
   fs.writeFileSync(path.join(SOURCE_DIR, SOURCE_FILES.streets), zlib.gzipSync(bytes, { level: 9, mtime: 0 }));
+  await refreshParkSource();
+}
+
+async function refreshParkSource() {
+  fs.mkdirSync(SOURCE_DIR, { recursive: true });
+  const source = SOURCE_CONTRACTS.parks;
+  const response = await fetch(`${source.url}?${source.query}`);
+  if (!response.ok) throw new Error(`parks source request failed with ${response.status}`);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  const value = JSON.parse(bytes.toString('utf8'));
+  const matches = (value.features || []).filter((row) => row.properties?.gispropnum === 'M089');
+  if (matches.length !== 1) throw new Error(`Union Square park source expected one M089 feature, received ${matches.length}`);
+  fs.writeFileSync(path.join(SOURCE_DIR, SOURCE_FILES.parks), zlib.gzipSync(bytes, { level: 9, mtime: 0 }));
 }
 
 function streetTiles(bounds) {
@@ -257,8 +282,18 @@ function loadSnapshots() {
 
 function compileWorld(snapshots) {
   const project = createProjector(ORIGIN);
-  const network = compileBikeNetwork(snapshots.bike.data, project);
-  labelLandmarks(network, LANDMARKS, project);
+  const bikeNetwork = compileBikeNetwork(snapshots.bike.data, project);
+  labelLandmarks(bikeNetwork, LANDMARKS, project);
+  const parkNetwork = compileParkNetwork(snapshots.parks.data, {
+    project,
+    sourceContract: SOURCE_CONTRACTS.parks,
+    snapshotDate: SNAPSHOT_DATE,
+  });
+  const network = {
+    nodes: [...bikeNetwork.nodes, ...parkNetwork.nodes],
+    segments: [...bikeNetwork.segments, ...parkNetwork.segments],
+    nodesById: new Map([...bikeNetwork.nodes, ...parkNetwork.nodes].map((row) => [row.id, row])),
+  };
   const origin = LANDMARKS.find((row) => row.label === DEFAULT_ROUTE.originLabel);
   const destination = LANDMARKS.find((row) => row.label === DEFAULT_ROUTE.destinationLabel);
   const route = shortestRoute(network, origin, destination, project, (segment) => {
@@ -274,11 +309,12 @@ function compileWorld(snapshots) {
     schema: 'simulatte.autonomyRenderGeometry.v1',
     coordinateSystem: 'local_cartesian_meters',
     land: compileLand(snapshots.land.data, project),
+    parks: parkNetwork.renderGeometry,
     streets: compileVisualStreets(snapshots.streets.data, project),
     buildings: buildingCompilation.rows,
     buildingLodReceipt: buildingCompilation.receipt,
     bikeFacilities: compileBikeFacilities(snapshots.bike.data, project),
-    claimBoundary: 'Building footprints, roof heights, bike facilities, streets, and land geometry preserve the frozen source snapshots. Render colors, widths, lighting, traffic actors, and signal timing are simulation presentation or policy assumptions.',
+    claimBoundary: 'Building footprints, roof heights, bike facilities, park-property boundaries, streets, and land geometry preserve the frozen source snapshots. Park boundaries are not surveyed sidewalk centerlines. Render colors, widths, lighting, traffic actors, and signal timing are simulation presentation or policy assumptions.',
   };
   const sourceReceipts = Object.fromEntries(Object.entries(snapshots).map(([key, snapshot]) => [key, {
     ...snapshot.contract,
@@ -288,14 +324,15 @@ function compileWorld(snapshots) {
   }]));
   const allPoints = [
     ...renderGeometry.streets.flatMap((row) => row.geometry),
+    ...renderGeometry.parks.flatMap((row) => row.outerRing),
     ...renderGeometry.buildings.flatMap((row) => row.footprint),
     ...network.nodes.map((row) => row.position),
   ];
   return {
     schema: 'simulatte.autonomyWorld.v1',
-    id: 'villages-williamsburg-delivery-bike-v1',
-    contentVersion: `villages-williamsburg-delivery-bike-${SNAPSHOT_DATE}`,
-    label: 'Villages to North Brooklyn delivery-bike world',
+    id: 'nyc-core-autonomy-v1',
+    contentVersion: `nyc-core-autonomy-${SNAPSHOT_DATE}`,
+    label: 'NYC core multimodal autonomy world',
     coordinateSystem: {
       kind: 'local_cartesian_meters',
       originLabel: `${ORIGIN.latitude},${ORIGIN.longitude}`,
@@ -304,15 +341,16 @@ function compileWorld(snapshots) {
     },
     provenance: {
       sourceKind: 'compiled_open_data_snapshot',
-      sourceId: 'simulatte-villages-williamsburg-open-data-tile-v1',
+      sourceId: 'simulatte-nyc-core-open-data-tile-v1',
       snapshotDate: SNAPSHOT_DATE,
       sources: sourceReceipts,
       compiler: 'tools/autonomy/build-nyc-autonomy-world.mjs',
       endpointSnapToleranceM: 3,
-      claimBoundary: 'The street, bike, building, and land geometry is compiled from the named frozen sources. Traffic actors, signal timing, routing risk, simulated speed, and action outcomes are bounded simulation assumptions, not live conditions or physical autonomy evidence.',
+      claimBoundary: 'The street, bike, park-property, building, and land geometry is compiled from the named frozen sources. Park boundaries are not surveyed sidewalk centerlines. Traffic actors, signal timing, routing risk, simulated speed, and action outcomes are bounded simulation assumptions, not live conditions or physical autonomy evidence.',
     },
     nodes: network.nodes.sort(byId),
     segments: network.segments.sort(byId),
+    circuits: parkNetwork.circuits,
     signals: scenario.signals,
     actors: scenario.actors,
     disruptions: scenario.disruptions,

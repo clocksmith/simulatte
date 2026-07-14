@@ -464,6 +464,7 @@ p {
 }
 
 .legend i.building { color: #4b8799; background: #4b8799; height: 8px; }
+.legend i.park { color: #3dff94; background: #3dff94; height: 7px; }
 .legend i.protected { color: var(--mint); background: var(--mint); }
 .legend i.shared { color: #4a8fa8; background: #4a8fa8; }
 .legend i.route { color: var(--cyan); background: var(--cyan); }

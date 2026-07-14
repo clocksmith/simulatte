@@ -18,9 +18,9 @@
       const transition = dynamics.simulateAction({ state, action, worldModel, embodiment, mission, policy });
       const lookahead = simulateSafetyLookahead({ state, action, worldModel, embodiment, mission, policy });
       const confidence = maneuverConfidence(action.maneuver, policyMemory, policy);
-      const units = Math.max(0.01, transition.progressDeltaM * confidence + (transition.willArrive ? 5 : 0));
+      const units = Math.max(0.01, transition.progressDeltaM * confidence + (transition.willComplete ? 5 : 0));
       const bet = {
-        schema: 'simulatte.autonomyActionBet.v1',
+        schema: 'simulatte.autonomyActionBet.v2',
         id: `${mission.id}:${observation.tick}:${String(index).padStart(2, '0')}:${action.maneuver}`,
         missionId: mission.id,
         tick: observation.tick,
@@ -35,6 +35,8 @@
           clearanceIsLowerBound: transition.clearanceIsLowerBound,
           willReachNode: transition.willReachNode,
           willArrive: transition.willArrive,
+          willComplete: transition.willComplete,
+          completionReason: transition.completionReason,
         },
         confidence,
         scoreStake: { units: round(units), kind: 'nonfinancial_policy_score' },

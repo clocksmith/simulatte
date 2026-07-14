@@ -22,6 +22,7 @@ const occurrenceApi = require('../public/runtime/occurrence-engine.js');
 const regionApi = require('../public/world/region-pack-merger.js');
 const cameraApi = require('../public/app/camera-controller.js');
 const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
+const UNION_SQUARE_LOOP = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
@@ -46,11 +47,14 @@ function assets() {
 
 function governedAssets() {
   const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
+  const embodiments = manifest.embodiments.map((reference) => readJson(`public/data/autonomy/${reference.path.replace(/^\.\//, '')}`));
   return {
     manifest,
     world: readJson(`public/data/autonomy/${manifest.world.path.replace(/^\.\//, '')}`),
     featureCatalog: readJson('public/data/autonomy/feature-cards-v1.json'),
-    embodiment: readJson('public/data/autonomy/embodiments/delivery-bike-v1.json'),
+    embodiments,
+    embodiment: embodiments.find((row) => row.id === manifest.defaultEmbodimentId),
+    pedestrian: embodiments.find((row) => row.id === 'pedestrian-v1'),
     policy: readJson('public/data/autonomy/policies/bet-selector-v1.json'),
     occurrenceCatalog: readJson(`public/data/autonomy/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
     rerankerEvidence: readJson(`public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
@@ -67,11 +71,12 @@ function compileDefaultMission(rows = assets()) {
 }
 
 function makeController(rows = assets(), mission = compileDefaultMission(rows), overrides = {}) {
+  const embodiment = rows.embodiments?.find((row) => row.id === mission.embodimentId) || rows.embodiment;
   return controllerApi.createAutonomyController({
     world: rows.world,
     featureCatalog: rows.featureCatalog,
     occurrenceCatalog: rows.occurrenceCatalog,
-    embodiment: rows.embodiment,
+    embodiment,
     policy: rows.policy,
     mission,
     ...overrides,
@@ -79,7 +84,7 @@ function makeController(rows = assets(), mission = compileDefaultMission(rows), 
 }
 
 function tickPayloads(receipt) {
-  return receipt.trace.map((entry) => entry.payload).filter((row) => row.schema === 'simulatte.autonomyTickReceipt.v1');
+  return receipt.trace.map((entry) => entry.payload).filter((row) => row.schema === 'simulatte.autonomyTickReceipt.v2');
 }
 
 function selectedBet(tick) {
@@ -100,7 +105,7 @@ test('autonomy manifest pins and validates every governed asset', () => {
   assert.equal(rows.manifest.runtime.entryPath, '/');
   contracts.validateFeatureCatalog(rows.featureCatalog);
   contracts.validateWorld(rows.world, rows.featureCatalog);
-  contracts.validateEmbodiment(rows.embodiment);
+  rows.embodiments.forEach((row) => contracts.validateEmbodiment(row));
   contracts.validatePolicy(rows.policy);
   contracts.validateOccurrenceCatalog(rows.occurrenceCatalog, rows.world);
   contracts.validateRerankerEvidence(rows.rerankerEvidence, rows.featureCatalog);
@@ -111,17 +116,29 @@ test('autonomy manifest pins and validates every governed asset', () => {
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.world)).digest('hex'), rows.manifest.world.sha256);
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.featureCatalog)).digest('hex'), rows.manifest.featureCatalog.sha256);
   assert.equal(composition.receipt.seamNodeIds.length, 27);
-  for (const key of ['world', 'embodiment', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry']) {
+  for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry']) {
     const reference = rows.manifest[key];
     const file = path.resolve(dataDir, reference.path);
     assert.equal(hashFile(file), reference.sha256, `${key} raw bytes should match the manifest`);
     assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).id, reference.id);
   }
+  rows.manifest.embodiments.forEach((reference) => {
+    const file = path.resolve(dataDir, reference.path);
+    assert.equal(hashFile(file), reference.sha256, `${reference.id} raw bytes should match the manifest`);
+    assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).id, reference.id);
+  });
   assert.equal(rows.world.provenance.sourceKind, 'compiled_open_data_snapshot');
   assert.match(rows.world.provenance.claimBoundary, /frozen sources/i);
   assert.equal(rows.world.renderGeometry.schema, 'simulatte.autonomyRenderGeometry.v1');
   assert.ok(rows.world.renderGeometry.buildings.length > 1500);
   assert.ok(rows.world.renderGeometry.streets.length > 2000);
+  assert.equal(rows.world.renderGeometry.parks.length, 1);
+  assert.equal(rows.world.circuits.length, 1);
+  assert.equal(rows.world.circuits[0].source.propertyId, 'M089');
+  assert.equal(rows.world.circuits[0].source.memberCount, 2);
+  assert.equal(rows.world.circuits[0].source.selectionMethod, 'largest_projected_exterior_ring_area_v1');
+  assert.match(rows.world.circuits[0].source.geometryWgs84Sha256, /^[a-f0-9]{64}$/);
+  assert.ok(rows.world.circuits[0].lengthM > 640 && rows.world.circuits[0].lengthM < 660);
   assert.match(rows.world.provenance.sources.bike.rawSha256, /^[a-f0-9]{64}$/);
   assert.equal(rows.world.scenario.liveConditionsUsed, false);
 });
@@ -250,6 +267,13 @@ test('camera targets expose every composed region and pan between modes without 
   const beforeZoom = state.distance;
   assert.equal(cameraApi.zoomCamera(state, -120), true);
   assert.ok(state.distance < beforeZoom);
+  cameraApi.setCameraMode(state, 'follow', 1900);
+  cameraApi.advanceCamera(state, snapshot, model, 1.6, 2800);
+  const beforeFollowZoom = state.followDistance;
+  assert.equal(cameraApi.zoomCamera(state, -240), true);
+  assert.ok(state.followDistance < beforeFollowZoom);
+  const nearFollowPose = cameraApi.advanceCamera(state, snapshot, model, 1.6, 2900);
+  assert.equal(nearFollowPose.followDistance, state.followDistance);
 });
 
 test('mission compiler grounds known labels to source intervals and fails closed', () => {
@@ -268,6 +292,102 @@ test('mission compiler grounds known labels to source intervals and fails closed
     () => missionApi.compileMission('Walk from Canal Depot to East Market.', rows.world, rows.embodiment),
     (error) => error.code === 'task_not_grounded'
   );
+});
+
+test('loop mission corrects the exact prompt, converts feet, and grounds the pinned park boundary', () => {
+  const rows = governedAssets();
+  const mission = missionApi.compileMission(UNION_SQUARE_LOOP, rows.world, rows.embodiments);
+  const circuit = rows.world.circuits[0];
+  assert.equal(mission.schema, 'simulatte.autonomyMission.v2');
+  assert.equal(mission.task.type, 'loop_distance');
+  assert.equal(mission.embodimentId, 'pedestrian-v1');
+  assert.equal(mission.task.targetDistanceM, 1524);
+  assert.deepEqual(mission.task.requestedDistance, { value: 5000, unit: 'foot', metersPerUnit: 0.3048, convertedMeters: 1524 });
+  assert.equal(mission.grounding.circuitId, circuit.id);
+  assert.deepEqual(mission.grounding.segmentIds, circuit.segmentIds);
+  assert.equal(mission.grounding.fullLapsBeforeFinalPartial, 2);
+  assert.equal(mission.grounding.finalPartialDistanceM, Number((1524 % circuit.lengthM).toFixed(6)));
+  assert.equal(mission.grounding.source.geometryWgs84Sha256, circuit.source.geometryWgs84Sha256);
+  assert.equal(mission.parser.evidence.find((row) => row.field === 'circuit').value, 'union squatre park');
+  assert.equal(mission.parser.evidence.find((row) => row.field === 'circuit').editDistance, 1);
+  assert.equal(mission.parser.evidence.find((row) => row.field === 'boundaryKind').value, 'parimeter');
+  assert.ok(mission.parser.evidence.every((row) => mission.sourceText.slice(row.start, row.end) === row.value));
+  assert.throws(
+    () => missionApi.compileMission('run around imaginary park perimeter for 5000 feet', rows.world, rows.embodiments),
+    (error) => error.code === 'circuit_not_grounded'
+  );
+});
+
+test('one embodiment contract configures pedestrian, bicycle, scooter, and car kinds', () => {
+  const rows = assets();
+  for (const kind of ['scooter', 'car']) {
+    const embodiment = {
+      ...structuredClone(rows.embodiment),
+      id: `${kind}-contract-fixture-v1`,
+      contentVersion: `${kind}-contract-fixture-v1`,
+      label: `${kind} contract fixture`,
+      mode: kind,
+      kind,
+      renderProfile: kind,
+    };
+    contracts.validateEmbodiment(embodiment);
+    const mission = missionApi.compileMission(
+      `Deliver the parcel by ${kind} from Canal Depot to East Market.`,
+      rows.world,
+      [embodiment]
+    );
+    assert.equal(mission.embodimentId, embodiment.id);
+    assert.throws(
+      () => routePlanner.planRoute({
+        worldModel: worldApi.createWorldModel(rows.world),
+        originNodeId: mission.originNodeId,
+        destinationNodeId: mission.destinationNodeId,
+        mode: embodiment.mode,
+        tick: 0,
+        mission,
+        policy: rows.policy,
+      }),
+      (error) => error.code === 'route_not_found',
+      `${kind} must not borrow bicycle graph eligibility`
+    );
+  }
+});
+
+test('declared circuit route and runtime receipt settle exactly at 5000 feet', async () => {
+  const rows = governedAssets();
+  const mission = missionApi.compileMission(UNION_SQUARE_LOOP, rows.world, rows.embodiments);
+  const worldModel = worldApi.createWorldModel(rows.world);
+  const route = routePlanner.planCircuitRoute({
+    worldModel,
+    circuitId: mission.task.circuitId,
+    currentNodeId: mission.originNodeId,
+    mode: rows.pedestrian.mode,
+    tick: 0,
+    mission,
+    policy: rows.policy,
+  });
+  assert.equal(route.algorithm, 'declared_closed_circuit_v1');
+  assert.deepEqual(route.segmentIds, mission.grounding.segmentIds);
+  const controller = makeController(rows, mission);
+  await controller.run();
+  const receipt = await controller.journeyReceipt();
+  const lapEvents = receipt.events.filter((row) => row.kind === 'lap_completed');
+  assert.equal(receipt.terminalState, 'completed');
+  assert.equal(receipt.finalState.distanceTraveledM, 1524);
+  assert.equal(receipt.finalState.completedLaps, 2);
+  assert.equal(receipt.settlement.completionReason, 'distance_target_reached');
+  assert.equal(receipt.settlement.distanceErrorM, 0);
+  assert.equal(receipt.settlement.exactDistanceSettlement, true);
+  assert.ok(mission.grounding.segmentIds.includes(receipt.settlement.finalSegmentId));
+  assert.ok(receipt.settlement.finalSegmentProgressM > 0);
+  assert.equal(receipt.settlement.boundaryGeometrySha256, mission.grounding.source.geometryWgs84Sha256);
+  assert.equal(receipt.verification.pass, true);
+  assert.equal(lapEvents.length, 2);
+  assert.ok(lapEvents.every((row) => row.evidence.lapDistanceM === mission.grounding.circuitLengthM));
+  assert.ok(lapEvents.every((row) => row.evidence.boundaryGeometrySha256 === mission.grounding.source.geometryWgs84Sha256));
+  assert.ok(lapEvents.every((row) => JSON.stringify(row.evidence.segmentIds) === JSON.stringify(mission.grounding.segmentIds)));
+  assert.ok(receipt.events.some((row) => row.kind === 'mission_completed' && row.evidence.distanceTraveledM === 1524));
+  assert.equal(receipt.verification.requiredFailureIds.length, 0);
 });
 
 test('A star plans protected preference and revises around an active closure', () => {
@@ -482,7 +602,9 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     return { ok: fs.existsSync(file), status: fs.existsSync(file) ? 200 : 404, text: async () => fs.readFileSync(file, 'utf8') };
   };
   const loaded = await dataLoader.loadAutonomyData('http://localhost/data/autonomy/autonomy-manifest.json', fetchFiles);
-  assert.equal(loaded.world.id, 'villages-williamsburg-delivery-bike-v1');
+  assert.equal(loaded.world.id, 'nyc-core-autonomy-v1');
+  assert.deepEqual(loaded.embodiments.map((row) => row.id), ['delivery-bike-v1', 'pedestrian-v1']);
+  assert.equal(loaded.defaultEmbodiment.id, 'delivery-bike-v1');
   assert.equal(loaded.receipt.assets.policy.sha256, loaded.manifest.policy.sha256);
   assert.deepEqual(loaded.regionComposition.packIds, ['manhattan-villages-v1', 'east-river-crossing-v1', 'north-brooklyn-v1']);
   assert.equal(loaded.regionComposition.seamNodeIds.length, 27);

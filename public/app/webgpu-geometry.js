@@ -7,6 +7,8 @@
   const COLORS = Object.freeze({
     water: [0.014, 0.042, 0.078, 1],
     land: [0.052, 0.12, 0.125, 1],
+    park: [0.035, 0.28, 0.17, 1],
+    parkPerimeter: [0.25, 1, 0.58, 1],
     road: [0.16, 0.21, 0.25, 1],
     roadMajor: [0.23, 0.29, 0.33, 1],
     protected: [0.05, 0.9, 0.66, 1],
@@ -16,6 +18,7 @@
     trace: [0.98, 0.7, 0.12, 1],
     blocked: [1, 0.18, 0.22, 1],
     agent: [1, 0.83, 0.2, 1],
+    runner: [0.98, 0.36, 0.78, 1],
     actor: [1, 0.22, 0.43, 1],
     destination: [0.58, 0.35, 1, 1],
     signalGreen: [0.15, 1, 0.53, 1],
@@ -34,6 +37,10 @@
       emissive: 0.08,
     });
     for (const row of world.renderGeometry.land) addFlatPolygon(writer, row.outerRing, 0, COLORS.land, 0.05);
+    for (const park of world.renderGeometry.parks) {
+      addFlatPolygon(writer, park.outerRing, 0.1, COLORS.park, 0.18);
+      addRibbon(writer, park.outerRing, 3.2, 0.24, COLORS.parkPerimeter, 0.9);
+    }
     for (const street of world.renderGeometry.streets) {
       addRibbon(writer, street.geometry, street.widthM, 0.06, isMajorStreet(street.highway) ? COLORS.roadMajor : COLORS.road, 0.03);
     }
@@ -51,11 +58,13 @@
     routeIds.forEach((id) => addRibbon(writer, worldModel.segment(id).geometry, 9, 0.68, COLORS.route, 1.35));
     if (tracePositions.length > 1) addRibbon(writer, tracePositions, 7, 0.86, COLORS.trace, 1.25);
     worldModel.blockedSegmentIds(snapshot.state.tick).forEach((id) => addRibbon(writer, worldModel.segment(id).geometry, 4.5, 0.72, COLORS.blocked, 1.2));
-    const destinationNodeId = routeIds.length
-      ? worldModel.segment(routeIds.at(-1)).toNodeId
-      : snapshot.state.currentNodeId;
-    const destination = worldModel.node(destinationNodeId).position;
-    addBeacon(writer, destination, COLORS.destination, 64, 4.5);
+    if (snapshot.state.taskType === 'delivery') {
+      const destinationNodeId = routeIds.length
+        ? worldModel.segment(routeIds.at(-1)).toNodeId
+        : snapshot.state.currentNodeId;
+      const destination = worldModel.node(destinationNodeId).position;
+      addBeacon(writer, destination, COLORS.destination, 64, 4.5);
+    }
     worldModel.signalRows(snapshot.state.tick).forEach((signal) => {
       const point = worldModel.node(signal.nodeId).position;
       addBeacon(writer, point, signal.state === 'green' ? COLORS.signalGreen : COLORS.signalRed, 28, 2.2);
@@ -69,7 +78,8 @@
       });
     });
     const heading = headingFor(snapshot.state.position, routeIds, worldModel, tracePositions);
-    addAgent(writer, snapshot.state.position, heading);
+    if (snapshot.state.renderProfile === 'runner') addRunner(writer, snapshot.state.position, heading);
+    else addAgent(writer, snapshot.state.position, heading);
     addSensorCone(writer, snapshot.state.position, heading, snapshot.state.speedMps);
     const selected = tickReceipt?.bets?.find((row) => row.bet.id === tickReceipt.selectedBetId);
     if (selected) addRibbon(writer, [snapshot.state.position, selected.bet.prediction.endPosition], 0.85, 1.1, COLORS.prediction, 1.2);
@@ -181,6 +191,32 @@
     writer.triangle(nose, left, top, faceNormal(nose, left, top), COLORS.agent, 1.3);
     writer.triangle(nose, top, rightPoint, faceNormal(nose, top, rightPoint), COLORS.agent, 1.3);
     writer.triangle(left, rightPoint, top, faceNormal(left, rightPoint, top), COLORS.agent, 1.3);
+  }
+
+  function addRunner(writer, point, heading) {
+    const forward = [Math.cos(heading), -Math.sin(heading)];
+    const right = [-forward[1], forward[0]];
+    const local = (forwardM, rightM, height) => ({
+      x: point.x + forward[0] * forwardM + right[0] * rightM,
+      y: -point.y - forward[1] * forwardM - right[1] * rightM,
+      height,
+    });
+    const torso = local(0, 0, 1.25);
+    addBox(writer, {
+      minimum: [torso.x - 0.32, 0.45, torso.y - 0.22],
+      maximum: [torso.x + 0.32, 1.75, torso.y + 0.22],
+      color: COLORS.runner,
+      emissive: 1.15,
+    });
+    const head = local(0.08, 0, 2.02);
+    addBox(writer, {
+      minimum: [head.x - 0.24, 1.76, head.y - 0.24],
+      maximum: [head.x + 0.24, 2.24, head.y + 0.24],
+      color: COLORS.agent,
+      emissive: 0.95,
+    });
+    const lead = local(0.55, 0, 0.35);
+    addRibbon(writer, [point, { x: lead.x, y: -lead.y }], 0.42, 0.25, COLORS.runner, 1.05);
   }
 
   function addSensorCone(writer, point, heading, speedMps) {

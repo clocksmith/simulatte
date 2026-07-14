@@ -12,13 +12,14 @@ export function compileFeatureCatalog(world, { snapshotDate }) {
   }));
   world.segments.forEach((segment) => {
     const cardId = `network.${segment.id}`;
+    const modes = segment.allowedModes.join(' ');
     segment.cardIds = [...new Set([...segment.cardIds, cardId])].sort();
     cards.push({
       id: cardId,
       kind: 'street_segment',
       label: segment.source.street || `${segment.laneType} route segment`,
-      searchTerms: uniqueText([segment.source.street, segment.laneType, segment.fromNodeId, segment.toNodeId, 'routable bike segment']),
-      constraints: ['mode_eligible', 'network_contained', `${segment.laneType}_lane`],
+      searchTerms: uniqueText([segment.source.street, segment.laneType, modes, segment.fromNodeId, segment.toNodeId, `routable ${modes} segment`]),
+      constraints: ['mode_eligible', 'network_contained', `${segment.laneType}_lane`, ...segment.allowedModes.map((mode) => `${mode}_eligible`)],
       validationObligations: ['source_segment_exists', 'endpoints_exist', 'geometry_has_two_points', 'positive_length'],
       provenance: { worldId: world.id, sourceKind: 'compiled_network_segment', sourceId: segment.id },
     });

@@ -19,7 +19,7 @@
       isActive: actor.isActive,
     }));
     const observation = {
-      schema: 'simulatte.autonomyObservation.v1',
+      schema: 'simulatte.autonomyObservation.v2',
       missionId: mission.id,
       tick: state.tick,
       simulatedTimeSeconds: round(state.simulatedTimeSeconds),
@@ -41,6 +41,8 @@
         costBreakdown: structuredClone(route.costBreakdown),
         revision: state.routeRevision,
         reason: state.routeReason,
+        circuitId: route.circuitId || null,
+        circuitLengthM: route.circuitLengthM || null,
       },
       signals: worldModel.signalRows(state.tick),
       nearbyActors,

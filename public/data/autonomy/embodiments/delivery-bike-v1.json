@@ -1,9 +1,12 @@
 {
-  "schema": "simulatte.autonomyEmbodiment.v1",
+  "schema": "simulatte.autonomyEmbodiment.v2",
   "id": "delivery-bike-v1",
   "contentVersion": "delivery-bike-v1",
   "label": "Delivery bike",
   "mode": "delivery_bike",
+  "kind": "bicycle",
+  "renderProfile": "cycle",
+  "supportedTaskTypes": ["delivery"],
   "dimensions": {
     "lengthM": 1.8,
     "widthM": 0.65,

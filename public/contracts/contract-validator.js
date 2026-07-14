@@ -108,12 +108,12 @@
   }
 
   function validateManifest(manifest) {
-    const contract = 'simulatte.autonomyDataManifest.v2';
+    const contract = 'simulatte.autonomyDataManifest.v3';
     requireSchema(manifest, contract, contract);
     requireString(manifest.id, contract, '$.id');
     requireString(manifest.contentVersion, contract, '$.contentVersion');
     requireString(manifest.defaultMissionText, contract, '$.defaultMissionText');
-    ['world', 'embodiment', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'].forEach((key) => {
+    ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'].forEach((key) => {
       const ref = requireObject(manifest[key], contract, `$.${key}`);
       requireString(ref.id, contract, `$.${key}.id`);
       requireString(ref.path, contract, `$.${key}.path`);
@@ -121,6 +121,16 @@
         throw new AutonomyContractError(contract, `$.${key}.sha256`, '64-character lowercase SHA-256', ref.sha256);
       }
     });
+    const embodiments = requireArray(manifest.embodiments, contract, '$.embodiments', 2);
+    uniqueRows(embodiments, contract, '$.embodiments');
+    embodiments.forEach((ref, index) => {
+      requireString(ref.path, contract, `$.embodiments[${index}].path`);
+      requireSha256(ref.sha256, contract, `$.embodiments[${index}].sha256`);
+    });
+    requireString(manifest.defaultEmbodimentId, contract, '$.defaultEmbodimentId');
+    if (!embodiments.some((row) => row.id === manifest.defaultEmbodimentId)) {
+      throw new AutonomyContractError(contract, '$.defaultEmbodimentId', 'declared embodiment ID', manifest.defaultEmbodimentId);
+    }
     requireString(manifest.claimBoundary, contract, '$.claimBoundary');
     return manifest;
   }
@@ -227,7 +237,7 @@
     });
     ['signals', 'actors', 'disruptions'].forEach((key) => uniqueRows(requireArray(pack[key], contract, `$.${key}`), contract, `$.${key}`));
     const render = requireObject(pack.renderGeometry, contract, '$.renderGeometry');
-    ['land', 'streets', 'buildings', 'bikeFacilities'].forEach((key) => uniqueRows(requireArray(render[key], contract, `$.renderGeometry.${key}`), contract, `$.renderGeometry.${key}`));
+    ['land', 'parks', 'streets', 'buildings', 'bikeFacilities'].forEach((key) => uniqueRows(requireArray(render[key], contract, `$.renderGeometry.${key}`), contract, `$.renderGeometry.${key}`));
     const cards = requireArray(pack.featureCards, contract, '$.featureCards');
     const cardIds = uniqueRows(cards, contract, '$.featureCards');
     const featureIndex = requireObject(pack.featureIndex, contract, '$.featureIndex');
@@ -264,7 +274,7 @@
     const world = requireObject(worldRows, contract, '$.sharedWorldRows');
     ['nodes', 'segments', 'signals', 'actors', 'disruptions'].forEach((key) => requireArray(world[key], contract, `$.sharedWorldRows.${key}`));
     const render = requireObject(world.renderGeometry, contract, '$.sharedWorldRows.renderGeometry');
-    ['land', 'streets', 'buildings', 'bikeFacilities'].forEach((key) => requireArray(render[key], contract, `$.sharedWorldRows.renderGeometry.${key}`));
+    ['land', 'parks', 'streets', 'buildings', 'bikeFacilities'].forEach((key) => requireArray(render[key], contract, `$.sharedWorldRows.renderGeometry.${key}`));
     const features = requireObject(featureRows, contract, '$.sharedFeatureRows');
     requireArray(features.cards, contract, '$.sharedFeatureRows.cards');
     const index = requireObject(features.index, contract, '$.sharedFeatureRows.index');
@@ -277,7 +287,7 @@
     const actual = {
       nodes: pack.nodes.length, segments: pack.segments.length, signals: pack.signals.length,
       actors: pack.actors.length, disruptions: pack.disruptions.length, streets: pack.renderGeometry.streets.length,
-      buildings: pack.renderGeometry.buildings.length, bikeFacilities: pack.renderGeometry.bikeFacilities.length,
+      parks: pack.renderGeometry.parks.length, buildings: pack.renderGeometry.buildings.length, bikeFacilities: pack.renderGeometry.bikeFacilities.length,
       featureCards: pack.featureCards.length, seams: pack.seams.length,
     };
     Object.entries(actual).forEach(([key, value]) => {
@@ -526,6 +536,45 @@
       }
       validateCardReferences(segment.cardIds, cardIds, contract, `$.segments[${index}].cardIds`);
     });
+    const circuits = world.circuits === undefined ? [] : requireArray(world.circuits, contract, '$.circuits');
+    uniqueRows(circuits, contract, '$.circuits');
+    circuits.forEach((circuit, index) => {
+      requireString(circuit.label, contract, `$.circuits[${index}].label`);
+      requireString(circuit.mode, contract, `$.circuits[${index}].mode`);
+      requireArray(circuit.aliases, contract, `$.circuits[${index}].aliases`, 1)
+        .forEach((alias, aliasIndex) => requireString(alias, contract, `$.circuits[${index}].aliases[${aliasIndex}]`));
+      const circuitNodeIds = requireArray(circuit.nodeIds, contract, `$.circuits[${index}].nodeIds`, 2);
+      const circuitSegmentIds = requireArray(circuit.segmentIds, contract, `$.circuits[${index}].segmentIds`, 2);
+      circuitNodeIds.forEach((id, nodeIndex) => {
+        if (!nodeIds.has(id)) throw new AutonomyContractError(contract, `$.circuits[${index}].nodeIds[${nodeIndex}]`, 'known node ID', id);
+      });
+      circuitSegmentIds.forEach((id, segmentIndex) => {
+        if (!segmentIds.has(id)) throw new AutonomyContractError(contract, `$.circuits[${index}].segmentIds[${segmentIndex}]`, 'known segment ID', id);
+        const segment = segments.find((row) => row.id === id);
+        if (!segment.allowedModes.includes(circuit.mode)) throw new AutonomyContractError(contract, `$.circuits[${index}].segmentIds[${segmentIndex}]`, `segment allowing ${circuit.mode}`, id);
+        const expectedFrom = circuitNodeIds[segmentIndex];
+        const expectedTo = circuitNodeIds[(segmentIndex + 1) % circuitNodeIds.length];
+        if (segment.fromNodeId !== expectedFrom || segment.toNodeId !== expectedTo) {
+          throw new AutonomyContractError(contract, `$.circuits[${index}].segmentIds[${segmentIndex}]`, `ordered edge ${expectedFrom} -> ${expectedTo}`, segment);
+        }
+      });
+      if (circuitSegmentIds.length !== circuitNodeIds.length) throw new AutonomyContractError(contract, `$.circuits[${index}]`, 'one directed segment per circuit node', circuit);
+      const computedLength = circuitSegmentIds.reduce((sum, id) => sum + segments.find((row) => row.id === id).lengthM, 0);
+      requireFinite(circuit.lengthM, contract, `$.circuits[${index}].lengthM`, Number.MIN_VALUE);
+      if (Math.abs(computedLength - circuit.lengthM) > 0.000001) throw new AutonomyContractError(contract, `$.circuits[${index}].lengthM`, `segment sum ${computedLength}`, circuit.lengthM);
+      const source = requireObject(circuit.source, contract, `$.circuits[${index}].source`);
+      requireString(source.datasetId, contract, `$.circuits[${index}].source.datasetId`);
+      requireString(source.sourceRevision, contract, `$.circuits[${index}].source.sourceRevision`);
+      requireString(source.propertyId, contract, `$.circuits[${index}].source.propertyId`);
+      requireString(source.boundaryKind, contract, `$.circuits[${index}].source.boundaryKind`);
+      requireString(source.surfaceClaim, contract, `$.circuits[${index}].source.surfaceClaim`);
+      requireString(source.claimBoundary, contract, `$.circuits[${index}].source.claimBoundary`);
+      requireSha256(source.geometryWgs84Sha256, contract, `$.circuits[${index}].source.geometryWgs84Sha256`);
+      requireSha256(source.selectedRingWgs84Sha256, contract, `$.circuits[${index}].source.selectedRingWgs84Sha256`);
+      requireInteger(source.memberCount, contract, `$.circuits[${index}].source.memberCount`, 1);
+      requireInteger(source.selectedMemberIndex, contract, `$.circuits[${index}].source.selectedMemberIndex`);
+      requireString(source.selectionMethod, contract, `$.circuits[${index}].source.selectionMethod`);
+    });
     const signals = requireArray(world.signals, contract, '$.signals');
     uniqueRows(signals, contract, '$.signals');
     signals.forEach((signal, index) => {
@@ -588,14 +637,21 @@
       throw new AutonomyContractError(contract, '$.renderGeometry.schema', 'simulatte.autonomyRenderGeometry.v1', renderGeometry.schema);
     }
     const land = requireArray(renderGeometry.land, contract, '$.renderGeometry.land', 1);
+    const parks = requireArray(renderGeometry.parks, contract, '$.renderGeometry.parks');
     const streets = requireArray(renderGeometry.streets, contract, '$.renderGeometry.streets', 1);
     const buildings = requireArray(renderGeometry.buildings, contract, '$.renderGeometry.buildings', 1);
     const facilities = requireArray(renderGeometry.bikeFacilities, contract, '$.renderGeometry.bikeFacilities', 1);
     uniqueRows(land, contract, '$.renderGeometry.land');
+    uniqueRows(parks, contract, '$.renderGeometry.parks');
     uniqueRows(streets, contract, '$.renderGeometry.streets');
     uniqueRows(buildings, contract, '$.renderGeometry.buildings');
     uniqueRows(facilities, contract, '$.renderGeometry.bikeFacilities');
     land.forEach((row, index) => validatePointArray(row.outerRing, contract, `$.renderGeometry.land[${index}].outerRing`, 4));
+    parks.forEach((row, index) => {
+      requireString(row.label, contract, `$.renderGeometry.parks[${index}].label`);
+      validatePointArray(row.outerRing, contract, `$.renderGeometry.parks[${index}].outerRing`, 4);
+      requireSha256(row.source?.geometryWgs84Sha256, contract, `$.renderGeometry.parks[${index}].source.geometryWgs84Sha256`);
+    });
     streets.forEach((row, index) => {
       requireFinite(row.widthM, contract, `$.renderGeometry.streets[${index}].widthM`, Number.MIN_VALUE);
       validatePointArray(row.geometry, contract, `$.renderGeometry.streets[${index}].geometry`, 2);
@@ -637,11 +693,19 @@
   }
 
   function validateEmbodiment(embodiment) {
-    const contract = 'simulatte.autonomyEmbodiment.v1';
+    const contract = 'simulatte.autonomyEmbodiment.v2';
     requireSchema(embodiment, contract, contract);
-    if (embodiment.id !== 'delivery-bike-v1' || embodiment.mode !== 'delivery_bike') {
-      throw new AutonomyContractError(contract, '$.id/mode', 'delivery-bike-v1/delivery_bike', `${embodiment.id}/${embodiment.mode}`);
-    }
+    requireString(embodiment.id, contract, '$.id');
+    requireString(embodiment.contentVersion, contract, '$.contentVersion');
+    requireString(embodiment.label, contract, '$.label');
+    requireString(embodiment.mode, contract, '$.mode');
+    if (!['pedestrian', 'bicycle', 'scooter', 'car'].includes(embodiment.kind)) throw new AutonomyContractError(contract, '$.kind', 'pedestrian, bicycle, scooter, or car', embodiment.kind);
+    if (!['runner', 'cycle', 'scooter', 'car'].includes(embodiment.renderProfile)) throw new AutonomyContractError(contract, '$.renderProfile', 'registered shared renderer profile', embodiment.renderProfile);
+    const supportedTaskTypes = requireArray(embodiment.supportedTaskTypes, contract, '$.supportedTaskTypes', 1);
+    requireExactStringSet(supportedTaskTypes, [...new Set(supportedTaskTypes)], contract, '$.supportedTaskTypes');
+    supportedTaskTypes.forEach((task, index) => {
+      if (!['delivery', 'loop_distance'].includes(task)) throw new AutonomyContractError(contract, `$.supportedTaskTypes[${index}]`, 'registered task type', task);
+    });
     const dimensions = requireObject(embodiment.dimensions, contract, '$.dimensions');
     const dynamics = requireObject(embodiment.dynamics, contract, '$.dynamics');
     ['lengthM', 'widthM', 'collisionRadiusM'].forEach((key) => requireFinite(dimensions[key], contract, `$.dimensions.${key}`, Number.MIN_VALUE));
@@ -676,17 +740,57 @@
   }
 
   function validateMission(mission, world, embodiment) {
-    const contract = 'simulatte.autonomyMission.v1';
+    const contract = 'simulatte.autonomyMission.v2';
     requireSchema(mission, contract, contract);
     requireString(mission.id, contract, '$.id');
     requireString(mission.sourceText, contract, '$.sourceText');
     if (mission.embodimentId !== embodiment.id) throw new AutonomyContractError(contract, '$.embodimentId', embodiment.id, mission.embodimentId);
     const nodeIds = new Set(world.nodes.map((row) => row.id));
     if (!nodeIds.has(mission.originNodeId)) throw new AutonomyContractError(contract, '$.originNodeId', 'known world node', mission.originNodeId);
-    if (!nodeIds.has(mission.destinationNodeId)) throw new AutonomyContractError(contract, '$.destinationNodeId', 'known world node', mission.destinationNodeId);
+    const task = requireObject(mission.task, contract, '$.task');
+    if (!['delivery', 'loop_distance'].includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', 'delivery or loop_distance', task.type);
+    if (!embodiment.supportedTaskTypes.includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', `task supported by ${embodiment.id}`, task.type);
+    if (task.type === 'delivery') {
+      requireString(task.payloadId, contract, '$.task.payloadId');
+      if (!nodeIds.has(mission.destinationNodeId)) throw new AutonomyContractError(contract, '$.destinationNodeId', 'known world node', mission.destinationNodeId);
+      if (mission.grounding !== null) throw new AutonomyContractError(contract, '$.grounding', 'null for delivery', mission.grounding);
+    } else {
+      if (mission.destinationNodeId !== null) throw new AutonomyContractError(contract, '$.destinationNodeId', 'null for loop_distance', mission.destinationNodeId);
+      requireString(task.circuitId, contract, '$.task.circuitId');
+      if (!['run', 'walk'].includes(task.gait)) throw new AutonomyContractError(contract, '$.task.gait', 'run or walk', task.gait);
+      requireFinite(task.targetDistanceM, contract, '$.task.targetDistanceM', Number.MIN_VALUE);
+      const requested = requireObject(task.requestedDistance, contract, '$.task.requestedDistance');
+      requireFinite(requested.value, contract, '$.task.requestedDistance.value', Number.MIN_VALUE);
+      requireFinite(requested.metersPerUnit, contract, '$.task.requestedDistance.metersPerUnit', Number.MIN_VALUE);
+      requireFinite(requested.convertedMeters, contract, '$.task.requestedDistance.convertedMeters', Number.MIN_VALUE);
+      if (Math.abs(requested.value * requested.metersPerUnit - requested.convertedMeters) > 0.000001 || requested.convertedMeters !== task.targetDistanceM) {
+        throw new AutonomyContractError(contract, '$.task.requestedDistance', 'exact conversion to targetDistanceM', requested);
+      }
+      const circuit = (world.circuits || []).find((row) => row.id === task.circuitId);
+      if (!circuit) throw new AutonomyContractError(contract, '$.task.circuitId', 'known world circuit', task.circuitId);
+      const grounding = requireObject(mission.grounding, contract, '$.grounding');
+      requireExactValue(grounding.circuitId, circuit.id, contract, '$.grounding.circuitId');
+      requireExactValue(grounding.nodeIds, circuit.nodeIds, contract, '$.grounding.nodeIds');
+      requireExactValue(grounding.segmentIds, circuit.segmentIds, contract, '$.grounding.segmentIds');
+      requireExactValue(grounding.circuitLengthM, circuit.lengthM, contract, '$.grounding.circuitLengthM');
+      requireExactValue(grounding.source, circuit.source, contract, '$.grounding.source');
+      if (mission.originNodeId !== circuit.nodeIds[0]) throw new AutonomyContractError(contract, '$.originNodeId', circuit.nodeIds[0], mission.originNodeId);
+      if (embodiment.mode !== circuit.mode) throw new AutonomyContractError(contract, '$.embodimentId', `mode ${circuit.mode}`, embodiment.mode);
+    }
+    const parser = requireObject(mission.parser, contract, '$.parser');
+    requireArray(parser.evidence, contract, '$.parser.evidence', 1).forEach((row, index) => {
+      requireString(row.field, contract, `$.parser.evidence[${index}].field`);
+      requireString(row.value, contract, `$.parser.evidence[${index}].value`);
+      requireInteger(row.start, contract, `$.parser.evidence[${index}].start`);
+      requireInteger(row.end, contract, `$.parser.evidence[${index}].end`, 1);
+      requireString(row.method, contract, `$.parser.evidence[${index}].method`);
+      requireInteger(row.editDistance, contract, `$.parser.evidence[${index}].editDistance`);
+      if (mission.sourceText.slice(row.start, row.end) !== row.value) throw new AutonomyContractError(contract, `$.parser.evidence[${index}]`, 'exact source interval', row);
+    });
     requireObject(mission.constraints, contract, '$.constraints');
     requireBoolean(mission.constraints.mustYieldToPedestrians, contract, '$.constraints.mustYieldToPedestrians');
     requireBoolean(mission.constraints.mustObeySignals, contract, '$.constraints.mustObeySignals');
+    requireBoolean(mission.constraints.mustStayOnCircuit, contract, '$.constraints.mustStayOnCircuit');
     requireFinite(mission.constraints.maximumSpeedMps, contract, '$.constraints.maximumSpeedMps', Number.MIN_VALUE);
     requireArray(mission.obligations, contract, '$.obligations', 1);
     requireInteger(mission.seed, contract, '$.seed');
@@ -694,7 +798,7 @@
   }
 
   function validateObservation(observation) {
-    const contract = 'simulatte.autonomyObservation.v1';
+    const contract = 'simulatte.autonomyObservation.v2';
     requireSchema(observation, contract, contract);
     requireInteger(observation.tick, contract, '$.tick');
     requireObject(observation.agent, contract, '$.agent');
@@ -733,7 +837,7 @@
   }
 
   function validateBet(bet) {
-    const contract = 'simulatte.autonomyActionBet.v1';
+    const contract = 'simulatte.autonomyActionBet.v2';
     requireSchema(bet, contract, contract);
     requireString(bet.id, contract, '$.id');
     requireInteger(bet.tick, contract, '$.tick');

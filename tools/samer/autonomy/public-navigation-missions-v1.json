@@ -4,18 +4,18 @@
     "method": "by_construction_from_named_world_nodes",
     "owner": "tools/autonomy/build-public-navigation-missions.mjs",
     "rowCount": 20,
-    "rowsSha256": "77ce4c914c2680e01b9fe0c097135b534439cdcfe99d906bc6489185d8665a9b"
+    "rowsSha256": "481e13c81475d2e0e3ecbdd50e78565681c3c608b254e2e456ce3fc2002f2fa7"
   },
   "contentVersion": "public-navigation-missions-2026-07-13",
   "exposure": "Checked into the repository and available to developers, agents, selectors, and evaluators.",
   "id": "public-navigation-missions-v1",
   "identities": {
     "embodimentId": "delivery-bike-v1",
-    "embodimentSha256": "c83a1e902a99d7a89fafdd4c07a58bb2ba129307525e91a7b40777b5cab18e6d",
+    "embodimentSha256": "f144b2c67eb5a30d30162fc3efcb0452ede225a72534d2389a98c139899d0f01",
     "policyId": "bet-selector-v1",
     "policySha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c",
-    "worldId": "villages-williamsburg-delivery-bike-v1",
-    "worldSha256": "04361791f51e9c2a3275daffa2aec8c00de8e1cbe5cd7ab464d508fe004dfb00"
+    "worldId": "nyc-core-autonomy-v1",
+    "worldSha256": "c5b78f235978b8b3c791f2f8cf21c43d41a8523b8aa5e039201887af5564c714"
   },
   "missions": [
     {
@@ -24,6 +24,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "North Williamsburg",
@@ -61,6 +62,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
@@ -98,6 +100,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "West Village",
@@ -135,6 +138,7 @@
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
@@ -171,6 +175,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "East Village",
@@ -208,6 +213,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "East Village",
@@ -245,6 +251,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Washington Square",
@@ -282,6 +289,7 @@
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
@@ -318,6 +326,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Tompkins Square",
@@ -355,6 +364,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "North Williamsburg",
@@ -392,6 +402,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Williamsburg Bridge",
@@ -429,6 +440,7 @@
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "North Williamsburg",
@@ -465,6 +477,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Williamsburg Waterfront",
@@ -502,6 +515,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Greenpoint",
@@ -539,6 +553,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "McCarren Park",
@@ -576,6 +591,7 @@
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Greenpoint",
@@ -612,6 +628,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "North Williamsburg",
@@ -649,6 +666,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Williamsburg Waterfront",
@@ -686,6 +704,7 @@
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": true
         },
         "destinationLabel": "Union Square",
@@ -723,6 +742,7 @@
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
+          "mustStayOnCircuit": false,
           "mustYieldToPedestrians": false
         },
         "destinationLabel": "Greenpoint",

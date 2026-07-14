@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="simulatte-build" content="0cbe3dae746462aa934cf014f2a7513fbc3edcda-4814996e5725">
-  <title>Simulatte Autonomy | Villages to Williamsburg</title>
-  <meta name="description" content="A WebGPU delivery-bike agent makes continuous, evidence-scored choices across the Villages and North Brooklyn.">
+  <title>Simulatte Autonomy | NYC Missions</title>
+  <meta name="description" content="WebGPU bicycle and pedestrian agents make continuous, evidence-scored choices across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -40,7 +40,7 @@
         </div>
       </div>
       <label class="mission-field" for="mission-input">
-        <span class="sr-only">Natural-language delivery mission</span>
+        <span class="sr-only">Natural-language autonomy mission</span>
         <textarea id="mission-input" rows="2" spellcheck="false"></textarea>
       </label>
       <div class="mission-controls" aria-label="Mission controls">
@@ -70,7 +70,7 @@
             <span class="section-index">02</span>
             <div>
               <span class="section-label">WebGPU world model</span>
-              <h2>Villages to Williamsburg, frozen 2026-07-13</h2>
+              <h2>Villages to North Brooklyn, frozen 2026-07-13</h2>
             </div>
           </div>
           <div class="camera-controls" aria-label="Map camera">
@@ -86,18 +86,20 @@
           </div>
         </div>
         <div class="canvas-shell">
-          <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Pitched WebGPU view of the Villages to Williamsburg delivery simulation"></canvas>
+          <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Pitched WebGPU view of bicycle and pedestrian autonomy missions in the Villages and North Brooklyn"></canvas>
           <div class="map-provenance">
             <strong>Real geometry</strong>
-            <span>NYC bike routes + buildings</span>
+            <span>NYC bike routes + park boundary</span>
+            <span>NYC buildings</span>
             <span>OSM street context</span>
           </div>
           <div class="legend" aria-label="Map legend">
             <span><i class="building"></i>Buildings</span>
+            <span><i class="park"></i>Park</span>
             <span><i class="protected"></i>Protected</span>
             <span><i class="shared"></i>Shared</span>
             <span><i class="route"></i>Planned</span>
-            <span><i class="trace"></i>Driven</span>
+            <span><i class="trace"></i>Traveled</span>
             <span><i class="prediction"></i>Prediction</span>
           </div>
           <div class="map-hint">Drag to orbit · Shift-drag or Top to pan · scroll to zoom</div>
@@ -179,7 +181,7 @@
   </main>
 
   <footer>
-    Geometry is frozen open-data evidence. Signals, actors, speed, risk, and outcomes are simulation assumptions. This does not establish control of a physical vehicle.
+    Geometry is frozen open-data evidence. The park circuit follows a property boundary, not a surveyed sidewalk. Signals, actors, speed, risk, and outcomes are simulation assumptions. This does not establish physical autonomy.
   </footer>
 
   <script defer src="./contracts/contract-validator.js?v=0cbe3dae746462aa934cf014f2a7513fbc3edcda-4814996e5725"></script>

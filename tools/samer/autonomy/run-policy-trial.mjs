@@ -192,7 +192,7 @@ async function runJourney({ scenario, lane, contract, assets }) {
 }
 
 function evaluateScenario(receipt, scenario, budget) {
-  const tickRows = receipt.trace.map((row) => row.payload).filter((row) => row.schema === 'simulatte.autonomyTickReceipt.v1');
+  const tickRows = receipt.trace.map((row) => row.payload).filter((row) => row.schema === 'simulatte.autonomyTickReceipt.v2');
   const signalGateCount = countBlockingGate(tickRows, 'signal_compliance');
   const pedestrianGateCount = countBlockingGate(tickRows, 'pedestrian_clearance');
   const safetyViolationCount = receipt.verification.violations.length;

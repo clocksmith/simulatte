@@ -81,7 +81,7 @@
       const segment = worldModel.segment(targetSegmentId);
       rows.push(queryRow(
         'route-segment',
-        [segment.laneType, segment.source?.street, 'bike lane'],
+        [segment.laneType, segment.source?.street, mission.task.type === 'loop_distance' ? 'pedestrian perimeter' : 'bike lane'],
         ['street_segment'],
         segment.cardIds,
         ['mode_eligible', 'network_contained', `${segment.laneType}_lane`]
@@ -96,7 +96,17 @@
     }
     const blocked = worldModel.blockedSegmentIds(state.tick);
     if (blocked.length) rows.push(queryRow('blocked-network', ['blocked', 'segment', 'replan', ...blocked], ['behavior'], ['behavior.blocked-segment-replan'], ['blocked_segment_ineligible', 'route_revision_receipted']));
-    rows.push(queryRow('mission', ['delivery', 'arrival', 'parcel', mission.constraints.lanePreference], ['scenario'], ['scenario.delivery-arrival'], ['destination_reached', 'payload_retained']));
+    if (mission.task.type === 'loop_distance') {
+      rows.push(queryRow(
+        'mission',
+        [mission.task.gait, 'loop', 'perimeter', 'distance', mission.grounding.label],
+        ['scenario'],
+        ['scenario.loop-distance'],
+        ['distance_target', 'closed_circuit', 'boundary_grounded']
+      ));
+    } else {
+      rows.push(queryRow('mission', ['delivery', 'arrival', 'parcel', mission.constraints.lanePreference], ['scenario'], ['scenario.delivery-arrival'], ['destination_reached', 'payload_retained']));
+    }
     return rows;
   }
 

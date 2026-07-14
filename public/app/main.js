@@ -30,12 +30,14 @@
     const stepIntervalMs = 18;
 
     async function buildController({ keepMissionLocked = false } = {}) {
-      const mission = missionApi.compileMission(elements.missionInput.value, data.world, data.embodiment);
+      const mission = missionApi.compileMission(elements.missionInput.value, data.world, data.embodiments);
+      const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
+      if (!embodiment) throw new Error(`Mission selected unavailable embodiment ${mission.embodimentId}`);
       const nextController = controllerApi.createAutonomyController({
         world: data.world,
         featureCatalog: data.featureCatalog,
         occurrenceCatalog: data.occurrenceCatalog,
-        embodiment: data.embodiment,
+        embodiment,
         policy: data.policy,
         mission,
         regionComposition: data.regionComposition,
@@ -223,6 +225,7 @@
   }
 
   function runtimeLabel(state) {
+    if (state.status === 'completed' && state.taskType === 'loop_distance') return `Distance complete: ${state.distanceTraveledM.toFixed(1)} m in ${state.completedLaps} full lap(s)`;
     if (state.status === 'completed') return `Delivered at tick ${state.tick}`;
     if (state.status === 'failed') return `Stopped: ${state.terminalReason}`;
     return `Tick ${state.tick}: observe, retrieve, choose, settle`;
@@ -230,7 +233,7 @@
 
   function renderIdentity(receipt) {
     const adapter = receipt.adapter.description || receipt.adapter.device || receipt.adapter.architecture || 'adapter';
-    return `${adapter} | ${receipt.buildingCount} buildings | ${receipt.staticVertexCount.toLocaleString()} vertices`;
+    return `${adapter} | ${receipt.buildingCount} buildings | ${receipt.parkCount} park | ${receipt.staticVertexCount.toLocaleString()} vertices`;
   }
 
   function downloadJson(filename, value) {

@@ -18,7 +18,7 @@
     "policyMemory"
   ],
   "properties": {
-    "schema": { "const": "simulatte.autonomyObservation.v1" },
+    "schema": { "const": "simulatte.autonomyObservation.v2" },
     "missionId": { "type": "string", "minLength": 1 },
     "tick": { "type": "integer", "minimum": 0 },
     "simulatedTimeSeconds": { "type": "number", "minimum": 0 },
@@ -38,11 +38,11 @@
     "route": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["segmentIds", "cost", "algorithm", "visitedNodeCount", "visitedNodeIds", "evaluatedSegmentCount", "costBreakdown", "revision", "reason"],
+      "required": ["segmentIds", "cost", "algorithm", "visitedNodeCount", "visitedNodeIds", "evaluatedSegmentCount", "costBreakdown", "revision", "reason", "circuitId", "circuitLengthM"],
       "properties": {
         "segmentIds": { "type": "array", "items": { "type": "string" } },
         "cost": { "type": "number", "minimum": 0 },
-        "algorithm": { "const": "a_star_v1" },
+        "algorithm": { "enum": ["a_star_v1", "declared_closed_circuit_v1"] },
         "visitedNodeCount": { "type": "integer", "minimum": 0 },
         "visitedNodeIds": { "type": "array", "items": { "type": "string" } },
         "evaluatedSegmentCount": { "type": "integer", "minimum": 0 },
@@ -69,7 +69,9 @@
           }
         },
         "revision": { "type": "integer", "minimum": 0 },
-        "reason": { "enum": ["initial", "continued", "blocked_segment", "route_exhausted", "at_destination"] }
+        "reason": { "enum": ["initial", "continued", "blocked_segment", "route_exhausted", "at_destination", "lap_restart", "distance_target_reached"] },
+        "circuitId": { "type": ["string", "null"] },
+        "circuitLengthM": { "type": ["number", "null"], "exclusiveMinimum": 0 }
       }
     },
     "signals": {

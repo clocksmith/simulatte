@@ -11,6 +11,9 @@
   const TOP_PITCH = Math.PI / 2 - 0.025;
   const MIN_DISTANCE = 140;
   const MAX_DISTANCE = 9000;
+  const DEFAULT_FOLLOW_DISTANCE = 62;
+  const MIN_FOLLOW_DISTANCE = 12;
+  const MAX_FOLLOW_DISTANCE = 260;
 
   function createCameraState(world, worldModel, regionRegistry = null, regionPacks = []) {
     const targets = createCameraTargets(world, worldModel, regionRegistry, regionPacks);
@@ -20,6 +23,7 @@
       yaw: DEFAULT_YAW,
       pitch: DEFAULT_PITCH,
       distance: route.distance,
+      followDistance: DEFAULT_FOLLOW_DISTANCE,
       orbitTarget: [...route.target],
       focusId: route.id,
       targets,
@@ -124,7 +128,11 @@
   }
 
   function zoomCamera(state, deltaY) {
-    if (state.mode === 'follow') return false;
+    if (state.mode === 'follow') {
+      state.followDistance = clamp(state.followDistance * Math.exp(deltaY * 0.001), MIN_FOLLOW_DISTANCE, MAX_FOLLOW_DISTANCE);
+      cancelTransition(state);
+      return true;
+    }
     state.distance = clamp(state.distance * Math.exp(deltaY * 0.001), MIN_DISTANCE, MAX_DISTANCE);
     cancelTransition(state);
     return true;
@@ -159,6 +167,7 @@
       focusId: state.focusId,
       transitionState: state.transition ? 'active' : 'settled',
       transitionProgress: state.transitionProgress,
+      followDistance: state.followDistance,
     };
   }
 
@@ -166,9 +175,13 @@
     if (state.mode === 'follow') {
       const point = snapshot.state.position;
       const heading = routeHeading(snapshot, worldModel);
+      const distance = state.followDistance;
+      const height = clamp(distance * 0.7, 8, 92);
+      const lookAhead = clamp(distance * 0.68, 10, 96);
+      const targetHeight = clamp(distance * 0.065, 1.8, 8);
       return {
-        eye: [point.x - Math.cos(heading) * 62, 44, -point.y + Math.sin(heading) * 62],
-        target: [point.x + Math.cos(heading) * 42, 4, -point.y - Math.sin(heading) * 42],
+        eye: [point.x - Math.cos(heading) * distance, height, -point.y + Math.sin(heading) * distance],
+        target: [point.x + Math.cos(heading) * lookAhead, targetHeight, -point.y - Math.sin(heading) * lookAhead],
         fieldOfViewRadians: 52 * Math.PI / 180,
         near: 0.4,
         far: 20000,

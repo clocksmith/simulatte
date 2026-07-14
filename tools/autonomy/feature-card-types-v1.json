@@ -32,6 +32,14 @@
       "validationObligations": ["endpoints_exist", "geometry_has_two_points", "positive_length"]
     },
     {
+      "id": "street.pedestrian-perimeter",
+      "kind": "street_segment",
+      "label": "Pedestrian park perimeter",
+      "searchTerms": ["pedestrian", "runner", "walker", "park perimeter", "closed circuit"],
+      "constraints": ["mode_eligible", "boundary_contained", "closed_circuit"],
+      "validationObligations": ["endpoints_exist", "geometry_has_two_points", "positive_length", "source_boundary_present"]
+    },
+    {
       "id": "behavior.signal-compliance",
       "kind": "behavior",
       "label": "Signal compliance",
@@ -62,6 +70,14 @@
       "searchTerms": ["delivery", "arrival", "destination", "parcel", "payload"],
       "constraints": ["destination_reached", "payload_retained"],
       "validationObligations": ["destination_node_exists", "arrival_receipt_required"]
+    },
+    {
+      "id": "scenario.loop-distance",
+      "kind": "scenario",
+      "label": "Perimeter distance loop",
+      "searchTerms": ["run", "walk", "loop", "laps", "distance target", "park perimeter"],
+      "constraints": ["closed_circuit", "exact_distance_settlement", "lap_accounting"],
+      "validationObligations": ["circuit_exists", "distance_conversion_receipted", "boundary_segments_receipted", "final_settlement_required"]
     }
   ]
 }

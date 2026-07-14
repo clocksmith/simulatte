@@ -12,12 +12,13 @@
     "task",
     "originNodeId",
     "destinationNodeId",
+    "grounding",
     "constraints",
     "obligations",
     "seed"
   ],
   "properties": {
-    "schema": { "const": "simulatte.autonomyMission.v1" },
+    "schema": { "const": "simulatte.autonomyMission.v2" },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "sourceText": { "type": "string", "minLength": 1 },
     "parser": {
@@ -25,8 +26,8 @@
       "additionalProperties": false,
       "required": ["kind", "version", "claimBoundary", "evidence"],
       "properties": {
-        "kind": { "const": "deterministic_lexical" },
-        "version": { "const": "simulatte.autonomyMissionParser.v1" },
+        "kind": { "const": "deterministic_grounded_lexical" },
+        "version": { "const": "simulatte.autonomyMissionParser.v2" },
         "claimBoundary": { "type": "string", "minLength": 1 },
         "evidence": {
           "type": "array",
@@ -34,37 +35,101 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["field", "value", "start", "end"],
+            "required": ["field", "value", "start", "end", "method", "groundedId", "canonicalValue", "editDistance"],
             "properties": {
-              "field": { "enum": ["task", "mode", "origin", "destination", "lanePreference", "pedestrianYield"] },
+              "field": { "enum": ["task", "mode", "origin", "destination", "circuit", "targetDistance", "boundaryKind", "lanePreference", "pedestrianYield"] },
               "value": { "type": "string", "minLength": 1 },
               "start": { "type": "integer", "minimum": 0 },
-              "end": { "type": "integer", "minimum": 1 }
+              "end": { "type": "integer", "minimum": 1 },
+              "method": { "enum": ["exact_lexical", "exact_world_label", "constrained_fuzzy_place", "constrained_fuzzy_keyword", "unit_conversion"] },
+              "groundedId": { "type": ["string", "null"] },
+              "canonicalValue": { "type": ["string", "null"] },
+              "editDistance": { "type": "integer", "minimum": 0 }
             }
           }
         }
       }
     },
-    "embodimentId": { "const": "delivery-bike-v1" },
+    "embodimentId": { "type": "string", "minLength": 1 },
     "task": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["type", "payloadId"],
-      "properties": {
-        "type": { "const": "delivery" },
-        "payloadId": { "type": "string", "minLength": 1 }
-      }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "payloadId"],
+          "properties": {
+            "type": { "const": "delivery" },
+            "payloadId": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "circuitId", "gait", "targetDistanceM", "requestedDistance"],
+          "properties": {
+            "type": { "const": "loop_distance" },
+            "circuitId": { "type": "string", "minLength": 1 },
+            "gait": { "enum": ["run", "walk"] },
+            "targetDistanceM": { "type": "number", "exclusiveMinimum": 0 },
+            "requestedDistance": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["value", "unit", "metersPerUnit", "convertedMeters"],
+              "properties": {
+                "value": { "type": "number", "exclusiveMinimum": 0 },
+                "unit": { "enum": ["foot", "meter", "kilometer", "mile"] },
+                "metersPerUnit": { "type": "number", "exclusiveMinimum": 0 },
+                "convertedMeters": { "type": "number", "exclusiveMinimum": 0 }
+              }
+            }
+          }
+        }
+      ]
     },
     "originNodeId": { "type": "string", "minLength": 1 },
-    "destinationNodeId": { "type": "string", "minLength": 1 },
+    "destinationNodeId": { "type": ["string", "null"] },
+    "grounding": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["circuitId", "label", "nodeIds", "segmentIds", "circuitLengthM", "fullLapsBeforeFinalPartial", "finalPartialDistanceM", "source"],
+          "properties": {
+            "circuitId": { "type": "string", "minLength": 1 },
+            "label": { "type": "string", "minLength": 1 },
+            "nodeIds": { "type": "array", "minItems": 2, "items": { "type": "string" }, "uniqueItems": true },
+            "segmentIds": { "type": "array", "minItems": 2, "items": { "type": "string" }, "uniqueItems": true },
+            "circuitLengthM": { "type": "number", "exclusiveMinimum": 0 },
+            "fullLapsBeforeFinalPartial": { "type": "integer", "minimum": 0 },
+            "finalPartialDistanceM": { "type": "number", "minimum": 0 },
+            "source": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["datasetId", "sourceRevision", "propertyId", "boundaryKind", "surfaceClaim", "geometryWgs84Sha256", "claimBoundary"],
+              "properties": {
+                "datasetId": { "type": "string", "minLength": 1 },
+                "sourceRevision": { "type": "string", "minLength": 1 },
+                "propertyId": { "type": "string", "minLength": 1 },
+                "boundaryKind": { "type": "string", "minLength": 1 },
+                "surfaceClaim": { "type": "string", "minLength": 1 },
+                "geometryWgs84Sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                "claimBoundary": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      ]
+    },
     "constraints": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["lanePreference", "mustYieldToPedestrians", "mustObeySignals", "maximumSpeedMps"],
+      "required": ["lanePreference", "mustYieldToPedestrians", "mustObeySignals", "mustStayOnCircuit", "maximumSpeedMps"],
       "properties": {
         "lanePreference": { "enum": ["protected", "any"] },
         "mustYieldToPedestrians": { "type": "boolean" },
         "mustObeySignals": { "type": "boolean" },
+        "mustStayOnCircuit": { "type": "boolean" },
         "maximumSpeedMps": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
@@ -77,7 +142,7 @@
         "required": ["id", "kind", "required"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
-          "kind": { "enum": ["arrival", "payload_delivery", "signal_compliance", "pedestrian_yield", "lane_preference"] },
+          "kind": { "enum": ["arrival", "payload_delivery", "signal_compliance", "pedestrian_yield", "lane_preference", "distance_target", "closed_loop", "boundary_adherence", "lap_accounting"] },
           "required": { "type": "boolean" }
         }
       }

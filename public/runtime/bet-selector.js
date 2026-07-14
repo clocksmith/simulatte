@@ -69,13 +69,13 @@
     const weights = policy.utility;
     if (approach === 'progress_only') {
       const progress = bet.prediction.progressDeltaM;
-      const arrival = bet.prediction.willArrive ? weights.arrivalBonus : 0;
+      const arrival = bet.prediction.willComplete ? weights.arrivalBonus : 0;
       return { progress: round(progress), clearance: 0, confidence: 0, arrival: round(arrival), maneuver: 0, total: round(progress + arrival), formula: 'progressDeltaM + arrivalBonus' };
     }
     const progress = bet.prediction.progressDeltaM * weights.progressWeight;
     const clearance = bet.prediction.minimumClearanceM * weights.clearanceWeight;
     const confidence = bet.confidence * weights.confidenceWeight;
-    const arrival = bet.prediction.willArrive ? weights.arrivalBonus : 0;
+    const arrival = bet.prediction.willComplete ? weights.arrivalBonus : 0;
     let maneuver = 0;
     if (bet.action.maneuver === 'wait') maneuver -= weights.waitPenalty;
     if (bet.action.maneuver === 'emergency_stop') maneuver -= weights.emergencyStopPenalty;

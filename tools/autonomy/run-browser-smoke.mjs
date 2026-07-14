@@ -236,7 +236,8 @@ async function runBrowserSmoke(options) {
       && result.retrievalRows > 0
       && result.rerankRows > 0
       && result.occurrenceRows > 0
-      && result.rerankerProof.includes('0.900')
+      && result.rerankerProof.includes('MRR')
+      && result.rerankerProof.includes('→')
       && result.gateRows === 7
       && result.traceRows > 0
       && result.selectedRows === 1
@@ -253,13 +254,16 @@ async function runBrowserSmoke(options) {
       && result.camera.panWorked
       && result.camera.orbitWorked
       && result.camera.zoomWorked
+      && result.camera.followZoomWorked
       && result.camera.returnedToRoute
+      && result.distance === '1524 m'
+      && result.runtime.includes('Distance complete')
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v2',
+      schema: 'simulatte.autonomyBrowserSmoke.v3',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -353,6 +357,14 @@ function browserJourneyExpression() {
     const modeProbes = [];
     modeProbes.push(await probeMode('top'));
     modeProbes.push(await probeMode('follow'));
+    const followZoomBefore = Number(canvas.dataset.cameraFollowDistance);
+    canvas.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -240 }));
+    await sleep(260);
+    const followZoomAfter = Number(canvas.dataset.cameraFollowDistance);
+    const followZoomWorked = canvas.dataset.cameraInteraction === 'zoom'
+      && Number.isFinite(followZoomBefore)
+      && Number.isFinite(followZoomAfter)
+      && followZoomAfter < followZoomBefore;
     modeProbes.push(await probeMode('bird'));
 
     const focusBefore = cameraTarget();
@@ -419,7 +431,7 @@ function browserJourneyExpression() {
       && canvas.dataset.cameraFocus === 'route'
       && canvas.dataset.cameraTransition === 'settled';
     const missionInput = document.getElementById('mission-input');
-    missionInput.value += ' ';
+    missionInput.value = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
     missionInput.dispatchEvent(new Event('input', { bubbles: true }));
     const editInvalidatedController = document.getElementById('export-button').disabled
       && document.getElementById('runtime-status').dataset.kind === 'changed';
@@ -452,6 +464,9 @@ function browserJourneyExpression() {
         panWorked,
         orbitWorked,
         zoomWorked,
+        followZoomWorked,
+        followZoomBefore,
+        followZoomAfter,
         returnedToRoute,
       },
       editInvalidatedController,

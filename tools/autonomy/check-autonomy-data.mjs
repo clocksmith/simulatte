@@ -23,6 +23,10 @@ function hashFile(file) {
 
 function resolveReference(manifest, key) {
   const reference = manifest[key];
+  return resolveReferenceValue(reference, key);
+}
+
+function resolveReferenceValue(reference, key) {
   const file = path.resolve(path.dirname(MANIFEST_PATH), reference.path);
   const relative = path.relative(PUBLIC, file);
   if (relative.startsWith('..') || path.isAbsolute(relative)) {
@@ -80,7 +84,9 @@ function main() {
   contracts.validateManifest(manifest);
   const featureCatalog = resolveReference(manifest, 'featureCatalog');
   const world = resolveReference(manifest, 'world');
-  const embodiment = resolveReference(manifest, 'embodiment');
+  const embodiments = manifest.embodiments.map((reference) => resolveReferenceValue(reference, `embodiment:${reference.id}`));
+  const embodiment = embodiments.find((row) => row.id === manifest.defaultEmbodimentId);
+  if (!embodiment) throw new Error(`Default embodiment ${manifest.defaultEmbodimentId} was not loaded`);
   const policy = resolveReference(manifest, 'policy');
   const occurrenceCatalog = resolveReference(manifest, 'occurrenceCatalog');
   const rerankerEvidence = resolveReference(manifest, 'rerankerEvidence');
@@ -96,13 +102,13 @@ function main() {
   if (composedFeatureHash !== manifest.featureCatalog.sha256) throw new Error(`Region-composed feature SHA-256 expected ${manifest.featureCatalog.sha256}, received ${composedFeatureHash}`);
   contracts.validateFeatureCatalog(featureCatalog);
   contracts.validateWorld(world, featureCatalog);
-  contracts.validateEmbodiment(embodiment);
+  embodiments.forEach((row) => contracts.validateEmbodiment(row));
   contracts.validatePolicy(policy);
   contracts.validateOccurrenceCatalog(occurrenceCatalog, world);
   contracts.validateRerankerEvidence(rerankerEvidence, featureCatalog, {
     world: manifest.world.sha256,
     featureCatalog: manifest.featureCatalog.sha256,
-    embodiment: manifest.embodiment.sha256,
+    embodiment: manifest.embodiments.find((row) => row.id === manifest.defaultEmbodimentId).sha256,
     policy: manifest.policy.sha256,
   });
   publicAutonomyJavaScript().forEach((file) => {
@@ -110,7 +116,7 @@ function main() {
     if (lineCount > 999) throw new Error(`${path.relative(ROOT, file)} has ${lineCount} lines; maximum is 999`);
   });
   validateHtmlScripts();
-  console.log(`AUTONOMY-DATA manifest=${manifest.id} world=${world.id} regions=${regionPacks.length} seams=${composition.receipt.seamNodeIds.length} embodiment=${embodiment.id} policy=${policy.id} status=verified`);
+  console.log(`AUTONOMY-DATA manifest=${manifest.id} world=${world.id} regions=${regionPacks.length} seams=${composition.receipt.seamNodeIds.length} embodiments=${embodiments.map((row) => row.id).join(',')} policy=${policy.id} status=verified`);
 }
 
 try {

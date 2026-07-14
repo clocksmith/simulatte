@@ -42,6 +42,34 @@
     throw error;
   }
 
+  function planCircuitRoute({ worldModel, circuitId, currentNodeId, mode, tick, mission, policy }) {
+    const circuit = (worldModel.world.circuits || []).find((row) => row.id === circuitId);
+    if (!circuit) throw routeError('circuit_not_found', `World ${worldModel.world.id} has no circuit ${circuitId}`, { circuitId });
+    if (circuit.mode !== mode) throw routeError('circuit_mode_mismatch', `Circuit ${circuitId} allows ${circuit.mode}, received ${mode}`, { circuitId, expectedMode: circuit.mode, mode });
+    const startIndex = circuit.nodeIds.indexOf(currentNodeId);
+    if (startIndex < 0) throw routeError('circuit_entry_mismatch', `Node ${currentNodeId} is not on circuit ${circuitId}`, { circuitId, currentNodeId });
+    const segmentIds = [...circuit.segmentIds.slice(startIndex), ...circuit.segmentIds.slice(0, startIndex)];
+    const blocked = new Set(worldModel.blockedSegmentIds(tick));
+    const blockedCircuitIds = segmentIds.filter((id) => blocked.has(id));
+    if (blockedCircuitIds.length) {
+      throw routeError('circuit_blocked', `Circuit ${circuitId} has ${blockedCircuitIds.length} blocked segment(s) at tick ${tick}`, {
+        circuitId, tick, blockedSegmentIds: blockedCircuitIds,
+      });
+    }
+    const ineligibleIds = segmentIds.filter((id) => !worldModel.segment(id).allowedModes.includes(mode));
+    if (ineligibleIds.length) throw routeError('circuit_mode_ineligible', `Circuit ${circuitId} contains segment(s) unavailable to ${mode}`, { circuitId, mode, segmentIds: ineligibleIds });
+    const costBreakdown = routeCostBreakdown(segmentIds, worldModel, mission, policy);
+    return routeResult(
+      segmentIds,
+      costBreakdown.total,
+      [...circuit.nodeIds.slice(startIndex), ...circuit.nodeIds.slice(0, startIndex)],
+      segmentIds.length,
+      costBreakdown,
+      'declared_closed_circuit_v1',
+      { circuitId, circuitLengthM: circuit.lengthM }
+    );
+  }
+
   function segmentCost(segment, mission, policy) {
     const travel = segment.lengthM / segment.speedLimitMps * policy.route.travelWeight;
     const risk = segment.riskScore * policy.route.riskWeight;
@@ -84,22 +112,31 @@
     return left.estimate - right.estimate || left.cost - right.cost || left.nodeId.localeCompare(right.nodeId) || left.path.join('|').localeCompare(right.path.join('|'));
   }
 
-  function routeResult(segmentIds, cost, visitedNodeIds, evaluatedSegmentCount, costBreakdown) {
+  function routeResult(segmentIds, cost, visitedNodeIds, evaluatedSegmentCount, costBreakdown, algorithm = 'a_star_v1', extension = {}) {
     return {
-      schema: 'simulatte.autonomyRoutePlan.v1',
-      algorithm: 'a_star_v1',
+      schema: 'simulatte.autonomyRoutePlan.v2',
+      algorithm,
       segmentIds,
       cost: round(cost),
       visitedNodeIds,
       evaluatedSegmentCount,
       costBreakdown,
-      deterministicTieBreak: 'segment_id_ascending',
+      deterministicTieBreak: algorithm === 'a_star_v1' ? 'segment_id_ascending' : 'declared_circuit_order',
+      ...extension,
     };
+  }
+
+  function routeError(code, message, evidence) {
+    const error = new Error(`${code}: ${message}`);
+    error.name = 'AutonomyRouteError';
+    error.code = code;
+    error.evidence = evidence;
+    return error;
   }
 
   function round(value) {
     return Number(value.toFixed(9));
   }
 
-  return { planRoute, routeCostBreakdown, segmentCost };
+  return { planCircuitRoute, planRoute, routeCostBreakdown, segmentCost };
 });

@@ -9,7 +9,7 @@ const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
 const DATA_DIR = path.join(ROOT, 'public/data/autonomy');
 const DEFAULT_CONFIG = path.join(TOOL_DIR, 'region-configs/nyc-core-v1.json');
-const DEFAULT_WORLD = path.join(DATA_DIR, 'worlds/villages-williamsburg-delivery-bike-v1.json');
+const DEFAULT_WORLD = path.join(DATA_DIR, 'worlds/nyc-core-autonomy-v1.json');
 const DEFAULT_FEATURES = path.join(DATA_DIR, 'feature-cards-v1.json');
 const DEFAULT_REGISTRY = path.join(DATA_DIR, 'regions/nyc-core-v1.json');
 const MANIFEST_PATH = path.join(DATA_DIR, 'autonomy-manifest.json');
@@ -78,6 +78,7 @@ function compileRegionPacks({ config, world, featureCatalog, worldPath, featureP
   const nodeOwner = new Map(world.nodes.map((row) => [row.id, ownerForPoint(toWgs84(row.position, world), config).id]));
   const segmentOwner = assignRows(world.segments, (row) => geometryCenter(row.geometry), world, config);
   const streetOwner = assignRows(world.renderGeometry.streets, (row) => geometryCenter(row.geometry), world, config);
+  const parkOwner = assignRows(world.renderGeometry.parks, (row) => geometryCenter(row.outerRing), world, config);
   const buildingOwner = assignRows(world.renderGeometry.buildings, (row) => geometryCenter(row.footprint), world, config);
   const facilityOwner = assignRows(world.renderGeometry.bikeFacilities, (row) => geometryCenter(row.geometry), world, config);
   world.nodes.forEach((row) => packStates.get(nodeOwner.get(row.id)).nodes.set(row.id, row));
@@ -102,6 +103,7 @@ function compileRegionPacks({ config, world, featureCatalog, worldPath, featureP
     packStates.get(ownerId).disruptions.push(row);
   });
   world.renderGeometry.streets.forEach((row) => packStates.get(streetOwner.get(row.id)).renderGeometry.streets.push(row));
+  world.renderGeometry.parks.forEach((row) => packStates.get(parkOwner.get(row.id)).renderGeometry.parks.push(row));
   world.renderGeometry.buildings.forEach((row) => packStates.get(buildingOwner.get(row.id)).renderGeometry.buildings.push(row));
   world.renderGeometry.bikeFacilities.forEach((row) => packStates.get(facilityOwner.get(row.id)).renderGeometry.bikeFacilities.push(row));
   const featureOwner = createFeatureOwner({ world, segmentOwner, streetOwner, buildingOwner, facilityOwner, signalOwner, actorOwner, disruptionOwner });
@@ -128,7 +130,7 @@ function compileRegionPacks({ config, world, featureCatalog, worldPath, featureP
     seamNodeIds,
     sharedWorldRows: {
       nodes: [], segments: [], signals: [], actors: [], disruptions: [],
-      renderGeometry: { land: structuredClone(world.renderGeometry.land), streets: [], buildings: [], bikeFacilities: [] },
+      renderGeometry: { land: structuredClone(world.renderGeometry.land), parks: [], streets: [], buildings: [], bikeFacilities: [] },
     },
     sharedFeatureRows: { cards: sharedFeatureCards, index: filterFeatureIndex(featureCatalog.index, new Set(sharedFeatureCards.map((row) => row.id))) },
   };
@@ -136,7 +138,7 @@ function compileRegionPacks({ config, world, featureCatalog, worldPath, featureP
 
 function buildRegistry({ config, world, featureCatalog, packs, seamNodeIds, sharedWorldRows, sharedFeatureRows, packReferences, worldPath, featurePath }) {
   const { nodes, segments, signals, actors, disruptions, renderGeometry, ...worldRoot } = world;
-  const { land, streets, buildings, bikeFacilities, ...renderTemplate } = renderGeometry;
+  const { land, parks, streets, buildings, bikeFacilities, ...renderTemplate } = renderGeometry;
   const { cards, index, ...featureRoot } = featureCatalog;
   const { tokenToCardIds, kindToCardIds, cardCount, ...indexTemplate } = index;
   const membership = nodeMembership(new Map(packs.map((pack) => [pack.id, { nodes: new Map(pack.nodes.map((row) => [row.id, row])) }])));
@@ -200,6 +202,7 @@ function finalizePack({ config, definition, state, seamMembership, featureCatalo
     disruptions: state.disruptions.sort(byId),
     renderGeometry: {
       land: [],
+      parks: state.renderGeometry.parks.sort(byId),
       streets: state.renderGeometry.streets.sort(byId),
       buildings: state.renderGeometry.buildings.sort(byId),
       bikeFacilities: state.renderGeometry.bikeFacilities.sort(byId),
@@ -241,7 +244,7 @@ function createPackState(definition) {
   return {
     definition,
     nodes: new Map(), segments: [], signals: [], actors: [], disruptions: [], featureCards: [],
-    renderGeometry: { streets: [], buildings: [], bikeFacilities: [] },
+    renderGeometry: { parks: [], streets: [], buildings: [], bikeFacilities: [] },
   };
 }
 
@@ -313,7 +316,7 @@ function compositionCounts(world, featureCatalog) {
   return {
     nodes: world.nodes.length, segments: world.segments.length, signals: world.signals.length,
     actors: world.actors.length, disruptions: world.disruptions.length,
-    land: world.renderGeometry.land.length, streets: world.renderGeometry.streets.length,
+    land: world.renderGeometry.land.length, parks: world.renderGeometry.parks.length, streets: world.renderGeometry.streets.length,
     buildings: world.renderGeometry.buildings.length, bikeFacilities: world.renderGeometry.bikeFacilities.length,
     featureCards: featureCatalog.cards.length,
   };
@@ -322,7 +325,7 @@ function compositionCounts(world, featureCatalog) {
 function packCounts(pack) {
   return {
     nodes: pack.nodes.length, segments: pack.segments.length, signals: pack.signals.length,
-    actors: pack.actors.length, disruptions: pack.disruptions.length, streets: pack.renderGeometry.streets.length,
+    actors: pack.actors.length, disruptions: pack.disruptions.length, parks: pack.renderGeometry.parks.length, streets: pack.renderGeometry.streets.length,
     buildings: pack.renderGeometry.buildings.length, bikeFacilities: pack.renderGeometry.bikeFacilities.length,
     featureCards: pack.featureCards.length, seams: pack.seams.length,
   };
@@ -357,7 +360,7 @@ function updateManifest({ config, registry, registryPath, registrySha256, world,
   if (registryRelativePath === '..' || registryRelativePath.startsWith('../')) {
     throw new Error(`Activated region registry must be under ${DATA_DIR}, received ${registryPath}`);
   }
-  manifest.schema = 'simulatte.autonomyDataManifest.v2';
+  manifest.schema = 'simulatte.autonomyDataManifest.v3';
   manifest.contentVersion = config.registry.manifestContentVersion;
   manifest.world.sha256 = sha256(artifactText(world));
   manifest.featureCatalog.sha256 = sha256(artifactText(featureCatalog));
@@ -368,7 +371,7 @@ function updateManifest({ config, registry, registryPath, registrySha256, world,
   };
   manifest.runtime.worldLoadMode = 'verified_region_composition';
   manifest.runtime.entryPath = '/';
-  manifest.claimBoundary = `This manifest governs one delivery-bike simulation assembled from independently hashed region packs for ${registry.city.label}. It does not claim live conditions, physical-world driving capability, or control of a real vehicle.`;
+  manifest.claimBoundary = `This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for ${registry.city.label}. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.`;
   fs.writeFileSync(MANIFEST_PATH, artifactText(manifest));
 }
 
