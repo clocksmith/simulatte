@@ -12,6 +12,7 @@ const autonomyDir = publicDir;
 const autonomySourceDirs = ['app', 'contracts', 'mission', 'runtime', 'verifier', 'world'].map((name) => path.join(publicDir, name));
 const dataDir = path.join(publicDir, 'data', 'autonomy');
 const contracts = require('../public/contracts/contract-validator.js');
+const cooperativeContracts = require('../public/contracts/cooperative-contracts.js');
 const receipts = require('../public/runtime/canonical-receipts.js');
 const missionApi = require('../public/mission/mission-compiler.js');
 const capabilityApi = require('../public/mission/capability-matrix.js');
@@ -25,6 +26,7 @@ const neuralPlaceCore = require('../public/runtime/neural-place-resolution-core.
 const runtimeLog = require('../public/runtime/runtime-log.js');
 const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
+const cooperativeApi = require('../public/runtime/cooperative-engine.js');
 const regionApi = require('../public/world/region-pack-merger.js');
 const ambientActorApi = require('../public/world/ambient-actors.js');
 const cameraApi = require('../public/app/camera-controller.js');
@@ -81,6 +83,7 @@ function governedAssets() {
     placeResolutionEvidence: referenced('placeResolutionEvidence'),
     modelRuntimeLock: referenced('modelRuntimeLock'),
     policyArenaEvidence: referenced('policyArenaEvidence'),
+    cooperativeScenario: referenced('cooperativeScenario'),
   };
 }
 
@@ -150,7 +153,8 @@ test('autonomy manifest pins and validates every governed asset', () => {
   contracts.validatePlaceResolutionEvidence(rows.placeResolutionEvidence, rows.placeEmbeddingIndex, rows.modelRuntimeLock);
   contracts.validateModelRuntimeLock(rows.modelRuntimeLock);
   contracts.validatePolicyArenaEvidence(rows.policyArenaEvidence);
-  for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'policyArenaEvidence']) {
+  cooperativeContracts.validateScenario(rows.cooperativeScenario);
+  for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'policyArenaEvidence', 'cooperativeScenario']) {
     const reference = rows.manifest[key];
     const file = path.resolve(dataDir, reference.path);
     assert.equal(hashFile(file), reference.sha256, `${key} raw bytes should match the manifest`);
@@ -401,6 +405,10 @@ test('mission shuffle cycles deterministic governed examples that all compile', 
   assert.ok(rows.manifest.missionExamples.length >= 4);
   assert.ok(rows.manifest.missionExamples.includes(rows.manifest.defaultMissionText));
   rows.manifest.missionExamples.forEach((sourceText) => {
+    if (cooperativeApi.recognizesCooperativeRequest(sourceText)) {
+      cooperativeContracts.validateScenario(rows.cooperativeScenario);
+      return;
+    }
     const mission = missionApi.compileMission(sourceText, rows.world, rows.embodiments);
     assert.ok(['delivery', 'point_to_point', 'loop'].includes(mission.task.type), sourceText);
   });

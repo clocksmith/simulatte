@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte participant intent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "revisionId", "participantId", "mode", "baselineJourney", "slack", "reliability", "consentState", "expiresAt"],
+  "properties": {
+    "schema": { "const": "simulatte.participantIntent.v1" },
+    "id": { "type": "string", "minLength": 1 },
+    "revisionId": { "type": "string", "minLength": 1 },
+    "participantId": { "type": "string", "minLength": 1 },
+    "mode": { "type": "string", "minLength": 1 },
+    "baselineJourney": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["originNodeId", "destinationNodeId", "departureAt", "commitmentSha256"],
+      "properties": {
+        "originNodeId": { "type": "string" },
+        "destinationNodeId": { "type": "string" },
+        "departureAt": { "type": "string" },
+        "commitmentSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "slack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixedRoutePrefixSegmentIds", "flexibleRouteSuffixSegmentIds", "earliestDepartureAt", "latestDepartureAt", "maximumAddedTimeSeconds", "maximumAddedDistanceM", "carryingCapacityGrams", "carryingCapacityCm3", "acceptableHandoffTypes", "maximumHandoffWaitSeconds", "interactionBurdenLimit"],
+      "properties": {
+        "fixedRoutePrefixSegmentIds": { "type": "array", "items": { "type": "string" } },
+        "flexibleRouteSuffixSegmentIds": { "type": "array", "items": { "type": "string" } },
+        "earliestDepartureAt": { "type": "string" },
+        "latestDepartureAt": { "type": "string" },
+        "maximumAddedTimeSeconds": { "type": "number", "minimum": 0 },
+        "maximumAddedDistanceM": { "type": "number", "minimum": 0 },
+        "carryingCapacityGrams": { "type": "number", "minimum": 0 },
+        "carryingCapacityCm3": { "type": "number", "minimum": 0 },
+        "acceptableHandoffTypes": { "type": "array", "items": { "type": "string" } },
+        "maximumHandoffWaitSeconds": { "type": "number", "minimum": 0 },
+        "interactionBurdenLimit": { "type": "number", "minimum": 0 }
+      }
+    },
+    "reliability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["onTimeProbability", "arrivalIntervalSeconds", "cancellationProbability"],
+      "properties": {
+        "onTimeProbability": { "type": "number", "minimum": 0, "maximum": 1 },
+        "arrivalIntervalSeconds": { "type": "number", "minimum": 0 },
+        "cancellationProbability": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "consentState": { "enum": ["available", "revoked"] },
+    "expiresAt": { "type": "string" }
+  }
+}

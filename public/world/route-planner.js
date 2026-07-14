@@ -7,6 +7,11 @@
   const safetyRowsCache = new WeakMap();
 
   function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeAmenityIndex = null, safetyHistoryIndex = null }) {
+    const governedOverride = declaredRouteOverride({
+      worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy,
+      excludedSegmentIds, safetyHistoryIndex,
+    });
+    if (governedOverride) return governedOverride;
     const avoidedStreetNames = new Set(mission.constraints.avoidStreetNames || []);
     const avoidedStreetKeys = new Set([...avoidedStreetNames].map(normalizeStreetName));
     const excludedStreetSegmentIds = new Set();
@@ -85,6 +90,28 @@
       visitedNodeIds: visited,
     };
     throw error;
+  }
+
+  function declaredRouteOverride({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds, safetyHistoryIndex }) {
+    const override = mission.constraints.routeOverride;
+    if (!override || !Array.isArray(override.segmentIds) || !override.segmentIds.length || excludedSegmentIds.length) return null;
+    const blocked = new Set(worldModel.blockedSegmentIds(tick));
+    const segments = override.segmentIds.map((id) => worldModel.segment(id));
+    const startIndex = segments.findIndex((segment) => segment.fromNodeId === originNodeId);
+    if (startIndex < 0) return null;
+    const suffix = segments.slice(startIndex);
+    if (suffix.at(-1).toNodeId !== destinationNodeId) return null;
+    if (suffix.some((segment, index) => blocked.has(segment.id)
+      || !segment.allowedModes.includes(mode)
+      || (index > 0 && suffix[index - 1].toNodeId !== segment.fromNodeId))) return null;
+    const segmentIds = suffix.map((row) => row.id);
+    const costBreakdown = routeCostBreakdown(segmentIds, worldModel, mission, policy, safetyHistoryIndex);
+    return routeResult(segmentIds, costBreakdown.total, suffix.map((row) => row.fromNodeId), suffix.length, costBreakdown, 'governed_environment_route_v1', {
+      environmentFieldId: override.environmentFieldId,
+      environmentSelectionId: override.selectionId,
+      environmentObjective: override.objective,
+      ...routeConstraintReceipt(new Set(), new Set(), new Set(), new Set(), mission.constraints.maximumBikeRackDistanceM),
+    });
   }
 
   function planRouteAlternatives(args, maximumAlternatives = 3) {

@@ -6,6 +6,11 @@
   },
   "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",
   "contentVersion": "autonomy-nyc-multimodal-v1",
+  "cooperativeScenario": {
+    "id": "battery-office-east-village-v1",
+    "path": "./cooperation/battery-office-v1.json",
+    "sha256": "67aef222c0716fb9ee52327c0788af7f4c492d5d6352e22c99e8384490cb96ea"
+  },
   "curriculum": {
     "id": "nyc-routing-foundations-v1",
     "path": "./curricula/nyc-routing-foundations-v1.json",
@@ -56,7 +61,9 @@
     "Run around Tompkins Square Park perimeter for 20 minutes.",
     "Walk from Tompkins Square to Washington Square starting at 4 pm and arrive by 5 pm, only in daylight.",
     "Deliver the parcel by bike from West Village to Greenpoint for $18 within 30 minutes.",
-    "Run in circles around Union Squatre Park parimeter until you've run 5000 feet."
+    "Run in circles around Union Squatre Park parimeter until you've run 5000 feet.",
+    "Walk from Union Square to Washington Square in the shade on a hot day.",
+    "I need two AA batteries delivered to my East Village office. Match someone already passing nearby."
   ],
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",

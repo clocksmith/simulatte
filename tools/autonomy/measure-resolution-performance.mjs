@@ -247,6 +247,36 @@ class CdpClient {
   }
 }
 
+async function stopChild(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  let resolveExit;
+  const exited = new Promise((resolve) => { resolveExit = resolve; });
+  child.once('exit', resolveExit);
+  child.kill('SIGTERM');
+  const stopped = await Promise.race([
+    exited.then(() => true),
+    new Promise((resolve) => setTimeout(() => resolve(false), 2000)),
+  ]);
+  if (stopped || child.exitCode !== null || child.signalCode !== null) return;
+  child.kill('SIGKILL');
+  await exited;
+}
+
+async function removeProfileDirectory(profileDir, attempts = 20) {
+  let failure = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 2, retryDelay: 50 });
+      return;
+    } catch (error) {
+      failure = error;
+      if (!['ENOTEMPTY', 'EBUSY', 'EPERM'].includes(error?.code) || attempt === attempts - 1) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 100 + attempt * 25));
+    }
+  }
+  if (failure) throw failure;
+}
+
 function percentile(values, fraction) {
   if (!values.length) return null;
   const sorted = values.slice().sort((left, right) => left - right);
@@ -447,9 +477,9 @@ async function main() {
     }
   } finally {
     client?.close();
-    chrome.kill('SIGKILL');
-    staticHost.server.close();
-    fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+    await stopChild(chrome);
+    await new Promise((resolve) => staticHost.server.close(resolve));
+    await removeProfileDirectory(profileDir);
   }
 
   const accepted = checks.every((row) => row.pass) && checks.length > 0;
@@ -486,4 +516,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   });
 }
 
-export { evaluateHardBudgets, hybridViolations, parseByteRange, partitionLongTasks, percentile };
+export { evaluateHardBudgets, hybridViolations, parseByteRange, partitionLongTasks, percentile, removeProfileDirectory, stopChild };

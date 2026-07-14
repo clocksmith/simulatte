@@ -53,7 +53,7 @@
     examples.forEach((row, index) => v.string(row, `$.missionExamples[${index}]`));
     if (new Set(examples).size !== examples.length) v.fail('$.missionExamples', 'unique mission strings', examples);
     if (!examples.includes(manifest.defaultMissionText)) v.fail('$.missionExamples', 'defaultMissionText member', manifest.defaultMissionText);
-    const keys = ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'policyArenaEvidence'];
+    const keys = ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'policyArenaEvidence', 'cooperativeScenario'];
     keys.forEach((key) => {
       const ref = v.object(manifest[key], `$.${key}`);
       v.string(ref.id, `$.${key}.id`);

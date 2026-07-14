@@ -94,6 +94,16 @@ test('percentile and parseByteRange behave at the boundaries', async () => {
   assert.equal(parseByteRange('bytes=100-', 100).invalid, true);
 });
 
+test('performance harness removes a populated browser profile directory', async () => {
+  const os = require('node:os');
+  const { removeProfileDirectory } = await harnessPromise;
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-profile-cleanup-test-'));
+  fs.mkdirSync(path.join(profile, 'Default', 'Cache', 'Cache_Data', 'index-dir'), { recursive: true });
+  fs.writeFileSync(path.join(profile, 'Default', 'Cache', 'Cache_Data', 'index-dir', 'cache-entry'), 'active-cache-fixture');
+  await removeProfileDirectory(profile);
+  assert.equal(fs.existsSync(profile), false);
+});
+
 test('committed performance receipt stays internally consistent', (t) => {
   if (!fs.existsSync(RECEIPT_PATH)) return t.skip('no performance receipt committed on this host');
   const receipt = JSON.parse(fs.readFileSync(RECEIPT_PATH, 'utf8'));

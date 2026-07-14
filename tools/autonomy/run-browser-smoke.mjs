@@ -260,6 +260,13 @@ async function runBrowserSmoke(options) {
     if (actorViewEvaluation.exceptionDetails) throw new Error(actorViewEvaluation.exceptionDetails.exception && actorViewEvaluation.exceptionDetails.exception.description || actorViewEvaluation.exceptionDetails.text);
     const actorView = actorViewEvaluation.result.value;
     const actorScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    const featureViewEvaluation = await client.send('Runtime.evaluate', {
+      expression: cooperativeFeatureExpression(),
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (featureViewEvaluation.exceptionDetails) throw new Error(featureViewEvaluation.exceptionDetails.exception && featureViewEvaluation.exceptionDetails.exception.description || featureViewEvaluation.exceptionDetails.text);
+    const featureView = featureViewEvaluation.result.value;
     const result = evaluated.result.value;
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
@@ -328,12 +335,21 @@ async function runBrowserSmoke(options) {
       && actorView.dynamicVertexCount > 1000
       && actorView.minimapVisible
       && actorView.minimapFrameCount > 0
+      && featureView.cooperation.visible
+      && featureView.cooperation.state === 'executing'
+      && featureView.cooperation.match.includes('eligible')
+      && featureView.cooperation.burden.includes('$')
+      && featureView.cooperation.reliability.includes('on time')
+      && featureView.shade.preferShade
+      && featureView.shade.routeAlgorithm === 'governed_environment_route_v1'
+      && featureView.shade.proof.includes('direct sun')
+      && featureView.shade.proof.includes('shade')
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v8',
+      schema: 'simulatte.autonomyBrowserSmoke.v9',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -341,6 +357,7 @@ async function runBrowserSmoke(options) {
       result,
       decisionView,
       actorView,
+      featureView,
       errors,
       failedResponses,
       requests: staticHost ? staticHost.requests : [],
@@ -360,6 +377,46 @@ async function runBrowserSmoke(options) {
     if (staticHost) await new Promise((resolve) => staticHost.server.close(resolve));
     fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
   }
+}
+
+function cooperativeFeatureExpression() {
+  return `(async () => {
+    const waitFor = async (predicate, label, limit = 10000) => {
+      const started = performance.now();
+      while (!predicate()) {
+        const status = document.getElementById('runtime-status');
+        if (status?.dataset.kind === 'error') throw new Error(label + ': ' + status.textContent);
+        if (performance.now() - started > limit) throw new Error('timeout at ' + label);
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+    };
+    const input = document.getElementById('mission-input');
+    const step = document.getElementById('step-button');
+    input.value = 'I need two AA batteries delivered to my East Village office. Match someone already passing nearby.';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    step.click();
+    await waitFor(() => !document.getElementById('cooperative-section').hidden
+      && document.getElementById('cooperative-state').textContent.trim() === 'executing', 'cooperative-execution');
+    const cooperation = {
+      visible: !document.getElementById('cooperative-section').hidden && !document.getElementById('cooperative-chip').hidden,
+      state: document.getElementById('cooperative-state').textContent.trim(),
+      match: document.getElementById('cooperative-match').textContent.trim(),
+      burden: document.getElementById('cooperative-burden').textContent.trim(),
+      reliability: document.getElementById('cooperative-reliability').textContent.trim(),
+      handoff: document.getElementById('cooperative-handoff').textContent.trim(),
+    };
+    input.value = 'Walk from Union Square to Washington Square in the shade on a hot day.';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    step.click();
+    await waitFor(() => document.getElementById('alternative-proof').textContent.includes('direct sun'), 'shade-route');
+    const proof = document.getElementById('alternative-proof');
+    const shade = {
+      preferShade: proof.dataset.preferShade === 'true',
+      routeAlgorithm: proof.dataset.routeAlgorithm || null,
+      proof: proof.textContent.trim(),
+    };
+    return { cooperation, shade };
+  })()`;
 }
 
 function actorViewExpression() {

@@ -115,7 +115,7 @@
     const finalDestination = orderedStops.at(-1);
     validateStopExtent(origin, orderedStops);
     const routeTerms = compileRouteTerms(text, world);
-    const { protectedMatch, yieldMatch, avoidedStreet, deadline, compensation, accessibilityMatch, bikeRackProximity, temporal } = routeTerms;
+    const { protectedMatch, yieldMatch, avoidedStreet, deadline, compensation, accessibilityMatch, bikeRackProximity, shadeMatch, temporal } = routeTerms;
     const evidence = [
       evidenceRow('task', text, deliveryMatch, 'exact_lexical'),
       evidenceRow('mode', text, deliveryMode, 'exact_lexical', embodiment.id, embodiment.kind),
@@ -150,6 +150,7 @@
         arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
         daylightOnly: Boolean(temporal.daylightMatch),
         daylightWindowLocalMinutes: [...temporal.daylightWindowLocalMinutes],
+        preferShade: Boolean(shadeMatch),
       },
       obligations: [
         { id: 'obligation-arrival', kind: 'arrival', required: true },
@@ -163,6 +164,7 @@
         { id: 'obligation-accessibility', kind: 'accessibility', required: Boolean(accessibilityMatch) },
         { id: 'obligation-bike-rack-proximity', kind: 'bike_rack_proximity', required: Boolean(bikeRackProximity) },
         { id: 'obligation-daylight-window', kind: 'daylight_window', required: Boolean(temporal.daylightMatch) },
+        { id: 'obligation-direct-sun-exposure', kind: 'direct_sun_exposure', required: Boolean(shadeMatch) },
       ],
       economics: compensation,
       seed,
@@ -187,7 +189,7 @@
     const finalDestination = orderedStops.at(-1);
     validateStopExtent(origin, orderedStops);
     const routeTerms = compileRouteTerms(text, world);
-    const { protectedMatch, yieldMatch, avoidedStreet, deadline, accessibilityMatch, bikeRackProximity, temporal } = routeTerms;
+    const { protectedMatch, yieldMatch, avoidedStreet, deadline, accessibilityMatch, bikeRackProximity, shadeMatch, temporal } = routeTerms;
     const evidence = [
       evidenceRow('task', text, modeMatch, 'exact_lexical', null, 'point_to_point'),
       evidenceRow('mode', text, modeMatch, 'exact_lexical', embodiment.id, embodiment.kind),
@@ -222,6 +224,7 @@
         arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
         daylightOnly: Boolean(temporal.daylightMatch),
         daylightWindowLocalMinutes: [...temporal.daylightWindowLocalMinutes],
+        preferShade: Boolean(shadeMatch),
       },
       obligations: [
         { id: 'obligation-arrival', kind: 'arrival', required: true },
@@ -234,6 +237,7 @@
         { id: 'obligation-accessibility', kind: 'accessibility', required: Boolean(accessibilityMatch) },
         { id: 'obligation-bike-rack-proximity', kind: 'bike_rack_proximity', required: Boolean(bikeRackProximity) },
         { id: 'obligation-daylight-window', kind: 'daylight_window', required: Boolean(temporal.daylightMatch) },
+        { id: 'obligation-direct-sun-exposure', kind: 'direct_sun_exposure', required: Boolean(shadeMatch) },
       ],
       economics: null,
       seed,
@@ -250,6 +254,7 @@
       compensation: matchCompensation(text),
       accessibilityMatch: lexicalMatch(lower, /\b(?:wheelchair|wheel\s+chair|accessible|step[- ]free)\b/),
       bikeRackProximity: matchBikeRackProximity(text),
+      shadeMatch: lexicalMatch(lower, /\b(?:shade|shaded|shadier|less\s+direct\s+sun|avoid(?:ing)?\s+(?:the\s+)?sun|hot\s+day)\b/),
       temporal: compileTemporalTerms(text, world),
     };
   }
@@ -267,6 +272,7 @@
     if (terms.compensation) evidence.push(evidenceRow('compensation', text, terms.compensation.match, 'currency_conversion', null, `${terms.compensation.amountCents} cents`));
     if (terms.accessibilityMatch) evidence.push(evidenceRow('accessibilityProfile', text, terms.accessibilityMatch, 'exact_lexical', null, 'wheelchair'));
     if (terms.bikeRackProximity) evidence.push(evidenceRow('bikeRackProximity', text, terms.bikeRackProximity, 'unit_conversion', null, `${terms.bikeRackProximity.targetDistanceM} m`));
+    if (terms.shadeMatch) evidence.push(evidenceRow('environmentPreference', text, terms.shadeMatch, 'exact_lexical', null, 'minimize_direct_sun'));
     appendTemporalEvidence(evidence, text, terms.temporal);
   }
 

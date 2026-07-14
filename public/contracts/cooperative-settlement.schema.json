@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte cooperative settlement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "planId", "scenarioId", "outcome", "settledAt", "receiptChainParentHash", "custodyEventIds", "predicted", "actual", "dedicatedTripAvoided"],
+  "properties": {
+    "schema": { "const": "simulatte.cooperativeSettlement.v1" },
+    "id": { "type": "string" },
+    "planId": { "type": "string" },
+    "scenarioId": { "type": "string" },
+    "outcome": { "type": "string" },
+    "settledAt": { "type": "string" },
+    "receiptChainParentHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "custodyEventIds": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "predicted": { "type": "object" },
+    "actual": { "type": "object" },
+    "dedicatedTripAvoided": { "type": "boolean" }
+  }
+}

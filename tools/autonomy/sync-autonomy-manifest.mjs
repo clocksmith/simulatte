@@ -14,6 +14,7 @@ const REFERENCE_KEYS = Object.freeze([
   'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex',
   'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry',
   'policyArenaEvidence',
+  'cooperativeScenario',
 ]);
 
 function main() {

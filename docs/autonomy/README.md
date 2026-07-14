@@ -5,6 +5,13 @@ natural-language mission into typed obligations, executes an embodied agent
 through repeated autonomous decisions, settles the predictions made at every
 tick, and emits a hash-linked journey receipt.
 
+The target cooperative-city architecture is specified in
+[Cooperative city architecture](cooperative-city-architecture.md). It covers
+incidental peer delivery, marginal-detour matching, relays, custody, dynamic
+shade routing, and the WebGPU compute boundary. The checked-in battery scenario
+and CPU-reference shade route are executable; relays, live peers, and promoted
+GPU compute remain outside the current claim boundary.
+
 It is not a directions wrapper and it is not a physical-autonomy claim. Its
 distinct product is matched simulation evidence for questions such as:
 

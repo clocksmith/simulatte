@@ -387,6 +387,38 @@ body[data-journey-phase="ready"] .journey-hud {
   bottom: max(16px, env(safe-area-inset-bottom));
 }
 
+.cooperative-chip {
+  position: fixed;
+  z-index: 18;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 54px);
+  display: grid;
+  min-width: 190px;
+  gap: 3px;
+  border: 1px solid rgba(93, 205, 170, 0.55);
+  padding: 10px 12px;
+  color: var(--sim-ink);
+  text-align: left;
+  box-shadow: var(--sim-shadow-small);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+}
+
+.cooperative-chip strong {
+  font-size: 12px;
+}
+
+.cooperative-chip span {
+  color: var(--sim-ink-soft);
+  font: 500 9px/1.35 var(--sim-mono);
+}
+
+.cooperative-chip:hover,
+.cooperative-chip:focus-visible {
+  border-color: var(--sim-green);
+  outline: none;
+}
+
 .mission-dock {
   position: fixed;
   z-index: 24;
@@ -1076,6 +1108,12 @@ body[data-journey-phase="failed"] .mission-more-menu {
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 152px);
   }
 
+  .cooperative-chip {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 206px);
+    min-width: 170px;
+  }
+
   body[data-journey-phase="running"] .map-anchor,
   body[data-journey-phase="paused"] .map-anchor,
   body[data-journey-phase="completed"] .map-anchor,
@@ -1085,6 +1123,13 @@ body[data-journey-phase="failed"] .mission-more-menu {
   body[data-journey-phase="completed"] .decisions-button,
   body[data-journey-phase="failed"] .decisions-button {
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 64px);
+  }
+
+  body[data-journey-phase="running"] .cooperative-chip,
+  body[data-journey-phase="paused"] .cooperative-chip,
+  body[data-journey-phase="completed"] .cooperative-chip,
+  body[data-journey-phase="failed"] .cooperative-chip {
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 116px);
   }
 
   .evidence-panel {

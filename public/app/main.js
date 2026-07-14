@@ -9,11 +9,14 @@
     root.SimulatteNeuralPlaceResolver,
     root.SimulatteJourneyLedger,
     root.SimulatteCounterfactualRunner,
-    root.SimulatteAutonomyReceipts
+    root.SimulatteAutonomyReceipts,
+    root.SimulatteCooperativeEngine,
+    root.SimulatteSunExposure,
+    root.SimulatteAutonomyWorld
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, cooperativeApi, sunApi, worldApi) {
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -52,6 +55,8 @@
     let terminalJourneyLogged = false;
     let hasJourneyStarted = false;
     let placeResolver = null;
+    let cooperativeSession = null;
+    let shadeSelection = null;
     const journeyLedger = ledgerApi.createJourneyLedger();
     const recordedJourneyHashes = new Set();
     let latestCounterfactual = null;
@@ -59,6 +64,17 @@
 
     async function buildController({ keepMissionLocked = false } = {}) {
       clearMissionError(elements);
+      const requestedSourceText = elements.missionInput.value;
+      const cooperativeRequest = cooperativeApi.recognizesCooperativeRequest(requestedSourceText);
+      cooperativeSession = cooperativeRequest
+        ? await cooperativeApi.createCooperativeSession({
+          world: data.world,
+          routingPolicy: data.policy,
+          scenario: data.cooperativeScenario,
+          sourceText: requestedSourceText,
+        })
+        : null;
+      shadeSelection = null;
       const useNeuralPlaces = elements.placeResolutionLane.value === 'qwen_embedding';
       if (useNeuralPlaces && !placeResolver) {
         placeResolver = neuralPlaceApi.createPlaceResolver({
@@ -75,13 +91,37 @@
           },
         });
       }
-      const mission = useNeuralPlaces
-        ? await missionApi.compileMissionWithResolver(elements.missionInput.value, data.world, data.embodiments, placeResolver)
-        : missionApi.compileMission(elements.missionInput.value, data.world, data.embodiments);
+      const executableSourceText = cooperativeSession ? data.cooperativeScenario.carrierMissionText : requestedSourceText;
+      const mission = useNeuralPlaces && !cooperativeSession
+        ? await missionApi.compileMissionWithResolver(executableSourceText, data.world, data.embodiments, placeResolver)
+        : missionApi.compileMission(executableSourceText, data.world, data.embodiments);
+      if (mission.constraints.preferShade) {
+        const pedestrian = data.embodiments.find((row) => row.id === mission.embodimentId);
+        shadeSelection = sunApi.selectShadeAwareRoute({
+          world: data.world,
+          worldModel: worldApi.createWorldModel(data.world),
+          originNodeId: mission.originNodeId,
+          destinationNodeId: mission.destinationNodeId,
+          mode: pedestrian.mode,
+          mission,
+          policy: data.policy,
+          utcInstant: environmentInstant(data.world, mission),
+          maximumAlternatives: 3,
+          directSunWeight: 1.5,
+          unknownWeight: 3,
+        });
+        mission.constraints.routeOverride = {
+          segmentIds: [...shadeSelection.selected.route.segmentIds],
+          environmentFieldId: shadeSelection.field.id,
+          selectionId: `${shadeSelection.field.id}:selected`,
+          objective: shadeSelection.selected.objective,
+        };
+      }
       activeMission = mission;
       log.info('mission.compiled', {
         missionId: mission.id,
-        sourceText: elements.missionInput.value,
+        sourceText: requestedSourceText,
+        executableSourceText,
         embodimentId: mission.embodimentId,
         task: mission.task,
         constraints: mission.constraints,
@@ -89,6 +129,7 @@
         placeResolution: mission.placeResolution,
       });
       renderPlaceResolution(elements, mission, placeResolver?.receipt() || null, data.placeResolutionEvidence);
+      renderCooperation(elements, cooperativeSession?.snapshot() || null);
       const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
       if (!embodiment) throw new Error(`Mission selected unavailable embodiment ${mission.embodimentId}`);
       const nextController = controllerApi.createAutonomyController({
@@ -160,7 +201,7 @@
       const snapshot = controller.snapshot();
       renderer.render(snapshot);
       traceView.renderInitial(snapshot, renderer.receipt());
-      renderPlanning(elements, controller.planning());
+      renderPlanning(elements, { ...controller.planning(), environment: shadeSelection });
       elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
       setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'Ready' : accessibilityRuntimeLabel(controller.planning().accessibility), snapshot.state.status === 'active' ? 'ready' : 'failed');
       updateButtons(elements, keepMissionLocked, true, snapshot.state.status, hasJourneyStarted);
@@ -170,12 +211,31 @@
 
     async function recordJourney(targetController) {
       const receipt = await targetController.journeyReceipt();
+      if (cooperativeSession && receipt.finalState.status === 'completed' && !cooperativeSession.snapshot().settlement) {
+        await cooperativeSession.settle();
+        renderCooperation(elements, cooperativeSession.snapshot());
+      }
       const identity = `${receipt.mission.id}:${receipt.integrity.terminalHash}:${receipt.finalState.status}`;
       if (recordedJourneyHashes.has(identity)) return receipt;
       recordedJourneyHashes.add(identity);
       await journeyLedger.append(receipt);
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       return receipt;
+    }
+
+    async function authorizeCooperativeExecution() {
+      if (!cooperativeSession) return;
+      let cooperative = cooperativeSession.snapshot();
+      if (cooperative.plan.state === 'candidate') {
+        await cooperativeSession.reserve();
+        cooperative = cooperativeSession.snapshot();
+      }
+      if (cooperative.plan.state === 'soft_hold') {
+        for (const participantId of cooperative.plan.participantIds) await cooperativeSession.authorize(participantId);
+        cooperative = cooperativeSession.snapshot();
+      }
+      if (cooperative.plan.state === 'mutually_authorized') await cooperativeSession.startExecution();
+      renderCooperation(elements, cooperativeSession.snapshot());
     }
 
     async function tickFrame(timestamp) {
@@ -196,6 +256,7 @@
         updateButtons(elements, false, true, controller.snapshot().state.status, true);
         return;
       }
+      await authorizeCooperativeExecution();
       renderer.setCameraMode('follow');
       selectCameraMode(elements, 'follow');
       isRunning = true;
@@ -246,6 +307,7 @@
       try {
         stopLoop();
         if (!controller || controller.snapshot().state.status !== 'active') await buildController();
+        await authorizeCooperativeExecution();
         await controller.step();
       } catch (error) {
         failRuntime(elements, error);
@@ -272,11 +334,15 @@
       }
     });
     elements.whatIfButton.addEventListener('click', () => interfaceUi.openDecisions('what-if-section'));
+    elements.cooperativeChip.addEventListener('click', () => interfaceUi.openDecisions('cooperative-section'));
     elements.exportButton.addEventListener('click', async () => {
       if (!controller) return;
       const receipt = await controller.journeyReceipt();
       receipt.rendering = renderer.receipt();
       receipt.dataLoad = structuredClone(data.receipt);
+      receipt.cooperation = cooperativeSession ? cooperativeSession.snapshot() : null;
+      receipt.cooperationTrace = cooperativeSession ? cooperativeSession.trace() : [];
+      receipt.environment = shadeSelection ? structuredClone(shadeSelection) : null;
       log.info('journey.receipt.exported', {
         missionId: receipt.mission.id,
         terminalHash: receipt.integrity.terminalHash,
@@ -410,6 +476,8 @@
       'counterfactual-street-wrap', 'counterfactual-snapshot-wrap', 'import-receipt-button', 'import-receipt-file', 'counterfactual-proof',
       'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'what-if-section',
       'map-panel-button', 'map-popover', 'map-panel-close', 'mission-more-menu',
+      'cooperative-chip', 'cooperative-chip-title', 'cooperative-chip-meta', 'cooperative-section', 'cooperative-state',
+      'cooperative-match', 'cooperative-burden', 'cooperative-reliability', 'cooperative-handoff', 'cooperative-settlement', 'cooperative-liquidity',
     ];
     const elements = Object.fromEntries(ids.map((id) => [camelId(id), document.getElementById(id)]));
     const missing = ids.filter((id) => !document.getElementById(id));
@@ -701,11 +769,58 @@
       ? ''
       : planning.amenities?.pass ? ` · rack ≤${Math.round(planning.amenities.maximumObservedDistanceM)} m` : ' · rack constraint blocked';
     elements.planningForecast.textContent = `${Math.round(forecast.predictedDurationSeconds)} s · ${Math.round(forecast.distanceM).toLocaleString()} m${amenity}`;
-    elements.alternativeProof.textContent = planning.alternatives.length > 1
+    const environment = planning.environment;
+    elements.alternativeProof.dataset.preferShade = String(Boolean(environment));
+    elements.alternativeProof.dataset.routeAlgorithm = planning.alternatives?.[0]?.algorithm || '';
+    elements.alternativeProof.textContent = environment
+      ? `${environment.candidates.length} compared · ${Math.round(environment.selected.exposure.directSunSeconds)} s direct sun · ${Math.round(environment.selected.exposure.shadeSeconds)} s shade`
+      : planning.alternatives.length > 1
       ? `${planning.alternatives.length} compared · ${(planning.alternatives[1].forecast.predictedDurationSeconds - forecast.predictedDurationSeconds).toFixed(1)} s next`
       : 'No distinct legal alternative';
     elements.accessibilityProof.textContent = accessibilityProofLabel(planning.accessibility);
     elements.accessibilityProof.dataset.verdict = planning.accessibility.verdict;
+  }
+
+  function renderCooperation(elements, snapshot) {
+    const visible = Boolean(snapshot);
+    elements.cooperativeSection.hidden = !visible;
+    elements.cooperativeChip.hidden = !visible;
+    if (!visible) return;
+    const plan = snapshot.plan;
+    const burden = plan.marginalBurden;
+    const state = plan.state.replaceAll('_', ' ');
+    elements.cooperativeState.textContent = state;
+    elements.cooperativeMatch.textContent = `${plan.carrierId} · ${snapshot.matching.counts.feasibleCandidates} eligible of ${snapshot.matching.counts.totalOffers}`;
+    elements.cooperativeBurden.textContent = `${signedMeters(burden.addedDistanceM)} · ${signedDuration(burden.addedDurationSeconds)} · $${(burden.compensationCents / 100).toFixed(2)}`;
+    elements.cooperativeReliability.textContent = `${Math.round(plan.reliability.onTimeProbability * 100)}% on time · ${Math.round(plan.reliability.cancellationProbability * 100)}% cancellation · backup available`;
+    elements.cooperativeHandoff.textContent = 'Entrance · security · elevator · floor 12 · office';
+    elements.cooperativeSettlement.textContent = snapshot.settlement
+      ? `fulfilled · ${snapshot.settlement.custodyEventIds.length} custody events · dedicated trip avoided`
+      : `${snapshot.custodyState.replaceAll('_', ' ')} · awaiting outcome`;
+    elements.cooperativeLiquidity.textContent = `${snapshot.liquidity.eligibleOpportunitiesPerRequest} opportunities · ${Math.round(snapshot.liquidity.fulfillmentProbability * 100)}% modeled fulfillment`;
+    elements.cooperativeChipTitle.textContent = '2 AA batteries';
+    elements.cooperativeChipMeta.textContent = `${state} · ${signedDuration(burden.addedDurationSeconds)} marginal`;
+  }
+
+  function signedMeters(value) {
+    const amount = Math.round(Math.abs(value));
+    if (value < 0) return `${amount} m less riding`;
+    if (value > 0) return `+${amount} m`;
+    return 'no added distance';
+  }
+
+  function signedDuration(value) {
+    const seconds = Math.round(Math.abs(value));
+    const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+    return value < 0 ? `${text} faster` : value > 0 ? `+${text}` : 'no added time';
+  }
+
+  function environmentInstant(world, mission) {
+    const snapshotDate = world.provenance?.snapshotDate || '2026-07-14';
+    const localMinutes = mission.constraints.departureLocalMinutes;
+    const hour = String(Math.floor(localMinutes / 60)).padStart(2, '0');
+    const minute = String(localMinutes % 60).padStart(2, '0');
+    return new Date(`${snapshotDate}T${hour}:${minute}:00-04:00`).toISOString();
   }
 
   function accessibilityProofLabel(audit) {

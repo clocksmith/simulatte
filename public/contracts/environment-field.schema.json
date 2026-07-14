@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte environment field",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "worldId", "civilTime", "utcInstant", "sunModel", "buildingDatasetId", "azimuthDegrees", "elevationDegrees", "gridResolutionM", "computeImplementation", "counts", "segmentRows"],
+  "properties": {
+    "schema": { "const": "simulatte.environmentField.v1" },
+    "id": { "type": "string" },
+    "worldId": { "type": "string" },
+    "civilTime": { "type": "string" },
+    "utcInstant": { "type": "string" },
+    "sunModel": { "type": "string" },
+    "buildingDatasetId": { "type": "string" },
+    "azimuthDegrees": { "type": "number" },
+    "elevationDegrees": { "type": "number" },
+    "gridResolutionM": { "type": "number", "exclusiveMinimum": 0 },
+    "computeImplementation": { "type": "string" },
+    "timeSampling": { "type": "object" },
+    "counts": { "type": "object" },
+    "segmentRows": { "type": "array" }
+  }
+}

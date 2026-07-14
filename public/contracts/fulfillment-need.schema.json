@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte fulfillment need",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "requesterId", "itemId", "quantity", "acceptableSubstitutionGroupIds", "destinationNodeId", "buildingHandoffGraphId", "earliestAt", "latestAt", "riskTier", "maximumCompensationCents", "consentState", "expiresAt"],
+  "properties": {
+    "schema": { "const": "simulatte.fulfillmentNeed.v1" },
+    "id": { "type": "string" },
+    "requesterId": { "type": "string" },
+    "itemId": { "type": "string" },
+    "quantity": { "type": "integer", "minimum": 1 },
+    "acceptableSubstitutionGroupIds": { "type": "array", "items": { "type": "string" } },
+    "destinationNodeId": { "type": "string" },
+    "buildingHandoffGraphId": { "type": "string" },
+    "earliestAt": { "type": "string" },
+    "latestAt": { "type": "string" },
+    "riskTier": { "type": "string" },
+    "maximumCompensationCents": { "type": "number", "minimum": 0 },
+    "consentState": { "enum": ["available", "revoked"] },
+    "expiresAt": { "type": "string" }
+  }
+}

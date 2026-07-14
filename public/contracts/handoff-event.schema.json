@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte handoff event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "planId", "needId", "itemId", "actorId", "locationNodeId", "occurredAt", "authorizationId", "priorState", "resultingState", "quantity", "priorEventHash", "eventHash"],
+  "properties": {
+    "schema": { "const": "simulatte.handoffEvent.v1" },
+    "id": { "type": "string" },
+    "planId": { "type": "string" },
+    "needId": { "type": "string" },
+    "itemId": { "type": "string" },
+    "actorId": { "type": "string" },
+    "locationNodeId": { "type": "string" },
+    "occurredAt": { "type": "string" },
+    "authorizationId": { "type": "string" },
+    "priorState": { "type": "string" },
+    "resultingState": { "type": "string" },
+    "quantity": { "type": "integer", "minimum": 1 },
+    "priorEventHash": { "type": "string" },
+    "eventHash": { "type": "string" }
+  }
+}

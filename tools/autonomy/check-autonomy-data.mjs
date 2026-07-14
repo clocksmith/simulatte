@@ -11,6 +11,7 @@ const PUBLIC = path.join(ROOT, 'public');
 const MANIFEST_PATH = path.join(PUBLIC, 'data/autonomy/autonomy-manifest.json');
 const require = createRequire(import.meta.url);
 const contracts = require('../../public/contracts/contract-validator.js');
+const cooperativeContracts = require('../../public/contracts/cooperative-contracts.js');
 const regionApi = require('../../public/world/region-pack-merger.js');
 
 function readJson(file) {
@@ -99,6 +100,7 @@ function main() {
   const curriculum = resolveReference(manifest, 'curriculum');
   const worldSnapshotRegistry = resolveReference(manifest, 'worldSnapshotRegistry');
   const policyArenaEvidence = resolveReference(manifest, 'policyArenaEvidence');
+  const cooperativeScenario = resolveReference(manifest, 'cooperativeScenario');
   const regionRegistry = resolveReference(manifest, 'regionRegistry');
   const registryFile = path.resolve(path.dirname(MANIFEST_PATH), manifest.regionRegistry.path);
   contracts.validateRegionRegistry(regionRegistry);
@@ -129,6 +131,7 @@ function main() {
   contracts.validateCurriculum(curriculum, world);
   contracts.validateWorldSnapshotRegistry(worldSnapshotRegistry, world);
   contracts.validatePolicyArenaEvidence(policyArenaEvidence);
+  cooperativeContracts.validateScenario(cooperativeScenario);
   publicAutonomyJavaScript().forEach((file) => {
     const lineCount = fs.readFileSync(file, 'utf8').split(/\r?\n/).length;
     if (lineCount > 999) throw new Error(`${path.relative(ROOT, file)} has ${lineCount} lines; maximum is 999`);

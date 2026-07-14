@@ -1,0 +1,233 @@
+{
+  "schema": "simulatte.cooperativeScenario.v1",
+  "id": "battery-office-east-village-v1",
+  "contentVersion": "battery-office-east-village-v1",
+  "worldId": "nyc-core-autonomy-v1",
+  "carrierMissionText": "Deliver the parcel by bike from Washington Square to East Village, then North Williamsburg. Prefer protected lanes and yield to pedestrians.",
+  "itemTaxonomy": {
+    "id": "cooperative-item-taxonomy-v1",
+    "items": [
+      {
+        "id": "battery-aa-alkaline",
+        "label": "AA alkaline battery",
+        "unit": "each",
+        "substitutionGroupId": "battery-aa-compatible",
+        "riskTier": "ordinary_goods",
+        "massGrams": 23,
+        "volumeCm3": 8.3,
+        "maximumValueCents": 1000,
+        "requiredAcknowledgements": ["quantity", "sealed_or_loose_condition"]
+      },
+      {
+        "id": "battery-aaa-alkaline",
+        "label": "AAA alkaline battery",
+        "unit": "each",
+        "substitutionGroupId": "battery-aaa-compatible",
+        "riskTier": "ordinary_goods",
+        "massGrams": 11.5,
+        "volumeCm3": 3.8,
+        "maximumValueCents": 1000,
+        "requiredAcknowledgements": ["quantity", "sealed_or_loose_condition"]
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "requester-riley",
+      "assuranceTier": "local_demo_low_risk",
+      "disclosurePolicy": "coarse_destination_until_mutual_authorization"
+    },
+    {
+      "id": "carrier-alex",
+      "assuranceTier": "local_demo_low_risk",
+      "disclosurePolicy": "coarse_corridor_until_mutual_authorization"
+    },
+    {
+      "id": "carrier-jules",
+      "assuranceTier": "local_demo_low_risk",
+      "disclosurePolicy": "coarse_corridor_until_mutual_authorization"
+    }
+  ],
+  "intents": [
+    {
+      "schema": "simulatte.participantIntent.v1",
+      "id": "intent-alex-north-brooklyn-v1",
+      "revisionId": "intent-alex-north-brooklyn-v1-r1",
+      "participantId": "carrier-alex",
+      "mode": "delivery_bike",
+      "baselineJourney": {
+        "originNodeId": "bike-node-a3f0f4b7e7e3",
+        "destinationNodeId": "bike-node-e25116ea05a4",
+        "departureAt": "2026-07-14T16:00:00-04:00",
+        "commitmentSha256": "cb6c802206386e811cc5f6843fe6e32e242878e08e83c2fe29222c3c9b9c3e62"
+      },
+      "slack": {
+        "fixedRoutePrefixSegmentIds": [],
+        "flexibleRouteSuffixSegmentIds": [],
+        "earliestDepartureAt": "2026-07-14T15:55:00-04:00",
+        "latestDepartureAt": "2026-07-14T16:08:00-04:00",
+        "maximumAddedTimeSeconds": 900,
+        "maximumAddedDistanceM": 2200,
+        "carryingCapacityGrams": 1500,
+        "carryingCapacityCm3": 3000,
+        "acceptableHandoffTypes": ["building_entrance", "security_desk", "office_zone"],
+        "maximumHandoffWaitSeconds": 240,
+        "interactionBurdenLimit": 12
+      },
+      "reliability": {
+        "onTimeProbability": 0.93,
+        "arrivalIntervalSeconds": 240,
+        "cancellationProbability": 0.04
+      },
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:20:00-04:00"
+    },
+    {
+      "schema": "simulatte.participantIntent.v1",
+      "id": "intent-jules-north-brooklyn-v1",
+      "revisionId": "intent-jules-north-brooklyn-v1-r1",
+      "participantId": "carrier-jules",
+      "mode": "delivery_bike",
+      "baselineJourney": {
+        "originNodeId": "bike-node-0d9391b2bfa3",
+        "destinationNodeId": "bike-node-e25116ea05a4",
+        "departureAt": "2026-07-14T16:04:00-04:00",
+        "commitmentSha256": "bce51486fca7595f288b26fdaf8a505bcbcde0607962c3f50c3b150d2423bea4"
+      },
+      "slack": {
+        "fixedRoutePrefixSegmentIds": [],
+        "flexibleRouteSuffixSegmentIds": [],
+        "earliestDepartureAt": "2026-07-14T16:00:00-04:00",
+        "latestDepartureAt": "2026-07-14T16:12:00-04:00",
+        "maximumAddedTimeSeconds": 1200,
+        "maximumAddedDistanceM": 2800,
+        "carryingCapacityGrams": 2000,
+        "carryingCapacityCm3": 4000,
+        "acceptableHandoffTypes": ["building_entrance", "security_desk", "office_zone"],
+        "maximumHandoffWaitSeconds": 300,
+        "interactionBurdenLimit": 14
+      },
+      "reliability": {
+        "onTimeProbability": 0.86,
+        "arrivalIntervalSeconds": 360,
+        "cancellationProbability": 0.08
+      },
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:25:00-04:00"
+    }
+  ],
+  "need": {
+    "schema": "simulatte.fulfillmentNeed.v1",
+    "id": "need-riley-two-aa-v1",
+    "requesterId": "requester-riley",
+    "itemId": "battery-aa-alkaline",
+    "quantity": 2,
+    "acceptableSubstitutionGroupIds": ["battery-aa-compatible"],
+    "destinationNodeId": "bike-node-ffea919f743c",
+    "buildingHandoffGraphId": "east-village-office-handoff-v1",
+    "earliestAt": "2026-07-14T16:05:00-04:00",
+    "latestAt": "2026-07-14T16:32:00-04:00",
+    "riskTier": "ordinary_goods",
+    "maximumCompensationCents": 800,
+    "consentState": "available",
+    "expiresAt": "2026-07-14T16:32:00-04:00"
+  },
+  "offers": [
+    {
+      "schema": "simulatte.resourceOffer.v1",
+      "id": "offer-alex-two-aa-v1",
+      "participantId": "carrier-alex",
+      "intentId": "intent-alex-north-brooklyn-v1",
+      "itemId": "battery-aa-alkaline",
+      "quantity": 2,
+      "kind": "already_carried",
+      "availableNodeId": "bike-node-a3f0f4b7e7e3",
+      "riskTier": "ordinary_goods",
+      "minimumCompensationCents": 250,
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:20:00-04:00"
+    },
+    {
+      "schema": "simulatte.resourceOffer.v1",
+      "id": "offer-jules-two-aa-v1",
+      "participantId": "carrier-jules",
+      "intentId": "intent-jules-north-brooklyn-v1",
+      "itemId": "battery-aa-alkaline",
+      "quantity": 2,
+      "kind": "already_carried",
+      "availableNodeId": "bike-node-0d9391b2bfa3",
+      "riskTier": "ordinary_goods",
+      "minimumCompensationCents": 325,
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:25:00-04:00"
+    },
+    {
+      "schema": "simulatte.resourceOffer.v1",
+      "id": "offer-alex-one-aa-decoy-v1",
+      "participantId": "carrier-alex",
+      "intentId": "intent-alex-north-brooklyn-v1",
+      "itemId": "battery-aa-alkaline",
+      "quantity": 1,
+      "kind": "already_carried",
+      "availableNodeId": "bike-node-a3f0f4b7e7e3",
+      "riskTier": "ordinary_goods",
+      "minimumCompensationCents": 50,
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:20:00-04:00"
+    },
+    {
+      "schema": "simulatte.resourceOffer.v1",
+      "id": "offer-alex-aaa-decoy-v1",
+      "participantId": "carrier-alex",
+      "intentId": "intent-alex-north-brooklyn-v1",
+      "itemId": "battery-aaa-alkaline",
+      "quantity": 4,
+      "kind": "already_carried",
+      "availableNodeId": "bike-node-a3f0f4b7e7e3",
+      "riskTier": "ordinary_goods",
+      "minimumCompensationCents": 100,
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:20:00-04:00"
+    }
+  ],
+  "buildingHandoffGraphs": [
+    {
+      "id": "east-village-office-handoff-v1",
+      "sourceKind": "scenario_authoring",
+      "claimBoundary": "Synthetic office topology used to test vertical handoff contracts. It is not a factual description of a real East Village building.",
+      "nodes": [
+        { "id": "office-sidewalk", "kind": "sidewalk", "label": "Street arrival", "level": 0, "access": "public", "disclosurePolicy": "coarse_before_authorization" },
+        { "id": "office-entrance", "kind": "entrance", "label": "Building entrance", "level": 0, "access": "controlled", "disclosurePolicy": "exact_after_authorization" },
+        { "id": "office-security", "kind": "security_desk", "label": "Security desk", "level": 0, "access": "controlled", "disclosurePolicy": "exact_after_authorization" },
+        { "id": "office-lobby", "kind": "lobby", "label": "Lobby", "level": 0, "access": "controlled", "disclosurePolicy": "exact_after_authorization" },
+        { "id": "office-elevator", "kind": "elevator", "label": "Elevator", "level": 0, "access": "controlled", "disclosurePolicy": "exact_after_authorization" },
+        { "id": "office-floor-12", "kind": "floor", "label": "Floor 12", "level": 12, "access": "private", "disclosurePolicy": "exact_after_authorization" },
+        { "id": "office-handoff-zone", "kind": "office_zone", "label": "Office handoff zone", "level": 12, "access": "private", "disclosurePolicy": "exact_after_authorization" }
+      ],
+      "edges": [
+        { "id": "walk-to-entrance", "fromNodeId": "office-sidewalk", "toNodeId": "office-entrance", "mode": "walk", "expectedTraversalSeconds": 25 },
+        { "id": "security-check", "fromNodeId": "office-entrance", "toNodeId": "office-security", "mode": "security", "expectedTraversalSeconds": 75 },
+        { "id": "cross-lobby", "fromNodeId": "office-security", "toNodeId": "office-lobby", "mode": "walk", "expectedTraversalSeconds": 20 },
+        { "id": "wait-elevator", "fromNodeId": "office-lobby", "toNodeId": "office-elevator", "mode": "wait", "expectedTraversalSeconds": 45 },
+        { "id": "ride-elevator", "fromNodeId": "office-elevator", "toNodeId": "office-floor-12", "mode": "elevator", "expectedTraversalSeconds": 55 },
+        { "id": "office-handoff", "fromNodeId": "office-floor-12", "toNodeId": "office-handoff-zone", "mode": "walk", "expectedTraversalSeconds": 30 }
+      ]
+    }
+  ],
+  "policy": {
+    "id": "cooperative-burden-policy-v1",
+    "cellSizeM": 350,
+    "timeBucketSeconds": 300,
+    "maximumCandidates": 64,
+    "softHoldSeconds": 90,
+    "maximumRelayHops": 2,
+    "minimumOnTimeProbability": 0.8,
+    "compensationKinds": ["direct", "mutual_aid_credit", "reciprocal_favor", "shared_savings", "community_funded", "voluntary_zero"]
+  },
+  "failureInjection": {
+    "participantId": "carrier-alex",
+    "delaySeconds": 720,
+    "latestSafeReassignmentSeconds": 360
+  },
+  "claimBoundary": "This deterministic local scenario proves cooperative contracts, matching, authorization, recovery, custody, and settlement against governed map routes plus a synthetic building handoff graph. It does not represent live demand, a real participant, payment, identity verification, or physical delivery."
+}

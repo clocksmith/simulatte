@@ -88,6 +88,11 @@
 
         <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false">Decisions</button>
 
+        <button id="cooperative-chip" class="cooperative-chip sim-surface" type="button" aria-controls="decisions-drawer" hidden>
+          <strong id="cooperative-chip-title">2 AA batteries</strong>
+          <span id="cooperative-chip-meta">Finding a passing carrier</span>
+        </button>
+
         <section class="mission-dock sim-surface" aria-label="Mission">
           <label class="mission-field" for="mission-input">
             <span class="sr-only">Describe a mission</span>
@@ -138,6 +143,18 @@
           <div><dt>Alternative</dt><dd id="alternative-proof">Not planned</dd></div>
           <div><dt>Settled locally</dt><dd id="ledger-proof">0 trials</dd></div>
           <div><dt>Policy</dt><dd id="policy-arena-proof">Loading evidence</dd></div>
+        </dl>
+      </details>
+
+      <details id="cooperative-section" class="evidence-section cooperation-evidence" hidden open>
+        <summary>Cooperation <span id="cooperative-state">No network request</span></summary>
+        <dl class="journey-facts">
+          <div><dt>Match</dt><dd id="cooperative-match">No cooperative plan</dd></div>
+          <div><dt>Burden</dt><dd id="cooperative-burden">Not calculated</dd></div>
+          <div><dt>Reliability</dt><dd id="cooperative-reliability">Not calculated</dd></div>
+          <div><dt>Handoff</dt><dd id="cooperative-handoff">Not planned</dd></div>
+          <div><dt>Settlement</dt><dd id="cooperative-settlement">Not settled</dd></div>
+          <div><dt>Liquidity</dt><dd id="cooperative-liquidity">Not measured</dd></div>
         </dl>
       </details>
 
@@ -209,6 +226,7 @@
 
   <script defer src="./contracts/data-contract-validator.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./contracts/contract-validator.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
+  <script defer src="./contracts/cooperative-contracts.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./runtime/canonical-receipts.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./world/region-pack-merger.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./runtime/runtime-log.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
@@ -220,6 +238,7 @@
   <script defer src="./world/ambient-actors.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./world/world-model.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./world/route-planner.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
+  <script defer src="./world/sun-exposure.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./world/accessibility-audit.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./runtime/feature-retrieval.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./runtime/occurrence-engine.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
@@ -233,6 +252,7 @@
   <script defer src="./runtime/autonomy-controller.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./runtime/journey-ledger.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./runtime/counterfactual-runner.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
+  <script defer src="./runtime/cooperative-engine.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./app/webgpu-math.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./app/webgpu-actor-geometry.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
   <script defer src="./app/webgpu-geometry.js?v=336c50be3362dd7500956446e39e1fc1757e6533-8cf15fce9664"></script>
